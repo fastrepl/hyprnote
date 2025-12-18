@@ -42,16 +42,6 @@ type UpstreamReceiver = SplitStream<WebSocketStream<MaybeTlsStream<tokio::net::T
 type ClientSender = SplitSink<WebSocket, Message>;
 type ClientReceiver = SplitStream<WebSocket>;
 
-/// Builder for configuring a WebSocket proxy.
-///
-/// # Example
-/// ```ignore
-/// let proxy = WebSocketProxy::builder()
-///     .upstream_url("wss://api.example.com/ws")
-///     .header("Authorization", "Bearer token")
-///     .connect_timeout(Duration::from_secs(10))
-///     .build();
-/// ```
 pub struct WebSocketProxyBuilder {
     upstream_url: Option<String>,
     headers: HashMap<String, String>,
@@ -71,26 +61,21 @@ impl Default for WebSocketProxyBuilder {
 }
 
 impl WebSocketProxyBuilder {
-    /// Set the upstream WebSocket URL.
     pub fn upstream_url(mut self, url: impl Into<String>) -> Self {
         self.upstream_url = Some(url.into());
         self
     }
 
-    /// Add a single header for upstream authentication.
     pub fn header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.headers.insert(key.into(), value.into());
         self
     }
 
-    /// Add multiple headers for upstream authentication.
     pub fn headers(mut self, headers: HashMap<String, String>) -> Self {
         self.headers.extend(headers);
         self
     }
 
-    /// Set a custom `ClientRequestBuilder` for full control over the upstream request.
-    /// This overrides `upstream_url` and `headers` if set.
     pub fn upstream_request(
         self,
         request: ClientRequestBuilder,
@@ -102,8 +87,6 @@ impl WebSocketProxyBuilder {
         }
     }
 
-    /// Set a function to determine if a message is a control message.
-    /// Control messages are prioritized in the queue.
     pub fn control_message_matcher<F>(mut self, matcher: F) -> Self
     where
         F: Fn(&[u8]) -> bool + Send + Sync + 'static,
@@ -112,13 +95,11 @@ impl WebSocketProxyBuilder {
         self
     }
 
-    /// Set the timeout for connecting to the upstream server.
     pub fn connect_timeout(mut self, timeout: Duration) -> Self {
         self.connect_timeout = timeout;
         self
     }
 
-    /// Build the WebSocket proxy.
     pub fn build(self) -> WebSocketProxy {
         let url = self.upstream_url.expect("upstream_url is required");
         let mut request = ClientRequestBuilder::new(url.parse().expect("invalid upstream URL"));
@@ -135,7 +116,6 @@ impl WebSocketProxyBuilder {
     }
 }
 
-/// Builder variant when using a custom `ClientRequestBuilder`.
 pub struct WebSocketProxyBuilderWithRequest {
     upstream_request: ClientRequestBuilder,
     control_message_matcher: Option<ControlMessageMatcher>,
@@ -143,7 +123,6 @@ pub struct WebSocketProxyBuilderWithRequest {
 }
 
 impl WebSocketProxyBuilderWithRequest {
-    /// Set a function to determine if a message is a control message.
     pub fn control_message_matcher<F>(mut self, matcher: F) -> Self
     where
         F: Fn(&[u8]) -> bool + Send + Sync + 'static,
@@ -152,13 +131,11 @@ impl WebSocketProxyBuilderWithRequest {
         self
     }
 
-    /// Set the timeout for connecting to the upstream server.
     pub fn connect_timeout(mut self, timeout: Duration) -> Self {
         self.connect_timeout = timeout;
         self
     }
 
-    /// Build the WebSocket proxy.
     pub fn build(self) -> WebSocketProxy {
         WebSocketProxy {
             upstream_request: self.upstream_request,
@@ -168,7 +145,6 @@ impl WebSocketProxyBuilderWithRequest {
     }
 }
 
-/// A bidirectional WebSocket proxy that forwards messages between a client and upstream server.
 #[derive(Clone)]
 pub struct WebSocketProxy {
     upstream_request: ClientRequestBuilder,
@@ -177,13 +153,10 @@ pub struct WebSocketProxy {
 }
 
 impl WebSocketProxy {
-    /// Create a new builder for configuring the proxy.
     pub fn builder() -> WebSocketProxyBuilder {
         WebSocketProxyBuilder::default()
     }
 
-    /// Handle an incoming WebSocket connection by proxying to upstream.
-    /// This connects to upstream when called (connect-on-demand).
     pub async fn handle(&self, client_socket: WebSocket) {
         let connection = WebSocketProxyConnection::new(
             self.upstream_request.clone(),
@@ -193,7 +166,6 @@ impl WebSocketProxy {
         connection.run(client_socket).await;
     }
 
-    /// Handle a WebSocket upgrade request and return an HTTP response.
     pub async fn handle_upgrade(&self, ws: WebSocketUpgrade) -> Response<Body> {
         let proxy = self.clone();
         ws.on_upgrade(move |socket| async move {
@@ -202,15 +174,12 @@ impl WebSocketProxy {
         .into_response()
     }
 
-    /// Preconnect to the upstream server before accepting a client.
-    /// Returns a `PreconnectedProxy` that can be used to handle a client connection
-    /// with reduced latency since the upstream connection is already established.
-    pub async fn preconnect(&self) -> Result<PreconnectedProxy, PreconnectError> {
+    pub async fn preconnect(&self) -> Result<PreconnectedProxy, crate::PreconnectError> {
         let req = self
             .upstream_request
             .clone()
             .into_client_request()
-            .map_err(|e| PreconnectError::InvalidRequest(e.to_string()))?;
+            .map_err(|e| crate::PreconnectError::InvalidRequest(e.to_string()))?;
 
         tracing::info!("preconnecting_to_upstream: {:?}", req.uri());
 
@@ -219,10 +188,10 @@ impl WebSocketProxy {
         let upstream_stream = match upstream_result {
             Ok(Ok((stream, _))) => stream,
             Ok(Err(e)) => {
-                return Err(PreconnectError::ConnectionFailed(e.to_string()));
+                return Err(crate::PreconnectError::ConnectionFailed(e.to_string()));
             }
             Err(_) => {
-                return Err(PreconnectError::Timeout);
+                return Err(crate::PreconnectError::Timeout);
             }
         };
 
@@ -233,7 +202,6 @@ impl WebSocketProxy {
     }
 }
 
-/// Implements `tower::Service` for use with Axum routing.
 impl Service<Request<Body>> for WebSocketProxy {
     type Response = Response<Body>;
     type Error = std::convert::Infallible;
@@ -268,27 +236,12 @@ impl Service<Request<Body>> for WebSocketProxy {
     }
 }
 
-/// Error type for preconnect operations.
-#[derive(Debug, thiserror::Error)]
-pub enum PreconnectError {
-    #[error("invalid upstream request: {0}")]
-    InvalidRequest(String),
-    #[error("upstream connection failed: {0}")]
-    ConnectionFailed(String),
-    #[error("upstream connection timeout")]
-    Timeout,
-}
-
-/// A proxy with a pre-established upstream connection.
-/// Use this for latency-sensitive scenarios where you want to connect
-/// to upstream before the client connects.
 pub struct PreconnectedProxy {
     upstream_stream: Option<WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>>,
     control_message_matcher: Option<ControlMessageMatcher>,
 }
 
 impl PreconnectedProxy {
-    /// Handle an incoming client WebSocket using the pre-established upstream connection.
     pub async fn handle(mut self, client_socket: WebSocket) {
         let upstream_stream = match self.upstream_stream.take() {
             Some(s) => s,
@@ -306,7 +259,6 @@ impl PreconnectedProxy {
         .await;
     }
 
-    /// Handle a WebSocket upgrade request using the pre-established upstream connection.
     pub async fn handle_upgrade(self, ws: WebSocketUpgrade) -> Response<Body> {
         ws.on_upgrade(move |socket| async move {
             self.handle(socket).await;
@@ -407,7 +359,6 @@ impl WebSocketProxyConnection {
         tracing::info!("websocket_proxy_connection_closed");
     }
 
-    /// Run the proxy with a pre-established upstream connection.
     async fn run_with_upstream(
         client_socket: WebSocket,
         upstream_stream: WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,

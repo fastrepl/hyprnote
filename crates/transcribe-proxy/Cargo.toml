@@ -1,0 +1,15 @@
+[package]
+name = "transcribe-proxy"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+thiserror = { workspace = true }
+
+axum = { workspace = true, features = ["ws"] }
+bytes = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "time", "sync", "macros"] }
+tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"] }
+tower = { workspace = true }
+tracing = { workspace = true }

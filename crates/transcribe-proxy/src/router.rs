@@ -85,7 +85,9 @@ async fn resolve_upstream_url(
                 }
             }
             for (key, value) in provider.default_query_params() {
-                url.query_pairs_mut().append_pair(key, value);
+                if !params.contains_key(*key) {
+                    url.query_pairs_mut().append_pair(key, value);
+                }
             }
             Ok(url.to_string())
         }

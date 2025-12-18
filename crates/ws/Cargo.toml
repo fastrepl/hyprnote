@@ -6,7 +6,7 @@ edition = "2024"
 [features]
 default = ["client"]
 client = []
-server = []
+server = ["axum"]
 
 [dependencies]
 bytes = { workspace = true }
@@ -19,6 +19,8 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "time", "sync", "macros"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"] }
 tracing = { workspace = true }
+
+axum = { workspace = true, optional = true, features = ["ws"] }
 
 [dev-dependencies]
 serde_json.workspace = true

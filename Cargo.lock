@@ -20918,6 +20918,7 @@ name = "ws"
 version = "0.1.0"
 dependencies = [
  "async-stream",
+ "axum 0.8.7",
  "backon",
  "bytes",
  "futures-util",

@@ -26,7 +26,19 @@ pub async fn check_and_download_update<R: tauri::Runtime>(app: &tauri::AppHandle
     };
 
     let version = update.version.clone();
-    let _bytes = update.download(|_, _| {}, || {}).await;
+
+    let bytes = match update.download(|_, _| {}, || {}).await {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            tracing::error!("failed_to_download_update: {}", e);
+            return;
+        }
+    };
+
+    if let Err(e) = app.updater2().cache_update_bytes(&version, &bytes) {
+        tracing::error!("failed_to_cache_update_bytes: {}", e);
+        return;
+    }
 
     if let Err(e) = app
         .updater2()

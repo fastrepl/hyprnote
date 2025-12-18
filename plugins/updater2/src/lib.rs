@@ -18,6 +18,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::get_pending_update::<tauri::Wry>,
+            commands::install_from_cached::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![
             events::UpdatedEvent,

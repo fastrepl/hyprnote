@@ -8,6 +8,16 @@ pub enum Error {
     Store2(#[from] tauri_plugin_store2::Error),
     #[error(transparent)]
     Updater(#[from] tauri_plugin_updater::Error),
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    #[error("cache path unavailable")]
+    CachePathUnavailable,
+    #[error("cached update not found")]
+    CachedUpdateNotFound,
+    #[error("no pending update")]
+    NoPendingUpdate,
+    #[error("update not available")]
+    UpdateNotAvailable,
 }
 
 impl Serialize for Error {

@@ -47,17 +47,8 @@ export function Update() {
   }, [refetch]);
 
   const handleInstallUpdate = useCallback(async () => {
-    try {
-      const u = await check();
-      if (u) {
-        await u.download();
-        await u.install();
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      await relaunch();
-    }
+    await commands.installFromCached();
+    await relaunch();
   }, []);
 
   if (!show) {

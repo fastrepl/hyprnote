@@ -40,4 +40,30 @@ Denies the get_pending_update command without any pre-configured scope.
 
 </td>
 </tr>
+
+<tr>
+<td>
+
+`updater2:allow-install-from-cached`
+
+</td>
+<td>
+
+Enables the install_from_cached command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`updater2:deny-install-from-cached`
+
+</td>
+<td>
+
+Denies the install_from_cached command without any pre-configured scope.
+
+</td>
+</tr>
 </table>

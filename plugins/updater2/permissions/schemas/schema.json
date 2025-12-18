@@ -307,6 +307,18 @@
           "markdownDescription": "Denies the get_pending_update command without any pre-configured scope."
         },
         {
+          "description": "Enables the install_from_cached command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-install-from-cached",
+          "markdownDescription": "Enables the install_from_cached command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the install_from_cached command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-install-from-cached",
+          "markdownDescription": "Denies the install_from_cached command without any pre-configured scope."
+        },
+        {
           "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-pending-update`",
           "type": "string",
           "const": "default",

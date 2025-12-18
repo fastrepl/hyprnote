@@ -1,4 +1,8 @@
+use std::path::PathBuf;
+
+use tauri::Manager;
 use tauri_plugin_store2::Store2PluginExt;
+use tauri_plugin_updater::UpdaterExt;
 use tauri_specta::Event;
 
 use crate::events::UpdatedEvent;
@@ -75,6 +79,49 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
             tracing::error!("failed_to_update_version: {}", e);
         }
     }
+
+    pub fn cache_update_bytes(&self, version: &str, bytes: &[u8]) -> Result<(), crate::Error> {
+        let cache_path =
+            get_cache_path(self.manager, version).ok_or(crate::Error::CachePathUnavailable)?;
+
+        if let Some(parent) = cache_path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+
+        std::fs::write(&cache_path, bytes)?;
+        tracing::debug!("cached_update_bytes: {:?}", cache_path);
+        Ok(())
+    }
+
+    pub fn get_cached_update_bytes(&self, version: &str) -> Result<Vec<u8>, crate::Error> {
+        let cache_path =
+            get_cache_path(self.manager, version).ok_or(crate::Error::CachePathUnavailable)?;
+
+        if !cache_path.exists() {
+            return Err(crate::Error::CachedUpdateNotFound);
+        }
+
+        let bytes = std::fs::read(&cache_path)?;
+        Ok(bytes)
+    }
+
+    pub async fn install_from_cached(&self) -> Result<(), crate::Error> {
+        let version = self
+            .get_pending_update_version()?
+            .ok_or(crate::Error::NoPendingUpdate)?;
+
+        let bytes = self.get_cached_update_bytes(&version)?;
+
+        let updater = self.manager.updater()?;
+        let update = updater
+            .check()
+            .await?
+            .ok_or(crate::Error::UpdateNotAvailable)?;
+
+        update.install(&bytes)?;
+
+        Ok(())
+    }
 }
 
 pub trait Updater2PluginExt<R: tauri::Runtime> {
@@ -93,4 +140,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Updater2PluginExt<R> for T {
             _runtime: std::marker::PhantomData,
         }
     }
+}
+
+fn get_cache_path<R: tauri::Runtime, M: tauri::Manager<R>>(
+    manager: &M,
+    version: &str,
+) -> Option<PathBuf> {
+    let dir = manager
+        .app_handle()
+        .path()
+        .app_cache_dir()
+        .ok()
+        .map(|p: PathBuf| p.join("updates"))?;
+    Some(dir.join(format!("{}.bin", version)))
 }

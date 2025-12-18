@@ -9,3 +9,14 @@ pub(crate) async fn get_pending_update<R: tauri::Runtime>(
         .get_pending_update_version()
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn install_from_cached<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<(), String> {
+    app.updater2()
+        .install_from_cached()
+        .await
+        .map_err(|e| e.to_string())
+}

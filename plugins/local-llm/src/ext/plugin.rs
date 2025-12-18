@@ -1,7 +1,7 @@
 use std::{future::Future, path::PathBuf};
 
 use tauri::{Manager, Runtime, ipc::Channel};
-use tauri_plugin_store2::StorePluginExt;
+use tauri_plugin_store2::Store2PluginExt;
 use tauri_specta::Event;
 
 use hypr_download_interface::DownloadProgress;
@@ -44,7 +44,7 @@ pub trait LocalLlmPluginExt<R: Runtime> {
 
 impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey> {
-        self.scoped_store(crate::PLUGIN_NAME).unwrap()
+        self.store2().scoped_store(crate::PLUGIN_NAME).unwrap()
     }
 
     fn models_dir(&self) -> PathBuf {

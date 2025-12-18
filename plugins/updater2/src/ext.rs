@@ -1,4 +1,4 @@
-use tauri_plugin_store2::StorePluginExt;
+use tauri_plugin_store2::Store2PluginExt;
 use tauri_specta::Event;
 
 use crate::events::UpdatedEvent;
@@ -10,25 +10,25 @@ pub struct Updater2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
     pub fn get_last_seen_version(&self) -> Result<Option<String>, crate::Error> {
-        let store = self.manager.scoped_store(crate::PLUGIN_NAME)?;
+        let store = self.manager.store2().scoped_store(crate::PLUGIN_NAME)?;
         let v = store.get(crate::StoreKey::LastSeenVersion)?;
         Ok(v)
     }
 
     pub fn set_last_seen_version(&self, version: String) -> Result<(), crate::Error> {
-        let store = self.manager.scoped_store(crate::PLUGIN_NAME)?;
+        let store = self.manager.store2().scoped_store(crate::PLUGIN_NAME)?;
         store.set(crate::StoreKey::LastSeenVersion, version)?;
         Ok(())
     }
 
     pub fn get_pending_update_version(&self) -> Result<Option<String>, crate::Error> {
-        let store = self.manager.scoped_store(crate::PLUGIN_NAME)?;
+        let store = self.manager.store2().scoped_store(crate::PLUGIN_NAME)?;
         let v: Option<String> = store.get(crate::StoreKey::PendingUpdateVersion)?;
         Ok(v.filter(|s| !s.is_empty()))
     }
 
     pub fn set_pending_update_version(&self, version: Option<String>) -> Result<(), crate::Error> {
-        let store = self.manager.scoped_store(crate::PLUGIN_NAME)?;
+        let store = self.manager.store2().scoped_store(crate::PLUGIN_NAME)?;
         store.set(
             crate::StoreKey::PendingUpdateVersion,
             version.unwrap_or_default(),

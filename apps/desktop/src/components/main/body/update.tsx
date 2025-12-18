@@ -6,10 +6,14 @@ import { useCallback, useEffect, useState } from "react";
 
 import { commands, events } from "@hypr/plugin-updater2";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
+
+import { useOTA } from "../sidebar/profile/ota/task";
 
 export function Update() {
   const [show, setShow] = useState(false);
+  const { state: otaState } = useOTA();
 
   const pendingUpdate = useQuery({
     queryKey: ["pending-update"],
@@ -50,6 +54,22 @@ export function Update() {
     await commands.installFromCached();
     await relaunch();
   }, []);
+
+  if (otaState === "downloading") {
+    return (
+      <Button
+        size="sm"
+        disabled
+        className={cn([
+          "rounded-full px-3",
+          "bg-gradient-to-t from-stone-600 to-stone-500",
+        ])}
+      >
+        <Spinner size={14} className="mr-1.5" />
+        Downloading
+      </Button>
+    );
+  }
 
   if (!show) {
     return null;

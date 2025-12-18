@@ -4,29 +4,29 @@ section: "Getting Started"
 description: "How to install Hyprnote on your computer."
 ---
 
-# Common
-
-- All releases are always available on [GitHub Releases](https://github.com/fastrepl/hyprnote/releases).
-
-# Platforms
+All releases are always available on [GitHub Releases](https://github.com/fastrepl/hyprnote/releases).
 
 ## macOS
 
-> macOS is our main focus, especially Apple Silicon devices.
+macOS is our main focus, especially Apple Silicon devices. The recommended way to install Hyprnote is via Homebrew:
 
 ```bash
 brew install --cask fastrepl/hyprnote/hyprnote@nightly
 ```
 
+You can also download the DMG directly from the [download page](https://hyprnote.com/download).
+
+After installation, open Hyprnote from your Applications folder. On first launch, macOS will ask for permission to access your microphone and system audio. Grant these permissions to enable transcription features.
+
 ## Linux
 
-> Note that `Linux` version is barely usable.
-
-You can find binaries for `Linux` on the [GitHub Releases](https://github.com/fastrepl/hyprnote/releases) page, or directly download latest version from below:
+Linux support is experimental. You can find binaries on the [GitHub Releases](https://github.com/fastrepl/hyprnote/releases) page, or download the latest version directly:
 
 - [AppImage (x86_64)](https://desktop2.hyprnote.com/download/latest/appimage-x86_64?channel=nightly)
 - [Debian Package (x86_64)](https://desktop2.hyprnote.com/download/latest/deb-x86_64?channel=nightly)
 
+For AppImage, make the file executable with `chmod +x` before running. For Debian-based distributions, install the `.deb` package with `sudo dpkg -i hyprnote.deb`.
+
 ## Windows
 
-> Windows support is coming soon. Join our [Discord](https://discord.gg/hyprnote) to stay updated.
+Windows support is coming in Q1 2026. Join our [Discord](https://discord.gg/hyprnote) to stay updated.

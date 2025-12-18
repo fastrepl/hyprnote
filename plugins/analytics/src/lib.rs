@@ -94,7 +94,7 @@ mod test {
 
         {
             use tauri_plugin_misc::MiscPluginExt;
-            let git_hash = app.get_git_hash();
+            let git_hash = app.misc().get_git_hash();
             println!("git_hash: {}", git_hash);
         }
 

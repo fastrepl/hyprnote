@@ -89,7 +89,6 @@ hypr-granola = { path = "crates/granola", package = "granola" }
 owhisper-client = { path = "owhisper/owhisper-client", package = "owhisper-client" }
 owhisper-config = { path = "owhisper/owhisper-config", package = "owhisper-config" }
 owhisper-interface = { path = "owhisper/owhisper-interface", package = "owhisper-interface" }
-owhisper-model = { path = "owhisper/owhisper-model", package = "owhisper-model" }
 owhisper-providers = { path = "owhisper/owhisper-providers", package = "owhisper-providers" }
 
 tauri = "2.9"

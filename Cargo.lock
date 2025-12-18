@@ -11684,18 +11684,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "owhisper-model"
-version = "0.1.0"
-dependencies = [
- "clap",
- "file",
- "serde",
- "strum 0.26.3",
- "thiserror 2.0.17",
- "whisper-local-model",
-]
-
-[[package]]
 name = "owhisper-providers"
 version = "0.0.1"
 dependencies = [

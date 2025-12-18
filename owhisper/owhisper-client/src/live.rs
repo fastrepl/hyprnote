@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use futures_util::{Stream, StreamExt};
 
-use hypr_ws::client::{
+use hypr_ws_client::client::{
     ClientRequestBuilder, Message, Utf8Bytes, WebSocketClient, WebSocketHandle, WebSocketIO,
 };
 use owhisper_interface::stream::StreamResponse;
@@ -190,10 +190,10 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
         audio_stream: impl Stream<Item = ListenClientInput> + Send + Unpin + 'static,
     ) -> Result<
         (
-            impl Stream<Item = Result<StreamResponse, hypr_ws::Error>>,
+            impl Stream<Item = Result<StreamResponse, hypr_ws_client::Error>>,
             SingleHandle,
         ),
-        hypr_ws::Error,
+        hypr_ws_client::Error,
     > {
         let finalize_text = extract_finalize_text(&self.adapter);
         let ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
@@ -214,7 +214,7 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
         let adapter = self.adapter;
         let mapped_stream = raw_stream.flat_map(move |result| {
             let adapter = adapter.clone();
-            let responses: Vec<Result<StreamResponse, hypr_ws::Error>> = match result {
+            let responses: Vec<Result<StreamResponse, hypr_ws_client::Error>> = match result {
                 Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
                 Err(e) => vec![Err(e)],
             };
@@ -229,13 +229,14 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
     }
 }
 
-type DualOutputStream = Pin<Box<dyn Stream<Item = Result<StreamResponse, hypr_ws::Error>> + Send>>;
+type DualOutputStream =
+    Pin<Box<dyn Stream<Item = Result<StreamResponse, hypr_ws_client::Error>> + Send>>;
 
 impl<A: RealtimeSttAdapter> ListenClientDual<A> {
     pub async fn from_realtime_audio(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
-    ) -> Result<(DualOutputStream, DualHandle), hypr_ws::Error> {
+    ) -> Result<(DualOutputStream, DualHandle), hypr_ws_client::Error> {
         if self.adapter.supports_native_multichannel() {
             self.from_realtime_audio_native(stream).await
         } else {
@@ -246,7 +247,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
     async fn from_realtime_audio_native(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
-    ) -> Result<(DualOutputStream, DualHandle), hypr_ws::Error> {
+    ) -> Result<(DualOutputStream, DualHandle), hypr_ws_client::Error> {
         let finalize_text = extract_finalize_text(&self.adapter);
         let ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
 
@@ -268,7 +269,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
         let adapter = self.adapter;
         let mapped_stream = raw_stream.flat_map(move |result| {
             let adapter = adapter.clone();
-            let responses: Vec<Result<StreamResponse, hypr_ws::Error>> = match result {
+            let responses: Vec<Result<StreamResponse, hypr_ws_client::Error>> = match result {
                 Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
                 Err(e) => vec![Err(e)],
             };
@@ -285,7 +286,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
     async fn from_realtime_audio_split(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
-    ) -> Result<(DualOutputStream, DualHandle), hypr_ws::Error> {
+    ) -> Result<(DualOutputStream, DualHandle), hypr_ws_client::Error> {
         let finalize_text = extract_finalize_text(&self.adapter);
         let (mic_tx, mic_rx) = tokio::sync::mpsc::channel::<TransformedInput>(32);
         let (spk_tx, spk_rx) = tokio::sync::mpsc::channel::<TransformedInput>(32);
@@ -316,7 +317,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
             let adapter = adapter.clone();
             move |result| {
                 let adapter = adapter.clone();
-                let responses: Vec<Result<StreamResponse, hypr_ws::Error>> = match result {
+                let responses: Vec<Result<StreamResponse, hypr_ws_client::Error>> = match result {
                     Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
                     Err(e) => vec![Err(e)],
                 };
@@ -328,7 +329,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
             let adapter = adapter.clone();
             move |result| {
                 let adapter = adapter.clone();
-                let responses: Vec<Result<StreamResponse, hypr_ws::Error>> = match result {
+                let responses: Vec<Result<StreamResponse, hypr_ws_client::Error>> = match result {
                     Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
                     Err(e) => vec![Err(e)],
                 };
@@ -374,10 +375,10 @@ async fn forward_dual_to_single<A: RealtimeSttAdapter>(
 fn merge_streams_with_channel_remap<S1, S2>(
     mic_stream: S1,
     spk_stream: S2,
-) -> impl Stream<Item = Result<StreamResponse, hypr_ws::Error>> + Send
+) -> impl Stream<Item = Result<StreamResponse, hypr_ws_client::Error>> + Send
 where
-    S1: Stream<Item = Result<StreamResponse, hypr_ws::Error>> + Send + 'static,
-    S2: Stream<Item = Result<StreamResponse, hypr_ws::Error>> + Send + 'static,
+    S1: Stream<Item = Result<StreamResponse, hypr_ws_client::Error>> + Send + 'static,
+    S2: Stream<Item = Result<StreamResponse, hypr_ws_client::Error>> + Send + 'static,
 {
     let mic_mapped = mic_stream.map(|result| {
         result.map(|mut response| {

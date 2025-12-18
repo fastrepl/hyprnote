@@ -17,7 +17,7 @@ pub use adapter::{
 };
 pub use batch::{BatchClient, BatchClientBuilder};
 pub use error::Error;
-pub use hypr_ws;
+pub use hypr_ws_client;
 pub use live::{DualHandle, FinalizeHandle, ListenClient, ListenClientDual};
 
 pub struct ListenClientBuilder<A: RealtimeSttAdapter = DeepgramAdapter> {
@@ -75,7 +75,7 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
         &self,
         adapter: &A,
         channels: u8,
-    ) -> hypr_ws::client::ClientRequestBuilder {
+    ) -> hypr_ws_client::client::ClientRequestBuilder {
         let params = self.get_params();
         let api_base = append_provider_param(self.get_api_base(), adapter.provider_name());
         let url = adapter
@@ -84,7 +84,7 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
             .unwrap_or_else(|| adapter.build_ws_url(&api_base, &params, channels));
         let uri = url.to_string().parse().unwrap();
 
-        let mut request = hypr_ws::client::ClientRequestBuilder::new(uri);
+        let mut request = hypr_ws_client::client::ClientRequestBuilder::new(uri);
 
         if let Some((header_name, header_value)) =
             adapter.build_auth_header(self.api_key.as_deref())

@@ -6,7 +6,7 @@ use tokio_tungstenite::{
     accept_async,
     tungstenite::{ClientRequestBuilder, protocol::Message},
 };
-use ws::client::{WebSocketClient, WebSocketIO};
+use ws_client::client::{WebSocketClient, WebSocketIO};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 struct TestMessage {
@@ -65,7 +65,7 @@ async fn echo_server() -> SocketAddr {
 }
 
 async fn collect_messages<T: WebSocketIO>(
-    output: impl Stream<Item = Result<T::Output, ws::Error>>,
+    output: impl Stream<Item = Result<T::Output, ws_client::Error>>,
     max: usize,
 ) -> Vec<T::Output> {
     pin_mut!(output);

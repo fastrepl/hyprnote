@@ -1,42 +1,22 @@
-use std::future::Future;
-
-pub trait DatabasePluginExt<R: tauri::Runtime> {
-    fn db_user_id(&self) -> impl Future<Output = Result<Option<String>, crate::Error>>;
-    fn db_local_path(&self) -> Result<String, crate::Error>;
-    fn db_attach(
-        &self,
-        db: hypr_db_core::Database,
-    ) -> impl Future<Output = Result<(), crate::Error>>;
-    fn db_sync(&self) -> impl Future<Output = Result<(), crate::Error>>;
-    fn db_ensure_user(
-        &self,
-        user_id: impl Into<String>,
-    ) -> impl Future<Output = Result<bool, crate::Error>>;
-    fn db_get_config(
-        &self,
-        user_id: impl Into<String>,
-    ) -> impl Future<Output = Result<Option<hypr_db_user::Config>, crate::Error>>;
-    fn db_get_session(
-        &self,
-        session_id: impl Into<String>,
-    ) -> impl Future<Output = Result<Option<hypr_db_user::Session>, crate::Error>>;
-    fn db_upsert_session(
-        &self,
-        session: hypr_db_user::Session,
-    ) -> impl Future<Output = Result<(), crate::Error>>;
+pub struct Database<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
-    async fn db_user_id(&self) -> Result<Option<String>, crate::Error> {
-        let state = self.state::<crate::ManagedState>();
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Database<'a, R, M> {
+    pub async fn user_id(&self) -> Result<Option<String>, crate::Error> {
+        let state = self.manager.state::<crate::ManagedState>();
         let guard = state.lock().await;
         Ok(guard.user_id.clone())
     }
 
-    fn db_local_path(&self) -> Result<String, crate::Error> {
+    pub fn local_path(&self) -> Result<String, crate::Error> {
         use tauri::path::BaseDirectory;
         let v = {
-            let dir = self.path().resolve("hyprnote", BaseDirectory::Data)?;
+            let dir = self
+                .manager
+                .path()
+                .resolve("hyprnote", BaseDirectory::Data)?;
             std::fs::create_dir_all(&dir)?;
 
             dir.join("db.sqlite").to_str().unwrap().to_string()
@@ -46,8 +26,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
         Ok(v)
     }
 
-    async fn db_attach(&self, db: hypr_db_core::Database) -> Result<(), crate::Error> {
-        let state = self.state::<crate::ManagedState>();
+    pub async fn attach(&self, db: hypr_db_core::Database) -> Result<(), crate::Error> {
+        let state = self.manager.state::<crate::ManagedState>();
         let mut s = state.lock().await;
 
         let user_db = hypr_db_user::UserDatabase::from(db);
@@ -58,8 +38,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
         Ok(())
     }
 
-    async fn db_sync(&self) -> Result<(), crate::Error> {
-        let state = self.state::<crate::ManagedState>();
+    pub async fn sync(&self) -> Result<(), crate::Error> {
+        let state = self.manager.state::<crate::ManagedState>();
         let guard = state.lock().await;
 
         let db = guard.db.as_ref().ok_or(crate::Error::NoneDatabase)?;
@@ -67,8 +47,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
         Ok(())
     }
 
-    async fn db_ensure_user(&self, user_id: impl Into<String>) -> Result<bool, crate::Error> {
-        let state = self.state::<crate::ManagedState>();
+    pub async fn ensure_user(&self, user_id: impl Into<String>) -> Result<bool, crate::Error> {
+        let state = self.manager.state::<crate::ManagedState>();
         let mut guard = state.lock().await;
 
         let user_id_string = user_id.into();
@@ -95,11 +75,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
         }
     }
 
-    async fn db_get_session(
+    pub async fn get_session(
         &self,
         session_id: impl Into<String>,
     ) -> Result<Option<hypr_db_user::Session>, crate::Error> {
-        let state = self.state::<crate::ManagedState>();
+        let state = self.manager.state::<crate::ManagedState>();
         let guard = state.lock().await;
 
         let db = guard.db.as_ref().ok_or(crate::Error::NoneDatabase)?;
@@ -109,8 +89,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
         Ok(session)
     }
 
-    async fn db_upsert_session(&self, session: hypr_db_user::Session) -> Result<(), crate::Error> {
-        let state = self.state::<crate::ManagedState>();
+    pub async fn upsert_session(&self, session: hypr_db_user::Session) -> Result<(), crate::Error> {
+        let state = self.manager.state::<crate::ManagedState>();
         let guard = state.lock().await;
 
         let db = guard.db.as_ref().ok_or(crate::Error::NoneDatabase)?;
@@ -119,15 +99,33 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
         Ok(())
     }
 
-    async fn db_get_config(
+    pub async fn get_config(
         &self,
         user_id: impl Into<String>,
     ) -> Result<Option<hypr_db_user::Config>, crate::Error> {
-        let state = self.state::<crate::ManagedState>();
+        let state = self.manager.state::<crate::ManagedState>();
         let guard = state.lock().await;
 
         let db = guard.db.as_ref().ok_or(crate::Error::NoneDatabase)?;
         let config = db.get_config(user_id.into()).await?;
         Ok(config)
+    }
+}
+
+pub trait DatabasePluginExt<R: tauri::Runtime> {
+    fn db(&self) -> Database<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
+    fn db(&self) -> Database<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Database {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

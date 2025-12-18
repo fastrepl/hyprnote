@@ -159,7 +159,7 @@ pub async fn main() {
             }
 
             specta_builder.mount_events(&app_handle);
-            app_handle.maybe_emit_updated();
+            app_handle.updater2().maybe_emit_updated();
 
             Ok(())
         })

@@ -79,7 +79,7 @@ impl MenuItemHandler for TrayCheckUpdate {
         let mut state = Self::get_state();
 
         if state == STATE_CHECK_FOR_UPDATE {
-            if let Ok(Some(pending)) = app.get_pending_update_version() {
+            if let Ok(Some(pending)) = app.updater2().get_pending_update_version() {
                 if !pending.is_empty() {
                     UPDATE_STATE.store(STATE_RESTART_TO_APPLY, Ordering::SeqCst);
                     state = STATE_RESTART_TO_APPLY;

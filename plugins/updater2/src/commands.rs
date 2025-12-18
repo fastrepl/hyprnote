@@ -5,5 +5,7 @@ use crate::Updater2PluginExt;
 pub(crate) async fn get_pending_update<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Option<String>, String> {
-    app.get_pending_update_version().map_err(|e| e.to_string())
+    app.updater2()
+        .get_pending_update_version()
+        .map_err(|e| e.to_string())
 }

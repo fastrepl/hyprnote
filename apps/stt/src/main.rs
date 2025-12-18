@@ -1,21 +1,19 @@
+mod auth;
+mod env;
+mod handlers;
+
 use std::net::SocketAddr;
 
-use axum::{Router, extract::WebSocketUpgrade, response::IntoResponse, routing::any};
-use hypr_transcribe_proxy::WebSocketProxy;
+use axum::{Router, routing::any};
 use tower_http::trace::TraceLayer;
+
+use env::env;
+use handlers::ws_handler;
 
 fn app() -> Router {
     Router::new()
-        .route("/ws", any(ws_handler))
+        .route("/listen", any(ws_handler))
         .layer(TraceLayer::new_for_http())
-}
-
-async fn ws_handler(ws: WebSocketUpgrade) -> impl IntoResponse {
-    let proxy = WebSocketProxy::builder()
-        .upstream_url("wss://example.com")
-        .build();
-
-    proxy.handle_upgrade(ws).await
 }
 
 #[tokio::main]
@@ -27,14 +25,14 @@ async fn main() {
         )
         .init();
 
+    let env = env();
+
     let _guard = sentry::init(sentry::ClientOptions {
-        dsn: std::env::var("SENTRY_DSN")
-            .ok()
-            .and_then(|s| s.parse().ok()),
+        dsn: env.sentry_dsn.as_ref().and_then(|s| s.parse().ok()),
         ..Default::default()
     });
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], env.port));
     tracing::info!("listening on {}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();

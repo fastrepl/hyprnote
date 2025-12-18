@@ -1,8 +1,7 @@
 mod batch;
 mod live;
 
-pub(crate) const DEFAULT_API_HOST: &str = "api.fireworks.ai";
-const WS_PATH: &str = "/v1/audio/transcriptions/streaming";
+use owhisper_providers::Provider;
 
 #[derive(Clone, Default)]
 pub struct FireworksAdapter;
@@ -12,24 +11,18 @@ impl FireworksAdapter {
         true
     }
 
-    pub fn is_host(base_url: &str) -> bool {
-        super::host_matches(base_url, Self::is_fireworks_host)
-    }
-
     pub(crate) fn api_host(api_base: &str) -> String {
         if api_base.is_empty() {
-            return DEFAULT_API_HOST.to_string();
+            return Provider::Fireworks.default_api_host().to_string();
         }
 
         let url: url::Url = match api_base.parse() {
             Ok(u) => u,
-            Err(_) => return DEFAULT_API_HOST.to_string(),
+            Err(_) => return Provider::Fireworks.default_api_host().to_string(),
         };
-        url.host_str().unwrap_or(DEFAULT_API_HOST).to_string()
-    }
-
-    pub(crate) fn is_fireworks_host(host: &str) -> bool {
-        host.contains("fireworks.ai")
+        url.host_str()
+            .unwrap_or(Provider::Fireworks.default_api_host())
+            .to_string()
     }
 
     pub(crate) fn batch_api_host(api_base: &str) -> String {
@@ -45,7 +38,8 @@ impl FireworksAdapter {
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
         let default_url = || {
             (
-                format!("wss://audio-streaming-v2.{}{}", DEFAULT_API_HOST, WS_PATH)
+                Provider::Fireworks
+                    .default_ws_url()
                     .parse()
                     .expect("invalid_default_ws_url"),
                 Vec::new(),
@@ -67,9 +61,13 @@ impl FireworksAdapter {
 
         let existing_params = super::extract_query_params(&parsed);
 
-        let url: url::Url = format!("wss://{}{}", Self::ws_host(api_base), WS_PATH)
-            .parse()
-            .expect("invalid_ws_url");
+        let url: url::Url = format!(
+            "wss://{}{}",
+            Self::ws_host(api_base),
+            Provider::Fireworks.ws_path()
+        )
+        .parse()
+        .expect("invalid_ws_url");
         (url, existing_params)
     }
 }

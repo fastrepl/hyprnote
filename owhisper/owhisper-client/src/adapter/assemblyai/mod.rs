@@ -8,19 +8,16 @@ impl AssemblyAIAdapter {
     pub fn is_supported_languages(_languages: &[hypr_language::Language]) -> bool {
         true
     }
-
-    pub fn is_host(base_url: &str) -> bool {
-        super::host_matches(base_url, |h| h.contains("assemblyai.com"))
-    }
 }
-
-const WS_PATH: &str = "/v3/ws";
 
 impl AssemblyAIAdapter {
     pub(crate) fn streaming_ws_url(api_base: &str) -> (url::Url, Vec<(String, String)>) {
+        use owhisper_providers::Provider;
+
         if api_base.is_empty() {
             return (
-                "wss://streaming.assemblyai.com/v3/ws"
+                Provider::AssemblyAI
+                    .default_ws_url()
                     .parse()
                     .expect("invalid_default_ws_url"),
                 Vec::new(),
@@ -44,15 +41,19 @@ impl AssemblyAIAdapter {
         let existing_params = super::extract_query_params(&url);
         url.set_query(None);
 
-        super::append_path_if_missing(&mut url, WS_PATH);
+        super::append_path_if_missing(&mut url, Provider::AssemblyAI.ws_path());
         super::set_scheme_from_host(&mut url);
 
         (url, existing_params)
     }
 
     pub(crate) fn batch_api_url(api_base: &str) -> url::Url {
+        use owhisper_providers::Provider;
+
         if api_base.is_empty() {
-            return "https://api.assemblyai.com/v2"
+            return Provider::AssemblyAI
+                .default_api_url()
+                .unwrap()
                 .parse()
                 .expect("invalid_default_api_url");
         }

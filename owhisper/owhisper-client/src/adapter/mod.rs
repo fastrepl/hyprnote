@@ -172,28 +172,41 @@ pub enum AdapterKind {
     Deepgram,
     AssemblyAI,
     OpenAI,
+    Gladia,
 }
 
 impl AdapterKind {
     pub fn from_url_and_languages(base_url: &str, languages: &[hypr_language::Language]) -> Self {
+        use owhisper_providers::Provider;
+
         if is_hyprnote_cloud_host(base_url) {
             if DeepgramAdapter::is_supported_languages(languages) {
-                Self::Deepgram
+                return Self::Deepgram;
             } else {
-                Self::Soniox
+                return Self::Soniox;
             }
-        } else if is_local_stt_host(base_url) {
-            Self::Argmax
-        } else if AssemblyAIAdapter::is_host(base_url) {
-            Self::AssemblyAI
-        } else if SonioxAdapter::is_host(base_url) {
-            Self::Soniox
-        } else if FireworksAdapter::is_host(base_url) {
-            Self::Fireworks
-        } else if OpenAIAdapter::is_host(base_url) {
-            Self::OpenAI
-        } else {
-            Self::Deepgram
+        }
+
+        if is_local_stt_host(base_url) {
+            return Self::Argmax;
+        }
+
+        Provider::from_url(base_url)
+            .map(Self::from)
+            .unwrap_or(Self::Deepgram)
+    }
+}
+
+impl From<owhisper_providers::Provider> for AdapterKind {
+    fn from(p: owhisper_providers::Provider) -> Self {
+        use owhisper_providers::Provider;
+        match p {
+            Provider::Deepgram => Self::Deepgram,
+            Provider::AssemblyAI => Self::AssemblyAI,
+            Provider::Soniox => Self::Soniox,
+            Provider::Fireworks => Self::Fireworks,
+            Provider::OpenAI => Self::OpenAI,
+            Provider::Gladia => Self::Gladia,
         }
     }
 }

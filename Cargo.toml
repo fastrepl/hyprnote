@@ -89,6 +89,7 @@ owhisper-client = { path = "owhisper/owhisper-client", package = "owhisper-clien
 owhisper-config = { path = "owhisper/owhisper-config", package = "owhisper-config" }
 owhisper-interface = { path = "owhisper/owhisper-interface", package = "owhisper-interface" }
 owhisper-model = { path = "owhisper/owhisper-model", package = "owhisper-model" }
+owhisper-providers = { path = "owhisper/owhisper-providers", package = "owhisper-providers" }
 
 tauri = "2.9"
 tauri-build = "2.5"
@@ -165,7 +166,7 @@ clap = "4"
 codes-iso-639 = "0.1.5"
 derive_more = "2"
 dirs = "6.0.0"
-dotenv = "0.15.0"
+dotenvy = "0.15.7"
 include_url_macro = "0.1.0"
 indoc = "2"
 itertools = "0.14.0"
@@ -205,6 +206,7 @@ async-openai = { git = "https://github.com/fastrepl/async-openai", rev = "6404d3
 async-stripe = { version = "0.39.1", default-features = false }
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 
+jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 sentry = "0.42"
 vergen-gix = "1"
 

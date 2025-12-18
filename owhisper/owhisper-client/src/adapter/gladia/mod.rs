@@ -1,9 +1,7 @@
 mod batch;
 mod live;
 
-pub(crate) const DEFAULT_API_HOST: &str = "api.gladia.io";
-pub(crate) const WS_PATH: &str = "/v2/live";
-const API_BASE: &str = "https://api.gladia.io/v2";
+use owhisper_providers::Provider;
 
 #[derive(Clone, Default)]
 pub struct GladiaAdapter;
@@ -11,14 +9,6 @@ pub struct GladiaAdapter;
 impl GladiaAdapter {
     pub fn is_supported_languages(_languages: &[hypr_language::Language]) -> bool {
         true
-    }
-
-    pub fn is_host(base_url: &str) -> bool {
-        super::host_matches(base_url, Self::is_gladia_host)
-    }
-
-    pub(crate) fn is_gladia_host(host: &str) -> bool {
-        host.contains("gladia.io")
     }
 
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
@@ -32,7 +22,7 @@ impl GladiaAdapter {
 
         let parsed: url::Url = api_base.parse().expect("invalid_api_base");
         let existing_params = super::extract_query_params(&parsed);
-        let url = Self::build_url_with_scheme(&parsed, WS_PATH, true);
+        let url = Self::build_url_with_scheme(&parsed, Provider::Gladia.ws_path(), true);
         (url, existing_params)
     }
 
@@ -42,11 +32,13 @@ impl GladiaAdapter {
         }
 
         let parsed: url::Url = api_base.parse().expect("invalid_api_base");
-        Self::build_url_with_scheme(&parsed, WS_PATH, false)
+        Self::build_url_with_scheme(&parsed, Provider::Gladia.ws_path(), false)
     }
 
     fn build_url_with_scheme(parsed: &url::Url, path: &str, use_ws: bool) -> url::Url {
-        let host = parsed.host_str().unwrap_or(DEFAULT_API_HOST);
+        let host = parsed
+            .host_str()
+            .unwrap_or(Provider::Gladia.default_api_host());
         let is_local = super::is_local_host(host);
         let scheme = match (use_ws, is_local) {
             (true, true) => "ws",
@@ -64,20 +56,29 @@ impl GladiaAdapter {
     }
 
     fn default_ws_url() -> url::Url {
-        format!("wss://{}{}", DEFAULT_API_HOST, WS_PATH)
+        Provider::Gladia
+            .default_ws_url()
             .parse()
             .expect("invalid_default_ws_url")
     }
 
     fn default_http_url() -> url::Url {
-        format!("https://{}{}", DEFAULT_API_HOST, WS_PATH)
-            .parse()
-            .expect("invalid_default_http_url")
+        format!(
+            "https://{}{}",
+            Provider::Gladia.default_api_host(),
+            Provider::Gladia.ws_path()
+        )
+        .parse()
+        .expect("invalid_default_http_url")
     }
 
     pub(crate) fn batch_api_url(api_base: &str) -> url::Url {
         if api_base.is_empty() {
-            return API_BASE.parse().expect("invalid_default_api_url");
+            return Provider::Gladia
+                .default_api_url()
+                .unwrap()
+                .parse()
+                .expect("invalid_default_api_url");
         }
 
         api_base.parse().expect("invalid_api_base")
@@ -131,10 +132,10 @@ mod tests {
 
     #[test]
     fn test_is_host() {
-        assert!(GladiaAdapter::is_host("https://api.gladia.io"));
-        assert!(GladiaAdapter::is_host("https://api.gladia.io/v2"));
-        assert!(!GladiaAdapter::is_host("https://api.deepgram.com"));
-        assert!(!GladiaAdapter::is_host("https://api.assemblyai.com"));
+        assert!(Provider::Gladia.matches_url("https://api.gladia.io"));
+        assert!(Provider::Gladia.matches_url("https://api.gladia.io/v2"));
+        assert!(!Provider::Gladia.matches_url("https://api.deepgram.com"));
+        assert!(!Provider::Gladia.matches_url("https://api.assemblyai.com"));
     }
 
     #[test]

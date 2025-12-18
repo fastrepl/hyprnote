@@ -40,7 +40,7 @@ impl RealtimeSttAdapter for FireworksAdapter {
     }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {
-        api_key.map(|key| ("Authorization", key.to_string()))
+        api_key.and_then(|k| owhisper_providers::Provider::Fireworks.build_auth_header(k))
     }
 
     fn keep_alive_message(&self) -> Option<Message> {

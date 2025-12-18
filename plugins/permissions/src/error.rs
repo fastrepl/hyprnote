@@ -9,6 +9,9 @@ pub enum Error {
     #[cfg(mobile)]
     #[error(transparent)]
     PluginInvoke(#[from] tauri::plugin::mobile::PluginInvokeError),
+    #[cfg(not(target_os = "macos"))]
+    #[error(transparent)]
+    Audio(#[from] hypr_audio::Error),
 }
 
 impl Serialize for Error {

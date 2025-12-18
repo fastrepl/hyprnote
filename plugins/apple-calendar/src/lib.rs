@@ -1,5 +1,3 @@
-use tauri::Manager;
-
 #[cfg(target_os = "macos")]
 mod apple;
 #[cfg(target_os = "macos")]
@@ -16,7 +14,7 @@ mod types;
 
 pub use error::{Error, Result};
 pub use events::*;
-pub use ext::AppleCalendarPluginExt;
+pub use ext::{AppleCalendarExt, AppleCalendarPluginExt};
 pub use model::*;
 pub use types::*;
 
@@ -89,7 +87,7 @@ mod test {
     fn test_list_calendars() {
         let app = create_app(tauri::test::mock_builder());
 
-        let calendars = app.list_calendars();
+        let calendars = app.apple_calendar().list_calendars();
         println!("calendars: {:?}", calendars);
     }
 
@@ -97,14 +95,14 @@ mod test {
     fn test_list_events() {
         let app = create_app(tauri::test::mock_builder());
 
-        match app.list_calendars() {
+        match app.apple_calendar().list_calendars() {
             Ok(calendars) => {
                 if let Some(calendar) = calendars.first() {
                     println!(
                         "Testing with calendar: {} ({})",
                         calendar.title, calendar.id
                     );
-                    let events = app.list_events(EventFilter {
+                    let events = app.apple_calendar().list_events(EventFilter {
                         from: chrono::Utc::now(),
                         to: chrono::Utc::now() + chrono::Duration::days(7),
                         calendar_tracking_id: calendar.id.clone(),

@@ -746,8 +746,23 @@ function useTabsShortcuts() {
   );
 
   useHotkeys(
-    "mod+shift+n",
-    () => openNew({ type: "contacts" }),
+    "mod+shift+o",
+    () =>
+      openNew({
+        type: "contacts",
+        state: { selectedOrganization: null, selectedPerson: null },
+      }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+a",
+    () => openNew({ type: "ai" }),
     {
       preventDefault: true,
       enableOnFormTags: true,

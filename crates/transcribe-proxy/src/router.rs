@@ -13,6 +13,7 @@ use owhisper_providers::{Auth, Provider};
 use crate::analytics::{SttAnalyticsReporter, SttEvent};
 use crate::config::SttProxyConfig;
 use crate::proxy::WebSocketProxy;
+use crate::upstream_url::UpstreamUrlBuilder;
 
 const IGNORED_PARAMS: &[&str] = &["provider", "keywords", "keyterm", "keyterms"];
 
@@ -78,15 +79,12 @@ async fn resolve_upstream_url(
             init_session(state, provider, header_name, api_key, params).await
         }
         _ => {
-            let mut url = url::Url::parse(&provider.default_ws_url()).unwrap();
-            for (key, value) in params {
-                if !IGNORED_PARAMS.contains(&key.as_str()) {
-                    url.query_pairs_mut().append_pair(key, value);
-                }
-            }
-            for (key, value) in provider.default_query_params() {
-                url.query_pairs_mut().append_pair(key, value);
-            }
+            let base = url::Url::parse(&provider.default_ws_url()).unwrap();
+            let url = UpstreamUrlBuilder::new(base)
+                .ignored_params(IGNORED_PARAMS)
+                .default_params(provider.default_query_params())
+                .client_params(params)
+                .build();
             Ok(url.to_string())
         }
     }

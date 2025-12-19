@@ -3,7 +3,11 @@ import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 
 export const tracedFetch: typeof fetch = async (input, init) => {
   const url =
-    typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    typeof input === "string"
+      ? input
+      : input instanceof URL
+        ? input.href
+        : input.url;
   const method = init?.method ?? "GET";
 
   return Sentry.startSpan(

@@ -79,14 +79,45 @@ impl World for TypstWorld {
     }
 }
 
+fn markdown_to_typst(md: &str) -> String {
+    let mut result = String::new();
+
+    for line in md.lines() {
+        let converted = if let Some(rest) = line.strip_prefix("######") {
+            format!("====== {}", rest.trim_start_matches(' '))
+        } else if let Some(rest) = line.strip_prefix("#####") {
+            format!("===== {}", rest.trim_start_matches(' '))
+        } else if let Some(rest) = line.strip_prefix("####") {
+            format!("==== {}", rest.trim_start_matches(' '))
+        } else if let Some(rest) = line.strip_prefix("###") {
+            format!("=== {}", rest.trim_start_matches(' '))
+        } else if let Some(rest) = line.strip_prefix("##") {
+            format!("== {}", rest.trim_start_matches(' '))
+        } else if let Some(rest) = line.strip_prefix('#') {
+            format!("= {}", rest.trim_start_matches(' '))
+        } else if let Some(rest) = line.strip_prefix("- ") {
+            format!("- {}", rest)
+        } else if let Some(rest) = line.strip_prefix("* ") {
+            format!("- {}", rest)
+        } else {
+            line.to_string()
+        };
+
+        result.push_str(&converted);
+        result.push('\n');
+    }
+
+    result
+}
+
 pub fn build_typst_content(input: &PdfInput) -> String {
     let mut content = String::new();
 
     content.push_str("#set page(paper: \"a4\", margin: 2cm)\n");
     content.push_str("#set text(size: 11pt)\n\n");
 
-    content.push_str(&input.enhanced_md);
-    content.push('\n');
+    let typst_content = markdown_to_typst(&input.enhanced_md);
+    content.push_str(&typst_content);
 
     if let Some(transcript) = &input.transcript {
         if !transcript.items.is_empty() {

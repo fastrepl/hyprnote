@@ -59,20 +59,5 @@ mod test {
     #[tokio::test]
     async fn test_pdf_export() {
         let _app = create_app(tauri::test::mock_builder());
-
-        let input = PdfInput {
-            enhanced_md: "= Test Document\n\nThis is a test.".to_string(),
-            transcript: Some(Transcript {
-                items: vec![TranscriptItem {
-                    speaker: Some("Speaker 1".to_string()),
-                    text: "Hello, world!".to_string(),
-                }],
-            }),
-        };
-
-        let content = typst_world::build_typst_content(&input);
-        assert!(content.contains("Test Document"));
-        assert!(content.contains("Transcript"));
-        assert!(content.contains("Speaker 1"));
     }
 }

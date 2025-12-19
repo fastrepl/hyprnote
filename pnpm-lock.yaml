@@ -235,6 +235,9 @@ importers:
       '@hypr/plugin-notification':
         specifier: workspace:*
         version: link:../../plugins/notification
+      '@hypr/plugin-pdf':
+        specifier: workspace:*
+        version: link:../../plugins/pdf
       '@hypr/plugin-permissions':
         specifier: workspace:*
         version: link:../../plugins/permissions
@@ -1445,6 +1448,12 @@ importers:
         version: 2.9.1
 
   plugins/notification:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/pdf:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

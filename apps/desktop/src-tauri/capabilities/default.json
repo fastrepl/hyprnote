@@ -118,6 +118,7 @@
     "detect:default",
     "permissions:default",
     "settings:default",
+    "pdf:default",
     "autostart:default",
     {
       "identifier": "http:default",

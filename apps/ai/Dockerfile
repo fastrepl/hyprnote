@@ -6,6 +6,7 @@ FROM rust:${RUST_VERSION}-bookworm AS planner
 RUN cargo install cargo-chef --locked
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
+RUN sed -i '/^members = \[/,/^\]/c\members = ["apps/ai", "crates/*"]' Cargo.toml
 COPY crates crates
 COPY apps/ai/Cargo.toml apps/ai/Cargo.toml
 RUN mkdir -p apps/ai/src && echo "fn main() {}" > apps/ai/src/main.rs

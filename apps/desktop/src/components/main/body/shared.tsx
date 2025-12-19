@@ -85,7 +85,8 @@ export function TabItemBase({
           "cursor-pointer group",
           "transition-colors duration-200",
           active && selected && ["bg-red-50", "text-red-600", "border-red-400"],
-          active && !selected && ["bg-red-50", "text-red-500", "border-0"],
+          active &&
+            !selected && ["bg-red-50", "text-red-500", "border-transparent"],
           !active &&
             selected && ["bg-neutral-50", "text-black", "border-stone-400"],
           !active &&

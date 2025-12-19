@@ -23,6 +23,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=$SCCACHE_DIR,sharing=locked \
     cargo chef cook --release --recipe-path recipe.json -p ai
 COPY Cargo.toml Cargo.lock ./
+RUN sed -i '/^members = \[/,/^\]/c\members = ["apps/ai", "crates/*"]' Cargo.toml
 COPY crates crates
 COPY apps/ai apps/ai
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \

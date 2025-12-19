@@ -11,6 +11,9 @@ inputs:
 runs:
   using: composite
   steps:
+    - uses: FedericoCarboni/setup-ffmpeg@v3
+      with:
+        ffmpeg-version: release
     - shell: bash
       run: ./scripts/setup-desktop-e2e.sh
     - shell: bash

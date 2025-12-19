@@ -1,5 +1,6 @@
 import type { Frameworks } from "@wdio/types";
 import { type ChildProcessWithoutNullStreams, spawn } from "child_process";
+import { mkdirSync } from "node:fs";
 import path from "node:path";
 
 function fileName(title: string) {
@@ -7,7 +8,7 @@ function fileName(title: string) {
 }
 
 export class TestRecorder {
-  ffmpeg!: ChildProcessWithoutNullStreams;
+  ffmpeg?: ChildProcessWithoutNullStreams;
 
   constructor() {}
 
@@ -23,6 +24,8 @@ export class TestRecorder {
     }
 
     if (process.env.DISPLAY && process.env.DISPLAY.startsWith(":")) {
+      mkdirSync(videoPath, { recursive: true });
+
       const parsedPath = path.join(
         videoPath,
         `${fileName(test.parent)}-${fileName(test.title)}.mp4`,
@@ -49,6 +52,18 @@ export class TestRecorder {
           console.log(prefix + line);
         });
       }
+
+      this.ffmpeg.on("error", (err: NodeJS.ErrnoException) => {
+        if (err.code === "ENOENT") {
+          console.warn("[recorder] ffmpeg not found; skipping video recording");
+        } else {
+          console.warn(
+            "[recorder] failed to start ffmpeg; skipping video recording:",
+            err,
+          );
+        }
+        this.ffmpeg = undefined;
+      });
 
       this.ffmpeg.stdout.on("data", (data: Buffer) => {
         logBuffer(data, "[ffmpeg:stdout] ");

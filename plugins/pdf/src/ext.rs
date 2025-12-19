@@ -6,10 +6,15 @@ pub struct Pdf<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Pdf<'a, R, M> {
-    pub fn export(&self, path: &Path, input: crate::PdfInput) -> Result<(), crate::Error> {
-        let typst_content = crate::typst_world::build_typst_content(&input);
-        let pdf_bytes = crate::typst_world::compile_to_pdf(&typst_content)?;
-        std::fs::write(path, pdf_bytes)?;
+    pub fn export(
+        &self,
+        path: impl AsRef<Path>,
+        input: impl Into<crate::PdfInput>,
+    ) -> Result<(), crate::Error> {
+        let input = input.into();
+        let typst_content = crate::typst::build_typst_content(&input);
+        let pdf_bytes = crate::typst::compile_to_pdf(&typst_content)?;
+        std::fs::write(path.as_ref(), pdf_bytes)?;
         Ok(())
     }
 }

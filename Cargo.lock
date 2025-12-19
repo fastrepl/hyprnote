@@ -13337,6 +13337,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pulldown-cmark"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e8bbe1a966bd2f362681a44f6edce3c2310ac21e4d5067a6e7ec396297a6ea0"
+dependencies = [
+ "bitflags 2.10.0",
+ "memchr",
+ "unicase",
+]
+
+[[package]]
 name = "pulp"
 version = "0.18.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -17569,6 +17580,7 @@ name = "tauri-plugin-pdf"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "pulldown-cmark",
  "serde",
  "specta",
  "specta-typescript",
@@ -17578,6 +17590,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "typst",
+ "typst-assets",
  "typst-pdf",
 ]
 

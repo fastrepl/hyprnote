@@ -18,11 +18,12 @@ tokio = { workspace = true, features = ["macros"] }
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
+chrono = { workspace = true }
 serde = { workspace = true }
 specta = { workspace = true }
-
 thiserror = { workspace = true }
 
-chrono = { workspace = true }
+pulldown-cmark = { version = "0.13.0", default-features = false }
 typst = "0.14.2"
+typst-assets = { version = "0.14.2", features = ["fonts"] }
 typst-pdf = "0.14.2"

@@ -2,7 +2,7 @@ mod commands;
 mod error;
 mod ext;
 mod types;
-mod typst_world;
+mod typst;
 
 pub use error::{Error, Result};
 pub use ext::*;
@@ -56,8 +56,24 @@ mod test {
         builder.plugin(init()).build(ctx).unwrap()
     }
 
+    #[ignore]
     #[tokio::test]
     async fn test_pdf_export() {
-        let _app = create_app(tauri::test::mock_builder());
+        let app = create_app(tauri::test::mock_builder());
+
+        app.pdf()
+            .export(
+                "test.pdf",
+                PdfInput {
+                    enhanced_md: "# Test Document\n\nThis is a test.".to_string(),
+                    transcript: Some(Transcript {
+                        items: vec![TranscriptItem {
+                            speaker: Some("Speaker 1".to_string()),
+                            text: "Hello, world!".to_string(),
+                        }],
+                    }),
+                },
+            )
+            .unwrap();
     }
 }

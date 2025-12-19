@@ -1,23 +1,25 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { platform } from "@tauri-apps/plugin-os";
 import { useCallback } from "react";
 import { z } from "zod";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import {
-  type OnboardingStepId,
+  type NavigateTarget,
   STEP_CONFIGS,
+  STEP_IDS,
 } from "../../../components/onboarding/config";
 import { commands } from "../../../types/tauri.gen";
 
-const ALL_STEP_IDS = STEP_CONFIGS.map((s) => s.id) as [
-  OnboardingStepId,
-  ...OnboardingStepId[],
-];
-
 const validateSearch = z.object({
-  step: z.enum(ALL_STEP_IDS).default("welcome"),
+  step: z.enum(STEP_IDS).default("welcome"),
+  local: z.boolean().default(false),
+  pro: z.boolean().default(false),
+  platform: z.string().default(platform()),
 });
+
+export type Search = z.infer<typeof validateSearch>;
 
 export const Route = createFileRoute("/app/onboarding/")({
   validateSearch,
@@ -32,21 +34,22 @@ function finishOnboarding() {
 }
 
 function Component() {
-  const { step } = Route.useSearch();
+  const search = Route.useSearch();
   const navigate = useNavigate();
 
   const onNavigate = useCallback(
-    (target: OnboardingStepId | "done") => {
-      if (target === "done") {
+    (ctx: NavigateTarget) => {
+      const { step, ...rest } = ctx;
+      if (step === "done") {
         finishOnboarding();
       } else {
-        void navigate({ to: "/app/onboarding", search: { step: target } });
+        void navigate({ to: "/app/onboarding", search: { step, ...rest } });
       }
     },
     [navigate],
   );
 
-  const currentConfig = STEP_CONFIGS.find((s) => s.id === step);
+  const currentConfig = STEP_CONFIGS.find((s) => s.id === search.step);
   if (!currentConfig) {
     return null;
   }

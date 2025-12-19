@@ -10,12 +10,21 @@ debug = false
 [workspace]
 resolver = "2"
 members = [
-  "apps/ai",
+  "apps/*",
   "apps/desktop/src-tauri",
-  "apps/granola",
   "crates/*",
   "plugins/*",
-  "tools",
+]
+exclude = [
+  "apps/desktop",
+  "apps/desktop-e2e",
+  "apps/k6",
+  "apps/pro",
+  "apps/restate",
+  "apps/storybook",
+  "apps/api",
+  "apps/bot",
+  "apps/web",
 ]
 
 [workspace.dependencies]

@@ -79,8 +79,7 @@ const restoreMiddlewareImpl: RestoreMiddleware =
             ...nextState.closedTabs,
             ...closedTabs,
           ].slice(-MAX_CLOSED_TABS);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          set({ closedTabs: updatedClosedTabs } as any);
+          set({ closedTabs: updatedClosedTabs } as Partial<typeof nextState>);
         }
       },
       get,

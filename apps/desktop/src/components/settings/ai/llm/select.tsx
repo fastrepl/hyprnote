@@ -107,7 +107,7 @@ export function SelectProviderAndModel() {
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
                 >
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-white shadow-none focus:ring-0">
                     <SelectValue placeholder="Select a provider" />
                   </SelectTrigger>
                   <SelectContent>

@@ -1,5 +1,6 @@
 import { Icon } from "@iconify-icon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { openPath } from "@tauri-apps/plugin-opener";
 import {
   FileTextIcon,
   FolderIcon,
@@ -164,6 +165,9 @@ function ExportTranscript({ sessionId }: { sessionId: string }) {
         throw new Error(result.error);
       }
       return result.data;
+    },
+    onSuccess: (path) => {
+      openPath(path);
     },
   });
 

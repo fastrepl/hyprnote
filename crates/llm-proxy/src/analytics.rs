@@ -1,5 +1,78 @@
+use std::sync::Arc;
+
+use hypr_analytics::{AnalyticsClient, AnalyticsPayload};
 use reqwest::Client;
 use serde::Deserialize;
+
+use crate::types::OPENROUTER_URL;
+
+#[derive(Debug, Clone)]
+pub struct GenerationEvent {
+    pub generation_id: String,
+    pub model: String,
+    pub input_tokens: u32,
+    pub output_tokens: u32,
+    pub latency: f64,
+    pub http_status: u16,
+    pub total_cost: Option<f64>,
+}
+
+pub trait AnalyticsReporter: Send + Sync {
+    fn report_generation(
+        &self,
+        event: GenerationEvent,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + '_>>;
+}
+
+impl AnalyticsReporter for AnalyticsClient {
+    fn report_generation(
+        &self,
+        event: GenerationEvent,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + '_>> {
+        Box::pin(async move {
+            let payload = AnalyticsPayload::builder("$ai_generation")
+                .with("$ai_provider", "openrouter")
+                .with("$ai_model", event.model.clone())
+                .with("$ai_input_tokens", event.input_tokens)
+                .with("$ai_output_tokens", event.output_tokens)
+                .with("$ai_latency", event.latency)
+                .with("$ai_trace_id", event.generation_id.clone())
+                .with("$ai_http_status", event.http_status)
+                .with("$ai_base_url", OPENROUTER_URL);
+
+            let payload = if let Some(cost) = event.total_cost {
+                payload.with("$ai_total_cost_usd", cost)
+            } else {
+                payload
+            };
+
+            self.event_best_effort(event.generation_id, payload.build())
+                .await;
+        })
+    }
+}
+
+pub async fn send_generation_event(
+    analytics: &Arc<dyn AnalyticsReporter>,
+    generation_id: String,
+    model: String,
+    input_tokens: u32,
+    output_tokens: u32,
+    latency: f64,
+    http_status: u16,
+    total_cost: Option<f64>,
+) {
+    let event = GenerationEvent {
+        generation_id,
+        model,
+        input_tokens,
+        output_tokens,
+        latency,
+        http_status,
+        total_cost,
+    };
+    analytics.report_generation(event).await;
+}
 
 pub async fn fetch_generation_metadata(
     client: &Client,

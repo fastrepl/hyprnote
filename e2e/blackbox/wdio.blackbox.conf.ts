@@ -66,25 +66,14 @@ export const config = {
     // In CI, wrap tauri-driver with xvfb-run to provide a virtual display
     // This is needed because tauri-driver initializes GTK which requires X11
     const useXvfb = !!process.env.CI;
-    const cmd = useXvfb ? "xvfb-run" : "tauri-driver";
-    const args = useXvfb ? ["-a", "tauri-driver"] : [];
 
-    console.log(`Starting tauri-driver${useXvfb ? " with xvfb-run" : ""}...`);
-
-    tauriDriver = spawn(
-      cmd,
-      args.length > 0
-        ? args
-        : [path.resolve(os.homedir(), ".cargo", "bin", "tauri-driver")].filter(
-            () => false,
-          ),
-      {
+    if (useXvfb) {
+      console.log("Starting tauri-driver with xvfb-run...");
+      tauriDriver = spawn("xvfb-run", ["-a", "tauri-driver"], {
         stdio: [null, process.stdout, process.stderr],
-      },
-    );
-
-    // For local development, spawn tauri-driver directly
-    if (!useXvfb) {
+      });
+    } else {
+      console.log("Starting tauri-driver...");
       tauriDriver = spawn(
         path.resolve(os.homedir(), ".cargo", "bin", "tauri-driver"),
         [],

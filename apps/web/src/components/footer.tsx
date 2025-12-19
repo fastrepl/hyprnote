@@ -129,7 +129,7 @@ function ProductLinks() {
             to="/changelog"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
-            Releases
+            Changelog
           </Link>
         </li>
         <li>

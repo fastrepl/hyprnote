@@ -30,6 +30,6 @@ runs:
         echo "Binary path: ${BINARY_PATH}"
         echo "APP_BINARY_PATH=${BINARY_PATH}" >> $GITHUB_ENV
     - shell: bash
-      run: pnpm -F desktop-e2e test
+      run: pnpm -F e2e-blackbox test
       env:
         APP_BINARY_PATH: ${{ env.APP_BINARY_PATH }}

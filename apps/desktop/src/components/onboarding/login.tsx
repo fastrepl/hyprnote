@@ -100,7 +100,7 @@ export function Login({ onNavigate }: StepProps) {
     if (isIdle && !auth?.session) {
       void auth?.signIn();
     }
-  }, [auth, isIdle]);
+  }, [auth?.session, auth?.signIn, isIdle]);
 
   const backStep = getBack(search);
 

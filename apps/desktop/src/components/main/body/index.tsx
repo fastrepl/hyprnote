@@ -614,12 +614,13 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
 }
 
 function useTabsShortcuts() {
-  const { tabs, currentTab, close, select } = useTabs(
+  const { tabs, currentTab, close, select, restoreLastClosedTab } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
       currentTab: state.currentTab,
       close: state.close,
       select: state.select,
+      restoreLastClosedTab: state.restoreLastClosedTab,
     })),
   );
   const newNote = useNewNote({ behavior: "new" });
@@ -686,6 +687,17 @@ function useTabsShortcuts() {
       enableOnContentEditable: true,
     },
     [tabs, select],
+  );
+
+  useHotkeys(
+    "mod+shift+t",
+    () => restoreLastClosedTab(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [restoreLastClosedTab],
   );
 
   return {};

@@ -1,6 +1,6 @@
 use crate::AppleCalendarPluginExt;
-use crate::model::{AppleCalendar, AppleEvent};
 use crate::types::EventFilter;
+use crate::types::{AppleCalendar, AppleEvent};
 
 #[tauri::command]
 #[specta::specta]

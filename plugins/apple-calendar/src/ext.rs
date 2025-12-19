@@ -1,5 +1,5 @@
-use crate::model::{AppleCalendar, AppleEvent};
 use crate::types::EventFilter;
+use crate::types::{AppleCalendar, AppleEvent};
 
 pub struct AppleCalendarExt<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     #[allow(dead_code)]

@@ -2,7 +2,7 @@ use objc2::{msg_send, rc::Retained};
 use objc2_event_kit::EKParticipant;
 use objc2_foundation::NSURL;
 
-use crate::model::Participant;
+use crate::types::Participant;
 
 use super::super::contacts;
 use super::enums::{

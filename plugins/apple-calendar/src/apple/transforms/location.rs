@@ -1,7 +1,7 @@
 use objc2::msg_send;
 use objc2_event_kit::EKStructuredLocation;
 
-use crate::model::StructuredLocation;
+use crate::types::StructuredLocation;
 
 pub fn transform_structured_location(location: &EKStructuredLocation) -> StructuredLocation {
     let title = unsafe { location.title() }

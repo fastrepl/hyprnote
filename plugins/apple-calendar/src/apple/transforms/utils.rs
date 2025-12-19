@@ -3,7 +3,7 @@ use objc2_core_graphics::CGColor;
 use objc2_event_kit::EKCalendar;
 use objc2_foundation::{NSInteger, NSURL};
 
-use crate::model::{CalendarColor, CalendarEntityType, EventAvailability};
+use crate::types::{CalendarColor, CalendarEntityType, EventAvailability};
 
 #[allow(unused_variables)]
 pub fn extract_color_components(cg_color: &CGColor) -> CalendarColor {

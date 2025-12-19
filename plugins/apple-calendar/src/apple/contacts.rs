@@ -4,7 +4,7 @@ use objc2::{msg_send, rc::Retained, runtime::Bool};
 use objc2_contacts::{CNContact, CNContactStore, CNEntityType, CNPhoneNumber};
 use objc2_foundation::{NSArray, NSError, NSString};
 
-use crate::model::{ParticipantContact, ParticipantScheduleStatus};
+use crate::types::{ParticipantContact, ParticipantScheduleStatus};
 
 pub fn resolve_participant_contact(
     participant: &objc2_event_kit::EKParticipant,

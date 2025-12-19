@@ -4,8 +4,8 @@ use objc2_event_kit::{EKAuthorizationStatus, EKCalendar, EKEntityType, EKEvent, 
 use objc2_foundation::{NSArray, NSDate};
 
 use crate::error::Error;
-use crate::model::{AppleCalendar, AppleEvent};
 use crate::types::EventFilter;
+use crate::types::{AppleCalendar, AppleEvent};
 
 use super::transforms::{transform_calendar, transform_event};
 

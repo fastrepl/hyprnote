@@ -1,6 +1,6 @@
 use objc2_event_kit::EKCalendar;
 
-use crate::model::{AppleCalendar, CalendarSource, CalendarType};
+use crate::types::{AppleCalendar, CalendarSource, CalendarType};
 
 use super::enums::{transform_calendar_type, transform_source_type};
 use super::utils::{

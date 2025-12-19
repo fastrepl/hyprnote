@@ -2,7 +2,7 @@ use objc2::{msg_send, rc::Retained};
 use objc2_event_kit::{EKAlarm, EKStructuredLocation};
 use objc2_foundation::{NSDate, NSInteger, NSString, NSURL};
 
-use crate::model::{Alarm, AlarmProximity, AlarmType};
+use crate::types::{Alarm, AlarmProximity, AlarmType};
 
 use super::super::recurrence::offset_date_time_from;
 use super::location::transform_structured_location;

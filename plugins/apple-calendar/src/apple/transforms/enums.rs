@@ -3,7 +3,7 @@ use objc2_event_kit::{
     EKParticipantType, EKSourceType,
 };
 
-use crate::model::{
+use crate::types::{
     CalendarSourceType, CalendarType, EventAvailability, EventStatus, ParticipantRole,
     ParticipantStatus, ParticipantType,
 };

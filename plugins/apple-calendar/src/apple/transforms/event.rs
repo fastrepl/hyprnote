@@ -3,7 +3,7 @@ use objc2_event_kit::{EKAlarm, EKCalendarType, EKEvent, EKStructuredLocation};
 use objc2_foundation::{NSArray, NSDate, NSString, NSTimeZone};
 
 use crate::error::Error;
-use crate::model::{AppleEvent, CalendarRef, Participant, StructuredLocation};
+use crate::types::{AppleEvent, CalendarRef, Participant, StructuredLocation};
 
 use super::super::recurrence::{offset_date_time_from, parse_recurrence_info};
 use super::alarm::transform_alarm;
@@ -130,8 +130,8 @@ fn extract_event_dates(event: &EKEvent) -> EventDates {
 }
 
 struct EventStatusInfo {
-    availability: crate::model::EventAvailability,
-    status: crate::model::EventStatus,
+    availability: crate::types::EventAvailability,
+    status: crate::types::EventStatus,
 }
 
 fn extract_event_status_info(event: &EKEvent) -> EventStatusInfo {
@@ -197,7 +197,7 @@ fn extract_event_location_info(event: &EKEvent) -> EventLocationInfo {
 }
 
 struct EventRecurrenceInfo {
-    recurrence: Option<crate::model::RecurrenceInfo>,
+    recurrence: Option<crate::types::RecurrenceInfo>,
     occurrence_date: Option<chrono::DateTime<chrono::Utc>>,
     is_detached: bool,
 }
@@ -214,7 +214,7 @@ fn extract_event_recurrence_info(
 }
 
 struct EventAlarmInfo {
-    alarms: Vec<crate::model::Alarm>,
+    alarms: Vec<crate::types::Alarm>,
 }
 
 fn extract_event_alarm_info(event: &EKEvent) -> EventAlarmInfo {

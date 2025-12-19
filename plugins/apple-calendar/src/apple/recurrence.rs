@@ -5,7 +5,7 @@ use objc2_event_kit::{
 };
 use objc2_foundation::{NSArray, NSDate, NSInteger, NSNumber};
 
-use crate::model::{
+use crate::types::{
     RecurrenceDayOfWeek, RecurrenceEnd, RecurrenceFrequency, RecurrenceInfo, RecurrenceOccurrence,
     RecurrenceRule, Weekday,
 };

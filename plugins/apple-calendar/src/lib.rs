@@ -5,13 +5,11 @@ mod commands;
 mod error;
 mod events;
 mod ext;
-pub mod model;
 mod types;
 
 pub use error::{Error, Result};
 pub use events::*;
 pub use ext::{AppleCalendarExt, AppleCalendarPluginExt};
-pub use model::*;
 pub use types::*;
 
 const PLUGIN_NAME: &str = "apple-calendar";

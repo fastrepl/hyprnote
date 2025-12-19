@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
@@ -8,13 +7,17 @@ import { createClient, createConfig } from "@hypr/api-client/client";
 import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
+import { Route } from "../../routes/app/onboarding";
 import * as settings from "../../store/tinybase/settings";
-import { getNextAfterLogin, type StepProps } from "./config";
+import { getBack, getNext, type StepProps } from "./config";
+import { STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
 import { Divider, OnboardingContainer } from "./shared";
 
+export const STEP_ID_LOGIN = "login" as const;
+
 export function Login({ onNavigate }: StepProps) {
+  const search = Route.useSearch();
   const auth = useAuth();
-  const currentPlatform = platform();
   const [callbackUrl, setCallbackUrl] = useState("");
 
   const setLlmProvider = settings.UI.useSetValueCallback(
@@ -76,11 +79,12 @@ export function Login({ onNavigate }: StepProps) {
       if (isPro) {
         setTrialDefaults();
       }
-      onNavigate(getNextAfterLogin(currentPlatform, isPro));
+      const nextSearch = { ...search, pro: isPro };
+      onNavigate({ ...nextSearch, step: getNext(nextSearch) });
     },
     onError: (e) => {
       console.error(e);
-      onNavigate("configure-notice");
+      onNavigate({ ...search, step: STEP_ID_CONFIGURE_NOTICE });
     },
   });
 
@@ -96,13 +100,17 @@ export function Login({ onNavigate }: StepProps) {
     if (isIdle && !auth?.session) {
       void auth?.signIn();
     }
-  }, [auth, isIdle]);
+  }, [auth?.session, auth?.signIn, isIdle]);
+
+  const backStep = getBack(search);
 
   return (
     <OnboardingContainer
       title="Waiting for sign in..."
       description="Complete the process in your browser"
-      onBack={() => onNavigate("welcome")}
+      onBack={
+        backStep ? () => onNavigate({ ...search, step: backStep }) : undefined
+      }
     >
       <button
         onClick={() => auth?.signIn()}

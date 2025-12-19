@@ -162,4 +162,48 @@ function useTabShortcuts({
     },
     [currentTab, editorTabs, handleTabChange],
   );
+
+  useHotkeys(
+    "ctrl+alt+left",
+    () => {
+      const currentIndex = editorTabs.findIndex(
+        (t) =>
+          (t.type === "enhanced" &&
+            currentTab.type === "enhanced" &&
+            t.id === currentTab.id) ||
+          (t.type === currentTab.type && t.type !== "enhanced"),
+      );
+      if (currentIndex > 0) {
+        handleTabChange(editorTabs[currentIndex - 1]);
+      }
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [currentTab, editorTabs, handleTabChange],
+  );
+
+  useHotkeys(
+    "ctrl+alt+right",
+    () => {
+      const currentIndex = editorTabs.findIndex(
+        (t) =>
+          (t.type === "enhanced" &&
+            currentTab.type === "enhanced" &&
+            t.id === currentTab.id) ||
+          (t.type === currentTab.type && t.type !== "enhanced"),
+      );
+      if (currentIndex >= 0 && currentIndex < editorTabs.length - 1) {
+        handleTabChange(editorTabs[currentIndex + 1]);
+      }
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [currentTab, editorTabs, handleTabChange],
+  );
 }

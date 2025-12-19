@@ -143,7 +143,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   const kbdClass = cn([
     "inline-flex h-5 items-center gap-1",
     "rounded border border-neutral-300",
-    "bg-linear-to-b from-white to-neutral-100",
+    "bg-gradient-to-b from-white to-neutral-100",
     "px-1.5 font-mono text-[10px] font-medium text-neutral-400",
     "shadow-[0_1px_0_0_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
     "select-none transition-all duration-100",

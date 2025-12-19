@@ -1,89 +1,221 @@
 use std::collections::HashMap;
+use std::io::Write;
+use std::str::FromStr;
 
 use axum::{
     Json,
+    body::Bytes,
     extract::{Query, State},
+    http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
-use serde::{Deserialize, Serialize};
+use owhisper_client::{
+    AssemblyAIAdapter, BatchClient, DeepgramAdapter, GladiaAdapter, OpenAIAdapter, SonioxAdapter,
+};
+use owhisper_interface::ListenParams;
+use owhisper_interface::batch::Response as BatchResponse;
+use owhisper_providers::Provider;
 
 use super::AppState;
 
-#[derive(Debug, Deserialize)]
-pub struct BatchRequest {
-    pub url: String,
-}
-
-#[derive(Debug, Serialize)]
-pub struct BatchResponse {
-    pub metadata: BatchMetadata,
-    pub results: BatchResults,
-}
-
-#[derive(Debug, Serialize)]
-pub struct BatchMetadata {
-    pub request_id: String,
-    pub duration: f64,
-    pub channels: u32,
-}
-
-#[derive(Debug, Serialize)]
-pub struct BatchResults {
-    pub channels: Vec<Channel>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct Channel {
-    pub alternatives: Vec<Alternative>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct Alternative {
-    pub transcript: String,
-    pub confidence: f64,
-    pub words: Vec<Word>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct Word {
-    pub word: String,
-    pub start: f64,
-    pub end: f64,
-    pub confidence: f64,
-}
-
 pub async fn handler(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Query(params): Query<HashMap<String, String>>,
-    Json(request): Json<BatchRequest>,
+    body: Bytes,
 ) -> Response {
-    let (provider, _api_key) = match state.resolve_provider(&params) {
+    let (provider, api_key) = match state.resolve_provider(&params) {
         Ok(v) => v,
         Err(resp) => return resp,
     };
 
+    if body.is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "missing_audio_data",
+                "detail": "Request body is empty"
+            })),
+        )
+            .into_response();
+    }
+
+    let content_type = headers
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+
+    let listen_params = build_listen_params(&params);
+
     tracing::info!(
         provider = ?provider,
-        url = %request.url,
-        "batch transcription request received (mock)"
+        content_type = %content_type,
+        body_size = body.len(),
+        "batch transcription request received"
     );
 
-    let response = BatchResponse {
-        metadata: BatchMetadata {
-            request_id: uuid::Uuid::new_v4().to_string(),
-            duration: 0.0,
-            channels: 1,
-        },
-        results: BatchResults {
-            channels: vec![Channel {
-                alternatives: vec![Alternative {
-                    transcript: String::new(),
-                    confidence: 0.0,
-                    words: vec![],
-                }],
-            }],
-        },
+    match transcribe_with_provider(provider, &api_key, listen_params, body, content_type).await {
+        Ok(response) => Json(response).into_response(),
+        Err(e) => {
+            tracing::error!(error = %e, "batch transcription failed");
+            (
+                StatusCode::BAD_GATEWAY,
+                Json(serde_json::json!({
+                    "error": "transcription_failed",
+                    "detail": e
+                })),
+            )
+                .into_response()
+        }
+    }
+}
+
+fn build_listen_params(params: &HashMap<String, String>) -> ListenParams {
+    let model = params.get("model").cloned();
+
+    let languages: Vec<hypr_language::Language> = params
+        .get("language")
+        .map(|s| {
+            s.split(',')
+                .filter_map(|lang| {
+                    hypr_language::ISO639::from_str(lang.trim())
+                        .ok()
+                        .map(hypr_language::Language::from)
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let keywords: Vec<String> = params
+        .get("keyword")
+        .map(|s| s.split(',').map(|k| k.trim().to_string()).collect())
+        .or_else(|| {
+            params
+                .get("keywords")
+                .map(|s| s.split(',').map(|k| k.trim().to_string()).collect())
+        })
+        .unwrap_or_default();
+
+    ListenParams {
+        model,
+        languages,
+        keywords,
+        ..Default::default()
+    }
+}
+
+async fn transcribe_with_provider(
+    provider: Provider,
+    api_key: &str,
+    params: ListenParams,
+    audio_bytes: Bytes,
+    content_type: &str,
+) -> Result<BatchResponse, String> {
+    let temp_file = write_to_temp_file(&audio_bytes, content_type)
+        .map_err(|e| format!("failed to create temp file: {}", e))?;
+
+    let file_path = temp_file.path();
+    let api_base = provider_api_base(provider);
+
+    let result = match provider {
+        Provider::Deepgram => {
+            BatchClient::<DeepgramAdapter>::builder()
+                .api_base(api_base)
+                .api_key(api_key)
+                .params(params)
+                .build()
+                .transcribe_file(file_path)
+                .await
+        }
+        Provider::AssemblyAI => {
+            BatchClient::<AssemblyAIAdapter>::builder()
+                .api_base(api_base)
+                .api_key(api_key)
+                .params(params)
+                .build()
+                .transcribe_file(file_path)
+                .await
+        }
+        Provider::Soniox => {
+            BatchClient::<SonioxAdapter>::builder()
+                .api_base(api_base)
+                .api_key(api_key)
+                .params(params)
+                .build()
+                .transcribe_file(file_path)
+                .await
+        }
+        Provider::OpenAI => {
+            BatchClient::<OpenAIAdapter>::builder()
+                .api_base(api_base)
+                .api_key(api_key)
+                .params(params)
+                .build()
+                .transcribe_file(file_path)
+                .await
+        }
+        Provider::Gladia => {
+            BatchClient::<GladiaAdapter>::builder()
+                .api_base(api_base)
+                .api_key(api_key)
+                .params(params)
+                .build()
+                .transcribe_file(file_path)
+                .await
+        }
+        Provider::Fireworks => {
+            return Err(format!(
+                "{:?} does not support batch transcription",
+                provider
+            ));
+        }
     };
 
-    Json(response).into_response()
+    result.map_err(|e| format!("{:?}", e))
+}
+
+fn provider_api_base(provider: Provider) -> String {
+    match provider {
+        Provider::Deepgram => "https://api.deepgram.com/v1".to_string(),
+        Provider::AssemblyAI => "https://api.assemblyai.com/v2".to_string(),
+        Provider::Soniox => "https://api.soniox.com".to_string(),
+        Provider::OpenAI => "https://api.openai.com/v1".to_string(),
+        Provider::Gladia => "https://api.gladia.io".to_string(),
+        Provider::Fireworks => "https://api.fireworks.ai".to_string(),
+    }
+}
+
+fn write_to_temp_file(
+    bytes: &Bytes,
+    content_type: &str,
+) -> Result<tempfile::NamedTempFile, std::io::Error> {
+    let extension = content_type_to_extension(content_type);
+    let mut temp_file = tempfile::Builder::new()
+        .prefix("batch_audio_")
+        .suffix(&format!(".{}", extension))
+        .tempfile()?;
+
+    temp_file.write_all(bytes)?;
+    temp_file.flush()?;
+
+    Ok(temp_file)
+}
+
+fn content_type_to_extension(content_type: &str) -> &'static str {
+    let mime = content_type
+        .split(';')
+        .next()
+        .unwrap_or(content_type)
+        .trim();
+
+    match mime {
+        "audio/wav" | "audio/wave" | "audio/x-wav" => "wav",
+        "audio/mpeg" | "audio/mp3" => "mp3",
+        "audio/ogg" => "ogg",
+        "audio/flac" => "flac",
+        "audio/mp4" | "audio/m4a" | "audio/x-m4a" => "m4a",
+        "audio/webm" => "webm",
+        "audio/aac" => "aac",
+        _ => "wav",
+    }
 }

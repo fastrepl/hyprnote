@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 use axum::{
     Router,
+    extract::DefaultBodyLimit,
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::{get, post},
@@ -52,5 +53,6 @@ pub fn router(config: SttProxyConfig) -> Router {
     Router::new()
         .route("/listen", get(streaming::handler))
         .route("/listen", post(batch::handler))
+        .layer(DefaultBodyLimit::max(50 * 1024 * 1024)) // 50MB limit for batch audio
         .with_state(state)
 }

@@ -4,7 +4,7 @@ use common::*;
 use futures_util::StreamExt;
 use std::time::Duration;
 
-use owhisper_client::{FinalizeHandle, ListenClient, RealtimeSttAdapter};
+use owhisper_client::{BatchSttAdapter, FinalizeHandle, ListenClient, RealtimeSttAdapter};
 use owhisper_interface::stream::StreamResponse;
 use owhisper_providers::Provider;
 
@@ -99,4 +99,93 @@ proxy_live_test!(
     owhisper_client::SonioxAdapter,
     Provider::Soniox,
     "stt-v3"
+);
+
+async fn run_proxy_batch_test<A: BatchSttAdapter>(
+    provider: Provider,
+    params: owhisper_interface::ListenParams,
+) {
+    let _ = tracing_subscriber::fmt::try_init();
+
+    let api_key = std::env::var(provider.env_key_name())
+        .unwrap_or_else(|_| panic!("{} must be set", provider.env_key_name()));
+    let addr = start_server_with_provider(provider, api_key).await;
+
+    let audio_bytes =
+        std::fs::read(hypr_data::english_1::AUDIO_PATH).expect("failed to read test audio file");
+
+    let client = reqwest::Client::new();
+    let url = format!(
+        "http://{}/listen?model={}",
+        addr,
+        params.model.as_deref().unwrap_or("nova-3")
+    );
+
+    let response = client
+        .post(&url)
+        .header("Content-Type", "audio/wav")
+        .body(audio_bytes)
+        .send()
+        .await
+        .expect("failed to send batch request");
+
+    assert!(
+        response.status().is_success(),
+        "batch request failed with status: {}",
+        response.status()
+    );
+
+    let batch_response: owhisper_interface::batch::Response = response
+        .json()
+        .await
+        .expect("failed to parse batch response");
+
+    let transcript = batch_response
+        .results
+        .channels
+        .first()
+        .and_then(|c| c.alternatives.first())
+        .map(|a| a.transcript.as_str())
+        .unwrap_or("");
+
+    println!("[proxy:{}] batch transcript: {}", provider, transcript);
+
+    assert!(
+        !transcript.is_empty(),
+        "[proxy:{}] expected non-empty transcript from batch transcription",
+        provider
+    );
+}
+
+macro_rules! proxy_batch_test {
+    ($name:ident, $adapter:ty, $provider:expr, $model:expr) => {
+        pub mod $name {
+            use super::*;
+
+            pub mod batch {
+                use super::*;
+
+                #[ignore]
+                #[tokio::test]
+                async fn test_proxy_batch() {
+                    run_proxy_batch_test::<$adapter>(
+                        $provider,
+                        owhisper_interface::ListenParams {
+                            model: Some($model.to_string()),
+                            languages: vec![hypr_language::ISO639::En.into()],
+                            ..Default::default()
+                        },
+                    )
+                    .await;
+                }
+            }
+        }
+    };
+}
+
+proxy_batch_test!(
+    deepgram_batch,
+    owhisper_client::DeepgramAdapter,
+    Provider::Deepgram,
+    "nova-3"
 );

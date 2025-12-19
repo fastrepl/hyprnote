@@ -614,12 +614,22 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
 }
 
 function useTabsShortcuts() {
-  const { tabs, currentTab, close, select, restoreLastClosedTab } = useTabs(
+  const {
+    tabs,
+    currentTab,
+    close,
+    select,
+    selectNext,
+    selectPrev,
+    restoreLastClosedTab,
+  } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
       currentTab: state.currentTab,
       close: state.close,
       select: state.select,
+      selectNext: state.selectNext,
+      selectPrev: state.selectPrev,
       restoreLastClosedTab: state.restoreLastClosedTab,
     })),
   );
@@ -687,6 +697,28 @@ function useTabsShortcuts() {
       enableOnContentEditable: true,
     },
     [tabs, select],
+  );
+
+  useHotkeys(
+    "mod+alt+left",
+    () => selectPrev(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [selectPrev],
+  );
+
+  useHotkeys(
+    "mod+alt+right",
+    () => selectNext(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [selectNext],
   );
 
   useHotkeys(

@@ -169,13 +169,11 @@ const changelog = defineCollection({
     });
 
     const version = document._meta.path.replace(/\.mdx$/, "");
-    const isNightly = version.includes("-nightly");
-    const channel = isNightly ? "nightly" : "stable";
-
+    const baseUrl = `https://github.com/fastrepl/hyprnote/releases/download/desktop_v${version}`;
     const downloads: Record<VersionPlatform, string> = {
-      "dmg-aarch64": `https://desktop2.hyprnote.com/download/${version}/dmg-aarch64?channel=${channel}`,
-      "appimage-x86_64": `https://desktop2.hyprnote.com/download/${version}/appimage-x86_64?channel=${channel}`,
-      "deb-x86_64": `https://desktop2.hyprnote.com/download/${version}/deb-x86_64?channel=${channel}`,
+      "dmg-aarch64": `${baseUrl}/hyprnote-macos-aarch64.dmg`,
+      "appimage-x86_64": `${baseUrl}/hyprnote-linux-x86_64.AppImage`,
+      "deb-x86_64": `${baseUrl}/hyprnote-linux-x86_64.deb`,
     };
 
     return {

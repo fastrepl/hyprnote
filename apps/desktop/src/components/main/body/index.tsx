@@ -622,6 +622,7 @@ function useTabsShortcuts() {
     selectNext,
     selectPrev,
     restoreLastClosedTab,
+    openNew,
   } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
@@ -631,6 +632,7 @@ function useTabsShortcuts() {
       selectNext: state.selectNext,
       selectPrev: state.selectPrev,
       restoreLastClosedTab: state.restoreLastClosedTab,
+      openNew: state.openNew,
     })),
   );
   const newNote = useNewNote({ behavior: "new" });
@@ -730,6 +732,50 @@ function useTabsShortcuts() {
       enableOnContentEditable: true,
     },
     [restoreLastClosedTab],
+  );
+
+  useHotkeys(
+    "mod+shift+c",
+    () => openNew({ type: "calendar" }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+n",
+    () => openNew({ type: "contacts" }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+d",
+    () => openNew({ type: "folders", id: null }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+f",
+    () => openNew({ type: "data", state: { tab: null } }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
   );
 
   return {};

@@ -1,7 +1,6 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 
-import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
@@ -55,15 +54,13 @@ export function TabItemBase({
     }
   };
 
-  const contextMenu = !active ? (
-    <>
-      <ContextMenuItem onClick={handleCloseThis}>close tab</ContextMenuItem>
-      <ContextMenuItem onClick={handleCloseOthers}>
-        close others
-      </ContextMenuItem>
-      <ContextMenuItem onClick={handleCloseAll}>close all</ContextMenuItem>
-    </>
-  ) : undefined;
+  const contextMenu = !active
+    ? [
+        { id: "close-tab", text: "close tab", action: handleCloseThis },
+        { id: "close-others", text: "close others", action: handleCloseOthers },
+        { id: "close-all", text: "close all", action: handleCloseAll },
+      ]
+    : undefined;
 
   const showShortcut = isCmdPressed && tabIndex !== undefined;
 

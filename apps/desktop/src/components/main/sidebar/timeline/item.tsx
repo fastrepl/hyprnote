@@ -1,7 +1,6 @@
 import { memo, useCallback, useMemo } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
@@ -45,14 +44,14 @@ export const TimelineItemComponent = memo(
       }
     };
 
-    const handleCmdClick = () => {
+    const handleCmdClick = useCallback(() => {
       if (item.type === "event") {
         handleEventClick(true);
       } else {
         const tab: TabInput = { id: item.id, type: "sessions" };
         openNew(tab);
       }
-    };
+    }, [item, openNew]);
 
     const handleEventClick = (openInNewTab: boolean) => {
       if (!eventId || !store) {
@@ -111,22 +110,14 @@ export const TimelineItemComponent = memo(
       }
     }, [store, item.id, item.type, invalidateResource]);
 
-    const contextMenu = (
-      <>
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={() => handleCmdClick()}
-        >
-          Open in New Tab
-        </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer text-red-500 hover:bg-red-500 hover:text-white"
-          onClick={handleDelete}
-        >
-          Delete Completely
-        </ContextMenuItem>
-      </>
+    const contextMenu = useMemo(
+      () => [
+        { id: "open-new-tab", text: "Open in New Tab", action: handleCmdClick },
+        { id: "delete", text: "Delete Completely", action: handleDelete },
+      ],
+      [handleCmdClick, handleDelete],
     );
+
     const displayTime = useMemo(() => {
       if (!timestamp) {
         return "";

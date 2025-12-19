@@ -6,7 +6,7 @@ use owhisper_providers::Provider;
 
 use crate::analytics::SttAnalyticsReporter;
 
-const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 5000;
+pub const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 5000;
 
 #[derive(Clone)]
 pub struct SttProxyConfig {

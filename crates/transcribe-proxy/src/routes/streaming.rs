@@ -1,58 +1,29 @@
 use std::collections::HashMap;
 
 use axum::{
-    Router,
     extract::{Query, State, WebSocketUpgrade},
     http::StatusCode,
     response::{IntoResponse, Response},
-    routing::any,
 };
 use owhisper_providers::{Auth, Provider};
 
 use crate::analytics::SttEvent;
 use crate::config::SttProxyConfig;
-use crate::proxy::WebSocketProxy;
+use crate::relay::WebSocketProxy;
 use crate::upstream_url::UpstreamUrlBuilder;
+
+use super::AppState;
 
 const IGNORED_PARAMS: &[&str] = &["provider", "keywords", "keyterm", "keyterms"];
 
-#[derive(Clone)]
-struct AppState {
-    config: SttProxyConfig,
-    client: reqwest::Client,
-}
-
-pub fn router(config: SttProxyConfig) -> Router {
-    let state = AppState {
-        config,
-        client: reqwest::Client::new(),
-    };
-
-    Router::new()
-        .route("/listen", any(ws_handler))
-        .with_state(state)
-}
-
-async fn ws_handler(
+pub async fn handler(
     State(state): State<AppState>,
     ws: WebSocketUpgrade,
     Query(params): Query<HashMap<String, String>>,
 ) -> Response {
-    let provider = params
-        .get("provider")
-        .and_then(|s| s.parse::<Provider>().ok())
-        .unwrap_or(state.config.default_provider);
-
-    let api_key = match state.config.api_key_for(provider) {
-        Some(key) => key.to_string(),
-        None => {
-            tracing::warn!(provider = ?provider, "requested provider not configured");
-            return (
-                StatusCode::BAD_REQUEST,
-                "requested provider is not available",
-            )
-                .into_response();
-        }
+    let (provider, api_key) = match state.resolve_provider(&params) {
+        Ok(v) => v,
+        Err(resp) => return resp,
     };
 
     let upstream_url = match resolve_upstream_url(&state, provider, &api_key, &params).await {

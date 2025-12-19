@@ -5,15 +5,13 @@ use std::time::Duration;
 pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::handler::WebSocketProxy;
-use super::types::{FirstMessageTransformer, OnCloseCallback, UPSTREAM_CONNECT_TIMEOUT_MS};
+use super::types::{FirstMessageTransformer, OnCloseCallback};
+use crate::config::DEFAULT_CONNECT_TIMEOUT_MS;
 
 pub struct NoUpstream;
 pub struct WithUrl {
     url: String,
     headers: HashMap<String, String>,
-}
-pub struct WithRequest {
-    request: ClientRequestBuilder,
 }
 
 pub struct WebSocketProxyBuilder<S = NoUpstream> {
@@ -30,7 +28,7 @@ impl Default for WebSocketProxyBuilder<NoUpstream> {
             state: NoUpstream,
             control_message_types: HashSet::new(),
             transform_first_message: None,
-            connect_timeout: Duration::from_millis(UPSTREAM_CONNECT_TIMEOUT_MS),
+            connect_timeout: Duration::from_millis(DEFAULT_CONNECT_TIMEOUT_MS),
             on_close: None,
         }
     }
@@ -107,13 +105,6 @@ impl WebSocketProxyBuilder<NoUpstream> {
             headers: HashMap::new(),
         })
     }
-
-    pub fn upstream_request(
-        self,
-        request: ClientRequestBuilder,
-    ) -> WebSocketProxyBuilder<WithRequest> {
-        self.with_state(WithRequest { request })
-    }
 }
 
 impl WebSocketProxyBuilder<WithUrl> {
@@ -135,18 +126,6 @@ impl WebSocketProxyBuilder<WithUrl> {
         }
         Self::build_from(
             request,
-            self.control_message_types,
-            self.transform_first_message,
-            self.connect_timeout,
-            self.on_close,
-        )
-    }
-}
-
-impl WebSocketProxyBuilder<WithRequest> {
-    pub fn build(self) -> WebSocketProxy {
-        Self::build_from(
-            self.state.request,
             self.control_message_types,
             self.transform_first_message,
             self.connect_timeout,

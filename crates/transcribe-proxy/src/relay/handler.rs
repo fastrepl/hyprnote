@@ -1,12 +1,8 @@
-use std::future::Future;
-use std::pin::Pin;
-use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
 use axum::body::Body;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
-use axum::extract::{FromRequest, Request};
-use axum::http::{Response, StatusCode};
+use axum::http::Response;
 use axum::response::IntoResponse;
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::tungstenite::ClientRequestBuilder;
@@ -14,7 +10,6 @@ use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use tokio_tungstenite::{
     MaybeTlsStream, WebSocketStream, connect_async, tungstenite::client::IntoClientRequest,
 };
-use tower::Service;
 
 use super::builder::WebSocketProxyBuilder;
 use super::pending::{PendingState, QueuedPayload};
@@ -55,13 +50,12 @@ impl WebSocketProxy {
 
     async fn connect_upstream(
         &self,
-    ) -> Result<WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>, crate::PreconnectError>
-    {
+    ) -> Result<WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>, crate::ProxyError> {
         let req = self
             .upstream_request
             .clone()
             .into_client_request()
-            .map_err(|e| crate::PreconnectError::InvalidRequest(e.to_string()))?;
+            .map_err(|e| crate::ProxyError::InvalidRequest(e.to_string()))?;
 
         tracing::info!("connecting_to_upstream: {:?}", req.uri());
 
@@ -69,8 +63,8 @@ impl WebSocketProxy {
 
         match upstream_result {
             Ok(Ok((stream, _))) => Ok(stream),
-            Ok(Err(e)) => Err(crate::PreconnectError::ConnectionFailed(e.to_string())),
-            Err(_) => Err(crate::PreconnectError::Timeout),
+            Ok(Err(e)) => Err(crate::ProxyError::ConnectionFailed(e.to_string())),
+            Err(_) => Err(crate::ProxyError::ConnectionTimeout),
         }
     }
 
@@ -307,46 +301,5 @@ impl WebSocketProxy {
                 }
             }
         }
-    }
-}
-
-impl Service<Request<Body>> for WebSocketProxy {
-    type Response = Response<Body>;
-    type Error = std::convert::Infallible;
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
-
-    fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        Poll::Ready(Ok(()))
-    }
-
-    fn call(&mut self, req: Request<Body>) -> Self::Future {
-        let proxy = self.clone();
-
-        Box::pin(async move {
-            let is_websocket_upgrade = req
-                .headers()
-                .get("upgrade")
-                .and_then(|v| v.to_str().ok())
-                .map(|v| v.eq_ignore_ascii_case("websocket"))
-                .unwrap_or(false);
-
-            if is_websocket_upgrade {
-                let (parts, body) = req.into_parts();
-                let axum_req = Request::from_parts(parts, body);
-
-                match WebSocketUpgrade::from_request(axum_req, &()).await {
-                    Ok(ws) => Ok(proxy.handle_upgrade(ws).await),
-                    Err(_) => Ok(Response::builder()
-                        .status(StatusCode::BAD_REQUEST)
-                        .body(Body::from("Invalid WebSocket upgrade request"))
-                        .unwrap()),
-                }
-            } else {
-                Ok(Response::builder()
-                    .status(StatusCode::METHOD_NOT_ALLOWED)
-                    .body(Body::from("Only WebSocket connections are supported"))
-                    .unwrap())
-            }
-        })
     }
 }

@@ -5,7 +5,6 @@ import {
   FolderOpenIcon,
   SettingsIcon,
   SparklesIcon,
-  UserIcon,
   UsersIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -118,18 +117,6 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     setCurrentView("main");
   }, []);
 
-  const handleClickProfile = useCallback(() => {
-    // TODO: Show the user's own profile in the contacts view
-    openNew({
-      type: "contacts",
-      state: {
-        selectedOrganization: null,
-        selectedPerson: null,
-      },
-    });
-    closeMenu();
-  }, [openNew, closeMenu]);
-
   const handleClickAI = useCallback(() => {
     openNew({ type: "ai" });
     closeMenu();
@@ -193,18 +180,6 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
         <kbd className={kbdClass}>
           <span className="text-xs">⌘</span>
           <span className="text-xs">⇧</span>A
-        </kbd>
-      ),
-    },
-    // { icon: DatabaseIcon, label: "Data", onClick: handleClickData },
-    {
-      icon: UserIcon,
-      label: "My Profile",
-      onClick: handleClickProfile,
-      badge: (
-        <kbd className={kbdClass}>
-          <span className="text-xs">⌘</span>
-          <span className="text-xs">⇧</span>M
         </kbd>
       ),
     },

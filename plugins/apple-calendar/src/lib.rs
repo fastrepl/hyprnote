@@ -1,9 +1,5 @@
 #[cfg(target_os = "macos")]
 mod apple;
-#[cfg(target_os = "macos")]
-mod contact_resolver;
-#[cfg(target_os = "macos")]
-mod recurrence;
 
 mod commands;
 mod error;

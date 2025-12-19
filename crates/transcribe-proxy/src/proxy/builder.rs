@@ -7,22 +7,27 @@ pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 use super::handler::WebSocketProxy;
 use super::types::{FirstMessageTransformer, OnCloseCallback, UPSTREAM_CONNECT_TIMEOUT_MS};
 
-pub struct WebSocketProxyBuilder {
-    url: Option<String>,
+pub struct NoUpstream;
+pub struct WithUrl {
+    url: String,
     headers: HashMap<String, String>,
-    request: Option<ClientRequestBuilder>,
+}
+pub struct WithRequest {
+    request: ClientRequestBuilder,
+}
+
+pub struct WebSocketProxyBuilder<S = NoUpstream> {
+    state: S,
     control_message_types: HashSet<&'static str>,
     transform_first_message: Option<FirstMessageTransformer>,
     connect_timeout: Duration,
     on_close: Option<OnCloseCallback>,
 }
 
-impl Default for WebSocketProxyBuilder {
+impl Default for WebSocketProxyBuilder<NoUpstream> {
     fn default() -> Self {
         Self {
-            url: None,
-            headers: HashMap::new(),
-            request: None,
+            state: NoUpstream,
             control_message_types: HashSet::new(),
             transform_first_message: None,
             connect_timeout: Duration::from_millis(UPSTREAM_CONNECT_TIMEOUT_MS),
@@ -31,25 +36,37 @@ impl Default for WebSocketProxyBuilder {
     }
 }
 
-impl WebSocketProxyBuilder {
-    pub fn upstream_url(mut self, url: impl Into<String>) -> Self {
-        self.url = Some(url.into());
-        self
+impl<S> WebSocketProxyBuilder<S> {
+    fn with_state<T>(self, state: T) -> WebSocketProxyBuilder<T> {
+        WebSocketProxyBuilder {
+            state,
+            control_message_types: self.control_message_types,
+            transform_first_message: self.transform_first_message,
+            connect_timeout: self.connect_timeout,
+            on_close: self.on_close,
+        }
     }
 
-    pub fn header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
-        self.headers.insert(key.into(), value.into());
-        self
-    }
+    fn build_from(
+        request: ClientRequestBuilder,
+        control_message_types: HashSet<&'static str>,
+        transform_first_message: Option<FirstMessageTransformer>,
+        connect_timeout: Duration,
+        on_close: Option<OnCloseCallback>,
+    ) -> WebSocketProxy {
+        let control_message_types = if control_message_types.is_empty() {
+            None
+        } else {
+            Some(Arc::new(control_message_types))
+        };
 
-    pub fn headers(mut self, headers: HashMap<String, String>) -> Self {
-        self.headers.extend(headers);
-        self
-    }
-
-    pub fn upstream_request(mut self, request: ClientRequestBuilder) -> Self {
-        self.request = Some(request);
-        self
+        WebSocketProxy::new(
+            request,
+            control_message_types,
+            transform_first_message,
+            connect_timeout,
+            on_close,
+        )
     }
 
     pub fn control_message_types(mut self, types: &[&'static str]) -> Self {
@@ -70,35 +87,67 @@ impl WebSocketProxyBuilder {
         self
     }
 
-    pub fn on_close<F>(mut self, callback: F) -> Self
+    pub fn on_close<F, Fut>(mut self, callback: F) -> Self
     where
-        F: Fn(Duration) + Send + Sync + 'static,
+        F: Fn(Duration) -> Fut + Send + Sync + 'static,
+        Fut: std::future::Future<Output = ()> + Send + 'static,
     {
-        self.on_close = Some(Arc::new(callback));
+        self.on_close = Some(Arc::new(move |duration| {
+            Box::pin(callback(duration))
+                as std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>
+        }));
+        self
+    }
+}
+
+impl WebSocketProxyBuilder<NoUpstream> {
+    pub fn upstream_url(self, url: impl Into<String>) -> WebSocketProxyBuilder<WithUrl> {
+        self.with_state(WithUrl {
+            url: url.into(),
+            headers: HashMap::new(),
+        })
+    }
+
+    pub fn upstream_request(
+        self,
+        request: ClientRequestBuilder,
+    ) -> WebSocketProxyBuilder<WithRequest> {
+        self.with_state(WithRequest { request })
+    }
+}
+
+impl WebSocketProxyBuilder<WithUrl> {
+    pub fn header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        self.state.headers.insert(key.into(), value.into());
+        self
+    }
+
+    pub fn headers(mut self, new_headers: HashMap<String, String>) -> Self {
+        self.state.headers.extend(new_headers);
         self
     }
 
     pub fn build(self) -> WebSocketProxy {
-        let control_message_types = if self.control_message_types.is_empty() {
-            None
-        } else {
-            Some(Arc::new(self.control_message_types))
-        };
+        let mut request =
+            ClientRequestBuilder::new(self.state.url.parse().expect("invalid upstream URL"));
+        for (key, value) in self.state.headers {
+            request = request.with_header(&key, &value);
+        }
+        Self::build_from(
+            request,
+            self.control_message_types,
+            self.transform_first_message,
+            self.connect_timeout,
+            self.on_close,
+        )
+    }
+}
 
-        let upstream_request = if let Some(request) = self.request {
-            request
-        } else {
-            let url = self.url.expect("upstream_url is required");
-            let mut request = ClientRequestBuilder::new(url.parse().expect("invalid upstream URL"));
-            for (key, value) in self.headers {
-                request = request.with_header(&key, &value);
-            }
-            request
-        };
-
-        WebSocketProxy::new(
-            upstream_request,
-            control_message_types,
+impl WebSocketProxyBuilder<WithRequest> {
+    pub fn build(self) -> WebSocketProxy {
+        Self::build_from(
+            self.state.request,
+            self.control_message_types,
             self.transform_first_message,
             self.connect_timeout,
             self.on_close,

@@ -2,26 +2,13 @@ use serde::{Deserialize, Serialize};
 
 pub const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ChatMessage {
     pub role: String,
     pub content: String,
 }
 
-impl Serialize for ChatMessage {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeMap;
-        let mut map = serializer.serialize_map(Some(2))?;
-        map.serialize_entry("role", &self.role)?;
-        map.serialize_entry("content", &self.content)?;
-        map.end()
-    }
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum ToolChoice {
     String(String),
@@ -30,24 +17,6 @@ pub enum ToolChoice {
         type_: String,
         function: serde_json::Value,
     },
-}
-
-impl Serialize for ToolChoice {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            ToolChoice::String(s) => serializer.serialize_str(s),
-            ToolChoice::Object { type_, function } => {
-                use serde::ser::SerializeMap;
-                let mut map = serializer.serialize_map(Some(2))?;
-                map.serialize_entry("type", type_)?;
-                map.serialize_entry("function", function)?;
-                map.end()
-            }
-        }
-    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -90,7 +59,13 @@ pub struct OpenRouterRequest {
 
 #[derive(Serialize)]
 pub struct Provider {
-    pub sort: &'static str,
+    sort: &'static str,
+}
+
+impl Default for Provider {
+    fn default() -> Self {
+        Self { sort: "latency" }
+    }
 }
 
 #[derive(Debug, Deserialize)]

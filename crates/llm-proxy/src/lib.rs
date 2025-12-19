@@ -1,12 +1,10 @@
 mod analytics;
 mod config;
-mod error;
 mod handler;
 mod types;
 
 pub use analytics::{AnalyticsReporter, GenerationEvent};
 pub use config::*;
-pub use error::*;
 pub use handler::router;
 
 #[cfg(test)]

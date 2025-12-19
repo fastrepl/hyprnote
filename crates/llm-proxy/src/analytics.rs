@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use hypr_analytics::{AnalyticsClient, AnalyticsPayload};
 use reqwest::Client;
 use serde::Deserialize;
@@ -49,28 +47,6 @@ impl AnalyticsReporter for AnalyticsClient {
             let _ = self.event(event.generation_id, payload.build()).await;
         })
     }
-}
-
-pub async fn send_generation_event(
-    analytics: &Arc<dyn AnalyticsReporter>,
-    generation_id: String,
-    model: String,
-    input_tokens: u32,
-    output_tokens: u32,
-    latency: f64,
-    http_status: u16,
-    total_cost: Option<f64>,
-) {
-    let event = GenerationEvent {
-        generation_id,
-        model,
-        input_tokens,
-        output_tokens,
-        latency,
-        http_status,
-        total_cost,
-    };
-    analytics.report_generation(event).await;
 }
 
 pub async fn fetch_generation_metadata(

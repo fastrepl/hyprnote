@@ -1,4 +1,6 @@
 use std::collections::HashSet;
+use std::future::Future;
+use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -9,7 +11,8 @@ use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 pub const DEFAULT_CLOSE_CODE: u16 = 1011;
 pub const UPSTREAM_CONNECT_TIMEOUT_MS: u64 = 5000;
 
-pub type OnCloseCallback = Arc<dyn Fn(Duration) + Send + Sync>;
+pub type OnCloseCallback =
+    Arc<dyn Fn(Duration) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 pub type ControlMessageTypes = Arc<HashSet<&'static str>>;
 pub type FirstMessageTransformer = Arc<dyn Fn(String) -> String + Send + Sync>;
 
@@ -21,12 +24,18 @@ pub type UpstreamReceiver = SplitStream<WebSocketStream<MaybeTlsStream<tokio::ne
 pub type ClientSender = SplitSink<WebSocket, axum::extract::ws::Message>;
 pub type ClientReceiver = SplitStream<WebSocket>;
 
+#[derive(serde::Deserialize)]
+struct TypeOnly<'a> {
+    #[serde(borrow, rename = "type")]
+    msg_type: Option<&'a str>,
+}
+
 pub fn is_control_message(data: &[u8], types: &HashSet<&str>) -> bool {
     if types.is_empty() {
         return false;
     }
-    if let Ok(json) = serde_json::from_slice::<serde_json::Value>(data) {
-        if let Some(msg_type) = json.get("type").and_then(|v| v.as_str()) {
+    if let Ok(parsed) = serde_json::from_slice::<TypeOnly>(data) {
+        if let Some(msg_type) = parsed.msg_type {
             return types.contains(msg_type);
         }
     }
@@ -38,6 +47,47 @@ pub fn normalize_close_code(code: u16) -> u16 {
         DEFAULT_CLOSE_CODE
     } else {
         code
+    }
+}
+
+pub mod convert {
+    use super::{DEFAULT_CLOSE_CODE, normalize_close_code};
+    use axum::extract::ws::{CloseFrame as AxumCloseFrame, Message as AxumMessage};
+    use tokio_tungstenite::tungstenite::{
+        Message as TungsteniteMessage,
+        protocol::{CloseFrame as TungsteniteCloseFrame, frame::coding::CloseCode},
+    };
+
+    pub fn extract_axum_close(
+        frame: Option<AxumCloseFrame>,
+        default_reason: &str,
+    ) -> (u16, String) {
+        frame.map_or((DEFAULT_CLOSE_CODE, default_reason.to_string()), |f| {
+            (normalize_close_code(f.code), f.reason.to_string())
+        })
+    }
+
+    pub fn extract_tungstenite_close(
+        frame: Option<TungsteniteCloseFrame>,
+        default_reason: &str,
+    ) -> (u16, String) {
+        frame.map_or((DEFAULT_CLOSE_CODE, default_reason.to_string()), |f| {
+            (normalize_close_code(f.code.into()), f.reason.to_string())
+        })
+    }
+
+    pub fn to_axum_close(code: u16, reason: String) -> AxumMessage {
+        AxumMessage::Close(Some(AxumCloseFrame {
+            code,
+            reason: reason.into(),
+        }))
+    }
+
+    pub fn to_tungstenite_close(code: u16, reason: String) -> TungsteniteMessage {
+        TungsteniteMessage::Close(Some(TungsteniteCloseFrame {
+            code: CloseCode::from(code),
+            reason: reason.into(),
+        }))
     }
 }
 

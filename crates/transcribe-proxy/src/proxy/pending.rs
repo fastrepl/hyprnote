@@ -1,10 +1,14 @@
+use futures_util::SinkExt;
+use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+
+use super::types::UpstreamSender;
+
 pub const MAX_PENDING_QUEUE_BYTES: usize = 5 * 1024 * 1024; // 5 MiB
 
 #[derive(Debug, Clone)]
 pub struct QueuedPayload {
     pub data: Vec<u8>,
     pub is_text: bool,
-    pub size: usize,
 }
 
 pub struct PendingState {
@@ -27,13 +31,14 @@ impl PendingState {
         payload: QueuedPayload,
         is_control: bool,
     ) -> Result<(), &'static str> {
-        if payload.size > MAX_PENDING_QUEUE_BYTES {
+        let size = payload.data.len();
+        if size > MAX_PENDING_QUEUE_BYTES {
             return Err("payload_too_large");
         }
-        if self.bytes + payload.size > MAX_PENDING_QUEUE_BYTES {
+        if self.bytes + size > MAX_PENDING_QUEUE_BYTES {
             return Err("backpressure_limit");
         }
-        self.bytes += payload.size;
+        self.bytes += size;
         if is_control {
             self.control_messages.push(payload);
         } else {
@@ -42,19 +47,25 @@ impl PendingState {
         Ok(())
     }
 
-    pub fn drain(&mut self) -> Vec<QueuedPayload> {
-        let mut to_send =
-            Vec::with_capacity(self.control_messages.len() + self.data_messages.len());
-        while !self.control_messages.is_empty() || !self.data_messages.is_empty() {
-            let queued = if !self.control_messages.is_empty() {
-                self.control_messages.remove(0)
+    pub async fn flush_to(&mut self, sender: &mut UpstreamSender) -> Result<(), ()> {
+        for queued in self.drain() {
+            let msg = if queued.is_text {
+                TungsteniteMessage::Text(String::from_utf8_lossy(&queued.data).to_string().into())
             } else {
-                self.data_messages.remove(0)
+                TungsteniteMessage::Binary(queued.data.into())
             };
-            self.bytes = self.bytes.saturating_sub(queued.size);
-            to_send.push(queued);
+            if sender.send(msg).await.is_err() {
+                return Err(());
+            }
         }
-        to_send
+        Ok(())
+    }
+
+    fn drain(&mut self) -> impl Iterator<Item = QueuedPayload> {
+        self.bytes = 0;
+        std::mem::take(&mut self.control_messages)
+            .into_iter()
+            .chain(std::mem::take(&mut self.data_messages))
     }
 
     #[cfg(test)]
@@ -80,19 +91,17 @@ mod tests {
         let payload1 = QueuedPayload {
             data: vec![1, 2, 3],
             is_text: false,
-            size: 3,
         };
         let payload2 = QueuedPayload {
             data: vec![4, 5],
             is_text: true,
-            size: 2,
         };
 
         assert!(state.enqueue(payload1, false).is_ok());
         assert!(state.enqueue(payload2, false).is_ok());
         assert_eq!(state.total_bytes(), 5);
 
-        let drained = state.drain();
+        let drained: Vec<_> = state.drain().collect();
         assert_eq!(drained.len(), 2);
         assert_eq!(state.total_bytes(), 0);
     }
@@ -104,18 +113,16 @@ mod tests {
         let data_payload = QueuedPayload {
             data: b"data".to_vec(),
             is_text: true,
-            size: 4,
         };
         let control_payload = QueuedPayload {
             data: b"control".to_vec(),
             is_text: true,
-            size: 7,
         };
 
         assert!(state.enqueue(data_payload, false).is_ok());
         assert!(state.enqueue(control_payload, true).is_ok());
 
-        let drained = state.drain();
+        let drained: Vec<_> = state.drain().collect();
         assert_eq!(drained.len(), 2);
         assert_eq!(drained[0].data, b"control");
         assert_eq!(drained[1].data, b"data");
@@ -128,7 +135,6 @@ mod tests {
         let large_payload = QueuedPayload {
             data: vec![0; MAX_PENDING_QUEUE_BYTES + 1],
             is_text: false,
-            size: MAX_PENDING_QUEUE_BYTES + 1,
         };
 
         assert_eq!(
@@ -145,12 +151,10 @@ mod tests {
         let payload1 = QueuedPayload {
             data: vec![0; half_size],
             is_text: false,
-            size: half_size,
         };
         let payload2 = QueuedPayload {
             data: vec![0; half_size],
             is_text: false,
-            size: half_size,
         };
 
         assert!(state.enqueue(payload1, false).is_ok());

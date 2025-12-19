@@ -13,11 +13,11 @@ use bytes::Bytes;
 use futures_util::StreamExt;
 use reqwest::Client;
 
-use crate::analytics::{AnalyticsReporter, fetch_generation_metadata, send_generation_event};
+use crate::analytics::{AnalyticsReporter, GenerationEvent, fetch_generation_metadata};
 use crate::config::LlmProxyConfig;
 use crate::types::{
     ChatCompletionRequest, OPENROUTER_URL, OpenRouterRequest, OpenRouterResponse, Provider,
-    ToolChoice,
+    ToolChoice, UsageInfo,
 };
 
 #[derive(Clone)]
@@ -37,51 +37,82 @@ pub fn router(config: LlmProxyConfig) -> Router {
         .with_state(state)
 }
 
-#[derive(Default)]
-struct StreamMetadata {
+async fn report_with_cost(
+    analytics: &dyn AnalyticsReporter,
+    client: &Client,
+    api_key: &str,
+    mut event: GenerationEvent,
+) {
+    event.total_cost = fetch_generation_metadata(client, api_key, &event.generation_id).await;
+    analytics.report_generation(event).await;
+}
+
+struct StreamAccumulator {
     generation_id: Option<String>,
     model: Option<String>,
     input_tokens: u32,
     output_tokens: u32,
 }
 
-fn extract_stream_metadata(chunk: &[u8], metadata: &mut StreamMetadata) {
-    let Ok(text) = std::str::from_utf8(chunk) else {
-        return;
-    };
+impl StreamAccumulator {
+    fn new() -> Self {
+        Self {
+            generation_id: None,
+            model: None,
+            input_tokens: 0,
+            output_tokens: 0,
+        }
+    }
 
-    for line in text.lines() {
-        let Some(data) = line.strip_prefix("data: ") else {
-            continue;
+    fn process_chunk(&mut self, chunk: &[u8]) {
+        let Ok(text) = std::str::from_utf8(chunk) else {
+            return;
         };
 
-        if data.trim() == "[DONE]" {
-            continue;
-        }
+        for line in text.lines() {
+            let Some(data) = line.strip_prefix("data: ") else {
+                continue;
+            };
 
-        let Ok(parsed) = serde_json::from_str::<serde_json::Value>(data) else {
-            continue;
-        };
-
-        if metadata.generation_id.is_none() {
-            metadata.generation_id = parsed.get("id").and_then(|v| v.as_str()).map(String::from);
-        }
-
-        if metadata.model.is_none() {
-            metadata.model = parsed
-                .get("model")
-                .and_then(|v| v.as_str())
-                .map(String::from);
-        }
-
-        if let Some(usage) = parsed.get("usage") {
-            if let Some(pt) = usage.get("prompt_tokens").and_then(|v| v.as_u64()) {
-                metadata.input_tokens = pt as u32;
+            if data.trim() == "[DONE]" {
+                continue;
             }
-            if let Some(ct) = usage.get("completion_tokens").and_then(|v| v.as_u64()) {
-                metadata.output_tokens = ct as u32;
+
+            let Ok(parsed) = serde_json::from_str::<serde_json::Value>(data) else {
+                continue;
+            };
+
+            if self.generation_id.is_none() {
+                self.generation_id = parsed.get("id").and_then(|v| v.as_str()).map(String::from);
+            }
+
+            if self.model.is_none() {
+                self.model = parsed
+                    .get("model")
+                    .and_then(|v| v.as_str())
+                    .map(String::from);
+            }
+
+            if let Some(usage) = parsed
+                .get("usage")
+                .and_then(|u| serde_json::from_value::<UsageInfo>(u.clone()).ok())
+            {
+                self.input_tokens = usage.prompt_tokens.unwrap_or(0);
+                self.output_tokens = usage.completion_tokens.unwrap_or(0);
             }
         }
+    }
+
+    fn into_event(self, start_time: Instant, http_status: u16) -> Option<GenerationEvent> {
+        Some(GenerationEvent {
+            generation_id: self.generation_id?,
+            model: self.model.unwrap_or_default(),
+            input_tokens: self.input_tokens,
+            output_tokens: self.output_tokens,
+            latency: start_time.elapsed().as_secs_f64(),
+            http_status,
+            total_cost: None,
+        })
     }
 }
 
@@ -110,7 +141,7 @@ async fn completions_handler(
         max_tokens: request.max_tokens,
         stream,
         models,
-        provider: Provider { sort: "latency" },
+        provider: Provider::default(),
         extra: request.extra,
     };
 
@@ -163,7 +194,7 @@ async fn handle_stream_response(
     let (tx, rx) = tokio::sync::mpsc::channel::<Result<Bytes, std::io::Error>>(32);
 
     tokio::spawn(async move {
-        let mut metadata = StreamMetadata::default();
+        let mut accumulator = StreamAccumulator::new();
 
         futures_util::pin_mut!(stream);
 
@@ -171,7 +202,7 @@ async fn handle_stream_response(
             match chunk_result {
                 Ok(chunk) => {
                     if analytics.is_some() {
-                        extract_stream_metadata(&chunk, &mut metadata);
+                        accumulator.process_chunk(&chunk);
                     }
 
                     if tx.send(Ok(chunk)).await.is_err() {
@@ -187,23 +218,9 @@ async fn handle_stream_response(
             }
         }
 
-        let latency = start_time.elapsed().as_secs_f64();
-
         if let Some(analytics) = analytics {
-            if let Some(gen_id) = metadata.generation_id {
-                let total_cost = fetch_generation_metadata(&client, &api_key, &gen_id).await;
-
-                send_generation_event(
-                    &analytics,
-                    gen_id,
-                    metadata.model.unwrap_or_default(),
-                    metadata.input_tokens,
-                    metadata.output_tokens,
-                    latency,
-                    http_status,
-                    total_cost,
-                )
-                .await;
+            if let Some(event) = accumulator.into_event(start_time, http_status) {
+                report_with_cost(&*analytics, &client, &api_key, event).await;
             }
         }
     });
@@ -233,41 +250,32 @@ async fn handle_non_stream_response(
         }
     };
 
-    let latency = start_time.elapsed().as_secs_f64();
-
     if let Some(analytics) = &state.config.analytics {
         if let Ok(parsed) = serde_json::from_slice::<OpenRouterResponse>(&body_bytes) {
             let client = state.client.clone();
             let api_key = state.config.api_key.clone();
             let analytics = analytics.clone();
-            let generation_id = parsed.id.clone();
 
-            let input_tokens = parsed
-                .usage
-                .as_ref()
-                .and_then(|u| u.prompt_tokens)
-                .unwrap_or(0);
-            let output_tokens = parsed
-                .usage
-                .as_ref()
-                .and_then(|u| u.completion_tokens)
-                .unwrap_or(0);
-            let model = parsed.model.clone().unwrap_or_default();
+            let event = GenerationEvent {
+                generation_id: parsed.id,
+                model: parsed.model.unwrap_or_default(),
+                input_tokens: parsed
+                    .usage
+                    .as_ref()
+                    .and_then(|u| u.prompt_tokens)
+                    .unwrap_or(0),
+                output_tokens: parsed
+                    .usage
+                    .as_ref()
+                    .and_then(|u| u.completion_tokens)
+                    .unwrap_or(0),
+                latency: start_time.elapsed().as_secs_f64(),
+                http_status,
+                total_cost: None,
+            };
 
             tokio::spawn(async move {
-                let total_cost = fetch_generation_metadata(&client, &api_key, &generation_id).await;
-
-                send_generation_event(
-                    &analytics,
-                    generation_id,
-                    model,
-                    input_tokens,
-                    output_tokens,
-                    latency,
-                    http_status,
-                    total_cost,
-                )
-                .await;
+                report_with_cost(&*analytics, &client, &api_key, event).await;
             });
         }
     }

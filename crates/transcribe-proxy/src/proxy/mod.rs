@@ -1,5 +1,4 @@
 mod builder;
-mod connection;
 mod handler;
 mod pending;
 mod types;

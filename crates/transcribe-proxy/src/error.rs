@@ -16,8 +16,6 @@ pub enum ProxyError {
     ConnectionFailed(String),
     #[error("upstream connection timeout")]
     ConnectionTimeout,
-    #[error("preconnected proxy was already used")]
-    AlreadyUsed,
 }
 
 impl From<PreconnectError> for ProxyError {

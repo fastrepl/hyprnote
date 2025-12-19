@@ -8,6 +8,7 @@ WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY crates crates
 COPY apps/ai/Cargo.toml apps/ai/Cargo.toml
+RUN mkdir -p apps/ai/src && echo "fn main() {}" > apps/ai/src/main.rs
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM rust:${RUST_VERSION}-bookworm AS build

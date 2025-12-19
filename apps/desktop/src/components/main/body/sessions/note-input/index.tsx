@@ -6,6 +6,7 @@ import { cn } from "@hypr/utils";
 
 import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
 import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
+import { useScrollPreservation } from "../../../../../hooks/useScrollPreservation";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useCurrentNoteTab } from "../shared";
@@ -31,14 +32,20 @@ export function NoteInput({
   const tabRef = useRef(tab);
   tabRef.current = tab;
 
-  const handleTabChange = useCallback(
-    (view: EditorView) => {
-      updateSessionTabState(tabRef.current, { editor: view });
-    },
-    [updateSessionTabState],
+  const currentTab: EditorView = useCurrentNoteTab(tab);
+  const { scrollRef, onBeforeTabChange } = useScrollPreservation(
+    currentTab.type === "enhanced"
+      ? `enhanced-${currentTab.id}`
+      : currentTab.type,
   );
 
-  const currentTab: EditorView = useCurrentNoteTab(tab);
+  const handleTabChange = useCallback(
+    (view: EditorView) => {
+      onBeforeTabChange();
+      updateSessionTabState(tabRef.current, { editor: view });
+    },
+    [onBeforeTabChange, updateSessionTabState],
+  );
 
   useTabShortcuts({
     editorTabs,
@@ -72,6 +79,13 @@ export function NoteInput({
       </div>
 
       <div
+        ref={
+          currentTab.type !== "transcript"
+            ? (node) => {
+                scrollRef.current = node;
+              }
+            : undefined
+        }
         onClick={handleContainerClick}
         className={cn([
           "flex-1 mt-2 px-3",
@@ -91,7 +105,11 @@ export function NoteInput({
           <RawEditor ref={editorRef} sessionId={sessionId} />
         )}
         {currentTab.type === "transcript" && (
-          <Transcript sessionId={sessionId} isEditing={isEditing} />
+          <Transcript
+            sessionId={sessionId}
+            isEditing={isEditing}
+            scrollRef={scrollRef}
+          />
         )}
       </div>
     </div>

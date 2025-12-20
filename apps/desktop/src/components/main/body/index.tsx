@@ -86,6 +86,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
     canGoNext,
     closeOthers,
     closeAll,
+    setPinned,
   } = useTabs(
     useShallow((state) => ({
       select: state.select,
@@ -97,6 +98,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
       canGoNext: state.canGoNext,
       closeOthers: state.closeOthers,
       closeAll: state.closeAll,
+      setPinned: state.setPinned,
     })),
   );
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
@@ -187,6 +189,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
                     handleSelect={select}
                     handleCloseOthersCallback={closeOthers}
                     handleCloseAll={closeAll}
+                    handleSetPinned={setPinned}
                     tabIndex={shortcutIndex}
                   />
                 </Reorder.Item>
@@ -236,6 +239,7 @@ function TabItem({
   handleSelect,
   handleCloseOthersCallback,
   handleCloseAll,
+  handleSetPinned,
   tabIndex,
 }: {
   tab: Tab;
@@ -243,9 +247,11 @@ function TabItem({
   handleSelect: (tab: Tab) => void;
   handleCloseOthersCallback: (tab: Tab) => void;
   handleCloseAll: () => void;
+  handleSetPinned: (tab: Tab, pinned: boolean) => void;
   tabIndex?: number;
 }) {
   const handleCloseOthers = () => handleCloseOthersCallback(tab);
+  const handleTogglePin = () => handleSetPinned(tab, !tab.pinned);
 
   if (tab.type === "sessions") {
     return (
@@ -256,6 +262,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -268,6 +275,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -280,6 +288,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -292,6 +301,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -304,6 +314,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -316,6 +327,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -328,6 +340,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -340,6 +353,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -352,6 +366,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -364,6 +379,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -376,6 +392,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -388,6 +405,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -400,6 +418,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -412,6 +431,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -424,6 +444,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -436,6 +457,7 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handleTogglePin={handleTogglePin}
       />
     );
   }
@@ -623,6 +645,7 @@ function useTabsShortcuts() {
     selectPrev,
     restoreLastClosedTab,
     openNew,
+    setPinned,
   } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
@@ -633,6 +656,7 @@ function useTabsShortcuts() {
       selectPrev: state.selectPrev,
       restoreLastClosedTab: state.restoreLastClosedTab,
       openNew: state.openNew,
+      setPinned: state.setPinned,
     })),
   );
   const newNote = useNewNote({ behavior: "new" });
@@ -671,7 +695,11 @@ function useTabsShortcuts() {
     "mod+w",
     async () => {
       if (currentTab) {
-        close(currentTab);
+        if (currentTab.pinned) {
+          setPinned(currentTab, false);
+        } else {
+          close(currentTab);
+        }
       }
     },
     {
@@ -679,7 +707,7 @@ function useTabsShortcuts() {
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [currentTab, close],
+    [currentTab, close, setPinned],
   );
 
   useHotkeys(

@@ -12,6 +12,7 @@ export const TabItemSettings: TabItem<Extract<Tab, { type: "settings" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }) => {
   return (
     <TabItemBase
@@ -19,10 +20,12 @@ export const TabItemSettings: TabItem<Extract<Tab, { type: "settings" }>> = ({
       title={"Settings"}
       selected={tab.active}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };

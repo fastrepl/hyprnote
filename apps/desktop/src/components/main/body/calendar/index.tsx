@@ -12,6 +12,7 @@ export const TabItemCalendar: TabItem<Extract<Tab, { type: "calendar" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }) => {
   return (
     <TabItemBase
@@ -19,10 +20,12 @@ export const TabItemCalendar: TabItem<Extract<Tab, { type: "calendar" }>> = ({
       title={"Calendar"}
       selected={tab.active}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };

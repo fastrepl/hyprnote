@@ -21,6 +21,7 @@ export const TabItemPrompt: TabItem<Extract<Tab, { type: "prompts" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }) => {
   return (
     <TabItemBase
@@ -28,10 +29,12 @@ export const TabItemPrompt: TabItem<Extract<Tab, { type: "prompts" }>> = ({
       title={"Prompts"}
       selected={tab.active}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };

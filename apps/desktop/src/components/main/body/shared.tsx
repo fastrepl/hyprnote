@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Pin, X } from "lucide-react";
 import { useState } from "react";
 
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
@@ -13,6 +13,7 @@ type TabItemProps<T extends Tab = Tab> = { tab: T; tabIndex?: number } & {
   handleCloseThis: (tab: T) => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
+  handleTogglePin: () => void;
 };
 
 type TabItemBaseProps = {
@@ -21,11 +22,13 @@ type TabItemBaseProps = {
   selected: boolean;
   active?: boolean;
   tabIndex?: number;
+  pinned?: boolean;
 } & {
   handleCloseThis: () => void;
   handleSelectThis: () => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
+  handleTogglePin: () => void;
 };
 
 export type TabItem<T extends Tab = Tab> = (
@@ -38,10 +41,12 @@ export function TabItemBase({
   selected,
   active = false,
   tabIndex,
+  pinned = false,
   handleCloseThis,
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }: TabItemBaseProps) {
   const isCmdPressed = useCmdKeyPressed();
   const [isHovered, setIsHovered] = useState(false);
@@ -56,6 +61,11 @@ export function TabItemBase({
 
   const contextMenu = !active
     ? [
+        {
+          id: "pin-tab",
+          text: pinned ? "unpin tab" : "pin tab",
+          action: handleTogglePin,
+        },
         { id: "close-tab", text: "close tab", action: handleCloseThis },
         { id: "close-others", text: "close others", action: handleCloseOthers },
         { id: "close-all", text: "close all", action: handleCloseAll },
@@ -99,7 +109,7 @@ export function TabItemBase({
             <div
               className={cn([
                 "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
-                isHovered ? "opacity-0" : "opacity-100",
+                isHovered && !pinned ? "opacity-0" : "opacity-100",
               ])}
             >
               {active ? (
@@ -107,6 +117,20 @@ export function TabItemBase({
                   <div className="absolute inset-0 rounded-full bg-red-600"></div>
                   <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
                 </div>
+              ) : pinned ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTogglePin();
+                  }}
+                  className={cn([
+                    "flex items-center justify-center transition-colors",
+                    selected && "text-neutral-700 hover:text-neutral-900",
+                    !selected && "text-neutral-500 hover:text-neutral-700",
+                  ])}
+                >
+                  <Pin size={14} />
+                </button>
               ) : (
                 icon
               )}
@@ -114,7 +138,7 @@ export function TabItemBase({
             <div
               className={cn([
                 "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
-                isHovered ? "opacity-100" : "opacity-0",
+                isHovered && !pinned ? "opacity-100" : "opacity-0",
               ])}
             >
               <button

@@ -16,6 +16,7 @@ export const TabItemEmpty: TabItem<Extract<Tab, { type: "empty" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }) => {
   return (
     <TabItemBase
@@ -23,10 +24,12 @@ export const TabItemEmpty: TabItem<Extract<Tab, { type: "empty" }>> = ({
       title="New tab"
       selected={tab.active}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };

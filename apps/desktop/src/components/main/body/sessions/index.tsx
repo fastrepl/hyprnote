@@ -27,6 +27,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }) => {
   const title = main.UI.useCell(
     "sessions",
@@ -45,10 +46,12 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
       selected={tab.active}
       active={isActive}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };

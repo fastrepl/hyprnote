@@ -19,6 +19,7 @@ export const TabItemAI: TabItem<Extract<Tab, { type: "ai" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }) => {
   const suffix = tab.state.tab === "transcription" ? "STT" : "LLM";
 
@@ -33,10 +34,12 @@ export const TabItemAI: TabItem<Extract<Tab, { type: "ai" }>> = ({
       }
       selected={tab.active}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };

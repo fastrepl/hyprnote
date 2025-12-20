@@ -19,6 +19,7 @@ export const TabItemData: TabItem<Extract<Tab, { type: "data" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }) => {
   const suffix = tab.state.tab === "import" ? "Import" : "Export";
 
@@ -33,10 +34,12 @@ export const TabItemData: TabItem<Extract<Tab, { type: "data" }>> = ({
       }
       selected={tab.active}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };

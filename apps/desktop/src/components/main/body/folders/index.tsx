@@ -36,6 +36,7 @@ const TabItemFolderAll: TabItem<Extract<Tab, { type: "folders" }>> = ({
   handleSelectThis,
   handleCloseAll,
   handleCloseOthers,
+  handleTogglePin,
 }) => {
   return (
     <TabItemBase
@@ -43,10 +44,12 @@ const TabItemFolderAll: TabItem<Extract<Tab, { type: "folders" }>> = ({
       title={"Folders"}
       selected={tab.active}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };
@@ -58,6 +61,7 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }) => {
   const folderId = tab.id!;
   const folders = useFolderChain(folderId);
@@ -72,10 +76,12 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
       title={title}
       selected={tab.active}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };

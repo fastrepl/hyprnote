@@ -12,6 +12,7 @@ export const TabItemHuman: TabItem<Extract<Tab, { type: "humans" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }) => {
   const title = main.UI.useCell("humans", tab.id, "name", main.STORE_ID);
 
@@ -21,10 +22,12 @@ export const TabItemHuman: TabItem<Extract<Tab, { type: "humans" }>> = ({
       title={title ?? "Human"}
       selected={tab.active}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };

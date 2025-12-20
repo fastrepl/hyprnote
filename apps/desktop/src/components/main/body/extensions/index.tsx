@@ -42,6 +42,7 @@ export const TabItemExtensions: TabItem<ExtensionsTab> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }) => {
   return (
     <TabItemBase
@@ -49,10 +50,12 @@ export const TabItemExtensions: TabItem<ExtensionsTab> = ({
       title={"Extensions"}
       selected={tab.active}
       tabIndex={tabIndex}
+      pinned={tab.pinned}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handleTogglePin={handleTogglePin}
     />
   );
 };
@@ -166,6 +169,7 @@ export function TabItemExtension({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handleTogglePin,
 }: {
   tab: ExtensionTab;
   tabIndex?: number;
@@ -173,16 +177,22 @@ export function TabItemExtension({
   handleSelectThis: (tab: Tab) => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
+  handleTogglePin: () => void;
 }) {
   const controls = useDragControls();
 
   const contextMenu = useMemo(
     () => [
+      {
+        id: "pin-tab",
+        text: tab.pinned ? "Unpin Tab" : "Pin Tab",
+        action: handleTogglePin,
+      },
       { id: "close", text: "Close", action: () => handleCloseThis(tab) },
       { id: "close-others", text: "Close Others", action: handleCloseOthers },
       { id: "close-all", text: "Close All", action: handleCloseAll },
     ],
-    [tab, handleCloseThis, handleCloseOthers, handleCloseAll],
+    [tab, handleCloseThis, handleCloseOthers, handleCloseAll, handleTogglePin],
   );
 
   const showMenu = useNativeContextMenu(contextMenu);

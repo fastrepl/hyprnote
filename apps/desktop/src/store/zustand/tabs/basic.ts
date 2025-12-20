@@ -21,6 +21,7 @@ export type BasicActions = {
   reorder: (tabs: Tab[]) => void;
   closeOthers: (tab: Tab) => void;
   closeAll: () => void;
+  setPinned: (tab: Tab, pinned: boolean) => void;
 };
 
 export const createBasicSlice = <
@@ -151,6 +152,17 @@ export const createBasicSlice = <
       canGoBack: false,
       canGoNext: false,
     } as unknown as Partial<T>);
+  },
+  setPinned: (tab, pinned) => {
+    const { tabs, currentTab } = get();
+    const nextTabs = tabs.map((t) =>
+      isSameTab(t, tab) ? { ...t, pinned } : t,
+    );
+    const nextCurrentTab =
+      currentTab && isSameTab(currentTab, tab)
+        ? { ...currentTab, pinned }
+        : currentTab;
+    set({ tabs: nextTabs, currentTab: nextCurrentTab } as Partial<T>);
   },
 });
 

@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { platform } from "@tauri-apps/plugin-os";
-import { useCallback } from "react";
+import { Volume2Icon, VolumeXIcon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
+import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import {
@@ -27,6 +29,7 @@ export const Route = createFileRoute("/app/onboarding/")({
 });
 
 function finishOnboarding() {
+  sfxCommands.stop("BGM");
   commands.setOnboardingNeeded(false).catch((e) => console.error(e));
   void windowsCommands.windowShow({ type: "main" }).then(() => {
     void windowsCommands.windowDestroy({ type: "onboarding" });
@@ -36,6 +39,22 @@ function finishOnboarding() {
 function Component() {
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    if (!isMuted) {
+      sfxCommands.play("BGM");
+    } else {
+      sfxCommands.stop("BGM");
+    }
+    return () => {
+      sfxCommands.stop("BGM");
+    };
+  }, [isMuted]);
+
+  const toggleMute = useCallback(() => {
+    setIsMuted((prev) => !prev);
+  }, []);
 
   const onNavigate = useCallback(
     (ctx: NavigateTarget) => {
@@ -62,6 +81,17 @@ function Component() {
         data-tauri-drag-region
         className="h-14 w-full absolute top-0 left-0 right-0"
       />
+      <button
+        onClick={toggleMute}
+        className="fixed top-4 right-4 p-2 rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors z-10"
+        aria-label={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? (
+          <VolumeXIcon size={20} className="text-neutral-600" />
+        ) : (
+          <Volume2Icon size={20} className="text-neutral-600" />
+        )}
+      </button>
       <StepComponent onNavigate={onNavigate} />
     </div>
   );

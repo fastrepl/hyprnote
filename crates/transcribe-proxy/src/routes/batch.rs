@@ -115,7 +115,7 @@ async fn transcribe_with_provider(
         .map_err(|e| format!("failed to create temp file: {}", e))?;
 
     let file_path = temp_file.path();
-    let api_base = provider_api_base(provider);
+    let api_base = provider.default_api_base();
 
     let result = match provider {
         Provider::Deepgram => {
@@ -172,17 +172,6 @@ async fn transcribe_with_provider(
     };
 
     result.map_err(|e| format!("{:?}", e))
-}
-
-fn provider_api_base(provider: Provider) -> String {
-    match provider {
-        Provider::Deepgram => "https://api.deepgram.com/v1".to_string(),
-        Provider::AssemblyAI => "https://api.assemblyai.com/v2".to_string(),
-        Provider::Soniox => "https://api.soniox.com".to_string(),
-        Provider::OpenAI => "https://api.openai.com/v1".to_string(),
-        Provider::Gladia => "https://api.gladia.io".to_string(),
-        Provider::Fireworks => "https://api.fireworks.ai".to_string(),
-    }
 }
 
 fn write_to_temp_file(

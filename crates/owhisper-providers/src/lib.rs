@@ -160,6 +160,17 @@ impl Provider {
         }
     }
 
+    pub fn default_api_base(&self) -> &'static str {
+        match self {
+            Self::Deepgram => "https://api.deepgram.com/v1",
+            Self::AssemblyAI => "https://api.assemblyai.com/v2",
+            Self::Soniox => "https://api.soniox.com",
+            Self::Fireworks => "https://api.fireworks.ai",
+            Self::OpenAI => "https://api.openai.com/v1",
+            Self::Gladia => "https://api.gladia.io",
+        }
+    }
+
     pub fn domain(&self) -> &'static str {
         match self {
             Self::Deepgram => "deepgram.com",

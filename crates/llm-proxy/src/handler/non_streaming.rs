@@ -1,37 +1,22 @@
-use std::sync::Arc;
 use std::time::Instant;
 
 use axum::{
     body::Body,
     response::{IntoResponse, Response},
 };
-use reqwest::Client;
 
-use crate::analytics::{AnalyticsReporter, GenerationEvent};
+use crate::analytics::GenerationEvent;
 use crate::types::OpenRouterResponse;
 
-use super::{AppState, ProxyError, report_with_cost};
-
-fn spawn_analytics_report(
-    analytics: Option<Arc<dyn AnalyticsReporter>>,
-    client: Client,
-    api_key: String,
-    event: GenerationEvent,
-) {
-    if let Some(analytics) = analytics {
-        tokio::spawn(async move {
-            report_with_cost(&*analytics, &client, &api_key, event).await;
-        });
-    }
-}
+use super::{AppState, ProxyError, spawn_analytics_report};
 
 pub(super) async fn handle_non_stream_response(
     state: AppState,
     response: reqwest::Response,
     start_time: Instant,
-    http_status: u16,
 ) -> Response {
     let status = response.status();
+    let http_status = status.as_u16();
 
     let body_bytes = match response.bytes().await {
         Ok(b) => b,

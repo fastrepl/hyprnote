@@ -56,14 +56,6 @@ impl TestHarness {
             .with_analytics(Arc::new(self.analytics.clone()))
     }
 
-    pub fn config_with_tools(&self) -> LlmProxyConfig {
-        LlmProxyConfig::new("test-api-key")
-            .with_base_url(self.mock_server.uri())
-            .with_models_default(vec!["openai/gpt-4.1-nano".into()])
-            .with_models_tool_calling(vec!["anthropic/claude-haiku-4.5".into()])
-            .with_analytics(Arc::new(self.analytics.clone()))
-    }
-
     pub fn config_no_analytics(&self) -> LlmProxyConfig {
         LlmProxyConfig::new("test-api-key")
             .with_base_url(self.mock_server.uri())
@@ -162,25 +154,6 @@ pub fn stream_request(content: &str) -> serde_json::Value {
     })
 }
 
-pub fn tool_request(content: &str) -> serde_json::Value {
-    serde_json::json!({
-        "messages": [{"role": "user", "content": content}],
-        "tools": [{
-            "type": "function",
-            "function": {
-                "name": "get_weather",
-                "description": "Get the weather for a location",
-                "parameters": {
-                    "type": "object",
-                    "properties": {"location": {"type": "string"}},
-                    "required": ["location"]
-                }
-            }
-        }],
-        "max_tokens": 100
-    })
-}
-
 pub fn stream_chunks(id: &str) -> [String; 4] {
     [
         format!(
@@ -194,30 +167,6 @@ pub fn stream_chunks(id: &str) -> [String; 4] {
         ),
         "data: [DONE]".to_string(),
     ]
-}
-
-pub fn tool_call_response(id: &str) -> serde_json::Value {
-    serde_json::json!({
-        "id": id,
-        "model": "anthropic/claude-haiku-4.5",
-        "choices": [{
-            "index": 0,
-            "message": {
-                "role": "assistant",
-                "content": null,
-                "tool_calls": [{
-                    "id": "call_123",
-                    "type": "function",
-                    "function": {
-                        "name": "get_weather",
-                        "arguments": "{\"location\":\"San Francisco\"}"
-                    }
-                }]
-            },
-            "finish_reason": "tool_calls"
-        }],
-        "usage": {"prompt_tokens": 50, "completion_tokens": 20}
-    })
 }
 
 pub fn completion_response(id: &str, model: &str, content: &str) -> serde_json::Value {

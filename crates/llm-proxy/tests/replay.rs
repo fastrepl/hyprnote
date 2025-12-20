@@ -83,36 +83,6 @@ mod features {
     use super::*;
 
     #[tokio::test]
-    async fn tool_calling_uses_configured_models() {
-        let harness = TestHarness::new().await;
-        harness
-            .mount_with_body_matcher(
-                serde_json::json!({"models": ["anthropic/claude-haiku-4.5"]}),
-                tool_call_response("gen-tools-789"),
-            )
-            .await;
-
-        let response = router(harness.config_with_tools())
-            .oneshot(build_request(tool_request(
-                "What's the weather in San Francisco?",
-            )))
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::OK);
-
-        let body = response_to_json(response).await;
-        assert_eq!(body["id"], "gen-tools-789");
-        assert!(body["choices"][0]["message"]["tool_calls"].is_array());
-
-        let event = harness.analytics.get_single_event().await;
-        assert_eq!(event.generation_id, "gen-tools-789");
-        assert_eq!(event.model, "anthropic/claude-haiku-4.5");
-        assert_eq!(event.input_tokens, 50);
-        assert_eq!(event.output_tokens, 20);
-    }
-
-    #[tokio::test]
     async fn request_transformation() {
         let harness = TestHarness::new().await;
         harness

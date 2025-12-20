@@ -1,6 +1,10 @@
 mod non_streaming;
 mod streaming;
 
+use non_streaming::*;
+use streaming::*;
+
+use std::sync::Arc;
 use std::time::Instant;
 
 use axum::{
@@ -26,8 +30,18 @@ async fn report_with_cost(
     analytics.report_generation(event).await;
 }
 
-use non_streaming::handle_non_stream_response;
-use streaming::handle_stream_response;
+pub(super) fn spawn_analytics_report(
+    analytics: Option<Arc<dyn AnalyticsReporter>>,
+    client: Client,
+    api_key: String,
+    event: GenerationEvent,
+) {
+    if let Some(analytics) = analytics {
+        tokio::spawn(async move {
+            report_with_cost(&*analytics, &client, &api_key, event).await;
+        });
+    }
+}
 
 enum ProxyError {
     UpstreamRequest(reqwest::Error),
@@ -122,12 +136,9 @@ async fn completions_handler(
         Err(_) => return ProxyError::Timeout.into_response(),
     };
 
-    let status = response.status();
-    let http_status = status.as_u16();
-
     if stream {
-        handle_stream_response(state, response, start_time, http_status).await
+        handle_stream_response(state, response, start_time).await
     } else {
-        handle_non_stream_response(state, response, start_time, http_status).await
+        handle_non_stream_response(state, response, start_time).await
     }
 }

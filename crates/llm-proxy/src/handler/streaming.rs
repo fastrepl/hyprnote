@@ -1,11 +1,10 @@
-use std::sync::Arc;
 use std::time::Instant;
 
+use async_stream::stream;
 use axum::{body::Body, response::Response};
-use bytes::Bytes;
 use futures_util::StreamExt;
 
-use crate::analytics::{AnalyticsReporter, GenerationEvent};
+use crate::analytics::GenerationEvent;
 use crate::types::UsageInfo;
 
 use super::{AppState, report_with_cost};
@@ -83,36 +82,30 @@ pub(super) async fn handle_stream_response(
     state: AppState,
     response: reqwest::Response,
     start_time: Instant,
-    http_status: u16,
 ) -> Response {
     let status = response.status();
-    let analytics: Option<Arc<dyn AnalyticsReporter>> = state.config.analytics.clone();
+    let http_status = status.as_u16();
+    let analytics = state.config.analytics.clone();
     let api_key = state.config.api_key.clone();
     let client = state.client.clone();
 
-    let stream = response.bytes_stream();
-    let (tx, rx) = tokio::sync::mpsc::channel::<Result<Bytes, std::io::Error>>(32);
+    let upstream = response.bytes_stream();
 
-    tokio::spawn(async move {
+    let output_stream = stream! {
         let mut accumulator = StreamAccumulator::new();
 
-        futures_util::pin_mut!(stream);
+        futures_util::pin_mut!(upstream);
 
-        while let Some(chunk_result) = stream.next().await {
+        while let Some(chunk_result) = upstream.next().await {
             match chunk_result {
                 Ok(chunk) => {
                     if analytics.is_some() {
                         accumulator.process_chunk(&chunk);
                     }
-
-                    if tx.send(Ok(chunk)).await.is_err() {
-                        break;
-                    }
+                    yield Ok::<_, std::io::Error>(chunk);
                 }
                 Err(e) => {
-                    let _ = tx
-                        .send(Err(std::io::Error::new(std::io::ErrorKind::Other, e)))
-                        .await;
+                    yield Err(std::io::Error::new(std::io::ErrorKind::Other, e));
                     break;
                 }
             }
@@ -123,9 +116,9 @@ pub(super) async fn handle_stream_response(
                 report_with_cost(&*analytics, &client, &api_key, event).await;
             }
         }
-    });
+    };
 
-    let body = Body::from_stream(tokio_stream::wrappers::ReceiverStream::new(rx));
+    let body = Body::from_stream(output_stream);
     Response::builder()
         .status(status)
         .header("Content-Type", "text/event-stream")

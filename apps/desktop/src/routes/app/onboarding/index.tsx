@@ -29,10 +29,8 @@ export const Route = createFileRoute("/app/onboarding/")({
 });
 
 function finishOnboarding() {
-  sfxCommands
-    .stop("BGM")
-    .catch((e) => console.error("sfx: BGM finish stop failed", e));
-  commands.setOnboardingNeeded(false).catch((e) => console.error(e));
+  sfxCommands.stop("BGM").catch(console.error);
+  commands.setOnboardingNeeded(false).catch(console.error);
   void windowsCommands.windowShow({ type: "main" }).then(() => {
     void windowsCommands.windowDestroy({ type: "onboarding" });
   });
@@ -44,16 +42,11 @@ function Component() {
   const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
-    sfxCommands
-      .play("BGM")
-      .then(() => console.log("sfx: BGM play command succeeded"))
-      .catch((e) => console.error("sfx: BGM play failed", e));
+    sfxCommands.play("BGM").catch(console.error);
   }, []);
 
   useEffect(() => {
-    sfxCommands
-      .setVolume("BGM", isMuted ? 0 : 1)
-      .catch((e) => console.error("sfx: BGM setVolume failed", e));
+    sfxCommands.setVolume("BGM", isMuted ? 0 : 1).catch(console.error);
   }, [isMuted]);
 
   const toggleMute = useCallback(() => {

@@ -1,5 +1,12 @@
 import { AudioLinesIcon, SparklesIcon } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useResizeObserver } from "usehooks-ts";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -52,11 +59,7 @@ export function TabContentAI({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
 function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
   const updateAiTabState = useTabs((state) => state.updateAiTabState);
   const activeTab = tab.state.tab ?? "transcription";
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [scrollState, setScrollState] = useState({
-    atStart: true,
-    atEnd: true,
-  });
+  const { ref, atStart, atEnd } = useScrollFade<HTMLDivElement>([activeTab]);
 
   const setActiveTab = useCallback(
     (newTab: AITabKey) => {
@@ -64,31 +67,6 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
     },
     [updateAiTabState, tab],
   );
-
-  const updateScrollState = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const atStart = scrollTop <= 1;
-    const atEnd = scrollTop + clientHeight >= scrollHeight - 1;
-    setScrollState({ atStart, atEnd });
-  }, []);
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    updateScrollState();
-    container.addEventListener("scroll", updateScrollState);
-    const resizeObserver = new ResizeObserver(updateScrollState);
-    resizeObserver.observe(container);
-
-    return () => {
-      container.removeEventListener("scroll", updateScrollState);
-      resizeObserver.disconnect();
-    };
-  }, [updateScrollState, activeTab]);
 
   return (
     <div className="flex flex-col flex-1 w-full overflow-hidden">
@@ -121,18 +99,57 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
       </div>
       <div className="relative flex-1 w-full overflow-hidden">
         <div
-          ref={scrollContainerRef}
+          ref={ref}
           className="flex-1 w-full h-full overflow-y-auto scrollbar-hide px-6 pb-6"
         >
           {activeTab === "transcription" ? <STT /> : <LLM />}
         </div>
-        {!scrollState.atStart && (
-          <div className="absolute left-0 top-0 w-full h-8 z-20 pointer-events-none bg-gradient-to-b from-white to-transparent" />
-        )}
-        {!scrollState.atEnd && (
-          <div className="absolute left-0 bottom-0 w-full h-8 z-20 pointer-events-none bg-gradient-to-t from-white to-transparent" />
-        )}
+        {!atStart && <ScrollFadeOverlay position="top" />}
+        {!atEnd && <ScrollFadeOverlay position="bottom" />}
       </div>
     </div>
+  );
+}
+
+function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
+  const ref = useRef<T>(null);
+  const [state, setState] = useState({ atStart: true, atEnd: true });
+
+  const update = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    setState({
+      atStart: scrollTop <= 1,
+      atEnd: scrollTop + clientHeight >= scrollHeight - 1,
+    });
+  }, []);
+
+  useResizeObserver({ ref: ref as RefObject<T>, onResize: update });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    update();
+    el.addEventListener("scroll", update);
+    return () => el.removeEventListener("scroll", update);
+  }, [update, ...deps]);
+
+  return { ref, ...state };
+}
+
+function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
+  return (
+    <div
+      className={cn([
+        "absolute left-0 w-full h-8 z-20 pointer-events-none",
+        position === "top" &&
+          "top-0 bg-gradient-to-b from-white to-transparent",
+        position === "bottom" &&
+          "bottom-0 bg-gradient-to-t from-white to-transparent",
+      ])}
+    />
   );
 }

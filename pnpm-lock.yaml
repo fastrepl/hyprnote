@@ -244,6 +244,9 @@ importers:
       '@hypr/plugin-settings':
         specifier: workspace:*
         version: link:../../plugins/settings
+      '@hypr/plugin-sfx':
+        specifier: workspace:*
+        version: link:../../plugins/sfx
       '@hypr/plugin-template':
         specifier: workspace:*
         version: link:../../plugins/template

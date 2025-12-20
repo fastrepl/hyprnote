@@ -20,4 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/rust_install
+        with:
+          platform: linux
       - run: cargo check -p ai

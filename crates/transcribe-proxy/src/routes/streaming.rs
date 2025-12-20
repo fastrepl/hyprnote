@@ -122,20 +122,18 @@ fn build_proxy(
         .connect_timeout(config.connect_timeout)
         .control_message_types(provider.control_message_types());
 
-    match provider.auth() {
-        Auth::Header { .. } => {
-            if let Some((name, value)) = provider.build_auth_header(api_key) {
-                builder = builder.header(name, value);
-            }
-        }
+    builder = match provider.auth() {
+        Auth::Header { .. } => match provider.build_auth_header(api_key) {
+            Some((name, value)) => builder.header(name, value),
+            None => builder,
+        },
         Auth::FirstMessage { .. } => {
             let auth = provider.auth();
             let api_key = api_key.to_string();
-            builder = builder
-                .transform_first_message(move |msg| auth.transform_first_message(msg, &api_key));
+            builder.transform_first_message(move |msg| auth.transform_first_message(msg, &api_key))
         }
-        Auth::SessionInit { .. } => {}
-    }
+        Auth::SessionInit { .. } => builder,
+    };
 
     if let Some(analytics) = config.analytics.clone() {
         let provider_name = format!("{:?}", provider).to_lowercase();

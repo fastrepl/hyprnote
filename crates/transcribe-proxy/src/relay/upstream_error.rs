@@ -105,45 +105,12 @@ fn try_parse_soniox_error(text: &str) -> Option<UpstreamError> {
 fn try_parse_deepgram_error(text: &str) -> Option<UpstreamError> {
     let parsed: DeepgramError = serde_json::from_str(text).ok()?;
 
-    if parsed.err_code.is_none()
-        && parsed.err_msg.is_none()
-        && parsed.category.is_none()
-        && parsed.message.is_none()
-    {
+    if !is_deepgram_error_message(&parsed) {
         return None;
     }
 
-    let has_error_indicator = parsed.err_code.is_some()
-        || parsed.category.is_some()
-        || parsed
-            .err_msg
-            .map(|m| m.to_lowercase().contains("error"))
-            .unwrap_or(false);
-
-    if !has_error_indicator {
-        return None;
-    }
-
-    let code = parsed
-        .err_code
-        .and_then(|c| match c {
-            "Bad Request" => Some(400),
-            "INVALID_AUTH" | "INSUFFICIENT_PERMISSIONS" => Some(401),
-            "ASR_PAYMENT_REQUIRED" => Some(402),
-            "TOO_MANY_REQUESTS" => Some(429),
-            "PROJECT_NOT_FOUND" => Some(404),
-            _ => None,
-        })
-        .or_else(|| {
-            parsed.category.and_then(|c| match c {
-                "INVALID_JSON" => Some(400),
-                _ => None,
-            })
-        })
-        .unwrap_or(500);
-
+    let code = determine_deepgram_error_code(&parsed);
     let provider_code = parsed.err_code.or(parsed.category).map(|s| s.to_string());
-
     let message = parsed
         .err_msg
         .or(parsed.message)
@@ -155,6 +122,50 @@ fn try_parse_deepgram_error(text: &str) -> Option<UpstreamError> {
         message,
         provider_code,
     })
+}
+
+fn is_deepgram_error_message(parsed: &DeepgramError) -> bool {
+    let has_fields = parsed.err_code.is_some()
+        || parsed.err_msg.is_some()
+        || parsed.category.is_some()
+        || parsed.message.is_some();
+
+    if !has_fields {
+        return false;
+    }
+
+    parsed.err_code.is_some()
+        || parsed.category.is_some()
+        || parsed
+            .err_msg
+            .map(|m| m.to_lowercase().contains("error"))
+            .unwrap_or(false)
+}
+
+fn determine_deepgram_error_code(parsed: &DeepgramError) -> u16 {
+    parsed
+        .err_code
+        .and_then(map_deepgram_err_code)
+        .or_else(|| parsed.category.and_then(map_deepgram_category))
+        .unwrap_or(500)
+}
+
+fn map_deepgram_err_code(code: &str) -> Option<u16> {
+    match code {
+        "Bad Request" => Some(400),
+        "INVALID_AUTH" | "INSUFFICIENT_PERMISSIONS" => Some(401),
+        "ASR_PAYMENT_REQUIRED" => Some(402),
+        "TOO_MANY_REQUESTS" => Some(429),
+        "PROJECT_NOT_FOUND" => Some(404),
+        _ => None,
+    }
+}
+
+fn map_deepgram_category(category: &str) -> Option<u16> {
+    match category {
+        "INVALID_JSON" => Some(400),
+        _ => None,
+    }
 }
 
 #[cfg(test)]

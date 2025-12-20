@@ -57,47 +57,24 @@ pub mod convert {
         protocol::{CloseFrame as TungsteniteCloseFrame, frame::coding::CloseCode},
     };
 
-    trait CloseFrameExt {
-        fn code(&self) -> u16;
-        fn reason(&self) -> String;
-    }
-
-    impl CloseFrameExt for AxumCloseFrame {
-        fn code(&self) -> u16 {
-            self.code
-        }
-        fn reason(&self) -> String {
-            self.reason.to_string()
-        }
-    }
-
-    impl CloseFrameExt for TungsteniteCloseFrame {
-        fn code(&self) -> u16 {
-            self.code.into()
-        }
-        fn reason(&self) -> String {
-            self.reason.to_string()
-        }
-    }
-
-    fn extract_close<T: CloseFrameExt>(frame: Option<T>, default_reason: &str) -> (u16, String) {
-        frame.map_or((DEFAULT_CLOSE_CODE, default_reason.to_string()), |f| {
-            (normalize_close_code(f.code()), f.reason())
-        })
-    }
-
     pub fn extract_axum_close(
         frame: Option<AxumCloseFrame>,
         default_reason: &str,
     ) -> (u16, String) {
-        extract_close(frame, default_reason)
+        match frame {
+            Some(f) => (normalize_close_code(f.code), f.reason.to_string()),
+            None => (DEFAULT_CLOSE_CODE, default_reason.to_string()),
+        }
     }
 
     pub fn extract_tungstenite_close(
         frame: Option<TungsteniteCloseFrame>,
         default_reason: &str,
     ) -> (u16, String) {
-        extract_close(frame, default_reason)
+        match frame {
+            Some(f) => (normalize_close_code(f.code.into()), f.reason.to_string()),
+            None => (DEFAULT_CLOSE_CODE, default_reason.to_string()),
+        }
     }
 
     pub fn to_axum_close(code: u16, reason: String) -> AxumMessage {

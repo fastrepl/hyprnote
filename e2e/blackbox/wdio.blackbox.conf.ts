@@ -67,18 +67,24 @@ export const config = {
     // This is needed because tauri-driver initializes GTK which requires X11
     const useXvfb = !!process.env.CI;
 
+    // Set ONBOARDING=0 to skip onboarding flow for deterministic test state
+    // This env var is inherited by the app when tauri-driver launches it
+    const env = { ...process.env, ONBOARDING: "0" };
+
     if (useXvfb) {
-      console.log("Starting tauri-driver with xvfb-run...");
+      console.log("Starting tauri-driver with xvfb-run (ONBOARDING=0)...");
       tauriDriver = spawn("xvfb-run", ["-a", "tauri-driver"], {
         stdio: [null, process.stdout, process.stderr],
+        env,
       });
     } else {
-      console.log("Starting tauri-driver...");
+      console.log("Starting tauri-driver (ONBOARDING=0)...");
       tauriDriver = spawn(
         path.resolve(os.homedir(), ".cargo", "bin", "tauri-driver"),
         [],
         {
           stdio: [null, process.stdout, process.stderr],
+          env,
         },
       );
     }

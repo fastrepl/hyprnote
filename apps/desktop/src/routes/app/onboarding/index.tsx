@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { platform } from "@tauri-apps/plugin-os";
 import { Volume2Icon, VolumeXIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -49,10 +50,17 @@ function Component() {
       .then(() => console.log("sfx: BGM play command succeeded"))
       .catch((e) => console.error("sfx: BGM play failed", e));
 
+    const unlisten = getCurrentWebviewWindow().onCloseRequested(async () => {
+      await sfxCommands
+        .stop("BGM")
+        .catch((e) => console.error("sfx: BGM window close stop failed", e));
+    });
+
     return () => {
       sfxCommands
         .stop("BGM")
         .catch((e) => console.error("sfx: BGM cleanup stop failed", e));
+      unlisten.then((fn) => fn());
     };
   }, []);
 

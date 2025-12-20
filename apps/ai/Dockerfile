@@ -13,7 +13,7 @@ RUN mkdir -p apps/ai/src && echo "fn main() {}" > apps/ai/src/main.rs
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM rust:${RUST_VERSION}-bookworm AS build
-RUN apt-get update && apt-get install -y libasound2-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y pkg-config libasound2-dev && rm -rf /var/lib/apt/lists/*
 RUN cargo install cargo-chef sccache --locked
 ENV RUSTC_WRAPPER=sccache \
     SCCACHE_DIR=/sccache

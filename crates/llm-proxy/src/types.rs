@@ -2,9 +2,18 @@ use serde::{Deserialize, Serialize};
 
 pub const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Role {
+    System,
+    User,
+    Assistant,
+    Tool,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ChatMessage {
-    pub role: String,
+    pub role: Role,
     pub content: String,
 }
 
@@ -79,4 +88,14 @@ pub struct OpenRouterResponse {
 pub struct UsageInfo {
     pub prompt_tokens: Option<u32>,
     pub completion_tokens: Option<u32>,
+}
+
+impl UsageInfo {
+    pub fn input_tokens(&self) -> u32 {
+        self.prompt_tokens.unwrap_or(0)
+    }
+
+    pub fn output_tokens(&self) -> u32 {
+        self.completion_tokens.unwrap_or(0)
+    }
 }

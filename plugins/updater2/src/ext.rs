@@ -25,21 +25,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
         Ok(())
     }
 
-    pub fn get_pending_update_version(&self) -> Result<Option<String>, crate::Error> {
-        let store = self.manager.store2().scoped_store(crate::PLUGIN_NAME)?;
-        let v: Option<String> = store.get(crate::StoreKey::PendingUpdateVersion)?;
-        Ok(v.filter(|s| !s.is_empty()))
-    }
-
-    pub fn set_pending_update_version(&self, version: Option<String>) -> Result<(), crate::Error> {
-        let store = self.manager.store2().scoped_store(crate::PLUGIN_NAME)?;
-        store.set(
-            crate::StoreKey::PendingUpdateVersion,
-            version.unwrap_or_default(),
-        )?;
-        Ok(())
-    }
-
     pub fn maybe_emit_updated(&self) {
         let current_version = match self.manager.config().version.as_ref() {
             Some(v) => v.clone(),
@@ -48,10 +33,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
                 return;
             }
         };
-
-        if let Err(e) = self.set_pending_update_version(None) {
-            tracing::warn!("failed_to_clear_pending_update: {}", e);
-        }
 
         let (should_emit, previous) = match self.get_last_seen_version() {
             Ok(Some(last_version)) if !last_version.is_empty() => {
@@ -80,7 +61,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
         }
     }
 
-    pub fn cache_update_bytes(&self, version: &str, bytes: &[u8]) -> Result<(), crate::Error> {
+    fn cache_update_bytes(&self, version: &str, bytes: &[u8]) -> Result<(), crate::Error> {
         let cache_path =
             get_cache_path(self.manager, version).ok_or(crate::Error::CachePathUnavailable)?;
 
@@ -93,7 +74,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
         Ok(())
     }
 
-    pub fn get_cached_update_bytes(&self, version: &str) -> Result<Vec<u8>, crate::Error> {
+    fn get_cached_update_bytes(&self, version: &str) -> Result<Vec<u8>, crate::Error> {
         let cache_path =
             get_cache_path(self.manager, version).ok_or(crate::Error::CachePathUnavailable)?;
 
@@ -105,12 +86,34 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
         Ok(bytes)
     }
 
-    pub async fn install_from_cached(&self) -> Result<(), crate::Error> {
-        let version = self
-            .get_pending_update_version()?
-            .ok_or(crate::Error::NoPendingUpdate)?;
+    pub async fn check(&self) -> Result<Option<String>, crate::Error> {
+        let updater = self.manager.updater()?;
+        let update = updater.check().await?;
+        Ok(update.map(|u| u.version))
+    }
 
-        let bytes = self.get_cached_update_bytes(&version)?;
+    pub async fn download(&self, version: &str) -> Result<(), crate::Error> {
+        let updater = self.manager.updater()?;
+        let update = updater
+            .check()
+            .await?
+            .ok_or(crate::Error::UpdateNotAvailable)?;
+
+        if update.version != version {
+            return Err(crate::Error::VersionMismatch {
+                expected: version.to_string(),
+                actual: update.version,
+            });
+        }
+
+        let bytes = update.download(|_, _| {}, || {}).await?;
+        self.cache_update_bytes(version, &bytes)?;
+
+        Ok(())
+    }
+
+    pub async fn install(&self, version: &str) -> Result<(), crate::Error> {
+        let bytes = self.get_cached_update_bytes(version)?;
 
         let updater = self.manager.updater()?;
         let update = updater

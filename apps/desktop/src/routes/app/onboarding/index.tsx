@@ -48,12 +48,6 @@ function Component() {
       .play("BGM")
       .then(() => console.log("sfx: BGM play command succeeded"))
       .catch((e) => console.error("sfx: BGM play failed", e));
-
-    return () => {
-      sfxCommands
-        .stop("BGM")
-        .catch((e) => console.error("sfx: BGM cleanup stop failed", e));
-    };
   }, []);
 
   useEffect(() => {

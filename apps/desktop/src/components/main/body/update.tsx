@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { type UnlistenFn } from "@tauri-apps/api/event";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { commands, events } from "@hypr/plugin-updater2";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -9,7 +9,6 @@ import { cn } from "@hypr/utils";
 
 export function Update() {
   const [show, setShow] = useState(false);
-  const versionRef = useRef<string | null>(null);
 
   const pendingUpdate = useQuery({
     queryKey: ["pending-update"],
@@ -20,7 +19,6 @@ export function Update() {
       }
 
       const version = result.data;
-      versionRef.current = version;
 
       const downloadResult = await commands.download(version);
       if (downloadResult.status !== "ok") {
@@ -36,7 +34,7 @@ export function Update() {
     setShow(!!pendingUpdate.data);
   }, [pendingUpdate.data]);
 
-  const { refetch } = pendingUpdate;
+  const { refetch, data: version } = pendingUpdate;
   useEffect(() => {
     let unlisten: null | UnlistenFn = null;
     void events.updateReadyEvent
@@ -54,13 +52,12 @@ export function Update() {
   }, [refetch]);
 
   const handleInstallUpdate = useCallback(async () => {
-    const version = versionRef.current;
     if (!version) {
       return;
     }
     await commands.install(version);
     await relaunch();
-  }, []);
+  }, [version]);
 
   if (!show) {
     return null;

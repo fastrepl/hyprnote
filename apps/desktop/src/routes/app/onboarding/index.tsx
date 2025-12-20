@@ -44,21 +44,22 @@ function Component() {
   const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
-    if (!isMuted) {
-      sfxCommands
-        .play("BGM")
-        .then(() => console.log("sfx: BGM play command succeeded"))
-        .catch((e) => console.error("sfx: BGM play failed", e));
-    } else {
-      sfxCommands
-        .stop("BGM")
-        .catch((e) => console.error("sfx: BGM stop failed", e));
-    }
+    sfxCommands
+      .play("BGM")
+      .then(() => console.log("sfx: BGM play command succeeded"))
+      .catch((e) => console.error("sfx: BGM play failed", e));
+
     return () => {
       sfxCommands
         .stop("BGM")
         .catch((e) => console.error("sfx: BGM cleanup stop failed", e));
     };
+  }, []);
+
+  useEffect(() => {
+    sfxCommands
+      .setVolume("BGM", isMuted ? 0 : 1)
+      .catch((e) => console.error("sfx: BGM setVolume failed", e));
   }, [isMuted]);
 
   const toggleMute = useCallback(() => {

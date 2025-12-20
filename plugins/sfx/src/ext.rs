@@ -1,9 +1,17 @@
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 
-static PLAYING_SOUNDS: Lazy<
-    Mutex<std::collections::HashMap<AppSounds, std::sync::mpsc::Sender<()>>>,
-> = Lazy::new(|| Mutex::new(std::collections::HashMap::new()));
+pub(crate) enum SoundControl {
+    Stop,
+    SetVolume(f32),
+}
+
+struct SoundHandle {
+    control_tx: std::sync::mpsc::Sender<SoundControl>,
+}
+
+static PLAYING_SOUNDS: Lazy<Mutex<std::collections::HashMap<AppSounds, SoundHandle>>> =
+    Lazy::new(|| Mutex::new(std::collections::HashMap::new()));
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type, Clone, PartialEq, Eq, Hash)]
 pub enum AppSounds {
@@ -12,13 +20,22 @@ pub enum AppSounds {
     BGM,
 }
 
-pub fn to_speaker(bytes: &'static [u8]) -> std::sync::mpsc::Sender<()> {
+pub fn to_speaker(bytes: &'static [u8], looping: bool) -> std::sync::mpsc::Sender<SoundControl> {
+    use rodio::source::Source;
     use rodio::{Decoder, OutputStream, Sink};
     let (tx, rx) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
-        eprintln!("[sfx] attempting to play audio, bytes len: {}", bytes.len());
-        tracing::info!("sfx: attempting to play audio, bytes len: {}", bytes.len());
+        eprintln!(
+            "[sfx] attempting to play audio, bytes len: {}, looping: {}",
+            bytes.len(),
+            looping
+        );
+        tracing::info!(
+            "sfx: attempting to play audio, bytes len: {}, looping: {}",
+            bytes.len(),
+            looping
+        );
 
         match OutputStream::try_default() {
             Ok((stream, stream_handle)) => {
@@ -35,11 +52,34 @@ pub fn to_speaker(bytes: &'static [u8]) -> std::sync::mpsc::Sender<()> {
                             Ok(sink) => {
                                 eprintln!("[sfx] created sink, appending source and playing");
                                 tracing::info!("sfx: created sink, appending source");
-                                sink.append(source);
 
-                                let _ = rx.recv_timeout(std::time::Duration::from_secs(3600));
-                                eprintln!("[sfx] stopping playback");
-                                sink.stop();
+                                if looping {
+                                    sink.append(source.repeat_infinite());
+                                } else {
+                                    sink.append(source);
+                                }
+
+                                loop {
+                                    match rx.recv_timeout(std::time::Duration::from_millis(100)) {
+                                        Ok(SoundControl::Stop) => {
+                                            eprintln!("[sfx] stopping playback");
+                                            sink.stop();
+                                            break;
+                                        }
+                                        Ok(SoundControl::SetVolume(volume)) => {
+                                            eprintln!("[sfx] setting volume to {}", volume);
+                                            sink.set_volume(volume);
+                                        }
+                                        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                                            if !looping && sink.empty() {
+                                                break;
+                                            }
+                                        }
+                                        Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                                            break;
+                                        }
+                                    }
+                                }
                                 drop(stream);
                             }
                             Err(e) => {
@@ -69,18 +109,26 @@ impl AppSounds {
         self.stop();
 
         let bytes = self.get_sound_bytes();
-        let stop_sender = to_speaker(bytes);
+        let looping = matches!(self, AppSounds::BGM);
+        let control_tx = to_speaker(bytes, looping);
 
         {
             let mut sounds = PLAYING_SOUNDS.lock().unwrap();
-            sounds.insert(self.clone(), stop_sender);
+            sounds.insert(self.clone(), SoundHandle { control_tx });
         }
     }
 
     pub fn stop(&self) {
         let mut sounds = PLAYING_SOUNDS.lock().unwrap();
-        if let Some(tx) = sounds.remove(self) {
-            let _ = tx.send(());
+        if let Some(handle) = sounds.remove(self) {
+            let _ = handle.control_tx.send(SoundControl::Stop);
+        }
+    }
+
+    pub fn set_volume(&self, volume: f32) {
+        let sounds = PLAYING_SOUNDS.lock().unwrap();
+        if let Some(handle) = sounds.get(self) {
+            let _ = handle.control_tx.send(SoundControl::SetVolume(volume));
         }
     }
 
@@ -107,6 +155,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Sfx<'a, R, M> {
     pub fn stop(&self, sfx: AppSounds) {
         let _ = self.manager;
         sfx.stop();
+    }
+
+    pub fn set_volume(&self, sfx: AppSounds, volume: f32) {
+        let _ = self.manager;
+        sfx.set_volume(volume);
     }
 }
 

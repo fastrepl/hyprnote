@@ -20,6 +20,7 @@ type TabItemBaseProps = {
   title: React.ReactNode;
   selected: boolean;
   active?: boolean;
+  isEmptyTab?: boolean;
   tabIndex?: number;
 } & {
   handleCloseThis: () => void;
@@ -37,6 +38,7 @@ export function TabItemBase({
   title,
   selected,
   active = false,
+  isEmptyTab = false,
   tabIndex,
   handleCloseThis,
   handleSelectThis,
@@ -55,11 +57,17 @@ export function TabItemBase({
   };
 
   const contextMenu = !active
-    ? [
-        { id: "close-tab", text: "close tab", action: handleCloseThis },
-        { id: "close-others", text: "close others", action: handleCloseOthers },
-        { id: "close-all", text: "close all", action: handleCloseAll },
-      ]
+    ? selected && !isEmptyTab
+      ? [{ id: "close-tab", text: "Close", action: handleCloseThis }]
+      : [
+          { id: "close-tab", text: "Close", action: handleCloseThis },
+          {
+            id: "close-others",
+            text: "Close others",
+            action: handleCloseOthers,
+          },
+          { id: "close-all", text: "Close all", action: handleCloseAll },
+        ]
     : undefined;
 
   const showShortcut = isCmdPressed && tabIndex !== undefined;

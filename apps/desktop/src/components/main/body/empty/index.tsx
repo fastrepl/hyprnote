@@ -22,6 +22,7 @@ export const TabItemEmpty: TabItem<Extract<Tab, { type: "empty" }>> = ({
       icon={<AppWindowIcon className="w-4 h-4" />}
       title="New tab"
       selected={tab.active}
+      isEmptyTab
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}

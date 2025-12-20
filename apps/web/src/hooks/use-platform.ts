@@ -49,28 +49,28 @@ export function getHeroCTA(platform: Platform): {
   subtext: string;
   subtextLink?: string;
 } {
-  if (platform === "mac") {
-    return {
-      buttonLabel: "Download",
-      showInput: false,
-      inputPlaceholder: "",
-      subtext: "Free and open-source",
-      subtextLink: "/github",
-    };
-  } else if (platform === "mobile") {
+  if (platform === "mobile") {
     return {
       buttonLabel: "Remind me",
       showInput: true,
       inputPlaceholder: "Enter your email",
       subtext: "Get an email reminder that you can check later",
     };
+  } else if (platform === "windows" || platform === "linux") {
+    return {
+      buttonLabel: "Join",
+      showInput: true,
+      inputPlaceholder: "Enter your email",
+      subtext:
+        "Join the waitlist and get notified as soon as the app is released",
+    };
   }
 
   return {
-    buttonLabel: "Join",
-    showInput: true,
-    inputPlaceholder: "Enter your email",
-    subtext:
-      "Join the waitlist and get notified as soon as the app is released",
+    buttonLabel: "Download",
+    showInput: false,
+    inputPlaceholder: "",
+    subtext: "Free and open-source",
+    subtextLink: "/github",
   };
 }

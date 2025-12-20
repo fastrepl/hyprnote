@@ -17,6 +17,7 @@ use super::types::{
     ClientReceiver, ClientSender, ControlMessageTypes, DEFAULT_CLOSE_CODE, FirstMessageTransformer,
     OnCloseCallback, UpstreamReceiver, UpstreamSender, convert, is_control_message,
 };
+use super::upstream_error::detect_upstream_error;
 
 #[derive(Clone)]
 pub struct WebSocketProxy {
@@ -246,6 +247,8 @@ impl WebSocketProxy {
         shutdown_tx: tokio::sync::broadcast::Sender<(u16, String)>,
         mut shutdown_rx: tokio::sync::broadcast::Receiver<(u16, String)>,
     ) {
+        let mut pending_error: Option<(u16, String)> = None;
+
         loop {
             tokio::select! {
                 biased;
@@ -259,7 +262,8 @@ impl WebSocketProxy {
 
                 msg_opt = upstream_receiver.next() => {
                     let Some(msg_result) = msg_opt else {
-                        let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "upstream_disconnected".to_string()));
+                        let (code, reason) = pending_error.take().unwrap_or((DEFAULT_CLOSE_CODE, "upstream_disconnected".to_string()));
+                        let _ = shutdown_tx.send((code, reason));
                         break;
                     };
 
@@ -267,13 +271,29 @@ impl WebSocketProxy {
                         Ok(m) => m,
                         Err(e) => {
                             tracing::error!("upstream_receive_error: {:?}", e);
-                            let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "upstream_error".to_string()));
+                            let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, format!("upstream_error: {}", e)));
                             break;
                         }
                     };
 
                     match msg {
                         TungsteniteMessage::Text(text) => {
+                            let text_bytes = text.as_bytes();
+
+                            if let Some(upstream_err) = detect_upstream_error(text_bytes) {
+                                tracing::warn!(
+                                    code = upstream_err.code,
+                                    provider_code = ?upstream_err.provider_code,
+                                    message = %upstream_err.message,
+                                    "upstream_error_detected"
+                                );
+
+                                pending_error = Some((
+                                    upstream_err.to_close_code(),
+                                    upstream_err.message.clone(),
+                                ));
+                            }
+
                             if client_sender.send(Message::Text(text.to_string().into())).await.is_err() {
                                 let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "client_send_failed".to_string()));
                                 break;
@@ -292,7 +312,9 @@ impl WebSocketProxy {
                             let _ = client_sender.send(Message::Pong(data.to_vec().into())).await;
                         }
                         TungsteniteMessage::Close(frame) => {
-                            let (code, reason) = convert::extract_tungstenite_close(frame, "upstream_closed");
+                            let (code, reason) = pending_error.take().unwrap_or_else(|| {
+                                convert::extract_tungstenite_close(frame, "upstream_closed")
+                            });
                             let _ = shutdown_tx.send((code, reason));
                             break;
                         }

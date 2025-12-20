@@ -32,7 +32,6 @@ url = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
 hypr-language = { workspace = true }
-owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }
 
 rodio = { workspace = true }

@@ -12172,7 +12172,6 @@ checksum = "1a80800c0488c3a21695ea981a54918fbb37abf04f4d0720c453632255e2ff0e"
 name = "owhisper-client"
 version = "0.0.1"
 dependencies = [
- "audio",
  "audio-utils",
  "base64 0.22.1",
  "bytes",

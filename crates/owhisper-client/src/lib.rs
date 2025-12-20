@@ -15,6 +15,9 @@ pub use adapter::{
     FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
     append_provider_param, is_local_host,
 };
+#[cfg(feature = "argmax")]
+pub use adapter::{StreamingBatchConfig, StreamingBatchEvent, StreamingBatchStream};
+
 pub use batch::{BatchClient, BatchClientBuilder};
 pub use error::Error;
 pub use hypr_ws_client;

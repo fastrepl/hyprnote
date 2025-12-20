@@ -17,7 +17,7 @@ specta-typescript = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-language = { workspace = true }
 
-owhisper-client = { workspace = true }
+owhisper-client = { workspace = true, features = ["argmax"] }
 owhisper-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }

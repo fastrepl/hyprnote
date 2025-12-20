@@ -1,6 +1,5 @@
 use std::path::{Path, PathBuf};
 
-use hypr_audio_utils::{Source, f32_to_i16_bytes, resample_audio, source_from_path};
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
 
@@ -26,6 +25,19 @@ impl BatchSttAdapter for DeepgramAdapter {
     }
 }
 
+fn mime_type_from_extension(path: &Path) -> &'static str {
+    match path.extension().and_then(|e| e.to_str()) {
+        Some("mp3") => "audio/mpeg",
+        Some("mp4") => "audio/mp4",
+        Some("m4a") => "audio/mp4",
+        Some("wav") => "audio/wav",
+        Some("webm") => "audio/webm",
+        Some("ogg") => "audio/ogg",
+        Some("flac") => "audio/flac",
+        _ => "application/octet-stream",
+    }
+}
+
 async fn do_transcribe_file(
     client: &ClientWithMiddleware,
     api_base: &str,
@@ -33,21 +45,18 @@ async fn do_transcribe_file(
     params: &ListenParams,
     file_path: PathBuf,
 ) -> Result<BatchResponse, Error> {
-    let (audio_data, sample_rate) = decode_audio_to_linear16(file_path).await?;
+    let audio_data = tokio::fs::read(&file_path)
+        .await
+        .map_err(|e| Error::AudioProcessing(format!("failed to read file: {}", e)))?;
 
-    let url = {
-        let mut url = build_batch_url(
-            api_base,
-            params,
-            &DeepgramLanguageStrategy,
-            &DeepgramKeywordStrategy,
-        );
-        url.query_pairs_mut()
-            .append_pair("sample_rate", &sample_rate.to_string());
-        url
-    };
+    let content_type = mime_type_from_extension(&file_path);
 
-    let content_type = format!("audio/raw;encoding=linear16;rate={}", sample_rate);
+    let url = build_batch_url(
+        api_base,
+        params,
+        &DeepgramLanguageStrategy,
+        &DeepgramKeywordStrategy,
+    );
 
     let response = client
         .post(url)
@@ -67,45 +76,6 @@ async fn do_transcribe_file(
             body: response.text().await.unwrap_or_default(),
         })
     }
-}
-
-async fn decode_audio_to_linear16(path: PathBuf) -> Result<(bytes::Bytes, u32), Error> {
-    tokio::task::spawn_blocking(move || -> Result<(bytes::Bytes, u32), Error> {
-        let decoder =
-            source_from_path(&path).map_err(|err| Error::AudioProcessing(err.to_string()))?;
-
-        let channels = decoder.channels().max(1);
-        let sample_rate = decoder.sample_rate();
-
-        let samples = resample_audio(decoder, sample_rate)
-            .map_err(|err| Error::AudioProcessing(err.to_string()))?;
-
-        let samples = if channels == 1 {
-            samples
-        } else {
-            let channels_usize = channels as usize;
-            let mut mono = Vec::with_capacity(samples.len() / channels_usize);
-            for frame in samples.chunks(channels_usize) {
-                if frame.is_empty() {
-                    continue;
-                }
-                let sum: f32 = frame.iter().copied().sum();
-                mono.push(sum / frame.len() as f32);
-            }
-            mono
-        };
-
-        if samples.is_empty() {
-            return Err(Error::AudioProcessing(
-                "audio file contains no samples".to_string(),
-            ));
-        }
-
-        let bytes = f32_to_i16_bytes(samples.into_iter());
-
-        Ok((bytes, sample_rate))
-    })
-    .await?
 }
 
 #[cfg(test)]

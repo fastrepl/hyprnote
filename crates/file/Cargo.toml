@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 hypr-download-interface = { workspace = true }
 
-base64 = "0.22.1"
+base64 = { workspace = true }
 crc32fast = "1.4.2"
 thiserror = { workspace = true }
 

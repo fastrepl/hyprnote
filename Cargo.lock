@@ -19144,6 +19144,7 @@ dependencies = [
  "analytics",
  "audio-utils",
  "axum 0.8.7",
+ "base64 0.22.1",
  "bytes",
  "data",
  "futures-util",

@@ -2,15 +2,25 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
 
+use owhisper_providers::Auth;
 pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::handler::WebSocketProxy;
+use super::params::transform_client_params;
 use super::types::{FirstMessageTransformer, OnCloseCallback};
 use crate::config::DEFAULT_CONNECT_TIMEOUT_MS;
+use crate::routes::ResolvedProvider;
+use crate::upstream_url::UpstreamUrlBuilder;
 
 pub struct NoUpstream;
 pub struct WithUrl {
     url: String,
+    headers: HashMap<String, String>,
+}
+pub struct WithUrlComponents {
+    base_url: url::Url,
+    client_params: HashMap<String, String>,
+    default_params: Vec<(&'static str, &'static str)>,
     headers: HashMap<String, String>,
 }
 
@@ -105,6 +115,21 @@ impl WebSocketProxyBuilder<NoUpstream> {
             headers: HashMap::new(),
         })
     }
+
+    pub fn upstream_url_from_components(
+        self,
+        base_url: url::Url,
+        mut client_params: HashMap<String, String>,
+        default_params: &'static [(&'static str, &'static str)],
+    ) -> WebSocketProxyBuilder<WithUrlComponents> {
+        transform_client_params(&mut client_params);
+        self.with_state(WithUrlComponents {
+            base_url,
+            client_params,
+            default_params: default_params.to_vec(),
+            headers: HashMap::new(),
+        })
+    }
 }
 
 impl WebSocketProxyBuilder<WithUrl> {
@@ -118,18 +143,97 @@ impl WebSocketProxyBuilder<WithUrl> {
         self
     }
 
-    pub fn build(self) -> WebSocketProxy {
-        let mut request =
-            ClientRequestBuilder::new(self.state.url.parse().expect("invalid upstream URL"));
+    pub fn apply_auth(self, resolved: &ResolvedProvider) -> Self {
+        let provider = resolved.provider();
+        let api_key = resolved.api_key();
+
+        match provider.auth() {
+            Auth::Header { .. } => match provider.build_auth_header(api_key) {
+                Some((name, value)) => self.header(name, value),
+                None => self,
+            },
+            Auth::FirstMessage { .. } => {
+                let auth = provider.auth();
+                let api_key = api_key.to_string();
+                self.transform_first_message(move |msg| auth.transform_first_message(msg, &api_key))
+            }
+            Auth::SessionInit { .. } => self,
+        }
+    }
+
+    pub fn build(self) -> Result<WebSocketProxy, crate::ProxyError> {
+        let uri = self
+            .state
+            .url
+            .parse()
+            .map_err(|e| crate::ProxyError::InvalidRequest(format!("{}", e)))?;
+
+        let mut request = ClientRequestBuilder::new(uri);
         for (key, value) in self.state.headers {
             request = request.with_header(&key, &value);
         }
-        Self::build_from(
+
+        Ok(Self::build_from(
             request,
             self.control_message_types,
             self.transform_first_message,
             self.connect_timeout,
             self.on_close,
-        )
+        ))
+    }
+}
+
+impl WebSocketProxyBuilder<WithUrlComponents> {
+    pub fn header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        self.state.headers.insert(key.into(), value.into());
+        self
+    }
+
+    pub fn headers(mut self, new_headers: HashMap<String, String>) -> Self {
+        self.state.headers.extend(new_headers);
+        self
+    }
+
+    pub fn apply_auth(self, resolved: &ResolvedProvider) -> Self {
+        let provider = resolved.provider();
+        let api_key = resolved.api_key();
+
+        match provider.auth() {
+            Auth::Header { .. } => match provider.build_auth_header(api_key) {
+                Some((name, value)) => self.header(name, value),
+                None => self,
+            },
+            Auth::FirstMessage { .. } => {
+                let auth = provider.auth();
+                let api_key = api_key.to_string();
+                self.transform_first_message(move |msg| auth.transform_first_message(msg, &api_key))
+            }
+            Auth::SessionInit { .. } => self,
+        }
+    }
+
+    pub fn build(self) -> Result<WebSocketProxy, crate::ProxyError> {
+        let url = UpstreamUrlBuilder::new(self.state.base_url)
+            .default_params(&self.state.default_params)
+            .client_params(&self.state.client_params)
+            .build();
+
+        let uri = url
+            .as_str()
+            .parse()
+            .map_err(|e| crate::ProxyError::InvalidRequest(format!("{}", e)))?;
+
+        let mut request = ClientRequestBuilder::new(uri);
+        for (key, value) in self.state.headers {
+            request = request.with_header(&key, &value);
+        }
+
+        Ok(Self::build_from(
+            request,
+            self.control_message_types,
+            self.transform_first_message,
+            self.connect_timeout,
+            self.on_close,
+        ))
     }
 }

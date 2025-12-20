@@ -1,5 +1,6 @@
 mod builder;
 mod handler;
+mod params;
 mod pending;
 mod types;
 mod upstream_error;

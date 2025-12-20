@@ -5,12 +5,19 @@ use super::types::UpstreamSender;
 
 pub const MAX_PENDING_QUEUE_BYTES: usize = 5 * 1024 * 1024; // 5 MiB
 
+#[derive(Debug)]
+pub enum FlushError {
+    SendFailed,
+    InvalidUtf8,
+}
+
 #[derive(Debug, Clone)]
 pub struct QueuedPayload {
     pub data: Vec<u8>,
     pub is_text: bool,
 }
 
+#[derive(Default)]
 pub struct PendingState {
     control_messages: Vec<QueuedPayload>,
     data_messages: Vec<QueuedPayload>,
@@ -18,14 +25,6 @@ pub struct PendingState {
 }
 
 impl PendingState {
-    pub fn new() -> Self {
-        Self {
-            control_messages: Vec::new(),
-            data_messages: Vec::new(),
-            bytes: 0,
-        }
-    }
-
     pub fn enqueue(
         &mut self,
         payload: QueuedPayload,
@@ -47,36 +46,48 @@ impl PendingState {
         Ok(())
     }
 
-    pub async fn flush_to(&mut self, sender: &mut UpstreamSender) -> Result<(), ()> {
-        for queued in self.drain() {
+    pub async fn flush_to(&mut self, sender: &mut UpstreamSender) -> Result<(), FlushError> {
+        // Take ownership of messages, but don't reset bytes yet
+        let control = std::mem::take(&mut self.control_messages);
+        let data = std::mem::take(&mut self.data_messages);
+        let messages: Vec<_> = control.into_iter().chain(data).collect();
+
+        for queued in messages {
             let msg = if queued.is_text {
-                TungsteniteMessage::Text(String::from_utf8_lossy(&queued.data).to_string().into())
+                match String::from_utf8(queued.data) {
+                    Ok(s) => TungsteniteMessage::Text(s.into()),
+                    Err(e) => {
+                        tracing::warn!("invalid_utf8_in_text_message: {:?}", e);
+                        // Reset state since we failed
+                        self.bytes = 0;
+                        return Err(FlushError::InvalidUtf8);
+                    }
+                }
             } else {
                 TungsteniteMessage::Binary(queued.data.into())
             };
             if sender.send(msg).await.is_err() {
-                return Err(());
+                // Reset state since we failed (remaining messages are lost, but state is consistent)
+                self.bytes = 0;
+                return Err(FlushError::SendFailed);
             }
         }
-        Ok(())
-    }
-
-    fn drain(&mut self) -> impl Iterator<Item = QueuedPayload> {
+        // Only reset bytes after successful flush
         self.bytes = 0;
-        std::mem::take(&mut self.control_messages)
-            .into_iter()
-            .chain(std::mem::take(&mut self.data_messages))
+        Ok(())
     }
 
     #[cfg(test)]
     pub fn total_bytes(&self) -> usize {
         self.bytes
     }
-}
 
-impl Default for PendingState {
-    fn default() -> Self {
-        Self::new()
+    #[cfg(test)]
+    pub fn drain(&mut self) -> impl Iterator<Item = QueuedPayload> {
+        self.bytes = 0;
+        std::mem::take(&mut self.control_messages)
+            .into_iter()
+            .chain(std::mem::take(&mut self.data_messages))
     }
 }
 
@@ -86,7 +97,7 @@ mod tests {
 
     #[test]
     fn test_enqueue_and_drain() {
-        let mut state = PendingState::new();
+        let mut state = PendingState::default();
 
         let payload1 = QueuedPayload {
             data: vec![1, 2, 3],
@@ -108,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_control_messages_prioritized() {
-        let mut state = PendingState::new();
+        let mut state = PendingState::default();
 
         let data_payload = QueuedPayload {
             data: b"data".to_vec(),
@@ -130,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_payload_too_large() {
-        let mut state = PendingState::new();
+        let mut state = PendingState::default();
 
         let large_payload = QueuedPayload {
             data: vec![0; MAX_PENDING_QUEUE_BYTES + 1],
@@ -145,7 +156,7 @@ mod tests {
 
     #[test]
     fn test_backpressure_limit() {
-        let mut state = PendingState::new();
+        let mut state = PendingState::default();
 
         let half_size = MAX_PENDING_QUEUE_BYTES / 2 + 1;
         let payload1 = QueuedPayload {

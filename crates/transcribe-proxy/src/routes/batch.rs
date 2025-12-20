@@ -9,6 +9,7 @@ use axum::{
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
+
 use owhisper_client::{
     AssemblyAIAdapter, BatchClient, DeepgramAdapter, GladiaAdapter, OpenAIAdapter, SonioxAdapter,
 };
@@ -16,15 +17,15 @@ use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
 use owhisper_providers::Provider;
 
-use super::AppState;
+use super::{AppState, ResolvedProvider};
 
 pub async fn handler(
     State(state): State<AppState>,
     headers: HeaderMap,
-    Query(params): Query<HashMap<String, String>>,
+    Query(mut params): Query<HashMap<String, String>>,
     body: Bytes,
 ) -> Response {
-    let (provider, api_key) = match state.resolve_provider(&params) {
+    let resolved = match state.resolve_provider(&mut params) {
         Ok(v) => v,
         Err(resp) => return resp,
     };
@@ -48,13 +49,13 @@ pub async fn handler(
     let listen_params = build_listen_params(&params);
 
     tracing::info!(
-        provider = ?provider,
+        provider = ?resolved.provider(),
         content_type = %content_type,
         body_size = body.len(),
         "batch transcription request received"
     );
 
-    match transcribe_with_provider(provider, &api_key, listen_params, body, content_type).await {
+    match transcribe_with_provider(&resolved, listen_params, body, content_type).await {
         Ok(response) => Json(response).into_response(),
         Err(e) => {
             tracing::error!(error = %e, "batch transcription failed");
@@ -105,8 +106,7 @@ fn build_listen_params(params: &HashMap<String, String>) -> ListenParams {
 }
 
 async fn transcribe_with_provider(
-    provider: Provider,
-    api_key: &str,
+    resolved: &ResolvedProvider,
     params: ListenParams,
     audio_bytes: Bytes,
     content_type: &str,
@@ -115,7 +115,9 @@ async fn transcribe_with_provider(
         .map_err(|e| format!("failed to create temp file: {}", e))?;
 
     let file_path = temp_file.path();
+    let provider = resolved.provider();
     let api_base = provider.default_api_base();
+    let api_key = resolved.api_key();
 
     let result = match provider {
         Provider::Deepgram => {

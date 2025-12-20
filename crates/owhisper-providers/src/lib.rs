@@ -55,15 +55,18 @@ impl Auth {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumString, strum::Display)]
-#[strum(serialize_all = "lowercase")]
 pub enum Provider {
+    #[strum(serialize = "deepgram")]
     Deepgram,
     #[strum(serialize = "assemblyai")]
     AssemblyAI,
+    #[strum(serialize = "soniox")]
     Soniox,
+    #[strum(serialize = "fireworks")]
     Fireworks,
     #[strum(serialize = "openai")]
     OpenAI,
+    #[strum(serialize = "gladia")]
     Gladia,
 }
 

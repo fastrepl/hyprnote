@@ -10,85 +10,88 @@ use owhisper_providers::{Auth, Provider};
 use crate::analytics::SttEvent;
 use crate::config::SttProxyConfig;
 use crate::relay::WebSocketProxy;
-use crate::upstream_url::UpstreamUrlBuilder;
 
-use super::AppState;
+use super::{AppState, ResolvedProvider};
 
-const IGNORED_PARAMS: &[&str] = &["provider", "keywords", "keyterm", "keyterms"];
+#[derive(serde::Deserialize)]
+struct InitResponse {
+    id: String,
+    url: String,
+}
+
+fn parse_param<T: std::str::FromStr>(params: &HashMap<String, String>, key: &str, default: T) -> T {
+    params
+        .get(key)
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(default)
+}
 
 pub async fn handler(
     State(state): State<AppState>,
     ws: WebSocketUpgrade,
-    Query(params): Query<HashMap<String, String>>,
+    Query(mut params): Query<HashMap<String, String>>,
 ) -> Response {
-    let (provider, api_key) = match state.resolve_provider(&params) {
+    let resolved = match state.resolve_provider(&mut params) {
         Ok(v) => v,
         Err(resp) => return resp,
     };
 
-    let upstream_url = match resolve_upstream_url(&state, provider, &api_key, &params).await {
-        Ok(url) => url,
-        Err(e) => {
-            tracing::error!(error = %e, "failed to resolve upstream url");
-            return (StatusCode::BAD_GATEWAY, e).into_response();
-        }
-    };
+    let provider = resolved.provider();
 
-    let proxy = build_proxy(provider, &api_key, &upstream_url, &state.config);
-    proxy.handle_upgrade(ws).await.into_response()
-}
-
-async fn resolve_upstream_url(
-    state: &AppState,
-    provider: Provider,
-    api_key: &str,
-    params: &HashMap<String, String>,
-) -> Result<String, String> {
-    match provider.auth() {
+    let proxy = match provider.auth() {
         Auth::SessionInit { header_name } => {
-            init_session(state, provider, header_name, api_key, params).await
+            let url = match init_session(&state, &resolved, header_name, &params).await {
+                Ok(url) => url,
+                Err(e) => {
+                    tracing::error!(error = %e, "failed to init session");
+                    return (StatusCode::BAD_GATEWAY, e).into_response();
+                }
+            };
+            build_proxy_with_url(&resolved, &url, &state.config)
         }
         _ => {
             let base = url::Url::parse(&provider.default_ws_url()).unwrap();
-            let url = UpstreamUrlBuilder::new(base)
-                .ignored_params(IGNORED_PARAMS)
-                .default_params(provider.default_query_params())
-                .client_params(params)
-                .build();
-            Ok(url.to_string())
+            build_proxy_with_components(&resolved, base, params, &state.config)
+        }
+    };
+
+    match proxy {
+        Ok(p) => p.handle_upgrade(ws).await.into_response(),
+        Err(e) => {
+            tracing::error!(error = ?e, "failed to build proxy");
+            (StatusCode::BAD_REQUEST, format!("{}", e)).into_response()
         }
     }
 }
 
+fn build_session_config(
+    provider: Provider,
+    params: &HashMap<String, String>,
+) -> Result<serde_json::Value, String> {
+    let sample_rate: u32 = parse_param(params, "sample_rate", 16000);
+    let channels: u8 = parse_param(params, "channels", 1);
+    provider
+        .session_init_config(sample_rate, channels)
+        .ok_or_else(|| format!("{:?} does not support session init config", provider))
+}
+
 async fn init_session(
     state: &AppState,
-    provider: Provider,
+    resolved: &ResolvedProvider,
     header_name: &'static str,
-    api_key: &str,
     params: &HashMap<String, String>,
 ) -> Result<String, String> {
+    let provider = resolved.provider();
     let init_url = provider
         .default_api_url()
         .ok_or_else(|| format!("{:?} does not support session init", provider))?;
 
-    let sample_rate: u32 = params
-        .get("sample_rate")
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(16000);
-
-    let channels: u8 = params
-        .get("channels")
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(1);
-
-    let config = provider
-        .session_init_config(sample_rate, channels)
-        .ok_or_else(|| format!("{:?} does not support session init config", provider))?;
+    let config = build_session_config(provider, params)?;
 
     let resp = state
         .client
         .post(init_url)
-        .header(header_name, api_key)
+        .header(header_name, resolved.api_key())
         .header("Content-Type", "application/json")
         .json(&config)
         .send()
@@ -111,50 +114,73 @@ async fn init_session(
     Ok(init.url)
 }
 
-fn build_proxy(
-    provider: Provider,
-    api_key: &str,
+fn build_proxy_with_url(
+    resolved: &ResolvedProvider,
     upstream_url: &str,
     config: &SttProxyConfig,
-) -> WebSocketProxy {
-    let mut builder = WebSocketProxy::builder()
+) -> Result<WebSocketProxy, crate::ProxyError> {
+    let provider = resolved.provider();
+    let builder = WebSocketProxy::builder()
         .upstream_url(upstream_url)
         .connect_timeout(config.connect_timeout)
-        .control_message_types(provider.control_message_types());
+        .control_message_types(provider.control_message_types())
+        .apply_auth(resolved);
 
-    builder = match provider.auth() {
-        Auth::Header { .. } => match provider.build_auth_header(api_key) {
-            Some((name, value)) => builder.header(name, value),
-            None => builder,
-        },
-        Auth::FirstMessage { .. } => {
-            let auth = provider.auth();
-            let api_key = api_key.to_string();
-            builder.transform_first_message(move |msg| auth.transform_first_message(msg, &api_key))
-        }
-        Auth::SessionInit { .. } => builder,
-    };
-
-    if let Some(analytics) = config.analytics.clone() {
-        let provider_name = format!("{:?}", provider).to_lowercase();
-        builder = builder.on_close(move |duration| {
+    match &config.analytics {
+        Some(analytics) => {
             let analytics = analytics.clone();
-            let provider_name = provider_name.clone();
-            async move {
-                let event = SttEvent {
-                    provider: provider_name,
-                    duration,
-                };
-                analytics.report_stt(event).await;
-            }
-        });
+            let provider_name = format!("{:?}", provider).to_lowercase();
+            builder
+                .on_close(move |duration| {
+                    let analytics = analytics.clone();
+                    let provider_name = provider_name.clone();
+                    async move {
+                        analytics
+                            .report_stt(SttEvent {
+                                provider: provider_name,
+                                duration,
+                            })
+                            .await;
+                    }
+                })
+                .build()
+        }
+        None => builder.build(),
     }
-
-    builder.build()
 }
 
-#[derive(serde::Deserialize)]
-struct InitResponse {
-    id: String,
-    url: String,
+fn build_proxy_with_components(
+    resolved: &ResolvedProvider,
+    base_url: url::Url,
+    client_params: HashMap<String, String>,
+    config: &SttProxyConfig,
+) -> Result<WebSocketProxy, crate::ProxyError> {
+    let provider = resolved.provider();
+    let builder = WebSocketProxy::builder()
+        .upstream_url_from_components(base_url, client_params, provider.default_query_params())
+        .connect_timeout(config.connect_timeout)
+        .control_message_types(provider.control_message_types())
+        .apply_auth(resolved);
+
+    match &config.analytics {
+        Some(analytics) => {
+            let analytics = analytics.clone();
+            let provider_name = format!("{:?}", provider).to_lowercase();
+            builder
+                .on_close(move |duration| {
+                    let analytics = analytics.clone();
+                    let provider_name = provider_name.clone();
+                    async move {
+                        analytics
+                            .report_stt(SttEvent {
+                                provider: provider_name,
+                                duration,
+                            })
+                            .await;
+                    }
+                })
+                .build()
+        }
+        None => builder.build(),
+    }
 }

@@ -12,7 +12,7 @@ use tokio_tungstenite::{
 };
 
 use super::builder::WebSocketProxyBuilder;
-use super::pending::{PendingState, QueuedPayload};
+use super::pending::{FlushError, PendingState, QueuedPayload};
 use super::types::{
     ClientReceiver, ClientSender, ControlMessageTypes, DEFAULT_CLOSE_CODE, FirstMessageTransformer,
     OnCloseCallback, UpstreamReceiver, UpstreamSender, convert, is_control_message,
@@ -154,9 +154,13 @@ impl WebSocketProxy {
             return true;
         }
 
-        if pending.flush_to(upstream_sender).await.is_err() {
-            tracing::error!("upstream_send_failed");
-            let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "upstream_send_failed".to_string()));
+        if let Err(e) = pending.flush_to(upstream_sender).await {
+            let reason = match e {
+                FlushError::SendFailed => "upstream_send_failed",
+                FlushError::InvalidUtf8 => "invalid_utf8_in_message",
+            };
+            tracing::error!("flush_failed: {}", reason);
+            let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, reason.to_string()));
             return true;
         }
 
@@ -171,7 +175,7 @@ impl WebSocketProxy {
         control_types: Option<ControlMessageTypes>,
         mut first_msg_transformer: Option<FirstMessageTransformer>,
     ) {
-        let mut pending = PendingState::new();
+        let mut pending = PendingState::default();
 
         loop {
             tokio::select! {
@@ -213,7 +217,12 @@ impl WebSocketProxy {
                             }
                         }
                         Message::Binary(bytes) => {
-                            first_msg_transformer = None;
+                            // Note: Don't consume first_msg_transformer here - it's only meant for text messages.
+                            // If the first message is binary, we preserve the transformer for any subsequent text message.
+                            // This ensures authentication transformers are applied when a text message eventually arrives.
+                            if first_msg_transformer.is_some() {
+                                tracing::debug!("binary_message_received_before_text_transform");
+                            }
                             let data = bytes.to_vec();
 
                             if Self::process_data_message(&mut pending, data, false, &control_types, &shutdown_tx, &mut upstream_sender).await {
@@ -306,10 +315,14 @@ impl WebSocketProxy {
                             }
                         }
                         TungsteniteMessage::Ping(data) => {
-                            let _ = client_sender.send(Message::Ping(data.to_vec().into())).await;
+                            if let Err(e) = client_sender.send(Message::Ping(data.to_vec().into())).await {
+                                tracing::error!("client_ping_failed: {:?}", e);
+                            }
                         }
                         TungsteniteMessage::Pong(data) => {
-                            let _ = client_sender.send(Message::Pong(data.to_vec().into())).await;
+                            if let Err(e) = client_sender.send(Message::Pong(data.to_vec().into())).await {
+                                tracing::error!("client_pong_failed: {:?}", e);
+                            }
                         }
                         TungsteniteMessage::Close(frame) => {
                             let (code, reason) = pending_error.take().unwrap_or_else(|| {

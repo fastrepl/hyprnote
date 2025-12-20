@@ -62,45 +62,6 @@ async fn run_proxy_live_test<A: RealtimeSttAdapter>(
     );
 }
 
-macro_rules! proxy_live_test {
-    ($name:ident, $adapter:ty, $provider:expr, $model:expr) => {
-        pub mod $name {
-            use super::*;
-
-            pub mod live {
-                use super::*;
-
-                #[ignore]
-                #[tokio::test]
-                async fn test_proxy_live() {
-                    run_proxy_live_test::<$adapter>(
-                        $provider,
-                        owhisper_interface::ListenParams {
-                            model: Some($model.to_string()),
-                            languages: vec![hypr_language::ISO639::En.into()],
-                            ..Default::default()
-                        },
-                    )
-                    .await;
-                }
-            }
-        }
-    };
-}
-
-proxy_live_test!(
-    deepgram,
-    owhisper_client::DeepgramAdapter,
-    Provider::Deepgram,
-    "nova-3"
-);
-proxy_live_test!(
-    soniox,
-    owhisper_client::SonioxAdapter,
-    Provider::Soniox,
-    "stt-v3"
-);
-
 async fn run_proxy_batch_test<A: BatchSttAdapter>(
     provider: Provider,
     params: owhisper_interface::ListenParams,
@@ -157,6 +118,32 @@ async fn run_proxy_batch_test<A: BatchSttAdapter>(
     );
 }
 
+macro_rules! proxy_live_test {
+    ($name:ident, $adapter:ty, $provider:expr, $model:expr) => {
+        pub mod $name {
+            use super::*;
+
+            pub mod live {
+                use super::*;
+
+                #[ignore]
+                #[tokio::test]
+                async fn test_proxy_live() {
+                    run_proxy_live_test::<$adapter>(
+                        $provider,
+                        owhisper_interface::ListenParams {
+                            model: Some($model.to_string()),
+                            languages: vec![hypr_language::ISO639::En.into()],
+                            ..Default::default()
+                        },
+                    )
+                    .await;
+                }
+            }
+        }
+    };
+}
+
 macro_rules! proxy_batch_test {
     ($name:ident, $adapter:ty, $provider:expr, $model:expr) => {
         pub mod $name {
@@ -182,6 +169,19 @@ macro_rules! proxy_batch_test {
         }
     };
 }
+
+proxy_live_test!(
+    deepgram,
+    owhisper_client::DeepgramAdapter,
+    Provider::Deepgram,
+    "nova-3"
+);
+proxy_live_test!(
+    soniox,
+    owhisper_client::SonioxAdapter,
+    Provider::Soniox,
+    "stt-v3"
+);
 
 proxy_batch_test!(
     deepgram_batch,

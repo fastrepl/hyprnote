@@ -1,8 +1,7 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap};
 
 pub struct UpstreamUrlBuilder<'a> {
     base: url::Url,
-    ignored_params: HashSet<&'a str>,
     client_params: Vec<(String, String)>,
     default_params: Vec<(&'a str, &'a str)>,
 }
@@ -11,15 +10,9 @@ impl<'a> UpstreamUrlBuilder<'a> {
     pub fn new(base: url::Url) -> Self {
         Self {
             base,
-            ignored_params: HashSet::new(),
             client_params: Vec::new(),
             default_params: Vec::new(),
         }
-    }
-
-    pub fn ignored_params(mut self, params: &[&'a str]) -> Self {
-        self.ignored_params = params.iter().copied().collect();
-        self
     }
 
     pub fn client_params(mut self, params: &HashMap<String, String>) -> Self {
@@ -40,9 +33,6 @@ impl<'a> UpstreamUrlBuilder<'a> {
         }
 
         for (key, value) in &self.client_params {
-            if self.ignored_params.contains(key.as_str()) {
-                continue;
-            }
             final_params.insert(key.clone(), value.clone());
         }
 
@@ -166,62 +156,6 @@ mod tests {
     }
 
     #[test]
-    fn test_ignored_params_filtered() {
-        let base: url::Url = "wss://api.deepgram.com/v1/listen".parse().unwrap();
-        let client = make_params(&[
-            ("provider", "deepgram"),
-            ("keywords", "test"),
-            ("encoding", "linear16"),
-        ]);
-
-        let url = UpstreamUrlBuilder::new(base)
-            .ignored_params(&["provider", "keywords"])
-            .client_params(&client)
-            .build();
-
-        let params = get_query_params(&url);
-        assert!(
-            !params.contains_key("provider"),
-            "provider should be filtered"
-        );
-        assert!(
-            !params.contains_key("keywords"),
-            "keywords should be filtered"
-        );
-        assert_eq!(
-            params.get("encoding"),
-            Some(&"linear16".to_string()),
-            "encoding should be preserved"
-        );
-        assert_eq!(params.len(), 1);
-    }
-
-    #[test]
-    fn test_ignored_params_do_not_affect_defaults() {
-        let base: url::Url = "wss://api.deepgram.com/v1/listen".parse().unwrap();
-        let defaults: &[(&str, &str)] = &[("model", "nova-3-general")];
-        let client = make_params(&[("provider", "deepgram")]);
-
-        let url = UpstreamUrlBuilder::new(base)
-            .ignored_params(&["provider"])
-            .default_params(defaults)
-            .client_params(&client)
-            .build();
-
-        let params = get_query_params(&url);
-        assert_eq!(
-            params.get("model"),
-            Some(&"nova-3-general".to_string()),
-            "default model should be preserved"
-        );
-        assert!(
-            !params.contains_key("provider"),
-            "provider should be filtered"
-        );
-        assert_eq!(params.len(), 1);
-    }
-
-    #[test]
     fn test_empty_params() {
         let base: url::Url = "wss://api.deepgram.com/v1/listen".parse().unwrap();
 
@@ -276,18 +210,16 @@ mod tests {
     fn test_deepgram_real_world_scenario() {
         let base: url::Url = "wss://api.deepgram.com/v1/listen".parse().unwrap();
         let defaults: &[(&str, &str)] = &[("model", "nova-3-general"), ("mip_opt_out", "false")];
-        let ignored: &[&str] = &["provider", "keywords", "keyterm", "keyterms"];
         let client = make_params(&[
             ("model", "nova-3"),
             ("mip_opt_out", "true"),
             ("encoding", "linear16"),
             ("sample_rate", "16000"),
             ("channels", "1"),
-            ("provider", "deepgram"),
+            ("keywords", "hello,world"),
         ]);
 
         let url = UpstreamUrlBuilder::new(base)
-            .ignored_params(ignored)
             .default_params(defaults)
             .client_params(&client)
             .build();
@@ -307,11 +239,12 @@ mod tests {
         assert_eq!(params.get("encoding"), Some(&"linear16".to_string()));
         assert_eq!(params.get("sample_rate"), Some(&"16000".to_string()));
         assert_eq!(params.get("channels"), Some(&"1".to_string()));
-        assert!(
-            !params.contains_key("provider"),
-            "provider should be filtered"
+        assert_eq!(
+            params.get("keywords"),
+            Some(&"hello,world".to_string()),
+            "keywords should be passed through"
         );
-        assert_eq!(params.len(), 5);
+        assert_eq!(params.len(), 6);
     }
 
     #[test]

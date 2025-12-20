@@ -203,6 +203,7 @@ criterion = "0.6"
 insta = "1.42"
 serial_test = "3"
 testcontainers-modules = "0.12.1"
+wiremock = "0.6"
 
 axum = "0.8.4"
 axum-extra = "0.10.1"

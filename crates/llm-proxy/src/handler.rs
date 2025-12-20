@@ -20,6 +20,35 @@ use crate::types::{
     ToolChoice, UsageInfo,
 };
 
+enum ProxyError {
+    UpstreamRequest(reqwest::Error),
+    Timeout,
+    BodyRead(reqwest::Error),
+}
+
+impl IntoResponse for ProxyError {
+    fn into_response(self) -> Response {
+        let (status, message) = match self {
+            Self::UpstreamRequest(e) => {
+                tracing::error!(error = %e, "upstream request failed");
+                (StatusCode::BAD_GATEWAY, e.to_string())
+            }
+            Self::Timeout => {
+                tracing::error!("upstream request timeout");
+                (StatusCode::GATEWAY_TIMEOUT, "Request timeout".to_string())
+            }
+            Self::BodyRead(e) => {
+                tracing::error!(error = %e, "failed to read response body");
+                (
+                    StatusCode::BAD_GATEWAY,
+                    "Failed to read response".to_string(),
+                )
+            }
+        };
+        (status, message).into_response()
+    }
+}
+
 #[derive(Clone)]
 struct AppState {
     config: LlmProxyConfig,
@@ -45,6 +74,19 @@ async fn report_with_cost(
 ) {
     event.total_cost = fetch_generation_metadata(client, api_key, &event.generation_id).await;
     analytics.report_generation(event).await;
+}
+
+fn spawn_analytics_report(
+    analytics: Option<Arc<dyn AnalyticsReporter>>,
+    client: Client,
+    api_key: String,
+    event: GenerationEvent,
+) {
+    if let Some(analytics) = analytics {
+        tokio::spawn(async move {
+            report_with_cost(&*analytics, &client, &api_key, event).await;
+        });
+    }
 }
 
 struct StreamAccumulator {
@@ -97,8 +139,8 @@ impl StreamAccumulator {
                 .get("usage")
                 .and_then(|u| serde_json::from_value::<UsageInfo>(u.clone()).ok())
             {
-                self.input_tokens = usage.prompt_tokens.unwrap_or(0);
-                self.output_tokens = usage.completion_tokens.unwrap_or(0);
+                self.input_tokens = usage.input_tokens();
+                self.output_tokens = usage.output_tokens();
             }
         }
     }
@@ -159,14 +201,8 @@ async fn completions_handler(
 
     let response = match result {
         Ok(Ok(resp)) => resp,
-        Ok(Err(e)) => {
-            tracing::error!(error = %e, "upstream request failed");
-            return (StatusCode::BAD_GATEWAY, e.to_string()).into_response();
-        }
-        Err(_) => {
-            tracing::error!("upstream request timeout");
-            return (StatusCode::GATEWAY_TIMEOUT, "Request timeout").into_response();
-        }
+        Ok(Err(e)) => return ProxyError::UpstreamRequest(e).into_response(),
+        Err(_) => return ProxyError::Timeout.into_response(),
     };
 
     let status = response.status();
@@ -244,40 +280,30 @@ async fn handle_non_stream_response(
 
     let body_bytes = match response.bytes().await {
         Ok(b) => b,
-        Err(e) => {
-            tracing::error!(error = %e, "failed to read response body");
-            return (StatusCode::BAD_GATEWAY, "Failed to read response").into_response();
-        }
+        Err(e) => return ProxyError::BodyRead(e).into_response(),
     };
 
-    if let Some(analytics) = &state.config.analytics {
-        if let Ok(parsed) = serde_json::from_slice::<OpenRouterResponse>(&body_bytes) {
-            let client = state.client.clone();
-            let api_key = state.config.api_key.clone();
-            let analytics = analytics.clone();
+    if let Ok(parsed) = serde_json::from_slice::<OpenRouterResponse>(&body_bytes) {
+        let event = GenerationEvent {
+            generation_id: parsed.id,
+            model: parsed.model.unwrap_or_default(),
+            input_tokens: parsed.usage.as_ref().map(|u| u.input_tokens()).unwrap_or(0),
+            output_tokens: parsed
+                .usage
+                .as_ref()
+                .map(|u| u.output_tokens())
+                .unwrap_or(0),
+            latency: start_time.elapsed().as_secs_f64(),
+            http_status,
+            total_cost: None,
+        };
 
-            let event = GenerationEvent {
-                generation_id: parsed.id,
-                model: parsed.model.unwrap_or_default(),
-                input_tokens: parsed
-                    .usage
-                    .as_ref()
-                    .and_then(|u| u.prompt_tokens)
-                    .unwrap_or(0),
-                output_tokens: parsed
-                    .usage
-                    .as_ref()
-                    .and_then(|u| u.completion_tokens)
-                    .unwrap_or(0),
-                latency: start_time.elapsed().as_secs_f64(),
-                http_status,
-                total_cost: None,
-            };
-
-            tokio::spawn(async move {
-                report_with_cost(&*analytics, &client, &api_key, event).await;
-            });
-        }
+        spawn_analytics_report(
+            state.config.analytics.clone(),
+            state.client.clone(),
+            state.config.api_key.clone(),
+            event,
+        );
     }
 
     Response::builder()

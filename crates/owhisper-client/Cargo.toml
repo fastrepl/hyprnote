@@ -3,9 +3,12 @@ name = "owhisper-client"
 version = "0.0.1"
 edition = "2024"
 
+[features]
+default = []
+argmax = ["hypr-audio-utils"]
+
 [dependencies]
-hypr-audio = { workspace = true }
-hypr-audio-utils = { workspace = true }
+hypr-audio-utils = { workspace = true, optional = true }
 hypr-language = { workspace = true }
 hypr-ws-client = { workspace = true }
 
@@ -28,6 +31,7 @@ tracing = { workspace = true }
 url = { workspace = true }
 
 [dev-dependencies]
+hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
 
 deepgram = { workspace = true, features = ["listen"] }

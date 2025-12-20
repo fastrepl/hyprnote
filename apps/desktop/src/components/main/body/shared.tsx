@@ -21,6 +21,7 @@ type TabItemBaseProps = {
   title: React.ReactNode;
   selected: boolean;
   active?: boolean;
+  isEmptyTab?: boolean;
   tabIndex?: number;
   pinned?: boolean;
 } & {
@@ -40,6 +41,7 @@ export function TabItemBase({
   title,
   selected,
   active = false,
+  isEmptyTab = false,
   tabIndex,
   pinned = false,
   handleCloseThis,
@@ -60,16 +62,29 @@ export function TabItemBase({
   };
 
   const contextMenu = !active
-    ? [
-        {
-          id: "pin-tab",
-          text: pinned ? "unpin tab" : "pin tab",
-          action: handleTogglePin,
-        },
-        { id: "close-tab", text: "close tab", action: handleCloseThis },
-        { id: "close-others", text: "close others", action: handleCloseOthers },
-        { id: "close-all", text: "close all", action: handleCloseAll },
-      ]
+    ? selected && !isEmptyTab
+      ? [
+          {
+            id: "pin-tab",
+            text: pinned ? "Unpin" : "Pin",
+            action: handleTogglePin,
+          },
+          { id: "close-tab", text: "Close", action: handleCloseThis },
+        ]
+      : [
+          {
+            id: "pin-tab",
+            text: pinned ? "Unpin" : "Pin",
+            action: handleTogglePin,
+          },
+          { id: "close-tab", text: "Close", action: handleCloseThis },
+          {
+            id: "close-others",
+            text: "Close others",
+            action: handleCloseOthers,
+          },
+          { id: "close-all", text: "Close all", action: handleCloseAll },
+        ]
     : undefined;
 
   const showShortcut = isCmdPressed && tabIndex !== undefined;

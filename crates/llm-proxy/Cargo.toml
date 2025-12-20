@@ -20,4 +20,4 @@ thiserror = { workspace = true }
 
 [dev-dependencies]
 tower = { workspace = true, features = ["util"] }
-wiremock = "0.5"
+wiremock = { workspace = true }

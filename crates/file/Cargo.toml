@@ -21,4 +21,4 @@ dirs = { workspace = true }
 hypr-s3 = { workspace = true }
 tempfile = { workspace = true }
 testcontainers-modules = { workspace = true, features = ["minio"] }
-wiremock = "0.5"
+wiremock = { workspace = true }

@@ -16,8 +16,7 @@ use reqwest::Client;
 use crate::analytics::{AnalyticsReporter, GenerationEvent, fetch_generation_metadata};
 use crate::config::LlmProxyConfig;
 use crate::types::{
-    ChatCompletionRequest, OPENROUTER_URL, OpenRouterRequest, OpenRouterResponse, Provider,
-    ToolChoice, UsageInfo,
+    ChatCompletionRequest, OpenRouterRequest, OpenRouterResponse, Provider, ToolChoice, UsageInfo,
 };
 
 enum ProxyError {
@@ -190,7 +189,7 @@ async fn completions_handler(
     let result = tokio::time::timeout(state.config.timeout, async {
         state
             .client
-            .post(OPENROUTER_URL)
+            .post(&state.config.base_url)
             .header("Content-Type", "application/json")
             .header("Authorization", format!("Bearer {}", state.config.api_key))
             .json(&openrouter_request)

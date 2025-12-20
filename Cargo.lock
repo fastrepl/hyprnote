@@ -10209,6 +10209,7 @@ dependencies = [
  "tokio-stream",
  "tower 0.5.2",
  "tracing",
+ "wiremock",
 ]
 
 [[package]]

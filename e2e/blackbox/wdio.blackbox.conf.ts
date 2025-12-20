@@ -80,7 +80,7 @@ export const config = {
 
   waitforTimeout: 10000,
   connectionRetryTimeout: 120000,
-  connectionRetryCount: 0,
+  connectionRetryCount: 3,
 
   // Set up test-runner-backend for macOS support
   onPrepare: async () => {

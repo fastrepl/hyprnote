@@ -17,14 +17,15 @@ pub fn to_speaker(bytes: &'static [u8]) -> std::sync::mpsc::Sender<()> {
     let (tx, rx) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
-        if let Ok((_, stream)) = OutputStream::try_default() {
+        if let Ok((_stream, stream_handle)) = OutputStream::try_default() {
             let file = std::io::Cursor::new(bytes);
             if let Ok(source) = Decoder::new(file) {
-                let sink = Sink::try_new(&stream).unwrap();
-                sink.append(source);
+                if let Ok(sink) = Sink::try_new(&stream_handle) {
+                    sink.append(source);
 
-                let _ = rx.recv_timeout(std::time::Duration::from_secs(3600));
-                sink.stop();
+                    let _ = rx.recv_timeout(std::time::Duration::from_secs(3600));
+                    sink.stop();
+                }
             }
         }
     });

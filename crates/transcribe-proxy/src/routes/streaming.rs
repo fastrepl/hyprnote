@@ -38,20 +38,24 @@ pub async fn handler(
 
     let provider = resolved.provider();
 
-    let proxy = match provider.auth() {
-        Auth::SessionInit { header_name } => {
-            let url = match init_session(&state, &resolved, header_name, &params).await {
-                Ok(url) => url,
-                Err(e) => {
-                    tracing::error!(error = %e, "failed to init session");
-                    return (StatusCode::BAD_GATEWAY, e).into_response();
-                }
-            };
-            build_proxy_with_url(&resolved, &url, &state.config)
-        }
-        _ => {
-            let base = url::Url::parse(&provider.default_ws_url()).unwrap();
-            build_proxy_with_components(&resolved, base, params, &state.config)
+    let proxy = if let Some(custom_url) = state.config.upstream_url_for(provider) {
+        build_proxy_with_url(&resolved, custom_url, &state.config)
+    } else {
+        match provider.auth() {
+            Auth::SessionInit { header_name } => {
+                let url = match init_session(&state, &resolved, header_name, &params).await {
+                    Ok(url) => url,
+                    Err(e) => {
+                        tracing::error!(error = %e, "failed to init session");
+                        return (StatusCode::BAD_GATEWAY, e).into_response();
+                    }
+                };
+                build_proxy_with_url(&resolved, &url, &state.config)
+            }
+            _ => {
+                let base = url::Url::parse(&provider.default_ws_url()).unwrap();
+                build_proxy_with_components(&resolved, base, params, &state.config)
+            }
         }
     };
 
@@ -114,6 +118,32 @@ async fn init_session(
     Ok(init.url)
 }
 
+macro_rules! finalize_proxy_builder {
+    ($builder:expr, $provider:expr, $config:expr) => {
+        match &$config.analytics {
+            Some(analytics) => {
+                let analytics = analytics.clone();
+                let provider_name = format!("{:?}", $provider).to_lowercase();
+                $builder
+                    .on_close(move |duration| {
+                        let analytics = analytics.clone();
+                        let provider_name = provider_name.clone();
+                        async move {
+                            analytics
+                                .report_stt(SttEvent {
+                                    provider: provider_name,
+                                    duration,
+                                })
+                                .await;
+                        }
+                    })
+                    .build()
+            }
+            None => $builder.build(),
+        }
+    };
+}
+
 fn build_proxy_with_url(
     resolved: &ResolvedProvider,
     upstream_url: &str,
@@ -126,27 +156,7 @@ fn build_proxy_with_url(
         .control_message_types(provider.control_message_types())
         .apply_auth(resolved);
 
-    match &config.analytics {
-        Some(analytics) => {
-            let analytics = analytics.clone();
-            let provider_name = format!("{:?}", provider).to_lowercase();
-            builder
-                .on_close(move |duration| {
-                    let analytics = analytics.clone();
-                    let provider_name = provider_name.clone();
-                    async move {
-                        analytics
-                            .report_stt(SttEvent {
-                                provider: provider_name,
-                                duration,
-                            })
-                            .await;
-                    }
-                })
-                .build()
-        }
-        None => builder.build(),
-    }
+    finalize_proxy_builder!(builder, provider, config)
 }
 
 fn build_proxy_with_components(
@@ -162,25 +172,5 @@ fn build_proxy_with_components(
         .control_message_types(provider.control_message_types())
         .apply_auth(resolved);
 
-    match &config.analytics {
-        Some(analytics) => {
-            let analytics = analytics.clone();
-            let provider_name = format!("{:?}", provider).to_lowercase();
-            builder
-                .on_close(move |duration| {
-                    let analytics = analytics.clone();
-                    let provider_name = provider_name.clone();
-                    async move {
-                        analytics
-                            .report_stt(SttEvent {
-                                provider: provider_name,
-                                duration,
-                            })
-                            .await;
-                    }
-                })
-                .build()
-        }
-        None => builder.build(),
-    }
+    finalize_proxy_builder!(builder, provider, config)
 }

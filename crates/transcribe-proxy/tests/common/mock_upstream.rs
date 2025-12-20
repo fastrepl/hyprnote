@@ -26,10 +26,6 @@ impl Default for MockUpstreamConfig {
 }
 
 impl MockUpstreamConfig {
-    pub fn fast() -> Self {
-        Self::default()
-    }
-
     pub fn use_timing(mut self, use_timing: bool) -> Self {
         self.use_timing = use_timing;
         self
@@ -80,7 +76,7 @@ impl MockUpstreamServer {
             .recording
             .messages
             .iter()
-            .filter(|m| m.is_server_message())
+            .filter(|m| m.is_from_upstream())
             .collect();
 
         let mut last_timestamp = 0u64;
@@ -170,6 +166,11 @@ impl MockServerHandle {
     }
 }
 
+/// Starts a mock upstream server that replays recorded WebSocket messages.
+///
+/// Note: This server only accepts a single connection. After one client connects
+/// and the recording is replayed, the server will shut down. This is intentional
+/// for test isolation - each test should create its own mock server instance.
 pub async fn start_mock_server_with_config(
     recording: WsRecording,
     config: MockUpstreamConfig,

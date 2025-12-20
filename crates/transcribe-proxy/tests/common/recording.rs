@@ -8,6 +8,14 @@ use serde::{Deserialize, Serialize};
 
 use owhisper_providers::Provider;
 
+fn encode_optional_binary(data: &[u8]) -> String {
+    if data.is_empty() {
+        String::new()
+    } else {
+        BASE64.encode(data)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Direction {
@@ -75,11 +83,7 @@ impl WsMessage {
             direction,
             timestamp_ms,
             kind: MessageKind::Ping,
-            content: if data.is_empty() {
-                String::new()
-            } else {
-                BASE64.encode(data)
-            },
+            content: encode_optional_binary(data),
         }
     }
 
@@ -88,11 +92,7 @@ impl WsMessage {
             direction,
             timestamp_ms,
             kind: MessageKind::Pong,
-            content: if data.is_empty() {
-                String::new()
-            } else {
-                BASE64.encode(data)
-            },
+            content: encode_optional_binary(data),
         }
     }
 
@@ -100,11 +100,11 @@ impl WsMessage {
         BASE64.decode(&self.content)
     }
 
-    pub fn is_server_message(&self) -> bool {
+    pub fn is_from_upstream(&self) -> bool {
         self.direction == Direction::ServerToClient
     }
 
-    pub fn is_client_message(&self) -> bool {
+    pub fn is_to_upstream(&self) -> bool {
         self.direction == Direction::ClientToServer
     }
 }
@@ -152,7 +152,7 @@ impl WsRecording {
     }
 
     pub fn server_messages(&self) -> impl Iterator<Item = &WsMessage> {
-        self.messages.iter().filter(|m| m.is_server_message())
+        self.messages.iter().filter(|m| m.is_from_upstream())
     }
 
     pub fn push(&mut self, message: WsMessage) {

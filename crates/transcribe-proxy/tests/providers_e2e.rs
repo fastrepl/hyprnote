@@ -56,8 +56,11 @@ async fn run_proxy_live_test_with_recording<A: RealtimeSttAdapter>(
                 Ok(response) => {
                     // Record the response if recording is enabled
                     if let Some(ref session) = recording_session {
-                        if let Ok(json) = serde_json::to_string(&response) {
-                            session.record_server_text(&json);
+                        match serde_json::to_string(&response) {
+                            Ok(json) => session.record_server_text(&json),
+                            Err(e) => {
+                                tracing::warn!("failed to serialize response for recording: {}", e)
+                            }
                         }
                     }
 

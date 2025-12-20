@@ -12,6 +12,8 @@ use common::{
 };
 use owhisper_providers::Provider;
 
+const TEST_RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
+
 async fn connect_to_proxy(
     proxy_addr: std::net::SocketAddr,
     model: &str,
@@ -64,7 +66,7 @@ async fn test_deepgram_normal_transcription_replay() {
     let _ = tracing_subscriber::fmt::try_init();
 
     let recording = load_fixture("deepgram_normal.jsonl");
-    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::fast())
+    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::default())
         .await
         .expect("Failed to start mock server");
 
@@ -72,7 +74,7 @@ async fn test_deepgram_normal_transcription_replay() {
         start_server_with_upstream_url(Provider::Deepgram, &mock_handle.ws_url()).await;
 
     let ws_stream = connect_to_proxy(proxy_addr, "nova-3").await;
-    let (messages, close_info) = collect_messages(ws_stream, Duration::from_secs(5)).await;
+    let (messages, close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     assert!(!messages.is_empty(), "Expected to receive messages");
 
@@ -91,7 +93,7 @@ async fn test_deepgram_auth_error_replay() {
     let _ = tracing_subscriber::fmt::try_init();
 
     let recording = load_fixture("deepgram_auth_error.jsonl");
-    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::fast())
+    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::default())
         .await
         .expect("Failed to start mock server");
 
@@ -99,7 +101,7 @@ async fn test_deepgram_auth_error_replay() {
         start_server_with_upstream_url(Provider::Deepgram, &mock_handle.ws_url()).await;
 
     let ws_stream = connect_to_proxy(proxy_addr, "nova-3").await;
-    let (messages, close_info) = collect_messages(ws_stream, Duration::from_secs(5)).await;
+    let (messages, close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     assert!(!messages.is_empty(), "Expected to receive error message");
     let has_auth_error = messages
@@ -121,7 +123,7 @@ async fn test_deepgram_rate_limit_replay() {
     let _ = tracing_subscriber::fmt::try_init();
 
     let recording = load_fixture("deepgram_rate_limit.jsonl");
-    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::fast())
+    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::default())
         .await
         .expect("Failed to start mock server");
 
@@ -129,7 +131,7 @@ async fn test_deepgram_rate_limit_replay() {
         start_server_with_upstream_url(Provider::Deepgram, &mock_handle.ws_url()).await;
 
     let ws_stream = connect_to_proxy(proxy_addr, "nova-3").await;
-    let (messages, close_info) = collect_messages(ws_stream, Duration::from_secs(5)).await;
+    let (messages, close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     let has_rate_limit = messages
         .iter()
@@ -150,14 +152,14 @@ async fn test_soniox_normal_transcription_replay() {
     let _ = tracing_subscriber::fmt::try_init();
 
     let recording = load_fixture("soniox_normal.jsonl");
-    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::fast())
+    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::default())
         .await
         .expect("Failed to start mock server");
 
     let proxy_addr = start_server_with_upstream_url(Provider::Soniox, &mock_handle.ws_url()).await;
 
     let ws_stream = connect_to_proxy(proxy_addr, "stt-v3").await;
-    let (messages, close_info) = collect_messages(ws_stream, Duration::from_secs(5)).await;
+    let (messages, close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     assert!(!messages.is_empty(), "Expected to receive messages");
 
@@ -176,14 +178,14 @@ async fn test_soniox_error_replay() {
     let _ = tracing_subscriber::fmt::try_init();
 
     let recording = load_fixture("soniox_error.jsonl");
-    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::fast())
+    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::default())
         .await
         .expect("Failed to start mock server");
 
     let proxy_addr = start_server_with_upstream_url(Provider::Soniox, &mock_handle.ws_url()).await;
 
     let ws_stream = connect_to_proxy(proxy_addr, "stt-v3").await;
-    let (messages, close_info) = collect_messages(ws_stream, Duration::from_secs(5)).await;
+    let (messages, close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     let has_error = messages
         .iter()
@@ -209,7 +211,7 @@ async fn test_proxy_forwards_all_messages() {
         .filter(|m| matches!(m.kind, MessageKind::Text))
         .count();
 
-    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::fast())
+    let mock_handle = start_mock_server_with_config(recording, MockUpstreamConfig::default())
         .await
         .expect("Failed to start mock server");
 
@@ -217,7 +219,7 @@ async fn test_proxy_forwards_all_messages() {
         start_server_with_upstream_url(Provider::Deepgram, &mock_handle.ws_url()).await;
 
     let ws_stream = connect_to_proxy(proxy_addr, "nova-3").await;
-    let (messages, _close_info) = collect_messages(ws_stream, Duration::from_secs(5)).await;
+    let (messages, _close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     assert_eq!(
         messages.len(),

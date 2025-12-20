@@ -17,15 +17,38 @@ pub fn to_speaker(bytes: &'static [u8]) -> std::sync::mpsc::Sender<()> {
     let (tx, rx) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
-        if let Ok((_stream, stream_handle)) = OutputStream::try_default() {
-            let file = std::io::Cursor::new(bytes);
-            if let Ok(source) = Decoder::new(file) {
-                if let Ok(sink) = Sink::try_new(&stream_handle) {
-                    sink.append(source);
+        tracing::info!("sfx: attempting to play audio, bytes len: {}", bytes.len());
 
-                    let _ = rx.recv_timeout(std::time::Duration::from_secs(3600));
-                    sink.stop();
+        match OutputStream::try_default() {
+            Ok((stream, stream_handle)) => {
+                tracing::info!("sfx: got output stream");
+                let file = std::io::Cursor::new(bytes);
+
+                match Decoder::new(file) {
+                    Ok(source) => {
+                        tracing::info!("sfx: decoded audio source");
+
+                        match Sink::try_new(&stream_handle) {
+                            Ok(sink) => {
+                                tracing::info!("sfx: created sink, appending source");
+                                sink.append(source);
+
+                                let _ = rx.recv_timeout(std::time::Duration::from_secs(3600));
+                                sink.stop();
+                                drop(stream);
+                            }
+                            Err(e) => {
+                                tracing::error!("sfx: failed to create sink: {:?}", e);
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("sfx: failed to decode audio: {:?}", e);
+                    }
                 }
+            }
+            Err(e) => {
+                tracing::error!("sfx: failed to get output stream: {:?}", e);
             }
         }
     });

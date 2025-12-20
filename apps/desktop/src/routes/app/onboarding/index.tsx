@@ -83,13 +83,13 @@ function Component() {
       />
       <button
         onClick={toggleMute}
-        className="fixed top-4 right-4 p-2 rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors z-10"
+        className="fixed top-2 right-2 p-1.5 rounded-full hover:bg-neutral-100 transition-colors z-10"
         aria-label={isMuted ? "Unmute" : "Mute"}
       >
         {isMuted ? (
-          <VolumeXIcon size={20} className="text-neutral-600" />
+          <VolumeXIcon size={16} className="text-neutral-600" />
         ) : (
-          <Volume2Icon size={20} className="text-neutral-600" />
+          <Volume2Icon size={16} className="text-neutral-600" />
         )}
       </button>
       <StepComponent onNavigate={onNavigate} />

@@ -658,12 +658,13 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
 }
 
 function useTabsShortcuts() {
-  const { tabs, currentTab, close, select } = useTabs(
+  const { tabs, currentTab, close, select, unpin } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
       currentTab: state.currentTab,
       close: state.close,
       select: state.select,
+      unpin: state.unpin,
     })),
   );
   const newNote = useNewNote({ behavior: "new" });
@@ -702,7 +703,11 @@ function useTabsShortcuts() {
     "mod+w",
     async () => {
       if (currentTab) {
-        close(currentTab);
+        if (currentTab.pinned) {
+          unpin(currentTab);
+        } else {
+          close(currentTab);
+        }
       }
     },
     {
@@ -710,7 +715,7 @@ function useTabsShortcuts() {
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [currentTab, close],
+    [currentTab, close, unpin],
   );
 
   useHotkeys(

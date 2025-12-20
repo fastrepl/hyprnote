@@ -1,4 +1,6 @@
 mod common;
+
+use common::recording::{RecordingOptions, RecordingSession};
 use common::*;
 
 use futures_util::StreamExt;
@@ -12,11 +14,26 @@ async fn run_proxy_live_test<A: RealtimeSttAdapter>(
     provider: Provider,
     params: owhisper_interface::ListenParams,
 ) {
+    run_proxy_live_test_with_recording::<A>(provider, params, RecordingOptions::from_env("normal"))
+        .await
+}
+
+async fn run_proxy_live_test_with_recording<A: RealtimeSttAdapter>(
+    provider: Provider,
+    params: owhisper_interface::ListenParams,
+    recording_opts: RecordingOptions,
+) {
     let _ = tracing_subscriber::fmt::try_init();
 
     let api_key = std::env::var(provider.env_key_name())
         .unwrap_or_else(|_| panic!("{} must be set", provider.env_key_name()));
     let addr = start_server_with_provider(provider, api_key).await;
+
+    let recording_session = if recording_opts.enabled {
+        Some(RecordingSession::new(provider))
+    } else {
+        None
+    };
 
     let client = ListenClient::builder()
         .adapter::<A>()
@@ -36,15 +53,23 @@ async fn run_proxy_live_test<A: RealtimeSttAdapter>(
     let test_future = async {
         while let Some(result) = stream.next().await {
             match result {
-                Ok(StreamResponse::TranscriptResponse { channel, .. }) => {
-                    if let Some(alt) = channel.alternatives.first() {
-                        if !alt.transcript.is_empty() {
-                            println!("[{}] {}", provider_name, alt.transcript);
-                            saw_transcript = true;
+                Ok(response) => {
+                    // Record the response if recording is enabled
+                    if let Some(ref session) = recording_session {
+                        if let Ok(json) = serde_json::to_string(&response) {
+                            session.record_server_text(&json);
+                        }
+                    }
+
+                    if let StreamResponse::TranscriptResponse { channel, .. } = &response {
+                        if let Some(alt) = channel.alternatives.first() {
+                            if !alt.transcript.is_empty() {
+                                println!("[{}] {}", provider_name, alt.transcript);
+                                saw_transcript = true;
+                            }
                         }
                     }
                 }
-                Ok(_) => {}
                 Err(e) => {
                     panic!("[{}] error: {:?}", provider_name, e);
                 }
@@ -54,6 +79,17 @@ async fn run_proxy_live_test<A: RealtimeSttAdapter>(
 
     let _ = tokio::time::timeout(timeout, test_future).await;
     handle.finalize().await;
+
+    // Save recording if enabled
+    if let Some(session) = recording_session {
+        if let Some(ref output_dir) = recording_opts.output_dir {
+            std::fs::create_dir_all(output_dir).expect("failed to create fixtures directory");
+            session
+                .save_to_file(output_dir, &recording_opts.suffix)
+                .expect("failed to save recording");
+            println!("[{}] Recording saved to {:?}", provider_name, output_dir);
+        }
+    }
 
     assert!(
         saw_transcript,

@@ -38,20 +38,24 @@ pub async fn handler(
 
     let provider = resolved.provider();
 
-    let proxy = match provider.auth() {
-        Auth::SessionInit { header_name } => {
-            let url = match init_session(&state, &resolved, header_name, &params).await {
-                Ok(url) => url,
-                Err(e) => {
-                    tracing::error!(error = %e, "failed to init session");
-                    return (StatusCode::BAD_GATEWAY, e).into_response();
-                }
-            };
-            build_proxy_with_url(&resolved, &url, &state.config)
-        }
-        _ => {
-            let base = url::Url::parse(&provider.default_ws_url()).unwrap();
-            build_proxy_with_components(&resolved, base, params, &state.config)
+    let proxy = if let Some(custom_url) = state.config.upstream_url_for(provider) {
+        build_proxy_with_url(&resolved, custom_url, &state.config)
+    } else {
+        match provider.auth() {
+            Auth::SessionInit { header_name } => {
+                let url = match init_session(&state, &resolved, header_name, &params).await {
+                    Ok(url) => url,
+                    Err(e) => {
+                        tracing::error!(error = %e, "failed to init session");
+                        return (StatusCode::BAD_GATEWAY, e).into_response();
+                    }
+                };
+                build_proxy_with_url(&resolved, &url, &state.config)
+            }
+            _ => {
+                let base = url::Url::parse(&provider.default_ws_url()).unwrap();
+                build_proxy_with_components(&resolved, base, params, &state.config)
+            }
         }
     };
 

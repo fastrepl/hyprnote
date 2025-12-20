@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { memo, useMemo } from "react";
 import { arch, platform } from "@tauri-apps/plugin-os";
+import { memo, useMemo } from "react";
 
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
@@ -19,7 +19,7 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
 
   const isAppleSilicon = useMemo(
     () => currentPlatform === "macos" && archQuery.data === "aarch64",
-    [currentPlatform, archQuery.data]
+    [currentPlatform, archQuery.data],
   );
 
   return (

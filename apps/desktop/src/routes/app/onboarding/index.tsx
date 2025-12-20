@@ -29,7 +29,9 @@ export const Route = createFileRoute("/app/onboarding/")({
 });
 
 function finishOnboarding() {
-  sfxCommands.stop("BGM").catch((e) => console.error("sfx: BGM finish stop failed", e));
+  sfxCommands
+    .stop("BGM")
+    .catch((e) => console.error("sfx: BGM finish stop failed", e));
   commands.setOnboardingNeeded(false).catch((e) => console.error(e));
   void windowsCommands.windowShow({ type: "main" }).then(() => {
     void windowsCommands.windowDestroy({ type: "onboarding" });

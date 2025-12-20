@@ -50,8 +50,8 @@ function Component() {
       .then(() => console.log("sfx: BGM play command succeeded"))
       .catch((e) => console.error("sfx: BGM play failed", e));
 
-    const unlisten = getCurrentWebviewWindow().onCloseRequested(async () => {
-      await sfxCommands
+    const unlisten = getCurrentWebviewWindow().onCloseRequested(() => {
+      void sfxCommands
         .stop("BGM")
         .catch((e) => console.error("sfx: BGM window close stop failed", e));
     });

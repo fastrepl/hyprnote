@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { type UnlistenFn } from "@tauri-apps/api/event";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { check } from "@tauri-apps/plugin-updater";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands, events } from "@hypr/plugin-updater2";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -10,17 +9,25 @@ import { cn } from "@hypr/utils";
 
 export function Update() {
   const [show, setShow] = useState(false);
+  const versionRef = useRef<string | null>(null);
 
   const pendingUpdate = useQuery({
     queryKey: ["pending-update"],
     queryFn: async () => {
-      const u = await check();
-      if (!u) {
-        return false;
+      const result = await commands.check();
+      if (result.status !== "ok" || !result.data) {
+        return null;
       }
 
-      const v = await commands.getPendingUpdate();
-      return v.status === "ok" ? v.data : null;
+      const version = result.data;
+      versionRef.current = version;
+
+      const downloadResult = await commands.download(version);
+      if (downloadResult.status !== "ok") {
+        return null;
+      }
+
+      return version;
     },
     refetchInterval: 30 * 1000,
   });
@@ -47,7 +54,11 @@ export function Update() {
   }, [refetch]);
 
   const handleInstallUpdate = useCallback(async () => {
-    await commands.installFromCached();
+    const version = versionRef.current;
+    if (!version) {
+      return;
+    }
+    await commands.install(version);
     await relaunch();
   }, []);
 

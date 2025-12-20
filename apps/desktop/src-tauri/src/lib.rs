@@ -56,6 +56,13 @@ pub async fn main() {
         }));
     }
 
+    // Register automation plugin for e2e testing on macOS
+    // Must be registered early; enabled via --features automation
+    #[cfg(feature = "automation")]
+    {
+        builder = builder.plugin(tauri_plugin_automation::init());
+    }
+
     builder = builder
         .plugin(tauri_plugin_cli::init())
         .plugin(tauri_plugin_cli2::init())

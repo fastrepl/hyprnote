@@ -83,5 +83,8 @@ ractor-supervisor = { workspace = true }
 
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
+tauri-plugin-automation = { version = "0.1.1", optional = true }
+
 [features]
+automation = ["dep:tauri-plugin-automation"]
 devtools = ["tauri/devtools"]

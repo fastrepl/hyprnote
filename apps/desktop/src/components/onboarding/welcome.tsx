@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { arch, platform } from "@tauri-apps/plugin-os";
+import { memo, useMemo } from "react";
 
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
@@ -8,16 +9,18 @@ import { getNext, type StepProps } from "./config";
 
 export const STEP_ID_WELCOME = "welcome" as const;
 
-export function Welcome({ onNavigate }: StepProps) {
+export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
   const search = Route.useSearch();
-  const currentPlatform = platform();
+  const currentPlatform = useMemo(() => platform(), []);
   const archQuery = useQuery({
     queryKey: ["arch"],
     queryFn: () => arch(),
   });
 
-  const isAppleSilicon =
-    currentPlatform === "macos" && archQuery.data === "aarch64";
+  const isAppleSilicon = useMemo(
+    () => currentPlatform === "macos" && archQuery.data === "aarch64",
+    [currentPlatform, archQuery.data],
+  );
 
   return (
     <>
@@ -57,4 +60,4 @@ export function Welcome({ onNavigate }: StepProps) {
       )}
     </>
   );
-}
+});

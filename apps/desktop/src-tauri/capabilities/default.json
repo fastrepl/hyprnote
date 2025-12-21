@@ -118,6 +118,7 @@
     "detect:default",
     "permissions:default",
     "settings:default",
+    "sfx:default",
     "pdf:default",
     "autostart:default",
     {

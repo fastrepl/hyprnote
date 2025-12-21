@@ -307,6 +307,18 @@
           "markdownDescription": "Denies the play command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_volume command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-volume",
+          "markdownDescription": "Enables the set_volume command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_volume command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-volume",
+          "markdownDescription": "Denies the set_volume command without any pre-configured scope."
+        },
+        {
           "description": "Enables the stop command without any pre-configured scope.",
           "type": "string",
           "const": "allow-stop",
@@ -319,10 +331,10 @@
           "markdownDescription": "Denies the stop command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-play`\n- `allow-stop`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-play`\n- `allow-stop`\n- `allow-set-volume`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-play`\n- `allow-stop`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-play`\n- `allow-stop`\n- `allow-set-volume`"
         }
       ]
     }

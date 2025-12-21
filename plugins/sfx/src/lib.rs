@@ -11,6 +11,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::play::<tauri::Wry>,
             commands::stop::<tauri::Wry>,
+            commands::set_volume::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

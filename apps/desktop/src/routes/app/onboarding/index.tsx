@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { platform } from "@tauri-apps/plugin-os";
-import { useCallback } from "react";
+import { Volume2Icon, VolumeXIcon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
+import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import {
@@ -27,7 +29,8 @@ export const Route = createFileRoute("/app/onboarding/")({
 });
 
 function finishOnboarding() {
-  commands.setOnboardingNeeded(false).catch((e) => console.error(e));
+  sfxCommands.stop("BGM").catch(console.error);
+  commands.setOnboardingNeeded(false).catch(console.error);
   void windowsCommands.windowShow({ type: "main" }).then(() => {
     void windowsCommands.windowDestroy({ type: "onboarding" });
   });
@@ -36,6 +39,19 @@ function finishOnboarding() {
 function Component() {
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    sfxCommands.play("BGM").catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    sfxCommands.setVolume("BGM", isMuted ? 0 : 1).catch(console.error);
+  }, [isMuted]);
+
+  const toggleMute = useCallback(() => {
+    setIsMuted((prev) => !prev);
+  }, []);
 
   const onNavigate = useCallback(
     (ctx: NavigateTarget) => {
@@ -62,6 +78,17 @@ function Component() {
         data-tauri-drag-region
         className="h-14 w-full absolute top-0 left-0 right-0"
       />
+      <button
+        onClick={toggleMute}
+        className="fixed top-2 right-2 p-1.5 rounded-full hover:bg-neutral-100 transition-colors z-10"
+        aria-label={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? (
+          <VolumeXIcon size={16} className="text-neutral-600" />
+        ) : (
+          <Volume2Icon size={16} className="text-neutral-600" />
+        )}
+      </button>
       <StepComponent onNavigate={onNavigate} />
     </div>
   );

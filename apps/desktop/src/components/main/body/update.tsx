@@ -8,48 +8,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 export function Update() {
-  const [show, setShow] = useState(false);
-
-  const pendingUpdate = useQuery({
-    queryKey: ["pending-update"],
-    queryFn: async () => {
-      const result = await commands.check();
-      if (result.status !== "ok" || !result.data) {
-        return null;
-      }
-
-      const version = result.data;
-
-      const downloadResult = await commands.download(version);
-      if (downloadResult.status !== "ok") {
-        return null;
-      }
-
-      return version;
-    },
-    refetchInterval: 30 * 1000,
-  });
-
-  useEffect(() => {
-    setShow(!!pendingUpdate.data);
-  }, [pendingUpdate.data]);
-
-  const { refetch, data: version } = pendingUpdate;
-  useEffect(() => {
-    let unlisten: null | UnlistenFn = null;
-    void events.updateReadyEvent
-      .listen(({ payload: { version: _ } }) => {
-        void refetch();
-      })
-      .then((f) => {
-        unlisten = f;
-      });
-
-    return () => {
-      unlisten?.();
-      unlisten = null;
-    };
-  }, [refetch]);
+  const { show, version } = useUpdate();
 
   const handleInstallUpdate = useCallback(async () => {
     if (!version) {
@@ -76,4 +35,51 @@ export function Update() {
       Install Update
     </Button>
   );
+}
+
+function useUpdate() {
+  const [show, setShow] = useState(false);
+
+  const { data, refetch } = useQuery({
+    refetchInterval: 60 * 60 * 1000,
+    queryKey: ["pending-update"],
+    queryFn: async () => {
+      const result = await commands.check();
+      if (result.status !== "ok" || !result.data) {
+        return null;
+      }
+
+      const version = result.data;
+
+      const downloadResult = await commands.download(version);
+      if (downloadResult.status !== "ok") {
+        return null;
+      }
+
+      return version;
+    },
+  });
+
+  useEffect(() => {
+    setShow(!!data);
+  }, [data]);
+
+  useEffect(() => {
+    let unlisten: null | UnlistenFn = null;
+
+    void events.updateReadyEvent
+      .listen(({ payload: { version: _ } }) => {
+        void refetch();
+      })
+      .then((f) => {
+        unlisten = f;
+      });
+
+    return () => {
+      unlisten?.();
+      unlisten = null;
+    };
+  }, [refetch]);
+
+  return { show, version: data };
 }

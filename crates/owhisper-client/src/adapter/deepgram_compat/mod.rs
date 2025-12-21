@@ -1,15 +1,7 @@
-mod keywords;
-mod language;
-
-pub use keywords::KeywordQueryStrategy;
-pub use language::LanguageQueryStrategy;
-
-pub use url::UrlQuery;
-pub use url::form_urlencoded::Serializer;
-
 use owhisper_interface::ListenParams;
+use owhisper_providers::{Params, ParamsTransform, Provider};
 
-use super::url_builder::QueryParamBuilder;
+use super::url_builder::ParamsExt;
 
 pub fn listen_endpoint_url(api_base: &str) -> (url::Url, Vec<(String, String)>) {
     let mut url: url::Url = api_base.parse().expect("invalid_api_base");
@@ -20,7 +12,7 @@ pub fn listen_endpoint_url(api_base: &str) -> (url::Url, Vec<(String, String)>) 
 }
 
 #[cfg(test)]
-mod tests {
+mod url_tests {
     use super::*;
 
     #[test]
@@ -53,26 +45,22 @@ mod tests {
     }
 }
 
-pub fn build_listen_ws_url<L, K>(
+pub fn build_listen_ws_url(
     api_base: &str,
     params: &ListenParams,
     channels: u8,
-    lang_strategy: &L,
-    keyword_strategy: &K,
-) -> url::Url
-where
-    L: LanguageQueryStrategy,
-    K: KeywordQueryStrategy,
-{
+    provider: Provider,
+) -> url::Url {
     let (mut url, existing_params) = listen_endpoint_url(api_base);
 
-    let mut builder = QueryParamBuilder::new();
+    let mut query_params = Params::new();
     for (key, value) in &existing_params {
-        builder.add(key, value);
+        query_params.add(key, value);
     }
 
-    builder
-        .add_common_listen_params(params, channels)
+    let default_model = provider.default_live_model();
+    query_params
+        .add_common_listen_params(params, channels, default_model)
         .add_bool("interim_results", true)
         .add_bool("multichannel", channels > 1)
         .add_bool("vad_events", false)
@@ -81,38 +69,38 @@ where
             params.redemption_time_ms.unwrap_or(400),
         );
 
-    builder.apply_to(&mut url);
+    let language_codes: Vec<String> = params
+        .languages
+        .iter()
+        .map(|l| l.iso639().code().to_string())
+        .collect();
+    query_params
+        .add_keywords(&params.keywords)
+        .add_languages(&language_codes);
 
-    {
-        let mut query_pairs = url.query_pairs_mut();
-        lang_strategy.append_language_query(&mut query_pairs, params);
-        keyword_strategy.append_keyword_query(&mut query_pairs, params);
-    }
+    query_params.apply_to(&mut url);
+    query_params.apply_keywords_and_languages(&mut url, provider);
 
     super::set_scheme_from_host(&mut url);
 
     url
 }
 
-pub fn build_batch_url<L, K>(
-    api_base: &str,
-    params: &ListenParams,
-    lang_strategy: &L,
-    keyword_strategy: &K,
-) -> url::Url
-where
-    L: LanguageQueryStrategy,
-    K: KeywordQueryStrategy,
-{
+pub fn build_batch_url(api_base: &str, params: &ListenParams, provider: Provider) -> url::Url {
     let (mut url, existing_params) = listen_endpoint_url(api_base);
 
-    let mut builder = QueryParamBuilder::new();
+    let mut query_params = Params::new();
     for (key, value) in &existing_params {
-        builder.add(key, value);
+        query_params.add(key, value);
     }
 
-    let model = params.model.as_deref().unwrap_or("nova-3");
-    builder
+    let default_model = provider.default_batch_model();
+    let model = params
+        .model
+        .as_deref()
+        .or(default_model)
+        .unwrap_or("nova-3-general");
+    query_params
         .add("model", model)
         .add("encoding", "linear16")
         .add_bool("diarize", true)
@@ -132,13 +120,17 @@ where
         .add_bool("detect_entities", false)
         .add_bool("mip_opt_out", true);
 
-    builder.apply_to(&mut url);
+    let language_codes: Vec<String> = params
+        .languages
+        .iter()
+        .map(|l| l.iso639().code().to_string())
+        .collect();
+    query_params
+        .add_keywords(&params.keywords)
+        .add_languages(&language_codes);
 
-    {
-        let mut query_pairs = url.query_pairs_mut();
-        lang_strategy.append_language_query(&mut query_pairs, params);
-        keyword_strategy.append_keyword_query(&mut query_pairs, params);
-    }
+    query_params.apply_to(&mut url);
+    query_params.apply_keywords_and_languages(&mut url, provider);
 
     url
 }

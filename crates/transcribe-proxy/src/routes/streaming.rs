@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
 use axum::{
-    extract::{Query, State, WebSocketUpgrade},
+    extract::{State, WebSocketUpgrade},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use owhisper_providers::{Auth, Provider};
+use axum_extra::extract::Query;
+use owhisper_providers::{Auth, Params, Provider};
 
 use crate::analytics::SttEvent;
 use crate::config::SttProxyConfig;
@@ -19,7 +18,7 @@ struct InitResponse {
     url: String,
 }
 
-fn parse_param<T: std::str::FromStr>(params: &HashMap<String, String>, key: &str, default: T) -> T {
+fn parse_param<T: std::str::FromStr>(params: &Params, key: &str, default: T) -> T {
     params
         .get(key)
         .and_then(|s| s.parse().ok())
@@ -29,8 +28,9 @@ fn parse_param<T: std::str::FromStr>(params: &HashMap<String, String>, key: &str
 pub async fn handler(
     State(state): State<AppState>,
     ws: WebSocketUpgrade,
-    Query(mut params): Query<HashMap<String, String>>,
+    Query(query_params): Query<Vec<(String, String)>>,
 ) -> Response {
+    let mut params = Params::from(query_params);
     let resolved = match state.resolve_provider(&mut params) {
         Ok(v) => v,
         Err(resp) => return resp,
@@ -68,10 +68,7 @@ pub async fn handler(
     }
 }
 
-fn build_session_config(
-    provider: Provider,
-    params: &HashMap<String, String>,
-) -> Result<serde_json::Value, String> {
+fn build_session_config(provider: Provider, params: &Params) -> Result<serde_json::Value, String> {
     let sample_rate: u32 = parse_param(params, "sample_rate", 16000);
     let channels: u8 = parse_param(params, "channels", 1);
     provider
@@ -83,7 +80,7 @@ async fn init_session(
     state: &AppState,
     resolved: &ResolvedProvider,
     header_name: &'static str,
-    params: &HashMap<String, String>,
+    params: &Params,
 ) -> Result<String, String> {
     let provider = resolved.provider();
     let init_url = provider
@@ -162,12 +159,17 @@ fn build_proxy_with_url(
 fn build_proxy_with_components(
     resolved: &ResolvedProvider,
     base_url: url::Url,
-    client_params: HashMap<String, String>,
+    client_params: Params,
     config: &SttProxyConfig,
 ) -> Result<WebSocketProxy, crate::ProxyError> {
     let provider = resolved.provider();
     let builder = WebSocketProxy::builder()
-        .upstream_url_from_components(base_url, client_params, provider.default_query_params())
+        .upstream_url_from_components(
+            base_url,
+            client_params,
+            provider.default_query_params(),
+            provider,
+        )
         .connect_timeout(config.connect_timeout)
         .control_message_types(provider.control_message_types())
         .apply_auth(resolved);

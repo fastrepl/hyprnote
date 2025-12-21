@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
 
-use owhisper_providers::Auth;
+use owhisper_providers::{Auth, Params};
 pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::handler::WebSocketProxy;
@@ -19,7 +19,7 @@ pub struct WithUrl {
 }
 pub struct WithUrlComponents {
     base_url: url::Url,
-    client_params: HashMap<String, String>,
+    client_params: Params,
     default_params: Vec<(&'static str, &'static str)>,
     headers: HashMap<String, String>,
 }
@@ -119,10 +119,11 @@ impl WebSocketProxyBuilder<NoUpstream> {
     pub fn upstream_url_from_components(
         self,
         base_url: url::Url,
-        mut client_params: HashMap<String, String>,
+        mut client_params: Params,
         default_params: &'static [(&'static str, &'static str)],
+        provider: owhisper_providers::Provider,
     ) -> WebSocketProxyBuilder<WithUrlComponents> {
-        transform_client_params(&mut client_params);
+        transform_client_params(&mut client_params, provider);
         self.with_state(WithUrlComponents {
             base_url,
             client_params,

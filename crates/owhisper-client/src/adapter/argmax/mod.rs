@@ -1,7 +1,5 @@
 #[cfg(feature = "argmax")]
 mod batch;
-mod keywords;
-mod language;
 mod live;
 
 #[cfg(feature = "argmax")]

@@ -1,11 +1,12 @@
 use hypr_ws_client::client::Message;
 use owhisper_interface::ListenParams;
 use owhisper_interface::stream::StreamResponse;
+use owhisper_providers::Provider;
 
 use crate::adapter::RealtimeSttAdapter;
 use crate::adapter::deepgram_compat::build_listen_ws_url;
 
-use super::{ArgmaxAdapter, keywords::ArgmaxKeywordStrategy, language::ArgmaxLanguageStrategy};
+use super::ArgmaxAdapter;
 
 impl RealtimeSttAdapter for ArgmaxAdapter {
     fn provider_name(&self) -> &'static str {
@@ -17,13 +18,7 @@ impl RealtimeSttAdapter for ArgmaxAdapter {
     }
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, channels: u8) -> url::Url {
-        build_listen_ws_url(
-            api_base,
-            params,
-            channels,
-            &ArgmaxLanguageStrategy,
-            &ArgmaxKeywordStrategy,
-        )
+        build_listen_ws_url(api_base, params, channels, Provider::Argmax)
     }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {

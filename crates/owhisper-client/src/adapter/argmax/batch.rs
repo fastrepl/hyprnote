@@ -7,6 +7,7 @@ use hypr_audio_utils::{Source, f32_to_i16_bytes, resample_audio, source_from_pat
 use owhisper_interface::batch::Response as BatchResponse;
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, ListenParams, MixedMessage};
+use owhisper_providers::Provider;
 use tokio_stream::StreamExt as TokioStreamExt;
 
 use crate::ListenClientBuilder;
@@ -14,7 +15,7 @@ use crate::adapter::deepgram_compat::build_batch_url;
 use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 
-use super::{ArgmaxAdapter, keywords::ArgmaxKeywordStrategy, language::ArgmaxLanguageStrategy};
+use super::ArgmaxAdapter;
 
 impl BatchSttAdapter for ArgmaxAdapter {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
@@ -40,12 +41,7 @@ async fn do_transcribe_file(
     let (audio_data, sample_rate) = decode_audio_to_linear16(file_path).await?;
 
     let url = {
-        let mut url = build_batch_url(
-            api_base,
-            params,
-            &ArgmaxLanguageStrategy,
-            &ArgmaxKeywordStrategy,
-        );
+        let mut url = build_batch_url(api_base, params, Provider::Argmax);
         url.query_pairs_mut()
             .append_pair("sample_rate", &sample_rate.to_string());
         url

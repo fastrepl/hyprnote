@@ -1,8 +1,12 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet};
+
+use owhisper_providers::Params;
+
+const MULTI_VALUE_KEYS: &[&str] = &["keywords", "keyterm"];
 
 pub struct UpstreamUrlBuilder<'a> {
     base: url::Url,
-    client_params: Vec<(String, String)>,
+    client_params: Option<Params>,
     default_params: Vec<(&'a str, &'a str)>,
 }
 
@@ -10,13 +14,13 @@ impl<'a> UpstreamUrlBuilder<'a> {
     pub fn new(base: url::Url) -> Self {
         Self {
             base,
-            client_params: Vec::new(),
+            client_params: None,
             default_params: Vec::new(),
         }
     }
 
-    pub fn client_params(mut self, params: &HashMap<String, String>) -> Self {
-        self.client_params = params.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+    pub fn client_params(mut self, params: &Params) -> Self {
+        self.client_params = Some(params.clone());
         self
     }
 
@@ -26,23 +30,57 @@ impl<'a> UpstreamUrlBuilder<'a> {
     }
 
     pub fn build(self) -> url::Url {
-        let mut final_params: BTreeMap<String, String> = BTreeMap::new();
-
-        for (key, value) in &self.default_params {
-            final_params.insert((*key).to_string(), (*value).to_string());
-        }
-
-        for (key, value) in &self.client_params {
-            final_params.insert(key.clone(), value.clone());
-        }
-
         let mut url = self.base;
         url.set_query(None);
 
-        if !final_params.is_empty() {
+        let params = match self.client_params {
+            Some(p) => p,
+            None => {
+                if !self.default_params.is_empty() {
+                    let mut query_pairs = url.query_pairs_mut();
+                    for (key, value) in self.default_params {
+                        query_pairs.append_pair(key, value);
+                    }
+                }
+                return url;
+            }
+        };
+
+        let mut single_params: BTreeMap<String, String> = BTreeMap::new();
+        let mut multi_params: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        let mut client_keys: BTreeSet<String> = BTreeSet::new();
+
+        for (key, _) in params.iter() {
+            client_keys.insert(key.clone());
+        }
+
+        for (key, value) in &self.default_params {
+            if !client_keys.contains(*key) {
+                single_params.insert((*key).to_string(), (*value).to_string());
+            }
+        }
+
+        for (key, value) in params.iter_expanded() {
+            if MULTI_VALUE_KEYS.contains(&key) {
+                multi_params
+                    .entry(key.to_string())
+                    .or_default()
+                    .push(value.to_string());
+            } else {
+                single_params.insert(key.to_string(), value.to_string());
+            }
+        }
+
+        let has_params = !single_params.is_empty() || !multi_params.is_empty();
+        if has_params {
             let mut query_pairs = url.query_pairs_mut();
-            for (key, value) in final_params {
+            for (key, value) in single_params {
                 query_pairs.append_pair(&key, &value);
+            }
+            for (key, values) in multi_params {
+                for value in values {
+                    query_pairs.append_pair(&key, &value);
+                }
             }
         }
 
@@ -52,12 +90,21 @@ impl<'a> UpstreamUrlBuilder<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use super::*;
 
-    fn make_params(pairs: &[(&str, &str)]) -> HashMap<String, String> {
-        pairs
+    fn make_params(pairs: &[(&str, &str)]) -> Params {
+        let map: HashMap<String, String> = pairs
             .iter()
             .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect();
+        Params::from(map)
+    }
+
+    fn get_query_pairs(url: &url::Url) -> Vec<(String, String)> {
+        url.query_pairs()
+            .map(|(k, v)| (k.into_owned(), v.into_owned()))
             .collect()
     }
 
@@ -210,13 +257,14 @@ mod tests {
     fn test_deepgram_real_world_scenario() {
         let base: url::Url = "wss://api.deepgram.com/v1/listen".parse().unwrap();
         let defaults: &[(&str, &str)] = &[("model", "nova-3-general"), ("mip_opt_out", "false")];
-        let client = make_params(&[
-            ("model", "nova-3"),
-            ("mip_opt_out", "true"),
-            ("encoding", "linear16"),
-            ("sample_rate", "16000"),
-            ("channels", "1"),
-            ("keywords", "hello,world"),
+        let client = Params::from(vec![
+            ("model".to_string(), "nova-3".to_string()),
+            ("mip_opt_out".to_string(), "true".to_string()),
+            ("encoding".to_string(), "linear16".to_string()),
+            ("sample_rate".to_string(), "16000".to_string()),
+            ("channels".to_string(), "1".to_string()),
+            ("keywords".to_string(), "hello".to_string()),
+            ("keywords".to_string(), "world".to_string()),
         ]);
 
         let url = UpstreamUrlBuilder::new(base)
@@ -239,12 +287,26 @@ mod tests {
         assert_eq!(params.get("encoding"), Some(&"linear16".to_string()));
         assert_eq!(params.get("sample_rate"), Some(&"16000".to_string()));
         assert_eq!(params.get("channels"), Some(&"1".to_string()));
-        assert_eq!(
-            params.get("keywords"),
-            Some(&"hello,world".to_string()),
-            "keywords should be passed through"
-        );
-        assert_eq!(params.len(), 6);
+    }
+
+    #[test]
+    fn test_keywords_expanded() {
+        let base: url::Url = "wss://api.deepgram.com/v1/listen".parse().unwrap();
+        let client = Params::from(vec![
+            ("keywords".to_string(), "hello".to_string()),
+            ("keywords".to_string(), "world".to_string()),
+            ("keywords".to_string(), "test".to_string()),
+        ]);
+
+        let url = UpstreamUrlBuilder::new(base).client_params(&client).build();
+
+        let pairs = get_query_pairs(&url);
+        let keyword_pairs: Vec<_> = pairs
+            .iter()
+            .filter(|(k, _)| k == "keywords")
+            .map(|(_, v)| v.as_str())
+            .collect();
+        assert_eq!(keyword_pairs, vec!["hello", "world", "test"]);
     }
 
     #[test]

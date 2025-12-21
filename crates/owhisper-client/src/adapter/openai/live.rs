@@ -64,10 +64,12 @@ impl RealtimeSttAdapter for OpenAIAdapter {
             .first()
             .map(|l| l.iso639().code().to_string());
 
+        let default_model = owhisper_providers::Provider::OpenAI.default_live_model();
         let model = params
             .model
             .as_deref()
-            .unwrap_or(super::DEFAULT_TRANSCRIPTION_MODEL);
+            .or(default_model)
+            .unwrap_or("gpt-4o-transcribe");
 
         let session_config = SessionUpdateEvent {
             event_type: "session.update".to_string(),

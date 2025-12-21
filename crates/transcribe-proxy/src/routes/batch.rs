@@ -15,16 +15,17 @@ use owhisper_client::{
 };
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
-use owhisper_providers::Provider;
+use owhisper_providers::{Params, Provider};
 
 use super::{AppState, ResolvedProvider};
 
 pub async fn handler(
     State(state): State<AppState>,
     headers: HeaderMap,
-    Query(mut params): Query<HashMap<String, String>>,
+    Query(query_params): Query<HashMap<String, String>>,
     body: Bytes,
 ) -> Response {
+    let mut params = Params::from(query_params);
     let resolved = match state.resolve_provider(&mut params) {
         Ok(v) => v,
         Err(resp) => return resp,
@@ -71,13 +72,14 @@ pub async fn handler(
     }
 }
 
-fn build_listen_params(params: &HashMap<String, String>) -> ListenParams {
-    let model = params.get("model").cloned();
+fn build_listen_params(params: &Params) -> ListenParams {
+    let model = params.get("model").map(|s| s.to_string());
 
     let languages: Vec<hypr_language::Language> = params
-        .get("language")
-        .map(|s| {
-            s.split(',')
+        .get_all("language")
+        .map(|langs| {
+            langs
+                .iter()
                 .filter_map(|lang| {
                     hypr_language::ISO639::from_str(lang.trim())
                         .ok()
@@ -88,13 +90,9 @@ fn build_listen_params(params: &HashMap<String, String>) -> ListenParams {
         .unwrap_or_default();
 
     let keywords: Vec<String> = params
-        .get("keyword")
-        .map(|s| s.split(',').map(|k| k.trim().to_string()).collect())
-        .or_else(|| {
-            params
-                .get("keywords")
-                .map(|s| s.split(',').map(|k| k.trim().to_string()).collect())
-        })
+        .get_all("keyword")
+        .or_else(|| params.get_all("keywords"))
+        .map(|v| v.to_vec())
         .unwrap_or_default();
 
     ListenParams {
@@ -165,7 +163,7 @@ async fn transcribe_with_provider(
                 .transcribe_file(file_path)
                 .await
         }
-        Provider::Fireworks => {
+        Provider::Fireworks | Provider::Argmax => {
             return Err(format!(
                 "{:?} does not support batch transcription",
                 provider

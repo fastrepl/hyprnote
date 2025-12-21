@@ -1,13 +1,12 @@
 use hypr_ws_client::client::Message;
 use owhisper_interface::ListenParams;
 use owhisper_interface::stream::StreamResponse;
+use owhisper_providers::Provider;
 
 use crate::adapter::RealtimeSttAdapter;
 use crate::adapter::deepgram_compat::build_listen_ws_url;
 
-use super::{
-    DeepgramAdapter, keywords::DeepgramKeywordStrategy, language::DeepgramLanguageStrategy,
-};
+use super::DeepgramAdapter;
 
 impl RealtimeSttAdapter for DeepgramAdapter {
     fn provider_name(&self) -> &'static str {
@@ -19,17 +18,11 @@ impl RealtimeSttAdapter for DeepgramAdapter {
     }
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, channels: u8) -> url::Url {
-        build_listen_ws_url(
-            api_base,
-            params,
-            channels,
-            &DeepgramLanguageStrategy,
-            &DeepgramKeywordStrategy,
-        )
+        build_listen_ws_url(api_base, params, channels, Provider::Deepgram)
     }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {
-        api_key.and_then(|k| owhisper_providers::Provider::Deepgram.build_auth_header(k))
+        api_key.and_then(|k| Provider::Deepgram.build_auth_header(k))
     }
 
     fn keep_alive_message(&self) -> Option<Message> {

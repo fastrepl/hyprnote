@@ -11,6 +11,7 @@ owhisper-interface = { workspace = true }
 owhisper-providers = { workspace = true }
 
 axum = { workspace = true, features = ["ws"] }
+axum-extra = { workspace = true, features = ["query"] }
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
 reqwest-middleware = { workspace = true }

@@ -1,3 +1,9 @@
+mod params;
+mod transform;
+
+pub use params::Params;
+pub use transform::ParamsTransform;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Auth {
     Header {
@@ -68,16 +74,19 @@ pub enum Provider {
     OpenAI,
     #[strum(serialize = "gladia")]
     Gladia,
+    #[strum(serialize = "argmax")]
+    Argmax,
 }
 
 impl Provider {
-    const ALL: [Provider; 6] = [
+    const ALL: [Provider; 7] = [
         Self::Deepgram,
         Self::AssemblyAI,
         Self::Soniox,
         Self::Fireworks,
         Self::OpenAI,
         Self::Gladia,
+        Self::Argmax,
     ];
 
     pub fn from_host(host: &str) -> Option<Self> {
@@ -108,6 +117,10 @@ impl Provider {
             Self::Soniox => Auth::FirstMessage {
                 field_name: "api_key",
             },
+            Self::Argmax => Auth::Header {
+                name: "Authorization",
+                prefix: Some("Bearer "),
+            },
         }
     }
 
@@ -127,6 +140,7 @@ impl Provider {
             Self::Fireworks => "api.fireworks.ai",
             Self::OpenAI => "api.openai.com",
             Self::Gladia => "api.gladia.io",
+            Self::Argmax => "api.argmax.cloud",
         }
     }
 
@@ -138,6 +152,7 @@ impl Provider {
             Self::Fireworks => "audio-streaming-v2.api.fireworks.ai",
             Self::OpenAI => "api.openai.com",
             Self::Gladia => "api.gladia.io",
+            Self::Argmax => "api.argmax.cloud",
         }
     }
 
@@ -149,6 +164,7 @@ impl Provider {
             Self::Fireworks => "/v1/audio/transcriptions/streaming",
             Self::OpenAI => "/v1/realtime",
             Self::Gladia => "/v2/live",
+            Self::Argmax => "/v1/listen",
         }
     }
 
@@ -160,6 +176,7 @@ impl Provider {
             Self::Fireworks => None,
             Self::OpenAI => None,
             Self::Gladia => Some("https://api.gladia.io/v2"),
+            Self::Argmax => None,
         }
     }
 
@@ -171,6 +188,7 @@ impl Provider {
             Self::Fireworks => "https://api.fireworks.ai",
             Self::OpenAI => "https://api.openai.com/v1",
             Self::Gladia => "https://api.gladia.io",
+            Self::Argmax => "https://api.argmax.cloud/v1",
         }
     }
 
@@ -182,6 +200,7 @@ impl Provider {
             Self::Fireworks => "fireworks.ai",
             Self::OpenAI => "openai.com",
             Self::Gladia => "gladia.io",
+            Self::Argmax => "argmax.cloud",
         }
     }
 
@@ -211,12 +230,37 @@ impl Provider {
             Self::Fireworks => "FIREWORKS_API_KEY",
             Self::OpenAI => "OPENAI_API_KEY",
             Self::Gladia => "GLADIA_API_KEY",
+            Self::Argmax => "ARGMAX_API_KEY",
+        }
+    }
+
+    pub fn default_live_model(&self) -> Option<&'static str> {
+        match self {
+            Self::Deepgram => Some("nova-3-general"),
+            Self::AssemblyAI => Some("universal"),
+            Self::Soniox => Some("stt-v3"),
+            Self::Fireworks => None,
+            Self::OpenAI => Some("gpt-4o-transcribe"),
+            Self::Gladia => Some("solaria-1"),
+            Self::Argmax => None,
+        }
+    }
+
+    pub fn default_batch_model(&self) -> Option<&'static str> {
+        match self {
+            Self::Deepgram => Some("nova-3-general"),
+            Self::AssemblyAI => Some("best"),
+            Self::Soniox => Some("stt-v3"),
+            Self::Fireworks => None,
+            Self::OpenAI => Some("whisper-1"),
+            Self::Gladia => Some("solaria-1"),
+            Self::Argmax => None,
         }
     }
 
     pub fn default_query_params(&self) -> &'static [(&'static str, &'static str)] {
         match self {
-            Self::Deepgram => &[("model", "nova-3-general"), ("mip_opt_out", "false")],
+            Self::Deepgram => &[("mip_opt_out", "false")],
             _ => &[],
         }
     }
@@ -229,6 +273,7 @@ impl Provider {
             Self::Fireworks => &[],
             Self::OpenAI => &[],
             Self::Gladia => &[],
+            Self::Argmax => &["KeepAlive", "CloseStream", "Finalize"],
         }
     }
 

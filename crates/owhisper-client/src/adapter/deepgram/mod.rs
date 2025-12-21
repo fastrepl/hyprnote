@@ -1,6 +1,4 @@
 mod batch;
-mod keywords;
-mod language;
 mod live;
 
 const SUPPORTED_LANGUAGES: &[&str] = &[

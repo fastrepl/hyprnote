@@ -47,10 +47,14 @@ impl RealtimeSttAdapter for SonioxAdapter {
     ) -> Option<Message> {
         let api_key = api_key.unwrap_or("");
 
-        let requested = params.model.as_deref().unwrap_or("stt-v3");
+        let default_model = owhisper_providers::Provider::Soniox.default_live_model();
+        let requested = params
+            .model
+            .as_deref()
+            .or(default_model)
+            .unwrap_or("stt-v3");
         let model = match requested {
             "stt-v3" => "stt-rt-v3",
-            "stt-rt-preview" => "stt-rt-v3",
             other => other,
         };
 

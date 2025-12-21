@@ -218,6 +218,7 @@ impl From<owhisper_providers::Provider> for AdapterKind {
             Provider::Fireworks => Self::Fireworks,
             Provider::OpenAI => Self::OpenAI,
             Provider::Gladia => Self::Gladia,
+            Provider::Argmax => Self::Argmax,
         }
     }
 }

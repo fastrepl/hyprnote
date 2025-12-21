@@ -1,30 +1,29 @@
 use owhisper_interface::ListenParams;
+use owhisper_providers::Params;
 
-#[derive(Default)]
-pub struct QueryParamBuilder {
-    params: Vec<(String, String)>,
+pub trait ParamsExt {
+    fn add_common_listen_params(
+        &mut self,
+        params: &ListenParams,
+        channels: u8,
+        default_model: Option<&str>,
+    ) -> &mut Self;
+
+    fn apply_to(&self, url: &mut url::Url);
 }
 
-impl QueryParamBuilder {
-    pub fn new() -> Self {
-        Self { params: Vec::new() }
-    }
-
-    pub fn add<V: ToString>(&mut self, key: &str, value: V) -> &mut Self {
-        self.params.push((key.to_string(), value.to_string()));
-        self
-    }
-
-    pub fn add_bool(&mut self, key: &str, value: bool) -> &mut Self {
-        self.params.push((
-            key.to_string(),
-            if value { "true" } else { "false" }.to_string(),
-        ));
-        self
-    }
-
-    pub fn add_common_listen_params(&mut self, params: &ListenParams, channels: u8) -> &mut Self {
-        let model = params.model.as_deref().unwrap_or("nova-3");
+impl ParamsExt for Params {
+    fn add_common_listen_params(
+        &mut self,
+        params: &ListenParams,
+        channels: u8,
+        default_model: Option<&str>,
+    ) -> &mut Self {
+        let model = params
+            .model
+            .as_deref()
+            .or(default_model)
+            .unwrap_or("nova-3-general");
         self.add("model", model)
             .add("channels", channels)
             .add("sample_rate", params.sample_rate)
@@ -37,16 +36,11 @@ impl QueryParamBuilder {
             .add_bool("mip_opt_out", true)
     }
 
-    pub fn apply_to(&self, url: &mut url::Url) {
+    fn apply_to(&self, url: &mut url::Url) {
         let mut query_pairs = url.query_pairs_mut();
-        for (key, value) in &self.params {
+        for (key, value) in self.iter_expanded() {
             query_pairs.append_pair(key, value);
         }
-    }
-
-    #[cfg(test)]
-    pub fn build(&self) -> Vec<(String, String)> {
-        self.params.clone()
     }
 }
 
@@ -56,119 +50,115 @@ mod tests {
 
     #[test]
     fn test_new_creates_empty_builder() {
-        let builder = QueryParamBuilder::new();
-        assert!(builder.build().is_empty());
+        let params = Params::new();
+        assert!(params.iter_expanded().next().is_none());
     }
 
     #[test]
     fn test_add_string_value() {
-        let mut builder = QueryParamBuilder::new();
-        builder.add("model", "nova-3");
-        assert_eq!(builder.build(), vec![("model".into(), "nova-3".into())]);
+        let mut params = Params::new();
+        params.add("model", "nova-3");
+        assert_eq!(params.get("model"), Some("nova-3"));
     }
 
     #[test]
     fn test_add_numeric_value() {
-        let mut builder = QueryParamBuilder::new();
-        builder.add("channels", 2);
-        assert_eq!(builder.build(), vec![("channels".into(), "2".into())]);
+        let mut params = Params::new();
+        params.add("channels", 2);
+        assert_eq!(params.get("channels"), Some("2"));
     }
 
     #[test]
     fn test_add_bool_true() {
-        let mut builder = QueryParamBuilder::new();
-        builder.add_bool("diarize", true);
-        assert_eq!(builder.build(), vec![("diarize".into(), "true".into())]);
+        let mut params = Params::new();
+        params.add_bool("diarize", true);
+        assert_eq!(params.get("diarize"), Some("true"));
     }
 
     #[test]
     fn test_add_bool_false() {
-        let mut builder = QueryParamBuilder::new();
-        builder.add_bool("diarize", false);
-        assert_eq!(builder.build(), vec![("diarize".into(), "false".into())]);
+        let mut params = Params::new();
+        params.add_bool("diarize", false);
+        assert_eq!(params.get("diarize"), Some("false"));
     }
 
     #[test]
     fn test_chaining() {
-        let mut builder = QueryParamBuilder::new();
-        builder
+        let mut params = Params::new();
+        params
             .add("model", "nova-3")
             .add("channels", 2)
             .add_bool("diarize", true);
-        assert_eq!(
-            builder.build(),
-            vec![
-                ("model".into(), "nova-3".into()),
-                ("channels".into(), "2".into()),
-                ("diarize".into(), "true".into()),
-            ]
-        );
+        assert_eq!(params.get("model"), Some("nova-3"));
+        assert_eq!(params.get("channels"), Some("2"));
+        assert_eq!(params.get("diarize"), Some("true"));
     }
 
     #[test]
     fn test_apply_to_url() {
-        let mut builder = QueryParamBuilder::new();
-        builder.add("model", "nova-3").add_bool("diarize", true);
+        let mut params = Params::new();
+        params.add("model", "nova-3").add_bool("diarize", true);
 
         let mut url: url::Url = "https://api.example.com/listen".parse().unwrap();
-        builder.apply_to(&mut url);
+        params.apply_to(&mut url);
 
-        assert_eq!(
-            url.as_str(),
-            "https://api.example.com/listen?model=nova-3&diarize=true"
-        );
+        let query = url.query().unwrap();
+        assert!(query.contains("model=nova-3"));
+        assert!(query.contains("diarize=true"));
+    }
+
+    #[test]
+    fn test_apply_to_url_with_multi_values() {
+        let mut params = Params::new();
+        params.add("model", "nova-3");
+        params.insert_multi("keywords", vec!["hello", "world"]);
+
+        let mut url: url::Url = "https://api.example.com/listen".parse().unwrap();
+        params.apply_to(&mut url);
+
+        let query = url.query().unwrap();
+        assert!(query.contains("model=nova-3"));
+        assert!(query.contains("keywords=hello"));
+        assert!(query.contains("keywords=world"));
     }
 
     #[test]
     fn test_add_common_listen_params() {
-        let mut builder = QueryParamBuilder::new();
-        let params = ListenParams {
+        let mut params = Params::new();
+        let listen_params = ListenParams {
             model: Some("nova-3".to_string()),
             sample_rate: 16000,
             ..Default::default()
         };
-        builder.add_common_listen_params(&params, 2);
+        params.add_common_listen_params(&listen_params, 2, None);
 
-        let result = builder.build();
-        assert!(result.iter().any(|(k, v)| k == "model" && v == "nova-3"));
-        assert!(result.iter().any(|(k, v)| k == "channels" && v == "2"));
-        assert!(
-            result
-                .iter()
-                .any(|(k, v)| k == "sample_rate" && v == "16000")
-        );
-        assert!(
-            result
-                .iter()
-                .any(|(k, v)| k == "encoding" && v == "linear16")
-        );
-        assert!(result.iter().any(|(k, v)| k == "diarize" && v == "true"));
-        assert!(result.iter().any(|(k, v)| k == "punctuate" && v == "true"));
-        assert!(
-            result
-                .iter()
-                .any(|(k, v)| k == "smart_format" && v == "true")
-        );
-        assert!(result.iter().any(|(k, v)| k == "numerals" && v == "true"));
-        assert!(
-            result
-                .iter()
-                .any(|(k, v)| k == "filler_words" && v == "false")
-        );
-        assert!(
-            result
-                .iter()
-                .any(|(k, v)| k == "mip_opt_out" && v == "true")
-        );
+        assert_eq!(params.get("model"), Some("nova-3"));
+        assert_eq!(params.get("channels"), Some("2"));
+        assert_eq!(params.get("sample_rate"), Some("16000"));
+        assert_eq!(params.get("encoding"), Some("linear16"));
+        assert_eq!(params.get("diarize"), Some("true"));
+        assert_eq!(params.get("punctuate"), Some("true"));
+        assert_eq!(params.get("smart_format"), Some("true"));
+        assert_eq!(params.get("numerals"), Some("true"));
+        assert_eq!(params.get("filler_words"), Some("false"));
+        assert_eq!(params.get("mip_opt_out"), Some("true"));
     }
 
     #[test]
     fn test_add_common_listen_params_default_model() {
-        let mut builder = QueryParamBuilder::new();
-        let params = ListenParams::default();
-        builder.add_common_listen_params(&params, 1);
+        let mut params = Params::new();
+        let listen_params = ListenParams::default();
+        params.add_common_listen_params(&listen_params, 1, Some("custom-model"));
 
-        let result = builder.build();
-        assert!(result.iter().any(|(k, v)| k == "model" && v == "nova-3"));
+        assert_eq!(params.get("model"), Some("custom-model"));
+    }
+
+    #[test]
+    fn test_add_common_listen_params_fallback_model() {
+        let mut params = Params::new();
+        let listen_params = ListenParams::default();
+        params.add_common_listen_params(&listen_params, 1, None);
+
+        assert_eq!(params.get("model"), Some("nova-3-general"));
     }
 }

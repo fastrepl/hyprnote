@@ -12229,6 +12229,7 @@ dependencies = [
 name = "owhisper-providers"
 version = "0.0.1"
 dependencies = [
+ "serde",
  "serde_json",
  "strum 0.26.3",
  "url",
@@ -19138,6 +19139,7 @@ dependencies = [
  "analytics",
  "audio-utils",
  "axum 0.8.7",
+ "axum-extra",
  "base64 0.22.1",
  "bytes",
  "data",

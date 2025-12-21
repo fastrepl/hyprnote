@@ -2,14 +2,13 @@ use std::path::{Path, PathBuf};
 
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
+use owhisper_providers::Provider;
 
 use crate::adapter::deepgram_compat::build_batch_url;
 use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 
-use super::{
-    DeepgramAdapter, keywords::DeepgramKeywordStrategy, language::DeepgramLanguageStrategy,
-};
+use super::DeepgramAdapter;
 
 impl BatchSttAdapter for DeepgramAdapter {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
@@ -51,12 +50,7 @@ async fn do_transcribe_file(
 
     let content_type = mime_type_from_extension(&file_path);
 
-    let url = build_batch_url(
-        api_base,
-        params,
-        &DeepgramLanguageStrategy,
-        &DeepgramKeywordStrategy,
-    );
+    let url = build_batch_url(api_base, params, Provider::Deepgram);
 
     let response = client
         .post(url)

@@ -19150,6 +19150,7 @@ dependencies = [
  "reqwest-middleware",
  "rodio",
  "serde",
+ "serde_html_form",
  "serde_json",
  "tempfile",
  "thiserror 2.0.17",

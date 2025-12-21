@@ -1,8 +1,15 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
+
+use crate::query_params::{QueryParams, QueryValue};
+
+enum ParamValue {
+    Single(String),
+    Multi(Vec<String>),
+}
 
 pub struct UpstreamUrlBuilder<'a> {
     base: url::Url,
-    client_params: Vec<(String, String)>,
+    client_params: Vec<(String, ParamValue)>,
     default_params: Vec<(&'a str, &'a str)>,
 }
 
@@ -15,34 +22,60 @@ impl<'a> UpstreamUrlBuilder<'a> {
         }
     }
 
-    pub fn client_params(mut self, params: &HashMap<String, String>) -> Self {
-        self.client_params = params.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+    #[must_use]
+    pub fn client_params(mut self, params: &QueryParams) -> Self {
+        self.client_params = params
+            .iter()
+            .map(|(k, v)| {
+                let value = match v {
+                    QueryValue::Single(s) => ParamValue::Single(s.clone()),
+                    QueryValue::Multi(v) => ParamValue::Multi(v.clone()),
+                };
+                (k.clone(), value)
+            })
+            .collect();
         self
     }
 
+    #[must_use]
     pub fn default_params(mut self, params: &'a [(&'a str, &'a str)]) -> Self {
         self.default_params = params.to_vec();
         self
     }
 
     pub fn build(self) -> url::Url {
-        let mut final_params: BTreeMap<String, String> = BTreeMap::new();
+        let mut single_params: BTreeMap<String, String> = BTreeMap::new();
+        let mut multi_params: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
         for (key, value) in &self.default_params {
-            final_params.insert((*key).to_string(), (*value).to_string());
+            single_params.insert((*key).to_string(), (*value).to_string());
         }
 
-        for (key, value) in &self.client_params {
-            final_params.insert(key.clone(), value.clone());
+        for (key, value) in self.client_params {
+            match value {
+                ParamValue::Single(s) => {
+                    single_params.insert(key, s);
+                }
+                ParamValue::Multi(v) => {
+                    single_params.remove(&key);
+                    multi_params.insert(key, v);
+                }
+            }
         }
 
         let mut url = self.base;
         url.set_query(None);
 
-        if !final_params.is_empty() {
+        let has_params = !single_params.is_empty() || !multi_params.is_empty();
+        if has_params {
             let mut query_pairs = url.query_pairs_mut();
-            for (key, value) in final_params {
+            for (key, value) in single_params {
                 query_pairs.append_pair(&key, &value);
+            }
+            for (key, values) in multi_params {
+                for value in values {
+                    query_pairs.append_pair(&key, &value);
+                }
             }
         }
 
@@ -54,17 +87,42 @@ impl<'a> UpstreamUrlBuilder<'a> {
 mod tests {
     use super::*;
 
-    fn make_params(pairs: &[(&str, &str)]) -> HashMap<String, String> {
-        pairs
-            .iter()
-            .map(|(k, v)| (k.to_string(), v.to_string()))
-            .collect()
+    fn make_params(pairs: &[(&str, &str)]) -> QueryParams {
+        let mut params = QueryParams::default();
+        for (k, v) in pairs {
+            params.insert(k.to_string(), QueryValue::Single(v.to_string()));
+        }
+        params
+    }
+
+    fn make_params_multi(pairs: &[(&str, Vec<&str>)]) -> QueryParams {
+        let mut params = QueryParams::default();
+        for (k, values) in pairs {
+            let value = if values.len() == 1 {
+                QueryValue::Single(values[0].to_string())
+            } else {
+                QueryValue::Multi(values.iter().map(|s| s.to_string()).collect())
+            };
+            params.insert(k.to_string(), value);
+        }
+        params
     }
 
     fn get_query_params(url: &url::Url) -> BTreeMap<String, String> {
         url.query_pairs()
             .map(|(k, v)| (k.into_owned(), v.into_owned()))
             .collect()
+    }
+
+    fn get_query_params_multi(url: &url::Url) -> BTreeMap<String, Vec<String>> {
+        let mut result: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for (k, v) in url.query_pairs() {
+            result
+                .entry(k.into_owned())
+                .or_default()
+                .push(v.into_owned());
+        }
+        result
     }
 
     #[test]
@@ -266,6 +324,47 @@ mod tests {
         assert_eq!(
             mip_opt_out_count, 1,
             "mip_opt_out should appear exactly once"
+        );
+    }
+
+    #[test]
+    fn test_multi_value_params() {
+        let base: url::Url = "wss://api.deepgram.com/v1/listen".parse().unwrap();
+        let client = make_params_multi(&[
+            ("encoding", vec!["linear16"]),
+            ("keywords", vec!["hello", "world", "test"]),
+        ]);
+
+        let url = UpstreamUrlBuilder::new(base).client_params(&client).build();
+
+        let params = get_query_params_multi(&url);
+        assert_eq!(params.get("encoding"), Some(&vec!["linear16".to_string()]));
+        assert_eq!(
+            params.get("keywords"),
+            Some(&vec![
+                "hello".to_string(),
+                "world".to_string(),
+                "test".to_string()
+            ])
+        );
+    }
+
+    #[test]
+    fn test_multi_value_overrides_default() {
+        let base: url::Url = "wss://api.deepgram.com/v1/listen".parse().unwrap();
+        let defaults: &[(&str, &str)] = &[("keywords", "default")];
+        let client = make_params_multi(&[("keywords", vec!["hello", "world"])]);
+
+        let url = UpstreamUrlBuilder::new(base)
+            .default_params(defaults)
+            .client_params(&client)
+            .build();
+
+        let params = get_query_params_multi(&url);
+        assert_eq!(
+            params.get("keywords"),
+            Some(&vec!["hello".to_string(), "world".to_string()]),
+            "multi-value should completely override default"
         );
     }
 }

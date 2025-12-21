@@ -1,11 +1,10 @@
-use std::collections::HashMap;
 use std::io::Write;
 use std::str::FromStr;
 
 use axum::{
     Json,
     body::Bytes,
-    extract::{Query, State},
+    extract::State,
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
@@ -17,12 +16,14 @@ use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
 use owhisper_providers::Provider;
 
+use crate::query_params::{QueryParams, QueryValue};
+
 use super::{AppState, ResolvedProvider};
 
 pub async fn handler(
     State(state): State<AppState>,
     headers: HeaderMap,
-    Query(mut params): Query<HashMap<String, String>>,
+    mut params: QueryParams,
     body: Bytes,
 ) -> Response {
     let resolved = match state.resolve_provider(&mut params) {
@@ -71,13 +72,14 @@ pub async fn handler(
     }
 }
 
-fn build_listen_params(params: &HashMap<String, String>) -> ListenParams {
-    let model = params.get("model").cloned();
+fn build_listen_params(params: &QueryParams) -> ListenParams {
+    let model = params.get_first("model").map(|s| s.to_string());
 
     let languages: Vec<hypr_language::Language> = params
         .get("language")
-        .map(|s| {
-            s.split(',')
+        .map(|v| {
+            v.iter()
+                .flat_map(|s| s.split(','))
                 .filter_map(|lang| {
                     hypr_language::ISO639::from_str(lang.trim())
                         .ok()
@@ -89,11 +91,10 @@ fn build_listen_params(params: &HashMap<String, String>) -> ListenParams {
 
     let keywords: Vec<String> = params
         .get("keyword")
-        .map(|s| s.split(',').map(|k| k.trim().to_string()).collect())
-        .or_else(|| {
-            params
-                .get("keywords")
-                .map(|s| s.split(',').map(|k| k.trim().to_string()).collect())
+        .or_else(|| params.get("keywords"))
+        .map(|v| match v {
+            QueryValue::Single(s) => s.split(',').map(|k| k.trim().to_string()).collect(),
+            QueryValue::Multi(vec) => vec.iter().map(|k| k.trim().to_string()).collect(),
         })
         .unwrap_or_default();
 

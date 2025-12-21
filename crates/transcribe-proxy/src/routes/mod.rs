@@ -2,7 +2,6 @@ mod batch;
 mod streaming;
 
 use core::fmt;
-use std::collections::HashMap;
 
 use axum::{
     Router,
@@ -13,6 +12,7 @@ use axum::{
 };
 
 use crate::config::SttProxyConfig;
+use crate::query_params::QueryParams;
 use owhisper_providers::Provider;
 
 pub struct ResolvedProvider {
@@ -51,12 +51,9 @@ pub(crate) struct AppState {
 }
 
 impl AppState {
-    pub fn resolve_provider(
-        &self,
-        params: &mut HashMap<String, String>,
-    ) -> Result<ResolvedProvider, Response> {
+    pub fn resolve_provider(&self, params: &mut QueryParams) -> Result<ResolvedProvider, Response> {
         let provider = params
-            .remove("provider")
+            .remove_first("provider")
             .and_then(|s| s.parse::<Provider>().ok())
             .unwrap_or(self.config.default_provider);
 

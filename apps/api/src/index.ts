@@ -12,6 +12,9 @@ import { logger } from "hono/logger";
 import { env } from "./env";
 import type { AppBindings } from "./hono-bindings";
 import {
+  forwardLlmToAi,
+  forwardSttListenToAi,
+  forwardSttTranscribeToAi,
   loadTestOverride,
   observabilityMiddleware,
   sentryMiddleware,
@@ -50,13 +53,28 @@ app.use("*", (c, next) => {
   return corsMiddleware(c, next);
 });
 
-app.use("/chat/completions", loadTestOverride, supabaseAuthMiddleware);
+app.use(
+  "/chat/completions",
+  loadTestOverride,
+  supabaseAuthMiddleware,
+  forwardLlmToAi,
+);
 app.use("/webhook/stripe", verifyStripeWebhook);
 app.use("/webhook/slack/events", verifySlackWebhook);
 
 if (env.NODE_ENV !== "development") {
-  app.use("/listen", loadTestOverride, supabaseAuthMiddleware);
-  app.use("/transcribe", loadTestOverride, supabaseAuthMiddleware);
+  app.use(
+    "/listen",
+    loadTestOverride,
+    supabaseAuthMiddleware,
+    forwardSttListenToAi,
+  );
+  app.use(
+    "/transcribe",
+    loadTestOverride,
+    supabaseAuthMiddleware,
+    forwardSttTranscribeToAi,
+  );
 }
 
 app.route("/", routes);

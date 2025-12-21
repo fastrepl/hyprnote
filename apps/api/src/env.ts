@@ -31,6 +31,7 @@ export const env = createEnv({
     SLACK_SIGNING_SECRET: z.string().optional(),
     LOOPS_API_KEY: z.string().optional(),
     LOOPS_SLACK_CHANNEL_ID: z.string().optional(),
+    AI_SERVICE_URL: z.url().optional(),
   },
   runtimeEnv: Bun.env,
   emptyStringAsUndefined: true,

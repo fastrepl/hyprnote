@@ -11,23 +11,12 @@ export function Export() {
     settings.STORE_ID,
   );
 
-  const autoExportSummary = settings.UI.useValue(
-    "auto_export_summary",
+  const autoExportNotes = settings.UI.useValue(
+    "auto_export_notes",
     settings.STORE_ID,
   );
-  const setAutoExportSummary = settings.UI.useSetValueCallback(
-    "auto_export_summary",
-    (value: boolean) => value,
-    [],
-    settings.STORE_ID,
-  );
-
-  const autoExportMemo = settings.UI.useValue(
-    "auto_export_memo",
-    settings.STORE_ID,
-  );
-  const setAutoExportMemo = settings.UI.useSetValueCallback(
-    "auto_export_memo",
+  const setAutoExportNotes = settings.UI.useSetValueCallback(
+    "auto_export_notes",
     (value: boolean) => value,
     [],
     settings.STORE_ID,
@@ -72,27 +61,14 @@ export function Export() {
             <div className="flex flex-col gap-3 pl-4 border-l-2 border-neutral-200">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">Export Summary</span>
+                  <span className="text-sm font-medium">Export Notes</span>
                   <span className="text-xs text-neutral-500">
-                    Export AI-generated summaries as markdown files.
+                    Export summaries and memos as markdown files.
                   </span>
                 </div>
                 <Switch
-                  checked={autoExportSummary !== false}
-                  onCheckedChange={(checked) => setAutoExportSummary(checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">Export Memo</span>
-                  <span className="text-xs text-neutral-500">
-                    Export raw memos as markdown files.
-                  </span>
-                </div>
-                <Switch
-                  checked={autoExportMemo !== false}
-                  onCheckedChange={(checked) => setAutoExportMemo(checked)}
+                  checked={autoExportNotes !== false}
+                  onCheckedChange={(checked) => setAutoExportNotes(checked)}
                 />
               </div>
 

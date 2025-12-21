@@ -211,10 +211,8 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         saveTranscriptToFile,
         {
           isEnabled: () => settingsStore?.getValue("auto_export") === true,
-          isSummaryEnabled: () =>
-            settingsStore?.getValue("auto_export_summary") !== false,
-          isMemoEnabled: () =>
-            settingsStore?.getValue("auto_export_memo") !== false,
+          isNotesEnabled: () =>
+            settingsStore?.getValue("auto_export_notes") !== false,
           isTranscriptEnabled: () =>
             settingsStore?.getValue("auto_export_transcript") !== false,
         },

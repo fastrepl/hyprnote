@@ -6,8 +6,7 @@ import { type EnhancedNote, type Session } from "@hypr/store";
 
 export type AutoExportOptions = {
   isEnabled: () => boolean;
-  isSummaryEnabled: () => boolean;
-  isMemoEnabled: () => boolean;
+  isNotesEnabled: () => boolean;
   isTranscriptEnabled: () => boolean;
 };
 
@@ -43,8 +42,8 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
 
       const promises: Promise<void>[] = [];
 
-      const shouldExportSummary = !options || options.isSummaryEnabled();
-      if (shouldExportSummary) {
+      const shouldExportNotes = !options || options.isNotesEnabled();
+      if (shouldExportNotes) {
         Object.entries(tables?.enhanced_notes ?? {}).forEach(([id, row]) => {
           // @ts-ignore
           row.id = id;
@@ -76,8 +75,7 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
         });
       }
 
-      const shouldExportMemo =
-        handlePersistRawMemo && (!options || options.isMemoEnabled());
+      const shouldExportMemo = handlePersistRawMemo && shouldExportNotes;
       if (shouldExportMemo) {
         Object.entries(tables?.sessions ?? {}).forEach(([id, row]) => {
           // @ts-ignore

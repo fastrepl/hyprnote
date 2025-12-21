@@ -16,16 +16,21 @@ export const TabItemChangelog: TabItem<Extract<Tab, { type: "changelog" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => (
   <TabItemBase
     icon={<SparklesIcon className="w-4 h-4" />}
     title="What's New"
     selected={tab.active}
+    pinned={tab.pinned}
     tabIndex={tabIndex}
     handleCloseThis={() => handleCloseThis(tab)}
     handleSelectThis={() => handleSelectThis(tab)}
     handleCloseOthers={handleCloseOthers}
     handleCloseAll={handleCloseAll}
+    handlePinThis={() => handlePinThis(tab)}
+    handleUnpinThis={() => handleUnpinThis(tab)}
   />
 );
 

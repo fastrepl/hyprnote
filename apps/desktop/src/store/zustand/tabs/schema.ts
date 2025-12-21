@@ -42,6 +42,7 @@ export const isTranscriptView = (
 type BaseTab = {
   active: boolean;
   slotId: string;
+  pinned: boolean;
 };
 
 export type Tab =
@@ -96,7 +97,7 @@ export type Tab =
     });
 
 export const getDefaultState = (tab: TabInput): Tab => {
-  const base = { active: false, slotId: "" };
+  const base = { active: false, slotId: "", pinned: false };
 
   switch (tab.type) {
     case "sessions":

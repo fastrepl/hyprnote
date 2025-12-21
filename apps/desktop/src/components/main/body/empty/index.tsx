@@ -16,17 +16,22 @@ export const TabItemEmpty: TabItem<Extract<Tab, { type: "empty" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   return (
     <TabItemBase
       icon={<FileIcon className="w-4 h-4" />}
       title="New tab"
       selected={tab.active}
+      allowPin={false}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };

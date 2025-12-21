@@ -11,6 +11,39 @@ export function Export() {
     settings.STORE_ID,
   );
 
+  const autoExportSummary = settings.UI.useValue(
+    "auto_export_summary",
+    settings.STORE_ID,
+  );
+  const setAutoExportSummary = settings.UI.useSetValueCallback(
+    "auto_export_summary",
+    (value: boolean) => value,
+    [],
+    settings.STORE_ID,
+  );
+
+  const autoExportMemo = settings.UI.useValue(
+    "auto_export_memo",
+    settings.STORE_ID,
+  );
+  const setAutoExportMemo = settings.UI.useSetValueCallback(
+    "auto_export_memo",
+    (value: boolean) => value,
+    [],
+    settings.STORE_ID,
+  );
+
+  const autoExportTranscript = settings.UI.useValue(
+    "auto_export_transcript",
+    settings.STORE_ID,
+  );
+  const setAutoExportTranscript = settings.UI.useSetValueCallback(
+    "auto_export_transcript",
+    (value: boolean) => value,
+    [],
+    settings.STORE_ID,
+  );
+
   return (
     <div className="space-y-6 mt-4">
       <div className="flex flex-col gap-3">
@@ -34,6 +67,51 @@ export function Export() {
               onCheckedChange={(checked) => setAutoExport(checked)}
             />
           </div>
+
+          {autoExport && (
+            <div className="flex flex-col gap-3 pl-4 border-l-2 border-neutral-200">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium">Export Summary</span>
+                  <span className="text-xs text-neutral-500">
+                    Export AI-generated summaries as markdown files.
+                  </span>
+                </div>
+                <Switch
+                  checked={autoExportSummary !== false}
+                  onCheckedChange={(checked) => setAutoExportSummary(checked)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium">Export Memo</span>
+                  <span className="text-xs text-neutral-500">
+                    Export raw memos as markdown files.
+                  </span>
+                </div>
+                <Switch
+                  checked={autoExportMemo !== false}
+                  onCheckedChange={(checked) => setAutoExportMemo(checked)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium">Export Transcript</span>
+                  <span className="text-xs text-neutral-500">
+                    Export transcripts as VTT subtitle files.
+                  </span>
+                </div>
+                <Switch
+                  checked={autoExportTranscript !== false}
+                  onCheckedChange={(checked) =>
+                    setAutoExportTranscript(checked)
+                  }
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -19,6 +19,10 @@ import {
 } from "tinybase/with-schemas";
 
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
+import {
+  commands as listener2Commands,
+  type VttWord,
+} from "@hypr/plugin-listener2";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { SCHEMA, type Schemas } from "@hypr/store";
 import type { EnhancedNote, Session } from "@hypr/store";
@@ -204,7 +208,16 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             enhanced_md: content,
           }),
         saveRawMemoToFile,
-        () => settingsStore?.getValue("auto_export") === true,
+        saveTranscriptToFile,
+        {
+          isEnabled: () => settingsStore?.getValue("auto_export") === true,
+          isSummaryEnabled: () =>
+            settingsStore?.getValue("auto_export_summary") !== false,
+          isMemoEnabled: () =>
+            settingsStore?.getValue("auto_export_memo") !== false,
+          isTranscriptEnabled: () =>
+            settingsStore?.getValue("auto_export_transcript") !== false,
+        },
       );
 
       return persister;
@@ -804,5 +817,27 @@ async function saveRawMemoToFile(
     });
   } catch (error) {
     console.error("Failed to save raw memo markdown:", session.id, error);
+  }
+}
+
+async function saveTranscriptToFile(
+  sessionId: string,
+  words: VttWord[],
+): Promise<void> {
+  if (words.length === 0) {
+    return;
+  }
+
+  try {
+    const result = await listener2Commands.exportToVtt(sessionId, words);
+    if (result.status === "error") {
+      console.error(
+        "Failed to export transcript to VTT:",
+        sessionId,
+        result.error,
+      );
+    }
+  } catch (error) {
+    console.error("Failed to save transcript:", sessionId, error);
   }
 }

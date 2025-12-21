@@ -1,17 +1,16 @@
 import { type MouseEvent, type ReactNode, useCallback } from "react";
 
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuTrigger,
-} from "@hypr/ui/components/ui/context-menu";
+  type MenuItemDef,
+  useNativeContextMenu,
+} from "../hooks/useNativeContextMenu";
 
 interface InteractiveButtonProps {
   children: ReactNode;
   onClick?: () => void;
   onCmdClick?: () => void;
   onMouseDown?: (e: MouseEvent<HTMLElement>) => void;
-  contextMenu?: ReactNode;
+  contextMenu?: MenuItemDef[];
   className?: string;
   disabled?: boolean;
   asChild?: boolean;
@@ -27,6 +26,8 @@ export function InteractiveButton({
   disabled,
   asChild = false,
 }: InteractiveButtonProps) {
+  const showMenu = useNativeContextMenu(contextMenu ?? []);
+
   const handleClick = useCallback(
     (e: MouseEvent<HTMLElement>) => {
       if (disabled) {
@@ -45,32 +46,15 @@ export function InteractiveButton({
 
   const Element = asChild ? "div" : "button";
 
-  if (!contextMenu) {
-    return (
-      <Element
-        onClick={handleClick}
-        onMouseDown={onMouseDown}
-        className={className}
-        disabled={!asChild ? disabled : undefined}
-      >
-        {children}
-      </Element>
-    );
-  }
-
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild={asChild}>
-        <Element
-          onClick={handleClick}
-          onMouseDown={onMouseDown}
-          className={className}
-          disabled={!asChild ? disabled : undefined}
-        >
-          {children}
-        </Element>
-      </ContextMenuTrigger>
-      <ContextMenuContent>{contextMenu}</ContextMenuContent>
-    </ContextMenu>
+    <Element
+      onClick={handleClick}
+      onMouseDown={onMouseDown}
+      onContextMenu={contextMenu ? showMenu : undefined}
+      className={className}
+      disabled={!asChild ? disabled : undefined}
+    >
+      {children}
+    </Element>
   );
 }

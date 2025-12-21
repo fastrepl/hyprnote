@@ -1,13 +1,13 @@
 import { Icon } from "@iconify-icon/react";
-import { platform } from "@tauri-apps/plugin-os";
 
 import { useAuth } from "../../auth";
-import { getNextAfterConfigureNotice, type StepProps } from "./config";
+import { Route } from "../../routes/app/onboarding";
+import { getNext, type StepProps } from "./config";
 import { Divider, IntegrationRow, OnboardingContainer } from "./shared";
 
 export function Calendars({ onNavigate }: StepProps) {
+  const search = Route.useSearch();
   const auth = useAuth();
-  const currentPlatform = platform();
   const isLoggedIn = !!auth?.session;
 
   return (
@@ -51,7 +51,7 @@ export function Calendars({ onNavigate }: StepProps) {
       </div>
 
       <button
-        onClick={() => onNavigate(getNextAfterConfigureNotice(currentPlatform))}
+        onClick={() => onNavigate({ ...search, step: getNext(search) })}
         className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
       >
         skip

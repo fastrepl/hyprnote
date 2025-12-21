@@ -10,7 +10,7 @@ use crate::error::AudioImportError;
 #[tauri::command]
 #[specta::specta]
 pub async fn get_git_hash<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
-    Ok(app.get_git_hash())
+    Ok(app.misc().get_git_hash())
 }
 
 #[tauri::command]
@@ -18,7 +18,7 @@ pub async fn get_git_hash<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result
 pub async fn get_fingerprint<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<String, String> {
-    Ok(app.get_fingerprint())
+    Ok(app.misc().get_fingerprint())
 }
 
 #[tauri::command]
@@ -27,7 +27,7 @@ pub async fn opinionated_md_to_html<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     text: String,
 ) -> Result<String, String> {
-    app.opinionated_md_to_html(&text)
+    app.misc().opinionated_md_to_html(&text)
 }
 
 #[tauri::command]
@@ -186,5 +186,5 @@ pub async fn parse_meeting_link<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     text: String,
 ) -> Option<String> {
-    app.parse_meeting_link(&text)
+    app.misc().parse_meeting_link(&text)
 }

@@ -11,68 +11,52 @@ use std::path::PathBuf;
 
 pub trait ImportSource: Send + Sync {
     fn info(&self) -> ImportSourceInfo;
+    fn is_available(&self) -> bool;
 
-    fn import_notes(
-        &self,
-        config: ImportConfig,
-    ) -> impl Future<Output = Result<Vec<ImportedNote>>> + Send;
+    fn import_notes(&self) -> impl Future<Output = Result<Vec<ImportedNote>>> + Send;
 
-    fn import_transcripts(
-        &self,
-        config: ImportConfig,
-    ) -> impl Future<Output = Result<Vec<ImportedTranscript>>> + Send;
+    fn import_transcripts(&self) -> impl Future<Output = Result<Vec<ImportedTranscript>>> + Send;
 }
 
-#[derive(Debug, Clone)]
-pub struct ImportConfig {
-    pub supabase_path: Option<PathBuf>,
-    pub cache_path: Option<PathBuf>,
-}
-
-impl Default for ImportConfig {
-    fn default() -> Self {
-        Self {
-            supabase_path: None,
-            cache_path: None,
-        }
-    }
-}
-
-pub fn get_source(kind: ImportSourceKind) -> Box<dyn ImportSourceDyn> {
+pub fn get_source(
+    kind: ImportSourceKind,
+    supabase_path: Option<PathBuf>,
+    cache_path: Option<PathBuf>,
+) -> Box<dyn ImportSourceDyn> {
     match kind {
-        ImportSourceKind::Granola => Box::new(GranolaSource),
+        ImportSourceKind::Granola => Box::new(GranolaSource {
+            supabase_path,
+            cache_path,
+        }),
         ImportSourceKind::HyprnoteV0Stable => Box::new(HyprnoteV0StableSource),
         ImportSourceKind::HyprnoteV0Nightly => Box::new(HyprnoteV0NightlySource),
     }
 }
 
-pub fn list_sources() -> Vec<ImportSourceInfo> {
-    let mut sources = Vec::new();
+pub fn all_sources() -> Vec<Box<dyn ImportSourceDyn>> {
+    vec![
+        Box::new(GranolaSource::default()),
+        Box::new(HyprnoteV0StableSource),
+        Box::new(HyprnoteV0NightlySource),
+    ]
+}
 
-    if hypr_granola::default_supabase_path().exists() {
-        sources.push(ImportSource::info(&GranolaSource));
-    }
-
-    if hyprnote::stable_exists() {
-        sources.push(ImportSource::info(&HyprnoteV0StableSource));
-    }
-
-    if hyprnote::nightly_exists() {
-        sources.push(ImportSource::info(&HyprnoteV0NightlySource));
-    }
-
-    sources
+pub fn list_available_sources() -> Vec<ImportSourceInfo> {
+    all_sources()
+        .into_iter()
+        .filter(|s| s.is_available())
+        .map(|s| s.info())
+        .collect()
 }
 
 pub trait ImportSourceDyn: Send + Sync {
     fn info(&self) -> ImportSourceInfo;
+    fn is_available(&self) -> bool;
     fn import_notes_boxed(
         &self,
-        config: ImportConfig,
     ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedNote>>> + Send + '_>>;
     fn import_transcripts_boxed(
         &self,
-        config: ImportConfig,
     ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedTranscript>>> + Send + '_>>;
 }
 
@@ -81,17 +65,19 @@ impl<T: ImportSource> ImportSourceDyn for T {
         ImportSource::info(self)
     }
 
+    fn is_available(&self) -> bool {
+        ImportSource::is_available(self)
+    }
+
     fn import_notes_boxed(
         &self,
-        config: ImportConfig,
     ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedNote>>> + Send + '_>> {
-        Box::pin(self.import_notes(config))
+        Box::pin(self.import_notes())
     }
 
     fn import_transcripts_boxed(
         &self,
-        config: ImportConfig,
     ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedTranscript>>> + Send + '_>> {
-        Box::pin(self.import_transcripts(config))
+        Box::pin(self.import_transcripts())
     }
 }

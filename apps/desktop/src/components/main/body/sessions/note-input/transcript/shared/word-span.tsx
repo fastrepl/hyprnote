@@ -1,13 +1,8 @@
 import { Fragment, useCallback, useMemo } from "react";
 
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/utils";
 
+import { useNativeContextMenu } from "../../../../../../../hooks/useNativeContextMenu";
 import { SegmentWord } from "../../../../../../../utils/segment";
 import { useTranscriptSearch } from "../search-context";
 import { Operations } from "./operations";
@@ -93,23 +88,28 @@ function EditorWordSpan({
     onClickWord(word);
   }, [word, onClickWord]);
 
+  const contextMenu = useMemo(
+    () => [
+      {
+        id: "delete",
+        text: "Delete",
+        action: () => operations.onDeleteWord?.(word.id!),
+      },
+    ],
+    [operations, word.id],
+  );
+
+  const showMenu = useNativeContextMenu(contextMenu);
+
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <span
-          onClick={handleClick}
-          className={className}
-          data-word-id={word.id}
-        >
-          {content}
-        </span>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem onClick={() => operations.onDeleteWord?.(word.id!)}>
-          Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+    <span
+      onClick={handleClick}
+      onContextMenu={showMenu}
+      className={className}
+      data-word-id={word.id}
+    >
+      {content}
+    </span>
   );
 }
 

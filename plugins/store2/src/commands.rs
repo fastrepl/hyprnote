@@ -1,4 +1,4 @@
-use crate::StorePluginExt;
+use crate::Store2PluginExt;
 
 #[tauri::command]
 #[specta::specta]
@@ -8,6 +8,7 @@ pub(crate) async fn get_str<R: tauri::Runtime>(
     key: String,
 ) -> Result<Option<String>, String> {
     let store = app
+        .store2()
         .scoped_store::<String>(scope)
         .map_err(|e| e.to_string())?;
 
@@ -23,6 +24,7 @@ pub(crate) async fn set_str<R: tauri::Runtime>(
     value: String,
 ) -> Result<(), String> {
     let store = app
+        .store2()
         .scoped_store::<String>(scope)
         .map_err(|e| e.to_string())?;
 
@@ -37,6 +39,7 @@ pub(crate) async fn get_bool<R: tauri::Runtime>(
     key: String,
 ) -> Result<Option<bool>, String> {
     let store = app
+        .store2()
         .scoped_store::<String>(scope)
         .map_err(|e| e.to_string())?;
 
@@ -52,6 +55,7 @@ pub(crate) async fn set_bool<R: tauri::Runtime>(
     value: bool,
 ) -> Result<(), String> {
     let store = app
+        .store2()
         .scoped_store::<String>(scope)
         .map_err(|e| e.to_string())?;
 
@@ -66,6 +70,7 @@ pub(crate) async fn get_number<R: tauri::Runtime>(
     key: String,
 ) -> Result<Option<f64>, String> {
     let store = app
+        .store2()
         .scoped_store::<String>(scope)
         .map_err(|e| e.to_string())?;
 
@@ -81,6 +86,7 @@ pub(crate) async fn set_number<R: tauri::Runtime>(
     value: f64,
 ) -> Result<(), String> {
     let store = app
+        .store2()
         .scoped_store::<String>(scope)
         .map_err(|e| e.to_string())?;
 

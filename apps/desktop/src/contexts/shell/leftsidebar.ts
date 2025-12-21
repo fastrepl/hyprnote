@@ -14,7 +14,7 @@ export function useLeftSidebar() {
   }, []);
 
   useHotkeys(
-    "mod+l",
+    "mod+\\",
     toggleExpanded,
     {
       preventDefault: true,

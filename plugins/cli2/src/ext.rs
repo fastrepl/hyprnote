@@ -1,14 +1,15 @@
 use std::path::PathBuf;
 
-pub struct PluginCli<R: tauri::Runtime> {
-    app_handle: tauri::AppHandle<R>,
+pub struct Cli2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime> PluginCli<R> {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Cli2<'a, R, M> {
     pub fn handle_cli_matches(&self) -> Result<(), crate::Error> {
         use tauri_plugin_cli::CliExt;
 
-        match self.app_handle.cli().matches() {
+        match self.manager.app_handle().cli().matches() {
             Ok(matches) => {
                 if matches.args.contains_key("help") || matches.args.contains_key("version") {
                     std::process::exit(0);
@@ -132,14 +133,20 @@ impl<R: tauri::Runtime> PluginCli<R> {
     }
 }
 
-pub trait CliPluginExt<R: tauri::Runtime> {
-    fn plugin_cli(&self) -> PluginCli<R>;
+pub trait Cli2PluginExt<R: tauri::Runtime> {
+    fn cli2(&self) -> Cli2<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> CliPluginExt<R> for T {
-    fn plugin_cli(&self) -> PluginCli<R> {
-        PluginCli {
-            app_handle: self.app_handle().clone(),
+impl<R: tauri::Runtime, T: tauri::Manager<R>> Cli2PluginExt<R> for T {
+    fn cli2(&self) -> Cli2<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Cli2 {
+            manager: self,
+            _runtime: std::marker::PhantomData,
         }
     }
 }

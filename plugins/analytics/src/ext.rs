@@ -1,5 +1,5 @@
 use tauri_plugin_misc::MiscPluginExt;
-use tauri_plugin_store2::StorePluginExt;
+use tauri_plugin_store2::Store2PluginExt;
 
 pub struct Analytics<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -45,7 +45,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Analytics<'a, R, M> {
     fn enrich_payload(manager: &M, payload: &mut hypr_analytics::AnalyticsPayload) {
         let app_version = env!("APP_VERSION");
         let app_identifier = manager.config().identifier.clone();
-        let git_hash = manager.get_git_hash();
+        let git_hash = manager.misc().get_git_hash();
         let bundle_id = manager.config().identifier.clone();
 
         payload
@@ -71,14 +71,14 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Analytics<'a, R, M> {
 
     pub fn set_disabled(&self, disabled: bool) -> Result<(), crate::Error> {
         {
-            let store = self.manager.scoped_store(crate::PLUGIN_NAME)?;
+            let store = self.manager.store2().scoped_store(crate::PLUGIN_NAME)?;
             store.set(crate::StoreKey::Disabled, disabled)?;
         }
         Ok(())
     }
 
     pub fn is_disabled(&self) -> Result<bool, crate::Error> {
-        let store = self.manager.scoped_store(crate::PLUGIN_NAME)?;
+        let store = self.manager.store2().scoped_store(crate::PLUGIN_NAME)?;
         let v = store.get(crate::StoreKey::Disabled)?.unwrap_or(false);
         Ok(v)
     }

@@ -16,6 +16,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -104,41 +105,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [serverReachable, setServerReachable] = useState(true);
 
-  const setSessionFromTokens = async (
-    accessToken: string,
-    refreshToken: string,
-  ) => {
-    if (!supabase) {
-      console.error("Supabase client not found");
-      return;
-    }
+  const setSessionFromTokens = useCallback(
+    async (accessToken: string, refreshToken: string) => {
+      if (!supabase) {
+        console.error("Supabase client not found");
+        return;
+      }
 
-    const res = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
+      const res = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
 
-    if (res.error) {
-      console.error(res.error);
-    } else {
-      setSession(res.data.session);
-      setServerReachable(true);
-      void supabase.auth.startAutoRefresh();
-    }
-  };
+      if (res.error) {
+        console.error(res.error);
+      } else {
+        setSession(res.data.session);
+        setServerReachable(true);
+        void supabase.auth.startAutoRefresh();
+      }
+    },
+    [],
+  );
 
-  const handleAuthCallback = async (url: string) => {
-    const parsed = new URL(url);
-    const accessToken = parsed.searchParams.get("access_token");
-    const refreshToken = parsed.searchParams.get("refresh_token");
+  const handleAuthCallback = useCallback(
+    async (url: string) => {
+      const parsed = new URL(url);
+      const accessToken = parsed.searchParams.get("access_token");
+      const refreshToken = parsed.searchParams.get("refresh_token");
 
-    if (!accessToken || !refreshToken) {
-      console.error("invalid_callback_url");
-      return;
-    }
+      if (!accessToken || !refreshToken) {
+        console.error("invalid_callback_url");
+        return;
+      }
 
-    await setSessionFromTokens(accessToken, refreshToken);
-  };
+      await setSessionFromTokens(accessToken, refreshToken);
+    },
+    [setSessionFromTokens],
+  );
 
   useEffect(() => {
     if (!supabase) {
@@ -242,13 +246,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const signIn = async () => {
+  const signIn = useCallback(async () => {
     const base = env.VITE_APP_URL ?? "http://localhost:3000";
     const scheme = await getScheme();
     await openUrl(`${base}/auth?flow=desktop&scheme=${scheme}`);
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     if (!supabase) {
       return;
     }
@@ -275,9 +279,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(null);
       }
     }
-  };
+  }, []);
 
-  const refreshSession = async (): Promise<Session | null> => {
+  const refreshSession = useCallback(async (): Promise<Session | null> => {
     if (!supabase) {
       return null;
     }
@@ -291,7 +295,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return data.session;
     }
     return null;
-  };
+  }, []);
 
   const getHeaders = useCallback(() => {
     if (!session) {
@@ -320,17 +324,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return `https://gravatar.com/avatar/${hash}`;
   }, [session]);
 
-  const value = {
-    session,
-    supabase,
-    signIn,
-    signOut,
-    refreshSession,
-    handleAuthCallback,
-    setSessionFromTokens,
-    getHeaders,
-    getAvatarUrl,
-  };
+  const value = useMemo(
+    () => ({
+      session,
+      supabase,
+      signIn,
+      signOut,
+      refreshSession,
+      handleAuthCallback,
+      setSessionFromTokens,
+      getHeaders,
+      getAvatarUrl,
+    }),
+    [
+      session,
+      signIn,
+      signOut,
+      refreshSession,
+      handleAuthCallback,
+      setSessionFromTokens,
+      getHeaders,
+      getAvatarUrl,
+    ],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

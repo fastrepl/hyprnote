@@ -1,6 +1,8 @@
 import { StripeSync } from "@supabase/stripe-sync-engine";
 import { parseArgs } from "util";
 
+import { STRIPE_API_VERSION } from "../integration/stripe";
+
 const { DATABASE_URL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } = Bun.env;
 
 if (!DATABASE_URL || !STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
@@ -78,6 +80,7 @@ const sync = new StripeSync({
   stripeSecretKey: STRIPE_SECRET_KEY,
   stripeWebhookSecret: STRIPE_WEBHOOK_SECRET,
   autoExpandLists: true,
+  stripeApiVersion: STRIPE_API_VERSION,
   backfillRelatedEntities: true,
 });
 

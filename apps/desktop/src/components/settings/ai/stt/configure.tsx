@@ -224,9 +224,8 @@ function HyprProviderCloudRow() {
           className="w-[110px]"
           size="sm"
           variant="default"
-          disabled={!isPro}
         >
-          {isPro ? "Ready to use" : "Pro users only"}
+          {isPro ? "Ready to use" : "Start Free Trial"}
         </Button>
       </div>
     </HyprProviderRow>

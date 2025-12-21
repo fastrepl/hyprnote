@@ -8,7 +8,10 @@ pub async fn run_batch<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     params: BatchParams,
 ) -> Result<(), String> {
-    app.run_batch(params).await.map_err(|e| e.to_string())
+    app.listener2()
+        .run_batch(params)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

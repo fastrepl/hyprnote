@@ -1,9 +1,11 @@
 mod commands;
 mod error;
 mod models;
+mod ext;
 
-pub use error::{Error, Result};
-pub use models::PermissionStatus;
+pub use ext::*;
+pub use error::*;
+pub use models::*;
 
 const PLUGIN_NAME: &str = "permissions";
 
@@ -27,7 +29,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
-pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
@@ -55,5 +57,20 @@ mod test {
 
         let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
+    }
+
+    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+        builder
+        .plugin(tauri_plugin_shell::init())
+            .plugin(init())
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_permissions() {
+        let app = create_app(tauri::test::mock_builder());
+        let status = app.permissions().check_calendar_permission().await;
+        println!("status: {:?}", status);
     }
 }

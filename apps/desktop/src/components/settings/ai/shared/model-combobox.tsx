@@ -120,7 +120,9 @@ export function ModelCombobox({
           role="combobox"
           disabled={disabled || isLoadingModels}
           aria-expanded={open}
-          className={cn(["w-full justify-between font-normal bg-white"])}
+          className={cn([
+            "w-full justify-between font-normal bg-white shadow-none focus-visible:ring-0",
+          ])}
         >
           {value && value.length > 0 ? (
             <span className="truncate">{value}</span>

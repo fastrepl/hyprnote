@@ -1,35 +1,18 @@
 use std::path::PathBuf;
 
-use tauri::{Manager, Runtime};
-
 use crate::ManagedState;
 
-pub trait ExtensionsPluginExt<R: Runtime> {
-    fn load_extension(
-        &self,
-        path: PathBuf,
-    ) -> impl std::future::Future<Output = Result<(), crate::Error>>;
-
-    fn call_function(
-        &self,
-        extension_id: String,
-        function_name: String,
-        args_json: String,
-    ) -> impl std::future::Future<Output = Result<String, crate::Error>>;
-
-    fn execute_code(
-        &self,
-        extension_id: String,
-        code: String,
-    ) -> impl std::future::Future<Output = Result<String, crate::Error>>;
+pub struct Extensions<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: Runtime, T: Manager<R>> ExtensionsPluginExt<R> for T {
-    async fn load_extension(&self, path: PathBuf) -> Result<(), crate::Error> {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Extensions<'a, R, M> {
+    pub async fn load_extension(&self, path: PathBuf) -> Result<(), crate::Error> {
         let extension = hypr_extensions_runtime::Extension::load(path)?;
 
         let runtime = {
-            let state = self.state::<ManagedState>();
+            let state = self.manager.state::<ManagedState>();
             let guard = state.lock().await;
             guard.runtime.clone()
         };
@@ -38,7 +21,7 @@ impl<R: Runtime, T: Manager<R>> ExtensionsPluginExt<R> for T {
         Ok(())
     }
 
-    async fn call_function(
+    pub async fn call_function(
         &self,
         extension_id: String,
         function_name: String,
@@ -48,7 +31,7 @@ impl<R: Runtime, T: Manager<R>> ExtensionsPluginExt<R> for T {
             .map_err(|e| crate::Error::RuntimeError(e.to_string()))?;
 
         let runtime = {
-            let state = self.state::<ManagedState>();
+            let state = self.manager.state::<ManagedState>();
             let guard = state.lock().await;
             guard.runtime.clone()
         };
@@ -60,13 +43,13 @@ impl<R: Runtime, T: Manager<R>> ExtensionsPluginExt<R> for T {
         serde_json::to_string(&result).map_err(|e| crate::Error::RuntimeError(e.to_string()))
     }
 
-    async fn execute_code(
+    pub async fn execute_code(
         &self,
         extension_id: String,
         code: String,
     ) -> Result<String, crate::Error> {
         let runtime = {
-            let state = self.state::<ManagedState>();
+            let state = self.manager.state::<ManagedState>();
             let guard = state.lock().await;
             guard.runtime.clone()
         };
@@ -74,5 +57,23 @@ impl<R: Runtime, T: Manager<R>> ExtensionsPluginExt<R> for T {
         let result = runtime.execute_code(&extension_id, &code).await?;
 
         serde_json::to_string(&result).map_err(|e| crate::Error::RuntimeError(e.to_string()))
+    }
+}
+
+pub trait ExtensionsPluginExt<R: tauri::Runtime> {
+    fn extensions(&self) -> Extensions<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> ExtensionsPluginExt<R> for T {
+    fn extensions(&self) -> Extensions<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Extensions {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

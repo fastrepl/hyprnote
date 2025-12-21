@@ -6,7 +6,7 @@ pub(crate) async fn show_notification<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     v: hypr_notification::Notification,
 ) -> Result<(), String> {
-    app.show_notification(v).map_err(|e| e.to_string())
+    app.notification().show(v).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -14,5 +14,5 @@ pub(crate) async fn show_notification<R: tauri::Runtime>(
 pub(crate) async fn clear_notifications<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<(), String> {
-    app.clear_notifications().map_err(|e| e.to_string())
+    app.notification().clear().map_err(|e| e.to_string())
 }

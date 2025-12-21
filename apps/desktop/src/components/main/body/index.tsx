@@ -614,12 +614,25 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
 }
 
 function useTabsShortcuts() {
-  const { tabs, currentTab, close, select } = useTabs(
+  const {
+    tabs,
+    currentTab,
+    close,
+    select,
+    selectNext,
+    selectPrev,
+    restoreLastClosedTab,
+    openNew,
+  } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
       currentTab: state.currentTab,
       close: state.close,
       select: state.select,
+      selectNext: state.selectNext,
+      selectPrev: state.selectPrev,
+      restoreLastClosedTab: state.restoreLastClosedTab,
+      openNew: state.openNew,
     })),
   );
   const newNote = useNewNote({ behavior: "new" });
@@ -686,6 +699,98 @@ function useTabsShortcuts() {
       enableOnContentEditable: true,
     },
     [tabs, select],
+  );
+
+  useHotkeys(
+    "mod+alt+left",
+    () => selectPrev(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [selectPrev],
+  );
+
+  useHotkeys(
+    "mod+alt+right",
+    () => selectNext(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [selectNext],
+  );
+
+  useHotkeys(
+    "mod+shift+t",
+    () => restoreLastClosedTab(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [restoreLastClosedTab],
+  );
+
+  useHotkeys(
+    "mod+shift+c",
+    () => openNew({ type: "calendar" }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+o",
+    () =>
+      openNew({
+        type: "contacts",
+        state: { selectedOrganization: null, selectedPerson: null },
+      }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+a",
+    () => openNew({ type: "ai" }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+d",
+    () => openNew({ type: "folders", id: null }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+f",
+    () => openNew({ type: "data", state: { tab: null } }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
   );
 
   return {};

@@ -6,7 +6,7 @@ use tokio::time::error::Elapsed;
 
 use owhisper_client::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FinalizeHandle,
-    FireworksAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+    FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -239,6 +239,12 @@ async fn spawn_rx_task(
         }
         (AdapterKind::OpenAI, true) => {
             spawn_rx_task_dual_with_adapter::<OpenAIAdapter>(args, myself).await
+        }
+        (AdapterKind::Gladia, false) => {
+            spawn_rx_task_single_with_adapter::<GladiaAdapter>(args, myself).await
+        }
+        (AdapterKind::Gladia, true) => {
+            spawn_rx_task_dual_with_adapter::<GladiaAdapter>(args, myself).await
         }
     }
 }

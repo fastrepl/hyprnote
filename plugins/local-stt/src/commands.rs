@@ -8,7 +8,7 @@ use crate::{
 #[tauri::command]
 #[specta::specta]
 pub async fn models_dir<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
-    Ok(app.models_dir().to_string_lossy().to_string())
+    Ok(app.local_stt().models_dir().to_string_lossy().to_string())
 }
 
 #[tauri::command]
@@ -23,7 +23,8 @@ pub async fn is_model_downloaded<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: SupportedSttModel,
 ) -> Result<bool, String> {
-    app.is_model_downloaded(&model)
+    app.local_stt()
+        .is_model_downloaded(&model)
         .await
         .map_err(|e| e.to_string())
 }
@@ -34,7 +35,7 @@ pub async fn is_model_downloading<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: SupportedSttModel,
 ) -> Result<bool, String> {
-    Ok(app.is_model_downloading(&model).await)
+    Ok(app.local_stt().is_model_downloading(&model).await)
 }
 
 #[tauri::command]
@@ -43,7 +44,10 @@ pub async fn download_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: SupportedSttModel,
 ) -> Result<(), String> {
-    app.download_model(model).await.map_err(|e| e.to_string())
+    app.local_stt()
+        .download_model(model)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -52,7 +56,7 @@ pub async fn cancel_download<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: SupportedSttModel,
 ) -> bool {
-    app.cancel_download(model).await
+    app.local_stt().cancel_download(model).await
 }
 
 #[tauri::command]
@@ -61,7 +65,10 @@ pub async fn start_server<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: SupportedSttModel,
 ) -> Result<String, String> {
-    app.start_server(model).await.map_err(|e| e.to_string())
+    app.local_stt()
+        .start_server(model)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -70,7 +77,8 @@ pub async fn stop_server<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     server_type: Option<ServerType>,
 ) -> Result<bool, String> {
-    app.stop_server(server_type)
+    app.local_stt()
+        .stop_server(server_type)
         .await
         .map_err(|e| e.to_string())
 }
@@ -80,7 +88,10 @@ pub async fn stop_server<R: tauri::Runtime>(
 pub async fn get_servers<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<HashMap<ServerType, ServerInfo>, String> {
-    app.get_servers().await.map_err(|e| e.to_string())
+    app.local_stt()
+        .get_servers()
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

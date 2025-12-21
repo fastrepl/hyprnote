@@ -1,0 +1,340 @@
+use std::time::{Duration, Instant};
+
+use axum::body::Body;
+use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
+use axum::http::Response;
+use axum::response::IntoResponse;
+use futures_util::{SinkExt, StreamExt};
+use tokio_tungstenite::tungstenite::ClientRequestBuilder;
+use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+use tokio_tungstenite::{
+    MaybeTlsStream, WebSocketStream, connect_async, tungstenite::client::IntoClientRequest,
+};
+
+use super::builder::WebSocketProxyBuilder;
+use super::pending::{FlushError, PendingState, QueuedPayload};
+use super::types::{
+    ClientReceiver, ClientSender, ControlMessageTypes, DEFAULT_CLOSE_CODE, FirstMessageTransformer,
+    OnCloseCallback, UpstreamReceiver, UpstreamSender, convert, is_control_message,
+};
+use super::upstream_error::detect_upstream_error;
+
+#[derive(Clone)]
+pub struct WebSocketProxy {
+    upstream_request: ClientRequestBuilder,
+    control_message_types: Option<ControlMessageTypes>,
+    transform_first_message: Option<FirstMessageTransformer>,
+    connect_timeout: Duration,
+    on_close: Option<OnCloseCallback>,
+}
+
+impl WebSocketProxy {
+    pub(crate) fn new(
+        upstream_request: ClientRequestBuilder,
+        control_message_types: Option<ControlMessageTypes>,
+        transform_first_message: Option<FirstMessageTransformer>,
+        connect_timeout: Duration,
+        on_close: Option<OnCloseCallback>,
+    ) -> Self {
+        Self {
+            upstream_request,
+            control_message_types,
+            transform_first_message,
+            connect_timeout,
+            on_close,
+        }
+    }
+
+    pub fn builder() -> WebSocketProxyBuilder {
+        WebSocketProxyBuilder::default()
+    }
+
+    async fn connect_upstream(
+        &self,
+    ) -> Result<WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>, crate::ProxyError> {
+        let req = self
+            .upstream_request
+            .clone()
+            .into_client_request()
+            .map_err(|e| crate::ProxyError::InvalidRequest(e.to_string()))?;
+
+        tracing::info!("connecting_to_upstream: {:?}", req.uri());
+
+        let upstream_result = tokio::time::timeout(self.connect_timeout, connect_async(req)).await;
+
+        match upstream_result {
+            Ok(Ok((stream, _))) => Ok(stream),
+            Ok(Err(e)) => Err(crate::ProxyError::ConnectionFailed(e.to_string())),
+            Err(_) => Err(crate::ProxyError::ConnectionTimeout),
+        }
+    }
+
+    pub async fn handle(&self, client_socket: WebSocket) -> Result<(), crate::ProxyError> {
+        let upstream_stream = self.connect_upstream().await?;
+
+        Self::run_proxy_loop(
+            client_socket,
+            upstream_stream,
+            self.control_message_types.clone(),
+            self.transform_first_message.clone(),
+            self.on_close.clone(),
+        )
+        .await;
+
+        Ok(())
+    }
+
+    pub async fn handle_upgrade(&self, ws: WebSocketUpgrade) -> Response<Body> {
+        let proxy = self.clone();
+        ws.on_upgrade(move |socket| async move {
+            if let Err(e) = proxy.handle(socket).await {
+                tracing::error!("proxy_error: {:?}", e);
+            }
+        })
+        .into_response()
+    }
+
+    async fn run_proxy_loop(
+        client_socket: WebSocket,
+        upstream_stream: WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,
+        control_message_types: Option<ControlMessageTypes>,
+        transform_first_message: Option<FirstMessageTransformer>,
+        on_close: Option<OnCloseCallback>,
+    ) {
+        let start_time = Instant::now();
+
+        let (upstream_sender, upstream_receiver) = upstream_stream.split();
+        let (client_sender, client_receiver) = client_socket.split();
+
+        let (shutdown_tx, shutdown_rx) = tokio::sync::broadcast::channel::<(u16, String)>(1);
+        let shutdown_rx2 = shutdown_tx.subscribe();
+
+        let client_to_upstream = Self::run_client_to_upstream(
+            client_receiver,
+            upstream_sender,
+            shutdown_tx.clone(),
+            shutdown_rx,
+            control_message_types,
+            transform_first_message,
+        );
+
+        let upstream_to_client = Self::run_upstream_to_client(
+            upstream_receiver,
+            client_sender,
+            shutdown_tx.clone(),
+            shutdown_rx2,
+        );
+
+        let _ = tokio::join!(client_to_upstream, upstream_to_client);
+
+        if let Some(on_close) = on_close {
+            on_close(start_time.elapsed()).await;
+        }
+
+        tracing::info!("websocket_proxy_connection_closed");
+    }
+
+    async fn process_data_message(
+        pending: &mut PendingState,
+        data: Vec<u8>,
+        is_text: bool,
+        control_types: &Option<ControlMessageTypes>,
+        shutdown_tx: &tokio::sync::broadcast::Sender<(u16, String)>,
+        upstream_sender: &mut UpstreamSender,
+    ) -> bool {
+        let is_control = control_types
+            .as_ref()
+            .map_or(false, |types| is_control_message(&data, types));
+        let size = data.len();
+        let queued = QueuedPayload { data, is_text };
+
+        if let Err(reason) = pending.enqueue(queued, is_control) {
+            tracing::warn!("{}: size={}", reason, size);
+            let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, reason.to_string()));
+            return true;
+        }
+
+        if let Err(e) = pending.flush_to(upstream_sender).await {
+            let reason = match e {
+                FlushError::SendFailed => "upstream_send_failed",
+                FlushError::InvalidUtf8 => "invalid_utf8_in_message",
+            };
+            tracing::error!("flush_failed: {}", reason);
+            let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, reason.to_string()));
+            return true;
+        }
+
+        false
+    }
+
+    async fn run_client_to_upstream(
+        mut client_receiver: ClientReceiver,
+        mut upstream_sender: UpstreamSender,
+        shutdown_tx: tokio::sync::broadcast::Sender<(u16, String)>,
+        mut shutdown_rx: tokio::sync::broadcast::Receiver<(u16, String)>,
+        control_types: Option<ControlMessageTypes>,
+        mut first_msg_transformer: Option<FirstMessageTransformer>,
+    ) {
+        let mut pending = PendingState::default();
+
+        loop {
+            tokio::select! {
+                biased;
+
+                result = shutdown_rx.recv() => {
+                    if let Ok((code, reason)) = result {
+                        let _ = upstream_sender.send(convert::to_tungstenite_close(code, reason)).await;
+                    }
+                    break;
+                }
+
+                msg_opt = client_receiver.next() => {
+                    let Some(msg_result) = msg_opt else {
+                        let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "client_disconnected".to_string()));
+                        break;
+                    };
+
+                    let msg = match msg_result {
+                        Ok(m) => m,
+                        Err(e) => {
+                            tracing::error!("client_receive_error: {:?}", e);
+                            let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "client_error".to_string()));
+                            break;
+                        }
+                    };
+
+                    match msg {
+                        Message::Text(text) => {
+                            let text_owned = text.to_string();
+                            let text_str = match first_msg_transformer.take() {
+                                Some(t) => t(text_owned),
+                                None => text_owned,
+                            };
+                            let data = text_str.into_bytes();
+
+                            if Self::process_data_message(&mut pending, data, true, &control_types, &shutdown_tx, &mut upstream_sender).await {
+                                break;
+                            }
+                        }
+                        Message::Binary(bytes) => {
+                            // Note: Don't consume first_msg_transformer here - it's only meant for text messages.
+                            // If the first message is binary, we preserve the transformer for any subsequent text message.
+                            // This ensures authentication transformers are applied when a text message eventually arrives.
+                            if first_msg_transformer.is_some() {
+                                tracing::debug!("binary_message_received_before_text_transform");
+                            }
+                            let data = bytes.to_vec();
+
+                            if Self::process_data_message(&mut pending, data, false, &control_types, &shutdown_tx, &mut upstream_sender).await {
+                                break;
+                            }
+                        }
+                        Message::Ping(data) => {
+                            if let Err(e) = upstream_sender.send(TungsteniteMessage::Ping(data.to_vec().into())).await {
+                                tracing::error!("upstream_ping_failed: {:?}", e);
+                            }
+                        }
+                        Message::Pong(data) => {
+                            if let Err(e) = upstream_sender.send(TungsteniteMessage::Pong(data.to_vec().into())).await {
+                                tracing::error!("upstream_pong_failed: {:?}", e);
+                            }
+                        }
+                        Message::Close(frame) => {
+                            let (code, reason) = convert::extract_axum_close(frame, "client_closed");
+                            let _ = shutdown_tx.send((code, reason));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    async fn run_upstream_to_client(
+        mut upstream_receiver: UpstreamReceiver,
+        mut client_sender: ClientSender,
+        shutdown_tx: tokio::sync::broadcast::Sender<(u16, String)>,
+        mut shutdown_rx: tokio::sync::broadcast::Receiver<(u16, String)>,
+    ) {
+        let mut pending_error: Option<(u16, String)> = None;
+
+        loop {
+            tokio::select! {
+                biased;
+
+                result = shutdown_rx.recv() => {
+                    if let Ok((code, reason)) = result {
+                        let _ = client_sender.send(convert::to_axum_close(code, reason)).await;
+                    }
+                    break;
+                }
+
+                msg_opt = upstream_receiver.next() => {
+                    let Some(msg_result) = msg_opt else {
+                        let (code, reason) = pending_error.take().unwrap_or((DEFAULT_CLOSE_CODE, "upstream_disconnected".to_string()));
+                        let _ = shutdown_tx.send((code, reason));
+                        break;
+                    };
+
+                    let msg = match msg_result {
+                        Ok(m) => m,
+                        Err(e) => {
+                            tracing::error!("upstream_receive_error: {:?}", e);
+                            let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, format!("upstream_error: {}", e)));
+                            break;
+                        }
+                    };
+
+                    match msg {
+                        TungsteniteMessage::Text(text) => {
+                            let text_bytes = text.as_bytes();
+
+                            if let Some(upstream_err) = detect_upstream_error(text_bytes) {
+                                tracing::warn!(
+                                    code = upstream_err.code,
+                                    provider_code = ?upstream_err.provider_code,
+                                    message = %upstream_err.message,
+                                    "upstream_error_detected"
+                                );
+
+                                pending_error = Some((
+                                    upstream_err.to_close_code(),
+                                    upstream_err.message.clone(),
+                                ));
+                            }
+
+                            if client_sender.send(Message::Text(text.to_string().into())).await.is_err() {
+                                let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "client_send_failed".to_string()));
+                                break;
+                            }
+                        }
+                        TungsteniteMessage::Binary(data) => {
+                            if client_sender.send(Message::Binary(data.to_vec().into())).await.is_err() {
+                                let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "client_send_failed".to_string()));
+                                break;
+                            }
+                        }
+                        TungsteniteMessage::Ping(data) => {
+                            if let Err(e) = client_sender.send(Message::Ping(data.to_vec().into())).await {
+                                tracing::error!("client_ping_failed: {:?}", e);
+                            }
+                        }
+                        TungsteniteMessage::Pong(data) => {
+                            if let Err(e) = client_sender.send(Message::Pong(data.to_vec().into())).await {
+                                tracing::error!("client_pong_failed: {:?}", e);
+                            }
+                        }
+                        TungsteniteMessage::Close(frame) => {
+                            let (code, reason) = pending_error.take().unwrap_or_else(|| {
+                                convert::extract_tungstenite_close(frame, "upstream_closed")
+                            });
+                            let _ = shutdown_tx.send((code, reason));
+                            break;
+                        }
+                        TungsteniteMessage::Frame(_) => {}
+                    }
+                }
+            }
+        }
+    }
+}

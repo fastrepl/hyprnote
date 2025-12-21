@@ -101,7 +101,7 @@ export function SearchTrigger({
         type="button"
         onClick={() => setOpen(true)}
         className={cn([
-          "w-full flex items-center gap-2 px-3 py-2",
+          "group w-full flex items-center gap-2 px-3 py-2",
           "text-sm text-neutral-500",
           "bg-neutral-50 hover:bg-neutral-100",
           "border border-neutral-200 rounded-md",
@@ -114,9 +114,13 @@ export function SearchTrigger({
         <kbd
           className={cn([
             "hidden sm:inline-flex h-5 items-center gap-1",
-            "rounded border border-neutral-200 bg-white",
-            "px-1.5 font-mono text-[10px] font-medium text-neutral-500",
-            "select-none",
+            "rounded border border-neutral-300",
+            "bg-linear-to-b from-white to-neutral-100",
+            "px-1.5 font-mono text-[10px] font-medium text-neutral-400",
+            "shadow-[0_1px_0_0_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
+            "select-none transition-all duration-100",
+            "group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_0_0_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
+            "group-active:translate-y-0.5 group-active:shadow-none",
           ])}
         >
           <span className="text-xs">⌘</span>K
@@ -149,7 +153,7 @@ export function SearchTrigger({
         type="button"
         onClick={() => setOpen(true)}
         className={cn([
-          "cursor-pointer flex items-center gap-1.5",
+          "group cursor-pointer flex items-center gap-1.5",
           "text-neutral-400 hover:text-neutral-600",
           "transition-colors",
           className,
@@ -163,7 +167,9 @@ export function SearchTrigger({
             "bg-linear-to-b from-white to-neutral-100",
             "px-1.5 font-mono text-[10px] font-medium text-neutral-400",
             "shadow-[0_1px_0_0_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
-            "select-none",
+            "select-none transition-all duration-100",
+            "group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_0_0_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
+            "group-active:translate-y-0.5 group-active:shadow-none",
           ])}
         >
           <span className="text-sm">⌘</span>K

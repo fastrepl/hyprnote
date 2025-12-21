@@ -1,14 +1,27 @@
 use crate::error::Result;
-use crate::sources::{ImportConfig, ImportSource};
+use crate::sources::ImportSource;
 use crate::types::{
     ImportSourceInfo, ImportSourceKind, ImportedNote, ImportedTranscript, ImportedTranscriptSegment,
 };
 use hypr_granola::api::Document;
 use hypr_granola::cache::{CacheData, CacheDocument, TranscriptSegment};
 use hypr_granola::prosemirror::convert_to_plain_text;
+use std::path::PathBuf;
 use std::time::Duration;
 
-pub struct GranolaSource;
+pub struct GranolaSource {
+    pub supabase_path: Option<PathBuf>,
+    pub cache_path: Option<PathBuf>,
+}
+
+impl Default for GranolaSource {
+    fn default() -> Self {
+        Self {
+            supabase_path: Some(hypr_granola::default_supabase_path()),
+            cache_path: Some(hypr_granola::cache::default_cache_path()),
+        }
+    }
+}
 
 impl ImportSource for GranolaSource {
     fn info(&self) -> ImportSourceInfo {
@@ -19,9 +32,14 @@ impl ImportSource for GranolaSource {
         }
     }
 
-    async fn import_notes(&self, config: ImportConfig) -> Result<Vec<ImportedNote>> {
-        let supabase_path = config
+    fn is_available(&self) -> bool {
+        hypr_granola::default_supabase_path().exists()
+    }
+
+    async fn import_notes(&self) -> Result<Vec<ImportedNote>> {
+        let supabase_path = self
             .supabase_path
+            .clone()
             .unwrap_or_else(hypr_granola::default_supabase_path);
 
         let supabase_content = std::fs::read(&supabase_path)?;
@@ -36,9 +54,10 @@ impl ImportSource for GranolaSource {
             .collect())
     }
 
-    async fn import_transcripts(&self, config: ImportConfig) -> Result<Vec<ImportedTranscript>> {
-        let cache_path = config
+    async fn import_transcripts(&self) -> Result<Vec<ImportedTranscript>> {
+        let cache_path = self
             .cache_path
+            .clone()
             .unwrap_or_else(hypr_granola::cache::default_cache_path);
 
         let cache_data = hypr_granola::cache::read_cache(&cache_path)?;

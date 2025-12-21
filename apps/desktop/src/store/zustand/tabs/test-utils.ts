@@ -49,6 +49,7 @@ type TabsStateSlice = Pick<
   | "canGoNext"
   | "onClose"
   | "onEmpty"
+  | "closedTabs"
 >;
 
 const createDefaultTabsState = (): TabsStateSlice => ({
@@ -59,6 +60,7 @@ const createDefaultTabsState = (): TabsStateSlice => ({
   canGoNext: false,
   onClose: null,
   onEmpty: null,
+  closedTabs: [],
 });
 
 export const seedTabsStore = (

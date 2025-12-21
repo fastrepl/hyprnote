@@ -1,54 +1,39 @@
-use std::future::Future;
-use std::path::PathBuf;
+use crate::types::{ImportSourceInfo, ImportSourceKind};
 
-use crate::error::Result;
-use crate::sources::{ImportConfig, get_source, list_sources};
-use crate::types::{ImportSourceInfo, ImportSourceKind, ImportedNote, ImportedTranscript};
-
-pub trait ImporterPluginExt<R: tauri::Runtime> {
-    fn list_import_sources(&self) -> Vec<ImportSourceInfo>;
-
-    fn import_notes(
-        &self,
-        source: ImportSourceKind,
-        supabase_path: Option<PathBuf>,
-    ) -> impl Future<Output = Result<Vec<ImportedNote>>> + Send;
-
-    fn import_transcripts(
-        &self,
-        source: ImportSourceKind,
-        cache_path: Option<PathBuf>,
-    ) -> impl Future<Output = Result<Vec<ImportedTranscript>>> + Send;
+pub struct Importer<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    #[allow(dead_code)]
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R> + Sync> ImporterPluginExt<R> for T {
-    fn list_import_sources(&self) -> Vec<ImportSourceInfo> {
-        list_sources()
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
+    pub fn list_available_sources(&self) -> Vec<ImportSourceInfo> {
+        crate::sources::list_available_sources()
     }
 
-    async fn import_notes(
-        &self,
-        source: ImportSourceKind,
-        supabase_path: Option<PathBuf>,
-    ) -> Result<Vec<ImportedNote>> {
-        let import_source = get_source(source);
-        let config = ImportConfig {
-            supabase_path,
-            cache_path: None,
-        };
-        import_source.import_notes_boxed(config).await
+    pub async fn run_import(&self, _source: ImportSourceKind) -> crate::Result<()> {
+        Ok(())
     }
 
-    async fn import_transcripts(
-        &self,
-        source: ImportSourceKind,
-        cache_path: Option<PathBuf>,
-    ) -> Result<Vec<ImportedTranscript>> {
-        let import_source = get_source(source);
-        let config = ImportConfig {
-            supabase_path: None,
-            cache_path,
-        };
-        import_source.import_transcripts_boxed(config).await
+    pub async fn run_import_dry(&self, _source: ImportSourceKind) -> crate::Result<()> {
+        Ok(())
+    }
+}
+
+pub trait ImporterPluginExt<R: tauri::Runtime> {
+    fn importer(&self) -> Importer<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> ImporterPluginExt<R> for T {
+    fn importer(&self) -> Importer<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Importer {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

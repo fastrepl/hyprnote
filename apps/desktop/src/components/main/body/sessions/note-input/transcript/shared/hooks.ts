@@ -319,7 +319,7 @@ export function useAutoScroll(
 ) {
   const rafRef = useRef<number | null>(null);
   const lastHeightRef = useRef(0);
-  const initialFlushRef = useRef(true);
+  const initialFlushRef = useRef(enabled);
 
   useEffect(() => {
     const element = containerRef.current;

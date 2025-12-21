@@ -2,10 +2,12 @@ import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 
 import { cn } from "@hypr/utils";
 
-import { useAuth } from "../../auth";
 import { usePermissions } from "../../hooks/use-permissions";
-import type { StepProps } from "./config";
+import { Route } from "../../routes/app/onboarding";
+import { getBack, getNext, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
+
+export const STEP_ID_PERMISSIONS = "permissions" as const;
 
 function PermissionBlock({
   name,
@@ -72,7 +74,7 @@ function PermissionBlock({
 }
 
 export function Permissions({ onNavigate }: StepProps) {
-  const auth = useAuth();
+  const search = Route.useSearch();
   const {
     micPermissionStatus,
     systemAudioPermissionStatus,
@@ -90,12 +92,14 @@ export function Permissions({ onNavigate }: StepProps) {
     systemAudioPermissionStatus.data === "authorized" &&
     accessibilityPermissionStatus.data === "authorized";
 
-  const backStep = auth?.session ? "welcome" : "configure-notice";
+  const backStep = getBack(search);
 
   return (
     <OnboardingContainer
       title="Permissions needed for best experience"
-      onBack={() => onNavigate(backStep)}
+      onBack={
+        backStep ? () => onNavigate({ ...search, step: backStep }) : undefined
+      }
     >
       <div className="flex flex-col gap-4">
         <PermissionBlock
@@ -133,7 +137,7 @@ export function Permissions({ onNavigate }: StepProps) {
       </div>
 
       <button
-        onClick={() => onNavigate("done")}
+        onClick={() => onNavigate({ ...search, step: getNext(search) })}
         disabled={!allPermissionsGranted}
         className={cn([
           "w-full py-3 rounded-full text-sm font-medium duration-150",

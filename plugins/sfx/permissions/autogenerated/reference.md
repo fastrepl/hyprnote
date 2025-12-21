@@ -6,6 +6,7 @@ Default permissions for the plugin
 
 - `allow-play`
 - `allow-stop`
+- `allow-set-volume`
 
 ## Permission Table
 
@@ -38,6 +39,32 @@ Enables the play command without any pre-configured scope.
 <td>
 
 Denies the play command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`sfx:allow-set-volume`
+
+</td>
+<td>
+
+Enables the set_volume command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`sfx:deny-set-volume`
+
+</td>
+<td>
+
+Denies the set_volume command without any pre-configured scope.
 
 </td>
 </tr>

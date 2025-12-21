@@ -1,4 +1,3 @@
-use std::future::Future;
 use std::sync::{Arc, Mutex};
 
 use owhisper_client::BatchSttAdapter;
@@ -31,13 +30,14 @@ pub struct BatchParams {
     pub keywords: Vec<String>,
 }
 
-pub trait Listener2PluginExt<R: tauri::Runtime> {
-    fn run_batch(&self, params: BatchParams) -> impl Future<Output = Result<(), crate::Error>>;
+pub struct Listener2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
     #[tracing::instrument(skip_all)]
-    async fn run_batch(&self, params: BatchParams) -> Result<(), crate::Error> {
+    pub async fn run_batch(&self, params: BatchParams) -> Result<(), crate::Error> {
         let metadata = tokio::task::spawn_blocking({
             let path = params.file_path.clone();
             move || hypr_audio_utils::audio_file_metadata(path)
@@ -59,7 +59,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
             redemption_time_ms: None,
         };
 
-        let state = self.state::<crate::SharedState>();
+        let state = self.manager.state::<crate::SharedState>();
         let guard = state.lock().await;
         let app = guard.app.clone();
         drop(guard);
@@ -86,6 +86,24 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
                 )
                 .await
             }
+        }
+    }
+}
+
+pub trait Listener2PluginExt<R: tauri::Runtime> {
+    fn listener2(&self) -> Listener2<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
+    fn listener2(&self) -> Listener2<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Listener2 {
+            manager: self,
+            _runtime: std::marker::PhantomData,
         }
     }
 }

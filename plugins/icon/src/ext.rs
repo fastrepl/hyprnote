@@ -1,10 +1,10 @@
-pub trait IconPluginExt<R: tauri::Runtime> {
-    fn set_dock_icon(&self, name: String) -> Result<(), crate::Error>;
-    fn reset_dock_icon(&self) -> Result<(), crate::Error>;
+pub struct Icon<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> IconPluginExt<R> for T {
-    fn set_dock_icon(&self, name: String) -> Result<(), crate::Error> {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
+    pub fn set_dock_icon(&self, name: String) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
         {
             use std::path::PathBuf;
@@ -23,7 +23,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> IconPluginExt<R> for T {
                     .join(&name)
                     .join("icon.icns")
             } else {
-                self.path()
+                self.manager
+                    .path()
                     .resolve(format!("icons/{}.icns", name), BaseDirectory::Resource)
                     .map_err(crate::Error::Tauri)?
             };
@@ -37,7 +38,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> IconPluginExt<R> for T {
 
             let icon_path_str = icon_path.to_string_lossy().to_string();
 
-            let app_handle = self.app_handle();
+            let app_handle = self.manager.app_handle();
             app_handle
                 .run_on_main_thread(move || {
                     use objc2::AnyThread;
@@ -67,10 +68,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> IconPluginExt<R> for T {
         }
     }
 
-    fn reset_dock_icon(&self) -> Result<(), crate::Error> {
+    pub fn reset_dock_icon(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
         {
-            let app_handle = self.app_handle();
+            let app_handle = self.manager.app_handle();
             app_handle
                 .run_on_main_thread(move || {
                     use objc2_app_kit::NSApplication;
@@ -90,6 +91,24 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> IconPluginExt<R> for T {
         #[cfg(not(target_os = "macos"))]
         {
             Ok(())
+        }
+    }
+}
+
+pub trait IconPluginExt<R: tauri::Runtime> {
+    fn icon(&self) -> Icon<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> IconPluginExt<R> for T {
+    fn icon(&self) -> Icon<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Icon {
+            manager: self,
+            _runtime: std::marker::PhantomData,
         }
     }
 }

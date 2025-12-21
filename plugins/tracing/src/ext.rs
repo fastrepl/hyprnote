@@ -1,13 +1,14 @@
 use std::path::PathBuf;
 
-pub trait TracingPluginExt<R: tauri::Runtime> {
-    fn logs_dir(&self) -> Result<PathBuf, crate::Error>;
-    fn do_log(&self, level: Level, data: Vec<serde_json::Value>) -> Result<(), crate::Error>;
+pub struct Tracing<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> TracingPluginExt<R> for T {
-    fn logs_dir(&self) -> Result<PathBuf, crate::Error> {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'a, R, M> {
+    pub fn logs_dir(&self) -> Result<PathBuf, crate::Error> {
         let logs_dir = self
+            .manager
             .path()
             .resolve("hyprnote", tauri::path::BaseDirectory::Data)
             .map_err(|e| crate::Error::PathResolver(e.to_string()))?;
@@ -15,7 +16,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> TracingPluginExt<R> for T {
         Ok(logs_dir)
     }
 
-    fn do_log(&self, level: Level, data: Vec<serde_json::Value>) -> Result<(), crate::Error> {
+    pub fn do_log(&self, level: Level, data: Vec<serde_json::Value>) -> Result<(), crate::Error> {
         match level {
             Level::Trace => {
                 tracing::trace!("{:?}", data);
@@ -34,6 +35,24 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> TracingPluginExt<R> for T {
             }
         }
         Ok(())
+    }
+}
+
+pub trait TracingPluginExt<R: tauri::Runtime> {
+    fn tracing(&self) -> Tracing<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> TracingPluginExt<R> for T {
+    fn tracing(&self) -> Tracing<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Tracing {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }
 

@@ -8,6 +8,7 @@ import { useConfigValues } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/settings";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
+import { LabSettings } from "./lab";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
@@ -74,6 +75,11 @@ export function SettingsGeneral() {
 
   return (
     <div className="flex flex-col gap-8">
+      <div>
+        <h2 className="font-semibold mb-4">Account & Billing</h2>
+        <AccountSettings />
+      </div>
+
       <form.Field name="autostart">
         {(autostartField) => (
           <form.Field name="notification_detect">
@@ -156,10 +162,7 @@ export function SettingsGeneral() {
 
       <Permissions />
 
-      <div>
-        <h2 className="font-semibold mb-4">Account & Billing</h2>
-        <AccountSettings />
-      </div>
+      <LabSettings />
     </div>
   );
 }

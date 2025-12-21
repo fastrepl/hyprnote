@@ -6,20 +6,25 @@
 
 
 export const commands = {
-async listImportSources() : Promise<ImportSourceInfo[]> {
-    return await TAURI_INVOKE("plugin:importer|list_import_sources");
-},
-async importNotes(source: ImportSourceKind, supabasePath: string | null) : Promise<Result<ImportedNote[], string>> {
+async listAvailableSources() : Promise<Result<ImportSourceInfo[], string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|import_notes", { source, supabasePath }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|list_available_sources") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async importTranscripts(source: ImportSourceKind, cachePath: string | null) : Promise<Result<ImportedTranscript[], string>> {
+async runImport(source: ImportSourceKind) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|import_transcripts", { source, cachePath }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|run_import", { source }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async runImportDry(source: ImportSourceKind) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|run_import_dry", { source }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -39,9 +44,6 @@ async importTranscripts(source: ImportSourceKind, cachePath: string | null) : Pr
 
 export type ImportSourceInfo = { kind: ImportSourceKind; name: string; description: string }
 export type ImportSourceKind = "granola" | "hyprnote_v0_stable" | "hyprnote_v0_nightly"
-export type ImportedNote = { id: string; title: string; content: string; created_at: string; updated_at: string; tags: string[] }
-export type ImportedTranscript = { id: string; title: string; created_at: string; updated_at: string; segments: ImportedTranscriptSegment[] }
-export type ImportedTranscriptSegment = { id: string; start_timestamp: string; end_timestamp: string; text: string; speaker: string }
 
 /** tauri-specta globals **/
 

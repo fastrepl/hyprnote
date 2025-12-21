@@ -15,6 +15,8 @@ export type BasicActions = {
   openCurrent: (tab: TabInput) => void;
   openNew: (tab: TabInput) => void;
   select: (tab: Tab) => void;
+  selectNext: () => void;
+  selectPrev: () => void;
   close: (tab: Tab) => void;
   reorder: (tabs: Tab[]) => void;
   closeOthers: (tab: Tab) => void;
@@ -43,11 +45,43 @@ export const createBasicSlice = <
     const currentTab = nextTabs.find((t) => t.active) || null;
     set({ tabs: nextTabs, currentTab } as Partial<T>);
   },
+  selectNext: () => {
+    const { tabs, currentTab } = get();
+    if (tabs.length === 0 || !currentTab) return;
+
+    const currentIndex = tabs.findIndex((t) => isSameTab(t, currentTab));
+    const nextIndex = (currentIndex + 1) % tabs.length;
+    const nextTab = tabs[nextIndex];
+
+    const nextTabs = setActiveFlags(tabs, nextTab);
+    set({
+      tabs: nextTabs,
+      currentTab: { ...nextTab, active: true },
+    } as Partial<T>);
+  },
+  selectPrev: () => {
+    const { tabs, currentTab } = get();
+    if (tabs.length === 0 || !currentTab) return;
+
+    const currentIndex = tabs.findIndex((t) => isSameTab(t, currentTab));
+    const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    const prevTab = tabs[prevIndex];
+
+    const nextTabs = setActiveFlags(tabs, prevTab);
+    set({
+      tabs: nextTabs,
+      currentTab: { ...prevTab, active: true },
+    } as Partial<T>);
+  },
   close: (tab) => {
-    const { tabs, history } = get();
+    const { tabs, history, canClose } = get();
     const tabToClose = tabs.find((t) => isSameTab(t, tab));
 
     if (!tabToClose) {
+      return;
+    }
+
+    if (canClose && !canClose(tabToClose)) {
       return;
     }
 

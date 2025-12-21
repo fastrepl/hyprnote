@@ -107,7 +107,7 @@ export function SelectProviderAndModel() {
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
                 >
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-white shadow-none focus:ring-0">
                     <SelectValue placeholder="Select a provider" />
                   </SelectTrigger>
                   <SelectContent>
@@ -141,7 +141,6 @@ export function SelectProviderAndModel() {
             {(field) => {
               const providerId = form.getFieldValue("provider");
               const status = configuredProviders[providerId];
-              const providerDef = PROVIDERS.find((p) => p.id === providerId);
 
               return (
                 <div className="flex-[3] min-w-0">
@@ -152,12 +151,6 @@ export function SelectProviderAndModel() {
                     disabled={!status?.listModels}
                     listModels={status?.listModels}
                   />
-                  {status?.proLocked ? (
-                    <p className="mt-1 text-[11px] text-neutral-500">
-                      Upgrade to Pro to pick{" "}
-                      {providerDef?.displayName ?? "this provider"} models.
-                    </p>
-                  ) : null}
                 </div>
               );
             }}

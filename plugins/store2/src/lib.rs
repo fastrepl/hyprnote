@@ -82,7 +82,7 @@ mod test {
     #[tokio::test]
     async fn test_store() -> anyhow::Result<()> {
         let app = create_app(tauri::test::mock_builder());
-        assert!(app.store().is_ok());
+        assert!(app.store2().store().is_ok());
 
         #[derive(PartialEq, Eq, Hash, strum::Display)]
         enum TestKey {
@@ -94,7 +94,7 @@ mod test {
 
         impl ScopedStoreKey for TestKey {}
 
-        let scoped_store = app.scoped_store::<TestKey>("test")?;
+        let scoped_store = app.store2().scoped_store::<TestKey>("test")?;
         assert!(scoped_store.get::<String>(TestKey::KeyA)?.is_none());
 
         scoped_store.set(TestKey::KeyA, "test".to_string())?;

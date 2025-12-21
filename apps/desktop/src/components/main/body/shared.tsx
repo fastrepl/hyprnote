@@ -1,7 +1,6 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 
-import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
@@ -58,15 +57,19 @@ export function TabItemBase({
     }
   };
 
-  const contextMenu = !active ? (
-    <>
-      <ContextMenuItem onClick={handleCloseThis}>close tab</ContextMenuItem>
-      <ContextMenuItem onClick={handleCloseOthers}>
-        close others
-      </ContextMenuItem>
-      <ContextMenuItem onClick={handleCloseAll}>close all</ContextMenuItem>
-    </>
-  ) : undefined;
+  const contextMenu = !active
+    ? selected && !isEmptyTab
+      ? [{ id: "close-tab", text: "Close", action: handleCloseThis }]
+      : [
+          { id: "close-tab", text: "Close", action: handleCloseThis },
+          {
+            id: "close-others",
+            text: "Close others",
+            action: handleCloseOthers,
+          },
+          { id: "close-all", text: "Close all", action: handleCloseAll },
+        ]
+    : undefined;
 
   const showShortcut = isCmdPressed && tabIndex !== undefined;
 
@@ -88,7 +91,8 @@ export function TabItemBase({
           "cursor-pointer group",
           "transition-colors duration-200",
           active && selected && ["bg-red-50", "text-red-600", "border-red-400"],
-          active && !selected && ["bg-red-50", "text-red-500", "border-0"],
+          active &&
+            !selected && ["bg-red-50", "text-red-500", "border-transparent"],
           !active &&
             selected && ["bg-neutral-50", "text-black", "border-stone-400"],
           !active &&

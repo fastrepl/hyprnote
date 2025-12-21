@@ -62,6 +62,7 @@ pub async fn main() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_analytics::init())
+        .plugin(tauri_plugin_importer::init())
         .plugin(tauri_plugin_apple_calendar::init())
         .plugin(tauri_plugin_auth::init())
         .plugin(tauri_plugin_db2::init())
@@ -75,6 +76,7 @@ pub async fn main() {
         .plugin(tauri_plugin_deeplink2::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_pdf::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_misc::init())
         .plugin(tauri_plugin_template::init())
@@ -87,6 +89,7 @@ pub async fn main() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_store2::init())
         .plugin(tauri_plugin_settings::init())
+        .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_windows::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_listener::init())
@@ -141,14 +144,14 @@ pub async fn main() {
 
             {
                 use tauri_plugin_tray::TrayPluginExt;
-                app_handle.create_tray_menu().unwrap();
-                app_handle.create_app_menu().unwrap();
+                app_handle.tray().create_tray_menu().unwrap();
+                app_handle.tray().create_app_menu().unwrap();
             }
 
             tokio::spawn(async move {
                 use tauri_plugin_db2::Database2PluginExt;
 
-                if let Err(e) = app_clone.init_local().await {
+                if let Err(e) = app_clone.db2().init_local().await {
                     tracing::error!("failed_to_init_local: {}", e);
                 }
             });
@@ -158,7 +161,7 @@ pub async fn main() {
             }
 
             specta_builder.mount_events(&app_handle);
-            app_handle.maybe_emit_updated();
+            app_handle.updater2().maybe_emit_updated();
 
             Ok(())
         })

@@ -115,24 +115,23 @@ export function IconSettings() {
           Choose your preferred app icon.
           {isChristmas && " Christmas edition icons are currently active!"}
         </p>
-        <div className="flex flex-wrap gap-3">
-          {ALL_ICONS.map((icon) => {
-            const isEnabled = availableIcons.includes(icon);
-            return (
-              <IconOption
-                key={icon}
-                icon={icon}
-                isChristmas={isChristmas}
-                isSelected={selectedIcon === icon}
-                isEnabled={isEnabled}
-                onClick={() => handleIconSelect(icon, isEnabled)}
-              />
-            );
-          })}
-        </div>
-        {availableHolidayIcons.length > 0 && (
-          <>
-            <p className="text-sm text-neutral-600 mt-2">Holiday Icons</p>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-3">
+            {ALL_ICONS.map((icon) => {
+              const isEnabled = availableIcons.includes(icon);
+              return (
+                <IconOption
+                  key={icon}
+                  icon={icon}
+                  isChristmas={isChristmas}
+                  isSelected={selectedIcon === icon}
+                  isEnabled={isEnabled}
+                  onClick={() => handleIconSelect(icon, isEnabled)}
+                />
+              );
+            })}
+          </div>
+          {availableHolidayIcons.length > 0 && (
             <div className="flex flex-wrap gap-3">
               {availableHolidayIcons.map((icon) => (
                 <HolidayIconOption
@@ -143,8 +142,8 @@ export function IconSettings() {
                 />
               ))}
             </div>
-          </>
-        )}
+          )}
+        </div>
         {(selectedIcon || selectedHolidayIcon) && (
           <button
             onClick={handleReset}

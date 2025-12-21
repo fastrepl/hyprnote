@@ -22,7 +22,7 @@ const ICON_DISPLAY_NAMES: Record<IconVariant, string> = {
   pro: "Pro",
 };
 
-const ALL_ICONS: IconVariant[] = ["beta", "light", "dark", "pro"];
+const ALL_ICONS: IconVariant[] = ["light", "dark"];
 
 type SeasonalIcon =
   | "xmas-beta"
@@ -110,11 +110,18 @@ export function IconSettings() {
   }
 
   const availableIcons = availableIconsQuery.data ?? [];
+  const hasBeta = availableIcons.includes("beta");
+
+  const displayIcons: IconVariant[] = [
+    ...(hasBeta ? (["beta"] as const) : []),
+    ...ALL_ICONS,
+    "pro",
+  ];
 
   const availableSeasonalIcons: SeasonalIcon[] = [
     ...(isChristmas
       ? ([
-          "xmas-beta",
+          ...(hasBeta ? (["xmas-beta"] as const) : []),
           "xmas-light",
           "xmas-dark",
           "xmas-pro",
@@ -132,7 +139,7 @@ export function IconSettings() {
           Choose your preferred app icon.
         </p>
         <div className="flex flex-wrap gap-3">
-          {ALL_ICONS.map((icon) => {
+          {displayIcons.map((icon) => {
             const isEnabled = availableIcons.includes(icon);
             return (
               <IconOption

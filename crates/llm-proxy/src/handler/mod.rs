@@ -85,7 +85,8 @@ pub fn router(config: LlmProxyConfig) -> Router {
     };
 
     Router::new()
-        .route("/completions", post(completions_handler))
+        .route("/", post(completions_handler))
+        .route("/chat/completions", post(completions_handler))
         .with_state(state)
 }
 

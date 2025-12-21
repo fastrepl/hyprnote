@@ -65,6 +65,8 @@ pub fn router(config: SttProxyConfig) -> Router {
     };
 
     Router::new()
+        .route("/", get(streaming::handler))
+        .route("/", post(batch::handler))
         .route("/listen", get(streaming::handler))
         .route("/listen", post(batch::handler))
         .layer(DefaultBodyLimit::max(100 * 1024 * 1024))

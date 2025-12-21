@@ -131,7 +131,19 @@ export function TabItemBase({
                   <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
                 </div>
               ) : pinned ? (
-                <Pin size={14} className="text-neutral-500" />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUnpinThis();
+                  }}
+                  className={cn([
+                    "flex items-center justify-center transition-colors",
+                    selected && "text-neutral-700 hover:text-neutral-900",
+                    !selected && "text-neutral-500 hover:text-neutral-700",
+                  ])}
+                >
+                  <Pin size={14} />
+                </button>
               ) : (
                 icon
               )}

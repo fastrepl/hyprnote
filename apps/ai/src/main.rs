@@ -7,7 +7,8 @@ use std::time::Duration;
 use axum::{Router, body::Body, http::Request, middleware};
 use sentry::integrations::tower::{NewSentryLayer, SentryHttpLayer};
 use tower::ServiceBuilder;
-use tower_http::trace::TraceLayer;
+use tower_http::trace::{DefaultOnResponse, TraceLayer};
+use tracing::Level;
 
 use auth::AuthState;
 use env::env;
@@ -32,7 +33,24 @@ fn app() -> Router {
             ServiceBuilder::new()
                 .layer(NewSentryLayer::<Request<Body>>::new_from_top())
                 .layer(SentryHttpLayer::new().enable_transaction())
-                .layer(TraceLayer::new_for_http()),
+                .layer(
+                    TraceLayer::new_for_http()
+                        .make_span_with(|request: &Request<Body>| {
+                            tracing::info_span!(
+                                "request",
+                                method = %request.method(),
+                                uri = %request.uri(),
+                            )
+                        })
+                        .on_request(|request: &Request<Body>, _span: &tracing::Span| {
+                            tracing::info!(
+                                method = %request.method(),
+                                uri = %request.uri(),
+                                "incoming request"
+                            );
+                        })
+                        .on_response(DefaultOnResponse::new().level(Level::INFO)),
+                ),
         )
 }
 

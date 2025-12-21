@@ -515,6 +515,13 @@ pub enum ModelIdentifier {
 }
 
 impl ModelIdentifier {
+    pub fn has_foldable_display(&self) -> bool {
+        matches!(
+            self.family(),
+            Family::MacBookPro | Family::MacBookAir | Family::MacBook
+        )
+    }
+
     pub fn has_builtin_mic(&self) -> bool {
         matches!(
             self.family(),

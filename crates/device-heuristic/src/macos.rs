@@ -1,4 +1,5 @@
 use cidre::{core_audio as ca, io};
+use objc2_core_graphics::{CGDisplayIsBuiltin, CGGetActiveDisplayList};
 
 fn is_headphone_from_device(device: Option<ca::Device>) -> bool {
     match device {
@@ -50,6 +51,34 @@ fn is_external_from_device(device: Option<ca::Device>) -> bool {
 pub fn is_default_input_external() -> bool {
     let device = ca::System::default_input_device().ok();
     is_external_from_device(device)
+}
+
+pub fn is_builtin_display_inactive() -> bool {
+    let mut display_count: u32 = 0;
+    let mut displays: [u32; 16] = [0; 16];
+
+    unsafe {
+        let result = CGGetActiveDisplayList(16, displays.as_mut_ptr(), &mut display_count);
+        if result.0 != 0 {
+            return false;
+        }
+    }
+
+    for i in 0..display_count as usize {
+        if CGDisplayIsBuiltin(displays[i]) {
+            return false;
+        }
+    }
+
+    display_count > 0
+}
+
+pub fn is_builtin_display_foldable() -> bool {
+    hypr_mac::ModelIdentifier::current()
+        .ok()
+        .flatten()
+        .map(|model| model.has_foldable_display())
+        .unwrap_or(false)
 }
 
 pub fn has_builtin_mic() -> bool {

@@ -1,3 +1,5 @@
+// https://docs.gladia.io/api-reference/v2/live/init
+
 use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
 
@@ -108,7 +110,15 @@ impl RealtimeSttAdapter for GladiaAdapter {
 
             let custom_vocabulary = (!params.keywords.is_empty()).then(|| params.keywords.clone());
 
+            let default = owhisper_providers::Provider::Gladia.default_live_model();
+            let model = match params.model.as_deref() {
+                Some(m) if owhisper_providers::is_meta_model(m) => Some(default),
+                Some(m) => Some(m),
+                None => None,
+            };
+
             let body = GladiaConfig {
+                model,
                 encoding: "wav/pcm",
                 sample_rate: params.sample_rate,
                 bit_depth: 16,
@@ -227,6 +237,8 @@ struct GladiaConfig<'a> {
     sample_rate: u32,
     bit_depth: u8,
     channels: u8,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    model: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     language_config: Option<LanguageConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]

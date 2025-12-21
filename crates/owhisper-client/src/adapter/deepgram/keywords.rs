@@ -14,19 +14,19 @@ impl KeywordQueryStrategy for DeepgramKeywordStrategy {
             return;
         }
 
-        let use_keyterms = params
+        let use_keywords = params
             .model
             .as_ref()
-            .map(|model| model.contains("nova-3"))
+            .map(|model| model.contains("nova-"))
             .unwrap_or(false);
 
-        let param_name = if use_keyterms { "keyterm" } else { "keywords" };
-        let max_keywords = if use_keyterms {
-            // https://github.com/deepgram/deepgram-python-sdk/issues/503
-            50
-        } else {
+        let param_name = if use_keywords { "keywords" } else { "keyterm" };
+        let max_keywords = if use_keywords {
             // https://developers.deepgram.com/docs/keywords#keyword-limits
             99
+        } else {
+            // https://github.com/deepgram/deepgram-python-sdk/issues/503
+            50
         };
 
         for keyword in params.keywords.iter().take(max_keywords) {

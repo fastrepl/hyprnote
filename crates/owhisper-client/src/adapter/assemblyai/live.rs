@@ -33,10 +33,12 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
             query_pairs.append_pair("encoding", "pcm_s16le");
             query_pairs.append_pair("format_turns", "true");
 
-            let model = params
-                .model
-                .as_deref()
-                .unwrap_or("universal-streaming-english");
+            let default = owhisper_providers::Provider::AssemblyAI.default_live_model();
+            let model = match params.model.as_deref() {
+                Some(m) if owhisper_providers::is_meta_model(m) => default,
+                Some(m) => m,
+                None => default,
+            };
 
             let (speech_model, language, language_detection) =
                 Self::resolve_language_config(model, params);

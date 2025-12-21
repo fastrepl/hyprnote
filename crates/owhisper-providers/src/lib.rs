@@ -1,3 +1,7 @@
+pub fn is_meta_model(model: &str) -> bool {
+    matches!(model, "cloud" | "auto")
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Auth {
     Header {
@@ -211,6 +215,28 @@ impl Provider {
             Self::Fireworks => "FIREWORKS_API_KEY",
             Self::OpenAI => "OPENAI_API_KEY",
             Self::Gladia => "GLADIA_API_KEY",
+        }
+    }
+
+    pub fn default_live_model(&self) -> &'static str {
+        match self {
+            Self::Deepgram => "nova-3",
+            Self::Soniox => "stt-rt-v3",
+            Self::AssemblyAI => "universal",
+            Self::Fireworks => "whisper-v3-turbo",
+            Self::OpenAI => "gpt-4o-transcribe",
+            Self::Gladia => "solaria-1",
+        }
+    }
+
+    pub fn default_batch_model(&self) -> &'static str {
+        match self {
+            Self::Deepgram => "nova-3",
+            Self::Soniox => "stt-async-v3",
+            Self::AssemblyAI => "universal",
+            Self::Fireworks => "whisper-v3-turbo",
+            Self::OpenAI => "whisper-1",
+            Self::Gladia => "solaria-1",
         }
     }
 

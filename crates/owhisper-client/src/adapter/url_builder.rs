@@ -1,4 +1,5 @@
 use owhisper_interface::ListenParams;
+use owhisper_providers::{Provider, is_meta_model};
 
 #[derive(Default)]
 pub struct QueryParamBuilder {
@@ -24,7 +25,12 @@ impl QueryParamBuilder {
     }
 
     pub fn add_common_listen_params(&mut self, params: &ListenParams, channels: u8) -> &mut Self {
-        let model = params.model.as_deref().unwrap_or("nova-3");
+        let default = Provider::Deepgram.default_live_model();
+        let model = match params.model.as_deref() {
+            Some(m) if is_meta_model(m) => default,
+            Some(m) => m,
+            None => default,
+        };
         self.add("model", model)
             .add("channels", channels)
             .add("sample_rate", params.sample_rate)
@@ -170,5 +176,22 @@ mod tests {
 
         let result = builder.build();
         assert!(result.iter().any(|(k, v)| k == "model" && v == "nova-3"));
+    }
+
+    #[test]
+    fn test_add_common_listen_params_with_cloud_model() {
+        let mut builder = QueryParamBuilder::new();
+        let params = ListenParams {
+            model: Some("cloud".to_string()),
+            sample_rate: 16000,
+            ..Default::default()
+        };
+        builder.add_common_listen_params(&params, 1);
+
+        let result = builder.build();
+        assert!(
+            result.iter().any(|(k, v)| k == "model" && v == "nova-3"),
+            "cloud should be resolved to default nova-3"
+        );
     }
 }

@@ -16,10 +16,21 @@ const ICON_DISPLAY_NAMES: Record<IconVariant, string> = {
   pro: "Pro",
 };
 
+type HolidayIcon = "hanukkah" | "kwanzaa";
+
+const HOLIDAY_ICON_DISPLAY_NAMES: Record<HolidayIcon, string> = {
+  hanukkah: "Hanukkah",
+  kwanzaa: "Kwanzaa",
+};
+
 export function IconSettings() {
   const { isPro } = useBillingAccess();
   const [selectedIcon, setSelectedIcon] = useState<IconVariant | null>(null);
+  const [selectedHolidayIcon, setSelectedHolidayIcon] =
+    useState<HolidayIcon | null>(null);
   const [isChristmas, setIsChristmas] = useState(false);
+  const [isHanukkah, setIsHanukkah] = useState(false);
+  const [isKwanzaa, setIsKwanzaa] = useState(false);
 
   const availableIconsQuery = useQuery({
     queryKey: ["availableIcons", isPro],
@@ -34,6 +45,8 @@ export function IconSettings() {
 
   useEffect(() => {
     commands.isChristmasSeason().then(setIsChristmas);
+    commands.isHanukkahSeason().then(setIsHanukkah);
+    commands.isKwanzaaSeason().then(setIsKwanzaa);
   }, []);
 
   const handleIconSelect = useCallback(
@@ -42,15 +55,25 @@ export function IconSettings() {
       const result = await commands.setDockIcon(iconName);
       if (result.status === "ok") {
         setSelectedIcon(icon);
+        setSelectedHolidayIcon(null);
       }
     },
     [isChristmas],
   );
 
+  const handleHolidayIconSelect = useCallback(async (icon: HolidayIcon) => {
+    const result = await commands.setDockIcon(icon);
+    if (result.status === "ok") {
+      setSelectedHolidayIcon(icon);
+      setSelectedIcon(null);
+    }
+  }, []);
+
   const handleReset = useCallback(async () => {
     const result = await commands.resetDockIcon();
     if (result.status === "ok") {
       setSelectedIcon(null);
+      setSelectedHolidayIcon(null);
     }
   }, []);
 
@@ -75,6 +98,11 @@ export function IconSettings() {
   }
 
   const availableIcons = availableIconsQuery.data ?? [];
+  const isHolidaySeason = isChristmas || isHanukkah || isKwanzaa;
+  const availableHolidayIcons: HolidayIcon[] = [
+    ...(isHanukkah ? (["hanukkah"] as const) : []),
+    ...(isKwanzaa ? (["kwanzaa"] as const) : []),
+  ];
 
   return (
     <div>
@@ -95,7 +123,22 @@ export function IconSettings() {
             />
           ))}
         </div>
-        {selectedIcon && (
+        {availableHolidayIcons.length > 0 && (
+          <>
+            <p className="text-sm text-neutral-600 mt-2">Holiday Icons</p>
+            <div className="flex flex-wrap gap-3">
+              {availableHolidayIcons.map((icon) => (
+                <HolidayIconOption
+                  key={icon}
+                  icon={icon}
+                  isSelected={selectedHolidayIcon === icon}
+                  onClick={() => handleHolidayIconSelect(icon)}
+                />
+              ))}
+            </div>
+          </>
+        )}
+        {(selectedIcon || selectedHolidayIcon) && (
           <button
             onClick={handleReset}
             className="text-sm text-neutral-500 hover:text-neutral-700 underline self-start"
@@ -148,6 +191,42 @@ function IconOption({
       </div>
       <span className="text-xs font-medium text-neutral-700">
         {ICON_DISPLAY_NAMES[icon]}
+      </span>
+    </button>
+  );
+}
+
+function HolidayIconOption({
+  icon,
+  isSelected,
+  onClick,
+}: {
+  icon: HolidayIcon;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn([
+        "flex flex-col items-center gap-2 p-3 rounded-lg border transition-all",
+        isSelected
+          ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+          : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50",
+      ])}
+    >
+      <div className="w-16 h-16 rounded-xl overflow-hidden bg-neutral-100 flex items-center justify-center">
+        <img
+          src={`/icons/${icon}/icon.png`}
+          alt={`${HOLIDAY_ICON_DISPLAY_NAMES[icon]} icon`}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+      </div>
+      <span className="text-xs font-medium text-neutral-700">
+        {HOLIDAY_ICON_DISPLAY_NAMES[icon]}
       </span>
     </button>
   );

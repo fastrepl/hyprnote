@@ -15,6 +15,22 @@ pub fn is_christmas_season() -> bool {
     (month == 12 && day >= 1) || (month == 1 && day <= 6)
 }
 
+pub fn is_hanukkah_season() -> bool {
+    use chrono::Datelike;
+    let now = chrono::Utc::now();
+    let month = now.month();
+    let day = now.day();
+    (month == 12 && day >= 1) || (month == 1 && day <= 6)
+}
+
+pub fn is_kwanzaa_season() -> bool {
+    use chrono::Datelike;
+    let now = chrono::Utc::now();
+    let month = now.month();
+    let day = now.day();
+    month == 12 && day >= 26 || (month == 1 && day == 1)
+}
+
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
@@ -23,6 +39,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::reset_dock_icon::<tauri::Wry>,
             commands::get_available_icons::<tauri::Wry>,
             commands::is_christmas_season,
+            commands::is_hanukkah_season,
+            commands::is_kwanzaa_season,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

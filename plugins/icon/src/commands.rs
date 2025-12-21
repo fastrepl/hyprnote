@@ -33,3 +33,15 @@ pub(crate) async fn get_available_icons<R: tauri::Runtime>(
 pub(crate) fn is_christmas_season() -> bool {
     crate::is_christmas_season()
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn is_hanukkah_season() -> bool {
+    crate::is_hanukkah_season()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn is_kwanzaa_season() -> bool {
+    crate::is_kwanzaa_season()
+}

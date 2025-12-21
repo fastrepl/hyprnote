@@ -8,6 +8,8 @@ Default permissions for the plugin
 - `allow-reset-dock-icon`
 - `allow-get-available-icons`
 - `allow-is-christmas-season`
+- `allow-is-hanukkah-season`
+- `allow-is-kwanzaa-season`
 
 ## Permission Table
 
@@ -66,6 +68,58 @@ Enables the is_christmas_season command without any pre-configured scope.
 <td>
 
 Denies the is_christmas_season command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`icon:allow-is-hanukkah-season`
+
+</td>
+<td>
+
+Enables the is_hanukkah_season command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`icon:deny-is-hanukkah-season`
+
+</td>
+<td>
+
+Denies the is_hanukkah_season command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`icon:allow-is-kwanzaa-season`
+
+</td>
+<td>
+
+Enables the is_kwanzaa_season command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`icon:deny-is-kwanzaa-season`
+
+</td>
+<td>
+
+Denies the is_kwanzaa_season command without any pre-configured scope.
 
 </td>
 </tr>

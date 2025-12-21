@@ -32,6 +32,12 @@ async getAvailableIcons(isPro: boolean) : Promise<Result<IconVariant[], string>>
 },
 async isChristmasSeason() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:icon|is_christmas_season");
+},
+async isHanukkahSeason() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:icon|is_hanukkah_season");
+},
+async isKwanzaaSeason() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:icon|is_kwanzaa_season");
 }
 }
 

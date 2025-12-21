@@ -319,6 +319,30 @@
           "markdownDescription": "Denies the is_christmas_season command without any pre-configured scope."
         },
         {
+          "description": "Enables the is_hanukkah_season command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-hanukkah-season",
+          "markdownDescription": "Enables the is_hanukkah_season command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the is_hanukkah_season command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-hanukkah-season",
+          "markdownDescription": "Denies the is_hanukkah_season command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the is_kwanzaa_season command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-kwanzaa-season",
+          "markdownDescription": "Enables the is_kwanzaa_season command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the is_kwanzaa_season command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-kwanzaa-season",
+          "markdownDescription": "Denies the is_kwanzaa_season command without any pre-configured scope."
+        },
+        {
           "description": "Enables the reset_dock_icon command without any pre-configured scope.",
           "type": "string",
           "const": "allow-reset-dock-icon",
@@ -343,10 +367,10 @@
           "markdownDescription": "Denies the set_dock_icon command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`\n- `allow-get-available-icons`\n- `allow-is-christmas-season`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`\n- `allow-get-available-icons`\n- `allow-is-christmas-season`\n- `allow-is-hanukkah-season`\n- `allow-is-kwanzaa-season`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`\n- `allow-get-available-icons`\n- `allow-is-christmas-season`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`\n- `allow-get-available-icons`\n- `allow-is-christmas-season`\n- `allow-is-hanukkah-season`\n- `allow-is-kwanzaa-season`"
         }
       ]
     }

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-is-hanukkah-season"
+description = "Enables the is_hanukkah_season command without any pre-configured scope."
+commands.allow = ["is_hanukkah_season"]
+
+[[permission]]
+identifier = "deny-is-hanukkah-season"
+description = "Denies the is_hanukkah_season command without any pre-configured scope."
+commands.deny = ["is_hanukkah_season"]

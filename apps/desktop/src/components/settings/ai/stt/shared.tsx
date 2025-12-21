@@ -10,6 +10,7 @@ import type {
   WhisperModel,
 } from "@hypr/plugin-local-stt";
 
+import { env } from "../../../../env";
 import {
   type ProviderRequirement,
   requiresEntitlement,
@@ -89,7 +90,7 @@ const _PROVIDERS = [
     displayName: "Hyprnote",
     badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
-    baseUrl: "https://api.hyprnote.com/v1",
+    baseUrl: new URL("/stt", env.VITE_AI_URL).toString(),
     models: [
       "cloud",
       "am-parakeet-v2",

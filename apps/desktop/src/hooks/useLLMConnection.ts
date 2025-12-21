@@ -188,7 +188,7 @@ const resolveLLMConnection = (params: {
       conn: {
         providerId,
         modelId,
-        baseUrl: env.VITE_API_URL,
+        baseUrl: baseUrl ?? new URL("/llm", env.VITE_AI_URL).toString(),
         apiKey: session.access_token,
       },
       status: { status: "success", providerId, isHosted: true },

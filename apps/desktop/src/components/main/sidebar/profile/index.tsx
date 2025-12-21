@@ -232,7 +232,10 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                         <MenuItem key={item.label} {...item} />
                       ))}
 
-                      <AuthSection isAuthenticated={isAuthenticated} />
+                      <AuthSection
+                        isAuthenticated={isAuthenticated}
+                        onClose={closeMenu}
+                      />
                     </motion.div>
                   ) : (
                     <motion.div

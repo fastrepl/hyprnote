@@ -5,7 +5,11 @@
   "identifier": "com.hyprnote.staging",
   "plugins": {
     "deep-link": {
-      "desktop": { "schemes": ["hyprnote-staging"] }
+      "desktop": {
+        "schemes": [
+          "hyprnote-staging"
+        ]
+      }
     },
     "updater": {
       "active": false
@@ -19,6 +23,16 @@
       "icons/staging/icon.icns",
       "icons/staging/icon.ico"
     ],
+    "resources": {
+      "icons/dark/icon.icns": "icons/dark.icns",
+      "icons/light/icon.icns": "icons/light.icns",
+      "icons/pro/icon.icns": "icons/pro.icns",
+      "icons/xmas-dark/icon.icns": "icons/xmas-dark.icns",
+      "icons/xmas-light/icon.icns": "icons/xmas-light.icns",
+      "icons/xmas-pro/icon.icns": "icons/xmas-pro.icns",
+      "icons/hanukkah/icon.icns": "icons/hanukkah.icns",
+      "icons/kwanzaa/icon.icns": "icons/kwanzaa.icns"
+    },
     "macOS": {
       "dmg": {
         "background": "assets/dmg-background-nightly.png"

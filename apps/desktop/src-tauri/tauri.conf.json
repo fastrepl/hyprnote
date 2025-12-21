@@ -15,7 +15,10 @@
     "security": {
       "assetProtocol": {
         "enable": true,
-        "scope": ["**/*", "$APPDATA/**"]
+        "scope": [
+          "**/*",
+          "$APPDATA/**"
+        ]
       }
     }
   },
@@ -25,17 +28,23 @@
     "createUpdaterArtifacts": true,
     "targets": "all",
     "icon": [
-      "icons/stable/32x32.png",
-      "icons/stable/128x128.png",
-      "icons/stable/128x128@2x.png",
-      "icons/stable/icon.icns",
-      "icons/stable/icon.ico"
+      "icons/dark/32x32.png",
+      "icons/dark/128x128.png",
+      "icons/dark/128x128@2x.png",
+      "icons/dark/icon.icns",
+      "icons/dark/icon.ico"
     ],
     "resources": {
-      "icons/stable/icon.icns": "icons/stable.icns",
-      "icons/nightly/icon.icns": "icons/nightly.icns",
-      "icons/staging/icon.icns": "icons/staging.icns",
-      "icons/pro/icon.icns": "icons/pro.icns"
+      "icons/beta/icon.icns": "icons/beta.icns",
+      "icons/dark/icon.icns": "icons/dark.icns",
+      "icons/light/icon.icns": "icons/light.icns",
+      "icons/pro/icon.icns": "icons/pro.icns",
+      "icons/xmas-beta/icon.icns": "icons/xmas-beta.icns",
+      "icons/xmas-dark/icon.icns": "icons/xmas-dark.icns",
+      "icons/xmas-light/icon.icns": "icons/xmas-light.icns",
+      "icons/xmas-pro/icon.icns": "icons/xmas-pro.icns",
+      "icons/hanukkah/icon.icns": "icons/hanukkah.icns",
+      "icons/kwanzaa/icon.icns": "icons/kwanzaa.icns"
     },
     "macOS": {
       "minimumSystemVersion": "14.2",
@@ -77,7 +86,11 @@
       }
     },
     "deep-link": {
-      "desktop": { "schemes": ["hyprnote"] }
+      "desktop": {
+        "schemes": [
+          "hyprnote"
+        ]
+      }
     },
     "updater": {
       "active": false,

@@ -5,13 +5,29 @@
   "identifier": "com.hyprnote.stable",
   "plugins": {
     "deep-link": {
-      "desktop": { "schemes": ["hyprnote"] }
+      "desktop": {
+        "schemes": [
+          "hyprnote"
+        ]
+      }
     },
     "updater": {
       "active": true,
       "endpoints": [
         "https://desktop2.hyprnote.com/update/{{target}}-{{arch}}/{{current_version}}?channel=stable"
       ]
+    }
+  },
+  "bundle": {
+    "resources": {
+      "icons/dark/icon.icns": "icons/dark.icns",
+      "icons/light/icon.icns": "icons/light.icns",
+      "icons/pro/icon.icns": "icons/pro.icns",
+      "icons/xmas-dark/icon.icns": "icons/xmas-dark.icns",
+      "icons/xmas-light/icon.icns": "icons/xmas-light.icns",
+      "icons/xmas-pro/icon.icns": "icons/xmas-pro.icns",
+      "icons/hanukkah/icon.icns": "icons/hanukkah.icns",
+      "icons/kwanzaa/icon.icns": "icons/kwanzaa.icns"
     }
   }
 }

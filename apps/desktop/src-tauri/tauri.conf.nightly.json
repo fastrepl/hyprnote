@@ -5,7 +5,11 @@
   "identifier": "com.hyprnote.nightly",
   "plugins": {
     "deep-link": {
-      "desktop": { "schemes": ["hyprnote-nightly"] }
+      "desktop": {
+        "schemes": [
+          "hyprnote-nightly"
+        ]
+      }
     },
     "updater": {
       "active": true,
@@ -16,12 +20,24 @@
   },
   "bundle": {
     "icon": [
-      "icons/nightly/32x32.png",
-      "icons/nightly/128x128.png",
-      "icons/nightly/128x128@2x.png",
-      "icons/nightly/icon.icns",
-      "icons/nightly/icon.ico"
+      "icons/beta/32x32.png",
+      "icons/beta/128x128.png",
+      "icons/beta/128x128@2x.png",
+      "icons/beta/icon.icns",
+      "icons/beta/icon.ico"
     ],
+    "resources": {
+      "icons/beta/icon.icns": "icons/beta.icns",
+      "icons/dark/icon.icns": "icons/dark.icns",
+      "icons/light/icon.icns": "icons/light.icns",
+      "icons/pro/icon.icns": "icons/pro.icns",
+      "icons/xmas-beta/icon.icns": "icons/xmas-beta.icns",
+      "icons/xmas-dark/icon.icns": "icons/xmas-dark.icns",
+      "icons/xmas-light/icon.icns": "icons/xmas-light.icns",
+      "icons/xmas-pro/icon.icns": "icons/xmas-pro.icns",
+      "icons/hanukkah/icon.icns": "icons/hanukkah.icns",
+      "icons/kwanzaa/icon.icns": "icons/kwanzaa.icns"
+    },
     "macOS": {
       "dmg": {
         "background": "assets/dmg-background-nightly.png"

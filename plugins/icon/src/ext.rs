@@ -46,20 +46,20 @@ pub struct Icon<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
     pub fn get_available_icons(&self, is_pro: bool) -> Result<Vec<IconVariant>, crate::Error> {
-        if is_pro {
-            Ok(vec![
-                IconVariant::Beta,
-                IconVariant::Light,
-                IconVariant::Dark,
-                IconVariant::Pro,
-            ])
-        } else {
-            Ok(vec![
-                IconVariant::Beta,
-                IconVariant::Light,
-                IconVariant::Dark,
-            ])
+        let identifier = self.manager.app_handle().config().identifier.as_str();
+        let is_nightly = identifier.contains("nightly");
+
+        let mut icons = vec![IconVariant::Light, IconVariant::Dark];
+
+        if is_nightly {
+            icons.insert(0, IconVariant::Beta);
         }
+
+        if is_pro {
+            icons.push(IconVariant::Pro);
+        }
+
+        Ok(icons)
     }
 
     pub fn set_dock_icon(&self, name: String) -> Result<(), crate::Error> {

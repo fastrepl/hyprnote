@@ -16,6 +16,8 @@ const ICON_DISPLAY_NAMES: Record<IconVariant, string> = {
   pro: "Pro",
 };
 
+const ALL_ICONS: IconVariant[] = ["beta", "dark", "light", "pro"];
+
 type HolidayIcon = "hanukkah" | "kwanzaa";
 
 const HOLIDAY_ICON_DISPLAY_NAMES: Record<HolidayIcon, string> = {
@@ -50,7 +52,9 @@ export function IconSettings() {
   }, []);
 
   const handleIconSelect = useCallback(
-    async (icon: IconVariant) => {
+    async (icon: IconVariant, isEnabled: boolean) => {
+      if (!isEnabled) return;
+
       const iconName = isChristmas ? `xmas-${icon}` : icon;
       const result = await commands.setDockIcon(iconName);
       if (result.status === "ok") {
@@ -112,15 +116,19 @@ export function IconSettings() {
           {isChristmas && " Christmas edition icons are currently active!"}
         </p>
         <div className="flex flex-wrap gap-3">
-          {availableIcons.map((icon) => (
-            <IconOption
-              key={icon}
-              icon={icon}
-              isChristmas={isChristmas}
-              isSelected={selectedIcon === icon}
-              onClick={() => handleIconSelect(icon)}
-            />
-          ))}
+          {ALL_ICONS.map((icon) => {
+            const isEnabled = availableIcons.includes(icon);
+            return (
+              <IconOption
+                key={icon}
+                icon={icon}
+                isChristmas={isChristmas}
+                isSelected={selectedIcon === icon}
+                isEnabled={isEnabled}
+                onClick={() => handleIconSelect(icon, isEnabled)}
+              />
+            );
+          })}
         </div>
         {availableHolidayIcons.length > 0 && (
           <>
@@ -145,9 +153,9 @@ export function IconSettings() {
             Reset to default
           </button>
         )}
-        {!isPro && availableIcons.length < 4 && (
+        {!isPro && (
           <p className="text-xs text-neutral-500">
-            Upgrade to Pro to unlock all icon variants.
+            Upgrade to Pro to unlock Beta and Pro icon variants.
           </p>
         )}
       </div>
@@ -159,11 +167,13 @@ function IconOption({
   icon,
   isChristmas,
   isSelected,
+  isEnabled,
   onClick,
 }: {
   icon: IconVariant;
   isChristmas: boolean;
   isSelected: boolean;
+  isEnabled: boolean;
   onClick: () => void;
 }) {
   const iconName = isChristmas ? `xmas-${icon}` : icon;
@@ -171,11 +181,15 @@ function IconOption({
   return (
     <button
       onClick={onClick}
+      disabled={!isEnabled}
       className={cn([
-        "flex flex-col items-center gap-2 p-3 rounded-lg border transition-all",
+        "flex flex-col items-center gap-2 p-3 rounded-lg border transition-all relative",
         isSelected
           ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-          : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50",
+          : "border-neutral-200",
+        isEnabled
+          ? "hover:border-neutral-300 hover:bg-neutral-50 cursor-pointer"
+          : "opacity-50 cursor-not-allowed",
       ])}
     >
       <div className="w-16 h-16 rounded-xl overflow-hidden bg-neutral-100 flex items-center justify-center">
@@ -191,6 +205,23 @@ function IconOption({
       <span className="text-xs font-medium text-neutral-700">
         {ICON_DISPLAY_NAMES[icon]}
       </span>
+      {!isEnabled && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg">
+          <svg
+            className="w-6 h-6 text-neutral-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+        </div>
+      )}
     </button>
   );
 }

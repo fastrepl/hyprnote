@@ -6,7 +6,6 @@ use tauri::{
 };
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 use tauri_plugin_updater::UpdaterExt;
-use tauri_plugin_updater2::Updater2PluginExt;
 
 use super::{MenuItemHandler, TrayOpen, TrayQuit, TrayStart};
 
@@ -76,16 +75,7 @@ impl MenuItemHandler for TrayCheckUpdate {
     const ID: &'static str = "hypr_tray_check_update";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let mut state = Self::get_state();
-
-        if state == STATE_CHECK_FOR_UPDATE {
-            if let Ok(Some(pending)) = app.updater2().get_pending_update_version() {
-                if !pending.is_empty() {
-                    UPDATE_STATE.store(STATE_RESTART_TO_APPLY, Ordering::SeqCst);
-                    state = STATE_RESTART_TO_APPLY;
-                }
-            }
-        }
+        let state = Self::get_state();
 
         let (text, enabled) = match state {
             STATE_DOWNLOADING => ("Downloading...", false),

@@ -98,7 +98,6 @@ export function IconSettings() {
   }
 
   const availableIcons = availableIconsQuery.data ?? [];
-  const isHolidaySeason = isChristmas || isHanukkah || isKwanzaa;
   const availableHolidayIcons: HolidayIcon[] = [
     ...(isHanukkah ? (["hanukkah"] as const) : []),
     ...(isKwanzaa ? (["kwanzaa"] as const) : []),

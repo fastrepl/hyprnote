@@ -1,6 +1,7 @@
 mod batch;
 mod streaming;
 
+use core::fmt;
 use std::collections::HashMap;
 
 use axum::{
@@ -17,6 +18,20 @@ use owhisper_providers::Provider;
 pub struct ResolvedProvider {
     provider: Provider,
     api_key: String,
+}
+
+impl fmt::Debug for ResolvedProvider {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let redacted_key = if self.api_key.len() <= 3 {
+            "[REDACTED]".to_string()
+        } else {
+            format!("{}...[REDACTED]", &self.api_key[..3])
+        };
+        f.debug_struct("ResolvedProvider")
+            .field("provider", &self.provider)
+            .field("api_key", &redacted_key)
+            .finish()
+    }
 }
 
 impl ResolvedProvider {

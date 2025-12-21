@@ -38,5 +38,5 @@ RUN groupadd -g 1001 appgroup && \
 COPY --from=build --chown=appuser:appgroup /app/target/release/ai /usr/local/bin/ai
 USER appuser
 WORKDIR /app
-EXPOSE 3000
+EXPOSE 3001
 ENTRYPOINT ["/usr/local/bin/ai"]

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::Path;
 use std::sync::OnceLock;
 
 use owhisper_providers::Provider;
@@ -15,7 +16,7 @@ static ENV: OnceLock<Env> = OnceLock::new();
 
 pub fn env() -> &'static Env {
     ENV.get_or_init(|| {
-        let _ = dotenvy::dotenv();
+        let _ = dotenvy::from_path(Path::new(env!("CARGO_MANIFEST_DIR")).join(".env"));
         Env::from_env()
     })
 }
@@ -36,7 +37,7 @@ impl Env {
             .collect();
 
         Self {
-            port: parse_or("PORT", 3000),
+            port: parse_or("PORT", 3001),
             sentry_dsn: optional("SENTRY_DSN"),
             supabase_url: required("SUPABASE_URL"),
             openrouter_api_key: required("OPENROUTER_API_KEY"),

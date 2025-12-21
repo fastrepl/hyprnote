@@ -8,11 +8,11 @@ swap_size_mb = 512
 strategy = "bluegreen"
 
 [env]
-PORT = "3000"
+PORT = "3001"
 
 [http_service]
 processes = ['app']
-internal_port = 3000
+internal_port = 3001
 force_https = true
 auto_stop_machines = 'stop'
 auto_start_machines = true

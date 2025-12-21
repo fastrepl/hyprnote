@@ -2,12 +2,26 @@ import * as Sentry from "@sentry/bun";
 import type { Handler } from "hono";
 import { upgradeWebSocket } from "hono/bun";
 
+import { env } from "./env";
 import type { AppBindings } from "./hono-bindings";
 import {
   createProxyFromRequest,
   normalizeWsData,
   WsProxyConnection,
 } from "./stt";
+
+function createAiServiceProxy(
+  clientUrl: URL,
+  reqHeaders: Headers,
+): WsProxyConnection {
+  const aiServiceUrl = new URL("/stt/listen", env.AI_SERVICE_URL!);
+  aiServiceUrl.search = clientUrl.search;
+
+  const authHeader = reqHeaders.get("authorization");
+  const headers = authHeader ? { Authorization: authHeader } : undefined;
+
+  return new WsProxyConnection(aiServiceUrl.toString(), { headers });
+}
 
 export const listenSocketHandler: Handler<AppBindings> = async (c, next) => {
   const emit = c.get("emit");
@@ -18,7 +32,11 @@ export const listenSocketHandler: Handler<AppBindings> = async (c, next) => {
 
   let connection: WsProxyConnection;
   try {
-    connection = createProxyFromRequest(clientUrl, c.req.raw.headers);
+    if (env.AI_SERVICE_URL) {
+      connection = createAiServiceProxy(clientUrl, c.req.raw.headers);
+    } else {
+      connection = createProxyFromRequest(clientUrl, c.req.raw.headers);
+    }
     await connection.preconnectUpstream();
     emit({ type: "stt.websocket.connected", userId, provider });
   } catch (error) {

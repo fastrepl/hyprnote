@@ -12,6 +12,7 @@
   "dependencies": {
     "@hono/zod-validator": "^0.7.5",
     "@hypr/api-client": "workspace:*",
+    "@hypr/supabase": "workspace:*",
     "@posthog/ai": "^7.2.1",
     "@restatedev/restate-sdk-clients": "^1.9.1",
     "@scalar/hono-api-reference": "^0.5.184",

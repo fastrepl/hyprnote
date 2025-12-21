@@ -130,23 +130,41 @@ function HeroSection({
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 px-6 py-12 lg:py-20">
       <header className="text-center max-w-4xl mx-auto">
-        <div className="flex flex-col-reverse sm:flex-row items-center justify-center mb-12 gap-4 sm:gap-0">
-          <div className="size-32 sm:size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[40px] sm:rounded-[48px] bg-transparent opacity-30">
-            <img
-              src={competitorIcon}
-              alt={competitorName}
-              className="size-28 sm:size-36 rounded-[32px] sm:rounded-[40px] border border-neutral-100"
-            />
+        <div className="flex flex-row items-center justify-center mb-12 sm:gap-0">
+          <div className="relative w-40 h-40 sm:hidden">
+            <div className="absolute top-0 left-0 size-28 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[32px] bg-white opacity-50 z-0">
+              <img
+                src={competitorIcon}
+                alt={competitorName}
+                className="size-24 rounded-[28px] border border-neutral-100"
+              />
+            </div>
+            <div className="absolute bottom-0 right-0 size-28 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[32px] bg-white z-10">
+              <img
+                src="/api/images/hyprnote/icon.png"
+                alt="Hyprnote"
+                className="size-24 rounded-[28px] border border-neutral-100"
+              />
+            </div>
           </div>
-          <div className="text-3xl sm:text-4xl text-neutral-400 font-light py-2 sm:py-0 sm:pl-6 sm:pr-8">
-            vs
-          </div>
-          <div className="size-32 sm:size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[40px] sm:rounded-[48px] bg-transparent sm:scale-110">
-            <img
-              src="/api/images/hyprnote/icon.png"
-              alt="Hyprnote"
-              className="size-28 sm:size-36 rounded-[32px] sm:rounded-[40px] border border-neutral-100"
-            />
+          <div className="hidden sm:flex sm:flex-row sm:items-center sm:gap-0">
+            <div className="size-32 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[40px] bg-transparent opacity-30">
+              <img
+                src={competitorIcon}
+                alt={competitorName}
+                className="size-28 rounded-4xl border border-neutral-100"
+              />
+            </div>
+            <div className="text-3xl text-neutral-400 font-light pl-5 pr-6">
+              vs
+            </div>
+            <div className="size-32 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[40px] bg-transparent scale-110">
+              <img
+                src="/api/images/hyprnote/icon.png"
+                alt="Hyprnote"
+                className="size-28 rounded-4xl border border-neutral-100"
+              />
+            </div>
           </div>
         </div>
 

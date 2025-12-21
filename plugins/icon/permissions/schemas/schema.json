@@ -295,6 +295,30 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the get_available_icons command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-available-icons",
+          "markdownDescription": "Enables the get_available_icons command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_available_icons command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-available-icons",
+          "markdownDescription": "Denies the get_available_icons command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the is_christmas_season command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-christmas-season",
+          "markdownDescription": "Enables the is_christmas_season command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the is_christmas_season command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-christmas-season",
+          "markdownDescription": "Denies the is_christmas_season command without any pre-configured scope."
+        },
+        {
           "description": "Enables the reset_dock_icon command without any pre-configured scope.",
           "type": "string",
           "const": "allow-reset-dock-icon",

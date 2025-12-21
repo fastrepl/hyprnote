@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-is-christmas-season"
+description = "Enables the is_christmas_season command without any pre-configured scope."
+commands.allow = ["is_christmas_season"]
+
+[[permission]]
+identifier = "deny-is-christmas-season"
+description = "Denies the is_christmas_season command without any pre-configured scope."
+commands.deny = ["is_christmas_season"]

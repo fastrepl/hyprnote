@@ -21,6 +21,58 @@ Default permissions for the plugin
 <tr>
 <td>
 
+`icon:allow-get-available-icons`
+
+</td>
+<td>
+
+Enables the get_available_icons command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`icon:deny-get-available-icons`
+
+</td>
+<td>
+
+Denies the get_available_icons command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`icon:allow-is-christmas-season`
+
+</td>
+<td>
+
+Enables the is_christmas_season command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`icon:deny-is-christmas-season`
+
+</td>
+<td>
+
+Denies the is_christmas_season command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `icon:allow-reset-dock-icon`
 
 </td>

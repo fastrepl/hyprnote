@@ -319,10 +319,10 @@
           "markdownDescription": "Denies the set_dock_icon command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`\n- `allow-get-available-icons`\n- `allow-is-christmas-season`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`\n- `allow-get-available-icons`\n- `allow-is-christmas-season`"
         }
       ]
     }

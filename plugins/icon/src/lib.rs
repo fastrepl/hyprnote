@@ -7,12 +7,22 @@ pub use ext::*;
 
 const PLUGIN_NAME: &str = "icon";
 
+pub fn is_christmas_season() -> bool {
+    use chrono::Datelike;
+    let now = chrono::Utc::now();
+    let month = now.month();
+    let day = now.day();
+    (month == 12 && day >= 1) || (month == 1 && day <= 6)
+}
+
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::set_dock_icon::<tauri::Wry>,
             commands::reset_dock_icon::<tauri::Wry>,
+            commands::get_available_icons::<tauri::Wry>,
+            commands::is_christmas_season,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

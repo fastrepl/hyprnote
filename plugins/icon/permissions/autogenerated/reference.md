@@ -6,6 +6,8 @@ Default permissions for the plugin
 
 - `allow-set-dock-icon`
 - `allow-reset-dock-icon`
+- `allow-get-available-icons`
+- `allow-is-christmas-season`
 
 ## Permission Table
 

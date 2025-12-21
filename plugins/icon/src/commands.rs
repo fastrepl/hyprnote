@@ -1,4 +1,4 @@
-use crate::IconPluginExt;
+use crate::{IconPluginExt, IconVariant};
 
 #[tauri::command]
 #[specta::specta]
@@ -15,4 +15,21 @@ pub(crate) async fn reset_dock_icon<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<(), String> {
     app.icon().reset_dock_icon().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_available_icons<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    is_pro: bool,
+) -> Result<Vec<IconVariant>, String> {
+    app.icon()
+        .get_available_icons(is_pro)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn is_christmas_season() -> bool {
+    crate::is_christmas_season()
 }

@@ -8,6 +8,7 @@ import { useConfigValues } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/settings";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
+import { IconSettings } from "./icon-settings";
 import { LabSettings } from "./lab";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
@@ -161,6 +162,8 @@ export function SettingsGeneral() {
       </div>
 
       <Permissions />
+
+      <IconSettings />
 
       <LabSettings />
     </div>

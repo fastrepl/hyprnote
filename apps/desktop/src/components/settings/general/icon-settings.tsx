@@ -1,0 +1,154 @@
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
+
+import { cn } from "@hypr/utils";
+
+import {
+  commands,
+  type IconVariant,
+} from "../../../../../../plugins/icon/js/bindings.gen";
+import { useBillingAccess } from "../../../billing";
+
+const ICON_DISPLAY_NAMES: Record<IconVariant, string> = {
+  beta: "Beta",
+  dark: "Dark",
+  light: "Light",
+  pro: "Pro",
+};
+
+export function IconSettings() {
+  const { isPro } = useBillingAccess();
+  const [selectedIcon, setSelectedIcon] = useState<IconVariant | null>(null);
+  const [isChristmas, setIsChristmas] = useState(false);
+
+  const availableIconsQuery = useQuery({
+    queryKey: ["availableIcons", isPro],
+    queryFn: async () => {
+      const result = await commands.getAvailableIcons(isPro);
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
+
+  useEffect(() => {
+    commands.isChristmasSeason().then(setIsChristmas);
+  }, []);
+
+  const handleIconSelect = useCallback(
+    async (icon: IconVariant) => {
+      const iconName = isChristmas ? `xmas-${icon}` : icon;
+      const result = await commands.setDockIcon(iconName);
+      if (result.status === "ok") {
+        setSelectedIcon(icon);
+      }
+    },
+    [isChristmas],
+  );
+
+  const handleReset = useCallback(async () => {
+    const result = await commands.resetDockIcon();
+    if (result.status === "ok") {
+      setSelectedIcon(null);
+    }
+  }, []);
+
+  if (availableIconsQuery.isLoading) {
+    return (
+      <div>
+        <h2 className="font-semibold mb-4">App Icon</h2>
+        <div className="text-sm text-neutral-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (availableIconsQuery.isError) {
+    return (
+      <div>
+        <h2 className="font-semibold mb-4">App Icon</h2>
+        <div className="text-sm text-red-500">
+          Failed to load available icons
+        </div>
+      </div>
+    );
+  }
+
+  const availableIcons = availableIconsQuery.data ?? [];
+
+  return (
+    <div>
+      <h2 className="font-semibold mb-4">App Icon</h2>
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-neutral-600">
+          Choose your preferred app icon.
+          {isChristmas && " Christmas edition icons are currently active!"}
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {availableIcons.map((icon) => (
+            <IconOption
+              key={icon}
+              icon={icon}
+              isChristmas={isChristmas}
+              isSelected={selectedIcon === icon}
+              onClick={() => handleIconSelect(icon)}
+            />
+          ))}
+        </div>
+        {selectedIcon && (
+          <button
+            onClick={handleReset}
+            className="text-sm text-neutral-500 hover:text-neutral-700 underline self-start"
+          >
+            Reset to default
+          </button>
+        )}
+        {!isPro && availableIcons.length < 4 && (
+          <p className="text-xs text-neutral-500">
+            Upgrade to Pro to unlock all icon variants.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function IconOption({
+  icon,
+  isChristmas,
+  isSelected,
+  onClick,
+}: {
+  icon: IconVariant;
+  isChristmas: boolean;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  const iconName = isChristmas ? `xmas-${icon}` : icon;
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn([
+        "flex flex-col items-center gap-2 p-3 rounded-lg border transition-all",
+        isSelected
+          ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+          : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50",
+      ])}
+    >
+      <div className="w-16 h-16 rounded-xl overflow-hidden bg-neutral-100 flex items-center justify-center">
+        <img
+          src={`/icons/${iconName}/icon.png`}
+          alt={`${ICON_DISPLAY_NAMES[icon]} icon`}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+      </div>
+      <span className="text-xs font-medium text-neutral-700">
+        {ICON_DISPLAY_NAMES[icon]}
+      </span>
+    </button>
+  );
+}

@@ -1,9 +1,69 @@
+use serde::{Deserialize, Serialize};
+use specta::Type;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "snake_case")]
+pub enum IconVariant {
+    Beta,
+    Dark,
+    Light,
+    Pro,
+}
+
+impl IconVariant {
+    pub fn name(&self) -> &'static str {
+        match self {
+            IconVariant::Beta => "beta",
+            IconVariant::Dark => "dark",
+            IconVariant::Light => "light",
+            IconVariant::Pro => "pro",
+        }
+    }
+
+    pub fn xmas_name(&self) -> &'static str {
+        match self {
+            IconVariant::Beta => "xmas-beta",
+            IconVariant::Dark => "xmas-dark",
+            IconVariant::Light => "xmas-light",
+            IconVariant::Pro => "xmas-pro",
+        }
+    }
+
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            IconVariant::Beta => "Beta",
+            IconVariant::Dark => "Dark",
+            IconVariant::Light => "Light",
+            IconVariant::Pro => "Pro",
+        }
+    }
+}
+
 pub struct Icon<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
+    pub fn get_available_icons(&self, is_pro: bool) -> Result<Vec<IconVariant>, crate::Error> {
+        let identifier = self.manager.app_handle().config().identifier.as_str();
+
+        let is_nightly = identifier.contains("nightly");
+
+        if is_nightly {
+            Ok(vec![IconVariant::Beta])
+        } else if is_pro {
+            Ok(vec![
+                IconVariant::Beta,
+                IconVariant::Dark,
+                IconVariant::Light,
+                IconVariant::Pro,
+            ])
+        } else {
+            Ok(vec![IconVariant::Dark, IconVariant::Light])
+        }
+    }
+
     pub fn set_dock_icon(&self, name: String) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
         {

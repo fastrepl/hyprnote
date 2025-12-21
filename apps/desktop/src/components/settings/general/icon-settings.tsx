@@ -194,7 +194,7 @@ function IconOption({
     >
       <div className="w-16 h-16 rounded-xl overflow-hidden bg-neutral-100 flex items-center justify-center">
         <img
-          src={`/icons/${iconName}/icon.png`}
+          src={`/icons/${iconName}/icon-64.png`}
           alt={`${ICON_DISPLAY_NAMES[icon]} icon`}
           className="w-full h-full object-cover"
           onError={(e) => {
@@ -247,7 +247,7 @@ function HolidayIconOption({
     >
       <div className="w-16 h-16 rounded-xl overflow-hidden bg-neutral-100 flex items-center justify-center">
         <img
-          src={`/icons/${icon}/icon.png`}
+          src={`/icons/${icon}/icon-64.png`}
           alt={`${HOLIDAY_ICON_DISPLAY_NAMES[icon]} icon`}
           className="w-full h-full object-cover"
           onError={(e) => {

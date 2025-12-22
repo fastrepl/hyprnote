@@ -240,16 +240,83 @@ function OptionsMenu({
                 started_at: Date.now(),
               });
 
-              subtitle.tokens.forEach((token) => {
-                const wordId = crypto.randomUUID();
-                store.setRow("words", wordId, {
-                  transcript_id: transcriptId,
-                  text: token.text,
-                  start_ms: token.start_time,
-                  end_ms: token.end_time,
-                  channel: ChannelProfile.MixedCapture,
-                  user_id: user_id ?? "",
-                  created_at: new Date().toISOString(),
+              const speakerNameToIndex = new Map<string, number>();
+              let nextSpeakerIndex = 0;
+
+              const getSpeakerIndex = (name: string): number => {
+                const normalizedName = name.trim().toLowerCase();
+                if (speakerNameToIndex.has(normalizedName)) {
+                  return speakerNameToIndex.get(normalizedName)!;
+                }
+                const index = nextSpeakerIndex;
+                speakerNameToIndex.set(normalizedName, index);
+                nextSpeakerIndex++;
+                return index;
+              };
+
+              const parseSpeakerFromText = (
+                text: string,
+              ): { speaker: string | null; cleanText: string } => {
+                const voiceTagMatch = text.match(/^<v\s+([^>]+)>(.*)$/s);
+                if (voiceTagMatch) {
+                  return {
+                    speaker: voiceTagMatch[1].trim(),
+                    cleanText: voiceTagMatch[2].trim(),
+                  };
+                }
+
+                const speakerMatch = text.match(
+                  /^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s'-]{0,50}):\s*(.*)$/s,
+                );
+                if (speakerMatch) {
+                  const potentialSpeaker = speakerMatch[1].trim();
+                  if (
+                    potentialSpeaker.length >= 2 &&
+                    potentialSpeaker.length <= 50 &&
+                    !/^\d/.test(potentialSpeaker)
+                  ) {
+                    return {
+                      speaker: potentialSpeaker,
+                      cleanText: speakerMatch[2].trim(),
+                    };
+                  }
+                }
+
+                return { speaker: null, cleanText: text };
+              };
+
+              store.transaction(() => {
+                subtitle.tokens.forEach((token) => {
+                  const { speaker, cleanText } = parseSpeakerFromText(
+                    token.text,
+                  );
+                  const wordId = crypto.randomUUID();
+
+                  store.setRow("words", wordId, {
+                    transcript_id: transcriptId,
+                    text: cleanText || token.text,
+                    start_ms: token.start_time,
+                    end_ms: token.end_time,
+                    channel: ChannelProfile.MixedCapture,
+                    user_id: user_id ?? "",
+                    created_at: new Date().toISOString(),
+                  });
+
+                  if (speaker) {
+                    const speakerIndex = getSpeakerIndex(speaker);
+                    store.setRow("speaker_hints", crypto.randomUUID(), {
+                      transcript_id: transcriptId,
+                      word_id: wordId,
+                      type: "provider_speaker_index",
+                      value: JSON.stringify({
+                        provider: "vtt_import",
+                        channel: ChannelProfile.MixedCapture,
+                        speaker_index: speakerIndex,
+                      }),
+                      user_id: user_id ?? "",
+                      created_at: new Date().toISOString(),
+                    });
+                  }
                 });
               });
             }),

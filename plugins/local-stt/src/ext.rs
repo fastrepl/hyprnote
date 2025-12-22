@@ -484,7 +484,7 @@ async fn start_external_server<R: Runtime, T: Manager<R>>(
             external::CommandBuilder::new(move || {
                 app_handle
                     .shell()
-                    .sidecar("stt")
+                    .sidecar("hyprnote-sidecar-stt")
                     .expect("failed to create sidecar command")
                     .current_dir(dirs::home_dir().unwrap())
                     .args(["serve", "--any-token"])

@@ -16,7 +16,7 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
 
 vi.mock("@hypr/plugin-export", () => ({
   commands: {
-    exportTiptapJsonToMd: vi
+    exportTiptapJsonToMdBatch: vi
       .fn()
       .mockResolvedValue({ status: "ok", data: null }),
   },
@@ -89,11 +89,13 @@ describe("createLocalPersister2", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMd).toHaveBeenCalledTimes(1);
-      expect(commands.exportTiptapJsonToMd).toHaveBeenCalledWith(
-        '{"type":"doc","content":[{"type":"paragraph"}]}',
-        "/mock/data/dir/hyprnote/sessions/session-1/My Template.md",
-      );
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledTimes(1);
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+        [
+          { type: "doc", content: [{ type: "paragraph" }] },
+          "/mock/data/dir/hyprnote/sessions/session-1/My Template.md",
+        ],
+      ]);
     });
 
     test("uses _summary.md when no template_id", async () => {
@@ -114,10 +116,12 @@ describe("createLocalPersister2", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMd).toHaveBeenCalledWith(
-        expect.any(String),
-        "/mock/data/dir/hyprnote/sessions/session-1/_summary.md",
-      );
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+        [
+          { type: "doc", content: [{ type: "paragraph" }] },
+          "/mock/data/dir/hyprnote/sessions/session-1/_summary.md",
+        ],
+      ]);
     });
 
     test("calls handleSyncToSession when no template_id but has session_id", async () => {
@@ -196,10 +200,12 @@ describe("createLocalPersister2", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMd).toHaveBeenCalledWith(
-        expect.any(String),
-        "/mock/data/dir/hyprnote/sessions/session-1/My_________Template.md",
-      );
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+        [
+          expect.any(Object),
+          "/mock/data/dir/hyprnote/sessions/session-1/My_________Template.md",
+        ],
+      ]);
     });
 
     test("falls back to template_id when template title is not found", async () => {
@@ -221,10 +227,12 @@ describe("createLocalPersister2", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMd).toHaveBeenCalledWith(
-        expect.any(String),
-        "/mock/data/dir/hyprnote/sessions/session-1/unknown-template-id.md",
-      );
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+        [
+          expect.any(Object),
+          "/mock/data/dir/hyprnote/sessions/session-1/unknown-template-id.md",
+        ],
+      ]);
     });
 
     test("handles multiple enhanced_notes", async () => {
@@ -260,7 +268,10 @@ describe("createLocalPersister2", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMd).toHaveBeenCalledTimes(2);
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledTimes(1);
+      const callArgs = vi.mocked(commands.exportTiptapJsonToMdBatch).mock
+        .calls[0][0];
+      expect(callArgs).toHaveLength(2);
       expect(handleSyncToSession).toHaveBeenCalledTimes(1);
     });
 
@@ -282,10 +293,12 @@ describe("createLocalPersister2", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMd).toHaveBeenCalledWith(
-        '{"type":"doc","content":[{"type":"paragraph"}]}',
-        "/mock/data/dir/hyprnote/sessions/session-1/_memo.md",
-      );
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+        [
+          { type: "doc", content: [{ type: "paragraph" }] },
+          "/mock/data/dir/hyprnote/sessions/session-1/_memo.md",
+        ],
+      ]);
     });
 
     test("does not export raw_md when raw_md is empty", async () => {
@@ -306,7 +319,7 @@ describe("createLocalPersister2", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMd).not.toHaveBeenCalled();
+      expect(commands.exportTiptapJsonToMdBatch).not.toHaveBeenCalled();
     });
 
     test("creates directory if it does not exist", async () => {
@@ -352,7 +365,7 @@ describe("createLocalPersister2", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMd).not.toHaveBeenCalled();
+      expect(commands.exportTiptapJsonToMdBatch).not.toHaveBeenCalled();
     });
 
     test("skips when isEnabled.notes returns false", async () => {
@@ -374,7 +387,7 @@ describe("createLocalPersister2", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMd).not.toHaveBeenCalled();
+      expect(commands.exportTiptapJsonToMdBatch).not.toHaveBeenCalled();
     });
   });
 });

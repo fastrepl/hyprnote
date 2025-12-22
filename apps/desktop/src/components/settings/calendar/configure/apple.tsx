@@ -1,9 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import {
-  type AppleCalendar,
   commands as appleCalendarCommands,
   type CalendarColor,
 } from "@hypr/plugin-apple-calendar";
@@ -19,7 +18,6 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
 import { PROVIDERS } from "../shared";
 import {
   type CalendarGroup,
@@ -134,9 +132,9 @@ function appleColorToCss(color?: CalendarColor | null): string | undefined {
 
 function useAppleCalendarSelection() {
   const queryClient = useQueryClient();
-  const store = main.UI.useStore(main.STORE_ID);
-  const { user_id } = main.UI.useValues(main.STORE_ID);
-  const storedCalendars = main.UI.useTable("calendars", main.STORE_ID);
+  const [enabledCalendars, setEnabledCalendars] = useState<Set<string>>(
+    new Set(),
+  );
 
   const { data: appleCalendars } = useQuery({
     queryKey: ["appleCalendars"],
@@ -171,45 +169,20 @@ function useAppleCalendarSelection() {
     }));
   }, [appleCalendars]);
 
-  const isCalendarEnabled = (trackingId: string): boolean => {
-    for (const data of Object.values(storedCalendars)) {
-      if (data.tracking_id === trackingId) {
-        return data.enabled === 1;
-      }
-    }
-    return false;
+  const isCalendarEnabled = (calendarId: string): boolean => {
+    return enabledCalendars.has(calendarId);
   };
 
   const handleToggle = (calendar: CalendarItem, enabled: boolean) => {
-    if (!store || !user_id) return;
-
-    const appleCalendar = appleCalendars?.find((c) => c.id === calendar.id);
-    if (!appleCalendar) return;
-
-    let existingRowId: string | undefined;
-    for (const [rowId, data] of Object.entries(storedCalendars)) {
-      if (data.tracking_id === calendar.id) {
-        existingRowId = rowId;
-        break;
+    setEnabledCalendars((prev) => {
+      const next = new Set(prev);
+      if (enabled) {
+        next.add(calendar.id);
+      } else {
+        next.delete(calendar.id);
       }
-    }
-
-    if (existingRowId) {
-      store.setPartialRow("calendars", existingRowId, {
-        enabled: enabled ? 1 : 0,
-      });
-    } else {
-      const newRowId = crypto.randomUUID();
-      store.setRow("calendars", newRowId, {
-        user_id,
-        created_at: new Date().toISOString(),
-        tracking_id: calendar.id,
-        name: calendar.title,
-        source: appleCalendar.source.title,
-        provider: "apple",
-        enabled: enabled ? 1 : 0,
-      });
-    }
+      return next;
+    });
   };
 
   const handleRefresh = () => {

@@ -14,6 +14,7 @@ import { useShallow } from "zustand/shallow";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { useNotifications } from "../../../contexts/notifications";
 import { useShell } from "../../../contexts/shell";
 import {
   type Tab,
@@ -21,6 +22,7 @@ import {
   useTabs,
 } from "../../../store/zustand/tabs";
 import { ChatFloatingButton } from "../../chat";
+import { NotificationBadge } from "../../ui/notification-badge";
 import { TrafficLights } from "../../window/traffic-lights";
 import { useNewNote } from "../shared";
 import { TabContentAI, TabItemAI } from "./ai";
@@ -76,6 +78,7 @@ export function Body() {
 function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
   const isLinux = platform() === "linux";
+  const notifications = useNotifications();
   const {
     select,
     close,
@@ -120,14 +123,17 @@ function Header({ tabs }: { tabs: Tab[] }) {
     >
       {!leftsidebar.expanded && isLinux && <TrafficLights className="mr-2" />}
       {!leftsidebar.expanded && (
-        <Button
-          size="icon"
-          variant="ghost"
-          className="shrink-0"
-          onClick={() => leftsidebar.setExpanded(true)}
-        >
-          <PanelLeftOpenIcon size={16} className="text-neutral-600" />
-        </Button>
+        <div className="relative">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="shrink-0"
+            onClick={() => leftsidebar.setExpanded(true)}
+          >
+            <PanelLeftOpenIcon size={16} className="text-neutral-600" />
+          </Button>
+          <NotificationBadge show={notifications.shouldShowBadge} />
+        </div>
       )}
 
       <div className="flex items-center h-full shrink-0">

@@ -203,7 +203,7 @@ url = "2"
 uuid = "1"
 
 criterion = "0.6"
-insta = "1.42"
+insta = "1.45"
 serial_test = "3"
 testcontainers-modules = "0.12.1"
 wiremock = "0.6"

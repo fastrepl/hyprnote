@@ -16,6 +16,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 criterion = { workspace = true }
+insta = { workspace = true }
 specta-typescript = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 

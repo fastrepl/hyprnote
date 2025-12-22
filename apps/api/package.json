@@ -20,6 +20,7 @@
     "@supabase/stripe-sync-engine": "^0.45.0",
     "@supabase/supabase-js": "^2.89.0",
     "@t3-oss/env-core": "^0.13.10",
+    "effect": "^3.19.13",
     "hono": "^4.11.1",
     "hono-openapi": "^0.4.8",
     "openai": "^6.15.0",

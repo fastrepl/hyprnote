@@ -1,1 +1,1 @@
-0 * * * * cd /app && bun src/scripts/stripe-sync-entitlements.ts
+0 * * * * cd /app && echo "TODO"

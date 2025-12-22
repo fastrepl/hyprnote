@@ -17,7 +17,7 @@ impl KeywordQueryStrategy for DeepgramKeywordStrategy {
         let use_keywords = params
             .model
             .as_ref()
-            .map(|model| model.contains("nova-"))
+            .map(|model| model.contains("nova-2"))
             .unwrap_or(false);
 
         let param_name = if use_keywords { "keywords" } else { "keyterm" };

@@ -6,11 +6,21 @@ import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@hypr/ui/components/ui/dialog";
 import { Input } from "@hypr/ui/components/ui/input";
 
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
 import { env } from "../../../env";
+import * as settings from "../../../store/tinybase/settings";
+import { useTabs } from "../../../store/zustand/tabs";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
@@ -161,6 +171,40 @@ export function AccountSettings() {
 function BillingButton() {
   const auth = useAuth();
   const { isPro } = useBillingAccess();
+  const openNew = useTabs((state) => state.openNew);
+  const [showTrialStartedDialog, setShowTrialStartedDialog] = useState(false);
+
+  const setLlmProvider = settings.UI.useSetValueCallback(
+    "current_llm_provider",
+    () => "hyprnote",
+    [],
+    settings.STORE_ID,
+  );
+  const setLlmModel = settings.UI.useSetValueCallback(
+    "current_llm_model",
+    () => "Auto",
+    [],
+    settings.STORE_ID,
+  );
+  const setSttProvider = settings.UI.useSetValueCallback(
+    "current_stt_provider",
+    () => "hyprnote",
+    [],
+    settings.STORE_ID,
+  );
+  const setSttModel = settings.UI.useSetValueCallback(
+    "current_stt_model",
+    () => "cloud",
+    [],
+    settings.STORE_ID,
+  );
+
+  const setTrialDefaults = useCallback(() => {
+    setLlmProvider();
+    setLlmModel();
+    setSttProvider();
+    setSttModel();
+  }, [setLlmProvider, setLlmModel, setSttProvider, setSttModel]);
 
   const canTrialQuery = useQuery({
     enabled: !!auth?.session && !isPro,
@@ -199,6 +243,8 @@ function BillingButton() {
     },
     onSuccess: async () => {
       await auth?.refreshSession();
+      setTrialDefaults();
+      setShowTrialStartedDialog(true);
     },
   });
 
@@ -208,6 +254,15 @@ function BillingButton() {
 
   const handleOpenAccount = useCallback(() => {
     void openUrl(`${WEB_APP_BASE_URL}/app/account`);
+  }, []);
+
+  const handleGoToAISettings = useCallback(() => {
+    setShowTrialStartedDialog(false);
+    openNew({ type: "ai", state: { tab: "transcription" } });
+  }, [openNew]);
+
+  const handleConfirm = useCallback(() => {
+    setShowTrialStartedDialog(false);
   }, []);
 
   if (isPro) {
@@ -225,13 +280,37 @@ function BillingButton() {
 
   if (canTrialQuery.data) {
     return (
-      <Button
-        variant="outline"
-        onClick={() => startTrialMutation.mutate()}
-        disabled={startTrialMutation.isPending}
-      >
-        <span> Start Pro Trial</span>
-      </Button>
+      <>
+        <Button
+          variant="outline"
+          onClick={() => startTrialMutation.mutate()}
+          disabled={startTrialMutation.isPending}
+        >
+          <span>Start Pro Trial</span>
+        </Button>
+
+        <Dialog
+          open={showTrialStartedDialog}
+          onOpenChange={setShowTrialStartedDialog}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Pro Trial Started</DialogTitle>
+              <DialogDescription>
+                Your Pro trial has started. We've automatically configured your
+                AI settings to use Hyprnote Cloud for both transcription and
+                intelligence features.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleGoToAISettings}>
+                Go to AI Settings
+              </Button>
+              <Button onClick={handleConfirm}>Confirm</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 

@@ -174,7 +174,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     },
     {
       icon: SparklesIcon,
-      label: "AI",
+      label: "AI Settings",
       onClick: handleClickAI,
       badge: (
         <kbd className={kbdClass}>
@@ -185,7 +185,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     },
     {
       icon: SettingsIcon,
-      label: "Settings",
+      label: "App Settings",
       onClick: handleClickSettings,
       badge: (
         <kbd className={kbdClass}>

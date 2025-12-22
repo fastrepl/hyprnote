@@ -1,22 +1,24 @@
 use aspasia::{Subtitle as SubtitleTrait, TimedSubtitleFile, WebVttSubtitle};
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, PartialEq)]
 pub struct Token {
-    text: String,
-    start_time: u64,
-    end_time: u64,
+    pub text: String,
+    pub start_time: u64,
+    pub end_time: u64,
+    pub speaker: Option<String>,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, PartialEq)]
 pub struct VttWord {
     pub text: String,
     pub start_ms: u64,
     pub end_ms: u64,
+    pub speaker: Option<String>,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, PartialEq)]
 pub struct Subtitle {
-    tokens: Vec<Token>,
+    pub tokens: Vec<Token>,
 }
 
 impl From<TimedSubtitleFile> for Subtitle {
@@ -30,6 +32,7 @@ impl From<TimedSubtitleFile> for Subtitle {
                 text: cue.text.clone(),
                 start_time: i64::from(cue.start) as u64,
                 end_time: i64::from(cue.end) as u64,
+                speaker: cue.identifier.as_ref().filter(|s| !s.is_empty()).cloned(),
             })
             .collect();
 

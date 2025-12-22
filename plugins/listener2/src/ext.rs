@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 
 use owhisper_client::BatchSttAdapter;
@@ -5,6 +6,7 @@ use tauri_specta::Event;
 
 use crate::BatchEvent;
 use crate::batch::{BatchArgs, spawn_batch_actor};
+use crate::{Subtitle, VttWord};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
@@ -195,4 +197,43 @@ async fn run_batch_am(
             ))
         }
     }
+}
+
+pub fn parse_subtitle_from_path<P: AsRef<Path>>(path: P) -> Result<Subtitle, String> {
+    use aspasia::TimedSubtitleFile;
+    let sub = TimedSubtitleFile::new(path.as_ref()).map_err(|e| e.to_string())?;
+    Ok(sub.into())
+}
+
+pub fn export_words_to_vtt<P: AsRef<Path>>(words: Vec<VttWord>, path: P) -> Result<(), String> {
+    use std::io::Write;
+
+    let mut content = String::from("WEBVTT\n\n");
+
+    for word in words {
+        if let Some(ref speaker) = word.speaker {
+            content.push_str(speaker);
+            content.push('\n');
+        }
+
+        let start = format_vtt_timestamp(word.start_ms);
+        let end = format_vtt_timestamp(word.end_ms);
+        content.push_str(&format!("{} --> {}\n", start, end));
+        content.push_str(&word.text);
+        content.push_str("\n\n");
+    }
+
+    let mut file = std::fs::File::create(path.as_ref()).map_err(|e| e.to_string())?;
+    file.write_all(content.as_bytes())
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+fn format_vtt_timestamp(ms: u64) -> String {
+    let hours = ms / 3_600_000;
+    let minutes = (ms % 3_600_000) / 60_000;
+    let seconds = (ms % 60_000) / 1_000;
+    let millis = ms % 1_000;
+    format!("{:02}:{:02}:{:02}.{:03}", hours, minutes, seconds, millis)
 }

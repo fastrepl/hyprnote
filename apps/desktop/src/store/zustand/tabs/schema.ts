@@ -120,6 +120,7 @@ export const getDefaultState = (tab: TabInput): Tab => {
         ...base,
         type: "templates",
         state: tab.state ?? {
+          showHomepage: true,
           isWebMode: null,
           selectedMineId: null,
           selectedWebIndex: null,

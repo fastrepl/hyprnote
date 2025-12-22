@@ -1,5 +1,11 @@
 import type { SeedDefinition } from "./shared";
-import { curatedSeed, emptySeed, longSeed, randomSeed } from "./versions";
+import {
+  bigWorkspaceSeed,
+  curatedSeed,
+  emptySeed,
+  longSeed,
+  randomSeed,
+} from "./versions";
 
 export { type SeedDefinition } from "./shared";
 
@@ -8,4 +14,5 @@ export const seeds: SeedDefinition[] = [
   randomSeed,
   longSeed,
   curatedSeed,
+  bigWorkspaceSeed,
 ];

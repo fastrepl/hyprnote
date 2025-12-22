@@ -1,6 +1,10 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import {
+  events as localSttEvents,
+  type SupportedSttModel,
+} from "@hypr/plugin-local-stt";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
@@ -8,6 +12,7 @@ import { useConfigValues } from "../../../../config/use-config";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Banner } from "./component";
 import { createBannerRegistry, getBannerToShow } from "./registry";
+import type { BannerType } from "./types";
 import { useDismissedBanners } from "./useDismissedBanners";
 
 export function BannerArea({
@@ -90,10 +95,25 @@ export function BannerArea({
     ],
   );
 
-  const currentBanner = useMemo(
+  const registryBanner = useMemo(
     () => getBannerToShow(registry, isDismissed),
     [registry, isDismissed],
   );
+
+  const downloadProgress = useDownloadProgress();
+
+  const currentBanner: BannerType | null = useMemo(() => {
+    if (downloadProgress.isDownloading && downloadProgress.model) {
+      return {
+        id: "download-progress",
+        title: "Downloading model",
+        description: `${downloadProgress.modelDisplayName} is being downloaded...`,
+        dismissible: false,
+        progress: downloadProgress.progress,
+      };
+    }
+    return registryBanner;
+  }, [downloadProgress, registryBanner]);
 
   const handleDismiss = useCallback(() => {
     if (currentBanner) {
@@ -127,18 +147,77 @@ export function BannerArea({
   );
 }
 
+let globalShowBanner = false;
+let globalBannerTimer: NodeJS.Timeout | null = null;
+
 function useShouldShowBanner(isProfileExpanded: boolean) {
   const BANNER_CHECK_DELAY_MS = 3000;
 
-  const [showBanner, setShowBanner] = useState(false);
+  const [showBanner, setShowBanner] = useState(globalShowBanner);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (!globalShowBanner && !globalBannerTimer) {
+      globalBannerTimer = setTimeout(() => {
+        globalShowBanner = true;
+        setShowBanner(true);
+        globalBannerTimer = null;
+      }, BANNER_CHECK_DELAY_MS);
+    } else if (globalShowBanner) {
       setShowBanner(true);
-    }, BANNER_CHECK_DELAY_MS);
+    }
 
-    return () => clearTimeout(timer);
+    return () => {};
   }, []);
 
   return !isProfileExpanded && showBanner;
+}
+
+const MODEL_DISPLAY_NAMES: Record<SupportedSttModel, string> = {
+  "am-parakeet-v2": "Parakeet v2",
+  "am-parakeet-v3": "Parakeet v3",
+  "am-whisper-large-v3": "Whisper Large v3",
+  QuantizedTiny: "Whisper Tiny",
+  QuantizedTinyEn: "Whisper Tiny (English)",
+  QuantizedBase: "Whisper Base",
+  QuantizedBaseEn: "Whisper Base (English)",
+  QuantizedSmall: "Whisper Small",
+  QuantizedSmallEn: "Whisper Small (English)",
+  QuantizedLargeTurbo: "Whisper Large Turbo",
+};
+
+function useDownloadProgress() {
+  const [model, setModel] = useState<SupportedSttModel | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  useEffect(() => {
+    const unlisten = localSttEvents.downloadProgressPayload.listen((event) => {
+      const { model: eventModel, progress: eventProgress } = event.payload;
+
+      if (eventProgress < 0) {
+        setIsDownloading(false);
+        setModel(null);
+        setProgress(0);
+      } else if (eventProgress >= 100) {
+        setIsDownloading(false);
+        setModel(null);
+        setProgress(0);
+      } else {
+        setIsDownloading(true);
+        setModel(eventModel);
+        setProgress(Math.max(0, Math.min(100, eventProgress)));
+      }
+    });
+
+    return () => {
+      void unlisten.then((fn) => fn());
+    };
+  }, []);
+
+  return {
+    model,
+    modelDisplayName: model ? MODEL_DISPLAY_NAMES[model] : "",
+    progress,
+    isDownloading,
+  };
 }

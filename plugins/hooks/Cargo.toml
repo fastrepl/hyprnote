@@ -29,4 +29,4 @@ dirs = { workspace = true }
 futures-util = { workspace = true }
 shellexpand = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true, features = ["process"] }
+tokio = { workspace = true, features = ["process", "time"] }

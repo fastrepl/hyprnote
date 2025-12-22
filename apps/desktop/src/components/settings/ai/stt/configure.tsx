@@ -118,12 +118,12 @@ function HyprProviderCard({
               <HyprProviderLocalRow
                 model="am-parakeet-v2"
                 displayName="Parakeet v2"
-                description="English only. Works best for English."
+                description="Optimized for English. Best accuracy for English conversations."
               />
               <HyprProviderLocalRow
                 model="am-parakeet-v3"
                 displayName="Parakeet v3"
-                description="English and European languages."
+                description="Better for European languages. Supports multilingual conversations."
               />
               <HyprProviderLocalRow
                 model="am-whisper-large-v3"

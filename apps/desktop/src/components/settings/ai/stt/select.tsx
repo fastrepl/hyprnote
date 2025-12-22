@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { arch } from "@tauri-apps/plugin-os";
+import { useCallback } from "react";
 
 import type { AIProviderStorage } from "@hypr/store";
 import { Input } from "@hypr/ui/components/ui/input";
@@ -15,6 +16,7 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
+import { useValidateSttModel } from "../../../../hooks/useValidateSttModel";
 import * as settings from "../../../../store/tinybase/settings";
 import {
   getProviderSelectionBlockers,
@@ -50,10 +52,23 @@ export function SelectProviderAndModel() {
     settings.STORE_ID,
   );
 
+  // Validate the initial model selection
+  const getValidatedModel = () => {
+    if (!current_stt_provider || !current_stt_model) return "";
+
+    const providerModels =
+      configuredProviders[current_stt_provider as ProviderId]?.models ?? [];
+    const isModelValid = providerModels.some(
+      (model) => model.id === current_stt_model && model.isDownloaded,
+    );
+
+    return isModelValid ? current_stt_model : "";
+  };
+
   const form = useForm({
     defaultValues: {
       provider: current_stt_provider || "",
-      model: current_stt_model || "",
+      model: getValidatedModel(),
     },
     listeners: {
       onChange: ({ formApi }) => {
@@ -72,6 +87,19 @@ export function SelectProviderAndModel() {
       handleSelectModel(value.model);
     },
   });
+
+  // Clear model selection callback
+  const handleClearModel = useCallback(() => {
+    handleSelectModel("");
+    form.setFieldValue("model", "");
+  }, [handleSelectModel, form]);
+
+  // Validate that the selected model is actually downloaded
+  useValidateSttModel(
+    current_stt_provider,
+    current_stt_model,
+    handleClearModel,
+  );
 
   return (
     <div className="flex flex-col gap-3">
@@ -170,34 +198,45 @@ export function SelectProviderAndModel() {
               }
 
               const allModels = configuredProviders?.[providerId]?.models ?? [];
-              const models = allModels.filter((model) => {
-                if (model.id === "cloud") {
-                  return true;
-                }
-                if (model.id.startsWith("Quantized")) {
-                  return model.isDownloaded;
-                }
-                return true;
-              });
+
+              // We'll show all models for Hyprnote provider
+              const modelsToShow =
+                providerId === "hyprnote"
+                  ? allModels
+                  : allModels.filter((model) => {
+                      // For non-Hyprnote providers, only show downloaded models
+                      if (model.id === "cloud") {
+                        return true;
+                      }
+                      return model.isDownloaded;
+                    });
 
               return (
                 <div className="flex-[3] min-w-0">
                   <Select
                     value={field.state.value}
                     onValueChange={(value) => field.handleChange(value)}
-                    disabled={models.length === 0}
+                    disabled={modelsToShow.length === 0}
                   >
                     <SelectTrigger className="bg-white shadow-none focus:ring-0">
                       <SelectValue placeholder="Select a model" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {models.map((model) => (
+                    <SelectContent className="w-full">
+                      {modelsToShow.map((model) => (
                         <SelectItem
                           key={model.id}
                           value={model.id}
                           disabled={!model.isDownloaded}
+                          className="group"
                         >
-                          {displayModelId(model.id)}
+                          <div className="flex items-center justify-between w-full">
+                            <span>{displayModelId(model.id)}</span>
+                            {!model.isDownloaded && providerId === "hyprnote" && (
+                              <span className="text-xs text-neutral-500 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                                {model.id === "cloud" ? "Start trial" : "Download model"}
+                              </span>
+                            )}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -276,18 +315,9 @@ function useConfiguredMapping(): Record<
       }
 
       if (provider.id === "hyprnote") {
-        const models = [
-          { id: "cloud", isDownloaded: billing.isPro },
-          {
-            id: "QuantizedTinyEn",
-            isDownloaded: tinyEn.data ?? false,
-          },
-          {
-            id: "QuantizedSmallEn",
-            isDownloaded: smallEn.data ?? false,
-          },
-        ];
+        const models = [{ id: "cloud", isDownloaded: billing.isPro }];
 
+        // Add Parakeet models first for Apple Silicon
         if (isAppleSilicon) {
           models.push(
             {
@@ -298,12 +328,28 @@ function useConfiguredMapping(): Record<
               id: "am-parakeet-v3",
               isDownloaded: p3.data ?? false,
             },
-            {
-              id: "am-whisper-large-v3",
-              isDownloaded: whisperLargeV3.data ?? false,
-            },
           );
         }
+
+        // Add Whisper models after Parakeet
+        if (isAppleSilicon) {
+          models.push({
+            id: "am-whisper-large-v3",
+            isDownloaded: whisperLargeV3.data ?? false,
+          });
+        }
+
+        // Add Quantized Whisper models at the bottom
+        models.push(
+          {
+            id: "QuantizedTinyEn",
+            isDownloaded: tinyEn.data ?? false,
+          },
+          {
+            id: "QuantizedSmallEn",
+            isDownloaded: smallEn.data ?? false,
+          },
+        );
 
         return [
           provider.id,

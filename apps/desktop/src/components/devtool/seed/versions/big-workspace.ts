@@ -39,7 +39,7 @@ const BIG_WORKSPACE_DATA = (() => {
   const calendars = buildCalendars(5);
   const calendarIds = Object.keys(calendars);
 
-  const { events, eventsByHuman } = buildEventsByHuman(humanIds, calendarIds, {
+  const { events } = buildEventsByHuman(humanIds, calendarIds, {
     min: 2,
     max: 6,
   });

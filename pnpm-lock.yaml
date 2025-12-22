@@ -208,6 +208,9 @@ importers:
       '@hypr/plugin-detect':
         specifier: workspace:*
         version: link:../../plugins/detect
+      '@hypr/plugin-export':
+        specifier: workspace:*
+        version: link:../../plugins/export
       '@hypr/plugin-extensions':
         specifier: workspace:*
         version: link:../../plugins/extensions
@@ -1404,6 +1407,12 @@ importers:
         version: 2.9.1
 
   plugins/detect:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/export:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

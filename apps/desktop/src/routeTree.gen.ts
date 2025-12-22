@@ -8,8 +8,6 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
@@ -19,17 +17,10 @@ import { Route as AppOnboardingIndexRouteImport } from './routes/app/onboarding/
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layout.index'
 
-const AppMainRouteImport = createFileRoute('/app/main')()
-
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AppMainRoute = AppMainRouteImport.update({
-  id: '/main',
-  path: '/main',
-  getParentRoute: () => AppRouteRoute,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
@@ -52,8 +43,9 @@ const AppOnboardingIndexRoute = AppOnboardingIndexRouteImport.update({
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
-  id: '/_layout',
-  getParentRoute: () => AppMainRoute,
+  id: '/main/_layout',
+  path: '/main',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
   id: '/',
@@ -75,8 +67,8 @@ export interface FileRoutesByTo {
   '/app/control': typeof AppControlRoute
   '/app/ext-host': typeof AppExtHostRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/app/main': typeof AppMainLayoutIndexRoute
   '/app/onboarding': typeof AppOnboardingIndexRoute
+  '/app/main': typeof AppMainLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -84,7 +76,6 @@ export interface FileRoutesById {
   '/app/control': typeof AppControlRoute
   '/app/ext-host': typeof AppExtHostRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
   '/app/onboarding/': typeof AppOnboardingIndexRoute
   '/app/main/_layout/': typeof AppMainLayoutIndexRoute
@@ -105,15 +96,14 @@ export interface FileRouteTypes {
     | '/app/control'
     | '/app/ext-host'
     | '/auth/callback'
-    | '/app/main'
     | '/app/onboarding'
+    | '/app/main'
   id:
     | '__root__'
     | '/app'
     | '/app/control'
     | '/app/ext-host'
     | '/auth/callback'
-    | '/app/main'
     | '/app/main/_layout'
     | '/app/onboarding/'
     | '/app/main/_layout/'
@@ -132,13 +122,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/app/main': {
-      id: '/app/main'
-      path: '/main'
-      fullPath: '/app/main'
-      preLoaderRoute: typeof AppMainRouteImport
-      parentRoute: typeof AppRouteRoute
     }
     '/auth/callback': {
       id: '/auth/callback'
@@ -173,7 +156,7 @@ declare module '@tanstack/react-router' {
       path: '/main'
       fullPath: '/app/main'
       preLoaderRoute: typeof AppMainLayoutRouteImport
-      parentRoute: typeof AppMainRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/app/main/_layout/': {
       id: '/app/main/_layout/'
@@ -197,28 +180,17 @@ const AppMainLayoutRouteWithChildren = AppMainLayoutRoute._addFileChildren(
   AppMainLayoutRouteChildren,
 )
 
-interface AppMainRouteChildren {
-  AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
-}
-
-const AppMainRouteChildren: AppMainRouteChildren = {
-  AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
-}
-
-const AppMainRouteWithChildren =
-  AppMainRoute._addFileChildren(AppMainRouteChildren)
-
 interface AppRouteRouteChildren {
   AppControlRoute: typeof AppControlRoute
   AppExtHostRoute: typeof AppExtHostRoute
-  AppMainRoute: typeof AppMainRouteWithChildren
+  AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
   AppOnboardingIndexRoute: typeof AppOnboardingIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppControlRoute: AppControlRoute,
   AppExtHostRoute: AppExtHostRoute,
-  AppMainRoute: AppMainRouteWithChildren,
+  AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
   AppOnboardingIndexRoute: AppOnboardingIndexRoute,
 }
 

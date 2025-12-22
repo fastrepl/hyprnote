@@ -7,6 +7,7 @@
 //
 // This handles both backfill (pre-webhook customers) and daily verification.
 import { Effect, Schedule } from "effect";
+import pg from "pg";
 import Stripe from "stripe";
 import { parseArgs } from "util";
 
@@ -26,15 +27,13 @@ const { values } = parseArgs({
 
 const skipRecentHours = parseInt(values["skip-recent-hours"] ?? "6", 10);
 
-const { STRIPE_SECRET_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = Bun.env;
+const { STRIPE_SECRET_KEY, DATABASE_URL } = Bun.env;
 
-if (!STRIPE_SECRET_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+if (!STRIPE_SECRET_KEY || !DATABASE_URL) {
   throw new Error("Missing required environment variables");
 }
 
-const { createClient } = await import("@supabase/supabase-js");
-
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const pool = new pg.Pool({ connectionString: DATABASE_URL });
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: STRIPE_API_VERSION,
 });
@@ -48,72 +47,67 @@ const retryPolicy = Schedule.exponential("500 millis").pipe(
   Schedule.intersect(Schedule.recurs(5)),
 );
 
+class DbError {
+  readonly _tag = "DbError";
+  constructor(readonly message: string) {}
+}
+
 const fetchRecentlySyncedCustomers = (hours: number) =>
   Effect.gen(function* () {
     if (hours <= 0) return new Set<string>();
 
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
 
-    const { data, error } = yield* Effect.promise(() =>
-      supabaseAdmin
-        .schema("stripe")
-        .from("customers")
-        .select("id")
-        .gte("last_synced_at", cutoff),
+    const result = yield* Effect.tryPromise({
+      try: () =>
+        pool.query<{ id: string }>(
+          `SELECT id FROM stripe.customers WHERE last_synced_at >= $1`,
+          [cutoff],
+        ),
+      catch: (e) => new DbError(e instanceof Error ? e.message : String(e)),
+    }).pipe(
+      Effect.catchAll((e) =>
+        Effect.gen(function* () {
+          yield* Effect.logWarning(
+            `Failed to fetch recently synced customers: ${e.message}`,
+          );
+          return { rows: [] as { id: string }[] };
+        }),
+      ),
     );
 
-    if (error) {
-      yield* Effect.logWarning(
-        `Failed to fetch recently synced customers: ${error.message}`,
-      );
-      return new Set<string>();
-    }
-
-    return new Set((data ?? []).map((c) => c.id as string).filter(Boolean));
+    return new Set(result.rows.map((c) => c.id));
   });
 
 const fetchCustomersToSync = Effect.gen(function* () {
   const [subscriptionsResult, entitlementsResult, recentlySynced] =
     yield* Effect.all([
-      Effect.promise(() =>
-        supabaseAdmin
-          .schema("stripe")
-          .from("subscriptions")
-          .select("customer")
-          .in("status", ["active", "trialing", "past_due"]),
-      ),
-      Effect.promise(() =>
-        supabaseAdmin
-          .schema("stripe")
-          .from("active_entitlements")
-          .select("customer"),
-      ),
+      Effect.tryPromise({
+        try: () =>
+          pool.query<{ customer: string }>(
+            `SELECT customer FROM stripe.subscriptions WHERE status IN ('active', 'trialing', 'past_due')`,
+          ),
+        catch: (e) =>
+          new DbError(
+            `Failed to fetch subscriptions: ${e instanceof Error ? e.message : String(e)}`,
+          ),
+      }),
+      Effect.tryPromise({
+        try: () =>
+          pool.query<{ customer: string }>(
+            `SELECT customer FROM stripe.active_entitlements`,
+          ),
+        catch: (e) =>
+          new DbError(
+            `Failed to fetch existing entitlements: ${e instanceof Error ? e.message : String(e)}`,
+          ),
+      }),
       fetchRecentlySyncedCustomers(skipRecentHours),
     ]);
 
-  if (subscriptionsResult.error) {
-    return yield* Effect.fail(
-      new Error(
-        `Failed to fetch subscriptions: ${subscriptionsResult.error.message}`,
-      ),
-    );
-  }
-
-  if (entitlementsResult.error) {
-    return yield* Effect.fail(
-      new Error(
-        `Failed to fetch existing entitlements: ${entitlementsResult.error.message}`,
-      ),
-    );
-  }
-
   const uniqueIds = new Set([
-    ...(subscriptionsResult.data ?? [])
-      .map((s) => s.customer as string)
-      .filter(Boolean),
-    ...(entitlementsResult.data ?? [])
-      .map((e) => e.customer as string)
-      .filter(Boolean),
+    ...subscriptionsResult.rows.map((s) => s.customer).filter(Boolean),
+    ...entitlementsResult.rows.map((e) => e.customer).filter(Boolean),
   ]);
 
   const filtered = Array.from(uniqueIds).filter(
@@ -147,24 +141,27 @@ const fetchCustomerEntitlements = (customerId: string) =>
   }).pipe(Effect.retry(retryPolicy));
 
 const deleteAllEntitlements = (customerId: string) =>
-  Effect.gen(function* () {
-    const { error, count } = yield* Effect.promise(() =>
-      supabaseAdmin
-        .schema("stripe")
-        .from("active_entitlements")
-        .delete({ count: "exact" })
-        .eq("customer", customerId),
-    );
-
-    if (error) {
-      yield* Effect.logError(
-        `Failed to delete entitlements for ${customerId}: ${error.message}`,
-      );
-      return { updated: 0, deleted: 0, hasError: true };
-    }
-
-    return { updated: 0, deleted: count ?? 0, hasError: false };
-  });
+  Effect.tryPromise({
+    try: () =>
+      pool.query(`DELETE FROM stripe.active_entitlements WHERE customer = $1`, [
+        customerId,
+      ]),
+    catch: (e) => new DbError(e instanceof Error ? e.message : String(e)),
+  }).pipe(
+    Effect.map((result) => ({
+      updated: 0,
+      deleted: result.rowCount ?? 0,
+      hasError: false,
+    })),
+    Effect.catchAll((e) =>
+      Effect.gen(function* () {
+        yield* Effect.logError(
+          `Failed to delete entitlements for ${customerId}: ${e.message}`,
+        );
+        return { updated: 0, deleted: 0, hasError: true };
+      }),
+    ),
+  );
 
 const syncEntitlements = (
   customerId: string,
@@ -173,62 +170,85 @@ const syncEntitlements = (
   Effect.gen(function* () {
     const activeLookupKeys = entitlements.map((e) => e.lookup_key);
 
-    const { error: deleteError, count: deleteCount } = yield* Effect.promise(
-      () =>
-        supabaseAdmin
-          .schema("stripe")
-          .from("active_entitlements")
-          .delete({ count: "exact" })
-          .eq("customer", customerId)
-          .not("lookup_key", "in", `(${activeLookupKeys.join(",")})`),
+    const deleteResult = yield* Effect.tryPromise({
+      try: () =>
+        pool.query(
+          `DELETE FROM stripe.active_entitlements WHERE customer = $1 AND lookup_key != ALL($2)`,
+          [customerId, activeLookupKeys],
+        ),
+      catch: (e) => new DbError(e instanceof Error ? e.message : String(e)),
+    }).pipe(
+      Effect.catchAll((e) =>
+        Effect.gen(function* () {
+          yield* Effect.logError(
+            `Failed to delete stale entitlements for ${customerId}: ${e.message}`,
+          );
+          return null;
+        }),
+      ),
     );
 
-    if (deleteError) {
-      yield* Effect.logError(
-        `Failed to delete stale entitlements for ${customerId}: ${deleteError.message}`,
-      );
+    if (deleteResult === null) {
       return { updated: 0, deleted: 0, hasError: true };
     }
 
-    const records = entitlements.map((entitlement) => ({
-      id: entitlement.id,
-      object: entitlement.object,
-      livemode: entitlement.livemode,
-      feature: entitlement.feature,
-      customer: customerId,
-      lookup_key: entitlement.lookup_key,
-      last_synced_at: new Date().toISOString(),
-    }));
+    const deleteCount = deleteResult.rowCount ?? 0;
 
-    const { error: upsertError } = yield* Effect.promise(() =>
-      supabaseAdmin
-        .schema("stripe")
-        .from("active_entitlements")
-        .upsert(records, { onConflict: "customer,lookup_key" }),
-    );
-
-    if (upsertError) {
-      yield* Effect.logError(
-        `Failed to upsert entitlements for ${customerId}: ${upsertError.message}`,
+    for (const entitlement of entitlements) {
+      const upsertResult = yield* Effect.tryPromise({
+        try: () =>
+          pool.query(
+            `INSERT INTO stripe.active_entitlements (id, object, livemode, feature, customer, lookup_key, last_synced_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             ON CONFLICT (customer, lookup_key) DO UPDATE SET
+               id = EXCLUDED.id,
+               object = EXCLUDED.object,
+               livemode = EXCLUDED.livemode,
+               feature = EXCLUDED.feature,
+               last_synced_at = EXCLUDED.last_synced_at`,
+            [
+              entitlement.id,
+              entitlement.object,
+              entitlement.livemode,
+              entitlement.feature,
+              customerId,
+              entitlement.lookup_key,
+              new Date().toISOString(),
+            ],
+          ),
+        catch: (e) => new DbError(e instanceof Error ? e.message : String(e)),
+      }).pipe(
+        Effect.catchAll((e) =>
+          Effect.gen(function* () {
+            yield* Effect.logError(
+              `Failed to upsert entitlement for ${customerId}: ${e.message}`,
+            );
+            return null;
+          }),
+        ),
       );
-      return { updated: 0, deleted: deleteCount ?? 0, hasError: true };
+
+      if (upsertResult === null) {
+        return { updated: 0, deleted: deleteCount, hasError: true };
+      }
     }
 
     return {
       updated: entitlements.length,
-      deleted: deleteCount ?? 0,
+      deleted: deleteCount,
       hasError: false,
     };
   });
 
 const updateCustomerLastSyncedAt = (customerId: string) =>
-  Effect.promise(() =>
-    supabaseAdmin
-      .schema("stripe")
-      .from("customers")
-      .update({ last_synced_at: new Date().toISOString() })
-      .eq("id", customerId),
-  );
+  Effect.tryPromise({
+    try: () =>
+      pool.query(
+        `UPDATE stripe.customers SET last_synced_at = $1 WHERE id = $2`,
+        [new Date().toISOString(), customerId],
+      ),
+    catch: (e) => new DbError(e instanceof Error ? e.message : String(e)),
+  }).pipe(Effect.catchAll(() => Effect.void));
 
 const processCustomer = (customerId: string) =>
   Effect.gen(function* () {
@@ -287,7 +307,11 @@ const program = Effect.gen(function* () {
   );
 });
 
-Effect.runPromise(program).catch((error) => {
-  console.error("Fatal error:", error);
-  process.exit(1);
-});
+Effect.runPromise(program)
+  .catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  })
+  .finally(() => {
+    pool.end();
+  });

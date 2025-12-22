@@ -74,6 +74,9 @@ importers:
       '@t3-oss/env-core':
         specifier: ^0.13.10
         version: 0.13.10(typescript@5.9.3)(zod@4.2.1)
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
       effect:
         specifier: ^3.19.13
         version: 3.19.13
@@ -86,6 +89,9 @@ importers:
       openai:
         specifier: ^6.15.0
         version: 6.15.0(ws@8.18.3)(zod@4.2.1)
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
       posthog-node:
         specifier: ^5.17.4
         version: 5.17.4
@@ -744,7 +750,7 @@ importers:
         version: 1.11.19
       drizzle-orm:
         specifier: ^0.44.7
-        version: 0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.8.0)(@types/pg@8.15.6)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7)
+        version: 0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.8.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7)
       exa-js:
         specifier: ^1.10.2
         version: 1.10.2(ws@8.18.3)
@@ -959,10 +965,10 @@ importers:
     dependencies:
       drizzle-orm:
         specifier: ^0.44.7
-        version: 0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.15.6)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7)
+        version: 0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7)
       drizzle-zod:
         specifier: ^0.8.3
-        version: 0.8.3(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.15.6)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7))(zod@4.2.1)
+        version: 0.8.3(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7))(zod@4.2.1)
       zod:
         specifier: ^4.2.1
         version: 4.2.1
@@ -7911,6 +7917,9 @@ packages:
 
   '@types/pg@8.15.6':
     resolution: {integrity: sha512-NoaMtzhxOrubeL/7UZuNTrejB4MPAJ0RpxZqXQf2qXuVlTPuG6Y8p4u9dKRaue4yjmC7ZhzVO2/Yyyn25znrPQ==}
+
+  '@types/pg@8.16.0':
+    resolution: {integrity: sha512-RmhMd/wD+CF8Dfo+cVIy3RR5cl8CyfXQ0tGgW6XBL8L4LM/UTEbNXYRbLwU6w+CgrKBNbrQWt4FUtTfaU5jSYQ==}
 
   '@types/pg@8.6.1':
     resolution: {integrity: sha512-1Kc4oAGzAl7uqUStZCDvaLFqZrW9qWSjXOmBfdgyBP5La7Us6Mg4GBvRlSoaZMhQF/zSj1C8CtKMBkoiT8eL8w==}
@@ -18058,7 +18067,7 @@ snapshots:
 
   '@jest/pattern@30.0.1':
     dependencies:
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
       jest-regex-util: 30.0.1
 
   '@jest/schemas@30.0.5':
@@ -18071,7 +18080,7 @@ snapshots:
       '@jest/schemas': 30.0.5
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -23045,7 +23054,7 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
 
   '@types/btoa-lite@1.0.2': {}
 
@@ -23062,11 +23071,11 @@ snapshots:
 
   '@types/connect@3.4.36':
     dependencies:
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 25.0.3
+      '@types/node': 24.10.4
 
   '@types/d3-array@3.2.2': {}
 
@@ -23201,7 +23210,7 @@ snapshots:
 
   '@types/express-serve-static-core@5.1.0':
     dependencies:
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
       '@types/qs': 6.14.0
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
@@ -23229,7 +23238,7 @@ snapshots:
 
   '@types/http-proxy@1.17.17':
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 24.10.4
 
   '@types/istanbul-lib-coverage@2.0.6': {}
 
@@ -23252,7 +23261,7 @@ snapshots:
   '@types/jsonwebtoken@9.0.10':
     dependencies:
       '@types/ms': 2.1.0
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
 
   '@types/katex@0.16.7': {}
 
@@ -23282,11 +23291,11 @@ snapshots:
 
   '@types/mysql@2.15.26':
     dependencies:
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
 
   '@types/mysql@2.15.27':
     dependencies:
-      '@types/node': 25.0.3
+      '@types/node': 24.10.4
 
   '@types/nlcst@2.0.3':
     dependencies:
@@ -23320,17 +23329,23 @@ snapshots:
 
   '@types/pg-pool@2.0.6':
     dependencies:
-      '@types/pg': 8.15.6
+      '@types/pg': 8.16.0
 
   '@types/pg@8.15.6':
     dependencies:
-      '@types/node': 25.0.3
+      '@types/node': 24.10.4
+      pg-protocol: 1.10.3
+      pg-types: 2.2.0
+
+  '@types/pg@8.16.0':
+    dependencies:
+      '@types/node': 24.10.4
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
   '@types/pg@8.6.1':
     dependencies:
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
@@ -23360,18 +23375,18 @@ snapshots:
 
   '@types/sax@1.2.7':
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 24.10.4
 
   '@types/semver@7.7.1': {}
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
 
   '@types/serve-static@2.2.0':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
 
   '@types/shimmer@1.2.0': {}
 
@@ -23383,7 +23398,7 @@ snapshots:
 
   '@types/tedious@4.0.14':
     dependencies:
-      '@types/node': 25.0.3
+      '@types/node': 24.10.4
 
   '@types/triple-beam@1.3.5': {}
 
@@ -23405,7 +23420,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 25.0.3
+      '@types/node': 24.10.4
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -23415,7 +23430,7 @@ snapshots:
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 24.10.4
     optional: true
 
   '@typescript-eslint/eslint-plugin@8.50.0(@typescript-eslint/parser@8.50.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
@@ -25566,27 +25581,27 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.8.0)(@types/pg@8.15.6)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7):
+  drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.8.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20251221.0
       '@opentelemetry/api': 1.8.0
-      '@types/pg': 8.15.6
+      '@types/pg': 8.16.0
       bun-types: 1.3.5
       pg: 8.16.3
       postgres: 3.4.7
 
-  drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.15.6)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7):
+  drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20251221.0
       '@opentelemetry/api': 1.9.0
-      '@types/pg': 8.15.6
+      '@types/pg': 8.16.0
       bun-types: 1.3.5
       pg: 8.16.3
       postgres: 3.4.7
 
-  drizzle-zod@0.8.3(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.15.6)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7))(zod@4.2.1):
+  drizzle-zod@0.8.3(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7))(zod@4.2.1):
     dependencies:
-      drizzle-orm: 0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.15.6)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7)
+      drizzle-orm: 0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7)
       zod: 4.2.1
 
   dunder-proto@1.0.1:
@@ -27615,7 +27630,7 @@ snapshots:
   jest-mock@30.2.0:
     dependencies:
       '@jest/types': 30.2.0
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
       jest-util: 30.2.0
 
   jest-regex-util@30.0.1: {}
@@ -27623,7 +27638,7 @@ snapshots:
   jest-util@30.2.0:
     dependencies:
       '@jest/types': 30.2.0
-      '@types/node': 20.19.27
+      '@types/node': 24.10.4
       chalk: 4.1.2
       ci-info: 4.3.1
       graceful-fs: 4.2.11

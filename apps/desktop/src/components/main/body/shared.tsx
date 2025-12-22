@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { useState } from "react";
 
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
@@ -20,7 +21,7 @@ type TabItemBaseProps = {
   title: React.ReactNode;
   selected: boolean;
   active?: boolean;
-  isEmptyTab?: boolean;
+  finalizing?: boolean;
   tabIndex?: number;
 } & {
   handleCloseThis: () => void;
@@ -38,7 +39,7 @@ export function TabItemBase({
   title,
   selected,
   active = false,
-  isEmptyTab = false,
+  finalizing = false,
   tabIndex,
   handleCloseThis,
   handleSelectThis,
@@ -110,7 +111,9 @@ export function TabItemBase({
                 isHovered ? "opacity-0" : "opacity-100",
               ])}
             >
-              {active ? (
+              {finalizing ? (
+                <Spinner size={16} />
+              ) : active ? (
                 <div className="relative size-2">
                   <div className="absolute inset-0 rounded-full bg-red-600"></div>
                   <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>

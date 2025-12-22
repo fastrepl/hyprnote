@@ -254,6 +254,20 @@ function OptionsMenu({
                 return index;
               };
 
+              const NON_SPEAKER_BRACKETS = new Set([
+                "music",
+                "laughter",
+                "applause",
+                "inaudible",
+                "crosstalk",
+                "silence",
+                "noise",
+                "background noise",
+                "unintelligible",
+                "foreign language",
+                "speaking foreign language",
+              ]);
+
               const parseSpeakerFromText = (
                 text: string,
               ): { speaker: string | null; cleanText: string } => {
@@ -263,6 +277,24 @@ function OptionsMenu({
                     speaker: voiceTagMatch[1].trim(),
                     cleanText: voiceTagMatch[2].trim(),
                   };
+                }
+
+                const bracketMatch = text.match(
+                  /^\s*\[([^\]\n]{1,50})\]\s*(.*)$/s,
+                );
+                if (bracketMatch) {
+                  const potentialSpeaker = bracketMatch[1].trim();
+                  const lowerSpeaker = potentialSpeaker.toLowerCase();
+                  if (
+                    /[\p{L}]/u.test(potentialSpeaker) &&
+                    !NON_SPEAKER_BRACKETS.has(lowerSpeaker) &&
+                    !/^\d+$/.test(potentialSpeaker)
+                  ) {
+                    return {
+                      speaker: potentialSpeaker,
+                      cleanText: bracketMatch[2].trim(),
+                    };
+                  }
                 }
 
                 const speakerMatch = text.match(

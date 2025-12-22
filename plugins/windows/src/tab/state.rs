@@ -25,6 +25,7 @@ crate::common_derives! {
 
 crate::common_derives! {
     pub struct TemplatesState {
+        pub show_homepage: Option<bool>,
         pub is_web_mode: Option<bool>,
         pub selected_mine_id: Option<String>,
         pub selected_web_index: Option<i32>,

@@ -17188,8 +17188,11 @@ dependencies = [
 name = "tauri-plugin-export"
 version = "0.1.0"
 dependencies = [
+ "criterion",
+ "futures-util",
  "markdown",
  "mdast_util_to_markdown",
+ "rayon",
  "serde",
  "serde_json",
  "specta",

@@ -7,10 +7,15 @@ exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-export"
 description = ""
 
+[[bench]]
+name = "md_bench"
+harness = false
+
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+criterion = { workspace = true }
 specta-typescript = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
@@ -23,7 +28,9 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
-specta = { workspace = true }
+specta = { workspace = true, features = ["serde_json"] }
 
+futures-util = { workspace = true }
+rayon = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["fs"] }

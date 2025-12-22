@@ -248,20 +248,10 @@ fn convert_text_with_marks(node: &serde_json::Value) -> Option<mdast::Node> {
     Some(result)
 }
 
-pub fn mdast_to_markdown(node: &mdast::Node) -> Result<String, String> {
-    mdast_util_to_markdown::to_markdown_with_options(
-        node,
-        &mdast_util_to_markdown::Options {
-            bullet: '-',
-            ..Default::default()
-        },
-    )
-    .map_err(|e| e.to_string())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::md::from_ast::mdast_to_markdown;
 
     #[test]
     fn test_simple_paragraph() {

@@ -307,10 +307,22 @@
           "markdownDescription": "Denies the export_tiptap_json_to_md command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-export-tiptap-json-to-md`",
+          "description": "Enables the export_tiptap_json_to_md_batch command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-export-tiptap-json-to-md-batch",
+          "markdownDescription": "Enables the export_tiptap_json_to_md_batch command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the export_tiptap_json_to_md_batch command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-export-tiptap-json-to-md-batch",
+          "markdownDescription": "Denies the export_tiptap_json_to_md_batch command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-export-tiptap-json-to-md`\n- `allow-export-tiptap-json-to-md-batch`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-export-tiptap-json-to-md`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-export-tiptap-json-to-md`\n- `allow-export-tiptap-json-to-md-batch`"
         }
       ]
     }

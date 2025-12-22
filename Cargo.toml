@@ -158,6 +158,7 @@ futures-core = "0.3.31"
 futures-util = "0.3.31"
 ractor = { version = "0.14.3" }
 ractor-supervisor = "0.1.9"
+rayon = "1.11"
 reqwest = "0.12"
 reqwest-middleware = "0.4"
 reqwest-streams = "0.10.0"

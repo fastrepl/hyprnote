@@ -1,7 +1,7 @@
 mod commands;
 mod error;
 mod ext;
-mod md;
+pub mod md;
 
 pub use error::{Error, Result};
 pub use ext::*;
@@ -14,6 +14,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::export_tiptap_json_to_md::<tauri::Wry>,
+            commands::export_tiptap_json_to_md_batch::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

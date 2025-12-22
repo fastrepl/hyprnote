@@ -61,7 +61,7 @@
     "@hypr/utils": "workspace:^",
     "@iconify-icon/react": "^3.0.3",
     "@lmstudio/sdk": "^1.5.0",
-    "@lobehub/icons": "^2.48.0",
+    "@lobehub/icons": "^3.0.1",
     "@openrouter/ai-sdk-provider": "^1.5.4",
     "@orama/highlight": "^0.1.9",
     "@orama/orama": "^3.1.18",

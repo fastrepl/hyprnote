@@ -2,7 +2,13 @@ import { createMergeableStore } from "tinybase/with-schemas";
 import { bench, describe } from "vitest";
 
 import { SCHEMA } from "@hypr/store";
-import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
+import {
+  getExtensions,
+  html2md,
+  isValidTiptapContent,
+  json2md,
+  renderToHTMLString,
+} from "@hypr/tiptap/shared";
 
 function createTestStore() {
   return createMergeableStore()
@@ -420,6 +426,85 @@ describe("Changes table impact", () => {
       const values = store.getValues();
       JSON.stringify({ tables, values });
     });
+  }
+});
+
+describe("json2md breakdown (renderToHTMLString vs turndown)", () => {
+  const paragraphCounts = [5, 10, 20, 50];
+
+  for (const paragraphCount of paragraphCounts) {
+    const content = JSON.parse(generateTiptapContent(paragraphCount));
+    const extensions = getExtensions();
+
+    bench(`renderToHTMLString only - ${paragraphCount} paragraphs`, () => {
+      renderToHTMLString({
+        extensions,
+        content,
+      });
+    });
+
+    const html = renderToHTMLString({
+      extensions,
+      content,
+    });
+
+    bench(`html2md (turndown) only - ${paragraphCount} paragraphs`, () => {
+      html2md(html);
+    });
+
+    bench(`Full json2md - ${paragraphCount} paragraphs`, () => {
+      json2md(content);
+    });
+  }
+
+  const noteCountConfigs = [
+    { noteCount: 10, paragraphsPerNote: 10 },
+    { noteCount: 50, paragraphsPerNote: 10 },
+    { noteCount: 100, paragraphsPerNote: 10 },
+  ];
+
+  for (const config of noteCountConfigs) {
+    const notes = Array.from({ length: config.noteCount }, () =>
+      JSON.parse(generateTiptapContent(config.paragraphsPerNote)),
+    );
+    const extensions = getExtensions();
+
+    bench(
+      `renderToHTMLString - ${config.noteCount} notes x ${config.paragraphsPerNote} paragraphs`,
+      () => {
+        for (const note of notes) {
+          renderToHTMLString({
+            extensions,
+            content: note,
+          });
+        }
+      },
+    );
+
+    const htmls = notes.map((note) =>
+      renderToHTMLString({
+        extensions,
+        content: note,
+      }),
+    );
+
+    bench(
+      `html2md (turndown) - ${config.noteCount} notes x ${config.paragraphsPerNote} paragraphs`,
+      () => {
+        for (const html of htmls) {
+          html2md(html);
+        }
+      },
+    );
+
+    bench(
+      `Full json2md - ${config.noteCount} notes x ${config.paragraphsPerNote} paragraphs`,
+      () => {
+        for (const note of notes) {
+          json2md(note);
+        }
+      },
+    );
   }
 });
 

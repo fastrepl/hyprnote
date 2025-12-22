@@ -1,9 +1,11 @@
 import { MarkdownManager } from "@tiptap/markdown";
 import type { JSONContent } from "@tiptap/react";
-import { renderToHTMLString } from "@tiptap/static-renderer";
+import { renderToHTMLString as _renderToHTMLString } from "@tiptap/static-renderer";
 import TurndownService from "turndown";
 
 import { getExtensions } from "./extensions";
+
+export { _renderToHTMLString as renderToHTMLString };
 
 export const EMPTY_TIPTAP_DOC: JSONContent = {
   type: "doc",
@@ -75,7 +77,7 @@ export function html2md(html: string) {
 }
 
 export function json2md(jsonContent: JSONContent): string {
-  const html = renderToHTMLString({
+  const html = _renderToHTMLString({
     extensions: getExtensions(),
     content: jsonContent,
   });

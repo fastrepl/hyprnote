@@ -1,7 +1,7 @@
 import { createMergeableStore } from "tinybase/with-schemas";
 import { bench, describe } from "vitest";
 
-import { SCHEMA, type Schemas } from "@hypr/store";
+import { SCHEMA } from "@hypr/store";
 import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 
 function createTestStore() {

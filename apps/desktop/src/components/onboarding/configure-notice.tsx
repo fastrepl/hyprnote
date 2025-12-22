@@ -7,37 +7,13 @@ import {
 } from "@hypr/plugin-local-stt";
 import { cn } from "@hypr/utils";
 
+import { localSttQueries } from "../../hooks/useLocalSttModel";
 import { Route } from "../../routes/app/onboarding";
 import * as settings from "../../store/tinybase/settings";
 import { getBack, getNext, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 
 export const STEP_ID_CONFIGURE_NOTICE = "configure-notice" as const;
-
-const sttModelQueries = {
-  isDownloaded: (model: SupportedSttModel) => ({
-    refetchInterval: 1000,
-    queryKey: ["stt", "model", model, "downloaded"],
-    queryFn: () => localSttCommands.isModelDownloaded(model),
-    select: (result: { status: string; data?: boolean; error?: string }) => {
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  }),
-  isDownloading: (model: SupportedSttModel) => ({
-    refetchInterval: 1000,
-    queryKey: ["stt", "model", model, "downloading"],
-    queryFn: () => localSttCommands.isModelDownloading(model),
-    select: (result: { status: string; data?: boolean; error?: string }) => {
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  }),
-};
 
 export function ConfigureNotice({ onNavigate }: StepProps) {
   const search = Route.useSearch();
@@ -111,8 +87,8 @@ function LocalConfigureNotice({
     settings.STORE_ID,
   );
 
-  const p2Downloaded = useQuery(sttModelQueries.isDownloaded("am-parakeet-v2"));
-  const p3Downloaded = useQuery(sttModelQueries.isDownloaded("am-parakeet-v3"));
+  const p2Downloaded = useQuery(localSttQueries.isDownloaded("am-parakeet-v2"));
+  const p3Downloaded = useQuery(localSttQueries.isDownloaded("am-parakeet-v3"));
 
   useEffect(() => {
     if (p2Downloaded.data || p3Downloaded.data) {
@@ -202,7 +178,7 @@ function LocalModelRow({
   isSelected: boolean;
   onSelect: () => void;
 }) {
-  const isDownloaded = useQuery(sttModelQueries.isDownloaded(model));
+  const isDownloaded = useQuery(localSttQueries.isDownloaded(model));
 
   return (
     <div

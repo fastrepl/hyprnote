@@ -2,11 +2,10 @@ import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { arch, platform } from "@tauri-apps/plugin-os";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 
 import {
   commands as localSttCommands,
-  events as localSttEvents,
   type SupportedSttModel,
 } from "@hypr/plugin-local-stt";
 import {
@@ -20,9 +19,10 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
+import { useLocalModelDownload } from "../../../../hooks/useLocalSttModel";
 import * as settings from "../../../../store/tinybase/settings";
 import { NonHyprProviderCard, StyledStreamdown } from "../shared";
-import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
+import { ProviderId, PROVIDERS } from "./shared";
 
 export function ConfigureProviders() {
   return (
@@ -342,84 +342,6 @@ function HyprProviderLocalRow({
       />
     </HyprProviderRow>
   );
-}
-
-function useLocalModelDownload(
-  model: SupportedSttModel,
-  onDownloadComplete?: (model: SupportedSttModel) => void,
-) {
-  const [progress, setProgress] = useState<number>(0);
-  const [isStarting, setIsStarting] = useState(false);
-  const [hasError, setHasError] = useState(false);
-
-  const isDownloaded = useQuery(sttModelQueries.isDownloaded(model));
-  const isDownloading = useQuery(sttModelQueries.isDownloading(model));
-
-  const showProgress =
-    !isDownloaded.data && (isStarting || (isDownloading.data ?? false));
-
-  useEffect(() => {
-    if (isDownloading.data) {
-      setIsStarting(false);
-    }
-  }, [isDownloading.data]);
-
-  useEffect(() => {
-    const unlisten = localSttEvents.downloadProgressPayload.listen((event) => {
-      if (event.payload.model === model) {
-        if (event.payload.progress < 0) {
-          setHasError(true);
-          setIsStarting(false);
-          setProgress(0);
-        } else {
-          setHasError(false);
-          const next = Math.max(0, Math.min(100, event.payload.progress));
-          setProgress(next);
-        }
-      }
-    });
-
-    return () => {
-      void unlisten.then((fn) => fn());
-    };
-  }, [model]);
-
-  useEffect(() => {
-    if (isDownloaded.data && progress > 0) {
-      setProgress(0);
-      onDownloadComplete?.(model);
-    }
-  }, [isDownloaded.data, model, onDownloadComplete, progress]);
-
-  const handleDownload = () => {
-    if (isDownloaded.data || isDownloading.data || isStarting) {
-      return;
-    }
-    setHasError(false);
-    setIsStarting(true);
-    setProgress(0);
-    void localSttCommands.downloadModel(model).then((result) => {
-      if (result.status === "error") {
-        setHasError(true);
-        setIsStarting(false);
-      }
-    });
-  };
-
-  const handleCancel = () => {
-    void localSttCommands.cancelDownload(model);
-    setIsStarting(false);
-    setProgress(0);
-  };
-
-  return {
-    progress,
-    hasError,
-    isDownloaded: isDownloaded.data ?? false,
-    showProgress,
-    handleDownload,
-    handleCancel,
-  };
 }
 
 function ProviderContext({ providerId }: { providerId: ProviderId }) {

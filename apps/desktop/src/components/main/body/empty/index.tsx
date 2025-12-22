@@ -1,4 +1,4 @@
-import { AppWindowIcon, ArrowUpRight, ChevronDown } from "lucide-react";
+import { AppWindowIcon, ChevronDown } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { cn } from "@hypr/utils";
@@ -146,10 +146,8 @@ function ActionItem({
             <span key={index}>{key}</span>
           ))}
         </kbd>
-      ) : icon ? (
-        icon
       ) : (
-        <ArrowUpRight className="w-4 h-4 text-neutral-400" />
+        icon
       )}
     </button>
   );

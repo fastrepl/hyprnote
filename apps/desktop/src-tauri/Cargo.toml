@@ -49,6 +49,7 @@ tauri-plugin-network = { workspace = true }
 tauri-plugin-notification = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-os = { workspace = true }
+tauri-plugin-path2 = { workspace = true }
 tauri-plugin-pdf = { workspace = true }
 tauri-plugin-permissions = { workspace = true }
 tauri-plugin-prevent-default = { workspace = true }

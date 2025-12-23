@@ -965,26 +965,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-stripe"
-version = "0.39.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58d670cf4d47a1b8ffef54286a5625382e360a34ee76902fd93ad8c7032a0c30"
-dependencies = [
- "futures-util",
- "http-types",
- "hyper 0.14.32",
- "hyper-tls 0.5.0",
- "serde",
- "serde_json",
- "serde_path_to_error",
- "serde_qs 0.10.1",
- "smart-default 0.6.0",
- "smol_str 0.1.24",
- "thiserror 1.0.69",
- "tokio",
-]
-
-[[package]]
 name = "async-task"
 version = "4.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3563,7 +3543,7 @@ dependencies = [
  "rustc-hash 1.1.0",
  "rustybuzz 0.14.1",
  "self_cell",
- "smol_str 0.2.2",
+ "smol_str",
  "swash",
  "sys-locale",
  "ttf-parser 0.21.1",
@@ -4144,25 +4124,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be1e0bca6c3637f992fc1cc7cbc52a78c1ef6db076dbf1059c4323d6a2048376"
 
 [[package]]
-name = "db-admin"
-version = "0.1.0"
-dependencies = [
- "async-stripe",
- "chrono",
- "codes-iso-639",
- "db-core",
- "libsql",
- "nango",
- "schemars 0.8.22",
- "serde",
- "serde_json",
- "strum 0.26.3",
- "thiserror 2.0.17",
- "tokio",
- "uuid",
-]
-
-[[package]]
 name = "db-core"
 version = "0.1.0"
 dependencies = [
@@ -4527,6 +4488,7 @@ dependencies = [
  "tauri-plugin-notification",
  "tauri-plugin-opener",
  "tauri-plugin-os",
+ "tauri-plugin-path2",
  "tauri-plugin-pdf",
  "tauri-plugin-permissions",
  "tauri-plugin-prevent-default",
@@ -8449,27 +8411,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "add0ab9360ddbd88cfeb3bd9574a1d85cfdfa14db10b3e21d3700dbc4328758f"
 
 [[package]]
-name = "http-types"
-version = "2.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e9b187a72d63adbfba487f48095306ac823049cb504ee195541e91c7775f5ad"
-dependencies = [
- "anyhow",
- "async-channel 1.9.0",
- "base64 0.13.1",
- "futures-lite 1.13.0",
- "http 0.2.12",
- "infer 0.2.3",
- "pin-project-lite",
- "rand 0.7.3",
- "serde",
- "serde_json",
- "serde_qs 0.8.5",
- "serde_urlencoded",
- "url",
-]
-
-[[package]]
 name = "httparse"
 version = "1.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8613,19 +8554,6 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tokio-io-timeout",
-]
-
-[[package]]
-name = "hyper-tls"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6183ddfa99b85da61a140bea0efc93fdf56ceaa041b37d553518030827f9905"
-dependencies = [
- "bytes",
- "hyper 0.14.32",
- "native-tls",
- "tokio",
- "tokio-native-tls",
 ]
 
 [[package]]
@@ -9139,12 +9067,6 @@ checksum = "79cf5c93f93228cf8efb3ba362535fb11199ac548a09ce117c9b1adc3030d706"
 dependencies = [
  "rustversion",
 ]
-
-[[package]]
-name = "infer"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64e9829a50b42bb782c1df523f78d332fe371b10c661e78b7a3c34b0198e9fac"
 
 [[package]]
 name = "infer"
@@ -10651,7 +10573,7 @@ dependencies = [
  "num-traits",
  "range-map",
  "scroll",
- "smart-default 0.7.1",
+ "smart-default",
 ]
 
 [[package]]
@@ -13992,7 +13914,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.8.1",
  "hyper-rustls 0.27.7",
- "hyper-tls 0.6.0",
+ "hyper-tls",
  "hyper-util",
  "js-sys",
  "log",
@@ -15248,28 +15170,6 @@ dependencies = [
 
 [[package]]
 name = "serde_qs"
-version = "0.8.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7715380eec75f029a4ef7de39a9200e0a63823176b759d055b613f5a87df6a6"
-dependencies = [
- "percent-encoding",
- "serde",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "serde_qs"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cac3f1e2ca2fe333923a1ae72caca910b98ed0630bb35ef6f8c8517d6e81afa"
-dependencies = [
- "percent-encoding",
- "serde",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "serde_qs"
 version = "1.0.0-rc.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18c21dc864770a74dc4d61d6454bf3b5eb7bc7014d0cead189aa909472a70c9c"
@@ -15719,17 +15619,6 @@ checksum = "51d44cfb396c3caf6fbfd0ab422af02631b69ddd96d2eff0b0f0724f9024051b"
 
 [[package]]
 name = "smart-default"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "133659a15339456eeeb07572eb02a91c91e9815e9cbc89566944d2c8d3efdbf6"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "smart-default"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0eb01866308440fc64d6c44d9e86c5cc17adfe33c4d6eed55da9145044d0ffc1"
@@ -15765,15 +15654,6 @@ dependencies = [
  "async-process",
  "blocking",
  "futures-lite 2.6.1",
-]
-
-[[package]]
-name = "smol_str"
-version = "0.1.24"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fad6c857cbab2627dcf01ec85a623ca4e7dcb5691cbaa3d7fb7653671f0d09c9"
-dependencies = [
- "serde",
 ]
 
 [[package]]
@@ -17569,6 +17449,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-path2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
+]
+
+[[package]]
 name = "tauri-plugin-pdf"
 version = "0.1.0"
 dependencies = [
@@ -17822,7 +17716,7 @@ dependencies = [
  "flate2",
  "futures-util",
  "http 1.4.0",
- "infer 0.19.0",
+ "infer",
  "log",
  "minisign-verify",
  "osakit",
@@ -18014,7 +17908,7 @@ dependencies = [
  "glob",
  "html5ever 0.29.1",
  "http 1.4.0",
- "infer 0.19.0",
+ "infer",
  "json-patch 3.0.1",
  "kuchikiki",
  "log",
@@ -19100,7 +18994,7 @@ dependencies = [
  "owhisper-interface",
  "serde",
  "serde_json",
- "serde_qs 1.0.0-rc.4",
+ "serde_qs",
  "thiserror 2.0.17",
  "tokio",
  "tokio-stream",
@@ -19178,7 +19072,7 @@ dependencies = [
  "pyannote-local",
  "rodio",
  "serde_json",
- "serde_qs 1.0.0-rc.4",
+ "serde_qs",
  "thiserror 2.0.17",
  "tokio",
  "tokio-util",
@@ -19578,7 +19472,7 @@ dependencies = [
  "ecow",
  "image 0.25.9",
  "indexmap 2.12.1",
- "infer 0.19.0",
+ "infer",
  "krilla",
  "krilla-svg",
  "rustc-hash 2.1.1",

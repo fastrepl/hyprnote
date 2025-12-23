@@ -19,7 +19,7 @@ const _PROVIDERS = [
   {
     disabled: false,
     id: "apple",
-    displayName: "Apple Calendar",
+    displayName: "Apple",
     badge: null,
     icon: <Icon icon="logos:apple" width={20} height={20} />,
     platform: "macos",
@@ -28,7 +28,7 @@ const _PROVIDERS = [
   {
     disabled: true,
     id: "google",
-    displayName: "Google Calendar",
+    displayName: "Google",
     badge: "Coming Soon",
     icon: <Icon icon="logos:google-calendar" width={20} height={20} />,
     platform: "all",

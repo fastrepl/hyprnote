@@ -17,7 +17,7 @@ export function Calendars({ onNavigate }: StepProps) {
           <>
             <IntegrationRow
               icon={<Icon icon="logos:google-calendar" size={24} />}
-              name="Google Calendar"
+              name="Google"
             />
             <IntegrationRow
               icon={<Icon icon="vscode-icons:file-type-outlook" size={24} />}
@@ -26,19 +26,19 @@ export function Calendars({ onNavigate }: StepProps) {
             <Divider text="Directly connecting Google/Outlook works better" />
             <IntegrationRow
               icon={<Icon icon="logos:apple" size={24} />}
-              name="Apple Calendar"
+              name="Apple"
             />
           </>
         ) : (
           <>
             <IntegrationRow
               icon={<Icon icon="logos:apple" size={24} />}
-              name="Apple Calendar"
+              name="Apple"
             />
             <Divider text="You need account" />
             <IntegrationRow
               icon={<Icon icon="logos:google-calendar" size={24} />}
-              name="Google Calendar"
+              name="Google"
               disabled
             />
             <IntegrationRow

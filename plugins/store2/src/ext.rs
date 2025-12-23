@@ -2,12 +2,12 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use tauri::Manager;
+use tauri_plugin_path2::Path2PluginExt;
 
 pub const STORE_FILENAME: &str = "store.json";
 
 pub fn store_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, crate::Error> {
-    let store_dir = app.path().data_dir()?.join("hyprnote");
-    std::fs::create_dir_all(&store_dir).ok();
+    let store_dir = app.path2().base()?;
     Ok(store_dir.join(STORE_FILENAME))
 }
 

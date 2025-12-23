@@ -2,6 +2,8 @@ on:
   pull_request:
     branches:
       - main
+    branches-ignore:
+      - "**/graphite-base/**"
 jobs:
   ci:
     runs-on: ubuntu-latest

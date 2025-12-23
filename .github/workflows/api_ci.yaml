@@ -8,6 +8,8 @@ on:
   pull_request:
     branches:
       - main
+    branches-ignore:
+      - "**/graphite-base/**"
     paths:
       - apps/api/**
 jobs:

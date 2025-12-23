@@ -3,7 +3,7 @@ use objc2_event_kit::{EKAlarm, EKCalendarType, EKEvent, EKStructuredLocation};
 use objc2_foundation::{NSArray, NSDate, NSString, NSTimeZone};
 
 use crate::error::Error;
-use crate::types::{AppleEvent, CalendarRef, Participant, StructuredLocation};
+use crate::types::{AppleEvent, CalendarSummary, Participant, StructuredLocation};
 
 use super::super::recurrence::{offset_date_time_from, parse_recurrence_info};
 use super::alarm::transform_alarm;
@@ -14,7 +14,7 @@ use super::utils::get_url_string;
 
 pub fn transform_event(event: &EKEvent) -> Result<AppleEvent, Error> {
     let identifiers = extract_event_identifiers(event);
-    let calendar_ref = extract_event_calendar_ref(event);
+    let calendar_summary = extract_event_calendar_summary(event);
     let basic_info = extract_event_basic_info(event);
     let dates = extract_event_dates(event);
     let status_info = extract_event_status_info(event);
@@ -23,13 +23,13 @@ pub fn transform_event(event: &EKEvent) -> Result<AppleEvent, Error> {
     let location_info = extract_event_location_info(event);
     let recurrence_info = extract_event_recurrence_info(event, flags.has_recurrence_rules);
     let alarm_info = extract_event_alarm_info(event);
-    let birthday_info = extract_event_birthday_info(event, &calendar_ref);
+    let birthday_info = extract_event_birthday_info(event, &calendar_summary);
 
     Ok(AppleEvent {
         event_identifier: identifiers.event_identifier,
         calendar_item_identifier: identifiers.calendar_item_identifier,
-        external_identifier: identifiers.external_identifier,
-        calendar: calendar_ref,
+        calendar_item_external_identifier: identifiers.calendar_item_external_identifier,
+        calendar: calendar_summary,
         title: basic_info.title,
         location: basic_info.location,
         url: basic_info.url,
@@ -50,8 +50,6 @@ pub fn transform_event(event: &EKEvent) -> Result<AppleEvent, Error> {
         attendees: participants.attendees,
         structured_location: location_info.structured_location,
         recurrence: recurrence_info.recurrence,
-        occurrence_date: recurrence_info.occurrence_date,
-        is_detached: recurrence_info.is_detached,
         alarms: alarm_info.alarms,
         birthday_contact_identifier: birthday_info.birthday_contact_identifier,
         is_birthday: birthday_info.is_birthday,
@@ -59,27 +57,24 @@ pub fn transform_event(event: &EKEvent) -> Result<AppleEvent, Error> {
 }
 
 struct EventIdentifiers {
-    event_identifier: String,
+    event_identifier: Option<String>,
     calendar_item_identifier: String,
-    external_identifier: String,
+    calendar_item_external_identifier: Option<String>,
 }
 
 fn extract_event_identifiers(event: &EKEvent) -> EventIdentifiers {
     EventIdentifiers {
-        event_identifier: unsafe { event.eventIdentifier() }
-            .map(|s| s.to_string())
-            .unwrap_or_default(),
+        event_identifier: unsafe { event.eventIdentifier() }.map(|s| s.to_string()),
         calendar_item_identifier: unsafe { event.calendarItemIdentifier() }.to_string(),
-        external_identifier: unsafe { event.calendarItemExternalIdentifier() }
-            .map(|s| s.to_string())
-            .unwrap_or_default(),
+        calendar_item_external_identifier: unsafe { event.calendarItemExternalIdentifier() }
+            .map(|s| s.to_string()),
     }
 }
 
-fn extract_event_calendar_ref(event: &EKEvent) -> CalendarRef {
+fn extract_event_calendar_summary(event: &EKEvent) -> CalendarSummary {
     let calendar = unsafe { event.calendar() }.unwrap();
-    CalendarRef {
-        id: unsafe { calendar.calendarIdentifier() }.to_string(),
+    CalendarSummary {
+        calendar_identifier: unsafe { calendar.calendarIdentifier() }.to_string(),
         title: unsafe { calendar.title() }.to_string(),
     }
 }
@@ -198,8 +193,6 @@ fn extract_event_location_info(event: &EKEvent) -> EventLocationInfo {
 
 struct EventRecurrenceInfo {
     recurrence: Option<crate::types::RecurrenceInfo>,
-    occurrence_date: Option<chrono::DateTime<chrono::Utc>>,
-    is_detached: bool,
 }
 
 fn extract_event_recurrence_info(
@@ -208,8 +201,6 @@ fn extract_event_recurrence_info(
 ) -> EventRecurrenceInfo {
     EventRecurrenceInfo {
         recurrence: parse_recurrence_info(event, has_recurrence_rules),
-        occurrence_date: unsafe { event.occurrenceDate() }.map(offset_date_time_from),
-        is_detached: unsafe { event.isDetached() },
     }
 }
 
@@ -233,7 +224,10 @@ struct EventBirthdayInfo {
     is_birthday: bool,
 }
 
-fn extract_event_birthday_info(event: &EKEvent, _calendar_ref: &CalendarRef) -> EventBirthdayInfo {
+fn extract_event_birthday_info(
+    event: &EKEvent,
+    _calendar_summary: &CalendarSummary,
+) -> EventBirthdayInfo {
     let birthday_contact_identifier = unsafe {
         let id: Option<Retained<NSString>> = msg_send![event, birthdayContactIdentifier];
         id.map(|s| s.to_string())

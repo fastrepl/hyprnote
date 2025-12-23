@@ -65,7 +65,7 @@ pub fn transform_alarm(alarm: &EKAlarm) -> Alarm {
 
     Alarm {
         absolute_date,
-        relative_offset,
+        relative_offset_seconds: relative_offset,
         proximity,
         alarm_type,
         email_address,

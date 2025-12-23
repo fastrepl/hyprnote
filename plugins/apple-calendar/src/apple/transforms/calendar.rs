@@ -8,7 +8,7 @@ use super::utils::{
 };
 
 pub fn transform_calendar(calendar: &EKCalendar) -> AppleCalendar {
-    let id = unsafe { calendar.calendarIdentifier() }.to_string();
+    let calendar_identifier = unsafe { calendar.calendarIdentifier() }.to_string();
     let title = unsafe { calendar.title() }.to_string();
     let calendar_type = transform_calendar_type(unsafe { calendar.r#type() });
     let color = unsafe { calendar.CGColor() }.map(|cg_color| extract_color_components(&cg_color));
@@ -16,7 +16,7 @@ pub fn transform_calendar(calendar: &EKCalendar) -> AppleCalendar {
     let properties = extract_calendar_properties(calendar);
 
     AppleCalendar {
-        id,
+        calendar_identifier,
         title,
         calendar_type,
         color,
@@ -39,7 +39,7 @@ pub fn extract_calendar_properties(calendar: &EKCalendar) -> AppleCalendar {
         supported_event_availabilities,
         allowed_entity_types,
         source,
-        id: String::new(),
+        calendar_identifier: String::new(),
         title: String::new(),
         calendar_type: CalendarType::Local,
         color: None,

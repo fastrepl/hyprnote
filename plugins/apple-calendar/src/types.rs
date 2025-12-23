@@ -6,7 +6,7 @@ use specta::Type;
 pub struct EventFilter {
     pub from: DateTime<Utc>,
     pub to: DateTime<Utc>,
-    pub calendar_tracking_id: String,
+    pub calendar_identifier: String,
 }
 
 macro_rules! common_derives {
@@ -85,7 +85,7 @@ impl Default for CalendarSource {
 
 common_derives! {
     pub struct AppleCalendar {
-        pub id: String,
+        pub calendar_identifier: String,
         pub title: String,
         pub calendar_type: CalendarType,
         pub color: Option<CalendarColor>,
@@ -152,7 +152,7 @@ common_derives! {
 common_derives! {
     pub struct Alarm {
         pub absolute_date: Option<DateTime<Utc>>,
-        pub relative_offset: Option<f64>,
+        pub relative_offset_seconds: Option<f64>,
         pub proximity: Option<AlarmProximity>,
         pub alarm_type: Option<AlarmType>,
         pub email_address: Option<String>,
@@ -292,18 +292,18 @@ common_derives! {
 }
 
 common_derives! {
-    pub struct CalendarRef {
-        pub id: String,
+    pub struct CalendarSummary {
+        pub calendar_identifier: String,
         pub title: String,
     }
 }
 
 common_derives! {
     pub struct AppleEvent {
-        pub event_identifier: String,
+        pub event_identifier: Option<String>,
         pub calendar_item_identifier: String,
-        pub external_identifier: String,
-        pub calendar: CalendarRef,
+        pub calendar_item_external_identifier: Option<String>,
+        pub calendar: CalendarSummary,
         pub title: String,
         pub location: Option<String>,
         pub url: Option<String>,
@@ -324,8 +324,6 @@ common_derives! {
         pub attendees: Vec<Participant>,
         pub structured_location: Option<StructuredLocation>,
         pub recurrence: Option<RecurrenceInfo>,
-        pub occurrence_date: Option<DateTime<Utc>>,
-        pub is_detached: bool,
         pub alarms: Vec<Alarm>,
         pub birthday_contact_identifier: Option<String>,
         pub is_birthday: bool,

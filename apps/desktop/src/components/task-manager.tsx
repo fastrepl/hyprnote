@@ -1,17 +1,24 @@
 import { useScheduleTaskRun, useSetTask } from "tinytick/ui-react";
 
-import { checkForUpdate } from "./main/sidebar/profile/ota/task";
+import * as main from "../store/tinybase/main";
+import {
+  CALENDAR_SYNC_TASK_ID,
+  syncCalendarEvents,
+} from "./main/sidebar/timeline/task";
 
-const UPDATE_CHECK_TASK_ID = "checkForUpdate";
-const UPDATE_CHECK_INTERVAL = 30 * 1000;
+const CALENDAR_SYNC_INTERVAL = 60 * 1000; // 60 sec
 
 export function TaskManager() {
-  useSetTask(UPDATE_CHECK_TASK_ID, async () => {
-    await checkForUpdate();
+  const store = main.UI.useStore(main.STORE_ID);
+
+  useSetTask(CALENDAR_SYNC_TASK_ID, async () => {
+    if (store) {
+      await syncCalendarEvents(store as main.Store);
+    }
   });
 
-  useScheduleTaskRun(UPDATE_CHECK_TASK_ID, undefined, 0, {
-    repeatDelay: UPDATE_CHECK_INTERVAL,
+  useScheduleTaskRun(CALENDAR_SYNC_TASK_ID, undefined, 0, {
+    repeatDelay: CALENDAR_SYNC_INTERVAL,
   });
 
   return null;

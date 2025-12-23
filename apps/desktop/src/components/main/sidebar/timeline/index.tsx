@@ -17,6 +17,7 @@ import {
 import { useAnchor, useAutoScrollToAnchor } from "./anchor";
 import { TimelineItemComponent } from "./item";
 import { CurrentTimeIndicator, useCurrentTimeMs } from "./realtime";
+import { RefetchButton } from "./refetch";
 
 export function TimelineView() {
   const buckets = useTimelineData();
@@ -106,8 +107,16 @@ export function TimelineView() {
               <div
                 className={cn(["sticky top-0 z-10", "bg-neutral-50 px-2 py-1"])}
               >
-                <div className="text-base font-bold text-neutral-900">
-                  {bucket.label}
+                <div
+                  className={cn([
+                    "flex items-center",
+                    isToday && "justify-between",
+                  ])}
+                >
+                  <div className="text-base font-bold text-neutral-900">
+                    {bucket.label}
+                  </div>
+                  {isToday && <RefetchButton />}
                 </div>
               </div>
               {isToday ? (

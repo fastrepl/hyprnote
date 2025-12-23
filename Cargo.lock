@@ -17064,28 +17064,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-db"
-version = "0.1.0"
-dependencies = [
- "db-core",
- "db-user",
- "dirs 6.0.0",
- "owhisper-interface",
- "schemars 0.8.22",
- "serde",
- "serde_json",
- "specta",
- "specta-typescript",
- "tauri",
- "tauri-plugin",
- "tauri-specta",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
 name = "tauri-plugin-db2"
 version = "0.1.0"
 dependencies = [
@@ -17541,7 +17519,6 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-analytics",
- "tauri-plugin-db",
  "tauri-plugin-dialog",
  "tauri-plugin-listener",
  "tauri-plugin-windows",

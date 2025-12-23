@@ -78,9 +78,6 @@ pub use templates_ops::*;
 #[allow(unused)]
 pub use templates_types::*;
 
-pub mod init;
-pub mod seed;
-
 pub use hypr_db_core::{Database, Error};
 
 #[macro_export]

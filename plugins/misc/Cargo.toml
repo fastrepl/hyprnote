@@ -31,3 +31,5 @@ rodio = { workspace = true, features = ["wav"] }
 specta = { workspace = true }
 sysinfo = { workspace = true }
 thiserror = { workspace = true }
+
+tauri-plugin-path2 = { path = "../path2" }

@@ -49,7 +49,7 @@ function EmptyView() {
   const newNote = useNewNote({ behavior: "current" });
   const openCurrent = useTabs((state) => state.openCurrent);
   const openCalendar = useCallback(
-    () => openCurrent({ type: "extension", extensionId: "calendar" }),
+    () => openCurrent({ type: "calendar" }),
     [openCurrent],
   );
   const openContacts = useCallback(

@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import {
   commands as appleCalendarCommands,
@@ -18,6 +18,7 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import * as main from "../../../../store/tinybase/main";
 import { PROVIDERS } from "../shared";
 import {
   type CalendarGroup,
@@ -131,24 +132,74 @@ function appleColorToCss(color?: CalendarColor | null): string | undefined {
 }
 
 function useAppleCalendarSelection() {
-  const queryClient = useQueryClient();
-  const [enabledCalendars, setEnabledCalendars] = useState<Set<string>>(
-    new Set(),
-  );
+  const { user_id } = main.UI.useValues(main.STORE_ID);
+  const calendarsTable = main.UI.useTable("calendars", main.STORE_ID);
 
-  const { data: appleCalendars } = useQuery({
+  const {
+    data: appleCalendars,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: ["appleCalendars"],
     queryFn: async () => {
-      const result = await appleCalendarCommands.listCalendars();
-      if (result.status === "ok") {
-        return result.data;
+      const operation = appleCalendarCommands.listCalendars();
+      const minDelay = new Promise((resolve) => setTimeout(resolve, 500));
+
+      const [result] = await Promise.all([operation, minDelay]);
+      if (result.status === "error") {
+        throw new Error(result.error);
       }
-      throw new Error(result.error);
+      return result.data;
     },
   });
 
+  const createCalendarRow = main.UI.useSetRowCallback(
+    "calendars",
+    (p: { id: string; name: string }) => p.id,
+    (p: { id: string; name: string }) => ({
+      user_id: user_id ?? "",
+      created_at: new Date().toISOString(),
+      name: p.name,
+      enabled: false,
+    }),
+    [user_id],
+    main.STORE_ID,
+  );
+
+  const updateCalendarName = main.UI.useSetCellCallback(
+    "calendars",
+    (p: { id: string; name: string }) => p.id,
+    "name",
+    (p: { id: string; name: string }) => p.name,
+    [],
+    main.STORE_ID,
+  );
+
+  useEffect(() => {
+    if (!appleCalendars || !user_id) {
+      return;
+    }
+
+    for (const cal of appleCalendars) {
+      const existing = calendarsTable[cal.id];
+      if (!existing) {
+        createCalendarRow({ id: cal.id, name: cal.title });
+      } else if (existing.name !== cal.title) {
+        updateCalendarName({ id: cal.id, name: cal.title });
+      }
+    }
+  }, [
+    appleCalendars,
+    user_id,
+    calendarsTable,
+    createCalendarRow,
+    updateCalendarName,
+  ]);
+
   const groups = useMemo((): CalendarGroup[] => {
-    if (!appleCalendars) return [];
+    if (!appleCalendars) {
+      return [];
+    }
 
     const grouped = new Map<string, CalendarItem[]>();
     for (const cal of appleCalendars) {
@@ -170,30 +221,47 @@ function useAppleCalendarSelection() {
   }, [appleCalendars]);
 
   const isCalendarEnabled = (calendarId: string): boolean => {
-    return enabledCalendars.has(calendarId);
+    const calendar = calendarsTable[calendarId];
+    return calendar?.enabled === true;
   };
+
+  const setCalendarRow = main.UI.useSetRowCallback(
+    "calendars",
+    (p: { calendarId: string; enabled: boolean }) => p.calendarId,
+    (p: { calendarId: string; enabled: boolean }) => {
+      const existing = calendarsTable[p.calendarId];
+      if (!existing) {
+        return {
+          user_id: user_id ?? "",
+          created_at: new Date().toISOString(),
+          name: "",
+          enabled: p.enabled,
+        };
+      }
+      return {
+        ...existing,
+        enabled: p.enabled,
+      };
+    },
+    [calendarsTable, user_id],
+    main.STORE_ID,
+  );
 
   const handleToggle = (calendar: CalendarItem, enabled: boolean) => {
-    setEnabledCalendars((prev) => {
-      const next = new Set(prev);
-      if (enabled) {
-        next.add(calendar.id);
-      } else {
-        next.delete(calendar.id);
-      }
-      return next;
-    });
+    setCalendarRow({ calendarId: calendar.id, enabled });
   };
 
-  const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["appleCalendars"] });
+  return {
+    groups,
+    isCalendarEnabled,
+    handleToggle,
+    handleRefresh: refetch,
+    isLoading: isFetching,
   };
-
-  return { groups, isCalendarEnabled, handleToggle, handleRefresh };
 }
 
 function AppleCalendarSelection() {
-  const { groups, isCalendarEnabled, handleToggle, handleRefresh } =
+  const { groups, isCalendarEnabled, handleToggle, handleRefresh, isLoading } =
     useAppleCalendarSelection();
 
   return (
@@ -202,6 +270,7 @@ function AppleCalendarSelection() {
       isCalendarEnabled={isCalendarEnabled}
       onToggle={handleToggle}
       onRefresh={handleRefresh}
+      isLoading={isLoading}
     />
   );
 }

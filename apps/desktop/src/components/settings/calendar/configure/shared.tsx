@@ -2,6 +2,7 @@ import { RefreshCwIcon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Switch } from "@hypr/ui/components/ui/switch";
+import { cn } from "@hypr/utils";
 
 export interface CalendarItem {
   id: string;
@@ -19,6 +20,7 @@ interface CalendarSelectionProps {
   isCalendarEnabled: (id: string) => boolean;
   onToggle: (calendar: CalendarItem, enabled: boolean) => void;
   onRefresh: () => void;
+  isLoading: boolean;
 }
 
 export function CalendarSelection({
@@ -26,6 +28,7 @@ export function CalendarSelection({
   isCalendarEnabled,
   onToggle,
   onRefresh,
+  isLoading,
 }: CalendarSelectionProps) {
   if (groups.length === 0) {
     return (
@@ -38,18 +41,27 @@ export function CalendarSelection({
   return (
     <div className="pt-4 border-t mt-2">
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-medium">Select Calendars</h4>
+        <h4 className="text-sm font-medium">Select Calendars </h4>
         <Button
           variant="ghost"
           size="icon"
           onClick={onRefresh}
           className="size-7"
-          aria-label="Refresh calendars"
+          disabled={isLoading}
         >
-          <RefreshCwIcon className="size-4" />
+          <RefreshCwIcon
+            className={cn("size-4", isLoading && "animate-spin")}
+          />
         </Button>
       </div>
       <div className="space-y-4">
+        <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-xs text-amber-700">
+            Event fetching is not implemented yet. Calendar selection will be
+            used once event syncing is available.
+          </p>
+        </div>
+
         {groups.map((group) => (
           <div key={group.sourceName}>
             <h5 className="text-xs font-medium text-neutral-500 mb-2">
@@ -67,12 +79,6 @@ export function CalendarSelection({
             </div>
           </div>
         ))}
-      </div>
-      <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-        <p className="text-xs text-amber-700">
-          Note: Event fetching is not implemented yet. Calendar selection will
-          be used once event syncing is available.
-        </p>
       </div>
     </div>
   );

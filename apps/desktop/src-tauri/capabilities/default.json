@@ -158,6 +158,7 @@
     "permissions:default",
     "settings:default",
     "sfx:default",
+    "path2:default",
     "pdf:default",
     "autostart:default",
     {

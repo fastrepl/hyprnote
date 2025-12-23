@@ -48,6 +48,7 @@
     "@hypr/plugin-misc": "workspace:*",
     "@hypr/plugin-network": "workspace:*",
     "@hypr/plugin-notification": "workspace:*",
+    "@hypr/plugin-path2": "workspace:*",
     "@hypr/plugin-pdf": "workspace:*",
     "@hypr/plugin-permissions": "workspace:*",
     "@hypr/plugin-settings": "workspace:*",

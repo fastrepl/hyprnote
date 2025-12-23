@@ -20,7 +20,6 @@
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.39.4",
     "@floating-ui/dom": "^1.7.4",
-    "@hypr/plugin-db": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@remixicon/react": "^4.7.0",
     "@tanstack/react-query": "^5.90.12",

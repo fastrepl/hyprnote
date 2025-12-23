@@ -6,7 +6,6 @@
   "dependencies": {
     "@ai-sdk/openai-compatible": "^1.0.29",
     "@date-fns/tz": "^1.4.1",
-    "@hypr/plugin-db": "workspace:^",
     "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-windows": "workspace:^",
     "@tauri-apps/api": "^2.9.1",

@@ -1,9 +1,9 @@
-import { appDataDir } from "@tauri-apps/api/path";
 import { exists, mkdir } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import { commands, type JsonValue } from "@hypr/plugin-export";
+import { commands as path2Commands } from "@hypr/plugin-path2";
 import { type EnhancedNote, type Session } from "@hypr/store";
 import { isValidTiptapContent } from "@hypr/tiptap/shared";
 
@@ -28,7 +28,7 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
       const batchItems: [JsonValue, string][] = [];
       const dirsToCreate = new Set<string>();
 
-      const dataDir = await appDataDir();
+      const dataDir = await path2Commands.base();
 
       for (const [id, row] of Object.entries(tables?.enhanced_notes ?? {})) {
         // @ts-ignore

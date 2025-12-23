@@ -6,13 +6,8 @@
 
 
 export const commands = {
-async base() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:path2|base") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async base() : Promise<string> {
+    return await TAURI_INVOKE("plugin:path2|base");
 }
 }
 

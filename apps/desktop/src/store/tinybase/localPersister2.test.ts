@@ -5,8 +5,10 @@ import { SCHEMA, type Schemas } from "@hypr/store";
 
 import { createLocalPersister2 } from "./localPersister2";
 
-vi.mock("@tauri-apps/api/path", () => ({
-  appDataDir: vi.fn().mockResolvedValue("/mock/data/dir/"),
+vi.mock("@hypr/plugin-path2", () => ({
+  commands: {
+    base: vi.fn().mockResolvedValue("/mock/data/dir/"),
+  },
 }));
 
 vi.mock("@tauri-apps/plugin-fs", () => ({

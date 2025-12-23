@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use tauri::Manager;
 use tauri_plugin_path2::Path2PluginExt;
 
 pub const STORE_FILENAME: &str = "store.json";

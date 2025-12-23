@@ -179,7 +179,7 @@ pub async fn migrate(db: &UserDatabase) -> Result<(), crate::Error> {
 #[cfg(test)]
 mod tests {
     use super::UserDatabase;
-    use crate::{init, migrate};
+    use crate::migrate;
     use hypr_db_core::DatabaseBuilder;
 
     pub async fn setup_db() -> UserDatabase {
@@ -190,9 +190,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_seed() {
-        let db = setup_db().await;
-        let user_id = uuid::Uuid::new_v4().to_string();
-        init::seed(&db, user_id).await.unwrap();
+    async fn test_migrate() {
+        let _ = setup_db().await;
     }
 }

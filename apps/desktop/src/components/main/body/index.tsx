@@ -1,3 +1,4 @@
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { platform } from "@tauri-apps/plugin-os";
 import {
   ArrowLeftIcon,
@@ -110,9 +111,14 @@ function Header({ tabs }: { tabs: Tab[] }) {
   const setTabRef = useScrollActiveTabIntoView(tabs);
   useTabsShortcuts();
 
+  const handleDoubleClick = () => {
+    getCurrentWebviewWindow().toggleMaximize();
+  };
+
   return (
     <div
       data-tauri-drag-region
+      onDoubleClick={handleDoubleClick}
       className={cn([
         "w-full h-9 flex items-center",
         !leftsidebar.expanded && (isLinux ? "pl-3" : "pl-[72px]"),

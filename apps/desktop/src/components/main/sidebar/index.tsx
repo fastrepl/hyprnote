@@ -1,3 +1,4 @@
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { platform } from "@tauri-apps/plugin-os";
 import { AxeIcon, PanelLeftCloseIcon } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
@@ -25,10 +26,15 @@ export function LeftSidebar() {
 
   const showSearchResults = query.trim() !== "";
 
+  const handleDoubleClick = () => {
+    getCurrentWebviewWindow().toggleMaximize();
+  };
+
   return (
     <div className="h-full w-[280px] flex flex-col overflow-hidden shrink-0 gap-1">
       <header
         data-tauri-drag-region
+        onDoubleClick={handleDoubleClick}
         className={cn([
           "flex flex-row items-center",
           "w-full h-9 py-1",

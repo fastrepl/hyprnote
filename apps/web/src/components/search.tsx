@@ -18,7 +18,7 @@ import {
   CommandItem,
   CommandList,
 } from "@hypr/ui/components/ui/command";
-import { Kbd } from "@hypr/ui/components/ui/kbd";
+import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 interface SearchResult {
@@ -112,7 +112,7 @@ export function SearchTrigger({
       >
         <SearchIcon size={16} className="text-neutral-400" />
         <span className="flex-1 text-left">Search docs...</span>
-        <Kbd
+        <KbdGroup
           className={cn([
             "hidden sm:inline-flex",
             "transition-all duration-100",
@@ -120,8 +120,9 @@ export function SearchTrigger({
             "group-active:translate-y-0.5 group-active:shadow-none",
           ])}
         >
-          ⌘ K
-        </Kbd>
+          <Kbd>⌘</Kbd>
+          <Kbd>K</Kbd>
+        </KbdGroup>
       </button>
     );
   }
@@ -157,7 +158,7 @@ export function SearchTrigger({
         ])}
       >
         <SearchIcon size={16} />
-        <Kbd
+        <KbdGroup
           className={cn([
             "hidden sm:inline-flex",
             "transition-all duration-100",
@@ -165,8 +166,9 @@ export function SearchTrigger({
             "group-active:translate-y-0.5 group-active:shadow-none",
           ])}
         >
-          ⌘ K
-        </Kbd>
+          <Kbd>⌘</Kbd>
+          <Kbd>K</Kbd>
+        </KbdGroup>
       </button>
     );
   }
@@ -186,7 +188,10 @@ export function SearchTrigger({
     >
       <SearchIcon size={14} className="text-neutral-400" />
       <span className="hidden lg:inline">Search</span>
-      <Kbd className="hidden lg:inline-flex">⌘ K</Kbd>
+      <KbdGroup className="hidden lg:inline-flex">
+        <Kbd>⌘</Kbd>
+        <Kbd>K</Kbd>
+      </KbdGroup>
     </button>
   );
 }

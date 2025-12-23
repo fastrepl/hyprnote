@@ -24,3 +24,5 @@ specta = { workspace = true, features = ["derive", "serde_json"] }
 
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["fs"] }
+
+tauri-plugin-path2 = { path = "../path2" }

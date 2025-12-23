@@ -1,4 +1,5 @@
 use tauri::Manager;
+use tauri_plugin_path2::Path2PluginExt;
 
 mod commands;
 mod error;
@@ -27,12 +28,12 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
-            let base = app.path().data_dir().unwrap().join("hyprnote");
-            let state = SettingsState::new(base);
-            assert!(app.manage(state));
-            Ok(())
-        })
+                .setup(|app, _api| {
+                    let base = app.path2().base().unwrap();
+                    let state = SettingsState::new(base);
+                    assert!(app.manage(state));
+                    Ok(())
+                })
         .build()
 }
 

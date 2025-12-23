@@ -10,6 +10,10 @@ import * as main from "../../../../store/tinybase/main";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
+import {
+  CaretPositionProvider,
+  useCaretPosition,
+} from "./caret-position-context";
 import { FloatingActionButton } from "./floating";
 import { NoteInput } from "./note-input";
 import { SearchBar } from "./note-input/transcript/search-bar";
@@ -77,11 +81,13 @@ export function TabContentNote({
     listenerStatus === "inactive";
 
   return (
-    <SearchProvider>
-      <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
-        <TabContentNoteInner tab={tab} showTimeline={showTimeline} />
-      </AudioPlayer.Provider>
-    </SearchProvider>
+    <CaretPositionProvider>
+      <SearchProvider>
+        <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
+          <TabContentNoteInner tab={tab} showTimeline={showTimeline} />
+        </AudioPlayer.Provider>
+      </SearchProvider>
+    </CaretPositionProvider>
   );
 }
 
@@ -94,11 +100,14 @@ function TabContentNoteInner({
 }) {
   const search = useTranscriptSearch();
   const showSearchBar = search?.isVisible ?? false;
+  const caretPosition = useCaretPosition();
+  const isCaretNearBottom = caretPosition?.isCaretNearBottom ?? false;
 
   return (
     <StandardTabWrapper
       afterBorder={showTimeline && <AudioPlayer.Timeline />}
       floatingButton={<FloatingActionButton tab={tab} />}
+      isCaretNearBottom={isCaretNearBottom}
     >
       <div className="flex flex-col h-full">
         <div className="pl-2 pr-1">

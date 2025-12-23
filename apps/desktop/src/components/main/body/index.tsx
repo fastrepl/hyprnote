@@ -496,7 +496,11 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   return null;
 }
 
-function TabChatButton() {
+function TabChatButton({
+  isCaretNearBottom = false,
+}: {
+  isCaretNearBottom?: boolean;
+}) {
   const { chat } = useShell();
   const currentTab = useTabs((state) => state.currentTab);
 
@@ -512,24 +516,26 @@ function TabChatButton() {
     return null;
   }
 
-  return <ChatFloatingButton />;
+  return <ChatFloatingButton isCaretNearBottom={isCaretNearBottom} />;
 }
 
 export function StandardTabWrapper({
   children,
   afterBorder,
   floatingButton,
+  isCaretNearBottom = false,
 }: {
   children: React.ReactNode;
   afterBorder?: React.ReactNode;
   floatingButton?: React.ReactNode;
+  isCaretNearBottom?: boolean;
 }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col rounded-xl border border-neutral-200 flex-1 overflow-hidden relative">
         {children}
         {floatingButton}
-        <TabChatButton />
+        <TabChatButton isCaretNearBottom={isCaretNearBottom} />
       </div>
       {afterBorder}
     </div>

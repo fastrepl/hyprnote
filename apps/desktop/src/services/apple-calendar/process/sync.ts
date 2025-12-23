@@ -1,12 +1,9 @@
-import type { Store } from "../../../store/tinybase/main";
+import type { Ctx } from "../ctx";
 import type { ExistingEvent, IncomingEvent } from "../fetch/types";
 import type { SyncInput, SyncOutput } from "./types";
 import { getSessionForEvent, isSessionEmpty } from "./utils";
 
-export function sync(
-  store: Store,
-  { incoming, existing }: SyncInput,
-): SyncOutput {
+export function sync(ctx: Ctx, { incoming, existing }: SyncInput): SyncOutput {
   const out: SyncOutput = {
     toDelete: [],
     toUpdate: [],
@@ -17,6 +14,17 @@ export function sync(
   const handledIncomingEventIds = new Set<string>();
 
   for (const storeEvent of existing) {
+    const sessionId = getSessionForEvent(ctx.store, storeEvent.id);
+    const hasNonEmptySession =
+      sessionId && !isSessionEmpty(ctx.store, sessionId);
+
+    if (!ctx.calendarIds.has(storeEvent.calendar_id!)) {
+      if (!hasNonEmptySession) {
+        out.toDelete.push(storeEvent.id);
+      }
+      continue;
+    }
+
     const matchingIncomingEvent = incomingEventMap.get(storeEvent.id);
 
     if (matchingIncomingEvent) {
@@ -30,9 +38,6 @@ export function sync(
       continue;
     }
 
-    const sessionId = getSessionForEvent(store, storeEvent.id);
-    const hasNonEmptySession = sessionId && !isSessionEmpty(store, sessionId);
-
     if (hasNonEmptySession) {
       continue;
     }
@@ -40,8 +45,12 @@ export function sync(
     const rescheduledEvent = findRescheduledEvent(storeEvent, incoming);
 
     if (rescheduledEvent && !handledIncomingEventIds.has(rescheduledEvent.id)) {
-      out.toDelete.push(storeEvent.id);
-      out.toAdd.push(rescheduledEvent);
+      out.toUpdate.push({
+        ...rescheduledEvent,
+        id: storeEvent.id,
+        user_id: storeEvent.user_id,
+        created_at: storeEvent.created_at,
+      });
       handledIncomingEventIds.add(rescheduledEvent.id);
       continue;
     }

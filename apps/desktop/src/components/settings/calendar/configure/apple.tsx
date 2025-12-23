@@ -181,11 +181,11 @@ function useAppleCalendarSelection() {
     }
 
     for (const cal of appleCalendars) {
-      const existing = calendarsTable[cal.id];
+      const existing = calendarsTable[cal.calendar_identifier];
       if (!existing) {
-        createCalendarRow({ id: cal.id, name: cal.title });
+        createCalendarRow({ id: cal.calendar_identifier, name: cal.title });
       } else if (existing.name !== cal.title) {
-        updateCalendarName({ id: cal.id, name: cal.title });
+        updateCalendarName({ id: cal.calendar_identifier, name: cal.title });
       }
     }
   }, [
@@ -208,7 +208,7 @@ function useAppleCalendarSelection() {
         grouped.set(sourceTitle, []);
       }
       grouped.get(sourceTitle)!.push({
-        id: cal.id,
+        id: cal.calendar_identifier,
         title: cal.title,
         color: appleColorToCss(cal.color),
       });

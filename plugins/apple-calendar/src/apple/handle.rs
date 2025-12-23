@@ -31,7 +31,7 @@ impl Handle {
             .into_iter()
             .filter(|c| {
                 let id = unsafe { c.calendarIdentifier() }.to_string();
-                filter.calendar_tracking_id.eq(&id)
+                filter.calendar_identifier.eq(&id)
             })
             .collect();
 
@@ -91,7 +91,7 @@ impl Handle {
                 let calendar = unsafe { event.calendar() }?;
                 let calendar_id = unsafe { calendar.calendarIdentifier() };
 
-                if !filter.calendar_tracking_id.eq(&calendar_id.to_string()) {
+                if !filter.calendar_identifier.eq(&calendar_id.to_string()) {
                     return None;
                 }
 

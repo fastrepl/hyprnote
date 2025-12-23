@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import type { Event } from "@hypr/store";
+import type { EventStorage } from "@hypr/store";
 
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
@@ -190,6 +190,6 @@ export const createEvent = (calendar_id: string) => {
       meeting_link,
       description,
       note,
-    } satisfies Event,
+    } satisfies EventStorage,
   };
 };

@@ -34,6 +34,13 @@ export const humanSchema = baseHumanSchema.omit({ id: true }).extend({
   memo: z.preprocess((val) => val ?? undefined, z.string().optional()),
 });
 
+export const eventParticipantSchema = z.object({
+  name: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  email: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  is_organizer: z.boolean().optional(),
+  is_current_user: z.boolean().optional(),
+});
+
 export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   created_at: z.string(),
   started_at: z.string(),
@@ -42,11 +49,21 @@ export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   meeting_link: z.preprocess((val) => val ?? undefined, z.string().optional()),
   description: z.preprocess((val) => val ?? undefined, z.string().optional()),
   note: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  participants: z.preprocess(
+    (val) => val ?? undefined,
+    jsonObject(z.array(eventParticipantSchema)).optional(),
+  ),
 });
+
+export const calendarProviderSchema = z.enum(["apple", "google", "outlook"]);
+export type CalendarProvider = z.infer<typeof calendarProviderSchema>;
 
 export const calendarSchema = baseCalendarSchema.omit({ id: true }).extend({
   created_at: z.string(),
   enabled: z.preprocess((val) => val ?? false, z.boolean()),
+  provider: calendarProviderSchema,
+  source: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  color: z.preprocess((val) => val ?? undefined, z.string().optional()),
 });
 
 export const organizationSchema = baseOrganizationSchema
@@ -163,15 +180,17 @@ export const speakerHintSchemaOverride = baseSpeakerHintSchema
   });
 
 export type Human = z.infer<typeof humanSchema>;
+export type EventParticipant = z.infer<typeof eventParticipantSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Calendar = z.infer<typeof calendarSchema>;
+export type CalendarStorage = ToStorageType<typeof calendarSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
 export type Folder = z.infer<typeof folderSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type Transcript = z.infer<typeof transcriptSchema>;
 export type Word = z.infer<typeof wordSchemaOverride>;
 export type SpeakerHint = z.infer<typeof speakerHintSchemaOverride>;
-export type mappingSessionParticipant = z.infer<
+export type MappingSessionParticipant = z.infer<
   typeof mappingSessionParticipantSchema
 >;
 export type Tag = z.infer<typeof tagSchema>;
@@ -200,6 +219,7 @@ export type OrganizationStorage = ToStorageType<typeof organizationSchema>;
 export type FolderStorage = ToStorageType<typeof folderSchema>;
 export type PromptStorage = ToStorageType<typeof promptSchema>;
 export type ChatShortcutStorage = ToStorageType<typeof chatShortcutSchema>;
+export type EventStorage = ToStorageType<typeof eventSchema>;
 
 export const externalTableSchemaForTinybase = {
   folders: {
@@ -264,6 +284,9 @@ export const externalTableSchemaForTinybase = {
     created_at: { type: "string" },
     name: { type: "string" },
     enabled: { type: "boolean" },
+    provider: { type: "string" },
+    source: { type: "string" },
+    color: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof calendarSchema>,
   events: {
     user_id: { type: "string" },
@@ -276,6 +299,7 @@ export const externalTableSchemaForTinybase = {
     meeting_link: { type: "string" },
     description: { type: "string" },
     note: { type: "string" },
+    participants: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof eventSchema>,
   mapping_session_participant: {
     user_id: { type: "string" },

@@ -113,7 +113,7 @@
     "retext-stringify": "^4.0.0",
     "stopword": "^3.1.5",
     "streamdown": "^1.6.10",
-    "tinybase": "^6.7.5",
+    "tinybase": "^7.3.0",
     "tinytick": "^1.2.8",
     "unified": "^11.0.5",
     "usehooks-ts": "^3.1.1",

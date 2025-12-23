@@ -2,7 +2,6 @@ import type { Ctx } from "../ctx";
 import type { ExistingEvent } from "./types";
 
 export function fetchExistingEvents(ctx: Ctx): Array<ExistingEvent> {
-  const enabledCalendarIds = ctx.calendarIds;
   const events: Array<ExistingEvent> = [];
 
   ctx.store.forEachRow("events", (rowId, _forEachCell) => {
@@ -10,7 +9,7 @@ export function fetchExistingEvents(ctx: Ctx): Array<ExistingEvent> {
     if (!event) return;
 
     const calendarId = event.calendar_id as string | undefined;
-    if (!calendarId || !enabledCalendarIds.has(calendarId)) {
+    if (!calendarId) {
       return;
     }
 

@@ -13,11 +13,11 @@ export async function syncCalendarEvents(
 ): Promise<void> {
   await Promise.all([
     new Promise((resolve) => setTimeout(resolve, 250)),
-    runSyncPipeline(store, queries),
+    run(store, queries),
   ]);
 }
 
-async function runSyncPipeline(store: Store, queries: Queries<Schemas>) {
+async function run(store: Store, queries: Queries<Schemas>) {
   const ctx = createCtx(store, queries);
   if (!ctx) {
     return null;
@@ -26,6 +26,6 @@ async function runSyncPipeline(store: Store, queries: Queries<Schemas>) {
   const incoming = await fetchIncomingEvents(ctx);
   const existing = fetchExistingEvents(ctx);
 
-  const out = sync(ctx.store, { incoming, existing });
+  const out = sync(ctx, { incoming, existing });
   execute(ctx.store, out);
 }

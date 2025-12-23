@@ -490,6 +490,17 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             group("started_at", "min").as("min_started_at");
             group("ended_at", "max").as("max_ended_at");
           },
+        )
+        .setQueryDefinition(
+          QUERIES.enabledAppleCalendars,
+          "calendars",
+          ({ select, where }) => {
+            select("provider");
+            where(
+              (getCell) =>
+                getCell("enabled") === true && getCell("provider") === "apple",
+            );
+          },
         ),
     [],
   )!;
@@ -676,6 +687,7 @@ export const QUERIES = {
   visibleVocabs: "visibleVocabs",
   sessionParticipantsWithDetails: "sessionParticipantsWithDetails",
   sessionRecordingTimes: "sessionRecordingTimes",
+  enabledAppleCalendars: "enabledAppleCalendars",
 };
 
 export const METRICS = {

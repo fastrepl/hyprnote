@@ -2,7 +2,7 @@ import type { Ctx } from "../ctx";
 import type { ExistingEvent } from "./types";
 
 export function fetchExistingEvents(ctx: Ctx): Array<ExistingEvent> {
-  const enabledCalendarIds = new Set(ctx.calendarIds);
+  const enabledCalendarIds = ctx.calendarIds;
   const events: Array<ExistingEvent> = [];
 
   ctx.store.forEachRow("events", (rowId, _forEachCell) => {

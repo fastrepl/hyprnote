@@ -34,13 +34,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
 
     #[tracing::instrument(skip_all)]
     pub fn list_calendars(&self) -> Result<Vec<AppleCalendar>, String> {
-        let handle = crate::apple::Handle::default();
+        let handle = crate::apple::Handle;
         handle.list_calendars().map_err(|e| e.to_string())
     }
 
     #[tracing::instrument(skip_all)]
     pub fn list_events(&self, filter: EventFilter) -> Result<Vec<AppleEvent>, String> {
-        let handle = crate::apple::Handle::default();
+        let handle = crate::apple::Handle;
         handle.list_events(filter).map_err(|e| e.to_string())
     }
 }

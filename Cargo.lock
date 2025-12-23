@@ -16962,6 +16962,7 @@ dependencies = [
 name = "tauri-plugin-apple-calendar"
 version = "0.1.0"
 dependencies = [
+ "backon",
  "block2",
  "chrono",
  "itertools 0.14.0",

@@ -10,7 +10,7 @@ export async function fetchIncomingEvents(
   ctx: Ctx,
 ): Promise<Array<IncomingEvent>> {
   const results = await Promise.all(
-    ctx.calendarIds.map(async (calendarId) => {
+    Array.from(ctx.calendarIds).map(async (calendarId) => {
       const result = await appleCalendarCommands.listEvents({
         calendar_tracking_id: calendarId,
         from: ctx.from.toISOString(),

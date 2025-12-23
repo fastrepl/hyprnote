@@ -7,15 +7,15 @@ export interface Ctx {
   userId: string;
   from: Date;
   to: Date;
-  calendarIds: string[];
+  calendarIds: Set<string>;
 }
 
 export function createCtx(store: Store, queries: Queries<Schemas>): Ctx | null {
   const resultTable = queries.getResultTable(QUERIES.enabledAppleCalendars);
 
-  const calendarIds = Object.keys(resultTable);
+  const calendarIds = new Set(Object.keys(resultTable));
 
-  if (calendarIds.length === 0) {
+  if (calendarIds.size === 0) {
     return null;
   }
 

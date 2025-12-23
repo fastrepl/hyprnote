@@ -40,7 +40,7 @@ runs:
       id: e2e-test
       run: |
         # Run tests and capture output to log file
-        pnpm -F e2e-blackbox test 2>&1 | tee "${{ env.E2E_LOGS_DIR }}/e2e-test-output.log"
+        pnpm -F e2e-blackbox e2e 2>&1 | tee "${{ env.E2E_LOGS_DIR }}/e2e-test-output.log"
         exit ${PIPESTATUS[0]}
       env:
         APP_BINARY_PATH: ${{ env.APP_BINARY_PATH }}

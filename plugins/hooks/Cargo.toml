@@ -17,6 +17,8 @@ tokio = { workspace = true, features = ["macros", "rt"] }
 hypr-docs = { workspace = true }
 
 [dependencies]
+tauri-plugin-path2 = { workspace = true }
+
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
@@ -30,5 +32,3 @@ futures-util = { workspace = true }
 shellexpand = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["process", "time"] }
-
-tauri-plugin-path2 = { path = "../path2" }

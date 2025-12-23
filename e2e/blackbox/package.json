@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "wdio run wdio.blackbox.conf.ts"
+    "e2e": "wdio run wdio.blackbox.conf.ts"
   },
   "devDependencies": {
     "@wdio/cli": "^9.21.1",

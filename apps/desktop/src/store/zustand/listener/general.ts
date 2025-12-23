@@ -1,5 +1,4 @@
 import { getIdentifier } from "@tauri-apps/api/app";
-import { appDataDir } from "@tauri-apps/api/path";
 import { Effect, Exit } from "effect";
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
@@ -18,6 +17,7 @@ import {
   commands as listener2Commands,
   events as listener2Events,
 } from "@hypr/plugin-listener2";
+import { commands as path2Commands } from "@hypr/plugin-path2";
 
 import { fromResult } from "../../../effect";
 import type { BatchActions, BatchState } from "./batch";
@@ -205,7 +205,7 @@ export const createGeneralSlice = <
       const [dataDirPath, micUsingApps, bundleId] = yield* Effect.tryPromise({
         try: () =>
           Promise.all([
-            appDataDir(),
+            path2Commands.base(),
             detectCommands
               .listMicUsingApplications()
               .then((r) =>
@@ -291,8 +291,8 @@ export const createGeneralSlice = <
         onSuccess: () => {
           if (sessionId) {
             void Promise.all([
-              appDataDir(),
-              getIdentifier().catch(() => "com.hyprnote.app"),
+              path2Commands.base(),
+              getIdentifier().catch(() => "com.hyprnote.stable"),
             ])
               .then(([dataDirPath, bundleId]) => {
                 const sessionPath = `${dataDirPath}/hyprnote/sessions/${sessionId}`;

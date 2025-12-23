@@ -16,12 +16,14 @@ indoc = { workspace = true }
 specta-typescript = { workspace = true }
 
 [dependencies]
+tauri-plugin-opener = { workspace = true }
+tauri-plugin-path2 = { workspace = true }
+
 hypr-audio-utils = { workspace = true }
 hypr-buffer = { workspace = true }
 hypr-host = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-opener = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 dirs = { workspace = true }
@@ -31,5 +33,3 @@ rodio = { workspace = true, features = ["wav"] }
 specta = { workspace = true }
 sysinfo = { workspace = true }
 thiserror = { workspace = true }
-
-tauri-plugin-path2 = { path = "../path2" }

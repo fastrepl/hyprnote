@@ -8,8 +8,8 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
+import { CALENDAR_SYNC_TASK_ID } from "../../../services/apple-calendar";
 import * as main from "../../../store/tinybase/main";
-import { CALENDAR_SYNC_TASK_ID } from "../../main/sidebar/timeline/task";
 
 export function CalendarStatus() {
   const calendars = main.UI.useTable("calendars", main.STORE_ID);

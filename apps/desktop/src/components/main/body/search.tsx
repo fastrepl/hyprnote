@@ -2,7 +2,7 @@ import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { useSearch } from "../../../contexts/search/ui";
@@ -171,10 +171,7 @@ function ExpandedSearch({
         )}
         {showShortcut && (
           <div className="absolute right-2 top-1">
-            <KbdGroup>
-              <Kbd className="bg-neutral-200">⌘</Kbd>
-              <Kbd className="bg-neutral-200">K</Kbd>
-            </KbdGroup>
+            <Kbd>⌘ K</Kbd>
           </div>
         )}
       </div>

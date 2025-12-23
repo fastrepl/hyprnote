@@ -1,6 +1,7 @@
 import { AppWindowIcon, ChevronDown } from "lucide-react";
 import { useCallback, useState } from "react";
 
+import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
@@ -130,22 +131,15 @@ function ActionItem({
     >
       <span>{label}</span>
       {shortcut && shortcut.length > 0 ? (
-        <kbd
+        <Kbd
           className={cn([
-            "inline-flex h-5 items-center gap-1",
-            "rounded border border-neutral-300",
-            "bg-gradient-to-b from-white to-neutral-100",
-            "px-1.5 font-mono text-xs font-medium text-neutral-400",
-            "shadow-[0_1px_0_0_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
-            "select-none transition-all duration-100",
+            "transition-all duration-100",
             "group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_0_0_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
             "group-active:translate-y-0.5 group-active:shadow-none",
           ])}
         >
-          {shortcut.map((key, index) => (
-            <span key={index}>{key}</span>
-          ))}
-        </kbd>
+          {shortcut.join(" ")}
+        </Kbd>
       ) : (
         icon
       )}

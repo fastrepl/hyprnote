@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 
-import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
@@ -149,12 +149,7 @@ export function TabItemBase({
         </div>
         {showShortcut && (
           <div className="absolute top-[3px] right-2 pointer-events-none">
-            <KbdGroup>
-              <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>⌘</Kbd>
-              <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>
-                {tabIndex}
-              </Kbd>
-            </KbdGroup>
+            <Kbd>⌘ {tabIndex}</Kbd>
           </div>
         )}
       </InteractiveButton>

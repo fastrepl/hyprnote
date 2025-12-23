@@ -5,7 +5,19 @@ import { useSelector } from "@xstate/store/react";
 import { relaunch } from "../../../../../store/tinybase/save";
 import { updateStore } from "./store";
 
-export const checkForUpdate = async () => {
+export function useOTA() {
+  const snapshot = useSelector(updateStore, (state) => state.context);
+
+  return {
+    ...snapshot,
+    handleCheckForUpdate: () => checkForUpdate(),
+    handleStartDownload,
+    handleCancelDownload,
+    handleInstall,
+  };
+}
+
+const checkForUpdate = async () => {
   updateStore.trigger.setState({ state: "checking" });
 
   try {
@@ -26,18 +38,6 @@ export const checkForUpdate = async () => {
     updateStore.trigger.checkError({ error: errorMessage });
   }
 };
-
-export function useOTA() {
-  const snapshot = useSelector(updateStore, (state) => state.context);
-
-  return {
-    ...snapshot,
-    handleCheckForUpdate: () => checkForUpdate(),
-    handleStartDownload,
-    handleCancelDownload,
-    handleInstall,
-  };
-}
 
 const handleStartDownload = async () => {
   const { update } = updateStore.getSnapshot().context;

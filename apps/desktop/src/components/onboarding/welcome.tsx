@@ -1,13 +1,27 @@
-import { Button } from "@hypr/ui/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { arch, platform } from "@tauri-apps/plugin-os";
+import { memo, useMemo } from "react";
+
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
-import type { OnboardingNext } from "./shared";
+import { Route } from "../../routes/app/onboarding";
+import { getNext, type StepProps } from "./config";
 
-type WelcomeProps = {
-  onNext: OnboardingNext;
-};
+export const STEP_ID_WELCOME = "welcome" as const;
 
-export function Welcome({ onNext }: WelcomeProps) {
+export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
+  const search = Route.useSearch();
+  const currentPlatform = useMemo(() => platform(), []);
+  const archQuery = useQuery({
+    queryKey: ["arch"],
+    queryFn: () => arch(),
+  });
+
+  const isAppleSilicon = useMemo(
+    () => currentPlatform === "macos" && archQuery.data === "aarch64",
+    [currentPlatform, archQuery.data],
+  );
+
   return (
     <>
       <img
@@ -26,25 +40,24 @@ export function Welcome({ onNext }: WelcomeProps) {
         Where Conversations Stay Yours
       </TextAnimate>
 
-      <Button
-        onClick={() => onNext({ local: false })}
-        size="lg"
-        className="w-full"
+      <button
+        onClick={() => onNavigate({ ...search, step: getNext(search) })}
+        className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
       >
         Get Started
-      </Button>
+      </button>
 
-      {/*<div
-        className={cn([
-          "flex flex-row items-center gap-1",
-          "text-neutral-400 transition-colors hover:text-neutral-800",
-        ])}
-      >
-        <button className="text-sm underline" onClick={() => onNext({ local: true })}>
-          Or proceed without an account
+      {isAppleSilicon && (
+        <button
+          className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
+          onClick={() => {
+            const next = { ...search, local: true };
+            onNavigate({ ...next, step: getNext(next) });
+          }}
+        >
+          Proceed without account
         </button>
-        <CircleQuestionMarkIcon className="h-4 w-4 cursor-help" />
-      </div>*/}
+      )}
     </>
   );
-}
+});

@@ -1,4 +1,4 @@
-const COMMANDS: &[&str] = &["render"];
+const COMMANDS: &[&str] = &["render", "render_custom"];
 
 fn main() {
     tauri_plugin::Builder::new(COMMANDS).build();

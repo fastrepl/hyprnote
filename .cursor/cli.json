@@ -1,10 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Shell(git)"
-    ],
-    "deny": [
-      "Shell(git commit)"
-    ]
+    "allow": ["Shell(git)"],
+    "deny": ["Shell(git commit)"]
   }
 }

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::{
-    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
     Modify, OpenApi, ToSchema,
+    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
 };
 
 // Core webhook event structure

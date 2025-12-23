@@ -1,6 +1,6 @@
-use std::{collections::HashMap, future::Future, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
-use ractor::{call_t, registry, ActorRef};
+use ractor::{ActorRef, call_t, registry};
 use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
@@ -12,46 +12,20 @@ use hypr_file::download_file_parallel_cancellable;
 
 use crate::{
     model::SupportedSttModel,
-    server::{external, internal, supervisor, ServerInfo, ServerStatus, ServerType},
+    server::{ServerInfo, ServerStatus, ServerType, external, internal, supervisor},
     types::DownloadProgressPayload,
 };
 
-pub trait LocalSttPluginExt<R: Runtime> {
-    fn models_dir(&self) -> PathBuf;
-
-    fn get_supervisor(
-        &self,
-    ) -> impl Future<Output = Result<supervisor::SupervisorRef, crate::Error>>;
-
-    fn start_server(
-        &self,
-        model: SupportedSttModel,
-    ) -> impl Future<Output = Result<String, crate::Error>>;
-    fn stop_server(
-        &self,
-        server_type: Option<ServerType>,
-    ) -> impl Future<Output = Result<bool, crate::Error>>;
-    fn get_servers(
-        &self,
-    ) -> impl Future<Output = Result<HashMap<ServerType, ServerInfo>, crate::Error>>;
-
-    fn download_model(
-        &self,
-        model: SupportedSttModel,
-    ) -> impl Future<Output = Result<(), crate::Error>>;
-    fn cancel_download(&self, model: SupportedSttModel) -> impl Future<Output = bool>;
-
-    fn is_model_downloading(&self, model: &SupportedSttModel) -> impl Future<Output = bool>;
-    fn is_model_downloaded(
-        &self,
-        model: &SupportedSttModel,
-    ) -> impl Future<Output = Result<bool, crate::Error>>;
+pub struct LocalStt<'a, R: Runtime, M: Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
-    fn models_dir(&self) -> PathBuf {
+impl<'a, R: Runtime, M: Manager<R>> LocalStt<'a, R, M> {
+    pub fn models_dir(&self) -> PathBuf {
         use tauri::path::BaseDirectory;
-        self.path()
+        self.manager
+            .path()
             .resolve("hyprnote/models/stt", BaseDirectory::Data)
             .unwrap_or_else(|_| {
                 dirs::data_dir()
@@ -62,8 +36,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             })
     }
 
-    async fn get_supervisor(&self) -> Result<supervisor::SupervisorRef, crate::Error> {
-        let state = self.state::<crate::SharedState>();
+    pub async fn get_supervisor(&self) -> Result<supervisor::SupervisorRef, crate::Error> {
+        let state = self.manager.state::<crate::SharedState>();
         let guard = state.lock().await;
         guard
             .stt_supervisor
@@ -71,7 +45,10 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             .ok_or(crate::Error::SupervisorNotFound)
     }
 
-    async fn is_model_downloaded(&self, model: &SupportedSttModel) -> Result<bool, crate::Error> {
+    pub async fn is_model_downloaded(
+        &self,
+        model: &SupportedSttModel,
+    ) -> Result<bool, crate::Error> {
         match model {
             SupportedSttModel::Am(model) => Ok(model.is_downloaded(self.models_dir())?),
             SupportedSttModel::Whisper(model) => {
@@ -95,7 +72,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_server(&self, model: SupportedSttModel) -> Result<String, crate::Error> {
+    pub async fn start_server(&self, model: SupportedSttModel) -> Result<String, crate::Error> {
         let server_type = match &model {
             SupportedSttModel::Am(_) => ServerType::External,
             SupportedSttModel::Whisper(_) => ServerType::Internal,
@@ -106,16 +83,16 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             ServerType::External => external_health().await,
         };
 
-        if let Some(info) = current_info.as_ref() {
-            if info.model.as_ref() == Some(&model) {
-                if let Some(url) = info.url.clone() {
-                    return Ok(url);
-                }
-
-                return Err(crate::Error::ServerStartFailed(
-                    "missing_health_url".to_string(),
-                ));
+        if let Some(info) = current_info.as_ref()
+            && info.model.as_ref() == Some(&model)
+        {
+            if let Some(url) = info.url.clone() {
+                return Ok(url);
             }
+
+            return Err(crate::Error::ServerStartFailed(
+                "missing_health_url".to_string(),
+            ));
         }
 
         if matches!(server_type, ServerType::Internal) && !self.is_model_downloaded(&model).await? {
@@ -145,13 +122,13 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     _ => return Err(crate::Error::UnsupportedModelType),
                 };
 
-                start_external_server(self, &supervisor, data_dir, am_model).await
+                start_external_server(self.manager, &supervisor, data_dir, am_model).await
             }
         }
     }
 
     #[tracing::instrument(skip_all)]
-    async fn stop_server(&self, server_type: Option<ServerType>) -> Result<bool, crate::Error> {
+    pub async fn stop_server(&self, server_type: Option<ServerType>) -> Result<bool, crate::Error> {
         let supervisor = self.get_supervisor().await?;
 
         match server_type {
@@ -171,7 +148,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn get_servers(&self) -> Result<HashMap<ServerType, ServerInfo>, crate::Error> {
+    pub async fn get_servers(&self) -> Result<HashMap<ServerType, ServerInfo>, crate::Error> {
         let internal_info = internal_health().await.unwrap_or(ServerInfo {
             url: None,
             status: ServerStatus::Unreachable,
@@ -193,10 +170,10 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn download_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
+    pub async fn download_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
         {
             let existing = {
-                let state = self.state::<crate::SharedState>();
+                let state = self.manager.state::<crate::SharedState>();
                 let mut s = state.lock().await;
                 s.download_task.remove(&model)
             };
@@ -207,8 +184,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             }
         }
 
-        let state_for_cleanup = self.state::<crate::SharedState>().inner().clone();
-        let app_handle = self.app_handle().clone();
+        let state_for_cleanup = self.manager.state::<crate::SharedState>().inner().clone();
+        let app_handle = self.manager.app_handle().clone();
         let create_progress_callback = move |model: SupportedSttModel| {
             let last_progress = std::sync::Arc::new(std::sync::Mutex::new(0i8));
             let app = app_handle.clone();
@@ -250,7 +227,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             }
         };
 
-        let app_handle_for_error = self.app_handle().clone();
+        let app_handle_for_error = self.manager.app_handle().clone();
         match model.clone() {
             SupportedSttModel::Am(m) => {
                 let tar_path = self.models_dir().join(format!("{}.tar", m.model_dir()));
@@ -305,7 +282,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 });
 
                 {
-                    let state = self.state::<crate::SharedState>();
+                    let state = self.manager.state::<crate::SharedState>();
                     let mut s = state.lock().await;
                     s.download_task
                         .insert(model.clone(), (task, cancellation_token));
@@ -380,7 +357,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 });
 
                 {
-                    let state = self.state::<crate::SharedState>();
+                    let state = self.manager.state::<crate::SharedState>();
                     let mut s = state.lock().await;
                     s.download_task
                         .insert(model.clone(), (task, cancellation_token));
@@ -392,9 +369,9 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn cancel_download(&self, model: SupportedSttModel) -> bool {
+    pub async fn cancel_download(&self, model: SupportedSttModel) -> bool {
         let existing = {
-            let state = self.state::<crate::SharedState>();
+            let state = self.manager.state::<crate::SharedState>();
             let mut s = state.lock().await;
             s.download_task.remove(&model)
         };
@@ -409,11 +386,29 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn is_model_downloading(&self, model: &SupportedSttModel) -> bool {
-        let state = self.state::<crate::SharedState>();
+    pub async fn is_model_downloading(&self, model: &SupportedSttModel) -> bool {
+        let state = self.manager.state::<crate::SharedState>();
         {
             let guard = state.lock().await;
             guard.download_task.contains_key(model)
+        }
+    }
+}
+
+pub trait LocalSttPluginExt<R: Runtime> {
+    fn local_stt(&self) -> LocalStt<'_, R, Self>
+    where
+        Self: Manager<R> + Sized;
+}
+
+impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
+    fn local_stt(&self) -> LocalStt<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        LocalStt {
+            manager: self,
+            _runtime: std::marker::PhantomData,
         }
     }
 }
@@ -489,7 +484,7 @@ async fn start_external_server<R: Runtime, T: Manager<R>>(
             external::CommandBuilder::new(move || {
                 app_handle
                     .shell()
-                    .sidecar("stt")
+                    .sidecar("hyprnote-sidecar-stt")
                     .expect("failed to create sidecar command")
                     .current_dir(dirs::home_dir().unwrap())
                     .args(["serve", "--any-token"])
@@ -514,10 +509,7 @@ async fn internal_health() -> Option<ServerInfo> {
     match registry::where_is(internal::InternalSTTActor::name()) {
         Some(cell) => {
             let actor: ActorRef<internal::InternalSTTMessage> = cell.into();
-            match call_t!(actor, internal::InternalSTTMessage::GetHealth, 10 * 1000) {
-                Ok(info) => Some(info),
-                Err(_) => None,
-            }
+            call_t!(actor, internal::InternalSTTMessage::GetHealth, 10 * 1000).ok()
         }
         None => None,
     }
@@ -527,10 +519,7 @@ async fn external_health() -> Option<ServerInfo> {
     match registry::where_is(external::ExternalSTTActor::name()) {
         Some(cell) => {
             let actor: ActorRef<external::ExternalSTTMessage> = cell.into();
-            match call_t!(actor, external::ExternalSTTMessage::GetHealth, 10 * 1000) {
-                Ok(info) => Some(info),
-                Err(_) => None,
-            }
+            call_t!(actor, external::ExternalSTTMessage::GetHealth, 10 * 1000).ok()
         }
         None => None,
     }

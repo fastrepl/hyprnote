@@ -8,51 +8,28 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as NotificationRouteImport } from './routes/notification'
 import { Route as AppRouteRouteImport } from './routes/app/route'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AppExtHostRouteImport } from './routes/app/ext-host'
-import { Route as AppDevtoolRouteImport } from './routes/app/devtool'
 import { Route as AppControlRouteImport } from './routes/app/control'
 import { Route as AppOnboardingIndexRouteImport } from './routes/app/onboarding/index'
-import { Route as AppSettingsLayoutRouteImport } from './routes/app/settings/_layout'
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
-import { Route as AppSettingsLayoutIndexRouteImport } from './routes/app/settings/_layout.index'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layout.index'
 
-const AppSettingsRouteImport = createFileRoute('/app/settings')()
-const AppMainRouteImport = createFileRoute('/app/main')()
-
-const NotificationRoute = NotificationRouteImport.update({
-  id: '/notification',
-  path: '/notification',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppMainRoute = AppMainRouteImport.update({
-  id: '/main',
-  path: '/main',
-  getParentRoute: () => AppRouteRoute,
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppExtHostRoute = AppExtHostRouteImport.update({
   id: '/ext-host',
   path: '/ext-host',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppDevtoolRoute = AppDevtoolRouteImport.update({
-  id: '/devtool',
-  path: '/devtool',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppControlRoute = AppControlRouteImport.update({
@@ -65,18 +42,10 @@ const AppOnboardingIndexRoute = AppOnboardingIndexRouteImport.update({
   path: '/onboarding/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppSettingsLayoutRoute = AppSettingsLayoutRouteImport.update({
-  id: '/_layout',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
-  id: '/_layout',
-  getParentRoute: () => AppMainRoute,
-} as any)
-const AppSettingsLayoutIndexRoute = AppSettingsLayoutIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppSettingsLayoutRoute,
+  id: '/main/_layout',
+  path: '/main',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
   id: '/',
@@ -86,94 +55,67 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
-  '/notification': typeof NotificationRoute
   '/app/control': typeof AppControlRoute
-  '/app/devtool': typeof AppDevtoolRoute
   '/app/ext-host': typeof AppExtHostRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
-  '/app/settings': typeof AppSettingsLayoutRouteWithChildren
   '/app/onboarding': typeof AppOnboardingIndexRoute
   '/app/main/': typeof AppMainLayoutIndexRoute
-  '/app/settings/': typeof AppSettingsLayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/app': typeof AppRouteRouteWithChildren
-  '/notification': typeof NotificationRoute
   '/app/control': typeof AppControlRoute
-  '/app/devtool': typeof AppDevtoolRoute
   '/app/ext-host': typeof AppExtHostRoute
-  '/app/main': typeof AppMainLayoutIndexRoute
-  '/app/settings': typeof AppSettingsLayoutIndexRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/app/onboarding': typeof AppOnboardingIndexRoute
+  '/app/main': typeof AppMainLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/app': typeof AppRouteRouteWithChildren
-  '/notification': typeof NotificationRoute
   '/app/control': typeof AppControlRoute
-  '/app/devtool': typeof AppDevtoolRoute
   '/app/ext-host': typeof AppExtHostRoute
-  '/app/main': typeof AppMainRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
-  '/app/settings': typeof AppSettingsRouteWithChildren
-  '/app/settings/_layout': typeof AppSettingsLayoutRouteWithChildren
   '/app/onboarding/': typeof AppOnboardingIndexRoute
   '/app/main/_layout/': typeof AppMainLayoutIndexRoute
-  '/app/settings/_layout/': typeof AppSettingsLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/app'
-    | '/notification'
     | '/app/control'
-    | '/app/devtool'
     | '/app/ext-host'
+    | '/auth/callback'
     | '/app/main'
-    | '/app/settings'
     | '/app/onboarding'
     | '/app/main/'
-    | '/app/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/app'
-    | '/notification'
     | '/app/control'
-    | '/app/devtool'
     | '/app/ext-host'
-    | '/app/main'
-    | '/app/settings'
+    | '/auth/callback'
     | '/app/onboarding'
+    | '/app/main'
   id:
     | '__root__'
     | '/app'
-    | '/notification'
     | '/app/control'
-    | '/app/devtool'
     | '/app/ext-host'
-    | '/app/main'
+    | '/auth/callback'
     | '/app/main/_layout'
-    | '/app/settings'
-    | '/app/settings/_layout'
     | '/app/onboarding/'
     | '/app/main/_layout/'
-    | '/app/settings/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
-  NotificationRoute: typeof NotificationRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/notification': {
-      id: '/notification'
-      path: '/notification'
-      fullPath: '/notification'
-      preLoaderRoute: typeof NotificationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/app': {
       id: '/app'
       path: '/app'
@@ -181,32 +123,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/main': {
-      id: '/app/main'
-      path: '/main'
-      fullPath: '/app/main'
-      preLoaderRoute: typeof AppMainRouteImport
-      parentRoute: typeof AppRouteRoute
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/ext-host': {
       id: '/app/ext-host'
       path: '/ext-host'
       fullPath: '/app/ext-host'
       preLoaderRoute: typeof AppExtHostRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/devtool': {
-      id: '/app/devtool'
-      path: '/devtool'
-      fullPath: '/app/devtool'
-      preLoaderRoute: typeof AppDevtoolRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/control': {
@@ -223,26 +151,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/app/settings/_layout': {
-      id: '/app/settings/_layout'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsLayoutRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
     '/app/main/_layout': {
       id: '/app/main/_layout'
       path: '/main'
       fullPath: '/app/main'
       preLoaderRoute: typeof AppMainLayoutRouteImport
-      parentRoute: typeof AppMainRoute
-    }
-    '/app/settings/_layout/': {
-      id: '/app/settings/_layout/'
-      path: '/'
-      fullPath: '/app/settings/'
-      preLoaderRoute: typeof AppSettingsLayoutIndexRouteImport
-      parentRoute: typeof AppSettingsLayoutRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/app/main/_layout/': {
       id: '/app/main/_layout/'
@@ -266,55 +180,17 @@ const AppMainLayoutRouteWithChildren = AppMainLayoutRoute._addFileChildren(
   AppMainLayoutRouteChildren,
 )
 
-interface AppMainRouteChildren {
-  AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
-}
-
-const AppMainRouteChildren: AppMainRouteChildren = {
-  AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
-}
-
-const AppMainRouteWithChildren =
-  AppMainRoute._addFileChildren(AppMainRouteChildren)
-
-interface AppSettingsLayoutRouteChildren {
-  AppSettingsLayoutIndexRoute: typeof AppSettingsLayoutIndexRoute
-}
-
-const AppSettingsLayoutRouteChildren: AppSettingsLayoutRouteChildren = {
-  AppSettingsLayoutIndexRoute: AppSettingsLayoutIndexRoute,
-}
-
-const AppSettingsLayoutRouteWithChildren =
-  AppSettingsLayoutRoute._addFileChildren(AppSettingsLayoutRouteChildren)
-
-interface AppSettingsRouteChildren {
-  AppSettingsLayoutRoute: typeof AppSettingsLayoutRouteWithChildren
-}
-
-const AppSettingsRouteChildren: AppSettingsRouteChildren = {
-  AppSettingsLayoutRoute: AppSettingsLayoutRouteWithChildren,
-}
-
-const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
-  AppSettingsRouteChildren,
-)
-
 interface AppRouteRouteChildren {
   AppControlRoute: typeof AppControlRoute
-  AppDevtoolRoute: typeof AppDevtoolRoute
   AppExtHostRoute: typeof AppExtHostRoute
-  AppMainRoute: typeof AppMainRouteWithChildren
-  AppSettingsRoute: typeof AppSettingsRouteWithChildren
+  AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
   AppOnboardingIndexRoute: typeof AppOnboardingIndexRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppControlRoute: AppControlRoute,
-  AppDevtoolRoute: AppDevtoolRoute,
   AppExtHostRoute: AppExtHostRoute,
-  AppMainRoute: AppMainRouteWithChildren,
-  AppSettingsRoute: AppSettingsRouteWithChildren,
+  AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
   AppOnboardingIndexRoute: AppOnboardingIndexRoute,
 }
 
@@ -324,7 +200,7 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
-  NotificationRoute: NotificationRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

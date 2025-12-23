@@ -37,10 +37,12 @@ impl WhisperBuilder {
         unsafe { Self::suppress_log() };
 
         let context_param = {
-            let mut p = WhisperContextParameters::default();
-            p.gpu_device = 0;
-            p.use_gpu = true;
-            p.flash_attn = false; // crash on macos
+            let mut p = WhisperContextParameters {
+                gpu_device: 0,
+                use_gpu: true,
+                flash_attn: false, // crash on macos
+                ..Default::default()
+            };
             p.dtw_parameters.mode = whisper_rs::DtwMode::None;
             p
         };
@@ -255,36 +257,40 @@ impl Whisper {
                 return;
             }
 
-            let token_beg_id = *(user_data as *const WhisperTokenId);
-            *logits.offset(token_beg_id as isize) = f32::NEG_INFINITY;
+            unsafe {
+                let token_beg_id = *(user_data as *const WhisperTokenId);
+                *logits.offset(token_beg_id as isize) = f32::NEG_INFINITY;
+            }
         }
 
-        params.set_filter_logits_callback(Some(logits_filter_callback));
-        params.set_filter_logits_callback_user_data(
-            token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
-        );
+        unsafe {
+            params.set_filter_logits_callback(Some(logits_filter_callback));
+            params.set_filter_logits_callback_user_data(
+                token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
+            );
+        }
     }
 
     fn debug(&mut self, audio: &[f32]) {
-        if let Ok(v) = std::env::var("HYPR_WHISPER_DEBUG") {
-            if v == "1" {
-                let mut writer = hound::WavWriter::create(
-                    format!("./whisper_{}_{}.wav", self.id, self.index),
-                    hound::WavSpec {
-                        channels: 1,
-                        sample_rate: 16000,
-                        bits_per_sample: 32,
-                        sample_format: hound::SampleFormat::Float,
-                    },
-                )
-                .unwrap();
-                self.index += 1;
+        if let Ok(v) = std::env::var("HYPR_WHISPER_DEBUG")
+            && v == "1"
+        {
+            let mut writer = hound::WavWriter::create(
+                format!("./whisper_{}_{}.wav", self.id, self.index),
+                hound::WavSpec {
+                    channels: 1,
+                    sample_rate: 16000,
+                    bits_per_sample: 32,
+                    sample_format: hound::SampleFormat::Float,
+                },
+            )
+            .unwrap();
+            self.index += 1;
 
-                for sample in audio {
-                    writer.write_sample(*sample).unwrap();
-                }
-                writer.finalize().unwrap();
+            for sample in audio {
+                writer.write_sample(*sample).unwrap();
             }
+            writer.finalize().unwrap();
         }
     }
 }

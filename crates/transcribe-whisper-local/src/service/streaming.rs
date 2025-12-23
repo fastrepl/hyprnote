@@ -8,8 +8,8 @@ use std::{
 
 use axum::{
     extract::{
-        ws::{Message, WebSocket, WebSocketUpgrade},
         FromRequestParts,
+        ws::{Message, WebSocket, WebSocketUpgrade},
     },
     http::{Request, StatusCode},
     response::{IntoResponse, Response},
@@ -19,8 +19,8 @@ use tower::Service;
 
 use hypr_vad_ext::VadExt;
 use hypr_ws_utils::{ConnectionGuard, ConnectionManager};
-use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse, Word};
 use owhisper_interface::ListenParams;
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse, Word};
 
 use crate::GlobalTimer;
 

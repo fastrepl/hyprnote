@@ -2,7 +2,7 @@ import { Icon } from "@iconify-icon/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Mail, Menu, X, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   ResizableHandle,
@@ -163,11 +163,15 @@ function Component() {
       const founder = founders.find((f) => f.id === search.id);
       if (founder) {
         setSelectedItem({ type: "founder", data: founder });
+      } else {
+        setSelectedItem(null);
       }
     } else if (search.type === "photo" && search.id) {
       const photo = teamPhotos.find((p) => p.id === search.id);
       if (photo) {
         setSelectedItem({ type: "photo", data: photo });
+      } else {
+        setSelectedItem(null);
       }
     } else {
       setSelectedItem(null);
@@ -177,13 +181,19 @@ function Component() {
   const handleSetSelectedItem = (item: SelectedItem | null) => {
     setSelectedItem(item);
     if (item === null) {
-      navigate({ search: {} });
+      navigate({ search: {}, resetScroll: false });
     } else if (item.type === "story") {
-      navigate({ search: { type: "story" } });
+      navigate({ search: { type: "story" }, resetScroll: false });
     } else if (item.type === "founder") {
-      navigate({ search: { type: "founder", id: item.data.id } });
+      navigate({
+        search: { type: "founder", id: item.data.id },
+        resetScroll: false,
+      });
     } else if (item.type === "photo") {
-      navigate({ search: { type: "photo", id: item.data.id } });
+      navigate({
+        search: { type: "photo", id: item.data.id },
+        resetScroll: false,
+      });
     }
   };
 
@@ -449,7 +459,11 @@ function MobileSidebarDrawer({
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            transition={{
+              type: "spring",
+              damping: 25,
+              stiffness: 300,
+            }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
               <span className="text-sm font-medium text-stone-600">
@@ -724,6 +738,14 @@ function AboutDetailPanel({
 }
 
 function StoryDetail({ onClose }: { onClose: () => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, []);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -736,7 +758,7 @@ function StoryDetail({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <div className="prose prose-stone max-w-none">
           <h2 className="text-3xl font-serif text-stone-600 mb-4">
             How We Landed on Hyprnote
@@ -838,6 +860,14 @@ function FounderDetail({
   founder: (typeof founders)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [founder.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -861,7 +891,7 @@ function FounderDetail({
         </div>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <div className="flex justify-center mb-6">
           <Image
             src={founder.image}
@@ -944,6 +974,14 @@ function PhotoDetail({
   photo: (typeof teamPhotos)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [photo.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -967,7 +1005,7 @@ function PhotoDetail({
         </div>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <Image
           src={photo.url}
           alt={photo.name}

@@ -17,7 +17,7 @@ export type { MentionConfig };
 export interface SlashCommandConfig {
   handleSearch: (
     query: string,
-  ) => Promise<{ id: string; type: string; label: string }[]>;
+  ) => Promise<{ id: string; type: string; label: string; content?: string }[]>;
 }
 
 interface ChatEditorProps {
@@ -70,6 +70,7 @@ const ChatEditor = forwardRef<{ editor: TiptapEditor | null }, ChatEditorProps>(
         onCreate: ({ editor }) => {
           editor.view.dom.setAttribute("spellcheck", "false");
           editor.view.dom.setAttribute("autocomplete", "off");
+          editor.view.dom.setAttribute("autocorrect", "off");
           editor.view.dom.setAttribute("autocapitalize", "off");
         },
         immediatelyRender: false,

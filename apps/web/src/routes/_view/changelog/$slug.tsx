@@ -1,9 +1,11 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import { ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import semver from "semver";
 
 import {
@@ -21,6 +23,9 @@ import {
 } from "@/changelog";
 import { defaultMDXComponents } from "@/components/mdx";
 import { MockWindow } from "@/components/mock-window";
+import { NotFoundContent } from "@/components/not-found";
+
+dayjs.extend(relativeTime);
 
 const ITEMS_PER_PAGE = 20;
 
@@ -31,6 +36,7 @@ type VersionGroup = {
 
 export const Route = createFileRoute("/_view/changelog/$slug")({
   component: Component,
+  notFoundComponent: NotFoundContent,
   loader: async ({ params }) => {
     const changelog = getChangelogBySlug(params.slug);
     if (!changelog) {
@@ -115,12 +121,15 @@ function Component() {
 }
 
 function HeroSection({ changelog }: { changelog: ChangelogWithMeta }) {
+  const relativeTimeText = dayjs(changelog.created).fromNow();
+
   return (
     <div className="px-6 py-16 lg:py-24">
       <div className="text-center max-w-3xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-600 mb-6">
+        <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-600 mb-2">
           Version {changelog.version}
         </h1>
+        <p className="text-sm text-neutral-500 mb-6">{relativeTimeText}</p>
         <DownloadButtons version={changelog.version} />
       </div>
     </div>
@@ -131,7 +140,7 @@ function DownloadButtons({ version }: { version: string }) {
   const baseUrl = `https://github.com/fastrepl/hyprnote/releases/download/desktop_v${version}`;
   const [isOpen, setIsOpen] = useState(false);
   const [detectedOS, setDetectedOS] = useState<
-    "apple-silicon" | "apple-intel" | "linux"
+    "apple-silicon" | "apple-intel" | "linux-appimage" | "linux-deb"
   >("apple-silicon");
 
   useEffect(() => {
@@ -139,7 +148,7 @@ function DownloadButtons({ version }: { version: string }) {
     if (userAgent.includes("mac")) {
       setDetectedOS("apple-silicon");
     } else if (userAgent.includes("linux")) {
-      setDetectedOS("linux");
+      setDetectedOS("linux-appimage");
     }
   }, []);
 
@@ -157,10 +166,16 @@ function DownloadButtons({ version }: { version: string }) {
       url: `${baseUrl}/hyprnote-macos-x86_64.dmg`,
     },
     {
-      id: "linux" as const,
+      id: "linux-appimage" as const,
       icon: "simple-icons:linux",
-      label: "Linux",
+      label: "Linux (AppImage)",
       url: `${baseUrl}/hyprnote-linux-x86_64.AppImage`,
+    },
+    {
+      id: "linux-deb" as const,
+      icon: "simple-icons:linux",
+      label: "Linux (.deb)",
+      url: `${baseUrl}/hyprnote-linux-x86_64.deb`,
     },
   ];
 
@@ -243,12 +258,17 @@ function ChangelogContentSection({
 }) {
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const relativeTimeText = dayjs(changelog.created).fromNow();
 
   return (
     <section className="px-6 pb-16 lg:pb-24">
       <div className="max-w-4xl mx-auto">
         <MockWindow
-          title={isMobile ? undefined : `Version ${changelog.version}`}
+          title={
+            isMobile
+              ? undefined
+              : `Version ${changelog.version} · ${relativeTimeText}`
+          }
           className="rounded-lg w-full max-w-none"
           prefixIcons={
             isMobile && (
@@ -335,7 +355,11 @@ function MobileSidebarDrawer({
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
+            transition={{
+              type: "tween",
+              duration: 0.2,
+              ease: "easeOut",
+            }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
               <span className="text-sm font-medium text-stone-600">
@@ -394,6 +418,7 @@ function ChangelogSidebar({
   allChangelogs: ChangelogWithMeta[];
   onNavigate?: () => void;
 }) {
+  const navigate = useNavigate({ from: Route.fullPath });
   const [currentPage, setCurrentPage] = useState(0);
 
   const versionGroups = groupVersions(allChangelogs);
@@ -414,6 +439,15 @@ function ChangelogSidebar({
     }
   };
 
+  const handleVersionClick = (slug: string) => {
+    navigate({
+      to: "/changelog/$slug",
+      params: { slug },
+      resetScroll: false,
+    });
+    onNavigate?.();
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="flex-1 p-4 overflow-y-auto">
@@ -432,13 +466,11 @@ function ChangelogSidebar({
                     : "/api/images/icons/stable-icon.png";
 
                   return (
-                    <Link
+                    <button
                       key={version.slug}
-                      to="/changelog/$slug"
-                      params={{ slug: version.slug }}
-                      onClick={onNavigate}
+                      onClick={() => handleVersionClick(version.slug)}
                       className={cn([
-                        "bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors flex items-center gap-3",
+                        "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors flex items-center gap-3 cursor-pointer",
                         version.slug === changelog.slug
                           ? "border-stone-600 bg-stone-100"
                           : "border-neutral-200",
@@ -453,7 +485,7 @@ function ChangelogSidebar({
                           className="w-10 h-10"
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 text-left">
                         <p className="text-sm font-medium text-stone-600 truncate">
                           v{version.version}
                         </p>
@@ -461,7 +493,7 @@ function ChangelogSidebar({
                           {isPrerelease ? "Nightly" : "Stable"}
                         </p>
                       </div>
-                    </Link>
+                    </button>
                   );
                 })}
               </div>
@@ -513,11 +545,17 @@ function ChangelogSidebar({
 function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
   const { diffUrl } = Route.useLoaderData();
   const isMobile = useIsMobile();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const currentVersion = semver.parse(changelog.version);
   const isPrerelease = currentVersion && currentVersion.prerelease.length > 0;
   const isLatest = changelog.newerSlug === null;
 
-  // Parse prerelease info
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [changelog.slug]);
+
   let prereleaseType = "";
   let buildNumber = "";
   if (isPrerelease && currentVersion && currentVersion.prerelease.length > 0) {
@@ -572,7 +610,7 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
         </div>
       </div>
 
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 p-6 overflow-y-auto">
         <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4 prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3 prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2 prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-6 max-w-none">
           <MDXContent code={changelog.mdx} components={defaultMDXComponents} />
         </article>

@@ -1,23 +1,21 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Copy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
+import { usePlatform } from "@/hooks/use-platform";
 
 export const Route = createFileRoute("/_view/download/")({
   component: Component,
 });
 
 function Component() {
-  const [isMac, setIsMac] = useState(false);
-
-  useEffect(() => {
-    setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
-  }, []);
+  const platform = usePlatform();
+  const isMacDesktop = platform === "mac";
 
   return (
     <div
@@ -56,7 +54,7 @@ function Component() {
               <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
                 Desktop
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <DownloadCard
                   iconName="simple-icons:apple"
                   spec="macOS 14.2+ (Apple Silicon)"
@@ -71,20 +69,32 @@ function Component() {
                 />
                 <DownloadCard
                   iconName="simple-icons:windows"
-                  spec="Windows 10+"
-                  downloadUrl="#"
-                  available={false}
-                />
-                <DownloadCard
-                  iconName="simple-icons:linux"
-                  spec="Ubuntu, Debian"
+                  spec="Windows"
                   downloadUrl="#"
                   available={false}
                 />
               </div>
+
+              <h2 className="text-2xl font-serif tracking-tight mb-6 mt-16 text-center">
+                Linux
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                <DownloadCard
+                  iconName="simple-icons:linux"
+                  spec="Linux (AppImage)"
+                  downloadUrl="/download/linux-appimage"
+                  available={true}
+                />
+                <DownloadCard
+                  iconName="simple-icons:linux"
+                  spec="Linux (.deb)"
+                  downloadUrl="/download/linux-deb"
+                  available={true}
+                />
+              </div>
             </div>
 
-            {isMac && (
+            {isMacDesktop && (
               <div className="mb-16">
                 <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
                   Homebrew

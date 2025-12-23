@@ -69,8 +69,8 @@ impl DeviceMonitor {
 #[cfg(target_os = "macos")]
 mod macos {
     use super::*;
-    use crate::utils::macos::is_headphone_from_default_output_device;
     use cidre::{core_audio as ca, ns, os};
+    use hypr_device_heuristic::macos::is_headphone_from_default_output_device;
 
     extern "C-unwind" fn listener(
         _obj_id: ca::Obj,
@@ -148,8 +148,8 @@ mod linux {
     use super::*;
     use libpulse_binding::{
         context::{
-            subscribe::{Facility, InterestMaskSet, Operation},
             Context, FlagSet as ContextFlagSet,
+            subscribe::{Facility, InterestMaskSet, Operation},
         },
         mainloop::threaded::Mainloop,
         proplist::Proplist,
@@ -291,7 +291,7 @@ mod linux {
     }
 
     fn is_headphone_from_default_output_device() -> bool {
-        crate::utils::linux::is_headphone_from_default_output_device()
+        hypr_device_heuristic::linux::is_headphone_from_default_output_device()
     }
 }
 

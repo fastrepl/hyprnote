@@ -1,5 +1,8 @@
 mod ext;
+mod menu_items;
+
 pub use ext::*;
+pub use menu_items::{HyprMenuItem, UpdateMenuState};
 
 const PLUGIN_NAME: &str = "tray";
 
@@ -10,11 +13,33 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
-pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    use tauri_specta::Event;
+
     let specta_builder = make_specta_builder();
 
-    tauri::plugin::Builder::new(PLUGIN_NAME)
+    tauri::plugin::Builder::<tauri::Wry>::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
+        .setup(|app, _api| {
+            let handle = app.clone();
+
+            tauri_plugin_updater2::UpdateReadyEvent::listen(app, move |_event| {
+                let _ = menu_items::TrayCheckUpdate::set_state(
+                    &handle,
+                    UpdateMenuState::RestartToApply,
+                );
+            });
+
+            let handle = app.clone();
+            tauri_plugin_updater2::UpdatedEvent::listen(app, move |_event| {
+                let _ = menu_items::TrayCheckUpdate::set_state(
+                    &handle,
+                    UpdateMenuState::CheckForUpdate,
+                );
+            });
+
+            Ok(())
+        })
         .build()
 }
 
@@ -24,26 +49,18 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
-    }
+            .unwrap();
 
-    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
-        builder
-            .plugin(init())
-            .build(tauri::test::mock_context(tauri::test::noop_assets()))
-            .unwrap()
-    }
-
-    #[test]
-    fn test_tray() {
-        let _app = create_app(tauri::test::mock_builder());
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

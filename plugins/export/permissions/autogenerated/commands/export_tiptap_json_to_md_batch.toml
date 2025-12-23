@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-export-tiptap-json-to-md-batch"
+description = "Enables the export_tiptap_json_to_md_batch command without any pre-configured scope."
+commands.allow = ["export_tiptap_json_to_md_batch"]
+
+[[permission]]
+identifier = "deny-export-tiptap-json-to-md-batch"
+description = "Denies the export_tiptap_json_to_md_batch command without any pre-configured scope."
+commands.deny = ["export_tiptap_json_to_md_batch"]

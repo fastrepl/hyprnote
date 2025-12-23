@@ -1,23 +1,10 @@
-use std::future::Future;
-
-pub trait Database2PluginExt<R: tauri::Runtime> {
-    fn init_local(&self) -> impl Future<Output = Result<(), crate::Error>>;
-    fn init_cloud(&self, connection_str: &str) -> impl Future<Output = Result<(), crate::Error>>;
-
-    fn execute_local(
-        &self,
-        sql: String,
-        args: Vec<String>,
-    ) -> impl Future<Output = Result<Vec<serde_json::Value>, crate::Error>>;
-    fn execute_cloud(
-        &self,
-        sql: String,
-        args: Vec<String>,
-    ) -> impl Future<Output = Result<Vec<serde_json::Value>, crate::Error>>;
+pub struct Database2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
-    async fn init_local(&self) -> Result<(), crate::Error> {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Database2<'a, R, M> {
+    pub async fn init_local(&self) -> Result<(), crate::Error> {
         let db = {
             if cfg!(debug_assertions) {
                 hypr_db_core::DatabaseBuilder::default()
@@ -27,7 +14,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
                     .unwrap()
             } else {
                 use tauri::path::BaseDirectory;
-                let dir_path = self.path().resolve("hyprnote", BaseDirectory::Data)?;
+                let dir_path = self
+                    .manager
+                    .path()
+                    .resolve("hyprnote", BaseDirectory::Data)?;
                 std::fs::create_dir_all(&dir_path)?;
                 let file_path = dir_path.join("db.sqlite");
 
@@ -39,14 +29,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
             }
         };
         {
-            let state = self.state::<crate::ManagedState>();
+            let state = self.manager.state::<crate::ManagedState>();
             let mut guard = state.lock().await;
             guard.local_db = Some(db);
         }
         Ok(())
     }
 
-    async fn init_cloud(&self, connection_str: &str) -> Result<(), crate::Error> {
+    pub async fn init_cloud(&self, connection_str: &str) -> Result<(), crate::Error> {
         let (client, connection) =
             tokio_postgres::connect(connection_str, tokio_postgres::NoTls).await?;
 
@@ -57,19 +47,19 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
         });
 
         {
-            let state = self.state::<crate::ManagedState>();
+            let state = self.manager.state::<crate::ManagedState>();
             let mut guard = state.lock().await;
             guard.cloud_db = Some(client);
         }
         Ok(())
     }
 
-    async fn execute_local(
+    pub async fn execute_local(
         &self,
         sql: String,
         args: Vec<String>,
     ) -> Result<Vec<serde_json::Value>, crate::Error> {
-        let state = self.state::<crate::ManagedState>();
+        let state = self.manager.state::<crate::ManagedState>();
         let guard = state.lock().await;
 
         let mut items = Vec::new();
@@ -125,12 +115,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
         Ok(items)
     }
 
-    async fn execute_cloud(
+    pub async fn execute_cloud(
         &self,
         sql: String,
         args: Vec<String>,
     ) -> Result<Vec<serde_json::Value>, crate::Error> {
-        let state = self.state::<crate::ManagedState>();
+        let state = self.manager.state::<crate::ManagedState>();
         let guard = state.lock().await;
 
         let mut items = Vec::new();
@@ -183,5 +173,23 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
         }
 
         Ok(items)
+    }
+}
+
+pub trait Database2PluginExt<R: tauri::Runtime> {
+    fn db2(&self) -> Database2<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
+    fn db2(&self) -> Database2<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Database2 {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

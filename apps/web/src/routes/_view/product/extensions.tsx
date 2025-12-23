@@ -23,7 +23,10 @@ function Component() {
       description: "Graph views, kanban boards, and more",
     },
     { label: "Themes", description: "Personalize your workspace" },
-    { label: "Editor Plugins", description: "Enhanced editing capabilities" },
+    {
+      label: "Editor Plugins",
+      description: "Enhanced editing capabilities",
+    },
     { label: "Integrations", description: "Connect external tools" },
     { label: "Data Sources", description: "Import from anywhere" },
     { label: "Export Formats", description: "Share in any format" },

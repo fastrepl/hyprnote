@@ -1,9 +1,9 @@
-import { getName } from "@tauri-apps/api/app";
-import { appDataDir } from "@tauri-apps/api/path";
+import { getIdentifier } from "@tauri-apps/api/app";
 import { Effect, Exit } from "effect";
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
+import { commands as detectCommands } from "@hypr/plugin-detect";
 import { commands as hooksCommands } from "@hypr/plugin-hooks";
 import {
   commands as listenerCommands,
@@ -17,6 +17,7 @@ import {
   commands as listener2Commands,
   events as listener2Events,
 } from "@hypr/plugin-listener2";
+import { commands as path2Commands } from "@hypr/plugin-path2";
 
 import { fromResult } from "../../../effect";
 import type { BatchActions, BatchState } from "./batch";
@@ -201,22 +202,39 @@ export const createGeneralSlice = <
         }),
       );
 
-      Promise.all([appDataDir(), getName().catch(() => "com.hyprnote.app")])
-        .then(([dataDirPath, appName]) => {
-          const sessionPath = `${dataDirPath}/hyprnote/sessions/${targetSessionId}`;
-          return hooksCommands.runEventHooks({
+      const [dataDirPath, micUsingApps, bundleId] = yield* Effect.tryPromise({
+        try: () =>
+          Promise.all([
+            path2Commands.base(),
+            detectCommands
+              .listMicUsingApplications()
+              .then((r) =>
+                r.status === "ok" ? r.data.map((app) => app.id) : null,
+              ),
+            getIdentifier().catch(() => "com.hyprnote.stable"),
+          ]),
+        catch: (error) => error,
+      });
+
+      const sessionPath = `${dataDirPath}/hyprnote/sessions/${targetSessionId}`;
+      const app_meeting = micUsingApps?.[0] ?? null;
+
+      yield* Effect.tryPromise({
+        try: () =>
+          hooksCommands.runEventHooks({
             beforeListeningStarted: {
               args: {
                 resource_dir: sessionPath,
-                app_hyprnote: appName,
-                app_meeting: null,
+                app_hyprnote: bundleId,
+                app_meeting,
               },
             },
-          });
-        })
-        .catch((error) => {
+          }),
+        catch: (error) => {
           console.error("[hooks] BeforeListeningStarted failed:", error);
-        });
+          return error;
+        },
+      });
 
       yield* startSessionEffect(params);
       set((state) =>
@@ -228,7 +246,7 @@ export const createGeneralSlice = <
       );
     });
 
-    Effect.runPromiseExit(program).then((exit) => {
+    void Effect.runPromiseExit(program).then((exit) => {
       Exit.match(exit, {
         onFailure: (cause) => {
           console.error(JSON.stringify(cause));
@@ -260,7 +278,7 @@ export const createGeneralSlice = <
       yield* stopSessionEffect();
     });
 
-    Effect.runPromiseExit(program).then((exit) => {
+    void Effect.runPromiseExit(program).then((exit) => {
       Exit.match(exit, {
         onFailure: (cause) => {
           console.error("Failed to stop session:", cause);
@@ -272,17 +290,17 @@ export const createGeneralSlice = <
         },
         onSuccess: () => {
           if (sessionId) {
-            Promise.all([
-              appDataDir(),
-              getName().catch(() => "com.hyprnote.app"),
+            void Promise.all([
+              path2Commands.base(),
+              getIdentifier().catch(() => "com.hyprnote.stable"),
             ])
-              .then(([dataDirPath, appName]) => {
+              .then(([dataDirPath, bundleId]) => {
                 const sessionPath = `${dataDirPath}/hyprnote/sessions/${sessionId}`;
                 return hooksCommands.runEventHooks({
                   afterListeningStopped: {
                     args: {
                       resource_dir: sessionPath,
-                      app_hyprnote: appName,
+                      app_hyprnote: bundleId,
                       app_meeting: null,
                     },
                   },
@@ -300,7 +318,7 @@ export const createGeneralSlice = <
     set((state) =>
       mutate(state, (draft) => {
         draft.live.muted = value;
-        listenerCommands.setMicMuted(value);
+        void listenerCommands.setMicMuted(value);
       }),
     );
   },
@@ -333,7 +351,7 @@ export const createGeneralSlice = <
       get().setTranscriptPersist(options.handlePersist);
     }
 
-    get().clearBatchSession(sessionId);
+    get().handleBatchStarted(sessionId);
 
     let unlisten: (() => void) | undefined;
 

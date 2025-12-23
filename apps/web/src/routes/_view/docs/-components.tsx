@@ -18,7 +18,13 @@ import { CtaCard } from "@/components/cta-card";
 import { DeeplinksList } from "@/components/deeplinks-list";
 import { HooksList } from "@/components/hooks-list";
 import { Image } from "@/components/image";
-import { MDXLink, Mermaid, Tweet } from "@/components/mdx";
+import {
+  CodeBlock,
+  GithubEmbed,
+  MDXLink,
+  Mermaid,
+  Tweet,
+} from "@/components/mdx";
 import { OpenAPIDocs } from "@/components/openapi-docs";
 
 export function DocLayout({
@@ -115,6 +121,7 @@ function ArticleContent({ doc }: { doc: any }) {
           Columns,
           CtaCard,
           DeeplinksList,
+          GithubEmbed,
           HooksList,
           Image,
           img: Image,
@@ -123,6 +130,7 @@ function ArticleContent({ doc }: { doc: any }) {
           Mermaid,
           Note,
           OpenAPIDocs,
+          pre: CodeBlock,
           Step,
           Steps,
           Tip,

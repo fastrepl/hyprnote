@@ -1,5 +1,5 @@
 import { Icon } from "@iconify-icon/react";
-import { AssemblyAI, Fireworks } from "@lobehub/icons";
+import { AssemblyAI, Fireworks, OpenAI } from "@lobehub/icons";
 import { queryOptions } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -10,6 +10,13 @@ import type {
   WhisperModel,
 } from "@hypr/plugin-local-stt";
 
+import { env } from "../../../../env";
+import {
+  type ProviderRequirement,
+  requiresEntitlement,
+} from "../shared/eligibility";
+import { sortProviders } from "../shared/sort-providers";
+
 type Provider = {
   disabled: boolean;
   id: string;
@@ -18,10 +25,8 @@ type Provider = {
   baseUrl?: string;
   models: SupportedSttModel[] | string[];
   badge?: string | null;
-  requiresPro?: boolean;
+  requirements: ProviderRequirement[];
 };
-
-export type ProviderId = (typeof PROVIDERS)[number]["id"];
 
 export const displayModelId = (model: string) => {
   if (model === "cloud") {
@@ -34,6 +39,22 @@ export const displayModelId = (model: string) => {
 
   if (model === "universal") {
     return "Universal";
+  }
+
+  if (model === "solaria-1") {
+    return "Solaria 1";
+  }
+
+  if (model === "whisper-1") {
+    return "Whisper 1";
+  }
+
+  if (model === "gpt-4o-transcribe") {
+    return "GPT-4o Transcribe";
+  }
+
+  if (model === "gpt-4o-mini-transcribe") {
+    return "GPT-4o mini Transcribe";
   }
 
   if (model.startsWith("am-")) {
@@ -62,13 +83,14 @@ export const displayModelId = (model: string) => {
   return model;
 };
 
-export const PROVIDERS = [
+const _PROVIDERS = [
   {
     disabled: false,
     id: "hyprnote",
     displayName: "Hyprnote",
+    badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
-    baseUrl: "https://api.hyprnote.com/v1",
+    baseUrl: new URL("/stt", env.VITE_AI_URL).toString(),
     models: [
       "cloud",
       "am-parakeet-v2",
@@ -77,12 +99,13 @@ export const PROVIDERS = [
       "QuantizedTinyEn",
       "QuantizedSmallEn",
     ],
-    requiresPro: false,
+    requirements: [],
   },
   {
     disabled: false,
     id: "deepgram",
     displayName: "Deepgram",
+    badge: null,
     icon: <Icon icon="simple-icons:deepgram" className="size-4" />,
     baseUrl: "https://api.deepgram.com/v1",
     models: [
@@ -100,27 +123,51 @@ export const PROVIDERS = [
       "nova-2-automotive",
       "nova-2-atc",
     ],
-    requiresPro: false,
-  },
-  {
-    disabled: false,
-    id: "soniox",
-    displayName: "Soniox",
-    icon: (
-      <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
-    ),
-    baseUrl: "https://api.soniox.com",
-    models: ["stt-v3"],
-    requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     disabled: false,
     id: "assemblyai",
     displayName: "AssemblyAI",
+    badge: "Beta",
     icon: <AssemblyAI size={12} />,
     baseUrl: "https://api.assemblyai.com",
     models: ["universal"],
-    requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+  },
+  {
+    disabled: true,
+    id: "openai",
+    displayName: "OpenAI",
+    badge: "Beta",
+    icon: <OpenAI size={16} />,
+    baseUrl: "https://api.openai.com/v1",
+    models: ["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"],
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+  },
+  {
+    disabled: false,
+    id: "gladia",
+    displayName: "Gladia",
+    badge: "Beta",
+    icon: (
+      <img src="/assets/gladia.jpeg" alt="Gladia" className="size-4 rounded" />
+    ),
+    baseUrl: "https://api.gladia.io",
+    models: ["solaria-1"],
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+  },
+  {
+    disabled: false,
+    id: "soniox",
+    displayName: "Soniox",
+    badge: "Beta",
+    icon: (
+      <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
+    ),
+    baseUrl: "https://api.soniox.com",
+    models: ["stt-v3"],
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     disabled: false,
@@ -130,7 +177,9 @@ export const PROVIDERS = [
     icon: <Icon icon="mingcute:random-fill" />,
     baseUrl: undefined,
     models: [],
-    requiresPro: false,
+    requirements: [
+      { kind: "requires_config", fields: ["base_url", "api_key"] },
+    ],
   },
   {
     disabled: true,
@@ -140,13 +189,17 @@ export const PROVIDERS = [
     icon: <Fireworks size={16} />,
     baseUrl: "https://api.fireworks.ai",
     models: ["Default"],
-    requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
 ] as const satisfies readonly Provider[];
 
-export const sttProviderRequiresPro = (providerId: ProviderId) =>
-  PROVIDERS.find((provider) => provider.id === providerId)?.requiresPro ??
-  false;
+export const PROVIDERS = sortProviders(_PROVIDERS);
+export type ProviderId = (typeof _PROVIDERS)[number]["id"];
+
+export const sttProviderRequiresPro = (providerId: ProviderId) => {
+  const provider = PROVIDERS.find((p) => p.id === providerId);
+  return provider ? requiresEntitlement(provider.requirements, "pro") : false;
+};
 
 export const sttModelQueries = {
   isDownloaded: (model: SupportedSttModel) =>

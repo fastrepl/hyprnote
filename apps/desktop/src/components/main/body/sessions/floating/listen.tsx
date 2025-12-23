@@ -13,7 +13,6 @@ import { useCallback, useState } from "react";
 
 import { commands as listener2Commands } from "@hypr/plugin-listener2";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Popover,
@@ -33,7 +32,8 @@ import { fromResult } from "../../../../../effect";
 import { useRunBatch } from "../../../../../hooks/useRunBatch";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import * as main from "../../../../../store/tinybase/main";
-import { type Tab } from "../../../../../store/zustand/tabs";
+import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
+import { ChannelProfile } from "../../../../../utils/segment";
 import { RecordingIcon, useListenButtonState } from "../shared";
 import { ActionableTooltipContent, FloatingButton } from "./shared";
 
@@ -121,21 +121,12 @@ function ListenSplitButton({
   onPrimaryClick: () => void;
   sessionId: string;
 }) {
+  const openNew = useTabs((state) => state.openNew);
+
   const handleAction = useCallback(() => {
     onPrimaryClick();
-    windowsCommands
-      .windowShow({ type: "settings" })
-      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-      .then(() =>
-        windowsCommands.windowEmitNavigate(
-          { type: "settings" },
-          {
-            path: "/app/settings",
-            search: { tab: "transcription" },
-          },
-        ),
-      );
-  }, [onPrimaryClick]);
+    openNew({ type: "ai", state: { tab: "transcription" } });
+  }, [onPrimaryClick, openNew]);
 
   return (
     <div className="flex flex-col items-start gap-2">
@@ -192,6 +183,17 @@ function OptionsMenu({
   const runBatch = useRunBatch(sessionId);
   const queryClient = useQueryClient();
 
+  const store = main.UI.useStore(main.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
+  const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
+  const sessionTab = useTabs((state) => {
+    const found = state.tabs.find(
+      (tab): tab is Extract<Tab, { type: "sessions" }> =>
+        tab.type === "sessions" && tab.id === sessionId,
+    );
+    return found ?? null;
+  });
+
   const handleFilePath = useCallback(
     (selection: FileSelection, kind: "audio" | "transcript") => {
       if (!selection) {
@@ -214,7 +216,45 @@ function OptionsMenu({
           return Effect.void;
         }
 
-        return fromResult(listener2Commands.parseSubtitle(path));
+        return pipe(
+          fromResult(listener2Commands.parseSubtitle(path)),
+          Effect.tap((subtitle) =>
+            Effect.sync(() => {
+              if (!store || subtitle.tokens.length === 0) {
+                return;
+              }
+
+              if (sessionTab) {
+                updateSessionTabState(sessionTab, {
+                  editor: { type: "transcript" },
+                });
+              }
+
+              const transcriptId = crypto.randomUUID();
+              const createdAt = new Date().toISOString();
+
+              store.setRow("transcripts", transcriptId, {
+                session_id: sessionId,
+                user_id: user_id ?? "",
+                created_at: createdAt,
+                started_at: Date.now(),
+              });
+
+              subtitle.tokens.forEach((token) => {
+                const wordId = crypto.randomUUID();
+                store.setRow("words", wordId, {
+                  transcript_id: transcriptId,
+                  text: token.text,
+                  start_ms: token.start_time,
+                  end_ms: token.end_time,
+                  channel: ChannelProfile.MixedCapture,
+                  user_id: user_id ?? "",
+                  created_at: new Date().toISOString(),
+                });
+              });
+            }),
+          ),
+        );
       }
 
       if (
@@ -229,10 +269,10 @@ function OptionsMenu({
         fromResult(miscCommands.audioImport(sessionId, path)),
         Effect.tap(() =>
           Effect.sync(() => {
-            queryClient.invalidateQueries({
+            void queryClient.invalidateQueries({
               queryKey: ["audio", sessionId, "exist"],
             });
-            queryClient.invalidateQueries({
+            void queryClient.invalidateQueries({
               queryKey: ["audio", sessionId, "url"],
             });
           }),
@@ -242,7 +282,15 @@ function OptionsMenu({
         ),
       );
     },
-    [queryClient, runBatch, sessionId],
+    [
+      queryClient,
+      runBatch,
+      sessionId,
+      sessionTab,
+      store,
+      updateSessionTabState,
+      user_id,
+    ],
   );
 
   const selectAndHandleFile = useCallback(
@@ -275,7 +323,9 @@ function OptionsMenu({
         Effect.flatMap((selection) => handleFilePath(selection, kind)),
       );
 
-      Effect.runPromise(program);
+      Effect.runPromise(program).catch((error) => {
+        console.error("[batch] failed:", error);
+      });
     },
     [disabled, handleFilePath, setOpen],
   );
@@ -369,7 +419,6 @@ function OptionsMenu({
             variant="ghost"
             className="justify-start gap-2 h-9 px-3 whitespace-nowrap"
             onClick={handleUploadTranscript}
-            disabled
           >
             <FileTextIcon className="w-4 h-4 flex-shrink-0" />
             <span className="text-sm">Upload transcript</span>

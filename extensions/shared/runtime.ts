@@ -60,7 +60,10 @@ export const HYPR_MODULES = {
     description:
       "TinyBase store with app data (sessions, events, humans, etc.)",
     exports: {
-      STORE_ID: { type: '"main"', description: "The main store identifier" },
+      STORE_ID: {
+        type: '"main"',
+        description: "The main store identifier",
+      },
       UI: {
         type: `_UI.WithSchemas<Schemas>`,
         description: "TinyBase UI hooks",

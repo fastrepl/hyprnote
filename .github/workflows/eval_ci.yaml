@@ -1,0 +1,46 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - evals/**
+      - go.mod
+      - go.sum
+  pull_request:
+    branches:
+      - main
+    branches-ignore:
+      - "**/graphite-base/**"
+    paths:
+      - evals/**
+      - go.mod
+      - go.sum
+
+jobs:
+  optimize_ci:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check_skip.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check_skip
+        uses: ./.github/actions/graphite_optimizer
+        with:
+          graphite_token: ${{ secrets.GRAPHITE_TOKEN }}
+
+  ci:
+    needs: optimize_ci
+    if: needs.optimize_ci.outputs.skip == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.5"
+          cache: true
+      - run: go vet ./evals/...
+      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      - run: staticcheck ./evals/...
+      - run: go build ./evals/cmd
+      - run: go test ./evals/... -v

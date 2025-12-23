@@ -2,30 +2,30 @@
   "name": "@hypr/bot",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "start": "node ./lib/src/server.js",
     "test": "vitest run"
   },
+  "overrides": {
+    "@types/pg": "8.15.1"
+  },
   "dependencies": {
-    "@t3-oss/env-core": "^0.13.8",
+    "@t3-oss/env-core": "^0.13.10",
     "probot": "^13.4.7",
-    "zod": "^4.1.13"
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@octokit/plugin-rest-endpoint-methods": "^17.0.0",
-    "@types/node": "^20.19.25",
+    "@types/node": "^20.19.27",
     "nock": "^14.0.10",
     "smee-client": "^2.0.4",
     "typescript": "^5.9.3",
     "vitest": "^2.1.9"
   },
-  "overrides": {
-    "@types/pg": "8.15.1"
-  },
   "engines": {
     "node": ">= 18"
-  },
-  "type": "module"
+  }
 }

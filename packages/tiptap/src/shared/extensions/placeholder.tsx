@@ -119,7 +119,10 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
                       container.contentEditable = "false";
 
                       const root = ReactDOM.createRoot(container);
-                      containers.set(pos, { container, root });
+                      containers.set(pos, {
+                        container,
+                        root,
+                      });
                       scheduleReactRender(root, wrappedContent);
 
                       return container;

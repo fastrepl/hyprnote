@@ -1,7 +1,3 @@
-import { useForm } from "@tanstack/react-form";
-import { useEffect } from "react";
-
-import { type AIProvider, aiProviderSchema } from "@hypr/store";
 import {
   Accordion,
   AccordionContent,
@@ -12,13 +8,13 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
-import { FormField, StyledStreamdown, useProvider } from "../shared";
+import { NonHyprProviderCard, StyledStreamdown } from "../shared";
 import { ProviderId, PROVIDERS } from "./shared";
 
 export function ConfigureProviders() {
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-sm font-semibold">Configure Providers</h3>
+      <h3 className="text-md font-semibold">Configure Providers</h3>
       <Accordion type="single" collapsible className="space-y-3">
         <HyprProviderCard
           providerId="hyprnote"
@@ -29,123 +25,17 @@ export function ConfigureProviders() {
         />
         {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map(
           (provider) => (
-            <NonHyprProviderCard key={provider.id} config={provider} />
+            <NonHyprProviderCard
+              key={provider.id}
+              config={provider}
+              providerType="llm"
+              providers={PROVIDERS}
+              providerContext={<ProviderContext providerId={provider.id} />}
+            />
           ),
         )}
       </Accordion>
     </div>
-  );
-}
-
-function NonHyprProviderCard({
-  config,
-}: {
-  config: (typeof PROVIDERS)[number];
-}) {
-  const billing = useBillingAccess();
-  const [provider, setProvider] = useProvider(config.id);
-  const locked = config.requiresPro && !billing.isPro;
-
-  useEffect(() => {
-    if (!provider && config.baseUrl && !config.apiKey) {
-      setProvider({
-        type: "llm",
-        base_url: config.baseUrl,
-        api_key: "",
-      });
-    }
-  }, [provider, config.baseUrl, config.apiKey, setProvider]);
-
-  const form = useForm({
-    onSubmit: ({ value }) => setProvider(value),
-    defaultValues:
-      provider ??
-      ({
-        type: "llm",
-        base_url: config.baseUrl ?? "",
-        api_key: "",
-      } satisfies AIProvider),
-    listeners: {
-      onChange: ({ formApi }) => {
-        queueMicrotask(() => {
-          const {
-            form: { errors },
-          } = formApi.getAllErrors();
-          if (errors.length > 0) {
-            console.log(errors);
-          }
-
-          formApi.handleSubmit();
-        });
-      },
-    },
-    validators: { onChange: aiProviderSchema },
-  });
-
-  return (
-    <AccordionItem
-      value={config.id}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
-      disabled={locked}
-    >
-      <AccordionTrigger
-        className={cn([
-          "capitalize gap-2 px-4",
-          locked && "cursor-not-allowed opacity-30",
-        ])}
-      >
-        <div className="flex items-center gap-2">
-          {config.icon}
-          <span>{config.displayName}</span>
-        </div>
-      </AccordionTrigger>
-      <AccordionContent className="px-4 space-y-6">
-        <ProviderContext providerId={config.id} />
-
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          {!config.baseUrl && (
-            <form.Field name="base_url">
-              {(field) => (
-                <FormField field={field} label="Base URL" icon="mdi:web" />
-              )}
-            </form.Field>
-          )}
-          {config?.apiKey && (
-            <form.Field name="api_key">
-              {(field) => (
-                <FormField
-                  field={field}
-                  label="API Key"
-                  icon="mdi:key"
-                  placeholder="Enter your API key"
-                  type="password"
-                />
-              )}
-            </form.Field>
-          )}
-          {config.baseUrl && (
-            <details className="space-y-4 pt-2">
-              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
-                Advanced
-              </summary>
-              <div className="mt-4">
-                <form.Field name="base_url">
-                  {(field) => (
-                    <FormField field={field} label="Base URL" icon="mdi:web" />
-                  )}
-                </form.Field>
-              </div>
-            </details>
-          )}
-        </form>
-      </AccordionContent>
-    </AccordionItem>
   );
 }
 
@@ -158,26 +48,20 @@ function HyprProviderCard({
   providerName: string;
   icon: React.ReactNode;
 }) {
-  const billing = useBillingAccess();
-  const locked = providerId === "hyprnote" && !billing.isPro;
-
   return (
     <AccordionItem
       value={providerId}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
-      disabled={locked}
+      className={cn([
+        "rounded-xl border-2 bg-neutral-50",
+        "border-solid border-neutral-300",
+      ])}
     >
-      <AccordionTrigger
-        className={cn([
-          "capitalize gap-2 px-4",
-          locked && "cursor-not-allowed opacity-30",
-        ])}
-      >
+      <AccordionTrigger className="capitalize gap-2 px-4">
         <div className="flex items-center gap-2">
           {icon}
           <span>{providerName}</span>
           <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
-            {locked ? "Pro Required" : "Recommended"}
+            Recommended
           </span>
         </div>
       </AccordionTrigger>
@@ -193,7 +77,7 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
 
   const content =
     providerId === "hyprnote"
-      ? "We continuously test models to provide the **best performance & reliability.**"
+      ? "A curated set of models we continuously test to provide the **best performance & reliability**."
       : providerId === "lmstudio"
         ? "- Ensure LM Studio server is **running.** (Default port is 1234)\n- Enable **CORS** in LM Studio config."
         : providerId === "custom"
@@ -209,7 +93,7 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
       <div className="flex flex-row justify-between items-center gap-2">
         <StyledStreamdown>{content}</StyledStreamdown>
         <Button size="sm" variant="default" onClick={upgradeToPro}>
-          Upgrade to Pro
+          Start Free Trial
         </Button>
       </div>
     );

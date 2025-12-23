@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react";
 
-import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
@@ -44,14 +44,14 @@ export const TimelineItemComponent = memo(
       }
     };
 
-    const handleCmdClick = () => {
+    const handleCmdClick = useCallback(() => {
       if (item.type === "event") {
         handleEventClick(true);
       } else {
         const tab: TabInput = { id: item.id, type: "sessions" };
         openNew(tab);
       }
-    };
+    }, [item, openNew]);
 
     const handleEventClick = (openInNewTab: boolean) => {
       if (!eventId || !store) {
@@ -68,7 +68,10 @@ export const TimelineItemComponent = memo(
       });
 
       if (existingSessionId) {
-        const tab: TabInput = { id: existingSessionId, type: "sessions" };
+        const tab: TabInput = {
+          id: existingSessionId,
+          type: "sessions",
+        };
         if (openInNewTab) {
           openNew(tab);
         } else {
@@ -80,6 +83,10 @@ export const TimelineItemComponent = memo(
           event_id: eventId,
           title: title,
           created_at: new Date().toISOString(),
+        });
+        void analyticsCommands.event({
+          event: "note_created",
+          has_event_id: true,
         });
         const tab: TabInput = { id: sessionId, type: "sessions" };
         if (openInNewTab) {
@@ -101,24 +108,16 @@ export const TimelineItemComponent = memo(
         invalidateResource("sessions", item.id);
         store.delRow("sessions", item.id);
       }
-    }, [store, item.id, invalidateResource]);
+    }, [store, item.id, item.type, invalidateResource]);
 
-    const contextMenu = (
-      <>
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={() => handleCmdClick()}
-        >
-          Open in New Tab
-        </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer text-red-500 hover:bg-red-500 hover:text-white"
-          onClick={handleDelete}
-        >
-          Delete Completely
-        </ContextMenuItem>
-      </>
+    const contextMenu = useMemo(
+      () => [
+        { id: "open-new-tab", text: "Open in New Tab", action: handleCmdClick },
+        { id: "delete", text: "Delete Completely", action: handleDelete },
+      ],
+      [handleCmdClick, handleDelete],
     );
+
     const displayTime = useMemo(() => {
       if (!timestamp) {
         return "";
@@ -140,7 +139,10 @@ export const TimelineItemComponent = memo(
 
       const sameYear = date.getFullYear() === new Date().getFullYear();
       const dateStr = sameYear
-        ? date.toLocaleDateString([], { month: "short", day: "numeric" })
+        ? date.toLocaleDateString([], {
+            month: "short",
+            day: "numeric",
+          })
         : date.toLocaleDateString([], {
             month: "short",
             day: "numeric",

@@ -251,7 +251,7 @@ function HeroSection({
                     <CircleHelp className="size-3.5" />
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent className="bg-stone-600 text-white rounded-full">
+                <TooltipContent className="bg-black text-white rounded-md">
                   AI instructions for summarizing meetings
                 </TooltipContent>
               </Tooltip>
@@ -268,7 +268,7 @@ function HeroSection({
                     <CircleHelp className="size-3.5" />
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent className="bg-stone-600 text-white rounded-full">
+                <TooltipContent className="bg-black text-white rounded-md">
                   Quick commands for the AI chat assistant
                 </TooltipContent>
               </Tooltip>

@@ -1,4 +1,4 @@
-use serde::{ser::Serializer, Serialize};
+use serde::{Serialize, ser::Serializer};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -6,6 +6,10 @@ pub enum Error {
     StorePluginError(#[from] tauri_plugin_store::Error),
     #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),
+    #[error(transparent)]
+    TauriError(#[from] tauri::Error),
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
 }
 
 impl Serialize for Error {

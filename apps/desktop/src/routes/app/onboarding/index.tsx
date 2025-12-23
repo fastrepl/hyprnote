@@ -1,42 +1,76 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import type { ReactNode } from "react";
-import { useCallback, useMemo } from "react";
+import { platform } from "@tauri-apps/plugin-os";
+import { Volume2Icon, VolumeXIcon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
+import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 
-import { Permissions } from "../../../components/onboarding/permissions";
-import type { OnboardingNext } from "../../../components/onboarding/shared";
-import { Welcome } from "../../../components/onboarding/welcome";
-import { useIsLinux } from "../../../hooks/usePlatform";
+import {
+  type NavigateTarget,
+  STEP_CONFIGS,
+  STEP_IDS,
+} from "../../../components/onboarding/config";
 import { commands } from "../../../types/tauri.gen";
 
-const ALL_STEPS = ["welcome", "permissions"] as const;
-
 const validateSearch = z.object({
-  step: z.enum(ALL_STEPS).default("welcome"),
+  step: z.enum(STEP_IDS).default("welcome"),
   local: z.boolean().default(false),
+  pro: z.boolean().default(false),
+  platform: z.string().default(platform()),
 });
 
-type OnboardingSearch = z.infer<typeof validateSearch>;
+export type Search = z.infer<typeof validateSearch>;
 
 export const Route = createFileRoute("/app/onboarding/")({
   validateSearch,
   component: Component,
 });
 
+function finishOnboarding() {
+  sfxCommands.stop("BGM").catch(console.error);
+  commands.setOnboardingNeeded(false).catch(console.error);
+  void windowsCommands.windowShow({ type: "main" }).then(() => {
+    void windowsCommands.windowDestroy({ type: "onboarding" });
+  });
+}
+
 function Component() {
-  const onboarding = useOnboarding();
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+  const [isMuted, setIsMuted] = useState(false);
 
-  let content: ReactNode = null;
+  useEffect(() => {
+    sfxCommands.play("BGM").catch(console.error);
+  }, []);
 
-  if (onboarding.step === "welcome") {
-    content = <Welcome onNext={onboarding.goNext} />;
+  useEffect(() => {
+    sfxCommands.setVolume("BGM", isMuted ? 0 : 1).catch(console.error);
+  }, [isMuted]);
+
+  const toggleMute = useCallback(() => {
+    setIsMuted((prev) => !prev);
+  }, []);
+
+  const onNavigate = useCallback(
+    (ctx: NavigateTarget) => {
+      const { step, ...rest } = ctx;
+      if (step === "done") {
+        finishOnboarding();
+      } else {
+        void navigate({ to: "/app/onboarding", search: { step, ...rest } });
+      }
+    },
+    [navigate],
+  );
+
+  const currentConfig = STEP_CONFIGS.find((s) => s.id === search.step);
+  if (!currentConfig) {
+    return null;
   }
 
-  if (onboarding.step === "permissions") {
-    content = <Permissions onNext={onboarding.goNext} />;
-  }
+  const StepComponent = currentConfig.component;
 
   return (
     <div className="flex flex-col h-full relative items-center justify-center p-8">
@@ -44,65 +78,18 @@ function Component() {
         data-tauri-drag-region
         className="h-14 w-full absolute top-0 left-0 right-0"
       />
-      {content}
+      <button
+        onClick={toggleMute}
+        className="fixed top-2 right-2 p-1.5 rounded-full hover:bg-neutral-100 transition-colors z-10"
+        aria-label={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? (
+          <VolumeXIcon size={16} className="text-neutral-600" />
+        ) : (
+          <Volume2Icon size={16} className="text-neutral-600" />
+        )}
+      </button>
+      <StepComponent onNavigate={onNavigate} />
     </div>
   );
-}
-
-function useOnboarding() {
-  const navigate = useNavigate();
-  const search: OnboardingSearch = Route.useSearch();
-  const { step, local } = search;
-  const isLinux = useIsLinux();
-
-  const steps = useMemo(() => {
-    if (isLinux) {
-      return ALL_STEPS.filter((s) => s !== "permissions");
-    }
-    return [...ALL_STEPS];
-  }, [isLinux]);
-
-  const stepIndex = steps.indexOf(step);
-
-  const previous = stepIndex > 0 ? steps[stepIndex - 1] : undefined;
-
-  const next =
-    stepIndex >= 0 && stepIndex < steps.length - 1
-      ? steps[stepIndex + 1]
-      : undefined;
-
-  const goPrevious = useCallback(() => {
-    if (!previous) {
-      return;
-    }
-
-    navigate({ to: "/app/onboarding", search: { ...search, step: previous } });
-  }, [navigate, previous, search]);
-
-  const goNext = useCallback<OnboardingNext>(
-    (params) => {
-      if (!next) {
-        commands.setOnboardingNeeded(false).catch((e) => console.error(e));
-        windowsCommands.windowShow({ type: "main" }).then(() => {
-          windowsCommands.windowDestroy({ type: "onboarding" });
-        });
-        return;
-      }
-
-      navigate({
-        to: "/app/onboarding",
-        search: { ...search, step: next, ...(params ?? {}) },
-      });
-    },
-    [navigate, next, search],
-  );
-
-  return {
-    step,
-    local,
-    previous,
-    next,
-    goNext,
-    goPrevious,
-  };
 }

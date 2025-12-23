@@ -3,6 +3,7 @@ import type { Store as PersistedStore } from "../../../../store/tinybase/main";
 export * from "./builders";
 export { createCalendar } from "./calendar";
 export { createChatGroup, createChatMessage } from "./chat";
+export { createChatShortcut } from "./chat-shortcut";
 export { createEnhancedNote } from "./enhanced-note";
 export { createEvent } from "./event";
 export { createFolder } from "./folder";

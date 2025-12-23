@@ -3,11 +3,11 @@
 import PackageDescription
 
 let package = Package(
-  name: "swift-lib",
+  name: "tcc-swift",
   platforms: [.macOS("14.2")],
   products: [
     .library(
-      name: "swift-lib",
+      name: "tcc-swift",
       type: .static,
       targets: ["swift-lib"])
   ],

@@ -3,6 +3,7 @@ use std::str::FromStr;
 mod commands;
 mod error;
 mod ext;
+mod handler;
 
 pub use error::*;
 pub use ext::*;
@@ -24,7 +25,10 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|_app, _api| Ok(()))
+        .setup(|app, _api| {
+            handler::init(app.clone());
+            Ok(())
+        })
         .on_event(|app, event| match event {
             tauri::RunEvent::MainEventsCleared => {}
             tauri::RunEvent::Ready => {}
@@ -33,7 +37,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                     tauri_plugin_windows::AppWindow::from_str(label.as_ref())
                 {
                     if let tauri::WindowEvent::Focused(true) = event {
-                        app.clear_notifications().unwrap();
+                        app.notification().clear().unwrap();
                     }
                 }
             }
@@ -48,14 +52,18 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

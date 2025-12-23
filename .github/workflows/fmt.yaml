@@ -4,15 +4,37 @@ on:
   push:
     branches:
       - main
+      - .github/workflows/fmt.yaml
   pull_request:
     branches:
       - main
+    branches-ignore:
+      - "**/graphite-base/**"
 jobs:
+  optimize_ci:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check_skip.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check_skip
+        uses: ./.github/actions/graphite_optimizer
+        with:
+          graphite_token: ${{ secrets.GRAPHITE_TOKEN }}
+
   fmt:
-    runs-on: depot-ubuntu-24.04-8
+    needs: optimize_ci
+    if: needs.optimize_ci.outputs.skip == 'false'
+    runs-on: depot-ubuntu-24.04-4
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/pnpm_install
+      - uses: ./.github/actions/rust_install
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/dprint/cache/plugins
+          key: dprint-${{ hashFiles('dprint.json') }}
+      - run: pnpm fmt:check
       - uses: dprint/check@v2.3
         with:
           config-path: dprint.json

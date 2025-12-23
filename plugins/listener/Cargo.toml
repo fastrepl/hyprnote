@@ -2,7 +2,7 @@
 name = "tauri-plugin-listener"
 version = "0.1.0"
 authors = ["You"]
-edition = "2021"
+edition = "2024"
 exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-listener"
 description = ""
@@ -18,11 +18,13 @@ specta-typescript = { workspace = true }
 uuid = { workspace = true }
 
 [dependencies]
-hypr-aec = { workspace = true, features = ["load-dynamic"] }
+hypr-aec = { workspace = true }
 hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
+hypr-device-heuristic = { workspace = true }
+hypr-intercept = { workspace = true }
 hypr-language = { workspace = true }
 hypr-llm = { workspace = true }
 hypr-vad-ext = { workspace = true }

@@ -5,6 +5,7 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-render`
+- `allow-render-custom`
 
 ## Permission Table
 
@@ -37,6 +38,32 @@ Enables the render command without any pre-configured scope.
 <td>
 
 Denies the render command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`template:allow-render-custom`
+
+</td>
+<td>
+
+Enables the render_custom command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`template:deny-render-custom`
+
+</td>
+<td>
+
+Denies the render_custom command without any pre-configured scope.
 
 </td>
 </tr>

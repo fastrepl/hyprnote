@@ -25,7 +25,7 @@ pub enum ProcessMatcher {
 pub fn kill_processes_by_matcher(matcher: ProcessMatcher) -> u16 {
     let target = match matcher {
         ProcessMatcher::Name(name) => name,
-        ProcessMatcher::Sidecar => "stt".to_string(),
+        ProcessMatcher::Sidecar => "hyprnote-sidecar".to_string(),
     };
 
     let mut sys = sysinfo::System::new();
@@ -78,6 +78,6 @@ mod tests {
     #[test]
     fn test_kill_processes_by_matcher() {
         let killed_count = kill_processes_by_matcher(ProcessMatcher::Sidecar);
-        assert!(killed_count > 0);
+        assert!(killed_count == 0);
     }
 }

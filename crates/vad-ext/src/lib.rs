@@ -1,10 +1,12 @@
 mod continuous;
 mod continuous2;
 mod error;
+mod streaming;
 
 pub use continuous::*;
 pub use continuous2::*;
 pub use error::*;
+pub use streaming::*;
 
 #[cfg(test)]
 pub mod tests {

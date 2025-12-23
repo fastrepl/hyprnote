@@ -1,5 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { AlertTriangleIcon, PuzzleIcon, XIcon } from "lucide-react";
+import { AlertTriangleIcon, BlocksIcon, PuzzleIcon, XIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import {
   Component,
@@ -7,6 +7,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -15,21 +16,87 @@ import { useStores } from "tinybase/ui-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@hypr/ui/components/ui/context-menu";
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
 import { cn } from "@hypr/utils";
 
+import { useNativeContextMenu } from "../../../../hooks/useNativeContextMenu";
 import { createIframeSynchronizer } from "../../../../store/tinybase/iframe-sync";
 import { type Store, STORE_ID } from "../../../../store/tinybase/main";
-import type { Tab } from "../../../../store/zustand/tabs";
+import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
+import { type TabItem, TabItemBase } from "../shared";
+import { ExtensionDetailsColumn } from "./details";
+import { ExtensionsListColumn } from "./list";
 import { getPanelInfoByExtensionId } from "./registry";
 
 type ExtensionTab = Extract<Tab, { type: "extension" }>;
+type ExtensionsTab = Extract<Tab, { type: "extensions" }>;
+
+export const TabItemExtensions: TabItem<ExtensionsTab> = ({
+  tab,
+  tabIndex,
+  handleCloseThis,
+  handleSelectThis,
+  handleCloseOthers,
+  handleCloseAll,
+}) => {
+  return (
+    <TabItemBase
+      icon={<BlocksIcon className="w-4 h-4" />}
+      title={"Extensions"}
+      selected={tab.active}
+      tabIndex={tabIndex}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
+    />
+  );
+};
+
+export function TabContentExtensions({ tab }: { tab: ExtensionsTab }) {
+  return (
+    <StandardTabWrapper>
+      <ExtensionsView tab={tab} />
+    </StandardTabWrapper>
+  );
+}
+
+function ExtensionsView({ tab }: { tab: ExtensionsTab }) {
+  const updateExtensionsTabState = useTabs(
+    (state) => state.updateExtensionsTabState,
+  );
+
+  const { selectedExtension } = tab.state;
+
+  const setSelectedExtension = useCallback(
+    (value: string | null) => {
+      updateExtensionsTabState(tab, {
+        ...tab.state,
+        selectedExtension: value,
+      });
+    },
+    [updateExtensionsTabState, tab],
+  );
+
+  return (
+    <ResizablePanelGroup direction="horizontal" className="h-full">
+      <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
+        <ExtensionsListColumn
+          selectedExtension={selectedExtension}
+          setSelectedExtension={setSelectedExtension}
+        />
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel defaultSize={70} minSize={50}>
+        <ExtensionDetailsColumn selectedExtensionId={selectedExtension} />
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  );
+}
 
 interface ExtensionErrorBoundaryProps {
   children: ReactNode;
@@ -109,55 +176,49 @@ export function TabItemExtension({
 }) {
   const controls = useDragControls();
 
+  const contextMenu = useMemo(
+    () => [
+      { id: "close", text: "Close", action: () => handleCloseThis(tab) },
+      { id: "close-others", text: "Close Others", action: handleCloseOthers },
+      { id: "close-all", text: "Close All", action: handleCloseAll },
+    ],
+    [tab, handleCloseThis, handleCloseOthers, handleCloseAll],
+  );
+
+  const showMenu = useNativeContextMenu(contextMenu);
+
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <Reorder.Item
-          value={tab}
-          dragListener={false}
-          dragControls={controls}
-          as="div"
-          className={cn([
-            "h-full flex items-center gap-1 px-2 rounded-lg cursor-pointer select-none",
-            "hover:bg-neutral-100",
-            tab.active && "bg-neutral-100",
-          ])}
-          onClick={() => handleSelectThis(tab)}
-          onPointerDown={(e: PointerEvent) => controls.start(e)}
-        >
-          <PuzzleIcon size={14} className="text-neutral-500 shrink-0" />
-          <span className="text-sm truncate max-w-[120px]">
-            {tab.extensionId}
-          </span>
-          {tabIndex && (
-            <span className="text-xs text-neutral-400 shrink-0">
-              {tabIndex}
-            </span>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-5 shrink-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCloseThis(tab);
-            }}
-          >
-            <XIcon size={12} />
-          </Button>
-        </Reorder.Item>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem onClick={() => handleCloseThis(tab)}>
-          Close
-        </ContextMenuItem>
-        <ContextMenuItem onClick={handleCloseOthers}>
-          Close Others
-        </ContextMenuItem>
-        <ContextMenuSeparator />
-        <ContextMenuItem onClick={handleCloseAll}>Close All</ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+    <Reorder.Item
+      value={tab}
+      dragListener={false}
+      dragControls={controls}
+      as="div"
+      className={cn([
+        "h-full flex items-center gap-1 px-2 rounded-lg cursor-pointer select-none",
+        "hover:bg-neutral-100",
+        tab.active && "bg-neutral-100",
+      ])}
+      onClick={() => handleSelectThis(tab)}
+      onPointerDown={(e: PointerEvent) => controls.start(e)}
+      onContextMenu={showMenu}
+    >
+      <PuzzleIcon size={14} className="text-neutral-500 shrink-0" />
+      <span className="text-sm truncate max-w-[120px]">{tab.extensionId}</span>
+      {tabIndex && (
+        <span className="text-xs text-neutral-400 shrink-0">{tabIndex}</span>
+      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-5 shrink-0"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleCloseThis(tab);
+        }}
+      >
+        <XIcon size={12} />
+      </Button>
+    </Reorder.Item>
   );
 }
 
@@ -175,7 +236,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
     if (!iframeRef.current || !store) return;
 
     if (synchronizerRef.current) {
-      synchronizerRef.current.destroy();
+      void synchronizerRef.current.destroy();
     }
 
     const synchronizer = createIframeSynchronizer(
@@ -194,7 +255,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
   useEffect(() => {
     return () => {
       if (synchronizerRef.current) {
-        synchronizerRef.current.destroy();
+        void synchronizerRef.current.destroy();
         synchronizerRef.current = null;
       }
     };

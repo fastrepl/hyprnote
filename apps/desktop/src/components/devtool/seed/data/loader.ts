@@ -27,6 +27,7 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const chat_groups: Tables<Schemas[0]>["chat_groups"] = {};
   const chat_messages: Tables<Schemas[0]>["chat_messages"] = {};
   const enhanced_notes: Tables<Schemas[0]>["enhanced_notes"] = {};
+  const chat_shortcuts: Tables<Schemas[0]>["chat_shortcuts"] = {};
 
   const orgNameToId = new Map<string, string>();
   const folderNameToId = new Map<string, string>();
@@ -252,6 +253,15 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     }
   });
 
+  data.chat_shortcuts.forEach((shortcut) => {
+    const shortcutId = id();
+    chat_shortcuts[shortcutId] = {
+      user_id: DEFAULT_USER_ID,
+      content: shortcut.content,
+      created_at: new Date().toISOString(),
+    };
+  });
+
   return {
     organizations,
     humans,
@@ -268,5 +278,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     chat_groups,
     chat_messages,
     enhanced_notes,
+    chat_shortcuts,
   };
 };

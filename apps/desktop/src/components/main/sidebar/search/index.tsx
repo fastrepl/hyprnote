@@ -34,8 +34,8 @@ function SearchYesResults({
       <div className="px-3 py-3">
         <div className="px-2 py-2 mb-4">
           <p className="text-xs text-neutral-500 font-medium">
-            {results.totalResults} result{results.totalResults !== 1 ? "s" : ""}{" "}
-            for "{query}"
+            {results.totalResults} result
+            {results.totalResults !== 1 ? "s" : ""} for "{query}"
           </p>
         </div>
 

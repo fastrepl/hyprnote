@@ -1,25 +1,19 @@
 import { Icon } from "@iconify-icon/react";
 
-import {
-  Divider,
-  IntegrationRow,
-  OnboardingContainer,
-  type OnboardingNext,
-} from "./shared";
+import { useAuth } from "../../auth";
+import { Route } from "../../routes/app/onboarding";
+import { getNext, type StepProps } from "./config";
+import { Divider, IntegrationRow, OnboardingContainer } from "./shared";
 
-type CalendarsProps = {
-  local: boolean;
-  onNext: OnboardingNext;
-};
+export function Calendars({ onNavigate }: StepProps) {
+  const search = Route.useSearch();
+  const auth = useAuth();
+  const isLoggedIn = !!auth?.session;
 
-export function Calendars({ local, onNext }: CalendarsProps) {
   return (
-    <OnboardingContainer
-      title="Connect your calendars to be reminded every time"
-      action={{ kind: "skip", onClick: () => onNext() }}
-    >
+    <OnboardingContainer title="Connect your calendars to be reminded every time">
       <div className="flex flex-col gap-4">
-        {local ? (
+        {!isLoggedIn ? (
           <>
             <IntegrationRow
               icon={<Icon icon="logos:google-calendar" size={24} />}
@@ -55,6 +49,13 @@ export function Calendars({ local, onNext }: CalendarsProps) {
           </>
         )}
       </div>
+
+      <button
+        onClick={() => onNavigate({ ...search, step: getNext(search) })}
+        className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
+      >
+        skip
+      </button>
     </OnboardingContainer>
   );
 }

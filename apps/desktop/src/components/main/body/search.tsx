@@ -1,21 +1,28 @@
-import { useMediaQuery } from "@uidotdev/usehooks";
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { useSearch } from "../../../contexts/search/ui";
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 
-export function Search() {
-  const hasSpace = useMediaQuery("(min-width: 900px)");
-
+export function Search({
+  hasSpace,
+  onManualExpandChange,
+}: {
+  hasSpace: boolean;
+  onManualExpandChange?: (isManuallyExpanded: boolean) => void;
+}) {
   const { focus, setFocusImpl, inputRef } = useSearch();
   const [isManuallyExpanded, setIsManuallyExpanded] = useState(false);
 
   const shouldShowExpanded = hasSpace || isManuallyExpanded;
+
+  useEffect(() => {
+    onManualExpandChange?.(isManuallyExpanded);
+  }, [isManuallyExpanded, onManualExpandChange]);
 
   useEffect(() => {
     if (!shouldShowExpanded) {
@@ -49,6 +56,7 @@ export function Search() {
   if (shouldShowExpanded) {
     return (
       <ExpandedSearch
+        hasSpace={hasSpace}
         onFocus={handleExpandedFocus}
         onBlur={handleExpandedBlur}
       />
@@ -79,26 +87,26 @@ function CollapsedSearch({ onClick }: { onClick: () => void }) {
 }
 
 function ExpandedSearch({
+  hasSpace,
   onFocus,
   onBlur,
 }: {
+  hasSpace: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
 }) {
   const { query, setQuery, isSearching, isIndexing, inputRef } = useSearch();
   const [isFocused, setIsFocused] = useState(false);
   const isCmdPressed = useCmdKeyPressed();
-  const hasSpace = useMediaQuery("(min-width: 900px)");
 
   const showLoading = isSearching || isIndexing;
   const showShortcut = isCmdPressed && !query;
 
-  // On narrow screens, always show the focused width when expanded
   const width = hasSpace
     ? isFocused
       ? "w-[250px]"
       : "w-[180px]"
-    : "w-[250px]";
+    : "w-[180px]";
 
   return (
     <div
@@ -143,8 +151,8 @@ function ExpandedSearch({
             "text-sm placeholder:text-sm placeholder:text-neutral-400",
             "w-full pl-9 h-full",
             query ? "pr-9" : showShortcut ? "pr-14" : "pr-4",
-            "rounded-xl bg-neutral-100 border border-transparent",
-            "focus:outline-none focus:bg-neutral-200 focus:border-black",
+            "rounded-xl bg-neutral-100",
+            "focus:outline-none focus:bg-neutral-200",
           ])}
         />
         {query && (
@@ -163,10 +171,7 @@ function ExpandedSearch({
         )}
         {showShortcut && (
           <div className="absolute right-2 top-1">
-            <KbdGroup>
-              <Kbd className="bg-neutral-200">⌘</Kbd>
-              <Kbd className="bg-neutral-200">K</Kbd>
-            </KbdGroup>
+            <Kbd>⌘ K</Kbd>
           </div>
         )}
       </div>

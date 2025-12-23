@@ -11,14 +11,21 @@ import { logger } from "hono/logger";
 
 import { env } from "./env";
 import type { AppBindings } from "./hono-bindings";
-import { API_TAGS, routes } from "./routes";
-import { sentryMiddleware } from "./sentry";
-import { verifyStripeWebhook } from "./stripe";
-import { requireSupabaseAuth } from "./supabase";
+import {
+  loadTestOverride,
+  observabilityMiddleware,
+  sentryMiddleware,
+  supabaseAuthMiddleware,
+  verifySlackWebhook,
+  verifyStripeWebhook,
+} from "./middleware";
+import { openAPIDocumentation } from "./openapi";
+import { routes } from "./routes";
 
 const app = new Hono<AppBindings>();
 
 app.use(sentryMiddleware);
+app.use(observabilityMiddleware);
 app.use(logger());
 app.use(bodyLimit({ maxSize: 1024 * 1024 * 5 }));
 
@@ -43,11 +50,13 @@ app.use("*", (c, next) => {
   return corsMiddleware(c, next);
 });
 
-app.use("/chat/completions", requireSupabaseAuth);
+app.use("/chat/completions", loadTestOverride, supabaseAuthMiddleware);
 app.use("/webhook/stripe", verifyStripeWebhook);
+app.use("/webhook/slack/events", verifySlackWebhook);
 
 if (env.NODE_ENV !== "development") {
-  app.use("/listen", requireSupabaseAuth);
+  app.use("/listen", loadTestOverride, supabaseAuthMiddleware);
+  app.use("/transcribe", loadTestOverride, supabaseAuthMiddleware);
 }
 
 app.route("/", routes);
@@ -62,52 +71,8 @@ app.onError((err, c) => {
 app.notFound((c) => c.text("not_found", 404));
 
 app.get(
-  "/openapi.json",
-  openAPISpecs(routes, {
-    documentation: {
-      openapi: "3.1.0",
-      info: {
-        title: "Hyprnote API",
-        version: "1.0.0",
-        description:
-          "API for Hyprnote - AI-powered meeting notes application. APIs are categorized by tags: 'internal' for health checks and internal use, 'app' for endpoints used by the Hyprnote application (requires authentication), and 'webhook' for external service callbacks.",
-      },
-      tags: [
-        {
-          name: API_TAGS.INTERNAL,
-          description: "Internal endpoints for health checks and monitoring",
-        },
-        {
-          name: API_TAGS.APP,
-          description:
-            "Endpoints used by the Hyprnote application. Requires Supabase authentication.",
-        },
-        {
-          name: API_TAGS.WEBHOOK,
-          description: "Webhook endpoints for external service callbacks",
-        },
-      ],
-      components: {
-        securitySchemes: {
-          Bearer: {
-            type: "http",
-            scheme: "bearer",
-            description: "Supabase JWT token",
-          },
-        },
-      },
-      servers: [
-        {
-          url: "https://api.hyprnote.com",
-          description: "Production server",
-        },
-        {
-          url: "http://localhost:4000",
-          description: "Local development server",
-        },
-      ],
-    },
-  }),
+  "/openapi.gen.json",
+  openAPISpecs(routes, { documentation: openAPIDocumentation }),
 );
 
 app.get(
@@ -115,7 +80,7 @@ app.get(
   apiReference({
     theme: "saturn",
     spec: {
-      url: "/openapi.json",
+      url: "/openapi.gen.json",
     },
   }),
 );

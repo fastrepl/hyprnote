@@ -19,6 +19,7 @@ export interface MentionItem {
   id: string;
   type: string;
   label: string;
+  content?: string;
 }
 
 // https://github.com/ueberdosis/tiptap/blob/main/demos/src/Nodes/Mention/React/MentionList.jsx
@@ -36,7 +37,9 @@ const Component = forwardRef<
 
   const selectItem = (index: number) => {
     const item = props.items[index];
-    item && props.command(item);
+    if (item) {
+      props.command(item);
+    }
   };
 
   const upHandler = () => {
@@ -146,6 +149,33 @@ const suggestion = (
   return {
     char: config.trigger,
     pluginKey: new PluginKey(`mention-${config.trigger}`),
+    command: ({ editor, range, props }) => {
+      const item = props as MentionItem;
+      if (item.content) {
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .insertContent(item.content)
+          .run();
+      } else {
+        editor
+          .chain()
+          .focus()
+          .insertContentAt(range, [
+            {
+              type: `mention-${config.trigger}`,
+              attrs: {
+                id: item.id,
+                type: item.type,
+                label: item.label,
+              },
+            },
+            { type: "text", text: " " },
+          ])
+          .run();
+      }
+    },
     items: async ({ query }) => {
       if (!query || query.length < 1) {
         loading = false;
@@ -189,7 +219,7 @@ const suggestion = (
       let referenceEl: VirtualElement;
 
       const update = () => {
-        computePosition(referenceEl, floatingEl, {
+        void computePosition(referenceEl, floatingEl, {
           placement: "bottom-start",
           middleware: [offset(0), flip(), shift({ limiter: limitShift() })],
         }).then(({ x, y }) => {

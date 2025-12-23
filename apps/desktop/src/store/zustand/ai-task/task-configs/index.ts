@@ -74,6 +74,7 @@ export interface TaskConfig<T extends TaskType = TaskType> {
     args: TaskArgsMapTransformed[T];
     onProgress: (step: TaskStepInfo<T>) => void;
     signal: AbortSignal;
+    store: PersistedStore;
   }) => AsyncIterable<TextStreamPart<any>>;
   transforms?: StreamTransform[];
 }

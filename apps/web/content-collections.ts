@@ -1,12 +1,62 @@
 import { defineCollection, defineConfig } from "@content-collections/core";
 import { compileMDX } from "@content-collections/mdx";
+import * as fs from "fs";
 import mdxMermaid from "mdx-mermaid";
+import * as path from "path";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { z } from "zod";
 
 import { VersionPlatform } from "@/scripts/versioning";
+
+async function embedGithubCode(content: string): Promise<string> {
+  const githubCodeRegex = /<GithubCode\s+url="([^"]+)"\s*\/>/g;
+  let result = content;
+
+  const matches = [...content.matchAll(githubCodeRegex)];
+  for (const match of matches) {
+    const [fullMatch, url] = match;
+
+    // Check if it's a same-repo URL (fastrepl/hyprnote)
+    const repoMatch = url.match(
+      /github\.com\/fastrepl\/hyprnote\/blob\/[^/]+\/(.+)/,
+    );
+    if (repoMatch) {
+      const filePath = repoMatch[1];
+      const fileName = path.basename(filePath);
+      // Use process.cwd() which is the apps/web directory during content-collections build
+      const localPath = path.resolve(process.cwd(), "..", "..", filePath);
+
+      try {
+        const fileContent = fs.readFileSync(localPath, "utf-8");
+
+        // Extract code block content if the file is markdown
+        const codeBlockMatch = fileContent.match(/```(\w+)\n([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          const [, lang, code] = codeBlockMatch;
+          // Generate GithubEmbed component with escaped code
+          const escapedCode = JSON.stringify(code.trimEnd());
+          result = result.replace(
+            fullMatch,
+            `<GithubEmbed code={${escapedCode}} fileName="${fileName}" language="${lang}" />`,
+          );
+        } else {
+          // If no code block, embed the whole file as plain text
+          const escapedCode = JSON.stringify(fileContent.trimEnd());
+          result = result.replace(
+            fullMatch,
+            `<GithubEmbed code={${escapedCode}} fileName="${fileName}" />`,
+          );
+        }
+      } catch {
+        console.warn(`Failed to read local file: ${localPath}`);
+      }
+    }
+  }
+
+  return result;
+}
 
 function extractToc(
   content: string,
@@ -119,11 +169,11 @@ const changelog = defineCollection({
     });
 
     const version = document._meta.path.replace(/\.mdx$/, "");
-    const tag = `desktop_v${version}`;
-
+    const baseUrl = `https://github.com/fastrepl/hyprnote/releases/download/desktop_v${version}`;
     const downloads: Record<VersionPlatform, string> = {
-      "dmg-aarch64": `https://github.com/fastrepl/hyprnote/releases/download/${tag}/hyprnote-macos-aarch64.dmg`,
-      "appimage-x86_64": `https://github.com/fastrepl/hyprnote/releases/download/${tag}/hyprnote-linux-x86_64.AppImage`,
+      "dmg-aarch64": `${baseUrl}/hyprnote-macos-aarch64.dmg`,
+      "appimage-x86_64": `${baseUrl}/hyprnote-linux-x86_64.AppImage`,
+      "deb-x86_64": `${baseUrl}/hyprnote-linux-x86_64.deb`,
     };
 
     return {
@@ -151,9 +201,13 @@ const docs = defineCollection({
     updated: z.string().optional(),
   }),
   transform: async (document, context) => {
-    const toc = extractToc(document.content);
+    // Preprocess content to embed GitHub code snippets at build time
+    const processedContent = await embedGithubCode(document.content);
+    const processedDocument = { ...document, content: processedContent };
 
-    const mdx = await compileMDX(context, document, {
+    const toc = extractToc(processedContent);
+
+    const mdx = await compileMDX(context, processedDocument, {
       remarkPlugins: [remarkGfm, mdxMermaid],
       rehypePlugins: [
         rehypeSlug,
@@ -180,9 +234,10 @@ const docs = defineCollection({
     const order = orderMatch ? parseInt(orderMatch[1], 10) : 999;
 
     const cleanFileName = fileName.replace(/^\d+\./, "");
+    const filteredPathParts = pathParts.filter((part) => part !== "_");
     const cleanPath =
-      pathParts.length > 0
-        ? `${pathParts.join("/")}/${cleanFileName}`
+      filteredPathParts.length > 0
+        ? `${filteredPathParts.join("/")}/${cleanFileName}`
         : cleanFileName;
     const slug = cleanPath;
 
@@ -245,6 +300,7 @@ const templates = defineCollection({
     description: z.string(),
     category: z.string(),
     targets: z.array(z.string()),
+    banner: z.string().optional(),
     sections: z.array(
       z.object({
         title: z.string(),
@@ -409,6 +465,50 @@ const vs = defineCollection({
   },
 });
 
+const integrations = defineCollection({
+  name: "integrations",
+  directory: "content/integrations",
+  include: "**/*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    platform: z.string(),
+    icon: z.string(),
+    headline: z.string(),
+    description: z.string(),
+    metaDescription: z.string(),
+    features: z.array(z.string()).optional(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm, mdxMermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const pathParts = document._meta.path.split("/");
+    const fileName = pathParts.pop()!.replace(/\.mdx$/, "");
+    const category = pathParts[0] || "general";
+    const slug = fileName;
+
+    return {
+      ...document,
+      mdx,
+      slug,
+      category,
+    };
+  },
+});
+
 const shortcuts = defineCollection({
   name: "shortcuts",
   directory: "content/shortcuts",
@@ -419,6 +519,7 @@ const shortcuts = defineCollection({
     description: z.string(),
     category: z.string(),
     prompt: z.string(),
+    banner: z.string().optional(),
     targets: z.array(z.string()).optional(),
   }),
   transform: async (document, context) => {
@@ -480,7 +581,7 @@ const roadmap = defineCollection({
     const slug = document._meta.path.replace(/\.mdx$/, "");
 
     const githubIssueRegex =
-      /https:\/\/github\.com\/[^\/\s]+\/[^\/\s]+\/issues\/\d+/g;
+      /https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/issues\/\d+/g;
     const githubIssues = document.content.match(githubIssueRegex) || [];
 
     return {
@@ -586,6 +687,7 @@ export default defineConfig({
     hooks,
     deeplinks,
     vs,
+    integrations,
     handbook,
     roadmap,
     ossFriends,

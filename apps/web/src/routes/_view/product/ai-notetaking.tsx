@@ -159,8 +159,8 @@ function HeroSection() {
             customizable summaries
           </p>
           <div className="mt-8">
-            <a
-              href="https://hyprnote.com/download"
+            <Link
+              to="/download"
               className={cn([
                 "inline-block px-8 py-3 text-base font-medium rounded-full",
                 "bg-linear-to-t from-stone-600 to-stone-500 text-white",
@@ -168,7 +168,7 @@ function HeroSection() {
               ])}
             >
               Download for free
-            </a>
+            </Link>
           </div>
         </header>
       </div>
@@ -198,28 +198,19 @@ function EditorSection() {
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   Full markdown syntax support for quick formatting
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   Clean, distraction-free writing experience
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   Rich text editing with familiar keyboard shortcuts
                 </span>
@@ -247,28 +238,19 @@ function EditorSection() {
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 Full markdown syntax support for quick formatting
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 Clean, distraction-free writing experience
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 Rich text editing with familiar keyboard shortcuts
               </span>
@@ -1235,7 +1217,10 @@ const CollaboratorsCell = memo(() => {
                       : false
                   }
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  transition={{
+                    duration: 0.5,
+                    ease: "easeOut",
+                  }}
                   className="flex items-center gap-3 bg-linear-to-br from-stone-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50"
                 >
                   <Image
@@ -1270,10 +1255,21 @@ const CollaboratorsCell = memo(() => {
                     <AnimatePresence>
                       {person.name === "David Kim" && showPopover && (
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          transition={{ duration: 0.2 }}
+                          initial={{
+                            opacity: 0,
+                            y: 10,
+                          }}
+                          animate={{
+                            opacity: 1,
+                            y: 0,
+                          }}
+                          exit={{
+                            opacity: 0,
+                            y: 10,
+                          }}
+                          transition={{
+                            duration: 0.2,
+                          }}
                           className="absolute bottom-full mb-1 left-0 w-32 bg-white border border-stone-200 rounded shadow-lg z-20 overflow-hidden"
                         >
                           <div
@@ -2222,7 +2218,10 @@ function FloatingPanelContent() {
         if (scrollRef.current) {
           const container = scrollRef.current;
           const scrollLeft = container.offsetWidth * nextIndex;
-          container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+          container.scrollTo({
+            left: scrollLeft,
+            behavior: "smooth",
+          });
         }
       } else {
         animationId = requestAnimationFrame(animate);
@@ -2526,8 +2525,8 @@ function CTASection() {
           transcription and AI summary needs with one powerful tool
         </p>
         <div className="pt-6">
-          <a
-            href="https://hyprnote.com/download"
+          <Link
+            to="/download"
             className={cn([
               "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
@@ -2550,7 +2549,7 @@ function CTASection() {
                 d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
               />
             </svg>
-          </a>
+          </Link>
         </div>
       </div>
     </section>

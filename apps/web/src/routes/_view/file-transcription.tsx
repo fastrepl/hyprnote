@@ -1,71 +1,40 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
+import { lazy, Suspense, useMemo, useState } from "react";
 
-import NoteEditor, { type JSONContent } from "@hypr/tiptap/editor";
+import type { JSONContent } from "@hypr/tiptap/editor";
 import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
 import "@hypr/tiptap/styles.css";
 
-import {
-  FileInfo,
-  TranscriptDisplay,
-} from "@/components/transcription/transcript-display";
+import { TranscriptDisplay } from "@/components/transcription/transcript-display";
 import { UploadArea } from "@/components/transcription/upload-area";
-import { getSupabaseBrowserClient } from "@/functions/supabase";
+import { fetchUser } from "@/functions/auth";
+
+const NoteEditor = lazy(() => import("@hypr/tiptap/editor"));
 
 export const Route = createFileRoute("/_view/file-transcription")({
   component: Component,
   validateSearch: (search: Record<string, unknown>) => ({
     id: (search.id as string) || undefined,
   }),
+  beforeLoad: async ({ search }) => {
+    const user = await fetchUser();
+    if (user) {
+      throw redirect({ to: "/app/file-transcription", search });
+    }
+  },
 });
 
 function Component() {
-  const [user, setUser] = useState<{ email?: string } | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadUser() {
-      try {
-        const supabase = getSupabaseBrowserClient();
-        const { data } = await supabase.auth.getUser();
-        if (!isMounted) return;
-        if (data.user?.email) {
-          setUser({ email: data.user.email });
-        } else {
-          setUser(null);
-        }
-      } catch {
-        if (isMounted) setUser(null);
-      }
-    }
-    loadUser();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-  const [file, setFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [transcript, setTranscript] = useState<string | null>(null);
+  const navigate = useNavigate({ from: Route.fullPath });
   const [noteContent, setNoteContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
 
-  const handleFileSelect = (selectedFile: File) => {
-    setFile(selectedFile);
-    setTranscript(null);
-    setIsProcessing(true);
-
-    setTimeout(() => {
-      setIsProcessing(false);
-      setTranscript(
-        "This is a sample transcript. Deepgram integration will be added later.",
-      );
-    }, 2000);
-  };
-
-  const handleRemoveFile = () => {
-    setFile(null);
-    setTranscript(null);
-    setIsProcessing(false);
-    setNoteContent(EMPTY_TIPTAP_DOC);
+  const handleFileSelect = () => {
+    navigate({ to: "/auth", search: { redirect: "/file-transcription" } });
   };
 
   const mentionConfig = useMemo(
@@ -110,32 +79,29 @@ function Component() {
                   <div className="w-3 h-3 rounded-full bg-red-400" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />
                   <div className="w-3 h-3 rounded-full bg-green-400" />
+                  <span className="ml-2 text-sm text-neutral-500">
+                    meeting content
+                  </span>
                 </div>
 
                 <div className="p-6 space-y-6">
-                  {!file ? (
-                    <UploadArea
-                      onFileSelect={handleFileSelect}
-                      disabled={isProcessing}
-                    />
-                  ) : (
-                    <FileInfo
-                      fileName={file.name}
-                      fileSize={file.size}
-                      onRemove={handleRemoveFile}
-                    />
-                  )}
+                  <UploadArea
+                    onFileSelect={handleFileSelect}
+                    disabled={false}
+                  />
 
                   <div>
                     <h3 className="text-sm font-medium text-neutral-700 mb-3">
                       Your Notes
                     </h3>
                     <div className="border border-neutral-200 rounded-sm p-4 min-h-[200px] bg-neutral-50/30">
-                      <NoteEditor
-                        initialContent={noteContent}
-                        handleChange={setNoteContent}
-                        mentionConfig={mentionConfig}
-                      />
+                      <Suspense fallback={null}>
+                        <NoteEditor
+                          initialContent={noteContent}
+                          handleChange={setNoteContent}
+                          mentionConfig={mentionConfig}
+                        />
+                      </Suspense>
                     </div>
                   </div>
                 </div>
@@ -152,14 +118,13 @@ function Component() {
                     Combined notes with transcript
                   </p>
                 </div>
-                {transcript && !user && (
-                  <Link
-                    to="/auth"
-                    className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
-                  >
-                    Sign in
-                  </Link>
-                )}
+                <Link
+                  to="/auth"
+                  search={{ redirect: "/file-transcription" }}
+                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+                >
+                  Sign in
+                </Link>
               </div>
 
               <div className="border border-neutral-200 rounded-lg shadow-sm bg-white overflow-hidden">
@@ -167,23 +132,23 @@ function Component() {
                   <div className="w-3 h-3 rounded-full bg-red-400" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />
                   <div className="w-3 h-3 rounded-full bg-green-400" />
+                  <span className="ml-2 text-sm text-neutral-500">summary</span>
                 </div>
 
                 <div className="p-6">
                   <TranscriptDisplay
-                    transcript={user ? transcript : null}
-                    isProcessing={isProcessing}
+                    transcript={null}
+                    status="idle"
+                    error={null}
                   />
                 </div>
               </div>
 
-              {transcript && !user && (
-                <div className="p-4 bg-stone-50 border border-neutral-200 rounded-sm">
-                  <p className="text-sm text-neutral-600">
-                    Sign in to view and save your transcription results
-                  </p>
-                </div>
-              )}
+              <div className="p-4 bg-stone-50 border border-neutral-200 rounded-sm">
+                <p className="text-sm text-neutral-600">
+                  Sign in to view and save your transcription results
+                </p>
+              </div>
             </div>
           </div>
         </div>

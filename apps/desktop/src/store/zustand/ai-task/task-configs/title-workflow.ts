@@ -4,6 +4,8 @@ import { z } from "zod";
 import { commands as templateCommands } from "@hypr/plugin-template";
 
 import type { TaskArgsMapTransformed, TaskConfig } from ".";
+import type { Store } from "../../../tinybase/main";
+import { getCustomPrompt } from "../../../tinybase/prompts";
 
 export const titleWorkflow: Pick<
   TaskConfig<"title">,
@@ -18,11 +20,12 @@ async function* executeWorkflow(params: {
   args: TaskArgsMapTransformed["title"];
   onProgress: (step: any) => void;
   signal: AbortSignal;
+  store: Store;
 }) {
-  const { model, args, onProgress, signal } = params;
+  const { model, args, onProgress, signal, store } = params;
 
   const system = await getSystemPrompt(args);
-  const prompt = await getUserPrompt(args);
+  const prompt = await getUserPrompt(args, store);
 
   onProgress({ type: "generating" });
 
@@ -64,12 +67,24 @@ async function getSystemPrompt(args: TaskArgsMapTransformed["title"]) {
   return result.data;
 }
 
-async function getUserPrompt(args: TaskArgsMapTransformed["title"]) {
+async function getUserPrompt(
+  args: TaskArgsMapTransformed["title"],
+  store: Store,
+) {
   const { enhancedMd } = args;
+  const ctx = { enhanced_note: enhancedMd };
 
-  const result = await templateCommands.render("title.user", {
-    enhanced_note: enhancedMd,
-  });
+  const customPrompt = getCustomPrompt(store, "title");
+
+  if (customPrompt) {
+    const result = await templateCommands.renderCustom(customPrompt, ctx);
+    if (result.status === "error") {
+      throw new Error(result.error);
+    }
+    return result.data;
+  }
+
+  const result = await templateCommands.render("title.user", ctx);
 
   if (result.status === "error") {
     throw new Error(result.error);

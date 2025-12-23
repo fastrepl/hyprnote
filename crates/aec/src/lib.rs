@@ -1,4 +1,4 @@
-use realfft::{num_complex::Complex, ComplexToReal, RealFftPlanner, RealToComplex};
+use realfft::{ComplexToReal, RealFftPlanner, RealToComplex, num_complex::Complex};
 use std::sync::Arc;
 
 use hypr_onnx::{

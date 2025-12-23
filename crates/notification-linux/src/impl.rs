@@ -14,7 +14,9 @@ thread_local! {
 }
 
 static CONFIRM_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
+static ACCEPT_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 static DISMISS_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
+static TIMEOUT_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 
 pub fn setup_notification_dismiss_handler<F>(f: F)
 where
@@ -30,14 +32,40 @@ where
     *CONFIRM_CB.lock().unwrap() = Some(Box::new(f));
 }
 
+pub fn setup_notification_accept_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    *ACCEPT_CB.lock().unwrap() = Some(Box::new(f));
+}
+
+pub fn setup_notification_timeout_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    *TIMEOUT_CB.lock().unwrap() = Some(Box::new(f));
+}
+
 fn call_confirm_handler(id: String) {
     if let Some(cb) = CONFIRM_CB.lock().unwrap().as_ref() {
         cb(id);
     }
 }
 
+fn call_accept_handler(id: String) {
+    if let Some(cb) = ACCEPT_CB.lock().unwrap().as_ref() {
+        cb(id);
+    }
+}
+
 fn call_dismiss_handler(id: String) {
     if let Some(cb) = DISMISS_CB.lock().unwrap().as_ref() {
+        cb(id);
+    }
+}
+
+fn call_timeout_handler(id: String) {
+    if let Some(cb) = TIMEOUT_CB.lock().unwrap().as_ref() {
         cb(id);
     }
 }
@@ -65,6 +93,7 @@ impl NotificationInstance {
         let id = self.id.clone();
         let window = self.window.clone();
         let source = glib::timeout_add_seconds_local_once(timeout_seconds as u32, move || {
+            call_timeout_handler(id.clone());
             Self::dismiss_window(&window, &id, false);
         });
         self.timeout_source = Some(source);
@@ -113,7 +142,7 @@ impl NotificationManager {
         }
     }
 
-    fn show(&mut self, title: String, message: String, url: Option<String>, timeout_seconds: f64) {
+    fn show(&mut self, title: String, message: String, timeout_seconds: f64) {
         if !self.ensure_gtk() {
             return;
         }
@@ -138,7 +167,7 @@ impl NotificationManager {
         window.set_keep_above(true);
 
         self.setup_window_style(&window);
-        self.create_notification_content(&window, &title, &message, url.as_deref(), &id);
+        self.create_notification_content(&window, &title, &message, &id);
         self.position_window(&window);
 
         window.show_all();
@@ -207,14 +236,7 @@ impl NotificationManager {
         }
     }
 
-    fn create_notification_content(
-        &self,
-        window: &Window,
-        title: &str,
-        message: &str,
-        url: Option<&str>,
-        id: &str,
-    ) {
+    fn create_notification_content(&self, window: &Window, title: &str, message: &str, id: &str) {
         let main_box = GtkBox::new(Orientation::Horizontal, 8);
         main_box.set_margin_start(12);
         main_box.set_margin_end(12);
@@ -244,24 +266,6 @@ impl NotificationManager {
 
         main_box.pack_start(&text_box, true, true, 0);
 
-        if let Some(url_str) = url {
-            if !url_str.is_empty() {
-                let action_button = Button::with_label("Take Notes");
-                action_button.style_context().add_class("action-button");
-
-                let id_clone = id.to_string();
-                let url_clone = url_str.to_string();
-                let window_clone = window.clone();
-                action_button.connect_clicked(move |_| {
-                    call_confirm_handler(id_clone.clone());
-                    let _ = open::that(&url_clone);
-                    NotificationInstance::dismiss_window(&window_clone, &id_clone, false);
-                });
-
-                main_box.pack_start(&action_button, false, false, 0);
-            }
-        }
-
         let close_button = Button::new();
         close_button.set_label("×");
         close_button.style_context().add_class("close-button");
@@ -286,13 +290,13 @@ impl NotificationManager {
         // Use the default width we set (360) since window.size() returns 0 before realization
         const DEFAULT_WINDOW_WIDTH: i32 = 360;
 
-        if let Some(screen) = gdk::Screen::default() {
-            if let Some(root_window) = screen.root_window() {
-                let screen_width = root_window.width();
-                let x = screen_width - DEFAULT_WINDOW_WIDTH - 20;
-                let y = 50;
-                window.move_(x, y);
-            }
+        if let Some(screen) = gdk::Screen::default()
+            && let Some(root_window) = screen.root_window()
+        {
+            let screen_width = root_window.width();
+            let x = screen_width - DEFAULT_WINDOW_WIDTH - 20;
+            let y = 50;
+            window.move_(x, y);
         }
     }
 
@@ -326,14 +330,11 @@ impl NotificationManager {
 pub fn show(notification: &hypr_notification_interface::Notification) {
     let title = notification.title.clone();
     let message = notification.message.clone();
-    let url = notification.url.clone();
     let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
 
     glib::MainContext::default().invoke(move || {
         NOTIFICATION_MANAGER.with(|manager| {
-            manager
-                .borrow_mut()
-                .show(title, message, url, timeout_seconds);
+            manager.borrow_mut().show(title, message, timeout_seconds);
         });
     });
 }
@@ -355,7 +356,6 @@ mod tests {
         let notification = hypr_notification_interface::Notification::builder()
             .title("Test Title")
             .message("Test message content")
-            .url("https://example.com")
             .timeout(std::time::Duration::from_secs(3))
             .build();
 

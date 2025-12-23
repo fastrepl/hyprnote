@@ -1,10 +1,5 @@
 import { listen, TauriEvent, type UnlistenFn } from "@tauri-apps/api/event";
-import {
-  BaseDirectory,
-  exists,
-  mkdir,
-  writeTextFile,
-} from "@tauri-apps/plugin-fs";
+import { BaseDirectory, exists, mkdir } from "@tauri-apps/plugin-fs";
 import { useEffect } from "react";
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
 import * as _UI from "tinybase/ui-react/with-schemas";
@@ -21,13 +16,14 @@ import {
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { SCHEMA, type Schemas } from "@hypr/store";
-import type { EnhancedNote } from "@hypr/store";
-import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 import { format } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../utils";
+import { maybeImportFromJson } from "./importer";
 import { createLocalPersister } from "./localPersister";
 import { createLocalPersister2 } from "./localPersister2";
+import { registerSaveHandler } from "./save";
+import * as settings from "./settings";
 
 export const STORE_ID = "main";
 
@@ -76,6 +72,8 @@ export const testUtils = {
 };
 
 export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
+  const settingsStore = settings.UI.useStore(settings.STORE_ID);
+
   const store = useCreateMergeableStore(() =>
     createMergeableStore()
       .setTablesSchema(SCHEMA.table)
@@ -110,17 +108,28 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const localPersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       const persister = createLocalPersister<Schemas>(store as Store, {
         storeTableName: STORE_ID,
         storeIdColumnName: "id",
       });
 
+      await persister.load();
+
+      if (!persist) {
+        return undefined;
+      }
+
+      const importResult = await maybeImportFromJson(
+        store as Store,
+        async () => {
+          await persister.save();
+        },
+      );
+      if (importResult.status === "error") {
+        console.error("[Store] Import failed:", importResult.error);
+      }
+
       const initializer = async (cb: () => void) => {
-        await persister.load();
         store.transaction(() => cb());
         await persister.save();
       };
@@ -182,14 +191,16 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 
       const persister = createLocalPersister2<Schemas>(
         store as Store,
-        saveEnhancedNoteToFile,
         (sessionId, content) =>
-          store.setPartialRow("sessions", sessionId, { enhanced_md: content }),
+          store.setPartialRow("sessions", sessionId, {
+            enhanced_md: content,
+          }),
+        { notes: () => settingsStore?.getValue("auto_export") === true },
       );
 
       return persister;
     },
-    [persist],
+    [persist, settingsStore],
   );
 
   useEffect(() => {
@@ -237,6 +248,20 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
       unlistenBlur?.();
       unlistenClose?.();
     };
+  }, [localPersister, localPersister2, persist]);
+
+  useEffect(() => {
+    if (!persist || !localPersister || !localPersister2) {
+      return;
+    }
+
+    if (getCurrentWebviewWindowLabel() !== "main") {
+      return;
+    }
+
+    return registerSaveHandler(async () => {
+      await Promise.all([localPersister2.save(), localPersister.save()]);
+    });
   }, [localPersister, localPersister2, persist]);
 
   const synchronizer = useCreateSynchronizer(store, async (store) =>
@@ -410,6 +435,16 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             select("created_at");
           },
         )
+        .setQueryDefinition(
+          QUERIES.visibleChatShortcuts,
+          "chat_shortcuts",
+          ({ select }) => {
+            select("user_id");
+            select("title");
+            select("content");
+            select("created_at");
+          },
+        )
         .setQueryDefinition(QUERIES.visibleFolders, "folders", ({ select }) => {
           select("name");
           select("parent_folder_id");
@@ -422,26 +457,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             select("text");
             select("created_at");
             where((getCell) => getCell("type") === "vocab");
-          },
-        )
-        .setQueryDefinition(
-          QUERIES.llmProviders,
-          "ai_providers",
-          ({ select, where }) => {
-            select("type");
-            select("base_url");
-            select("api_key");
-            where((getCell) => getCell("type") === "llm");
-          },
-        )
-        .setQueryDefinition(
-          QUERIES.sttProviders,
-          "ai_providers",
-          ({ select, where }) => {
-            select("type");
-            select("base_url");
-            select("api_key");
-            where((getCell) => getCell("type") === "stt");
           },
         )
         .setQueryDefinition(
@@ -605,6 +620,12 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         "enhanced_notes",
         "session_id",
         "position",
+      )
+      .setIndexDefinition(
+        INDEXES.enhancedNotesByTemplate,
+        "enhanced_notes",
+        "template_id",
+        "created_at",
       ),
   );
 
@@ -650,10 +671,9 @@ export const QUERIES = {
   visibleOrganizations: "visibleOrganizations",
   visibleHumans: "visibleHumans",
   visibleTemplates: "visibleTemplates",
+  visibleChatShortcuts: "visibleChatShortcuts",
   visibleFolders: "visibleFolders",
   visibleVocabs: "visibleVocabs",
-  llmProviders: "llmProviders",
-  sttProviders: "sttProviders",
   sessionParticipantsWithDetails: "sessionParticipantsWithDetails",
   sessionRecordingTimes: "sessionRecordingTimes",
 };
@@ -683,6 +703,7 @@ export const INDEXES = {
   chatMessagesByGroup: "chatMessagesByGroup",
   sessionsByHuman: "sessionsByHuman",
   enhancedNotesBySession: "enhancedNotesBySession",
+  enhancedNotesByTemplate: "enhancedNotesByTemplate",
 };
 
 export const RELATIONSHIPS = {
@@ -702,42 +723,3 @@ export const RELATIONSHIPS = {
   chatMessageToGroup: "chatMessageToGroup",
   enhancedNoteToSession: "enhancedNoteToSession",
 };
-
-async function saveEnhancedNoteToFile(
-  enhancedNote: EnhancedNote & { id: string },
-  filename: string,
-): Promise<void> {
-  if (!enhancedNote.content || !enhancedNote.session_id) {
-    return;
-  }
-
-  try {
-    const parsed = JSON.parse(enhancedNote.content);
-    if (!isValidTiptapContent(parsed)) {
-      return;
-    }
-
-    const markdown = json2md(parsed);
-    const sessionDir = `hyprnote/sessions/${enhancedNote.session_id}`;
-
-    const sessionDirExists = await exists(sessionDir, {
-      baseDir: BaseDirectory.Data,
-    });
-    if (!sessionDirExists) {
-      await mkdir(sessionDir, {
-        baseDir: BaseDirectory.Data,
-        recursive: true,
-      });
-    }
-
-    await writeTextFile(`${sessionDir}/${filename}`, markdown, {
-      baseDir: BaseDirectory.Data,
-    });
-  } catch (error) {
-    console.error(
-      "Failed to save enhanced note markdown:",
-      enhancedNote.id,
-      error,
-    );
-  }
-}

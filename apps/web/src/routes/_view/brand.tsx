@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Menu, X, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   ResizableHandle,
@@ -13,8 +13,24 @@ import { cn } from "@hypr/utils";
 
 import { MockWindow } from "@/components/mock-window";
 
+type BrandSearch = {
+  type?: "visual" | "typography" | "color";
+  id?: string;
+};
+
 export const Route = createFileRoute("/_view/brand")({
   component: Component,
+  validateSearch: (search: Record<string, unknown>): BrandSearch => {
+    return {
+      type:
+        search.type === "visual" ||
+        search.type === "typography" ||
+        search.type === "color"
+          ? search.type
+          : undefined,
+      id: typeof search.id === "string" ? search.id : undefined,
+    };
+  },
   head: () => ({
     meta: [
       { title: "Brand - Hyprnote Press Kit" },
@@ -67,7 +83,7 @@ const TYPOGRAPHY = [
   {
     id: "display-font",
     name: "Lora",
-    fontFamily: "Lora, serif",
+    fontFamily: "Lora",
     description:
       "Lora is our display typeface for headlines and featured text. Adds elegance and personality.",
     preview: "The quick brown fox jumps over the lazy dog",
@@ -120,7 +136,58 @@ type SelectedItem =
   | { type: "color"; data: (typeof COLORS)[0] };
 
 function Component() {
+  const navigate = useNavigate({ from: Route.fullPath });
+  const search = Route.useSearch();
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
+
+  useEffect(() => {
+    if (search.type === "visual" && search.id) {
+      const asset = VISUAL_ASSETS.find((a) => a.id === search.id);
+      if (asset) {
+        setSelectedItem({ type: "visual", data: asset });
+      } else {
+        setSelectedItem(null);
+      }
+    } else if (search.type === "typography" && search.id) {
+      const font = TYPOGRAPHY.find((f) => f.id === search.id);
+      if (font) {
+        setSelectedItem({ type: "typography", data: font });
+      } else {
+        setSelectedItem(null);
+      }
+    } else if (search.type === "color" && search.id) {
+      const color = COLORS.find((c) => c.id === search.id);
+      if (color) {
+        setSelectedItem({ type: "color", data: color });
+      } else {
+        setSelectedItem(null);
+      }
+    } else {
+      setSelectedItem(null);
+    }
+  }, [search.type, search.id]);
+
+  const handleSetSelectedItem = (item: SelectedItem | null) => {
+    setSelectedItem(item);
+    if (item === null) {
+      navigate({ search: {}, resetScroll: false });
+    } else if (item.type === "visual") {
+      navigate({
+        search: { type: "visual", id: item.data.id },
+        resetScroll: false,
+      });
+    } else if (item.type === "typography") {
+      navigate({
+        search: { type: "typography", id: item.data.id },
+        resetScroll: false,
+      });
+    } else if (item.type === "color") {
+      navigate({
+        search: { type: "color", id: item.data.id },
+        resetScroll: false,
+      });
+    }
+  };
 
   return (
     <div
@@ -131,7 +198,7 @@ function Component() {
         <HeroSection />
         <BrandContentSection
           selectedItem={selectedItem}
-          setSelectedItem={setSelectedItem}
+          setSelectedItem={handleSetSelectedItem}
         />
       </div>
     </div>
@@ -283,7 +350,12 @@ function TypographyGrid({
             >
               Aa
             </div>
-            <div className="font-medium text-stone-600">{font.name}</div>
+            <div
+              className="font-medium text-stone-600"
+              style={{ fontFamily: font.fontFamily }}
+            >
+              {font.name}
+            </div>
           </button>
         ))}
       </div>
@@ -372,7 +444,11 @@ function MobileSidebarDrawer({
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            transition={{
+              type: "tween",
+              duration: 0.2,
+              ease: "easeOut",
+            }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
               <span className="text-sm font-medium text-stone-600">
@@ -553,10 +629,16 @@ function TypographySidebar({
               Aa
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-stone-600 truncate">
+              <p
+                className="text-sm font-medium text-stone-600 truncate"
+                style={{ fontFamily: font.fontFamily }}
+              >
                 {font.name}
               </p>
-              <p className="text-xs text-neutral-500 truncate">
+              <p
+                className="text-xs text-neutral-500 truncate"
+                style={{ fontFamily: font.fontFamily }}
+              >
                 {font.fontFamily}
               </p>
             </div>
@@ -653,6 +735,14 @@ function VisualAssetDetail({
   asset: (typeof VISUAL_ASSETS)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [asset.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -676,7 +766,7 @@ function VisualAssetDetail({
         </div>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <img
           src={asset.url}
           alt={asset.name}
@@ -695,6 +785,14 @@ function TypographyDetail({
   font: (typeof TYPOGRAPHY)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [font.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -707,7 +805,7 @@ function TypographyDetail({
         </button>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <div className="space-y-6">
           <div>
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
@@ -781,6 +879,14 @@ function ColorDetail({
   color: (typeof COLORS)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [color.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -793,7 +899,7 @@ function ColorDetail({
         </button>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <div className="space-y-6">
           <div>
             <div

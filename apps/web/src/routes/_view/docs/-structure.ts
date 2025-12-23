@@ -1,9 +1,10 @@
 import { allDocs } from "content-collections";
 
 export const docsStructure = {
-  sections: ["about", "developers", "pro", "faq"],
+  sections: ["about", "getting started", "developers", "pro", "faq"],
   defaultPages: {
     about: "about/hello-world",
+    "getting-started": "getting-started/installation",
     developers: "developers/analytics",
     pro: "pro/activation",
     faq: "faq/general",

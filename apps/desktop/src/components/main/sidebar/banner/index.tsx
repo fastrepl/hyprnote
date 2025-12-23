@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
-import * as main from "../../../../store/tinybase/main";
+import { useConfigValues } from "../../../../config/use-config";
+import { useTabs } from "../../../../store/zustand/tabs";
 import { Banner } from "./component";
 import { createBannerRegistry, getBannerToShow } from "./registry";
 import { useDismissedBanners } from "./useDismissedBanners";
@@ -25,39 +25,46 @@ export function BannerArea({
     current_llm_model,
     current_stt_provider,
     current_stt_model,
-  } = main.UI.useValues(main.STORE_ID);
+  } = useConfigValues([
+    "current_llm_provider",
+    "current_llm_model",
+    "current_stt_provider",
+    "current_stt_model",
+  ] as const);
   const hasLLMConfigured = !!(current_llm_provider && current_llm_model);
   const hasSttConfigured = !!(current_stt_provider && current_stt_model);
+
+  const currentTab = useTabs((state) => state.currentTab);
+  const isAiTranscriptionTabActive =
+    currentTab?.type === "ai" && currentTab.state?.tab === "transcription";
+  const isAiIntelligenceTabActive =
+    currentTab?.type === "ai" && currentTab.state?.tab === "intelligence";
+
+  const openNew = useTabs((state) => state.openNew);
+  const updateAiTabState = useTabs((state) => state.updateAiTabState);
 
   const handleSignIn = useCallback(async () => {
     await auth?.signIn();
   }, [auth]);
 
-  const openSettingsTab = useCallback(
+  const openAiTab = useCallback(
     (tab: "intelligence" | "transcription") => {
-      windowsCommands
-        .windowShow({ type: "settings" })
-        .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-        .then(() =>
-          windowsCommands.windowEmitNavigate(
-            { type: "settings" },
-            {
-              path: "/app/settings",
-              search: { tab },
-            },
-          ),
-        );
+      if (currentTab?.type === "ai") {
+        updateAiTabState(currentTab, { tab });
+      } else {
+        openNew({ type: "ai", state: { tab } });
+      }
     },
-    [],
+    [currentTab, openNew, updateAiTabState],
   );
 
   const handleOpenLLMSettings = useCallback(() => {
-    openSettingsTab("intelligence");
-  }, [openSettingsTab]);
+    openAiTab("intelligence");
+  }, [openAiTab]);
 
   const handleOpenSTTSettings = useCallback(() => {
-    openSettingsTab("transcription");
-  }, [openSettingsTab]);
+    openAiTab("transcription");
+  }, [openAiTab]);
 
   const registry = useMemo(
     () =>
@@ -65,6 +72,8 @@ export function BannerArea({
         isAuthenticated,
         hasLLMConfigured,
         hasSttConfigured,
+        isAiTranscriptionTabActive,
+        isAiIntelligenceTabActive,
         onSignIn: handleSignIn,
         onOpenLLMSettings: handleOpenLLMSettings,
         onOpenSTTSettings: handleOpenSTTSettings,
@@ -73,6 +82,8 @@ export function BannerArea({
       isAuthenticated,
       hasLLMConfigured,
       hasSttConfigured,
+      isAiTranscriptionTabActive,
+      isAiIntelligenceTabActive,
       handleSignIn,
       handleOpenLLMSettings,
       handleOpenSTTSettings,

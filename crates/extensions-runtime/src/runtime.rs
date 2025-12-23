@@ -1,13 +1,13 @@
 use crate::ops::*;
 use crate::{Error, Extension, Result};
+use deno_core::JsRuntime;
+use deno_core::RuntimeOptions;
 use deno_core::serde_json::Value;
 use deno_core::serde_v8;
 use deno_core::v8;
-use deno_core::JsRuntime;
-use deno_core::RuntimeOptions;
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::{mpsc, oneshot};
 
 deno_core::extension!(

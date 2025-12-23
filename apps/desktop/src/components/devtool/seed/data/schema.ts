@@ -95,6 +95,10 @@ const CuratedEnhancedNoteSchema = z.object({
   title: z.string().optional(),
 });
 
+const CuratedChatShortcutSchema = z.object({
+  content: z.string(),
+});
+
 export const CuratedDataSchema = z.object({
   $schema: z.string().optional(),
   organizations: z.array(CuratedOrganizationSchema),
@@ -107,6 +111,7 @@ export const CuratedDataSchema = z.object({
   sessions: z.array(CuratedSessionSchema),
   chat_groups: z.array(CuratedChatGroupSchema),
   enhanced_notes: z.array(CuratedEnhancedNoteSchema),
+  chat_shortcuts: z.array(CuratedChatShortcutSchema),
 });
 
 export type CuratedData = z.infer<typeof CuratedDataSchema>;

@@ -45,7 +45,12 @@ export function createToolRegistry<TTool = any>(): ToolRegistry<TTool> {
     register(scopes, key, tool) {
       const scopeArray = Array.isArray(scopes) ? scopes : [scopes];
       const id = Symbol(`${scopeArray.join(",")}:${key}`);
-      const entry: ToolEntry<TTool> = { id, scopes: scopeArray, key, tool };
+      const entry: ToolEntry<TTool> = {
+        id,
+        scopes: scopeArray,
+        key,
+        tool,
+      };
       entries.set(id, entry);
       indexTool(entry);
       return id;

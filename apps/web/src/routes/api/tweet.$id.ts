@@ -13,7 +13,9 @@ export const Route = createFileRoute("/api/tweet/$id")({
           return json({ data: tweet ?? null }, { status: tweet ? 200 : 404 });
         } catch (error) {
           return json(
-            { error: error instanceof Error ? error.message : "bad_request" },
+            {
+              error: error instanceof Error ? error.message : "bad_request",
+            },
             { status: 400 },
           );
         }

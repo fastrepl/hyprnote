@@ -1,11 +1,9 @@
 [package]
 name = "analytics"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-hypr-network = { workspace = true }
-
 posthog = { git = "https://github.com/yujonglee/posthog-rs", package = "async-posthog", rev = "1779042" }
 posthog-core = { git = "https://github.com/yujonglee/posthog-rs", package = "posthog-core", rev = "1779042" }
 

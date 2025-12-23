@@ -1,0 +1,42 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  go-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.5"
+          cache: true
+
+      - name: Cache eval responses
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/hyprnote/eval.cache
+          key: eval-cache-${{ runner.os }}-${{ hashFiles('evals/**/*.go') }}
+          restore-keys: |
+            eval-cache-${{ runner.os }}-
+
+      - run: go mod tidy
+
+      - env:
+          EVALS: ${{ inputs.goevals }}
+          EVALS_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ inputs.model }}
+        run: go test ./evals/... -count=1 -json > test-results.json
+
+      - id: timestamp
+        if: always()
+        run: echo "value=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ steps.timestamp.outputs.value }}
+          path: test-results.json

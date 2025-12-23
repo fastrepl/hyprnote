@@ -67,7 +67,9 @@ export function RenderTranscript({
     finalWords,
     partialWords,
     allSpeakerHints,
-    { numSpeakers },
+    {
+      numSpeakers,
+    },
   );
 
   const offsetMs = useTranscriptOffset(transcriptId);

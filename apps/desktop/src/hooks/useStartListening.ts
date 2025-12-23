@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+
 import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
@@ -13,6 +15,7 @@ export function useStartListening(sessionId: string) {
   const store = main.UI.useStore(main.STORE_ID);
 
   const record_enabled = useConfigValue("save_recordings");
+  const languages = useConfigValue("spoken_languages");
 
   const start = useListener((state) => state.start);
   const { conn } = useSTTConnection();
@@ -33,6 +36,12 @@ export function useStartListening(sessionId: string) {
       user_id: user_id ?? "",
       created_at: new Date().toISOString(),
       started_at: startedAt,
+    });
+
+    const eventId = store.getCell("sessions", sessionId, "event_id");
+    void analyticsCommands.event({
+      event: "recording_started",
+      has_calendar_event: !!eventId,
     });
 
     const handlePersist: HandlePersistCallback = (words, hints) => {
@@ -92,7 +101,7 @@ export function useStartListening(sessionId: string) {
     start(
       {
         session_id: sessionId,
-        languages: ["en"],
+        languages,
         onboarding: false,
         record_enabled,
         model: conn.model,
@@ -104,7 +113,16 @@ export function useStartListening(sessionId: string) {
         handlePersist,
       },
     );
-  }, [conn, store, sessionId, start, keywords]);
+  }, [
+    conn,
+    store,
+    sessionId,
+    start,
+    keywords,
+    user_id,
+    record_enabled,
+    languages,
+  ]);
 
   return startListening;
 }

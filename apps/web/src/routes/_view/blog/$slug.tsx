@@ -45,7 +45,11 @@ export const Route = createFileRoute("/_view/blog/$slug")({
     return { article, relatedArticles };
   },
   head: ({ loaderData }) => {
-    const { article } = loaderData!;
+    if (!loaderData?.article) {
+      return { meta: [] };
+    }
+
+    const { article } = loaderData;
     const url = `https://hyprnote.com/blog/${article.slug}`;
 
     const ogImage =
@@ -56,21 +60,41 @@ export const Route = createFileRoute("/_view/blog/$slug")({
       meta: [
         { title: `${article.title} - Hyprnote Blog` },
         { name: "description", content: article.meta_description },
-        { property: "og:title", content: `${article.title} - Hyprnote Blog` },
-        { property: "og:description", content: article.meta_description },
+        {
+          property: "og:title",
+          content: `${article.title} - Hyprnote Blog`,
+        },
+        {
+          property: "og:description",
+          content: article.meta_description,
+        },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
         { property: "og:image", content: ogImage },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: `${article.title} - Hyprnote Blog` },
-        { name: "twitter:description", content: article.meta_description },
+        {
+          name: "twitter:title",
+          content: `${article.title} - Hyprnote Blog`,
+        },
+        {
+          name: "twitter:description",
+          content: article.meta_description,
+        },
         { name: "twitter:image", content: ogImage },
         ...(article.author
           ? [{ name: "author", content: article.author }]
           : []),
-        { property: "article:published_time", content: article.created },
+        {
+          property: "article:published_time",
+          content: article.created,
+        },
         ...(article.updated
-          ? [{ property: "article:modified_time", content: article.updated }]
+          ? [
+              {
+                property: "article:modified_time",
+                content: article.updated,
+              },
+            ]
           : []),
       ],
     };

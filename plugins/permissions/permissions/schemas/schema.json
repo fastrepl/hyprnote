@@ -307,6 +307,30 @@
           "markdownDescription": "Denies the check_accessibility_permission command without any pre-configured scope."
         },
         {
+          "description": "Enables the check_calendar_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-check-calendar-permission",
+          "markdownDescription": "Enables the check_calendar_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the check_calendar_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-check-calendar-permission",
+          "markdownDescription": "Denies the check_calendar_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the check_contacts_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-check-contacts-permission",
+          "markdownDescription": "Enables the check_contacts_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the check_contacts_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-check-contacts-permission",
+          "markdownDescription": "Denies the check_contacts_permission command without any pre-configured scope."
+        },
+        {
           "description": "Enables the check_microphone_permission command without any pre-configured scope.",
           "type": "string",
           "const": "allow-check-microphone-permission",
@@ -331,6 +355,30 @@
           "markdownDescription": "Denies the check_system_audio_permission command without any pre-configured scope."
         },
         {
+          "description": "Enables the open_calendar_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-calendar-settings",
+          "markdownDescription": "Enables the open_calendar_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_calendar_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-calendar-settings",
+          "markdownDescription": "Denies the open_calendar_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the open_contacts_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-contacts-settings",
+          "markdownDescription": "Enables the open_contacts_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_contacts_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-contacts-settings",
+          "markdownDescription": "Denies the open_contacts_settings command without any pre-configured scope."
+        },
+        {
           "description": "Enables the request_accessibility_permission command without any pre-configured scope.",
           "type": "string",
           "const": "allow-request-accessibility-permission",
@@ -341,6 +389,30 @@
           "type": "string",
           "const": "deny-request-accessibility-permission",
           "markdownDescription": "Denies the request_accessibility_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the request_calendar_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-calendar-permission",
+          "markdownDescription": "Enables the request_calendar_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the request_calendar_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-calendar-permission",
+          "markdownDescription": "Denies the request_calendar_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the request_contacts_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-contacts-permission",
+          "markdownDescription": "Enables the request_contacts_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the request_contacts_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-contacts-permission",
+          "markdownDescription": "Denies the request_contacts_permission command without any pre-configured scope."
         },
         {
           "description": "Enables the request_microphone_permission command without any pre-configured scope.",
@@ -367,10 +439,10 @@
           "markdownDescription": "Denies the request_system_audio_permission command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-microphone-permission`\n- `allow-request-microphone-permission`\n- `allow-check-system-audio-permission`\n- `allow-request-system-audio-permission`\n- `allow-check-accessibility-permission`\n- `allow-request-accessibility-permission`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-microphone-permission`\n- `allow-request-microphone-permission`\n- `allow-check-system-audio-permission`\n- `allow-request-system-audio-permission`\n- `allow-check-accessibility-permission`\n- `allow-request-accessibility-permission`\n- `allow-check-calendar-permission`\n- `allow-request-calendar-permission`\n- `allow-check-contacts-permission`\n- `allow-request-contacts-permission`\n- `allow-open-calendar-settings`\n- `allow-open-contacts-settings`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-microphone-permission`\n- `allow-request-microphone-permission`\n- `allow-check-system-audio-permission`\n- `allow-request-system-audio-permission`\n- `allow-check-accessibility-permission`\n- `allow-request-accessibility-permission`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-microphone-permission`\n- `allow-request-microphone-permission`\n- `allow-check-system-audio-permission`\n- `allow-request-system-audio-permission`\n- `allow-check-accessibility-permission`\n- `allow-request-accessibility-permission`\n- `allow-check-calendar-permission`\n- `allow-request-calendar-permission`\n- `allow-check-contacts-permission`\n- `allow-request-contacts-permission`\n- `allow-open-calendar-settings`\n- `allow-open-contacts-settings`"
         }
       ]
     }

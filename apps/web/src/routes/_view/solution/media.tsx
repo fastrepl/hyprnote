@@ -23,7 +23,10 @@ export const Route = createFileRoute("/_view/solution/media")({
           "Never miss creative ideas. AI-powered meeting notes capture brainstorms, production discussions, and editorial meetings for media teams.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://hyprnote.com/solution/media" },
+      {
+        property: "og:url",
+        content: "https://hyprnote.com/solution/media",
+      },
     ],
   }),
 });

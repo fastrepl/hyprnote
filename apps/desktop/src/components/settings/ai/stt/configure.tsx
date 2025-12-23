@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
-import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
+import { arch, platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -9,7 +9,6 @@ import {
   events as localSttEvents,
   type SupportedSttModel,
 } from "@hypr/plugin-local-stt";
-import { type AIProvider, aiProviderSchema } from "@hypr/store";
 import {
   Accordion,
   AccordionContent,
@@ -21,14 +20,14 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
-import * as main from "../../../../store/tinybase/main";
-import { FormField, StyledStreamdown, useProvider } from "../shared";
+import * as settings from "../../../../store/tinybase/settings";
+import { NonHyprProviderCard, StyledStreamdown } from "../shared";
 import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function ConfigureProviders() {
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-sm font-semibold">Configure Providers</h3>
+      <h3 className="text-md font-semibold">Configure Providers</h3>
       <Accordion type="single" collapsible className="space-y-3">
         <HyprProviderCard
           providerId="hyprnote"
@@ -36,10 +35,17 @@ export function ConfigureProviders() {
           icon={
             <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />
           }
+          badge={PROVIDERS.find((p) => p.id === "hyprnote")?.badge}
         />
         {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map(
           (provider) => (
-            <NonHyprProviderCard key={provider.id} config={provider} />
+            <NonHyprProviderCard
+              key={provider.id}
+              config={provider}
+              providerType="stt"
+              providers={PROVIDERS}
+              providerContext={<ProviderContext providerId={provider.id} />}
+            />
           ),
         )}
       </Accordion>
@@ -47,166 +53,118 @@ export function ConfigureProviders() {
   );
 }
 
-function NonHyprProviderCard({
-  config,
-}: {
-  config: (typeof PROVIDERS)[number];
-}) {
-  const billing = useBillingAccess();
-  const [provider, setProvider] = useProvider(config.id);
-  const locked = config.requiresPro && !billing.isPro;
-
-  const form = useForm({
-    onSubmit: ({ value }) => setProvider(value),
-    defaultValues:
-      provider ??
-      ({
-        type: "stt",
-        base_url: config.baseUrl ?? "",
-        api_key: "",
-      } satisfies AIProvider),
-    listeners: {
-      onChange: ({ formApi }) => {
-        queueMicrotask(() => {
-          const {
-            form: { errors },
-          } = formApi.getAllErrors();
-          if (errors.length > 0) {
-            console.log(errors);
-          }
-
-          formApi.handleSubmit();
-        });
-      },
-    },
-    validators: { onChange: aiProviderSchema },
-  });
-
-  return (
-    <AccordionItem
-      disabled={config.disabled || locked}
-      value={config.id}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
-    >
-      <AccordionTrigger
-        className={cn([
-          "capitalize gap-2 px-4",
-          (config.disabled || locked) && "cursor-not-allowed opacity-30",
-        ])}
-      >
-        <div className="flex items-center gap-2">
-          {config.icon}
-          <span>{config.displayName}</span>
-        </div>
-      </AccordionTrigger>
-      <AccordionContent className="px-4">
-        <ProviderContext providerId={config.id} />
-
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          {!config.baseUrl && (
-            <form.Field name="base_url">
-              {(field) => (
-                <FormField field={field} label="Base URL" icon="mdi:web" />
-              )}
-            </form.Field>
-          )}
-          <form.Field name="api_key">
-            {(field) => (
-              <FormField
-                field={field}
-                label="API Key"
-                icon="mdi:key"
-                placeholder="Enter your API key"
-                type="password"
-              />
-            )}
-          </form.Field>
-          {config.baseUrl && (
-            <details className="space-y-4 pt-2">
-              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
-                Advanced
-              </summary>
-              <div className="mt-4">
-                <form.Field name="base_url">
-                  {(field) => (
-                    <FormField field={field} label="Base URL" icon="mdi:web" />
-                  )}
-                </form.Field>
-              </div>
-            </details>
-          )}
-        </form>
-      </AccordionContent>
-    </AccordionItem>
-  );
-}
-
 function HyprProviderCard({
   providerId,
   providerName,
   icon,
+  badge,
 }: {
   providerId: ProviderId;
   providerName: string;
   icon: React.ReactNode;
+  badge?: string | null;
 }) {
+  const isMacos = platform() === "macos";
+  const targetArch = useQuery({
+    queryKey: ["target-arch"],
+    queryFn: () => arch(),
+    staleTime: Infinity,
+  });
+  const isAppleSilicon = isMacos && targetArch.data === "aarch64";
+
+  const providerDef = PROVIDERS.find((p) => p.id === providerId);
+  const isConfigured = providerDef?.requirements.length === 0;
+
   return (
     <AccordionItem
       value={providerId}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
+      className={cn([
+        "rounded-xl border-2 bg-neutral-50",
+        isConfigured ? "border-solid border-neutral-300" : "border-dashed",
+      ])}
     >
       <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
         <div className="flex items-center gap-2">
           {icon}
           <span>{providerName}</span>
-          <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
-            Recommended
-          </span>
+          {badge && (
+            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
+              {badge}
+            </span>
+          )}
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4">
         <ProviderContext providerId={providerId} />
         <div className="space-y-3">
           <HyprProviderCloudRow />
-          <HyprProviderLocalRow
-            model="am-parakeet-v2"
-            displayName="Parakeet v2"
-            description="On-device model. English only. Works best for English."
-          />
-          <HyprProviderLocalRow
-            model="am-parakeet-v3"
-            displayName="Parakeet v3"
-            description="On-device model. English and European languages."
-          />
-          <HyprProviderLocalRow
-            model="am-whisper-large-v3"
-            displayName="Whisper Large v3"
-            description="On-device model. Multilingual. Powered by Argmax."
-          />
 
-          <details className="space-y-4 pt-2">
-            <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
-              Advanced
-            </summary>
-            <div className="mt-4 space-y-3">
+          <div className="flex items-center gap-3 py-2">
+            <div className="flex-1 border-t border-dashed border-neutral-300" />
+            <a
+              href="https://hyprnote.com/docs/developers/local-models"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-neutral-400 hover:underline flex items-center gap-1"
+            >
+              <span>or use on-device model</span>
+              <Icon icon="mdi:help-circle-outline" className="size-3" />
+            </a>
+            <div className="flex-1 border-t border-dashed border-neutral-300" />
+          </div>
+
+          {isAppleSilicon && (
+            <>
+              <HyprProviderLocalRow
+                model="am-parakeet-v2"
+                displayName="Parakeet v2"
+                description="English only. Works best for English."
+              />
+              <HyprProviderLocalRow
+                model="am-parakeet-v3"
+                displayName="Parakeet v3"
+                description="English and European languages."
+              />
+              <HyprProviderLocalRow
+                model="am-whisper-large-v3"
+                displayName="Whisper Large v3"
+                description="Broad coverage of languages."
+              />
+
+              <details className="space-y-4 pt-2">
+                <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
+                  Advanced
+                </summary>
+                <div className="mt-4 space-y-3">
+                  <HyprProviderLocalRow
+                    model="QuantizedTinyEn"
+                    displayName="whisper-tiny-en-q8"
+                    description="Only for experiment & development purposes."
+                  />
+                  <HyprProviderLocalRow
+                    model="QuantizedSmallEn"
+                    displayName="whisper-small-en-q8"
+                    description="Only for experiment & development purposes."
+                  />
+                </div>
+              </details>
+            </>
+          )}
+
+          {!isAppleSilicon && (
+            <>
               <HyprProviderLocalRow
                 model="QuantizedTinyEn"
                 displayName="whisper-tiny-en-q8"
-                description="Only for experiment & development purposes."
+                description="Powered by Whisper.cpp. English only."
               />
               <HyprProviderLocalRow
                 model="QuantizedSmallEn"
                 displayName="whisper-small-en-q8"
-                description="Only for experiment & development purposes."
+                description="Powered by Whisper.cpp. English only."
               />
-            </div>
-          </details>
+            </>
+          )}
         </div>
       </AccordionContent>
     </AccordionItem>
@@ -229,18 +187,18 @@ function HyprProviderRow({ children }: { children: React.ReactNode }) {
 function HyprProviderCloudRow() {
   const { isPro, upgradeToPro } = useBillingAccess();
 
-  const handleSelectProvider = main.UI.useSetValueCallback(
+  const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_stt_provider",
     (provider: string) => provider,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
-  const handleSelectModel = main.UI.useSetValueCallback(
+  const handleSelectModel = settings.UI.useSetValueCallback(
     "current_stt_model",
     (model: string) => model,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const handleClick = useCallback(() => {
@@ -266,9 +224,8 @@ function HyprProviderCloudRow() {
           className="w-[110px]"
           size="sm"
           variant="default"
-          disabled={!isPro}
         >
-          {isPro ? "Ready to use" : "Pro users only"}
+          {isPro ? "Ready to use" : "Start Free Trial"}
         </Button>
       </div>
     </HyprProviderRow>
@@ -359,12 +316,13 @@ function HyprProviderLocalRow({
     handleCancel,
   } = useLocalModelDownload(model, handleSelectModel);
 
-  const handleOpen = () =>
-    localSttCommands.modelsDir().then((result) => {
+  const handleOpen = () => {
+    void localSttCommands.modelsDir().then((result) => {
       if (result.status === "ok") {
-        openPath(result.data);
+        void openPath(result.data);
       }
     });
+  };
 
   return (
     <HyprProviderRow>
@@ -422,7 +380,7 @@ function useLocalModelDownload(
     });
 
     return () => {
-      unlisten.then((fn) => fn());
+      void unlisten.then((fn) => fn());
     };
   }, [model]);
 
@@ -440,7 +398,7 @@ function useLocalModelDownload(
     setHasError(false);
     setIsStarting(true);
     setProgress(0);
-    localSttCommands.downloadModel(model).then((result) => {
+    void localSttCommands.downloadModel(model).then((result) => {
       if (result.status === "error") {
         setHasError(true);
         setIsStarting(false);
@@ -449,7 +407,7 @@ function useLocalModelDownload(
   };
 
   const handleCancel = () => {
-    localSttCommands.cancelDownload(model);
+    void localSttCommands.cancelDownload(model);
     setIsStarting(false);
     setProgress(0);
   };
@@ -477,11 +435,15 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
           ? `Use [Soniox](https://soniox.com) for transcriptions.`
           : providerId === "assemblyai"
             ? `Use [AssemblyAI](https://www.assemblyai.com) for transcriptions.`
-            : providerId === "fireworks"
-              ? `Use [Fireworks AI](https://fireworks.ai) for transcriptions.`
-              : providerId === "custom"
-                ? `We only support **Deepgram compatible** endpoints for now.`
-                : "";
+            : providerId === "gladia"
+              ? `Use [Gladia](https://www.gladia.io) for transcriptions.`
+              : providerId === "openai"
+                ? `Use [OpenAI](https://openai.com) for transcriptions.`
+                : providerId === "fireworks"
+                  ? `Use [Fireworks AI](https://fireworks.ai) for transcriptions.`
+                  : providerId === "custom"
+                    ? `We only support **Deepgram compatible** endpoints for now.`
+                    : "";
 
   if (!content.trim()) {
     return null;
@@ -491,11 +453,11 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
 }
 
 function useSafeSelectModel() {
-  const handleSelectModel = main.UI.useSetValueCallback(
+  const handleSelectModel = settings.UI.useSetValueCallback(
     "current_stt_model",
     (model: SupportedSttModel) => model,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const active = useListener((state) => state.live.status !== "inactive");

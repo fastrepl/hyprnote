@@ -48,6 +48,12 @@ pub enum Template {
     #[strum(serialize = "postprocess_transcript.user")]
     #[serde(rename = "postprocess_transcript.user")]
     PostprocessTranscriptUser,
+    #[strum(serialize = "highlight.system")]
+    #[serde(rename = "highlight.system")]
+    HighlightSystem,
+    #[strum(serialize = "highlight.user")]
+    #[serde(rename = "highlight.user")]
+    HighlightUser,
 }
 
 #[cfg(not(debug_assertions))]
@@ -74,6 +80,10 @@ pub const POSTPROCESS_TRANSCRIPT_SYSTEM_TPL: &str =
 #[cfg(not(debug_assertions))]
 pub const POSTPROCESS_TRANSCRIPT_USER_TPL: &str =
     include_str!("../assets/postprocess_transcript.user.jinja");
+#[cfg(not(debug_assertions))]
+pub const HIGHLIGHT_SYSTEM_TPL: &str = include_str!("../assets/highlight.system.jinja");
+#[cfg(not(debug_assertions))]
+pub const HIGHLIGHT_USER_TPL: &str = include_str!("../assets/highlight.user.jinja");
 #[cfg(not(debug_assertions))]
 pub const LANGUAGE_PARTIAL_TPL: &str = include_str!("../assets/_language.partial.jinja");
 
@@ -130,6 +140,10 @@ fn init_environment() -> minijinja::Environment<'static> {
             POSTPROCESS_TRANSCRIPT_USER_TPL,
         )
         .unwrap();
+        env.add_template(Template::HighlightSystem.as_ref(), HIGHLIGHT_SYSTEM_TPL)
+            .unwrap();
+        env.add_template(Template::HighlightUser.as_ref(), HIGHLIGHT_USER_TPL)
+            .unwrap();
         env.add_template("_language.partial", LANGUAGE_PARTIAL_TPL)
             .unwrap();
     }
@@ -168,6 +182,15 @@ pub fn render(
         let tpl = env.get_template(template.as_ref())?;
         tpl.render(ctx).map_err(Into::into)
     }
+}
+
+pub fn render_custom(
+    template_content: &str,
+    ctx: &serde_json::Map<String, serde_json::Value>,
+) -> Result<String, crate::Error> {
+    let env = get_environment();
+    let tpl = env.template_from_str(template_content)?;
+    tpl.render(ctx).map_err(Into::into)
 }
 
 #[cfg(test)]

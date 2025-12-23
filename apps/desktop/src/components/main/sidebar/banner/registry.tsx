@@ -1,5 +1,3 @@
-import { AudioLinesIcon, SparklesIcon } from "lucide-react";
-
 import type { BannerCondition, BannerType } from "./types";
 
 type BannerRegistryEntry = {
@@ -11,6 +9,8 @@ type BannerRegistryParams = {
   isAuthenticated: boolean;
   hasLLMConfigured: boolean;
   hasSttConfigured: boolean;
+  isAiTranscriptionTabActive: boolean;
+  isAiIntelligenceTabActive: boolean;
   onSignIn: () => void | Promise<void>;
   onOpenLLMSettings: () => void;
   onOpenSTTSettings: () => void;
@@ -20,6 +20,8 @@ export function createBannerRegistry({
   isAuthenticated,
   hasLLMConfigured,
   hasSttConfigured,
+  isAiTranscriptionTabActive,
+  isAiIntelligenceTabActive,
   onSignIn,
   onOpenLLMSettings,
   onOpenSTTSettings,
@@ -29,32 +31,37 @@ export function createBannerRegistry({
     {
       banner: {
         id: "missing-stt",
-        icon: <AudioLinesIcon className="size-5" />,
-        title: "Missing AI model",
-        description:
-          "A transcription model is needed to make Hyprnote listen to your conversations.",
+        description: (
+          <>
+            <strong className="font-mono">Transcription model</strong> is needed
+            to make Hyprnote listen to your conversations.
+          </>
+        ),
         primaryAction: {
-          label: "Go to settings",
+          label: "Configure transcription",
           onClick: onOpenSTTSettings,
         },
         dismissible: false,
       },
-      condition: () => !hasSttConfigured,
+      condition: () => !hasSttConfigured && !isAiTranscriptionTabActive,
     },
     {
       banner: {
         id: "missing-llm",
-        icon: <SparklesIcon className="size-5" />,
-        title: "Add intelligence",
-        description:
-          "Language model is needed to make Hyprnote summarize and chat about your conversations",
+        description: (
+          <>
+            <strong className="font-mono">Language model</strong> is needed to
+            make Hyprnote summarize and chat about your conversations.
+          </>
+        ),
         primaryAction: {
-          label: "Go to settings",
+          label: "Add intelligence",
           onClick: onOpenLLMSettings,
         },
         dismissible: false,
       },
-      condition: () => !hasLLMConfigured,
+      condition: () =>
+        hasSttConfigured && !hasLLMConfigured && !isAiIntelligenceTabActive,
     },
     {
       banner: {

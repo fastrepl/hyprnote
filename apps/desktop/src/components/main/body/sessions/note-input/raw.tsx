@@ -1,5 +1,13 @@
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import NoteEditor, {
   type JSONContent,
   type TiptapEditor,
@@ -41,12 +49,43 @@ export const RawEditor = forwardRef<
     }
   }, [store, sessionId]);
 
-  const handleChange = main.UI.useSetPartialRowCallback(
+  const persistChange = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (input: JSONContent) => ({ raw_md: JSON.stringify(input) }),
     [],
     main.STORE_ID,
+  );
+
+  const hasTrackedWriteRef = useRef(false);
+
+  useEffect(() => {
+    hasTrackedWriteRef.current = false;
+  }, [sessionId]);
+
+  const hasNonEmptyText = useCallback(
+    (node?: JSONContent): boolean =>
+      !!node?.text?.trim() ||
+      !!node?.content?.some((child: JSONContent) => hasNonEmptyText(child)),
+    [],
+  );
+
+  const handleChange = useCallback(
+    (input: JSONContent) => {
+      persistChange(input);
+
+      if (!hasTrackedWriteRef.current) {
+        const hasContent = hasNonEmptyText(input);
+        if (hasContent) {
+          hasTrackedWriteRef.current = true;
+          void analyticsCommands.event({
+            event: "note_written",
+            has_content: true,
+          });
+        }
+      }
+    },
+    [persistChange, hasNonEmptyText],
   );
 
   const mentionConfig = useMemo(
@@ -72,6 +111,7 @@ export const RawEditor = forwardRef<
 });
 
 const Placeholder: PlaceholderFunction = ({ node, pos }) => {
+  "use no memo";
   if (node.type.name === "paragraph" && pos === 0) {
     return (
       <p className="text-[#e5e5e5]">

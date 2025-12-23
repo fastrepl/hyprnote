@@ -30,5 +30,6 @@ common_event_derives! {
             session_id: String,
             response: Box<StreamResponse>,
         },
+        ExitRequested
     }
 }

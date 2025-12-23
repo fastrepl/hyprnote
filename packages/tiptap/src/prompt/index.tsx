@@ -2,7 +2,9 @@ import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
 import readOnlyRangesExtension from "codemirror-readonly-ranges";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+
+import { jinjaLanguage, jinjaLinter, readonlyVisuals } from "./jinja";
 
 export interface ReadOnlyRange {
   from: number;
@@ -15,6 +17,8 @@ interface PromptEditorProps {
   placeholder?: string;
   readOnly?: boolean;
   readOnlyRanges?: ReadOnlyRange[];
+  variables?: string[];
+  filters?: string[];
 }
 
 export function PromptEditor({
@@ -23,9 +27,11 @@ export function PromptEditor({
   placeholder,
   readOnly = false,
   readOnlyRanges = [],
+  variables = [],
+  filters = [],
 }: PromptEditorProps) {
-  const getReadOnlyRanges = useMemo(
-    () => (state: EditorState) => {
+  const getReadOnlyRanges = useCallback(
+    (_state: EditorState) => {
       if (readOnly || readOnlyRanges.length === 0) {
         return [];
       }
@@ -38,15 +44,27 @@ export function PromptEditor({
     [readOnly, readOnlyRanges],
   );
 
+  const getRangesForVisuals = useCallback(() => {
+    return readOnlyRanges;
+  }, [readOnlyRanges]);
+
   const extensions = useMemo(() => {
-    const exts = [];
+    const exts = [jinjaLanguage(variables, filters), jinjaLinter()];
 
     if (!readOnly && readOnlyRanges.length > 0) {
       exts.push(readOnlyRangesExtension(getReadOnlyRanges));
+      exts.push(readonlyVisuals(getRangesForVisuals));
     }
 
     return exts;
-  }, [readOnly, readOnlyRanges, getReadOnlyRanges]);
+  }, [
+    readOnly,
+    readOnlyRanges,
+    getReadOnlyRanges,
+    getRangesForVisuals,
+    variables,
+    filters,
+  ]);
 
   const theme = useMemo(
     () =>
@@ -73,6 +91,28 @@ export function PromptEditor({
         ".cm-placeholder": {
           color: "#999",
           fontStyle: "italic",
+        },
+        ".cm-readonly-region": {
+          backgroundColor: "rgba(0, 0, 0, 0.04)",
+          borderRadius: "2px",
+        },
+        ".cm-tooltip-autocomplete": {
+          border: "1px solid #e5e7eb",
+          borderRadius: "6px",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          backgroundColor: "#fff",
+        },
+        ".cm-tooltip-autocomplete ul li": {
+          padding: "4px 8px",
+        },
+        ".cm-tooltip-autocomplete ul li[aria-selected]": {
+          backgroundColor: "#f3f4f6",
+        },
+        ".cm-diagnostic-error": {
+          borderBottom: "2px wavy #ef4444",
+        },
+        ".cm-lintPoint-error:after": {
+          borderBottomColor: "#ef4444",
         },
       }),
     [],

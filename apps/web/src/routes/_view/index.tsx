@@ -18,10 +18,9 @@ import { SocialCard } from "@/components/social-card";
 import { VideoModal } from "@/components/video-modal";
 import { VideoThumbnail } from "@/components/video-thumbnail";
 import { addContact } from "@/functions/loops";
+import { useHeroContext } from "@/hooks/use-hero-context";
 import { getHeroCTA, getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { useAnalytics } from "@/hooks/use-posthog";
-
-import { useHeroContext } from "./route";
 
 const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
 
@@ -273,8 +272,9 @@ function HeroSection({
   });
 
   const handleTrigger = useCallback(() => {
-    if (heroInputRef.current) {
-      heroInputRef.current.focus();
+    const inputEl = heroInputRef.current;
+    if (inputEl) {
+      inputEl.focus();
       setShake(true);
       setTimeout(() => setShake(false), 500);
     }
@@ -669,7 +669,7 @@ export function CoolStuffSection() {
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
             <Image
-              src="/api/images/hyprnote/no-bots.png"
+              src="/api/images/hyprnote/no-bots.jpg"
               alt="No bots interface"
               className="w-full h-full object-contain"
             />
@@ -713,7 +713,7 @@ export function CoolStuffSection() {
           </div>
           <div className="overflow-hidden">
             <Image
-              src="/api/images/hyprnote/no-bots.png"
+              src="/api/images/hyprnote/no-bots.jpg"
               alt="No bots interface"
               className="w-full h-auto object-contain"
             />
@@ -1134,7 +1134,10 @@ export function MainFeaturesSection({
         if (featuresScrollRef.current) {
           const container = featuresScrollRef.current;
           const scrollLeft = container.offsetWidth * nextIndex;
-          container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+          container.scrollTo({
+            left: scrollLeft,
+            behavior: "smooth",
+          });
         }
       } else {
         animationId = requestAnimationFrame(animate);
@@ -1425,7 +1428,10 @@ export function DetailsSection({
         if (detailsScrollRef.current) {
           const container = detailsScrollRef.current;
           const scrollLeft = container.offsetWidth * nextIndex;
-          container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+          container.scrollTo({
+            left: scrollLeft,
+            behavior: "smooth",
+          });
         }
       } else {
         animationId = requestAnimationFrame(animate);

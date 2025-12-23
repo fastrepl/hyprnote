@@ -16,6 +16,13 @@ const templatesSchema = z.object({
   description: z.string().optional(),
 });
 
+const shortcutsSchema = z.object({
+  type: z.literal("shortcuts"),
+  title: z.string(),
+  category: z.string(),
+  description: z.string().optional(),
+});
+
 const changelogSchema = z.object({
   type: z.literal("changelog"),
   version: z.string(),
@@ -36,7 +43,14 @@ const docsSchema = z.object({
   description: z.string().optional(),
 });
 
-const OGSchema = z.discriminatedUnion("type", [meetingSchema, templatesSchema, changelogSchema, blogSchema, docsSchema]);
+const OGSchema = z.discriminatedUnion("type", [
+  meetingSchema,
+  templatesSchema,
+  shortcutsSchema,
+  changelogSchema,
+  blogSchema,
+  docsSchema,
+]);
 
 function preventWidow(text: string): string {
   const words = text.trim().split(/\s+/);
@@ -82,6 +96,15 @@ function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
   }
 
   if (type === "templates") {
+    const title = url.searchParams.get("title");
+    const category = url.searchParams.get("category");
+    const description = url.searchParams.get("description") || undefined;
+
+    const result = OGSchema.safeParse({ type, title, category, description });
+    return result.success ? result.data : null;
+  }
+
+  if (type === "shortcuts") {
     const title = url.searchParams.get("title");
     const category = url.searchParams.get("category");
     const description = url.searchParams.get("description") || undefined;
@@ -164,96 +187,411 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
 
   if (isNightly) {
     return (
-      <div style={{ width: '100%', height: '100%', position: 'relative', background: 'linear-gradient(180deg, #03BCF1 0%, #127FE5 100%), linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ left: 56, top: 436, position: 'absolute', color: '#FAFAF9', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex' }}>Changelog</div>
-        <div style={{ left: 56, top: 513, position: 'absolute', color: '#F5F5F4', fontSize: 48, fontFamily: 'IBM Plex Mono', fontWeight: '400', wordWrap: 'break-word', display: 'flex' }}>v.{params.version}</div>
-        <div style={{ left: 56.25, top: 61.12, position: 'absolute', color: '#F5F5F4', fontSize: 40, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word', display: 'flex' }}>The AI notepad for private meetings</div>
-        <div style={{ left: 903, top: 55, position: 'absolute', textAlign: 'right', color: '#FAFAF9', fontSize: 50, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex' }}>Hyprnote.</div>
-        <div style={{ width: 140, height: 0, left: 755, top: 87, position: 'absolute', borderTop: '2px solid #F5F5F4', display: 'flex' }}></div>
-        <img style={{ width: 462, height: 462, right: 57, bottom: -69, position: 'absolute' }} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/nightly-icon.png" />
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          background:
+            "linear-gradient(180deg, #03BCF1 0%, #127FE5 100%), linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <div
+          style={{
+            left: 56,
+            top: 436,
+            position: "absolute",
+            color: "#FAFAF9",
+            fontSize: 60,
+            fontFamily: "Lora",
+            fontWeight: "700",
+            wordWrap: "break-word",
+            display: "flex",
+          }}
+        >
+          Changelog
+        </div>
+        <div
+          style={{
+            left: 56,
+            top: 513,
+            position: "absolute",
+            color: "#F5F5F4",
+            fontSize: 48,
+            fontFamily: "IBM Plex Mono",
+            fontWeight: "400",
+            wordWrap: "break-word",
+            display: "flex",
+          }}
+        >
+          v.{params.version}
+        </div>
+        <div
+          style={{
+            left: 56.25,
+            top: 61.12,
+            position: "absolute",
+            color: "#F5F5F4",
+            fontSize: 40,
+            fontFamily: "Lora",
+            fontWeight: "400",
+            wordWrap: "break-word",
+            display: "flex",
+          }}
+        >
+          The AI notepad for private meetings
+        </div>
+        <div
+          style={{
+            left: 903,
+            top: 55,
+            position: "absolute",
+            textAlign: "right",
+            color: "#FAFAF9",
+            fontSize: 50,
+            fontFamily: "Lora",
+            fontWeight: "700",
+            wordWrap: "break-word",
+            display: "flex",
+          }}
+        >
+          Hyprnote.
+        </div>
+        <div
+          style={{
+            width: 140,
+            height: 0,
+            left: 755,
+            top: 87,
+            position: "absolute",
+            borderTop: "2px solid #F5F5F4",
+            display: "flex",
+          }}
+        ></div>
+        <img
+          style={{ width: 462, height: 462, right: 57, bottom: -69, position: "absolute" }}
+          src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/nightly-icon.png"
+        />
       </div>
     );
   }
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', background: 'linear-gradient(180deg, #A8A29E 0%, #57534E 100%)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ left: 56, top: 436, position: 'absolute', color: '#FAFAF9', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex' }}>Changelog</div>
-      <div style={{ left: 56, top: 513, position: 'absolute', color: '#F5F5F4', fontSize: 48, fontFamily: 'IBM Plex Mono', fontWeight: '400', wordWrap: 'break-word', display: 'flex' }}>v.{params.version}</div>
-      <div style={{ left: 56.25, top: 61.12, position: 'absolute', color: '#F5F5F4', fontSize: 40, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word', display: 'flex' }}>The AI notepad for private meetings</div>
-      <div style={{ left: 903, top: 55, position: 'absolute', textAlign: 'right', color: '#FAFAF9', fontSize: 50, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex' }}>Hyprnote.</div>
-      <div style={{ width: 140, height: 0, left: 755, top: 87, position: 'absolute', borderTop: '2px solid #F5F5F4', display: 'flex' }}></div>
-      <img style={{ width: 462, height: 462, right: 57, bottom: -69, position: 'absolute' }} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png" />
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        background: "linear-gradient(180deg, #A8A29E 0%, #57534E 100%)",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          left: 56,
+          top: 436,
+          position: "absolute",
+          color: "#FAFAF9",
+          fontSize: 60,
+          fontFamily: "Lora",
+          fontWeight: "700",
+          wordWrap: "break-word",
+          display: "flex",
+        }}
+      >
+        Changelog
+      </div>
+      <div
+        style={{
+          left: 56,
+          top: 513,
+          position: "absolute",
+          color: "#F5F5F4",
+          fontSize: 48,
+          fontFamily: "IBM Plex Mono",
+          fontWeight: "400",
+          wordWrap: "break-word",
+          display: "flex",
+        }}
+      >
+        v.{params.version}
+      </div>
+      <div
+        style={{
+          left: 56.25,
+          top: 61.12,
+          position: "absolute",
+          color: "#F5F5F4",
+          fontSize: 40,
+          fontFamily: "Lora",
+          fontWeight: "400",
+          wordWrap: "break-word",
+          display: "flex",
+        }}
+      >
+        The AI notepad for private meetings
+      </div>
+      <div
+        style={{
+          left: 903,
+          top: 55,
+          position: "absolute",
+          textAlign: "right",
+          color: "#FAFAF9",
+          fontSize: 50,
+          fontFamily: "Lora",
+          fontWeight: "700",
+          wordWrap: "break-word",
+          display: "flex",
+        }}
+      >
+        Hyprnote.
+      </div>
+      <div
+        style={{
+          width: 140,
+          height: 0,
+          left: 755,
+          top: 87,
+          position: "absolute",
+          borderTop: "2px solid #F5F5F4",
+          display: "flex",
+        }}
+      ></div>
+      <img
+        style={{ width: 462, height: 462, right: 57, bottom: -69, position: "absolute" }}
+        src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png"
+      />
     </div>
   );
 }
 
 function getAuthorAvatar(author: string): string {
   const authorMap: Record<string, string> = {
-    "John Jeong": "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john.png",
-    "Yujong Lee": "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong.png",
+    "John Jeong":
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john.png",
+    "Yujong Lee":
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong.png",
   };
 
-  return authorMap[author] || "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png";
+  return (
+    authorMap[author] ||
+    "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png"
+  );
 }
 
 function renderBlogTemplate(params: z.infer<typeof blogSchema>) {
   const avatarUrl = getAuthorAvatar(params.author);
 
   return (
-    <div style={{ width: '100%', height: '100%', padding: 60, background: 'linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <div style={{ width: '100%', color: 'black', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>{preventWidow(params.title)}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        padding: 60,
+        background: "linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+      }}
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div
+          style={{
+            width: "100%",
+            color: "black",
+            fontSize: 60,
+            fontFamily: "Lora",
+            fontWeight: "700",
+            wordWrap: "break-word",
+          }}
+        >
+          {preventWidow(params.title)}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <img style={{ width: 44, height: 44, borderRadius: 1000 }} src={avatarUrl} />
-          <div style={{ color: '#292524', fontSize: 28, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word' }}>{params.author}</div>
+          <div
+            style={{
+              color: "#292524",
+              fontSize: 28,
+              fontFamily: "Lora",
+              fontWeight: "400",
+              wordWrap: "break-word",
+            }}
+          >
+            {params.author}
+          </div>
         </div>
-        <div style={{ color: '#525252', fontSize: 24, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word' }}>{params.date}</div>
+        <div
+          style={{
+            color: "#525252",
+            fontSize: 24,
+            fontFamily: "Lora",
+            fontWeight: "400",
+            wordWrap: "break-word",
+          }}
+        >
+          {params.date}
+        </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ color: '#525252', fontSize: 36, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word' }}>The AI notepad for private meetings</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img style={{ width: 48, height: 48 }} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png" />
-          <div style={{ color: '#292524', fontSize: 48, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>Hyprnote.</div>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            color: "#525252",
+            fontSize: 36,
+            fontFamily: "Lora",
+            fontWeight: "400",
+            wordWrap: "break-word",
+          }}
+        >
+          The AI notepad for private meetings
         </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <img
+            style={{ width: 48, height: 48 }}
+            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png"
+          />
+          <div
+            style={{
+              color: "#292524",
+              fontSize: 48,
+              fontFamily: "Lora",
+              fontWeight: "700",
+              wordWrap: "break-word",
+            }}
+          >
+            Hyprnote.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function renderGenericTemplate({
+  headerText,
+  category,
+  title,
+  description,
+}: {
+  headerText: string;
+  category: string;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        padding: 55,
+        background: "linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)",
+        overflow: "hidden",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        display: "flex",
+      }}
+    >
+      <div style={{ justifyContent: "flex-start", alignItems: "center", gap: 12, display: "flex" }}>
+        <img
+          style={{ width: 48, height: 48 }}
+          src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png"
+        />
+        <div
+          style={{
+            color: "#292524",
+            fontSize: 36,
+            fontFamily: "Lora",
+            fontWeight: "700",
+            wordWrap: "break-word",
+          }}
+        >
+          {headerText}
+        </div>
+      </div>
+      <div
+        style={{
+          alignSelf: "stretch",
+          flexDirection: "column",
+          justifyContent: "flex-start",
+          alignItems: "flex-start",
+          gap: 12,
+          display: "flex",
+        }}
+      >
+        <div
+          style={{
+            color: "#525252",
+            fontSize: 32,
+            fontFamily: "IBM Plex Mono",
+            fontWeight: "500",
+            wordWrap: "break-word",
+          }}
+        >
+          {category}
+        </div>
+        <div
+          style={{
+            alignSelf: "stretch",
+            color: "#292524",
+            fontSize: 60,
+            fontFamily: "Lora",
+            fontWeight: "700",
+            wordWrap: "break-word",
+          }}
+        >
+          {preventWidow(title)}
+        </div>
+        {description && (
+          <div
+            style={{
+              alignSelf: "stretch",
+              color: "#525252",
+              fontSize: 36,
+              fontFamily: "IBM Plex Mono",
+              fontWeight: "400",
+              wordWrap: "break-word",
+            }}
+          >
+            {description}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 function renderDocsTemplate(params: z.infer<typeof docsSchema>) {
-  return (
-    <div style={{ width: '100%', height: '100%', paddingLeft: 56, paddingRight: 56, paddingTop: 55, paddingBottom: 55, background: 'linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)', overflow: 'hidden', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', display: 'flex' }}>
-      <div style={{ justifyContent: 'flex-start', alignItems: 'center', gap: 12, display: 'flex' }}>
-        <img style={{ width: 48, height: 48 }} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png" />
-        <div style={{ color: '#292524', fontSize: 36, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>Hyprnote Docs</div>
-      </div>
-      <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 12, display: 'flex' }}>
-        <div style={{ color: '#525252', fontSize: 32, fontFamily: 'IBM Plex Mono', fontWeight: '500', wordWrap: 'break-word' }}>{params.section}</div>
-        <div style={{ alignSelf: 'stretch', color: '#292524', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>{preventWidow(params.title)}</div>
-        {params.description && (
-          <div style={{ alignSelf: 'stretch', color: '#525252', fontSize: 36, fontFamily: 'IBM Plex Mono', fontWeight: '400', wordWrap: 'break-word' }}>{params.description}</div>
-        )}
-      </div>
-    </div>
-  );
+  return renderGenericTemplate({
+    headerText: "Hyprnote / Docs",
+    category: params.section,
+    title: params.title,
+    description: params.description,
+  });
 }
 
 function renderTemplatesTemplate(params: z.infer<typeof templatesSchema>) {
-  return (
-    <div style={{ width: '100%', height: '100%', paddingLeft: 56, paddingRight: 56, paddingTop: 55, paddingBottom: 55, background: 'linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)', overflow: 'hidden', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', display: 'flex' }}>
-      <div style={{ justifyContent: 'flex-start', alignItems: 'center', gap: 12, display: 'flex' }}>
-        <img style={{ width: 48, height: 48 }} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png" />
-        <div style={{ color: '#292524', fontSize: 36, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>Meeting Templates</div>
-      </div>
-      <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 12, display: 'flex' }}>
-        <div style={{ color: '#525252', fontSize: 32, fontFamily: 'IBM Plex Mono', fontWeight: '500', wordWrap: 'break-word' }}>{params.category}</div>
-        <div style={{ alignSelf: 'stretch', color: '#292524', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>{preventWidow(params.title)}</div>
-        {params.description && (
-          <div style={{ alignSelf: 'stretch', color: '#525252', fontSize: 36, fontFamily: 'IBM Plex Mono', fontWeight: '400', wordWrap: 'break-word' }}>{params.description}</div>
-        )}
-      </div>
-    </div>
-  );
+  return renderGenericTemplate({
+    headerText: "Hyprnote / Meeting Templates",
+    category: params.category,
+    title: params.title,
+    description: params.description,
+  });
+}
+
+function renderShortcutsTemplate(params: z.infer<typeof shortcutsSchema>) {
+  return renderGenericTemplate({
+    headerText: "Hyprnote / Shortcuts",
+    category: params.category,
+    title: params.title,
+    description: params.description,
+  });
 }
 
 export default async function handler(req: Request) {
@@ -282,38 +620,45 @@ export default async function handler(req: Request) {
       response = renderDocsTemplate(params);
     } else if (params.type === "templates") {
       response = renderTemplatesTemplate(params);
+    } else if (params.type === "shortcuts") {
+      response = renderShortcutsTemplate(params);
     } else {
       response = renderMeetingTemplate(params);
     }
 
-    const needsCustomFonts = params.type === "changelog" || params.type === "blog" || params.type === "docs" || params.type === "templates";
+    const needsCustomFonts =
+      params.type === "changelog" ||
+      params.type === "blog" ||
+      params.type === "docs" ||
+      params.type === "templates" ||
+      params.type === "shortcuts";
     const fonts = needsCustomFonts
       ? [
-        {
-          name: "Lora",
-          data: await fetch(
-            "https://fonts.gstatic.com/s/lora/v37/0QI6MX1D_JOuGQbT0gvTJPa787z5vCJG.ttf"
-          ).then((res) => res.arrayBuffer()),
-          weight: 700 as const,
-          style: "normal" as const,
-        },
-        {
-          name: "Lora",
-          data: await fetch(
-            "https://fonts.gstatic.com/s/lora/v37/0QI6MX1D_JOuGQbT0gvTJPa787weuyJGmKxemMeZ.ttf"
-          ).then((res) => res.arrayBuffer()),
-          weight: 400 as const,
-          style: "normal" as const,
-        },
-        {
-          name: "IBM Plex Mono",
-          data: await fetch(
-            "https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n5ig.ttf"
-          ).then((res) => res.arrayBuffer()),
-          weight: 400 as const,
-          style: "normal" as const,
-        },
-      ]
+          {
+            name: "Lora",
+            data: await fetch(
+              "https://fonts.gstatic.com/s/lora/v37/0QI6MX1D_JOuGQbT0gvTJPa787z5vCJG.ttf",
+            ).then((res) => res.arrayBuffer()),
+            weight: 700 as const,
+            style: "normal" as const,
+          },
+          {
+            name: "Lora",
+            data: await fetch(
+              "https://fonts.gstatic.com/s/lora/v37/0QI6MX1D_JOuGQbT0gvTJPa787weuyJGmKxemMeZ.ttf",
+            ).then((res) => res.arrayBuffer()),
+            weight: 400 as const,
+            style: "normal" as const,
+          },
+          {
+            name: "IBM Plex Mono",
+            data: await fetch(
+              "https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n5ig.ttf",
+            ).then((res) => res.arrayBuffer()),
+            weight: 400 as const,
+            style: "normal" as const,
+          },
+        ]
       : undefined;
 
     const imageResponse = new ImageResponse(response, { fonts });

@@ -1,17 +1,66 @@
 ---
 title: "Setup"
 section: "Developers"
-description: "Learn how to setup Hyprnote"
+description: "Learn how to setup Hyprnote for development"
 ---
 
-# Setup
+Hyprnote uses [Taskfile](https://taskfile.dev) for most development tasks. See `**/Taskfile.yaml` for available commands.
 
-- We use [Taskfile](https://taskfile.dev) for most of the development tasks. See `**/Taskfile.yaml` for other CLI we use.
+## Prerequisites
+
+Before setting up Hyprnote, ensure you have the following installed:
+
+- [Rust](https://rustup.rs) (latest stable)
+- [Node.js](https://nodejs.org) (v20 or later)
+- [pnpm](https://pnpm.io) (v9 or later)
+- [Taskfile](https://taskfile.dev/installation)
 
 ## Mac
 
-TODO
+Install the required system dependencies via Homebrew:
+
+```bash
+brew install cmake pkg-config
+```
+
+Install Rust if you haven't already:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/fastrepl/hyprnote.git
+cd hyprnote
+pnpm install
+```
+
+Build the UI package before running the desktop app:
+
+```bash
+pnpm -F ui build
+```
 
 ## Linux
 
-- `scripts/setup-linux.sh` is well-maintained script for `Ubuntu` based distros.
+For Ubuntu-based distributions, run the setup script:
+
+```bash
+bash scripts/setup-linux.sh
+```
+
+This script installs all required system dependencies including GTK, PulseAudio, and Tauri prerequisites. It also installs development tools like dprint, Taskfile, and Supabase CLI.
+
+After running the setup script, clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/fastrepl/hyprnote.git
+cd hyprnote
+pnpm install
+```
+
+## Next Steps
+
+See [Run](/docs/developers/run) to learn how to start the development server, and [Environment Variables](/docs/developers/env) for configuration options.

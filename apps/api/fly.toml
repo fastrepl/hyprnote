@@ -9,9 +9,6 @@ kill_signal = 'SIGTERM'
 kill_timeout = 30
 swap_size_mb = 512
 
-[build]
-dockerfile = "Dockerfile"
-
 [deploy]
 strategy = "bluegreen"
 
@@ -19,8 +16,12 @@ strategy = "bluegreen"
 BUN_ENV = "production"
 PORT = "8787"
 
+[processes]
+web = "bun src/index.ts"
+cron = "supercronic /app/crontab"
+
 [http_service]
-processes = ['app']
+processes = ['web']
 internal_port = 8787
 force_https = true
 auto_stop_machines = 'stop'
@@ -41,7 +42,6 @@ protocol = "http"
 timeout = "4s"
 
 [[vm]]
-processes = ['app']
 memory = '1gb'
 cpu_kind = 'shared'
 cpus = 1

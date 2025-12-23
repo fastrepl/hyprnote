@@ -171,6 +171,7 @@ export const createTasksSlice = <T extends TasksState>(
         args: enrichedArgs,
         onProgress,
         signal: abortController.signal,
+        store: deps.persistedStore,
       });
 
       const transforms = taskConfig.transforms ?? [];

@@ -4,7 +4,9 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-ping`
+- `allow-list-available-sources`
+- `allow-run-import`
+- `allow-run-import-dry`
 
 ## Permission Table
 
@@ -18,12 +20,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`importer:allow-ping`
+`importer:allow-list-available-sources`
 
 </td>
 <td>
 
-Enables the ping command without any pre-configured scope.
+Enables the list_available_sources command without any pre-configured scope.
 
 </td>
 </tr>
@@ -31,12 +33,64 @@ Enables the ping command without any pre-configured scope.
 <tr>
 <td>
 
-`importer:deny-ping`
+`importer:deny-list-available-sources`
 
 </td>
 <td>
 
-Denies the ping command without any pre-configured scope.
+Denies the list_available_sources command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`importer:allow-run-import`
+
+</td>
+<td>
+
+Enables the run_import command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`importer:deny-run-import`
+
+</td>
+<td>
+
+Denies the run_import command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`importer:allow-run-import-dry`
+
+</td>
+<td>
+
+Enables the run_import_dry command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`importer:deny-run-import-dry`
+
+</td>
+<td>
+
+Denies the run_import_dry command without any pre-configured scope.
 
 </td>
 </tr>

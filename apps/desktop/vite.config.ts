@@ -9,7 +9,16 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(() => ({
   plugins: [
     tanstackRouter({ target: "react", autoCodeSplitting: false }),
-    react(),
+    react({
+      babel: {
+        plugins: [
+          // [
+          //   "babel-plugin-react-compiler",
+          //   { compilationMode: "infer", target: "19" },
+          // ],
+        ],
+      },
+    }),
   ],
   resolve: {
     alias:

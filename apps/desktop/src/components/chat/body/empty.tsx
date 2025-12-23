@@ -1,38 +1,28 @@
+import { MessageSquareIcon, SettingsIcon, SparklesIcon } from "lucide-react";
 import { useCallback } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
+
+import { useTabs } from "../../../store/zustand/tabs";
 
 export function ChatBodyEmpty({
   isModelConfigured = true,
 }: {
   isModelConfigured?: boolean;
 }) {
+  const openNew = useTabs((state) => state.openNew);
+
   const handleGoToSettings = useCallback(() => {
-    windowsCommands
-      .windowShow({ type: "settings" })
-      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-      .then(() =>
-        windowsCommands.windowEmitNavigate(
-          { type: "settings" },
-          {
-            path: "/app/settings",
-            search: { tab: "intelligence" },
-          },
-        ),
-      );
-  }, []);
+    openNew({ type: "ai", state: { tab: "intelligence" } });
+  }, [openNew]);
 
-  const quickActions = [
-    "Make a 1-paragraph summary",
-    "Draft a follow-up mail for others",
-    "What are the next steps for me",
-  ];
+  const handleOpenChatShortcuts = useCallback(() => {
+    openNew({ type: "chat_shortcuts" });
+  }, [openNew]);
 
-  const handleQuickAction = (action: string) => {
-    // For now, we just log it
-    console.log("Quick action clicked:", action);
-  };
+  const handleOpenPrompts = useCallback(() => {
+    openNew({ type: "prompts" });
+  }, [openNew]);
 
   if (!isModelConfigured) {
     return (
@@ -80,16 +70,28 @@ export function ChatBodyEmpty({
           <p className="text-sm text-neutral-700 mb-2">
             Hey! I can help you with a lot of cool stuff :)
           </p>
-          <div className="flex flex-col gap-1 pb-1">
-            {quickActions.map((action) => (
-              <button
-                key={action}
-                onClick={() => handleQuickAction(action)}
-                className="px-3 py-2 text-sm bg-white hover:bg-neutral-50 text-neutral-700 rounded-lg transition-colors border border-neutral-200 text-left"
-              >
-                {action}
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-2 pb-1">
+            <button
+              onClick={handleOpenChatShortcuts}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-600 bg-white hover:bg-neutral-50 rounded-full border border-neutral-200 transition-colors"
+            >
+              <MessageSquareIcon size={12} />
+              <span>Shortcuts</span>
+            </button>
+            <button
+              onClick={handleOpenPrompts}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-600 bg-white hover:bg-neutral-50 rounded-full border border-neutral-200 transition-colors"
+            >
+              <SparklesIcon size={12} />
+              <span>Prompts</span>
+            </button>
+            <button
+              onClick={handleGoToSettings}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-600 bg-white hover:bg-neutral-50 rounded-full border border-neutral-200 transition-colors"
+            >
+              <SettingsIcon size={12} />
+              <span>Settings</span>
+            </button>
           </div>
         </div>
       </div>

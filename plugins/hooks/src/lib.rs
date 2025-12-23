@@ -9,8 +9,9 @@ mod runner;
 #[cfg(test)]
 mod docs;
 
-pub use error::{Error, Result};
+pub use error::*;
 pub use ext::*;
+pub use runner::*;
 
 const PLUGIN_NAME: &str = "hooks";
 
@@ -44,15 +45,19 @@ mod test {
     }
 
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 
     fn export_docs() {

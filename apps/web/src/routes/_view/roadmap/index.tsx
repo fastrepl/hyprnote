@@ -2,11 +2,15 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allRoadmaps } from "content-collections";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
+import { DownloadButton } from "@/components/download-button";
+import { GithubStars } from "@/components/github-stars";
+import { Image } from "@/components/image";
 import { MDXLink } from "@/components/mdx";
+import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
 export const Route = createFileRoute("/_view/roadmap/")({
   component: Component,
@@ -52,6 +56,7 @@ function getRoadmapItems(): RoadmapItem[] {
 
 function Component() {
   const items = getRoadmapItems();
+  const heroInputRef = useRef<HTMLInputElement>(null);
 
   const done = items.filter((item) => item.status === "done");
   const inProgress = items.filter((item) => item.status === "in-progress");
@@ -77,27 +82,7 @@ function Component() {
           <KanbanView done={done} inProgress={inProgress} todo={todo} />
           <ColumnView done={done} inProgress={inProgress} todo={todo} />
 
-          <div className="mt-16 bg-stone-50 border border-neutral-200 rounded-lg p-8 text-center">
-            <h3 className="text-2xl font-serif text-stone-600 mb-4">
-              Have a feature request?
-            </h3>
-            <p className="text-neutral-600 mb-6">
-              We'd love to hear your ideas. Join our community and share your
-              thoughts.
-            </p>
-            <a
-              href="https://github.com/fastrepl/hyprnote/discussions"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn([
-                "inline-block px-6 py-3 text-base font-medium rounded-full",
-                "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-                "hover:scale-105 active:scale-95 transition-transform",
-              ])}
-            >
-              Share feedback
-            </a>
-          </div>
+          <CTASection heroInputRef={heroInputRef} />
         </div>
       </div>
     </div>
@@ -305,7 +290,7 @@ function RoadmapCard({
           <h3
             className={cn([
               "font-medium text-stone-600 group-hover:text-stone-800",
-              "transition-colors",
+              "transition-colors wrap-break-word",
               compact ? "text-sm" : "text-base",
             ])}
           >
@@ -331,10 +316,105 @@ function RoadmapCard({
         </div>
       </div>
       {!compact && (
-        <div className="prose prose-sm prose-stone max-w-none">
+        <div className="prose prose-sm prose-stone max-w-none wrap-break-word">
           <MDXContent code={item.mdx} components={{ a: MDXLink }} />
         </div>
       )}
     </Link>
+  );
+}
+
+function CTASection({
+  heroInputRef,
+}: {
+  heroInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const platform = usePlatform();
+  const platformCTA = getPlatformCTA(platform);
+
+  const getButtonLabel = () => {
+    if (platform === "mobile") {
+      return "Get reminder";
+    }
+    return platformCTA.label;
+  };
+
+  const handleCTAClick = () => {
+    if (platformCTA.action === "waitlist") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(() => {
+        if (heroInputRef.current) {
+          heroInputRef.current.focus();
+          heroInputRef.current.parentElement?.classList.add(
+            "animate-shake",
+            "border-stone-600",
+          );
+          setTimeout(() => {
+            heroInputRef.current?.parentElement?.classList.remove(
+              "animate-shake",
+              "border-stone-600",
+            );
+          }, 500);
+        }
+      }, 500);
+    }
+  };
+
+  return (
+    <section className="mt-16 py-16 bg-linear-to-t from-stone-50/30 to-stone-100/30 -mx-6 px-6">
+      <div className="flex flex-col gap-6 items-center text-center">
+        <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
+          <Image
+            src="/api/images/hyprnote/icon.png"
+            alt="Hyprnote"
+            width={144}
+            height={144}
+            className="size-36 mx-auto rounded-[40px] border border-neutral-100"
+          />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-serif">
+          Where conversations
+          <br className="sm:hidden" /> stay yours
+        </h2>
+        <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+          Start using Hyprnote today and bring clarity to your back-to-back
+          meetings
+        </p>
+        <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
+          {platformCTA.action === "download" ? (
+            <DownloadButton />
+          ) : (
+            <button
+              onClick={handleCTAClick}
+              className={cn([
+                "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+                "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
+                "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                "transition-all",
+              ])}
+            >
+              {getButtonLabel()}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+              </svg>
+            </button>
+          )}
+          <div className="hidden sm:block">
+            <GithubStars />
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

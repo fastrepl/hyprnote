@@ -14,6 +14,30 @@ export type StateBasicActions = {
     tab: Tab,
     state: Extract<Tab, { type: "sessions" }>["state"],
   ) => void;
+  updateTemplatesTabState: (
+    tab: Tab,
+    state: Extract<Tab, { type: "templates" }>["state"],
+  ) => void;
+  updatePromptsTabState: (
+    tab: Tab,
+    state: Extract<Tab, { type: "prompts" }>["state"],
+  ) => void;
+  updateChatShortcutsTabState: (
+    tab: Tab,
+    state: Extract<Tab, { type: "chat_shortcuts" }>["state"],
+  ) => void;
+  updateExtensionsTabState: (
+    tab: Tab,
+    state: Extract<Tab, { type: "extensions" }>["state"],
+  ) => void;
+  updateAiTabState: (
+    tab: Tab,
+    state: Extract<Tab, { type: "ai" }>["state"],
+  ) => void;
+  updateDataTabState: (
+    tab: Tab,
+    state: Extract<Tab, { type: "data" }>["state"],
+  ) => void;
 };
 
 export const createStateUpdaterSlice = <T extends BasicState & NavigationState>(
@@ -24,6 +48,17 @@ export const createStateUpdaterSlice = <T extends BasicState & NavigationState>(
     updateTabState(tab, "sessions", state, get, set),
   updateContactsTabState: (tab, state) =>
     updateTabState(tab, "contacts", state, get, set),
+  updateTemplatesTabState: (tab, state) =>
+    updateTabState(tab, "templates", state, get, set),
+  updatePromptsTabState: (tab, state) =>
+    updateTabState(tab, "prompts", state, get, set),
+  updateChatShortcutsTabState: (tab, state) =>
+    updateTabState(tab, "chat_shortcuts", state, get, set),
+  updateExtensionsTabState: (tab, state) =>
+    updateTabState(tab, "extensions", state, get, set),
+  updateAiTabState: (tab, state) => updateTabState(tab, "ai", state, get, set),
+  updateDataTabState: (tab, state) =>
+    updateTabState(tab, "data", state, get, set),
 });
 
 const updateTabState = <T extends BasicState & NavigationState>(

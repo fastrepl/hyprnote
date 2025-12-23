@@ -1,9 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { message } from "@tauri-apps/plugin-dialog";
-import { relaunch } from "@tauri-apps/plugin-process";
 import { Command } from "@tauri-apps/plugin-shell";
 
 import { commands as permissionsCommands } from "@hypr/plugin-permissions";
+
+import { relaunch } from "../store/tinybase/save";
 
 export function usePermissions() {
   const micPermissionStatus = useQuery({
@@ -46,7 +47,7 @@ export function usePermissions() {
     mutationFn: () => permissionsCommands.requestMicrophonePermission(),
     onSuccess: () => {
       setTimeout(() => {
-        micPermissionStatus.refetch();
+        void micPermissionStatus.refetch();
       }, 1000);
     },
     onError: (error) => {
@@ -57,13 +58,11 @@ export function usePermissions() {
   const systemAudioPermission = useMutation({
     mutationFn: () => permissionsCommands.requestSystemAudioPermission(),
     onSuccess: () => {
-      message("The app will now restart to apply the changes", {
+      void message("The app will now restart to apply the changes", {
         kind: "info",
         title: "System Audio Status Changed",
       });
-      setTimeout(() => {
-        relaunch();
-      }, 2000);
+      setTimeout(() => relaunch(), 2000);
     },
     onError: console.error,
   });
@@ -72,7 +71,7 @@ export function usePermissions() {
     mutationFn: () => permissionsCommands.requestAccessibilityPermission(),
     onSuccess: () => {
       setTimeout(() => {
-        accessibilityPermissionStatus.refetch();
+        void accessibilityPermissionStatus.refetch();
       }, 1000);
     },
     onError: console.error,

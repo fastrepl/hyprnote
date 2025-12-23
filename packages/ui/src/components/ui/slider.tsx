@@ -55,7 +55,8 @@ const thumbVariants = cva(
 );
 
 export interface SliderProps
-  extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>,
+  extends
+    React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>,
     VariantProps<typeof sliderVariants> {}
 
 const Slider = React.forwardRef<

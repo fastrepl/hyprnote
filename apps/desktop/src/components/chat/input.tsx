@@ -1,6 +1,7 @@
 import { FullscreenIcon, MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { SlashCommandConfig, TiptapEditor } from "@hypr/tiptap/chat";
 import ChatEditor from "@hypr/tiptap/chat";
 import {
@@ -16,12 +17,21 @@ import * as main from "../../store/tinybase/main";
 export function ChatMessageInput({
   onSendMessage,
   disabled: disabledProp,
+  attachedSession,
 }: {
   onSendMessage: (content: string, parts: any[]) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
+  attachedSession?: { id: string; title?: string };
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
-  const store = main.UI.useStore(main.STORE_ID);
+  const chatShortcuts = main.UI.useResultTable(
+    main.QUERIES.visibleChatShortcuts,
+    main.STORE_ID,
+  );
+  const sessions = main.UI.useResultTable(
+    main.QUERIES.sessionsWithMaybeEvent,
+    main.STORE_ID,
+  );
 
   const disabled =
     typeof disabledProp === "object" ? disabledProp.disabled : disabledProp;
@@ -34,6 +44,7 @@ export function ChatMessageInput({
       return;
     }
 
+    void analyticsCommands.event({ event: "chat_message_sent" });
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
   }, [disabled, onSendMessage]);
@@ -64,33 +75,52 @@ export function ChatMessageInput({
   const slashCommandConfig: SlashCommandConfig = useMemo(
     () => ({
       handleSearch: async (query: string) => {
-        if (!store) {
-          return [];
-        }
-
-        const results: { id: string; type: string; label: string }[] = [];
+        const results: {
+          id: string;
+          type: string;
+          label: string;
+          content?: string;
+        }[] = [];
         const lowerQuery = query.toLowerCase();
 
-        store.forEachRow("sessions", (rowId, forEachCell) => {
-          let title = "";
-          forEachCell((cellId, cell) => {
-            if (cellId === "title" && typeof cell === "string") {
-              title = cell;
-            }
-          });
+        Object.entries(chatShortcuts).forEach(([rowId, row]) => {
+          const content = row.content as string | undefined;
+          if (content && content.toLowerCase().includes(lowerQuery)) {
+            const label =
+              content.length > 40 ? content.slice(0, 40) + "..." : content;
+            results.push({
+              id: rowId,
+              type: "chat_shortcut",
+              label,
+              content,
+            });
+          }
+        });
+
+        Object.entries(sessions).forEach(([rowId, row]) => {
+          const title = row.title as string | undefined;
           if (title && title.toLowerCase().includes(lowerQuery)) {
-            results.push({ id: rowId, type: "session", label: title });
+            results.push({
+              id: rowId,
+              type: "session",
+              label: title,
+            });
           }
         });
 
         return results.slice(0, 5);
       },
     }),
-    [store],
+    [chatShortcuts, sessions],
   );
 
   return (
     <Container>
+      {attachedSession && (
+        <div className="px-3 pt-2 text-xs text-neutral-500 truncate">
+          Attached: {attachedSession.title || "Untitled"}
+        </div>
+      )}
       <div className="flex flex-col p-2">
         <div className="flex-1 mb-2">
           <ChatEditor
@@ -168,6 +198,7 @@ function Container({ children }: { children: React.ReactNode }) {
 }
 
 const ChatPlaceholder: PlaceholderFunction = ({ node, pos }) => {
+  "use no memo";
   if (node.type.name === "paragraph" && pos === 0) {
     return (
       <p className="text-sm text-neutral-400">

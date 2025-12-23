@@ -105,7 +105,7 @@ impl UserDatabase {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::setup_db, Human, Session, Tag};
+    use crate::{Human, Session, Tag, tests::setup_db};
 
     #[tokio::test]
     async fn test_tags() {

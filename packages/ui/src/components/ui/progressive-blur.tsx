@@ -40,9 +40,7 @@ export function ProgressiveBlur({
             `rgba(255, 255, 255, ${posIndex === 1 || posIndex === 2 ? 1 : 0}) ${pos * 100}%`,
         );
 
-        const gradient = `linear-gradient(${angle}deg, ${gradientStops.join(
-          ", ",
-        )})`;
+        const gradient = `linear-gradient(${angle}deg, ${gradientStops.join(", ")})`;
 
         return (
           <motion.div

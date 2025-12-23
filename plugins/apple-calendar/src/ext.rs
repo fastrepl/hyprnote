@@ -1,19 +1,16 @@
-pub trait AppleCalendarPluginExt<R: tauri::Runtime> {
-    fn open_calendar(&self) -> Result<(), String>;
+use crate::types::EventFilter;
+use crate::types::{AppleCalendar, AppleEvent};
 
-    fn open_calendar_access_settings(&self) -> Result<(), String>;
-    fn open_contacts_access_settings(&self) -> Result<(), String>;
-
-    fn calendar_access_status(&self) -> bool;
-    fn contacts_access_status(&self) -> bool;
-
-    fn request_calendar_access(&self);
-    fn request_contacts_access(&self);
+pub struct AppleCalendarExt<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    #[allow(dead_code)]
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> for T {
+#[cfg(target_os = "macos")]
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
     #[tracing::instrument(skip_all)]
-    fn open_calendar(&self) -> Result<(), String> {
+    pub fn open_calendar(&self) -> Result<(), String> {
         let script = String::from(
             "
             tell application \"Calendar\"
@@ -36,70 +33,47 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
     }
 
     #[tracing::instrument(skip_all)]
-    fn open_calendar_access_settings(&self) -> Result<(), String> {
-        std::process::Command::new("open")
-            .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars")
-            .spawn()
-            .map_err(|e| e.to_string())?
-            .wait()
-            .map_err(|e| e.to_string())?;
-
-        Ok(())
+    pub fn list_calendars(&self) -> Result<Vec<AppleCalendar>, String> {
+        let handle = crate::apple::Handle::default();
+        handle.list_calendars().map_err(|e| e.to_string())
     }
 
     #[tracing::instrument(skip_all)]
-    fn open_contacts_access_settings(&self) -> Result<(), String> {
-        std::process::Command::new("open")
-            .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Contacts")
-            .spawn()
-            .map_err(|e| e.to_string())?
-            .wait()
-            .map_err(|e| e.to_string())?;
+    pub fn list_events(&self, filter: EventFilter) -> Result<Vec<AppleEvent>, String> {
+        let handle = crate::apple::Handle::default();
+        handle.list_events(filter).map_err(|e| e.to_string())
+    }
+}
 
-        Ok(())
+#[cfg(not(target_os = "macos"))]
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
+    pub fn open_calendar(&self) -> Result<(), String> {
+        Err("not supported on this platform".to_string())
     }
 
-    #[tracing::instrument(skip_all)]
-    fn calendar_access_status(&self) -> bool {
-        let handle = hypr_calendar_apple::Handle::new();
-        handle.calendar_access_status()
+    pub fn list_calendars(&self) -> Result<Vec<AppleCalendar>, String> {
+        Err("not supported on this platform".to_string())
     }
 
-    #[tracing::instrument(skip_all)]
-    fn contacts_access_status(&self) -> bool {
-        let handle = hypr_calendar_apple::Handle::new();
-        handle.contacts_access_status()
+    pub fn list_events(&self, _filter: EventFilter) -> Result<Vec<AppleEvent>, String> {
+        Err("not supported on this platform".to_string())
     }
+}
 
-    #[tracing::instrument(skip_all)]
-    fn request_calendar_access(&self) {
-        use tauri_plugin_shell::ShellExt;
+pub trait AppleCalendarPluginExt<R: tauri::Runtime> {
+    fn apple_calendar(&self) -> AppleCalendarExt<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
 
-        let bundle_id = self.config().identifier.clone();
-        self.app_handle()
-            .shell()
-            .command("tccutil")
-            .args(["reset", "Calendar", &bundle_id])
-            .spawn()
-            .ok();
-
-        let mut handle = hypr_calendar_apple::Handle::new();
-        handle.request_calendar_access();
-    }
-
-    #[tracing::instrument(skip_all)]
-    fn request_contacts_access(&self) {
-        use tauri_plugin_shell::ShellExt;
-
-        let bundle_id = self.config().identifier.clone();
-        self.app_handle()
-            .shell()
-            .command("tccutil")
-            .args(["reset", "AddressBook", &bundle_id])
-            .spawn()
-            .ok();
-
-        let mut handle = hypr_calendar_apple::Handle::new();
-        handle.request_contacts_access();
+impl<R: tauri::Runtime, T: tauri::Manager<R>> AppleCalendarPluginExt<R> for T {
+    fn apple_calendar(&self) -> AppleCalendarExt<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        AppleCalendarExt {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

@@ -3,6 +3,8 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["**"]
+    branches-ignore:
+      - "**/graphite-base/**"
 
 jobs:
   zizmor:

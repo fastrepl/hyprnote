@@ -1,0 +1,7 @@
+{
+  "name": "@hypr/api-client",
+  "exports": {
+    ".": "./src/generated/index.ts",
+    "./client": "./src/generated/client/index.ts"
+  }
+}

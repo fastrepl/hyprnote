@@ -3,11 +3,11 @@ use std::str::FromStr;
 use tauri::Manager;
 use tauri_specta::Event;
 
-use crate::{AppWindow, WindowsPluginExt};
+use crate::AppWindow;
 
 // TODO: https://github.com/fastrepl/hyprnote/commit/150c8a1 this not worked. webview_window not found.
 pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::WindowEvent) {
-    let app = window.app_handle();
+    let _app = window.app_handle();
 
     match event {
         tauri::WindowEvent::CloseRequested { api, .. } => {
@@ -16,10 +16,13 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
                 Ok(w) => {
                     if w == AppWindow::Main && window.hide().is_ok() {
                         api.prevent_close();
-
-                        if let Err(e) = app.handle_main_window_visibility(false) {
-                            tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
-                        }
+                    }
+                    if w == AppWindow::Onboarding {
+                        use tauri_plugin_sfx::SfxPluginExt;
+                        window
+                            .app_handle()
+                            .sfx()
+                            .stop(tauri_plugin_sfx::AppSounds::BGM);
                     }
                 }
             }
@@ -39,10 +42,6 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
 
                     let event = WindowDestroyed { window: w };
                     let _ = event.emit(app);
-
-                    if let Err(e) = app.handle_main_window_visibility(false) {
-                        tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
-                    }
                 }
             }
         }
@@ -105,6 +104,12 @@ common_event_derives! {
     }
 }
 
+common_event_derives! {
+    pub struct OpenTab {
+        pub tab: crate::TabInput,
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -113,12 +118,12 @@ mod test {
     fn navigate_from_str() {
         let test_cases = vec![
             (
-                "hypr://hyprnote.com/app/new?calendarEventId=123&record=true",
+                "hyprnote://hyprnote.com/app/new?calendarEventId=123&record=true",
                 "/app/new",
                 Some(serde_json::json!({ "calendarEventId": "123", "record": "true" })),
             ),
             (
-                "hypr://hyprnote.com/app/new?record=true",
+                "hyprnote://hyprnote.com/app/new?record=true",
                 "/app/new",
                 Some(serde_json::json!({ "record": "true" })),
             ),

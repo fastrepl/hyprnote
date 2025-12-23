@@ -32,8 +32,8 @@ export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (
 const TabItemFolderAll: TabItem<Extract<Tab, { type: "folders" }>> = ({
   tab,
   tabIndex,
-  handleCloseThis: handleCloseThis,
-  handleSelectThis: handleSelectThis,
+  handleCloseThis,
+  handleSelectThis,
   handleCloseAll,
   handleCloseOthers,
 }) => {

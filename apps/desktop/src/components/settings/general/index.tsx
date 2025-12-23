@@ -5,9 +5,12 @@ import { disable, enable } from "@tauri-apps/plugin-autostart";
 import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
-import * as main from "../../../store/tinybase/main";
+import * as settings from "../../../store/tinybase/settings";
+import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
+import { LabSettings } from "./lab";
 import { MainLanguageView } from "./main-language";
+import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 
@@ -21,7 +24,7 @@ export function SettingsGeneral() {
     "spoken_languages",
   ] as const);
 
-  const setPartialValues = main.UI.useSetPartialValuesCallback(
+  const setPartialValues = settings.UI.useSetPartialValuesCallback(
     (row: Partial<General>) =>
       ({
         ...row,
@@ -36,7 +39,7 @@ export function SettingsGeneral() {
           : undefined,
       }) satisfies Partial<GeneralStorage>,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const form = useForm({
@@ -56,22 +59,27 @@ export function SettingsGeneral() {
         if (errors.length > 0) {
           console.log(errors);
         }
-        formApi.handleSubmit();
+        void formApi.handleSubmit();
       },
     },
     onSubmit: ({ value }) => {
       setPartialValues(value);
 
       if (value.autostart) {
-        enable();
+        void enable();
       } else {
-        disable();
+        void disable();
       }
     },
   });
 
   return (
     <div className="flex flex-col gap-8">
+      <div>
+        <h2 className="font-semibold mb-4">Account & Billing</h2>
+        <AccountSettings />
+      </div>
+
       <form.Field name="autostart">
         {(autostartField) => (
           <form.Field name="notification_detect">
@@ -147,7 +155,14 @@ export function SettingsGeneral() {
         </div>
       </div>
 
+      <div>
+        <h2 className="font-semibold mb-4">Notifications</h2>
+        <NotificationSettingsView />
+      </div>
+
       <Permissions />
+
+      <LabSettings />
     </div>
   );
 }
@@ -195,6 +210,7 @@ const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
   "sl",
   "ta",
   "lv",
+  "lt",
   "az",
   "he",
 ];

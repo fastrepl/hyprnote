@@ -1,50 +1,31 @@
-import { createClient } from "@deepgram/sdk";
-import type { IngressWorkflowClient } from "@restatedev/restate-sdk-clients";
-import * as clients from "@restatedev/restate-sdk-clients";
+import { createClient as createDeepgramClient } from "@deepgram/sdk";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+
+import {
+  getFileTranscriptionResultByPipelineId,
+  getFileTranscriptionStatusByPipelineId,
+  postFileTranscriptionStart,
+} from "@hypr/api-client";
+import { createClient } from "@hypr/api-client/client";
 
 import { env } from "@/env";
 import { getSupabaseServerClient } from "@/functions/supabase";
 
-const PipelineStatus = z.enum([
-  "QUEUED",
-  "TRANSCRIBING",
-  "TRANSCRIBED",
-  "LLM_RUNNING",
-  "DONE",
-  "ERROR",
-]);
+export type PipelineStatusType =
+  | "QUEUED"
+  | "TRANSCRIBING"
+  | "TRANSCRIBED"
+  | "LLM_RUNNING"
+  | "DONE"
+  | "ERROR";
 
-export type PipelineStatusType = z.infer<typeof PipelineStatus>;
-
-const StatusState = z.object({
-  status: PipelineStatus,
-  transcript: z.string().optional(),
-  llmResult: z.string().optional(),
-  error: z.string().optional(),
-});
-
-export type StatusStateType = z.infer<typeof StatusState>;
-
-type SttFileInput = {
-  userId: string;
-  fileId: string;
+export type StatusStateType = {
+  status: PipelineStatusType;
+  transcript?: string;
+  llmResult?: string;
+  error?: string;
 };
-
-// Workflow definition type matching the server-side handler signatures.
-// The first parameter (ctx) is the Restate context, which is stripped by IngressWorkflowClient.
-type SttFileDefinition = {
-  run: (ctx: unknown, input: SttFileInput) => Promise<StatusStateType>;
-  getStatus: (ctx: unknown) => Promise<StatusStateType>;
-};
-
-// Client type with workflowSubmit, workflowAttach, and other client methods
-type SttFileClient = IngressWorkflowClient<SttFileDefinition>;
-
-function getRestateClient() {
-  return clients.connect({ url: env.RESTATE_INGRESS_URL });
-}
 
 export const startAudioPipeline = createServerFn({ method: "POST" })
   .inputValidator(
@@ -55,52 +36,36 @@ export const startAudioPipeline = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
-    const { data: userData } = await supabase.auth.getUser();
+    const { data: sessionData } = await supabase.auth.getSession();
 
-    if (!userData.user) {
+    if (!sessionData.session) {
       return { error: true, message: "Unauthorized" };
     }
 
-    const userId = userData.user.id;
+    const client = createClient({
+      baseUrl: env.VITE_API_URL,
+      headers: {
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+    });
 
-    // Validate fileId belongs to the authenticated user
-    // fileId format: {userId}/{timestamp}-{fileName}
-    const segments = data.fileId.split("/").filter(Boolean);
-    const [ownerId, ...rest] = segments;
+    const { data: result, error } = await postFileTranscriptionStart({
+      client,
+      body: {
+        fileId: data.fileId,
+        pipelineId: data.pipelineId,
+      },
+    });
 
-    if (
-      !ownerId ||
-      ownerId !== userId ||
-      rest.length === 0 ||
-      rest.some((s) => s === "." || s === "..")
-    ) {
-      return { error: true, message: "Invalid fileId" };
+    if (error || !result) {
+      return { error: true, message: "Failed to start pipeline" };
     }
 
-    const safeFileId = `${userId}/${rest.join("/")}`;
-    const pipelineId = data.pipelineId ?? crypto.randomUUID();
-
-    try {
-      const restateClient = getRestateClient();
-      const workflowClient: SttFileClient =
-        restateClient.workflowClient<SttFileDefinition>(
-          { name: "SttFile" },
-          pipelineId,
-        );
-      const handle = await workflowClient.workflowSubmit({
-        userId,
-        fileId: safeFileId,
-      });
-
-      return {
-        success: true,
-        pipelineId,
-        invocationId: handle.invocationId,
-      };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      return { error: true, message: errorMessage };
-    }
+    return {
+      success: true,
+      pipelineId: result.pipelineId,
+      invocationId: result.invocationId,
+    };
   });
 
 export const getAudioPipelineStatus = createServerFn({ method: "GET" })
@@ -111,29 +76,33 @@ export const getAudioPipelineStatus = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
-    const { data: userData } = await supabase.auth.getUser();
+    const { data: sessionData } = await supabase.auth.getSession();
 
-    if (!userData.user) {
+    if (!sessionData.session) {
       return { error: true, message: "Unauthorized" };
     }
 
-    try {
-      const restateClient = getRestateClient();
-      const workflowClient: SttFileClient =
-        restateClient.workflowClient<SttFileDefinition>(
-          { name: "SttFile" },
-          data.pipelineId,
-        );
-      const status = await workflowClient.getStatus();
+    const client = createClient({
+      baseUrl: env.VITE_API_URL,
+      headers: {
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+    });
 
-      return {
-        success: true,
-        status,
-      };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      return { error: true, message: errorMessage };
+    const { data: status, error } =
+      await getFileTranscriptionStatusByPipelineId({
+        client,
+        path: { pipelineId: data.pipelineId },
+      });
+
+    if (error || !status) {
+      return { error: true, message: "Failed to get pipeline status" };
     }
+
+    return {
+      success: true,
+      status,
+    };
   });
 
 export const getAudioPipelineResult = createServerFn({ method: "GET" })
@@ -144,30 +113,33 @@ export const getAudioPipelineResult = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
-    const { data: userData } = await supabase.auth.getUser();
+    const { data: sessionData } = await supabase.auth.getSession();
 
-    if (!userData.user) {
+    if (!sessionData.session) {
       return { error: true, message: "Unauthorized" };
     }
 
-    try {
-      const restateClient = getRestateClient();
-      const workflowClient: SttFileClient =
-        restateClient.workflowClient<SttFileDefinition>(
-          { name: "SttFile" },
-          data.pipelineId,
-        );
+    const client = createClient({
+      baseUrl: env.VITE_API_URL,
+      headers: {
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+    });
 
-      const result = await workflowClient.workflowAttach();
+    const { data: result, error } =
+      await getFileTranscriptionResultByPipelineId({
+        client,
+        path: { pipelineId: data.pipelineId },
+      });
 
-      return {
-        success: true,
-        result,
-      };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      return { error: true, message: errorMessage };
+    if (error || !result) {
+      return { error: true, message: "Failed to get pipeline result" };
     }
+
+    return {
+      success: true,
+      result,
+    };
   });
 
 export const transcribeAudio = createServerFn({ method: "POST" })
@@ -186,7 +158,7 @@ export const transcribeAudio = createServerFn({ method: "POST" })
       return { error: true, message: "Unauthorized" };
     }
 
-    const deepgram = createClient(env.DEEPGRAM_API_KEY);
+    const deepgram = createDeepgramClient(env.DEEPGRAM_API_KEY);
 
     const transcriptionRecord = await supabase
       .from("transcriptions")

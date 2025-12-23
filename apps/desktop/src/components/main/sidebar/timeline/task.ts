@@ -10,6 +10,21 @@ import type { Store } from "../../../../store/tinybase/main";
 
 export const CALENDAR_SYNC_TASK_ID = "calendarSync";
 
+function enabledCalendars(store: Store): { id: string; provider: string }[] {
+  const calendars: { id: string; provider: string }[] = [];
+
+  store.forEachRow("calendars", (rowId, _forEachCell) => {
+    const enabled = store.getCell("calendars", rowId, "enabled");
+    const provider = store.getCell("calendars", rowId, "provider");
+
+    if (enabled === true && provider) {
+      calendars.push({ id: rowId, provider });
+    }
+  });
+
+  return calendars;
+}
+
 export async function syncCalendarEvents(store: Store): Promise<void> {
   const [_, result] = await Promise.all([
     new Promise((resolve) => setTimeout(resolve, 250)),
@@ -20,23 +35,11 @@ export async function syncCalendarEvents(store: Store): Promise<void> {
 }
 
 async function doSyncCalendarEvents(store: Store): Promise<void> {
-  const calendars: { id: string }[] = [];
+  const appleCalendars = enabledCalendars(store).filter(
+    (c) => c.provider === "apple",
+  );
 
-  store.forEachRow("calendars", (rowId, forEachCell) => {
-    let enabled = false;
-    let provider = "";
-
-    forEachCell((cellId, cell) => {
-      if (cellId === "enabled") enabled = cell === true;
-      if (cellId === "provider") provider = String(cell);
-    });
-
-    if (enabled && provider === "apple") {
-      calendars.push({ id: rowId });
-    }
-  });
-
-  if (calendars.length === 0) {
+  if (appleCalendars.length === 0) {
     return;
   }
 
@@ -52,7 +55,7 @@ async function doSyncCalendarEvents(store: Store): Promise<void> {
   to.setDate(to.getDate() + 30);
 
   const results = await Promise.all(
-    calendars.map(async (calendar) => {
+    appleCalendars.map(async (calendar) => {
       const result = await appleCalendarCommands.listEvents({
         calendar_tracking_id: calendar.id,
         from: from.toISOString(),

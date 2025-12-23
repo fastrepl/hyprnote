@@ -7,7 +7,8 @@ import { cn } from "@hypr/utils";
 export interface CalendarItem {
   id: string;
   title: string;
-  color?: string;
+  color: string;
+  enabled: boolean;
 }
 
 export interface CalendarGroup {
@@ -17,7 +18,6 @@ export interface CalendarGroup {
 
 interface CalendarSelectionProps {
   groups: CalendarGroup[];
-  isCalendarEnabled: (id: string) => boolean;
   onToggle: (calendar: CalendarItem, enabled: boolean) => void;
   onRefresh: () => void;
   isLoading: boolean;
@@ -25,7 +25,6 @@ interface CalendarSelectionProps {
 
 export function CalendarSelection({
   groups,
-  isCalendarEnabled,
   onToggle,
   onRefresh,
   isLoading,
@@ -72,7 +71,7 @@ export function CalendarSelection({
                 <CalendarToggleRow
                   key={cal.id}
                   calendar={cal}
-                  enabled={isCalendarEnabled(cal.id)}
+                  enabled={cal.enabled}
                   onToggle={(enabled) => onToggle(cal, enabled)}
                 />
               ))}

@@ -25,6 +25,7 @@ export const createCalendar = () => {
       name: template,
       created_at: faker.date.past({ years: 1 }).toISOString(),
       enabled: faker.datatype.boolean(),
+      provider: "apple",
     } satisfies Calendar,
   };
 };

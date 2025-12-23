@@ -10,7 +10,7 @@ export { createFolder } from "./folder";
 export { createHuman } from "./human";
 export * from "./loader";
 export {
-  createmappingSessionParticipant,
+  createMappingSessionParticipant,
   createMappingTagSession,
 } from "./mapping";
 export { createOrganization } from "./organization";

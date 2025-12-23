@@ -1,10 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 import {
+  type AppleCalendar,
   commands as appleCalendarCommands,
-  type CalendarColor,
+  colorToCSS,
 } from "@hypr/plugin-apple-calendar";
 import {
   commands as permissionsCommands,
@@ -126,155 +128,6 @@ function AccessPermissionRow({
   );
 }
 
-function appleColorToCss(color?: CalendarColor | null): string | undefined {
-  if (!color) return undefined;
-  return `rgba(${Math.round(color.red * 255)}, ${Math.round(color.green * 255)}, ${Math.round(color.blue * 255)}, ${color.alpha})`;
-}
-
-function useAppleCalendarSelection() {
-  const { user_id } = main.UI.useValues(main.STORE_ID);
-  const calendarsTable = main.UI.useTable("calendars", main.STORE_ID);
-
-  const {
-    data: appleCalendars,
-    refetch,
-    isFetching,
-  } = useQuery({
-    queryKey: ["appleCalendars"],
-    queryFn: async () => {
-      const operation = appleCalendarCommands.listCalendars();
-      const minDelay = new Promise((resolve) => setTimeout(resolve, 500));
-
-      const [result] = await Promise.all([operation, minDelay]);
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  });
-
-  const createCalendarRow = main.UI.useSetRowCallback(
-    "calendars",
-    (p: { id: string; name: string }) => p.id,
-    (p: { id: string; name: string }) => ({
-      user_id: user_id ?? "",
-      created_at: new Date().toISOString(),
-      name: p.name,
-      enabled: false,
-    }),
-    [user_id],
-    main.STORE_ID,
-  );
-
-  const updateCalendarName = main.UI.useSetCellCallback(
-    "calendars",
-    (p: { id: string; name: string }) => p.id,
-    "name",
-    (p: { id: string; name: string }) => p.name,
-    [],
-    main.STORE_ID,
-  );
-
-  useEffect(() => {
-    if (!appleCalendars || !user_id) {
-      return;
-    }
-
-    for (const cal of appleCalendars) {
-      const existing = calendarsTable[cal.id];
-      if (!existing) {
-        createCalendarRow({ id: cal.id, name: cal.title });
-      } else if (existing.name !== cal.title) {
-        updateCalendarName({ id: cal.id, name: cal.title });
-      }
-    }
-  }, [
-    appleCalendars,
-    user_id,
-    calendarsTable,
-    createCalendarRow,
-    updateCalendarName,
-  ]);
-
-  const groups = useMemo((): CalendarGroup[] => {
-    if (!appleCalendars) {
-      return [];
-    }
-
-    const grouped = new Map<string, CalendarItem[]>();
-    for (const cal of appleCalendars) {
-      const sourceTitle = cal.source.title;
-      if (!grouped.has(sourceTitle)) {
-        grouped.set(sourceTitle, []);
-      }
-      grouped.get(sourceTitle)!.push({
-        id: cal.id,
-        title: cal.title,
-        color: appleColorToCss(cal.color),
-      });
-    }
-
-    return Array.from(grouped.entries()).map(([sourceName, calendars]) => ({
-      sourceName,
-      calendars,
-    }));
-  }, [appleCalendars]);
-
-  const isCalendarEnabled = (calendarId: string): boolean => {
-    const calendar = calendarsTable[calendarId];
-    return calendar?.enabled === true;
-  };
-
-  const setCalendarRow = main.UI.useSetRowCallback(
-    "calendars",
-    (p: { calendarId: string; enabled: boolean }) => p.calendarId,
-    (p: { calendarId: string; enabled: boolean }) => {
-      const existing = calendarsTable[p.calendarId];
-      if (!existing) {
-        return {
-          user_id: user_id ?? "",
-          created_at: new Date().toISOString(),
-          name: "",
-          enabled: p.enabled,
-        };
-      }
-      return {
-        ...existing,
-        enabled: p.enabled,
-      };
-    },
-    [calendarsTable, user_id],
-    main.STORE_ID,
-  );
-
-  const handleToggle = (calendar: CalendarItem, enabled: boolean) => {
-    setCalendarRow({ calendarId: calendar.id, enabled });
-  };
-
-  return {
-    groups,
-    isCalendarEnabled,
-    handleToggle,
-    handleRefresh: refetch,
-    isLoading: isFetching,
-  };
-}
-
-function AppleCalendarSelection() {
-  const { groups, isCalendarEnabled, handleToggle, handleRefresh, isLoading } =
-    useAppleCalendarSelection();
-
-  return (
-    <CalendarSelection
-      groups={groups}
-      isCalendarEnabled={isCalendarEnabled}
-      onToggle={handleToggle}
-      onRefresh={handleRefresh}
-      isLoading={isLoading}
-    />
-  );
-}
-
 export function AppleCalendarProviderCard() {
   const config = PROVIDERS.find((p) => p.id === "apple")!;
 
@@ -304,6 +157,8 @@ export function AppleCalendarProviderCard() {
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4">
+        <DocumentationLink href={config.docsPath} />
+
         <div className="flex flex-col divide-y">
           <AccessPermissionRow
             title="Calendar Access"
@@ -325,5 +180,110 @@ export function AppleCalendarProviderCard() {
         {calendar.isAuthorized && <AppleCalendarSelection />}
       </AccordionContent>
     </AccordionItem>
+  );
+}
+
+function useAppleCalendarSelection() {
+  const store = main.UI.useStore(main.STORE_ID);
+  const calendars = main.UI.useTable("calendars", main.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
+
+  const setCalendarRow = main.UI.useSetRowCallback(
+    "calendars",
+    (cal: AppleCalendar) => cal.id,
+    (cal: AppleCalendar, store) => {
+      const existing = store.getRow("calendars", cal.id);
+      return {
+        user_id: user_id!,
+        created_at: existing?.created_at || new Date().toISOString(),
+        name: cal.title,
+        enabled: existing?.enabled ?? false,
+        provider: "apple",
+        source: cal.source.title,
+        color: colorToCSS(cal.color),
+      };
+    },
+    [user_id],
+    main.STORE_ID,
+  );
+
+  const { mutate: syncCalendars, isPending } = useMutation({
+    mutationKey: ["appleCalendars", "sync"],
+    mutationFn: async () => {
+      const [result] = await Promise.all([
+        appleCalendarCommands.listCalendars(),
+        new Promise((resolve) => setTimeout(resolve, 250)),
+      ]);
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+    onSuccess: (calendars) => {
+      store?.transaction(() => {
+        for (const cal of calendars) {
+          setCalendarRow(cal);
+        }
+      });
+    },
+  });
+
+  const groups = useMemo((): CalendarGroup[] => {
+    const appleCalendars = Object.entries(calendars).filter(
+      ([_, cal]) => cal.provider === "apple",
+    );
+
+    const grouped = new Map<string, CalendarItem[]>();
+    for (const [id, cal] of appleCalendars) {
+      const source = cal.source || "Apple Calendar";
+      if (!grouped.has(source)) grouped.set(source, []);
+      grouped.get(source)!.push({
+        id,
+        title: cal.name || "Untitled",
+        color: cal.color ?? "#888",
+        enabled: cal.enabled ?? false,
+      });
+    }
+
+    return Array.from(grouped.entries()).map(([sourceName, calendars]) => ({
+      sourceName,
+      calendars,
+    }));
+  }, [calendars]);
+
+  const handleToggle = (calendar: CalendarItem, enabled: boolean) => {
+    store?.setPartialRow("calendars", calendar.id, { enabled });
+  };
+
+  return {
+    groups,
+    handleToggle,
+    handleRefresh: syncCalendars,
+    isLoading: isPending,
+  };
+}
+
+function AppleCalendarSelection() {
+  const { groups, handleToggle, handleRefresh, isLoading } =
+    useAppleCalendarSelection();
+
+  return (
+    <CalendarSelection
+      groups={groups}
+      onToggle={handleToggle}
+      onRefresh={handleRefresh}
+      isLoading={isLoading}
+    />
+  );
+}
+
+function DocumentationLink({ href }: { href: string }) {
+  return (
+    <button
+      onClick={() => openUrl(href)}
+      className="mb-3 text-xs text-neutral-500 hover:text-neutral-700 hover:underline"
+    >
+      Read the docs →
+    </button>
   );
 }

@@ -24,6 +24,7 @@ export const createCalendar = () => {
       user_id: DEFAULT_USER_ID,
       name: template,
       created_at: faker.date.past({ years: 1 }).toISOString(),
+      enabled: faker.datatype.boolean(),
     } satisfies Calendar,
   };
 };

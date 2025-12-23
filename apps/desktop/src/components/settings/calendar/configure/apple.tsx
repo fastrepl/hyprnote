@@ -1,13 +1,16 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { platform } from "@tauri-apps/plugin-os";
 import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
+import { useEffect, useMemo } from "react";
 
 import {
+  commands as appleCalendarCommands,
+  type CalendarColor,
+} from "@hypr/plugin-apple-calendar";
+import {
   commands as permissionsCommands,
-  PermissionStatus,
+  type PermissionStatus,
 } from "@hypr/plugin-permissions";
 import {
-  Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
@@ -15,30 +18,13 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import { PROVIDERS } from "./shared";
-
-export function ConfigureProviders() {
-  const isMacos = platform() === "macos";
-
-  const visibleProviders = PROVIDERS.filter(
-    (p) => p.platform === "all" || (p.platform === "macos" && isMacos),
-  );
-
-  return (
-    <div className="flex flex-col gap-3">
-      <h3 className="text-sm font-semibold">Configure Providers</h3>
-      <Accordion type="single" collapsible className="space-y-3">
-        {visibleProviders.map((provider) =>
-          provider.id === "apple" ? (
-            <AppleCalendarProviderCard key={provider.id} />
-          ) : (
-            <DisabledProviderCard key={provider.id} config={provider} />
-          ),
-        )}
-      </Accordion>
-    </div>
-  );
-}
+import * as main from "../../../../store/tinybase/main";
+import { PROVIDERS } from "../shared";
+import {
+  type CalendarGroup,
+  type CalendarItem,
+  CalendarSelection,
+} from "./shared";
 
 function useAccessPermission(config: {
   queryKey: string;
@@ -81,7 +67,7 @@ function useAccessPermission(config: {
     }
   };
 
-  return { isAuthorized, isPending, handleAction };
+  return { status: status.data, isAuthorized, isPending, handleAction };
 }
 
 function AccessPermissionRow({
@@ -140,7 +126,156 @@ function AccessPermissionRow({
   );
 }
 
-function AppleCalendarProviderCard() {
+function appleColorToCss(color?: CalendarColor | null): string | undefined {
+  if (!color) return undefined;
+  return `rgba(${Math.round(color.red * 255)}, ${Math.round(color.green * 255)}, ${Math.round(color.blue * 255)}, ${color.alpha})`;
+}
+
+function useAppleCalendarSelection() {
+  const { user_id } = main.UI.useValues(main.STORE_ID);
+  const calendarsTable = main.UI.useTable("calendars", main.STORE_ID);
+
+  const {
+    data: appleCalendars,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ["appleCalendars"],
+    queryFn: async () => {
+      const operation = appleCalendarCommands.listCalendars();
+      const minDelay = new Promise((resolve) => setTimeout(resolve, 500));
+
+      const [result] = await Promise.all([operation, minDelay]);
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
+
+  const createCalendarRow = main.UI.useSetRowCallback(
+    "calendars",
+    (p: { id: string; name: string }) => p.id,
+    (p: { id: string; name: string }) => ({
+      user_id: user_id ?? "",
+      created_at: new Date().toISOString(),
+      name: p.name,
+      enabled: false,
+    }),
+    [user_id],
+    main.STORE_ID,
+  );
+
+  const updateCalendarName = main.UI.useSetCellCallback(
+    "calendars",
+    (p: { id: string; name: string }) => p.id,
+    "name",
+    (p: { id: string; name: string }) => p.name,
+    [],
+    main.STORE_ID,
+  );
+
+  useEffect(() => {
+    if (!appleCalendars || !user_id) {
+      return;
+    }
+
+    for (const cal of appleCalendars) {
+      const existing = calendarsTable[cal.id];
+      if (!existing) {
+        createCalendarRow({ id: cal.id, name: cal.title });
+      } else if (existing.name !== cal.title) {
+        updateCalendarName({ id: cal.id, name: cal.title });
+      }
+    }
+  }, [
+    appleCalendars,
+    user_id,
+    calendarsTable,
+    createCalendarRow,
+    updateCalendarName,
+  ]);
+
+  const groups = useMemo((): CalendarGroup[] => {
+    if (!appleCalendars) {
+      return [];
+    }
+
+    const grouped = new Map<string, CalendarItem[]>();
+    for (const cal of appleCalendars) {
+      const sourceTitle = cal.source.title;
+      if (!grouped.has(sourceTitle)) {
+        grouped.set(sourceTitle, []);
+      }
+      grouped.get(sourceTitle)!.push({
+        id: cal.id,
+        title: cal.title,
+        color: appleColorToCss(cal.color),
+      });
+    }
+
+    return Array.from(grouped.entries()).map(([sourceName, calendars]) => ({
+      sourceName,
+      calendars,
+    }));
+  }, [appleCalendars]);
+
+  const isCalendarEnabled = (calendarId: string): boolean => {
+    const calendar = calendarsTable[calendarId];
+    return calendar?.enabled === true;
+  };
+
+  const setCalendarRow = main.UI.useSetRowCallback(
+    "calendars",
+    (p: { calendarId: string; enabled: boolean }) => p.calendarId,
+    (p: { calendarId: string; enabled: boolean }) => {
+      const existing = calendarsTable[p.calendarId];
+      if (!existing) {
+        return {
+          user_id: user_id ?? "",
+          created_at: new Date().toISOString(),
+          name: "",
+          enabled: p.enabled,
+        };
+      }
+      return {
+        ...existing,
+        enabled: p.enabled,
+      };
+    },
+    [calendarsTable, user_id],
+    main.STORE_ID,
+  );
+
+  const handleToggle = (calendar: CalendarItem, enabled: boolean) => {
+    setCalendarRow({ calendarId: calendar.id, enabled });
+  };
+
+  return {
+    groups,
+    isCalendarEnabled,
+    handleToggle,
+    handleRefresh: refetch,
+    isLoading: isFetching,
+  };
+}
+
+function AppleCalendarSelection() {
+  const { groups, isCalendarEnabled, handleToggle, handleRefresh, isLoading } =
+    useAppleCalendarSelection();
+
+  return (
+    <CalendarSelection
+      groups={groups}
+      isCalendarEnabled={isCalendarEnabled}
+      onToggle={handleToggle}
+      onRefresh={handleRefresh}
+      isLoading={isLoading}
+    />
+  );
+}
+
+export function AppleCalendarProviderCard() {
   const config = PROVIDERS.find((p) => p.id === "apple")!;
 
   const calendar = useAccessPermission({
@@ -187,38 +322,8 @@ function AppleCalendarProviderCard() {
             onAction={contacts.handleAction}
           />
         </div>
+        {calendar.isAuthorized && <AppleCalendarSelection />}
       </AccordionContent>
-    </AccordionItem>
-  );
-}
-
-function DisabledProviderCard({
-  config,
-}: {
-  config: (typeof PROVIDERS)[number];
-}) {
-  return (
-    <AccordionItem
-      disabled
-      value={config.id}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
-    >
-      <AccordionTrigger
-        className={cn([
-          "capitalize gap-2 px-4",
-          "cursor-not-allowed opacity-50",
-        ])}
-      >
-        <div className="flex items-center gap-2">
-          {config.icon}
-          <span>{config.displayName}</span>
-          {config.badge && (
-            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
-              {config.badge}
-            </span>
-          )}
-        </div>
-      </AccordionTrigger>
     </AccordionItem>
   );
 }

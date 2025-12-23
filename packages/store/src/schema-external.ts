@@ -44,9 +44,10 @@ export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   note: z.preprocess((val) => val ?? undefined, z.string().optional()),
 });
 
-export const calendarSchema = baseCalendarSchema
-  .omit({ id: true })
-  .extend({ created_at: z.string() });
+export const calendarSchema = baseCalendarSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  enabled: z.preprocess((val) => val ?? false, z.boolean()),
+});
 
 export const organizationSchema = baseOrganizationSchema
   .omit({ id: true })
@@ -262,6 +263,7 @@ export const externalTableSchemaForTinybase = {
     user_id: { type: "string" },
     created_at: { type: "string" },
     name: { type: "string" },
+    enabled: { type: "boolean" },
   } as const satisfies InferTinyBaseSchema<typeof calendarSchema>,
   events: {
     user_id: { type: "string" },

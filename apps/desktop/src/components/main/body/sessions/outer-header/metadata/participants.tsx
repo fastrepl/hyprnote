@@ -168,7 +168,7 @@ function useRemoveParticipant({
 
 function ParticipantChip({ mappingId }: { mappingId: string }) {
   const details = useParticipantDetails(mappingId);
-  const openCurrent = useTabs.getState().openCurrent;
+  const openNew = useTabs.getState().openNew;
 
   const assignedHumanId = details?.humanId;
   const sessionId = details?.sessionId;
@@ -181,12 +181,12 @@ function ParticipantChip({ mappingId }: { mappingId: string }) {
 
   const handleClick = useCallback(() => {
     if (assignedHumanId) {
-      openCurrent({
+      openNew({
         type: "contacts",
         state: { selectedOrganization: null, selectedPerson: assignedHumanId },
       });
     }
-  }, [openCurrent, assignedHumanId]);
+  }, [openNew, assignedHumanId]);
 
   if (!details) {
     return null;

@@ -63,7 +63,11 @@ impl AppWindow {
                     _ => 0,
                 };
 
-                if major >= 26 { 24.0 } else { 18.0 }
+                if major >= 26 && cfg!(debug_assertions) {
+                    24.0
+                } else {
+                    18.0
+                }
             };
 
             builder = builder

@@ -6,6 +6,7 @@ import { fetchExistingEvents, fetchIncomingEvents } from "./fetch";
 import { execute, sync } from "./process";
 
 export const CALENDAR_SYNC_TASK_ID = "calendarSync";
+export const CALENDAR_SYNC_INTERVAL = 60 * 1000; // 60 sec
 
 export async function syncCalendarEvents(
   store: Store,

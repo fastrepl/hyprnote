@@ -2,12 +2,11 @@ import type { Queries } from "tinybase/with-schemas";
 import { useScheduleTaskRun, useSetTask } from "tinytick/ui-react";
 
 import {
+  CALENDAR_SYNC_INTERVAL,
   CALENDAR_SYNC_TASK_ID,
   syncCalendarEvents,
 } from "../services/apple-calendar";
 import * as main from "../store/tinybase/main";
-
-const CALENDAR_SYNC_INTERVAL = 60 * 1000; // 60 sec
 
 export function TaskManager() {
   const store = main.UI.useStore(main.STORE_ID);

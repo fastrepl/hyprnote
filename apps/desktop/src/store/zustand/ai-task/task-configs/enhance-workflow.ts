@@ -26,7 +26,7 @@ import {
   withEarlyValidationRetry,
 } from "../shared/validate";
 
-const MIN_CHARS_FOR_DETECTION = 64;
+const MIN_CHARS_FOR_LANGUAGE_VALIDATION = 128;
 
 export const enhanceWorkflow: Pick<
   TaskConfig<"enhance">,
@@ -74,25 +74,10 @@ async function* executeWorkflow(params: {
   });
 }
 
-function detectLanguageFromContent(
-  args: TaskArgsMapTransformed["enhance"],
-): string {
-  const transcriptText = args.segments.map((s) => s.text).join(" ");
-
-  if (transcriptText.length < MIN_CHARS_FOR_DETECTION) {
-    return args.language;
-  }
-
-  const detected = detect(transcriptText);
-  return detected || args.language;
-}
-
 async function getSystemPrompt(args: TaskArgsMapTransformed["enhance"]) {
-  const language = detectLanguageFromContent(args);
-
   const result = await templateCommands.render("enhance.system", {
     hasTemplate: !!args.template,
-    language,
+    language: args.language,
   });
 
   if (result.status === "error") {
@@ -194,7 +179,7 @@ async function* generateSummary(params: {
 
   onProgress({ type: "generating" });
 
-  const validator = createValidator(args.template);
+  const validator = createValidator(args.template, args.language);
 
   yield* withEarlyValidationRetry(
     (retrySignal, { previousFeedback }) => {
@@ -229,8 +214,8 @@ IMPORTANT: Previous attempt failed. ${previousFeedback}`;
     },
     validator,
     {
-      minChar: 10,
-      maxChar: 30,
+      minChar: MIN_CHARS_FOR_LANGUAGE_VALIDATION,
+      maxChar: 256,
       maxRetries: 2,
       onRetry: (attempt, feedback) => {
         onProgress({ type: "retrying", attempt, reason: feedback });
@@ -242,8 +227,21 @@ IMPORTANT: Previous attempt failed. ${previousFeedback}`;
   );
 }
 
+function stripMarkdownForDetection(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^[-*+]\s+/gm, "")
+    .replace(/^\d+\.\s+/gm, "")
+    .replace(/`{1,3}[^`]*`{1,3}/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function createValidator(
-  template?: Pick<Template, "sections">,
+  template: Pick<Template, "sections"> | undefined,
+  expectedLanguage: string,
 ): EarlyValidatorFn {
   return (textSoFar: string) => {
     const normalized = textSoFar.trim();
@@ -254,18 +252,27 @@ function createValidator(
           "Output must start with a markdown h1 heading (# Title).";
         return { valid: false, feedback };
       }
-
-      return { valid: true };
+    } else {
+      const firstSection = template.sections[0];
+      const expectedStart = `# ${firstSection.title}`;
+      const isValid =
+        expectedStart.startsWith(normalized) ||
+        normalized.startsWith(expectedStart);
+      if (!isValid) {
+        const feedback =
+          `Output must start with the first template section heading: "${expectedStart}"`;
+        return { valid: false, feedback };
+      }
     }
 
-    const firstSection = template.sections[0];
-    const expectedStart = `# ${firstSection.title}`;
-    const isValid =
-      expectedStart.startsWith(normalized) ||
-      normalized.startsWith(expectedStart);
-    if (!isValid) {
-      const feedback = `Output must start with the first template section heading: "${expectedStart}"`;
-      return { valid: false, feedback };
+    const strippedText = stripMarkdownForDetection(normalized);
+    if (strippedText.length >= MIN_CHARS_FOR_LANGUAGE_VALIDATION) {
+      const detectedLanguage = detect(strippedText);
+      if (detectedLanguage && detectedLanguage !== expectedLanguage) {
+        const feedback =
+          `Output must be in ${expectedLanguage} language, but detected ${detectedLanguage}. Please regenerate in the correct language.`;
+        return { valid: false, feedback };
+      }
     }
 
     return { valid: true };

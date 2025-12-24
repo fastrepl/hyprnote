@@ -295,6 +295,7 @@ function useLinkHumanToSession(
       created_at: new Date().toISOString(),
       session_id: sessionId,
       human_id: p.humanId,
+      source: "manual",
     }),
     [userId, sessionId],
     main.STORE_ID,

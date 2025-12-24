@@ -18,10 +18,12 @@ export const createCalendar = () => {
     "Shared Calendar",
   ]);
 
+  const calendarId = id();
   return {
-    id: id(),
+    id: calendarId,
     data: {
       user_id: DEFAULT_USER_ID,
+      tracking_id_calendar: `mock-${calendarId}`,
       name: template,
       created_at: faker.date.past({ years: 1 }).toISOString(),
       enabled: faker.datatype.boolean(),

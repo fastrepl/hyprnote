@@ -6,13 +6,13 @@ import type { EventParticipant } from "@hypr/store";
 import type { Ctx } from "../ctx";
 import type { IncomingEvent } from "./types";
 
-export async function fetchIncomingEvents(
-  ctx: Ctx,
-): Promise<Array<IncomingEvent>> {
+export async function fetchIncomingEvents(ctx: Ctx): Promise<IncomingEvent[]> {
+  const trackingIds = Array.from(ctx.calendarTrackingIdToId.keys());
+
   const results = await Promise.all(
-    Array.from(ctx.calendarIds).map(async (calendarId) => {
+    trackingIds.map(async (trackingId) => {
       const result = await appleCalendarCommands.listEvents({
-        calendar_tracking_id: calendarId,
+        calendar_tracking_id: trackingId,
         from: ctx.from.toISOString(),
         to: ctx.to.toISOString(),
       });
@@ -45,8 +45,8 @@ async function normalizeAppleEvent(event: AppleEvent): Promise<IncomingEvent> {
   }
 
   return {
-    id: event.event_identifier,
-    calendar_id: event.calendar.id,
+    tracking_id_event: event.event_identifier,
+    tracking_id_calendar: event.calendar.id,
     title: event.title,
     started_at: event.start_date,
     ended_at: event.end_date,

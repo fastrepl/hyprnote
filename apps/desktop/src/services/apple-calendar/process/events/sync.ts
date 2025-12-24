@@ -1,17 +1,22 @@
-import type { Ctx } from "../ctx";
-import type { ExistingEvent, IncomingEvent } from "../fetch/types";
-import type { SyncInput, SyncOutput } from "./types";
-import { getSessionForEvent, isSessionEmpty } from "./utils";
+import type { Ctx } from "../../ctx";
+import type { ExistingEvent, IncomingEvent } from "../../fetch/types";
+import { getSessionForEvent, isSessionEmpty } from "../utils";
+import type { EventsSyncInput, EventsSyncOutput } from "./types";
 
-export function sync(ctx: Ctx, { incoming, existing }: SyncInput): SyncOutput {
-  const out: SyncOutput = {
+export function syncEvents(
+  ctx: Ctx,
+  { incoming, existing }: EventsSyncInput,
+): EventsSyncOutput {
+  const out: EventsSyncOutput = {
     toDelete: [],
     toUpdate: [],
     toAdd: [],
   };
 
-  const incomingEventMap = new Map(incoming.map((e) => [e.id, e]));
-  const handledIncomingEventIds = new Set<string>();
+  const incomingEventMap = new Map(
+    incoming.map((e) => [e.tracking_id_event, e]),
+  );
+  const handledTrackingIds = new Set<string>();
 
   for (const storeEvent of existing) {
     const sessionId = getSessionForEvent(ctx.store, storeEvent.id);
@@ -25,16 +30,22 @@ export function sync(ctx: Ctx, { incoming, existing }: SyncInput): SyncOutput {
       continue;
     }
 
-    const matchingIncomingEvent = incomingEventMap.get(storeEvent.id);
+    const trackingId = storeEvent.tracking_id_event;
+    const matchingIncomingEvent = trackingId
+      ? incomingEventMap.get(trackingId)
+      : undefined;
 
-    if (matchingIncomingEvent) {
+    if (matchingIncomingEvent && trackingId) {
       out.toUpdate.push({
+        ...storeEvent,
         ...matchingIncomingEvent,
         id: storeEvent.id,
+        tracking_id_event: trackingId,
         user_id: storeEvent.user_id,
         created_at: storeEvent.created_at,
+        calendar_id: storeEvent.calendar_id,
       });
-      handledIncomingEventIds.add(matchingIncomingEvent.id);
+      handledTrackingIds.add(matchingIncomingEvent.tracking_id_event);
       continue;
     }
 
@@ -42,16 +53,22 @@ export function sync(ctx: Ctx, { incoming, existing }: SyncInput): SyncOutput {
       continue;
     }
 
-    const rescheduledEvent = findRescheduledEvent(storeEvent, incoming);
+    const rescheduledEvent = findRescheduledEvent(ctx, storeEvent, incoming);
 
-    if (rescheduledEvent && !handledIncomingEventIds.has(rescheduledEvent.id)) {
+    if (
+      rescheduledEvent &&
+      !handledTrackingIds.has(rescheduledEvent.tracking_id_event)
+    ) {
       out.toUpdate.push({
+        ...storeEvent,
         ...rescheduledEvent,
         id: storeEvent.id,
+        tracking_id_event: rescheduledEvent.tracking_id_event,
         user_id: storeEvent.user_id,
         created_at: storeEvent.created_at,
+        calendar_id: storeEvent.calendar_id,
       });
-      handledIncomingEventIds.add(rescheduledEvent.id);
+      handledTrackingIds.add(rescheduledEvent.tracking_id_event);
       continue;
     }
 
@@ -59,7 +76,7 @@ export function sync(ctx: Ctx, { incoming, existing }: SyncInput): SyncOutput {
   }
 
   for (const incomingEvent of incoming) {
-    if (!handledIncomingEventIds.has(incomingEvent.id)) {
+    if (!handledTrackingIds.has(incomingEvent.tracking_id_event)) {
       out.toAdd.push(incomingEvent);
     }
   }
@@ -68,8 +85,9 @@ export function sync(ctx: Ctx, { incoming, existing }: SyncInput): SyncOutput {
 }
 
 function findRescheduledEvent(
+  ctx: Ctx,
   storeEvent: ExistingEvent,
-  incomingEvents: Array<IncomingEvent>,
+  incomingEvents: IncomingEvent[],
 ): IncomingEvent | undefined {
   if (!storeEvent.started_at) {
     return undefined;
@@ -86,7 +104,10 @@ function findRescheduledEvent(
       return false;
     }
 
-    if (incoming.calendar_id !== storeEvent.calendar_id) {
+    const incomingCalendarId = ctx.calendarTrackingIdToId.get(
+      incoming.tracking_id_calendar,
+    );
+    if (incomingCalendarId !== storeEvent.calendar_id) {
       return false;
     }
 
@@ -99,7 +120,7 @@ function findRescheduledEvent(
       return false;
     }
 
-    if (incoming.id === storeEvent.id) {
+    if (incoming.tracking_id_event === storeEvent.tracking_id_event) {
       return false;
     }
 

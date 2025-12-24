@@ -43,6 +43,7 @@ pub struct SourceArgs {
 }
 
 pub struct SourceState {
+    app: tauri::AppHandle,
     session_id: String,
     mic_device: Option<String>,
     onboarding: bool,
@@ -123,6 +124,14 @@ impl Actor for SourceActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
+        if let Err(error) = (SessionEvent::InitializingAudio {
+            session_id: args.session_id.clone(),
+        })
+        .emit(&args.app)
+        {
+            tracing::error!(?error, "failed_to_emit_initializing_audio");
+        }
+
         let device_watcher = DeviceChangeWatcher::spawn(myself.clone());
 
         let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
@@ -134,6 +143,7 @@ impl Actor for SourceActor {
         let pipeline = Pipeline::new(args.app.clone(), args.session_id.clone());
 
         let mut st = SourceState {
+            app: args.app,
             session_id: args.session_id,
             mic_device,
             onboarding: args.onboarding,
@@ -221,11 +231,23 @@ async fn start_source_loop(
 
     st.pipeline.reset();
 
-    match new_mode {
+    let result = match new_mode {
         ChannelMode::MicOnly => start_source_loop_mic_only(myself, st).await,
         ChannelMode::SpeakerOnly => start_source_loop_speaker_only(myself, st).await,
         ChannelMode::MicAndSpeaker => start_source_loop_mic_and_speaker(myself, st).await,
+    };
+
+    if result.is_ok() {
+        if let Err(error) = (SessionEvent::AudioReady {
+            session_id: st.session_id.clone(),
+        })
+        .emit(&st.app)
+        {
+            tracing::error!(?error, "failed_to_emit_audio_ready");
+        }
     }
+
+    result
 }
 
 async fn start_source_loop_mic_only(

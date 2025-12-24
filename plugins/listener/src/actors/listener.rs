@@ -88,7 +88,23 @@ impl Actor for ListenerActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
+        if let Err(error) = (SessionEvent::Connecting {
+            session_id: args.session_id.clone(),
+        })
+        .emit(&args.app)
+        {
+            tracing::error!(?error, "failed_to_emit_connecting");
+        }
+
         let (tx, rx_task, shutdown_tx) = spawn_rx_task(args.clone(), myself).await?;
+
+        if let Err(error) = (SessionEvent::Connected {
+            session_id: args.session_id.clone(),
+        })
+        .emit(&args.app)
+        {
+            tracing::error!(?error, "failed_to_emit_connected");
+        }
 
         let state = ListenerState {
             args,
@@ -311,10 +327,22 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
                 "listen_ws_connect_timeout(single)"
             );
+            let _ = (SessionEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: "listen_ws_connect_timeout".to_string(),
+                retry_count: 0,
+            })
+            .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
             tracing::error!(error = ?e, "listen_ws_connect_failed(single)");
+            let _ = (SessionEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: format!("listen_ws_connect_failed: {:?}", e),
+                retry_count: 0,
+            })
+            .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
         }
         Ok(Ok(res)) => res,
@@ -371,10 +399,22 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
                 "listen_ws_connect_timeout(dual)"
             );
+            let _ = (SessionEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: "listen_ws_connect_timeout".to_string(),
+                retry_count: 0,
+            })
+            .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
             tracing::error!(error = ?e, "listen_ws_connect_failed(dual)");
+            let _ = (SessionEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: format!("listen_ws_connect_failed: {:?}", e),
+                retry_count: 0,
+            })
+            .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
         }
         Ok(Ok(res)) => res,

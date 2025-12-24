@@ -30,6 +30,20 @@ common_event_derives! {
             session_id: String,
             response: Box<StreamResponse>,
         },
+        #[serde(rename = "initializingAudio")]
+        InitializingAudio { session_id: String },
+        #[serde(rename = "audioReady")]
+        AudioReady { session_id: String },
+        #[serde(rename = "connecting")]
+        Connecting { session_id: String },
+        #[serde(rename = "connected")]
+        Connected { session_id: String },
+        #[serde(rename = "connectionError")]
+        ConnectionError {
+            session_id: String,
+            error: String,
+            retry_count: u32,
+        },
         ExitRequested
     }
 }

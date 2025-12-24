@@ -74,7 +74,9 @@ async function* executeWorkflow(params: {
   });
 }
 
-function detectLanguageFromContent(args: TaskArgsMapTransformed["enhance"]): string {
+function detectLanguageFromContent(
+  args: TaskArgsMapTransformed["enhance"],
+): string {
   const transcriptText = args.segments.map((s) => s.text).join(" ");
 
   if (transcriptText.length < MIN_CHARS_FOR_DETECTION) {

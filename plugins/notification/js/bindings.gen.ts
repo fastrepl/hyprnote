@@ -37,6 +37,12 @@ export const commands = {
 
 /** user-defined events **/
 
+export const events = __makeEvents__<{
+  notificationEvent: NotificationEvent;
+}>({
+  notificationEvent: "plugin:notification:notification-event",
+});
+
 /** user-defined constants **/
 
 /** user-defined types **/
@@ -49,6 +55,7 @@ export type Notification = {
   url: string | null;
   timeout: Duration | null;
 };
+export type NotificationEvent = { type: "confirm" };
 
 type __EventObj__<T> = {
   listen: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;

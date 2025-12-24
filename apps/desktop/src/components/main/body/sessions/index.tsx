@@ -1,16 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
+import { useStartListening } from "../../../../hooks/useStartListening";
 import * as main from "../../../../store/tinybase/main";
-import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
+import {
+  rowIdfromTab,
+  type Tab,
+  useTabs,
+} from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 import { FloatingActionButton } from "./floating";
+import { useListenButtonState } from "./floating/shared";
 import { NoteInput } from "./note-input";
 import { SearchBar } from "./note-input/transcript/search-bar";
 import {
@@ -75,6 +82,8 @@ export function TabContentNote({
     Boolean(audioUrl) &&
     listenerStatus === "inactive";
 
+  useAutoListen(tab);
+
   return (
     <SearchProvider>
       <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
@@ -112,4 +121,19 @@ function TabContentNoteInner({
       </div>
     </StandardTabWrapper>
   );
+}
+
+function useAutoListen(tab: Extract<Tab, { type: "sessions" }>) {
+  const startListening = useStartListening(tab.id);
+  const { isDisabled } = useListenButtonState(tab.id);
+  const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
+  const hasTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    if (tab.state.autoListen && !isDisabled && !hasTriggeredRef.current) {
+      hasTriggeredRef.current = true;
+      startListening();
+      updateSessionTabState(tab, { ...tab.state, autoListen: null });
+    }
+  }, [tab, isDisabled, startListening, updateSessionTabState]);
 }

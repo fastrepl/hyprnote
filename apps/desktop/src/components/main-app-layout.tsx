@@ -1,13 +1,16 @@
-import { Outlet, useNavigate } from "@tanstack/react-router";
+import { Outlet, useNavigate, useRouteContext } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { events as deeplink2Events } from "@hypr/plugin-deeplink2";
+import { events as notificationEvents } from "@hypr/plugin-notification";
 import { events as windowsEvents } from "@hypr/plugin-windows";
 
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { useTabs } from "../store/zustand/tabs";
+import { id } from "../utils";
 
 /**
  * Main app layout component that wraps routes with auth/billing providers.
@@ -17,6 +20,7 @@ import { useTabs } from "../store/zustand/tabs";
  */
 export default function MainAppLayout() {
   useNavigationEvents();
+  useNotificationEvents();
 
   return (
     <AuthProvider>
@@ -92,4 +96,47 @@ const useNavigationEvents = () => {
       unlistenDeepLink?.();
     };
   }, [navigate, openNew]);
+};
+
+const useNotificationEvents = () => {
+  const { persistedStore, internalStore } = useRouteContext({
+    from: "__root__",
+  });
+  const openNew = useTabs((state) => state.openNew);
+
+  useEffect(() => {
+    let unlistenNotification: (() => void) | undefined;
+
+    void notificationEvents.notificationEvent
+      .listen(({ payload }) => {
+        if (payload.type === "confirm") {
+          const user_id = internalStore?.getValue("user_id");
+          const sessionId = id();
+
+          persistedStore?.setRow("sessions", sessionId, {
+            user_id,
+            created_at: new Date().toISOString(),
+            title: "",
+          });
+
+          void analyticsCommands.event({
+            event: "note_created",
+            has_event_id: false,
+          });
+
+          openNew({
+            type: "sessions",
+            id: sessionId,
+            state: { editor: null, autoListen: true },
+          });
+        }
+      })
+      .then((fn) => {
+        unlistenNotification = fn;
+      });
+
+    return () => {
+      unlistenNotification?.();
+    };
+  }, [persistedStore, internalStore, openNew]);
 };

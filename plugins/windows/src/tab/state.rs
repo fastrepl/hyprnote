@@ -13,6 +13,7 @@ crate::common_derives! {
 crate::common_derives! {
     pub struct SessionsState {
         pub editor: Option<EditorView>,
+        pub auto_listen: Option<bool>,
     }
 }
 

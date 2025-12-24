@@ -133,16 +133,16 @@ export function AppleCalendarProviderCard() {
 
   const calendar = useAccessPermission({
     queryKey: "appleCalendarAccess",
-    checkPermission: permissionsCommands.checkCalendarPermission,
-    requestPermission: permissionsCommands.requestCalendarPermission,
-    openSettings: permissionsCommands.openCalendarSettings,
+    checkPermission: () => permissionsCommands.checkPermission("calendar"),
+    requestPermission: () => permissionsCommands.requestPermission("calendar"),
+    openSettings: () => permissionsCommands.openPermission("calendar"),
   });
 
   const contacts = useAccessPermission({
     queryKey: "appleContactsAccess",
-    checkPermission: permissionsCommands.checkContactsPermission,
-    requestPermission: permissionsCommands.requestContactsPermission,
-    openSettings: permissionsCommands.openContactsSettings,
+    checkPermission: () => permissionsCommands.checkPermission("contacts"),
+    requestPermission: () => permissionsCommands.requestPermission("contacts"),
+    openSettings: () => permissionsCommands.openPermission("contacts"),
   });
 
   return (

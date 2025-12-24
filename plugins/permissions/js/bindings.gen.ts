@@ -6,97 +6,33 @@
 
 
 export const commands = {
-async checkMicrophonePermission() : Promise<Result<PermissionStatus, string>> {
+async openPermission(permission: Permission) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|check_microphone_permission") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|open_permission", { permission }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async requestMicrophonePermission() : Promise<Result<null, string>> {
+async checkPermission(permission: Permission) : Promise<Result<PermissionStatus, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|request_microphone_permission") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|check_permission", { permission }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async checkSystemAudioPermission() : Promise<Result<PermissionStatus, string>> {
+async requestPermission(permission: Permission) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|check_system_audio_permission") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|request_permission", { permission }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async requestSystemAudioPermission() : Promise<Result<null, string>> {
+async resetPermission(permission: Permission) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|request_system_audio_permission") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async checkAccessibilityPermission() : Promise<Result<PermissionStatus, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|check_accessibility_permission") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async requestAccessibilityPermission() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|request_accessibility_permission") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async checkCalendarPermission() : Promise<Result<PermissionStatus, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|check_calendar_permission") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async requestCalendarPermission() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|request_calendar_permission") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async checkContactsPermission() : Promise<Result<PermissionStatus, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|check_contacts_permission") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async requestContactsPermission() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|request_contacts_permission") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async openCalendarSettings() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|open_calendar_settings") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async openContactsSettings() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|open_contacts_settings") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:permissions|reset_permission", { permission }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -114,6 +50,7 @@ async openContactsSettings() : Promise<Result<null, string>> {
 
 /** user-defined types **/
 
+export type Permission = "calendar" | "contacts" | "microphone" | "systemAudio" | "accessibility"
 export type PermissionStatus = "neverRequested" | "denied" | "authorized"
 
 /** tauri-specta globals **/

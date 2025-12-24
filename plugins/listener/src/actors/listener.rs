@@ -96,10 +96,11 @@ impl Actor for ListenerActor {
             tracing::error!(?error, "failed_to_emit_connecting");
         }
 
-        let (tx, rx_task, shutdown_tx) = spawn_rx_task(args.clone(), myself).await?;
+        let (tx, rx_task, shutdown_tx, adapter_name) = spawn_rx_task(args.clone(), myself).await?;
 
         if let Err(error) = (SessionEvent::Connected {
             session_id: args.session_id.clone(),
+            adapter: adapter_name,
         })
         .emit(&args.app)
         {
@@ -213,13 +214,24 @@ async fn spawn_rx_task(
         ChannelSender,
         tokio::task::JoinHandle<()>,
         tokio::sync::oneshot::Sender<()>,
+        String, // adapter name
     ),
     ActorProcessingErr,
 > {
     let adapter_kind = AdapterKind::from_url_and_languages(&args.base_url, &args.languages);
     let is_dual = matches!(args.mode, crate::actors::ChannelMode::MicAndSpeaker);
 
-    match (adapter_kind, is_dual) {
+    let adapter_name = match adapter_kind {
+        AdapterKind::Argmax => "Argmax",
+        AdapterKind::Soniox => "Soniox",
+        AdapterKind::Fireworks => "Fireworks",
+        AdapterKind::Deepgram => "Deepgram",
+        AdapterKind::AssemblyAI => "AssemblyAI",
+        AdapterKind::OpenAI => "OpenAI",
+        AdapterKind::Gladia => "Gladia",
+    };
+
+    let result = match (adapter_kind, is_dual) {
         (AdapterKind::Argmax, false) => {
             spawn_rx_task_single_with_adapter::<ArgmaxAdapter>(args, myself).await
         }
@@ -262,7 +274,9 @@ async fn spawn_rx_task(
         (AdapterKind::Gladia, true) => {
             spawn_rx_task_dual_with_adapter::<GladiaAdapter>(args, myself).await
         }
-    }
+    }?;
+
+    Ok((result.0, result.1, result.2, adapter_name.to_string()))
 }
 
 fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams {
@@ -330,7 +344,7 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: "listen_ws_connect_timeout".to_string(),
-                retry_count: 0,
+                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
@@ -340,7 +354,7 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),
-                retry_count: 0,
+                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
@@ -402,7 +416,7 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: "listen_ws_connect_timeout".to_string(),
-                retry_count: 0,
+                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
@@ -412,7 +426,7 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),
-                retry_count: 0,
+                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));

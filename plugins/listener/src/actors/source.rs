@@ -195,6 +195,12 @@ impl Actor for SourceActor {
             }
             SourceMsg::StreamFailed(reason) => {
                 tracing::error!(%reason, "source_stream_failed_stopping");
+                let _ = (SessionEvent::AudioError {
+                    session_id: st.session_id.clone(),
+                    error: reason.clone(),
+                    device: st.mic_device.clone(),
+                })
+                .emit(&st.app);
                 myself.stop(Some(reason));
             }
         }
@@ -240,6 +246,8 @@ async fn start_source_loop(
     if result.is_ok() {
         if let Err(error) = (SessionEvent::AudioReady {
             session_id: st.session_id.clone(),
+            mode: st.current_mode.into(),
+            device: st.mic_device.clone(),
         })
         .emit(&st.app)
         {

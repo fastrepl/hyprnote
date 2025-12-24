@@ -8,6 +8,25 @@ macro_rules! common_event_derives {
     };
 }
 
+/// Audio channel mode for the session
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, specta::Type)]
+#[serde(rename_all = "snake_case")]
+pub enum AudioMode {
+    MicOnly,
+    SpeakerOnly,
+    MicAndSpeaker,
+}
+
+impl From<crate::actors::ChannelMode> for AudioMode {
+    fn from(mode: crate::actors::ChannelMode) -> Self {
+        match mode {
+            crate::actors::ChannelMode::MicOnly => AudioMode::MicOnly,
+            crate::actors::ChannelMode::SpeakerOnly => AudioMode::SpeakerOnly,
+            crate::actors::ChannelMode::MicAndSpeaker => AudioMode::MicAndSpeaker,
+        }
+    }
+}
+
 common_event_derives! {
     #[serde(tag = "type")]
     pub enum SessionEvent {
@@ -33,16 +52,29 @@ common_event_derives! {
         #[serde(rename = "initializingAudio")]
         InitializingAudio { session_id: String },
         #[serde(rename = "audioReady")]
-        AudioReady { session_id: String },
+        AudioReady {
+            session_id: String,
+            mode: AudioMode,
+            device: Option<String>,
+        },
+        #[serde(rename = "audioError")]
+        AudioError {
+            session_id: String,
+            error: String,
+            device: Option<String>,
+        },
         #[serde(rename = "connecting")]
         Connecting { session_id: String },
         #[serde(rename = "connected")]
-        Connected { session_id: String },
+        Connected {
+            session_id: String,
+            adapter: String,
+        },
         #[serde(rename = "connectionError")]
         ConnectionError {
             session_id: String,
             error: String,
-            retry_count: u32,
+            is_retryable: bool,
         },
         ExitRequested
     }

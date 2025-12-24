@@ -34,16 +34,25 @@ const hasSessionId = (
 ): payload is SessionEvent & { session_id: string } =>
   "session_id" in payload && typeof payload.session_id === "string";
 
+export type LoadingPhase =
+  | "idle"
+  | "initializing_audio"
+  | "audio_ready"
+  | "connecting"
+  | "connected";
+
 export type GeneralState = {
   live: {
     sessionEventUnlisten?: () => void;
     loading: boolean;
+    loadingPhase: LoadingPhase;
     status: LiveSessionStatus;
     amplitude: { mic: number; speaker: number };
     seconds: number;
     intervalId?: NodeJS.Timeout;
     sessionId: string | null;
     muted: boolean;
+    lastError: string | null;
   };
 };
 
@@ -65,10 +74,12 @@ const initialState: GeneralState = {
   live: {
     status: "inactive",
     loading: false,
+    loadingPhase: "idle",
     amplitude: { mic: 0, speaker: 0 },
     seconds: 0,
     sessionId: null,
     muted: false,
+    lastError: null,
   },
 };
 
@@ -155,6 +166,7 @@ export const createGeneralSlice = <
           mutate(state, (draft) => {
             draft.live.status = "running_active";
             draft.live.loading = false;
+            draft.live.loadingPhase = "idle";
             draft.live.seconds = 0;
             draft.live.intervalId = intervalId;
             draft.live.sessionId = targetSessionId;
@@ -181,8 +193,10 @@ export const createGeneralSlice = <
           mutate(state, (draft) => {
             draft.live.status = "inactive";
             draft.live.loading = false;
+            draft.live.loadingPhase = "idle";
             draft.live.sessionId = null;
             draft.live.sessionEventUnlisten = undefined;
+            draft.live.lastError = null;
           }),
         );
 
@@ -190,6 +204,44 @@ export const createGeneralSlice = <
       } else if (payload.type === "streamResponse") {
         const response = payload.response;
         get().handleTranscriptResponse(response as unknown as StreamResponse);
+      } else if (payload.type === "initializingAudio") {
+        set((state) =>
+          mutate(state, (draft) => {
+            draft.live.loadingPhase = "initializing_audio";
+            draft.live.lastError = null;
+          }),
+        );
+      } else if (payload.type === "audioReady") {
+        set((state) =>
+          mutate(state, (draft) => {
+            draft.live.loadingPhase = "audio_ready";
+          }),
+        );
+      } else if (payload.type === "audioError") {
+        set((state) =>
+          mutate(state, (draft) => {
+            draft.live.lastError = payload.error;
+            draft.live.loading = false;
+          }),
+        );
+      } else if (payload.type === "connecting") {
+        set((state) =>
+          mutate(state, (draft) => {
+            draft.live.loadingPhase = "connecting";
+          }),
+        );
+      } else if (payload.type === "connected") {
+        set((state) =>
+          mutate(state, (draft) => {
+            draft.live.loadingPhase = "connected";
+          }),
+        );
+      } else if (payload.type === "connectionError") {
+        set((state) =>
+          mutate(state, (draft) => {
+            draft.live.lastError = payload.error;
+          }),
+        );
       }
     };
 
@@ -259,11 +311,13 @@ export const createGeneralSlice = <
 
               draft.live.sessionEventUnlisten = undefined;
               draft.live.loading = false;
+              draft.live.loadingPhase = "idle";
               draft.live.status = "inactive";
               draft.live.amplitude = { mic: 0, speaker: 0 };
               draft.live.seconds = 0;
               draft.live.sessionId = null;
               draft.live.muted = initialState.live.muted;
+              draft.live.lastError = null;
             }),
           );
         },

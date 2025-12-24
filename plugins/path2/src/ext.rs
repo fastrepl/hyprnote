@@ -9,20 +9,20 @@ pub struct Path2<'a, R: tauri::Runtime, M: Manager<R>> {
 
 impl<'a, R: tauri::Runtime, M: Manager<R>> Path2<'a, R, M> {
     pub fn base(&self) -> Result<PathBuf, crate::Error> {
-        let path = if cfg!(debug_assertions) {
-            self.manager
-                .path()
-                .app_data_dir()
-                .map_err(|e| crate::Error::Path(e.to_string()))?
+        let bundle_id: &str = self.manager.config().identifier.as_ref();
+        let data_dir = self
+            .manager
+            .path()
+            .data_dir()
+            .map_err(|e| crate::Error::Path(e.to_string()))?;
+
+        let app_folder = if cfg!(debug_assertions) || bundle_id == "com.hyprnote.staging" {
+            bundle_id
         } else {
-            let data_dir = self
-                .manager
-                .path()
-                .data_dir()
-                .map_err(|e| crate::Error::Path(e.to_string()))?;
-            data_dir.join("hyprnote")
+            "hyprnote"
         };
 
+        let path = data_dir.join(app_folder);
         std::fs::create_dir_all(&path)?;
         Ok(path)
     }

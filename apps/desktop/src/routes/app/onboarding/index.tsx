@@ -43,6 +43,9 @@ function Component() {
 
   useEffect(() => {
     sfxCommands.play("BGM").catch(console.error);
+    return () => {
+      sfxCommands.stop("BGM").catch(console.error);
+    };
   }, []);
 
   useEffect(() => {

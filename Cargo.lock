@@ -17579,7 +17579,6 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-specta",
- "tracing",
 ]
 
 [[package]]

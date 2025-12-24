@@ -5,7 +5,7 @@ use tauri::{Manager, path::BaseDirectory};
 use tauri_specta::Event;
 
 use crate::{
-    SessionEvent,
+    SessionLifecycleEvent,
     actors::{SessionContext, SessionParams, SourceActor, SourceMsg, spawn_session_supervisor},
 };
 
@@ -101,12 +101,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
                 guard.session_supervisor = Some(supervisor_ref);
                 guard.supervisor_handle = Some(handle);
 
-                if let Err(error) = (SessionEvent::RunningActive {
+                if let Err(error) = (SessionLifecycleEvent::Active {
                     session_id: params.session_id,
                 })
                 .emit(&guard.app)
                 {
-                    tracing::error!(?error, "failed_to_emit_running_active");
+                    tracing::error!(?error, "failed_to_emit_active");
                 }
 
                 tracing::info!("session_started");
@@ -133,7 +133,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
         };
 
         if let Some(session_id) = session_id.clone() {
-            if let Err(error) = (SessionEvent::Finalizing { session_id }).emit(&guard.app) {
+            if let Err(error) = (SessionLifecycleEvent::Finalizing { session_id }).emit(&guard.app)
+            {
                 tracing::error!(?error, "failed_to_emit_finalizing");
             }
         }
@@ -152,7 +153,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
         }
 
         if let Some(session_id) = session_id {
-            if let Err(error) = (SessionEvent::Inactive { session_id }).emit(&guard.app) {
+            if let Err(error) = (SessionLifecycleEvent::Inactive { session_id }).emit(&guard.app) {
                 tracing::error!(?error, "failed_to_emit_inactive");
             }
         }

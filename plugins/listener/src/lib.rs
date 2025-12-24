@@ -25,7 +25,7 @@ pub struct State {
 impl State {
     pub fn get_state(&self) -> fsm::State {
         if self.session_supervisor.is_some() {
-            crate::fsm::State::RunningActive
+            crate::fsm::State::Active
         } else {
             crate::fsm::State::Inactive
         }
@@ -44,7 +44,12 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::stop_session::<tauri::Wry>,
             commands::get_state::<tauri::Wry>,
         ])
-        .events(tauri_specta::collect_events![SessionEvent])
+        .events(tauri_specta::collect_events![
+            SessionLifecycleEvent,
+            SessionProgressEvent,
+            SessionErrorEvent,
+            SessionDataEvent
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 

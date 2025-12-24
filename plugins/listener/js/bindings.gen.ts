@@ -68,9 +68,15 @@ async getState() : Promise<Result<string, string>> {
 
 
 export const events = __makeEvents__<{
-sessionEvent: SessionEvent
+sessionDataEvent: SessionDataEvent,
+sessionErrorEvent: SessionErrorEvent,
+sessionLifecycleEvent: SessionLifecycleEvent,
+sessionProgressEvent: SessionProgressEvent
 }>({
-sessionEvent: "plugin:listener:session-event"
+sessionDataEvent: "plugin:listener:session-data-event",
+sessionErrorEvent: "plugin:listener:session-error-event",
+sessionLifecycleEvent: "plugin:listener:session-lifecycle-event",
+sessionProgressEvent: "plugin:listener:session-progress-event"
 })
 
 /** user-defined constants **/
@@ -79,8 +85,11 @@ sessionEvent: "plugin:listener:session-event"
 
 /** user-defined types **/
 
-export type SessionEvent = { type: "inactive"; session_id: string } | { type: "running_active"; session_id: string } | { type: "finalizing"; session_id: string } | { type: "audioAmplitude"; session_id: string; mic: number; speaker: number } | { type: "micMuted"; session_id: string; value: boolean } | { type: "streamResponse"; session_id: string; response: StreamResponse } | { type: "ExitRequested" }
+export type SessionDataEvent = { type: "audio_amplitude"; session_id: string; mic: number; speaker: number } | { type: "mic_muted"; session_id: string; value: boolean } | { type: "stream_response"; session_id: string; response: StreamResponse }
+export type SessionErrorEvent = { type: "audio_error"; session_id: string; error: string; device: string | null; is_fatal: boolean } | { type: "connection_error"; session_id: string; error: string; is_retryable: boolean }
+export type SessionLifecycleEvent = { type: "inactive"; session_id: string } | { type: "active"; session_id: string } | { type: "finalizing"; session_id: string }
 export type SessionParams = { session_id: string; languages: string[]; onboarding: boolean; record_enabled: boolean; model: string; base_url: string; api_key: string; keywords: string[] }
+export type SessionProgressEvent = { type: "audio_initializing"; session_id: string } | { type: "audio_ready"; session_id: string } | { type: "connecting"; session_id: string } | { type: "connected"; session_id: string; adapter: string }
 export type StreamAlternatives = { transcript: string; words: StreamWord[]; confidence: number; languages?: string[] }
 export type StreamChannel = { alternatives: StreamAlternatives[] }
 export type StreamExtra = { started_unix_millis: number }

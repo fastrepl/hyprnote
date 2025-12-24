@@ -5,7 +5,10 @@ pub use granola::GranolaSource;
 pub use hyprnote::{HyprnoteV0NightlySource, HyprnoteV0StableSource};
 
 use crate::error::Result;
-use crate::types::{ImportSourceInfo, ImportSourceKind, ImportedNote, ImportedTranscript};
+use crate::types::{
+    ImportSourceInfo, ImportSourceKind, ImportedHuman, ImportedNote, ImportedOrganization,
+    ImportedSessionParticipant, ImportedTranscript,
+};
 use std::future::Future;
 use std::path::PathBuf;
 
@@ -16,6 +19,16 @@ pub trait ImportSource: Send + Sync {
     fn import_notes(&self) -> impl Future<Output = Result<Vec<ImportedNote>>> + Send;
 
     fn import_transcripts(&self) -> impl Future<Output = Result<Vec<ImportedTranscript>>> + Send;
+
+    fn import_humans(&self) -> impl Future<Output = Result<Vec<ImportedHuman>>> + Send;
+
+    fn import_organizations(
+        &self,
+    ) -> impl Future<Output = Result<Vec<ImportedOrganization>>> + Send;
+
+    fn import_session_participants(
+        &self,
+    ) -> impl Future<Output = Result<Vec<ImportedSessionParticipant>>> + Send;
 }
 
 pub fn get_source(
@@ -58,6 +71,15 @@ pub trait ImportSourceDyn: Send + Sync {
     fn import_transcripts_boxed(
         &self,
     ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedTranscript>>> + Send + '_>>;
+    fn import_humans_boxed(
+        &self,
+    ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedHuman>>> + Send + '_>>;
+    fn import_organizations_boxed(
+        &self,
+    ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedOrganization>>> + Send + '_>>;
+    fn import_session_participants_boxed(
+        &self,
+    ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedSessionParticipant>>> + Send + '_>>;
 }
 
 impl<T: ImportSource> ImportSourceDyn for T {
@@ -79,5 +101,25 @@ impl<T: ImportSource> ImportSourceDyn for T {
         &self,
     ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedTranscript>>> + Send + '_>> {
         Box::pin(self.import_transcripts())
+    }
+
+    fn import_humans_boxed(
+        &self,
+    ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedHuman>>> + Send + '_>> {
+        Box::pin(self.import_humans())
+    }
+
+    fn import_organizations_boxed(
+        &self,
+    ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedOrganization>>> + Send + '_>>
+    {
+        Box::pin(self.import_organizations())
+    }
+
+    fn import_session_participants_boxed(
+        &self,
+    ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedSessionParticipant>>> + Send + '_>>
+    {
+        Box::pin(self.import_session_participants())
     }
 }

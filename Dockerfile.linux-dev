@@ -1,0 +1,100 @@
+# Dockerfile for building Hyprnote desktop app on Linux
+# Based on CI configuration from .github/workflows/desktop_cd.yaml
+
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies (from setup-linux-tauri.sh and setup-linux-others.sh)
+RUN apt-get update && apt-get install -y \
+    # Tauri dependencies
+    libwebkit2gtk-4.1-dev \
+    build-essential \
+    curl \
+    wget \
+    file \
+    libxdo-dev \
+    libssl-dev \
+    libayatana-appindicator3-dev \
+    librsvg2-dev \
+    # Other dependencies
+    libgtk-3-dev \
+    libgtk-4-dev \
+    libasound2-dev \
+    libpulse-dev \
+    libgraphene-1.0-dev \
+    pkg-config \
+    patchelf \
+    # Additional dependencies from rust_install action
+    gcc-aarch64-linux-gnu \
+    # Build tools
+    cmake \
+    # Utilities
+    git \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 22 (matching CI configuration)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install pnpm 10.21.0 (matching package.json)
+RUN npm install -g pnpm@10.21.0
+
+# Install Rust 1.91.1 (matching CI configuration)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.91.1
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Add Linux targets (matching CI configuration)
+RUN rustup target add x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy package files for dependency installation
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY apps/desktop/package.json ./apps/desktop/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/tiptap/package.json ./packages/tiptap/
+COPY packages/utils/package.json ./packages/utils/
+COPY packages/db/package.json ./packages/db/
+COPY packages/codemirror/package.json ./packages/codemirror/
+COPY packages/nango/package.json ./packages/nango/
+COPY packages/obsidian/package.json ./packages/obsidian/
+
+# Copy plugin package.json files
+RUN mkdir -p plugins
+COPY plugins/analytics/package.json ./plugins/analytics/
+COPY plugins/apple-calendar/package.json ./plugins/apple-calendar/
+COPY plugins/auth/package.json ./plugins/auth/
+COPY plugins/cli2/package.json ./plugins/cli2/
+COPY plugins/db/package.json ./plugins/db/
+COPY plugins/db2/package.json ./plugins/db2/
+COPY plugins/detect/package.json ./plugins/detect/
+COPY plugins/hooks/package.json ./plugins/hooks/
+COPY plugins/listener/package.json ./plugins/listener/
+COPY plugins/local-llm/package.json ./plugins/local-llm/
+COPY plugins/local-stt/package.json ./plugins/local-stt/
+COPY plugins/misc/package.json ./plugins/misc/
+COPY plugins/notification/package.json ./plugins/notification/
+COPY plugins/permissions/package.json ./plugins/permissions/
+COPY plugins/sfx/package.json ./plugins/sfx/
+COPY plugins/store2/package.json ./plugins/store2/
+COPY plugins/template/package.json ./plugins/template/
+COPY plugins/tracing/package.json ./plugins/tracing/
+COPY plugins/tray/package.json ./plugins/tray/
+COPY plugins/webhook/package.json ./plugins/webhook/
+COPY plugins/windows/package.json ./plugins/windows/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy the rest of the source code
+COPY . .
+
+# Build UI package (required before building desktop)
+RUN pnpm -F ui build
+
+# Default command
+CMD ["/bin/bash"]

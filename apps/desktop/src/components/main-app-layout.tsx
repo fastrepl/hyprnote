@@ -1,13 +1,16 @@
 import { Outlet, useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { events as deeplink2Events } from "@hypr/plugin-deeplink2";
 import { events as windowsEvents } from "@hypr/plugin-windows";
 
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
+import * as main from "../store/tinybase/main";
 import { useTabs } from "../store/zustand/tabs";
+import { id } from "../utils";
 
 /**
  * Main app layout component that wraps routes with auth/billing providers.
@@ -30,6 +33,29 @@ export default function MainAppLayout() {
 const useNavigationEvents = () => {
   const navigate = useNavigate();
   const openNew = useTabs((state) => state.openNew);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
+
+  const createNewSession = useCallback(() => {
+    if (!store) {
+      return;
+    }
+
+    const sessionId = id();
+
+    store.setRow("sessions", sessionId, {
+      user_id: user_id ?? "",
+      created_at: new Date().toISOString(),
+      title: "",
+    });
+
+    void analyticsCommands.event({
+      event: "note_created",
+      has_event_id: false,
+    });
+
+    openNew({ type: "sessions", id: sessionId });
+  }, [store, user_id, openNew]);
 
   useEffect(() => {
     let unlistenNavigate: (() => void) | undefined;
@@ -41,7 +67,9 @@ const useNavigationEvents = () => {
     void windowsEvents
       .navigate(webview)
       .listen(({ payload }) => {
-        if (payload.path === "/app/settings") {
+        if (payload.path === "/app/new") {
+          createNewSession();
+        } else if (payload.path === "/app/settings") {
           let tab = (payload.search?.tab as string) ?? "general";
           if (tab === "notifications" || tab === "account") {
             tab = "general";
@@ -91,5 +119,5 @@ const useNavigationEvents = () => {
       unlistenOpenTab?.();
       unlistenDeepLink?.();
     };
-  }, [navigate, openNew]);
+  }, [navigate, openNew, createNewSession]);
 };

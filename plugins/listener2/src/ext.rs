@@ -173,10 +173,10 @@ async fn run_batch_am(
         }
         Err(e) => {
             tracing::error!("batch supervisor spawn failed: {:?}", e);
-            if let Ok(mut notifier) = start_notifier.lock() {
-                if let Some(tx) = notifier.take() {
-                    let _ = tx.send(Err(format!("failed to spawn batch supervisor: {e:?}")));
-                }
+            if let Ok(mut notifier) = start_notifier.lock()
+                && let Some(tx) = notifier.take()
+            {
+                let _ = tx.send(Err(format!("failed to spawn batch supervisor: {e:?}")));
             }
             return Err(e.into());
         }

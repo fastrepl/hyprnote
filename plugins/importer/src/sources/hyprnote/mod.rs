@@ -10,12 +10,10 @@ use hypr_db_user::{Session, Tag, UserDatabase};
 use std::path::PathBuf;
 
 pub(super) async fn open_database(path: &PathBuf) -> Result<UserDatabase> {
-    let db = hypr_db_user::Database::from(
-        hypr_db_core::DatabaseBuilder::default()
-            .local(&path)
-            .build()
-            .await?,
-    );
+    let db = hypr_db_core::DatabaseBuilder::default()
+        .local(path)
+        .build()
+        .await?;
     Ok(UserDatabase::from(db))
 }
 
@@ -68,10 +66,10 @@ fn session_to_imported_note(session: Session, tags: Vec<Tag>) -> ImportedNote {
 }
 
 fn get_session_content(session: &Session) -> String {
-    if let Some(ref enhanced) = session.enhanced_memo_html {
-        if !enhanced.is_empty() {
-            return strip_html_tags(enhanced);
-        }
+    if let Some(ref enhanced) = session.enhanced_memo_html
+        && !enhanced.is_empty()
+    {
+        return strip_html_tags(enhanced);
     }
 
     if !session.raw_memo_html.is_empty() {
@@ -120,14 +118,8 @@ fn session_to_imported_transcript(session: Session) -> ImportedTranscript {
 
             ImportedTranscriptSegment {
                 id: format!("{}-{}", session.id, idx),
-                start_timestamp: word
-                    .start_ms
-                    .map(|ms| format_timestamp(ms))
-                    .unwrap_or_default(),
-                end_timestamp: word
-                    .end_ms
-                    .map(|ms| format_timestamp(ms))
-                    .unwrap_or_default(),
+                start_timestamp: word.start_ms.map(format_timestamp).unwrap_or_default(),
+                end_timestamp: word.end_ms.map(format_timestamp).unwrap_or_default(),
                 text: word.text.clone(),
                 speaker,
             }

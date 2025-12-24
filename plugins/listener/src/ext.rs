@@ -132,10 +132,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
             None
         };
 
-        if let Some(session_id) = session_id.clone() {
-            if let Err(error) = (SessionEvent::Finalizing { session_id }).emit(&guard.app) {
-                tracing::error!(?error, "failed_to_emit_finalizing");
-            }
+        if let Some(session_id) = session_id.clone()
+            && let Err(error) = (SessionEvent::Finalizing { session_id }).emit(&guard.app)
+        {
+            tracing::error!(?error, "failed_to_emit_finalizing");
         }
 
         if let Some(supervisor_cell) = guard.session_supervisor.take() {
@@ -151,10 +151,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
             let _ = guard.app.tray().set_start_disabled(false);
         }
 
-        if let Some(session_id) = session_id {
-            if let Err(error) = (SessionEvent::Inactive { session_id }).emit(&guard.app) {
-                tracing::error!(?error, "failed_to_emit_inactive");
-            }
+        if let Some(session_id) = session_id
+            && let Err(error) = (SessionEvent::Inactive { session_id }).emit(&guard.app)
+        {
+            tracing::error!(?error, "failed_to_emit_inactive");
         }
 
         tracing::info!("session_stopped");

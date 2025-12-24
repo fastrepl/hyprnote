@@ -17,7 +17,6 @@ import {
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 import { FloatingActionButton } from "./floating";
-import { useListenButtonState } from "./floating/shared";
 import { NoteInput } from "./note-input";
 import { SearchBar } from "./note-input/transcript/search-bar";
 import {
@@ -25,6 +24,7 @@ import {
   useTranscriptSearch,
 } from "./note-input/transcript/search-context";
 import { OuterHeader } from "./outer-header";
+import { useListenButtonState } from "./shared";
 import { TitleInput } from "./title-input";
 
 export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({

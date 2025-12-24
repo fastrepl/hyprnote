@@ -256,7 +256,7 @@ function useTransport(attachedSessionId?: string) {
   }, [language, sessionContext]);
 
   const transport = useMemo(() => {
-    if (!model) {
+    if (!model || !systemPrompt) {
       return null;
     }
 

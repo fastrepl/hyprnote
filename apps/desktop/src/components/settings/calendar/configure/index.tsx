@@ -16,11 +16,11 @@ export function ConfigureProviders() {
   return (
     <Accordion type="single" collapsible className="space-y-3">
       {visibleProviders.map((provider) =>
-        provider.id === "apple" ? (
-          <AppleCalendarProviderCard key={provider.id} />
-        ) : (
+        provider.disabled ? (
           <DisabledProviderCard key={provider.id} config={provider} />
-        ),
+        ) : provider.id === "apple" ? (
+          <AppleCalendarProviderCard key={provider.id} />
+        ) : null,
       )}
     </Accordion>
   );

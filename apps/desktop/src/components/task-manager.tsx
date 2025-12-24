@@ -14,7 +14,8 @@ export function TaskManager() {
   const queries = main.UI.useQueries(main.STORE_ID);
 
   useSetTask(CALENDAR_SYNC_TASK_ID, async () => {
-    if (store && queries) {
+    // TODO: Not ready yet
+    if (false) {
       await syncCalendarEvents(
         store as main.Store,
         queries as Queries<main.Schemas>,

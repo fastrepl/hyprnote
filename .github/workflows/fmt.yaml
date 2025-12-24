@@ -6,8 +6,6 @@ on:
       - main
       - .github/workflows/fmt.yaml
   pull_request:
-    branches:
-      - main
     branches-ignore:
       - "**/graphite-base/**"
 jobs:

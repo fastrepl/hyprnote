@@ -8,8 +8,6 @@ on:
       - crates/llm-proxy/**
       - crates/transcribe-proxy/**
   pull_request:
-    branches:
-      - main
     branches-ignore:
       - "**/graphite-base/**"
     paths:

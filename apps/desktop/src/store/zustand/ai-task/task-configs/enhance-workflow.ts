@@ -259,8 +259,7 @@ function createValidator(
         expectedStart.startsWith(normalized) ||
         normalized.startsWith(expectedStart);
       if (!isValid) {
-        const feedback =
-          `Output must start with the first template section heading: "${expectedStart}"`;
+        const feedback = `Output must start with the first template section heading: "${expectedStart}"`;
         return { valid: false, feedback };
       }
     }
@@ -269,8 +268,7 @@ function createValidator(
     if (strippedText.length >= MIN_CHARS_FOR_LANGUAGE_VALIDATION) {
       const detectedLanguage = detect(strippedText);
       if (detectedLanguage && detectedLanguage !== expectedLanguage) {
-        const feedback =
-          `Output must be in ${expectedLanguage} language, but detected ${detectedLanguage}. Please regenerate in the correct language.`;
+        const feedback = `Output must be in ${expectedLanguage} language, but detected ${detectedLanguage}. Please regenerate in the correct language.`;
         return { valid: false, feedback };
       }
     }

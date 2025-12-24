@@ -79,7 +79,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     ) {
       startedTasksRef.current.add(autoEnhancedNoteId);
       void analyticsCommands.event({
-        event: "summary_generated",
+        event: "note_enhanced",
         is_auto: true,
       });
       void enhanceTask.start({

@@ -208,7 +208,7 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
       setIsSearching(true);
 
       try {
-        void analyticsCommands.event({ event: "search_used" });
+        void analyticsCommands.event({ event: "search_performed" });
         const hits = await search(searchQueryInput, searchFilters);
         setSearchHits(hits);
         setSearchQuery(searchQueryInput.trim());

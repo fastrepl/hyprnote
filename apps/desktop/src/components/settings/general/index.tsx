@@ -2,6 +2,7 @@ import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
@@ -67,6 +68,14 @@ export function SettingsGeneral() {
       } else {
         void disable();
       }
+
+      void analyticsCommands.event({
+        event: "settings_changed",
+        autostart: value.autostart,
+        notification_detect: value.notification_detect,
+        save_recordings: value.save_recordings,
+        telemetry_consent: value.telemetry_consent,
+      });
     },
   });
 

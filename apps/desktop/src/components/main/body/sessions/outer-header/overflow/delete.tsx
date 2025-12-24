@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, TrashIcon } from "lucide-react";
 import { useCallback } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
@@ -19,8 +20,19 @@ export function DeleteNote({ sessionId }: { sessionId: string }) {
     if (!store) {
       return;
     }
+
+    void analyticsCommands.event({
+      event: "session_deleted",
+      includes_recording: true,
+    });
+
     invalidateResource("sessions", sessionId);
+
     void deleteSessionCascade(store, indexes, sessionId);
+    void analyticsCommands.event({
+      event: "session_deleted",
+      includes_recording: true,
+    });
   }, [store, indexes, sessionId, invalidateResource]);
 
   return (
@@ -50,6 +62,9 @@ export function DeleteRecording({ sessionId }: { sessionId: string }) {
       ]);
     },
     onSuccess: () => {
+      void analyticsCommands.event({
+        event: "recording_deleted",
+      });
       void queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.length >= 2 &&

@@ -1,6 +1,7 @@
 import { arch, platform } from "@tauri-apps/plugin-os";
 import { memo, useCallback, useEffect, useMemo } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
 import { usePermissions } from "../../hooks/use-permissions";
@@ -51,6 +52,7 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
 
   const handleClickLocal = useCallback(async () => {
     await commands.setOnboardingLocal(true);
+    await analyticsCommands.event({ event: "account_skipped" });
     const next = { ...search, local: true };
     onNavigate({ ...next, step: getNext(next)! });
   }, [onNavigate, search]);

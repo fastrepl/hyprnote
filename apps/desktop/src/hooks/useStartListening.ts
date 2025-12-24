@@ -40,7 +40,7 @@ export function useStartListening(sessionId: string) {
 
     const eventId = store.getCell("sessions", sessionId, "event_id");
     void analyticsCommands.event({
-      event: "recording_started",
+      event: "session_started",
       has_calendar_event: !!eventId,
     });
 

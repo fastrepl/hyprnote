@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useOnClickOutside } from "usehooks-ts";
 
 export function useAutoCloser(
   onClose: () => void,
@@ -11,30 +12,14 @@ export function useAutoCloser(
     outside?: boolean;
   },
 ) {
-  const ref = useRef<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLDivElement>(null!);
 
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
 
   useHotkeys("esc", handleClose, { enabled: esc }, [handleClose]);
-
-  useEffect(() => {
-    if (!outside) {
-      return;
-    }
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        handleClose();
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [handleClose, outside]);
+  useOnClickOutside(ref, outside ? handleClose : () => {});
 
   return ref;
 }

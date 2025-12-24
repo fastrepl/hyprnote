@@ -3,7 +3,12 @@ import type { Queries } from "tinybase/with-schemas";
 import type { Schemas, Store } from "../../store/tinybase/main";
 import { createCtx } from "./ctx";
 import { fetchExistingEvents, fetchIncomingEvents } from "./fetch";
-import { execute, sync } from "./process";
+import {
+  executeForEventsSync,
+  executeForParticipantsSync,
+  syncEvents,
+  syncParticipants,
+} from "./process";
 
 export const CALENDAR_SYNC_TASK_ID = "calendarSync";
 
@@ -26,6 +31,11 @@ async function run(store: Store, queries: Queries<Schemas>) {
   const incoming = await fetchIncomingEvents(ctx);
   const existing = fetchExistingEvents(ctx);
 
-  const out = sync(ctx, { incoming, existing });
-  execute(ctx.store, out);
+  const out = syncEvents(ctx, { incoming, existing });
+  const { addedEventIds } = executeForEventsSync(ctx, out);
+
+  const participantsOut = syncParticipants(ctx, {
+    eventIds: [...out.toUpdate.map((e) => e.id), ...addedEventIds],
+  });
+  executeForParticipantsSync(ctx, participantsOut);
 }

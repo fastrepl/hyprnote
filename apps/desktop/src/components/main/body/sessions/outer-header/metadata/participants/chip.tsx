@@ -13,11 +13,13 @@ export function ParticipantChip({ mappingId }: { mappingId: string }) {
 
   const assignedHumanId = details?.humanId;
   const sessionId = details?.sessionId;
+  const source = details?.source;
 
   const handleRemove = useRemoveParticipant({
     mappingId,
     assignedHumanId,
     sessionId,
+    source,
   });
 
   const handleClick = useCallback(() => {
@@ -29,7 +31,7 @@ export function ParticipantChip({ mappingId }: { mappingId: string }) {
     }
   }, [assignedHumanId]);
 
-  if (!details) {
+  if (!details || source === "excluded") {
     return null;
   }
 
@@ -64,6 +66,12 @@ function useParticipantDetails(mappingId: string) {
     mappingId,
     main.STORE_ID,
   );
+  const source = main.UI.useCell(
+    "mapping_session_participant",
+    mappingId,
+    "source",
+    main.STORE_ID,
+  );
 
   if (!result) {
     return null;
@@ -81,6 +89,7 @@ function useParticipantDetails(mappingId: string) {
     orgId: (result.org_id as string | undefined) || undefined,
     orgName: result.org_name as string | undefined,
     sessionId: result.session_id as string,
+    source: source as string | undefined,
   };
 }
 
@@ -106,10 +115,12 @@ function useRemoveParticipant({
   mappingId,
   assignedHumanId,
   sessionId,
+  source,
 }: {
   mappingId: string;
   assignedHumanId: string | undefined;
   sessionId: string | undefined;
+  source: string | undefined;
 }) {
   const store = main.UI.useStore(main.STORE_ID);
   const indexes = main.UI.useIndexes(main.STORE_ID);
@@ -153,6 +164,12 @@ function useRemoveParticipant({
       }
     }
 
-    store.delRow("mapping_session_participant", mappingId);
-  }, [store, indexes, mappingId, assignedHumanId, sessionId]);
+    if (source === "auto") {
+      store.setPartialRow("mapping_session_participant", mappingId, {
+        source: "excluded",
+      });
+    } else {
+      store.delRow("mapping_session_participant", mappingId);
+    }
+  }, [store, indexes, mappingId, assignedHumanId, sessionId, source]);
 }

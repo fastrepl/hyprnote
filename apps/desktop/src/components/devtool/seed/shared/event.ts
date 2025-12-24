@@ -177,10 +177,12 @@ export const createEvent = (calendar_id: string) => {
     description = faker.helpers.arrayElement(topics);
   }
 
+  const eventId = id();
   return {
-    id: id(),
+    id: eventId,
     data: {
       user_id: DEFAULT_USER_ID,
+      tracking_id_event: `mock-${eventId}`,
       calendar_id,
       title,
       started_at: startsAt.toISOString(),

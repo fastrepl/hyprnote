@@ -1,8 +1,8 @@
 import type { Ctx } from "../ctx";
 import type { ExistingEvent } from "./types";
 
-export function fetchExistingEvents(ctx: Ctx): Array<ExistingEvent> {
-  const events: Array<ExistingEvent> = [];
+export function fetchExistingEvents(ctx: Ctx): ExistingEvent[] {
+  const events: ExistingEvent[] = [];
 
   ctx.store.forEachRow("events", (rowId, _forEachCell) => {
     const event = ctx.store.getRow("events", rowId);
@@ -20,6 +20,7 @@ export function fetchExistingEvents(ctx: Ctx): Array<ExistingEvent> {
     if (eventDate >= ctx.from && eventDate <= ctx.to) {
       events.push({
         id: rowId,
+        tracking_id_event: event.tracking_id_event as string | undefined,
         user_id: event.user_id as string | undefined,
         created_at: event.created_at as string | undefined,
         calendar_id: calendarId,

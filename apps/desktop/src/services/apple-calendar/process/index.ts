@@ -1,2 +1,2 @@
-export { execute } from "./execute";
-export { sync } from "./sync";
+export { executeForEventsSync, syncEvents } from "./events";
+export { executeForParticipantsSync, syncParticipants } from "./participants";

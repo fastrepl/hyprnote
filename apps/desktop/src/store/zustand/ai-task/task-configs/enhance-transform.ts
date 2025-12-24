@@ -11,6 +11,7 @@ import {
 } from "../../../../utils/segment/shared";
 import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
 import type { Store as MainStore } from "../../../tinybase/main";
+import type { Store as SettingsStore } from "../../../tinybase/settings";
 
 type TranscriptMeta = {
   id: string;
@@ -49,12 +50,13 @@ export const enhanceTransform: Pick<TaskConfig<"enhance">, "transformArgs"> = {
 async function transformArgs(
   args: TaskArgsMap["enhance"],
   store: MainStore,
+  settingsStore: SettingsStore,
 ): Promise<TaskArgsMapTransformed["enhance"]> {
   const { sessionId, enhancedNoteId, templateId } = args;
 
   const sessionContext = getSessionContext(sessionId, store);
   const template = templateId ? getTemplateData(templateId, store) : undefined;
-  const language = getLanguage(store);
+  const language = getLanguage(settingsStore);
 
   return {
     sessionId,
@@ -68,8 +70,8 @@ async function transformArgs(
   };
 }
 
-function getLanguage(store: MainStore): string {
-  const value = store.getValue("ai_language");
+function getLanguage(settingsStore: SettingsStore): string {
+  const value = settingsStore.getValue("ai_language");
   return typeof value === "string" && value.length > 0 ? value : "en";
 }
 

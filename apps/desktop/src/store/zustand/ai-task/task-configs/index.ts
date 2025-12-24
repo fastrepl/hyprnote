@@ -3,6 +3,7 @@ import type { LanguageModel, TextStreamPart } from "ai";
 import type { Template } from "@hypr/store";
 
 import type { Store as PersistedStore } from "../../../tinybase/main";
+import type { Store as SettingsStore } from "../../../tinybase/settings";
 import { StreamTransform } from "../shared/transform_infra";
 import type { TaskStepInfo } from "../tasks";
 import { enhanceTransform } from "./enhance-transform";
@@ -68,6 +69,7 @@ export interface TaskConfig<T extends TaskType = TaskType> {
   transformArgs: (
     args: TaskArgsMap[T],
     store: PersistedStore,
+    settingsStore: SettingsStore,
   ) => Promise<TaskArgsMapTransformed[T]>;
   executeWorkflow: (params: {
     model: LanguageModel;

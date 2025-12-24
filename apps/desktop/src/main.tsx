@@ -24,7 +24,11 @@ import { env } from "./env";
 import { initExtensionGlobals } from "./extension-globals";
 import { routeTree } from "./routeTree.gen";
 import { type Store, STORE_ID, StoreComponent } from "./store/tinybase/main";
-import { StoreComponent as SettingsStoreComponent } from "./store/tinybase/settings";
+import {
+  STORE_ID as SETTINGS_STORE_ID,
+  type Store as SettingsStore,
+  StoreComponent as SettingsStoreComponent,
+} from "./store/tinybase/settings";
 import { createAITaskStore } from "./store/zustand/ai-task";
 import { createListenerStore } from "./store/zustand/listener";
 import "./styles/globals.css";
@@ -50,15 +54,16 @@ function App() {
   const stores = useStores();
 
   const store = stores[STORE_ID] as unknown as Store;
+  const settingsStore = stores[SETTINGS_STORE_ID] as unknown as SettingsStore;
 
   const aiTaskStore = useMemo(() => {
-    if (!store) {
+    if (!store || !settingsStore) {
       return null;
     }
-    return createAITaskStore({ persistedStore: store });
-  }, [store]);
+    return createAITaskStore({ persistedStore: store, settingsStore });
+  }, [store, settingsStore]);
 
-  if (!store || !aiTaskStore) {
+  if (!store || !settingsStore || !aiTaskStore) {
     return null;
   }
 

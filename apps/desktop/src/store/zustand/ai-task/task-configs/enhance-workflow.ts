@@ -4,6 +4,7 @@ import {
   smoothStream,
   streamText,
 } from "ai";
+import { detect } from "tinyld";
 import { z } from "zod";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
@@ -24,6 +25,8 @@ import {
   type EarlyValidatorFn,
   withEarlyValidationRetry,
 } from "../shared/validate";
+
+const MIN_CHARS_FOR_DETECTION = 64;
 
 export const enhanceWorkflow: Pick<
   TaskConfig<"enhance">,
@@ -71,10 +74,23 @@ async function* executeWorkflow(params: {
   });
 }
 
+function detectLanguageFromContent(args: TaskArgsMapTransformed["enhance"]): string {
+  const transcriptText = args.segments.map((s) => s.text).join(" ");
+
+  if (transcriptText.length < MIN_CHARS_FOR_DETECTION) {
+    return args.language;
+  }
+
+  const detected = detect(transcriptText);
+  return detected || args.language;
+}
+
 async function getSystemPrompt(args: TaskArgsMapTransformed["enhance"]) {
+  const language = detectLanguageFromContent(args);
+
   const result = await templateCommands.render("enhance.system", {
     hasTemplate: !!args.template,
-    language: args.language,
+    language,
   });
 
   if (result.status === "error") {

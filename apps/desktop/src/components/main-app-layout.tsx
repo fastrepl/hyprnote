@@ -8,6 +8,7 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { useTabs } from "../store/zustand/tabs";
+import { TrialExpiredDialog } from "./trial-expired-dialog";
 
 /**
  * Main app layout component that wraps routes with auth/billing providers.
@@ -22,6 +23,7 @@ export default function MainAppLayout() {
     <AuthProvider>
       <BillingProvider>
         <Outlet />
+        <TrialExpiredDialog />
       </BillingProvider>
     </AuthProvider>
   );

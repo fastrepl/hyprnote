@@ -1,4 +1,3 @@
-use tauri::Manager;
 use tauri_plugin_path2::Path2PluginExt;
 
 use crate::{BatchParams, Listener2PluginExt, Subtitle, VttWord};

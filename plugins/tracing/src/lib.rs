@@ -72,12 +72,13 @@ fn cleanup_old_daily_logs(logs_dir: &PathBuf) -> io::Result<()> {
         let entry = entry?;
         let path = entry.path();
 
-        if let Some(filename) = path.file_name().and_then(|n| n.to_str()) {
-            if filename.starts_with("log.") && filename.len() > 4 {
-                let suffix = &filename[4..];
-                if suffix.chars().all(|c| c.is_ascii_digit() || c == '-') {
-                    let _ = fs::remove_file(path);
-                }
+        if let Some(filename) = path.file_name().and_then(|n| n.to_str())
+            && filename.starts_with("log.")
+            && filename.len() > 4
+        {
+            let suffix = &filename[4..];
+            if suffix.chars().all(|c| c.is_ascii_digit() || c == '-') {
+                let _ = fs::remove_file(path);
             }
         }
     }

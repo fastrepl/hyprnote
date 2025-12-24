@@ -81,12 +81,11 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             Ok(())
         })
-        .on_event(move |app, event| match event {
-            tauri::RunEvent::ExitRequested { .. } => {
+        .on_event(move |app, event| {
+            if let tauri::RunEvent::ExitRequested { .. } = event {
                 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
                 let _ = app.save_window_state(StateFlags::SIZE);
             }
-            _ => {}
         })
         .build()
 }

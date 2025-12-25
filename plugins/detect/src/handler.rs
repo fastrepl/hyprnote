@@ -358,7 +358,7 @@ pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::er
             }
             #[cfg(target_os = "macos")]
             hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {
-                emit_to_main(&app_handle, DetectEvent::MicMuted { value });
+                emit_to_main(&app_handle, DetectEvent::MicMuteStateChanged { value });
             }
         }
     });

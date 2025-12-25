@@ -53,6 +53,14 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["notification", "ignored_platforms"],
     },
+    mic_detection_delay_ms: {
+      type: "number",
+      path: ["notification", "mic_detection_delay_ms"],
+    },
+    mic_stop_grace_ms: {
+      type: "number",
+      path: ["notification", "mic_stop_grace_ms"],
+    },
     dismissed_banners: {
       type: "string",
       path: ["general", "dismissed_banners"],

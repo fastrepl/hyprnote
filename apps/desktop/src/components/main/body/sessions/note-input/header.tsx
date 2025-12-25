@@ -251,10 +251,12 @@ function CreateOtherFormatButton({
         return;
       }
 
-      analyticsCommands.event({
-        event: "template_summary_created",
-        template_id: templateId,
-      }).catch(console.error);
+      analyticsCommands
+        .event({
+          event: "template_summary_created",
+          template_id: templateId,
+        })
+        .catch(console.error);
 
       handleTabChange({ type: "enhanced", id: enhancedNoteId });
       setPendingNote({ id: enhancedNoteId, templateId });

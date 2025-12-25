@@ -39,10 +39,12 @@ export function useStartListening(sessionId: string) {
     });
 
     const eventId = store.getCell("sessions", sessionId, "event_id");
-    analyticsCommands.event({
-      event: "recording_started",
-      has_calendar_event: !!eventId,
-    }).catch(console.error);
+    analyticsCommands
+      .event({
+        event: "recording_started",
+        has_calendar_event: !!eventId,
+      })
+      .catch(console.error);
 
     const handlePersist: HandlePersistCallback = (words, hints) => {
       if (words.length === 0) {

@@ -147,7 +147,7 @@ impl AssemblyAIAdapter {
         let language_code = params
             .languages
             .first()
-            .map(|l| l.iso639().code().to_string());
+            .map(|l| l.code().to_string());
         let language_detection = if params.languages.len() > 1 || params.languages.is_empty() {
             Some(true)
         } else {

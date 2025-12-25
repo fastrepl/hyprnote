@@ -1,4 +1,7 @@
-import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
+import {
+  LANGUAGES_ISO_639_1,
+  LANGUAGES_ISO_639_3,
+} from "@huggingface/languages";
 import { Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -7,16 +10,23 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
+type ISO_639_3_CODE = keyof typeof LANGUAGES_ISO_639_3;
+type LANGUAGE_CODE = ISO_639_1_CODE | ISO_639_3_CODE;
 
 interface SpokenLanguagesViewProps {
   value: string[];
   onChange: (value: string[]) => void;
-  supportedLanguages: ISO_639_1_CODE[];
+  supportedLanguages: LANGUAGE_CODE[];
 }
 
 function getLanguageName(code: string): string {
-  const lang = LANGUAGES_ISO_639_1[code as ISO_639_1_CODE];
-  return lang?.name ?? code;
+  if (code in LANGUAGES_ISO_639_1) {
+    return LANGUAGES_ISO_639_1[code as ISO_639_1_CODE].name;
+  }
+  if (code in LANGUAGES_ISO_639_3) {
+    return LANGUAGES_ISO_639_3[code as ISO_639_3_CODE].name;
+  }
+  return code;
 }
 
 export function SpokenLanguagesView({
@@ -34,7 +44,7 @@ export function SpokenLanguagesView({
     }
     const query = languageSearchQuery.toLowerCase();
     return supportedLanguages.filter((langCode) => {
-      const langName = LANGUAGES_ISO_639_1[langCode].name;
+      const langName = getLanguageName(langCode);
       return (
         !value.includes(langCode) && langName.toLowerCase().includes(query)
       );

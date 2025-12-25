@@ -61,7 +61,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
         let language = params
             .languages
             .first()
-            .map(|l| l.iso639().code().to_string());
+            .map(|l| l.code().to_string());
 
         let default = owhisper_providers::Provider::OpenAI.default_live_model();
         let model = match params.model.as_deref() {

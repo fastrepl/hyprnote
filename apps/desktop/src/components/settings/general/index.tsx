@@ -1,4 +1,7 @@
-import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
+import {
+  LANGUAGES_ISO_639_1,
+  LANGUAGES_ISO_639_3,
+} from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
@@ -168,7 +171,9 @@ export function SettingsGeneral() {
 }
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
-const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
+type ISO_639_3_CODE = keyof typeof LANGUAGES_ISO_639_3;
+type LANGUAGE_CODE = ISO_639_1_CODE | ISO_639_3_CODE;
+const SUPPORTED_LANGUAGES: LANGUAGE_CODE[] = [
   "es",
   "it",
   "ko",
@@ -186,7 +191,8 @@ const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
   "tr",
   "ms",
   "sv",
-  "zh",
+  "cmn",
+  "yue",
   "fi",
   "no",
   "ro",

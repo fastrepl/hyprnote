@@ -144,10 +144,7 @@ impl AssemblyAIAdapter {
 
         let upload_result: UploadResponse = upload_response.json().await?;
 
-        let language_code = params
-            .languages
-            .first()
-            .map(|l| l.code().to_string());
+        let language_code = params.languages.first().map(|l| l.code().to_string());
         let language_detection = if params.languages.len() > 1 || params.languages.is_empty() {
             Some(true)
         } else {

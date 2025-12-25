@@ -58,10 +58,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
         params: &ListenParams,
         _channels: u8,
     ) -> Option<Message> {
-        let language = params
-            .languages
-            .first()
-            .map(|l| l.code().to_string());
+        let language = params.languages.first().map(|l| l.code().to_string());
 
         let default = owhisper_providers::Provider::OpenAI.default_live_model();
         let model = match params.model.as_deref() {

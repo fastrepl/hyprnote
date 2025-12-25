@@ -11,6 +11,7 @@ import {
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Input } from "@hypr/ui/components/ui/input";
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
 
@@ -30,6 +31,8 @@ export function NotificationSettingsView() {
     "respect_dnd",
     "ignored_platforms",
     "quit_intercept",
+    "mic_detection_delay_ms",
+    "mic_stop_grace_ms",
   ] as const);
 
   useEffect(() => {
@@ -109,6 +112,20 @@ export function NotificationSettingsView() {
     settings.STORE_ID,
   );
 
+  const handleSetMicDetectionDelayMs = settings.UI.useSetValueCallback(
+    "mic_detection_delay_ms",
+    (value: number) => value,
+    [],
+    settings.STORE_ID,
+  );
+
+  const handleSetMicStopGraceMs = settings.UI.useSetValueCallback(
+    "mic_stop_grace_ms",
+    (value: number) => value,
+    [],
+    settings.STORE_ID,
+  );
+
   const form = useForm({
     defaultValues: {
       notification_event: configs.notification_event,
@@ -116,6 +133,8 @@ export function NotificationSettingsView() {
       respect_dnd: configs.respect_dnd,
       ignored_platforms: configs.ignored_platforms.map(bundleIdToName),
       quit_intercept: configs.quit_intercept,
+      mic_detection_delay_ms: configs.mic_detection_delay_ms,
+      mic_stop_grace_ms: configs.mic_stop_grace_ms,
     },
     listeners: {
       onChange: async ({ formApi }) => {
@@ -134,6 +153,8 @@ export function NotificationSettingsView() {
         JSON.stringify(value.ignored_platforms.map(nameToBundleId)),
       );
       handleSetQuitIntercept(value.quit_intercept);
+      handleSetMicDetectionDelayMs(value.mic_detection_delay_ms);
+      handleSetMicStopGraceMs(value.mic_stop_grace_ms);
     },
   });
 
@@ -272,8 +293,74 @@ export function NotificationSettingsView() {
             </div>
 
             {field.state.value && (
-              <div className={cn(["ml-6 border-l-2 border-muted pl-6 pt-2"])}>
-                <div className="mb-3 space-y-1">
+              <div
+                className={cn([
+                  "ml-6 space-y-6 border-l-2 border-muted pl-6 pt-2",
+                ])}
+              >
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="mb-1 text-sm font-medium">
+                      Detection delay
+                    </h4>
+                    <p className="text-xs text-neutral-600">
+                      How long mic must be active before detecting a meeting
+                      (milliseconds)
+                    </p>
+                  </div>
+                  <form.Field name="mic_detection_delay_ms">
+                    {(delayField) => (
+                      <Input
+                        type="number"
+                        min={500}
+                        max={10000}
+                        step={500}
+                        value={delayField.state.value}
+                        onChange={(e) => {
+                          const val = Number.parseInt(e.target.value);
+                          if (!Number.isNaN(val)) {
+                            delayField.handleChange(val);
+                          }
+                        }}
+                        onBlur={() => void form.handleSubmit()}
+                        className="w-32"
+                      />
+                    )}
+                  </form.Field>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="mb-1 text-sm font-medium">
+                      Stop grace period
+                    </h4>
+                    <p className="text-xs text-neutral-600">
+                      How long to wait after mic stops before ending session
+                      (milliseconds)
+                    </p>
+                  </div>
+                  <form.Field name="mic_stop_grace_ms">
+                    {(graceField) => (
+                      <Input
+                        type="number"
+                        min={500}
+                        max={10000}
+                        step={500}
+                        value={graceField.state.value}
+                        onChange={(e) => {
+                          const val = Number.parseInt(e.target.value);
+                          if (!Number.isNaN(val)) {
+                            graceField.handleChange(val);
+                          }
+                        }}
+                        onBlur={() => void form.handleSubmit()}
+                        className="w-32"
+                      />
+                    )}
+                  </form.Field>
+                </div>
+
+                <div className="space-y-1">
                   <h4 className="text-sm font-medium">
                     Exclude apps from detection
                   </h4>

@@ -55,7 +55,7 @@ const useHandleDetectEvents = (store: ListenerStore) => {
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     let cancelled = false;
-    let notificationTimerId: ReturnType<typeof setTimeout>;
+    let notificationTimerId: ReturnType<typeof setTimeout> | undefined;
 
     detectEvents.detectEvent
       .listen(({ payload }) => {
@@ -67,6 +67,10 @@ const useHandleDetectEvents = (store: ListenerStore) => {
                 return;
               }
 
+              if (notificationTimerId) {
+                clearTimeout(notificationTimerId);
+              }
+
               notificationTimerId = setTimeout(() => {
                 void notificationCommands.showNotification({
                   key: payload.key,
@@ -75,9 +79,14 @@ const useHandleDetectEvents = (store: ListenerStore) => {
                   url: null,
                   timeout: { secs: 8, nanos: 0 },
                 });
+                notificationTimerId = undefined;
               }, 2000);
             });
         } else if (payload.type === "micStopped") {
+          if (notificationTimerId) {
+            clearTimeout(notificationTimerId);
+            notificationTimerId = undefined;
+          }
           stop();
         } else if (payload.type === "micMuted") {
           setMuted(payload.value);

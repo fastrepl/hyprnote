@@ -80,3 +80,23 @@ pub(crate) async fn set_respect_do_not_disturb<R: tauri::Runtime>(
     app.detect().set_respect_do_not_disturb(enabled).await;
     Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn set_mic_detection_delay_ms<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    delay_ms: u64,
+) -> Result<(), String> {
+    app.detect().set_mic_detection_delay_ms(delay_ms).await;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn set_mic_stop_grace_ms<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    grace_ms: u64,
+) -> Result<(), String> {
+    app.detect().set_mic_stop_grace_ms(grace_ms).await;
+    Ok(())
+}

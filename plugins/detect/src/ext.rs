@@ -27,6 +27,18 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Detect<'a, R, M> {
         let mut state_guard = state.lock().await;
         state_guard.respect_do_not_disturb = enabled;
     }
+
+    pub async fn set_mic_detection_delay_ms(&self, delay_ms: u64) {
+        let state = self.manager.state::<crate::SharedState>();
+        let mut state_guard = state.lock().await;
+        state_guard.mic_detection_delay_ms = delay_ms;
+    }
+
+    pub async fn set_mic_stop_grace_ms(&self, grace_ms: u64) {
+        let state = self.manager.state::<crate::SharedState>();
+        let mut state_guard = state.lock().await;
+        state_guard.mic_stop_grace_ms = grace_ms;
+    }
 }
 
 pub trait DetectPluginExt<R: tauri::Runtime> {

@@ -17,12 +17,25 @@ const PLUGIN_NAME: &str = "detect";
 
 pub type SharedState = Mutex<State>;
 
-#[derive(Default)]
 pub struct State {
     #[allow(dead_code)]
     pub(crate) detector: hypr_detect::Detector,
     pub(crate) ignored_bundle_ids: Vec<String>,
     pub(crate) respect_do_not_disturb: bool,
+    pub(crate) mic_detection_delay_ms: u64,
+    pub(crate) mic_stop_grace_ms: u64,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            detector: hypr_detect::Detector::default(),
+            ignored_bundle_ids: Vec::new(),
+            respect_do_not_disturb: false,
+            mic_detection_delay_ms: 2000,
+            mic_stop_grace_ms: 2000,
+        }
+    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -36,6 +49,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_respect_do_not_disturb::<tauri::Wry>,
             commands::set_ignored_bundle_ids::<tauri::Wry>,
             commands::list_default_ignored_bundle_ids::<tauri::Wry>,
+            commands::set_mic_detection_delay_ms::<tauri::Wry>,
+            commands::set_mic_stop_grace_ms::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![DetectEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)

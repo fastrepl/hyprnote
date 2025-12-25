@@ -21,7 +21,9 @@ export type ConfigKey =
   | "save_recordings"
   | "telemetry_consent"
   | "current_llm_provider"
-  | "current_llm_model";
+  | "current_llm_model"
+  | "mic_detection_delay_ms"
+  | "mic_stop_grace_ms";
 
 type ConfigValueType<K extends ConfigKey> =
   (typeof CONFIG_REGISTRY)[K]["default"];
@@ -153,5 +155,21 @@ export const CONFIG_REGISTRY = {
   current_llm_model: {
     key: "current_llm_model",
     default: undefined,
+  },
+
+  mic_detection_delay_ms: {
+    key: "mic_detection_delay_ms",
+    default: 2000,
+    sideEffect: async (value: number, _) => {
+      await detectCommands.setMicDetectionDelayMs(value);
+    },
+  },
+
+  mic_stop_grace_ms: {
+    key: "mic_stop_grace_ms",
+    default: 2000,
+    sideEffect: async (value: number, _) => {
+      await detectCommands.setMicStopGraceMs(value);
+    },
   },
 } satisfies Record<ConfigKey, ConfigDefinition>;

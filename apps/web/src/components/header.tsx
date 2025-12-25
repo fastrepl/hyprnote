@@ -358,7 +358,6 @@ function MobileNav({
 
   return (
     <div className="sm:hidden flex items-center gap-3">
-      <SearchTrigger variant="header" />
       {!hideCTA && (
         <CTAButton platformCTA={platformCTA} platform={platform} mobile />
       )}

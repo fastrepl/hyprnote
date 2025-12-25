@@ -78,14 +78,16 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       !startedTasksRef.current.has(autoEnhancedNoteId)
     ) {
       startedTasksRef.current.add(autoEnhancedNoteId);
-      void analyticsCommands.event({
-        event: "summary_generated",
-        is_auto: true,
-      });
-      void enhanceTask.start({
-        model,
-        args: { sessionId, enhancedNoteId: autoEnhancedNoteId },
-      });
+      void (async () => {
+        await analyticsCommands.event({
+          event: "summary_generated",
+          is_auto: true,
+        });
+        await enhanceTask.start({
+          model,
+          args: { sessionId, enhancedNoteId: autoEnhancedNoteId },
+        });
+      })();
     }
   }, [autoEnhancedNoteId, model, sessionId, enhanceTask.start]);
 

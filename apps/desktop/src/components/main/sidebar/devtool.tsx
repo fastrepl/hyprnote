@@ -126,17 +126,16 @@ function ExtensionStateMonitor() {
 }
 
 function NavigationList() {
-  const handleShowMain = useCallback(() => {
-    void windowsCommands.windowShow({ type: "main" });
+  const handleShowMain = useCallback(async () => {
+    await windowsCommands.windowShow({ type: "main" });
   }, []);
 
-  const handleShowOnboarding = useCallback(() => {
-    void windowsCommands.windowShow({ type: "onboarding" }).then(() => {
-      void windowsCommands.windowEmitNavigate(
-        { type: "onboarding" },
-        { path: "/app/onboarding", search: {} },
-      );
-    });
+  const handleShowOnboarding = useCallback(async () => {
+    await windowsCommands.windowShow({ type: "onboarding" });
+    await windowsCommands.windowEmitNavigate(
+      { type: "onboarding" },
+      { path: "/app/onboarding", search: {} },
+    );
   }, []);
 
   return (

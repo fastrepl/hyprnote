@@ -67,8 +67,8 @@ const useHandleDetectEvents = (store: ListenerStore) => {
                 return;
               }
 
-              notificationTimerId = setTimeout(() => {
-                void notificationCommands.showNotification({
+              notificationTimerId = setTimeout(async () => {
+                await notificationCommands.showNotification({
                   key: payload.key,
                   title: "Mic Started",
                   message: "Mic started",

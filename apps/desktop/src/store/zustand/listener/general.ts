@@ -426,9 +426,9 @@ export const createGeneralSlice = <
     set((state) =>
       mutate(state, (draft) => {
         draft.live.muted = value;
-        void listenerCommands.setMicMuted(value);
       }),
     );
+    listenerCommands.setMicMuted(value).catch(console.error);
   },
   runBatch: async (params, options) => {
     const sessionId = options?.sessionId;

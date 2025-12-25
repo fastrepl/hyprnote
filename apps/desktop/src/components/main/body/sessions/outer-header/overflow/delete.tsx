@@ -15,9 +15,9 @@ export function DeleteNote({ sessionId }: { sessionId: string }) {
     main.STORE_ID,
   );
 
-  const handleDeleteNote = useCallback(() => {
+  const handleDeleteNote = useCallback(async () => {
     deleteRow();
-    void miscCommands.audioDelete(sessionId);
+    await miscCommands.audioDelete(sessionId);
   }, [sessionId, deleteRow]);
 
   return (

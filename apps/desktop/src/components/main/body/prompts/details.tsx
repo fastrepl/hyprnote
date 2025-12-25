@@ -53,16 +53,16 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
       typeof templateCommands.render
     >[0];
 
-    void templateCommands
-      .render(templateName, {})
-      .then((result) => {
+    void (async () => {
+      try {
+        const result = await templateCommands.render(templateName, {});
         if (result.status === "ok") {
           setDefaultContent(result.data);
         }
-      })
-      .finally(() => {
+      } finally {
         setIsLoading(false);
-      });
+      }
+    })();
   }, [selectedTask]);
 
   useEffect(() => {

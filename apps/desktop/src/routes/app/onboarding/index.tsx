@@ -29,8 +29,8 @@ export const Route = createFileRoute("/app/onboarding/")({
 });
 
 async function finishOnboarding() {
-  await sfxCommands.stop("BGM").catch(console.error);
-  await commands.setOnboardingNeeded(false).catch(console.error);
+  await sfxCommands.stop("BGM");
+  await commands.setOnboardingNeeded(false);
   await windowsCommands.windowShow({ type: "main" });
   await windowsCommands.windowDestroy({ type: "onboarding" });
 }
@@ -41,14 +41,20 @@ function Component() {
   const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
-    sfxCommands.play("BGM").catch(console.error);
+    void (async () => {
+      await sfxCommands.play("BGM");
+    })().catch(console.error);
     return () => {
-      sfxCommands.stop("BGM").catch(console.error);
+      void (async () => {
+        await sfxCommands.stop("BGM");
+      })().catch(console.error);
     };
   }, []);
 
   useEffect(() => {
-    sfxCommands.setVolume("BGM", isMuted ? 0 : 1).catch(console.error);
+    void (async () => {
+      await sfxCommands.setVolume("BGM", isMuted ? 0 : 1);
+    })().catch(console.error);
   }, [isMuted]);
 
   const toggleMute = useCallback(() => {

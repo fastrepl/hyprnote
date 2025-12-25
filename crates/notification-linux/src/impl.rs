@@ -46,40 +46,40 @@ where
     *TIMEOUT_CB.lock().unwrap() = Some(Box::new(f));
 }
 
-fn call_confirm_handler(id: String) {
+fn call_confirm_handler(key: String) {
     if let Some(cb) = CONFIRM_CB.lock().unwrap().as_ref() {
-        cb(id);
+        cb(key);
     }
 }
 
-fn call_accept_handler(id: String) {
+fn call_accept_handler(key: String) {
     if let Some(cb) = ACCEPT_CB.lock().unwrap().as_ref() {
-        cb(id);
+        cb(key);
     }
 }
 
-fn call_dismiss_handler(id: String) {
+fn call_dismiss_handler(key: String) {
     if let Some(cb) = DISMISS_CB.lock().unwrap().as_ref() {
-        cb(id);
+        cb(key);
     }
 }
 
-fn call_timeout_handler(id: String) {
+fn call_timeout_handler(key: String) {
     if let Some(cb) = TIMEOUT_CB.lock().unwrap().as_ref() {
-        cb(id);
+        cb(key);
     }
 }
 
 struct NotificationInstance {
-    id: String,
+    key: String,
     window: Window,
     timeout_source: Option<glib::SourceId>,
 }
 
 impl NotificationInstance {
-    fn new(window: Window, id: String) -> Self {
+    fn new(window: Window, key: String) -> Self {
         Self {
-            id,
+            key,
             window,
             timeout_source: None,
         }
@@ -90,18 +90,18 @@ impl NotificationInstance {
             source.remove();
         }
 
-        let id = self.id.clone();
+        let key = self.key.clone();
         let window = self.window.clone();
         let source = glib::timeout_add_seconds_local_once(timeout_seconds as u32, move || {
-            call_timeout_handler(id.clone());
-            Self::dismiss_window(&window, &id, false);
+            call_timeout_handler(key.clone());
+            Self::dismiss_window(&window, &key, false);
         });
         self.timeout_source = Some(source);
     }
 
-    fn dismiss_window_inner(window: &Window, id: &str, user_action: bool) {
+    fn dismiss_window_inner(window: &Window, key: &str, user_action: bool) {
         if user_action {
-            call_dismiss_handler(id.to_string());
+            call_dismiss_handler(key.to_string());
         }
 
         window.set_opacity(1.0);
@@ -111,9 +111,9 @@ impl NotificationInstance {
         });
     }
 
-    fn dismiss_window(window: &Window, id: &str, user_action: bool) {
-        Self::dismiss_window_inner(window, id, user_action);
-        NotificationManager::remove_notification_global(id);
+    fn dismiss_window(window: &Window, key: &str, user_action: bool) {
+        Self::dismiss_window_inner(window, key, user_action);
+        NotificationManager::remove_notification_global(key);
     }
 }
 
@@ -142,7 +142,7 @@ impl NotificationManager {
         }
     }
 
-    fn show(&mut self, title: String, message: String, timeout_seconds: f64) {
+    fn show(&mut self, key: String, title: String, message: String, timeout_seconds: f64) {
         if !self.ensure_gtk() {
             return;
         }
@@ -158,8 +158,6 @@ impl NotificationManager {
             }
         }
 
-        let id = uuid::Uuid::new_v4().to_string();
-
         let window = Window::new(WindowType::Toplevel);
         window.set_decorated(false);
         window.set_resizable(false);
@@ -167,14 +165,14 @@ impl NotificationManager {
         window.set_keep_above(true);
 
         self.setup_window_style(&window);
-        self.create_notification_content(&window, &title, &message, &id);
+        self.create_notification_content(&window, &title, &message, &key);
         self.position_window(&window);
 
         window.show_all();
 
-        let mut notif = NotificationInstance::new(window, id.clone());
+        let mut notif = NotificationInstance::new(window, key.clone());
         notif.start_dismiss_timer(timeout_seconds);
-        self.active_notifications.insert(id, notif);
+        self.active_notifications.insert(key, notif);
 
         self.reposition_notifications();
     }
@@ -236,7 +234,7 @@ impl NotificationManager {
         }
     }
 
-    fn create_notification_content(&self, window: &Window, title: &str, message: &str, id: &str) {
+    fn create_notification_content(&self, window: &Window, title: &str, message: &str, key: &str) {
         let main_box = GtkBox::new(Orientation::Horizontal, 8);
         main_box.set_margin_start(12);
         main_box.set_margin_end(12);
@@ -272,10 +270,10 @@ impl NotificationManager {
         close_button.set_valign(Align::Start);
         close_button.set_halign(Align::End);
 
-        let id_clone = id.to_string();
+        let key_clone = key.to_string();
         let window_clone = window.clone();
         close_button.connect_clicked(move |_| {
-            NotificationInstance::dismiss_window(&window_clone, &id_clone, true);
+            NotificationInstance::dismiss_window(&window_clone, &key_clone, true);
         });
 
         let overlay = gtk::Overlay::new();
@@ -304,37 +302,43 @@ impl NotificationManager {
         // TODO: Reposition existing notifications once we implement a GTK4-compatible positioning strategy.
     }
 
-    fn remove_notification_locked(&mut self, id: &str) {
-        self.active_notifications.swap_remove(id);
+    fn remove_notification_locked(&mut self, key: &str) {
+        self.active_notifications.swap_remove(key);
         self.reposition_notifications();
     }
 
-    fn remove_notification_global(id: &str) {
+    fn remove_notification_global(key: &str) {
         NOTIFICATION_MANAGER.with(|manager| {
-            manager.borrow_mut().remove_notification_locked(id);
+            manager.borrow_mut().remove_notification_locked(key);
         });
     }
 
     fn dismiss_all(&mut self) {
-        let ids: Vec<String> = self.active_notifications.keys().cloned().collect();
-        for id in ids {
-            if let Some(notif) = self.active_notifications.get(&id) {
+        let keys: Vec<String> = self.active_notifications.keys().cloned().collect();
+        for key in keys {
+            if let Some(notif) = self.active_notifications.get(&key) {
                 let window = notif.window.clone();
-                NotificationInstance::dismiss_window_inner(&window, &id, false);
-                self.remove_notification_locked(&id);
+                NotificationInstance::dismiss_window_inner(&window, &key, false);
+                self.remove_notification_locked(&key);
             }
         }
     }
 }
 
 pub fn show(notification: &hypr_notification_interface::Notification) {
+    let key = notification
+        .key
+        .clone()
+        .unwrap_or_else(|| notification.title.clone());
     let title = notification.title.clone();
     let message = notification.message.clone();
     let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
 
     glib::MainContext::default().invoke(move || {
         NOTIFICATION_MANAGER.with(|manager| {
-            manager.borrow_mut().show(title, message, timeout_seconds);
+            manager
+                .borrow_mut()
+                .show(key, title, message, timeout_seconds);
         });
     });
 }

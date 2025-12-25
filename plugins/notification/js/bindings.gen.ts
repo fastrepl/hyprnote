@@ -40,8 +40,8 @@ notificationEvent: "plugin:notification:notification-event"
 /** user-defined types **/
 
 export type Duration = { secs: number; nanos: number }
-export type Notification = { key: string | null; title: string; message: string; timeout: Duration | null }
-export type NotificationEvent = { type: "notification_confirm"; id: string } | { type: "notification_accept"; id: string } | { type: "notification_dismiss"; id: string } | { type: "notification_timeout"; id: string }
+export type Notification = { key: string | null; title: string; message: string; timeout: Duration | null; event_id: string | null }
+export type NotificationEvent = { type: "notification_confirm"; key: string; event_id: string | null } | { type: "notification_accept"; key: string; event_id: string | null } | { type: "notification_dismiss"; key: string; event_id: string | null } | { type: "notification_timeout"; key: string; event_id: string | null }
 
 /** tauri-specta globals **/
 

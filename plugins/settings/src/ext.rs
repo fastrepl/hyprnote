@@ -1,7 +1,5 @@
 use std::path::PathBuf;
 
-use tauri::Manager;
-
 pub struct Settings<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,

@@ -244,14 +244,13 @@ async fn start_source_loop(
         ChannelMode::MicAndSpeaker => start_source_loop_mic_and_speaker(myself, st).await,
     };
 
-    if result.is_ok() {
-        if let Err(error) = (SessionProgressEvent::AudioReady {
+    if result.is_ok()
+        && let Err(error) = (SessionProgressEvent::AudioReady {
             session_id: st.session_id.clone(),
         })
         .emit(&st.app)
-        {
-            tracing::error!(?error, "failed_to_emit_audio_ready");
-        }
+    {
+        tracing::error!(?error, "failed_to_emit_audio_ready");
     }
 
     result

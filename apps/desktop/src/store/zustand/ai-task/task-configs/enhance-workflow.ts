@@ -239,6 +239,15 @@ function stripMarkdownForDetection(text: string): string {
     .trim();
 }
 
+// Normalize ISO639-3 Chinese codes (cmn, yue) to ISO639-1 (zh) for tinyld comparison
+// tinyld uses ISO639-1 codes, so we need to map cmn (Mandarin) and yue (Cantonese) to zh
+function normalizeLanguageForTinyld(code: string): string {
+  if (code === "cmn" || code === "yue") {
+    return "zh";
+  }
+  return code;
+}
+
 function createValidator(
   template: Pick<Template, "sections"> | undefined,
   expectedLanguage: string,
@@ -267,7 +276,8 @@ function createValidator(
     const strippedText = stripMarkdownForDetection(normalized);
     if (strippedText.length >= MIN_CHARS_FOR_LANGUAGE_VALIDATION) {
       const detectedLanguage = detect(strippedText);
-      if (detectedLanguage && detectedLanguage !== expectedLanguage) {
+      const normalizedExpected = normalizeLanguageForTinyld(expectedLanguage);
+      if (detectedLanguage && detectedLanguage !== normalizedExpected) {
         const feedback = `Output must be in ${expectedLanguage} language, but detected ${detectedLanguage}. Please regenerate in the correct language.`;
         return { valid: false, feedback };
       }

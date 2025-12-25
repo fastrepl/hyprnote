@@ -289,18 +289,17 @@ fn load_extension_impl(
 
     let mut functions = HashMap::new();
 
-    if let Ok(obj) = v8::Local::<v8::Object>::try_from(local) {
-        if let Some(names) = obj.get_own_property_names(scope, v8::GetPropertyNamesArgs::default())
-        {
-            for i in 0..names.length() {
-                if let Some(key) = names.get_index(scope, i) {
-                    let key_str = key.to_rust_string_lossy(scope);
-                    if let Some(value) = obj.get(scope, key) {
-                        if let Ok(func) = v8::Local::<v8::Function>::try_from(value) {
-                            let global_func = v8::Global::new(scope, func);
-                            functions.insert(key_str, global_func);
-                        }
-                    }
+    if let Ok(obj) = v8::Local::<v8::Object>::try_from(local)
+        && let Some(names) = obj.get_own_property_names(scope, v8::GetPropertyNamesArgs::default())
+    {
+        for i in 0..names.length() {
+            if let Some(key) = names.get_index(scope, i) {
+                let key_str = key.to_rust_string_lossy(scope);
+                if let Some(value) = obj.get(scope, key)
+                    && let Ok(func) = v8::Local::<v8::Function>::try_from(value)
+                {
+                    let global_func = v8::Global::new(scope, func);
+                    functions.insert(key_str, global_func);
                 }
             }
         }

@@ -127,10 +127,10 @@ pub fn discover_extensions(extensions_dir: &PathBuf) -> Vec<Extension> {
 
     for entry in entries.flatten() {
         let path = entry.path();
-        if path.is_dir() {
-            if let Ok(extension) = Extension::load(path) {
-                extensions.push(extension);
-            }
+        if path.is_dir()
+            && let Ok(extension) = Extension::load(path)
+        {
+            extensions.push(extension);
         }
     }
 

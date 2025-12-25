@@ -74,7 +74,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             Ok(())
         })
         .on_event(move |app, event| {
-            if let tauri::RunEvent::Ready { .. } = event {
+            if let tauri::RunEvent::Ready = event {
                 let app_handle = app.clone();
                 hypr_intercept::register_quit_handler(PLUGIN_NAME, move || {
                     let state = app_handle.state::<SharedState>();

@@ -185,10 +185,10 @@ impl BatchStreamConfig {
 }
 
 fn notify_start_result(notifier: &BatchStartNotifier, result: Result<(), String>) {
-    if let Ok(mut guard) = notifier.lock() {
-        if let Some(sender) = guard.take() {
-            let _ = sender.send(result);
-        }
+    if let Ok(mut guard) = notifier.lock()
+        && let Some(sender) = guard.take()
+    {
+        let _ = sender.send(result);
     }
 }
 

@@ -60,6 +60,7 @@ hypr-llm-proxy = { path = "crates/llm-proxy", package = "llm-proxy" }
 hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-mac = { path = "crates/mac", package = "mac" }
 hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
+hypr-move = { path = "crates/move", package = "move" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-notch = { path = "crates/notch", package = "notch" }
 hypr-notification = { path = "crates/notification", package = "notification" }

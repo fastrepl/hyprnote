@@ -57,6 +57,11 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::window_is_exists,
             commands::set_fake_window_bounds,
             commands::remove_fake_window,
+            commands::tile_with_external_window,
+            commands::move_external_window,
+            commands::get_focused_window_info,
+            commands::check_window_move_permissions,
+            commands::request_window_move_permissions,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

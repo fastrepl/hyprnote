@@ -19,6 +19,8 @@ objc2-app-kit = { workspace = true }
 objc2-foundation = { workspace = true }
 
 [dependencies]
+hypr-move = { workspace = true, features = ["specta"] }
+
 serde = { workspace = true }
 serde_json = { workspace = true }
 

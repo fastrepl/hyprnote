@@ -295,6 +295,42 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the check_window_move_permissions command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-check-window-move-permissions",
+          "markdownDescription": "Enables the check_window_move_permissions command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the check_window_move_permissions command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-check-window-move-permissions",
+          "markdownDescription": "Denies the check_window_move_permissions command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_focused_window_info command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-focused-window-info",
+          "markdownDescription": "Enables the get_focused_window_info command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_focused_window_info command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-focused-window-info",
+          "markdownDescription": "Denies the get_focused_window_info command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the move_external_window command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-move-external-window",
+          "markdownDescription": "Enables the move_external_window command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the move_external_window command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-move-external-window",
+          "markdownDescription": "Denies the move_external_window command without any pre-configured scope."
+        },
+        {
           "description": "Enables the remove_fake_window command without any pre-configured scope.",
           "type": "string",
           "const": "allow-remove-fake-window",
@@ -307,6 +343,18 @@
           "markdownDescription": "Denies the remove_fake_window command without any pre-configured scope."
         },
         {
+          "description": "Enables the request_window_move_permissions command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-window-move-permissions",
+          "markdownDescription": "Enables the request_window_move_permissions command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the request_window_move_permissions command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-window-move-permissions",
+          "markdownDescription": "Denies the request_window_move_permissions command without any pre-configured scope."
+        },
+        {
           "description": "Enables the set_fake_window_bounds command without any pre-configured scope.",
           "type": "string",
           "const": "allow-set-fake-window-bounds",
@@ -317,6 +365,18 @@
           "type": "string",
           "const": "deny-set-fake-window-bounds",
           "markdownDescription": "Denies the set_fake_window_bounds command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the tile_with_external_window command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-tile-with-external-window",
+          "markdownDescription": "Enables the tile_with_external_window command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the tile_with_external_window command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-tile-with-external-window",
+          "markdownDescription": "Denies the tile_with_external_window command without any pre-configured scope."
         },
         {
           "description": "Enables the window_destroy command without any pre-configured scope.",

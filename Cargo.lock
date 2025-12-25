@@ -9,6 +9,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fe438c63458706e03479442743baae6c88256498e6431708f6dfc520a26515d3"
 
 [[package]]
+name = "accessibility-sys"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46a6a8e90a1d8b96a48249e7c8f5b4058447bea8847280db7bfccb6dcab6b8e1"
+dependencies = [
+ "core-foundation-sys",
+]
+
+[[package]]
 name = "actix-codec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10771,6 +10780,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "move"
+version = "0.1.0"
+dependencies = [
+ "accessibility-sys",
+ "core-foundation 0.10.0",
+ "core-foundation-sys",
+ "macos-accessibility-client",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-core-foundation",
+ "objc2-foundation",
+ "serde",
+ "specta",
+ "thiserror 2.0.17",
+]
+
+[[package]]
 name = "moxcms"
 version = "0.7.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -17796,6 +17822,7 @@ dependencies = [
 name = "tauri-plugin-windows"
 version = "0.1.0"
 dependencies = [
+ "move",
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",

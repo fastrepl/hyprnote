@@ -110,11 +110,11 @@ tauri-plugin-fs = "2.4"
 tauri-plugin-http = "2.5"
 tauri-plugin-opener = "2.5"
 tauri-plugin-os = "2.3"
-tauri-plugin-prevent-default = "3.0"
+tauri-plugin-prevent-default = "4"
 tauri-plugin-process = "2.3"
-tauri-plugin-sentry = { version = "0.5" }
+tauri-plugin-sentry = "0.5"
 tauri-plugin-shell = "2.3"
-tauri-plugin-single-instance = "2"
+tauri-plugin-single-instance = "2.3"
 tauri-plugin-store = "2.4"
 tauri-plugin-updater = "2.9"
 tauri-plugin-window-state = "2.4"
@@ -207,20 +207,20 @@ serial_test = "3"
 testcontainers-modules = "0.12.1"
 wiremock = "0.6"
 
-axum = "0.8.4"
-axum-extra = "0.10.1"
-tower = "0.5.2"
-tower-http = "0.6.2"
+axum = "0.8"
+axum-extra = "0.12"
+tower = "0.5"
+tower-http = "0.6"
 
-chrono = "0.4.39"
-chrono-tz = "0.10.1"
+chrono = "0.4"
+chrono-tz = "0.10"
 
 async-openai = { git = "https://github.com/fastrepl/async-openai", rev = "6404d307f3f706e818ad91544dc82fac5c545aee", default-features = false }
 async-stripe = { version = "0.39.1", default-features = false }
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
-sentry = "0.42"
+sentry = "0.46"
 vergen-gix = "1"
 
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }

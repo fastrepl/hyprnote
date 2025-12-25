@@ -29,7 +29,7 @@ export function TranscriptContainer({
 
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const currentActive =
-    sessionMode === "running_active" || sessionMode === "finalizing";
+    sessionMode === "active" || sessionMode === "finalizing";
   const editable =
     sessionMode === "inactive" && Object.keys(operations ?? {}).length > 0;
 

@@ -20,85 +20,54 @@ pub enum AppSounds {
     BGM,
 }
 
-pub fn to_speaker(bytes: &'static [u8], looping: bool) -> std::sync::mpsc::Sender<SoundControl> {
+pub(crate) fn to_speaker(
+    bytes: &'static [u8],
+    looping: bool,
+) -> std::sync::mpsc::Sender<SoundControl> {
     use rodio::source::Source;
     use rodio::{Decoder, OutputStream, Sink};
     let (tx, rx) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
-        eprintln!(
-            "[sfx] attempting to play audio, bytes len: {}, looping: {}",
-            bytes.len(),
-            looping
-        );
-        tracing::info!(
-            "sfx: attempting to play audio, bytes len: {}, looping: {}",
-            bytes.len(),
-            looping
-        );
+        let Ok((stream, stream_handle)) = OutputStream::try_default() else {
+            return;
+        };
 
-        match OutputStream::try_default() {
-            Ok((stream, stream_handle)) => {
-                eprintln!("[sfx] got output stream");
-                tracing::info!("sfx: got output stream");
-                let file = std::io::Cursor::new(bytes);
+        let file = std::io::Cursor::new(bytes);
+        let Ok(source) = Decoder::new(file) else {
+            return;
+        };
 
-                match Decoder::new(file) {
-                    Ok(source) => {
-                        eprintln!("[sfx] decoded audio source successfully");
-                        tracing::info!("sfx: decoded audio source");
+        let Ok(sink) = Sink::try_new(&stream_handle) else {
+            return;
+        };
 
-                        match Sink::try_new(&stream_handle) {
-                            Ok(sink) => {
-                                eprintln!("[sfx] created sink, appending source and playing");
-                                tracing::info!("sfx: created sink, appending source");
+        if looping {
+            sink.append(source.repeat_infinite());
+        } else {
+            sink.append(source);
+        }
 
-                                if looping {
-                                    sink.append(source.repeat_infinite());
-                                } else {
-                                    sink.append(source);
-                                }
-
-                                loop {
-                                    match rx.recv_timeout(std::time::Duration::from_millis(100)) {
-                                        Ok(SoundControl::Stop) => {
-                                            eprintln!("[sfx] stopping playback");
-                                            sink.stop();
-                                            break;
-                                        }
-                                        Ok(SoundControl::SetVolume(volume)) => {
-                                            eprintln!("[sfx] setting volume to {}", volume);
-                                            sink.set_volume(volume);
-                                        }
-                                        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
-                                            if !looping && sink.empty() {
-                                                break;
-                                            }
-                                        }
-                                        Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
-                                            break;
-                                        }
-                                    }
-                                }
-                                drop(stream);
-                            }
-                            Err(e) => {
-                                eprintln!("[sfx] ERROR: failed to create sink: {:?}", e);
-                                tracing::error!("sfx: failed to create sink: {:?}", e);
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        eprintln!("[sfx] ERROR: failed to decode audio: {:?}", e);
-                        tracing::error!("sfx: failed to decode audio: {:?}", e);
+        loop {
+            match rx.recv_timeout(std::time::Duration::from_millis(100)) {
+                Ok(SoundControl::Stop) => {
+                    sink.stop();
+                    break;
+                }
+                Ok(SoundControl::SetVolume(volume)) => {
+                    sink.set_volume(volume);
+                }
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                    if !looping && sink.empty() {
+                        break;
                     }
                 }
-            }
-            Err(e) => {
-                eprintln!("[sfx] ERROR: failed to get output stream: {:?}", e);
-                tracing::error!("sfx: failed to get output stream: {:?}", e);
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                    break;
+                }
             }
         }
+        drop(stream);
     });
 
     tx

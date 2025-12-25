@@ -48,7 +48,7 @@ function Component() {
         return true;
       }
       const mode = getSessionMode(tab.id);
-      return mode !== "running_active" && mode !== "finalizing";
+      return mode !== "active" && mode !== "finalizing";
     });
   }, [registerCanClose, getSessionMode]);
 

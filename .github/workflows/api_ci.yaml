@@ -6,8 +6,6 @@ on:
     paths:
       - apps/api/**
   pull_request:
-    branches:
-      - main
     branches-ignore:
       - "**/graphite-base/**"
     paths:

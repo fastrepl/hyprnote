@@ -16,6 +16,8 @@ pub enum Error {
     InvalidDateRange,
     #[error("objective-c exception: {0}")]
     ObjectiveCException(String),
+    #[error("xpc connection failed")]
+    XpcConnectionFailed,
     #[error("transform error: {0}")]
     TransformError(String),
     #[error("permission denied: {0}")]

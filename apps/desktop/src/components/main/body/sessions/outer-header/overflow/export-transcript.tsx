@@ -41,6 +41,7 @@ export function ExportTranscript({ sessionId }: { sessionId: string }) {
             text: row.text as string,
             start_ms: row.start_ms as number,
             end_ms: row.end_ms as number,
+            speaker: null,
           });
         }
       }

@@ -21,6 +21,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["chrono"] }
 
+backon = { workspace = true, features = ["std-blocking-sleep"] }
 chrono = { workspace = true, features = ["serde"] }
 itertools = { workspace = true }
 thiserror = { workspace = true }

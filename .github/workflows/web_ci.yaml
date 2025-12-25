@@ -10,8 +10,6 @@ on:
       - apps/web/**
       - packages/**
   pull_request:
-    branches:
-      - main
     branches-ignore:
       - "**/graphite-base/**"
     paths:

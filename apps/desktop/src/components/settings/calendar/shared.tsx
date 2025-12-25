@@ -17,10 +17,10 @@ export type CalendarProviderId = (typeof _PROVIDERS)[number]["id"];
 
 const _PROVIDERS = [
   {
-    disabled: false,
+    disabled: true,
     id: "apple",
     displayName: "Apple",
-    badge: null,
+    badge: "Almost Done, really",
     icon: <Icon icon="logos:apple" width={20} height={20} />,
     platform: "macos",
     docsPath: "/docs/calendar/apple",
@@ -29,7 +29,7 @@ const _PROVIDERS = [
     disabled: true,
     id: "google",
     displayName: "Google",
-    badge: "Coming Soon",
+    badge: "After Apple Calendar",
     icon: <Icon icon="logos:google-calendar" width={20} height={20} />,
     platform: "all",
     docsPath: "/docs/calendar/gcal",
@@ -38,7 +38,7 @@ const _PROVIDERS = [
     disabled: true,
     id: "outlook",
     displayName: "Outlook",
-    badge: "Coming Soon",
+    badge: "After Apple Calendar",
     icon: <OutlookIcon size={20} />,
     platform: "all",
     docsPath: "/docs/calendar/outlook",

@@ -8,8 +8,6 @@ on:
       - go.mod
       - go.sum
   pull_request:
-    branches:
-      - main
     branches-ignore:
       - "**/graphite-base/**"
     paths:

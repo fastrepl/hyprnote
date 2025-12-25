@@ -10,7 +10,7 @@ export function Listening({ sessionId }: { sessionId: string }) {
     mode: state.getSessionMode(sessionId),
     stop: state.stop,
   }));
-  const isListening = mode === "running_active" || mode === "finalizing";
+  const isListening = mode === "active" || mode === "finalizing";
   const isFinalizing = mode === "finalizing";
   const isBatching = mode === "running_batch";
   const startListening = useStartListening(sessionId);

@@ -61,11 +61,42 @@ fn close_window(cx: &mut App, window_id: WindowId) {
     });
 }
 
+fn invoke_callback(event: &NotificationEvent, key: &str) {
+    let key = key.to_string();
+    match event {
+        NotificationEvent::Accept => {
+            if let Some(cb) = ACCEPT_CB.lock().unwrap().as_ref() {
+                cb(key);
+            }
+        }
+        NotificationEvent::Dismiss => {
+            if let Some(cb) = DISMISS_CB.lock().unwrap().as_ref() {
+                cb(key);
+            }
+        }
+        NotificationEvent::Confirm => {
+            if let Some(cb) = CONFIRM_CB.lock().unwrap().as_ref() {
+                cb(key);
+            }
+        }
+        NotificationEvent::Timeout => {
+            if let Some(cb) = TIMEOUT_CB.lock().unwrap().as_ref() {
+                cb(key);
+            }
+        }
+    }
+}
+
 pub fn show(notification: &Notification, cx: &mut App) {
     let screen = match cx.primary_display() {
         Some(screen) => screen,
         None => return,
     };
+
+    let key = notification
+        .key
+        .clone()
+        .unwrap_or_else(|| notification.title.clone());
 
     let toast_entity: Entity<StatusToast> =
         cx.new(|_cx| StatusToast::new(&notification.title, &notification.message));
@@ -74,18 +105,12 @@ pub fn show(notification: &Notification, cx: &mut App) {
         toast_entity.clone()
     }) {
         let window_id = window.window_id();
+        let key_for_sub = key.clone();
 
-        cx.subscribe(
-            &toast_entity,
-            move |_, event: &NotificationEvent, cx| match event {
-                NotificationEvent::Accept
-                | NotificationEvent::Dismiss
-                | NotificationEvent::Confirm
-                | NotificationEvent::Timeout => {
-                    close_window(cx, window_id);
-                }
-            },
-        )
+        cx.subscribe(&toast_entity, move |_, event: &NotificationEvent, cx| {
+            invoke_callback(event, &key_for_sub);
+            close_window(cx, window_id);
+        })
         .detach();
 
         ACTIVE_WINDOWS.lock().unwrap().push(window);

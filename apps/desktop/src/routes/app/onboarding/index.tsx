@@ -28,12 +28,11 @@ export const Route = createFileRoute("/app/onboarding/")({
   component: Component,
 });
 
-function finishOnboarding() {
-  sfxCommands.stop("BGM").catch(console.error);
-  commands.setOnboardingNeeded(false).catch(console.error);
-  void windowsCommands.windowShow({ type: "main" }).then(() => {
-    void windowsCommands.windowDestroy({ type: "onboarding" });
-  });
+async function finishOnboarding() {
+  await sfxCommands.stop("BGM").catch(console.error);
+  await commands.setOnboardingNeeded(false).catch(console.error);
+  await windowsCommands.windowShow({ type: "main" });
+  await windowsCommands.windowDestroy({ type: "onboarding" });
 }
 
 function Component() {
@@ -43,6 +42,9 @@ function Component() {
 
   useEffect(() => {
     sfxCommands.play("BGM").catch(console.error);
+    return () => {
+      sfxCommands.stop("BGM").catch(console.error);
+    };
   }, []);
 
   useEffect(() => {
@@ -57,7 +59,7 @@ function Component() {
     (ctx: NavigateTarget) => {
       const { step, ...rest } = ctx;
       if (step === "done") {
-        finishOnboarding();
+        void finishOnboarding();
       } else {
         void navigate({ to: "/app/onboarding", search: { step, ...rest } });
       }

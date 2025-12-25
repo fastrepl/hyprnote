@@ -29,13 +29,12 @@ impl TrayCheckUpdate {
 
         UPDATE_STATE.store(state_value, Ordering::SeqCst);
 
-        if let Some(menu) = app.menu() {
-            if let Some(item) = menu.get(Self::ID) {
-                if let MenuItemKind::MenuItem(menu_item) = item {
-                    menu_item.set_text(text)?;
-                    menu_item.set_enabled(enabled)?;
-                }
-            }
+        if let Some(menu) = app.menu()
+            && let Some(item) = menu.get(Self::ID)
+            && let MenuItemKind::MenuItem(menu_item) = item
+        {
+            menu_item.set_text(text)?;
+            menu_item.set_enabled(enabled)?;
         }
 
         if let Some(tray) = app.tray_by_id("hypr-tray") {

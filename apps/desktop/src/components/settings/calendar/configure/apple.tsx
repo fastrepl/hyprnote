@@ -4,7 +4,6 @@ import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 import { useMemo } from "react";
 
 import {
-  type AppleCalendar,
   commands as appleCalendarCommands,
   colorToCSS,
 } from "@hypr/plugin-apple-calendar";
@@ -21,6 +20,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
+import { findCalendarByTrackingId } from "../../../../utils/calendar";
 import { PROVIDERS } from "../shared";
 import {
   type CalendarGroup,
@@ -133,16 +133,16 @@ export function AppleCalendarProviderCard() {
 
   const calendar = useAccessPermission({
     queryKey: "appleCalendarAccess",
-    checkPermission: permissionsCommands.checkCalendarPermission,
-    requestPermission: permissionsCommands.requestCalendarPermission,
-    openSettings: permissionsCommands.openCalendarSettings,
+    checkPermission: () => permissionsCommands.checkPermission("calendar"),
+    requestPermission: () => permissionsCommands.requestPermission("calendar"),
+    openSettings: () => permissionsCommands.openPermission("calendar"),
   });
 
   const contacts = useAccessPermission({
     queryKey: "appleContactsAccess",
-    checkPermission: permissionsCommands.checkContactsPermission,
-    requestPermission: permissionsCommands.requestContactsPermission,
-    openSettings: permissionsCommands.openContactsSettings,
+    checkPermission: () => permissionsCommands.checkPermission("contacts"),
+    requestPermission: () => permissionsCommands.requestPermission("contacts"),
+    openSettings: () => permissionsCommands.openPermission("contacts"),
   });
 
   return (
@@ -188,25 +188,6 @@ function useAppleCalendarSelection() {
   const calendars = main.UI.useTable("calendars", main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
 
-  const setCalendarRow = main.UI.useSetRowCallback(
-    "calendars",
-    (cal: AppleCalendar) => cal.id,
-    (cal: AppleCalendar, store) => {
-      const existing = store.getRow("calendars", cal.id);
-      return {
-        user_id: user_id!,
-        created_at: existing?.created_at || new Date().toISOString(),
-        name: cal.title,
-        enabled: existing?.enabled ?? false,
-        provider: "apple",
-        source: cal.source.title,
-        color: colorToCSS(cal.color),
-      };
-    },
-    [user_id],
-    main.STORE_ID,
-  );
-
   const { mutate: syncCalendars, isPending } = useMutation({
     mutationKey: ["appleCalendars", "sync"],
     mutationFn: async () => {
@@ -219,10 +200,27 @@ function useAppleCalendarSelection() {
       }
       return result.data;
     },
-    onSuccess: (calendars) => {
-      store?.transaction(() => {
-        for (const cal of calendars) {
-          setCalendarRow(cal);
+    onSuccess: (incomingCalendars) => {
+      if (!store || !user_id) return;
+
+      store.transaction(() => {
+        for (const cal of incomingCalendars) {
+          const existingRowId = findCalendarByTrackingId(store, cal.id);
+          const rowId = existingRowId ?? crypto.randomUUID();
+          const existing = existingRowId
+            ? store.getRow("calendars", existingRowId)
+            : null;
+
+          store.setRow("calendars", rowId, {
+            user_id,
+            created_at: existing?.created_at || new Date().toISOString(),
+            tracking_id_calendar: cal.id,
+            name: cal.title,
+            enabled: existing?.enabled ?? false,
+            provider: "apple",
+            source: cal.source.title,
+            color: colorToCSS(cal.color),
+          });
         }
       });
     },

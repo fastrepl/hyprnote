@@ -1,8 +1,6 @@
 on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - main
     branches-ignore:
       - "**/graphite-base/**"
     paths:

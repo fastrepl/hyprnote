@@ -90,9 +90,16 @@ export const transcriptSchema = baseTranscriptSchema.omit({ id: true }).extend({
   ended_at: z.preprocess((val) => val ?? undefined, z.number().optional()),
 });
 
+export const participantSourceSchema = z.enum(["manual", "auto", "excluded"]);
+export type ParticipantSource = z.infer<typeof participantSourceSchema>;
+
 export const mappingSessionParticipantSchema =
   baseMappingSessionParticipantSchema.omit({ id: true }).extend({
     created_at: z.string(),
+    source: z.preprocess(
+      (val) => val ?? undefined,
+      participantSourceSchema.optional(),
+    ),
   });
 
 export const tagSchema = baseTagSchema.omit({ id: true }).extend({
@@ -220,6 +227,9 @@ export type FolderStorage = ToStorageType<typeof folderSchema>;
 export type PromptStorage = ToStorageType<typeof promptSchema>;
 export type ChatShortcutStorage = ToStorageType<typeof chatShortcutSchema>;
 export type EventStorage = ToStorageType<typeof eventSchema>;
+export type MappingSessionParticipantStorage = ToStorageType<
+  typeof mappingSessionParticipantSchema
+>;
 
 export const externalTableSchemaForTinybase = {
   folders: {
@@ -282,6 +292,7 @@ export const externalTableSchemaForTinybase = {
   calendars: {
     user_id: { type: "string" },
     created_at: { type: "string" },
+    tracking_id_calendar: { type: "string" },
     name: { type: "string" },
     enabled: { type: "boolean" },
     provider: { type: "string" },
@@ -291,6 +302,7 @@ export const externalTableSchemaForTinybase = {
   events: {
     user_id: { type: "string" },
     created_at: { type: "string" },
+    tracking_id_event: { type: "string" },
     calendar_id: { type: "string" },
     title: { type: "string" },
     started_at: { type: "string" },
@@ -306,6 +318,7 @@ export const externalTableSchemaForTinybase = {
     created_at: { type: "string" },
     session_id: { type: "string" },
     human_id: { type: "string" },
+    source: { type: "string" },
   } as const satisfies InferTinyBaseSchema<
     typeof mappingSessionParticipantSchema
   >,

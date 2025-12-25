@@ -1,12 +1,11 @@
 import { ConfigureProviders } from "./configure";
-import { CalendarStatus } from "./status";
 
 export function SettingsCalendar() {
   return (
     <div className="space-y-6">
-      <Container title="Event Fetching Status">
+      {/* <Container title="Event Fetching Status">
         <CalendarStatus />
-      </Container>
+      </Container> */}
 
       <Container title="Configure Providers">
         <ConfigureProviders />

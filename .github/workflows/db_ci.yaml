@@ -7,8 +7,6 @@ on:
     paths:
       - supabase/**
   pull_request:
-    branches:
-      - main
     branches-ignore:
       - "**/graphite-base/**"
     paths:

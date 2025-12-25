@@ -7,6 +7,9 @@ pub enum Error {
     )]
     AccessibilityPermissionDenied,
 
+    #[error("This operation must be called from the main thread")]
+    NotOnMainThread,
+
     #[error("No frontmost application found")]
     NoFrontmostApp,
 

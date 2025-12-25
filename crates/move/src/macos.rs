@@ -13,6 +13,7 @@ use core_foundation::{
 };
 use objc2_app_kit::{NSScreen, NSWorkspace};
 use objc2_core_foundation::{CGPoint, CGSize};
+use objc2_foundation::MainThreadMarker;
 use std::ptr::null_mut;
 
 use crate::{Error, MoveResult, PermissionStatus, WindowInfo, WindowPosition};
@@ -157,27 +158,21 @@ pub fn get_focused_window_info() -> Result<Option<WindowInfo>, Error> {
 }
 
 fn get_frontmost_app_pid() -> Option<i32> {
-    unsafe {
-        let workspace = NSWorkspace::sharedWorkspace();
-        let frontmost_app = workspace.frontmostApplication()?;
-        Some(frontmost_app.processIdentifier())
-    }
+    let workspace = NSWorkspace::sharedWorkspace();
+    let frontmost_app = workspace.frontmostApplication()?;
+    Some(frontmost_app.processIdentifier())
 }
 
 fn get_frontmost_app_bundle_id() -> Option<String> {
-    unsafe {
-        let workspace = NSWorkspace::sharedWorkspace();
-        let frontmost_app = workspace.frontmostApplication()?;
-        frontmost_app.bundleIdentifier().map(|s| s.to_string())
-    }
+    let workspace = NSWorkspace::sharedWorkspace();
+    let frontmost_app = workspace.frontmostApplication()?;
+    frontmost_app.bundleIdentifier().map(|s| s.to_string())
 }
 
 fn get_frontmost_app_name() -> Option<String> {
-    unsafe {
-        let workspace = NSWorkspace::sharedWorkspace();
-        let frontmost_app = workspace.frontmostApplication()?;
-        frontmost_app.localizedName().map(|s| s.to_string())
-    }
+    let workspace = NSWorkspace::sharedWorkspace();
+    let frontmost_app = workspace.frontmostApplication()?;
+    frontmost_app.localizedName().map(|s| s.to_string())
 }
 
 fn create_app_element(pid: i32) -> AXUIElementRef {
@@ -266,17 +261,16 @@ fn get_window_title(window: AXUIElementRef) -> Option<String> {
 }
 
 fn get_primary_screen_bounds() -> Result<(f64, f64, f64, f64), Error> {
-    unsafe {
-        let screens = NSScreen::screens();
-        let main_screen = screens.firstObject().ok_or(Error::NoScreenFound)?;
-        let frame = main_screen.visibleFrame();
-        Ok((
-            frame.origin.x,
-            frame.origin.y,
-            frame.size.width,
-            frame.size.height,
-        ))
-    }
+    let mtm = MainThreadMarker::new().ok_or(Error::NotOnMainThread)?;
+    let screens = NSScreen::screens(mtm);
+    let main_screen = screens.firstObject().ok_or(Error::NoScreenFound)?;
+    let frame = main_screen.visibleFrame();
+    Ok((
+        frame.origin.x,
+        frame.origin.y,
+        frame.size.width,
+        frame.size.height,
+    ))
 }
 
 fn set_window_position(window: AXUIElementRef, x: f64, y: f64) -> Result<(), Error> {

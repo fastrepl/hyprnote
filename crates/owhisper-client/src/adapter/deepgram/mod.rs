@@ -13,7 +13,7 @@ pub struct DeepgramAdapter;
 
 impl DeepgramAdapter {
     pub fn is_supported_languages(languages: &[hypr_language::Language]) -> bool {
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
+        let primary_lang = languages.first().map(|l| l.code()).unwrap_or("en");
         SUPPORTED_LANGUAGES.contains(&primary_lang)
     }
 }

@@ -174,7 +174,7 @@ base64 = "0.22.1"
 bytes = "1.9.0"
 cached = "0.55.1"
 clap = "4"
-codes-iso-639 = "0.1.5"
+codes-iso-639 = { version = "0.1.5", features = ["part_3"] }
 derive_more = "2"
 dirs = "6.0.0"
 dotenvy = "0.15.7"

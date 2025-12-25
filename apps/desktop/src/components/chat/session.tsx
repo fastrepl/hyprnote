@@ -246,7 +246,10 @@ function useTransport(attachedSessionId?: string) {
     };
 
     void (async () => {
-      const result = await templateCommands.render("chat.system", templateParams);
+      const result = await templateCommands.render(
+        "chat.system",
+        templateParams,
+      );
       if (result.status === "ok") {
         setSystemPrompt(result.data);
       }

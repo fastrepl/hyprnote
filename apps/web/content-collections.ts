@@ -560,6 +560,8 @@ const roadmap = defineCollection({
     created: z.string(),
     updated: z.string().optional(),
     labels: z.array(z.string()).optional(),
+    priority: z.enum(["high", "mid", "low"]),
+    date: z.string().optional(),
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {

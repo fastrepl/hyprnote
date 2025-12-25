@@ -184,10 +184,10 @@ function useTimelineItemActions(
           title: title,
           created_at: new Date().toISOString(),
         });
-        void analyticsCommands.event({
+        analyticsCommands.event({
           event: "note_created",
           has_event_id: true,
-        });
+        }).catch(console.error);
         const tab: TabInput = { id: sessionId, type: "sessions" };
         if (openInNewTab) {
           openNew(tab);

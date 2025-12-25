@@ -316,12 +316,11 @@ function HyprProviderLocalRow({
     handleCancel,
   } = useLocalModelDownload(model, handleSelectModel);
 
-  const handleOpen = () => {
-    void localSttCommands.modelsDir().then((result) => {
-      if (result.status === "ok") {
-        void openPath(result.data);
-      }
-    });
+  const handleOpen = async () => {
+    const result = await localSttCommands.modelsDir();
+    if (result.status === "ok") {
+      void openPath(result.data);
+    }
   };
 
   return (
@@ -391,23 +390,22 @@ function useLocalModelDownload(
     }
   }, [isDownloaded.data, model, onDownloadComplete, progress]);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (isDownloaded.data || isDownloading.data || isStarting) {
       return;
     }
     setHasError(false);
     setIsStarting(true);
     setProgress(0);
-    void localSttCommands.downloadModel(model).then((result) => {
-      if (result.status === "error") {
-        setHasError(true);
-        setIsStarting(false);
-      }
-    });
+    const result = await localSttCommands.downloadModel(model);
+    if (result.status === "error") {
+      setHasError(true);
+      setIsStarting(false);
+    }
   };
 
-  const handleCancel = () => {
-    void localSttCommands.cancelDownload(model);
+  const handleCancel = async () => {
+    await localSttCommands.cancelDownload(model);
     setIsStarting(false);
     setProgress(0);
   };

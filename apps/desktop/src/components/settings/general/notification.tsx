@@ -33,9 +33,13 @@ export function NotificationSettingsView() {
   ] as const);
 
   useEffect(() => {
-    void notificationCommands.clearNotifications();
+    void (async () => {
+      await notificationCommands.clearNotifications();
+    })();
     return () => {
-      void notificationCommands.clearNotifications();
+      void (async () => {
+        await notificationCommands.clearNotifications();
+      })();
     };
   }, []);
 

@@ -78,10 +78,10 @@ export const RawEditor = forwardRef<
         const hasContent = hasNonEmptyText(input);
         if (hasContent) {
           hasTrackedWriteRef.current = true;
-          void analyticsCommands.event({
+          analyticsCommands.event({
             event: "note_written",
             has_content: true,
-          });
+          }).catch(console.error);
         }
       }
     },

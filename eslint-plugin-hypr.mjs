@@ -63,6 +63,23 @@ const rule = defineRule({
             return;
           }
 
+          // Allow commands passed as arguments to functions (e.g., fromResult(command()))
+          if (current.type === "CallExpression") {
+            return;
+          }
+
+          // Allow commands with .then() or .catch() chains (e.g., command().then(...) or command().catch(...))
+          if (current.type === "MemberExpression") {
+            const propName = current.property?.name;
+            if (
+              propName === "then" ||
+              propName === "catch" ||
+              propName === "finally"
+            ) {
+              return;
+            }
+          }
+
           context.report({
             node,
             messageId: "missingAwait",

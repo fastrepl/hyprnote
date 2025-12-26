@@ -74,6 +74,7 @@ hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-supabase-auth = { path = "crates/supabase-auth", package = "supabase-auth" }
 hypr-tcc = { path = "crates/tcc", package = "tcc" }
 hypr-template = { path = "crates/template", package = "template" }
+hypr-template-assets = { path = "crates/template-assets", package = "template-assets" }
 hypr-transcribe-aws = { path = "crates/transcribe-aws", package = "transcribe-aws" }
 hypr-transcribe-azure = { path = "crates/transcribe-azure", package = "transcribe-azure" }
 hypr-transcribe-deepgram = { path = "crates/transcribe-deepgram", package = "transcribe-deepgram" }
@@ -220,7 +221,7 @@ async-stripe = { version = "0.39.1", default-features = false }
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
-sentry = "0.46"
+sentry = "=0.42.0"
 vergen-gix = "1"
 
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }

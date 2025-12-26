@@ -667,9 +667,10 @@ export function BlogEditor({ mode, initialData }: BlogEditorProps) {
                 onClick={() => saveMutation.mutate(false)}
                 disabled={saveMutation.isPending}
                 className={cn([
-                  "w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors",
-                  "border border-neutral-200 text-neutral-700 bg-white",
-                  "hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed",
+                  "w-full h-10 flex items-center justify-center text-sm font-medium transition-all",
+                  "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm",
+                  "hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+                  "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
                 ])}
               >
                 Save Draft
@@ -678,9 +679,10 @@ export function BlogEditor({ mode, initialData }: BlogEditorProps) {
                 onClick={() => saveMutation.mutate(true)}
                 disabled={saveMutation.isPending}
                 className={cn([
-                  "w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors",
-                  "bg-stone-600 text-white",
-                  "hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed",
+                  "w-full h-10 flex items-center justify-center text-sm font-medium transition-all",
+                  "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md",
+                  "hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                  "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
                 ])}
               >
                 Publish

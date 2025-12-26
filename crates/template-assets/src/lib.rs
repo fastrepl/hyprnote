@@ -1,4 +1,5 @@
 pub const MINIJINJA_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/minijinja");
+pub const ASKAMA_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/askama");
 
 #[rustfmt::skip]
 pub mod minijinja {
@@ -15,4 +16,12 @@ pub mod minijinja {
     pub const HIGHLIGHT_SYSTEM: &str = include_str!("../minijinja/highlight.system.jinja");
     pub const HIGHLIGHT_USER: &str = include_str!("../minijinja/highlight.user.jinja");
     pub const LANGUAGE_PARTIAL: &str = include_str!("../minijinja/_language.partial.jinja");
+}
+
+#[rustfmt::skip]
+pub mod askama {
+    pub const TITLE_SYSTEM: &str = include_str!("../askama/title.system.jinja");
+    pub const TITLE_USER: &str = include_str!("../askama/title.user.jinja");
+    pub const ENHANCE_SYSTEM: &str = include_str!("../askama/enhance.system.jinja");
+    pub const ENHANCE_USER: &str = include_str!("../askama/enhance.user.jinja");
 }

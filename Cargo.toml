@@ -75,6 +75,7 @@ hypr-supabase-auth = { path = "crates/supabase-auth", package = "supabase-auth" 
 hypr-tcc = { path = "crates/tcc", package = "tcc" }
 hypr-template = { path = "crates/template", package = "template" }
 hypr-template-assets = { path = "crates/template-assets", package = "template-assets" }
+hypr-template2 = { path = "crates/template2", package = "template2" }
 hypr-transcribe-aws = { path = "crates/transcribe-aws", package = "transcribe-aws" }
 hypr-transcribe-azure = { path = "crates/transcribe-azure", package = "transcribe-azure" }
 hypr-transcribe-deepgram = { path = "crates/transcribe-deepgram", package = "transcribe-deepgram" }
@@ -224,6 +225,7 @@ jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 sentry = "=0.42.0"
 vergen-gix = "1"
 
+askama = "0.15"
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 minijinja = "2.7.0"

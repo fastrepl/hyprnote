@@ -22,9 +22,9 @@ import {
   buildTranscriptsForSessions,
 } from "../shared";
 
-faker.seed(123);
+const buildRandomData = (): Tables<Schemas[0]> => {
+  faker.seed(123);
 
-const RANDOM_DATA = (() => {
   const organizations = buildOrganizations(4);
   const orgIds = Object.keys(organizations);
 
@@ -112,16 +112,17 @@ const RANDOM_DATA = (() => {
     chat_messages,
     enhanced_notes,
     chat_shortcuts,
-  } satisfies Tables<Schemas[0]>;
-})();
+  };
+};
 
 export const randomSeed: SeedDefinition = {
   id: "random",
   label: "Random",
   run: (store: MainStore) => {
+    const data = buildRandomData();
     store.transaction(() => {
       store.delTables();
-      store.setTables(RANDOM_DATA);
+      store.setTables(data);
     });
   },
 };

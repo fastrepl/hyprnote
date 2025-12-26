@@ -11,9 +11,9 @@ import {
   generateTranscript,
 } from "../shared";
 
-faker.seed(789);
+const buildLongData = (): Tables<Schemas[0]> => {
+  faker.seed(789);
 
-const LONG_DATA = (() => {
   const organization = createOrganization();
   const human = createHuman(organization.id, true);
   const session = createSession();
@@ -36,16 +36,17 @@ const LONG_DATA = (() => {
     sessions: { [session.id]: session.data },
     transcripts: { [transcriptId]: transcript },
     words,
-  } satisfies Tables<Schemas[0]>;
-})();
+  };
+};
 
 export const longSeed: SeedDefinition = {
   id: "long",
   label: "Long",
   run: (store: MainStore) => {
+    const data = buildLongData();
     store.transaction(() => {
       store.delTables();
-      store.setTables(LONG_DATA);
+      store.setTables(data);
     });
   },
 };

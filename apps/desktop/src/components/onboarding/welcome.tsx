@@ -53,7 +53,7 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
           className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
           onClick={() => {
             void analyticsCommands.event({
-              event: "proceed_without_account",
+              event: "account_skipped",
             });
             const next = { ...search, local: true };
             onNavigate({ ...next, step: getNext(next) });

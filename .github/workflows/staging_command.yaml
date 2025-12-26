@@ -86,7 +86,7 @@ jobs:
               echo "needs_cleanup=false" >> $GITHUB_OUTPUT
             else
               TEMP_BRANCH="staging-temp-${SHA:0:8}"
-              gh api repos/${{ github.repository }}/git/refs \
+              GH_TOKEN=${{ secrets.PAT_TOKEN }} gh api repos/${{ github.repository }}/git/refs \
                 -f ref="refs/heads/$TEMP_BRANCH" \
                 -f sha="$SHA"
               for i in {1..10}; do
@@ -168,7 +168,7 @@ jobs:
           BRANCH="${{ needs.parse_command.outputs.branch }}"
           gh api repos/${{ github.repository }}/git/refs/heads/$BRANCH -X DELETE || true
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
 
   comment_result:
     needs: [permission, parse_command, trigger_build]

@@ -1,10 +1,12 @@
 pub mod chat;
 pub mod enhance;
 pub mod title;
+pub mod types;
 
 pub use chat::*;
 pub use enhance::*;
 pub use title::*;
+pub use types::*;
 
 #[macro_export]
 macro_rules! common_derives {

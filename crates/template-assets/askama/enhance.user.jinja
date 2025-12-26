@@ -1,51 +1,22 @@
+{% import "_macros.jinja" as macros %}
 {% if session.is_some() || !participants.is_empty() %}
 Context:
-{% match session %}
-{% when Some with (s) %}
-{% if s.is_event %}
-{% match s.title %}
-{% when Some with (title) %}
-Meeting: {{ title }}
-{% when None %}
-{% endmatch %}
-{% match (s.started_at.as_ref(), s.ended_at.as_ref()) %}
-{% when (Some(started), Some(ended)) %}
-Time: {{ started }} - {{ ended }}
-{% when _ %}
-{% endmatch %}
-{% match s.location %}
-{% when Some with (location) %}
-Location: {{ location }}
-{% when None %}
-{% endmatch %}
+{{ macros::session_context(session) }}
+{{ macros::participants(participants) }}
+{% endif %}
+{% if template.is_some() %}
+Workflow:
+
+1. Use the provided template with predefined sections.
+2. Generate a well-formatted markdown summary following the template sections.
+3. Each template section includes a title and description - use these to guide your summary.
+
+{{ macros::template_context(template) }}
 {% else %}
-{% match s.title %}
-{% when Some with (title) %}
-Session: {{ title }}
-{% when None %}
-{% endmatch %}
-{% endif %}
-{% when None %}
-{% endmatch %}
-{% if !participants.is_empty() %}
-Participants: {% for p in participants %}{{ p.name }}{% match p.job_title %}{% when Some with (job_title) %} ({{ job_title }}){% when None %}{% endmatch %}{% if !loop.last %}, {% endif %}{% endfor %}
-{% endif %}
-{% endif %}
-{% match template %}
-{% when Some with (tpl) %}
-Template: {{ tpl.title }}
-{% match tpl.description %}
-{% when Some with (desc) %}
-Description: {{ desc }}
-{% when None %}
-{% endmatch %}
+Workflow:
 
-Sections to cover:
-{% for section in tpl.sections %}
+1. Analyze the content and decide the sections to use.
+2. Generate a well-formatted markdown summary, following the format requirements.
+   {% endif %}
 
-- {{ section.title }}{% match section.description %}{% when Some with (desc) %}: {{ desc }}{% when None %}{% endmatch %}
-  {% endfor %}
-  {% when None %}
-  {% endmatch %}
-
-{{ transcript }}
+{{ macros::transcript(transcript) }}

@@ -2,7 +2,10 @@ import { useChat } from "@ai-sdk/react";
 import type { ChatStatus } from "ai";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
-import { commands as templateCommands } from "@hypr/plugin-template";
+import {
+  commands as templateCommands,
+  type Transcript,
+} from "@hypr/plugin-template";
 import type { ChatMessage, ChatMessageStorage } from "@hypr/store";
 
 import { CustomChatTransport } from "../../chat/transport";
@@ -12,6 +15,11 @@ import { useSession } from "../../hooks/tinybase";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
 import * as main from "../../store/tinybase/main";
 import { id } from "../../utils";
+import { buildSegments, SegmentKey, type WordLike } from "../../utils/segment";
+import {
+  defaultRenderLabelContext,
+  SpeakerLabelManager,
+} from "../../utils/segment/shared";
 
 interface ChatSessionProps {
   sessionId: string;
@@ -195,18 +203,12 @@ function useTransport(attachedSessionId?: string) {
     main.STORE_ID,
   );
 
-  const words = useMemo(() => {
+  const words = useMemo((): WordLike[] => {
     if (!store || !wordIds || wordIds.length === 0) {
       return [];
     }
 
-    const result: {
-      text: string;
-      start_ms: number;
-      end_ms: number;
-      channel: number;
-      speaker?: string;
-    }[] = [];
+    const result: WordLike[] = [];
 
     for (const wordId of wordIds) {
       const row = store.getRow("words", wordId);
@@ -215,8 +217,7 @@ function useTransport(attachedSessionId?: string) {
           text: row.text as string,
           start_ms: row.start_ms as number,
           end_ms: row.end_ms as number,
-          channel: row.channel as number,
-          speaker: row.speaker as string | undefined,
+          channel: row.channel as WordLike["channel"],
         });
       }
     }
@@ -224,12 +225,22 @@ function useTransport(attachedSessionId?: string) {
     return result.sort((a, b) => a.start_ms - b.start_ms);
   }, [store, wordIds]);
 
-  const transcript = useMemo(() => {
-    if (words.length === 0) {
+  const transcript = useMemo((): Transcript | null => {
+    if (words.length === 0 || !store) {
       return null;
     }
-    return words.map((w) => w.text).join(" ");
-  }, [words]);
+
+    const segments = buildSegments(words, [], []);
+    const ctx = defaultRenderLabelContext(store);
+    const manager = SpeakerLabelManager.fromSegments(segments, ctx);
+
+    return {
+      segments: segments.map((seg) => ({
+        speaker: SegmentKey.renderLabel(seg.key, ctx, manager),
+        text: seg.words.map((w) => w.text).join(" "),
+      })),
+    };
+  }, [words, store]);
 
   const chatContext = useMemo(() => {
     if (!attachedSessionId) {

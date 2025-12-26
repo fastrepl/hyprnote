@@ -18063,6 +18063,7 @@ name = "template2"
 version = "0.1.0"
 dependencies = [
  "askama",
+ "insta",
  "serde",
  "specta",
  "template-assets",

@@ -57,7 +57,7 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
               session: null,
               participants: [],
               template: null,
-              transcript: "",
+              transcript: { segments: [] },
             },
           }
         : { titleUser: { enhancedNote: "" } };

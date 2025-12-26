@@ -55,7 +55,6 @@ async function* executeWorkflow(params: {
   });
   const argsWithTemplate: TaskArgsMapTransformed["enhance"] = {
     ...args,
-    hasTemplate: !!sections,
     template: sections ? { title: "", description: null, sections } : null,
   };
 
@@ -75,7 +74,6 @@ async function* executeWorkflow(params: {
 async function getSystemPrompt(args: TaskArgsMapTransformed["enhance"]) {
   const result = await templateCommands.render({
     enhanceSystem: {
-      hasTemplate: !!args.template,
       language: args.language,
     },
   });
@@ -114,7 +112,7 @@ async function getUserPrompt(
       session,
       participants,
       template,
-      transcript: transcript.trim(),
+      transcript,
     },
   });
 

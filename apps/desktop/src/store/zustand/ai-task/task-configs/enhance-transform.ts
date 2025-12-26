@@ -1,8 +1,10 @@
 import type {
   EnhanceTemplate,
   Participant,
+  Segment,
   Session,
   TemplateSection,
+  Transcript,
 } from "@hypr/plugin-template";
 
 import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
@@ -65,7 +67,6 @@ async function transformArgs(
 
   return {
     language,
-    hasTemplate: !!template,
     session: sessionContext.session,
     participants: sessionContext.participants,
     template,
@@ -73,16 +74,28 @@ async function transformArgs(
   };
 }
 
-function formatTranscript(rawMd: string, segments: SegmentPayload[]): string {
+function formatTranscript(
+  rawMd: string,
+  segments: SegmentPayload[],
+): Transcript {
   if (segments.length > 0) {
-    return segments.map((s) => `${s.speaker_label}: ${s.text}`).join("\n");
+    return {
+      segments: segments.map(
+        (s): Segment => ({
+          speaker: s.speaker_label,
+          text: s.text,
+        }),
+      ),
+    };
   }
-  return rawMd;
+  return {
+    segments: [{ speaker: "", text: rawMd }],
+  };
 }
 
-function getLanguage(store: MainStore): string {
+function getLanguage(store: MainStore): string | null {
   const value = store.getValue("ai_language");
-  return typeof value === "string" && value.length > 0 ? value : "en";
+  return typeof value === "string" && value.length > 0 ? value : null;
 }
 
 function getSessionContext(sessionId: string, store: MainStore) {

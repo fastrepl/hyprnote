@@ -24,25 +24,26 @@ mod tests {
     #[test]
     fn test_title_system() {
         let template = TitleSystem { language: None };
-        let result = template.render().unwrap();
-        assert!(result.contains("professional assistant"));
-    }
+        insta::assert_snapshot!(template.render().unwrap(), @r#"
 
-    #[test]
-    fn test_title_system_korean() {
-        let template = TitleSystem {
-            language: Some("ko".to_string()),
-        };
-        let result = template.render().unwrap();
-        assert!(result.contains("ko"));
+        You are a professional assistant that generates a perfect title for a meeting note.
+
+
+        Only output the title as plaintext, nothing else. No characters like *"'([{}]):.
+        "#);
     }
 
     #[test]
     fn test_title_user() {
-        let template = TitleUser {
-            enhanced_note: "This is a meeting about project updates.".to_string(),
+        let tpl = TitleUser {
+            enhanced_note: "".to_string(),
         };
-        let result = template.render().unwrap();
-        assert!(result.contains("This is a meeting about project updates."));
+        insta::assert_snapshot!(tpl.render().unwrap(), @"
+        <note>
+
+        </note>
+
+        Now, give me SUPER CONCISE title for above note. Only about the topic of the meeting.
+        ");
     }
 }

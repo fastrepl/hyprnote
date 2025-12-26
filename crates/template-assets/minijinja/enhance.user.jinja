@@ -21,8 +21,13 @@ Session: {{ session.title }}
 Participants: {% for p in participants %}{{ p.name }}{% if p.job_title %} ({{ p.job_title }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
 {%- endif %}
 {% endif %}
-
 {% if template %}
+Workflow:
+
+1. Use the provided template with predefined sections.
+2. Generate a well-formatted markdown summary following the template sections.
+3. Each template section includes a title and description - use these to guide your summary.
+
 Template: {{ template.title }}
 {%- if template.description %}
 Description: {{ template.description }}
@@ -33,7 +38,11 @@ Sections to cover:
 
 - {{ section.title }}{% if section.description %}: {{ section.description }}{% endif %}
   {%- endfor %}
+  {% else %}
+  Workflow:
 
-{% endif %}
+1. Analyze the content and decide the sections to use.
+2. Generate a well-formatted markdown summary, following the format requirements.
+   {% endif %}
 
 {{ segments | transcript }}

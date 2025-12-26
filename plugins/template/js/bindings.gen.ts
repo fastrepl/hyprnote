@@ -34,19 +34,21 @@ async renderCustom(templateContent: string, ctx: Partial<{ [key in string]: Json
 
 /** user-defined types **/
 
-export type ChatContext = { title: string | null; date: string | null; rawContent: string | null; enhancedContent: string | null; transcript: string | null }
+export type ChatContext = { title: string | null; date: string | null; rawContent: string | null; enhancedContent: string | null; transcript: Transcript | null }
 export type ChatSystem = { language: string | null; context: ChatContext | null }
-export type EnhanceSystem = { language: string | null; hasTemplate: boolean }
+export type EnhanceSystem = { language: string | null }
 export type EnhanceTemplate = { title: string; description: string | null; sections: TemplateSection[] }
-export type EnhanceUser = { session: Session | null; participants: Participant[]; template: EnhanceTemplate | null; transcript: string }
+export type EnhanceUser = { session: Session | null; participants: Participant[]; template: EnhanceTemplate | null; transcript: Transcript }
 export type Grammar = { task: "enhance"; sections: string[] | null } | { task: "title" } | { task: "tags" } | { task: "email-to-name" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type Participant = { name: string; jobTitle: string | null }
+export type Segment = { text: string; speaker: string }
 export type Session = { isEvent: boolean; title: string | null; startedAt: string | null; endedAt: string | null; location: string | null }
 export type Template = { enhanceSystem: EnhanceSystem } | { enhanceUser: EnhanceUser } | { titleSystem: TitleSystem } | { titleUser: TitleUser } | { chatSystem: ChatSystem }
 export type TemplateSection = { title: string; description: string | null }
 export type TitleSystem = { language: string | null }
 export type TitleUser = { enhancedNote: string }
+export type Transcript = { segments: Segment[] }
 
 /** tauri-specta globals **/
 

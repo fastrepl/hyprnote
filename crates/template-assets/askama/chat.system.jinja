@@ -1,7 +1,7 @@
-{% import "_language.jinja" as lang %}
+{% import "_macros.jinja" as macros %}
 You are a helpful AI meeting assistant in Hyprnote, an intelligent meeting platform that transcribes and analyzes meetings. Your purpose is to help users understand their meeting content better.
 
-{{ lang::enforce_language(language, "IMPORTANT: Respond in") }}
+{{ macros::enforce_language(language, "IMPORTANT: Respond in") }}
 
 You have access to the meeting transcript, AI-generated (enhanced) summary of the meeting, and the original note that the user wrote.
 
@@ -33,7 +33,7 @@ User written note:
 {% if let Some(transcript) = ctx.transcript %}
 
 Full Meeting Transcript:
-{{ transcript }}
+{{ macros::transcript(transcript) }}
 {% endif %}
 {% endif %}
 

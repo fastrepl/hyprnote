@@ -259,7 +259,9 @@ function markdownToJson(markdown: string): JSONContent {
       continue;
     }
 
-    const mdxImageMatch = line.match(/^<Image\s+src="([^"]+)"\s+alt="([^"]*)"\s*\/?>/);
+    const mdxImageMatch = line.match(
+      /^<Image\s+src="([^"]+)"\s+alt="([^"]*)"\s*\/?>/,
+    );
     if (mdxImageMatch) {
       content.push({
         type: "image",
@@ -290,7 +292,12 @@ function markdownToJson(markdown: string): JSONContent {
         const calloutContent = restOfLine.replace("</Callout>", "").trim();
         content.push({
           type: "paragraph",
-          content: [{ type: "text", text: `<Callout type="${calloutType}">${calloutContent}</Callout>` }],
+          content: [
+            {
+              type: "text",
+              text: `<Callout type="${calloutType}">${calloutContent}</Callout>`,
+            },
+          ],
         });
         i++;
         continue;
@@ -308,7 +315,12 @@ function markdownToJson(markdown: string): JSONContent {
       }
       content.push({
         type: "paragraph",
-        content: [{ type: "text", text: `<Callout type="${calloutType}">${calloutLines.join("\n")}</Callout>` }],
+        content: [
+          {
+            type: "text",
+            text: `<Callout type="${calloutType}">${calloutLines.join("\n")}</Callout>`,
+          },
+        ],
       });
       i++;
       continue;
@@ -414,13 +426,20 @@ function MDXPreview({ content }: { content: string }) {
       );
       if (calloutMatch) {
         return (
-          <Callout key={index} type={calloutMatch[1] as "note" | "warning" | "info" | "tip" | "danger"}>
+          <Callout
+            key={index}
+            type={
+              calloutMatch[1] as "note" | "warning" | "info" | "tip" | "danger"
+            }
+          >
             {calloutMatch[2]}
           </Callout>
         );
       }
 
-      const imageMatch = trimmed.match(/^<Image\s+src="([^"]+)"\s+alt="([^"]*)"\s*\/?>$/);
+      const imageMatch = trimmed.match(
+        /^<Image\s+src="([^"]+)"\s+alt="([^"]*)"\s*\/?>$/,
+      );
       if (imageMatch) {
         return (
           <Image
@@ -444,7 +463,10 @@ function MDXPreview({ content }: { content: string }) {
         const langMatch = trimmed.match(/^```(\w*)\n([\s\S]*?)```$/);
         if (langMatch) {
           return (
-            <pre key={index} className="bg-stone-50 border border-neutral-200 rounded-sm p-4 overflow-x-auto">
+            <pre
+              key={index}
+              className="bg-stone-50 border border-neutral-200 rounded-sm p-4 overflow-x-auto"
+            >
               <code>{langMatch[2]}</code>
             </pre>
           );
@@ -453,14 +475,19 @@ function MDXPreview({ content }: { content: string }) {
 
       if (trimmed.startsWith("> ")) {
         return (
-          <blockquote key={index} className="border-l-4 border-neutral-300 pl-4 italic">
+          <blockquote
+            key={index}
+            className="border-l-4 border-neutral-300 pl-4 italic"
+          >
             {trimmed.slice(2)}
           </blockquote>
         );
       }
 
       if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-        const items = trimmed.split("\n").map((line) => line.replace(/^[-*]\s+/, ""));
+        const items = trimmed
+          .split("\n")
+          .map((line) => line.replace(/^[-*]\s+/, ""));
         return (
           <ul key={index} className="list-disc pl-6">
             {items.map((item, i) => (
@@ -662,29 +689,26 @@ export function BlogEditor({ mode, initialData }: BlogEditorProps) {
     setShowPreview(!showPreview);
   }, [showPreview]);
 
-  const insertComponent = useCallback(
-    (component: "callout" | "ctacard") => {
-      const editor = editorRef.current?.editor;
-      if (!editor) return;
+  const insertComponent = useCallback((component: "callout" | "ctacard") => {
+    const editor = editorRef.current?.editor;
+    if (!editor) return;
 
-      let text = "";
-      if (component === "callout") {
-        text = '<Callout type="note">Your note here</Callout>';
-      } else if (component === "ctacard") {
-        text = "<CtaCard/>";
-      }
+    let text = "";
+    if (component === "callout") {
+      text = '<Callout type="note">Your note here</Callout>';
+    } else if (component === "ctacard") {
+      text = "<CtaCard/>";
+    }
 
-      editor
-        .chain()
-        .focus()
-        .insertContent({
-          type: "paragraph",
-          content: [{ type: "text", text }],
-        })
-        .run();
-    },
-    [],
-  );
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: "paragraph",
+        content: [{ type: "text", text }],
+      })
+      .run();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">

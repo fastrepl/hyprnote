@@ -16,11 +16,14 @@ import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
 import { useScrollPreservation } from "../../../../../hooks/useScrollPreservation";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
+import { useCaretPosition } from "../caret-position-context";
 import { useCurrentNoteTab } from "../shared";
 import { Enhanced } from "./enhanced";
 import { Header, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
+
+const BOTTOM_THRESHOLD = 112;
 
 export function NoteInput({
   tab,
@@ -30,7 +33,9 @@ export function NoteInput({
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const caretPosition = useCaretPosition();
 
   const sessionId = tab.id;
   useAutoEnhance(tab);
@@ -70,6 +75,50 @@ export function NoteInput({
     }
   }, [currentTab]);
 
+  useEffect(() => {
+    const editor = editorRef.current?.editor;
+    const container = containerRef.current;
+    if (
+      !editor ||
+      !caretPosition ||
+      !container ||
+      currentTab.type === "transcript"
+    ) {
+      caretPosition?.setCaretNearBottom(false);
+      return;
+    }
+
+    const checkCaretPosition = () => {
+      if (!containerRef.current || !editor.isFocused) return;
+
+      const { view } = editor;
+      const { from } = view.state.selection;
+      const coords = view.coordsAtPos(from);
+
+      const distanceFromViewportBottom = window.innerHeight - coords.bottom;
+
+      caretPosition.setCaretNearBottom(
+        distanceFromViewportBottom < BOTTOM_THRESHOLD,
+      );
+    };
+
+    const handleBlur = () => caretPosition.setCaretNearBottom(false);
+
+    editor.on("selectionUpdate", checkCaretPosition);
+    editor.on("focus", checkCaretPosition);
+    editor.on("blur", handleBlur);
+    container.addEventListener("scroll", checkCaretPosition);
+
+    checkCaretPosition();
+
+    return () => {
+      editor.off("selectionUpdate", checkCaretPosition);
+      editor.off("focus", checkCaretPosition);
+      editor.off("blur", handleBlur);
+      container.removeEventListener("scroll", checkCaretPosition);
+    };
+  }, [editorRef.current?.editor, caretPosition, currentTab.type]);
+
   const handleContainerClick = () => {
     if (currentTab.type !== "transcript") {
       editorRef.current?.editor?.commands.focus();
@@ -95,6 +144,9 @@ export function NoteInput({
             fadeRef.current = node;
             if (currentTab.type !== "transcript") {
               scrollRef.current = node;
+              containerRef.current = node;
+            } else {
+              containerRef.current = null;
             }
           }}
           onClick={handleContainerClick}

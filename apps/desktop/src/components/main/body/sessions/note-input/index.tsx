@@ -140,10 +140,15 @@ export const NoteInput = forwardRef<
               ref={internalEditorRef}
               sessionId={sessionId}
               enhancedNoteId={currentTab.id}
+              onNavigateToTitle={_onNavigateToTitle}
             />
           )}
           {currentTab.type === "raw" && (
-            <RawEditor ref={internalEditorRef} sessionId={sessionId} />
+            <RawEditor
+              ref={internalEditorRef}
+              sessionId={sessionId}
+              onNavigateToTitle={_onNavigateToTitle}
+            />
           )}
           {currentTab.type === "transcript" && (
             <Transcript
@@ -305,9 +310,9 @@ function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
       className={cn([
         "absolute left-0 w-full h-8 z-20 pointer-events-none",
         position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
+        "top-0 bg-gradient-to-b from-white to-transparent",
         position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
+        "bottom-0 bg-gradient-to-t from-white to-transparent",
       ])}
     />
   );

@@ -37,6 +37,7 @@ interface EditorProps {
   mentionConfig?: MentionConfig;
   placeholderComponent?: PlaceholderFunction;
   fileHandlerConfig?: FileHandlerConfig;
+  onNavigateToTitle?: () => void;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
@@ -49,6 +50,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       mentionConfig,
       placeholderComponent,
       fileHandlerConfig,
+      onNavigateToTitle,
     } = props;
     const previousContentRef = useRef<JSONContent>(initialContent);
 
@@ -73,6 +75,9 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       ],
       [mentionConfig, placeholderComponent, fileHandlerConfig],
     );
+
+    const onNavigateToTitleRef = useRef(onNavigateToTitle);
+    onNavigateToTitleRef.current = onNavigateToTitle;
 
     const editorProps: Parameters<typeof useEditor>[0]["editorProps"] = useMemo(
       () => ({
@@ -101,11 +106,45 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             const isInListItem =
               isNodeActive(state, "listItem") ||
               isNodeActive(state, "taskItem");
+
+            if (event.shiftKey) {
+              const firstChild = state.doc.firstChild;
+              const $head = state.selection.$head;
+              const isInFirstBlock =
+                firstChild &&
+                $head.pos >= 0 &&
+                $head.pos <= firstChild.nodeSize;
+
+              if (isInListItem && isInFirstBlock) {
+                return false;
+              }
+
+              if (onNavigateToTitleRef.current && isInFirstBlock) {
+                event.preventDefault();
+                onNavigateToTitleRef.current();
+                return true;
+              }
+            }
+
             if (isInListItem) {
               return false;
             }
             event.preventDefault();
             return true;
+          }
+
+          if (event.key === "ArrowUp" && onNavigateToTitleRef.current) {
+            const { state } = view;
+            const $head = state.selection.$head;
+            const firstChild = state.doc.firstChild;
+            const isInFirstBlock =
+              firstChild && $head.pos >= 0 && $head.pos <= firstChild.nodeSize;
+
+            if (isInFirstBlock && state.selection.empty) {
+              event.preventDefault();
+              onNavigateToTitleRef.current();
+              return true;
+            }
           }
 
           return false;

@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
+import { useCallback, useRef } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
+import type { TiptapEditor } from "@hypr/tiptap/editor";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
@@ -97,6 +99,27 @@ function TabContentNoteInner({
   const search = useTranscriptSearch();
   const showSearchBar = search?.isVisible ?? false;
 
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+
+  const focusEditor = useCallback((textToInsert?: string) => {
+    const editor = editorRef.current?.editor;
+    if (!editor) return;
+
+    editor.commands.focus("start");
+    if (textToInsert) {
+      editor.commands.insertContent(textToInsert);
+    }
+  }, []);
+
+  const focusTitle = useCallback(() => {
+    const input = titleInputRef.current;
+    if (input) {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
+  }, []);
+
   return (
     <StandardTabWrapper
       afterBorder={showTimeline && <AudioPlayer.Timeline />}
@@ -107,10 +130,14 @@ function TabContentNoteInner({
           {showSearchBar ? <SearchBar /> : <OuterHeader sessionId={tab.id} />}
         </div>
         <div className="mt-2 px-3 shrink-0">
-          <TitleInput tab={tab} />
+          <TitleInput
+            ref={titleInputRef}
+            tab={tab}
+            onNavigateToEditor={focusEditor}
+          />
         </div>
         <div className="mt-2 px-2 flex-1 min-h-0">
-          <NoteInput tab={tab} />
+          <NoteInput ref={editorRef} tab={tab} onNavigateToTitle={focusTitle} />
         </div>
       </div>
     </StandardTabWrapper>

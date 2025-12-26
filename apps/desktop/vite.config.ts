@@ -31,6 +31,7 @@ export default defineConfig(() => ({
   test: {
     reporters: "default",
     environment: "jsdom",
+    setupFiles: ["./src/test-setup.ts"],
     onConsoleLog: (_, type) => {
       return type === "stderr";
     },

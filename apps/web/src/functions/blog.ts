@@ -110,7 +110,7 @@ export const checkBlogEditorAccess = createServerFn({ method: "GET" }).handler(
 );
 
 export const getArticleForEdit = createServerFn({ method: "GET" })
-  .validator(z.object({ slug: z.string() }))
+  .inputValidator(z.object({ slug: z.string() }))
   .handler(async ({ data: { slug } }) => {
     const supabase = getSupabaseServerClient();
     const { data: userData } = await supabase.auth.getUser();
@@ -171,7 +171,7 @@ export const getArticleForEdit = createServerFn({ method: "GET" })
   });
 
 export const saveArticle = createServerFn({ method: "POST" })
-  .validator(
+  .inputValidator(
     articleSchema.extend({
       sha: z.string().optional(),
     }),
@@ -249,7 +249,7 @@ export const saveArticle = createServerFn({ method: "POST" })
   });
 
 export const uploadBlogImage = createServerFn({ method: "POST" })
-  .validator(
+  .inputValidator(
     z.object({
       slug: z.string(),
       fileName: z.string(),

@@ -4,7 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BlogEditor } from "@/components/blog-editor";
 import { checkBlogEditorAccess, getArticleForEdit } from "@/functions/blog";
 
-export const Route = createFileRoute("/_view/blog/$slug/edit")({
+export const Route = createFileRoute("/_view/blog/$slug_/edit")({
   component: Component,
   head: ({ params }) => ({
     meta: [{ title: `Edit ${params.slug} - Hyprnote Blog` }],

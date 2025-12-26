@@ -30,8 +30,11 @@ export const Route = createFileRoute("/app/onboarding/")({
 
 async function finishOnboarding() {
   await sfxCommands.stop("BGM").catch(console.error);
+  await new Promise((resolve) => setTimeout(resolve, 100));
   await commands.setOnboardingNeeded(false).catch(console.error);
+  await new Promise((resolve) => setTimeout(resolve, 100));
   await windowsCommands.windowShow({ type: "main" });
+  await new Promise((resolve) => setTimeout(resolve, 100));
   await windowsCommands.windowDestroy({ type: "onboarding" });
 }
 

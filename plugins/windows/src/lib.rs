@@ -16,28 +16,33 @@ pub use overlay::{FakeWindowBounds, OverlayBound};
 
 const PLUGIN_NAME: &str = "windows";
 
+use std::collections::HashMap;
+use std::sync::Mutex;
+
 use tauri::Manager;
-use uuid::Uuid;
-
-pub type ManagedState = std::sync::Mutex<State>;
-
-pub struct WindowState {
-    id: String,
-    visible: bool,
-}
-
-impl Default for WindowState {
-    fn default() -> Self {
-        Self {
-            id: Uuid::new_v4().to_string(),
-            visible: false,
-        }
-    }
-}
+use tokio::sync::oneshot;
 
 #[derive(Default)]
-pub struct State {
-    windows: std::collections::HashMap<AppWindow, WindowState>,
+pub struct WindowReadyState {
+    // Using tokio::sync::oneshot instead of std::sync::mpsc because:
+    // std::mpsc::Receiver::recv_timeout blocks the thread, which can deadlock
+    // when on_webview_ready callback needs the blocked thread to signal.
+    // tokio::oneshot allows async await with timeout that yields instead of blocking.
+    pending: Mutex<HashMap<String, oneshot::Sender<()>>>,
+}
+
+impl WindowReadyState {
+    pub fn register(&self, label: String) -> oneshot::Receiver<()> {
+        let (tx, rx) = oneshot::channel();
+        self.pending.lock().unwrap().insert(label, tx);
+        rx
+    }
+
+    pub fn signal(&self, label: &str) {
+        if let Some(tx) = self.pending.lock().unwrap().remove(label) {
+            let _ = tx.send(());
+        }
+    }
 }
 
 fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
@@ -70,16 +75,21 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             specta_builder.mount_events(app);
 
             {
-                let state = ManagedState::default();
-                app.manage(state);
-            }
-
-            {
                 let fake_bounds_state = FakeWindowBounds::default();
                 app.manage(fake_bounds_state);
             }
 
+            {
+                let ready_state = WindowReadyState::default();
+                app.manage(ready_state);
+            }
+
             Ok(())
+        })
+        .on_webview_ready(|webview| {
+            if let Some(state) = webview.app_handle().try_state::<WindowReadyState>() {
+                state.signal(webview.label());
+            }
         })
         .on_event(move |app, event| {
             if let tauri::RunEvent::ExitRequested { .. } = event {

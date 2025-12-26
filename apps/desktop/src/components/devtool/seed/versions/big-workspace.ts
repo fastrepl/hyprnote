@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { faker } from "@faker-js/faker/locale/en";
 import type { Tables } from "tinybase/with-schemas";
 
 import type { Schemas } from "../../../../store/tinybase/main";

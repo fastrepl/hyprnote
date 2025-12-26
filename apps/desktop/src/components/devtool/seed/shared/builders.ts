@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { faker } from "@faker-js/faker/locale/en";
 
 import type {
   Calendar,
@@ -265,6 +265,9 @@ export const buildSessionsPerHuman = (
 
 export const buildTranscriptsForSessions = (
   sessionIds: string[],
+  options: {
+    turnCount?: { min: number; max: number };
+  } = {},
 ): {
   transcripts: Record<string, Transcript>;
   words: Record<string, WordStorage>;
@@ -273,7 +276,10 @@ export const buildTranscriptsForSessions = (
   const words: Record<string, WordStorage> = {};
 
   sessionIds.forEach((sessionId) => {
-    const result = generateTranscript({ sessionId });
+    const result = generateTranscript({
+      sessionId,
+      turnCount: options.turnCount,
+    });
 
     if (!("transcript" in result)) {
       throw new Error("Expected transcript metadata");

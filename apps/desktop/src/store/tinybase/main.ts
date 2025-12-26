@@ -45,7 +45,6 @@ const {
   useCreateMetrics,
   useProvidePersister,
   useProvideQueries,
-  useDidFinishTransactionListener,
   useProvideSynchronizer,
   useCreateCheckpoints,
   useProvideCheckpoints,
@@ -78,31 +77,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     createMergeableStore()
       .setTablesSchema(SCHEMA.table)
       .setValuesSchema(SCHEMA.value),
-  );
-
-  useDidFinishTransactionListener(
-    () => {
-      const [changedTables, _changedValues] = store.getTransactionChanges();
-
-      Object.entries(changedTables).forEach(([tableId, rows]) => {
-        if (!rows) {
-          return;
-        }
-
-        Object.entries(rows).forEach(([rowId, cells]) => {
-          const id = rowIdOfChange(tableId, rowId);
-
-          store.setRow("changes", id, {
-            row_id: rowId,
-            table: tableId,
-            deleted: !cells,
-            updated: !!cells,
-          });
-        });
-      });
-    },
-    [],
-    STORE_ID,
   );
 
   const localPersister = useCreatePersister(

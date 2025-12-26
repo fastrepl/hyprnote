@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { faker } from "@faker-js/faker/locale/en";
 import type { Tables } from "tinybase/with-schemas";
 
 import type { Schemas } from "../../../../store/tinybase/main";
@@ -39,7 +39,7 @@ const buildRandomData = (): Tables<Schemas[0]> => {
 
   const { events, eventsByHuman } = buildEventsByHuman(humanIds, calendarIds, {
     min: 1,
-    max: 4,
+    max: 3,
   });
 
   const folders = buildFolders(3, { min: 0, max: 3 });
@@ -53,7 +53,7 @@ const buildRandomData = (): Tables<Schemas[0]> => {
 
   const sessions = buildSessionsPerHuman(
     humanIds,
-    { min: 1, max: 4 },
+    { min: 1, max: 3 },
     {
       eventsByHuman,
       folderIds,
@@ -63,14 +63,16 @@ const buildRandomData = (): Tables<Schemas[0]> => {
   );
   const sessionIds = Object.keys(sessions);
 
-  const { transcripts, words } = buildTranscriptsForSessions(sessionIds);
+  const { transcripts, words } = buildTranscriptsForSessions(sessionIds, {
+    turnCount: { min: 20, max: 50 },
+  });
 
   const mapping_session_participant = buildSessionParticipants(
     sessionIds,
     humanIds,
     {
       min: 1,
-      max: 4,
+      max: 3,
     },
   );
 
@@ -82,7 +84,7 @@ const buildRandomData = (): Tables<Schemas[0]> => {
   const chat_groups = buildChatGroups(5);
   const chatGroupIds = Object.keys(chat_groups);
 
-  const chat_messages = buildChatMessages(chatGroupIds, { min: 3, max: 10 });
+  const chat_messages = buildChatMessages(chatGroupIds, { min: 2, max: 5 });
 
   const enhanced_notes = buildEnhancedNotesForSessions(
     sessionIds,

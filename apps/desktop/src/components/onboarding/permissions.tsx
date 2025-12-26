@@ -137,7 +137,7 @@ export function Permissions({ onNavigate }: StepProps) {
       </div>
 
       <button
-        onClick={() => onNavigate({ ...search, step: getNext(search) })}
+        onClick={() => onNavigate({ ...search, step: getNext(search)! })}
         disabled={!allPermissionsGranted}
         className={cn([
           "w-full py-3 rounded-full text-sm font-medium duration-150",

@@ -51,7 +51,7 @@ export function Calendars({ onNavigate }: StepProps) {
       </div>
 
       <button
-        onClick={() => onNavigate({ ...search, step: getNext(search) })}
+        onClick={() => onNavigate({ ...search, step: getNext(search)! })}
         className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
       >
         skip

@@ -41,7 +41,7 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
       </TextAnimate>
 
       <button
-        onClick={() => onNavigate({ ...search, step: getNext(search) })}
+        onClick={() => onNavigate({ ...search, step: getNext(search)! })}
         className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
       >
         Get Started
@@ -52,7 +52,7 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
           className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
           onClick={() => {
             const next = { ...search, local: true };
-            onNavigate({ ...next, step: getNext(next) });
+            onNavigate({ ...next, step: getNext(next)! });
           }}
         >
           Proceed without account

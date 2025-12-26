@@ -80,7 +80,7 @@ export function Login({ onNavigate }: StepProps) {
         setTrialDefaults();
       }
       const nextSearch = { ...search, pro: isPro };
-      onNavigate({ ...nextSearch, step: getNext(nextSearch) });
+      onNavigate({ ...nextSearch, step: getNext(nextSearch)! });
     },
     onError: (e) => {
       console.error(e);

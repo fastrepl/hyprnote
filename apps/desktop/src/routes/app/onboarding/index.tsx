@@ -5,14 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import {
   type NavigateTarget,
   STEP_CONFIGS,
   STEP_IDS,
 } from "../../../components/onboarding/config";
-import { commands } from "../../../types/tauri.gen";
 
 const validateSearch = z.object({
   step: z.enum(STEP_IDS).default("welcome"),
@@ -27,16 +25,6 @@ export const Route = createFileRoute("/app/onboarding/")({
   validateSearch,
   component: Component,
 });
-
-async function finishOnboarding() {
-  await sfxCommands.stop("BGM").catch(console.error);
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await commands.setOnboardingNeeded(false).catch(console.error);
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await windowsCommands.windowShow({ type: "main" });
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await windowsCommands.windowDestroy({ type: "onboarding" });
-}
 
 function Component() {
   const search = Route.useSearch();
@@ -61,11 +49,7 @@ function Component() {
   const onNavigate = useCallback(
     (ctx: NavigateTarget) => {
       const { step, ...rest } = ctx;
-      if (step === "done") {
-        void finishOnboarding();
-      } else {
-        void navigate({ to: "/app/onboarding", search: { step, ...rest } });
-      }
+      void navigate({ to: "/app/onboarding", search: { step, ...rest } });
     },
     [navigate],
   );

@@ -220,6 +220,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           REF="${{ needs.parse_command.outputs.ref }}"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           NOTIFY="${{ needs.parse_command.outputs.notify_error }}"
           MENTIONS=""
           if [ -n "$NOTIFY" ]; then
@@ -227,7 +228,7 @@ jobs:
           fi
           BODY="❌ Staging Build Failed
           - Ref: \`$REF\`
-          - Failed to trigger staging build.
+          - Failed to trigger staging build. [View logs]($RUN_URL)
           $MENTIONS"
           BODY=$(echo "$BODY" | sed 's/^[[:space:]]*//')
           if [ -n "${{ github.event.issue.pull_request }}" ]; then

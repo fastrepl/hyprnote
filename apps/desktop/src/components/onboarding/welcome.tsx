@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { arch, platform } from "@tauri-apps/plugin-os";
 import { memo, useMemo } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
 import { Route } from "../../routes/app/onboarding";
@@ -51,6 +52,9 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
         <button
           className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
           onClick={() => {
+            void analyticsCommands.event({
+              event: "proceed_without_account",
+            });
             const next = { ...search, local: true };
             onNavigate({ ...next, step: getNext(next) });
           }}

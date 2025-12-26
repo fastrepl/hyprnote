@@ -241,7 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       if (event === "SIGNED_IN" && session) {
         void analyticsCommands.event({
-          event: "user_signed_up",
+          event: "sign_up",
         });
       }
       setSession(session);

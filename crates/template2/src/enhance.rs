@@ -30,12 +30,9 @@ mod tests {
         let tpl = EnhanceSystem { language: None };
 
         insta::assert_snapshot!(tpl.render().unwrap(), @r#"
-
         You are an expert at creating structured, comprehensive meeting summaries.
 
-
-
-
+        IMPORTANT: Generate all content in English language.
         Format requirements:
 
         - Start with h1 header(#)
@@ -58,13 +55,10 @@ mod tests {
         };
 
         insta::assert_snapshot!(tpl.render().unwrap(), @"
-
-
-
         Workflow:
 
-        1. Analyze the content and decide the sections to use.
-        2. Generate a well-formatted markdown summary, following the format requirements.
+        4. Analyze the content and decide the sections to use.
+        5. Generate a well-formatted markdown summary, following the format requirements.
         ");
     }
 }

@@ -1,65 +1,80 @@
-{% macro enforce_language(language, prefix, suffix = "language.") %}
-{% if let Some(lang) = language %}{% if lang != "en" %}{{ prefix }} {{ lang }} {{ suffix }}
-{% endif %}{% endif %}
-{% endmacro %}
+{%- macro enforce_language(language, prefix, suffix = "language.") -%}
+{%- match language -%}
+{%- when Some with (lang) %}
+{{ prefix }} {{ lang }} {{ suffix }}
+{%- when None %}
+{{ prefix }} English {{ suffix }}
+{%- endmatch -%}
+{%- endmacro -%}
 
-{% macro transcript(transcript) %}
-{% for segment in transcript.segments %}
+{%- macro transcript(transcript) -%}
+{%- for segment in transcript.segments %}
 {{ segment.speaker }}: {{ segment.text }}
-{% endfor %}
-{% endmacro %}
+{%- endfor -%}
+{%- endmacro -%}
 
-{% macro participants(participants) %}
-{% if !participants.is_empty() %}
-Participants: {% for p in participants %}{{ p.name }}{% match p.job_title %}{% when Some with (job_title) %} ({{ job_title }}){% when None %}{% endmatch %}{% if !loop.last %}, {% endif %}{% endfor %}
-{% endif %}
-{% endmacro %}
+{%- macro participants(participants) -%}
+{%- if !participants.is_empty() %}
+Participants: {%- for p in participants -%}
+{{ p.name }}
+{%- match p.job_title -%}
+{%- when Some with (job_title) %} ({{ job_title }})
+{%- when None -%}
+{%- endmatch -%}
+{%- if !loop.last %}, {% endif -%}
+{%- endfor -%}
+{%- endif -%}
+{%- endmacro -%}
 
-{% macro session_context(session) %}
-{% match session %}
-{% when Some with (s) %}
-{% if s.is_event %}
-{% match s.title %}
-{% when Some with (title) %}
+{%- macro session_context(session) -%}
+{%- match session -%}
+{%- when Some with (s) -%}
+{%- if s.is_event -%}
+{%- match s.title -%}
+{%- when Some with (title) %}
 Meeting: {{ title }}
-{% when None %}
-{% endmatch %}
-{% match (s.started_at.as_ref(), s.ended_at.as_ref()) %}
-{% when (Some(started), Some(ended)) %}
+{%- when None -%}
+{%- endmatch -%}
+{%- match (s.started_at.as_ref(), s.ended_at.as_ref()) -%}
+{%- when (Some(started), Some(ended)) %}
 Time: {{ started }} - {{ ended }}
-{% when _ %}
-{% endmatch %}
-{% match s.location %}
-{% when Some with (location) %}
+{%- when _ -%}
+{%- endmatch -%}
+{%- match s.location -%}
+{%- when Some with (location) %}
 Location: {{ location }}
-{% when None %}
-{% endmatch %}
-{% else %}
-{% match s.title %}
-{% when Some with (title) %}
+{%- when None -%}
+{%- endmatch -%}
+{%- else -%}
+{%- match s.title -%}
+{%- when Some with (title) %}
 Session: {{ title }}
-{% when None %}
-{% endmatch %}
-{% endif %}
-{% when None %}
-{% endmatch %}
-{% endmacro %}
+{%- when None -%}
+{%- endmatch -%}
+{%- endif -%}
+{%- when None -%}
+{%- endmatch -%}
+{%- endmacro -%}
 
-{% macro template_context(template) %}
-{% match template %}
-{% when Some with (tpl) %}
+{%- macro template_context(template) -%}
+{%- match template -%}
+{%- when Some with (tpl) %}
 Template: {{ tpl.title }}
-{% match tpl.description %}
-{% when Some with (desc) %}
+{%- match tpl.description -%}
+{%- when Some with (desc) %}
 Description: {{ desc }}
-{% when None %}
-{% endmatch %}
+{%- when None -%}
+{%- endmatch %}
 
 Sections to cover:
-{% for section in tpl.sections %}
+{%- for section in tpl.sections %}
 
-- {{ section.title }}{% match section.description %}{% when Some with (desc) %}: {{ desc }}{% when None %}{% endmatch %}
-  {% endfor %}
-  {% when None %}
-  {% endmatch %}
-  {% endmacro %}
+- {{ section.title }}
+  {%- match section.description -%}
+  {%- when Some with (desc) %}: {{ desc }}
+  {%- when None -%}
+  {%- endmatch -%}
+  {%- endfor -%}
+  {%- when None -%}
+  {%- endmatch -%}
+  {%- endmacro -%}

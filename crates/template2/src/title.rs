@@ -25,10 +25,9 @@ mod tests {
     fn test_title_system() {
         let template = TitleSystem { language: None };
         insta::assert_snapshot!(template.render().unwrap(), @r#"
-
         You are a professional assistant that generates a perfect title for a meeting note.
 
-
+        IMPORTANT: Generate the title in English language.
         Only output the title as plaintext, nothing else. No characters like *"'([{}]):.
         "#);
     }

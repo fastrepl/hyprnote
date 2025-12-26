@@ -62,13 +62,9 @@ mod tests {
         let result = template.render().unwrap();
 
         insta::assert_snapshot!(result, @r#"
-
         You are a helpful AI meeting assistant in Hyprnote, an intelligent meeting platform that transcribes and analyzes meetings. Your purpose is to help users understand their meeting content better.
 
-
-
-
-
+        IMPORTANT: Respond in English language.
         You have access to the meeting transcript, AI-generated (enhanced) summary of the meeting, and the original note that the user wrote.
 
         Always keep your responses concise, professional, and directly relevant to the user's questions.
@@ -77,33 +73,19 @@ mod tests {
 
         Try your best to put markdown notes inside ``` blocks.
 
-
         Context: You are helping the user with their meeting notes. Here is the current context:
-
 
         Title: Weekly Standup
 
-
-
         Date: 2025-01-15
-
-
 
         Enhanced Meeting Summary:
         Meeting summary here
 
-
-
         Full Meeting Transcript:
 
-
         Speaker 1: Hello
-
         Speaker 2: Hi
-
-
-
-
 
         If there is no meeting transcript (blank after the "Full Meeting Transcript:"), it means that the meeting did not happen yet. In this case, you should understand that the user is asking for general information, ideas, or suggestions about preparing for the meeting.
 

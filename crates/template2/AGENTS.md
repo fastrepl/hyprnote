@@ -1,2 +1,4 @@
-- Edit templates only in `crates/template-assets/askama`.
-- When input variables change, update structs in `crates/template2/src` and run `cargo test -p template2` and `cargo test -p tauri-plugin-template`.
+- Edit templates only in `crates/template-assets/askama`. Read [docs](https://askama.readthedocs.io/en/stable/template_syntax.html) for template syntax.
+- When input variables change, structs in `crates/template2/src` should be updated, and TS binding should be updated with `cargo test -p tauri-plugin-template`.
+- `cargo test -p template2; cargo insta accept` combo is helpful to iteratively adjust template and get feedback from the snapshot.
+- If `cargo insta` is not available, run `cargo install cargo-insta` first.

@@ -2,6 +2,12 @@ on:
   issue_comment:
     types: [created]
 
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: write
+
 concurrency:
   group: staging-${{ github.event.issue.number }}
   cancel-in-progress: true
@@ -24,9 +30,6 @@ jobs:
     needs: permission
     if: needs.permission.outputs.allowed == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: read
     outputs:
       valid: ${{ steps.parse.outputs.valid }}
       ref: ${{ steps.resolve_ref.outputs.ref }}
@@ -85,12 +88,10 @@ jobs:
               TEMP_BRANCH="staging-temp-${SHA:0:8}"
               gh api repos/${{ github.repository }}/git/refs \
                 -f ref="refs/heads/$TEMP_BRANCH" \
-                -f sha="$SHA" || {
-                echo "Failed to create temporary branch $TEMP_BRANCH"
-                exit 1
-              }
+                -f sha="$SHA"
               for i in {1..10}; do
                 if gh api repos/${{ github.repository }}/git/refs/heads/$TEMP_BRANCH --jq '.ref' >/dev/null 2>&1; then
+                  echo "Branch $TEMP_BRANCH created successfully"
                   break
                 fi
                 echo "Waiting for branch to propagate... ($i/10)"
@@ -112,10 +113,6 @@ jobs:
     needs: [permission, parse_command]
     if: needs.permission.outputs.allowed == 'true' && needs.parse_command.outputs.valid == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
-      issues: write
     outputs:
       run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
@@ -177,10 +174,6 @@ jobs:
     needs: [permission, parse_command, trigger_build]
     if: always() && needs.permission.outputs.allowed == 'true' && needs.parse_command.outputs.valid == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-      pull-requests: write
     steps:
       - if: needs.trigger_build.result == 'success'
         env:

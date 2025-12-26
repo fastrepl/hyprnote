@@ -25,18 +25,23 @@ jobs:
     if: needs.permission.outputs.allowed == 'true'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: read
     outputs:
       valid: ${{ steps.parse.outputs.valid }}
       ref: ${{ steps.resolve_ref.outputs.ref }}
+      sha: ${{ steps.resolve_ref.outputs.sha }}
+      branch: ${{ steps.resolve_ref.outputs.branch }}
+      needs_cleanup: ${{ steps.resolve_ref.outputs.needs_cleanup }}
       notify_success: ${{ steps.parse.outputs.notify_success }}
       notify_error: ${{ steps.parse.outputs.notify_error }}
     steps:
       # /staging [ref] [--notify-success user1,user2] [--notify-error user1,user2]
       - id: parse
+        shell: bash
+        env:
+          COMMENT: ${{ github.event.comment.body }}
         run: |
-          COMMENT="${{ github.event.comment.body }}"
           if [[ "$COMMENT" =~ (^|[[:space:]])/staging($|[[:space:]]) ]]; then
             echo "valid=true" >> $GITHUB_OUTPUT
           else
@@ -55,32 +60,51 @@ jobs:
           if [[ "$COMMENT" =~ --notify-error[[:space:]]+([a-zA-Z0-9_,]+) ]]; then
             echo "notify_error=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
           fi
-      - if: steps.parse.outputs.valid == 'true' && !steps.parse.outputs.ref && github.event.issue.pull_request
-        id: pr_sha
+      - if: steps.parse.outputs.valid == 'true'
+        id: resolve_ref
         run: |
-          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }})
-          SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
-          echo "sha=$SHA" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - id: resolve_ref
-        if: steps.parse.outputs.valid == 'true'
-        run: |
-          if [ -n "${{ steps.parse.outputs.ref }}" ]; then
-            echo "ref=${{ steps.parse.outputs.ref }}" >> $GITHUB_OUTPUT
-          elif [ -n "${{ steps.pr_sha.outputs.sha }}" ]; then
-            echo "ref=${{ steps.pr_sha.outputs.sha }}" >> $GITHUB_OUTPUT
+          EXPLICIT_REF="${{ steps.parse.outputs.ref }}"
+          IS_PR="${{ github.event.issue.pull_request }}"
+
+          if [ -z "$EXPLICIT_REF" ] && [ -n "$IS_PR" ]; then
+            PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }})
+            BRANCH=$(echo "$PR_DATA" | jq -r '.head.ref')
+            SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
+            echo "ref=$BRANCH" >> $GITHUB_OUTPUT
+            echo "sha=$SHA" >> $GITHUB_OUTPUT
+            echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+            echo "needs_cleanup=false" >> $GITHUB_OUTPUT
+          elif [ -n "$EXPLICIT_REF" ]; then
+            SHA=$(gh api repos/${{ github.repository }}/commits/$EXPLICIT_REF --jq '.sha')
+            BRANCH_CHECK=$(gh api repos/${{ github.repository }}/branches/$EXPLICIT_REF --jq '.name' 2>/dev/null || echo "")
+            if [ -n "$BRANCH_CHECK" ]; then
+              echo "ref=$EXPLICIT_REF" >> $GITHUB_OUTPUT
+              echo "sha=$SHA" >> $GITHUB_OUTPUT
+              echo "branch=$EXPLICIT_REF" >> $GITHUB_OUTPUT
+              echo "needs_cleanup=false" >> $GITHUB_OUTPUT
+            else
+              TEMP_BRANCH="staging-temp-${SHA:0:8}"
+              gh api repos/${{ github.repository }}/git/refs \
+                -f ref="refs/heads/$TEMP_BRANCH" \
+                -f sha="$SHA"
+              echo "ref=$EXPLICIT_REF" >> $GITHUB_OUTPUT
+              echo "sha=$SHA" >> $GITHUB_OUTPUT
+              echo "branch=$TEMP_BRANCH" >> $GITHUB_OUTPUT
+              echo "needs_cleanup=true" >> $GITHUB_OUTPUT
+            fi
           else
             echo "No ref provided and not in a PR context"
             exit 1
           fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   trigger_build:
     needs: [permission, parse_command]
     if: needs.permission.outputs.allowed == 'true' && needs.parse_command.outputs.valid == 'true'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       actions: write
       issues: write
     outputs:
@@ -91,37 +115,31 @@ jobs:
             -f content='eyes' --silent
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - id: resolve_full_ref
-        run: |
-          REF="${{ needs.parse_command.outputs.ref }}"
-          FULL_REF=$(gh api repos/${{ github.repository }}/commits/$REF --jq '.sha')
-          echo "full_ref=$FULL_REF" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: |
-          REF="${{ steps.resolve_full_ref.outputs.full_ref }}"
+          SHA="${{ needs.parse_command.outputs.sha }}"
           gh run list \
             --repo ${{ github.repository }} \
             --workflow=desktop_cd.yaml \
             --status=in_progress \
             --status=queued \
             --json databaseId,headSha \
-            --jq ".[] | select(.headSha | startswith(\"$REF\") or \"$REF\" | startswith(.headSha)) | .databaseId" | \
+            --jq ".[] | select(.headSha | startswith(\"$SHA\") or \"$SHA\" | startswith(.headSha)) | .databaseId" | \
           xargs -I {} gh run cancel {} --repo ${{ github.repository }} || true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - id: trigger
         run: |
-          REF="${{ steps.resolve_full_ref.outputs.full_ref }}"
+          SHA="${{ needs.parse_command.outputs.sha }}"
+          BRANCH="${{ needs.parse_command.outputs.branch }}"
           gh workflow run desktop_cd.yaml \
             --repo ${{ github.repository }} \
-            --ref "$REF" \
+            --ref "$BRANCH" \
             -f channel=staging
-          for i in {1..15}; do
-            sleep 3
+          for i in {1..60}; do
+            sleep 5
             RUN_ID=$(gh run list \
               --workflow=desktop_cd.yaml \
-              --commit="$REF" \
+              --commit="$SHA" \
               --status=in_progress \
               --status=queued \
               --json databaseId \
@@ -139,6 +157,12 @@ jobs:
           gh run watch ${{ steps.trigger.outputs.run_id }} --exit-status
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - if: always() && needs.parse_command.outputs.needs_cleanup == 'true'
+        run: |
+          BRANCH="${{ needs.parse_command.outputs.branch }}"
+          gh api repos/${{ github.repository }}/git/refs/heads/$BRANCH -X DELETE || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   comment_result:
     needs: [permission, parse_command, trigger_build]
@@ -150,6 +174,8 @@ jobs:
       pull-requests: write
     steps:
       - if: needs.trigger_build.result == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           REF="${{ needs.parse_command.outputs.ref }}"
           ARTIFACTS_URL="https://github.com/${{ github.repository }}/actions/runs/${{ needs.trigger_build.outputs.run_id }}"
@@ -162,14 +188,15 @@ jobs:
           - Ref: \`$REF\`
           - [Download artifacts]($ARTIFACTS_URL)
           $MENTIONS"
+          BODY=$(echo "$BODY" | sed 's/^[[:space:]]*//')
           if [ -n "${{ github.event.issue.pull_request }}" ]; then
             gh pr comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           else
             gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           fi
+      - if: needs.trigger_build.result == 'failure' && needs.trigger_build.outputs.run_id
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - if: needs.trigger_build.result == 'failure' && needs.trigger_build.outputs.run_id
         run: |
           REF="${{ needs.parse_command.outputs.ref }}"
           ARTIFACTS_URL="https://github.com/${{ github.repository }}/actions/runs/${{ needs.trigger_build.outputs.run_id }}"
@@ -182,14 +209,15 @@ jobs:
           - Ref: \`$REF\`
           - [View logs]($ARTIFACTS_URL)
           $MENTIONS"
+          BODY=$(echo "$BODY" | sed 's/^[[:space:]]*//')
           if [ -n "${{ github.event.issue.pull_request }}" ]; then
             gh pr comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           else
             gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           fi
+      - if: needs.trigger_build.result == 'failure' && !needs.trigger_build.outputs.run_id
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - if: needs.trigger_build.result == 'failure' && !needs.trigger_build.outputs.run_id
         run: |
           REF="${{ needs.parse_command.outputs.ref }}"
           NOTIFY="${{ needs.parse_command.outputs.notify_error }}"
@@ -201,10 +229,9 @@ jobs:
           - Ref: \`$REF\`
           - Failed to trigger staging build.
           $MENTIONS"
+          BODY=$(echo "$BODY" | sed 's/^[[:space:]]*//')
           if [ -n "${{ github.event.issue.pull_request }}" ]; then
             gh pr comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           else
             gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

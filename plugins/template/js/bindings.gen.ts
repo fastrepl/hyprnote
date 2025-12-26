@@ -38,17 +38,18 @@ export type ChatContext = { title: string | null; date: string | null; rawConten
 export type ChatSystem = { language: string | null; context: ChatContext | null }
 export type EnhanceSystem = { language: string | null }
 export type EnhanceTemplate = { title: string; description: string | null; sections: TemplateSection[] }
-export type EnhanceUser = { session: Session | null; participants: Participant[]; template: EnhanceTemplate | null; transcript: Transcript }
+export type EnhanceUser = { session: Session; participants: Participant[]; template: EnhanceTemplate | null; transcripts: Transcript[] }
+export type Event = { name: string }
 export type Grammar = { task: "enhance"; sections: string[] | null } | { task: "title" } | { task: "tags" } | { task: "email-to-name" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type Participant = { name: string; jobTitle: string | null }
 export type Segment = { text: string; speaker: string }
-export type Session = { isEvent: boolean; title: string | null; startedAt: string | null; endedAt: string | null; location: string | null }
+export type Session = { title: string | null; startedAt: string | null; endedAt: string | null; event: Event | null }
 export type Template = { enhanceSystem: EnhanceSystem } | { enhanceUser: EnhanceUser } | { titleSystem: TitleSystem } | { titleUser: TitleUser } | { chatSystem: ChatSystem }
 export type TemplateSection = { title: string; description: string | null }
 export type TitleSystem = { language: string | null }
 export type TitleUser = { enhancedNote: string }
-export type Transcript = { segments: Segment[] }
+export type Transcript = { segments: Segment[]; startedAt: number | null; endedAt: number | null }
 
 /** tauri-specta globals **/
 

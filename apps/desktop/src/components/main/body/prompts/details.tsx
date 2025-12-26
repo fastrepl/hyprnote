@@ -54,10 +54,15 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
       selectedTask === "enhance"
         ? {
             enhanceUser: {
-              session: null,
+              session: {
+                event: null,
+                title: null,
+                startedAt: null,
+                endedAt: null,
+              },
               participants: [],
               template: null,
-              transcript: { segments: [] },
+              transcripts: [],
             },
           }
         : { titleUser: { enhancedNote: "" } };

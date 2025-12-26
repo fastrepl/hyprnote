@@ -239,6 +239,8 @@ function useTransport(attachedSessionId?: string) {
         speaker: SegmentKey.renderLabel(seg.key, ctx, manager),
         text: seg.words.map((w) => w.text).join(" "),
       })),
+      startedAt: null,
+      endedAt: null,
     };
   }, [words, store]);
 

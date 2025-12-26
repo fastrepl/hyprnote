@@ -55,6 +55,8 @@ mod tests {
                             speaker: "Speaker 2".to_string(),
                         },
                     ],
+                    started_at: None,
+                    ended_at: None,
                 }),
             }),
         };

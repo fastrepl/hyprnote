@@ -3,6 +3,8 @@ use crate::common_derives;
 common_derives! {
     pub struct Transcript {
         pub segments: Vec<Segment>,
+        pub started_at: Option<i64>,
+        pub ended_at: Option<i64>,
     }
 }
 
@@ -14,12 +16,17 @@ common_derives! {
 }
 
 common_derives! {
+    pub struct Event {
+        pub name: String,
+    }
+}
+
+common_derives! {
     pub struct Session {
-        pub is_event: bool,
         pub title: Option<String>,
         pub started_at: Option<String>,
         pub ended_at: Option<String>,
-        pub location: Option<String>,
+        pub event: Option<Event>,
     }
 }
 

@@ -13,16 +13,17 @@ common_derives! {
     #[derive(askama::Template)]
     #[template(path = "enhance.user.jinja")]
     pub struct EnhanceUser {
-        pub session: Option<Session>,
+        pub session: Session,
         pub participants: Vec<Participant>,
         pub template: Option<EnhanceTemplate>,
-        pub transcript: Transcript,
+        pub transcripts: Vec<Transcript>,
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{Segment, TemplateSection};
     use askama::Template;
 
     #[test]
@@ -46,19 +47,68 @@ mod tests {
     }
 
     #[test]
-    fn test_enhance_user() {
+    fn test_enhance_user_1() {
         let tpl = EnhanceUser {
-            session: None,
-            participants: vec![],
-            template: None,
-            transcript: Transcript { segments: vec![] },
+            session: Session {
+                title: Some("Meeting".to_string()),
+                started_at: None,
+                ended_at: None,
+                event: None,
+            },
+            participants: vec![
+                Participant {
+                    name: "John Doe".to_string(),
+                    job_title: Some("CEO".to_string()),
+                },
+                Participant {
+                    name: "Jane Smith".to_string(),
+                    job_title: Some("CTO".to_string()),
+                },
+            ],
+            template: Some(EnhanceTemplate {
+                title: "Meeting".to_string(),
+                description: Some("Meeting description".to_string()),
+                sections: vec![
+                    TemplateSection {
+                        title: "Section 1".to_string(),
+                        description: Some("Section 1 description".to_string()),
+                    },
+                    TemplateSection {
+                        title: "Section 2".to_string(),
+                        description: Some("Section 2 description".to_string()),
+                    },
+                ],
+            }),
+            transcripts: vec![Transcript {
+                segments: vec![Segment {
+                    text: "Hello".to_string(),
+                    speaker: "John Doe".to_string(),
+                }],
+                started_at: Some(1719859200),
+                ended_at: Some(1719862800),
+            }],
         };
 
         insta::assert_snapshot!(tpl.render().unwrap(), @"
-        Workflow:
+        # Context
+        Session: Meeting
 
-        4. Analyze the content and decide the sections to use.
-        5. Generate a well-formatted markdown summary, following the format requirements.
+        Participants:
+        - John Doe (CEO)
+        - Jane Smith (CTO)
+
+        # Summary Template
+
+        Name: Meeting
+        Description: Meeting description
+
+        Sections:
+        1. Section 1 - Section 1 description
+        2. Section 2 - Section 2 description
+
+        # Transcript
+
+        John Doe: Hello
         ");
     }
 }

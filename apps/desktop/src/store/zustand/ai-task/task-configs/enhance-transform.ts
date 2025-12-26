@@ -24,6 +24,7 @@ import type { Store as MainStore } from "../../../tinybase/main";
 type TranscriptMeta = {
   id: string;
   startedAt: number;
+  endedAt: number | null;
 };
 
 type WordRow = Record<string, unknown> & {
@@ -70,27 +71,54 @@ async function transformArgs(
     session: sessionContext.session,
     participants: sessionContext.participants,
     template,
-    transcript: formatTranscript(sessionContext.rawMd, sessionContext.segments),
+    transcripts: formatTranscripts(
+      sessionContext.rawMd,
+      sessionContext.segments,
+      sessionContext.transcriptsMeta,
+    ),
   };
 }
 
-function formatTranscript(
+function formatTranscripts(
   rawMd: string,
   segments: SegmentPayload[],
-): Transcript {
-  if (segments.length > 0) {
-    return {
-      segments: segments.map(
-        (s): Segment => ({
-          speaker: s.speaker_label,
-          text: s.text,
-        }),
-      ),
-    };
+  transcriptsMeta: TranscriptMeta[],
+): Transcript[] {
+  if (segments.length > 0 && transcriptsMeta.length > 0) {
+    const startedAt = transcriptsMeta.reduce(
+      (min, t) => Math.min(min, t.startedAt),
+      Number.POSITIVE_INFINITY,
+    );
+    const endedAt = transcriptsMeta.reduce(
+      (max, t) => Math.max(max, t.endedAt ?? t.startedAt),
+      Number.NEGATIVE_INFINITY,
+    );
+
+    return [
+      {
+        segments: segments.map(
+          (s): Segment => ({
+            speaker: s.speaker_label,
+            text: s.text,
+          }),
+        ),
+        startedAt: Number.isFinite(startedAt) ? startedAt : null,
+        endedAt: Number.isFinite(endedAt) ? endedAt : null,
+      },
+    ];
   }
-  return {
-    segments: [{ speaker: "", text: rawMd }],
-  };
+
+  if (rawMd) {
+    return [
+      {
+        segments: [{ speaker: "", text: rawMd }],
+        startedAt: null,
+        endedAt: null,
+      },
+    ];
+  }
+
+  return [];
 }
 
 function getLanguage(store: MainStore): string | null {
@@ -99,11 +127,13 @@ function getLanguage(store: MainStore): string | null {
 }
 
 function getSessionContext(sessionId: string, store: MainStore) {
+  const transcriptsMeta = collectTranscripts(sessionId, store);
   return {
     rawMd: getStringCell(store, "sessions", sessionId, "raw_md"),
     session: getSessionData(sessionId, store),
     participants: getParticipants(sessionId, store),
-    segments: getTranscriptSegments(sessionId, store),
+    segments: getTranscriptSegmentsFromMeta(transcriptsMeta, store),
+    transcriptsMeta,
   };
 }
 
@@ -117,16 +147,16 @@ function getSessionData(sessionId: string, store: MainStore): Session {
   );
 
   if (eventId) {
+    const eventTitle = getStringCell(store, "events", eventId, "title");
     return {
-      title:
-        getStringCell(store, "events", eventId, "title") || rawTitle || null,
+      title: eventTitle || rawTitle || null,
       startedAt:
         getOptionalStringCell(store, "events", eventId, "started_at") ?? null,
       endedAt:
         getOptionalStringCell(store, "events", eventId, "ended_at") ?? null,
-      location:
-        getOptionalStringCell(store, "events", eventId, "location") ?? null,
-      isEvent: true,
+      event: {
+        name: eventTitle || rawTitle || "",
+      },
     };
   }
 
@@ -134,8 +164,7 @@ function getSessionData(sessionId: string, store: MainStore): Session {
     title: rawTitle || null,
     startedAt: null,
     endedAt: null,
-    location: null,
-    isEvent: false,
+    event: null,
   };
 }
 
@@ -232,8 +261,10 @@ function parseTemplateSections(raw: unknown): TemplateSection[] {
     .filter((section): section is TemplateSection => section !== null);
 }
 
-function getTranscriptSegments(sessionId: string, store: MainStore) {
-  const transcripts = collectTranscripts(sessionId, store);
+function getTranscriptSegmentsFromMeta(
+  transcripts: TranscriptMeta[],
+  store: MainStore,
+) {
   if (transcripts.length === 0) {
     return [];
   }
@@ -296,7 +327,9 @@ function collectTranscripts(
 
     const startedAt =
       getNumberCell(store, "transcripts", transcriptId, "started_at") ?? 0;
-    transcripts.push({ id: transcriptId, startedAt });
+    const endedAt =
+      getNumberCell(store, "transcripts", transcriptId, "ended_at") ?? null;
+    transcripts.push({ id: transcriptId, startedAt, endedAt });
   });
 
   return transcripts;

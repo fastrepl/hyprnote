@@ -13,6 +13,14 @@
 {%- endfor -%}
 {%- endmacro -%}
 
+{%- macro transcripts(transcripts) -%}
+{%- for transcript in transcripts %}
+{%- for segment in transcript.segments %}
+{{ segment.speaker }}: {{ segment.text }}
+{%- endfor -%}
+{%- endfor -%}
+{%- endmacro -%}
+
 {%- macro participants(participants) -%}
 {%- if !participants.is_empty() %}
 Participants: {%- for p in participants -%}
@@ -29,7 +37,7 @@ Participants: {%- for p in participants -%}
 {%- macro session_context(session) -%}
 {%- match session -%}
 {%- when Some with (s) -%}
-{%- if s.is_event -%}
+{%- if s.event.is_some() -%}
 {%- match s.title -%}
 {%- when Some with (title) %}
 Meeting: {{ title }}
@@ -40,11 +48,6 @@ Meeting: {{ title }}
 Time: {{ started }} - {{ ended }}
 {%- when _ -%}
 {%- endmatch -%}
-{%- match s.location -%}
-{%- when Some with (location) %}
-Location: {{ location }}
-{%- when None -%}
-{%- endmatch -%}
 {%- else -%}
 {%- match s.title -%}
 {%- when Some with (title) %}
@@ -54,6 +57,27 @@ Session: {{ title }}
 {%- endif -%}
 {%- when None -%}
 {%- endmatch -%}
+{%- endmacro -%}
+
+{%- macro session_context_non_opt(s) -%}
+{%- if s.event.is_some() -%}
+{%- match s.title -%}
+{%- when Some with (title) %}
+Meeting: {{ title }}
+{%- when None -%}
+{%- endmatch -%}
+{%- match (s.started_at.as_ref(), s.ended_at.as_ref()) -%}
+{%- when (Some(started), Some(ended)) %}
+Time: {{ started }} - {{ ended }}
+{%- when _ -%}
+{%- endmatch -%}
+{%- else -%}
+{%- match s.title -%}
+{%- when Some with (title) %}
+Session: {{ title }}
+{%- when None -%}
+{%- endmatch -%}
+{%- endif -%}
 {%- endmacro -%}
 
 {%- macro template_context(template) -%}

@@ -1,20 +1,48 @@
 {%- import "_macros.jinja" as macros -%}
-{%- if session.is_some() || !participants.is_empty() -%}
-Context:
-{{ macros::session_context(session) }}
-{{ macros::participants(participants) }}
+
+# Context
+
+{% if session.title.is_some() -%}
+{%- if session.event.is_some() -%}
+Meeting: {{ session.title.as_ref().unwrap() }}
+{%- else -%}
+Session: {{ session.title.as_ref().unwrap() }}
+{%- endif %}
 {% endif -%}
-{%- if template.is_some() -%}
-Workflow:
+{%- if !participants.is_empty() %}
+Participants:
+{% for p in participants -%}
 
-1. Use the provided template with predefined sections.
-2. Generate a well-formatted markdown summary following the template sections.
-3. Each template section includes a title and description - use these to guide your summary.
-   {{ macros::template_context(template) }}
-   {% else -%}
-   Workflow:
+- {{ p.name }}{% if p.job_title.is_some() %} ({{ p.job_title.as_ref().unwrap() }}){% endif %}
+  {% endfor -%}
+  {%- endif -%}
+  {%- if template.is_some() %}
 
-4. Analyze the content and decide the sections to use.
-5. Generate a well-formatted markdown summary, following the format requirements.
+# Summary Template
+
+Name: {{ template.as_ref().unwrap().title }}
+{%- match template.as_ref().unwrap().description %}
+{%- when Some with (desc) %}
+Description: {{ desc }}
+{%- when None -%}
+{%- endmatch %}
+
+Sections:
+{% for section in template.as_ref().unwrap().sections -%}
+{{ loop.index }}. {{ section.title }}{% if section.description.is_some() %} - {{ section.description.as_ref().unwrap() }}{% endif %}
+{% endfor -%}
+{%- else %}
+
+# Instructions
+
+1. Analyze the content and decide the sections to use.
+2. Generate a well-formatted markdown summary.
    {% endif %}
-   {{ macros::transcript(transcript) }}
+
+# Transcript
+
+{% for transcript in transcripts -%}
+{%- for segment in transcript.segments %}
+{{ segment.speaker }}: {{ segment.text }}
+{%- endfor -%}
+{%- endfor %}

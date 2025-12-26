@@ -2,7 +2,7 @@ import type { LanguageModel, TextStreamPart } from "ai";
 
 import type { Template } from "@hypr/store";
 
-import type { Store as PersistedStore } from "../../../tinybase/main";
+import type { Store as MainStore } from "../../../tinybase/main";
 import { StreamTransform } from "../shared/transform_infra";
 import type { TaskStepInfo } from "../tasks";
 import { enhanceTransform } from "./enhance-transform";
@@ -67,14 +67,14 @@ export function createTaskId<T extends TaskType>(
 export interface TaskConfig<T extends TaskType = TaskType> {
   transformArgs: (
     args: TaskArgsMap[T],
-    store: PersistedStore,
+    store: MainStore,
   ) => Promise<TaskArgsMapTransformed[T]>;
   executeWorkflow: (params: {
     model: LanguageModel;
     args: TaskArgsMapTransformed[T];
     onProgress: (step: TaskStepInfo<T>) => void;
     signal: AbortSignal;
-    store: PersistedStore;
+    store: MainStore;
   }) => AsyncIterable<TextStreamPart<any>>;
   transforms?: StreamTransform[];
 }

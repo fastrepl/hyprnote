@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import type { Tables } from "tinybase/with-schemas";
 
 import type { Schemas } from "../../../../store/tinybase/main";
-import type { Store as PersistedStore } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/main";
 import type { SeedDefinition } from "../shared";
 import {
   buildCalendars,
@@ -118,7 +118,7 @@ const RANDOM_DATA = (() => {
 export const randomSeed: SeedDefinition = {
   id: "random",
   label: "Random",
-  run: (store: PersistedStore) => {
+  run: (store: MainStore) => {
     store.transaction(() => {
       store.delTables();
       store.setTables(RANDOM_DATA);

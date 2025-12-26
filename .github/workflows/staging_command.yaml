@@ -2,6 +2,10 @@ on:
   issue_comment:
     types: [created]
 
+concurrency:
+  group: staging-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   permission:
     runs-on: ubuntu-latest
@@ -11,14 +15,8 @@ jobs:
       - id: check
         run: |
           USER="${{ github.event.comment.user.login }}"
-          IS_PR="${{ github.event.issue.pull_request }}"
-          IS_OPEN="${{ github.event.issue.state == 'open' }}"
           if [[ "$USER" == "yujonglee" || "$USER" == "ComputelessComputer" ]]; then
-            if [[ -n "$IS_PR" || "$IS_OPEN" == "true" ]]; then
-              echo "allowed=true" >> $GITHUB_OUTPUT
-            else
-              echo "allowed=false" >> $GITHUB_OUTPUT
-            fi
+            echo "allowed=true" >> $GITHUB_OUTPUT
           else
             echo "allowed=false" >> $GITHUB_OUTPUT
           fi
@@ -32,18 +30,30 @@ jobs:
     outputs:
       valid: ${{ steps.parse.outputs.valid }}
       ref: ${{ steps.resolve_ref.outputs.ref }}
+      notify_success: ${{ steps.parse.outputs.notify_success }}
+      notify_error: ${{ steps.parse.outputs.notify_error }}
     steps:
+      # /staging [ref] [--notify-success user1,user2] [--notify-error user1,user2]
       - id: parse
         run: |
           COMMENT="${{ github.event.comment.body }}"
-          if [[ "$COMMENT" =~ (^|[[:space:]])/staging[[:space:]]+([a-zA-Z0-9_./-]+) ]]; then
-            REF="${BASH_REMATCH[2]}"
-            echo "ref=$REF" >> $GITHUB_OUTPUT
-            echo "valid=true" >> $GITHUB_OUTPUT
-          elif [[ "$COMMENT" =~ (^|[[:space:]])/staging($|[[:space:]]) ]]; then
+          if [[ "$COMMENT" =~ (^|[[:space:]])/staging($|[[:space:]]) ]]; then
             echo "valid=true" >> $GITHUB_OUTPUT
           else
             echo "valid=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [[ "$COMMENT" =~ /staging[[:space:]]+([a-zA-Z0-9_./-]+)($|[[:space:]]) ]]; then
+            echo "ref=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          fi
+
+          if [[ "$COMMENT" =~ --notify-success[[:space:]]+([a-zA-Z0-9_,]+) ]]; then
+            echo "notify_success=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          fi
+
+          if [[ "$COMMENT" =~ --notify-error[[:space:]]+([a-zA-Z0-9_,]+) ]]; then
+            echo "notify_error=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
           fi
       - if: steps.parse.outputs.valid == 'true' && !steps.parse.outputs.ref && github.event.issue.pull_request
         id: pr_sha
@@ -103,7 +113,6 @@ jobs:
       - id: trigger
         run: |
           REF="${{ steps.resolve_full_ref.outputs.full_ref }}"
-          BEFORE_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           gh workflow run desktop_cd.yaml \
             --repo ${{ github.repository }} \
             --ref "$REF" \
@@ -112,9 +121,11 @@ jobs:
             sleep 3
             RUN_ID=$(gh run list \
               --workflow=desktop_cd.yaml \
-              --limit=5 \
-              --json databaseId,status,createdAt \
-              --jq ".[] | select(.status == \"in_progress\" or .status == \"queued\") | select(.createdAt >= \"$BEFORE_TIME\") | .databaseId" | head -1)
+              --commit="$REF" \
+              --status=in_progress \
+              --status=queued \
+              --json databaseId \
+              --jq '.[0].databaseId // empty')
             if [ -n "$RUN_ID" ]; then
               echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
               exit 0
@@ -142,9 +153,15 @@ jobs:
         run: |
           REF="${{ needs.parse_command.outputs.ref }}"
           ARTIFACTS_URL="https://github.com/${{ github.repository }}/actions/runs/${{ needs.trigger_build.outputs.run_id }}"
+          NOTIFY="${{ needs.parse_command.outputs.notify_success }}"
+          MENTIONS=""
+          if [ -n "$NOTIFY" ]; then
+            MENTIONS=$(echo "$NOTIFY" | tr ',' '\n' | sed 's/^/@/' | tr '\n' ' ')
+          fi
           BODY="🚀 Staging Build Ready
           - Ref: \`$REF\`
-          - [Download artifacts]($ARTIFACTS_URL)"
+          - [Download artifacts]($ARTIFACTS_URL)
+          $MENTIONS"
           if [ -n "${{ github.event.issue.pull_request }}" ]; then
             gh pr comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           else
@@ -156,9 +173,15 @@ jobs:
         run: |
           REF="${{ needs.parse_command.outputs.ref }}"
           ARTIFACTS_URL="https://github.com/${{ github.repository }}/actions/runs/${{ needs.trigger_build.outputs.run_id }}"
+          NOTIFY="${{ needs.parse_command.outputs.notify_error }}"
+          MENTIONS=""
+          if [ -n "$NOTIFY" ]; then
+            MENTIONS=$(echo "$NOTIFY" | tr ',' '\n' | sed 's/^/@/' | tr '\n' ' ')
+          fi
           BODY="❌ Staging Build Failed
           - Ref: \`$REF\`
-          - [View logs]($ARTIFACTS_URL)"
+          - [View logs]($ARTIFACTS_URL)
+          $MENTIONS"
           if [ -n "${{ github.event.issue.pull_request }}" ]; then
             gh pr comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           else
@@ -169,9 +192,15 @@ jobs:
       - if: needs.trigger_build.result == 'failure' && !needs.trigger_build.outputs.run_id
         run: |
           REF="${{ needs.parse_command.outputs.ref }}"
+          NOTIFY="${{ needs.parse_command.outputs.notify_error }}"
+          MENTIONS=""
+          if [ -n "$NOTIFY" ]; then
+            MENTIONS=$(echo "$NOTIFY" | tr ',' '\n' | sed 's/^/@/' | tr '\n' ' ')
+          fi
           BODY="❌ Staging Build Failed
           - Ref: \`$REF\`
-          - Failed to trigger staging build."
+          - Failed to trigger staging build.
+          $MENTIONS"
           if [ -n "${{ github.event.issue.pull_request }}" ]; then
             gh pr comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           else

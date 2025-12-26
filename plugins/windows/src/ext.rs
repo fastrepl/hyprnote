@@ -93,27 +93,9 @@ impl AppWindow {
     }
 
     fn finalize_show(&self, window: &WebviewWindow) -> Result<(), crate::Error> {
-        if matches!(self, Self::Main) {
-            use tauri::LogicalSize;
+        if let Self::Main = self {
             use tauri_plugin_window_state::{StateFlags, WindowExt};
-
             let _ = window.restore_state(StateFlags::SIZE);
-
-            if let Ok(size) = window.inner_size() {
-                let scale = window.scale_factor().unwrap_or(1.0);
-                let logical_width = size.width as f64 / scale;
-                let logical_height = size.height as f64 / scale;
-
-                const MIN_WIDTH: f64 = 620.0;
-                const MIN_HEIGHT: f64 = 500.0;
-
-                if logical_width < MIN_WIDTH || logical_height < MIN_HEIGHT {
-                    let _ = window.set_size(LogicalSize::new(
-                        logical_width.max(MIN_WIDTH),
-                        logical_height.max(MIN_HEIGHT),
-                    ));
-                }
-            }
         }
 
         window.show()?;

@@ -78,16 +78,18 @@ jobs:
     steps:
       - run: |
           gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
-            -f content='+1' --silent
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: |
-          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
             -f content='eyes' --silent
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: |
+      - id: resolve_full_ref
+        run: |
           REF="${{ needs.parse_command.outputs.ref }}"
+          FULL_REF=$(gh api repos/${{ github.repository }}/commits/$REF --jq '.sha')
+          echo "full_ref=$FULL_REF" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          REF="${{ steps.resolve_full_ref.outputs.full_ref }}"
           gh run list \
             --repo ${{ github.repository }} \
             --workflow=desktop_cd.yaml \
@@ -100,7 +102,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - id: trigger
         run: |
-          REF="${{ needs.parse_command.outputs.ref }}"
+          REF="${{ steps.resolve_full_ref.outputs.full_ref }}"
           BEFORE_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           gh workflow run desktop_cd.yaml \
             --repo ${{ github.repository }} \
@@ -140,10 +142,9 @@ jobs:
         run: |
           REF="${{ needs.parse_command.outputs.ref }}"
           ARTIFACTS_URL="https://github.com/${{ github.repository }}/actions/runs/${{ needs.trigger_build.outputs.run_id }}"
-          BODY="## 🚀 Staging Build Ready
-
-          **Ref:** \`$REF\`
-          **Download artifacts:** $ARTIFACTS_URL"
+          BODY="🚀 Staging Build Ready
+          - Ref: \`$REF\`
+          - [Download artifacts]($ARTIFACTS_URL)"
           if [ -n "${{ github.event.issue.pull_request }}" ]; then
             gh pr comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           else
@@ -155,10 +156,9 @@ jobs:
         run: |
           REF="${{ needs.parse_command.outputs.ref }}"
           ARTIFACTS_URL="https://github.com/${{ github.repository }}/actions/runs/${{ needs.trigger_build.outputs.run_id }}"
-          BODY="## ❌ Staging Build Failed
-
-          **Ref:** \`$REF\`
-          **View logs:** $ARTIFACTS_URL"
+          BODY="❌ Staging Build Failed
+          - Ref: \`$REF\`
+          - [View logs]($ARTIFACTS_URL)"
           if [ -n "${{ github.event.issue.pull_request }}" ]; then
             gh pr comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           else
@@ -169,10 +169,9 @@ jobs:
       - if: needs.trigger_build.result == 'failure' && !needs.trigger_build.outputs.run_id
         run: |
           REF="${{ needs.parse_command.outputs.ref }}"
-          BODY="## ❌ Staging Build Failed
-
-          **Ref:** \`$REF\`
-          Failed to trigger staging build."
+          BODY="❌ Staging Build Failed
+          - Ref: \`$REF\`
+          - Failed to trigger staging build."
           if [ -n "${{ github.event.issue.pull_request }}" ]; then
             gh pr comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "$BODY"
           else

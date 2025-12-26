@@ -23,7 +23,7 @@ import { Header, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
 
-const BOTTOM_THRESHOLD = 200;
+const BOTTOM_THRESHOLD = 70;
 
 export const NoteInput = forwardRef<
   { editor: TiptapEditor | null },
@@ -335,9 +335,9 @@ function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
       className={cn([
         "absolute left-0 w-full h-8 z-20 pointer-events-none",
         position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
+        "top-0 bg-gradient-to-b from-white to-transparent",
         position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
+        "bottom-0 bg-gradient-to-t from-white to-transparent",
       ])}
     />
   );

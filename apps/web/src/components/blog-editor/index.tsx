@@ -1,6 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Markdown } from "@tiptap/extension-markdown";
 import { useCallback, useRef, useState } from "react";
 
 import Editor, {
@@ -9,6 +8,9 @@ import Editor, {
 } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
 
+import { CtaCard } from "@/components/cta-card";
+import { Image } from "@/components/image";
+import { Callout } from "@/components/mdx/callout";
 import { saveArticle, uploadBlogImage } from "@/functions/blog";
 
 const AUTHORS = ["Harshika", "John Jeong", "Yujong Lee"] as const;
@@ -59,8 +61,13 @@ function jsonToMarkdown(json: JSONContent): string {
       case "doc":
         return (node.content || []).map(processNode).join("\n\n");
 
-      case "paragraph":
-        return (node.content || []).map(processNode).join("");
+      case "paragraph": {
+        const paragraphContent = (node.content || []).map(processNode).join("");
+        if (paragraphContent.match(/^<(Image|Callout|CtaCard)/)) {
+          return paragraphContent;
+        }
+        return paragraphContent;
+      }
 
       case "text":
         let text = node.text || "";
@@ -84,10 +91,11 @@ function jsonToMarkdown(json: JSONContent): string {
         }
         return text;
 
-      case "heading":
+      case "heading": {
         const level = node.attrs?.level || 1;
         const headingText = (node.content || []).map(processNode).join("");
         return `${"#".repeat(level)} ${headingText}`;
+      }
 
       case "bulletList":
         return (node.content || [])
@@ -102,10 +110,11 @@ function jsonToMarkdown(json: JSONContent): string {
       case "listItem":
         return (node.content || []).map(processNode).join("\n");
 
-      case "codeBlock":
+      case "codeBlock": {
         const lang = node.attrs?.language || "";
         const code = (node.content || []).map(processNode).join("");
         return `\`\`\`${lang}\n${code}\n\`\`\``;
+      }
 
       case "blockquote":
         return (node.content || [])
@@ -115,18 +124,20 @@ function jsonToMarkdown(json: JSONContent): string {
       case "horizontalRule":
         return "---";
 
-      case "image":
+      case "image": {
         const src = node.attrs?.src || "";
         const alt = node.attrs?.alt || "";
-        return `![${alt}](${src})`;
+        return `<Image src="${src}" alt="${alt}"/>`;
+      }
 
       case "taskList":
         return (node.content || []).map(processNode).join("\n");
 
-      case "taskItem":
+      case "taskItem": {
         const checked = node.attrs?.checked ? "x" : " ";
         const taskContent = (node.content || []).map(processNode).join("");
         return `- [${checked}] ${taskContent}`;
+      }
 
       default:
         if (node.content) {
@@ -248,6 +259,61 @@ function markdownToJson(markdown: string): JSONContent {
       continue;
     }
 
+    const mdxImageMatch = line.match(/^<Image\s+src="([^"]+)"\s+alt="([^"]*)"\s*\/?>/);
+    if (mdxImageMatch) {
+      content.push({
+        type: "image",
+        attrs: { src: mdxImageMatch[1], alt: mdxImageMatch[2] },
+      });
+      i++;
+      continue;
+    }
+
+    const ctaCardMatch = line.match(/^<CtaCard\s*\/?>/);
+    if (ctaCardMatch) {
+      content.push({
+        type: "paragraph",
+        content: [{ type: "text", text: "<CtaCard/>" }],
+      });
+      i++;
+      continue;
+    }
+
+    const calloutStartMatch = line.match(/^<Callout\s+type="([^"]+)">/);
+    if (calloutStartMatch) {
+      const calloutType = calloutStartMatch[1];
+      const calloutLines: string[] = [];
+      const restOfLine = line.replace(calloutStartMatch[0], "").trim();
+      if (restOfLine && !restOfLine.includes("</Callout>")) {
+        calloutLines.push(restOfLine);
+      } else if (restOfLine.includes("</Callout>")) {
+        const calloutContent = restOfLine.replace("</Callout>", "").trim();
+        content.push({
+          type: "paragraph",
+          content: [{ type: "text", text: `<Callout type="${calloutType}">${calloutContent}</Callout>` }],
+        });
+        i++;
+        continue;
+      }
+      i++;
+      while (i < lines.length && !lines[i].includes("</Callout>")) {
+        calloutLines.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length && lines[i].includes("</Callout>")) {
+        const lastLine = lines[i].replace("</Callout>", "").trim();
+        if (lastLine) {
+          calloutLines.push(lastLine);
+        }
+      }
+      content.push({
+        type: "paragraph",
+        content: [{ type: "text", text: `<Callout type="${calloutType}">${calloutLines.join("\n")}</Callout>` }],
+      });
+      i++;
+      continue;
+    }
+
     content.push({
       type: "paragraph",
       content: parseInlineContent(line),
@@ -333,6 +399,92 @@ function parseInlineContent(text: string): JSONContent[] {
   return result.length > 0 ? result : [{ type: "text", text: "" }];
 }
 
+function MDXPreview({ content }: { content: string }) {
+  const renderContent = () => {
+    const lines = content.split("\n\n");
+    return lines.map((block, index) => {
+      const trimmed = block.trim();
+
+      if (trimmed.startsWith("<CtaCard")) {
+        return <CtaCard key={index} />;
+      }
+
+      const calloutMatch = trimmed.match(
+        /^<Callout\s+type="([^"]+)">([\s\S]*)<\/Callout>$/,
+      );
+      if (calloutMatch) {
+        return (
+          <Callout key={index} type={calloutMatch[1] as "note" | "warning" | "info" | "tip" | "danger"}>
+            {calloutMatch[2]}
+          </Callout>
+        );
+      }
+
+      const imageMatch = trimmed.match(/^<Image\s+src="([^"]+)"\s+alt="([^"]*)"\s*\/?>$/);
+      if (imageMatch) {
+        return (
+          <Image
+            key={index}
+            src={imageMatch[1]}
+            alt={imageMatch[2]}
+            className="rounded-sm border border-neutral-200 my-8"
+          />
+        );
+      }
+
+      const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        const level = headingMatch[1].length;
+        const text = headingMatch[2];
+        const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
+        return <HeadingTag key={index}>{text}</HeadingTag>;
+      }
+
+      if (trimmed.startsWith("```")) {
+        const langMatch = trimmed.match(/^```(\w*)\n([\s\S]*?)```$/);
+        if (langMatch) {
+          return (
+            <pre key={index} className="bg-stone-50 border border-neutral-200 rounded-sm p-4 overflow-x-auto">
+              <code>{langMatch[2]}</code>
+            </pre>
+          );
+        }
+      }
+
+      if (trimmed.startsWith("> ")) {
+        return (
+          <blockquote key={index} className="border-l-4 border-neutral-300 pl-4 italic">
+            {trimmed.slice(2)}
+          </blockquote>
+        );
+      }
+
+      if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+        const items = trimmed.split("\n").map((line) => line.replace(/^[-*]\s+/, ""));
+        return (
+          <ul key={index} className="list-disc pl-6">
+            {items.map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        );
+      }
+
+      if (trimmed === "---") {
+        return <hr key={index} className="my-8 border-neutral-200" />;
+      }
+
+      if (trimmed) {
+        return <p key={index}>{trimmed}</p>;
+      }
+
+      return null;
+    });
+  };
+
+  return <>{renderContent()}</>;
+}
+
 export function BlogEditor({ mode, initialData }: BlogEditorProps) {
   const navigate = useNavigate();
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
@@ -362,6 +514,8 @@ export function BlogEditor({ mode, initialData }: BlogEditorProps) {
     "idle" | "saving" | "saved" | "error"
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewContent, setPreviewContent] = useState("");
 
   const initialContent = initialData?.content
     ? markdownToJson(initialData.content)
@@ -497,6 +651,41 @@ export function BlogEditor({ mode, initialData }: BlogEditorProps) {
     },
   };
 
+  const handleTogglePreview = useCallback(() => {
+    if (!showPreview) {
+      const editor = editorRef.current?.editor;
+      if (editor) {
+        const markdown = jsonToMarkdown(editor.getJSON());
+        setPreviewContent(markdown);
+      }
+    }
+    setShowPreview(!showPreview);
+  }, [showPreview]);
+
+  const insertComponent = useCallback(
+    (component: "callout" | "ctacard") => {
+      const editor = editorRef.current?.editor;
+      if (!editor) return;
+
+      let text = "";
+      if (component === "callout") {
+        text = '<Callout type="note">Your note here</Callout>';
+      } else if (component === "ctacard") {
+        text = "<CtaCard/>";
+      }
+
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: "paragraph",
+          content: [{ type: "text", text }],
+        })
+        .run();
+    },
+    [],
+  );
+
   return (
     <div className="min-h-screen bg-white">
       <div className="border-b border-neutral-100 bg-stone-50/50">
@@ -513,7 +702,18 @@ export function BlogEditor({ mode, initialData }: BlogEditorProps) {
               {mode === "new" ? "New Article" : `Editing: ${slug}`}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleTogglePreview}
+              className={cn([
+                "px-3 py-1.5 text-sm font-medium rounded-lg transition-colors",
+                showPreview
+                  ? "bg-stone-600 text-white"
+                  : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
+              ])}
+            >
+              {showPreview ? "Edit" : "Preview"}
+            </button>
             {saveStatus === "saving" && (
               <span className="text-sm text-neutral-500">Saving...</span>
             )}
@@ -538,14 +738,20 @@ export function BlogEditor({ mode, initialData }: BlogEditorProps) {
                 placeholder="Article title..."
                 className="w-full text-3xl font-serif text-stone-600 placeholder:text-neutral-300 border-none outline-none mb-6"
               />
-              <div className="prose prose-stone max-w-none">
-                <Editor
-                  ref={editorRef}
-                  initialContent={initialContent}
-                  editable={true}
-                  fileHandlerConfig={fileHandlerConfig}
-                />
-              </div>
+              {showPreview ? (
+                <div className="prose prose-stone max-w-none">
+                  <MDXPreview content={previewContent} />
+                </div>
+              ) : (
+                <div className="prose prose-stone max-w-none">
+                  <Editor
+                    ref={editorRef}
+                    initialContent={initialContent}
+                    editable={true}
+                    fileHandlerConfig={fileHandlerConfig}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -660,6 +866,36 @@ export function BlogEditor({ mode, initialData }: BlogEditorProps) {
               <label htmlFor="featured" className="text-sm text-neutral-600">
                 Featured article
               </label>
+            </div>
+
+            <div className="pt-4 border-t border-neutral-200">
+              <label className="block text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
+                Insert Component
+              </label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => insertComponent("callout")}
+                  disabled={showPreview}
+                  className={cn([
+                    "flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors",
+                    "border border-neutral-200 text-neutral-700 bg-white",
+                    "hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed",
+                  ])}
+                >
+                  Callout
+                </button>
+                <button
+                  onClick={() => insertComponent("ctacard")}
+                  disabled={showPreview}
+                  className={cn([
+                    "flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors",
+                    "border border-neutral-200 text-neutral-700 bg-white",
+                    "hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed",
+                  ])}
+                >
+                  CTA Card
+                </button>
+              </div>
             </div>
 
             <div className="pt-4 border-t border-neutral-200 space-y-3">

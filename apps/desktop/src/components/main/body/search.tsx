@@ -95,12 +95,15 @@ function ExpandedSearch({
   onFocus?: () => void;
   onBlur?: () => void;
 }) {
-  const { query, setQuery, isSearching, isIndexing, inputRef } = useSearch();
+  const { query, setQuery, isSearching, isIndexing, inputRef, results } =
+    useSearch();
   const [isFocused, setIsFocused] = useState(false);
   const isCmdPressed = useCmdKeyPressed();
 
   const showLoading = isSearching || isIndexing;
   const showShortcut = isCmdPressed && !query;
+  const hasResults = results && results.totalResults > 0;
+  const resultCount = results?.totalResults ?? 0;
 
   const width = hasSpace
     ? isFocused
@@ -131,7 +134,11 @@ function ExpandedSearch({
         <input
           ref={inputRef}
           type="text"
-          placeholder="Search anything..."
+          placeholder={
+            hasResults && query
+              ? `${resultCount} result${resultCount !== 1 ? "s" : ""}`
+              : "Search anything..."
+          }
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {

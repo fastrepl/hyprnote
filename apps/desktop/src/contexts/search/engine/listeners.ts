@@ -8,7 +8,7 @@ import {
   createSessionSearchableContent,
 } from "./content";
 import type { Index } from "./types";
-import { collectCells, toNumber, toTrimmedString } from "./utils";
+import { collectCells, toEpochMs, toTrimmedString } from "./utils";
 
 export function createSessionListener(
   index: Index,
@@ -36,7 +36,7 @@ export function createSessionListener(
           type: "session",
           title,
           content: createSessionSearchableContent(row),
-          created_at: toNumber(row.created_at),
+          created_at: toEpochMs(row.created_at),
         };
 
         void update(index, rowId, data);
@@ -66,7 +66,7 @@ export function createHumanListener(
           type: "human",
           title,
           content: createHumanSearchableContent(row),
-          created_at: toNumber(row.created_at),
+          created_at: toEpochMs(row.created_at),
         };
         void update(index, rowId, data);
       }
@@ -95,7 +95,7 @@ export function createOrganizationListener(
           type: "organization",
           title,
           content: "",
-          created_at: toNumber(row.created_at),
+          created_at: toEpochMs(row.created_at),
         };
 
         void update(index, rowId, data);

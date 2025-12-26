@@ -1,0 +1,104 @@
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - "apps/web/content/changelog/**"
+
+concurrency:
+  group: changelog-staging-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  REVIEWERS: "@ComputelessComputer @yujonglee"
+
+jobs:
+  cancel-staging-build:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run list \
+            --repo ${{ github.repository }} \
+            --workflow=desktop_cd.yaml \
+            --branch=${{ github.event.pull_request.head.ref }} \
+            --status=in_progress \
+            --status=queued \
+            --json databaseId \
+            --jq '.[].databaseId' | \
+          xargs -I {} gh run cancel {} --repo ${{ github.repository }} || true
+
+  trigger-staging-build:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+      pull-requests: write
+    steps:
+      - id: trigger
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run desktop_cd.yaml \
+            --repo ${{ github.repository }} \
+            --ref ${{ github.event.pull_request.head.ref }} \
+            -f channel=staging
+          for i in {1..15}; do
+            sleep 3
+            RUN_ID=$(gh run list \
+              --workflow=desktop_cd.yaml \
+              --branch=${{ github.event.pull_request.head.ref }} \
+              --limit=1 \
+              --json databaseId,status \
+              --jq '.[0] | select(.status == "in_progress" or .status == "queued") | .databaseId')
+            if [ -n "$RUN_ID" ]; then
+              echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          done
+          echo "Failed to get run ID"
+          exit 1
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run watch ${{ steps.trigger.outputs.run_id }} --exit-status
+      - if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ARTIFACTS_URL: https://github.com/${{ github.repository }}/actions/runs/${{ steps.trigger.outputs.run_id }}
+          REVIEWERS: ${{ env.REVIEWERS }}
+        run: |
+          cat <<EOF | gh pr comment ${{ github.event.pull_request.number }} --body-file -
+          ## 🚀 Staging Build Ready
+
+          $REVIEWERS Build completed successfully!
+
+          **Download artifacts:** $ARTIFACTS_URL
+          EOF
+      - if: failure() && steps.trigger.outputs.run_id
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ARTIFACTS_URL: https://github.com/${{ github.repository }}/actions/runs/${{ steps.trigger.outputs.run_id }}
+          REVIEWERS: ${{ env.REVIEWERS }}
+        run: |
+          cat <<EOF | gh pr comment ${{ github.event.pull_request.number }} --body-file -
+          ## ❌ Staging Build Failed
+
+          $REVIEWERS Build failed!
+
+          **View logs:** $ARTIFACTS_URL
+          EOF
+      - if: failure() && !steps.trigger.outputs.run_id
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEWERS: ${{ env.REVIEWERS }}
+        run: |
+          cat <<EOF | gh pr comment ${{ github.event.pull_request.number }} --body-file -
+          ## ❌ Staging Build Failed
+
+          $REVIEWERS Failed to trigger staging build.
+          EOF

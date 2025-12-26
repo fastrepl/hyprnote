@@ -44,7 +44,7 @@ pub async fn main() {
 
     let _guard = sentry_client
         .as_ref()
-        .map(|client| tauri_plugin_sentry::minidump::init(client));
+        .map(|client| tauri_plugin_sentry::minidump::init(&**client));
 
     let mut builder = tauri::Builder::default();
 
@@ -117,7 +117,7 @@ pub async fn main() {
         .plugin(tauri_plugin_updater2::init());
 
     if let Some(client) = sentry_client.as_ref() {
-        builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(client));
+        builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(&**client));
     }
 
     #[cfg(all(not(debug_assertions), not(feature = "devtools")))]

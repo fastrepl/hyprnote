@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-import { type Store as PersistedStore } from "../../../store/tinybase/main";
+import { type Store as MainStore } from "../../../store/tinybase/main";
 import { buildOramaFilters } from "./filters";
 import { indexHumans, indexOrganizations, indexSessions } from "./indexing";
 import {
@@ -41,7 +41,7 @@ export function SearchEngineProvider({
   store,
 }: {
   children: React.ReactNode;
-  store?: PersistedStore;
+  store?: MainStore;
 }) {
   const [isIndexing, setIsIndexing] = useState(true);
   const oramaInstance = useRef<Index | null>(null);

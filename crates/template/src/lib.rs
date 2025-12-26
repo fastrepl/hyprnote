@@ -56,37 +56,6 @@ pub enum Template {
     HighlightUser,
 }
 
-#[cfg(not(debug_assertions))]
-pub const ENHANCE_SYSTEM_TPL: &str = include_str!("../assets/enhance.system.jinja");
-#[cfg(not(debug_assertions))]
-pub const ENHANCE_USER_TPL: &str = include_str!("../assets/enhance.user.jinja");
-#[cfg(not(debug_assertions))]
-pub const TITLE_SYSTEM_TPL: &str = include_str!("../assets/title.system.jinja");
-#[cfg(not(debug_assertions))]
-pub const TITLE_USER_TPL: &str = include_str!("../assets/title.user.jinja");
-#[cfg(not(debug_assertions))]
-pub const AUTO_GENERATE_TAGS_SYSTEM_TPL: &str =
-    include_str!("../assets/auto_generate_tags.system.jinja");
-#[cfg(not(debug_assertions))]
-pub const AUTO_GENERATE_TAGS_USER_TPL: &str =
-    include_str!("../assets/auto_generate_tags.user.jinja");
-#[cfg(not(debug_assertions))]
-pub const CHAT_SYSTEM_TPL: &str = include_str!("../assets/chat.system.jinja");
-#[cfg(not(debug_assertions))]
-pub const CHAT_USER_TPL: &str = include_str!("../assets/chat.user.jinja");
-#[cfg(not(debug_assertions))]
-pub const POSTPROCESS_TRANSCRIPT_SYSTEM_TPL: &str =
-    include_str!("../assets/postprocess_transcript.system.jinja");
-#[cfg(not(debug_assertions))]
-pub const POSTPROCESS_TRANSCRIPT_USER_TPL: &str =
-    include_str!("../assets/postprocess_transcript.user.jinja");
-#[cfg(not(debug_assertions))]
-pub const HIGHLIGHT_SYSTEM_TPL: &str = include_str!("../assets/highlight.system.jinja");
-#[cfg(not(debug_assertions))]
-pub const HIGHLIGHT_USER_TPL: &str = include_str!("../assets/highlight.user.jinja");
-#[cfg(not(debug_assertions))]
-pub const LANGUAGE_PARTIAL_TPL: &str = include_str!("../assets/_language.partial.jinja");
-
 static GLOBAL_ENV: OnceLock<minijinja::Environment<'static>> = OnceLock::new();
 
 fn init_environment() -> minijinja::Environment<'static> {
@@ -95,8 +64,8 @@ fn init_environment() -> minijinja::Environment<'static> {
 
     #[cfg(debug_assertions)]
     {
-        let template_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("assets");
-        let base_loader = minijinja::path_loader(&template_dir);
+        let template_dir = std::path::Path::new(hypr_template_assets::MINIJINJA_DIR);
+        let base_loader = minijinja::path_loader(template_dir);
 
         env.set_loader(
             move |name: &str| -> Result<Option<String>, minijinja::Error> {
@@ -107,45 +76,21 @@ fn init_environment() -> minijinja::Environment<'static> {
     }
 
     #[cfg(not(debug_assertions))]
+    #[rustfmt::skip]
     {
-        env.add_template(Template::EnhanceSystem.as_ref(), ENHANCE_SYSTEM_TPL)
-            .unwrap();
-        env.add_template(Template::EnhanceUser.as_ref(), ENHANCE_USER_TPL)
-            .unwrap();
-        env.add_template(Template::TitleSystem.as_ref(), TITLE_SYSTEM_TPL)
-            .unwrap();
-        env.add_template(Template::TitleUser.as_ref(), TITLE_USER_TPL)
-            .unwrap();
-        env.add_template(Template::ChatSystem.as_ref(), CHAT_SYSTEM_TPL)
-            .unwrap();
-        env.add_template(Template::ChatUser.as_ref(), CHAT_USER_TPL)
-            .unwrap();
-        env.add_template(
-            Template::AutoGenerateTagsSystem.as_ref(),
-            AUTO_GENERATE_TAGS_SYSTEM_TPL,
-        )
-        .unwrap();
-        env.add_template(
-            Template::AutoGenerateTagsUser.as_ref(),
-            AUTO_GENERATE_TAGS_USER_TPL,
-        )
-        .unwrap();
-        env.add_template(
-            Template::PostprocessTranscriptSystem.as_ref(),
-            POSTPROCESS_TRANSCRIPT_SYSTEM_TPL,
-        )
-        .unwrap();
-        env.add_template(
-            Template::PostprocessTranscriptUser.as_ref(),
-            POSTPROCESS_TRANSCRIPT_USER_TPL,
-        )
-        .unwrap();
-        env.add_template(Template::HighlightSystem.as_ref(), HIGHLIGHT_SYSTEM_TPL)
-            .unwrap();
-        env.add_template(Template::HighlightUser.as_ref(), HIGHLIGHT_USER_TPL)
-            .unwrap();
-        env.add_template("_language.partial", LANGUAGE_PARTIAL_TPL)
-            .unwrap();
+        env.add_template(Template::EnhanceSystem.as_ref(), hypr_template_assets::minijinja::ENHANCE_SYSTEM).unwrap();
+        env.add_template(Template::EnhanceUser.as_ref(), hypr_template_assets::minijinja::ENHANCE_USER).unwrap();
+        env.add_template(Template::TitleSystem.as_ref(), hypr_template_assets::minijinja::TITLE_SYSTEM).unwrap();
+        env.add_template(Template::TitleUser.as_ref(), hypr_template_assets::minijinja::TITLE_USER).unwrap();
+        env.add_template(Template::AutoGenerateTagsSystem.as_ref(), hypr_template_assets::minijinja::AUTO_GENERATE_TAGS_SYSTEM).unwrap();
+        env.add_template(Template::AutoGenerateTagsUser.as_ref(), hypr_template_assets::minijinja::AUTO_GENERATE_TAGS_USER).unwrap();
+        env.add_template(Template::ChatSystem.as_ref(), hypr_template_assets::minijinja::CHAT_SYSTEM).unwrap();
+        env.add_template(Template::ChatUser.as_ref(), hypr_template_assets::minijinja::CHAT_USER).unwrap();
+        env.add_template(Template::PostprocessTranscriptSystem.as_ref(), hypr_template_assets::minijinja::POSTPROCESS_TRANSCRIPT_SYSTEM).unwrap();
+        env.add_template(Template::PostprocessTranscriptUser.as_ref(), hypr_template_assets::minijinja::POSTPROCESS_TRANSCRIPT_USER).unwrap();
+        env.add_template(Template::HighlightSystem.as_ref(), hypr_template_assets::minijinja::HIGHLIGHT_SYSTEM).unwrap();
+        env.add_template(Template::HighlightUser.as_ref(), hypr_template_assets::minijinja::HIGHLIGHT_USER).unwrap();
+        env.add_template("_language.partial", hypr_template_assets::minijinja::LANGUAGE_PARTIAL).unwrap();
     }
 
     {

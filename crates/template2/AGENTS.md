@@ -1,0 +1,2 @@
+- Edit templates only in `crates/template-assets/askama`.
+- When input variables change, update structs in `crates/template2/src` and run `cargo test -p template2` and `cargo test -p tauri-plugin-template`.

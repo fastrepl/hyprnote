@@ -1,0 +1,20 @@
+{%- import "_macros.jinja" as macros -%}
+{%- if session.is_some() || !participants.is_empty() -%}
+Context:
+{{ macros::session_context(session) }}
+{{ macros::participants(participants) }}
+{% endif -%}
+{%- if template.is_some() -%}
+Workflow:
+
+1. Use the provided template with predefined sections.
+2. Generate a well-formatted markdown summary following the template sections.
+3. Each template section includes a title and description - use these to guide your summary.
+   {{ macros::template_context(template) }}
+   {% else -%}
+   Workflow:
+
+4. Analyze the content and decide the sections to use.
+5. Generate a well-formatted markdown summary, following the format requirements.
+   {% endif %}
+   {{ macros::transcript(transcript) }}

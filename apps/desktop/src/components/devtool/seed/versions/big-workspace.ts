@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import type { Tables } from "tinybase/with-schemas";
 
 import type { Schemas } from "../../../../store/tinybase/main";
-import type { Store as PersistedStore } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/main";
 import type { SeedDefinition } from "../shared";
 import {
   buildCalendars,
@@ -24,9 +24,9 @@ import {
   buildSessionsForBigWorkspace,
 } from "./big-workspace-builders";
 
-faker.seed(456);
+const buildBigWorkspaceData = (): Tables<Schemas[0]> => {
+  faker.seed(456);
 
-const BIG_WORKSPACE_DATA = (() => {
   const organizations = buildOrganizations(8);
   const orgIds = Object.keys(organizations);
 
@@ -113,16 +113,17 @@ const BIG_WORKSPACE_DATA = (() => {
     chat_messages,
     enhanced_notes,
     chat_shortcuts,
-  } satisfies Tables<Schemas[0]>;
-})();
+  };
+};
 
 export const bigWorkspaceSeed: SeedDefinition = {
   id: "big-workspace",
   label: "Big Workspace",
-  run: (store: PersistedStore) => {
+  run: (store: MainStore) => {
+    const data = buildBigWorkspaceData();
     store.transaction(() => {
       store.delTables();
-      store.setTables(BIG_WORKSPACE_DATA);
+      store.setTables(data);
     });
   },
 };

@@ -1,4 +1,4 @@
-import type { Store as PersistedStore } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/main";
 
 export * from "./builders";
 export { createCalendar } from "./calendar";
@@ -22,5 +22,5 @@ export { generateTranscript } from "./transcript";
 export type SeedDefinition = {
   id: string;
   label: string;
-  run: (store: PersistedStore) => void;
+  run: (store: MainStore) => void;
 };

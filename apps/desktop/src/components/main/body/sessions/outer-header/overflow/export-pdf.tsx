@@ -4,6 +4,7 @@ import { openPath } from "@tauri-apps/plugin-opener";
 import { FileTextIcon, Loader2Icon } from "lucide-react";
 import { useMemo } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as pdfCommands, type TranscriptItem } from "@hypr/plugin-pdf";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 
@@ -102,6 +103,12 @@ export function ExportPDF({ sessionId }: { sessionId: string }) {
     },
     onSuccess: (path) => {
       if (path) {
+        void analyticsCommands.event({
+          event: "session_exported",
+          format: "pdf",
+          has_transcript: transcriptItems.length > 0,
+          has_enhanced: !!enhancedMd,
+        });
         void openPath(path);
       }
     },

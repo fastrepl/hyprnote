@@ -43,7 +43,9 @@ jobs:
         run: |
           [[ "$COMMENT" =~ (^|[[:space:]])/staging($|[[:space:]]) ]] || { echo "valid=false" >> $GITHUB_OUTPUT; exit 0; }
           echo "valid=true" >> $GITHUB_OUTPUT
-          [[ "$COMMENT" =~ /staging[[:space:]]+([a-zA-Z0-9_.][a-zA-Z0-9_./-]*)($|[[:space:]]) ]] && echo "ref=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT || true
+          if [[ "$COMMENT" =~ /staging[[:space:]]+([a-zA-Z0-9_.][a-zA-Z0-9_./-]*)($|[[:space:]]) ]]; then
+            echo "ref=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          fi
       - if: steps.parse.outputs.valid == 'true'
         id: resolve_ref
         env:
@@ -108,7 +110,6 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - run: |
-          REF="${{ needs.parse_command.outputs.ref }}"
           BRANCH="${{ needs.parse_command.outputs.branch }}"
           SHA="${{ needs.parse_command.outputs.sha }}"
           RUN_ID="${{ needs.trigger_build.outputs.run_id }}"
@@ -120,7 +121,8 @@ jobs:
           - [View run](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)"
           else
             BODY="❌ Failed to trigger staging build
-          - Ref: \`$REF\`
+          - Branch: \`$BRANCH\`
+          - SHA: \`${SHA:0:8}\`
           - [View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           fi
           BODY=$(echo "$BODY" | sed 's/^[[:space:]]*//')

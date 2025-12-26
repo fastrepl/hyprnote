@@ -98,8 +98,11 @@ jobs:
       - id: trigger
         run: |
           gh workflow run desktop_cd.yaml --repo $REPO --ref "$BRANCH" -f channel=staging
-          sleep 5
-          RUN_ID=$(gh run list --workflow=desktop_cd.yaml --branch="$BRANCH" --status=in_progress --status=queued --json databaseId --jq '.[0].databaseId // empty')
+          for i in {1..6}; do
+            sleep 5
+            RUN_ID=$(gh run list --workflow=desktop_cd.yaml --branch="$BRANCH" --json databaseId,createdAt --jq 'sort_by(.createdAt) | reverse | .[0].databaseId // empty')
+            [ -n "$RUN_ID" ] && break
+          done
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
 
   comment_result:

@@ -76,32 +76,31 @@ jobs:
             echo "needs_cleanup=false" >> $GITHUB_OUTPUT
           elif [ -n "$EXPLICIT_REF" ]; then
             SHA=$(gh api repos/${{ github.repository }}/commits/$EXPLICIT_REF --jq '.sha')
-            BRANCH_CHECK=$(gh api repos/${{ github.repository }}/branches/$EXPLICIT_REF --jq '.name' 2>/dev/null || echo "")
-            if [ -n "$BRANCH_CHECK" ]; then
+            if gh api repos/${{ github.repository }}/git/refs/heads/$EXPLICIT_REF --jq '.ref' >/dev/null 2>&1; then
               echo "ref=$EXPLICIT_REF" >> $GITHUB_OUTPUT
               echo "sha=$SHA" >> $GITHUB_OUTPUT
               echo "branch=$EXPLICIT_REF" >> $GITHUB_OUTPUT
               echo "needs_cleanup=false" >> $GITHUB_OUTPUT
-          else
-            TEMP_BRANCH="staging-temp-${SHA:0:8}"
-            gh api repos/${{ github.repository }}/git/refs \
-              -f ref="refs/heads/$TEMP_BRANCH" \
-              -f sha="$SHA" || {
-              echo "Failed to create temporary branch $TEMP_BRANCH"
-              exit 1
-            }
-            for i in {1..10}; do
-              if gh api repos/${{ github.repository }}/git/refs/heads/$TEMP_BRANCH --jq '.ref' 2>/dev/null; then
-                break
-              fi
-              echo "Waiting for branch to propagate... ($i/10)"
-              sleep 2
-            done
-            echo "ref=$EXPLICIT_REF" >> $GITHUB_OUTPUT
-            echo "sha=$SHA" >> $GITHUB_OUTPUT
-            echo "branch=$TEMP_BRANCH" >> $GITHUB_OUTPUT
-            echo "needs_cleanup=true" >> $GITHUB_OUTPUT
-          fi
+            else
+              TEMP_BRANCH="staging-temp-${SHA:0:8}"
+              gh api repos/${{ github.repository }}/git/refs \
+                -f ref="refs/heads/$TEMP_BRANCH" \
+                -f sha="$SHA" || {
+                echo "Failed to create temporary branch $TEMP_BRANCH"
+                exit 1
+              }
+              for i in {1..10}; do
+                if gh api repos/${{ github.repository }}/git/refs/heads/$TEMP_BRANCH --jq '.ref' >/dev/null 2>&1; then
+                  break
+                fi
+                echo "Waiting for branch to propagate... ($i/10)"
+                sleep 2
+              done
+              echo "ref=$EXPLICIT_REF" >> $GITHUB_OUTPUT
+              echo "sha=$SHA" >> $GITHUB_OUTPUT
+              echo "branch=$TEMP_BRANCH" >> $GITHUB_OUTPUT
+              echo "needs_cleanup=true" >> $GITHUB_OUTPUT
+            fi
           else
             echo "No ref provided and not in a PR context"
             exit 1

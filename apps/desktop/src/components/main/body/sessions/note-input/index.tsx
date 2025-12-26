@@ -23,19 +23,27 @@ import { Header, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
 
-const BOTTOM_THRESHOLD = 112;
+const BOTTOM_THRESHOLD = 200;
 
-export function NoteInput({
-  tab,
-}: {
-  tab: Extract<Tab, { type: "sessions" }>;
-}) {
+export const NoteInput = forwardRef<
+  { editor: TiptapEditor | null },
+  {
+    tab: Extract<Tab, { type: "sessions" }>;
+    onNavigateToTitle?: () => void;
+  }
+>(({ tab, onNavigateToTitle }, ref) => {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
-  const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const internalEditorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const caretPosition = useCaretPosition();
+
+  useEffect(() => {
+    if (ref && typeof ref === "object") {
+      ref.current = internalEditorRef.current;
+    }
+  });
 
   const sessionId = tab.id;
   useAutoEnhance(tab);
@@ -70,13 +78,13 @@ export function NoteInput({
   });
 
   useEffect(() => {
-    if (currentTab.type === "transcript" && editorRef.current) {
-      editorRef.current = { editor: null };
+    if (currentTab.type === "transcript" && internalEditorRef.current) {
+      internalEditorRef.current = { editor: null };
     }
   }, [currentTab]);
 
   useEffect(() => {
-    const editor = editorRef.current?.editor;
+    const editor = internalEditorRef.current?.editor;
     const container = containerRef.current;
     if (
       !editor ||
@@ -117,11 +125,11 @@ export function NoteInput({
       editor.off("blur", handleBlur);
       container.removeEventListener("scroll", checkCaretPosition);
     };
-  }, [editorRef.current?.editor, caretPosition, currentTab.type]);
+  }, [internalEditorRef.current?.editor, caretPosition, currentTab.type]);
 
   const handleContainerClick = () => {
     if (currentTab.type !== "transcript") {
-      editorRef.current?.editor?.commands.focus();
+      internalEditorRef.current?.editor?.commands.focus();
     }
   };
 

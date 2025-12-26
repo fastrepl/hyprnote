@@ -9,7 +9,7 @@ export const TitleInput = forwardRef<
   HTMLInputElement,
   {
     tab: Extract<Tab, { type: "sessions" }>;
-    onNavigateToEditor?: () => void;
+    onNavigateToEditor?: (textToInsert?: string) => void;
   }
 >(({ tab, onNavigateToEditor }, ref) => {
   const {
@@ -29,7 +29,18 @@ export const TitleInput = forwardRef<
   const editorId = editor ? "active" : "inactive";
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" || e.key === "ArrowDown" || e.key === "Tab") {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const input = e.currentTarget;
+      const cursorPos = input.selectionStart ?? input.value.length;
+      const textAfterCursor = input.value.slice(cursorPos);
+      const textBeforeCursor = input.value.slice(0, cursorPos);
+
+      if (textAfterCursor) {
+        handleEditTitle(textBeforeCursor);
+      }
+      onNavigateToEditor?.(textAfterCursor || undefined);
+    } else if (e.key === "ArrowDown" || e.key === "Tab") {
       if (!e.shiftKey) {
         e.preventDefault();
         onNavigateToEditor?.();

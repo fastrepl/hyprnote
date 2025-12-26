@@ -99,8 +99,14 @@ function TabContentNoteInner({
   const titleInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
 
-  const focusEditor = useCallback(() => {
-    editorRef.current?.editor?.commands.focus("start");
+  const focusEditor = useCallback((textToInsert?: string) => {
+    const editor = editorRef.current?.editor;
+    if (!editor) return;
+
+    editor.commands.focus("start");
+    if (textToInsert) {
+      editor.commands.insertContent(textToInsert);
+    }
   }, []);
 
   const focusTitle = useCallback(() => {

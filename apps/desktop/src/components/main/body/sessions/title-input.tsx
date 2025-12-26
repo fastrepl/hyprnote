@@ -45,6 +45,8 @@ export const TitleInput = forwardRef<
         e.preventDefault();
         onNavigateToEditor?.();
       }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
     }
   };
 

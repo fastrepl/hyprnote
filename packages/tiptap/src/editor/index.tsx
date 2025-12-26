@@ -106,16 +106,28 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             const isInListItem =
               isNodeActive(state, "listItem") ||
               isNodeActive(state, "taskItem");
-            if (isInListItem) {
-              return false;
-            }
-            if (event.shiftKey && onNavigateToTitleRef.current) {
-              const isAtStart = state.selection.$head.pos === 1;
-              if (isAtStart && state.selection.empty) {
+
+            if (event.shiftKey) {
+              const firstChild = state.doc.firstChild;
+              const $head = state.selection.$head;
+              const isInFirstBlock =
+                firstChild &&
+                $head.pos >= 0 &&
+                $head.pos <= firstChild.nodeSize;
+
+              if (isInListItem && isInFirstBlock) {
+                return false;
+              }
+
+              if (onNavigateToTitleRef.current && isInFirstBlock) {
                 event.preventDefault();
                 onNavigateToTitleRef.current();
                 return true;
               }
+            }
+
+            if (isInListItem) {
+              return false;
             }
             event.preventDefault();
             return true;
@@ -124,11 +136,11 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           if (event.key === "ArrowUp" && onNavigateToTitleRef.current) {
             const { state } = view;
             const $head = state.selection.$head;
-            const isFirstLine =
-              state.doc.resolve($head.pos).node().firstChild === $head.parent;
-            const isAtDocStart = $head.pos <= 1;
+            const firstChild = state.doc.firstChild;
+            const isInFirstBlock =
+              firstChild && $head.pos >= 0 && $head.pos <= firstChild.nodeSize;
 
-            if ((isFirstLine || isAtDocStart) && state.selection.empty) {
+            if (isInFirstBlock && state.selection.empty) {
               event.preventDefault();
               onNavigateToTitleRef.current();
               return true;

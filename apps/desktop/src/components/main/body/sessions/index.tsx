@@ -110,7 +110,11 @@ function TabContentNoteInner({
   }, []);
 
   const focusTitle = useCallback(() => {
-    titleInputRef.current?.focus();
+    const input = titleInputRef.current;
+    if (input) {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
   }, []);
 
   return (

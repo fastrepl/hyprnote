@@ -1,13 +1,17 @@
+import { forwardRef, type KeyboardEvent } from "react";
+
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
 import { type Tab } from "../../../../store/zustand/tabs";
 
-export function TitleInput({
-  tab,
-}: {
-  tab: Extract<Tab, { type: "sessions" }>;
-}) {
+export const TitleInput = forwardRef<
+  HTMLInputElement,
+  {
+    tab: Extract<Tab, { type: "sessions" }>;
+    onNavigateToEditor?: () => void;
+  }
+>(({ tab, onNavigateToEditor }, ref) => {
   const {
     id: sessionId,
     state: { editor },
@@ -24,18 +28,29 @@ export function TitleInput({
 
   const editorId = editor ? "active" : "inactive";
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === "ArrowDown" || e.key === "Tab") {
+      if (!e.shiftKey) {
+        e.preventDefault();
+        onNavigateToEditor?.();
+      }
+    }
+  };
+
   return (
     <input
+      ref={ref}
       id={`title-input-${sessionId}-${editorId}`}
       placeholder="Untitled"
       type="text"
       onChange={(e) => handleEditTitle(e.target.value)}
+      onKeyDown={handleKeyDown}
       value={title ?? ""}
-      className={cn(
+      className={cn([
         "w-full transition-opacity duration-200",
         "border-none bg-transparent focus:outline-none",
         "text-xl font-semibold placeholder:text-muted-foreground",
-      )}
+      ])}
     />
   );
-}
+});

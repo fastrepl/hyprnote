@@ -1,4 +1,5 @@
 import {
+  forwardRef,
   type RefObject,
   useCallback,
   useEffect,
@@ -107,13 +108,18 @@ export function NoteInput({
         >
           {currentTab.type === "enhanced" && (
             <Enhanced
-              ref={editorRef}
+              ref={internalEditorRef}
               sessionId={sessionId}
               enhancedNoteId={currentTab.id}
+              onNavigateToTitle={onNavigateToTitle}
             />
           )}
           {currentTab.type === "raw" && (
-            <RawEditor ref={editorRef} sessionId={sessionId} />
+            <RawEditor
+              ref={internalEditorRef}
+              sessionId={sessionId}
+              onNavigateToTitle={onNavigateToTitle}
+            />
           )}
           {currentTab.type === "transcript" && (
             <Transcript
@@ -128,7 +134,7 @@ export function NoteInput({
       </div>
     </div>
   );
-}
+});
 
 function useTabShortcuts({
   editorTabs,

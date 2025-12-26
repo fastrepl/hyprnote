@@ -76,6 +76,9 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       [mentionConfig, placeholderComponent, fileHandlerConfig],
     );
 
+    const onNavigateToTitleRef = useRef(onNavigateToTitle);
+    onNavigateToTitleRef.current = onNavigateToTitle;
+
     const editorProps: Parameters<typeof useEditor>[0]["editorProps"] = useMemo(
       () => ({
         scrollThreshold: 32,
@@ -106,8 +109,30 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             if (isInListItem) {
               return false;
             }
+            if (event.shiftKey && onNavigateToTitleRef.current) {
+              const isAtStart = state.selection.$head.pos === 1;
+              if (isAtStart && state.selection.empty) {
+                event.preventDefault();
+                onNavigateToTitleRef.current();
+                return true;
+              }
+            }
             event.preventDefault();
             return true;
+          }
+
+          if (event.key === "ArrowUp" && onNavigateToTitleRef.current) {
+            const { state } = view;
+            const $head = state.selection.$head;
+            const isFirstLine =
+              state.doc.resolve($head.pos).node().firstChild === $head.parent;
+            const isAtDocStart = $head.pos <= 1;
+
+            if ((isFirstLine || isAtDocStart) && state.selection.empty) {
+              event.preventDefault();
+              onNavigateToTitleRef.current();
+              return true;
+            }
           }
 
           return false;

@@ -1,3 +1,10 @@
+import type {
+  EnhanceTemplate,
+  Participant,
+  Session,
+  TemplateSection,
+} from "@hypr/plugin-template";
+
 import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
 import {
   buildSegments,
@@ -50,22 +57,27 @@ async function transformArgs(
   args: TaskArgsMap["enhance"],
   store: MainStore,
 ): Promise<TaskArgsMapTransformed["enhance"]> {
-  const { sessionId, enhancedNoteId, templateId } = args;
+  const { sessionId, templateId } = args;
 
   const sessionContext = getSessionContext(sessionId, store);
-  const template = templateId ? getTemplateData(templateId, store) : undefined;
+  const template = templateId ? getTemplateData(templateId, store) : null;
   const language = getLanguage(store);
 
   return {
-    sessionId,
-    enhancedNoteId,
-    rawMd: sessionContext.rawMd,
     language,
-    sessionData: sessionContext.sessionData,
+    hasTemplate: !!template,
+    session: sessionContext.session,
     participants: sessionContext.participants,
-    segments: sessionContext.segments,
     template,
+    transcript: formatTranscript(sessionContext.rawMd, sessionContext.segments),
   };
+}
+
+function formatTranscript(rawMd: string, segments: SegmentPayload[]): string {
+  if (segments.length > 0) {
+    return segments.map((s) => `${s.speaker_label}: ${s.text}`).join("\n");
+  }
+  return rawMd;
 }
 
 function getLanguage(store: MainStore): string {
@@ -76,13 +88,13 @@ function getLanguage(store: MainStore): string {
 function getSessionContext(sessionId: string, store: MainStore) {
   return {
     rawMd: getStringCell(store, "sessions", sessionId, "raw_md"),
-    sessionData: getSessionData(sessionId, store),
+    session: getSessionData(sessionId, store),
     participants: getParticipants(sessionId, store),
     segments: getTranscriptSegments(sessionId, store),
   };
 }
 
-function getSessionData(sessionId: string, store: MainStore) {
+function getSessionData(sessionId: string, store: MainStore): Session {
   const rawTitle = getStringCell(store, "sessions", sessionId, "title");
   const eventId = getOptionalStringCell(
     store,
@@ -93,23 +105,29 @@ function getSessionData(sessionId: string, store: MainStore) {
 
   if (eventId) {
     return {
-      title: getStringCell(store, "events", eventId, "title") || rawTitle,
-      started_at: getStringCell(store, "events", eventId, "started_at"),
-      ended_at: getStringCell(store, "events", eventId, "ended_at"),
-      location: getStringCell(store, "events", eventId, "location"),
-      description: getStringCell(store, "events", eventId, "description"),
-      is_event: true,
+      title:
+        getStringCell(store, "events", eventId, "title") || rawTitle || null,
+      startedAt:
+        getOptionalStringCell(store, "events", eventId, "started_at") ?? null,
+      endedAt:
+        getOptionalStringCell(store, "events", eventId, "ended_at") ?? null,
+      location:
+        getOptionalStringCell(store, "events", eventId, "location") ?? null,
+      isEvent: true,
     };
   }
 
   return {
-    title: rawTitle,
-    is_event: false,
+    title: rawTitle || null,
+    startedAt: null,
+    endedAt: null,
+    location: null,
+    isEvent: false,
   };
 }
 
-function getParticipants(sessionId: string, store: MainStore) {
-  const participants: Array<{ name: string; job_title: string }> = [];
+function getParticipants(sessionId: string, store: MainStore): Participant[] {
+  const participants: Participant[] = [];
 
   store.forEachRow("mapping_session_participant", (mappingId, _forEachCell) => {
     const mappingSessionId = getOptionalStringCell(
@@ -139,26 +157,30 @@ function getParticipants(sessionId: string, store: MainStore) {
 
     participants.push({
       name,
-      job_title: getStringCell(store, "humans", humanId, "job_title"),
+      jobTitle:
+        getOptionalStringCell(store, "humans", humanId, "job_title") ?? null,
     });
   });
 
   return participants;
 }
 
-function getTemplateData(templateId: string, store: MainStore) {
+function getTemplateData(
+  templateId: string,
+  store: MainStore,
+): EnhanceTemplate {
   return {
-    user_id: getStringCell(store, "templates", templateId, "user_id"),
-    created_at: getStringCell(store, "templates", templateId, "created_at"),
     title: getStringCell(store, "templates", templateId, "title"),
-    description: getStringCell(store, "templates", templateId, "description"),
+    description:
+      getOptionalStringCell(store, "templates", templateId, "description") ??
+      null,
     sections: parseTemplateSections(
       store.getCell("templates", templateId, "sections"),
     ),
   };
 }
 
-function parseTemplateSections(raw: unknown) {
+function parseTemplateSections(raw: unknown): TemplateSection[] {
   let value: unknown = raw;
 
   if (typeof raw === "string") {
@@ -174,9 +196,9 @@ function parseTemplateSections(raw: unknown) {
   }
 
   return value
-    .map((section) => {
+    .map((section): TemplateSection | null => {
       if (typeof section === "string") {
-        return { title: section, description: "" };
+        return { title: section, description: null };
       }
 
       if (section && typeof section === "object") {
@@ -188,16 +210,13 @@ function parseTemplateSections(raw: unknown) {
         }
 
         const description =
-          typeof record.description === "string" ? record.description : "";
+          typeof record.description === "string" ? record.description : null;
         return { title, description };
       }
 
       return null;
     })
-    .filter(
-      (section): section is { title: string; description: string } =>
-        section !== null,
-    );
+    .filter((section): section is TemplateSection => section !== null);
 }
 
 function getTranscriptSegments(sessionId: string, store: MainStore) {

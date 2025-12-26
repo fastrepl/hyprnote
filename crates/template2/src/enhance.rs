@@ -1,21 +1,5 @@
 use crate::common_derives;
 
-#[derive(askama::Template, specta::Type)]
-#[template(path = "enhance.system.jinja")]
-pub struct EnhanceSystem<'a> {
-    pub language: &'a str,
-    pub has_template: bool,
-}
-
-#[derive(askama::Template, specta::Type)]
-#[template(path = "enhance.user.jinja")]
-pub struct EnhanceUser<'a> {
-    pub session: Option<&'a Session>,
-    pub participants: &'a [Participant],
-    pub template: Option<&'a EnhanceTemplate>,
-    pub transcript: &'a str,
-}
-
 common_derives! {
     pub struct Session {
         pub is_event: bool,
@@ -27,7 +11,6 @@ common_derives! {
 }
 
 common_derives! {
-    #[derive(Debug)]
     pub struct Participant {
         pub name: String,
         pub job_title: Option<String>,
@@ -35,7 +18,6 @@ common_derives! {
 }
 
 common_derives! {
-    #[derive(Debug)]
     pub struct TemplateSection {
         pub title: String,
         pub description: Option<String>,
@@ -43,11 +25,30 @@ common_derives! {
 }
 
 common_derives! {
-    #[derive(Debug)]
     pub struct EnhanceTemplate {
         pub title: String,
         pub description: Option<String>,
         pub sections: Vec<TemplateSection>,
+    }
+}
+
+common_derives! {
+    #[derive(askama::Template)]
+    #[template(path = "enhance.system.jinja")]
+    pub struct EnhanceSystem {
+        pub language: Option<String>,
+        pub has_template: bool,
+    }
+}
+
+common_derives! {
+    #[derive(askama::Template)]
+    #[template(path = "enhance.user.jinja")]
+    pub struct EnhanceUser {
+        pub session: Option<Session>,
+        pub participants: Vec<Participant>,
+        pub template: Option<EnhanceTemplate>,
+        pub transcript: String,
     }
 }
 
@@ -59,7 +60,7 @@ mod tests {
     #[test]
     fn test_enhance_system_with_template() {
         let template = EnhanceSystem {
-            language: "en",
+            language: None,
             has_template: true,
         };
         let result = template.render().unwrap();
@@ -69,7 +70,7 @@ mod tests {
     #[test]
     fn test_enhance_system_without_template() {
         let template = EnhanceSystem {
-            language: "en",
+            language: None,
             has_template: false,
         };
         let result = template.render().unwrap();
@@ -96,10 +97,10 @@ mod tests {
             },
         ];
         let template = EnhanceUser {
-            session: Some(&session),
-            participants: &participants,
+            session: Some(session),
+            participants,
             template: None,
-            transcript: "Alice: Hello everyone.\nBob: Hi!",
+            transcript: "Alice: Hello everyone.\nBob: Hi!".to_string(),
         };
         let result = template.render().unwrap();
         assert!(result.contains("Weekly Standup"));

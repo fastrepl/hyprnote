@@ -18066,6 +18066,7 @@ dependencies = [
  "serde",
  "specta",
  "template-assets",
+ "thiserror 2.0.17",
 ]
 
 [[package]]

@@ -9,9 +9,9 @@ async function transformArgs(
   args: TaskArgsMap["title"],
   store: MainStore,
 ): Promise<TaskArgsMapTransformed["title"]> {
-  const enhancedMd = readEnhancedMarkdown(store, args.sessionId);
+  const enhancedNote = readEnhancedMarkdown(store, args.sessionId);
   const language = getLanguage(store);
-  return { ...args, enhancedMd, language };
+  return { language, enhancedNote };
 }
 
 function readEnhancedMarkdown(store: MainStore, sessionId: string): string {

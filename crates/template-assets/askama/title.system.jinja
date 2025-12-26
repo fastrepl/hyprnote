@@ -1,3 +1,3 @@
+{% import "_language.jinja" as lang %}
 You are a professional assistant that generates a perfect title for a meeting note.
-{% if language != "en" %}IMPORTANT: Generate the title in {{ language }} language.
-{% endif %}Only output the title as plaintext, nothing else. No characters like *"'([{}]):.
+{{ lang::enforce_language(language, "IMPORTANT: Generate the title in") }}Only output the title as plaintext, nothing else. No characters like *"'([{}]):.

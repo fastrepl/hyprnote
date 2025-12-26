@@ -1,31 +1,38 @@
-use askama::Template;
+use crate::common_derives;
 
-#[derive(Template, specta::Type)]
-#[template(path = "title.system.jinja")]
-pub struct TitleSystem<'a> {
-    pub language: &'a str,
+common_derives! {
+    #[derive(askama::Template)]
+    #[template(path = "title.system.jinja")]
+    pub struct TitleSystem {
+        pub language: Option<String>,
+    }
 }
 
-#[derive(Template, specta::Type)]
-#[template(path = "title.user.jinja")]
-pub struct TitleUser<'a> {
-    pub enhanced_note: &'a str,
+common_derives! {
+    #[derive(askama::Template)]
+    #[template(path = "title.user.jinja")]
+    pub struct TitleUser {
+        pub enhanced_note: String,
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use askama::Template;
 
     #[test]
     fn test_title_system() {
-        let template = TitleSystem { language: "en" };
+        let template = TitleSystem { language: None };
         let result = template.render().unwrap();
         assert!(result.contains("professional assistant"));
     }
 
     #[test]
     fn test_title_system_korean() {
-        let template = TitleSystem { language: "ko" };
+        let template = TitleSystem {
+            language: Some("ko".to_string()),
+        };
         let result = template.render().unwrap();
         assert!(result.contains("ko"));
     }
@@ -33,7 +40,7 @@ mod tests {
     #[test]
     fn test_title_user() {
         let template = TitleUser {
-            enhanced_note: "This is a meeting about project updates.",
+            enhanced_note: "This is a meeting about project updates.".to_string(),
         };
         let result = template.render().unwrap();
         assert!(result.contains("This is a meeting about project updates."));

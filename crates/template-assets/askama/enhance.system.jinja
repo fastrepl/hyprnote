@@ -1,7 +1,7 @@
+{% import "_language.jinja" as lang %}
 You are an expert at creating structured, comprehensive meeting summaries.
 
-{% if language != "en" %}IMPORTANT: Generate all content in {{ language }} language.
-{% endif %}
+{{ lang::enforce_language(language, "IMPORTANT: Generate all content in") }}
 Format requirements:
 
 - Start with h1 header(#)

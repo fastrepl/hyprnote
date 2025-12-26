@@ -224,36 +224,42 @@ function useTransport(attachedSessionId?: string) {
     return result.sort((a, b) => a.start_ms - b.start_ms);
   }, [store, wordIds]);
 
-  const sessionContext = useMemo(() => {
+  const transcript = useMemo(() => {
+    if (words.length === 0) {
+      return null;
+    }
+    return words.map((w) => w.text).join(" ");
+  }, [words]);
+
+  const chatContext = useMemo(() => {
     if (!attachedSessionId) {
       return null;
     }
 
     return {
-      session: true,
-      title: title as string | undefined,
-      rawContent: rawMd as string | undefined,
-      enhancedContent: enhancedMd as string | undefined,
-      date: createdAt as string | undefined,
-      words: words.length > 0 ? words : undefined,
+      title: (title as string) || null,
+      date: (createdAt as string) || null,
+      rawContent: (rawMd as string) || null,
+      enhancedContent: (enhancedMd as string) || null,
+      transcript,
     };
-  }, [attachedSessionId, title, rawMd, enhancedMd, createdAt, words]);
+  }, [attachedSessionId, title, rawMd, enhancedMd, createdAt, transcript]);
 
   useEffect(() => {
-    const templateParams = {
-      language,
-      ...(sessionContext ?? {}),
-    };
-
     templateCommands
-      .render("chat.system", templateParams)
+      .render({
+        chatSystem: {
+          language,
+          context: chatContext,
+        },
+      })
       .then((result) => {
         if (result.status === "ok") {
           setSystemPrompt(result.data);
         }
       })
       .catch(console.error);
-  }, [language, sessionContext]);
+  }, [language, chatContext]);
 
   const transport = useMemo(() => {
     if (!model) {

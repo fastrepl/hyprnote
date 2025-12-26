@@ -6,12 +6,12 @@ import {
 } from "ai";
 import { z } from "zod";
 
-import { commands as templateCommands } from "@hypr/plugin-template";
 import {
-  type Template,
+  type EnhanceTemplate,
+  commands as templateCommands,
   type TemplateSection,
-  templateSectionSchema,
-} from "@hypr/store";
+} from "@hypr/plugin-template";
+import { templateSectionSchema } from "@hypr/store";
 
 import type { TaskArgsMapTransformed, TaskConfig } from ".";
 import type { Store } from "../../../tinybase/main";
@@ -53,9 +53,10 @@ async function* executeWorkflow(params: {
     signal,
     store,
   });
-  const argsWithTemplate = {
+  const argsWithTemplate: TaskArgsMapTransformed["enhance"] = {
     ...args,
-    template: sections ? { sections } : undefined,
+    hasTemplate: !!sections,
+    template: sections ? { title: "", description: null, sections } : null,
   };
 
   const system = await getSystemPrompt(argsWithTemplate);
@@ -72,9 +73,11 @@ async function* executeWorkflow(params: {
 }
 
 async function getSystemPrompt(args: TaskArgsMapTransformed["enhance"]) {
-  const result = await templateCommands.render("enhance.system", {
-    hasTemplate: !!args.template,
-    language: args.language,
+  const result = await templateCommands.render({
+    enhanceSystem: {
+      hasTemplate: !!args.template,
+      language: args.language,
+    },
   });
 
   if (result.status === "error") {
@@ -88,14 +91,13 @@ async function getUserPrompt(
   args: TaskArgsMapTransformed["enhance"],
   store: Store,
 ) {
-  const { rawMd, sessionData, participants, template, segments } = args;
+  const { session, participants, template, transcript } = args;
 
   const ctx = {
-    content: rawMd,
-    session: sessionData,
+    content: transcript,
+    session,
     participants,
     template,
-    segments,
   };
 
   const customPrompt = getCustomPrompt(store, "enhance");
@@ -107,7 +109,14 @@ async function getUserPrompt(
     return result.data;
   }
 
-  const result = await templateCommands.render("enhance.user", ctx);
+  const result = await templateCommands.render({
+    enhanceUser: {
+      session,
+      participants,
+      template,
+      transcript: transcript.trim(),
+    },
+  });
 
   if (result.status === "error") {
     throw new Error(result.error);
@@ -122,7 +131,7 @@ async function generateTemplateIfNeeded(params: {
   onProgress: (step: any) => void;
   signal: AbortSignal;
   store: Store;
-}): Promise<Array<TemplateSection> | undefined> {
+}): Promise<TemplateSection[] | null> {
   const { model, args, onProgress, signal, store } = params;
 
   if (!args.template) {
@@ -155,9 +164,12 @@ async function generateTemplateIfNeeded(params: {
   IMPORTANT: Start with '{', NO \`\`\`json. (I will directly parse it with JSON.parse())`,
       });
 
-      return template.object.sections as Array<TemplateSection>;
+      return template.object.sections.map((s) => ({
+        title: s.title,
+        description: s.description ?? null,
+      }));
     } catch {
-      return undefined;
+      return null;
     }
   } else {
     return args.template.sections;
@@ -224,9 +236,7 @@ IMPORTANT: Previous attempt failed. ${previousFeedback}`;
   );
 }
 
-function createValidator(
-  template?: Pick<Template, "sections">,
-): EarlyValidatorFn {
+function createValidator(template: EnhanceTemplate | null): EarlyValidatorFn {
   return (textSoFar: string) => {
     const normalized = textSoFar.trim();
 

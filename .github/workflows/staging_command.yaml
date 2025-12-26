@@ -46,7 +46,7 @@ jobs:
           [[ "$COMMENT" =~ (^|[[:space:]])/staging($|[[:space:]]) ]] || { echo "valid=false" >> $GITHUB_OUTPUT; exit 0; }
           echo "valid=true" >> $GITHUB_OUTPUT
 
-          [[ "$COMMENT" =~ /staging[[:space:]]+([a-zA-Z0-9_./-]+)($|[[:space:]]) ]] && echo "ref=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          [[ "$COMMENT" =~ /staging[[:space:]]+([a-zA-Z0-9_.][a-zA-Z0-9_./-]*)($|[[:space:]]) ]] && echo "ref=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
           [[ "$COMMENT" =~ --notify-success[[:space:]]+([a-zA-Z0-9_,]+) ]] && echo "notify_success=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
           [[ "$COMMENT" =~ --notify-error[[:space:]]+([a-zA-Z0-9_,]+) ]] && echo "notify_error=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
       - if: steps.parse.outputs.valid == 'true'

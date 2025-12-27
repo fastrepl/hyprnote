@@ -15,8 +15,8 @@ specta-typescript = { workspace = true }
 
 [dependencies]
 hypr-gbnf = { workspace = true }
-hypr-template = { workspace = true }
-hypr-template2 = { workspace = true }
+hypr-template-app = { workspace = true }
+hypr-template-app-legacy = { workspace = true }
 
 serde_json = { workspace = true }
 tracing = { workspace = true }

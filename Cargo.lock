@@ -10212,7 +10212,7 @@ dependencies = [
  "rand 0.9.2",
  "serde",
  "serde_json",
- "template",
+ "template-app-legacy",
  "thiserror 2.0.17",
  "tokio",
  "tokio-stream",
@@ -10255,7 +10255,7 @@ dependencies = [
  "llm-interface",
  "serde",
  "serde_json",
- "template",
+ "template-app-legacy",
  "thiserror 2.0.17",
  "tokio",
 ]
@@ -17816,8 +17816,8 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-specta",
- "template",
- "template2",
+ "template-app",
+ "template-app-legacy",
  "tracing",
 ]
 
@@ -18123,7 +18123,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "template"
+name = "template-app"
+version = "0.1.0"
+dependencies = [
+ "askama",
+ "askama-utils",
+ "insta",
+ "isolang",
+ "serde",
+ "specta",
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "template-app-legacy"
 version = "0.1.0"
 dependencies = [
  "codes-iso-639",
@@ -18143,13 +18156,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "template2"
+name = "template-eval"
 version = "0.1.0"
 dependencies = [
  "askama",
  "askama-utils",
  "insta",
- "isolang",
  "serde",
  "specta",
  "thiserror 2.0.17",

@@ -75,8 +75,9 @@ hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-supabase-auth = { path = "crates/supabase-auth", package = "supabase-auth" }
 hypr-tcc = { path = "crates/tcc", package = "tcc" }
-hypr-template = { path = "crates/template", package = "template" }
-hypr-template2 = { path = "crates/template2", package = "template2" }
+hypr-template-app = { path = "crates/template-app", package = "template-app" }
+hypr-template-app-legacy = { path = "crates/template-app-legacy", package = "template-app-legacy" }
+hypr-template-eval = { path = "crates/template-eval", package = "template-eval" }
 hypr-transcribe-aws = { path = "crates/transcribe-aws", package = "transcribe-aws" }
 hypr-transcribe-azure = { path = "crates/transcribe-azure", package = "transcribe-azure" }
 hypr-transcribe-deepgram = { path = "crates/transcribe-deepgram", package = "transcribe-deepgram" }

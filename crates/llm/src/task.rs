@@ -2,7 +2,7 @@ use futures_util::StreamExt;
 
 use hypr_gbnf::Grammar;
 use hypr_llm_interface::ModelManager;
-use hypr_template::{Template, render};
+use hypr_template_app_legacy::{Template, render};
 
 pub async fn generate_title(
     provider: &ModelManager,

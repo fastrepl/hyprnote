@@ -1,5 +1,5 @@
 [package]
-name = "template"
+name = "template-app-legacy"
 version = "0.1.0"
 edition = "2024"
 

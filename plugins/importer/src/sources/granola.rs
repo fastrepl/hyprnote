@@ -1,7 +1,8 @@
 use crate::error::Result;
 use crate::sources::ImportSource;
 use crate::types::{
-    ImportSourceInfo, ImportSourceKind, ImportedNote, ImportedTranscript, ImportedTranscriptSegment,
+    ImportSourceInfo, ImportSourceKind, ImportedHuman, ImportedNote, ImportedOrganization,
+    ImportedSessionParticipant, ImportedTranscript, ImportedTranscriptSegment,
 };
 use hypr_granola::api::Document;
 use hypr_granola::cache::{CacheData, CacheDocument, TranscriptSegment};
@@ -64,6 +65,18 @@ impl ImportSource for GranolaSource {
 
         Ok(cache_data_to_imported_transcripts(&cache_data))
     }
+
+    async fn import_humans(&self) -> Result<Vec<ImportedHuman>> {
+        Ok(vec![])
+    }
+
+    async fn import_organizations(&self) -> Result<Vec<ImportedOrganization>> {
+        Ok(vec![])
+    }
+
+    async fn import_session_participants(&self) -> Result<Vec<ImportedSessionParticipant>> {
+        Ok(vec![])
+    }
 }
 
 fn document_to_imported_note(doc: Document) -> ImportedNote {
@@ -72,9 +85,13 @@ fn document_to_imported_note(doc: Document) -> ImportedNote {
     ImportedNote {
         id: doc.id,
         title: doc.title,
-        content,
+        content: content.clone(),
+        raw_md: Some(content), // Assuming granola content is somewhat markdown-ish or plain text
+        enhanced_md: None,
         created_at: doc.created_at,
         updated_at: doc.updated_at,
+        folder_id: None,
+        event_id: None,
         tags: doc.tags,
     }
 }
@@ -148,9 +165,13 @@ fn cache_document_to_imported_transcript(
 
     ImportedTranscript {
         id: doc.id.clone(),
+        session_id: doc.id.clone(),
         title: doc.title.clone(),
         created_at: doc.created_at.clone(),
         updated_at: doc.updated_at.clone(),
         segments: imported_segments,
+        words: vec![], // Granola importer just doing segments for now
+        start_ms: None,
+        end_ms: None,
     }
 }

@@ -11,6 +11,9 @@ path = "src/main.rs"
 [dependencies]
 clap = { workspace = true, features = ["derive", "env"] }
 clap_complete = "4"
+comfy-table = "7"
 indicatif = "0.17"
+serde_json = { workspace = true }
 
 evals = { path = "../../crates/evals" }
+template2 = { path = "../../crates/template2" }

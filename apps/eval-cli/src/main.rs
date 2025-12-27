@@ -4,9 +4,10 @@ use std::sync::Arc;
 use clap::{Parser, Subcommand};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
-use evals::{
-    OpenRouterClient, ProgressInfo, Runner, Task, parse_config, render_json, render_results,
-};
+mod report;
+
+use evals::{OpenRouterClient, ProgressInfo, Runner, Task, parse_config};
+use report::{render_json, render_results};
 
 static DEFAULT_MODELS: &[&str] = &[
     "openai/gpt-4.1-nano",

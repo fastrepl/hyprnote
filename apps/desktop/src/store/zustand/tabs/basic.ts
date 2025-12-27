@@ -1,5 +1,7 @@
 import type { StoreApi } from "zustand";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+
 import { id } from "../../../utils";
 import type { LifecycleState } from "./lifecycle";
 import type { NavigationState, TabHistory } from "./navigation";
@@ -34,10 +36,18 @@ export const createBasicSlice = <
   openCurrent: (tab) => {
     const { tabs, history } = get();
     set(openTab(tabs, tab, history, true));
+    void analyticsCommands.event({
+      event: "tab_opened",
+      view: tab.type,
+    });
   },
   openNew: (tab) => {
     const { tabs, history } = get();
     set(openTab(tabs, tab, history, false));
+    void analyticsCommands.event({
+      event: "tab_opened",
+      view: tab.type,
+    });
   },
   select: (tab) => {
     const { tabs } = get();

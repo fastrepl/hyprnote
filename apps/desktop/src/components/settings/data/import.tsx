@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { CheckCircleIcon, Loader2Icon, XCircleIcon } from "lucide-react";
 import { useState } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import {
   commands,
   type ImportSourceInfo,
@@ -31,8 +32,13 @@ export function Import() {
       if (result.status === "error") {
         throw new Error(result.error);
       }
+      return source;
     },
-    onSuccess: () => {
+    onSuccess: (source) => {
+      void analyticsCommands.event({
+        event: "data_imported",
+        source,
+      });
       setDryRunCompleted(null);
     },
   });

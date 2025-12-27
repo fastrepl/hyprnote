@@ -3,6 +3,7 @@ import { type AnyFieldApi, useForm } from "@tanstack/react-form";
 import type { ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { AIProvider } from "@hypr/store";
 import { aiProviderSchema } from "@hypr/store";
 import {
@@ -101,7 +102,13 @@ export function NonHyprProviderCard({
   const showBaseUrl = requiredFields.includes("base_url");
 
   const form = useForm({
-    onSubmit: ({ value }) => setProvider(value),
+    onSubmit: ({ value }) => {
+      void analyticsCommands.event({
+        event: "ai_provider_configured",
+        provider: value.type,
+      });
+      setProvider(value);
+    },
     defaultValues:
       provider ??
       ({

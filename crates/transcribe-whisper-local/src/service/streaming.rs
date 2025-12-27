@@ -113,7 +113,7 @@ where
                 }
             };
 
-            let guard = connection_manager.acquire_connection();
+            let guard = connection_manager.acquire_connection().await;
 
             Ok(ws_upgrade
                 .on_upgrade(move |socket| async move {

@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 bytes = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 thiserror = { workspace = true }
 
 async-stream = { workspace = true }
@@ -14,6 +15,3 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "time", "sync", "macros"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"] }
 tracing = { workspace = true }
-
-[dev-dependencies]
-serde_json.workspace = true

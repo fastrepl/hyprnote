@@ -135,10 +135,10 @@ impl WebSocketIO for ListenClientIO {
         }
     }
 
-    fn from_message(msg: Message) -> Option<Self::Output> {
+    fn decode(msg: Message) -> Result<Self::Output, hypr_ws::client::DecodeError> {
         match msg {
-            Message::Text(text) => Some(text.to_string()),
-            _ => None,
+            Message::Text(text) => Ok(text.to_string()),
+            _ => Err(hypr_ws::client::DecodeError::UnsupportedType),
         }
     }
 }
@@ -170,10 +170,10 @@ impl WebSocketIO for ListenClientDualIO {
         }
     }
 
-    fn from_message(msg: Message) -> Option<Self::Output> {
+    fn decode(msg: Message) -> Result<Self::Output, hypr_ws::client::DecodeError> {
         match msg {
-            Message::Text(text) => Some(text.to_string()),
-            _ => None,
+            Message::Text(text) => Ok(text.to_string()),
+            _ => Err(hypr_ws::client::DecodeError::UnsupportedType),
         }
     }
 }
@@ -207,7 +207,7 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
             MixedMessage::Control(control) => TransformedInput::Control(control),
         });
 
-        let (raw_stream, inner) = ws
+        let (raw_stream, inner, _send_task) = ws
             .from_audio::<ListenClientIO, _>(self.initial_message, Box::pin(transformed_stream))
             .await?;
 
@@ -262,7 +262,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
             MixedMessage::Control(control) => TransformedDualInput::Control(control),
         });
 
-        let (raw_stream, inner) = ws
+        let (raw_stream, inner, _send_task) = ws
             .from_audio::<ListenClientDualIO, _>(self.initial_message, Box::pin(transformed_stream))
             .await?;
 
@@ -302,7 +302,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
         let spk_connect =
             spk_ws.from_audio::<ListenClientIO, _>(self.initial_message, spk_outbound);
 
-        let ((mic_raw, mic_handle), (spk_raw, spk_handle)) =
+        let ((mic_raw, mic_handle, _mic_send_task), (spk_raw, spk_handle, _spk_send_task)) =
             tokio::try_join!(mic_connect, spk_connect)?;
 
         tokio::spawn(forward_dual_to_single(

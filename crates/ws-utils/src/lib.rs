@@ -1,4 +1,10 @@
+//! Utilities for WebSocket-based audio streaming.
+//!
+//! This crate provides connection management and audio source abstractions
+//! for WebSocket-based audio clients.
+
 mod manager;
+
 pub use manager::*;
 
 use std::pin::Pin;

@@ -17,7 +17,5 @@ sha2 = "0.10"
 thiserror = { workspace = true }
 ureq = { version = "3", features = ["json"] }
 
-hypr-template-assets = { workspace = true }
-
 [dev-dependencies]
 tempfile = { workspace = true }

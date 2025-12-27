@@ -5356,7 +5356,6 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
- "template-assets",
  "thiserror 2.0.17",
  "ureq 3.1.4",
 ]

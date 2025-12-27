@@ -15,6 +15,10 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
+import {
+  isLocalSttModel,
+  useSTTConnection,
+} from "../../../../hooks/useSTTConnection";
 import * as settings from "../../../../store/tinybase/settings";
 import {
   getProviderSelectionBlockers,
@@ -35,6 +39,13 @@ export function SelectProviderAndModel() {
   ] as const);
   const billing = useBillingAccess();
   const configuredProviders = useConfiguredMapping();
+  const { local: sttLocal } = useSTTConnection();
+  const sttServerStatus = sttLocal.data?.status;
+
+  const isLocal = isLocalSttModel(current_stt_provider, current_stt_model);
+
+  const isUnreachable = isLocal && sttServerStatus === "unreachable";
+  const isNotConfigured = !current_stt_provider || !current_stt_model;
 
   const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_stt_provider",
@@ -79,10 +90,10 @@ export function SelectProviderAndModel() {
       <div
         className={cn([
           "flex flex-col gap-4",
-          "p-4 rounded-xl border border-neutral-200",
-          !!current_stt_provider && !!current_stt_model
-            ? "bg-neutral-50"
-            : "bg-red-50",
+          "p-4 rounded-xl border",
+          isNotConfigured || isUnreachable
+            ? ["bg-red-50", "border-red-200"]
+            : ["bg-neutral-50", "border-neutral-200"],
         ])}
       >
         <div className="flex flex-row items-center gap-4">
@@ -212,11 +223,20 @@ export function SelectProviderAndModel() {
           )}
         </div>
 
-        {(!current_stt_provider || !current_stt_model) && (
+        {isNotConfigured && (
           <div className="flex items-center gap-2 pt-2 border-t border-red-200">
             <span className="text-sm text-red-600">
               <strong className="font-medium">Transcription model</strong> is
               needed to make Hyprnote listen to your conversations.
+            </span>
+          </div>
+        )}
+
+        {isUnreachable && (
+          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
+            <span className="text-sm text-red-600">
+              <strong className="font-medium">Transcription model</strong>{" "}
+              failed to start. Please try again.
             </span>
           </div>
         )}

@@ -17,7 +17,10 @@ export function Banner({
         className={cn([
           "relative group overflow-hidden rounded-lg",
           "flex flex-col gap-2",
-          "bg-white border border-neutral-200 shadow-sm p-4",
+          "bg-white p-4",
+          banner.variant === "error"
+            ? "border border-red-300 shadow-sm shadow-red-100"
+            : "border border-neutral-200 shadow-sm",
         ])}
       >
         {banner.dismissible && onDismiss && (

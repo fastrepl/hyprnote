@@ -1,3 +1,5 @@
+import type { ServerStatus } from "@hypr/plugin-local-stt";
+
 import type { BannerCondition, BannerType } from "./types";
 
 type BannerRegistryEntry = {
@@ -9,6 +11,8 @@ type BannerRegistryParams = {
   isAuthenticated: boolean;
   hasLLMConfigured: boolean;
   hasSttConfigured: boolean;
+  sttServerStatus: ServerStatus | undefined;
+  isLocalSttModel: boolean;
   isAiTranscriptionTabActive: boolean;
   isAiIntelligenceTabActive: boolean;
   onSignIn: () => void | Promise<void>;
@@ -20,6 +24,8 @@ export function createBannerRegistry({
   isAuthenticated,
   hasLLMConfigured,
   hasSttConfigured,
+  sttServerStatus,
+  isLocalSttModel,
   isAiTranscriptionTabActive,
   isAiIntelligenceTabActive,
   onSignIn,
@@ -28,6 +34,53 @@ export function createBannerRegistry({
 }: BannerRegistryParams): BannerRegistryEntry[] {
   // order matters
   return [
+    {
+      banner: {
+        id: "stt-loading",
+        description: (
+          <>
+            Transcription model is
+            <strong className="font-mono animate-ping text-amber-500">
+              loading
+            </strong>
+            . This may take a moment.
+          </>
+        ),
+        primaryAction: {
+          label: "View status",
+          onClick: onOpenSTTSettings,
+        },
+        dismissible: false,
+      },
+      condition: () =>
+        isLocalSttModel &&
+        sttServerStatus === "loading" &&
+        !hasSttConfigured &&
+        !isAiTranscriptionTabActive,
+    },
+    {
+      banner: {
+        id: "stt-unreachable",
+        variant: "error",
+        description: (
+          <>
+            Transcription model{" "}
+            <strong className="font-mono text-red-500">failed to start</strong>.
+            Please try again.
+          </>
+        ),
+        primaryAction: {
+          label: "Configure transcription",
+          onClick: onOpenSTTSettings,
+        },
+        dismissible: false,
+      },
+      condition: () =>
+        isLocalSttModel &&
+        sttServerStatus === "unreachable" &&
+        !hasSttConfigured &&
+        !isAiTranscriptionTabActive,
+    },
     {
       banner: {
         id: "missing-stt",
@@ -43,7 +96,8 @@ export function createBannerRegistry({
         },
         dismissible: false,
       },
-      condition: () => !hasSttConfigured && !isAiTranscriptionTabActive,
+      condition: () =>
+        !hasSttConfigured && !isLocalSttModel && !isAiTranscriptionTabActive,
     },
     {
       banner: {

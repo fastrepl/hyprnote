@@ -4,7 +4,7 @@ mod commands;
 mod ext;
 
 pub use ext::TemplatePluginExt;
-pub use hypr_template::Template;
+pub use hypr_template_app_legacy::Template;
 
 const PLUGIN_NAME: &str = "template";
 
@@ -25,7 +25,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|_app, _api| {
-            let _ = hypr_template::get_environment();
+            let _ = hypr_template_app_legacy::get_environment();
             Ok(())
         })
         .build()

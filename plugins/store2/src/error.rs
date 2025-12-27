@@ -10,6 +10,8 @@ pub enum Error {
     TauriError(#[from] tauri::Error),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
+    #[error(transparent)]
+    Path2Error(#[from] tauri_plugin_path2::Error),
 }
 
 impl Serialize for Error {

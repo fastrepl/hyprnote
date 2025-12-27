@@ -1,5 +1,3 @@
-use tauri::{Manager, path::BaseDirectory};
-
 use crate::{BatchParams, Listener2PluginExt, Subtitle, VttWord};
 
 #[tauri::command]
@@ -17,12 +15,10 @@ pub async fn run_batch<R: tauri::Runtime>(
 #[tauri::command]
 #[specta::specta]
 pub async fn parse_subtitle<R: tauri::Runtime>(
-    _app: tauri::AppHandle<R>,
+    app: tauri::AppHandle<R>,
     path: String,
 ) -> Result<Subtitle, String> {
-    use aspasia::TimedSubtitleFile;
-    let sub = TimedSubtitleFile::new(&path).unwrap();
-    Ok(sub.into())
+    app.listener2().parse_subtitle(path)
 }
 
 #[tauri::command]
@@ -32,38 +28,5 @@ pub async fn export_to_vtt<R: tauri::Runtime>(
     session_id: String,
     words: Vec<VttWord>,
 ) -> Result<String, String> {
-    use aspasia::{Moment, Subtitle, WebVttSubtitle, webvtt::WebVttCue};
-
-    let data_dir = app
-        .path()
-        .resolve("hyprnote/sessions", BaseDirectory::Data)
-        .map_err(|e| e.to_string())?;
-    let session_dir = data_dir.join(&session_id);
-
-    std::fs::create_dir_all(&session_dir).map_err(|e| e.to_string())?;
-
-    let vtt_path = session_dir.join("transcript.vtt");
-
-    let cues: Vec<WebVttCue> = words
-        .into_iter()
-        .map(|word| {
-            let start_i64 = i64::try_from(word.start_ms)
-                .map_err(|_| format!("start_ms {} exceeds i64::MAX", word.start_ms))?;
-            let end_i64 = i64::try_from(word.end_ms)
-                .map_err(|_| format!("end_ms {} exceeds i64::MAX", word.end_ms))?;
-
-            Ok(WebVttCue {
-                identifier: None,
-                text: word.text,
-                settings: None,
-                start: Moment::from(start_i64),
-                end: Moment::from(end_i64),
-            })
-        })
-        .collect::<Result<_, String>>()?;
-
-    let vtt = WebVttSubtitle::builder().cues(cues).build();
-    vtt.export(&vtt_path).map_err(|e| e.to_string())?;
-
-    Ok(vtt_path.to_string_lossy().to_string())
+    app.listener2().export_to_vtt(session_id, words)
 }

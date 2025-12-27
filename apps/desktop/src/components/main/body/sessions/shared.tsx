@@ -26,7 +26,7 @@ export function useCurrentNoteTab(
 ): EditorView {
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
   const isListenerActive =
-    sessionMode === "running_active" || sessionMode === "finalizing";
+    sessionMode === "active" || sessionMode === "finalizing";
 
   const enhancedNoteIds = main.UI.useSliceRowIds(
     main.INDEXES.enhancedNotesBySession,
@@ -68,8 +68,7 @@ export function RecordingIcon({ disabled }: { disabled?: boolean }) {
 
 export function useListenButtonState(sessionId: string) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const active =
-    sessionMode === "running_active" || sessionMode === "finalizing";
+  const active = sessionMode === "active" || sessionMode === "finalizing";
   const batching = sessionMode === "running_batch";
 
   const taskId = createTaskId(sessionId, "enhance");

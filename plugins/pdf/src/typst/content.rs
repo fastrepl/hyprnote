@@ -57,19 +57,19 @@ pub fn build_typst_content(input: &PdfInput) -> String {
     let typst_content = markdown_to_typst(&input.enhanced_md);
     content.push_str(&typst_content);
 
-    if let Some(transcript) = &input.transcript {
-        if !transcript.items.is_empty() {
-            content.push_str("\n#pagebreak()\n\n");
-            content.push_str("= Transcript\n\n");
+    if let Some(transcript) = &input.transcript
+        && !transcript.items.is_empty()
+    {
+        content.push_str("\n#pagebreak()\n\n");
+        content.push_str("= Transcript\n\n");
 
-            for item in &transcript.items {
-                let speaker = item.speaker.as_deref().unwrap_or("Unknown");
-                let text = &item.text;
-                content.push_str(&format!(
-                    "#block(spacing: 0.8em)[#text(weight: \"semibold\")[{}:] {}]\n",
-                    speaker, text
-                ));
-            }
+        for item in &transcript.items {
+            let speaker = item.speaker.as_deref().unwrap_or("Unknown");
+            let text = &item.text;
+            content.push_str(&format!(
+                "#block(spacing: 0.8em)[#text(weight: \"semibold\")[{}:] {}]\n",
+                speaker, text
+            ));
         }
     }
 

@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use tauri_plugin_path2::Path2PluginExt;
+
 /// Configuration for hook execution.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct HooksConfig {
@@ -48,12 +50,12 @@ impl HooksConfig {
     }
 
     fn config_path<R: tauri::Runtime>(app: &impl tauri::Manager<R>) -> crate::Result<PathBuf> {
-        let data_dir = app
-            .path()
-            .data_dir()
+        let base = app
+            .path2()
+            .base()
             .map_err(|e| crate::Error::ConfigLoad(e.to_string()))?;
 
-        Ok(data_dir.join("hyprnote").join("settings.json"))
+        Ok(base.join("settings.json"))
     }
 
     fn empty() -> Self {

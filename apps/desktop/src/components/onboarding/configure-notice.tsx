@@ -1,4 +1,4 @@
-import { Route } from "../../routes/app/onboarding";
+import { Route } from "../../routes/app/onboarding/_layout.index";
 import { getBack, getNext, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 
@@ -29,7 +29,7 @@ export function ConfigureNotice({ onNavigate }: StepProps) {
 
       <div className="flex flex-col gap-3 mt-4">
         <button
-          onClick={() => onNavigate({ ...search, step: getNext(search) })}
+          onClick={() => onNavigate({ ...search, step: getNext(search)! })}
           className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
         >
           I will configure it later

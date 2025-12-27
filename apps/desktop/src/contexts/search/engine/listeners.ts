@@ -2,7 +2,7 @@ import { remove, type TypedDocument, update } from "@orama/orama";
 import { RowListener } from "tinybase/with-schemas";
 
 import { Schemas } from "../../../store/tinybase/main";
-import { type Store as PersistedStore } from "../../../store/tinybase/main";
+import { type Store as MainStore } from "../../../store/tinybase/main";
 import {
   createHumanSearchableContent,
   createSessionSearchableContent,
@@ -12,7 +12,7 @@ import { collectCells, toNumber, toTrimmedString } from "./utils";
 
 export function createSessionListener(
   index: Index,
-): RowListener<Schemas, "sessions", null, PersistedStore> {
+): RowListener<Schemas, "sessions", null, MainStore> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("sessions", rowId);
@@ -49,7 +49,7 @@ export function createSessionListener(
 
 export function createHumanListener(
   index: Index,
-): RowListener<Schemas, "humans", null, PersistedStore> {
+): RowListener<Schemas, "humans", null, MainStore> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("humans", rowId);
@@ -78,7 +78,7 @@ export function createHumanListener(
 
 export function createOrganizationListener(
   index: Index,
-): RowListener<Schemas, "organizations", null, PersistedStore> {
+): RowListener<Schemas, "organizations", null, MainStore> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("organizations", rowId);

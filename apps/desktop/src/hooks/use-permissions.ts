@@ -1,6 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { message } from "@tauri-apps/plugin-dialog";
-import { Command } from "@tauri-apps/plugin-shell";
 
 import { commands as permissionsCommands } from "@hypr/plugin-permissions";
 
@@ -9,7 +8,7 @@ import { relaunch } from "../store/tinybase/save";
 export function usePermissions() {
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
-    queryFn: () => permissionsCommands.checkMicrophonePermission(),
+    queryFn: () => permissionsCommands.checkPermission("microphone"),
     refetchInterval: 1000,
     select: (result) => {
       if (result.status === "error") {
@@ -21,7 +20,7 @@ export function usePermissions() {
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
-    queryFn: () => permissionsCommands.checkSystemAudioPermission(),
+    queryFn: () => permissionsCommands.checkPermission("systemAudio"),
     refetchInterval: 1000,
     select: (result) => {
       if (result.status === "error") {
@@ -33,7 +32,7 @@ export function usePermissions() {
 
   const accessibilityPermissionStatus = useQuery({
     queryKey: ["accessibilityPermission"],
-    queryFn: () => permissionsCommands.checkAccessibilityPermission(),
+    queryFn: () => permissionsCommands.checkPermission("accessibility"),
     refetchInterval: 1000,
     select: (result) => {
       if (result.status === "error") {
@@ -44,7 +43,7 @@ export function usePermissions() {
   });
 
   const micPermission = useMutation({
-    mutationFn: () => permissionsCommands.requestMicrophonePermission(),
+    mutationFn: () => permissionsCommands.requestPermission("microphone"),
     onSuccess: () => {
       setTimeout(() => {
         void micPermissionStatus.refetch();
@@ -56,7 +55,7 @@ export function usePermissions() {
   });
 
   const systemAudioPermission = useMutation({
-    mutationFn: () => permissionsCommands.requestSystemAudioPermission(),
+    mutationFn: () => permissionsCommands.requestPermission("systemAudio"),
     onSuccess: () => {
       void message("The app will now restart to apply the changes", {
         kind: "info",
@@ -68,7 +67,7 @@ export function usePermissions() {
   });
 
   const accessibilityPermission = useMutation({
-    mutationFn: () => permissionsCommands.requestAccessibilityPermission(),
+    mutationFn: () => permissionsCommands.requestPermission("accessibility"),
     onSuccess: () => {
       setTimeout(() => {
         void accessibilityPermissionStatus.refetch();
@@ -78,24 +77,15 @@ export function usePermissions() {
   });
 
   const openMicrophoneSettings = async () => {
-    await Command.create("exec-sh", [
-      "-c",
-      "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone'",
-    ]).execute();
+    await permissionsCommands.openPermission("microphone");
   };
 
   const openSystemAudioSettings = async () => {
-    await Command.create("exec-sh", [
-      "-c",
-      "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture'",
-    ]).execute();
+    await permissionsCommands.openPermission("systemAudio");
   };
 
   const openAccessibilitySettings = async () => {
-    await Command.create("exec-sh", [
-      "-c",
-      "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'",
-    ]).execute();
+    await permissionsCommands.openPermission("accessibility");
   };
 
   const handleMicPermissionAction = async () => {

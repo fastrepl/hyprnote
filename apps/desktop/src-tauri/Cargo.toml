@@ -34,6 +34,7 @@ tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-deeplink2 = { workspace = true }
 tauri-plugin-detect = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
+tauri-plugin-export = { workspace = true }
 tauri-plugin-extensions = { workspace = true }
 tauri-plugin-fs = { workspace = true }
 tauri-plugin-hooks = { workspace = true }
@@ -48,6 +49,7 @@ tauri-plugin-network = { workspace = true }
 tauri-plugin-notification = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-os = { workspace = true }
+tauri-plugin-path2 = { workspace = true }
 tauri-plugin-pdf = { workspace = true }
 tauri-plugin-permissions = { workspace = true }
 tauri-plugin-prevent-default = { workspace = true }
@@ -82,6 +84,7 @@ hypr-host = { workspace = true }
 ractor = { workspace = true }
 ractor-supervisor = { workspace = true }
 
+pico-args = "0.5"
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [features]

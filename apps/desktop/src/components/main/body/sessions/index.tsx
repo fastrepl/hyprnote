@@ -35,8 +35,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
     main.STORE_ID,
   );
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
-  const isActive =
-    sessionMode === "running_active" || sessionMode === "finalizing";
+  const isActive = sessionMode === "active" || sessionMode === "finalizing";
 
   return (
     <TabItemBase

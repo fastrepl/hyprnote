@@ -4,16 +4,10 @@ pub struct Template<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Template<'a, R, M> {
+impl<R: tauri::Runtime, M: tauri::Manager<R>> Template<'_, R, M> {
     #[tracing::instrument(skip_all)]
-    pub fn render(
-        &self,
-        name: hypr_template::Template,
-        ctx: serde_json::Map<String, serde_json::Value>,
-    ) -> Result<String, String> {
-        hypr_template::render(name, &ctx)
-            .map(|s| s.trim().to_string())
-            .map_err(|e| e.to_string())
+    pub fn render(&self, tpl: hypr_template_app::Template) -> Result<String, String> {
+        hypr_template_app::render(tpl).map_err(|e| e.to_string())
     }
 
     #[tracing::instrument(skip_all)]
@@ -22,7 +16,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Template<'a, R, M> {
         template_content: &str,
         ctx: serde_json::Map<String, serde_json::Value>,
     ) -> Result<String, String> {
-        hypr_template::render_custom(template_content, &ctx)
+        hypr_template_app_legacy::render_custom(template_content, &ctx)
             .map(|s| s.trim().to_string())
             .map_err(|e| e.to_string())
     }

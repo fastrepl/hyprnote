@@ -20,7 +20,7 @@
     "zod": "^4.2.1"
   },
   "devDependencies": {
-    "@types/node": "^24.10.2",
+    "@types/node": "^24.10.4",
     "drizzle-kit": "^0.31.8",
     "pg": "^8.16.3",
     "typescript": "~5.8.3"

@@ -25,9 +25,11 @@ exclude = [
   "apps/api",
   "apps/bot",
   "apps/web",
+  "plugins/db",
 ]
 
 [workspace.dependencies]
+askama-utils = { path = "crates/askama-utils", package = "askama-utils" }
 hypr-aec = { path = "crates/aec", package = "aec" }
 hypr-agc = { path = "crates/agc", package = "agc" }
 hypr-am = { path = "crates/am", package = "am" }
@@ -38,13 +40,13 @@ hypr-audio-interface = { path = "crates/audio-interface", package = "audio-inter
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
 hypr-data = { path = "crates/data", package = "data" }
-hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }
 hypr-detect = { path = "crates/detect", package = "detect" }
 hypr-device-heuristic = { path = "crates/device-heuristic", package = "device-heuristic" }
 hypr-docs = { path = "crates/docs", package = "docs" }
 hypr-download-interface = { path = "crates/download-interface", package = "download-interface" }
+hypr-eval = { path = "crates/eval", package = "eval" }
 hypr-extensions-runtime = { path = "crates/extensions-runtime", package = "extensions-runtime" }
 hypr-file = { path = "crates/file", package = "file" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
@@ -74,7 +76,9 @@ hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-supabase-auth = { path = "crates/supabase-auth", package = "supabase-auth" }
 hypr-tcc = { path = "crates/tcc", package = "tcc" }
-hypr-template = { path = "crates/template", package = "template" }
+hypr-template-app = { path = "crates/template-app", package = "template-app" }
+hypr-template-app-legacy = { path = "crates/template-app-legacy", package = "template-app-legacy" }
+hypr-template-eval = { path = "crates/template-eval", package = "template-eval" }
 hypr-transcribe-aws = { path = "crates/transcribe-aws", package = "transcribe-aws" }
 hypr-transcribe-azure = { path = "crates/transcribe-azure", package = "transcribe-azure" }
 hypr-transcribe-deepgram = { path = "crates/transcribe-deepgram", package = "transcribe-deepgram" }
@@ -111,11 +115,11 @@ tauri-plugin-fs = "2.4"
 tauri-plugin-http = "2.5"
 tauri-plugin-opener = "2.5"
 tauri-plugin-os = "2.3"
-tauri-plugin-prevent-default = "3.0"
+tauri-plugin-prevent-default = "4"
 tauri-plugin-process = "2.3"
-tauri-plugin-sentry = { version = "0.5" }
+tauri-plugin-sentry = "0.5"
 tauri-plugin-shell = "2.3"
-tauri-plugin-single-instance = "2"
+tauri-plugin-single-instance = "2.3"
 tauri-plugin-store = "2.4"
 tauri-plugin-updater = "2.9"
 tauri-plugin-window-state = "2.4"
@@ -124,10 +128,10 @@ tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
 tauri-plugin-auth = { path = "plugins/auth" }
 tauri-plugin-cli2 = { path = "plugins/cli2" }
-tauri-plugin-db = { path = "plugins/db" }
 tauri-plugin-db2 = { path = "plugins/db2" }
 tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }
 tauri-plugin-detect = { path = "plugins/detect" }
+tauri-plugin-export = { path = "plugins/export" }
 tauri-plugin-extensions = { path = "plugins/extensions" }
 tauri-plugin-hooks = { path = "plugins/hooks" }
 tauri-plugin-icon = { path = "plugins/icon" }
@@ -139,6 +143,7 @@ tauri-plugin-local-stt = { path = "plugins/local-stt" }
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-network = { path = "plugins/network" }
 tauri-plugin-notification = { path = "plugins/notification" }
+tauri-plugin-path2 = { path = "plugins/path2" }
 tauri-plugin-pdf = { path = "plugins/pdf" }
 tauri-plugin-permissions = { path = "plugins/permissions" }
 tauri-plugin-settings = { path = "plugins/settings" }
@@ -157,6 +162,7 @@ futures-core = "0.3.31"
 futures-util = "0.3.31"
 ractor = { version = "0.14.3" }
 ractor-supervisor = "0.1.9"
+rayon = "1.11"
 reqwest = "0.12"
 reqwest-middleware = "0.4"
 reqwest-streams = "0.10.0"
@@ -168,7 +174,7 @@ tokio-util = "0.7.15"
 
 anyhow = "1"
 approx = "0.5.1"
-backon = "1.5.2"
+backon = "1.6.0"
 base64 = "0.22.1"
 bytes = "1.9.0"
 cached = "0.55.1"
@@ -179,6 +185,7 @@ dirs = "6.0.0"
 dotenvy = "0.15.7"
 include_url_macro = "0.1.0"
 indoc = "2"
+isolang = "2.4"
 itertools = "0.14.0"
 lazy_static = "1.5.0"
 once_cell = "1.20.3"
@@ -201,27 +208,28 @@ url = "2"
 uuid = "1"
 
 criterion = "0.6"
-insta = "1.42"
+insta = "1.45"
 serial_test = "3"
 testcontainers-modules = "0.12.1"
 wiremock = "0.6"
 
-axum = "0.8.4"
-axum-extra = "0.10.1"
-tower = "0.5.2"
-tower-http = "0.6.2"
+axum = "0.8"
+axum-extra = "0.12"
+tower = "0.5"
+tower-http = "0.6"
 
-chrono = "0.4.39"
-chrono-tz = "0.10.1"
+chrono = "0.4"
+chrono-tz = "0.10"
 
 async-openai = { git = "https://github.com/fastrepl/async-openai", rev = "6404d307f3f706e818ad91544dc82fac5c545aee", default-features = false }
 async-stripe = { version = "0.39.1", default-features = false }
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
-sentry = "0.42"
+sentry = "=0.42.0"
 vergen-gix = "1"
 
+askama = "0.15"
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 minijinja = "2.7.0"

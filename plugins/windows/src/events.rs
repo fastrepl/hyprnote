@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use tauri::Manager;
-use tauri_specta::Event;
 
 use crate::AppWindow;
 
@@ -28,23 +27,6 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
             }
         }
 
-        tauri::WindowEvent::Destroyed => {
-            let app = window.app_handle();
-            let state = app.state::<crate::ManagedState>();
-
-            match window.label().parse::<AppWindow>() {
-                Err(e) => tracing::warn!("window_parse_error: {:?}", e),
-                Ok(w) => {
-                    {
-                        let mut guard = state.lock().unwrap();
-                        guard.windows.remove(&w);
-                    }
-
-                    let event = WindowDestroyed { window: w };
-                    let _ = event.emit(app);
-                }
-            }
-        }
         _ => {}
     }
 }

@@ -10,34 +10,38 @@ type CalendarProvider = {
   icon: ReactNode;
   badge?: string | null;
   platform?: "macos" | "all";
+  docsPath: string;
 };
 
 export type CalendarProviderId = (typeof _PROVIDERS)[number]["id"];
 
 const _PROVIDERS = [
   {
-    disabled: false,
+    disabled: true,
     id: "apple",
-    displayName: "Apple Calendar",
-    badge: null,
+    displayName: "Apple",
+    badge: "Almost Done, really",
     icon: <Icon icon="logos:apple" width={20} height={20} />,
     platform: "macos",
+    docsPath: "/docs/calendar/apple",
   },
   {
     disabled: true,
     id: "google",
-    displayName: "Google Calendar",
-    badge: "Coming Soon",
+    displayName: "Google",
+    badge: "After Apple Calendar",
     icon: <Icon icon="logos:google-calendar" width={20} height={20} />,
     platform: "all",
+    docsPath: "/docs/calendar/gcal",
   },
   {
     disabled: true,
     id: "outlook",
     displayName: "Outlook",
-    badge: "Coming Soon",
+    badge: "After Apple Calendar",
     icon: <OutlookIcon size={20} />,
     platform: "all",
+    docsPath: "/docs/calendar/outlook",
   },
 ] as const satisfies readonly CalendarProvider[];
 

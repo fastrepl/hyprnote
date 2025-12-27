@@ -3,7 +3,7 @@ import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 import { cn } from "@hypr/utils";
 
 import { usePermissions } from "../../hooks/use-permissions";
-import { Route } from "../../routes/app/onboarding";
+import { Route } from "../../routes/app/onboarding/_layout.index";
 import { getBack, getNext, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 
@@ -137,7 +137,7 @@ export function Permissions({ onNavigate }: StepProps) {
       </div>
 
       <button
-        onClick={() => onNavigate({ ...search, step: getNext(search) })}
+        onClick={() => onNavigate({ ...search, step: getNext(search)! })}
         disabled={!allPermissionsGranted}
         className={cn([
           "w-full py-3 rounded-full text-sm font-medium duration-150",

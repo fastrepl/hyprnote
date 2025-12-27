@@ -66,7 +66,7 @@ export const RawEditor = forwardRef<
   const hasNonEmptyText = useCallback(
     (node?: JSONContent): boolean =>
       !!node?.text?.trim() ||
-      !!node?.content?.some((child) => hasNonEmptyText(child)),
+      !!node?.content?.some((child: JSONContent) => hasNonEmptyText(child)),
     [],
   );
 

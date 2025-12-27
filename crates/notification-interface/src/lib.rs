@@ -6,12 +6,19 @@ pub enum NotificationEvent {
     Timeout,
 }
 
+#[derive(Debug, Clone)]
+pub struct NotificationContext {
+    pub key: String,
+    pub event_id: Option<String>,
+}
+
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct Notification {
     pub key: Option<String>,
     pub title: String,
     pub message: String,
     pub timeout: Option<std::time::Duration>,
+    pub event_id: Option<String>,
 }
 
 impl Notification {
@@ -26,6 +33,7 @@ pub struct NotificationBuilder {
     title: Option<String>,
     message: Option<String>,
     timeout: Option<std::time::Duration>,
+    event_id: Option<String>,
 }
 
 impl NotificationBuilder {
@@ -49,17 +57,18 @@ impl NotificationBuilder {
         self
     }
 
-    pub fn build(self) -> Notification {
-        let key = self.key.clone();
-        let title = self.title.unwrap();
-        let message = self.message.unwrap();
-        let timeout = self.timeout;
+    pub fn event_id(mut self, event_id: impl Into<String>) -> Self {
+        self.event_id = Some(event_id.into());
+        self
+    }
 
+    pub fn build(self) -> Notification {
         Notification {
-            key,
-            title,
-            message,
-            timeout,
+            key: self.key,
+            title: self.title.unwrap(),
+            message: self.message.unwrap(),
+            timeout: self.timeout,
+            event_id: self.event_id,
         }
     }
 }

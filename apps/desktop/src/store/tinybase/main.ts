@@ -1,10 +1,5 @@
 import { listen, TauriEvent, type UnlistenFn } from "@tauri-apps/api/event";
-import {
-  BaseDirectory,
-  exists,
-  mkdir,
-  writeTextFile,
-} from "@tauri-apps/plugin-fs";
+import { BaseDirectory, exists, mkdir } from "@tauri-apps/plugin-fs";
 import { useEffect } from "react";
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
 import * as _UI from "tinybase/ui-react/with-schemas";
@@ -25,8 +20,6 @@ import {
 } from "@hypr/plugin-listener2";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { SCHEMA, type Schemas } from "@hypr/store";
-import type { EnhancedNote, Session } from "@hypr/store";
-import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 import { format } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../utils";
@@ -56,7 +49,6 @@ const {
   useCreateMetrics,
   useProvidePersister,
   useProvideQueries,
-  useDidFinishTransactionListener,
   useProvideSynchronizer,
   useCreateCheckpoints,
   useProvideCheckpoints,
@@ -89,31 +81,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     createMergeableStore()
       .setTablesSchema(SCHEMA.table)
       .setValuesSchema(SCHEMA.value),
-  );
-
-  useDidFinishTransactionListener(
-    () => {
-      const [changedTables, _changedValues] = store.getTransactionChanges();
-
-      Object.entries(changedTables).forEach(([tableId, rows]) => {
-        if (!rows) {
-          return;
-        }
-
-        Object.entries(rows).forEach(([rowId, cells]) => {
-          const id = rowIdOfChange(tableId, rowId);
-
-          store.setRow("changes", id, {
-            row_id: rowId,
-            table: tableId,
-            deleted: !cells,
-            updated: !!cells,
-          });
-        });
-      });
-    },
-    [],
-    STORE_ID,
   );
 
   const localPersister = useCreatePersister(
@@ -202,18 +169,17 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 
       const persister = createLocalPersister2<Schemas>(
         store as Store,
-        saveEnhancedNoteToFile,
         (sessionId, content) =>
           store.setPartialRow("sessions", sessionId, {
             enhanced_md: content,
           }),
-        saveRawMemoToFile,
         saveTranscriptToFile,
         {
-          isEnabled: () => settingsStore?.getValue("auto_export") === true,
-          isNotesEnabled: () =>
+          notes: () =>
+            settingsStore?.getValue("auto_export") === true &&
             settingsStore?.getValue("auto_export_notes") !== false,
-          isTranscriptEnabled: () =>
+          transcript: () =>
+            settingsStore?.getValue("auto_export") === true &&
             settingsStore?.getValue("auto_export_transcript") !== false,
         },
       );
@@ -510,6 +476,17 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             group("started_at", "min").as("min_started_at");
             group("ended_at", "max").as("max_ended_at");
           },
+        )
+        .setQueryDefinition(
+          QUERIES.enabledAppleCalendars,
+          "calendars",
+          ({ select, where }) => {
+            select("provider");
+            where(
+              (getCell) =>
+                getCell("enabled") === true && getCell("provider") === "apple",
+            );
+          },
         ),
     [],
   )!;
@@ -696,6 +673,7 @@ export const QUERIES = {
   visibleVocabs: "visibleVocabs",
   sessionParticipantsWithDetails: "sessionParticipantsWithDetails",
   sessionRecordingTimes: "sessionRecordingTimes",
+  enabledAppleCalendars: "enabledAppleCalendars",
 };
 
 export const METRICS = {
@@ -743,80 +721,6 @@ export const RELATIONSHIPS = {
   chatMessageToGroup: "chatMessageToGroup",
   enhancedNoteToSession: "enhancedNoteToSession",
 };
-
-async function saveEnhancedNoteToFile(
-  enhancedNote: EnhancedNote & { id: string },
-  filename: string,
-): Promise<void> {
-  if (!enhancedNote.content || !enhancedNote.session_id) {
-    return;
-  }
-
-  try {
-    const parsed = JSON.parse(enhancedNote.content);
-    if (!isValidTiptapContent(parsed)) {
-      return;
-    }
-
-    const markdown = json2md(parsed);
-    const sessionDir = `hyprnote/sessions/${enhancedNote.session_id}`;
-
-    const sessionDirExists = await exists(sessionDir, {
-      baseDir: BaseDirectory.Data,
-    });
-    if (!sessionDirExists) {
-      await mkdir(sessionDir, {
-        baseDir: BaseDirectory.Data,
-        recursive: true,
-      });
-    }
-
-    await writeTextFile(`${sessionDir}/${filename}`, markdown, {
-      baseDir: BaseDirectory.Data,
-    });
-  } catch (error) {
-    console.error(
-      "Failed to save enhanced note markdown:",
-      enhancedNote.id,
-      error,
-    );
-  }
-}
-
-async function saveRawMemoToFile(
-  session: Session & { id: string },
-  filename: string,
-): Promise<void> {
-  if (!session.raw_md) {
-    return;
-  }
-
-  try {
-    const parsed = JSON.parse(session.raw_md);
-    if (!isValidTiptapContent(parsed)) {
-      return;
-    }
-
-    const markdown = json2md(parsed);
-    const sessionDir = `hyprnote/sessions/${session.id}`;
-
-    const sessionDirExists = await exists(sessionDir, {
-      baseDir: BaseDirectory.Data,
-    });
-    if (!sessionDirExists) {
-      await mkdir(sessionDir, {
-        baseDir: BaseDirectory.Data,
-        recursive: true,
-      });
-    }
-
-    await writeTextFile(`${sessionDir}/${filename}`, markdown, {
-      baseDir: BaseDirectory.Data,
-    });
-  } catch (error) {
-    console.error("Failed to save raw memo markdown:", session.id, error);
-  }
-}
 
 async function saveTranscriptToFile(
   sessionId: string,

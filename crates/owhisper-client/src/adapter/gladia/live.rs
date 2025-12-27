@@ -108,14 +108,22 @@ impl RealtimeSttAdapter for GladiaAdapter {
                 })
             };
 
-            let custom_vocabulary = (!params.keywords.is_empty()).then(|| params.keywords.clone());
-
             let default = owhisper_providers::Provider::Gladia.default_live_model();
             let model = match params.model.as_deref() {
                 Some(m) if owhisper_providers::is_meta_model(m) => Some(default),
                 Some(m) => Some(m),
                 None => None,
             };
+
+            let has_keywords = !params.keywords.is_empty();
+            let custom_vocabulary_config = has_keywords.then(|| CustomVocabularyConfig {
+                vocabulary: params
+                    .keywords
+                    .iter()
+                    .map(|k| CustomVocabularyEntry::Simple(k.clone()))
+                    .collect(),
+                default_intensity: None,
+            });
 
             let body = GladiaConfig {
                 model,
@@ -124,7 +132,6 @@ impl RealtimeSttAdapter for GladiaAdapter {
                 bit_depth: 16,
                 channels,
                 language_config,
-                custom_vocabulary,
                 custom_metadata: None,
                 messages_config: Some(MessagesConfig {
                     receive_partial_transcripts: true,
@@ -135,6 +142,8 @@ impl RealtimeSttAdapter for GladiaAdapter {
                 }),
                 realtime_processing: Some(RealtimeProcessing {
                     words_accurate_timestamps: true,
+                    custom_vocabulary: has_keywords,
+                    custom_vocabulary_config,
                 }),
             };
 
@@ -159,10 +168,20 @@ impl RealtimeSttAdapter for GladiaAdapter {
                 })
                 .ok()?;
 
-            tracing::debug!(session_id = %init.id, url = %init.url, channels = channels, "gladia_session_initialized");
-            SessionChannels::insert(init.id.clone(), channels);
+            let (id, url) = match init {
+                InitResponse::Success { id, url } => (id, url),
+                InitResponse::Error {
+                    message,
+                    validation_errors,
+                } => {
+                    tracing::error!(message = %message, ?validation_errors, "gladia_init_failed");
+                    return None;
+                }
+            };
 
-            url::Url::parse(&init.url).ok()
+            SessionChannels::insert(id, channels);
+
+            url::Url::parse(&url).ok()
         }
     }
 
@@ -242,8 +261,6 @@ struct GladiaConfig<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     language_config: Option<LanguageConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    custom_vocabulary: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     custom_metadata: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     messages_config: Option<MessagesConfig>,
@@ -273,12 +290,47 @@ struct PreProcessing {
 #[derive(Serialize)]
 struct RealtimeProcessing {
     words_accurate_timestamps: bool,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    custom_vocabulary: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    custom_vocabulary_config: Option<CustomVocabularyConfig>,
+}
+
+#[derive(Serialize)]
+struct CustomVocabularyConfig {
+    vocabulary: Vec<CustomVocabularyEntry>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_intensity: Option<f64>,
+}
+
+#[derive(Serialize)]
+#[serde(untagged)]
+enum CustomVocabularyEntry {
+    Simple(String),
+    #[allow(dead_code)]
+    Detailed {
+        value: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pronunciations: Option<Vec<String>>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        intensity: Option<f64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        language: Option<String>,
+    },
 }
 
 #[derive(Debug, Deserialize)]
-struct InitResponse {
-    id: String,
-    url: String,
+#[serde(untagged)]
+enum InitResponse {
+    Success {
+        id: String,
+        url: String,
+    },
+    Error {
+        message: String,
+        #[serde(default)]
+        validation_errors: Vec<String>,
+    },
 }
 
 #[derive(Debug, Deserialize)]

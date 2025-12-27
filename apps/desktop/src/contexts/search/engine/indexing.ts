@@ -1,6 +1,6 @@
 import { insert } from "@orama/orama";
 
-import { type Store as PersistedStore } from "../../../store/tinybase/main";
+import { type Store as MainStore } from "../../../store/tinybase/main";
 import {
   createHumanSearchableContent,
   createSessionSearchableContent,
@@ -8,7 +8,7 @@ import {
 import type { Index } from "./types";
 import { collectCells, toNumber, toTrimmedString } from "./utils";
 
-export function indexSessions(db: Index, store: PersistedStore): void {
+export function indexSessions(db: Index, store: MainStore): void {
   const fields = [
     "user_id",
     "created_at",
@@ -34,7 +34,7 @@ export function indexSessions(db: Index, store: PersistedStore): void {
   });
 }
 
-export function indexHumans(db: Index, store: PersistedStore): void {
+export function indexHumans(db: Index, store: MainStore): void {
   const fields = [
     "name",
     "email",
@@ -59,7 +59,7 @@ export function indexHumans(db: Index, store: PersistedStore): void {
   });
 }
 
-export function indexOrganizations(db: Index, store: PersistedStore): void {
+export function indexOrganizations(db: Index, store: MainStore): void {
   const fields = ["name", "created_at"];
 
   store.forEachRow("organizations", (rowId: string, _forEachCell) => {

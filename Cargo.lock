@@ -5325,15 +5325,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "eval-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "clap_complete",
+ "evals",
+ "indicatif",
+]
+
+[[package]]
 name = "evals"
 version = "0.1.0"
 dependencies = [
  "backon",
- "clap",
- "clap_complete",
  "comfy-table",
  "dirs 6.0.0",
- "indicatif",
  "markdown",
  "minijinja",
  "rayon",

@@ -4,17 +4,10 @@ version = "0.1.0"
 edition = "2021"
 description = "LLM evaluation runner for Hyprnote"
 
-[[bin]]
-name = "evals"
-path = "src/main.rs"
-
 [dependencies]
 backon = { workspace = true }
-clap = { workspace = true, features = ["derive", "env"] }
-clap_complete = "4"
 comfy-table = "7"
 dirs = { workspace = true }
-indicatif = "0.17"
 markdown = { workspace = true }
 minijinja = { workspace = true }
 rayon = { workspace = true }

@@ -5,8 +5,7 @@ use clap::{Parser, Subcommand};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 use evals::{
-    OpenRouterClient, ProgressInfo, Runner, Task, fetch_openrouter_models, filter_models,
-    parse_config, render_json, render_results,
+    OpenRouterClient, ProgressInfo, Runner, Task, parse_config, render_json, render_results,
 };
 
 static DEFAULT_MODELS: &[&str] = &[

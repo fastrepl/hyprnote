@@ -34,7 +34,7 @@ export const TabItemAI: TabItem<Extract<Tab, { type: "ai" }>> = ({
       icon={<SparklesIcon className="w-4 h-4" />}
       title={
         <div className="flex items-center gap-1">
-          <span>AI</span>
+          <span>AI Settings</span>
           <span className="text-xs text-neutral-400">({suffix})</span>
         </div>
       }

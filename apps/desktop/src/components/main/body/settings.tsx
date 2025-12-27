@@ -16,7 +16,7 @@ export const TabItemSettings: TabItem<Extract<Tab, { type: "settings" }>> = ({
   return (
     <TabItemBase
       icon={<SettingsIcon className="w-4 h-4" />}
-      title={"Settings"}
+      title={"App Settings"}
       selected={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}

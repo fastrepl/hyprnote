@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
 import { arch, platform } from "@tauri-apps/plugin-os";
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
+import { usePermissions } from "../../hooks/use-permissions";
 import { Route } from "../../routes/app/onboarding/_layout.index";
 import { getNext, type StepProps } from "./config";
 
@@ -11,16 +11,28 @@ export const STEP_ID_WELCOME = "welcome" as const;
 
 export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
   const search = Route.useSearch();
-  const currentPlatform = useMemo(() => platform(), []);
-  const archQuery = useQuery({
-    queryKey: ["arch"],
-    queryFn: () => arch(),
-  });
 
   const isAppleSilicon = useMemo(
-    () => currentPlatform === "macos" && archQuery.data === "aarch64",
-    [currentPlatform, archQuery.data],
+    () => platform() === "macos" && arch() === "aarch64",
+    [],
   );
+
+  const {
+    micPermissionStatus,
+    systemAudioPermissionStatus,
+    accessibilityPermissionStatus,
+  } = usePermissions();
+
+  const hasAnyPermissionGranted =
+    micPermissionStatus.data === "authorized" ||
+    systemAudioPermissionStatus.data === "authorized" ||
+    accessibilityPermissionStatus.data === "authorized";
+
+  useEffect(() => {
+    if (hasAnyPermissionGranted) {
+      onNavigate({ ...search, step: getNext(search)! });
+    }
+  }, [hasAnyPermissionGranted, onNavigate, search]);
 
   return (
     <>

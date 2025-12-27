@@ -1,27 +1,62 @@
 use crate::{
-    FormatSpec, GraderType, HeaderSpec, Rubric, SectionSpec, Task, is_non_empty, match_format,
+    CheckResult, GraderType, Rubric, Task, find_headings, find_lists, grade, is_non_empty,
 };
 
 fn format_grader(output: &str) -> (bool, String) {
-    let spec = FormatSpec {
-        sections: vec![
-            SectionSpec {
-                header: HeaderSpec {
-                    level: 1,
-                    text: String::new(),
-                },
-                list_only: true,
-            },
-            SectionSpec {
-                header: HeaderSpec {
-                    level: 1,
-                    text: String::new(),
-                },
-                list_only: true,
-            },
+    let result = grade(
+        output,
+        vec![
+            Box::new(|node| {
+                let headings = find_headings(node);
+                if headings.len() >= 2 {
+                    vec![CheckResult::pass(1, "has at least 2 sections")]
+                } else {
+                    vec![CheckResult::fail(
+                        1,
+                        format!("expected at least 2 sections, got {}", headings.len()),
+                    )]
+                }
+            }),
+            Box::new(|node| {
+                find_headings(node)
+                    .iter()
+                    .enumerate()
+                    .map(|(i, h)| {
+                        if h.depth == 1 {
+                            CheckResult::pass(1, format!("section {} is h1", i + 1))
+                        } else {
+                            CheckResult::fail(
+                                1,
+                                format!("section {}: expected h1, got h{}", i + 1, h.depth),
+                            )
+                        }
+                    })
+                    .collect()
+            }),
+            Box::new(|node| {
+                let lists = find_lists(node);
+                if lists.is_empty() {
+                    return vec![CheckResult::fail(1, "no lists found")];
+                }
+                lists
+                    .iter()
+                    .enumerate()
+                    .map(|(i, l)| {
+                        if !l.ordered {
+                            CheckResult::pass(1, format!("list {} is unordered", i + 1))
+                        } else {
+                            CheckResult::fail(
+                                1,
+                                format!("list {}: expected unordered, got ordered", i + 1),
+                            )
+                        }
+                    })
+                    .collect()
+            }),
         ],
-    };
-    match_format(output, &spec)
+    );
+
+    (result.score >= 0.8, result.summary())
 }
 
 pub fn mdgen_task() -> Task {

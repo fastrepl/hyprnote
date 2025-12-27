@@ -23,53 +23,51 @@ common_derives! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Segment, TemplateSection};
+    use crate::{Segment, TemplateSection, snapshot};
     use askama::Template;
 
-    #[test]
-    fn test_enhance_system() {
-        let tpl = EnhanceSystem { language: None };
+    snapshot!(
+        test_enhance_system, 
+        EnhanceSystem { language: None }, 
+        @r#"
+    # General Instructions
 
-        insta::assert_snapshot!(tpl.render().unwrap(), @r#"
-        # General Instructions
+    You are an expert at creating structured, comprehensive meeting summaries in English. Maintain accuracy, completeness, and professional terminology. Think step by step.
 
-        You are an expert at creating structured, comprehensive meeting summaries in English. Maintain accuracy, completeness, and professional terminology. Think step by step.
+    # Format Requirements
 
-        # Format Requirements
+    - Use Markdown format without code block wrappers.
+    - Structure with # (h1) headings for main topics and bullet points for content.
+    - Use only h1 headers. Do not use h2 or h3. Each header represents a section.
+    - Each section should have at least 3 detailed bullet points.
+    - Focus list items on specific discussion details, decisions, and key points, not general topics.
+    - Maintain a consistent list hierarchy:
+      - Use bullet points at the same level unless an example or clarification is absolutely necessary.
+      - Avoid nesting lists beyond one level of indentation.
+      - If additional structure is required, break the information into separate sections with new h1 headings instead of deeper indentation.
+    - Your final output MUST be ONLY the markdown summary itself.
+    - Do not include any explanations, commentary, or meta-discussion.
+    - Do not say things like "Here's the summary" or "I've analyzed".
 
-        - Use Markdown format without code block wrappers.
-        - Structure with # (h1) headings for main topics and bullet points for content.
-        - Use only h1 headers. Do not use h2 or h3. Each header represents a section.
-        - Each section should have at least 3 detailed bullet points.
-        - Focus list items on specific discussion details, decisions, and key points, not general topics.
-        - Maintain a consistent list hierarchy:
-          - Use bullet points at the same level unless an example or clarification is absolutely necessary.
-          - Avoid nesting lists beyond one level of indentation.
-          - If additional structure is required, break the information into separate sections with new h1 headings instead of deeper indentation.
-        - Your final output MUST be ONLY the markdown summary itself.
-        - Do not include any explanations, commentary, or meta-discussion.
-        - Do not say things like "Here's the summary" or "I've analyzed".
+    # About Raw Notes
 
-        # About Raw Notes
+    - The beginning of a raw note may include agenda items, discussion topics, and preliminary questions.
+    - Primarily consist of key phrases or sentences the user wants to remember, though they may also contain random or extraneous words.
+    - May sometimes be empty.
 
-        - The beginning of a raw note may include agenda items, discussion topics, and preliminary questions.
-        - Primarily consist of key phrases or sentences the user wants to remember, though they may also contain random or extraneous words.
-        - May sometimes be empty.
+    # Guidelines
 
-        # Guidelines
+    - Raw notes and transcript may contain errors made by human and STT, respectively. Make the best out of every material.
+    - Do not include meeting note title, attendee lists nor explanatory notes about the output structure.
+    - Acknowledge what the user found important. Raw notes show a glimpse of important information and moments during the meeting. Naturally integrate raw note entries into relevant sections instead of forcefully converting them into headers.
+    - Preserve essential details; avoid excessive abstraction. Ensure content remains concrete and specific.
+    - Pay close attention to emphasized text in raw notes. Users highlight information using four styles: bold(**text**), italic(_text_), underline(<u>text</u>), strikethrough(~~text~~).
+    - Recognize H3 headers (### Header) in raw notes—these indicate highly important topics that the user wants to retain no matter what.
+    "#);
 
-        - Raw notes and transcript may contain errors made by human and STT, respectively. Make the best out of every material.
-        - Do not include meeting note title, attendee lists nor explanatory notes about the output structure.
-        - Acknowledge what the user found important. Raw notes show a glimpse of important information and moments during the meeting. Naturally integrate raw note entries into relevant sections instead of forcefully converting them into headers.
-        - Preserve essential details; avoid excessive abstraction. Ensure content remains concrete and specific.
-        - Pay close attention to emphasized text in raw notes. Users highlight information using four styles: bold(**text**), italic(_text_), underline(<u>text</u>), strikethrough(~~text~~).
-        - Recognize H3 headers (### Header) in raw notes—these indicate highly important topics that the user wants to retain no matter what.
-        "#);
-    }
-
-    #[test]
-    fn test_enhance_user_1() {
-        let tpl = EnhanceUser {
+    snapshot!(
+        test_enhance_user_1, 
+        EnhanceUser {
             session: Session {
                 title: Some("Meeting".to_string()),
                 started_at: None,
@@ -108,32 +106,29 @@ mod tests {
                 started_at: Some(1719859200),
                 ended_at: Some(1719862800),
             }],
-        };
-
-        insta::assert_snapshot!(tpl.render().unwrap(), @"
-        # Context
+        }, @"
+    # Context
 
 
-        Session: Meeting
-        Participants:
-        - John Doe (CEO)
-          - Jane Smith (CTO)
-          
+    Session: Meeting
+    Participants:
+    - John Doe (CEO)
+      - Jane Smith (CTO)
+      
 
-        # Summary Template
+    # Summary Template
 
-        Name: Meeting
-        Description: Meeting description
+    Name: Meeting
+    Description: Meeting description
 
-        Sections:
-        1. Section 1 - Section 1 description
-        2. Section 2 - Section 2 description
-
-
-        # Transcript
+    Sections:
+    1. Section 1 - Section 1 description
+    2. Section 2 - Section 2 description
 
 
-        John Doe: Hello
-        ");
-    }
+    # Transcript
+
+
+    John Doe: Hello
+    ");
 }

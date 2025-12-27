@@ -23,21 +23,12 @@ common_derives! {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{Segment, snapshot};
     use askama::Template;
 
-    #[test]
-    fn test_chat_system_no_context() {
-        let template = ChatSystem {
-            language: None,
-            context: None,
-        };
-        let result = template.render().unwrap();
-        assert!(result.contains("meeting assistant"));
-    }
-
-    #[test]
-    fn test_chat_system_with_context() {
-        let template = ChatSystem {
+    snapshot!(
+        test_chat_system_with_context, 
+        ChatSystem {
             language: None,
             context: Some(ChatContext {
                 title: Some("Weekly Standup".to_string()),
@@ -46,11 +37,11 @@ mod tests {
                 enhanced_content: Some("Meeting summary here".to_string()),
                 transcript: Some(Transcript {
                     segments: vec![
-                        crate::types::Segment {
+                        Segment {
                             text: "Hello".to_string(),
                             speaker: "Speaker 1".to_string(),
                         },
-                        crate::types::Segment {
+                        Segment {
                             text: "Hi".to_string(),
                             speaker: "Speaker 2".to_string(),
                         },
@@ -59,11 +50,8 @@ mod tests {
                     ended_at: None,
                 }),
             }),
-        };
-
-        let result = template.render().unwrap();
-
-        insta::assert_snapshot!(result, @r#"
+        }, 
+        @r#"
         # General Instructions
 
         - You are a helpful AI meeting assistant in Hyprnote, an intelligent meeting platform that transcribes and analyzes meetings. Your purpose is to help users understand their meeting content better.
@@ -101,6 +89,5 @@ mod tests {
         If there is a meeting transcript and an enhanced meeting summary, it means that the meeting has happened and the user is asking for a new version of the meeting note or the intelligence from the meeting.
 
         You should treat meeting transcript and enhanced meeting summary as the information with more weight than the original (manually written) note.
-        "#);
-    }
+    "#);
 }

@@ -19,30 +19,30 @@ common_derives! {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::snapshot;
     use askama::Template;
 
-    #[test]
-    fn test_title_system() {
-        let template = TitleSystem { language: None };
-        insta::assert_snapshot!(template.render().unwrap(), @r#"
-        You are a professional assistant that generates a perfect title for a meeting note.
+    snapshot!(
+        test_title_system, 
+        TitleSystem { language: None }, 
+        @r#"
+    You are a professional assistant that generates a perfect title for a meeting note.
 
-        IMPORTANT: Generate the title in English language.
-        Only output the title as plaintext, nothing else. No characters like *"'([{}]):.
-        "#);
-    }
+    IMPORTANT: Generate the title in English language.
+    Only output the title as plaintext, nothing else. No characters like *"'([{}]):.
+    "#);
 
-    #[test]
-    fn test_title_user() {
-        let tpl = TitleUser {
+    snapshot!(
+        test_title_user,
+        TitleUser {
             enhanced_note: "".to_string(),
-        };
-        insta::assert_snapshot!(tpl.render().unwrap(), @"
+        },
+        @r#"
         <note>
 
         </note>
 
         Now, give me SUPER CONCISE title for above note. Only about the topic of the meeting.
-        ");
-    }
+        "#
+    );
 }

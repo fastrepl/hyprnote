@@ -18,6 +18,16 @@ macro_rules! common_derives {
     };
 }
 
+#[macro_export]
+macro_rules! snapshot {
+    ($name:ident, $input:expr, @$($expected:tt)*) => {
+        #[test]
+        fn $name() {
+            insta::assert_snapshot!($input.render().unwrap(), @$($expected)*);
+        }
+    };
+}
+
 common_derives! {
     pub enum Template {
         EnhanceSystem(EnhanceSystem),

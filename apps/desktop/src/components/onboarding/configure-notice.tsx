@@ -1,4 +1,4 @@
-import { Route } from "../../routes/app/onboarding";
+import { Route } from "../../routes/app/onboarding/_layout.index";
 import { getBack, getNext, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 

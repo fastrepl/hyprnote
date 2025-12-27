@@ -21,7 +21,7 @@ const validateSearch = z.object({
 
 export type Search = z.infer<typeof validateSearch>;
 
-export const Route = createFileRoute("/app/onboarding/")({
+export const Route = createFileRoute("/app/onboarding/_layout/")({
   validateSearch,
   component: Component,
 });
@@ -59,8 +59,6 @@ function Component() {
     return null;
   }
 
-  const StepComponent = currentConfig.component;
-
   return (
     <div className="flex flex-col h-full relative items-center justify-center p-8">
       <div
@@ -78,7 +76,7 @@ function Component() {
           <Volume2Icon size={16} className="text-neutral-600" />
         )}
       </button>
-      <StepComponent onNavigate={onNavigate} />
+      <currentConfig.component onNavigate={onNavigate} />
     </div>
   );
 }

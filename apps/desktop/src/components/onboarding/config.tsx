@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 
-import type { Search } from "../../routes/app/onboarding";
+import type { Search } from "../../routes/app/onboarding/_layout.index";
 import { ConfigureNotice, STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
 import { Login, STEP_ID_LOGIN } from "./login";
 import { Permissions, STEP_ID_PERMISSIONS } from "./permissions";

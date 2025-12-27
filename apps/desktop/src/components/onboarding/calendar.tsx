@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 
 import { useAuth } from "../../auth";
-import { Route } from "../../routes/app/onboarding";
+import { Route } from "../../routes/app/onboarding/_layout.index";
 import { getNext, type StepProps } from "./config";
 import { Divider, IntegrationRow, OnboardingContainer } from "./shared";
 

@@ -4,16 +4,16 @@ on:
     branches:
       - main
     paths:
-      - evals/**
-      - go.mod
-      - go.sum
+      - crates/evals/**
+      - Cargo.toml
+      - Cargo.lock
   pull_request:
     branches-ignore:
       - "**/graphite-base/**"
     paths:
-      - evals/**
-      - go.mod
-      - go.sum
+      - crates/evals/**
+      - Cargo.toml
+      - Cargo.lock
 
 jobs:
   optimize_ci:
@@ -33,12 +33,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          go-version: "1.25.5"
-          cache: true
-      - run: go vet ./evals/...
-      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
-      - run: staticcheck ./evals/...
-      - run: go build ./evals/cmd
-      - run: go test ./evals/... -v
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "crates/evals -> target"
+
+      - name: Check formatting
+        run: cargo fmt -p evals -- --check
+
+      - name: Clippy
+        run: cargo clippy -p evals -- -D warnings
+
+      - name: Build
+        run: cargo build -p evals
+
+      - name: Test
+        run: cargo test -p evals

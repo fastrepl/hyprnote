@@ -8,9 +8,11 @@ pub struct SettingsState {
     lock: RwLock<()>,
 }
 
+pub const FILENAME: &str = "settings.json";
+
 impl SettingsState {
     pub fn new(base: PathBuf) -> Self {
-        let path = base.join("settings.json");
+        let path = base.join(FILENAME);
         Self {
             path,
             lock: RwLock::new(()),

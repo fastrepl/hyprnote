@@ -36,7 +36,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 }
 
 fn migrate<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<(), Error> {
-    let old_path = app.path().data_dir()?.join(STORE_FILENAME);
+    let old_path = app.path().app_data_dir()?.join(FILENAME);
     if !old_path.exists() {
         return Ok(());
     }

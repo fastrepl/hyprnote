@@ -8,7 +8,7 @@ mod state;
 
 pub use error::{Error, Result};
 pub use ext::*;
-use state::*;
+pub use state::*;
 
 const PLUGIN_NAME: &str = "settings";
 

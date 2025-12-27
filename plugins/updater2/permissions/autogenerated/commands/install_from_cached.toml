@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-install-from-cached"
+description = "Enables the install_from_cached command without any pre-configured scope."
+commands.allow = ["install_from_cached"]
+
+[[permission]]
+identifier = "deny-install-from-cached"
+description = "Denies the install_from_cached command without any pre-configured scope."
+commands.deny = ["install_from_cached"]

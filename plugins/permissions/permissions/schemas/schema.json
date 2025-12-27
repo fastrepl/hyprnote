@@ -295,6 +295,54 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the check_accessibility_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-check-accessibility-permission",
+          "markdownDescription": "Enables the check_accessibility_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the check_accessibility_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-check-accessibility-permission",
+          "markdownDescription": "Denies the check_accessibility_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the check_calendar_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-check-calendar-permission",
+          "markdownDescription": "Enables the check_calendar_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the check_calendar_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-check-calendar-permission",
+          "markdownDescription": "Denies the check_calendar_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the check_contacts_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-check-contacts-permission",
+          "markdownDescription": "Enables the check_contacts_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the check_contacts_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-check-contacts-permission",
+          "markdownDescription": "Denies the check_contacts_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the check_microphone_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-check-microphone-permission",
+          "markdownDescription": "Enables the check_microphone_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the check_microphone_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-check-microphone-permission",
+          "markdownDescription": "Denies the check_microphone_permission command without any pre-configured scope."
+        },
+        {
           "description": "Enables the check_permission command without any pre-configured scope.",
           "type": "string",
           "const": "allow-check-permission",
@@ -305,6 +353,42 @@
           "type": "string",
           "const": "deny-check-permission",
           "markdownDescription": "Denies the check_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the check_system_audio_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-check-system-audio-permission",
+          "markdownDescription": "Enables the check_system_audio_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the check_system_audio_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-check-system-audio-permission",
+          "markdownDescription": "Denies the check_system_audio_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the open_calendar_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-calendar-settings",
+          "markdownDescription": "Enables the open_calendar_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_calendar_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-calendar-settings",
+          "markdownDescription": "Denies the open_calendar_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the open_contacts_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-contacts-settings",
+          "markdownDescription": "Enables the open_contacts_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_contacts_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-contacts-settings",
+          "markdownDescription": "Denies the open_contacts_settings command without any pre-configured scope."
         },
         {
           "description": "Enables the open_permission command without any pre-configured scope.",
@@ -319,6 +403,54 @@
           "markdownDescription": "Denies the open_permission command without any pre-configured scope."
         },
         {
+          "description": "Enables the request_accessibility_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-accessibility-permission",
+          "markdownDescription": "Enables the request_accessibility_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the request_accessibility_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-accessibility-permission",
+          "markdownDescription": "Denies the request_accessibility_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the request_calendar_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-calendar-permission",
+          "markdownDescription": "Enables the request_calendar_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the request_calendar_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-calendar-permission",
+          "markdownDescription": "Denies the request_calendar_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the request_contacts_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-contacts-permission",
+          "markdownDescription": "Enables the request_contacts_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the request_contacts_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-contacts-permission",
+          "markdownDescription": "Denies the request_contacts_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the request_microphone_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-microphone-permission",
+          "markdownDescription": "Enables the request_microphone_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the request_microphone_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-microphone-permission",
+          "markdownDescription": "Denies the request_microphone_permission command without any pre-configured scope."
+        },
+        {
           "description": "Enables the request_permission command without any pre-configured scope.",
           "type": "string",
           "const": "allow-request-permission",
@@ -329,6 +461,18 @@
           "type": "string",
           "const": "deny-request-permission",
           "markdownDescription": "Denies the request_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the request_system_audio_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-request-system-audio-permission",
+          "markdownDescription": "Enables the request_system_audio_permission command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the request_system_audio_permission command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-request-system-audio-permission",
+          "markdownDescription": "Denies the request_system_audio_permission command without any pre-configured scope."
         },
         {
           "description": "Enables the reset_permission command without any pre-configured scope.",

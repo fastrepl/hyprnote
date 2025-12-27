@@ -95,6 +95,7 @@ import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
 import { Route as ViewCompanyHandbookSplatRouteImport } from './routes/_view/company-handbook/$'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
 import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
+import { Route as ViewBlogNewRouteImport } from './routes/_view/blog/new'
 import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
 import { Route as ViewAppFileTranscriptionRouteImport } from './routes/_view/app/file-transcription'
@@ -102,6 +103,7 @@ import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
 import { Route as ViewIntegrationsCategorySlugRouteImport } from './routes/_view/integrations/$category.$slug'
 import { Route as ViewGalleryTypeSlugRouteImport } from './routes/_view/gallery/$type.$slug'
+import { Route as ViewBlogSlugEditRouteImport } from './routes/_view/blog/$slug_.edit'
 
 const YoutubeRoute = YoutubeRouteImport.update({
   id: '/youtube',
@@ -540,6 +542,11 @@ const ViewCallbackAuthRoute = ViewCallbackAuthRouteImport.update({
   path: '/callback/auth',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewBlogNewRoute = ViewBlogNewRouteImport.update({
+  id: '/blog/new',
+  path: '/blog/new',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewBlogSlugRoute = ViewBlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
@@ -577,6 +584,11 @@ const ViewGalleryTypeSlugRoute = ViewGalleryTypeSlugRouteImport.update({
   path: '/gallery/$type/$slug',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewBlogSlugEditRoute = ViewBlogSlugEditRouteImport.update({
+  id: '/blog/$slug_/edit',
+  path: '/blog/$slug/edit',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
@@ -611,6 +623,7 @@ export interface FileRoutesByFullPath {
   '/app/file-transcription': typeof ViewAppFileTranscriptionRoute
   '/app/integration': typeof ViewAppIntegrationRoute
   '/blog/$slug': typeof ViewBlogSlugRoute
+  '/blog/new': typeof ViewBlogNewRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
@@ -669,6 +682,7 @@ export interface FileRoutesByFullPath {
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
+  '/blog/$slug/edit': typeof ViewBlogSlugEditRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
 }
@@ -702,6 +716,7 @@ export interface FileRoutesByTo {
   '/app/file-transcription': typeof ViewAppFileTranscriptionRoute
   '/app/integration': typeof ViewAppIntegrationRoute
   '/blog/$slug': typeof ViewBlogSlugRoute
+  '/blog/new': typeof ViewBlogNewRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
@@ -760,6 +775,7 @@ export interface FileRoutesByTo {
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
+  '/blog/$slug/edit': typeof ViewBlogSlugEditRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
 }
@@ -798,6 +814,7 @@ export interface FileRoutesById {
   '/_view/app/file-transcription': typeof ViewAppFileTranscriptionRoute
   '/_view/app/integration': typeof ViewAppIntegrationRoute
   '/_view/blog/$slug': typeof ViewBlogSlugRoute
+  '/_view/blog/new': typeof ViewBlogNewRoute
   '/_view/callback/auth': typeof ViewCallbackAuthRoute
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
   '/_view/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
@@ -856,6 +873,7 @@ export interface FileRoutesById {
   '/_view/roadmap/': typeof ViewRoadmapIndexRoute
   '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
+  '/_view/blog/$slug_/edit': typeof ViewBlogSlugEditRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
 }
@@ -894,6 +912,7 @@ export interface FileRouteTypes {
     | '/app/file-transcription'
     | '/app/integration'
     | '/blog/$slug'
+    | '/blog/new'
     | '/callback/auth'
     | '/changelog/$slug'
     | '/company-handbook/$'
@@ -952,6 +971,7 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
+    | '/blog/$slug/edit'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -985,6 +1005,7 @@ export interface FileRouteTypes {
     | '/app/file-transcription'
     | '/app/integration'
     | '/blog/$slug'
+    | '/blog/new'
     | '/callback/auth'
     | '/changelog/$slug'
     | '/company-handbook/$'
@@ -1043,6 +1064,7 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
+    | '/blog/$slug/edit'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
   id:
@@ -1080,6 +1102,7 @@ export interface FileRouteTypes {
     | '/_view/app/file-transcription'
     | '/_view/app/integration'
     | '/_view/blog/$slug'
+    | '/_view/blog/new'
     | '/_view/callback/auth'
     | '/_view/changelog/$slug'
     | '/_view/company-handbook/$'
@@ -1138,6 +1161,7 @@ export interface FileRouteTypes {
     | '/_view/roadmap/'
     | '/_view/shortcuts/'
     | '/_view/templates/'
+    | '/_view/blog/$slug_/edit'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
   fileRoutesById: FileRoutesById
@@ -1765,6 +1789,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewCallbackAuthRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/blog/new': {
+      id: '/_view/blog/new'
+      path: '/blog/new'
+      fullPath: '/blog/new'
+      preLoaderRoute: typeof ViewBlogNewRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/blog/$slug': {
       id: '/_view/blog/$slug'
       path: '/blog/$slug'
@@ -1812,6 +1843,13 @@ declare module '@tanstack/react-router' {
       path: '/gallery/$type/$slug'
       fullPath: '/gallery/$type/$slug'
       preLoaderRoute: typeof ViewGalleryTypeSlugRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/blog/$slug_/edit': {
+      id: '/_view/blog/$slug_/edit'
+      path: '/blog/$slug/edit'
+      fullPath: '/blog/$slug/edit'
+      preLoaderRoute: typeof ViewBlogSlugEditRouteImport
       parentRoute: typeof ViewRouteRoute
     }
   }
@@ -1883,6 +1921,7 @@ interface ViewRouteRouteChildren {
   ViewSecurityRoute: typeof ViewSecurityRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
+  ViewBlogNewRoute: typeof ViewBlogNewRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
   ViewDownloadAppleRoute: typeof ViewDownloadAppleRoute
@@ -1934,6 +1973,7 @@ interface ViewRouteRouteChildren {
   ViewRoadmapIndexRoute: typeof ViewRoadmapIndexRoute
   ViewShortcutsIndexRoute: typeof ViewShortcutsIndexRoute
   ViewTemplatesIndexRoute: typeof ViewTemplatesIndexRoute
+  ViewBlogSlugEditRoute: typeof ViewBlogSlugEditRoute
   ViewGalleryTypeSlugRoute: typeof ViewGalleryTypeSlugRoute
   ViewIntegrationsCategorySlugRoute: typeof ViewIntegrationsCategorySlugRoute
 }
@@ -1954,6 +1994,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewSecurityRoute: ViewSecurityRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
+  ViewBlogNewRoute: ViewBlogNewRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
   ViewDownloadAppleRoute: ViewDownloadAppleRoute,
@@ -2005,6 +2046,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewRoadmapIndexRoute: ViewRoadmapIndexRoute,
   ViewShortcutsIndexRoute: ViewShortcutsIndexRoute,
   ViewTemplatesIndexRoute: ViewTemplatesIndexRoute,
+  ViewBlogSlugEditRoute: ViewBlogSlugEditRoute,
   ViewGalleryTypeSlugRoute: ViewGalleryTypeSlugRoute,
   ViewIntegrationsCategorySlugRoute: ViewIntegrationsCategorySlugRoute,
 }

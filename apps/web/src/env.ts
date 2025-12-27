@@ -21,6 +21,7 @@ export const env = createEnv({
     DEEPGRAM_API_KEY: z.string().min(1),
 
     GITHUB_TOKEN: z.string().optional(),
+    BLOG_EDITOR_EMAILS: z.string().optional(),
   },
 
   clientPrefix: "VITE_",

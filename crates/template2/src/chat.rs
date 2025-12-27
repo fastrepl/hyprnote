@@ -1,5 +1,6 @@
 use crate::Transcript;
-use crate::{common_derives, filters};
+use crate::common_derives;
+use hypr_template_assets::askama::filters;
 
 common_derives! {
     pub struct ChatContext {
@@ -23,10 +24,10 @@ common_derives! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Segment, snapshot};
-    use askama::Template;
+    use crate::Segment;
+    use askama_utils::tpl_snapshot_with_assert;
 
-    snapshot!(
+    tpl_snapshot_with_assert!(
         test_chat_system_with_context, 
         ChatSystem {
             language: None,
@@ -45,49 +46,51 @@ mod tests {
                             text: "Hi".to_string(),
                             speaker: "Speaker 2".to_string(),
                         },
+                        Segment {
+                            text: "By the way, we are going to have a meeting next week".to_string(),
+                            speaker: "Speaker 3".to_string(),
+                        },
                     ],
-                    started_at: None,
-                    ended_at: None,
+                    started_at: Some(1715702400),
+                    ended_at: Some(1715705400),
                 }),
             }),
         }, 
+        |v| v.contains("English"),
         @r#"
-        # General Instructions
+    # General Instructions
 
-        - You are a helpful AI meeting assistant in Hyprnote, an intelligent meeting platform that transcribes and analyzes meetings. Your purpose is to help users understand their meeting content better.
-        - Always respond in English, unless the user explicitly asks for a different language.
-        - Always keep your responses concise, professional, and directly relevant to the user's questions.
-        - Your primary source of truth is the meeting transcript. Try to generate responses primarily from the transcript, and then the summary or other information (unless the user asks for something specific).
+    - You are a helpful AI meeting assistant in Hyprnote, an intelligent meeting platform that transcribes and analyzes meetings. Your purpose is to help users understand their meeting content better.
+    - Always respond in English, unless the user explicitly asks for a different language.
+    - Always keep your responses concise, professional, and directly relevant to the user's questions.
+    - Your primary source of truth is the meeting transcript. Try to generate responses primarily from the transcript, and then the summary or other information (unless the user asks for something specific).
 
-        # Formatting Guidelines
+    # Formatting Guidelines
 
-        Your response would be highly likely to be paragraphs with combined information about your thought and whatever note (in markdown format) you generated.
+    - Your response would be highly likely to be paragraphs with combined information about your thought and whatever note (in markdown format) you generated.
+    - Your response would mostly be either of the two formats:
+    - Suggestion of a new version of the meeting note (in markdown block format, inside ``` blocks) based on user's request. However, be careful not to create an empty markdown block.
+    - Information (when it's not rewriting the note, it shouldn't be inside `blocks. Only re-written version of the note should be inside` blocks.) Try your best to put markdown notes inside ``` blocks.
 
-        Your response would mostly be either of the two formats:
+    Context: You are helping the user with their meeting notes. Here is the current context:
 
-        - Suggestion of a new version of the meeting note (in markdown block format, inside ``` blocks) based on user's request. However, be careful not to create an empty markdown block.
-        - Information (when it's not rewriting the note, it shouldn't be inside `blocks. Only re-written version of the note should be inside` blocks.)
+    Title: Weekly Standup
 
-        Try your best to put markdown notes inside ``` blocks.
+    Date: 2025-01-15
 
-        Context: You are helping the user with their meeting notes. Here is the current context:
+    Enhanced Meeting Summary:
+    Meeting summary here
 
-        Title: Weekly Standup
+    Full Meeting Transcript:
 
-        Date: 2025-01-15
+    Speaker 1: Hello
+    Speaker 2: Hi
+    Speaker 3: By the way, we are going to have a meeting next week
 
-        Enhanced Meeting Summary:
-        Meeting summary here
+    If there is no meeting transcript (blank after the "Full Meeting Transcript:"), it means that the meeting did not happen yet. In this case, you should understand that the user is asking for general information, ideas, or suggestions about preparing for the meeting.
 
-        Full Meeting Transcript:
+    If there is a meeting transcript and an enhanced meeting summary, it means that the meeting has happened and the user is asking for a new version of the meeting note or the intelligence from the meeting.
 
-        Speaker 1: Hello
-        Speaker 2: Hi
-
-        If there is no meeting transcript (blank after the "Full Meeting Transcript:"), it means that the meeting did not happen yet. In this case, you should understand that the user is asking for general information, ideas, or suggestions about preparing for the meeting.
-
-        If there is a meeting transcript and an enhanced meeting summary, it means that the meeting has happened and the user is asking for a new version of the meeting note or the intelligence from the meeting.
-
-        You should treat meeting transcript and enhanced meeting summary as the information with more weight than the original (manually written) note.
+    You should treat meeting transcript and enhanced meeting summary as the information with more weight than the original (manually written) note.
     "#);
 }

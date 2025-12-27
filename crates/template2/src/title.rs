@@ -1,4 +1,5 @@
-use crate::{common_derives, filters};
+use crate::common_derives;
+use hypr_template_assets::askama::filters;
 
 common_derives! {
     #[derive(askama::Template)]
@@ -19,20 +20,30 @@ common_derives! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::snapshot;
-    use askama::Template;
+    use askama_utils::{tpl_assert, tpl_snapshot};
 
-    snapshot!(
+    tpl_assert!(
+        test_language_as_specified,
+        TitleSystem {
+            language: Some("ko".to_string())
+        },
+        |v| v.contains("Korean")
+    );
+
+    tpl_snapshot!(
         test_title_system, 
         TitleSystem { language: None }, 
         @r#"
-    You are a professional assistant that generates a perfect title for a meeting note.
+    # General Instructions
 
-    IMPORTANT: Generate the title in English language.
-    Only output the title as plaintext, nothing else. No characters like *"'([{}]):.
+    - You are a professional assistant that generates a perfect title for a meeting note, in English language.
+
+    # Format Requirements
+
+    - Only output the title as plaintext, nothing else. No characters like *"'([{}]):.
     "#);
 
-    snapshot!(
+    tpl_snapshot!(
         test_title_user,
         TitleUser {
             enhanced_note: "".to_string(),

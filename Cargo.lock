@@ -684,6 +684,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "askama-utils"
+version = "0.1.0"
+dependencies = [
+ "askama",
+ "insta",
+]
+
+[[package]]
 name = "askama_derive"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -18139,14 +18147,19 @@ dependencies = [
 [[package]]
 name = "template-assets"
 version = "0.1.0"
+dependencies = [
+ "askama",
+ "askama-utils",
+ "isolang",
+]
 
 [[package]]
 name = "template2"
 version = "0.1.0"
 dependencies = [
  "askama",
+ "askama-utils",
  "insta",
- "isolang",
  "serde",
  "specta",
  "template-assets",

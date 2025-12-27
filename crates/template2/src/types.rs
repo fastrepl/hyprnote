@@ -3,8 +3,8 @@ use crate::common_derives;
 common_derives! {
     pub struct Transcript {
         pub segments: Vec<Segment>,
-        pub started_at: Option<i64>,
-        pub ended_at: Option<i64>,
+        pub started_at: Option<u64>,
+        pub ended_at: Option<u64>,
     }
 }
 

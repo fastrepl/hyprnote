@@ -1,6 +1,5 @@
 pub mod chat;
 pub mod enhance;
-pub mod filters;
 pub mod title;
 pub mod types;
 
@@ -15,16 +14,6 @@ macro_rules! common_derives {
         #[derive(Clone, serde::Deserialize, serde::Serialize, specta::Type)]
         #[serde(rename_all = "camelCase")]
         $item
-    };
-}
-
-#[macro_export]
-macro_rules! snapshot {
-    ($name:ident, $input:expr, @$($expected:tt)*) => {
-        #[test]
-        fn $name() {
-            insta::assert_snapshot!($input.render().unwrap(), @$($expected)*);
-        }
     };
 }
 

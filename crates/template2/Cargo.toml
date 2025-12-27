@@ -7,10 +7,10 @@ edition = "2024"
 hypr-template-assets = { workspace = true }
 
 askama = { workspace = true }
-isolang = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 
 [dev-dependencies]
+askama-utils = { workspace = true }
 insta = { workspace = true }

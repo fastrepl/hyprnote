@@ -1,11 +1,10 @@
 [package]
-name = "template-assets"
+name = "askama-utils"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 askama = { workspace = true }
-isolang = { workspace = true }
 
 [dev-dependencies]
-askama-utils = { workspace = true }
+insta = { workspace = true }

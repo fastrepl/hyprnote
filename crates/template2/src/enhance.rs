@@ -1,5 +1,6 @@
+use crate::common_derives;
 use crate::{EnhanceTemplate, Participant, Session, Transcript};
-use crate::{common_derives, filters};
+use hypr_template_assets::askama::filters;
 
 common_derives! {
     #[derive(askama::Template)]
@@ -23,16 +24,24 @@ common_derives! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Segment, TemplateSection, snapshot};
-    use askama::Template;
+    use crate::{Segment, TemplateSection};
+    use askama_utils::{tpl_assert, tpl_snapshot};
 
-    snapshot!(
-        test_enhance_system, 
-        EnhanceSystem { language: None }, 
+    tpl_assert!(
+        test_language_as_specified,
+        EnhanceSystem {
+            language: Some("ko".to_string())
+        },
+        |v| { v.contains("Korean") }
+    );
+
+    tpl_snapshot!(
+        test_enhance_system_formatting,
+        EnhanceSystem { language: None },
         @r#"
     # General Instructions
 
-    You are an expert at creating structured, comprehensive meeting summaries in English. Maintain accuracy, completeness, and professional terminology. Think step by step.
+    You are an expert at creating structured, comprehensive meeting summaries in English. Maintain accuracy, completeness, and professional terminology.
 
     # Format Requirements
 
@@ -65,8 +74,8 @@ mod tests {
     - Recognize H3 headers (### Header) in raw notes—these indicate highly important topics that the user wants to retain no matter what.
     "#);
 
-    snapshot!(
-        test_enhance_user_1, 
+    tpl_snapshot!(
+        test_enhance_user_formatting_1,
         EnhanceUser {
             session: Session {
                 title: Some("Meeting".to_string()),
@@ -116,6 +125,13 @@ mod tests {
       - Jane Smith (CTO)
       
 
+    # Transcript
+
+
+    John Doe: Hello
+
+    # Output Template
+
     # Summary Template
 
     Name: Meeting
@@ -124,11 +140,5 @@ mod tests {
     Sections:
     1. Section 1 - Section 1 description
     2. Section 2 - Section 2 description
-
-
-    # Transcript
-
-
-    John Doe: Hello
     ");
 }

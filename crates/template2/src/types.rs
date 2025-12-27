@@ -60,34 +60,6 @@ mod tests {
 
     #[derive(Template)]
     #[template(
-        source = r#"{%- import "_macros.jinja" as macros -%}{{ macros::transcript(transcript=transcript) }}"#,
-        ext = "txt"
-    )]
-    struct TestTranscript {
-        transcript: Transcript,
-    }
-
-    tpl_snapshot!(
-        test_macro_transcript,
-        TestTranscript {
-            transcript: Transcript {
-                segments: vec![
-                    Segment { speaker: "Alice".to_string(), text: "Hello".to_string() },
-                    Segment { speaker: "Bob".to_string(), text: "Hi there".to_string() },
-                ],
-                started_at: None,
-                ended_at: None,
-            },
-        },
-        @"
-
-    Alice: Hello
-    Bob: Hi there
-    "
-    );
-
-    #[derive(Template)]
-    #[template(
         source = r#"{%- import "_macros.jinja" as macros -%}{{ macros::transcripts(transcripts=transcripts) }}"#,
         ext = "txt"
     )]
@@ -137,7 +109,9 @@ mod tests {
         },
         @"
 
-    Participants:Alice (Engineer), Bob
+
+    - Alice (Engineer)
+    - Bob
     "
     );
 

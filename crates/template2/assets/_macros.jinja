@@ -13,17 +13,13 @@
 {%- endmacro -%}
 
 {%- macro participants(participants) -%}
-{%- if !participants.is_empty() %}
-Participants: {%- for p in participants -%}
-{{ p.name }}
-{%- match p.job_title -%}
-{%- when Some with (job_title) %} ({{ job_title }})
-{%- when None -%}
-{%- endmatch -%}
-{%- if !loop.last %}, {% endif -%}
-{%- endfor -%}
-{%- endif -%}
-{%- endmacro -%}
+{%- if !participants.is_empty() -%}
+{%- for p in participants %}
+
+- {{ p.name }}{%- match p.job_title -%}{%- when Some with (job_title) %} ({{ job_title }}){%- when None -%}{%- endmatch -%}
+  {%- endfor -%}
+  {%- endif -%}
+  {%- endmacro -%}
 
 {%- macro session_context(session) -%}
 {%- match session -%}

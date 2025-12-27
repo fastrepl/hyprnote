@@ -2,7 +2,7 @@ use crate::{common_derives, filters};
 
 common_derives! {
     #[derive(askama::Template)]
-    #[template(path = "title.system.jinja")]
+    #[template(path = "title.system.md.jinja")]
     pub struct TitleSystem {
         pub language: Option<String>,
     }
@@ -10,7 +10,7 @@ common_derives! {
 
 common_derives! {
     #[derive(askama::Template)]
-    #[template(path = "title.user.jinja")]
+    #[template(path = "title.user.md.jinja")]
     pub struct TitleUser {
         pub enhanced_note: String,
     }

@@ -93,3 +93,39 @@ Sections to cover:
   {%- when None -%}
   {%- endmatch -%}
   {%- endmacro -%}
+
+{%- macro participants_list(participants) -%}
+{%- if !participants.is_empty() %}
+Participants:
+{% for p in participants -%}
+
+- {{ p.name }}{% if p.job_title.is_some() %} ({{ p.job_title.as_ref().unwrap() }}){% endif %}
+  {% endfor -%}
+  {%- endif -%}
+  {%- endmacro -%}
+
+{%- macro template_numbered(template) -%}
+{%- match template -%}
+{%- when Some with (tpl) %}
+
+# Summary Template
+
+Name: {{ tpl.title }}
+{%- match tpl.description -%}
+{%- when Some with (desc) %}
+Description: {{ desc }}
+{%- when None -%}
+{%- endmatch %}
+
+Sections:
+{% for section in tpl.sections -%}
+{{ loop.index }}. {{ section.title }}{% if section.description.is_some() %} - {{ section.description.as_ref().unwrap() }}{% endif %}
+{% endfor -%}
+{%- when None %}
+
+# Instructions
+
+1. Analyze the content and decide the sections to use.
+2. Generate a well-formatted markdown summary.
+   {% endmatch -%}
+   {%- endmacro -%}

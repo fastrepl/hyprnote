@@ -22,8 +22,8 @@ pub mod minijinja {
 }
 
 pub mod askama {
-    pub const TITLE_SYSTEM: &str = include_str!("../askama/title.system.jinja");
-    pub const TITLE_USER: &str = include_str!("../askama/title.user.jinja");
-    pub const ENHANCE_SYSTEM: &str = include_str!("../askama/enhance.system.jinja");
-    pub const ENHANCE_USER: &str = include_str!("../askama/enhance.user.jinja");
+    pub const TITLE_SYSTEM: &str = include_str!("../askama/title.system.md.jinja");
+    pub const TITLE_USER: &str = include_str!("../askama/title.user.md.jinja");
+    pub const ENHANCE_SYSTEM: &str = include_str!("../askama/enhance.system.md.jinja");
+    pub const ENHANCE_USER: &str = include_str!("../askama/enhance.user.md.jinja");
 }

@@ -5,10 +5,13 @@ description: "Learn about QA in Hyprnote"
 ---
 
 ```bash
-open -a "Hyprnote Staging" --args --onboarding 1
+open -a "Hyprnote Staging" --args --onboarding $(date +%s)
 ```
 
-`--onboarding 1` will:
+This will:
 
 - Remove `settings.json` and `store.json`
 - Reset all permissions
+
+The timestamp is used to detect fresh launches vs relaunches (e.g., during permission setup).
+If the timestamp is older than 2.5 seconds, it's treated as a restart and `--onboarding` will be ignored.

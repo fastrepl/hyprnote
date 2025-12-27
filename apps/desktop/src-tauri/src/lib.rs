@@ -190,9 +190,13 @@ pub async fn main() {
             tauri::async_runtime::spawn(async move {
                 let permissions = app_handle.permissions();
                 let _ = permissions.reset(Permission::Calendar).await;
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::Contacts).await;
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::Microphone).await;
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::SystemAudio).await;
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::Accessibility).await;
             });
         }
@@ -233,21 +237,34 @@ pub async fn main() {
 }
 
 fn get_onboarding_flag() -> Option<bool> {
-    let parse_bool = |v: &str| match v {
-        "1" | "true" => Some(true),
-        "0" | "false" => Some(false),
-        _ => None,
+    let parse_value = |v: &str| -> Option<bool> {
+        match v {
+            "1" | "true" => Some(true),
+            "0" | "false" => Some(false),
+            _ => {
+                if let Ok(timestamp) = v.parse::<u64>() {
+                    let now = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .ok()?
+                        .as_millis() as u64;
+                    let elapsed = now.saturating_sub(timestamp * 1000);
+                    if elapsed < 2500 { Some(true) } else { None }
+                } else {
+                    None
+                }
+            }
+        }
     };
 
     pico_args::Arguments::from_env()
         .opt_value_from_str::<_, String>("--onboarding")
         .ok()
         .flatten()
-        .and_then(|v| parse_bool(&v))
+        .and_then(|v| parse_value(&v))
         .or_else(|| {
             std::env::var("ONBOARDING")
                 .ok()
-                .and_then(|v| parse_bool(&v))
+                .and_then(|v| parse_value(&v))
         })
 }
 

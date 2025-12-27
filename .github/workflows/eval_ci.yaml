@@ -4,14 +4,14 @@ on:
     branches:
       - main
     paths:
-      - crates/evals/**
+      - crates/eval/**
       - Cargo.toml
       - Cargo.lock
   pull_request:
     branches-ignore:
       - "**/graphite-base/**"
     paths:
-      - crates/evals/**
+      - crates/eval/**
       - Cargo.toml
       - Cargo.lock
 
@@ -40,7 +40,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "crates/evals -> target"
+          workspaces: "crates/eval -> target"
 
-      - run: cargo build -p evals
-      - run: cargo test -p evals
+      - run: cargo build -p eval
+      - run: cargo test -p eval

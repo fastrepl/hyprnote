@@ -5360,7 +5360,7 @@ dependencies = [
  "eval",
  "indicatif",
  "serde_json",
- "template-app",
+ "template-eval",
 ]
 
 [[package]]

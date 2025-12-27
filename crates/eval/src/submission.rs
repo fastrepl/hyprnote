@@ -1,0 +1,528 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
+
+use rayon::prelude::*;
+
+use crate::{
+    ChatCompleter, CheckResult, Score, Usage, find_headings, find_lists, grade, is_non_empty,
+    parse_config,
+};
+
+#[derive(Debug, Clone)]
+pub struct TaskSubmission {
+    pub name: String,
+    pub prompt: String,
+    pub rubrics: Vec<RubricSpec>,
+    pub samples: i32,
+}
+
+#[derive(Debug, Clone)]
+pub struct RubricSpec {
+    pub name: String,
+    pub description: String,
+    pub grader: GraderSpec,
+}
+
+#[derive(Debug, Clone)]
+pub enum GraderSpec {
+    FormatValidator(FormatValidatorType),
+    Llm { samples: i32 },
+}
+
+#[derive(Debug, Clone)]
+pub enum FormatValidatorType {
+    NonEmpty,
+    MdgenFormat,
+}
+
+#[derive(Debug, Clone)]
+pub struct TaskResult {
+    pub name: String,
+    pub model: String,
+    pub run_num: i32,
+    pub output: String,
+    pub scores: Vec<Score>,
+    pub error: Option<String>,
+    pub generation_id: String,
+    pub usage: Usage,
+}
+
+impl Default for TaskResult {
+    fn default() -> Self {
+        Self {
+            name: String::new(),
+            model: String::new(),
+            run_num: 0,
+            output: String::new(),
+            scores: Vec::new(),
+            error: None,
+            generation_id: String::new(),
+            usage: Usage::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ExecutorProgress {
+    pub generations_complete: usize,
+    pub generations_total: usize,
+    pub evaluations_complete: usize,
+    pub evaluations_total: usize,
+}
+
+pub type ExecutorProgressCallback = Box<dyn Fn(ExecutorProgress) + Send + Sync>;
+
+const DEFAULT_GRADER_MODEL: &str = "openai/gpt-4.1-nano";
+
+pub struct Executor {
+    client: Arc<dyn ChatCompleter>,
+    grader_model: String,
+    concurrency: usize,
+    on_progress: Option<ExecutorProgressCallback>,
+}
+
+impl Executor {
+    pub fn new(client: Arc<dyn ChatCompleter>) -> Self {
+        let cfg = parse_config();
+        Self {
+            client,
+            grader_model: DEFAULT_GRADER_MODEL.to_string(),
+            concurrency: cfg.concurrency,
+            on_progress: None,
+        }
+    }
+
+    pub fn with_grader_model(mut self, model: String) -> Self {
+        self.grader_model = model;
+        self
+    }
+
+    pub fn with_concurrency(mut self, concurrency: usize) -> Self {
+        self.concurrency = concurrency;
+        self
+    }
+
+    pub fn set_on_progress(&mut self, callback: ExecutorProgressCallback) {
+        self.on_progress = Some(callback);
+    }
+
+    pub fn total_generations(&self, submissions: &[TaskSubmission], models: &[String]) -> usize {
+        let mut total = 0;
+        for submission in submissions {
+            let samples = if submission.samples <= 1 {
+                1
+            } else {
+                submission.samples
+            };
+            total += samples as usize;
+        }
+        total * models.len()
+    }
+
+    pub fn total_evaluations(&self, submissions: &[TaskSubmission], models: &[String]) -> usize {
+        let mut total = 0;
+        for submission in submissions {
+            let task_samples = if submission.samples <= 1 {
+                1
+            } else {
+                submission.samples
+            };
+
+            for rubric in &submission.rubrics {
+                let eval_count = match &rubric.grader {
+                    GraderSpec::Llm { samples } => {
+                        let grader_samples = if *samples <= 1 { 1 } else { *samples };
+                        task_samples * grader_samples
+                    }
+                    _ => task_samples,
+                };
+                total += eval_count as usize;
+            }
+        }
+        total * models.len()
+    }
+
+    pub fn execute(&self, submissions: &[TaskSubmission], models: &[String]) -> Vec<TaskResult> {
+        let generations_total = self.total_generations(submissions, models);
+        let evaluations_total = self.total_evaluations(submissions, models);
+
+        let generations_done = Arc::new(AtomicUsize::new(0));
+        let evaluations_done = Arc::new(AtomicUsize::new(0));
+        let results = Arc::new(Mutex::new(Vec::new()));
+
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(self.concurrency)
+            .build()
+            .unwrap();
+
+        let work_items: Vec<_> = models
+            .iter()
+            .flat_map(|model| {
+                submissions
+                    .iter()
+                    .map(move |submission| (model.clone(), submission.clone()))
+            })
+            .collect();
+
+        pool.install(|| {
+            work_items.par_iter().for_each(|(model, submission)| {
+                let result = self.execute_single(
+                    model,
+                    submission,
+                    &generations_done,
+                    &evaluations_done,
+                    generations_total,
+                    evaluations_total,
+                );
+
+                if let Ok(mut results_guard) = results.lock() {
+                    results_guard.push(result);
+                }
+            });
+        });
+
+        Arc::try_unwrap(results)
+            .unwrap_or_else(|_| Mutex::new(Vec::new()))
+            .into_inner()
+            .unwrap_or_default()
+    }
+
+    fn execute_single(
+        &self,
+        model: &str,
+        submission: &TaskSubmission,
+        generations_done: &AtomicUsize,
+        evaluations_done: &AtomicUsize,
+        generations_total: usize,
+        evaluations_total: usize,
+    ) -> TaskResult {
+        let mut result = TaskResult {
+            name: submission.name.clone(),
+            model: model.to_string(),
+            run_num: 0,
+            ..Default::default()
+        };
+
+        let task_samples = if submission.samples <= 1 {
+            1
+        } else {
+            submission.samples
+        };
+
+        let expected_evals: i32 = submission
+            .rubrics
+            .iter()
+            .map(|rubric| match &rubric.grader {
+                GraderSpec::Llm { samples } => {
+                    let grader_samples = if *samples <= 1 { 1 } else { *samples };
+                    task_samples * grader_samples
+                }
+                _ => task_samples,
+            })
+            .sum();
+
+        let report_progress = |gens: usize, evals: usize| {
+            if let Some(ref cb) = self.on_progress {
+                cb(ExecutorProgress {
+                    generations_complete: gens,
+                    generations_total,
+                    evaluations_complete: evals,
+                    evaluations_total,
+                });
+            }
+        };
+
+        if submission.samples > 1 {
+            match self.generate_multi(model, &submission.prompt, submission.samples) {
+                Ok((outputs, generation_id)) => {
+                    result.generation_id = generation_id;
+
+                    for _ in 0..task_samples {
+                        generations_done.fetch_add(1, Ordering::SeqCst);
+                    }
+                    report_progress(
+                        generations_done.load(Ordering::SeqCst),
+                        evaluations_done.load(Ordering::SeqCst),
+                    );
+
+                    if !outputs.is_empty() {
+                        result.output = outputs[0].clone();
+                    }
+
+                    let on_eval = || {
+                        evaluations_done.fetch_add(1, Ordering::SeqCst);
+                        report_progress(
+                            generations_done.load(Ordering::SeqCst),
+                            evaluations_done.load(Ordering::SeqCst),
+                        );
+                    };
+
+                    result.scores = self.grade_multi(submission, &outputs, Some(&on_eval));
+                }
+                Err(e) => {
+                    result.error = Some(e.to_string());
+                    for _ in 0..task_samples {
+                        generations_done.fetch_add(1, Ordering::SeqCst);
+                    }
+                    for _ in 0..expected_evals {
+                        evaluations_done.fetch_add(1, Ordering::SeqCst);
+                    }
+                    report_progress(
+                        generations_done.load(Ordering::SeqCst),
+                        evaluations_done.load(Ordering::SeqCst),
+                    );
+                }
+            }
+        } else {
+            match self.generate(model, &submission.prompt) {
+                Ok((output, generation_id)) => {
+                    result.generation_id = generation_id;
+                    result.output = output.clone();
+
+                    generations_done.fetch_add(1, Ordering::SeqCst);
+                    report_progress(
+                        generations_done.load(Ordering::SeqCst),
+                        evaluations_done.load(Ordering::SeqCst),
+                    );
+
+                    let on_eval = || {
+                        evaluations_done.fetch_add(1, Ordering::SeqCst);
+                        report_progress(
+                            generations_done.load(Ordering::SeqCst),
+                            evaluations_done.load(Ordering::SeqCst),
+                        );
+                    };
+
+                    result.scores = self.grade_single(submission, &output, Some(&on_eval));
+                }
+                Err(e) => {
+                    result.error = Some(e.to_string());
+                    generations_done.fetch_add(1, Ordering::SeqCst);
+                    for _ in 0..expected_evals {
+                        evaluations_done.fetch_add(1, Ordering::SeqCst);
+                    }
+                    report_progress(
+                        generations_done.load(Ordering::SeqCst),
+                        evaluations_done.load(Ordering::SeqCst),
+                    );
+                }
+            }
+        }
+
+        result
+    }
+
+    fn generate(&self, model: &str, prompt: &str) -> Result<(String, String), crate::ClientError> {
+        crate::generate_text_with_generation_id(self.client.as_ref(), model, prompt)
+    }
+
+    fn generate_multi(
+        &self,
+        model: &str,
+        prompt: &str,
+        n: i32,
+    ) -> Result<(Vec<String>, String), crate::ClientError> {
+        if n <= 1 {
+            let (output, gen_id) = self.generate(model, prompt)?;
+            return Ok((vec![output], gen_id));
+        }
+        crate::generate_text_multi_with_generation_id(self.client.as_ref(), model, prompt, n)
+    }
+
+    fn grade_single(
+        &self,
+        submission: &TaskSubmission,
+        output: &str,
+        on_evaluation: Option<&dyn Fn()>,
+    ) -> Vec<Score> {
+        submission
+            .rubrics
+            .iter()
+            .map(|rubric| {
+                let score = self.grade_rubric(rubric, output, on_evaluation);
+                score
+            })
+            .collect()
+    }
+
+    fn grade_multi(
+        &self,
+        submission: &TaskSubmission,
+        outputs: &[String],
+        on_evaluation: Option<&dyn Fn()>,
+    ) -> Vec<Score> {
+        if outputs.is_empty() {
+            return vec![];
+        }
+
+        if outputs.len() == 1 {
+            return self.grade_single(submission, &outputs[0], on_evaluation);
+        }
+
+        let all_scores: Vec<Vec<Score>> = outputs
+            .iter()
+            .map(|output| self.grade_single(submission, output, on_evaluation))
+            .collect();
+
+        submission
+            .rubrics
+            .iter()
+            .enumerate()
+            .map(|(rubric_idx, rubric)| {
+                let mut pass_count = 0;
+                let mut first_reasoning = String::new();
+                let mut grader_type = String::new();
+                let mut grader_model = String::new();
+
+                for (output_idx, scores) in all_scores.iter().enumerate() {
+                    if rubric_idx < scores.len() {
+                        let s = &scores[rubric_idx];
+                        if s.passed {
+                            pass_count += 1;
+                        }
+                        if output_idx == 0 {
+                            first_reasoning = s.reasoning.clone();
+                            grader_type = s.grader_type.clone();
+                            grader_model = s.grader_model.clone();
+                        }
+                    }
+                }
+
+                let stats = crate::calc_pass_stats(pass_count, outputs.len() as i32);
+                Score {
+                    rubric_name: rubric.name.clone(),
+                    passed: stats.pass_rate >= 0.5,
+                    value: if stats.pass_rate >= 0.5 { 1 } else { 0 },
+                    reasoning: first_reasoning,
+                    grader_type,
+                    grader_model,
+                    pass_rate: stats.pass_rate,
+                    samples: stats.samples,
+                    standard_deviation: stats.standard_deviation,
+                    variance: stats.variance,
+                    confidence_interval: stats.confidence_interval,
+                    pass_count: stats.pass_count,
+                    fail_count: stats.fail_count,
+                }
+            })
+            .collect()
+    }
+
+    fn grade_rubric(
+        &self,
+        rubric: &RubricSpec,
+        output: &str,
+        on_evaluation: Option<&dyn Fn()>,
+    ) -> Score {
+        match &rubric.grader {
+            GraderSpec::FormatValidator(validator_type) => {
+                let (passed, reasoning) = run_format_validator(validator_type, output);
+                if let Some(cb) = on_evaluation {
+                    cb();
+                }
+                Score {
+                    rubric_name: rubric.name.clone(),
+                    passed,
+                    value: if passed { 1 } else { 0 },
+                    reasoning,
+                    grader_type: "format_validator".to_string(),
+                    ..Default::default()
+                }
+            }
+            GraderSpec::Llm { samples } => {
+                let internal_rubric = crate::Rubric {
+                    name: rubric.name.clone(),
+                    description: rubric.description.clone(),
+                    grader: crate::GraderType::Llm { samples: *samples },
+                };
+                crate::grade_with_llm(
+                    self.client.as_ref(),
+                    &self.grader_model,
+                    &internal_rubric,
+                    output,
+                    None,
+                    on_evaluation,
+                )
+            }
+        }
+    }
+}
+
+fn run_format_validator(validator_type: &FormatValidatorType, output: &str) -> (bool, String) {
+    match validator_type {
+        FormatValidatorType::NonEmpty => is_non_empty(output),
+        FormatValidatorType::MdgenFormat => mdgen_format_validator(output),
+    }
+}
+
+fn mdgen_format_validator(output: &str) -> (bool, String) {
+    let result = grade(
+        output,
+        vec![
+            Box::new(|node| {
+                let headings = find_headings(node);
+                if headings.len() >= 2 {
+                    vec![CheckResult::pass(1, "has at least 2 sections")]
+                } else {
+                    vec![CheckResult::fail(
+                        1,
+                        format!("expected at least 2 sections, got {}", headings.len()),
+                    )]
+                }
+            }),
+            Box::new(|node| {
+                find_headings(node)
+                    .iter()
+                    .enumerate()
+                    .map(|(i, h)| {
+                        if h.depth == 1 {
+                            CheckResult::pass(1, format!("section {} is h1", i + 1))
+                        } else {
+                            CheckResult::fail(
+                                1,
+                                format!("section {}: expected h1, got h{}", i + 1, h.depth),
+                            )
+                        }
+                    })
+                    .collect()
+            }),
+            Box::new(|node| {
+                let lists = find_lists(node);
+                if lists.is_empty() {
+                    return vec![CheckResult::fail(1, "no lists found")];
+                }
+                lists
+                    .iter()
+                    .enumerate()
+                    .map(|(i, l)| {
+                        if !l.ordered {
+                            CheckResult::pass(1, format!("list {} is unordered", i + 1))
+                        } else {
+                            CheckResult::fail(
+                                1,
+                                format!("list {}: expected unordered, got ordered", i + 1),
+                            )
+                        }
+                    })
+                    .collect()
+            }),
+        ],
+    );
+
+    (result.score >= 0.8, result.summary())
+}
+
+impl TaskResult {
+    pub fn all_passed(&self) -> bool {
+        if self.error.is_some() {
+            return false;
+        }
+        self.scores.iter().all(|s| s.passed)
+    }
+
+    pub fn tally_score(&self) -> (i32, i32) {
+        let total = self.scores.len() as i32;
+        let passed = self.scores.iter().filter(|s| s.passed).count() as i32;
+        (passed, total)
+    }
+}

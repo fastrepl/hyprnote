@@ -1,10 +1,11 @@
 import { arch, platform } from "@tauri-apps/plugin-os";
-import { memo, useEffect, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo } from "react";
 
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
 import { usePermissions } from "../../hooks/use-permissions";
 import { Route } from "../../routes/app/onboarding/_layout.index";
+import { commands } from "../../types/tauri.gen";
 import { getNext, type StepProps } from "./config";
 
 export const STEP_ID_WELCOME = "welcome" as const;
@@ -29,10 +30,30 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
     accessibilityPermissionStatus.data === "authorized";
 
   useEffect(() => {
+    const fetchLocal = async () => {
+      const local = await commands
+        .getOnboardingLocal()
+        .then((result) => result.status === "ok" && result.data);
+
+      onNavigate({ ...search, local, step: getNext(search)! });
+    };
+
     if (hasAnyPermissionGranted) {
-      onNavigate({ ...search, step: getNext(search)! });
+      void fetchLocal();
     }
   }, [hasAnyPermissionGranted, onNavigate, search]);
+
+  const handleClickCloud = useCallback(async () => {
+    await commands.setOnboardingLocal(false);
+    const next = { ...search, local: false };
+    onNavigate({ ...next, step: getNext(next)! });
+  }, [onNavigate, search]);
+
+  const handleClickLocal = useCallback(async () => {
+    await commands.setOnboardingLocal(true);
+    const next = { ...search, local: true };
+    onNavigate({ ...next, step: getNext(next)! });
+  }, [onNavigate, search]);
 
   return (
     <>
@@ -53,7 +74,7 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
       </TextAnimate>
 
       <button
-        onClick={() => onNavigate({ ...search, step: getNext(search)! })}
+        onClick={handleClickCloud}
         className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
       >
         Get Started
@@ -62,10 +83,7 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
       {isAppleSilicon && (
         <button
           className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
-          onClick={() => {
-            const next = { ...search, local: true };
-            onNavigate({ ...next, step: getNext(next)! });
-          }}
+          onClick={handleClickLocal}
         >
           Proceed without account
         </button>

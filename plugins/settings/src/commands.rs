@@ -2,8 +2,11 @@ use crate::SettingsPluginExt;
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) fn path<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> String {
-    app.settings().path().to_string_lossy().to_string()
+pub(crate) fn path<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
+    app.settings()
+        .path()
+        .map(|p| p.to_string_lossy().to_string())
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

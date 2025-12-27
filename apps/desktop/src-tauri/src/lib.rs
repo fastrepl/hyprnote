@@ -6,7 +6,6 @@ mod supervisor;
 use ext::*;
 use store::*;
 
-use tauri_plugin_path2::Path2PluginExt;
 use tauri_plugin_permissions::{Permission, PermissionsPluginExt};
 use tauri_plugin_updater2::Updater2PluginExt;
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
@@ -176,12 +175,16 @@ pub async fn main() {
         None => {}
         Some(false) => app.set_onboarding_needed(false).unwrap(),
         Some(true) => {
-            app.set_onboarding_needed(true).unwrap();
+            use tauri_plugin_settings::SettingsPluginExt;
+            use tauri_plugin_store2::Store2PluginExt;
 
-            if let Ok(base) = app.path2().base() {
-                let _ = std::fs::remove_file(base.join(tauri_plugin_settings::FILENAME));
-                let _ = std::fs::remove_file(base.join(tauri_plugin_store2::FILENAME));
+            if let Ok(path) = app.settings().path() {
+                let _ = std::fs::remove_file(path);
             }
+            if let Ok(path) = app.store2().path() {
+                let _ = std::fs::remove_file(path);
+            }
+            let _ = app.set_onboarding_needed(true);
 
             let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {

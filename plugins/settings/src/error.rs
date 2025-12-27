@@ -6,6 +6,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("settings: {0}")]
     Settings(String),
+    #[error(transparent)]
+    Path2Error(#[from] tauri_plugin_path2::Error),
 }
 
 impl Serialize for Error {

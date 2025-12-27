@@ -1,0 +1,28 @@
+[package]
+name = "move"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "hypr_move"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+
+[features]
+specta = ["dep:specta"]
+
+[dependencies.specta]
+workspace = true
+optional = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+accessibility-sys = "0.2.0"
+core-foundation = "0.10"
+core-foundation-sys = "0.8"
+macos-accessibility-client = "0.0.1"
+objc2 = { workspace = true }
+objc2-app-kit = { workspace = true }
+objc2-core-foundation = { workspace = true }
+objc2-foundation = { workspace = true }

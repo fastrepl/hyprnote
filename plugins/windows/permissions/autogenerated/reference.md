@@ -24,6 +24,84 @@ Default permissions for the plugin
 <tr>
 <td>
 
+`windows:allow-check-window-move-permissions`
+
+</td>
+<td>
+
+Enables the check_window_move_permissions command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-check-window-move-permissions`
+
+</td>
+<td>
+
+Denies the check_window_move_permissions command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:allow-get-focused-window-info`
+
+</td>
+<td>
+
+Enables the get_focused_window_info command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-get-focused-window-info`
+
+</td>
+<td>
+
+Denies the get_focused_window_info command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:allow-move-external-window`
+
+</td>
+<td>
+
+Enables the move_external_window command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-move-external-window`
+
+</td>
+<td>
+
+Denies the move_external_window command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `windows:allow-remove-fake-window`
 
 </td>
@@ -50,6 +128,32 @@ Denies the remove_fake_window command without any pre-configured scope.
 <tr>
 <td>
 
+`windows:allow-request-window-move-permissions`
+
+</td>
+<td>
+
+Enables the request_window_move_permissions command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-request-window-move-permissions`
+
+</td>
+<td>
+
+Denies the request_window_move_permissions command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `windows:allow-set-fake-window-bounds`
 
 </td>
@@ -69,6 +173,32 @@ Enables the set_fake_window_bounds command without any pre-configured scope.
 <td>
 
 Denies the set_fake_window_bounds command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:allow-tile-with-external-window`
+
+</td>
+<td>
+
+Enables the tile_with_external_window command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-tile-with-external-window`
+
+</td>
+<td>
+
+Denies the tile_with_external_window command without any pre-configured scope.
 
 </td>
 </tr>

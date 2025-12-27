@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-tile-with-external-window"
+description = "Enables the tile_with_external_window command without any pre-configured scope."
+commands.allow = ["tile_with_external_window"]
+
+[[permission]]
+identifier = "deny-tile-with-external-window"
+description = "Denies the tile_with_external_window command without any pre-configured scope."
+commands.deny = ["tile_with_external_window"]

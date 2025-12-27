@@ -1,35 +1,56 @@
 on:
   workflow_dispatch:
+    inputs:
+      models:
+        description: 'Comma-separated list of models to evaluate'
+        required: false
+        default: ''
+      tasks:
+        description: 'Comma-separated list of tasks to run'
+        required: false
+        default: ''
+      timeout_seconds:
+        description: 'Timeout in seconds'
+        required: false
+        default: '300'
 
 jobs:
-  go-test:
+  eval-run:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
         with:
-          go-version: "1.25.5"
-          cache: true
+          workspaces: "crates/evals -> target"
 
       - name: Cache eval responses
         uses: actions/cache@v4
         with:
           path: ~/.cache/hyprnote/eval.cache
-          key: eval-cache-${{ runner.os }}-${{ hashFiles('evals/**/*.go') }}
+          key: eval-cache-${{ runner.os }}-${{ hashFiles('crates/evals/**/*.rs') }}
           restore-keys: |
             eval-cache-${{ runner.os }}-
 
-      - run: go mod tidy
+      - name: Build evals
+        run: cargo build -p evals --release
 
-      - env:
-          EVALS: ${{ inputs.goevals }}
-          EVALS_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+      - name: Run evals
+        env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENROUTER_MODEL: ${{ inputs.model }}
-        run: go test ./evals/... -count=1 -json > test-results.json
+        run: |
+          ARGS=""
+          if [ -n "${{ inputs.models }}" ]; then
+            ARGS="$ARGS --models ${{ inputs.models }}"
+          fi
+          if [ -n "${{ inputs.tasks }}" ]; then
+            ARGS="$ARGS --tasks ${{ inputs.tasks }}"
+          fi
+          ./target/release/evals run $ARGS --output json > eval-results.json
 
       - id: timestamp
         if: always()
@@ -38,5 +59,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ steps.timestamp.outputs.value }}
-          path: test-results.json
+          name: eval-results-${{ steps.timestamp.outputs.value }}
+          path: eval-results.json

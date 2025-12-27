@@ -5333,20 +5333,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "eval-cli"
-version = "0.1.0"
-dependencies = [
- "clap",
- "clap_complete",
- "comfy-table",
- "evals",
- "indicatif",
- "serde_json",
- "template-app",
-]
-
-[[package]]
-name = "evals"
+name = "eval"
 version = "0.1.0"
 dependencies = [
  "backon",
@@ -5360,6 +5347,19 @@ dependencies = [
  "template-eval",
  "thiserror 2.0.17",
  "ureq 3.1.4",
+]
+
+[[package]]
+name = "eval-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "clap_complete",
+ "comfy-table",
+ "eval",
+ "indicatif",
+ "serde_json",
+ "template-app",
 ]
 
 [[package]]

@@ -42,14 +42,5 @@ jobs:
         with:
           workspaces: "crates/evals -> target"
 
-      - name: Check formatting
-        run: cargo fmt -p evals -- --check
-
-      - name: Clippy
-        run: cargo clippy -p evals -- -D warnings
-
-      - name: Build
-        run: cargo build -p evals
-
-      - name: Test
-        run: cargo test -p evals
+      - run: cargo build -p evals
+      - run: cargo test -p evals

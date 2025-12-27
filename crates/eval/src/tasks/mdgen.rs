@@ -1,37 +1,6 @@
-use std::collections::HashMap;
-
 use crate::{
-    FormatSpec, GraderType, HeaderSpec, Inputs, Rubric, SectionSpec, Task, is_non_empty,
-    match_format,
+    FormatSpec, GraderType, HeaderSpec, Rubric, SectionSpec, Task, is_non_empty, match_format,
 };
-
-#[derive(Clone)]
-pub struct MDGenInputs {
-    pub topic: String,
-}
-
-impl Inputs for MDGenInputs {
-    fn to_map(&self) -> HashMap<String, serde_json::Value> {
-        let mut map = HashMap::new();
-        map.insert(
-            "topic".to_string(),
-            serde_json::Value::String(self.topic.clone()),
-        );
-        map
-    }
-}
-
-const MDGEN_TEMPLATE: &str = r#"You are a careful technical writer.
-
-Write a short Markdown document about "{{ topic }}".
-
-Requirements:
-
-- Must start with a level-1 heading (# ...)
-- Must include a bullet list (at least 3 items)
-
-Only output Markdown. No surrounding explanations.
-"#;
 
 fn format_grader(output: &str) -> (bool, String) {
     let spec = FormatSpec {
@@ -56,13 +25,17 @@ fn format_grader(output: &str) -> (bool, String) {
 }
 
 pub fn mdgen_task() -> Task {
+    use hypr_template_eval::{MdgenSystem, Template};
+    let template = MdgenSystem {
+        topic: "Go tests for LLM evaluation".to_string(),
+    };
+    let prompt = Template::render(&template).expect("Failed to render template");
+
     Task {
         name: "mdgen".to_string(),
         template_path: "templates/mdgen.jinja".to_string(),
-        template_content: Some(MDGEN_TEMPLATE.to_string()),
-        inputs: Some(Box::new(MDGenInputs {
-            topic: "Go tests for LLM evaluation".to_string(),
-        })),
+        template_content: Some(prompt),
+        inputs: None,
         samples: 3,
         rubrics: vec![
             Rubric {

@@ -1,9 +1,4 @@
-mod filters;
+mod mdgen;
 
-pub use filters::*;
-
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-    #[error(transparent)]
-    AskamaError(#[from] askama::Error),
-}
+pub use askama::Template;
+pub use mdgen::*;

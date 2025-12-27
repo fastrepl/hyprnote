@@ -1,5 +1,5 @@
 [package]
-name = "evals"
+name = "eval"
 version = "0.1.0"
 edition = "2021"
 description = "LLM evaluation runner for Hyprnote"

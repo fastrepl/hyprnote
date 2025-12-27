@@ -15,5 +15,5 @@ comfy-table = "7"
 indicatif = "0.17"
 serde_json = { workspace = true }
 
-evals = { path = "../../crates/evals" }
+hypr-eval = { workspace = true }
 hypr-template-app = { workspace = true }

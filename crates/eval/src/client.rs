@@ -9,7 +9,6 @@ use crate::cache::CachingClient;
 const OPENROUTER_BASE_URL: &str = "https://openrouter.ai/api/v1";
 const DEFAULT_TEMPERATURE: f64 = 0.2;
 const DEFAULT_RETRY_INTERVAL_MS: u64 = 500;
-const DEFAULT_MAX_ELAPSED_SECS: u64 = 30;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ClientError {

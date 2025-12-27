@@ -6,7 +6,7 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 mod report;
 
-use evals::{OpenRouterClient, ProgressInfo, Runner, Task, parse_config};
+use hypr_eval::{OpenRouterClient, ProgressInfo, Runner, Task, parse_config};
 use report::{render_json, render_results};
 
 static DEFAULT_MODELS: &[&str] = &[
@@ -96,7 +96,7 @@ fn run_evals(
         return Err("OPENROUTER_API_KEY environment variable is not set".to_string());
     }
 
-    let all_tasks = evals::tasks::all_tasks();
+    let all_tasks = hypr_eval::tasks::all_tasks();
     let selected_tasks = filter_tasks(&all_tasks, task_filter.as_deref());
 
     if selected_tasks.is_empty() {
@@ -173,8 +173,8 @@ fn filter_tasks(all_tasks: &[Task], filter: Option<&[String]>) -> Vec<Task> {
     }
 }
 
-fn resolve_usage(client: &OpenRouterClient, results: &mut [evals::Result]) {
-    use evals::UsageResolver;
+fn resolve_usage(client: &OpenRouterClient, results: &mut [hypr_eval::Result]) {
+    use hypr_eval::UsageResolver;
 
     for result in results.iter_mut() {
         if result.generation_id.is_empty() || !result.error.is_empty() {
@@ -188,7 +188,7 @@ fn resolve_usage(client: &OpenRouterClient, results: &mut [evals::Result]) {
 }
 
 fn list_tasks() {
-    for task in evals::tasks::all_tasks() {
+    for task in hypr_eval::tasks::all_tasks() {
         println!("{}", task.name);
         for rubric in &task.rubrics {
             println!("  - {}: {}", rubric.name, rubric.description);

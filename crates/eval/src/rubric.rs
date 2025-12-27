@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    ChatCompleter, ConfidenceInterval, PassStats, aggregate_grader_responses, calc_pass_stats,
+    ChatCompleter, ConfidenceInterval, aggregate_grader_responses,
     generate_structured_grader_response, generate_structured_grader_response_multi,
 };
 

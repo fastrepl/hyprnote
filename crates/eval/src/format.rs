@@ -200,8 +200,8 @@ fn extract_text_from_children(children: &[markdown::mdast::Node]) -> String {
     result
 }
 
-pub fn format_matcher_grader(spec: FormatSpec) -> fn(&str) -> (bool, String) {
-    fn grader_fn(output: &str) -> (bool, String) {
+pub fn format_matcher_grader(_spec: FormatSpec) -> fn(&str) -> (bool, String) {
+    fn grader_fn(_output: &str) -> (bool, String) {
         (false, "format grader requires spec".to_string())
     }
     grader_fn

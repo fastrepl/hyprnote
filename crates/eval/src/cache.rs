@@ -104,14 +104,6 @@ impl CachingClient {
     }
 }
 
-fn hex_encode(bytes: impl AsRef<[u8]>) -> String {
-    bytes
-        .as_ref()
-        .iter()
-        .map(|b| format!("{:02x}", b))
-        .collect()
-}
-
 mod hex {
     pub fn encode(bytes: impl AsRef<[u8]>) -> String {
         bytes

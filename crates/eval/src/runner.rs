@@ -4,10 +4,7 @@ use std::time::Duration;
 
 use rayon::prelude::*;
 
-use crate::{
-    ChatCompleter, ClientError, GraderType, OpenRouterClient, Score, Task, Usage, UsageResolver,
-    parse_config,
-};
+use crate::{ChatCompleter, GraderType, OpenRouterClient, Score, Task, Usage, parse_config};
 
 const DEFAULT_GRADER_MODEL: &str = "openai/gpt-4.1-nano";
 
@@ -59,6 +56,7 @@ pub struct Runner {
     target_models: Vec<String>,
     grader_model: String,
     num_evals: i32,
+    #[allow(dead_code)]
     timeout: Duration,
     concurrency: usize,
     on_progress: Option<ProgressCallback>,

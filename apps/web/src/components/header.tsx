@@ -39,7 +39,11 @@ const featuresList = [
   { to: "/product/ai-assistant", label: "AI Assistant" },
   { to: "/product/mini-apps", label: "Mini Apps" },
   { to: "/gallery", label: "Templates & Shortcuts" },
-  { to: "/product/workflows", label: "Workflows", badge: "Coming Soon" },
+  {
+    to: "/product/integrations",
+    label: "Integrations",
+    badge: "Coming Soon",
+  },
 ];
 
 export function Header() {
@@ -57,7 +61,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50 h-[69px]">
+      <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50 h-17.25">
         <div
           className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 h-full`}
         >
@@ -228,7 +232,7 @@ function ProductDropdown({
         {isProductOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       {isProductOpen && (
-        <div className="absolute top-full left-0 pt-2 w-[520px] z-50">
+        <div className="absolute top-full left-0 pt-2 w-130 z-50">
           <div className="bg-white border border-neutral-200 rounded-sm shadow-lg py-2">
             <div className="px-3 py-2 grid grid-cols-2 gap-x-6">
               <ProductsList onClose={() => setIsProductOpen(false)} />
@@ -252,9 +256,11 @@ function ProductsList({ onClose }: { onClose: () => void }) {
           key={link.to}
           to={link.to}
           onClick={onClose}
-          className="py-2 text-sm text-neutral-700 flex items-center justify-between hover:underline decoration-dotted"
+          className="py-2 text-sm text-neutral-700 flex items-center justify-between group"
         >
-          <span>{link.label}</span>
+          <span className="group-hover:underline decoration-dotted">
+            {link.label}
+          </span>
           {link.badge && (
             <span className="text-[10px] bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-0.5 rounded-full">
               {link.badge}
@@ -277,9 +283,11 @@ function FeaturesList({ onClose }: { onClose: () => void }) {
           key={link.to}
           to={link.to}
           onClick={onClose}
-          className="py-2 text-sm text-neutral-700 flex items-center justify-between hover:underline decoration-dotted"
+          className="py-2 text-sm text-neutral-700 flex items-center justify-between group"
         >
-          <span>{link.label}</span>
+          <span className="group-hover:underline decoration-dotted">
+            {link.label}
+          </span>
           {link.badge && (
             <span className="text-[10px] bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-0.5 rounded-full">
               {link.badge}
@@ -444,7 +452,7 @@ function MobileMenu({
         className="fixed inset-0 z-40 sm:hidden"
         onClick={() => setIsMenuOpen(false)}
       />
-      <div className="fixed top-[69px] left-0 right-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] z-50 sm:hidden animate-in slide-in-from-top duration-300 max-h-[calc(100vh-69px)] overflow-y-auto">
+      <div className="fixed top-17.25 left-0 right-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] z-50 sm:hidden animate-in slide-in-from-top duration-300 max-h-[calc(100vh-69px)] overflow-y-auto">
         <nav className={`${maxWidthClass} mx-auto px-4 py-6`}>
           <div className="space-y-6">
             <MobileMenuLinks

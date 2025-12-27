@@ -80,7 +80,7 @@ export function getSitemap(): Sitemap<TRoutes> {
         priority: 0.8,
         changeFrequency: "monthly",
       },
-      "/product/workflows": {
+      "/product/integrations": {
         priority: 0.8,
         changeFrequency: "monthly",
       },

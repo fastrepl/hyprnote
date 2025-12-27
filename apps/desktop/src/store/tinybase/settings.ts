@@ -77,6 +77,14 @@ export const SETTINGS_MAPPING = {
       type: "boolean",
       path: ["data", "auto_export"],
     },
+    auto_export_notes: {
+      type: "boolean",
+      path: ["data", "auto_export_notes"],
+    },
+    auto_export_transcript: {
+      type: "boolean",
+      path: ["data", "auto_export_transcript"],
+    },
   },
   tables: {
     ai_providers: {

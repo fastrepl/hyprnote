@@ -11,6 +11,28 @@ export function Export() {
     settings.STORE_ID,
   );
 
+  const autoExportNotes = settings.UI.useValue(
+    "auto_export_notes",
+    settings.STORE_ID,
+  );
+  const setAutoExportNotes = settings.UI.useSetValueCallback(
+    "auto_export_notes",
+    (value: boolean) => value,
+    [],
+    settings.STORE_ID,
+  );
+
+  const autoExportTranscript = settings.UI.useValue(
+    "auto_export_transcript",
+    settings.STORE_ID,
+  );
+  const setAutoExportTranscript = settings.UI.useSetValueCallback(
+    "auto_export_transcript",
+    (value: boolean) => value,
+    [],
+    settings.STORE_ID,
+  );
+
   return (
     <div className="space-y-6 mt-4">
       <div className="flex flex-col gap-3">
@@ -34,6 +56,38 @@ export function Export() {
               onCheckedChange={(checked) => setAutoExport(checked)}
             />
           </div>
+
+          {autoExport && (
+            <div className="flex flex-col gap-3 pl-4 border-l-2 border-neutral-200">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium">Export Notes</span>
+                  <span className="text-xs text-neutral-500">
+                    Export summaries and memos as markdown files.
+                  </span>
+                </div>
+                <Switch
+                  checked={autoExportNotes !== false}
+                  onCheckedChange={(checked) => setAutoExportNotes(checked)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium">Export Transcript</span>
+                  <span className="text-xs text-neutral-500">
+                    Export transcripts as VTT subtitle files.
+                  </span>
+                </div>
+                <Switch
+                  checked={autoExportTranscript !== false}
+                  onCheckedChange={(checked) =>
+                    setAutoExportTranscript(checked)
+                  }
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -51,7 +51,7 @@ describe("jsonPersister roundtrip", () => {
     store.setValues(values);
     const result = storeToSettings(store);
 
-    expect(result).toEqual(original);
+    expect(result).toEqual({ ...original, data: {} });
   });
 
   test("store -> settings -> store preserves all data", () => {
@@ -118,6 +118,7 @@ describe("jsonPersister roundtrip", () => {
       ai: { llm: {}, stt: {} },
       notification: {},
       general: {},
+      data: {},
     });
   });
 

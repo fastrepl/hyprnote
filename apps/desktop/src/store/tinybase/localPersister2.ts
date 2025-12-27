@@ -3,14 +3,24 @@ import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import { commands, type JsonValue } from "@hypr/plugin-export";
+import { type VttWord } from "@hypr/plugin-listener2";
 import { commands as path2Commands } from "@hypr/plugin-path2";
 import { type EnhancedNote, type Session } from "@hypr/store";
 import { isValidTiptapContent } from "@hypr/tiptap/shared";
 
+export type AutoExportOptions = {
+  notes?: () => boolean;
+  transcript?: () => boolean;
+};
+
 export function createLocalPersister2<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   handleSyncToSession: (sessionId: string, content: string) => void,
-  isEnabled?: { notes?: () => boolean },
+  handlePersistTranscript?: (
+    sessionId: string,
+    words: VttWord[],
+  ) => Promise<void>,
+  isEnabled?: AutoExportOptions,
 ) {
   // https://tinybase.org/api/persisters/functions/creation/createcustompersister
   return createCustomPersister(
@@ -97,26 +107,89 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
         batchItems.push([parsed as JsonValue, `${sessionDir}/_memo.md`]);
       }
 
-      if (batchItems.length === 0) {
-        return;
+      if (batchItems.length > 0) {
+        await Promise.all(
+          [...dirsToCreate].map(async (dir) => {
+            if (!(await exists(dir))) {
+              await mkdir(dir, { recursive: true });
+            }
+          }),
+        );
+
+        const result = await commands.exportTiptapJsonToMdBatch(batchItems);
+        if (result.status === "error") {
+          console.error("Failed to export batch:", result.error);
+        }
       }
 
-      await Promise.all(
-        [...dirsToCreate].map(async (dir) => {
-          if (!(await exists(dir))) {
-            await mkdir(dir, { recursive: true });
+      const shouldExportTranscript =
+        handlePersistTranscript &&
+        (!isEnabled?.transcript || isEnabled.transcript());
+      if (shouldExportTranscript) {
+        const sessionIds = new Set<string>();
+        Object.entries(tables?.transcripts ?? {}).forEach(([_id, row]) => {
+          // @ts-ignore
+          const sessionId = row.session_id as string;
+          if (sessionId) {
+            sessionIds.add(sessionId);
           }
-        }),
-      );
+        });
 
-      const result = await commands.exportTiptapJsonToMdBatch(batchItems);
-      if (result.status === "error") {
-        console.error("Failed to export batch:", result.error);
+        const transcriptPromises: Promise<void>[] = [];
+        for (const sessionId of sessionIds) {
+          const words = getWordsForSession(store, sessionId);
+          if (words.length > 0) {
+            transcriptPromises.push(handlePersistTranscript(sessionId, words));
+          }
+        }
+
+        if (transcriptPromises.length > 0) {
+          await Promise.all(transcriptPromises);
+        }
       }
     },
     (listener) => setInterval(listener, 1000),
     (interval) => clearInterval(interval),
   );
+}
+
+function getWordsForSession<Schemas extends OptionalSchemas>(
+  store: MergeableStore<Schemas>,
+  sessionId: string,
+): VttWord[] {
+  const words: VttWord[] = [];
+
+  // @ts-ignore - accessing tables dynamically
+  const transcriptsTable = store.getTable("transcripts") ?? {};
+  const transcriptIds = new Set<string>();
+
+  for (const [transcriptId, transcript] of Object.entries(transcriptsTable)) {
+    // @ts-ignore
+    if (transcript.session_id === sessionId) {
+      transcriptIds.add(transcriptId);
+    }
+  }
+
+  // @ts-ignore - accessing tables dynamically
+  const wordsTable = store.getTable("words") ?? {};
+
+  for (const [_wordId, word] of Object.entries(wordsTable)) {
+    // @ts-ignore
+    if (transcriptIds.has(word.transcript_id)) {
+      words.push({
+        // @ts-ignore
+        text: word.text as string,
+        // @ts-ignore
+        start_ms: word.start_ms as number,
+        // @ts-ignore
+        end_ms: word.end_ms as number,
+        // @ts-ignore
+        speaker: (word.speaker as string) ?? null,
+      });
+    }
+  }
+
+  return words.sort((a, b) => a.start_ms - b.start_ms);
 }
 
 function sanitizeFilename(name: string): string {

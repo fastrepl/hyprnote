@@ -14,6 +14,10 @@ import {
 } from "tinybase/with-schemas";
 
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
+import {
+  commands as listener2Commands,
+  type VttWord,
+} from "@hypr/plugin-listener2";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { SCHEMA, type Schemas } from "@hypr/store";
 import { format } from "@hypr/utils";
@@ -169,7 +173,15 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           store.setPartialRow("sessions", sessionId, {
             enhanced_md: content,
           }),
-        { notes: () => settingsStore?.getValue("auto_export") === true },
+        saveTranscriptToFile,
+        {
+          notes: () =>
+            settingsStore?.getValue("auto_export") === true &&
+            settingsStore?.getValue("auto_export_notes") !== false,
+          transcript: () =>
+            settingsStore?.getValue("auto_export") === true &&
+            settingsStore?.getValue("auto_export_transcript") !== false,
+        },
       );
 
       return persister;
@@ -709,3 +721,25 @@ export const RELATIONSHIPS = {
   chatMessageToGroup: "chatMessageToGroup",
   enhancedNoteToSession: "enhancedNoteToSession",
 };
+
+async function saveTranscriptToFile(
+  sessionId: string,
+  words: VttWord[],
+): Promise<void> {
+  if (words.length === 0) {
+    return;
+  }
+
+  try {
+    const result = await listener2Commands.exportToVtt(sessionId, words);
+    if (result.status === "error") {
+      console.error(
+        "Failed to export transcript to VTT:",
+        sessionId,
+        result.error,
+      );
+    }
+  } catch (error) {
+    console.error("Failed to save transcript:", sessionId, error);
+  }
+}

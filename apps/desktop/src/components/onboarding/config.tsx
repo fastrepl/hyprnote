@@ -16,8 +16,8 @@ export type StepProps = {
 export function getNext(ctx: Search): Search["step"] | null {
   switch (ctx.step) {
     case STEP_ID_WELCOME:
-      if (ctx.local) return STEP_ID_CONFIGURE_NOTICE;
       if (ctx.platform === "macos") return STEP_ID_PERMISSIONS;
+      if (ctx.local) return STEP_ID_CONFIGURE_NOTICE;
       return STEP_ID_LOGIN;
     case STEP_ID_PERMISSIONS:
       return ctx.local ? STEP_ID_CONFIGURE_NOTICE : STEP_ID_LOGIN;

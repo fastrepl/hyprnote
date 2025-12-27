@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    is_non_empty, match_format, FormatSpec, GraderType, HeaderSpec, Inputs, Rubric, SectionSpec,
-    Task,
+    FormatSpec, GraderType, HeaderSpec, Inputs, Rubric, SectionSpec, Task, is_non_empty,
+    match_format,
 };
 
 #[derive(Clone)]
@@ -13,7 +13,10 @@ pub struct MDGenInputs {
 impl Inputs for MDGenInputs {
     fn to_map(&self) -> HashMap<String, serde_json::Value> {
         let mut map = HashMap::new();
-        map.insert("topic".to_string(), serde_json::Value::String(self.topic.clone()));
+        map.insert(
+            "topic".to_string(),
+            serde_json::Value::String(self.topic.clone()),
+        );
         map
     }
 }

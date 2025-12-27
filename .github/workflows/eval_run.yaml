@@ -2,17 +2,17 @@ on:
   workflow_dispatch:
     inputs:
       models:
-        description: 'Comma-separated list of models to evaluate'
+        description: "Comma-separated list of models to evaluate"
         required: false
-        default: ''
+        default: ""
       tasks:
-        description: 'Comma-separated list of tasks to run'
+        description: "Comma-separated list of tasks to run"
         required: false
-        default: ''
+        default: ""
       timeout_seconds:
-        description: 'Timeout in seconds'
+        description: "Timeout in seconds"
         required: false
-        default: '300'
+        default: "300"
 
 jobs:
   eval-run:

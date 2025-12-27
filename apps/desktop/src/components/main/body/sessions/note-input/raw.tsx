@@ -22,8 +22,8 @@ import * as main from "../../../../../store/tinybase/main";
 
 export const RawEditor = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string }
->(({ sessionId }, ref) => {
+  { sessionId: string; onNavigateToTitle?: () => void }
+>(({ sessionId, onNavigateToTitle }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
 
   const [initialContent, setInitialContent] =
@@ -106,6 +106,7 @@ export const RawEditor = forwardRef<
       handleChange={handleChange}
       mentionConfig={mentionConfig}
       placeholderComponent={Placeholder}
+      onNavigateToTitle={onNavigateToTitle}
     />
   );
 });

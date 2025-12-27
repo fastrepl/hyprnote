@@ -110,7 +110,7 @@ export function AccountSettings() {
         action={
           <button
             onClick={handleSignIn}
-            className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
+            className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
           >
             Get Started
           </button>

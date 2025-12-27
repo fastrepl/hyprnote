@@ -189,15 +189,15 @@ pub async fn main() {
             let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 let permissions = app_handle.permissions();
-                let _ = permissions.reset(Permission::Calendar).await;
-                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-                let _ = permissions.reset(Permission::Contacts).await;
-                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::Microphone).await;
                 tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::SystemAudio).await;
                 tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::Accessibility).await;
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                let _ = permissions.reset(Permission::Calendar).await;
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                let _ = permissions.reset(Permission::Contacts).await;
             });
         }
     }
@@ -273,6 +273,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::get_onboarding_needed::<tauri::Wry>,
             commands::set_onboarding_needed::<tauri::Wry>,
+            commands::get_onboarding_local::<tauri::Wry>,
+            commands::set_onboarding_local::<tauri::Wry>,
             commands::get_env::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)

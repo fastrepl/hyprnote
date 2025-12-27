@@ -6,18 +6,18 @@ import { cn } from "@hypr/utils";
 import { useAuth } from "../../../../auth";
 import { useConfigValues } from "../../../../config/use-config";
 import { useTabs } from "../../../../store/zustand/tabs";
-import { Banner } from "./component";
-import { createBannerRegistry, getBannerToShow } from "./registry";
-import { useDismissedBanners } from "./useDismissedBanners";
+import { Toast } from "./component";
+import { createToastRegistry, getToastToShow } from "./registry";
+import { useDismissedToasts } from "./useDismissedToasts";
 
-export function BannerArea({
+export function ToastArea({
   isProfileExpanded,
 }: {
   isProfileExpanded: boolean;
 }) {
   const auth = useAuth();
-  const { dismissBanner, isDismissed } = useDismissedBanners();
-  const shouldShowBanner = useShouldShowBanner(isProfileExpanded);
+  const { dismissToast, isDismissed } = useDismissedToasts();
+  const shouldShowToast = useShouldShowToast(isProfileExpanded);
 
   const isAuthenticated = !!auth?.session;
   const {
@@ -68,7 +68,7 @@ export function BannerArea({
 
   const registry = useMemo(
     () =>
-      createBannerRegistry({
+      createToastRegistry({
         isAuthenticated,
         hasLLMConfigured,
         hasSttConfigured,
@@ -90,22 +90,22 @@ export function BannerArea({
     ],
   );
 
-  const currentBanner = useMemo(
-    () => getBannerToShow(registry, isDismissed),
+  const currentToast = useMemo(
+    () => getToastToShow(registry, isDismissed),
     [registry, isDismissed],
   );
 
   const handleDismiss = useCallback(() => {
-    if (currentBanner) {
-      dismissBanner(currentBanner.id);
+    if (currentToast) {
+      dismissToast(currentToast.id);
     }
-  }, [currentBanner, dismissBanner]);
+  }, [currentToast, dismissToast]);
 
   return (
     <AnimatePresence mode="wait">
-      {shouldShowBanner && currentBanner ? (
+      {shouldShowToast && currentToast ? (
         <motion.div
-          key={currentBanner.id}
+          key={currentToast.id}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 16 }}
@@ -116,9 +116,9 @@ export function BannerArea({
           ])}
         >
           <div className="pointer-events-auto">
-            <Banner
-              banner={currentBanner}
-              onDismiss={currentBanner.dismissible ? handleDismiss : undefined}
+            <Toast
+              toast={currentToast}
+              onDismiss={currentToast.dismissible ? handleDismiss : undefined}
             />
           </div>
         </motion.div>
@@ -127,18 +127,18 @@ export function BannerArea({
   );
 }
 
-function useShouldShowBanner(isProfileExpanded: boolean) {
-  const BANNER_CHECK_DELAY_MS = 3000;
+function useShouldShowToast(isProfileExpanded: boolean) {
+  const TOAST_CHECK_DELAY_MS = 3000;
 
-  const [showBanner, setShowBanner] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowBanner(true);
-    }, BANNER_CHECK_DELAY_MS);
+      setShowToast(true);
+    }, TOAST_CHECK_DELAY_MS);
 
     return () => clearTimeout(timer);
   }, []);
 
-  return !isProfileExpanded && showBanner;
+  return !isProfileExpanded && showToast;
 }

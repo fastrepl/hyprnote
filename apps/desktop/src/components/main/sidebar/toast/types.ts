@@ -1,18 +1,18 @@
 import type { ReactNode } from "react";
 
-export type BannerAction = {
+export type ToastAction = {
   label: string;
   onClick: () => void | Promise<void>;
 };
 
-export type BannerType = {
+export type ToastType = {
   id: string;
   icon?: ReactNode;
   title?: string;
   description: ReactNode;
-  primaryAction?: BannerAction;
-  secondaryAction?: BannerAction;
+  primaryAction?: ToastAction;
+  secondaryAction?: ToastAction;
   dismissible: boolean;
 };
 
-export type BannerCondition = () => boolean;
+export type ToastCondition = () => boolean;

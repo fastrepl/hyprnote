@@ -2,13 +2,13 @@ import { X } from "lucide-react";
 
 import { cn } from "@hypr/utils";
 
-import type { BannerType } from "./types";
+import type { ToastType } from "./types";
 
-export function Banner({
-  banner,
+export function Toast({
+  toast,
   onDismiss,
 }: {
-  banner: BannerType;
+  toast: ToastType;
   onDismiss?: () => void;
 }) {
   return (
@@ -20,10 +20,10 @@ export function Banner({
           "bg-white border border-neutral-200 shadow-sm p-4",
         ])}
       >
-        {banner.dismissible && onDismiss && (
+        {toast.dismissible && onDismiss && (
           <button
             onClick={onDismiss}
-            aria-label="Dismiss banner"
+            aria-label="Dismiss toast"
             className={cn([
               "absolute top-1.5 right-1.5 size-6 flex items-center justify-center rounded",
               "opacity-0 group-hover:opacity-50 hover:!opacity-100",
@@ -35,34 +35,34 @@ export function Banner({
           </button>
         )}
 
-        {(banner.icon || banner.title) && (
+        {(toast.icon || toast.title) && (
           <div className="flex items-center gap-2">
-            {banner.icon}
-            {banner.title && (
+            {toast.icon}
+            {toast.title && (
               <h3 className="text-lg font-bold text-neutral-900">
-                {banner.title}
+                {toast.title}
               </h3>
             )}
           </div>
         )}
 
-        <div className="text-sm">{banner.description}</div>
+        <div className="text-sm">{toast.description}</div>
 
         <div className="flex flex-col gap-2 mt-1">
-          {banner.primaryAction && (
+          {toast.primaryAction && (
             <button
-              onClick={banner.primaryAction.onClick}
+              onClick={toast.primaryAction.onClick}
               className="w-full py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
             >
-              {banner.primaryAction.label}
+              {toast.primaryAction.label}
             </button>
           )}
-          {banner.secondaryAction && (
+          {toast.secondaryAction && (
             <button
-              onClick={banner.secondaryAction.onClick}
+              onClick={toast.secondaryAction.onClick}
               className="w-full py-2 rounded-full bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900 text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
             >
-              {banner.secondaryAction.label}
+              {toast.secondaryAction.label}
             </button>
           )}
         </div>

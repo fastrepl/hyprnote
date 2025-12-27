@@ -8,10 +8,10 @@ import { cn } from "@hypr/utils";
 import { useSearch } from "../../../contexts/search/ui";
 import { useShell } from "../../../contexts/shell";
 import { TrafficLights } from "../../window/traffic-lights";
-import { BannerArea } from "./banner";
 import { ProfileSection } from "./profile";
 import { SearchResults } from "./search";
 import { TimelineView } from "./timeline";
+import { ToastArea } from "./toast";
 
 const DevtoolView = lazy(() =>
   import("./devtool").then((m) => ({ default: m.DevtoolView })),
@@ -70,7 +70,7 @@ export function LeftSidebar() {
             <TimelineView />
           )}
           {!leftsidebar.showDevtool && (
-            <BannerArea isProfileExpanded={isProfileExpanded} />
+            <ToastArea isProfileExpanded={isProfileExpanded} />
           )}
         </div>
         <div className="relative z-30">

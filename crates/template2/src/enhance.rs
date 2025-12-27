@@ -1,6 +1,4 @@
-use crate::assets::filters;
-use crate::common_derives;
-use crate::{EnhanceTemplate, Participant, Session, Transcript};
+use crate::{EnhanceTemplate, Participant, Session, Transcript, common_derives, filters};
 
 common_derives! {
     #[derive(askama::Template)]

@@ -1,13 +1,12 @@
-#[path = "../assets/mod.rs"]
-mod assets;
-
-pub mod chat;
-pub mod enhance;
-pub mod title;
-pub mod types;
+mod chat;
+mod enhance;
+mod filters;
+mod title;
+mod types;
 
 pub use chat::*;
 pub use enhance::*;
+pub use filters::*;
 pub use title::*;
 pub use types::*;
 

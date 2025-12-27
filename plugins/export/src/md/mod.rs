@@ -117,7 +117,7 @@ mod tests {
             ]
         });
 
-        insta::assert_snapshot!(to_md(json), @r"
+        insta::assert_snapshot!(to_md(json), @"
         # Title
 
         Hello, world!

@@ -1,5 +1,4 @@
-use crate::assets::filters;
-use crate::common_derives;
+use crate::{common_derives, filters};
 
 common_derives! {
     #[derive(askama::Template)]
@@ -48,12 +47,12 @@ mod tests {
         TitleUser {
             enhanced_note: "".to_string(),
         },
-        @r#"
-        <note>
+        @"
+    <note>
 
-        </note>
+    </note>
 
-        Now, give me SUPER CONCISE title for above note. Only about the topic of the meeting.
-        "#
+    Now, give me SUPER CONCISE title for above note. Only about the topic of the meeting.
+    "
     );
 }

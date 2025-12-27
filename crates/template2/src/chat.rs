@@ -1,6 +1,4 @@
-use crate::Transcript;
-use crate::assets::filters;
-use crate::common_derives;
+use crate::{Transcript, common_derives, filters};
 
 common_derives! {
     pub struct ChatContext {

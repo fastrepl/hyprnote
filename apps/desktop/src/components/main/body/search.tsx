@@ -134,11 +134,7 @@ function ExpandedSearch({
         <input
           ref={inputRef}
           type="text"
-          placeholder={
-            hasResults && query
-              ? `${resultCount} result${resultCount !== 1 ? "s" : ""}`
-              : "Search anything..."
-          }
+          placeholder="Search anything..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -157,11 +153,30 @@ function ExpandedSearch({
           className={cn([
             "text-sm placeholder:text-sm placeholder:text-neutral-400",
             "w-full pl-9 h-full",
-            query ? "pr-9" : showShortcut ? "pr-14" : "pr-4",
+            query
+              ? hasResults
+                ? "pr-16"
+                : "pr-9"
+              : showShortcut
+                ? "pr-14"
+                : "pr-4",
             "rounded-xl bg-neutral-100",
             "focus:outline-none focus:bg-neutral-200",
           ])}
         />
+        {hasResults && query && (
+          <div
+            className={cn([
+              "absolute right-9",
+              "px-2 py-0.5",
+              "rounded-full bg-neutral-400",
+              "text-xs text-white font-semibold",
+              "pointer-events-none",
+            ])}
+          >
+            {resultCount}
+          </div>
+        )}
         {query && (
           <button
             onClick={() => setQuery("")}

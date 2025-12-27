@@ -20,13 +20,15 @@ export function SearchResultGroup({ group }: { group: SearchGroup }) {
   const hasMore = group.totalCount > visibleCount;
 
   return (
-    <div className={cn(["mb-6"])}>
-      <div className={cn(["sticky top-0 z-10", "px-2 py-2 mb-2"])}>
-        <h3 className={cn(["text-sm font-semibold text-neutral-900"])}>
+    <div className={cn(["mb-4"])}>
+      <div
+        className={cn(["sticky top-0 z-10", "bg-neutral-50 pl-3 pr-1 py-1"])}
+      >
+        <h3 className={cn(["text-base font-bold text-neutral-900"])}>
           {group.title}
         </h3>
       </div>
-      <div className={cn(["space-y-0.5"])}>
+      <div>
         {visibleResults.map((result) => (
           <SearchResultItem key={result.id} result={result} />
         ))}
@@ -35,10 +37,10 @@ export function SearchResultGroup({ group }: { group: SearchGroup }) {
         <button
           onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_STEP)}
           className={cn([
-            "w-full mt-2 px-3 py-2",
+            "w-full mt-1 px-3 py-2",
             "flex items-center justify-center gap-2",
             "text-xs font-medium text-neutral-600",
-            "hover:bg-neutral-50 active:bg-neutral-100",
+            "hover:bg-neutral-100",
             "rounded-lg transition-colors",
           ])}
         >

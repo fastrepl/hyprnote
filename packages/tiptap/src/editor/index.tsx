@@ -37,11 +37,12 @@ interface EditorProps {
   mentionConfig?: MentionConfig;
   placeholderComponent?: PlaceholderFunction;
   fileHandlerConfig?: FileHandlerConfig;
+  onNavigateToTitle?: () => void;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
-  (
-    {
+  (props, ref) => {
+    const {
       handleChange,
       initialContent,
       editable = true,
@@ -49,9 +50,8 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       mentionConfig,
       placeholderComponent,
       fileHandlerConfig,
-    },
-    ref,
-  ) => {
+      onNavigateToTitle,
+    } = props;
     const previousContentRef = useRef<JSONContent>(initialContent);
 
     const onUpdate = useDebounceCallback(

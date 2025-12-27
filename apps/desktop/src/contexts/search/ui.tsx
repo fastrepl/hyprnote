@@ -78,17 +78,20 @@ function calculateDynamicThreshold(scores: number[]): number {
 }
 
 function createSearchResult(hit: SearchHit, query: string): SearchResult {
-  const highlighter = new Highlight();
-  const titleHighlighted = highlighter.highlight(hit.document.title, query);
-  const contentHighlighted = highlighter.highlight(hit.document.content, query);
+  const titleHighlighter = new Highlight();
+  const contentHighlighter = new Highlight();
 
   return {
     id: hit.document.id,
     type: hit.document.type,
     title: hit.document.title,
-    titleHighlighted: titleHighlighted.HTML,
+    titleHighlighted: titleHighlighter.highlight(hit.document.title, query)
+      .HTML,
     content: hit.document.content,
-    contentHighlighted: contentHighlighted.HTML,
+    contentHighlighted: contentHighlighter.highlight(
+      hit.document.content,
+      query,
+    ).HTML,
     created_at: hit.document.created_at,
     score: hit.score,
   };

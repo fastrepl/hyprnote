@@ -4567,6 +4567,7 @@ name = "desktop"
 version = "0.0.0"
 dependencies = [
  "host",
+ "pico-args",
  "ractor",
  "ractor-supervisor",
  "sentry",

@@ -26,7 +26,7 @@ export function useConfigValue<K extends ConfigKey>(
     if (
       key === "ignored_platforms" ||
       key === "spoken_languages" ||
-      key === "dismissed_banners"
+      key === "dismissed_toasts"
     ) {
       return tryParseJSON(
         storedValue,
@@ -54,7 +54,7 @@ export function useConfigValues<K extends ConfigKey>(
       if (
         key === "ignored_platforms" ||
         key === "spoken_languages" ||
-        key === "dismissed_banners"
+        key === "dismissed_toasts"
       ) {
         result[key] = tryParseJSON(
           storedValue,
@@ -86,7 +86,7 @@ export function useConfigSideEffects() {
           if (
             k === "ignored_platforms" ||
             k === "spoken_languages" ||
-            k === "dismissed_banners"
+            k === "dismissed_toasts"
           ) {
             return tryParseJSON(val, def.default) as ConfigValueType<K>;
           }

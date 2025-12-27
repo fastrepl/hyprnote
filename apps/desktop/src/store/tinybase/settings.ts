@@ -53,9 +53,9 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["notification", "ignored_platforms"],
     },
-    dismissed_banners: {
+    dismissed_toasts: {
       type: "string",
-      path: ["general", "dismissed_banners"],
+      path: ["general", "dismissed_toasts"],
     },
     current_llm_provider: {
       type: "string",

@@ -43,6 +43,7 @@ import { TabContentHuman, TabItemHuman } from "./humans";
 import { TabContentPrompt, TabItemPrompt } from "./prompts";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
+import { useCaretPosition } from "./sessions/caret-position-context";
 import { TabContentSettings, TabItemSettings } from "./settings";
 import { TabContentTemplate, TabItemTemplate } from "./templates";
 import { Update } from "./update";
@@ -496,7 +497,11 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   return null;
 }
 
-function TabChatButton() {
+function TabChatButton({
+  isCaretNearBottom = false,
+}: {
+  isCaretNearBottom?: boolean;
+}) {
   const { chat } = useShell();
   const currentTab = useTabs((state) => state.currentTab);
 
@@ -512,7 +517,7 @@ function TabChatButton() {
     return null;
   }
 
-  return <ChatFloatingButton />;
+  return <ChatFloatingButton isCaretNearBottom={isCaretNearBottom} />;
 }
 
 export function StandardTabWrapper({
@@ -529,11 +534,18 @@ export function StandardTabWrapper({
       <div className="flex flex-col rounded-xl border border-neutral-200 flex-1 overflow-hidden relative">
         {children}
         {floatingButton}
-        <TabChatButton />
+        <StandardTabChatButton />
       </div>
       {afterBorder}
     </div>
   );
+}
+
+function StandardTabChatButton() {
+  const caretPosition = useCaretPosition();
+  const isCaretNearBottom = caretPosition?.isCaretNearBottom ?? false;
+
+  return <TabChatButton isCaretNearBottom={isCaretNearBottom} />;
 }
 
 function useHasSpaceForSearch() {

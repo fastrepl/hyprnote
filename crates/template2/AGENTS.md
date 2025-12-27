@@ -1,7 +1,13 @@
 # General
 
-- Edit templates only in `crates/template-assets/askama`.
 - When input variables change, structs in `crates/template2/src` should be updated, and TS binding should be updated with `cargo test -p tauri-plugin-template`.
+- `.md.jinja` files should be written in structured-markdown format.
+- Any instructions should be written as very concise, minimal descriptions. No weird prompting tricks or ALL CAPITALS. Human-readability is important.
+
+# Syntax
+
+- Read [docs](https://askama.readthedocs.io/en/stable/template_syntax.html) for template syntax.
+- Our custom filters are defined in `crates/template2/assets/filters.rs`.
 
 # Tooling
 

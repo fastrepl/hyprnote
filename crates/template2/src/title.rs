@@ -1,5 +1,5 @@
+use crate::assets::filters;
 use crate::common_derives;
-use hypr_template_assets::askama::filters;
 
 common_derives! {
     #[derive(askama::Template)]

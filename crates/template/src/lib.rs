@@ -1,5 +1,7 @@
 use std::sync::OnceLock;
 
+#[path = "../assets/mod.rs"]
+mod assets;
 mod filters;
 mod testers;
 
@@ -64,7 +66,7 @@ fn init_environment() -> minijinja::Environment<'static> {
 
     #[cfg(debug_assertions)]
     {
-        let template_dir = std::path::Path::new(hypr_template_assets::MINIJINJA_DIR);
+        let template_dir = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/assets"));
         let base_loader = minijinja::path_loader(template_dir);
 
         env.set_loader(
@@ -77,71 +79,44 @@ fn init_environment() -> minijinja::Environment<'static> {
 
     #[cfg(not(debug_assertions))]
     {
-        env.add_template(
-            Template::EnhanceSystem.as_ref(),
-            hypr_template_assets::minijinja::ENHANCE_SYSTEM,
-        )
-        .unwrap();
-        env.add_template(
-            Template::EnhanceUser.as_ref(),
-            hypr_template_assets::minijinja::ENHANCE_USER,
-        )
-        .unwrap();
-        env.add_template(
-            Template::TitleSystem.as_ref(),
-            hypr_template_assets::minijinja::TITLE_SYSTEM,
-        )
-        .unwrap();
-        env.add_template(
-            Template::TitleUser.as_ref(),
-            hypr_template_assets::minijinja::TITLE_USER,
-        )
-        .unwrap();
+        env.add_template(Template::EnhanceSystem.as_ref(), assets::ENHANCE_SYSTEM)
+            .unwrap();
+        env.add_template(Template::EnhanceUser.as_ref(), assets::ENHANCE_USER)
+            .unwrap();
+        env.add_template(Template::TitleSystem.as_ref(), assets::TITLE_SYSTEM)
+            .unwrap();
+        env.add_template(Template::TitleUser.as_ref(), assets::TITLE_USER)
+            .unwrap();
         env.add_template(
             Template::AutoGenerateTagsSystem.as_ref(),
-            hypr_template_assets::minijinja::AUTO_GENERATE_TAGS_SYSTEM,
+            assets::AUTO_GENERATE_TAGS_SYSTEM,
         )
         .unwrap();
         env.add_template(
             Template::AutoGenerateTagsUser.as_ref(),
-            hypr_template_assets::minijinja::AUTO_GENERATE_TAGS_USER,
+            assets::AUTO_GENERATE_TAGS_USER,
         )
         .unwrap();
-        env.add_template(
-            Template::ChatSystem.as_ref(),
-            hypr_template_assets::minijinja::CHAT_SYSTEM,
-        )
-        .unwrap();
-        env.add_template(
-            Template::ChatUser.as_ref(),
-            hypr_template_assets::minijinja::CHAT_USER,
-        )
-        .unwrap();
+        env.add_template(Template::ChatSystem.as_ref(), assets::CHAT_SYSTEM)
+            .unwrap();
+        env.add_template(Template::ChatUser.as_ref(), assets::CHAT_USER)
+            .unwrap();
         env.add_template(
             Template::PostprocessTranscriptSystem.as_ref(),
-            hypr_template_assets::minijinja::POSTPROCESS_TRANSCRIPT_SYSTEM,
+            assets::POSTPROCESS_TRANSCRIPT_SYSTEM,
         )
         .unwrap();
         env.add_template(
             Template::PostprocessTranscriptUser.as_ref(),
-            hypr_template_assets::minijinja::POSTPROCESS_TRANSCRIPT_USER,
+            assets::POSTPROCESS_TRANSCRIPT_USER,
         )
         .unwrap();
-        env.add_template(
-            Template::HighlightSystem.as_ref(),
-            hypr_template_assets::minijinja::HIGHLIGHT_SYSTEM,
-        )
-        .unwrap();
-        env.add_template(
-            Template::HighlightUser.as_ref(),
-            hypr_template_assets::minijinja::HIGHLIGHT_USER,
-        )
-        .unwrap();
-        env.add_template(
-            "_language.partial",
-            hypr_template_assets::minijinja::LANGUAGE_PARTIAL,
-        )
-        .unwrap();
+        env.add_template(Template::HighlightSystem.as_ref(), assets::HIGHLIGHT_SYSTEM)
+            .unwrap();
+        env.add_template(Template::HighlightUser.as_ref(), assets::HIGHLIGHT_USER)
+            .unwrap();
+        env.add_template("_language.partial", assets::LANGUAGE_PARTIAL)
+            .unwrap();
     }
 
     {

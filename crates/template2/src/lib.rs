@@ -1,3 +1,6 @@
+#[path = "../assets/mod.rs"]
+mod assets;
+
 pub mod chat;
 pub mod enhance;
 pub mod title;

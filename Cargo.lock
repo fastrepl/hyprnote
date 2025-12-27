@@ -18140,17 +18140,7 @@ dependencies = [
  "serde_json",
  "specta",
  "strum 0.26.3",
- "template-assets",
  "thiserror 2.0.17",
-]
-
-[[package]]
-name = "template-assets"
-version = "0.1.0"
-dependencies = [
- "askama",
- "askama-utils",
- "isolang",
 ]
 
 [[package]]
@@ -18160,9 +18150,9 @@ dependencies = [
  "askama",
  "askama-utils",
  "insta",
+ "isolang",
  "serde",
  "specta",
- "template-assets",
  "thiserror 2.0.17",
 ]
 

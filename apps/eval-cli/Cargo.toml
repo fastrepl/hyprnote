@@ -16,4 +16,4 @@ indicatif = "0.17"
 serde_json = { workspace = true }
 
 evals = { path = "../../crates/evals" }
-template2 = { path = "../../crates/template2" }
+hypr-template-app = { workspace = true }

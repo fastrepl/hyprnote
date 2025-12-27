@@ -5342,7 +5342,7 @@ dependencies = [
  "evals",
  "indicatif",
  "serde_json",
- "template2",
+ "template-app",
 ]
 
 [[package]]
@@ -5357,6 +5357,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "template-eval",
  "thiserror 2.0.17",
  "ureq 3.1.4",
 ]

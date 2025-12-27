@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-request-accessibility-permission"
+description = "Enables the request_accessibility_permission command without any pre-configured scope."
+commands.allow = ["request_accessibility_permission"]
+
+[[permission]]
+identifier = "deny-request-accessibility-permission"
+description = "Denies the request_accessibility_permission command without any pre-configured scope."
+commands.deny = ["request_accessibility_permission"]

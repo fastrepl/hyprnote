@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-check-system-audio-permission"
+description = "Enables the check_system_audio_permission command without any pre-configured scope."
+commands.allow = ["check_system_audio_permission"]
+
+[[permission]]
+identifier = "deny-check-system-audio-permission"
+description = "Denies the check_system_audio_permission command without any pre-configured scope."
+commands.deny = ["check_system_audio_permission"]

@@ -887,6 +887,15 @@ importers:
 
   e2e/blackbox:
     devDependencies:
+      '@crabnebula/tauri-driver':
+        specifier: ^2.0.8
+        version: 2.0.8
+      '@crabnebula/test-runner-backend':
+        specifier: ^0.1.16
+        version: 0.1.16
+      '@crabnebula/webdriverio-cloud-reporter':
+        specifier: ^0.1.3
+        version: 0.1.3
       '@wdio/cli':
         specifier: ^9.21.1
         version: 9.21.1(@types/node@25.0.3)(expect-webdriverio@5.5.0)(puppeteer-core@22.15.0)
@@ -2047,6 +2056,67 @@ packages:
     peerDependencies:
       '@content-collections/core': ^0.x
       vite: ^5 || ^6 || ^7
+
+  '@crabnebula/tauri-driver-darwin-arm64@2.0.8':
+    resolution: {integrity: sha512-8dKiuhgBZ+5xpaaeONO6zCy3JXdyVUL6a8r2JwwpqW1GLzW831bn9r3kCpN7PW5uAk0vwV4qKQzioBtyUgEDqA==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@crabnebula/tauri-driver-darwin-x64@2.0.8':
+    resolution: {integrity: sha512-flOk5JGZIDuq1KlHV7o/XRb4JJlsE+/HVNzs9K8EJhIeXqP7iV6z2jd+R/WORDLeZsE8wlR3IGAEJqvGhmUiUQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@crabnebula/tauri-driver-linux-x64-gnu@2.0.8':
+    resolution: {integrity: sha512-xC+kF4VxwudeuIq1KCGoAQpGaW0ZYLvwc8sKnfBgdH/BiZcn8rNTFi/1ilNVKScHyqgY3Z/gYmYFowoXrJPIkQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@crabnebula/tauri-driver-win32-x64-msvc@2.0.8':
+    resolution: {integrity: sha512-XVgo2TZql6C+fNr9+aj+utiU+kYa1jPNEjdskbhJeoCNjbGzqr5PQbpF6fJnq+9GRO17syCQc/7imnbVWfvJDw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@crabnebula/tauri-driver@2.0.8':
+    resolution: {integrity: sha512-qKDwSjsXoPwcfrn/qVwnpZ7L7vxVQh6YnYaPQjjcMuFpV/TeUBxp4K1kgXNb8iYarPUI/EUXwuWiezJ6AR8mKA==}
+    engines: {node: '>= 10'}
+    hasBin: true
+
+  '@crabnebula/test-runner-backend-darwin-arm64@0.1.16':
+    resolution: {integrity: sha512-rWIQaZobTktZN6ehkGYV1mz9mZdx5X4KzgzWic+IysPyWCIRWmtsY/miX/4O1wOV8m24KkNcRk6IHZaQJsHJyQ==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@crabnebula/test-runner-backend-darwin-x64@0.1.16':
+    resolution: {integrity: sha512-5sQOk4Nc5akDkpt57OSlSfribw+ah01MTB7ygOrNaqAmz4r7nhuJwX7vVbGXWSlJHnezF85BaHQhdMfXWd26uw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@crabnebula/test-runner-backend-linux-x64-gnu@0.1.16':
+    resolution: {integrity: sha512-QSFehudJzrOVXG+nj2rTA3A4Xz8fpAw50W5Y3ldn/7uL8UR3EgiK9Ux6SS5cU28rsScl31/cKzFIqvkTooWESQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@crabnebula/test-runner-backend-win32-x64-msvc@0.1.16':
+    resolution: {integrity: sha512-0MU7kLXcLVXfZOFzh1LdQEfglf5dlhXx+R7ww40sAwPHalxd8k/Tv8U9NPCu35ZE7Mh0yfdGuz/emshezOKJqg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@crabnebula/test-runner-backend@0.1.16':
+    resolution: {integrity: sha512-2X5+Ou8LtM2zIsMHuqFA9axdU9O4WDip0295WGsLXKHGXWVKjb5WxSzat4uMv9iIsh6fZfx7cuqex8b1BdLmYQ==}
+    engines: {node: '>= 10'}
+    hasBin: true
+
+  '@crabnebula/webdriverio-cloud-reporter@0.1.3':
+    resolution: {integrity: sha512-tRfDOeMs+KHniPMgsM5tIJ84RsULeg9DhrbxmXj7/3NC/rvVIBW3tfAW8s/1hZAanmZCuIyjzW09YRGG023Teg==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -15960,6 +16030,7 @@ packages:
   wrangler@4.56.0:
     resolution: {integrity: sha512-Nqi8duQeRbA+31QrD6QlWHW3IZVnuuRxMy7DEg46deUzywivmaRV/euBN5KKXDPtA24VyhYsK7I0tkb7P5DM2w==}
     engines: {node: '>=20.0.0'}
+    deprecated: Version 4.55.0 and 4.56.0 can incorrectly automatically delegate 'wrangler deploy' to 'opennextjs-cloudflare'. Use an older or newer version.
     hasBin: true
     peerDependencies:
       '@cloudflare/workers-types': ^4.20251217.0
@@ -16856,6 +16927,48 @@ snapshots:
       '@content-collections/core': 0.11.1(typescript@5.9.3)
       '@content-collections/integrations': 0.4.0(@content-collections/core@0.11.1(typescript@5.9.3))
       vite: 7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+
+  '@crabnebula/tauri-driver-darwin-arm64@2.0.8':
+    optional: true
+
+  '@crabnebula/tauri-driver-darwin-x64@2.0.8':
+    optional: true
+
+  '@crabnebula/tauri-driver-linux-x64-gnu@2.0.8':
+    optional: true
+
+  '@crabnebula/tauri-driver-win32-x64-msvc@2.0.8':
+    optional: true
+
+  '@crabnebula/tauri-driver@2.0.8':
+    optionalDependencies:
+      '@crabnebula/tauri-driver-darwin-arm64': 2.0.8
+      '@crabnebula/tauri-driver-darwin-x64': 2.0.8
+      '@crabnebula/tauri-driver-linux-x64-gnu': 2.0.8
+      '@crabnebula/tauri-driver-win32-x64-msvc': 2.0.8
+
+  '@crabnebula/test-runner-backend-darwin-arm64@0.1.16':
+    optional: true
+
+  '@crabnebula/test-runner-backend-darwin-x64@0.1.16':
+    optional: true
+
+  '@crabnebula/test-runner-backend-linux-x64-gnu@0.1.16':
+    optional: true
+
+  '@crabnebula/test-runner-backend-win32-x64-msvc@0.1.16':
+    optional: true
+
+  '@crabnebula/test-runner-backend@0.1.16':
+    optionalDependencies:
+      '@crabnebula/test-runner-backend-darwin-arm64': 0.1.16
+      '@crabnebula/test-runner-backend-darwin-x64': 0.1.16
+      '@crabnebula/test-runner-backend-linux-x64-gnu': 0.1.16
+      '@crabnebula/test-runner-backend-win32-x64-msvc': 0.1.16
+
+  '@crabnebula/webdriverio-cloud-reporter@0.1.3':
+    dependencies:
+      '@wdio/reporter': 9.20.0
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

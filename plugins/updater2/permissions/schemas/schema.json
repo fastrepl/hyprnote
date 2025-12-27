@@ -319,6 +319,18 @@
           "markdownDescription": "Denies the download command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_pending_update command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-pending-update",
+          "markdownDescription": "Enables the get_pending_update command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_pending_update command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-pending-update",
+          "markdownDescription": "Denies the get_pending_update command without any pre-configured scope."
+        },
+        {
           "description": "Enables the install command without any pre-configured scope.",
           "type": "string",
           "const": "allow-install",
@@ -329,6 +341,18 @@
           "type": "string",
           "const": "deny-install",
           "markdownDescription": "Denies the install command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the install_from_cached command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-install-from-cached",
+          "markdownDescription": "Enables the install_from_cached command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the install_from_cached command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-install-from-cached",
+          "markdownDescription": "Denies the install_from_cached command without any pre-configured scope."
         },
         {
           "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check`\n- `allow-download`\n- `allow-install`",

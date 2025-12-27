@@ -72,6 +72,32 @@ Denies the download command without any pre-configured scope.
 <tr>
 <td>
 
+`updater2:allow-get-pending-update`
+
+</td>
+<td>
+
+Enables the get_pending_update command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`updater2:deny-get-pending-update`
+
+</td>
+<td>
+
+Denies the get_pending_update command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `updater2:allow-install`
 
 </td>
@@ -91,6 +117,32 @@ Enables the install command without any pre-configured scope.
 <td>
 
 Denies the install command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`updater2:allow-install-from-cached`
+
+</td>
+<td>
+
+Enables the install_from_cached command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`updater2:deny-install-from-cached`
+
+</td>
+<td>
+
+Denies the install_from_cached command without any pre-configured scope.
 
 </td>
 </tr>

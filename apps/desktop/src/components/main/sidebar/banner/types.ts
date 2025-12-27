@@ -13,6 +13,7 @@ export type BannerType = {
   primaryAction?: BannerAction;
   secondaryAction?: BannerAction;
   dismissible: boolean;
+  progress?: number;
 };
 
 export type BannerCondition = () => boolean;

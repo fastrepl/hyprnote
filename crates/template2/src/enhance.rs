@@ -1,5 +1,5 @@
-use crate::common_derives;
 use crate::{EnhanceTemplate, Participant, Session, Transcript};
+use crate::{common_derives, filters};
 
 common_derives! {
     #[derive(askama::Template)]
@@ -91,11 +91,13 @@ mod tests {
 
         insta::assert_snapshot!(tpl.render().unwrap(), @"
         # Context
+
         Session: Meeting
 
         Participants:
         - John Doe (CEO)
-        - Jane Smith (CTO)
+          - Jane Smith (CTO)
+          
 
         # Summary Template
 
@@ -106,7 +108,9 @@ mod tests {
         1. Section 1 - Section 1 description
         2. Section 2 - Section 2 description
 
+
         # Transcript
+
 
         John Doe: Hello
         ");

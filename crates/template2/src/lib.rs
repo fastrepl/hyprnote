@@ -1,5 +1,6 @@
 pub mod chat;
 pub mod enhance;
+pub mod filters;
 pub mod title;
 pub mod types;
 

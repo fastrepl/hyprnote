@@ -1,4 +1,4 @@
-{%- import "_macros.jinja" as macros -%}
 You are a professional assistant that generates a perfect title for a meeting note.
-{{ macros::enforce_language(language, "IMPORTANT: Generate the title in") }}
+
+IMPORTANT: Generate the title in {{ language.as_deref().unwrap_or("") | language }} language.
 Only output the title as plaintext, nothing else. No characters like *"'([{}]):.

@@ -1,12 +1,3 @@
-{%- macro enforce_language(language, prefix, suffix = "language.") -%}
-{%- match language -%}
-{%- when Some with (lang) %}
-{{ prefix }} {{ lang }} {{ suffix }}
-{%- when None %}
-{{ prefix }} English {{ suffix }}
-{%- endmatch -%}
-{%- endmacro -%}
-
 {%- macro transcript(transcript) -%}
 {%- for segment in transcript.segments %}
 {{ segment.speaker }}: {{ segment.text }}

@@ -14,9 +14,29 @@ import { env } from "../../../env";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
+function getPlanDescription(
+  isPro: boolean,
+  isTrialing: boolean,
+  trialDaysRemaining: number | null,
+): string {
+  if (!isPro) {
+    return "Your current plan is FREE.";
+  }
+  if (isTrialing && trialDaysRemaining !== null) {
+    if (trialDaysRemaining === 0) {
+      return "Your trial ends today. Add a payment method to continue.";
+    }
+    if (trialDaysRemaining === 1) {
+      return "Your trial ends tomorrow. Add a payment method to continue.";
+    }
+    return `Your trial ends in ${trialDaysRemaining} days.`;
+  }
+  return "Your current plan is PRO.";
+}
+
 export function AccountSettings() {
   const auth = useAuth();
-  const { isPro } = useBillingAccess();
+  const { isPro, isTrialing, trialDaysRemaining } = useBillingAccess();
 
   const isAuthenticated = !!auth?.session;
   const [isPending, setIsPending] = useState(false);
@@ -140,7 +160,7 @@ export function AccountSettings() {
 
       <Container
         title="Plan & Billing"
-        description={`Your current plan is ${isPro ? "PRO" : "FREE"}. `}
+        description={getPlanDescription(isPro, isTrialing, trialDaysRemaining)}
         action={<BillingButton />}
       >
         <p className="text-sm text-neutral-600">

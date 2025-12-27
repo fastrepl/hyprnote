@@ -6,10 +6,8 @@ description = "LLM evaluation runner for Hyprnote"
 
 [dependencies]
 backon = { workspace = true }
-comfy-table = "7"
 dirs = { workspace = true }
 markdown = { workspace = true }
-minijinja = { workspace = true }
 rayon = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

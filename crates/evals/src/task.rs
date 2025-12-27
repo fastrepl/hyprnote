@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
-use minijinja::{Environment, context};
-
 use crate::{
-    ChatCompleter, ClientError, ConfidenceInterval, GraderType, Rubric, Score, calc_pass_stats,
+    ChatCompleter, ClientError, GraderType, Rubric, Score, calc_pass_stats,
     generate_text_multi_with_generation_id, generate_text_with_generation_id, grade_with_func,
     grade_with_func_inputs, grade_with_llm,
 };
@@ -54,24 +52,21 @@ impl Task {
             None => return Err(format!("No template content for task {}", self.name)),
         };
 
-        let mut env = Environment::new();
-        env.add_template("template", &template_content)
-            .map_err(|e| format!("Failed to add template: {}", e))?;
-
-        let template = env
-            .get_template("template")
-            .map_err(|e| format!("Failed to get template: {}", e))?;
-
-        let ctx = if let Some(ref inputs) = self.inputs {
+        // Simple string replacement for {{ key }} patterns
+        let mut result = template_content;
+        if let Some(ref inputs) = self.inputs {
             let map = inputs.to_map();
-            minijinja::Value::from_serialize(&map)
-        } else {
-            minijinja::Value::from(())
-        };
+            for (key, value) in map {
+                let placeholder = format!("{{{{ {} }}}}", key);
+                let replacement = match value {
+                    serde_json::Value::String(s) => s,
+                    other => other.to_string(),
+                };
+                result = result.replace(&placeholder, &replacement);
+            }
+        }
 
-        template
-            .render(ctx)
-            .map_err(|e| format!("Failed to render template: {}", e))
+        Ok(result)
     }
 
     pub fn execute(&self, client: &dyn ChatCompleter, model: &str) -> Result<String, ClientError> {

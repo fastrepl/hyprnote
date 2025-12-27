@@ -5338,8 +5338,11 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "clap_complete",
+ "comfy-table",
  "evals",
  "indicatif",
+ "serde_json",
+ "template2",
 ]
 
 [[package]]
@@ -5347,10 +5350,8 @@ name = "evals"
 version = "0.1.0"
 dependencies = [
  "backon",
- "comfy-table",
  "dirs 6.0.0",
  "markdown",
- "minijinja",
  "rayon",
  "serde",
  "serde_json",

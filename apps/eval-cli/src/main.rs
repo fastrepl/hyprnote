@@ -7,9 +7,9 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 mod report;
 mod submissions;
 
-use hypr_eval::{Executor, ExecutorProgress, OpenRouterClient, parse_config};
+use hypr_eval::{EvalResult, Executor, ExecutorProgress, OpenRouterClient, parse_config};
 use report::{render_json, render_results};
-use submissions::{all_submissions, filter_submissions};
+use submissions::{all_cases, filter_cases};
 
 static DEFAULT_MODELS: &[&str] = &[
     "openai/gpt-4.1-nano",
@@ -75,7 +75,7 @@ fn main() -> ExitCode {
             }
         }
         Commands::List => {
-            list_submissions();
+            list_cases();
         }
         Commands::Completion { shell } => {
             generate_completion(shell);
@@ -98,11 +98,11 @@ fn run_evals(
         return Err("OPENROUTER_API_KEY environment variable is not set".to_string());
     }
 
-    let all_subs = all_submissions();
-    let selected_submissions = filter_submissions(&all_subs, task_filter.as_deref());
+    let all = all_cases();
+    let selected_cases = filter_cases(&all, task_filter.as_deref());
 
-    if selected_submissions.is_empty() {
-        return Err("no tasks matched the filter".to_string());
+    if selected_cases.is_empty() {
+        return Err("no cases matched the filter".to_string());
     }
 
     let cache_dir_opt = if no_cache { None } else { cache_dir };
@@ -117,13 +117,13 @@ fn run_evals(
     let mut executor = Executor::new(client.clone());
 
     if output_format == "json" {
-        let mut results = executor.execute(&selected_submissions, &models);
+        let mut results = executor.execute(&selected_cases, &models);
         resolve_usage(&client, &mut results);
         return render_json(&results).map_err(|e| e.to_string());
     }
 
-    let gen_total = executor.total_generations(&selected_submissions, &models);
-    let eval_total = executor.total_evaluations(&selected_submissions, &models);
+    let gen_total = executor.total_generations(&selected_cases, &models);
+    let eval_total = executor.total_evaluations(&selected_cases, &models);
 
     let multi = MultiProgress::new();
     let style = ProgressStyle::default_bar()
@@ -147,7 +147,7 @@ fn run_evals(
         eval_bar_clone.set_position(info.evaluations_complete as u64);
     }));
 
-    let mut results = executor.execute(&selected_submissions, &models);
+    let mut results = executor.execute(&selected_cases, &models);
 
     gen_bar.finish();
     eval_bar.finish();
@@ -157,7 +157,7 @@ fn run_evals(
     render_results(&results).map_err(|e| e.to_string())
 }
 
-fn resolve_usage(client: &OpenRouterClient, results: &mut [hypr_eval::TaskResult]) {
+fn resolve_usage(client: &OpenRouterClient, results: &mut [EvalResult]) {
     use hypr_eval::UsageResolver;
 
     for result in results.iter_mut() {
@@ -171,10 +171,10 @@ fn resolve_usage(client: &OpenRouterClient, results: &mut [hypr_eval::TaskResult
     }
 }
 
-fn list_submissions() {
-    for submission in all_submissions() {
-        println!("{}", submission.name);
-        for rubric in &submission.rubrics {
+fn list_cases() {
+    for case in all_cases() {
+        println!("{}", case.case_id);
+        for rubric in &case.rubrics {
             println!("  - {}: {}", rubric.name, rubric.description);
         }
     }

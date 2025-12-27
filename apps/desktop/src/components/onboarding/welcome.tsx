@@ -4,7 +4,7 @@ import { memo, useMemo } from "react";
 
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
-import { Route } from "../../routes/app/onboarding";
+import { Route } from "../../routes/app/onboarding/_layout.index";
 import { getNext, type StepProps } from "./config";
 
 export const STEP_ID_WELCOME = "welcome" as const;

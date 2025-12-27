@@ -172,12 +172,12 @@ impl Executor {
             .flat_map(|model| {
                 cases
                     .iter()
-                    .map(move |case| (model.clone(), Arc::new(case.clone())))
+                    .map(move |case| (model.as_str(), case))
             })
             .collect();
 
         pool.install(|| {
-            work_items.par_iter().for_each(|(model, case)| {
+            work_items.par_iter().for_each(|&(model, case)| {
                 let result = self.execute_single(
                     model,
                     case,

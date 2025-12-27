@@ -16,6 +16,10 @@ pub struct Store2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Store2<'a, R, M> {
+    pub fn path(&self) -> Result<PathBuf, crate::Error> {
+        store_path(self.manager.app_handle())
+    }
+
     pub fn store(&self) -> Result<Arc<tauri_plugin_store::Store<R>>, crate::Error> {
         let app = self.manager.app_handle();
         let store_path = store_path(app)?;

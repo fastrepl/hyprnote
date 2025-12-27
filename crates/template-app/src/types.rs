@@ -111,6 +111,7 @@ mod tests {
 
 
     - Alice (Engineer)
+
     - Bob
     "
     );

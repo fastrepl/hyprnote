@@ -2,13 +2,12 @@ use std::path::PathBuf;
 use tokio::sync::RwLock;
 
 use crate::Error;
+use crate::ext::FILENAME;
 
 pub struct SettingsState {
     path: PathBuf,
     lock: RwLock<()>,
 }
-
-pub const FILENAME: &str = "settings.json";
 
 impl SettingsState {
     pub fn new(base: PathBuf) -> Self {

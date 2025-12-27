@@ -8,6 +8,7 @@ import {
 } from "@lobehub/icons";
 import type { ReactNode } from "react";
 
+import { env } from "../../../../env";
 import {
   type ProviderRequirement,
   requiresConfigField,
@@ -30,7 +31,7 @@ const _PROVIDERS = [
     displayName: "Hyprnote",
     badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
-    baseUrl: "",
+    baseUrl: new URL("/llm", env.VITE_AI_URL).toString(),
     requirements: [
       { kind: "requires_auth" },
       { kind: "requires_entitlement", entitlement: "pro" },

@@ -21,7 +21,11 @@ impl Secret {
 
 impl std::fmt::Debug for Secret {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("[REDACTED]")
+        if self.0.len() <= 3 {
+            f.write_str("[REDACTED]")
+        } else {
+            write!(f, "{}...[REDACTED]", &self.0[..3])
+        }
     }
 }
 

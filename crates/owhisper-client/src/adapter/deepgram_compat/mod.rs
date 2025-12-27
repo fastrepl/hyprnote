@@ -10,6 +10,7 @@ pub use url::form_urlencoded::Serializer;
 use owhisper_interface::ListenParams;
 
 use super::url_builder::QueryParamBuilder;
+use owhisper_providers::{Provider, is_meta_model};
 
 pub fn listen_endpoint_url(api_base: &str) -> (url::Url, Vec<(String, String)>) {
     let mut url: url::Url = api_base.parse().expect("invalid_api_base");
@@ -111,7 +112,12 @@ where
         builder.add(key, value);
     }
 
-    let model = params.model.as_deref().unwrap_or("nova-3");
+    let default = Provider::Deepgram.default_batch_model();
+    let model = match params.model.as_deref() {
+        Some(m) if is_meta_model(m) => default,
+        Some(m) => m,
+        None => default,
+    };
     builder
         .add("model", model)
         .add("encoding", "linear16")

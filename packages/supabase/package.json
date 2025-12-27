@@ -1,0 +1,22 @@
+{
+  "name": "@hypr/supabase",
+  "exports": {
+    ".": "./src/index.ts",
+    "./middleware": "./src/middleware.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.89.0",
+    "jose": "^6.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.3"
+  },
+  "peerDependencies": {
+    "hono": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "hono": {
+      "optional": true
+    }
+  }
+}

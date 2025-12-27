@@ -5,12 +5,19 @@ import { Button } from "@hypr/ui/components/ui/button";
 
 import { useTabs } from "../../../../store/zustand/tabs";
 
-export function AuthSection({ isAuthenticated }: { isAuthenticated: boolean }) {
+export function AuthSection({
+  isAuthenticated,
+  onClose,
+}: {
+  isAuthenticated: boolean;
+  onClose: () => void;
+}) {
   const openNew = useTabs((state) => state.openNew);
 
   const handleOpenSettings = useCallback(() => {
     openNew({ type: "settings" });
-  }, [openNew]);
+    onClose();
+  }, [openNew, onClose]);
 
   if (isAuthenticated) {
     return null;

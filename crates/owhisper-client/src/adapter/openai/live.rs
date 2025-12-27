@@ -7,7 +7,6 @@ use super::OpenAIAdapter;
 use crate::adapter::RealtimeSttAdapter;
 use crate::adapter::parsing::{WordBuilder, calculate_time_span};
 
-// Voice Activity Detection (VAD) configuration defaults
 const VAD_DETECTION_TYPE: &str = "server_vad";
 const VAD_THRESHOLD: f32 = 0.5;
 const VAD_PREFIX_PADDING_MS: u32 = 300;
@@ -64,10 +63,12 @@ impl RealtimeSttAdapter for OpenAIAdapter {
             .first()
             .map(|l| l.iso639().code().to_string());
 
-        let model = params
-            .model
-            .as_deref()
-            .unwrap_or(super::DEFAULT_TRANSCRIPTION_MODEL);
+        let default = owhisper_providers::Provider::OpenAI.default_live_model();
+        let model = match params.model.as_deref() {
+            Some(m) if owhisper_providers::is_meta_model(m) => default,
+            Some(m) => m,
+            None => default,
+        };
 
         let session_config = SessionUpdateEvent {
             event_type: "session.update".to_string(),

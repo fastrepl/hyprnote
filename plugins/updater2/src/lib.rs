@@ -2,13 +2,11 @@ mod commands;
 mod error;
 mod events;
 mod ext;
-mod job;
 mod store;
 
 pub use error::{Error, Result};
 pub use events::*;
 pub use ext::*;
-pub use job::*;
 pub(crate) use store::*;
 
 const PLUGIN_NAME: &str = "updater2";
@@ -17,8 +15,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::get_pending_update::<tauri::Wry>,
-            commands::install_from_cached::<tauri::Wry>,
+            commands::check::<tauri::Wry>,
+            commands::download::<tauri::Wry>,
+            commands::install::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![
             events::UpdatedEvent,
@@ -34,14 +33,6 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
-
-            let handle = app.clone();
-            tauri::async_runtime::spawn(async move {
-                loop {
-                    job::check_and_download_update(&handle).await;
-                    tokio::time::sleep(std::time::Duration::from_secs(60 * 60)).await;
-                }
-            });
             Ok(())
         })
         .build()

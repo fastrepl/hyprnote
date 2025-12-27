@@ -1,7 +1,11 @@
+#[cfg(feature = "argmax")]
 mod batch;
 mod keywords;
 mod language;
 mod live;
+
+#[cfg(feature = "argmax")]
+pub use batch::{StreamingBatchConfig, StreamingBatchEvent, StreamingBatchStream};
 
 #[derive(Clone, Default)]
 pub struct ArgmaxAdapter;

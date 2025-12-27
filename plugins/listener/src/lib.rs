@@ -25,7 +25,7 @@ pub struct State {
 impl State {
     pub fn get_state(&self) -> fsm::State {
         if self.session_supervisor.is_some() {
-            crate::fsm::State::RunningActive
+            crate::fsm::State::Active
         } else {
             crate::fsm::State::Inactive
         }
@@ -44,7 +44,12 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::stop_session::<tauri::Wry>,
             commands::get_state::<tauri::Wry>,
         ])
-        .events(tauri_specta::collect_events![SessionEvent])
+        .events(tauri_specta::collect_events![
+            SessionLifecycleEvent,
+            SessionProgressEvent,
+            SessionErrorEvent,
+            SessionDataEvent
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -69,7 +74,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             Ok(())
         })
         .on_event(move |app, event| {
-            if let tauri::RunEvent::Ready { .. } = event {
+            if let tauri::RunEvent::Ready = event {
                 let app_handle = app.clone();
                 hypr_intercept::register_quit_handler(PLUGIN_NAME, move || {
                     let state = app_handle.state::<SharedState>();

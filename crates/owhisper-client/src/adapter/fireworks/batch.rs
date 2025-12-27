@@ -53,7 +53,12 @@ impl FireworksAdapter {
         let file_part = reqwest::multipart::Part::bytes(file_bytes).file_name(file_name);
         let mut form = reqwest::multipart::Form::new().part("file", file_part);
 
-        let model = params.model.as_deref().unwrap_or("whisper-v3-turbo");
+        let default = owhisper_providers::Provider::Fireworks.default_batch_model();
+        let model = match params.model.as_deref() {
+            Some(m) if owhisper_providers::is_meta_model(m) => default,
+            Some(m) => m,
+            None => default,
+        };
         form = form.text("model", model.to_string());
 
         if let Some(lang) = params.languages.first() {

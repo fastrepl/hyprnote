@@ -84,11 +84,12 @@ impl SonioxAdapter {
             context: Option<Context>,
         }
 
-        let requested = params.model.as_deref().unwrap_or("stt-v3");
-        let model = match requested {
-            "stt-v3" => "stt-async-v3",
-            "stt-async-preview" => "stt-async-v3",
-            other => other,
+        let default = owhisper_providers::Provider::Soniox.default_batch_model();
+        let model = match params.model.as_deref() {
+            Some(m) if owhisper_providers::is_meta_model(m) => default,
+            Some("stt-v3") | Some("stt-async-preview") => default,
+            Some(m) => m,
+            None => default,
         };
 
         let context = if params.keywords.is_empty() {

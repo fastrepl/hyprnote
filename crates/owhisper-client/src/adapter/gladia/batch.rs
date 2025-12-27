@@ -1,3 +1,5 @@
+// https://docs.gladia.io/api-reference/v2/pre-recorded/init
+
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -30,8 +32,10 @@ impl BatchSttAdapter for GladiaAdapter {
 }
 
 #[derive(Debug, Serialize)]
-struct TranscriptRequest {
+struct TranscriptRequest<'a> {
     audio_url: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    model: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     language_config: Option<LanguageConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -197,8 +201,16 @@ impl GladiaAdapter {
 
         let custom_vocabulary = (!params.keywords.is_empty()).then(|| params.keywords.clone());
 
+        let default = owhisper_providers::Provider::Gladia.default_batch_model();
+        let model = match params.model.as_deref() {
+            Some(m) if owhisper_providers::is_meta_model(m) => Some(default),
+            Some(m) => Some(m),
+            None => None,
+        };
+
         let transcript_request = TranscriptRequest {
             audio_url: upload_result.audio_url,
+            model,
             language_config,
             diarization: Some(true),
             custom_vocabulary,

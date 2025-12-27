@@ -3,12 +3,13 @@ import Cocoa
 import SwiftRs
 
 class NotificationInstance {
-  let id = UUID()
+  let key: String
   let panel: NSPanel
   let clickableView: ClickableView
   private var dismissTimer: DispatchWorkItem?
 
-  init(panel: NSPanel, clickableView: ClickableView) {
+  init(key: String, panel: NSPanel, clickableView: ClickableView) {
+    self.key = key
     self.panel = panel
     self.clickableView = clickableView
   }
@@ -37,15 +38,15 @@ class NotificationInstance {
   }
 
   func dismissWithUserAction() {
-    self.id.uuidString.withCString { idPtr in
-      rustOnNotificationDismiss(idPtr)
+    self.key.withCString { keyPtr in
+      rustOnNotificationDismiss(keyPtr)
     }
     dismiss()
   }
 
   func dismissWithTimeout() {
-    self.id.uuidString.withCString { idPtr in
-      rustOnNotificationTimeout(idPtr)
+    self.key.withCString { keyPtr in
+      rustOnNotificationTimeout(keyPtr)
     }
     dismiss()
   }
@@ -130,8 +131,8 @@ class ClickableView: NSView {
     alphaValue = 0.95
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { self.alphaValue = 1.0 }
     if let notification = notification {
-      notification.id.uuidString.withCString { idPtr in
-        rustOnNotificationConfirm(idPtr)
+      notification.key.withCString { keyPtr in
+        rustOnNotificationConfirm(keyPtr)
       }
       notification.dismissWithUserAction()
     }
@@ -271,8 +272,8 @@ class ActionButton: NSButton {
       self.layer?.backgroundColor = NSColor(calibratedWhite: 0.95, alpha: 0.9).cgColor
     }
     if let notification = notification {
-      notification.id.uuidString.withCString { idPtr in
-        rustOnNotificationAccept(idPtr)
+      notification.key.withCString { keyPtr in
+        rustOnNotificationAccept(keyPtr)
       }
       notification.dismiss()
     }
@@ -285,12 +286,12 @@ class NotificationManager {
     setupDisplayChangeObserver()
   }
 
-  private var activeNotifications: [UUID: NotificationInstance] = [:]
+  private var activeNotifications: [String: NotificationInstance] = [:]
   private let maxNotifications = 5
   private let notificationSpacing: CGFloat = 10
 
   private var globalMouseMonitor: Any?
-  private var hoverStates: [UUID: Bool] = [:]
+  private var hoverStates: [String: Bool] = [:]
   private var displayChangeObserver: Any?
 
   private struct Config {
@@ -348,11 +349,12 @@ class NotificationManager {
     return NSScreen.main ?? NSScreen.screens.first
   }
 
-  func show(title: String, message: String, timeoutSeconds: Double) {
+  func show(key: String, title: String, message: String, timeoutSeconds: Double) {
     DispatchQueue.main.async { [weak self] in
       guard let self else { return }
       self.setupApplicationIfNeeded()
       self.createAndShowNotification(
+        key: key,
         title: title,
         message: message,
         timeoutSeconds: timeoutSeconds
@@ -373,8 +375,8 @@ class NotificationManager {
   }
 
   func removeNotification(_ notification: NotificationInstance) {
-    activeNotifications.removeValue(forKey: notification.id)
-    hoverStates.removeValue(forKey: notification.id)
+    activeNotifications.removeValue(forKey: notification.key)
+    hoverStates.removeValue(forKey: notification.key)
     repositionNotifications()
     stopGlobalMouseMonitorIfNeeded()
   }
@@ -397,7 +399,7 @@ class NotificationManager {
   }
 
   private func createAndShowNotification(
-    title: String, message: String, timeoutSeconds: Double
+    key: String, title: String, message: String, timeoutSeconds: Double
   ) {
     guard let screen = getTargetScreen() else { return }
 
@@ -409,7 +411,7 @@ class NotificationManager {
     let container = createContainer(clickableView: clickableView)
     let effectView = createEffectView(container: container)
 
-    let notification = NotificationInstance(panel: panel, clickableView: clickableView)
+    let notification = NotificationInstance(key: key, panel: panel, clickableView: clickableView)
     clickableView.notification = notification
 
     setupContent(
@@ -418,8 +420,8 @@ class NotificationManager {
     clickableView.addSubview(container)
     panel.contentView = clickableView
 
-    activeNotifications[notification.id] = notification
-    hoverStates[notification.id] = false
+    activeNotifications[notification.key] = notification
+    hoverStates[notification.key] = false
 
     showWithAnimation(notification: notification, screen: screen, timeoutSeconds: timeoutSeconds)
     ensureGlobalMouseMonitor()
@@ -742,11 +744,11 @@ class NotificationManager {
   }
 
   private func updateHoverForAll(atScreenPoint pt: NSPoint) {
-    for (id, notif) in activeNotifications {
+    for (key, notif) in activeNotifications {
       let inside = notif.panel.frame.contains(pt)
-      let prev = hoverStates[id] ?? false
+      let prev = hoverStates[key] ?? false
       if inside != prev {
-        hoverStates[id] = inside
+        hoverStates[key] = inside
         notif.clickableView.onHover?(inside)
       }
     }
@@ -763,27 +765,30 @@ class NotificationManager {
 }
 
 @_silgen_name("rust_on_notification_confirm")
-func rustOnNotificationConfirm(_ idPtr: UnsafePointer<CChar>)
+func rustOnNotificationConfirm(_ keyPtr: UnsafePointer<CChar>)
 
 @_silgen_name("rust_on_notification_accept")
-func rustOnNotificationAccept(_ idPtr: UnsafePointer<CChar>)
+func rustOnNotificationAccept(_ keyPtr: UnsafePointer<CChar>)
 
 @_silgen_name("rust_on_notification_dismiss")
-func rustOnNotificationDismiss(_ idPtr: UnsafePointer<CChar>)
+func rustOnNotificationDismiss(_ keyPtr: UnsafePointer<CChar>)
 
 @_silgen_name("rust_on_notification_timeout")
-func rustOnNotificationTimeout(_ idPtr: UnsafePointer<CChar>)
+func rustOnNotificationTimeout(_ keyPtr: UnsafePointer<CChar>)
 
 @_cdecl("_show_notification")
 public func _showNotification(
+  key: SRString,
   title: SRString,
   message: SRString,
   timeoutSeconds: Double
 ) -> Bool {
+  let keyStr = key.toString()
   let titleStr = title.toString()
   let messageStr = message.toString()
 
   NotificationManager.shared.show(
+    key: keyStr,
     title: titleStr,
     message: messageStr,
     timeoutSeconds: timeoutSeconds

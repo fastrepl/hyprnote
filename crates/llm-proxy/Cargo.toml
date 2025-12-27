@@ -6,17 +6,17 @@ edition = "2024"
 [dependencies]
 hypr-analytics = { workspace = true }
 
+async-stream = { workspace = true }
 axum = { workspace = true }
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json", "stream"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "time", "sync", "macros"] }
-tokio-stream = { workspace = true }
 tracing = { workspace = true }
 
 bytes = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-thiserror = { workspace = true }
 
 [dev-dependencies]
 tower = { workspace = true, features = ["util"] }
+wiremock = { workspace = true }

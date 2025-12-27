@@ -5,6 +5,25 @@ import { SCHEMA, type Schemas } from "@hypr/store";
 
 import { createLocalPersister2 } from "./localPersister2";
 
+vi.mock("@hypr/plugin-path2", () => ({
+  commands: {
+    base: vi.fn().mockResolvedValue("/mock/data/dir/"),
+  },
+}));
+
+vi.mock("@tauri-apps/plugin-fs", () => ({
+  exists: vi.fn().mockResolvedValue(true),
+  mkdir: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@hypr/plugin-export", () => ({
+  commands: {
+    exportTiptapJsonToMdBatch: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: null }),
+  },
+}));
+
 function createTestStore() {
   return createMergeableStore()
     .setTablesSchema(SCHEMA.table)
@@ -13,19 +32,17 @@ function createTestStore() {
 
 describe("createLocalPersister2", () => {
   let store: ReturnType<typeof createTestStore>;
-  let handlePersistEnhancedNote: ReturnType<typeof vi.fn>;
   let handleSyncToSession: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     store = createTestStore();
-    handlePersistEnhancedNote = vi.fn().mockResolvedValue(undefined);
     handleSyncToSession = vi.fn();
+    vi.clearAllMocks();
   });
 
   test("returns a persister object with expected methods", () => {
     const persister = createLocalPersister2<Schemas>(
       store,
-      handlePersistEnhancedNote,
       handleSyncToSession,
     );
 
@@ -38,24 +55,24 @@ describe("createLocalPersister2", () => {
   test("load returns undefined (no-op)", async () => {
     const persister = createLocalPersister2<Schemas>(
       store,
-      handlePersistEnhancedNote,
       handleSyncToSession,
     );
 
     const result = await persister.load();
     expect(result).toBe(persister);
-    expect(handlePersistEnhancedNote).not.toHaveBeenCalled();
     expect(handleSyncToSession).not.toHaveBeenCalled();
   });
 
   describe("save", () => {
-    test("calls handlePersistEnhancedNote for each enhanced_note", async () => {
+    test("exports enhanced_note to markdown file", async () => {
+      const { commands } = await import("@hypr/plugin-export");
+
       const noteId = "note-1";
       store.setRow("enhanced_notes", noteId, {
         user_id: "user-1",
         created_at: new Date().toISOString(),
         session_id: "session-1",
-        content: "test content",
+        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
         template_id: "template-1",
         position: 0,
       });
@@ -69,46 +86,44 @@ describe("createLocalPersister2", () => {
 
       const persister = createLocalPersister2<Schemas>(
         store,
-        handlePersistEnhancedNote,
         handleSyncToSession,
       );
 
       await persister.save();
 
-      expect(handlePersistEnhancedNote).toHaveBeenCalledTimes(1);
-      expect(handlePersistEnhancedNote).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: noteId,
-          user_id: "user-1",
-          session_id: "session-1",
-          content: "test content",
-          template_id: "template-1",
-        }),
-        "My Template.md",
-      );
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledTimes(1);
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+        [
+          { type: "doc", content: [{ type: "paragraph" }] },
+          "/mock/data/dir/hyprnote/sessions/session-1/My Template.md",
+        ],
+      ]);
     });
 
     test("uses _summary.md when no template_id", async () => {
+      const { commands } = await import("@hypr/plugin-export");
+
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
         created_at: new Date().toISOString(),
         session_id: "session-1",
-        content: "summary content",
+        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
         position: 0,
       });
 
       const persister = createLocalPersister2<Schemas>(
         store,
-        handlePersistEnhancedNote,
         handleSyncToSession,
       );
 
       await persister.save();
 
-      expect(handlePersistEnhancedNote).toHaveBeenCalledWith(
-        expect.objectContaining({ id: "note-1" }),
-        "_summary.md",
-      );
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+        [
+          { type: "doc", content: [{ type: "paragraph" }] },
+          "/mock/data/dir/hyprnote/sessions/session-1/_summary.md",
+        ],
+      ]);
     });
 
     test("calls handleSyncToSession when no template_id but has session_id", async () => {
@@ -116,13 +131,12 @@ describe("createLocalPersister2", () => {
         user_id: "user-1",
         created_at: new Date().toISOString(),
         session_id: "session-1",
-        content: "sync content",
+        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
         position: 0,
       });
 
       const persister = createLocalPersister2<Schemas>(
         store,
-        handlePersistEnhancedNote,
         handleSyncToSession,
       );
 
@@ -131,7 +145,7 @@ describe("createLocalPersister2", () => {
       expect(handleSyncToSession).toHaveBeenCalledTimes(1);
       expect(handleSyncToSession).toHaveBeenCalledWith(
         "session-1",
-        "sync content",
+        '{"type":"doc","content":[{"type":"paragraph"}]}',
       );
     });
 
@@ -140,7 +154,7 @@ describe("createLocalPersister2", () => {
         user_id: "user-1",
         created_at: new Date().toISOString(),
         session_id: "session-1",
-        content: "template content",
+        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
         template_id: "template-1",
         position: 0,
       });
@@ -154,7 +168,6 @@ describe("createLocalPersister2", () => {
 
       const persister = createLocalPersister2<Schemas>(
         store,
-        handlePersistEnhancedNote,
         handleSyncToSession,
       );
 
@@ -164,11 +177,13 @@ describe("createLocalPersister2", () => {
     });
 
     test("sanitizes template title for filename", async () => {
+      const { commands } = await import("@hypr/plugin-export");
+
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
         created_at: new Date().toISOString(),
         session_id: "session-1",
-        content: "content",
+        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
         template_id: "template-1",
         position: 0,
       });
@@ -182,55 +197,61 @@ describe("createLocalPersister2", () => {
 
       const persister = createLocalPersister2<Schemas>(
         store,
-        handlePersistEnhancedNote,
         handleSyncToSession,
       );
 
       await persister.save();
 
-      expect(handlePersistEnhancedNote).toHaveBeenCalledWith(
-        expect.anything(),
-        "My_________Template.md",
-      );
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+        [
+          expect.any(Object),
+          "/mock/data/dir/hyprnote/sessions/session-1/My_________Template.md",
+        ],
+      ]);
     });
 
     test("falls back to template_id when template title is not found", async () => {
+      const { commands } = await import("@hypr/plugin-export");
+
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
         created_at: new Date().toISOString(),
         session_id: "session-1",
-        content: "content",
+        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
         template_id: "unknown-template-id",
         position: 0,
       });
 
       const persister = createLocalPersister2<Schemas>(
         store,
-        handlePersistEnhancedNote,
         handleSyncToSession,
       );
 
       await persister.save();
 
-      expect(handlePersistEnhancedNote).toHaveBeenCalledWith(
-        expect.anything(),
-        "unknown-template-id.md",
-      );
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+        [
+          expect.any(Object),
+          "/mock/data/dir/hyprnote/sessions/session-1/unknown-template-id.md",
+        ],
+      ]);
     });
 
     test("handles multiple enhanced_notes", async () => {
+      const { commands } = await import("@hypr/plugin-export");
+
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
         created_at: new Date().toISOString(),
         session_id: "session-1",
-        content: "content 1",
+        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
         position: 0,
       });
       store.setRow("enhanced_notes", "note-2", {
         user_id: "user-1",
         created_at: new Date().toISOString(),
         session_id: "session-1",
-        content: "content 2",
+        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
         template_id: "template-1",
         position: 1,
       });
@@ -244,18 +265,20 @@ describe("createLocalPersister2", () => {
 
       const persister = createLocalPersister2<Schemas>(
         store,
-        handlePersistEnhancedNote,
         handleSyncToSession,
       );
 
       await persister.save();
 
-      expect(handlePersistEnhancedNote).toHaveBeenCalledTimes(2);
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledTimes(1);
+      const callArgs = vi.mocked(commands.exportTiptapJsonToMdBatch).mock
+        .calls[0][0];
+      expect(callArgs).toHaveLength(2);
       expect(handleSyncToSession).toHaveBeenCalledTimes(1);
     });
 
-    test("calls handlePersistRawMemo for sessions with raw_md", async () => {
-      const handlePersistRawMemo = vi.fn().mockResolvedValue(undefined);
+    test("exports raw_md for sessions", async () => {
+      const { commands } = await import("@hypr/plugin-export");
 
       store.setRow("sessions", "session-1", {
         user_id: "user-1",
@@ -267,25 +290,21 @@ describe("createLocalPersister2", () => {
 
       const persister = createLocalPersister2<Schemas>(
         store,
-        handlePersistEnhancedNote,
         handleSyncToSession,
-        handlePersistRawMemo,
       );
 
       await persister.save();
 
-      expect(handlePersistRawMemo).toHaveBeenCalledTimes(1);
-      expect(handlePersistRawMemo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: "session-1",
-          raw_md: '{"type":"doc","content":[{"type":"paragraph"}]}',
-        }),
-        "_memo.md",
-      );
+      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+        [
+          { type: "doc", content: [{ type: "paragraph" }] },
+          "/mock/data/dir/hyprnote/sessions/session-1/_memo.md",
+        ],
+      ]);
     });
 
-    test("does not call handlePersistRawMemo when raw_md is empty", async () => {
-      const handlePersistRawMemo = vi.fn().mockResolvedValue(undefined);
+    test("does not export raw_md when raw_md is empty", async () => {
+      const { commands } = await import("@hypr/plugin-export");
 
       store.setRow("sessions", "session-1", {
         user_id: "user-1",
@@ -297,32 +316,80 @@ describe("createLocalPersister2", () => {
 
       const persister = createLocalPersister2<Schemas>(
         store,
-        handlePersistEnhancedNote,
         handleSyncToSession,
-        handlePersistRawMemo,
       );
 
       await persister.save();
 
-      expect(handlePersistRawMemo).not.toHaveBeenCalled();
+      expect(commands.exportTiptapJsonToMdBatch).not.toHaveBeenCalled();
     });
 
-    test("does not call handlePersistRawMemo when handler is not provided", async () => {
-      store.setRow("sessions", "session-1", {
+    test("creates directory if it does not exist", async () => {
+      const { exists, mkdir } = await import("@tauri-apps/plugin-fs");
+      vi.mocked(exists).mockResolvedValue(false);
+
+      store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
         created_at: new Date().toISOString(),
-        title: "Test Session",
-        raw_md: '{"type":"doc","content":[{"type":"paragraph"}]}',
-        enhanced_md: "",
+        session_id: "session-1",
+        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
+        position: 0,
       });
 
       const persister = createLocalPersister2<Schemas>(
         store,
-        handlePersistEnhancedNote,
         handleSyncToSession,
       );
 
       await persister.save();
+
+      expect(mkdir).toHaveBeenCalledWith(
+        "/mock/data/dir/hyprnote/sessions/session-1",
+        { recursive: true },
+      );
+    });
+
+    test("skips when content is not valid tiptap json", async () => {
+      const { commands } = await import("@hypr/plugin-export");
+
+      store.setRow("enhanced_notes", "note-1", {
+        user_id: "user-1",
+        created_at: new Date().toISOString(),
+        session_id: "session-1",
+        content: "not valid json",
+        position: 0,
+      });
+
+      const persister = createLocalPersister2<Schemas>(
+        store,
+        handleSyncToSession,
+      );
+
+      await persister.save();
+
+      expect(commands.exportTiptapJsonToMdBatch).not.toHaveBeenCalled();
+    });
+
+    test("skips when isEnabled.notes returns false", async () => {
+      const { commands } = await import("@hypr/plugin-export");
+
+      store.setRow("enhanced_notes", "note-1", {
+        user_id: "user-1",
+        created_at: new Date().toISOString(),
+        session_id: "session-1",
+        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
+        position: 0,
+      });
+
+      const persister = createLocalPersister2<Schemas>(
+        store,
+        handleSyncToSession,
+        { notes: () => false },
+      );
+
+      await persister.save();
+
+      expect(commands.exportTiptapJsonToMdBatch).not.toHaveBeenCalled();
     });
   });
 });

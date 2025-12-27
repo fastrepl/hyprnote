@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 
 import { useAuth } from "../../auth";
-import { Route } from "../../routes/app/onboarding";
+import { Route } from "../../routes/app/onboarding/_layout.index";
 import { getNext, type StepProps } from "./config";
 import { Divider, IntegrationRow, OnboardingContainer } from "./shared";
 
@@ -17,7 +17,7 @@ export function Calendars({ onNavigate }: StepProps) {
           <>
             <IntegrationRow
               icon={<Icon icon="logos:google-calendar" size={24} />}
-              name="Google Calendar"
+              name="Google"
             />
             <IntegrationRow
               icon={<Icon icon="vscode-icons:file-type-outlook" size={24} />}
@@ -26,19 +26,19 @@ export function Calendars({ onNavigate }: StepProps) {
             <Divider text="Directly connecting Google/Outlook works better" />
             <IntegrationRow
               icon={<Icon icon="logos:apple" size={24} />}
-              name="Apple Calendar"
+              name="Apple"
             />
           </>
         ) : (
           <>
             <IntegrationRow
               icon={<Icon icon="logos:apple" size={24} />}
-              name="Apple Calendar"
+              name="Apple"
             />
             <Divider text="You need account" />
             <IntegrationRow
               icon={<Icon icon="logos:google-calendar" size={24} />}
-              name="Google Calendar"
+              name="Google"
               disabled
             />
             <IntegrationRow
@@ -51,7 +51,7 @@ export function Calendars({ onNavigate }: StepProps) {
       </div>
 
       <button
-        onClick={() => onNavigate({ ...search, step: getNext(search) })}
+        onClick={() => onNavigate({ ...search, step: getNext(search)! })}
         className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
       >
         skip

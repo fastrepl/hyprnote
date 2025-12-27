@@ -4,10 +4,9 @@ use crate::TemplatePluginExt;
 #[specta::specta]
 pub async fn render<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    name: hypr_template::Template,
-    ctx: serde_json::Map<String, serde_json::Value>,
+    tpl: hypr_template_app::Template,
 ) -> Result<String, String> {
-    app.template().render(name, ctx)
+    app.template().render(tpl)
 }
 
 #[tauri::command]

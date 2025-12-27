@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useResizeObserver } from "usehooks-ts";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
@@ -38,6 +45,10 @@ export function NoteInput({
       ? `enhanced-${currentTab.id}`
       : currentTab.type,
   );
+
+  const { fadeRef, atStart, atEnd } = useScrollFade<HTMLDivElement>([
+    currentTab,
+  ]);
 
   const handleTabChange = useCallback(
     (view: EditorView) => {
@@ -78,39 +89,42 @@ export function NoteInput({
         />
       </div>
 
-      <div
-        ref={
-          currentTab.type !== "transcript"
-            ? (node) => {
-                scrollRef.current = node;
-              }
-            : undefined
-        }
-        onClick={handleContainerClick}
-        className={cn([
-          "flex-1 mt-2 px-3",
-          currentTab.type === "transcript"
-            ? "overflow-hidden"
-            : ["overflow-auto", "pb-6"],
-        ])}
-      >
-        {currentTab.type === "enhanced" && (
-          <Enhanced
-            ref={editorRef}
-            sessionId={sessionId}
-            enhancedNoteId={currentTab.id}
-          />
-        )}
-        {currentTab.type === "raw" && (
-          <RawEditor ref={editorRef} sessionId={sessionId} />
-        )}
-        {currentTab.type === "transcript" && (
-          <Transcript
-            sessionId={sessionId}
-            isEditing={isEditing}
-            scrollRef={scrollRef}
-          />
-        )}
+      <div className="relative flex-1 mt-2 overflow-hidden">
+        <div
+          ref={(node) => {
+            fadeRef.current = node;
+            if (currentTab.type !== "transcript") {
+              scrollRef.current = node;
+            }
+          }}
+          onClick={handleContainerClick}
+          className={cn([
+            "h-full px-3",
+            currentTab.type === "transcript"
+              ? "overflow-hidden"
+              : ["overflow-auto", "pb-6"],
+          ])}
+        >
+          {currentTab.type === "enhanced" && (
+            <Enhanced
+              ref={editorRef}
+              sessionId={sessionId}
+              enhancedNoteId={currentTab.id}
+            />
+          )}
+          {currentTab.type === "raw" && (
+            <RawEditor ref={editorRef} sessionId={sessionId} />
+          )}
+          {currentTab.type === "transcript" && (
+            <Transcript
+              sessionId={sessionId}
+              isEditing={isEditing}
+              scrollRef={scrollRef}
+            />
+          )}
+        </div>
+        {!atStart && <ScrollFadeOverlay position="top" />}
+        {!atEnd && <ScrollFadeOverlay position="bottom" />}
       </div>
     </div>
   );
@@ -223,5 +237,48 @@ function useTabShortcuts({
       enableOnContentEditable: true,
     },
     [currentTab, editorTabs, handleTabChange],
+  );
+}
+
+function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
+  const fadeRef = useRef<T>(null);
+  const [state, setState] = useState({ atStart: true, atEnd: true });
+
+  const update = useCallback(() => {
+    const el = fadeRef.current;
+    if (!el) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    setState({
+      atStart: scrollTop <= 1,
+      atEnd: scrollTop + clientHeight >= scrollHeight - 1,
+    });
+  }, []);
+
+  useResizeObserver({ ref: fadeRef as RefObject<T>, onResize: update });
+
+  useEffect(() => {
+    const el = fadeRef.current;
+    if (!el) return;
+
+    update();
+    el.addEventListener("scroll", update);
+    return () => el.removeEventListener("scroll", update);
+  }, [update, ...deps]);
+
+  return { fadeRef, ...state };
+}
+
+function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
+  return (
+    <div
+      className={cn([
+        "absolute left-0 w-full h-8 z-20 pointer-events-none",
+        position === "top" &&
+          "top-0 bg-gradient-to-b from-white to-transparent",
+        position === "bottom" &&
+          "bottom-0 bg-gradient-to-t from-white to-transparent",
+      ])}
+    />
   );
 }

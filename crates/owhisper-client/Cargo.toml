@@ -3,9 +3,12 @@ name = "owhisper-client"
 version = "0.0.1"
 edition = "2024"
 
+[features]
+default = []
+argmax = ["hypr-audio-utils"]
+
 [dependencies]
-hypr-audio = { workspace = true }
-hypr-audio-utils = { workspace = true }
+hypr-audio-utils = { workspace = true, optional = true }
 hypr-language = { workspace = true }
 hypr-ws-client = { workspace = true }
 
@@ -19,7 +22,7 @@ reqwest-tracing = { workspace = true }
 tokio = { workspace = true, features = ["fs"] }
 tokio-stream = { workspace = true }
 
-base64 = "0.22.1"
+base64 = { workspace = true }
 bytes = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -28,6 +31,7 @@ tracing = { workspace = true }
 url = { workspace = true }
 
 [dev-dependencies]
+hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
 
 deepgram = { workspace = true, features = ["listen"] }

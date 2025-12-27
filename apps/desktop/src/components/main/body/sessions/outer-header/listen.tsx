@@ -229,7 +229,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
     muted: state.live.muted,
   }));
 
-  const active = mode === "running_active" || mode === "finalizing";
+  const active = mode === "active" || mode === "finalizing";
   const finalizing = mode === "finalizing";
 
   if (!active) {

@@ -14,10 +14,10 @@ pub enum Error {
     CachePathUnavailable,
     #[error("cached update not found")]
     CachedUpdateNotFound,
-    #[error("no pending update")]
-    NoPendingUpdate,
     #[error("update not available")]
     UpdateNotAvailable,
+    #[error("version mismatch: expected {expected}, got {actual}")]
+    VersionMismatch { expected: String, actual: String },
 }
 
 impl Serialize for Error {

@@ -70,12 +70,12 @@ import { Route as ViewSolutionConsultingRouteImport } from './routes/_view/solut
 import { Route as ViewSolutionCoachingRouteImport } from './routes/_view/solution/coaching'
 import { Route as ViewShortcutsSlugRouteImport } from './routes/_view/shortcuts/$slug'
 import { Route as ViewRoadmapSlugRouteImport } from './routes/_view/roadmap/$slug'
-import { Route as ViewProductWorkflowsRouteImport } from './routes/_view/product/workflows'
 import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
 import { Route as ViewProductNotepadRouteImport } from './routes/_view/product/notepad'
 import { Route as ViewProductMiniAppsRouteImport } from './routes/_view/product/mini-apps'
 import { Route as ViewProductMemoryRouteImport } from './routes/_view/product/memory'
 import { Route as ViewProductLocalAiRouteImport } from './routes/_view/product/local-ai'
+import { Route as ViewProductIntegrationsRouteImport } from './routes/_view/product/integrations'
 import { Route as ViewProductExtensionsRouteImport } from './routes/_view/product/extensions'
 import { Route as ViewProductBotRouteImport } from './routes/_view/product/bot'
 import { Route as ViewProductApiRouteImport } from './routes/_view/product/api'
@@ -412,11 +412,6 @@ const ViewRoadmapSlugRoute = ViewRoadmapSlugRouteImport.update({
   path: '/roadmap/$slug',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewProductWorkflowsRoute = ViewProductWorkflowsRouteImport.update({
-  id: '/product/workflows',
-  path: '/product/workflows',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewProductSelfHostingRoute = ViewProductSelfHostingRouteImport.update({
   id: '/product/self-hosting',
   path: '/product/self-hosting',
@@ -440,6 +435,11 @@ const ViewProductMemoryRoute = ViewProductMemoryRouteImport.update({
 const ViewProductLocalAiRoute = ViewProductLocalAiRouteImport.update({
   id: '/product/local-ai',
   path: '/product/local-ai',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductIntegrationsRoute = ViewProductIntegrationsRouteImport.update({
+  id: '/product/integrations',
+  path: '/product/integrations',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewProductExtensionsRoute = ViewProductExtensionsRouteImport.update({
@@ -630,12 +630,12 @@ export interface FileRoutesByFullPath {
   '/product/api': typeof ViewProductApiRoute
   '/product/bot': typeof ViewProductBotRoute
   '/product/extensions': typeof ViewProductExtensionsRoute
+  '/product/integrations': typeof ViewProductIntegrationsRoute
   '/product/local-ai': typeof ViewProductLocalAiRoute
   '/product/memory': typeof ViewProductMemoryRoute
   '/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/product/notepad': typeof ViewProductNotepadRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
-  '/product/workflows': typeof ViewProductWorkflowsRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
   '/solution/coaching': typeof ViewSolutionCoachingRoute
@@ -721,12 +721,12 @@ export interface FileRoutesByTo {
   '/product/api': typeof ViewProductApiRoute
   '/product/bot': typeof ViewProductBotRoute
   '/product/extensions': typeof ViewProductExtensionsRoute
+  '/product/integrations': typeof ViewProductIntegrationsRoute
   '/product/local-ai': typeof ViewProductLocalAiRoute
   '/product/memory': typeof ViewProductMemoryRoute
   '/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/product/notepad': typeof ViewProductNotepadRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
-  '/product/workflows': typeof ViewProductWorkflowsRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
   '/solution/coaching': typeof ViewSolutionCoachingRoute
@@ -817,12 +817,12 @@ export interface FileRoutesById {
   '/_view/product/api': typeof ViewProductApiRoute
   '/_view/product/bot': typeof ViewProductBotRoute
   '/_view/product/extensions': typeof ViewProductExtensionsRoute
+  '/_view/product/integrations': typeof ViewProductIntegrationsRoute
   '/_view/product/local-ai': typeof ViewProductLocalAiRoute
   '/_view/product/memory': typeof ViewProductMemoryRoute
   '/_view/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/_view/product/notepad': typeof ViewProductNotepadRoute
   '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
-  '/_view/product/workflows': typeof ViewProductWorkflowsRoute
   '/_view/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/_view/shortcuts/$slug': typeof ViewShortcutsSlugRoute
   '/_view/solution/coaching': typeof ViewSolutionCoachingRoute
@@ -913,12 +913,12 @@ export interface FileRouteTypes {
     | '/product/api'
     | '/product/bot'
     | '/product/extensions'
+    | '/product/integrations'
     | '/product/local-ai'
     | '/product/memory'
     | '/product/mini-apps'
     | '/product/notepad'
     | '/product/self-hosting'
-    | '/product/workflows'
     | '/roadmap/$slug'
     | '/shortcuts/$slug'
     | '/solution/coaching'
@@ -1004,12 +1004,12 @@ export interface FileRouteTypes {
     | '/product/api'
     | '/product/bot'
     | '/product/extensions'
+    | '/product/integrations'
     | '/product/local-ai'
     | '/product/memory'
     | '/product/mini-apps'
     | '/product/notepad'
     | '/product/self-hosting'
-    | '/product/workflows'
     | '/roadmap/$slug'
     | '/shortcuts/$slug'
     | '/solution/coaching'
@@ -1099,12 +1099,12 @@ export interface FileRouteTypes {
     | '/_view/product/api'
     | '/_view/product/bot'
     | '/_view/product/extensions'
+    | '/_view/product/integrations'
     | '/_view/product/local-ai'
     | '/_view/product/memory'
     | '/_view/product/mini-apps'
     | '/_view/product/notepad'
     | '/_view/product/self-hosting'
-    | '/_view/product/workflows'
     | '/_view/roadmap/$slug'
     | '/_view/shortcuts/$slug'
     | '/_view/solution/coaching'
@@ -1590,13 +1590,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewRoadmapSlugRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/product/workflows': {
-      id: '/_view/product/workflows'
-      path: '/product/workflows'
-      fullPath: '/product/workflows'
-      preLoaderRoute: typeof ViewProductWorkflowsRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/product/self-hosting': {
       id: '/_view/product/self-hosting'
       path: '/product/self-hosting'
@@ -1630,6 +1623,13 @@ declare module '@tanstack/react-router' {
       path: '/product/local-ai'
       fullPath: '/product/local-ai'
       preLoaderRoute: typeof ViewProductLocalAiRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/integrations': {
+      id: '/_view/product/integrations'
+      path: '/product/integrations'
+      fullPath: '/product/integrations'
+      preLoaderRoute: typeof ViewProductIntegrationsRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/product/extensions': {
@@ -1900,12 +1900,12 @@ interface ViewRouteRouteChildren {
   ViewProductApiRoute: typeof ViewProductApiRoute
   ViewProductBotRoute: typeof ViewProductBotRoute
   ViewProductExtensionsRoute: typeof ViewProductExtensionsRoute
+  ViewProductIntegrationsRoute: typeof ViewProductIntegrationsRoute
   ViewProductLocalAiRoute: typeof ViewProductLocalAiRoute
   ViewProductMemoryRoute: typeof ViewProductMemoryRoute
   ViewProductMiniAppsRoute: typeof ViewProductMiniAppsRoute
   ViewProductNotepadRoute: typeof ViewProductNotepadRoute
   ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute
-  ViewProductWorkflowsRoute: typeof ViewProductWorkflowsRoute
   ViewRoadmapSlugRoute: typeof ViewRoadmapSlugRoute
   ViewShortcutsSlugRoute: typeof ViewShortcutsSlugRoute
   ViewSolutionCoachingRoute: typeof ViewSolutionCoachingRoute
@@ -1971,12 +1971,12 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewProductApiRoute: ViewProductApiRoute,
   ViewProductBotRoute: ViewProductBotRoute,
   ViewProductExtensionsRoute: ViewProductExtensionsRoute,
+  ViewProductIntegrationsRoute: ViewProductIntegrationsRoute,
   ViewProductLocalAiRoute: ViewProductLocalAiRoute,
   ViewProductMemoryRoute: ViewProductMemoryRoute,
   ViewProductMiniAppsRoute: ViewProductMiniAppsRoute,
   ViewProductNotepadRoute: ViewProductNotepadRoute,
   ViewProductSelfHostingRoute: ViewProductSelfHostingRoute,
-  ViewProductWorkflowsRoute: ViewProductWorkflowsRoute,
   ViewRoadmapSlugRoute: ViewRoadmapSlugRoute,
   ViewShortcutsSlugRoute: ViewShortcutsSlugRoute,
   ViewSolutionCoachingRoute: ViewSolutionCoachingRoute,

@@ -15,6 +15,7 @@ export function useStartListening(sessionId: string) {
   const store = main.UI.useStore(main.STORE_ID);
 
   const record_enabled = useConfigValue("save_recordings");
+  const languages = useConfigValue("spoken_languages");
 
   const start = useListener((state) => state.start);
   const { conn } = useSTTConnection();
@@ -100,7 +101,7 @@ export function useStartListening(sessionId: string) {
     start(
       {
         session_id: sessionId,
-        languages: ["en"],
+        languages,
         onboarding: false,
         record_enabled,
         model: conn.model,
@@ -112,7 +113,16 @@ export function useStartListening(sessionId: string) {
         handlePersist,
       },
     );
-  }, [conn, store, sessionId, start, keywords, user_id, record_enabled]);
+  }, [
+    conn,
+    store,
+    sessionId,
+    start,
+    keywords,
+    user_id,
+    record_enabled,
+    languages,
+  ]);
 
   return startListening;
 }

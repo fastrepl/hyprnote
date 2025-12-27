@@ -1,7 +1,7 @@
 mod batch;
 mod streaming;
 
-use std::collections::HashMap;
+use core::fmt;
 
 use axum::{
     Router,
@@ -12,11 +12,26 @@ use axum::{
 };
 
 use crate::config::SttProxyConfig;
+use crate::query_params::QueryParams;
 use owhisper_providers::Provider;
 
 pub struct ResolvedProvider {
     provider: Provider,
     api_key: String,
+}
+
+impl fmt::Debug for ResolvedProvider {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let redacted_key = if self.api_key.len() <= 3 {
+            "[REDACTED]".to_string()
+        } else {
+            format!("{}...[REDACTED]", &self.api_key[..3])
+        };
+        f.debug_struct("ResolvedProvider")
+            .field("provider", &self.provider)
+            .field("api_key", &redacted_key)
+            .finish()
+    }
 }
 
 impl ResolvedProvider {
@@ -36,12 +51,9 @@ pub(crate) struct AppState {
 }
 
 impl AppState {
-    pub fn resolve_provider(
-        &self,
-        params: &mut HashMap<String, String>,
-    ) -> Result<ResolvedProvider, Response> {
+    pub fn resolve_provider(&self, params: &mut QueryParams) -> Result<ResolvedProvider, Response> {
         let provider = params
-            .remove("provider")
+            .remove_first("provider")
             .and_then(|s| s.parse::<Provider>().ok())
             .unwrap_or(self.config.default_provider);
 
@@ -65,6 +77,8 @@ pub fn router(config: SttProxyConfig) -> Router {
     };
 
     Router::new()
+        .route("/", get(streaming::handler))
+        .route("/", post(batch::handler))
         .route("/listen", get(streaming::handler))
         .route("/listen", post(batch::handler))
         .layer(DefaultBodyLimit::max(100 * 1024 * 1024))

@@ -7,7 +7,7 @@ import { createClient, createConfig } from "@hypr/api-client/client";
 import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
-import { Route } from "../../routes/app/onboarding";
+import { Route } from "../../routes/app/onboarding/_layout.index";
 import * as settings from "../../store/tinybase/settings";
 import { getBack, getNext, type StepProps } from "./config";
 import { STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
@@ -80,7 +80,7 @@ export function Login({ onNavigate }: StepProps) {
         setTrialDefaults();
       }
       const nextSearch = { ...search, pro: isPro };
-      onNavigate({ ...nextSearch, step: getNext(nextSearch) });
+      onNavigate({ ...nextSearch, step: getNext(nextSearch)! });
     },
     onError: (e) => {
       console.error(e);

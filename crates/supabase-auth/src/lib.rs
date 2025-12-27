@@ -117,6 +117,7 @@ impl SupabaseAuth {
 
         let mut validation = Validation::new(algorithm);
         validation.validate_exp = true;
+        validation.set_audience(&["authenticated"]);
 
         let token_data = jsonwebtoken::decode::<Claims>(token, &decoding_key, &validation)
             .map_err(|_| Error::InvalidToken)?;

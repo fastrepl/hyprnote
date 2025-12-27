@@ -6,7 +6,10 @@ pub async fn window_show(
     app: tauri::AppHandle<tauri::Wry>,
     window: AppWindow,
 ) -> Result<(), String> {
-    app.windows().show(window).map_err(|e| e.to_string())?;
+    app.windows()
+        .show_async(window)
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(())
 }
 

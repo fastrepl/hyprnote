@@ -1,5 +1,16 @@
 #![allow(dead_code)]
 
+pub mod fixtures;
+pub mod mock_upstream;
+pub mod recording;
+
+#[allow(unused_imports)]
+pub use fixtures::load_fixture;
+#[allow(unused_imports)]
+pub use mock_upstream::{MockServerHandle, MockUpstreamConfig, start_mock_server_with_config};
+#[allow(unused_imports)]
+pub use recording::{Direction, MessageKind, WsMessage, WsRecording};
+
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
@@ -44,6 +55,17 @@ pub async fn start_server_with_provider(provider: Provider, api_key: String) -> 
     api_keys.insert(provider, api_key);
 
     let config = SttProxyConfig::new(api_keys).with_default_provider(provider);
+    start_server(config).await
+}
+
+pub async fn start_server_with_upstream_url(provider: Provider, upstream_url: &str) -> SocketAddr {
+    let mut api_keys = HashMap::new();
+    api_keys.insert(provider, "mock-api-key".to_string());
+
+    let config = SttProxyConfig::new(api_keys)
+        .with_default_provider(provider)
+        .with_upstream_url(provider, upstream_url);
+
     start_server(config).await
 }
 

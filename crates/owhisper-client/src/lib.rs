@@ -13,8 +13,11 @@ use std::marker::PhantomData;
 pub use adapter::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, BatchSttAdapter, DeepgramAdapter,
     FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
-    append_provider_param, is_local_host,
+    append_provider_param, is_hyprnote_proxy, is_local_host,
 };
+#[cfg(feature = "argmax")]
+pub use adapter::{StreamingBatchConfig, StreamingBatchEvent, StreamingBatchStream};
+
 pub use batch::{BatchClient, BatchClientBuilder};
 pub use error::Error;
 pub use hypr_ws_client;
@@ -77,7 +80,8 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
         channels: u8,
     ) -> hypr_ws_client::client::ClientRequestBuilder {
         let params = self.get_params();
-        let api_base = append_provider_param(self.get_api_base(), adapter.provider_name());
+        let original_api_base = self.get_api_base();
+        let api_base = append_provider_param(original_api_base, adapter.provider_name());
         let url = adapter
             .build_ws_url_with_api_key(&api_base, &params, channels, self.api_key.as_deref())
             .await
@@ -86,7 +90,11 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
 
         let mut request = hypr_ws_client::client::ClientRequestBuilder::new(uri);
 
-        if let Some((header_name, header_value)) =
+        if is_hyprnote_proxy(original_api_base) {
+            if let Some(api_key) = self.api_key.as_deref() {
+                request = request.with_header("Authorization", format!("Bearer {}", api_key));
+            }
+        } else if let Some((header_name, header_value)) =
             adapter.build_auth_header(self.api_key.as_deref())
         {
             request = request.with_header(header_name, header_value);

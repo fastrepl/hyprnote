@@ -9,8 +9,9 @@ use crate::error::Error;
 
 use super::OpenAIAdapter;
 
+use owhisper_providers::{Provider, is_meta_model};
+
 const DEFAULT_API_BASE: &str = "https://api.openai.com/v1";
-const DEFAULT_MODEL: &str = "whisper-1";
 const RESPONSE_FORMAT_VERBOSE: &str = "verbose_json";
 const RESPONSE_FORMAT_JSON: &str = "json";
 const TIMESTAMP_GRANULARITY: &str = "word";
@@ -82,7 +83,12 @@ async fn do_transcribe_file(
         .mime_str(mime_type)
         .map_err(|e| Error::AudioProcessing(e.to_string()))?;
 
-    let model = params.model.as_deref().unwrap_or(DEFAULT_MODEL);
+    let default = Provider::OpenAI.default_batch_model();
+    let model = match params.model.as_deref() {
+        Some(m) if is_meta_model(m) => default,
+        Some(m) => m,
+        None => default,
+    };
 
     let mut form = Form::new()
         .part("file", file_part)

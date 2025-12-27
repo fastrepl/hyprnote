@@ -123,12 +123,23 @@ pub(crate) fn host_matches(base_url: &str, predicate: impl Fn(&str) -> bool) -> 
         .unwrap_or(false)
 }
 
-fn is_local_stt_host(base_url: &str) -> bool {
-    host_matches(base_url, is_local_host)
+fn is_hyprnote_cloud(base_url: &str) -> bool {
+    host_matches(base_url, |h| h.contains("hyprnote.com"))
 }
 
-pub fn is_hyprnote_cloud_host(base_url: &str) -> bool {
-    host_matches(base_url, |h| h.contains("hyprnote.com"))
+fn is_hyprnote_local_proxy(base_url: &str) -> bool {
+    url::Url::parse(base_url)
+        .ok()
+        .map(|u| is_local_host(u.host_str().unwrap_or("")) && u.path().contains("/stt"))
+        .unwrap_or(false)
+}
+
+pub fn is_hyprnote_proxy(base_url: &str) -> bool {
+    is_hyprnote_cloud(base_url) || is_hyprnote_local_proxy(base_url)
+}
+
+fn is_local_argmax(base_url: &str) -> bool {
+    host_matches(base_url, is_local_host) && !is_hyprnote_local_proxy(base_url)
 }
 
 pub fn build_proxy_ws_url(api_base: &str) -> Option<(url::Url, Vec<(String, String)>)> {
@@ -179,7 +190,7 @@ impl AdapterKind {
     pub fn from_url_and_languages(base_url: &str, languages: &[hypr_language::Language]) -> Self {
         use owhisper_providers::Provider;
 
-        if is_hyprnote_cloud_host(base_url) {
+        if is_hyprnote_proxy(base_url) {
             if DeepgramAdapter::is_supported_languages(languages) {
                 return Self::Deepgram;
             } else {
@@ -187,7 +198,7 @@ impl AdapterKind {
             }
         }
 
-        if is_local_stt_host(base_url) {
+        if is_local_argmax(base_url) {
             return Self::Argmax;
         }
 
@@ -214,6 +225,58 @@ impl From<owhisper_providers::Provider> for AdapterKind {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_is_hyprnote_proxy() {
+        assert!(is_hyprnote_proxy("https://api.hyprnote.com/stt"));
+        assert!(is_hyprnote_proxy("https://api.hyprnote.com"));
+        assert!(is_hyprnote_proxy("http://localhost:3001/stt"));
+        assert!(is_hyprnote_proxy("http://127.0.0.1:3001/stt"));
+
+        assert!(!is_hyprnote_proxy("https://api.deepgram.com"));
+        assert!(!is_hyprnote_proxy("http://localhost:50060/v1"));
+    }
+
+    #[test]
+    fn test_is_local_argmax() {
+        assert!(is_local_argmax("http://localhost:50060/v1"));
+        assert!(is_local_argmax("http://127.0.0.1:50060/v1"));
+
+        assert!(!is_local_argmax("https://api.hyprnote.com/stt"));
+        assert!(!is_local_argmax("http://localhost:3001/stt"));
+        assert!(!is_local_argmax("https://api.deepgram.com"));
+    }
+
+    #[test]
+    fn test_adapter_kind_from_url_and_languages() {
+        let en = vec![hypr_language::ISO639::En.into()];
+        let ar = vec![hypr_language::ISO639::Ar.into()];
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages("https://api.hyprnote.com/stt", &en),
+            AdapterKind::Deepgram
+        );
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages("https://api.hyprnote.com/stt", &ar),
+            AdapterKind::Soniox
+        );
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages("http://localhost:3001/stt", &en),
+            AdapterKind::Deepgram
+        );
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages("http://localhost:3001/stt", &ar),
+            AdapterKind::Soniox
+        );
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages("http://localhost:50060/v1", &en),
+            AdapterKind::Argmax
+        );
+    }
 
     #[test]
     fn test_build_proxy_ws_url() {

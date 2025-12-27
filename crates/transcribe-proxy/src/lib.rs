@@ -1,6 +1,7 @@
 mod analytics;
 mod config;
 mod error;
+mod query_params;
 mod relay;
 mod routes;
 mod upstream_url;

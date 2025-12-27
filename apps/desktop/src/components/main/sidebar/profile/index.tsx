@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useResizeObserver } from "usehooks-ts";
 
+import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
@@ -128,12 +129,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   // }, [openNew, closeMenu]);
 
   const kbdClass = cn([
-    "inline-flex h-5 items-center gap-1",
-    "rounded border border-neutral-300",
-    "bg-gradient-to-b from-white to-neutral-100",
-    "px-1.5 font-mono text-[10px] font-medium text-neutral-400",
-    "shadow-[0_1px_0_0_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
-    "select-none transition-all duration-100",
+    "transition-all duration-100",
     "group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_0_0_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
     "group-active:translate-y-0.5 group-active:shadow-none",
   ]);
@@ -143,55 +139,31 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       icon: FolderOpenIcon,
       label: "Folders",
       onClick: handleClickFolders,
-      badge: (
-        <kbd className={kbdClass}>
-          <span className="text-xs">⌘</span>
-          <span className="text-xs">⇧</span>D
-        </kbd>
-      ),
+      badge: <Kbd className={kbdClass}>⌘ ⇧ D</Kbd>,
     },
     {
       icon: UsersIcon,
       label: "Contacts",
       onClick: handleClickContacts,
-      badge: (
-        <kbd className={kbdClass}>
-          <span className="text-xs">⌘</span>
-          <span className="text-xs">⇧</span>O
-        </kbd>
-      ),
+      badge: <Kbd className={kbdClass}>⌘ ⇧ O</Kbd>,
     },
     {
       icon: CalendarIcon,
       label: "Calendar",
       onClick: handleClickCalendar,
-      badge: (
-        <kbd className={kbdClass}>
-          <span className="text-xs">⌘</span>
-          <span className="text-xs">⇧</span>C
-        </kbd>
-      ),
+      badge: <Kbd className={kbdClass}>⌘ ⇧ C</Kbd>,
     },
     {
       icon: SparklesIcon,
       label: "AI",
       onClick: handleClickAI,
-      badge: (
-        <kbd className={kbdClass}>
-          <span className="text-xs">⌘</span>
-          <span className="text-xs">⇧</span>A
-        </kbd>
-      ),
+      badge: <Kbd className={kbdClass}>⌘ ⇧ A</Kbd>,
     },
     {
       icon: SettingsIcon,
       label: "Settings",
       onClick: handleClickSettings,
-      badge: (
-        <kbd className={kbdClass}>
-          <span className="text-xs">⌘</span>,
-        </kbd>
-      ),
+      badge: <Kbd className={kbdClass}>⌘ ,</Kbd>,
     },
   ];
 
@@ -232,7 +204,10 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                         <MenuItem key={item.label} {...item} />
                       ))}
 
-                      <AuthSection isAuthenticated={isAuthenticated} />
+                      <AuthSection
+                        isAuthenticated={isAuthenticated}
+                        onClose={closeMenu}
+                      />
                     </motion.div>
                   ) : (
                     <motion.div

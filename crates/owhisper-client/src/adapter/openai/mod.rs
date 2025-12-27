@@ -3,8 +3,6 @@ mod live;
 
 use owhisper_providers::Provider;
 
-pub(crate) const DEFAULT_TRANSCRIPTION_MODEL: &str = "gpt-4o-transcribe";
-
 #[derive(Clone, Default)]
 pub struct OpenAIAdapter;
 

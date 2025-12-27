@@ -333,7 +333,7 @@ export function Header({
 }) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const isBatchProcessing = sessionMode === "running_batch";
-  const isLiveProcessing = sessionMode === "running_active";
+  const isLiveProcessing = sessionMode === "active";
 
   if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
@@ -408,7 +408,7 @@ export function useEditorTabs({
     main.STORE_ID,
   );
 
-  if (sessionMode === "running_active" || sessionMode === "running_batch") {
+  if (sessionMode === "active" || sessionMode === "running_batch") {
     return [{ type: "raw" }, { type: "transcript" }];
   }
 

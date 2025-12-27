@@ -9,6 +9,7 @@ use super::handler::WebSocketProxy;
 use super::params::transform_client_params;
 use super::types::{FirstMessageTransformer, OnCloseCallback};
 use crate::config::DEFAULT_CONNECT_TIMEOUT_MS;
+use crate::query_params::QueryParams;
 use crate::routes::ResolvedProvider;
 use crate::upstream_url::UpstreamUrlBuilder;
 
@@ -19,7 +20,7 @@ pub struct WithUrl {
 }
 pub struct WithUrlComponents {
     base_url: url::Url,
-    client_params: HashMap<String, String>,
+    client_params: QueryParams,
     default_params: Vec<(&'static str, &'static str)>,
     headers: HashMap<String, String>,
 }
@@ -119,7 +120,7 @@ impl WebSocketProxyBuilder<NoUpstream> {
     pub fn upstream_url_from_components(
         self,
         base_url: url::Url,
-        mut client_params: HashMap<String, String>,
+        mut client_params: QueryParams,
         default_params: &'static [(&'static str, &'static str)],
     ) -> WebSocketProxyBuilder<WithUrlComponents> {
         transform_client_params(&mut client_params);

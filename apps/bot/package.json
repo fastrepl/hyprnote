@@ -13,13 +13,13 @@
     "@types/pg": "8.15.1"
   },
   "dependencies": {
-    "@t3-oss/env-core": "^0.13.8",
+    "@t3-oss/env-core": "^0.13.10",
     "probot": "^13.4.7",
     "zod": "^4.2.1"
   },
   "devDependencies": {
     "@octokit/plugin-rest-endpoint-methods": "^17.0.0",
-    "@types/node": "^20.19.26",
+    "@types/node": "^20.19.27",
     "nock": "^14.0.10",
     "smee-client": "^2.0.4",
     "typescript": "^5.9.3",

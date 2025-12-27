@@ -6,10 +6,12 @@ use crate::{
     grade_with_func_inputs, grade_with_llm,
 };
 
+#[deprecated(since = "0.2.0", note = "Use EvalCase with meta field instead")]
 pub trait Inputs: Send + Sync {
     fn to_map(&self) -> HashMap<String, serde_json::Value>;
 }
 
+#[deprecated(since = "0.2.0", note = "Use EvalCase and Executor instead")]
 #[derive(Clone)]
 pub struct Task {
     pub name: String,

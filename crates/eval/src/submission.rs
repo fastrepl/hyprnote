@@ -1,19 +1,21 @@
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 use rayon::prelude::*;
 
-use crate::{
-    ChatCompleter, CheckResult, Score, Usage, find_headings, find_lists, grade, is_non_empty,
-    parse_config,
-};
+use crate::{ChatCompleter, ChatMessage, Score, Usage, parse_config};
+
+pub type ValidatorFn = fn(&str) -> (bool, String);
+pub type ValidatorFnWithMeta = fn(&str, &HashMap<String, serde_json::Value>) -> (bool, String);
 
 #[derive(Debug, Clone)]
-pub struct TaskSubmission {
-    pub name: String,
-    pub prompt: String,
+pub struct EvalCase {
+    pub case_id: String,
+    pub messages: Vec<ChatMessage>,
     pub rubrics: Vec<RubricSpec>,
     pub samples: i32,
+    pub meta: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone)]
@@ -23,23 +25,27 @@ pub struct RubricSpec {
     pub grader: GraderSpec,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum GraderSpec {
-    FormatValidator(FormatValidatorType),
+    Func(ValidatorFn),
+    FuncWithMeta(ValidatorFnWithMeta),
     Llm { samples: i32 },
 }
 
-#[derive(Debug, Clone)]
-pub enum FormatValidatorType {
-    NonEmpty,
-    MdgenFormat,
+impl std::fmt::Debug for GraderSpec {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GraderSpec::Func(_) => write!(f, "Func(<fn>)"),
+            GraderSpec::FuncWithMeta(_) => write!(f, "FuncWithMeta(<fn>)"),
+            GraderSpec::Llm { samples } => f.debug_struct("Llm").field("samples", samples).finish(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
-pub struct TaskResult {
-    pub name: String,
+pub struct EvalResult {
+    pub case_id: String,
     pub model: String,
-    pub run_num: i32,
     pub output: String,
     pub scores: Vec<Score>,
     pub error: Option<String>,
@@ -47,18 +53,32 @@ pub struct TaskResult {
     pub usage: Usage,
 }
 
-impl Default for TaskResult {
+impl Default for EvalResult {
     fn default() -> Self {
         Self {
-            name: String::new(),
+            case_id: String::new(),
             model: String::new(),
-            run_num: 0,
             output: String::new(),
             scores: Vec::new(),
             error: None,
             generation_id: String::new(),
             usage: Usage::default(),
         }
+    }
+}
+
+impl EvalResult {
+    pub fn all_passed(&self) -> bool {
+        if self.error.is_some() {
+            return false;
+        }
+        self.scores.iter().all(|s| s.passed)
+    }
+
+    pub fn tally_score(&self) -> (i32, i32) {
+        let total = self.scores.len() as i32;
+        let passed = self.scores.iter().filter(|s| s.passed).count() as i32;
+        (passed, total)
     }
 }
 
@@ -106,29 +126,21 @@ impl Executor {
         self.on_progress = Some(callback);
     }
 
-    pub fn total_generations(&self, submissions: &[TaskSubmission], models: &[String]) -> usize {
+    pub fn total_generations(&self, cases: &[EvalCase], models: &[String]) -> usize {
         let mut total = 0;
-        for submission in submissions {
-            let samples = if submission.samples <= 1 {
-                1
-            } else {
-                submission.samples
-            };
+        for case in cases {
+            let samples = if case.samples <= 1 { 1 } else { case.samples };
             total += samples as usize;
         }
         total * models.len()
     }
 
-    pub fn total_evaluations(&self, submissions: &[TaskSubmission], models: &[String]) -> usize {
+    pub fn total_evaluations(&self, cases: &[EvalCase], models: &[String]) -> usize {
         let mut total = 0;
-        for submission in submissions {
-            let task_samples = if submission.samples <= 1 {
-                1
-            } else {
-                submission.samples
-            };
+        for case in cases {
+            let task_samples = if case.samples <= 1 { 1 } else { case.samples };
 
-            for rubric in &submission.rubrics {
+            for rubric in &case.rubrics {
                 let eval_count = match &rubric.grader {
                     GraderSpec::Llm { samples } => {
                         let grader_samples = if *samples <= 1 { 1 } else { *samples };
@@ -142,9 +154,9 @@ impl Executor {
         total * models.len()
     }
 
-    pub fn execute(&self, submissions: &[TaskSubmission], models: &[String]) -> Vec<TaskResult> {
-        let generations_total = self.total_generations(submissions, models);
-        let evaluations_total = self.total_evaluations(submissions, models);
+    pub fn execute(&self, cases: &[EvalCase], models: &[String]) -> Vec<EvalResult> {
+        let generations_total = self.total_generations(cases, models);
+        let evaluations_total = self.total_evaluations(cases, models);
 
         let generations_done = Arc::new(AtomicUsize::new(0));
         let evaluations_done = Arc::new(AtomicUsize::new(0));
@@ -158,17 +170,17 @@ impl Executor {
         let work_items: Vec<_> = models
             .iter()
             .flat_map(|model| {
-                submissions
+                cases
                     .iter()
-                    .map(move |submission| (model.clone(), submission.clone()))
+                    .map(move |case| (model.clone(), Arc::new(case.clone())))
             })
             .collect();
 
         pool.install(|| {
-            work_items.par_iter().for_each(|(model, submission)| {
+            work_items.par_iter().for_each(|(model, case)| {
                 let result = self.execute_single(
                     model,
-                    submission,
+                    case,
                     &generations_done,
                     &evaluations_done,
                     generations_total,
@@ -190,26 +202,21 @@ impl Executor {
     fn execute_single(
         &self,
         model: &str,
-        submission: &TaskSubmission,
+        case: &EvalCase,
         generations_done: &AtomicUsize,
         evaluations_done: &AtomicUsize,
         generations_total: usize,
         evaluations_total: usize,
-    ) -> TaskResult {
-        let mut result = TaskResult {
-            name: submission.name.clone(),
+    ) -> EvalResult {
+        let mut result = EvalResult {
+            case_id: case.case_id.clone(),
             model: model.to_string(),
-            run_num: 0,
             ..Default::default()
         };
 
-        let task_samples = if submission.samples <= 1 {
-            1
-        } else {
-            submission.samples
-        };
+        let task_samples = if case.samples <= 1 { 1 } else { case.samples };
 
-        let expected_evals: i32 = submission
+        let expected_evals: i32 = case
             .rubrics
             .iter()
             .map(|rubric| match &rubric.grader {
@@ -232,8 +239,8 @@ impl Executor {
             }
         };
 
-        if submission.samples > 1 {
-            match self.generate_multi(model, &submission.prompt, submission.samples) {
+        if case.samples > 1 {
+            match self.generate_chat_multi(model, &case.messages, case.samples) {
                 Ok((outputs, generation_id)) => {
                     result.generation_id = generation_id;
 
@@ -257,7 +264,7 @@ impl Executor {
                         );
                     };
 
-                    result.scores = self.grade_multi(submission, &outputs, Some(&on_eval));
+                    result.scores = self.grade_multi(case, &outputs, Some(&on_eval));
                 }
                 Err(e) => {
                     result.error = Some(e.to_string());
@@ -274,7 +281,7 @@ impl Executor {
                 }
             }
         } else {
-            match self.generate(model, &submission.prompt) {
+            match self.generate_chat(model, &case.messages) {
                 Ok((output, generation_id)) => {
                     result.generation_id = generation_id;
                     result.output = output.clone();
@@ -293,7 +300,7 @@ impl Executor {
                         );
                     };
 
-                    result.scores = self.grade_single(submission, &output, Some(&on_eval));
+                    result.scores = self.grade_single(case, &output, Some(&on_eval));
                 }
                 Err(e) => {
                     result.error = Some(e.to_string());
@@ -312,42 +319,42 @@ impl Executor {
         result
     }
 
-    fn generate(&self, model: &str, prompt: &str) -> Result<(String, String), crate::ClientError> {
-        crate::generate_text_with_generation_id(self.client.as_ref(), model, prompt)
-    }
-
-    fn generate_multi(
+    fn generate_chat(
         &self,
         model: &str,
-        prompt: &str,
+        messages: &[ChatMessage],
+    ) -> Result<(String, String), crate::ClientError> {
+        crate::generate_chat_with_generation_id(self.client.as_ref(), model, messages)
+    }
+
+    fn generate_chat_multi(
+        &self,
+        model: &str,
+        messages: &[ChatMessage],
         n: i32,
     ) -> Result<(Vec<String>, String), crate::ClientError> {
         if n <= 1 {
-            let (output, gen_id) = self.generate(model, prompt)?;
+            let (output, gen_id) = self.generate_chat(model, messages)?;
             return Ok((vec![output], gen_id));
         }
-        crate::generate_text_multi_with_generation_id(self.client.as_ref(), model, prompt, n)
+        crate::generate_chat_multi_with_generation_id(self.client.as_ref(), model, messages, n)
     }
 
     fn grade_single(
         &self,
-        submission: &TaskSubmission,
+        case: &EvalCase,
         output: &str,
         on_evaluation: Option<&dyn Fn()>,
     ) -> Vec<Score> {
-        submission
-            .rubrics
+        case.rubrics
             .iter()
-            .map(|rubric| {
-                let score = self.grade_rubric(rubric, output, on_evaluation);
-                score
-            })
+            .map(|rubric| self.grade_rubric(rubric, output, case.meta.as_ref(), on_evaluation))
             .collect()
     }
 
     fn grade_multi(
         &self,
-        submission: &TaskSubmission,
+        case: &EvalCase,
         outputs: &[String],
         on_evaluation: Option<&dyn Fn()>,
     ) -> Vec<Score> {
@@ -356,16 +363,15 @@ impl Executor {
         }
 
         if outputs.len() == 1 {
-            return self.grade_single(submission, &outputs[0], on_evaluation);
+            return self.grade_single(case, &outputs[0], on_evaluation);
         }
 
         let all_scores: Vec<Vec<Score>> = outputs
             .iter()
-            .map(|output| self.grade_single(submission, output, on_evaluation))
+            .map(|output| self.grade_single(case, output, on_evaluation))
             .collect();
 
-        submission
-            .rubrics
+        case.rubrics
             .iter()
             .enumerate()
             .map(|(rubric_idx, rubric)| {
@@ -412,11 +418,12 @@ impl Executor {
         &self,
         rubric: &RubricSpec,
         output: &str,
+        meta: Option<&serde_json::Value>,
         on_evaluation: Option<&dyn Fn()>,
     ) -> Score {
         match &rubric.grader {
-            GraderSpec::FormatValidator(validator_type) => {
-                let (passed, reasoning) = run_format_validator(validator_type, output);
+            GraderSpec::Func(f) => {
+                let (passed, reasoning) = f(output);
                 if let Some(cb) = on_evaluation {
                     cb();
                 }
@@ -425,7 +432,25 @@ impl Executor {
                     passed,
                     value: if passed { 1 } else { 0 },
                     reasoning,
-                    grader_type: "format_validator".to_string(),
+                    grader_type: "func".to_string(),
+                    ..Default::default()
+                }
+            }
+            GraderSpec::FuncWithMeta(f) => {
+                let meta_map: HashMap<String, serde_json::Value> = meta
+                    .and_then(|v| v.as_object())
+                    .map(|obj| obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+                    .unwrap_or_default();
+                let (passed, reasoning) = f(output, &meta_map);
+                if let Some(cb) = on_evaluation {
+                    cb();
+                }
+                Score {
+                    rubric_name: rubric.name.clone(),
+                    passed,
+                    value: if passed { 1 } else { 0 },
+                    reasoning,
+                    grader_type: "func".to_string(),
                     ..Default::default()
                 }
             }
@@ -435,94 +460,18 @@ impl Executor {
                     description: rubric.description.clone(),
                     grader: crate::GraderType::Llm { samples: *samples },
                 };
+                let meta_map: Option<HashMap<String, serde_json::Value>> = meta
+                    .and_then(|v| v.as_object())
+                    .map(|obj| obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect());
                 crate::grade_with_llm(
                     self.client.as_ref(),
                     &self.grader_model,
                     &internal_rubric,
                     output,
-                    None,
+                    meta_map.as_ref(),
                     on_evaluation,
                 )
             }
         }
-    }
-}
-
-fn run_format_validator(validator_type: &FormatValidatorType, output: &str) -> (bool, String) {
-    match validator_type {
-        FormatValidatorType::NonEmpty => is_non_empty(output),
-        FormatValidatorType::MdgenFormat => mdgen_format_validator(output),
-    }
-}
-
-fn mdgen_format_validator(output: &str) -> (bool, String) {
-    let result = grade(
-        output,
-        vec![
-            Box::new(|node| {
-                let headings = find_headings(node);
-                if headings.len() >= 2 {
-                    vec![CheckResult::pass(1, "has at least 2 sections")]
-                } else {
-                    vec![CheckResult::fail(
-                        1,
-                        format!("expected at least 2 sections, got {}", headings.len()),
-                    )]
-                }
-            }),
-            Box::new(|node| {
-                find_headings(node)
-                    .iter()
-                    .enumerate()
-                    .map(|(i, h)| {
-                        if h.depth == 1 {
-                            CheckResult::pass(1, format!("section {} is h1", i + 1))
-                        } else {
-                            CheckResult::fail(
-                                1,
-                                format!("section {}: expected h1, got h{}", i + 1, h.depth),
-                            )
-                        }
-                    })
-                    .collect()
-            }),
-            Box::new(|node| {
-                let lists = find_lists(node);
-                if lists.is_empty() {
-                    return vec![CheckResult::fail(1, "no lists found")];
-                }
-                lists
-                    .iter()
-                    .enumerate()
-                    .map(|(i, l)| {
-                        if !l.ordered {
-                            CheckResult::pass(1, format!("list {} is unordered", i + 1))
-                        } else {
-                            CheckResult::fail(
-                                1,
-                                format!("list {}: expected unordered, got ordered", i + 1),
-                            )
-                        }
-                    })
-                    .collect()
-            }),
-        ],
-    );
-
-    (result.score >= 0.8, result.summary())
-}
-
-impl TaskResult {
-    pub fn all_passed(&self) -> bool {
-        if self.error.is_some() {
-            return false;
-        }
-        self.scores.iter().all(|s| s.passed)
-    }
-
-    pub fn tally_score(&self) -> (i32, i32) {
-        let total = self.scores.len() as i32;
-        let passed = self.scores.iter().filter(|s| s.passed).count() as i32;
-        (passed, total)
     }
 }

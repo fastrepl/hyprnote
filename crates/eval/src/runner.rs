@@ -14,6 +14,7 @@ pub static DEFAULT_MODELS: &[&str] = &[
     "liquid/lfm-2.2-6b",
 ];
 
+#[deprecated(since = "0.2.0", note = "Use EvalResult instead")]
 #[derive(Debug, Clone, Default)]
 pub struct Result {
     pub name: String,
@@ -41,6 +42,7 @@ impl Result {
     }
 }
 
+#[deprecated(since = "0.2.0", note = "Use ExecutorProgress instead")]
 #[derive(Debug, Clone, Default)]
 pub struct ProgressInfo {
     pub generations_complete: usize,
@@ -49,8 +51,10 @@ pub struct ProgressInfo {
     pub evaluations_total: usize,
 }
 
+#[deprecated(since = "0.2.0", note = "Use ExecutorProgressCallback instead")]
 pub type ProgressCallback = Box<dyn Fn(ProgressInfo) + Send + Sync>;
 
+#[deprecated(since = "0.2.0", note = "Use Executor instead")]
 pub struct Runner {
     client: Arc<dyn ChatCompleter>,
     target_models: Vec<String>,
@@ -62,6 +66,7 @@ pub struct Runner {
     on_progress: Option<ProgressCallback>,
 }
 
+#[deprecated(since = "0.2.0", note = "Use Executor instead")]
 pub struct RunnerBuilder {
     client: Option<Arc<dyn ChatCompleter>>,
     target_models: Option<Vec<String>>,

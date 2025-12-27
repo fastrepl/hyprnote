@@ -1,8 +1,8 @@
 use comfy_table::{Cell, Color, ContentArrangement, Table, presets::UTF8_FULL_CONDENSED};
 
-use hypr_eval::Result;
+use hypr_eval::TaskResult;
 
-pub fn render_json(results: &[Result]) -> std::result::Result<(), String> {
+pub fn render_json(results: &[TaskResult]) -> std::result::Result<(), String> {
     let json = serde_json::to_string_pretty(
         &results
             .iter()
@@ -41,7 +41,7 @@ pub fn render_json(results: &[Result]) -> std::result::Result<(), String> {
     println!("{}", json);
 
     for r in results {
-        if !r.error.is_empty() {
+        if r.error.is_some() {
             return Err("evaluation failed".to_string());
         }
     }
@@ -49,7 +49,7 @@ pub fn render_json(results: &[Result]) -> std::result::Result<(), String> {
     Ok(())
 }
 
-pub fn render_results(results: &[Result]) -> std::result::Result<(), String> {
+pub fn render_results(results: &[TaskResult]) -> std::result::Result<(), String> {
     let rubric_names = extract_rubric_names(results);
 
     let mut table = Table::new();
@@ -73,7 +73,7 @@ pub fn render_results(results: &[Result]) -> std::result::Result<(), String> {
     for r in results {
         let mut row: Vec<Cell> = vec![Cell::new(&r.model)];
 
-        if !r.error.is_empty() {
+        if let Some(ref err) = r.error {
             total_failed += 1;
             for _ in &rubric_names {
                 row.push(Cell::new("-"));
@@ -81,7 +81,7 @@ pub fn render_results(results: &[Result]) -> std::result::Result<(), String> {
             row.push(Cell::new("error").fg(Color::Red));
             row.push(Cell::new("-"));
             table.add_row(row);
-            error_details.push(format!("{}: {}", r.model, r.error));
+            error_details.push(format!("{}: {}", r.model, err));
             continue;
         }
 
@@ -134,9 +134,9 @@ pub fn render_results(results: &[Result]) -> std::result::Result<(), String> {
     Ok(())
 }
 
-fn extract_rubric_names(results: &[Result]) -> Vec<String> {
+fn extract_rubric_names(results: &[TaskResult]) -> Vec<String> {
     for r in results {
-        if r.error.is_empty() && !r.scores.is_empty() {
+        if r.error.is_none() && !r.scores.is_empty() {
             return r.scores.iter().map(|s| s.rubric_name.clone()).collect();
         }
     }

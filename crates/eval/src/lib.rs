@@ -6,6 +6,7 @@ mod models;
 mod rubric;
 mod runner;
 mod stats;
+mod submission;
 mod task;
 pub mod tasks;
 
@@ -17,4 +18,5 @@ pub use models::*;
 pub use rubric::*;
 pub use runner::*;
 pub use stats::*;
+pub use submission::*;
 pub use task::*;

@@ -16,4 +16,4 @@ indicatif = "0.17"
 serde_json = { workspace = true }
 
 hypr-eval = { workspace = true }
-hypr-template-app = { workspace = true }
+hypr-template-eval = { workspace = true }

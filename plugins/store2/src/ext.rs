@@ -3,11 +3,11 @@ use std::sync::Arc;
 
 use tauri_plugin_path2::Path2PluginExt;
 
-pub const STORE_FILENAME: &str = "store.json";
+pub const FILENAME: &str = "store.json";
 
 pub fn store_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, crate::Error> {
     let store_dir = app.path2().base()?;
-    Ok(store_dir.join(STORE_FILENAME))
+    Ok(store_dir.join(FILENAME))
 }
 
 pub struct Store2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {

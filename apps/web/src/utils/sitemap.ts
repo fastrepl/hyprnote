@@ -198,7 +198,12 @@ export function getSitemap(): Sitemap<TRoutes> {
             __dirname,
             "../../.content-collections/generated/allArticles.js",
           );
-          const { default: allArticles } = await import(modulePath);
+          const imported = await import(modulePath);
+          const allArticles = imported.default ?? imported.allArticles ?? [];
+          if (!Array.isArray(allArticles)) {
+            console.warn("allArticles is not an array:", typeof allArticles);
+            return [];
+          }
           return allArticles
             .filter((article: any) => article.published !== false)
             .map((article: any) => ({
@@ -222,7 +227,10 @@ export function getSitemap(): Sitemap<TRoutes> {
             __dirname,
             "../../.content-collections/generated/allChangelogs.js",
           );
-          const { default: allChangelogs } = await import(modulePath);
+          const imported = await import(modulePath);
+          const allChangelogs =
+            imported.default ?? imported.allChangelogs ?? [];
+          if (!Array.isArray(allChangelogs)) return [];
           return allChangelogs.map((changelog: any) => ({
             path: `/changelog/${changelog.slug}`,
             priority: 0.6,
@@ -244,7 +252,9 @@ export function getSitemap(): Sitemap<TRoutes> {
             __dirname,
             "../../.content-collections/generated/allLegals.js",
           );
-          const { default: allLegals } = await import(modulePath);
+          const imported = await import(modulePath);
+          const allLegals = imported.default ?? imported.allLegals ?? [];
+          if (!Array.isArray(allLegals)) return [];
           return allLegals.map((legal: any) => ({
             path: `/legal/${legal.slug}`,
             priority: 0.5,
@@ -266,7 +276,9 @@ export function getSitemap(): Sitemap<TRoutes> {
             __dirname,
             "../../.content-collections/generated/allDocs.js",
           );
-          const { default: allDocs } = await import(modulePath);
+          const imported = await import(modulePath);
+          const allDocs = imported.default ?? imported.allDocs ?? [];
+          if (!Array.isArray(allDocs)) return [];
           return allDocs.map((doc: any) => ({
             path: `/docs/${doc.slug}`,
             priority: 0.8,
@@ -288,7 +300,9 @@ export function getSitemap(): Sitemap<TRoutes> {
             __dirname,
             "../../.content-collections/generated/allTemplates.js",
           );
-          const { default: allTemplates } = await import(modulePath);
+          const imported = await import(modulePath);
+          const allTemplates = imported.default ?? imported.allTemplates ?? [];
+          if (!Array.isArray(allTemplates)) return [];
           return allTemplates.map((template: any) => ({
             path: `/templates/${template.slug}`,
             priority: 0.7,
@@ -309,7 +323,9 @@ export function getSitemap(): Sitemap<TRoutes> {
             __dirname,
             "../../.content-collections/generated/allShortcuts.js",
           );
-          const { default: allShortcuts } = await import(modulePath);
+          const imported = await import(modulePath);
+          const allShortcuts = imported.default ?? imported.allShortcuts ?? [];
+          if (!Array.isArray(allShortcuts)) return [];
           return allShortcuts.map((shortcut: any) => ({
             path: `/shortcuts/${shortcut.slug}`,
             priority: 0.7,
@@ -330,7 +346,9 @@ export function getSitemap(): Sitemap<TRoutes> {
             __dirname,
             "../../.content-collections/generated/allRoadmaps.js",
           );
-          const { default: allRoadmaps } = await import(modulePath);
+          const imported = await import(modulePath);
+          const allRoadmaps = imported.default ?? imported.allRoadmaps ?? [];
+          if (!Array.isArray(allRoadmaps)) return [];
           return allRoadmaps.map((roadmap: any) => ({
             path: `/roadmap/${roadmap.slug}`,
             priority: 0.6,
@@ -352,7 +370,9 @@ export function getSitemap(): Sitemap<TRoutes> {
             __dirname,
             "../../.content-collections/generated/allVs.js",
           );
-          const { default: allVs } = await import(modulePath);
+          const imported = await import(modulePath);
+          const allVs = imported.default ?? imported.allVs ?? [];
+          if (!Array.isArray(allVs)) return [];
           return allVs.map((vs: any) => ({
             path: `/vs/${vs.slug}`,
             priority: 0.7,
@@ -373,7 +393,9 @@ export function getSitemap(): Sitemap<TRoutes> {
             __dirname,
             "../../.content-collections/generated/allHandbooks.js",
           );
-          const { default: allHandbooks } = await import(modulePath);
+          const imported = await import(modulePath);
+          const allHandbooks = imported.default ?? imported.allHandbooks ?? [];
+          if (!Array.isArray(allHandbooks)) return [];
           return allHandbooks.map((handbook: any) => ({
             path: `/company-handbook/${handbook.slug}`,
             priority: 0.6,
@@ -401,8 +423,14 @@ export function getSitemap(): Sitemap<TRoutes> {
             "../../.content-collections/generated/allShortcuts.js",
           );
 
-          const { default: allTemplates } = await import(templatesPath);
-          const { default: allShortcuts } = await import(shortcutsPath);
+          const templatesImported = await import(templatesPath);
+          const shortcutsImported = await import(shortcutsPath);
+          const allTemplates =
+            templatesImported.default ?? templatesImported.allTemplates ?? [];
+          const allShortcuts =
+            shortcutsImported.default ?? shortcutsImported.allShortcuts ?? [];
+          if (!Array.isArray(allTemplates) || !Array.isArray(allShortcuts))
+            return [];
 
           const templateUrls = allTemplates.map((template: any) => ({
             path: `/gallery/template/${template.slug}`,

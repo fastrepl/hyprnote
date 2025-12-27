@@ -183,6 +183,8 @@ function getWordsForSession<Schemas extends OptionalSchemas>(
         start_ms: word.start_ms as number,
         // @ts-ignore
         end_ms: word.end_ms as number,
+        // @ts-ignore
+        speaker: (word.speaker as string) ?? null,
       });
     }
   }

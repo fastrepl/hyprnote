@@ -384,6 +384,7 @@ describe("createLocalPersister2", () => {
       const persister = createLocalPersister2<Schemas>(
         store,
         handleSyncToSession,
+        undefined,
         { notes: () => false },
       );
 

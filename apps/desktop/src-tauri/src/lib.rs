@@ -172,29 +172,27 @@ pub async fn main() {
         .build(tauri::generate_context!())
         .unwrap();
 
-    let onboarding_env = std::env::var("ONBOARDING");
+    match get_onboarding_flag() {
+        None => {}
+        Some(false) => app.set_onboarding_needed(false).unwrap(),
+        Some(true) => {
+            app.set_onboarding_needed(true).unwrap();
 
-    if onboarding_env.as_ref().map(|v| v == "0").unwrap_or(false) {
-        app.set_onboarding_needed(false).unwrap();
-    }
+            if let Ok(base) = app.path2().base() {
+                let _ = std::fs::remove_file(base.join(tauri_plugin_settings::FILENAME));
+                let _ = std::fs::remove_file(base.join(tauri_plugin_store2::FILENAME));
+            }
 
-    if onboarding_env.as_ref().map(|v| v == "1").unwrap_or(false) {
-        app.set_onboarding_needed(true).unwrap();
-
-        if let Ok(base) = app.path2().base() {
-            let _ = std::fs::remove_file(base.join(tauri_plugin_settings::FILENAME));
-            let _ = std::fs::remove_file(base.join(tauri_plugin_store2::FILENAME));
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                let permissions = app_handle.permissions();
+                let _ = permissions.reset(Permission::Calendar).await;
+                let _ = permissions.reset(Permission::Contacts).await;
+                let _ = permissions.reset(Permission::Microphone).await;
+                let _ = permissions.reset(Permission::SystemAudio).await;
+                let _ = permissions.reset(Permission::Accessibility).await;
+            });
         }
-
-        let app_handle = app.handle().clone();
-        tauri::async_runtime::spawn(async move {
-            let permissions = app_handle.permissions();
-            let _ = permissions.reset(Permission::Calendar).await;
-            let _ = permissions.reset(Permission::Contacts).await;
-            let _ = permissions.reset(Permission::Microphone).await;
-            let _ = permissions.reset(Permission::SystemAudio).await;
-            let _ = permissions.reset(Permission::Accessibility).await;
-        });
     }
 
     {
@@ -229,6 +227,25 @@ pub async fn main() {
         }
         _ => {}
     });
+}
+
+fn get_onboarding_flag() -> Option<bool> {
+    let parse_bool = |v: &str| match v {
+        "1" | "true" => Some(true),
+        "0" | "false" => Some(false),
+        _ => None,
+    };
+
+    pico_args::Arguments::from_env()
+        .opt_value_from_str::<_, String>("--onboarding")
+        .ok()
+        .flatten()
+        .and_then(|v| parse_bool(&v))
+        .or_else(|| {
+            std::env::var("ONBOARDING")
+                .ok()
+                .and_then(|v| parse_bool(&v))
+        })
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

@@ -295,6 +295,46 @@ pub fn generate_text_multi_with_generation_id(
     Ok((outputs, response.id))
 }
 
+pub fn generate_chat_with_generation_id(
+    client: &dyn ChatCompleter,
+    model: &str,
+    messages: &[ChatMessage],
+) -> Result<(String, String), ClientError> {
+    let request = ChatCompletionRequest {
+        model: model.to_string(),
+        messages: messages.to_vec(),
+        temperature: Some(DEFAULT_TEMPERATURE),
+        n: None,
+        response_format: None,
+    };
+
+    let response = client.create_chat_completion(&request)?;
+    Ok((response.choices[0].message.content.clone(), response.id))
+}
+
+pub fn generate_chat_multi_with_generation_id(
+    client: &dyn ChatCompleter,
+    model: &str,
+    messages: &[ChatMessage],
+    n: i32,
+) -> Result<(Vec<String>, String), ClientError> {
+    let request = ChatCompletionRequest {
+        model: model.to_string(),
+        messages: messages.to_vec(),
+        temperature: Some(DEFAULT_TEMPERATURE),
+        n: Some(n),
+        response_format: None,
+    };
+
+    let response = client.create_chat_completion(&request)?;
+    let outputs: Vec<String> = response
+        .choices
+        .iter()
+        .map(|c| c.message.content.clone())
+        .collect();
+    Ok((outputs, response.id))
+}
+
 pub fn generate_structured_grader_response(
     client: &dyn ChatCompleter,
     model: &str,

@@ -1,16 +1,15 @@
 use comfy_table::{Cell, Color, ContentArrangement, Table, presets::UTF8_FULL_CONDENSED};
 
-use hypr_eval::TaskResult;
+use hypr_eval::EvalResult;
 
-pub fn render_json(results: &[TaskResult]) -> std::result::Result<(), String> {
+pub fn render_json(results: &[EvalResult]) -> std::result::Result<(), String> {
     let json = serde_json::to_string_pretty(
         &results
             .iter()
             .map(|r| {
                 serde_json::json!({
-                    "name": r.name,
+                    "case_id": r.case_id,
                     "model": r.model,
-                    "run_num": r.run_num,
                     "output": r.output,
                     "scores": r.scores.iter().map(|s| {
                         serde_json::json!({
@@ -49,7 +48,7 @@ pub fn render_json(results: &[TaskResult]) -> std::result::Result<(), String> {
     Ok(())
 }
 
-pub fn render_results(results: &[TaskResult]) -> std::result::Result<(), String> {
+pub fn render_results(results: &[EvalResult]) -> std::result::Result<(), String> {
     let rubric_names = extract_rubric_names(results);
 
     let mut table = Table::new();
@@ -134,7 +133,7 @@ pub fn render_results(results: &[TaskResult]) -> std::result::Result<(), String>
     Ok(())
 }
 
-fn extract_rubric_names(results: &[TaskResult]) -> Vec<String> {
+fn extract_rubric_names(results: &[EvalResult]) -> Vec<String> {
     for r in results {
         if r.error.is_none() && !r.scores.is_empty() {
             return r.scores.iter().map(|s| s.rubric_name.clone()).collect();

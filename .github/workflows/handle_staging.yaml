@@ -59,10 +59,12 @@ jobs:
       - if: steps.resolve.outputs.sha != ''
         id: trigger
         run: |
+          BEFORE_DISPATCH=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           gh workflow run desktop_cd.yaml --repo $REPO --ref main -f channel=staging -f target_ref=${{ steps.resolve.outputs.sha }}
           for i in $(seq 1 6); do
             sleep 5
-            RUN_ID=$(gh run list --workflow=desktop_cd.yaml --repo $REPO --branch=main --json databaseId,createdAt --jq 'sort_by(.createdAt) | reverse | .[0].databaseId // empty')
+            RUN_ID=$(gh run list --workflow=desktop_cd.yaml --repo $REPO --branch=main --json databaseId,createdAt \
+              --jq --arg ts "$BEFORE_DISPATCH" '[.[] | select(.createdAt > $ts)] | sort_by(.createdAt) | .[0].databaseId // empty')
             [ -n "$RUN_ID" ] && break
           done
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT

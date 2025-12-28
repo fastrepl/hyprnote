@@ -1,4 +1,5 @@
 import {
+  forwardRef,
   type RefObject,
   useCallback,
   useEffect,
@@ -31,7 +32,7 @@ export const NoteInput = forwardRef<
     tab: Extract<Tab, { type: "sessions" }>;
     onNavigateToTitle?: () => void;
   }
->(({ tab, onNavigateToTitle }, ref) => {
+>(({ tab, onNavigateToTitle: _onNavigateToTitle }, ref) => {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const internalEditorRef = useRef<{ editor: TiptapEditor | null }>(null);
@@ -167,13 +168,13 @@ export const NoteInput = forwardRef<
         >
           {currentTab.type === "enhanced" && (
             <Enhanced
-              ref={editorRef}
+              ref={internalEditorRef}
               sessionId={sessionId}
               enhancedNoteId={currentTab.id}
             />
           )}
           {currentTab.type === "raw" && (
-            <RawEditor ref={editorRef} sessionId={sessionId} />
+            <RawEditor ref={internalEditorRef} sessionId={sessionId} />
           )}
           {currentTab.type === "transcript" && (
             <Transcript
@@ -188,7 +189,7 @@ export const NoteInput = forwardRef<
       </div>
     </div>
   );
-}
+});
 
 function useTabShortcuts({
   editorTabs,

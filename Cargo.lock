@@ -17432,7 +17432,7 @@ dependencies = [
  "owhisper-client",
  "owhisper-interface",
  "ractor",
- "reqwest 0.12.25",
+ "reqwest",
  "serde",
  "serde_json",
  "specta",

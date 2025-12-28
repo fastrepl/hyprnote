@@ -7,8 +7,10 @@ import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../../../store/tinybase/main";
+import { useTabs } from "../../../../../../store/zustand/tabs";
 
 export function DeleteNote({ sessionId }: { sessionId: string }) {
+  const invalidateResource = useTabs((state) => state.invalidateResource);
   const deleteRow = main.UI.useDelRowCallback(
     "sessions",
     sessionId,
@@ -16,9 +18,10 @@ export function DeleteNote({ sessionId }: { sessionId: string }) {
   );
 
   const handleDeleteNote = useCallback(() => {
+    invalidateResource("sessions", sessionId);
     deleteRow();
     void miscCommands.audioDelete(sessionId);
-  }, [sessionId, deleteRow]);
+  }, [sessionId, deleteRow, invalidateResource]);
 
   return (
     <DropdownMenuItem

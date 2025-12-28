@@ -43,12 +43,12 @@ impl DeviceMonitor {
         let thread_handle = std::thread::spawn(move || {
             #[cfg(target_os = "macos")]
             {
-                crate::device_monitor::macos::monitor(event_tx, stop_rx);
+                macos::monitor(event_tx, stop_rx);
             }
 
             #[cfg(target_os = "linux")]
             {
-                crate::device_monitor::linux::monitor(event_tx, stop_rx);
+                linux::monitor(event_tx, stop_rx);
             }
 
             #[cfg(not(any(target_os = "macos", target_os = "linux")))]
@@ -216,7 +216,6 @@ mod linux {
             return;
         }
 
-        // Wait for context to be ready
         loop {
             match context.borrow().get_state() {
                 libpulse_binding::context::State::Ready => {
@@ -237,7 +236,6 @@ mod linux {
             }
         }
 
-        // Subscribe to sink and source events
         context.borrow_mut().subscribe(
             InterestMaskSet::SINK | InterestMaskSet::SOURCE | InterestMaskSet::SERVER,
             |success| {
@@ -247,30 +245,24 @@ mod linux {
             },
         );
 
-        // Set up subscription callback
         let event_tx_for_callback = event_tx.clone();
         context.borrow_mut().set_subscribe_callback(Some(Box::new(
-            move |facility, operation, _index| {
-                match (facility, operation) {
-                    (Some(Facility::Server), Some(Operation::Changed)) => {
-                        // Server change might indicate default device change
-                        let _ = event_tx_for_callback.send(DeviceEvent::DefaultInputChanged);
-                        let _ = event_tx_for_callback.send(DeviceEvent::DefaultOutputChanged {
-                            headphone: is_headphone_from_default_output_device(),
-                        });
-                    }
-                    (Some(Facility::Sink), Some(Operation::Changed | Operation::New)) => {
-                        // Sink change might be default output device change
-                        let _ = event_tx_for_callback.send(DeviceEvent::DefaultOutputChanged {
-                            headphone: is_headphone_from_default_output_device(),
-                        });
-                    }
-                    (Some(Facility::Source), Some(Operation::Changed | Operation::New)) => {
-                        // Source change might be default input device change
-                        let _ = event_tx_for_callback.send(DeviceEvent::DefaultInputChanged);
-                    }
-                    _ => {}
+            move |facility, operation, _index| match (facility, operation) {
+                (Some(Facility::Server), Some(Operation::Changed)) => {
+                    let _ = event_tx_for_callback.send(DeviceEvent::DefaultInputChanged);
+                    let _ = event_tx_for_callback.send(DeviceEvent::DefaultOutputChanged {
+                        headphone: is_headphone_from_default_output_device(),
+                    });
                 }
+                (Some(Facility::Sink), Some(Operation::Changed | Operation::New)) => {
+                    let _ = event_tx_for_callback.send(DeviceEvent::DefaultOutputChanged {
+                        headphone: is_headphone_from_default_output_device(),
+                    });
+                }
+                (Some(Facility::Source), Some(Operation::Changed | Operation::New)) => {
+                    let _ = event_tx_for_callback.send(DeviceEvent::DefaultInputChanged);
+                }
+                _ => {}
             },
         )));
 
@@ -278,7 +270,6 @@ mod linux {
 
         tracing::info!("monitor_started");
 
-        // Wait for stop signal
         let _ = stop_rx.recv();
 
         mainloop.borrow_mut().lock();

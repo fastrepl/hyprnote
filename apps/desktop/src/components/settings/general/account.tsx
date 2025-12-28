@@ -59,7 +59,7 @@ export function AccountSettings() {
           <Input
             type="text"
             className="text-xs font-mono"
-            placeholder="hyprnote://auth/callback?access_token=...&refresh_token=..."
+            placeholder="hyprnote://deeplink/auth?access_token=...&refresh_token=..."
             value={callbackUrl}
             onChange={(e) => setCallbackUrl(e.target.value)}
           />

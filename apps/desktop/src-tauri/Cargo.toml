@@ -84,6 +84,7 @@ hypr-host = { workspace = true }
 ractor = { workspace = true }
 ractor-supervisor = { workspace = true }
 
+pico-args = "0.5"
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [features]

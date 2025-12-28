@@ -4,6 +4,7 @@ use tauri_plugin_store2::ScopedStoreKey;
 pub enum StoreKey {
     OnboardingNeeded2,
     DismissedToasts,
+    OnboardingLocal,
 }
 
 impl ScopedStoreKey for StoreKey {}

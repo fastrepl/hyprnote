@@ -5,6 +5,9 @@ import {
 } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef } from "react";
 
+import { events as deeplink2Events } from "@hypr/plugin-deeplink2";
+
+import { useAuth } from "../../../auth";
 import { buildChatTools } from "../../../chat/tools";
 import { AITaskProvider } from "../../../contexts/ai-task";
 import { useListener } from "../../../contexts/listener";
@@ -27,6 +30,8 @@ function Component() {
   const { registerOnEmpty, registerCanClose, openNew, tabs } = useTabs();
   const hasOpenedInitialTab = useRef(false);
   const getSessionMode = useListener((state) => state.getSessionMode);
+
+  useDeeplinkHandler();
 
   const openDefaultEmptyTab = useCallback(() => {
     openNew({ type: "empty" });
@@ -78,4 +83,23 @@ function ToolRegistration() {
   useRegisterTools("chat", () => buildChatTools({ search }), [search]);
 
   return null;
+}
+
+function useDeeplinkHandler() {
+  const auth = useAuth();
+
+  useEffect(() => {
+    const unlisten = deeplink2Events.deepLinkEvent.listen(({ payload }) => {
+      if (payload.to !== "/auth/callback") return;
+
+      const { access_token, refresh_token } = payload.search;
+      if (access_token && refresh_token && auth) {
+        void auth.setSessionFromTokens(access_token, refresh_token);
+      }
+    });
+
+    return () => {
+      void unlisten.then((fn) => fn());
+    };
+  }, [auth]);
 }

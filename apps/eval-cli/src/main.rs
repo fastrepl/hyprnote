@@ -5,9 +5,11 @@ use clap::{Parser, Subcommand};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 mod report;
+mod submissions;
 
-use hypr_eval::{OpenRouterClient, ProgressInfo, Runner, Task, parse_config};
+use hypr_eval::{EvalResult, Executor, ExecutorProgress, OpenRouterClient, parse_config};
 use report::{render_json, render_results};
+use submissions::{all_cases, filter_cases};
 
 static DEFAULT_MODELS: &[&str] = &[
     "openai/gpt-4.1-nano",
@@ -73,7 +75,7 @@ fn main() -> ExitCode {
             }
         }
         Commands::List => {
-            list_tasks();
+            list_cases();
         }
         Commands::Completion { shell } => {
             generate_completion(shell);
@@ -96,11 +98,11 @@ fn run_evals(
         return Err("OPENROUTER_API_KEY environment variable is not set".to_string());
     }
 
-    let all_tasks = hypr_eval::tasks::all_tasks();
-    let selected_tasks = filter_tasks(&all_tasks, task_filter.as_deref());
+    let all = all_cases();
+    let selected_cases = filter_cases(&all, task_filter.as_deref());
 
-    if selected_tasks.is_empty() {
-        return Err("no tasks matched the filter".to_string());
+    if selected_cases.is_empty() {
+        return Err("no cases matched the filter".to_string());
     }
 
     let cache_dir_opt = if no_cache { None } else { cache_dir };
@@ -112,19 +114,16 @@ fn run_evals(
     let models =
         model_override.unwrap_or_else(|| DEFAULT_MODELS.iter().map(|s| s.to_string()).collect());
 
-    let mut runner = Runner::builder()
-        .client(client.clone())
-        .models(models)
-        .build();
+    let executor = Executor::new(client.clone());
 
     if output_format == "json" {
-        let mut results = runner.run(&selected_tasks);
+        let mut results = executor.execute(&selected_cases, &models);
         resolve_usage(&client, &mut results);
         return render_json(&results).map_err(|e| e.to_string());
     }
 
-    let gen_total = runner.total_generations(&selected_tasks);
-    let eval_total = runner.total_evaluations(&selected_tasks);
+    let gen_total = executor.total_generations(&selected_cases, &models);
+    let eval_total = executor.total_evaluations(&selected_cases, &models);
 
     let multi = MultiProgress::new();
     let style = ProgressStyle::default_bar()
@@ -143,12 +142,12 @@ fn run_evals(
     let gen_bar_clone = gen_bar.clone();
     let eval_bar_clone = eval_bar.clone();
 
-    runner.set_on_progress(Box::new(move |info: ProgressInfo| {
+    let executor = executor.with_on_progress(Box::new(move |info: ExecutorProgress| {
         gen_bar_clone.set_position(info.generations_complete as u64);
         eval_bar_clone.set_position(info.evaluations_complete as u64);
     }));
 
-    let mut results = runner.run(&selected_tasks);
+    let mut results = executor.execute(&selected_cases, &models);
 
     gen_bar.finish();
     eval_bar.finish();
@@ -158,26 +157,11 @@ fn run_evals(
     render_results(&results).map_err(|e| e.to_string())
 }
 
-fn filter_tasks(all_tasks: &[Task], filter: Option<&[String]>) -> Vec<Task> {
-    match filter {
-        None => all_tasks.to_vec(),
-        Some(filter) => {
-            let filter_set: std::collections::HashSet<String> =
-                filter.iter().map(|s| s.to_lowercase()).collect();
-            all_tasks
-                .iter()
-                .filter(|t| filter_set.contains(&t.name.to_lowercase()))
-                .cloned()
-                .collect()
-        }
-    }
-}
-
-fn resolve_usage(client: &OpenRouterClient, results: &mut [hypr_eval::Result]) {
+fn resolve_usage(client: &OpenRouterClient, results: &mut [EvalResult]) {
     use hypr_eval::UsageResolver;
 
     for result in results.iter_mut() {
-        if result.generation_id.is_empty() || !result.error.is_empty() {
+        if result.generation_id.is_empty() || result.error.is_some() {
             continue;
         }
 
@@ -187,10 +171,10 @@ fn resolve_usage(client: &OpenRouterClient, results: &mut [hypr_eval::Result]) {
     }
 }
 
-fn list_tasks() {
-    for task in hypr_eval::tasks::all_tasks() {
-        println!("{}", task.name);
-        for rubric in &task.rubrics {
+fn list_cases() {
+    for case in all_cases() {
+        println!("{}", case.case_id);
+        for rubric in &case.rubrics {
             println!("  - {}: {}", rubric.name, rubric.description);
         }
     }

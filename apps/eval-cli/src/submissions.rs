@@ -1,8 +1,14 @@
-use crate::{
-    CheckResult, GraderType, Rubric, Task, find_headings, find_lists, grade, is_non_empty,
+use hypr_eval::{
+    ChatMessage, CheckResult, EvalCase, GraderSpec, RubricSpec, find_headings, find_lists, grade,
+    is_non_empty,
 };
+use hypr_template_eval::{MdgenSystem, Template};
 
-fn format_grader(output: &str) -> (bool, String) {
+pub fn all_cases() -> Vec<EvalCase> {
+    vec![mdbench_case()]
+}
+
+fn mdbench_format_validator(output: &str) -> (bool, String) {
     let result = grade(
         output,
         vec![
@@ -59,42 +65,58 @@ fn format_grader(output: &str) -> (bool, String) {
     (result.score >= 0.8, result.summary())
 }
 
-pub fn mdgen_task() -> Task {
-    use hypr_template_eval::{MdgenSystem, Template};
+pub fn mdbench_case() -> EvalCase {
     let template = MdgenSystem {
         topic: "Go tests for LLM evaluation".to_string(),
     };
     let prompt = Template::render(&template).expect("Failed to render template");
 
-    Task {
-        name: "mdgen".to_string(),
-        template_path: "templates/mdgen.jinja".to_string(),
-        template_content: Some(prompt),
-        inputs: None,
-        samples: 3,
+    EvalCase {
+        case_id: "mdbench".to_string(),
+        messages: vec![ChatMessage {
+            role: "user".to_string(),
+            content: prompt,
+        }],
         rubrics: vec![
-            Rubric {
+            RubricSpec {
                 name: "non_empty".to_string(),
                 description: "Output is non-empty".to_string(),
-                grader: GraderType::Func(is_non_empty),
+                grader: GraderSpec::Func(is_non_empty),
             },
-            Rubric {
+            RubricSpec {
                 name: "format".to_string(),
                 description: "Output follows h1 headers with unordered lists format".to_string(),
-                grader: GraderType::Func(format_grader),
+                grader: GraderSpec::Func(mdbench_format_validator),
             },
-            Rubric {
+            RubricSpec {
                 name: "concise".to_string(),
                 description: "Output is concise and under 150 words, staying focused on the topic"
                     .to_string(),
-                grader: GraderType::Llm { samples: 3 },
+                grader: GraderSpec::Llm { samples: 3 },
             },
-            Rubric {
+            RubricSpec {
                 name: "technically_accurate".to_string(),
                 description: "Output is technically accurate about Go testing and LLM evaluation"
                     .to_string(),
-                grader: GraderType::Llm { samples: 3 },
+                grader: GraderSpec::Llm { samples: 3 },
             },
         ],
+        samples: 3,
+        meta: None,
+    }
+}
+
+pub fn filter_cases(all_cases: &[EvalCase], filter: Option<&[String]>) -> Vec<EvalCase> {
+    match filter {
+        None => all_cases.to_vec(),
+        Some(filter) => {
+            let filter_set: std::collections::HashSet<String> =
+                filter.iter().map(|s| s.to_lowercase()).collect();
+            all_cases
+                .iter()
+                .filter(|c| filter_set.contains(&c.case_id.to_lowercase()))
+                .cloned()
+                .collect()
+        }
     }
 }

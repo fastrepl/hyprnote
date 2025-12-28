@@ -162,7 +162,11 @@ expect.extend({
       );
 
       if (!matches) {
-        failures.push({ index, expected: partial, actual: tabs[index] });
+        failures.push({
+          index,
+          expected: partial,
+          actual: tabs[index],
+        });
       }
     });
 

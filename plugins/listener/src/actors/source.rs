@@ -1,25 +1,25 @@
 use std::{
     collections::{HashMap, VecDeque},
     sync::{
+        Arc,
         atomic::{AtomicBool, Ordering},
         mpsc::{self, Receiver},
-        Arc,
     },
     time::{Duration, Instant},
 };
 
 use futures_util::StreamExt;
-use ractor::{registry, Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort, registry};
 use tokio_util::sync::CancellationToken;
 
 use crate::{
+    SessionDataEvent, SessionErrorEvent, SessionProgressEvent,
     actors::{AudioChunk, ChannelMode, ListenerActor, ListenerMsg, RecMsg, RecorderActor},
-    SessionEvent,
 };
 use hypr_aec::AEC;
 use hypr_agc::VadAgc;
 use hypr_audio::{AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
-use hypr_audio_utils::{chunk_size_for_stt, f32_to_i16_bytes, ResampleExtDynamicNew};
+use hypr_audio_utils::{ResampleExtDynamicNew, chunk_size_for_stt, f32_to_i16_bytes};
 use tauri_specta::Event;
 
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
@@ -43,6 +43,7 @@ pub struct SourceArgs {
 }
 
 pub struct SourceState {
+    app: tauri::AppHandle,
     session_id: String,
     mic_device: Option<String>,
     onboarding: bool,
@@ -123,6 +124,14 @@ impl Actor for SourceActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
+        if let Err(error) = (SessionProgressEvent::AudioInitializing {
+            session_id: args.session_id.clone(),
+        })
+        .emit(&args.app)
+        {
+            tracing::error!(?error, "failed_to_emit_audio_initializing");
+        }
+
         let device_watcher = DeviceChangeWatcher::spawn(myself.clone());
 
         let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
@@ -134,6 +143,7 @@ impl Actor for SourceActor {
         let pipeline = Pipeline::new(args.app.clone(), args.session_id.clone());
 
         let mut st = SourceState {
+            app: args.app,
             session_id: args.session_id,
             mic_device,
             onboarding: args.onboarding,
@@ -185,6 +195,13 @@ impl Actor for SourceActor {
             }
             SourceMsg::StreamFailed(reason) => {
                 tracing::error!(%reason, "source_stream_failed_stopping");
+                let _ = (SessionErrorEvent::AudioError {
+                    session_id: st.session_id.clone(),
+                    error: reason.clone(),
+                    device: st.mic_device.clone(),
+                    is_fatal: true,
+                })
+                .emit(&st.app);
                 myself.stop(Some(reason));
             }
         }
@@ -221,11 +238,22 @@ async fn start_source_loop(
 
     st.pipeline.reset();
 
-    match new_mode {
+    let result = match new_mode {
         ChannelMode::MicOnly => start_source_loop_mic_only(myself, st).await,
         ChannelMode::SpeakerOnly => start_source_loop_speaker_only(myself, st).await,
         ChannelMode::MicAndSpeaker => start_source_loop_mic_and_speaker(myself, st).await,
+    };
+
+    if result.is_ok()
+        && let Err(error) = (SessionProgressEvent::AudioReady {
+            session_id: st.session_id.clone(),
+        })
+        .emit(&st.app)
+    {
+        tracing::error!(?error, "failed_to_emit_audio_ready");
     }
+
+    result
 }
 
 async fn start_source_loop_mic_only(
@@ -728,14 +756,14 @@ impl AmplitudeEmitter {
         let mic_level = Self::amplitude_from_chunk(mic.as_ref());
         let spk_level = Self::amplitude_from_chunk(spk.as_ref());
 
-        if let Err(error) = (SessionEvent::AudioAmplitude {
+        if let Err(error) = (SessionDataEvent::AudioAmplitude {
             session_id: self.session_id.clone(),
             mic: mic_level,
             speaker: spk_level,
         })
         .emit(&self.app)
         {
-            tracing::error!(error = ?error, "session_event_emit_failed");
+            tracing::error!(error = ?error, "session_data_event_emit_failed");
         }
 
         self.last_emit = Instant::now();

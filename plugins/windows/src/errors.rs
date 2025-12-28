@@ -1,11 +1,9 @@
-use serde::{ser::Serializer, Serialize};
+use serde::{Serialize, ser::Serializer};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
     TauriError(#[from] tauri::Error),
-    #[error(transparent)]
-    AuthError(#[from] tauri_plugin_auth::Error),
     #[error("monitor not found")]
     MonitorNotFound,
 }

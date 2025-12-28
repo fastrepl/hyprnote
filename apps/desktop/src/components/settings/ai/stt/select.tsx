@@ -15,7 +15,11 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
-import * as main from "../../../../store/tinybase/main";
+import * as settings from "../../../../store/tinybase/settings";
+import {
+  getProviderSelectionBlockers,
+  requiresEntitlement,
+} from "../shared/eligibility";
 import { HealthCheckForConnection } from "./health";
 import {
   displayModelId,
@@ -32,18 +36,18 @@ export function SelectProviderAndModel() {
   const billing = useBillingAccess();
   const configuredProviders = useConfiguredMapping();
 
-  const handleSelectProvider = main.UI.useSetValueCallback(
+  const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_stt_provider",
     (provider: string) => provider,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
-  const handleSelectModel = main.UI.useSetValueCallback(
+  const handleSelectModel = settings.UI.useSetValueCallback(
     "current_stt_model",
     (model: string) => model,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const form = useForm({
@@ -60,7 +64,7 @@ export function SelectProviderAndModel() {
           console.log(errors);
         }
 
-        formApi.handleSubmit();
+        void formApi.handleSubmit();
       },
     },
     onSubmit: ({ value }) => {
@@ -96,7 +100,7 @@ export function SelectProviderAndModel() {
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
                 >
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-white shadow-none focus:ring-0">
                     <SelectValue placeholder="Select a provider" />
                   </SelectTrigger>
                   <SelectContent>
@@ -104,7 +108,11 @@ export function SelectProviderAndModel() {
                       (provider) => {
                         const configured =
                           configuredProviders[provider.id]?.configured ?? false;
-                        const locked = provider.requiresPro && !billing.isPro;
+                        const requiresPro = requiresEntitlement(
+                          provider.requirements,
+                          "pro",
+                        );
+                        const locked = requiresPro && !billing.isPro;
                         return (
                           <SelectItem
                             key={provider.id}
@@ -117,7 +125,7 @@ export function SelectProviderAndModel() {
                               <div className="flex items-center gap-2">
                                 {provider.icon}
                                 <span>{provider.displayName}</span>
-                                {provider.requiresPro ? (
+                                {requiresPro ? (
                                   <span className="text-[10px] uppercase tracking-wide text-neutral-500 border border-neutral-200 rounded-full px-2 py-0.5">
                                     Pro
                                   </span>
@@ -179,7 +187,7 @@ export function SelectProviderAndModel() {
                     onValueChange={(value) => field.handleChange(value)}
                     disabled={models.length === 0}
                   >
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-white shadow-none focus:ring-0">
                       <SelectValue placeholder="Select a model" />
                     </SelectTrigger>
                     <SelectContent>
@@ -203,6 +211,15 @@ export function SelectProviderAndModel() {
             <HealthCheckForConnection />
           )}
         </div>
+
+        {(!current_stt_provider || !current_stt_model) && (
+          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
+            <span className="text-sm text-red-600">
+              <strong className="font-medium">Transcription model</strong> is
+              needed to make Hyprnote listen to your conversations.
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -216,9 +233,9 @@ function useConfiguredMapping(): Record<
   }
 > {
   const billing = useBillingAccess();
-  const configuredProviders = main.UI.useResultTable(
-    main.QUERIES.sttProviders,
-    main.STORE_ID,
+  const configuredProviders = settings.UI.useResultTable(
+    settings.QUERIES.sttProviders,
+    settings.STORE_ID,
   );
 
   const targetArch = useQuery({
@@ -241,21 +258,46 @@ function useConfiguredMapping(): Record<
 
   return Object.fromEntries(
     PROVIDERS.map((provider) => {
-      if (provider.requiresPro && !billing.isPro) {
+      const config = configuredProviders[provider.id] as
+        | AIProviderStorage
+        | undefined;
+      const baseUrl = String(config?.base_url || provider.baseUrl || "").trim();
+      const apiKey = String(config?.api_key || "").trim();
+
+      const eligible =
+        getProviderSelectionBlockers(provider.requirements, {
+          isAuthenticated: true,
+          isPro: billing.isPro,
+          config: { base_url: baseUrl, api_key: apiKey },
+        }).length === 0;
+
+      if (!eligible) {
         return [provider.id, { configured: false, models: [] }];
       }
 
       if (provider.id === "hyprnote") {
         const models = [
           { id: "cloud", isDownloaded: billing.isPro },
-          { id: "QuantizedTinyEn", isDownloaded: tinyEn.data ?? false },
-          { id: "QuantizedSmallEn", isDownloaded: smallEn.data ?? false },
+          {
+            id: "QuantizedTinyEn",
+            isDownloaded: tinyEn.data ?? false,
+          },
+          {
+            id: "QuantizedSmallEn",
+            isDownloaded: smallEn.data ?? false,
+          },
         ];
 
         if (isAppleSilicon) {
           models.push(
-            { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
-            { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
+            {
+              id: "am-parakeet-v2",
+              isDownloaded: p2.data ?? false,
+            },
+            {
+              id: "am-parakeet-v3",
+              isDownloaded: p3.data ?? false,
+            },
             {
               id: "am-whisper-large-v3",
               isDownloaded: whisperLargeV3.data ?? false,
@@ -270,14 +312,6 @@ function useConfiguredMapping(): Record<
             models,
           },
         ];
-      }
-
-      const config = configuredProviders[provider.id] as
-        | AIProviderStorage
-        | undefined;
-
-      if (!config) {
-        return [provider.id, { configured: false, models: [] }];
       }
 
       if (provider.id === "custom") {

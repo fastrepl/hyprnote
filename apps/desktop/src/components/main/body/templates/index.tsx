@@ -1,9 +1,34 @@
-import { BookText, Globe, Search, X } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import {
+  ArrowDownUp,
+  BookText,
+  Globe,
+  Plus,
+  Search,
+  Star,
+  X,
+} from "lucide-react";
+import {
+  type ComponentRef,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createQueries } from "tinybase/with-schemas";
 
 import type { Template, TemplateSection, TemplateStorage } from "@hypr/store";
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@hypr/ui/components/ui/dropdown-menu";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
 import { Switch } from "@hypr/ui/components/ui/switch";
 import {
   Tooltip,
@@ -15,7 +40,7 @@ import { cn } from "@hypr/utils";
 import * as main from "../../../../store/tinybase/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
-import { ResourceListLayout, useWebResources } from "../resource-list";
+import { useWebResources } from "../resource-list";
 import { type TabItem, TabItemBase } from "../shared";
 import { TemplateDetailsColumn } from "./details";
 
@@ -134,17 +159,31 @@ function normalizeTemplateWithId(id: string, template: unknown) {
 function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
   const updateTabState = useTabs((state) => state.updateTemplatesTabState);
   const { user_id } = main.UI.useValues(main.STORE_ID);
+  const leftPanelRef = useRef<ComponentRef<typeof ResizablePanel>>(null);
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
 
   const userTemplates = useUserTemplates();
   const { data: webTemplates = [], isLoading: isWebLoading } =
     useWebResources<WebTemplate>("templates");
 
   const { selectedMineId, selectedWebIndex } = tab.state;
+  const showHomepage = tab.state.showHomepage ?? true;
   const isWebMode = tab.state.isWebMode ?? userTemplates.length === 0;
+
+  const setShowHomepage = useCallback(
+    (value: boolean) => {
+      updateTabState(tab, {
+        ...tab.state,
+        showHomepage: value,
+      });
+    },
+    [updateTabState, tab],
+  );
 
   const setIsWebMode = useCallback(
     (value: boolean) => {
       updateTabState(tab, {
+        ...tab.state,
         isWebMode: value,
         selectedMineId: null,
         selectedWebIndex: null,
@@ -157,6 +196,7 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
     (id: string | null) => {
       updateTabState(tab, {
         ...tab.state,
+        showHomepage: false,
         selectedMineId: id,
         selectedWebIndex: null,
       });
@@ -168,6 +208,7 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
     (index: number | null) => {
       updateTabState(tab, {
         ...tab.state,
+        showHomepage: false,
         selectedMineId: null,
         selectedWebIndex: index,
       });
@@ -247,10 +288,43 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
     [user_id, setRow, setIsWebMode, setSelectedMineId],
   );
 
+  const handleCreateTemplate = useCallback(() => {
+    if (!user_id) return;
+
+    const newId = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    setRow({
+      id: newId,
+      user_id,
+      created_at: now,
+      title: "New Template",
+      description: "",
+      sections: [],
+    });
+
+    setIsWebMode(false);
+    setSelectedMineId(newId);
+  }, [user_id, setRow, setIsWebMode, setSelectedMineId]);
+
+  const handleExpandPanel = useCallback(() => {
+    leftPanelRef.current?.expand();
+  }, []);
+
   return (
-    <ResourceListLayout
-      listColumn={
+    <ResizablePanelGroup direction="horizontal" className="h-full">
+      <ResizablePanel
+        ref={leftPanelRef}
+        defaultSize={25}
+        minSize={15}
+        maxSize={35}
+        collapsible={showHomepage}
+        collapsedSize={0}
+        onCollapse={() => setIsLeftPanelCollapsed(true)}
+        onExpand={() => setIsLeftPanelCollapsed(false)}
+      >
         <TemplateListColumn
+          showHomepage={showHomepage}
           isWebMode={isWebMode}
           setIsWebMode={setIsWebMode}
           userTemplates={userTemplates}
@@ -260,22 +334,230 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
           selectedWebIndex={selectedWebIndex}
           setSelectedMineId={setSelectedMineId}
           setSelectedWebIndex={setSelectedWebIndex}
+          setShowHomepage={setShowHomepage}
+          onCreateTemplate={handleCreateTemplate}
         />
-      }
-      detailsColumn={
-        <TemplateDetailsColumn
-          isWebMode={isWebMode}
-          selectedMineId={selectedMineId}
-          selectedWebTemplate={selectedWebTemplate}
-          handleDeleteTemplate={handleDeleteTemplate}
-          handleCloneTemplate={handleCloneTemplate}
-        />
-      }
-    />
+      </ResizablePanel>
+      <ResizableHandle className={isLeftPanelCollapsed ? "w-0" : undefined} />
+      <ResizablePanel defaultSize={75}>
+        {showHomepage ? (
+          <TemplatesHomepage
+            webTemplates={webTemplates}
+            isWebLoading={isWebLoading}
+            onSelectWebTemplate={setSelectedWebIndex}
+            onCreateTemplate={handleCreateTemplate}
+            isSidebarCollapsed={isLeftPanelCollapsed}
+            onExpandSidebar={handleExpandPanel}
+          />
+        ) : (
+          <TemplateDetailsColumn
+            isWebMode={isWebMode}
+            selectedMineId={selectedMineId}
+            selectedWebTemplate={selectedWebTemplate}
+            handleDeleteTemplate={handleDeleteTemplate}
+            handleCloneTemplate={handleCloneTemplate}
+          />
+        )}
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  );
+}
+
+type SortOption = "alphabetical" | "reverse-alphabetical" | "oldest" | "newest";
+
+function TemplatesHomepage({
+  webTemplates,
+  isWebLoading,
+  onSelectWebTemplate,
+  onCreateTemplate,
+  isSidebarCollapsed,
+  onExpandSidebar,
+}: {
+  webTemplates: WebTemplate[];
+  isWebLoading: boolean;
+  onSelectWebTemplate: (index: number) => void;
+  onCreateTemplate: () => void;
+  isSidebarCollapsed: boolean;
+  onExpandSidebar: () => void;
+}) {
+  const [search, setSearch] = useState("");
+
+  const filteredTemplates = useMemo(() => {
+    if (!search.trim()) return webTemplates;
+    const q = search.toLowerCase();
+    return webTemplates.filter(
+      (t) =>
+        t.title?.toLowerCase().includes(q) ||
+        t.description?.toLowerCase().includes(q) ||
+        t.category?.toLowerCase().includes(q) ||
+        t.targets?.some((target) => target.toLowerCase().includes(q)),
+    );
+  }, [webTemplates, search]);
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="border-b border-border">
+        <div className="py-2 pl-3 pr-3 flex items-center justify-between h-12 min-w-0">
+          <div className="flex items-center gap-2">
+            {isSidebarCollapsed && (
+              <Button
+                onClick={onExpandSidebar}
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+              >
+                <Star size={16} className="text-amber-500" />
+              </Button>
+            )}
+            <h3 className="text-sm font-medium">Templates</h3>
+          </div>
+          <button
+            onClick={onCreateTemplate}
+            className={cn([
+              "px-2 py-1.5 rounded-full",
+              "bg-gradient-to-l from-stone-600 to-stone-500",
+              "shadow-[inset_0px_-1px_8px_0px_rgba(41,37,36,1.00)]",
+              "shadow-[inset_0px_1px_8px_0px_rgba(120,113,108,1.00)]",
+              "flex justify-center items-center gap-1",
+              "hover:from-stone-700 hover:to-stone-600 transition-colors",
+            ])}
+          >
+            <Plus className="w-4 h-4 text-stone-50" />
+            <span className="text-stone-50 text-xs font-medium font-serif">
+              Create your own template
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div className="relative flex-1 overflow-y-auto">
+        <div className="absolute top-0 left-0 right-0 h-8 z-10 pointer-events-none bg-gradient-to-b from-white to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-8 z-10 pointer-events-none bg-gradient-to-t from-white to-transparent" />
+
+        <div className="py-12 px-4 flex flex-col justify-center items-center gap-8">
+          <div className="flex flex-col justify-start items-center gap-4 max-w-md">
+            <h1 className="text-2xl font-semibold font-serif">Templates</h1>
+            <p className="text-center text-base text-neutral-600">
+              Templates act as AI instructions for each meeting type, giving you
+              structured notes instantly
+            </p>
+          </div>
+          <div
+            className={cn([
+              "w-80 h-10 px-4 bg-white rounded-lg",
+              "border border-neutral-200",
+              "flex items-center gap-2",
+              "focus-within:border-neutral-400 transition-colors",
+            ])}
+          >
+            <Search className="w-4 h-4 text-neutral-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search for a template..."
+              className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="p-0.5 rounded hover:bg-neutral-100"
+              >
+                <X className="h-3 w-3 text-neutral-400" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="px-3 pb-8">
+          {isWebLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className="rounded border border-stone-100 overflow-hidden animate-pulse"
+                >
+                  <div className="h-20 bg-stone-200" />
+                  <div className="p-3 flex flex-col gap-3">
+                    <div className="h-4 w-3/4 rounded bg-stone-200" />
+                    <div className="h-3 w-full rounded bg-stone-100" />
+                    <div className="flex gap-2">
+                      <div className="h-7 w-16 rounded-3xl bg-stone-100" />
+                      <div className="h-7 w-20 rounded-3xl bg-stone-100" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredTemplates.length === 0 ? (
+            <div className="text-center py-12 text-neutral-500">
+              <BookText size={48} className="mx-auto mb-3 text-neutral-300" />
+              <p className="text-sm">
+                {search ? "No templates found" : "No templates available"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredTemplates.map((template, index) => (
+                <TemplateCard
+                  key={template.slug || index}
+                  template={template}
+                  onClick={() => {
+                    const originalIndex = webTemplates.findIndex(
+                      (t) => t.slug === template.slug,
+                    );
+                    onSelectWebTemplate(
+                      originalIndex !== -1 ? originalIndex : index,
+                    );
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TemplateCard({
+  template,
+  onClick,
+}: {
+  template: WebTemplate;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn([
+        "w-full text-left rounded border border-stone-100 overflow-hidden",
+        "hover:border-stone-300 hover:shadow-sm transition-all",
+        "flex flex-col",
+      ])}
+    >
+      <div className="h-20 bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center">
+        <BookText className="w-8 h-8 text-stone-400" />
+      </div>
+      <div className="p-3 flex flex-col gap-3 flex-1">
+        <div className="text-base font-medium font-serif line-clamp-1">
+          {template.title || "Untitled"}
+        </div>
+        <div className="text-sm text-stone-600 line-clamp-1">
+          {template.description || "No description"}
+        </div>
+        {template.targets && template.targets.length > 0 && (
+          <div className="text-xs text-stone-400 truncate">
+            {template.targets.join(", ")}
+          </div>
+        )}
+      </div>
+    </button>
   );
 }
 
 function TemplateListColumn({
+  showHomepage,
   isWebMode,
   setIsWebMode,
   userTemplates,
@@ -285,7 +567,10 @@ function TemplateListColumn({
   selectedWebIndex,
   setSelectedMineId,
   setSelectedWebIndex,
+  setShowHomepage,
+  onCreateTemplate,
 }: {
+  showHomepage: boolean;
   isWebMode: boolean;
   setIsWebMode: (value: boolean) => void;
   userTemplates: UserTemplate[];
@@ -295,19 +580,46 @@ function TemplateListColumn({
   selectedWebIndex: number | null;
   setSelectedMineId: (id: string | null) => void;
   setSelectedWebIndex: (index: number | null) => void;
+  setShowHomepage: (value: boolean) => void;
+  onCreateTemplate: () => void;
 }) {
   const [search, setSearch] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>("newest");
+
+  const sortedUserTemplates = useMemo(() => {
+    const sorted = [...userTemplates];
+    switch (sortOption) {
+      case "alphabetical":
+        return sorted.sort((a, b) =>
+          (a.title || "").localeCompare(b.title || ""),
+        );
+      case "reverse-alphabetical":
+        return sorted.sort((a, b) =>
+          (b.title || "").localeCompare(a.title || ""),
+        );
+      case "oldest":
+        return sorted.sort(
+          (a, b) =>
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+        );
+      case "newest":
+      default:
+        return sorted.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        );
+    }
+  }, [userTemplates, sortOption]);
 
   const filteredMine = useMemo(() => {
-    if (!search.trim()) return userTemplates;
+    if (!search.trim()) return sortedUserTemplates;
     const q = search.toLowerCase();
-    return userTemplates.filter(
+    return sortedUserTemplates.filter(
       (t) =>
         t.title?.toLowerCase().includes(q) ||
         t.description?.toLowerCase().includes(q),
     );
-  }, [userTemplates, search]);
+  }, [sortedUserTemplates, search]);
 
   const filteredWeb = useMemo(() => {
     if (!search.trim()) return webTemplates;
@@ -320,45 +632,40 @@ function TemplateListColumn({
     );
   }, [webTemplates, search]);
 
-  const items = isWebMode ? filteredWeb : filteredMine;
-
-  return (
-    <div className="w-full h-full flex flex-col">
-      <div className="border-b border-neutral-200">
-        <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12">
-          <h3 className="text-sm font-medium">Templates</h3>
-          <div className="flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 px-2">
-                  <Globe size={14} className="text-neutral-400" />
-                  <Switch
-                    size="sm"
-                    checked={isWebMode}
-                    onCheckedChange={setIsWebMode}
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {isWebMode
-                  ? "Showing community templates"
-                  : "Showing your templates"}
-              </TooltipContent>
-            </Tooltip>
-            <Button
-              onClick={() => {
-                if (showSearch) setSearch("");
-                setShowSearch(!showSearch);
-              }}
-              size="icon"
-              variant="ghost"
-            >
-              <Search size={16} />
-            </Button>
+  if (showHomepage) {
+    return (
+      <div className="w-full h-full flex flex-col">
+        <div className="border-b border-neutral-200">
+          <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12">
+            <div className="flex items-center gap-2">
+              <Star size={16} className="text-amber-500" />
+              <span className="text-sm font-medium">Favorites</span>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost">
+                  <ArrowDownUp size={16} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setSortOption("newest")}>
+                  Newest first
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption("oldest")}>
+                  Oldest first
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption("alphabetical")}>
+                  A to Z
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setSortOption("reverse-alphabetical")}
+                >
+                  Z to A
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </div>
-        {showSearch && (
-          <div className="flex items-center gap-2 px-3 border-t bg-white border-neutral-200 h-12">
+          <div className="flex items-center gap-2 px-3 border-t bg-white border-neutral-200 h-10">
             <Search className="h-4 w-4 text-neutral-400" />
             <input
               type="text"
@@ -367,12 +674,10 @@ function TemplateListColumn({
               onKeyDown={(e) => {
                 if (e.key === "Escape") {
                   setSearch("");
-                  setShowSearch(false);
                 }
               }}
-              placeholder="Search templates..."
+              placeholder="Search..."
               className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
-              autoFocus
             />
             {search && (
               <button
@@ -383,7 +688,108 @@ function TemplateListColumn({
               </button>
             )}
           </div>
-        )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-2">
+          {filteredMine.length === 0 ? (
+            <div className="text-center py-8 text-neutral-500">
+              <Star size={32} className="mx-auto mb-2 text-neutral-300" />
+              <p className="text-sm">
+                {search ? "No templates found" : "No favorites yet"}
+              </p>
+              {!search && (
+                <button
+                  onClick={onCreateTemplate}
+                  className="mt-3 text-sm text-neutral-600 hover:text-neutral-800 underline"
+                >
+                  Create your first template
+                </button>
+              )}
+            </div>
+          ) : (
+            filteredMine.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setSelectedMineId(item.id)}
+                className={cn([
+                  "w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100",
+                  "border-transparent",
+                ])}
+              >
+                <div className="flex items-center gap-2">
+                  <BookText className="h-4 w-4 text-neutral-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">
+                      {item.title?.trim() || "Untitled"}
+                    </div>
+                    {item.description && (
+                      <div className="text-xs text-neutral-500 truncate">
+                        {item.description}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const items = isWebMode ? filteredWeb : filteredMine;
+
+  return (
+    <div className="w-full h-full flex flex-col">
+      <div className="border-b border-neutral-200">
+        <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12">
+          <button
+            onClick={() => setShowHomepage(true)}
+            className="text-sm font-medium hover:text-neutral-600"
+          >
+            Templates
+          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1.5 px-2">
+                <Globe size={14} className="text-neutral-400" />
+                <Switch
+                  size="sm"
+                  checked={isWebMode}
+                  onCheckedChange={setIsWebMode}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {isWebMode
+                ? "Showing community templates"
+                : "Showing your templates"}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        <div className="flex items-center gap-2 px-3 border-t bg-white border-neutral-200 h-10">
+          <Search className="h-4 w-4 text-neutral-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setSearch("");
+              }
+            }}
+            placeholder="Search..."
+            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="p-1 rounded hover:bg-neutral-100"
+            >
+              <X className="h-4 w-4 text-neutral-400" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">

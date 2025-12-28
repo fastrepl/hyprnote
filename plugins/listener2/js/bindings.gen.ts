@@ -1,5 +1,4 @@
 // @ts-nocheck
-
 /** tauri-specta globals **/
 import {
   Channel as TAURI_CHANNEL,
@@ -168,8 +167,18 @@ export type StreamWord = {
   language: string | null;
 };
 export type Subtitle = { tokens: Token[] };
-export type Token = { text: string; start_time: number; end_time: number };
-export type VttWord = { text: string; start_ms: number; end_ms: number };
+export type Token = {
+  text: string;
+  start_time: number;
+  end_time: number;
+  speaker: string | null;
+};
+export type VttWord = {
+  text: string;
+  start_ms: number;
+  end_ms: number;
+  speaker: string | null;
+};
 
 type __EventObj__<T> = {
   listen: (

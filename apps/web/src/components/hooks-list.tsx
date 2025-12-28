@@ -70,7 +70,12 @@ export function HooksList() {
           <div className="mt-4 prose prose-sm prose-neutral max-w-none prose-headings:scroll-mt-24 prose-headings:font-semibold prose-p:leading-relaxed">
             <MDXContent
               code={hook.mdx}
-              components={{ a: MDXLink, mermaid: Mermaid, Mermaid, Tweet }}
+              components={{
+                a: MDXLink,
+                mermaid: Mermaid,
+                Mermaid,
+                Tweet,
+              }}
             />
           </div>
         </section>

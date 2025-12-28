@@ -10,6 +10,13 @@ import type {
   WhisperModel,
 } from "@hypr/plugin-local-stt";
 
+import { env } from "../../../../env";
+import {
+  type ProviderRequirement,
+  requiresEntitlement,
+} from "../shared/eligibility";
+import { sortProviders } from "../shared/sort-providers";
+
 type Provider = {
   disabled: boolean;
   id: string;
@@ -18,10 +25,8 @@ type Provider = {
   baseUrl?: string;
   models: SupportedSttModel[] | string[];
   badge?: string | null;
-  requiresPro?: boolean;
+  requirements: ProviderRequirement[];
 };
-
-export type ProviderId = (typeof _PROVIDERS)[number]["id"];
 
 export const displayModelId = (model: string) => {
   if (model === "cloud") {
@@ -85,7 +90,7 @@ const _PROVIDERS = [
     displayName: "Hyprnote",
     badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
-    baseUrl: "https://api.hyprnote.com/v1",
+    baseUrl: new URL("/stt", env.VITE_AI_URL).toString(),
     models: [
       "cloud",
       "am-parakeet-v2",
@@ -94,17 +99,7 @@ const _PROVIDERS = [
       "QuantizedTinyEn",
       "QuantizedSmallEn",
     ],
-    requiresPro: false,
-  },
-  {
-    disabled: false,
-    id: "assemblyai",
-    displayName: "AssemblyAI",
-    badge: "Beta",
-    icon: <AssemblyAI size={12} />,
-    baseUrl: "https://api.assemblyai.com",
-    models: ["universal"],
-    requiresPro: false,
+    requirements: [],
   },
   {
     disabled: false,
@@ -128,7 +123,27 @@ const _PROVIDERS = [
       "nova-2-automotive",
       "nova-2-atc",
     ],
-    requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+  },
+  {
+    disabled: false,
+    id: "assemblyai",
+    displayName: "AssemblyAI",
+    badge: "Beta",
+    icon: <AssemblyAI size={12} />,
+    baseUrl: "https://api.assemblyai.com",
+    models: ["universal"],
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+  },
+  {
+    disabled: true,
+    id: "openai",
+    displayName: "OpenAI",
+    badge: "Beta",
+    icon: <OpenAI size={16} />,
+    baseUrl: "https://api.openai.com/v1",
+    models: ["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"],
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     disabled: false,
@@ -140,17 +155,7 @@ const _PROVIDERS = [
     ),
     baseUrl: "https://api.gladia.io",
     models: ["solaria-1"],
-    requiresPro: false,
-  },
-  {
-    disabled: false,
-    id: "openai",
-    displayName: "OpenAI",
-    badge: "Beta",
-    icon: <OpenAI size={16} />,
-    baseUrl: "https://api.openai.com/v1",
-    models: ["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"],
-    requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     disabled: false,
@@ -162,7 +167,7 @@ const _PROVIDERS = [
     ),
     baseUrl: "https://api.soniox.com",
     models: ["stt-v3"],
-    requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     disabled: false,
@@ -172,7 +177,9 @@ const _PROVIDERS = [
     icon: <Icon icon="mingcute:random-fill" />,
     baseUrl: undefined,
     models: [],
-    requiresPro: false,
+    requirements: [
+      { kind: "requires_config", fields: ["base_url", "api_key"] },
+    ],
   },
   {
     disabled: true,
@@ -182,23 +189,17 @@ const _PROVIDERS = [
     icon: <Fireworks size={16} />,
     baseUrl: "https://api.fireworks.ai",
     models: ["Default"],
-    requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
 ] as const satisfies readonly Provider[];
 
-export const PROVIDERS = [..._PROVIDERS].sort((a, b) => {
-  if (a.id === "hyprnote") return -1;
-  if (b.id === "hyprnote") return 1;
-  if (a.disabled && !b.disabled) return 1;
-  if (!a.disabled && b.disabled) return -1;
-  if (a.id === "custom") return 1;
-  if (b.id === "custom") return -1;
-  return a.displayName.localeCompare(b.displayName);
-});
+export const PROVIDERS = sortProviders(_PROVIDERS);
+export type ProviderId = (typeof _PROVIDERS)[number]["id"];
 
-export const sttProviderRequiresPro = (providerId: ProviderId) =>
-  PROVIDERS.find((provider) => provider.id === providerId)?.requiresPro ??
-  false;
+export const sttProviderRequiresPro = (providerId: ProviderId) => {
+  const provider = PROVIDERS.find((p) => p.id === providerId);
+  return provider ? requiresEntitlement(provider.requirements, "pro") : false;
+};
 
 export const sttModelQueries = {
   isDownloaded: (model: SupportedSttModel) =>

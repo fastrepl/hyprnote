@@ -244,7 +244,10 @@ function ScreenshotsGrid({
           <button
             key={screenshot.id}
             onClick={() =>
-              setSelectedItem({ type: "screenshot", data: screenshot })
+              setSelectedItem({
+                type: "screenshot",
+                data: screenshot,
+              })
             }
             className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
           >
@@ -335,7 +338,11 @@ function MobileSidebarDrawer({
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            transition={{
+              type: "spring",
+              damping: 25,
+              stiffness: 300,
+            }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
               <span className="text-sm font-medium text-stone-600">

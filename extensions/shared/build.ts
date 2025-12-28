@@ -404,7 +404,7 @@ async function main() {
       }
   }
 
-  esbuild.stop();
+  void esbuild.stop();
 }
 
 main().catch((err) => {

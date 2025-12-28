@@ -2,7 +2,7 @@
 name = "tauri-plugin-listener2"
 version = "0.1.0"
 authors = ["You"]
-edition = "2021"
+edition = "2024"
 exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-listener2"
 description = ""
@@ -14,10 +14,12 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
+tauri-plugin-path2 = { workspace = true }
+
 hypr-audio-utils = { workspace = true }
 hypr-language = { workspace = true }
 
-owhisper-client = { workspace = true }
+owhisper-client = { workspace = true, features = ["argmax"] }
 owhisper-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }

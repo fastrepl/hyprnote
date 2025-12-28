@@ -1,12 +1,14 @@
 import { useCallback } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { useTabs } from "../../store/zustand/tabs";
 
 export function useSettings() {
+  const openNew = useTabs((state) => state.openNew);
+
   const openSettings = useCallback(() => {
-    windowsCommands.windowShow({ type: "settings" });
-  }, []);
+    openNew({ type: "settings" });
+  }, [openNew]);
 
   useHotkeys(
     "mod+,",

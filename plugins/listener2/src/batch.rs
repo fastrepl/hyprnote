@@ -5,7 +5,7 @@ use std::time::Duration;
 use futures_util::StreamExt;
 use owhisper_client::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FireworksAdapter,
-    OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+    GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
 };
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -185,10 +185,10 @@ impl BatchStreamConfig {
 }
 
 fn notify_start_result(notifier: &BatchStartNotifier, result: Result<(), String>) {
-    if let Ok(mut guard) = notifier.lock() {
-        if let Some(sender) = guard.take() {
-            let _ = sender.send(result);
-        }
+    if let Ok(mut guard) = notifier.lock()
+        && let Some(sender) = guard.take()
+    {
+        let _ = sender.send(result);
     }
 }
 
@@ -218,6 +218,7 @@ async fn spawn_batch_task(
             spawn_batch_task_with_adapter::<AssemblyAIAdapter>(args, myself).await
         }
         AdapterKind::OpenAI => spawn_batch_task_with_adapter::<OpenAIAdapter>(args, myself).await,
+        AdapterKind::Gladia => spawn_batch_task_with_adapter::<GladiaAdapter>(args, myself).await,
     }
 }
 
@@ -542,9 +543,5 @@ fn transcript_end_from_response(response: &StreamResponse) -> Option<f64> {
         }
     }
 
-    if end.is_finite() {
-        Some(end)
-    } else {
-        None
-    }
+    if end.is_finite() { Some(end) } else { None }
 }

@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 
 use bytes::{BufMut, Bytes, BytesMut};
 use futures_util::{Stream, StreamExt};
-use kalosm_sound::AsyncSource;
+use hypr_audio_interface::AsyncSource;
 
 mod error;
 mod resampler;
@@ -33,16 +33,18 @@ pub trait AudioFormatExt: AsyncSource {
     where
         Self: Sized + Send + Unpin + 'static,
     {
-        self.resample(sample_rate).chunks(chunk_size).map(|chunk| {
-            let n = std::mem::size_of::<f32>() * chunk.len();
+        ResamplerDynamicOld::new(self, sample_rate)
+            .chunks(chunk_size)
+            .map(|chunk| {
+                let n = std::mem::size_of::<f32>() * chunk.len();
 
-            let mut buf = BytesMut::with_capacity(n);
-            for sample in chunk {
-                let scaled = (sample * I16_SCALE).clamp(-I16_SCALE, I16_SCALE);
-                buf.put_i16_le(scaled as i16);
-            }
-            buf.freeze()
-        })
+                let mut buf = BytesMut::with_capacity(n);
+                for sample in chunk {
+                    let scaled = (sample * I16_SCALE).clamp(-I16_SCALE, I16_SCALE);
+                    buf.put_i16_le(scaled as i16);
+                }
+                buf.freeze()
+            })
     }
 }
 

@@ -19,8 +19,12 @@ import {
   type ProviderId,
   PROVIDERS,
 } from "../components/settings/ai/llm/shared";
+import {
+  getProviderSelectionBlockers,
+  type ProviderEligibilityContext,
+} from "../components/settings/ai/shared/eligibility";
 import { env } from "../env";
-import * as main from "../store/tinybase/main";
+import * as settings from "../store/tinybase/settings";
 import { tracedFetch } from "../utils/traced-fetch";
 
 type LLMConnectionInfo = {
@@ -58,13 +62,13 @@ export const useLLMConnection = (): LLMConnectionResult => {
   const auth = useAuth();
   const billing = useBillingAccess();
 
-  const { current_llm_provider, current_llm_model } = main.UI.useValues(
-    main.STORE_ID,
+  const { current_llm_provider, current_llm_model } = settings.UI.useValues(
+    settings.STORE_ID,
   );
-  const providerConfig = main.UI.useRow(
+  const providerConfig = settings.UI.useRow(
     "ai_providers",
     current_llm_provider ?? "",
-    main.STORE_ID,
+    settings.STORE_ID,
   ) as AIProviderStorage | undefined;
 
   return useMemo<LLMConnectionResult>(
@@ -135,55 +139,59 @@ const resolveLLMConnection = (params: {
     };
   }
 
-  if (providerId === "hyprnote") {
-    if (!session) {
-      return {
-        conn: null,
-        status: { status: "error", reason: "unauthenticated", providerId },
-      };
-    }
-
-    if (!isPro) {
-      return {
-        conn: null,
-        status: { status: "error", reason: "not_pro", providerId },
-      };
-    }
-
-    return {
-      conn: {
-        providerId,
-        modelId,
-        baseUrl: env.VITE_API_URL,
-        apiKey: session.access_token,
-      },
-      status: { status: "success", providerId, isHosted: true },
-    };
-  }
-
   const baseUrl =
     providerConfig?.base_url?.trim() ||
     providerDefinition.baseUrl?.trim() ||
     "";
   const apiKey = providerConfig?.api_key?.trim() || "";
 
-  const missing: Array<"base_url" | "api_key"> = [];
-  if (!baseUrl) {
-    missing.push("base_url");
-  }
-  if (providerDefinition.apiKey && !apiKey) {
-    missing.push("api_key");
+  const context: ProviderEligibilityContext = {
+    isAuthenticated: !!session,
+    isPro,
+    config: { base_url: baseUrl, api_key: apiKey },
+  };
+
+  const blockers = getProviderSelectionBlockers(
+    providerDefinition.requirements,
+    context,
+  );
+
+  if (blockers.length > 0) {
+    const blocker = blockers[0];
+    if (blocker.code === "requires_auth" && providerId === "hyprnote") {
+      return {
+        conn: null,
+        status: { status: "error", reason: "unauthenticated", providerId },
+      };
+    }
+    if (blocker.code === "requires_entitlement" && providerId === "hyprnote") {
+      return {
+        conn: null,
+        status: { status: "error", reason: "not_pro", providerId },
+      };
+    }
+    if (blocker.code === "missing_config") {
+      return {
+        conn: null,
+        status: {
+          status: "error",
+          reason: "missing_config",
+          providerId,
+          missing: blocker.fields,
+        },
+      };
+    }
   }
 
-  if (missing.length > 0) {
+  if (providerId === "hyprnote" && session) {
     return {
-      conn: null,
-      status: {
-        status: "error",
-        reason: "missing_config",
+      conn: {
         providerId,
-        missing,
+        modelId,
+        baseUrl: baseUrl ?? new URL("/llm", env.VITE_AI_URL).toString(),
+        apiKey: session.access_token,
       },
+      status: { status: "success", providerId, isHosted: true },
     };
   }
 
@@ -261,7 +269,10 @@ const createLanguageModel = (
       const ollamaFetch: typeof fetch = async (input, init) => {
         const headers = new Headers(init?.headers);
         headers.set("Origin", "http://localhost");
-        return tauriFetch(input as RequestInfo | URL, { ...init, headers });
+        return tauriFetch(input as RequestInfo | URL, {
+          ...init,
+          headers,
+        });
       };
       const provider = createOpenAICompatible({
         fetch: ollamaFetch,

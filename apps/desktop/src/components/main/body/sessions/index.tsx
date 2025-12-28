@@ -10,6 +10,7 @@ import * as main from "../../../../store/tinybase/main";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
+import { CaretPositionProvider } from "./caret-position-context";
 import { FloatingActionButton } from "./floating";
 import { NoteInput } from "./note-input";
 import { SearchBar } from "./note-input/transcript/search-bar";
@@ -35,8 +36,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
     main.STORE_ID,
   );
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
-  const isActive =
-    sessionMode === "running_active" || sessionMode === "finalizing";
+  const isActive = sessionMode === "active" || sessionMode === "finalizing";
 
   return (
     <TabItemBase
@@ -77,11 +77,13 @@ export function TabContentNote({
     listenerStatus === "inactive";
 
   return (
-    <SearchProvider>
-      <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
-        <TabContentNoteInner tab={tab} showTimeline={showTimeline} />
-      </AudioPlayer.Provider>
-    </SearchProvider>
+    <CaretPositionProvider>
+      <SearchProvider>
+        <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
+          <TabContentNoteInner tab={tab} showTimeline={showTimeline} />
+        </AudioPlayer.Provider>
+      </SearchProvider>
+    </CaretPositionProvider>
   );
 }
 

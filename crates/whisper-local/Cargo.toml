@@ -1,7 +1,7 @@
 [package]
 name = "whisper-local"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # https://github.com/tazz4843/whisper-rs/blob/e3d67d5/Cargo.toml
 [features]
@@ -23,7 +23,7 @@ hypr-whisper = { workspace = true }
 dasp = { workspace = true }
 hound = { workspace = true }
 
-kalosm-sound = { workspace = true, default-features = false }
+hypr-audio-interface = { workspace = true }
 rodio = { workspace = true }
 whisper-rs = { git = "https://codeberg.org/tazz4843/whisper-rs", rev = "a23990c", features = ["raw-api", "tracing_backend"], optional = true }
 

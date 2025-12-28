@@ -10,7 +10,7 @@ pub async fn load_extension<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     path: String,
 ) -> Result<(), Error> {
-    app.load_extension(PathBuf::from(path)).await
+    app.extensions().load_extension(PathBuf::from(path)).await
 }
 
 #[tauri::command]
@@ -21,7 +21,8 @@ pub async fn call_function<R: tauri::Runtime>(
     function_name: String,
     args_json: String,
 ) -> Result<String, Error> {
-    app.call_function(extension_id, function_name, args_json)
+    app.extensions()
+        .call_function(extension_id, function_name, args_json)
         .await
 }
 
@@ -32,7 +33,7 @@ pub async fn execute_code<R: tauri::Runtime>(
     extension_id: String,
     code: String,
 ) -> Result<String, Error> {
-    app.execute_code(extension_id, code).await
+    app.extensions().execute_code(extension_id, code).await
 }
 
 #[tauri::command]
@@ -42,7 +43,7 @@ pub async fn list_extensions<R: tauri::Runtime>(
 ) -> Result<Vec<ExtensionInfo>, Error> {
     let extensions_dir = app
         .path()
-        .app_data_dir()
+        .data_dir()
         .map_err(|e| Error::Io(e.to_string()))?
         .join("extensions");
 
@@ -86,7 +87,7 @@ pub async fn get_extensions_dir<R: tauri::Runtime>(
 ) -> Result<String, Error> {
     let extensions_dir = app
         .path()
-        .app_data_dir()
+        .data_dir()
         .map_err(|e| Error::Io(e.to_string()))?
         .join("extensions");
 
@@ -105,7 +106,7 @@ pub async fn get_extension<R: tauri::Runtime>(
 ) -> Result<ExtensionInfo, Error> {
     let extensions_dir = app
         .path()
-        .app_data_dir()
+        .data_dir()
         .map_err(|e| Error::Io(e.to_string()))?
         .join("extensions");
 

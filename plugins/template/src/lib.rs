@@ -4,7 +4,7 @@ mod commands;
 mod ext;
 
 pub use ext::TemplatePluginExt;
-pub use hypr_template::Template;
+pub use hypr_template_app_legacy::Template;
 
 const PLUGIN_NAME: &str = "template";
 
@@ -25,7 +25,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|_app, _api| {
-            let _ = hypr_template::get_environment();
+            let _ = hypr_template_app_legacy::get_environment();
             Ok(())
         })
         .build()
@@ -37,14 +37,18 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

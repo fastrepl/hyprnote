@@ -32,7 +32,9 @@ export const ClipboardTextSerializer = Extension.create({
             const textSerializers = getTextSerializersFromSchema(schema);
             const range = { from, to };
 
-            const text = getTextBetween(doc, range, { textSerializers });
+            const text = getTextBetween(doc, range, {
+              textSerializers,
+            });
             return text;
           },
         },

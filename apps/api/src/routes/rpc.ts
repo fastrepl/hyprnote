@@ -21,7 +21,9 @@ rpc.get(
       200: {
         description: "result",
         content: {
-          "application/json": { schema: resolver(CanStartTrialResponseSchema) },
+          "application/json": {
+            schema: resolver(CanStartTrialResponseSchema),
+          },
         },
       },
     },

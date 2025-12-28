@@ -49,7 +49,9 @@ export const Route = createFileRoute("/api/images/$")({
           if (response.status === 404) {
             return new Response("Not found", { status: 404 });
           }
-          return new Response("Upstream service error", { status: 502 });
+          return new Response("Upstream service error", {
+            status: 502,
+          });
         }
 
         const contentType = response.headers.get("content-type");

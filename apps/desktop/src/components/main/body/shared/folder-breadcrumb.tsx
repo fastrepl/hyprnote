@@ -56,7 +56,13 @@ function FolderWrapper({
 }) {
   const name = main.UI.useCell("folders", folderId, "name", main.STORE_ID);
   return (
-    <>{children({ id: folderId, name: name ?? "Untitled", isLast: false })}</>
+    <>
+      {children({
+        id: folderId,
+        name: name ?? "Untitled",
+        isLast: false,
+      })}
+    </>
   );
 }
 

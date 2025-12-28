@@ -33,8 +33,21 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let client = hypr_analytics::AnalyticsClient::new(option_env!("POSTHOG_API_KEY"));
+            let api_key = {
+                #[cfg(not(debug_assertions))]
+                {
+                    let v = env!("POSTHOG_API_KEY");
+                    assert!(v.starts_with("phc_"));
+                    Some(v)
+                }
 
+                #[cfg(debug_assertions)]
+                {
+                    option_env!("POSTHOG_API_KEY")
+                }
+            };
+
+            let client = hypr_analytics::AnalyticsClient::new(api_key);
             assert!(app.manage(client));
             Ok(())
         })
@@ -47,15 +60,19 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
@@ -70,13 +87,14 @@ mod test {
     async fn test_analytics() {
         let app = create_app(tauri::test::mock_builder());
         let result = app
+            .analytics()
             .event(hypr_analytics::AnalyticsPayload::builder("test_event").build())
             .await;
         assert!(result.is_ok());
 
         {
             use tauri_plugin_misc::MiscPluginExt;
-            let git_hash = app.get_git_hash();
+            let git_hash = app.misc().get_git_hash();
             println!("git_hash: {}", git_hash);
         }
 

@@ -1,13 +1,12 @@
 use std::str::FromStr;
 
 use tauri::Manager;
-use tauri_specta::Event;
 
-use crate::{AppWindow, WindowsPluginExt};
+use crate::AppWindow;
 
 // TODO: https://github.com/fastrepl/hyprnote/commit/150c8a1 this not worked. webview_window not found.
 pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::WindowEvent) {
-    let app = window.app_handle();
+    let _app = window.app_handle();
 
     match event {
         tauri::WindowEvent::CloseRequested { api, .. } => {
@@ -16,36 +15,18 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
                 Ok(w) => {
                     if w == AppWindow::Main && window.hide().is_ok() {
                         api.prevent_close();
-
-                        if let Err(e) = app.handle_main_window_visibility(false) {
-                            tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
-                        }
+                    }
+                    if w == AppWindow::Onboarding {
+                        use tauri_plugin_sfx::SfxPluginExt;
+                        window
+                            .app_handle()
+                            .sfx()
+                            .stop(tauri_plugin_sfx::AppSounds::BGM);
                     }
                 }
             }
         }
 
-        tauri::WindowEvent::Destroyed => {
-            let app = window.app_handle();
-            let state = app.state::<crate::ManagedState>();
-
-            match window.label().parse::<AppWindow>() {
-                Err(e) => tracing::warn!("window_parse_error: {:?}", e),
-                Ok(w) => {
-                    {
-                        let mut guard = state.lock().unwrap();
-                        guard.windows.remove(&w);
-                    }
-
-                    let event = WindowDestroyed { window: w };
-                    let _ = event.emit(app);
-
-                    if let Err(e) = app.handle_main_window_visibility(false) {
-                        tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
-                    }
-                }
-            }
-        }
         _ => {}
     }
 }
@@ -102,6 +83,12 @@ common_event_derives! {
     pub struct MainWindowState {
         pub left_sidebar_expanded: Option<bool>,
         pub right_panel_expanded: Option<bool>,
+    }
+}
+
+common_event_derives! {
+    pub struct OpenTab {
+        pub tab: crate::TabInput,
     }
 }
 

@@ -6,7 +6,9 @@ let restateClientInstance: ReturnType<typeof clients.connect> | null = null;
 
 export function getRestateClient() {
   if (!restateClientInstance) {
-    restateClientInstance = clients.connect({ url: env.RESTATE_INGRESS_URL });
+    restateClientInstance = clients.connect({
+      url: env.RESTATE_INGRESS_URL,
+    });
   }
   return restateClientInstance;
 }

@@ -1217,7 +1217,10 @@ const CollaboratorsCell = memo(() => {
                       : false
                   }
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  transition={{
+                    duration: 0.5,
+                    ease: "easeOut",
+                  }}
                   className="flex items-center gap-3 bg-linear-to-br from-stone-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50"
                 >
                   <Image
@@ -1252,10 +1255,21 @@ const CollaboratorsCell = memo(() => {
                     <AnimatePresence>
                       {person.name === "David Kim" && showPopover && (
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          transition={{ duration: 0.2 }}
+                          initial={{
+                            opacity: 0,
+                            y: 10,
+                          }}
+                          animate={{
+                            opacity: 1,
+                            y: 0,
+                          }}
+                          exit={{
+                            opacity: 0,
+                            y: 10,
+                          }}
+                          transition={{
+                            duration: 0.2,
+                          }}
                           className="absolute bottom-full mb-1 left-0 w-32 bg-white border border-stone-200 rounded shadow-lg z-20 overflow-hidden"
                         >
                           <div
@@ -2204,7 +2218,10 @@ function FloatingPanelContent() {
         if (scrollRef.current) {
           const container = scrollRef.current;
           const scrollLeft = container.offsetWidth * nextIndex;
-          container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+          container.scrollTo({
+            left: scrollLeft,
+            behavior: "smooth",
+          });
         }
       } else {
         animationId = requestAnimationFrame(animate);

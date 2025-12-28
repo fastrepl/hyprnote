@@ -1,28 +1,56 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
-const STORE_FILENAME: &str = "store.json";
+use tauri_plugin_path2::Path2PluginExt;
 
-pub trait StorePluginExt<R: tauri::Runtime> {
-    fn store(&self) -> Result<Arc<tauri_plugin_store::Store<R>>, crate::Error>;
-    fn scoped_store<K: ScopedStoreKey>(
-        &self,
-        scope: impl Into<String>,
-    ) -> Result<ScopedStore<R, K>, crate::Error>;
+pub const FILENAME: &str = "store.json";
+
+pub fn store_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, crate::Error> {
+    let store_dir = app.path2().base()?;
+    Ok(store_dir.join(FILENAME))
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> StorePluginExt<R> for T {
-    fn store(&self) -> Result<std::sync::Arc<tauri_plugin_store::Store<R>>, crate::Error> {
-        let app = self.app_handle();
-        <tauri::AppHandle<R> as tauri_plugin_store::StoreExt<R>>::store(app, STORE_FILENAME)
+pub struct Store2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
+}
+
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Store2<'a, R, M> {
+    pub fn path(&self) -> Result<PathBuf, crate::Error> {
+        store_path(self.manager.app_handle())
+    }
+
+    pub fn store(&self) -> Result<Arc<tauri_plugin_store::Store<R>>, crate::Error> {
+        let app = self.manager.app_handle();
+        let store_path = store_path(app)?;
+        <tauri::AppHandle<R> as tauri_plugin_store::StoreExt<R>>::store(app, &store_path)
             .map_err(Into::into)
     }
 
-    fn scoped_store<K: ScopedStoreKey>(
+    pub fn scoped_store<K: ScopedStoreKey>(
         &self,
         scope: impl Into<String>,
     ) -> Result<ScopedStore<R, K>, crate::Error> {
         let store = self.store()?;
         Ok(ScopedStore::new(store, scope.into()))
+    }
+}
+
+pub trait Store2PluginExt<R: tauri::Runtime> {
+    fn store2(&self) -> Store2<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> Store2PluginExt<R> for T {
+    fn store2(&self) -> Store2<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Store2 {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }
 

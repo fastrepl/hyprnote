@@ -1,6 +1,6 @@
 use cpal::{
-    traits::{DeviceTrait, HostTrait, StreamTrait},
     SizedSample,
+    traits::{DeviceTrait, HostTrait, StreamTrait},
 };
 use dasp::sample::ToSample;
 use futures_channel::mpsc;
@@ -244,7 +244,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_mic_stream_with_resampling() {
-        use hypr_audio_utils::{chunk_size_for_stt, ResampleExtDynamicNew};
+        use hypr_audio_utils::{ResampleExtDynamicNew, chunk_size_for_stt};
 
         let mic = MicInput::new(None).unwrap();
         println!("mic device: {}", mic.device_name());

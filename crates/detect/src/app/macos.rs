@@ -1,5 +1,5 @@
 use cidre::{blocks, ns, ns::workspace::notification as wsn, objc::Obj};
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 use crate::BackgroundTask;
 

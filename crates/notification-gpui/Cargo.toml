@@ -1,0 +1,17 @@
+[package]
+name = "notification-gpui"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = []
+
+[[example]]
+name = "test_notification"
+
+[dependencies]
+gpui = { version = "0.2", features = ["runtime_shaders"] }
+gpui_squircle = "1"
+hypr-notification-interface = { workspace = true }
+
+[dev-dependencies]

@@ -35,7 +35,9 @@ export const Route = createFileRoute("/webhook/nango")({
           return new Response("OK", { status: 200 });
         } catch (error) {
           console.error("Error processing Nango webhook:", error);
-          return new Response("Internal Server Error", { status: 500 });
+          return new Response("Internal Server Error", {
+            status: 500,
+          });
         }
       },
     },

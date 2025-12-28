@@ -4,14 +4,10 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-start-oauth-server`
-- `allow-stop-oauth-server`
-- `allow-init-vault`
-- `allow-reset-vault`
-- `allow-get-from-store`
-- `allow-get-from-vault`
-- `allow-set-in-store`
-- `allow-set-in-vault`
+- `allow-get-item`
+- `allow-set-item`
+- `allow-remove-item`
+- `allow-clear`
 
 ## Permission Table
 
@@ -25,25 +21,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`auth:allow-get-from-store`
+`auth:allow-clear`
 
 </td>
 <td>
 
-Enables the get_from_store command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`auth:deny-get-from-store`
-
-</td>
-<td>
-
-Denies the get_from_store command without any pre-configured scope.
+Enables the clear command without any pre-configured scope.
 
 </td>
 </tr>
@@ -51,25 +34,12 @@ Denies the get_from_store command without any pre-configured scope.
 <tr>
 <td>
 
-`auth:allow-get-from-vault`
+`auth:deny-clear`
 
 </td>
 <td>
 
-Enables the get_from_vault command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`auth:deny-get-from-vault`
-
-</td>
-<td>
-
-Denies the get_from_vault command without any pre-configured scope.
+Denies the clear command without any pre-configured scope.
 
 </td>
 </tr>
@@ -77,25 +47,12 @@ Denies the get_from_vault command without any pre-configured scope.
 <tr>
 <td>
 
-`auth:allow-init-vault`
+`auth:allow-get-item`
 
 </td>
 <td>
 
-Enables the init_vault command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`auth:deny-init-vault`
-
-</td>
-<td>
-
-Denies the init_vault command without any pre-configured scope.
+Enables the get_item command without any pre-configured scope.
 
 </td>
 </tr>
@@ -103,25 +60,12 @@ Denies the init_vault command without any pre-configured scope.
 <tr>
 <td>
 
-`auth:allow-reset-vault`
+`auth:deny-get-item`
 
 </td>
 <td>
 
-Enables the reset_vault command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`auth:deny-reset-vault`
-
-</td>
-<td>
-
-Denies the reset_vault command without any pre-configured scope.
+Denies the get_item command without any pre-configured scope.
 
 </td>
 </tr>
@@ -129,25 +73,12 @@ Denies the reset_vault command without any pre-configured scope.
 <tr>
 <td>
 
-`auth:allow-set-in-store`
+`auth:allow-remove-item`
 
 </td>
 <td>
 
-Enables the set_in_store command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`auth:deny-set-in-store`
-
-</td>
-<td>
-
-Denies the set_in_store command without any pre-configured scope.
+Enables the remove_item command without any pre-configured scope.
 
 </td>
 </tr>
@@ -155,25 +86,12 @@ Denies the set_in_store command without any pre-configured scope.
 <tr>
 <td>
 
-`auth:allow-set-in-vault`
+`auth:deny-remove-item`
 
 </td>
 <td>
 
-Enables the set_in_vault command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`auth:deny-set-in-vault`
-
-</td>
-<td>
-
-Denies the set_in_vault command without any pre-configured scope.
+Denies the remove_item command without any pre-configured scope.
 
 </td>
 </tr>
@@ -181,25 +99,12 @@ Denies the set_in_vault command without any pre-configured scope.
 <tr>
 <td>
 
-`auth:allow-start-oauth-server`
+`auth:allow-set-item`
 
 </td>
 <td>
 
-Enables the start_oauth_server command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`auth:deny-start-oauth-server`
-
-</td>
-<td>
-
-Denies the start_oauth_server command without any pre-configured scope.
+Enables the set_item command without any pre-configured scope.
 
 </td>
 </tr>
@@ -207,25 +112,12 @@ Denies the start_oauth_server command without any pre-configured scope.
 <tr>
 <td>
 
-`auth:allow-stop-oauth-server`
+`auth:deny-set-item`
 
 </td>
 <td>
 
-Enables the stop_oauth_server command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`auth:deny-stop-oauth-server`
-
-</td>
-<td>
-
-Denies the stop_oauth_server command without any pre-configured scope.
+Denies the set_item command without any pre-configured scope.
 
 </td>
 </tr>

@@ -1,17 +1,23 @@
 import { LogIn } from "lucide-react";
 import { useCallback } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 
-export function AuthSection({ isAuthenticated }: { isAuthenticated: boolean }) {
-  const handleOpenAccount = useCallback(async () => {
-    await windowsCommands.windowShow({ type: "settings" });
-    await windowsCommands.windowNavigate(
-      { type: "settings" },
-      "/app/settings?tab=account",
-    );
-  }, []);
+import { useTabs } from "../../../../store/zustand/tabs";
+
+export function AuthSection({
+  isAuthenticated,
+  onClose,
+}: {
+  isAuthenticated: boolean;
+  onClose: () => void;
+}) {
+  const openNew = useTabs((state) => state.openNew);
+
+  const handleOpenSettings = useCallback(() => {
+    openNew({ type: "settings" });
+    onClose();
+  }, [openNew, onClose]);
 
   if (isAuthenticated) {
     return null;
@@ -19,7 +25,7 @@ export function AuthSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 
   return (
     <div className="p-1 pt-2">
-      <Button onClick={handleOpenAccount} variant="default" className="w-full">
+      <Button onClick={handleOpenSettings} variant="default" className="w-full">
         <LogIn size={16} />
         Sign in
       </Button>

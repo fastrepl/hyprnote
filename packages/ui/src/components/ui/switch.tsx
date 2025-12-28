@@ -38,7 +38,8 @@ const thumbVariants = cva(
 );
 
 interface SwitchProps
-  extends React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>,
+  extends
+    React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>,
     VariantProps<typeof switchVariants> {}
 
 const Switch = React.forwardRef<

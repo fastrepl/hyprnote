@@ -1,5 +1,6 @@
 export * from "./load-test-auth";
 export * from "./observability";
 export * from "./sentry";
-export * from "./supabase";
+export * from "./slack";
 export * from "./stripe";
+export * from "./supabase";

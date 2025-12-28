@@ -84,7 +84,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures_util::{stream, StreamExt};
+    use futures_util::{StreamExt, stream};
     use rodio::Source;
 
     #[tokio::test]

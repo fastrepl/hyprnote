@@ -1,13 +1,13 @@
 use crate::ops::*;
 use crate::{Error, Extension, Result};
+use deno_core::JsRuntime;
+use deno_core::RuntimeOptions;
 use deno_core::serde_json::Value;
 use deno_core::serde_v8;
 use deno_core::v8;
-use deno_core::JsRuntime;
-use deno_core::RuntimeOptions;
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::{mpsc, oneshot};
 
 deno_core::extension!(
@@ -289,18 +289,17 @@ fn load_extension_impl(
 
     let mut functions = HashMap::new();
 
-    if let Ok(obj) = v8::Local::<v8::Object>::try_from(local) {
-        if let Some(names) = obj.get_own_property_names(scope, v8::GetPropertyNamesArgs::default())
-        {
-            for i in 0..names.length() {
-                if let Some(key) = names.get_index(scope, i) {
-                    let key_str = key.to_rust_string_lossy(scope);
-                    if let Some(value) = obj.get(scope, key) {
-                        if let Ok(func) = v8::Local::<v8::Function>::try_from(value) {
-                            let global_func = v8::Global::new(scope, func);
-                            functions.insert(key_str, global_func);
-                        }
-                    }
+    if let Ok(obj) = v8::Local::<v8::Object>::try_from(local)
+        && let Some(names) = obj.get_own_property_names(scope, v8::GetPropertyNamesArgs::default())
+    {
+        for i in 0..names.length() {
+            if let Some(key) = names.get_index(scope, i) {
+                let key_str = key.to_rust_string_lossy(scope);
+                if let Some(value) = obj.get(scope, key)
+                    && let Ok(func) = v8::Local::<v8::Function>::try_from(value)
+                {
+                    let global_func = v8::Global::new(scope, func);
+                    functions.insert(key_str, global_func);
                 }
             }
         }

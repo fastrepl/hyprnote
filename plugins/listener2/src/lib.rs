@@ -51,20 +51,68 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .build()
 }
 
+pub fn parse_subtitle_from_path<P: AsRef<std::path::Path>>(
+    path: P,
+) -> std::result::Result<Subtitle, String> {
+    use aspasia::TimedSubtitleFile;
+    let sub = TimedSubtitleFile::new(path.as_ref()).map_err(|e| e.to_string())?;
+    Ok(sub.into())
+}
+
+pub fn export_words_to_vtt<P: AsRef<std::path::Path>>(
+    words: Vec<VttWord>,
+    path: P,
+) -> std::result::Result<(), String> {
+    use std::io::Write;
+
+    let mut content = String::from("WEBVTT\n\n");
+
+    for word in words {
+        if let Some(ref speaker) = word.speaker {
+            content.push_str(speaker);
+            content.push('\n');
+        }
+
+        let start = format_vtt_timestamp(word.start_ms);
+        let end = format_vtt_timestamp(word.end_ms);
+        content.push_str(&format!("{} --> {}\n", start, end));
+        content.push_str(&word.text);
+        content.push_str("\n\n");
+    }
+
+    let mut file = std::fs::File::create(path.as_ref()).map_err(|e| e.to_string())?;
+    file.write_all(content.as_bytes())
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+fn format_vtt_timestamp(ms: u64) -> String {
+    let hours = ms / 3_600_000;
+    let minutes = (ms % 3_600_000) / 60_000;
+    let seconds = (ms % 60_000) / 1_000;
+    let millis = ms % 1_000;
+    format!("{:02}:{:02}:{:02}.{:03}", hours, minutes, seconds, millis)
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

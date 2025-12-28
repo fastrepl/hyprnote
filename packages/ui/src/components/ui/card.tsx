@@ -59,8 +59,7 @@ export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
 );
 CardTitle.displayName = "CardTitle";
 
-interface CardDescriptionProps
-  extends React.HTMLAttributes<HTMLParagraphElement> {}
+interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {}
 
 export const CardDescription = forwardRef<
   HTMLParagraphElement,

@@ -1,12 +1,12 @@
 use anyhow::Result;
 use futures_util::Stream;
 use std::collections::VecDeque;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 use std::task::{Poll, Waker};
 use std::thread;
 use std::time::Duration;
 use tracing::error;
-use wasapi::{get_default_device, Direction, SampleType, StreamMode, WaveFormat};
+use wasapi::{Direction, SampleType, StreamMode, WaveFormat, get_default_device};
 
 pub struct SpeakerInput {}
 

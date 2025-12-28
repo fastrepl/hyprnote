@@ -72,30 +72,29 @@ impl crate::Observer for Detector {
 
                 context.set_subscribe_callback(Some(Box::new(
                     move |facility, operation, _index| {
-                        if let Some(pulse::context::subscribe::Facility::Source) = facility {
-                            if let Some(pulse::context::subscribe::Operation::Changed) = operation {
-                                if let Ok(mut state) = detector_state_for_subscribe.lock() {
-                                    let mic_in_use = check_mic_in_use();
+                        if let Some(pulse::context::subscribe::Facility::Source) = facility
+                            && let Some(pulse::context::subscribe::Operation::Changed) = operation
+                            && let Ok(mut state) = detector_state_for_subscribe.lock()
+                        {
+                            let mic_in_use = check_mic_in_use();
 
-                                    if state.should_trigger(mic_in_use) {
-                                        if mic_in_use {
-                                            let cb = callback_for_subscribe.clone();
-                                            std::thread::spawn(move || {
-                                                let apps = crate::list_mic_using_apps();
-                                                tracing::info!("mic_started_detected: {:?}", apps);
+                            if state.should_trigger(mic_in_use) {
+                                if mic_in_use {
+                                    let cb = callback_for_subscribe.clone();
+                                    std::thread::spawn(move || {
+                                        let apps = crate::list_mic_using_apps();
+                                        tracing::info!("mic_started_detected: {:?}", apps);
 
-                                                if let Ok(guard) = cb.lock() {
-                                                    let event = DetectEvent::MicStarted(apps);
-                                                    tracing::info!(event = ?event, "detected");
-                                                    (*guard)(event);
-                                                }
-                                            });
-                                        } else if let Ok(guard) = callback_for_subscribe.lock() {
-                                            let event = DetectEvent::MicStopped;
+                                        if let Ok(guard) = cb.lock() {
+                                            let event = DetectEvent::MicStarted(apps);
                                             tracing::info!(event = ?event, "detected");
                                             (*guard)(event);
                                         }
-                                    }
+                                    });
+                                } else if let Ok(guard) = callback_for_subscribe.lock() {
+                                    let event = DetectEvent::MicStopped(vec![]);
+                                    tracing::info!(event = ?event, "detected");
+                                    (*guard)(event);
                                 }
                             }
                         }
@@ -224,10 +223,10 @@ fn check_mic_in_use() -> bool {
 
     introspector.get_source_output_info_list(move |list_result| match list_result {
         pulse::callbacks::ListResult::Item(info) => {
-            if !info.corked {
-                if let Ok(mut r) = result_clone.lock() {
-                    *r = true;
-                }
+            if !info.corked
+                && let Ok(mut r) = result_clone.lock()
+            {
+                *r = true;
             }
         }
         pulse::callbacks::ListResult::End => {
@@ -243,10 +242,10 @@ fn check_mic_in_use() -> bool {
     });
 
     for _ in 0..100 {
-        if let Ok(d) = done.lock() {
-            if *d {
-                break;
-            }
+        if let Ok(d) = done.lock()
+            && *d
+        {
+            break;
         }
         std::thread::sleep(Duration::from_millis(10));
     }
@@ -259,7 +258,7 @@ fn check_mic_in_use() -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{new_callback, Observer};
+    use crate::{Observer, new_callback};
 
     #[tokio::test]
     async fn test_detector() {

@@ -136,7 +136,7 @@ export const sttFile = restate.workflow({
         if (provider === "soniox" && "id" in payload && "status" in payload) {
           const sonioxPayload = payload as SonioxCallbackType;
           if (sonioxPayload.status === "error") {
-            ctx
+            void ctx
               .promise<string>("providerResponse")
               .reject("Soniox transcription failed");
             return;
@@ -146,13 +146,13 @@ export const sttFile = restate.workflow({
             sonioxPayload.id,
             env.SONIOX_API_KEY,
           );
-          ctx
+          void ctx
             .promise<string>("providerResponse")
             .resolve(
               JSON.stringify({ provider: "soniox", data: sonioxResponse }),
             );
         } else {
-          ctx
+          void ctx
             .promise<string>("providerResponse")
             .resolve(JSON.stringify({ provider: "deepgram", data: payload }));
         }

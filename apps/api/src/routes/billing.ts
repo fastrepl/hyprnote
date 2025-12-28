@@ -28,7 +28,9 @@ billing.post(
       200: {
         description: "result",
         content: {
-          "application/json": { schema: resolver(StartTrialResponseSchema) },
+          "application/json": {
+            schema: resolver(StartTrialResponseSchema),
+          },
         },
       },
     },
@@ -121,7 +123,10 @@ billing.post(
         console.error(errorMessage, errorDetails);
       } else {
         Sentry.captureException(error, {
-          tags: { billing: "start_trial", operation: "create_subscription" },
+          tags: {
+            billing: "start_trial",
+            operation: "create_subscription",
+          },
           extra: { userId, stripeCustomerId, priceId, errorDetails },
         });
       }

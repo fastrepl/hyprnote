@@ -1,4 +1,4 @@
-use swift_rs::{swift, SRArray, SRObject, SRString};
+use swift_rs::{SRArray, SRObject, SRString, swift};
 
 swift!(pub(crate) fn initialize_am2_sdk(api_key: &SRString));
 swift!(pub(crate) fn am2_vad_init() -> bool);

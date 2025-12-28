@@ -23,7 +23,7 @@ You can also use it for taking notes for lectures or organizing your thoughts
 ## Installation
 
 ```bash
-brew tap fastrepl/hyprnote && brew install hyprnote --cask
+brew install --cask fastrepl/hyprnote/hyprnote@nightly
 ```
 
 - [macOS](https://hyprnote.com/download) (public beta)
@@ -33,42 +33,49 @@ brew tap fastrepl/hyprnote && brew install hyprnote --cask
 ## Highlights
 
 ### Notepad
+
 Hyprnote is designed to take notes easily during meetings. Just jot down stuff you think are important!
 
 <img width="732" height="612" alt="Screenshot 2025-11-23 at 2 38 20 PM" src="https://github.com/user-attachments/assets/268ab859-a194-484b-b895-bc640df18dd4" />
 
 ### Realtime Transcript
-While you stay engaged in the conversation, Hyprnote captures every detail so you don’t have to type frantically.
+
+While you stay engaged in the conversation, Hyprnote captures every detail so you don't have to type frantically.
 
 <img width="688" height="568" alt="Screenshot 2025-11-23 at 2 35 47 PM" src="https://github.com/user-attachments/assets/e63ce73f-1a5f-49ce-a14d-dd8ba161e5bc" />
 
 ### From Memos to Summaries
+
 Once the meeting is over, Hyprnote will craft a personalized summary based on your memos — which is not mandatory. Hyprnote will still create great summaries without your notes.
 
 ![offline enhancing-1](https://github.com/user-attachments/assets/13af787b-2f6e-4877-b90f-719edc45fb75)
 
 ### Truly Local
+
 If you noticed the GIF above, you can see that Hyprnote works without any internet connection available. Just set up LM Studio or Ollama to operate Hyprnote in air-gapped environments!
 
 <img width="780" height="585" alt="no-wifi" src="https://github.com/user-attachments/assets/ecf08a9e-3b6c-4fb6-ab38-0bc572f54859" />
 
 ### Bring Your Own LLM
+
 Prefer something custom? You can swap in your own language model:
 
 - Run local models via Ollama
 - Use approved third-party APIs like Gemini, Claude, or Azure-hosted GPT
 - Stay compliant with whatever your org allows
 
-Hyprnote plays nice with whatever stack you’re running.
+Hyprnote plays nice with whatever stack you're running.
 
 <img width="912" height="712" alt="Screenshot 2025-11-23 at 2 41 03 PM" src="https://github.com/user-attachments/assets/a6552c99-acbc-4d47-9d21-7f1925989344" />
 
 ### Note Templates
+
 Prefer a certain style? Choose from predefined templates like bullet points, agenda-based, or paragraph summary. Or create your own.
 
 Check out our [template gallery](https://hyprnote.com/templates) and add your own [here](https://github.com/fastrepl/hyprnote/tree/main/apps/web/content/templates).
 
 ### AI Chat
+
 Ask follow-ups right inside your notes:
 
 - "What were the action items?"
@@ -77,8 +84,8 @@ Ask follow-ups right inside your notes:
 
 <img width="959" height="712" alt="image" src="https://github.com/user-attachments/assets/52b7dc14-906f-445f-91f9-b0089d40a495" />
 
-
 ### Integrations
+
 - Apple Calendar, Contacts
 - Obsidian
 - Coming soon: Notion, Slack, Hubspot, Salesforce

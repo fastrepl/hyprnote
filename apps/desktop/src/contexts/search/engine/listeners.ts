@@ -2,17 +2,17 @@ import { remove, type TypedDocument, update } from "@orama/orama";
 import { RowListener } from "tinybase/with-schemas";
 
 import { Schemas } from "../../../store/tinybase/main";
-import { type Store as PersistedStore } from "../../../store/tinybase/main";
+import { type Store as MainStore } from "../../../store/tinybase/main";
 import {
   createHumanSearchableContent,
   createSessionSearchableContent,
 } from "./content";
 import type { Index } from "./types";
-import { collectCells, toNumber, toTrimmedString } from "./utils";
+import { collectCells, toEpochMs, toTrimmedString } from "./utils";
 
 export function createSessionListener(
   index: Index,
-): RowListener<Schemas, "sessions", null, PersistedStore> {
+): RowListener<Schemas, "sessions", null, MainStore> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("sessions", rowId);
@@ -36,10 +36,10 @@ export function createSessionListener(
           type: "session",
           title,
           content: createSessionSearchableContent(row),
-          created_at: toNumber(row.created_at),
+          created_at: toEpochMs(row.created_at),
         };
 
-        update(index, rowId, data);
+        void update(index, rowId, data);
       }
     } catch (error) {
       console.error("Failed to update session in search index:", error);
@@ -49,7 +49,7 @@ export function createSessionListener(
 
 export function createHumanListener(
   index: Index,
-): RowListener<Schemas, "humans", null, PersistedStore> {
+): RowListener<Schemas, "humans", null, MainStore> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("humans", rowId);
@@ -66,9 +66,9 @@ export function createHumanListener(
           type: "human",
           title,
           content: createHumanSearchableContent(row),
-          created_at: toNumber(row.created_at),
+          created_at: toEpochMs(row.created_at),
         };
-        update(index, rowId, data);
+        void update(index, rowId, data);
       }
     } catch (error) {
       console.error("Failed to update human in search index:", error);
@@ -78,13 +78,13 @@ export function createHumanListener(
 
 export function createOrganizationListener(
   index: Index,
-): RowListener<Schemas, "organizations", null, PersistedStore> {
+): RowListener<Schemas, "organizations", null, MainStore> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("organizations", rowId);
 
       if (!rowExists) {
-        remove(index, rowId);
+        void remove(index, rowId);
       } else {
         const fields = ["name", "created_at"];
         const row = collectCells(store, "organizations", rowId, fields);
@@ -95,10 +95,10 @@ export function createOrganizationListener(
           type: "organization",
           title,
           content: "",
-          created_at: toNumber(row.created_at),
+          created_at: toEpochMs(row.created_at),
         };
 
-        update(index, rowId, data);
+        void update(index, rowId, data);
       }
     } catch (error) {
       console.error("Failed to update organization in search index:", error);

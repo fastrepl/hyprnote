@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-pub use swc_common::{sync::Lrc, FileName, SourceMap, Span};
+pub use swc_common::{FileName, SourceMap, Span, sync::Lrc};
 pub use swc_ecma_ast::*;
-use swc_ecma_parser::{lexer::Lexer, Parser, StringInput, Syntax, TsSyntax};
+use swc_ecma_parser::{Parser, StringInput, Syntax, TsSyntax, lexer::Lexer};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Field {

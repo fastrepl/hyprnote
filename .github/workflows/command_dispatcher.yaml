@@ -1,0 +1,77 @@
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    outputs:
+      command: ${{ steps.parse.outputs.command }}
+      channel: ${{ steps.parse.outputs.channel }}
+      ref: ${{ steps.parse.outputs.ref }}
+      allowed: ${{ steps.permission.outputs.allowed }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: permission
+        uses: ./.github/actions/check-permission
+        with:
+          user: ${{ github.event.comment.user.login }}
+          allowed-users: yujonglee|ComputelessComputer
+      - if: steps.permission.outputs.allowed == 'true'
+        id: parse
+        shell: bash
+        env:
+          COMMENT: ${{ github.event.comment.body }}
+        run: |
+          if [[ "$COMMENT" =~ (^|[[:space:]])/nightly($|[[:space:]]) ]]; then
+            echo "command=release" >> $GITHUB_OUTPUT
+            echo "channel=nightly" >> $GITHUB_OUTPUT
+          elif [[ "$COMMENT" =~ (^|[[:space:]])/stable($|[[:space:]]) ]]; then
+            echo "command=release" >> $GITHUB_OUTPUT
+            echo "channel=stable" >> $GITHUB_OUTPUT
+          elif [[ "$COMMENT" =~ (^|[[:space:]])/staging($|[[:space:]]) ]]; then
+            echo "command=staging" >> $GITHUB_OUTPUT
+            if [[ "$COMMENT" =~ /staging[[:space:]]+([a-zA-Z0-9_.][a-zA-Z0-9_./-]*)($|[[:space:]]) ]]; then
+              echo "ref=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+            fi
+          elif [[ "$COMMENT" =~ (^|[[:space:]])/update($|[[:space:]]) ]]; then
+            echo "command=update" >> $GITHUB_OUTPUT
+          else
+            echo "command=" >> $GITHUB_OUTPUT
+          fi
+
+  handle-release:
+    needs: dispatch
+    if: needs.dispatch.outputs.allowed == 'true' && needs.dispatch.outputs.command == 'release'
+    uses: ./.github/workflows/handle_release.yaml
+    with:
+      channel: ${{ needs.dispatch.outputs.channel }}
+      issue_number: ${{ github.event.issue.number }}
+      comment_id: ${{ github.event.comment.id }}
+    secrets: inherit
+
+  handle-staging:
+    needs: dispatch
+    if: needs.dispatch.outputs.allowed == 'true' && needs.dispatch.outputs.command == 'staging'
+    uses: ./.github/workflows/handle_staging.yaml
+    with:
+      ref: ${{ needs.dispatch.outputs.ref }}
+      issue_number: ${{ github.event.issue.number }}
+      comment_id: ${{ github.event.comment.id }}
+    secrets: inherit
+
+  handle-update:
+    needs: dispatch
+    if: needs.dispatch.outputs.allowed == 'true' && needs.dispatch.outputs.command == 'update'
+    uses: ./.github/workflows/handle_update.yaml
+    with:
+      issue_number: ${{ github.event.issue.number }}
+      comment_id: ${{ github.event.comment.id }}
+    secrets: inherit
+

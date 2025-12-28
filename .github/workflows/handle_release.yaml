@@ -1,0 +1,104 @@
+on:
+  workflow_call:
+    inputs:
+      channel:
+        required: true
+        type: string
+      issue_number:
+        required: true
+        type: number
+      comment_id:
+        required: true
+        type: number
+
+concurrency:
+  group: release-${{ inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  resolve-and-trigger:
+    runs-on: ubuntu-latest
+    outputs:
+      data: ${{ steps.result.outputs.data }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/add-reaction
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          comment: ${{ inputs.comment_id }}
+          reaction: eyes
+      - id: resolve
+        run: |
+          PR_DATA=$(gh api repos/$REPO/pulls/${{ inputs.issue_number }} 2>/dev/null) || {
+            echo "merged=false" >> $GITHUB_OUTPUT
+            echo "error=Not a pull request or PR not found" >> $GITHUB_OUTPUT
+            exit 0
+          }
+
+          MERGED=$(echo "$PR_DATA" | jq -r '.merged')
+          if [ "$MERGED" != "true" ]; then
+            echo "merged=false" >> $GITHUB_OUTPUT
+            echo "error=PR must be merged first" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          MERGE_SHA=$(echo "$PR_DATA" | jq -r '.merge_commit_sha')
+          TEMP_BRANCH="release-temp-${MERGE_SHA:0:8}"
+
+          GH_TOKEN=${{ secrets.PAT_TOKEN }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$MERGE_SHA"
+
+          echo "merged=true" >> $GITHUB_OUTPUT
+          echo "merge_sha=$MERGE_SHA" >> $GITHUB_OUTPUT
+          echo "branch=$TEMP_BRANCH" >> $GITHUB_OUTPUT
+      - if: steps.resolve.outputs.merged == 'true'
+        id: trigger
+        uses: ./.github/actions/trigger-workflow
+        with:
+          workflow: desktop_cd.yaml
+          ref: ${{ steps.resolve.outputs.branch }}
+          channel: ${{ inputs.channel }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          max_attempts: "10"
+      - id: result
+        run: |
+          CHANNEL="${{ inputs.channel }}"
+          MERGED="${{ steps.resolve.outputs.merged }}"
+          MERGE_SHA="${{ steps.resolve.outputs.merge_sha }}"
+          RUN_ID="${{ steps.trigger.outputs.run_id }}"
+
+          if [ "$MERGED" != "true" ]; then
+            DATA=$(jq -cn \
+              --arg channel "\`$CHANNEL\`" \
+              --arg sha "-" \
+              --arg status "PR must be merged first" \
+              '[{header: "Channel", value: $channel}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
+          elif [ -n "$RUN_ID" ]; then
+            DATA=$(jq -cn \
+              --arg channel "\`$CHANNEL\`" \
+              --arg sha "[\`${MERGE_SHA:0:8}\`](https://github.com/$REPO/commit/$MERGE_SHA)" \
+              --arg status "[View](https://github.com/$REPO/actions/runs/$RUN_ID)" \
+              '[{header: "Channel", value: $channel}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
+          else
+            DATA=$(jq -cn \
+              --arg channel "\`$CHANNEL\`" \
+              --arg sha "[\`${MERGE_SHA:0:8}\`](https://github.com/$REPO/commit/$MERGE_SHA)" \
+              --arg status "[Logs](https://github.com/$REPO/actions/runs/${{ github.run_id }})" \
+              '[{header: "Channel", value: $channel}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
+          fi
+          echo "data=$DATA" >> $GITHUB_OUTPUT
+      - uses: ./.github/actions/comment-result
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          issue_number: ${{ inputs.issue_number }}
+          data: ${{ steps.result.outputs.data }}
+      - if: steps.resolve.outputs.merged == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: gh api repos/${{ github.repository }}/git/refs/heads/${{ steps.resolve.outputs.branch }} -X DELETE || true
+

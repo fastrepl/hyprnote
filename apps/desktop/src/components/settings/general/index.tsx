@@ -34,9 +34,6 @@ export function SettingsGeneral() {
         ignored_platforms: row.ignored_platforms
           ? JSON.stringify(row.ignored_platforms)
           : undefined,
-        dismissed_toasts: row.dismissed_toasts
-          ? JSON.stringify(row.dismissed_toasts)
-          : undefined,
       }) satisfies Partial<GeneralStorage>,
     [],
     settings.STORE_ID,

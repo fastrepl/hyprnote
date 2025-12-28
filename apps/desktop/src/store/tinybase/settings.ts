@@ -53,10 +53,6 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["notification", "ignored_platforms"],
     },
-    dismissed_toasts: {
-      type: "string",
-      path: ["general", "dismissed_toasts"],
-    },
     current_llm_provider: {
       type: "string",
       path: ["ai", "current_llm_provider"],

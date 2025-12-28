@@ -1,21 +1,25 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
-import { useConfigValue } from "../../../../config/use-config";
-import * as settings from "../../../../store/tinybase/settings";
+import { commands } from "../../../../types/tauri.gen";
 
 export function useDismissedToasts(): {
   dismissedToasts: string[];
   dismissToast: (id: string) => void;
   isDismissed: (id: string) => boolean;
 } {
-  const dismissedToasts = useConfigValue("dismissed_toasts");
+  const queryClient = useQueryClient();
 
-  const setDismissedToasts = settings.UI.useSetValueCallback(
-    "dismissed_toasts",
-    (value: string) => value,
-    [],
-    settings.STORE_ID,
-  );
+  const { data: dismissedToasts = [] } = useQuery({
+    queryKey: ["dismissed_toasts"],
+    queryFn: async () => {
+      const result = await commands.getDismissedToasts();
+      if (result.status === "ok") {
+        return result.data;
+      }
+      return [];
+    },
+  });
 
   const dismissedSet = useMemo(
     () => new Set(dismissedToasts),
@@ -29,9 +33,11 @@ export function useDismissedToasts(): {
       }
 
       const updated = [...dismissedToasts, id];
-      setDismissedToasts(JSON.stringify(updated));
+      commands.setDismissedToasts(updated).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["dismissed_toasts"] });
+      });
     },
-    [dismissedToasts, dismissedSet, setDismissedToasts],
+    [dismissedToasts, dismissedSet, queryClient],
   );
 
   const isDismissed = useCallback(

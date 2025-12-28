@@ -12,7 +12,6 @@ export type ConfigKey =
   | "notification_event"
   | "respect_dnd"
   | "ignored_platforms"
-  | "dismissed_toasts"
   | "quit_intercept"
   | "current_stt_provider"
   | "current_stt_model"
@@ -72,11 +71,6 @@ export const CONFIG_REGISTRY = {
     sideEffect: async (value: string[], _) => {
       await detectCommands.setIgnoredBundleIds(value);
     },
-  },
-
-  dismissed_toasts: {
-    key: "dismissed_toasts",
-    default: [] as string[],
   },
 
   quit_intercept: {

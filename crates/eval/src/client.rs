@@ -10,6 +10,7 @@ const OPENROUTER_BASE_URL: &str = "https://openrouter.ai/api/v1";
 const DEFAULT_TEMPERATURE: f64 = 0.2;
 const DEFAULT_RETRY_INTERVAL_MS: u64 = 500;
 
+/// Errors that can occur when interacting with the LLM API.
 #[derive(Debug, thiserror::Error)]
 pub enum ClientError {
     #[error("HTTP error: {0}")]
@@ -18,10 +19,43 @@ pub enum ClientError {
     Io(#[from] std::io::Error),
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
-    #[error("No choices in response")]
+    #[error("No choices in response from model")]
     NoChoices,
     #[error("Unexpected status code: {0}")]
     UnexpectedStatus(u16),
+    #[error("Request to model '{model}' failed: {message}")]
+    ModelError { model: String, message: String },
+    #[error("Grader error for rubric '{rubric}': {message}")]
+    GraderError { rubric: String, message: String },
+}
+
+impl ClientError {
+    /// Creates a new model error with context.
+    pub fn model_error(model: impl Into<String>, message: impl Into<String>) -> Self {
+        ClientError::ModelError {
+            model: model.into(),
+            message: message.into(),
+        }
+    }
+
+    /// Creates a new grader error with context.
+    pub fn grader_error(rubric: impl Into<String>, message: impl Into<String>) -> Self {
+        ClientError::GraderError {
+            rubric: rubric.into(),
+            message: message.into(),
+        }
+    }
+
+    /// Returns true if this error is retryable.
+    pub fn is_retryable(&self) -> bool {
+        match self {
+            ClientError::Http(ureq::Error::StatusCode(code)) => {
+                matches!(*code, 429 | 500 | 502 | 503 | 504)
+            }
+            ClientError::Http(ureq::Error::Io(_)) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -208,7 +242,7 @@ impl ChatCompleter for OpenRouterClient {
 
         let result = (|| self.make_request(request))
             .retry(retry_strategy)
-            .when(|e| is_retryable(e))
+            .when(|e| e.is_retryable())
             .call();
 
         result
@@ -236,16 +270,6 @@ impl UsageResolver for OpenRouterClient {
                 + gen_resp.data.native_tokens_completion,
             cost: gen_resp.data.total_cost,
         })
-    }
-}
-
-fn is_retryable(err: &ClientError) -> bool {
-    match err {
-        ClientError::Http(ureq::Error::StatusCode(code)) => {
-            matches!(*code, 429 | 500 | 502 | 503 | 504)
-        }
-        ClientError::Http(ureq::Error::Io(_)) => true,
-        _ => false,
     }
 }
 

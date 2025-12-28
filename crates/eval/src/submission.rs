@@ -9,6 +9,7 @@ use crate::{ChatCompleter, ChatMessage, Score, Usage, parse_config};
 pub type ValidatorFn = fn(&str) -> (bool, String);
 pub type ValidatorFnWithMeta = fn(&str, &HashMap<String, serde_json::Value>) -> (bool, String);
 
+/// An evaluation case that defines what to test and how to grade it.
 #[derive(Debug, Clone)]
 pub struct EvalCase {
     pub case_id: String,
@@ -16,6 +17,61 @@ pub struct EvalCase {
     pub rubrics: Vec<RubricSpec>,
     pub samples: i32,
     pub meta: Option<serde_json::Value>,
+}
+
+/// Errors that can occur during EvalCase validation.
+#[derive(Debug, Clone, thiserror::Error)]
+pub enum ValidationError {
+    #[error("case_id cannot be empty")]
+    EmptyCaseId,
+    #[error("messages cannot be empty")]
+    EmptyMessages,
+    #[error("rubrics cannot be empty")]
+    EmptyRubrics,
+    #[error("samples must be at least 1, got {0}")]
+    InvalidSamples(i32),
+    #[error("rubric '{0}' has empty name")]
+    EmptyRubricName(usize),
+    #[error("rubric '{0}' has empty description")]
+    EmptyRubricDescription(String),
+}
+
+impl EvalCase {
+    /// Validates the evaluation case and returns any validation errors.
+    pub fn validate(&self) -> Result<(), Vec<ValidationError>> {
+        let mut errors = Vec::new();
+
+        if self.case_id.trim().is_empty() {
+            errors.push(ValidationError::EmptyCaseId);
+        }
+
+        if self.messages.is_empty() {
+            errors.push(ValidationError::EmptyMessages);
+        }
+
+        if self.rubrics.is_empty() {
+            errors.push(ValidationError::EmptyRubrics);
+        }
+
+        if self.samples < 1 {
+            errors.push(ValidationError::InvalidSamples(self.samples));
+        }
+
+        for (idx, rubric) in self.rubrics.iter().enumerate() {
+            if rubric.name.trim().is_empty() {
+                errors.push(ValidationError::EmptyRubricName(idx));
+            }
+            if rubric.description.trim().is_empty() {
+                errors.push(ValidationError::EmptyRubricDescription(rubric.name.clone()));
+            }
+        }
+
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -122,8 +178,10 @@ impl Executor {
         self
     }
 
-    pub fn set_on_progress(&mut self, callback: ExecutorProgressCallback) {
+    /// Sets a progress callback that will be called during execution.
+    pub fn with_on_progress(mut self, callback: ExecutorProgressCallback) -> Self {
         self.on_progress = Some(callback);
+        self
     }
 
     pub fn total_generations(&self, cases: &[EvalCase], models: &[String]) -> usize {
@@ -169,11 +227,7 @@ impl Executor {
 
         let work_items: Vec<_> = models
             .iter()
-            .flat_map(|model| {
-                cases
-                    .iter()
-                    .map(move |case| (model.as_str(), case))
-            })
+            .flat_map(|model| cases.iter().map(move |case| (model.as_str(), case)))
             .collect();
 
         pool.install(|| {

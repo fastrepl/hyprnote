@@ -114,7 +114,7 @@ fn run_evals(
     let models =
         model_override.unwrap_or_else(|| DEFAULT_MODELS.iter().map(|s| s.to_string()).collect());
 
-    let mut executor = Executor::new(client.clone());
+    let executor = Executor::new(client.clone());
 
     if output_format == "json" {
         let mut results = executor.execute(&selected_cases, &models);
@@ -142,7 +142,7 @@ fn run_evals(
     let gen_bar_clone = gen_bar.clone();
     let eval_bar_clone = eval_bar.clone();
 
-    executor.set_on_progress(Box::new(move |info: ExecutorProgress| {
+    let executor = executor.with_on_progress(Box::new(move |info: ExecutorProgress| {
         gen_bar_clone.set_position(info.generations_complete as u64);
         eval_bar_clone.set_position(info.evaluations_complete as u64);
     }));

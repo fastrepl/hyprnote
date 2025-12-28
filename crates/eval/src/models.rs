@@ -17,22 +17,49 @@ pub struct OpenRouterModelsResponse {
     pub data: Vec<OpenRouterModel>,
 }
 
+/// Cached model list with expiration tracking.
 struct ModelCache {
     models: Vec<String>,
     fetched_at: Instant,
 }
 
-static MODEL_CACHE: OnceLock<Mutex<Option<ModelCache>>> = OnceLock::new();
+impl ModelCache {
+    fn is_valid(&self) -> bool {
+        self.fetched_at.elapsed() < Duration::from_secs(MODEL_CACHE_DURATION_SECS)
+    }
+}
+
+static MODEL_CACHE: OnceLock<Mutex<ModelCache>> = OnceLock::new();
+
+fn get_cached_models() -> Option<Vec<String>> {
+    let cache = MODEL_CACHE.get()?;
+    let guard = cache.lock().ok()?;
+    if guard.is_valid() {
+        Some(guard.models.clone())
+    } else {
+        None
+    }
+}
+
+fn set_cached_models(models: Vec<String>) {
+    if let Some(cache) = MODEL_CACHE.get() {
+        if let Ok(mut guard) = cache.lock() {
+            guard.models = models;
+            guard.fetched_at = Instant::now();
+        }
+    }
+}
 
 pub fn fetch_openrouter_models() -> Result<Vec<String>, crate::ClientError> {
-    let cache = MODEL_CACHE.get_or_init(|| Mutex::new(None));
+    MODEL_CACHE.get_or_init(|| {
+        Mutex::new(ModelCache {
+            models: Vec::new(),
+            fetched_at: Instant::now() - Duration::from_secs(MODEL_CACHE_DURATION_SECS + 1),
+        })
+    });
 
-    if let Ok(guard) = cache.lock() {
-        if let Some(ref cached) = *guard {
-            if cached.fetched_at.elapsed() < Duration::from_secs(MODEL_CACHE_DURATION_SECS) {
-                return Ok(cached.models.clone());
-            }
-        }
+    if let Some(models) = get_cached_models() {
+        return Ok(models);
     }
 
     let api_key = std::env::var("OPENROUTER_API_KEY").unwrap_or_default();
@@ -57,12 +84,7 @@ pub fn fetch_openrouter_models() -> Result<Vec<String>, crate::ClientError> {
     let mut models: Vec<String> = models_resp.data.into_iter().map(|m| m.id).collect();
     models.sort();
 
-    if let Ok(mut guard) = cache.lock() {
-        *guard = Some(ModelCache {
-            models: models.clone(),
-            fetched_at: Instant::now(),
-        });
-    }
+    set_cached_models(models.clone());
 
     Ok(models)
 }

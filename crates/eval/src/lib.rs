@@ -67,7 +67,7 @@ pub use format::{
     find_list_items, find_lists, first_inline_child, grade, split_by_headings,
 };
 pub use models::{fetch_openrouter_models, filter_models};
-pub use rubric::{GraderType, Rubric, Score, grade_with_func, grade_with_llm, is_non_empty};
+pub use rubric::{Score, grade_with_func, grade_with_llm, is_non_empty};
 pub use stats::{
     AggregatedGraderResponse, ConfidenceInterval, PassStats, aggregate_grader_responses,
     calc_pass_stats,

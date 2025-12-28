@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 
 use rayon::prelude::*;
 
+use crate::constants::DEFAULT_GRADER_MODEL;
 use crate::{ChatCompleter, ChatMessage, Score, Usage, parse_config};
 
 pub type ValidatorFn = fn(&str) -> (bool, String);
@@ -148,7 +149,20 @@ pub struct ExecutorProgress {
 
 pub type ExecutorProgressCallback = Box<dyn Fn(ExecutorProgress) + Send + Sync>;
 
-const DEFAULT_GRADER_MODEL: &str = "openai/gpt-4.1-nano";
+/// Computes the number of evaluations expected for a case.
+fn compute_expected_evals(case: &EvalCase) -> i32 {
+    let task_samples = if case.samples <= 1 { 1 } else { case.samples };
+    case.rubrics
+        .iter()
+        .map(|rubric| match &rubric.grader {
+            GraderSpec::Llm { samples } => {
+                let grader_samples = if *samples <= 1 { 1 } else { *samples };
+                task_samples * grader_samples
+            }
+            _ => task_samples,
+        })
+        .sum()
+}
 
 pub struct Executor {
     client: Arc<dyn ChatCompleter>,
@@ -194,22 +208,8 @@ impl Executor {
     }
 
     pub fn total_evaluations(&self, cases: &[EvalCase], models: &[String]) -> usize {
-        let mut total = 0;
-        for case in cases {
-            let task_samples = if case.samples <= 1 { 1 } else { case.samples };
-
-            for rubric in &case.rubrics {
-                let eval_count = match &rubric.grader {
-                    GraderSpec::Llm { samples } => {
-                        let grader_samples = if *samples <= 1 { 1 } else { *samples };
-                        task_samples * grader_samples
-                    }
-                    _ => task_samples,
-                };
-                total += eval_count as usize;
-            }
-        }
-        total * models.len()
+        let total: i32 = cases.iter().map(compute_expected_evals).sum();
+        total as usize * models.len()
     }
 
     pub fn execute(&self, cases: &[EvalCase], models: &[String]) -> Vec<EvalResult> {
@@ -269,18 +269,7 @@ impl Executor {
         };
 
         let task_samples = if case.samples <= 1 { 1 } else { case.samples };
-
-        let expected_evals: i32 = case
-            .rubrics
-            .iter()
-            .map(|rubric| match &rubric.grader {
-                GraderSpec::Llm { samples } => {
-                    let grader_samples = if *samples <= 1 { 1 } else { *samples };
-                    task_samples * grader_samples
-                }
-                _ => task_samples,
-            })
-            .sum();
+        let expected_evals = compute_expected_evals(case);
 
         let report_progress = |gens: usize, evals: usize| {
             if let Some(ref cb) = self.on_progress {
@@ -509,18 +498,15 @@ impl Executor {
                 }
             }
             GraderSpec::Llm { samples } => {
-                let internal_rubric = crate::Rubric {
-                    name: rubric.name.clone(),
-                    description: rubric.description.clone(),
-                    grader: crate::GraderType::Llm { samples: *samples },
-                };
                 let meta_map: Option<HashMap<String, serde_json::Value>> = meta
                     .and_then(|v| v.as_object())
                     .map(|obj| obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect());
                 crate::grade_with_llm(
                     self.client.as_ref(),
                     &self.grader_model,
-                    &internal_rubric,
+                    &rubric.name,
+                    &rubric.description,
+                    *samples,
                     output,
                     meta_map.as_ref(),
                     on_evaluation,

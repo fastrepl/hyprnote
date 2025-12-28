@@ -4,6 +4,7 @@
 //! - Enumerating audio devices with stable identifiers
 //! - Getting and setting system default audio devices
 //! - Detecting device types (headphone vs speaker)
+//! - Managing device priorities and auto-switching
 //!
 //! Platform support:
 //! - macOS: CoreAudio via cidre
@@ -12,6 +13,8 @@
 
 mod device;
 mod error;
+mod manager;
+mod priority;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -24,6 +27,8 @@ mod windows;
 
 pub use device::*;
 pub use error::*;
+pub use manager::*;
+pub use priority::*;
 
 /// Get the platform-specific backend for audio device management.
 pub fn backend() -> impl AudioDeviceBackend {

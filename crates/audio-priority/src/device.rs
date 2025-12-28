@@ -57,9 +57,12 @@ pub enum TransportType {
 }
 
 /// Output device category for priority management.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, specta::Type,
+)]
 pub enum OutputCategory {
     /// Speaker devices (external speakers, built-in speakers)
+    #[default]
     Speaker,
     /// Headphone/headset devices
     Headphone,

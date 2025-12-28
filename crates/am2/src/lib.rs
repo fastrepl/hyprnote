@@ -1,17 +1,28 @@
-use swift_rs::swift;
+use std::sync::OnceLock;
 
-swift!(fn initialize_am2_sdk());
+use swift_rs::SRString;
 
-swift!(fn check_am2_ready() -> bool);
+pub mod diarization;
+mod ffi;
+pub mod transcribe;
+pub mod vad;
+
+use ffi::initialize_am2_sdk;
+
+static SDK_INITIALIZED: OnceLock<()> = OnceLock::new();
 
 pub fn init() {
-    unsafe {
-        initialize_am2_sdk();
-    }
+    SDK_INITIALIZED.get_or_init(|| {
+        let api_key = std::env::var("AM_API_KEY").unwrap_or_default();
+        let api_key = SRString::from(api_key.as_str());
+        unsafe {
+            initialize_am2_sdk(&api_key);
+        }
+    });
 }
 
 pub fn is_ready() -> bool {
-    unsafe { check_am2_ready() }
+    SDK_INITIALIZED.get().is_some()
 }
 
 #[cfg(test)]
@@ -19,7 +30,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_am2_swift_compilation() {
+    fn test_sdk_init() {
         init();
         assert!(is_ready());
     }

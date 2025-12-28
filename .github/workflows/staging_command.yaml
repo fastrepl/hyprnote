@@ -1,0 +1,155 @@
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: staging-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  permission:
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        uses: ./.github/actions/check-permission
+        with:
+          user: ${{ github.event.comment.user.login }}
+          allowed-users: yujonglee|ComputelessComputer
+
+  parse_command:
+    needs: permission
+    if: needs.permission.outputs.allowed == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      valid: ${{ steps.parse.outputs.valid }}
+      ref: ${{ steps.resolve_ref.outputs.ref }}
+      sha: ${{ steps.resolve_ref.outputs.sha }}
+      branch: ${{ steps.resolve_ref.outputs.branch }}
+      needs_cleanup: ${{ steps.resolve_ref.outputs.needs_cleanup }}
+    steps:
+      - id: parse
+        shell: bash
+        env:
+          COMMENT: ${{ github.event.comment.body }}
+        run: |
+          [[ "$COMMENT" =~ (^|[[:space:]])/staging($|[[:space:]]) ]] || { echo "valid=false" >> $GITHUB_OUTPUT; exit 0; }
+          echo "valid=true" >> $GITHUB_OUTPUT
+          if [[ "$COMMENT" =~ /staging[[:space:]]+([a-zA-Z0-9_.][a-zA-Z0-9_./-]*)($|[[:space:]]) ]]; then
+            echo "ref=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          fi
+      - if: steps.parse.outputs.valid == 'true'
+        id: resolve_ref
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          EXPLICIT_REF="${{ steps.parse.outputs.ref }}"
+          IS_PR="${{ github.event.issue.pull_request }}"
+
+          output_ref() {
+            echo "ref=$1" >> $GITHUB_OUTPUT
+            echo "sha=$2" >> $GITHUB_OUTPUT
+            echo "branch=$3" >> $GITHUB_OUTPUT
+            echo "needs_cleanup=$4" >> $GITHUB_OUTPUT
+          }
+
+          if [ -z "$EXPLICIT_REF" ] && [ -n "$IS_PR" ]; then
+            PR_DATA=$(gh api repos/$REPO/pulls/${{ github.event.issue.number }})
+            BRANCH=$(echo "$PR_DATA" | jq -r '.head.ref')
+            SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
+            output_ref "$BRANCH" "$SHA" "$BRANCH" "false"
+          elif [ -n "$EXPLICIT_REF" ]; then
+            SHA=$(gh api repos/$REPO/commits/$EXPLICIT_REF --jq '.sha')
+            if gh api repos/$REPO/git/refs/heads/$EXPLICIT_REF --jq '.ref' >/dev/null 2>&1; then
+              output_ref "$EXPLICIT_REF" "$SHA" "$EXPLICIT_REF" "false"
+            else
+              TEMP_BRANCH="staging-temp-${SHA:0:8}"
+              GH_TOKEN=${{ secrets.PAT_TOKEN }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$SHA"
+              output_ref "$EXPLICIT_REF" "$SHA" "$TEMP_BRANCH" "true"
+            fi
+          else
+            echo "No ref provided and not in a PR context"
+            exit 1
+          fi
+
+  trigger_build:
+    needs: [permission, parse_command]
+    if: needs.permission.outputs.allowed == 'true' && needs.parse_command.outputs.valid == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/add-reaction
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          comment: ${{ github.event.comment.id }}
+          reaction: eyes
+      - id: trigger
+        uses: ./.github/actions/trigger-workflow
+        with:
+          workflow: desktop_cd.yaml
+          ref: ${{ needs.parse_command.outputs.branch }}
+          channel: staging
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          max_attempts: "6"
+
+  comment_result:
+    needs: [permission, parse_command, trigger_build]
+    if: always() && needs.permission.outputs.allowed == 'true' && needs.parse_command.outputs.valid == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: build_data
+        run: |
+          BRANCH="${{ needs.parse_command.outputs.branch }}"
+          SHA="${{ needs.parse_command.outputs.sha }}"
+          RUN_ID="${{ needs.trigger_build.outputs.run_id }}"
+
+          if [ -n "$RUN_ID" ]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "title=Staging build triggered" >> $GITHUB_OUTPUT
+            DATA=$(jq -n \
+              --arg branch "\`$BRANCH\`" \
+              --arg sha "\`${SHA:0:8}\`" \
+              --arg run "[View run](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)" \
+              '{Branch: $branch, SHA: $sha, Run: $run}')
+            echo "data=$DATA" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "title=Failed to trigger staging build" >> $GITHUB_OUTPUT
+            DATA=$(jq -n \
+              --arg branch "\`$BRANCH\`" \
+              --arg sha "\`${SHA:0:8}\`" \
+              --arg logs "[View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
+              '{Branch: $branch, SHA: $sha, Logs: $logs}')
+            echo "data=$DATA" >> $GITHUB_OUTPUT
+          fi
+      - uses: ./.github/actions/comment-result
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          issue_number: ${{ github.event.issue.number }}
+          success: ${{ steps.build_data.outputs.success }}
+          title: ${{ steps.build_data.outputs.title }}
+          data: ${{ steps.build_data.outputs.data }}
+      - if: needs.parse_command.outputs.needs_cleanup == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: gh api repos/${{ github.repository }}/git/refs/heads/${{ needs.parse_command.outputs.branch }} -X DELETE || true

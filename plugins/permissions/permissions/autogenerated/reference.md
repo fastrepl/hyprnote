@@ -4,12 +4,10 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-check-microphone-permission`
-- `allow-request-microphone-permission`
-- `allow-check-system-audio-permission`
-- `allow-request-system-audio-permission`
-- `allow-check-accessibility-permission`
-- `allow-request-accessibility-permission`
+- `allow-open-permission`
+- `allow-check-permission`
+- `allow-request-permission`
+- `allow-reset-permission`
 
 ## Permission Table
 
@@ -23,25 +21,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`permissions:allow-check-accessibility-permission`
+`permissions:allow-check-permission`
 
 </td>
 <td>
 
-Enables the check_accessibility_permission command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`permissions:deny-check-accessibility-permission`
-
-</td>
-<td>
-
-Denies the check_accessibility_permission command without any pre-configured scope.
+Enables the check_permission command without any pre-configured scope.
 
 </td>
 </tr>
@@ -49,25 +34,12 @@ Denies the check_accessibility_permission command without any pre-configured sco
 <tr>
 <td>
 
-`permissions:allow-check-microphone-permission`
+`permissions:deny-check-permission`
 
 </td>
 <td>
 
-Enables the check_microphone_permission command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`permissions:deny-check-microphone-permission`
-
-</td>
-<td>
-
-Denies the check_microphone_permission command without any pre-configured scope.
+Denies the check_permission command without any pre-configured scope.
 
 </td>
 </tr>
@@ -75,25 +47,12 @@ Denies the check_microphone_permission command without any pre-configured scope.
 <tr>
 <td>
 
-`permissions:allow-check-system-audio-permission`
+`permissions:allow-open-permission`
 
 </td>
 <td>
 
-Enables the check_system_audio_permission command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`permissions:deny-check-system-audio-permission`
-
-</td>
-<td>
-
-Denies the check_system_audio_permission command without any pre-configured scope.
+Enables the open_permission command without any pre-configured scope.
 
 </td>
 </tr>
@@ -101,25 +60,12 @@ Denies the check_system_audio_permission command without any pre-configured scop
 <tr>
 <td>
 
-`permissions:allow-request-accessibility-permission`
+`permissions:deny-open-permission`
 
 </td>
 <td>
 
-Enables the request_accessibility_permission command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`permissions:deny-request-accessibility-permission`
-
-</td>
-<td>
-
-Denies the request_accessibility_permission command without any pre-configured scope.
+Denies the open_permission command without any pre-configured scope.
 
 </td>
 </tr>
@@ -127,25 +73,12 @@ Denies the request_accessibility_permission command without any pre-configured s
 <tr>
 <td>
 
-`permissions:allow-request-microphone-permission`
+`permissions:allow-request-permission`
 
 </td>
 <td>
 
-Enables the request_microphone_permission command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`permissions:deny-request-microphone-permission`
-
-</td>
-<td>
-
-Denies the request_microphone_permission command without any pre-configured scope.
+Enables the request_permission command without any pre-configured scope.
 
 </td>
 </tr>
@@ -153,12 +86,12 @@ Denies the request_microphone_permission command without any pre-configured scop
 <tr>
 <td>
 
-`permissions:allow-request-system-audio-permission`
+`permissions:deny-request-permission`
 
 </td>
 <td>
 
-Enables the request_system_audio_permission command without any pre-configured scope.
+Denies the request_permission command without any pre-configured scope.
 
 </td>
 </tr>
@@ -166,12 +99,25 @@ Enables the request_system_audio_permission command without any pre-configured s
 <tr>
 <td>
 
-`permissions:deny-request-system-audio-permission`
+`permissions:allow-reset-permission`
 
 </td>
 <td>
 
-Denies the request_system_audio_permission command without any pre-configured scope.
+Enables the reset_permission command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`permissions:deny-reset-permission`
+
+</td>
+<td>
+
+Denies the reset_permission command without any pre-configured scope.
 
 </td>
 </tr>

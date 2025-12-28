@@ -1,7 +1,7 @@
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use std::io::{Read, Seek, SeekFrom};
 
-use crate::{value::GGUFMetadataValueType, Error};
+use crate::{Error, value::GGUFMetadataValueType};
 
 pub fn read_versioned_size<R: Read + Seek>(
     reader: &mut R,

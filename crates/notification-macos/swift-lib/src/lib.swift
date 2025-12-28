@@ -3,22 +3,21 @@ import Cocoa
 import SwiftRs
 
 class NotificationInstance {
-  let id = UUID()
+  let key: String
   let panel: NSPanel
   let clickableView: ClickableView
-  let url: String?
   private var dismissTimer: DispatchWorkItem?
 
-  init(panel: NSPanel, clickableView: ClickableView, url: String?) {
+  init(key: String, panel: NSPanel, clickableView: ClickableView) {
+    self.key = key
     self.panel = panel
     self.clickableView = clickableView
-    self.url = url
   }
 
   func startDismissTimer(timeoutSeconds: Double) {
     dismissTimer?.cancel()
     let timer = DispatchWorkItem { [weak self] in
-      self?.dismiss()
+      self?.dismissWithTimeout()
     }
     dismissTimer = timer
     DispatchQueue.main.asyncAfter(deadline: .now() + timeoutSeconds, execute: timer)
@@ -39,8 +38,15 @@ class NotificationInstance {
   }
 
   func dismissWithUserAction() {
-    self.id.uuidString.withCString { idPtr in
-      rustOnNotificationDismiss(idPtr)
+    self.key.withCString { keyPtr in
+      rustOnNotificationDismiss(keyPtr)
+    }
+    dismiss()
+  }
+
+  func dismissWithTimeout() {
+    self.key.withCString { keyPtr in
+      rustOnNotificationTimeout(keyPtr)
     }
     dismiss()
   }
@@ -94,11 +100,6 @@ class ClickableView: NSView {
     let inside = bounds.contains(local)
     if inside != isHovering {
       isHovering = inside
-      if inside && notification?.url != nil {
-        NSCursor.pointingHand.set()
-      } else {
-        NSCursor.arrow.set()
-      }
       onHover?(inside)
     }
   }
@@ -106,7 +107,6 @@ class ClickableView: NSView {
   override func mouseEntered(with event: NSEvent) {
     super.mouseEntered(with: event)
     isHovering = true
-    if notification?.url != nil { NSCursor.pointingHand.set() }
     onHover?(true)
   }
 
@@ -123,11 +123,6 @@ class ClickableView: NSView {
     let isInside = bounds.contains(location)
     if isInside != isHovering {
       isHovering = isInside
-      if isInside && notification?.url != nil {
-        NSCursor.pointingHand.set()
-      } else {
-        NSCursor.arrow.set()
-      }
       onHover?(isInside)
     }
   }
@@ -136,11 +131,8 @@ class ClickableView: NSView {
     alphaValue = 0.95
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { self.alphaValue = 1.0 }
     if let notification = notification {
-      notification.id.uuidString.withCString { idPtr in
-        rustOnNotificationConfirm(idPtr)
-      }
-      if let urlString = notification.url, let url = URL(string: urlString) {
-        NSWorkspace.shared.open(url)
+      notification.key.withCString { keyPtr in
+        rustOnNotificationConfirm(keyPtr)
       }
       notification.dismissWithUserAction()
     }
@@ -273,6 +265,19 @@ class ActionButton: NSButton {
     s.height = max(28, s.height + 4)
     return s
   }
+
+  override func mouseDown(with event: NSEvent) {
+    layer?.backgroundColor = NSColor(calibratedWhite: 0.85, alpha: 0.9).cgColor
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+      self.layer?.backgroundColor = NSColor(calibratedWhite: 0.95, alpha: 0.9).cgColor
+    }
+    if let notification = notification {
+      notification.key.withCString { keyPtr in
+        rustOnNotificationAccept(keyPtr)
+      }
+      notification.dismiss()
+    }
+  }
 }
 
 class NotificationManager {
@@ -281,12 +286,12 @@ class NotificationManager {
     setupDisplayChangeObserver()
   }
 
-  private var activeNotifications: [UUID: NotificationInstance] = [:]
+  private var activeNotifications: [String: NotificationInstance] = [:]
   private let maxNotifications = 5
   private let notificationSpacing: CGFloat = 10
 
   private var globalMouseMonitor: Any?
-  private var hoverStates: [UUID: Bool] = [:]
+  private var hoverStates: [String: Bool] = [:]
   private var displayChangeObserver: Any?
 
   private struct Config {
@@ -344,14 +349,14 @@ class NotificationManager {
     return NSScreen.main ?? NSScreen.screens.first
   }
 
-  func show(title: String, message: String, url: String?, timeoutSeconds: Double) {
+  func show(key: String, title: String, message: String, timeoutSeconds: Double) {
     DispatchQueue.main.async { [weak self] in
       guard let self else { return }
       self.setupApplicationIfNeeded()
       self.createAndShowNotification(
+        key: key,
         title: title,
         message: message,
-        url: url,
         timeoutSeconds: timeoutSeconds
       )
     }
@@ -370,8 +375,8 @@ class NotificationManager {
   }
 
   func removeNotification(_ notification: NotificationInstance) {
-    activeNotifications.removeValue(forKey: notification.id)
-    hoverStates.removeValue(forKey: notification.id)
+    activeNotifications.removeValue(forKey: notification.key)
+    hoverStates.removeValue(forKey: notification.key)
     repositionNotifications()
     stopGlobalMouseMonitorIfNeeded()
   }
@@ -394,7 +399,7 @@ class NotificationManager {
   }
 
   private func createAndShowNotification(
-    title: String, message: String, url: String?, timeoutSeconds: Double
+    key: String, title: String, message: String, timeoutSeconds: Double
   ) {
     guard let screen = getTargetScreen() else { return }
 
@@ -406,17 +411,17 @@ class NotificationManager {
     let container = createContainer(clickableView: clickableView)
     let effectView = createEffectView(container: container)
 
-    let notification = NotificationInstance(panel: panel, clickableView: clickableView, url: url)
+    let notification = NotificationInstance(key: key, panel: panel, clickableView: clickableView)
     clickableView.notification = notification
 
     setupContent(
-      effectView: effectView, title: title, message: message, url: url, notification: notification)
+      effectView: effectView, title: title, message: message, notification: notification)
 
     clickableView.addSubview(container)
     panel.contentView = clickableView
 
-    activeNotifications[notification.id] = notification
-    hoverStates[notification.id] = false
+    activeNotifications[notification.key] = notification
+    hoverStates[notification.key] = false
 
     showWithAnimation(notification: notification, screen: screen, timeoutSeconds: timeoutSeconds)
     ensureGlobalMouseMonitor()
@@ -530,26 +535,20 @@ class NotificationManager {
     effectView: NSVisualEffectView,
     title: String,
     message: String,
-    url: String?,
     notification: NotificationInstance
   ) {
-    let hasUrl = (url != nil && !url!.isEmpty)
-
     let contentView = createNotificationView(
       title: title,
       body: message,
-      buttonTitle: hasUrl ? "Take Notes" : nil,
       notification: notification
     )
     contentView.translatesAutoresizingMaskIntoConstraints = false
     effectView.addSubview(contentView)
 
-    let trailingConstant: CGFloat = hasUrl ? -10 : -35
-
     NSLayoutConstraint.activate([
       contentView.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 12),
       contentView.trailingAnchor.constraint(
-        equalTo: effectView.trailingAnchor, constant: trailingConstant),
+        equalTo: effectView.trailingAnchor, constant: -35),
       contentView.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 9),
       contentView.bottomAnchor.constraint(equalTo: effectView.bottomAnchor, constant: -9),
     ])
@@ -561,7 +560,6 @@ class NotificationManager {
   private func createNotificationView(
     title: String,
     body: String,
-    buttonTitle: String? = nil,
     notification: NotificationInstance
   ) -> NSView {
     let container = NSStackView()
@@ -622,37 +620,7 @@ class NotificationManager {
     container.addArrangedSubview(iconContainer)
     container.addArrangedSubview(textStack)
 
-    if let buttonTitle {
-      let gap = NSView()
-      gap.translatesAutoresizingMaskIntoConstraints = false
-      gap.widthAnchor.constraint(equalToConstant: 8).isActive = true
-      gap.setContentHuggingPriority(.required, for: .horizontal)
-      gap.setContentCompressionResistancePriority(.required, for: .horizontal)
-      container.addArrangedSubview(gap)
-
-      let btn = ActionButton(
-        title: buttonTitle,
-        target: self,
-        action: #selector(handleActionButtonPress(_:))
-      )
-      btn.setContentHuggingPriority(.required, for: .horizontal)
-      btn.setContentCompressionResistancePriority(.required, for: .horizontal)
-      btn.notification = notification
-      container.addArrangedSubview(btn)
-    }
-
     return container
-  }
-
-  @objc private func handleActionButtonPress(_ sender: NSButton) {
-    guard let btn = sender as? ActionButton, let notification = btn.notification else { return }
-    notification.id.uuidString.withCString { idPtr in
-      rustOnNotificationConfirm(idPtr)
-    }
-    if let urlString = notification.url, let url = URL(string: urlString) {
-      NSWorkspace.shared.open(url)
-    }
-    notification.dismissWithUserAction()
   }
 
   private func createAppIconView() -> NSImageView {
@@ -776,11 +744,11 @@ class NotificationManager {
   }
 
   private func updateHoverForAll(atScreenPoint pt: NSPoint) {
-    for (id, notif) in activeNotifications {
+    for (key, notif) in activeNotifications {
       let inside = notif.panel.frame.contains(pt)
-      let prev = hoverStates[id] ?? false
+      let prev = hoverStates[key] ?? false
       if inside != prev {
-        hoverStates[id] = inside
+        hoverStates[key] = inside
         notif.clickableView.onHover?(inside)
       }
     }
@@ -797,27 +765,32 @@ class NotificationManager {
 }
 
 @_silgen_name("rust_on_notification_confirm")
-func rustOnNotificationConfirm(_ idPtr: UnsafePointer<CChar>)
+func rustOnNotificationConfirm(_ keyPtr: UnsafePointer<CChar>)
+
+@_silgen_name("rust_on_notification_accept")
+func rustOnNotificationAccept(_ keyPtr: UnsafePointer<CChar>)
 
 @_silgen_name("rust_on_notification_dismiss")
-func rustOnNotificationDismiss(_ idPtr: UnsafePointer<CChar>)
+func rustOnNotificationDismiss(_ keyPtr: UnsafePointer<CChar>)
+
+@_silgen_name("rust_on_notification_timeout")
+func rustOnNotificationTimeout(_ keyPtr: UnsafePointer<CChar>)
 
 @_cdecl("_show_notification")
 public func _showNotification(
+  key: SRString,
   title: SRString,
   message: SRString,
-  url: SRString,
   timeoutSeconds: Double
 ) -> Bool {
+  let keyStr = key.toString()
   let titleStr = title.toString()
   let messageStr = message.toString()
-  let urlStr = url.toString()
-  let finalUrl = urlStr.isEmpty ? nil : urlStr
 
   NotificationManager.shared.show(
+    key: keyStr,
     title: titleStr,
     message: messageStr,
-    url: finalUrl,
     timeoutSeconds: timeoutSeconds
   )
 

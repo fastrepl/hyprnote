@@ -5,7 +5,8 @@
     "**/routeTree.gen.ts": true
   },
   "search.exclude": {
-    "**/routeTree.gen.ts": true
+    "**/routeTree.gen.ts": true,
+    "**/generated/**": true
   },
   "files.readonlyInclude": {
     "**/routeTree.gen.ts": true,
@@ -25,8 +26,5 @@
   "rust-analyzer.cargo.extraEnv": { "MACOSX_DEPLOYMENT_TARGET": "14.2" },
   "deno.enable": true,
   "deno.lint": true,
-  "deno.enablePaths": [
-    "apps/web/netlify/edge-functions",
-    "extensions/shared"
-  ]
+  "deno.enablePaths": ["apps/web/netlify/edge-functions", "extensions/shared"]
 }

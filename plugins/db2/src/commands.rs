@@ -7,7 +7,8 @@ pub(crate) async fn execute_local<R: tauri::Runtime>(
     sql: String,
     args: Vec<String>,
 ) -> Result<Vec<serde_json::Value>, String> {
-    app.execute_local(sql, args)
+    app.db2()
+        .execute_local(sql, args)
         .await
         .map_err(|e| e.to_string())
 }
@@ -19,7 +20,8 @@ pub(crate) async fn execute_cloud<R: tauri::Runtime>(
     sql: String,
     args: Vec<String>,
 ) -> Result<Vec<serde_json::Value>, String> {
-    app.execute_cloud(sql, args)
+    app.db2()
+        .execute_cloud(sql, args)
         .await
         .map_err(|e| e.to_string())
 }

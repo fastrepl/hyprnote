@@ -1,0 +1,171 @@
+mod adapter;
+mod batch;
+mod error;
+mod http_client;
+mod live;
+pub(crate) mod polling;
+
+#[cfg(test)]
+pub(crate) mod test_utils;
+
+use std::marker::PhantomData;
+
+pub use adapter::{
+    AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, BatchSttAdapter, DeepgramAdapter,
+    FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+    append_provider_param, is_hyprnote_proxy, is_local_host,
+};
+#[cfg(feature = "argmax")]
+pub use adapter::{StreamingBatchConfig, StreamingBatchEvent, StreamingBatchStream};
+
+pub use batch::{BatchClient, BatchClientBuilder};
+pub use error::Error;
+pub use hypr_ws_client;
+pub use live::{DualHandle, FinalizeHandle, ListenClient, ListenClientDual};
+
+pub struct ListenClientBuilder<A: RealtimeSttAdapter = DeepgramAdapter> {
+    api_base: Option<String>,
+    api_key: Option<String>,
+    params: Option<owhisper_interface::ListenParams>,
+    trace_headers: Option<TraceHeaders>,
+    _marker: PhantomData<A>,
+}
+
+#[derive(Clone, Default)]
+pub struct TraceHeaders {
+    pub sentry_trace: Option<String>,
+    pub baggage: Option<String>,
+}
+
+impl Default for ListenClientBuilder {
+    fn default() -> Self {
+        Self {
+            api_base: None,
+            api_key: None,
+            params: None,
+            trace_headers: None,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
+    pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
+        self.api_base = Some(api_base.into());
+        self
+    }
+
+    pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.api_key = Some(api_key.into());
+        self
+    }
+
+    pub fn params(mut self, params: owhisper_interface::ListenParams) -> Self {
+        self.params = Some(params);
+        self
+    }
+
+    pub fn trace_headers(mut self, headers: TraceHeaders) -> Self {
+        self.trace_headers = Some(headers);
+        self
+    }
+
+    pub fn adapter<B: RealtimeSttAdapter>(self) -> ListenClientBuilder<B> {
+        ListenClientBuilder {
+            api_base: self.api_base,
+            api_key: self.api_key,
+            params: self.params,
+            trace_headers: self.trace_headers,
+            _marker: PhantomData,
+        }
+    }
+
+    fn get_api_base(&self) -> &str {
+        self.api_base.as_ref().expect("api_base is required")
+    }
+
+    fn get_params(&self) -> owhisper_interface::ListenParams {
+        self.params.clone().unwrap_or_default()
+    }
+
+    async fn build_request(
+        &self,
+        adapter: &A,
+        channels: u8,
+    ) -> hypr_ws_client::client::ClientRequestBuilder {
+        let params = self.get_params();
+        let original_api_base = self.get_api_base();
+        let api_base = append_provider_param(original_api_base, adapter.provider_name());
+        let url = adapter
+            .build_ws_url_with_api_key(&api_base, &params, channels, self.api_key.as_deref())
+            .await
+            .unwrap_or_else(|| adapter.build_ws_url(&api_base, &params, channels));
+        let uri = url.to_string().parse().unwrap();
+
+        let mut request = hypr_ws_client::client::ClientRequestBuilder::new(uri);
+
+        if is_hyprnote_proxy(original_api_base) {
+            if let Some(api_key) = self.api_key.as_deref() {
+                request = request.with_header("Authorization", format!("Bearer {}", api_key));
+            }
+        } else if let Some((header_name, header_value)) =
+            adapter.build_auth_header(self.api_key.as_deref())
+        {
+            request = request.with_header(header_name, header_value);
+        }
+
+        if let Some(ref trace_headers) = self.trace_headers {
+            if let Some(ref sentry_trace) = trace_headers.sentry_trace {
+                request = request.with_header("sentry-trace", sentry_trace.clone());
+            }
+            if let Some(ref baggage) = trace_headers.baggage {
+                request = request.with_header("baggage", baggage.clone());
+            }
+        }
+
+        request
+    }
+
+    pub async fn build_with_channels(self, channels: u8) -> ListenClient<A> {
+        let adapter = A::default();
+        let params = self.get_params();
+        let request = self.build_request(&adapter, channels).await;
+        let initial_message = adapter.initial_message(self.api_key.as_deref(), &params, channels);
+
+        ListenClient {
+            adapter,
+            request,
+            initial_message,
+        }
+    }
+
+    pub async fn build_single(self) -> ListenClient<A> {
+        self.build_with_channels(1).await
+    }
+
+    pub async fn build_dual(self) -> ListenClientDual<A> {
+        let adapter = A::default();
+        let channels = if adapter.supports_native_multichannel() {
+            2
+        } else {
+            1
+        };
+        let params = self.get_params();
+        let request = self.build_request(&adapter, channels).await;
+        let initial_message = adapter.initial_message(self.api_key.as_deref(), &params, channels);
+
+        ListenClientDual {
+            adapter,
+            request,
+            initial_message,
+        }
+    }
+}
+
+impl<A: RealtimeSttAdapter + BatchSttAdapter> ListenClientBuilder<A> {
+    pub fn build_batch(self) -> BatchClient<A> {
+        let params = self.get_params();
+        let api_base = self.get_api_base().to_string();
+        BatchClient::new(api_base, self.api_key.unwrap_or_default(), params)
+    }
+}

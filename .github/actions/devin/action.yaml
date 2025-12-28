@@ -33,6 +33,7 @@ runs:
     - shell: bash
       env:
         VARS_JSON: ${{ inputs.vars }}
+        PROMPT_TEMPLATE: ${{ inputs.prompt }}
       run: |
         pip install -q jinja2
 
@@ -40,8 +41,8 @@ runs:
         import json
         import os
         from jinja2 import Template
-        tmpl = Template('''${{ inputs.prompt }}''')
-        vars = json.loads(os.environ['VARS_JSON'])
+        tmpl = Template(os.environ['PROMPT_TEMPLATE'])
+        vars = json.loads(os.environ.get('VARS_JSON', '{}'))
         print(tmpl.render(**vars))
         ")
 

@@ -3,11 +3,11 @@
 import PackageDescription
 
 let package = Package(
-  name: "swift-lib",
+  name: "intercept-swift",
   platforms: [.macOS("14.2")],
   products: [
     .library(
-      name: "swift-lib",
+      name: "intercept-swift",
       type: .static,
       targets: ["swift-lib"])
   ],

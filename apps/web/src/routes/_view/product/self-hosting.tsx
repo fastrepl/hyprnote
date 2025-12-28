@@ -478,8 +478,8 @@ function Component() {
               solutions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="https://hyprnote.com/founders"
+              <Link
+                to="/founders"
                 className={cn([
                   "px-8 py-3 text-base font-medium rounded-full",
                   "bg-linear-to-t from-stone-600 to-stone-500 text-white",
@@ -487,7 +487,7 @@ function Component() {
                 ])}
               >
                 Contact sales
-              </a>
+              </Link>
               <Link
                 to="/product/local-ai"
                 className={cn([

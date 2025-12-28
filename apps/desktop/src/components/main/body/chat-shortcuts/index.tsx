@@ -73,7 +73,10 @@ function useChatShortcuts(): UserShortcut[] {
 
   return useMemo(() => {
     return Object.entries(shortcuts as Record<string, ChatShortcut>).map(
-      ([id, shortcut]) => ({ id, ...shortcut }),
+      ([id, shortcut]) => ({
+        id,
+        ...shortcut,
+      }),
     );
   }, [shortcuts]);
 }

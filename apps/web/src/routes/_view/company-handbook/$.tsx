@@ -13,7 +13,9 @@ export const Route = createFileRoute("/_view/company-handbook/$")({
     if (handbookStructure.defaultPages[normalizedSplat]) {
       throw redirect({
         to: "/company-handbook/$",
-        params: { _splat: handbookStructure.defaultPages[normalizedSplat] },
+        params: {
+          _splat: handbookStructure.defaultPages[normalizedSplat],
+        },
       });
     }
 
@@ -55,8 +57,14 @@ export const Route = createFileRoute("/_view/company-handbook/$")({
       meta: [
         { title: `${doc.title} - Company Handbook - Hyprnote` },
         { name: "description", content: doc.summary || doc.title },
-        { property: "og:title", content: `${doc.title} - Company Handbook` },
-        { property: "og:description", content: doc.summary || doc.title },
+        {
+          property: "og:title",
+          content: `${doc.title} - Company Handbook`,
+        },
+        {
+          property: "og:description",
+          content: doc.summary || doc.title,
+        },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
       ],

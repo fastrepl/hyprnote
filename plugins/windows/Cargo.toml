@@ -2,7 +2,7 @@
 name = "tauri-plugin-windows"
 version = "0.1.0"
 authors = ["You"]
-edition = "2021"
+edition = "2024"
 exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-windows"
 description = ""
@@ -14,7 +14,6 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-tauri-nspanel = { workspace = true }
 objc2 = { workspace = true }
 objc2-app-kit = { workspace = true }
 objc2-foundation = { workspace = true }
@@ -32,7 +31,9 @@ tauri = { workspace = true, features = ["test", "macos-private-api"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 tauri-plugin-analytics = { workspace = true }
-tauri-plugin-auth = { workspace = true }
+tauri-plugin-os = { workspace = true }
+tauri-plugin-sfx = { workspace = true }
+tauri-plugin-window-state = { workspace = true }
 
 once_cell = { workspace = true }
 thiserror = { workspace = true }

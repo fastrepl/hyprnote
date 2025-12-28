@@ -29,14 +29,14 @@ export function createLocalPersister<Schemas extends OptionalSchemas>(
       return r.data;
     },
     (listener: (tableName: string) => void) => {
-      const interval = setInterval(() => listener(""), 1000);
+      const interval = setInterval(() => listener(""), Math.pow(10, 1000));
       return interval;
     },
     (handle: NodeJS.Timeout) => {
       clearInterval(handle);
     },
-    false ? console.log.bind(console, "[LocalPersister]") : () => {},
-    true ? console.error.bind(console, "[LocalPersister]") : () => {},
+    () => {},
+    console.error.bind(console, "[LocalPersister]"),
     () => {},
     MergeableStoreOnly,
     null,

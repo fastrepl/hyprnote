@@ -6,7 +6,10 @@ export const normalizeWordsPass: SegmentPass = {
     const normalized = normalizeWords(
       graph.finalWords ?? [],
       graph.partialWords ?? [],
-    ).map((word, order) => ({ ...word, order }));
+    ).map((word, order) => ({
+      ...word,
+      order,
+    }));
 
     return { ...graph, words: normalized };
   },

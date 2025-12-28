@@ -3,11 +3,15 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
+import { cn } from "@hypr/utils";
+
 import { getSupabaseServerClient } from "@/functions/supabase";
 
 const validateSearch = z.object({
   code: z.string().optional(),
   flow: z.enum(["desktop", "web"]).default("desktop"),
+  scheme: z.string().default("hyprnote"),
+  redirect: z.string().optional(),
   access_token: z.string().optional(),
   refresh_token: z.string().optional(),
 });
@@ -21,7 +25,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
       const { error } = await supabase.auth.exchangeCodeForSession(search.code);
 
       if (!error) {
-        throw redirect({ to: "/app" });
+        throw redirect({ href: search.redirect || "/app/account" });
       } else {
         console.error(error);
       }
@@ -38,6 +42,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
           to: "/callback/auth",
           search: {
             flow: "desktop",
+            scheme: search.scheme,
             access_token: data.session.access_token,
             refresh_token: data.session.refresh_token,
           },
@@ -59,7 +64,7 @@ function Component() {
       const params = new URLSearchParams();
       params.set("access_token", search.access_token);
       params.set("refresh_token", search.refresh_token);
-      return "hypr://auth/callback?" + params.toString();
+      return `${search.scheme}://auth/callback?${params.toString()}`;
     }
     return null;
   };
@@ -83,7 +88,7 @@ function Component() {
 
   useEffect(() => {
     if (search.flow === "web") {
-      throw redirect({ to: "/app" });
+      throw redirect({ href: search.redirect || "/app/account" });
     }
 
     if (
@@ -93,49 +98,51 @@ function Component() {
     ) {
       setTimeout(() => {
         handleDeeplink();
-      }, 2000);
+      }, 200);
     }
   }, [search]);
 
   if (search.flow === "desktop") {
     return (
-      <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white flex items-start justify-center pt-32">
-        <div className="max-w-md mx-auto px-6 text-center space-y-6">
+      <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center space-y-8">
           <div className="space-y-3">
             <h1 className="text-3xl font-serif tracking-tight text-stone-600">
-              Redirecting to Hyprnote app...
+              Redirecting to Hyprnote
             </h1>
             <p className="text-neutral-600">
-              Please allow the popup to open Hyprnote
+              Please allow the popup to open the app
             </p>
           </div>
 
           {attempted && (
-            <div className="pt-8 space-y-4">
-              <h2 className="text-lg font-medium text-stone-700">
-                Not redirected?
-              </h2>
-
+            <div className="space-y-4">
               <div className="space-y-3">
-                <div className="flex flex-col gap-2 p-4 bg-stone-50 rounded-lg">
-                  <p className="text-sm font-medium text-stone-700">
-                    Not redirected to the app?
+                <div className="p-6 bg-stone-50 rounded-lg border border-stone-100">
+                  <p className="text-sm text-stone-700 mb-3">
+                    App didn't open?
                   </p>
                   <button
                     onClick={handleDeeplink}
-                    className="w-full px-4 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-lg transition-colors font-medium text-sm"
+                    className={cn([
+                      "w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
+                      "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                    ])}
                   >
-                    Reopen
+                    Try Again
                   </button>
                 </div>
 
-                <div className="flex flex-col gap-2 p-4 bg-stone-50 rounded-lg">
-                  <p className="text-sm font-medium text-stone-700">
-                    Still having trouble?
+                <div className="p-6 bg-stone-50 rounded-lg border border-stone-100">
+                  <p className="text-sm text-stone-700 mb-3">
+                    Or copy the URL manually
                   </p>
                   <button
                     onClick={handleCopy}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm text-stone-600 border border-stone-300 hover:bg-stone-100 rounded-lg transition-colors"
+                    className={cn([
+                      "w-full h-10 flex items-center justify-center gap-2 text-sm font-medium transition-all cursor-pointer",
+                      "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+                    ])}
                   >
                     {copied ? (
                       <>

@@ -25,7 +25,7 @@ pub struct State {
 impl State {
     pub fn get_state(&self) -> fsm::State {
         if self.session_supervisor.is_some() {
-            crate::fsm::State::RunningActive
+            crate::fsm::State::Active
         } else {
             crate::fsm::State::Inactive
         }
@@ -44,7 +44,12 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::stop_session::<tauri::Wry>,
             commands::get_state::<tauri::Wry>,
         ])
-        .events(tauri_specta::collect_events![SessionEvent])
+        .events(tauri_specta::collect_events![
+            SessionLifecycleEvent,
+            SessionProgressEvent,
+            SessionErrorEvent,
+            SessionDataEvent
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -68,6 +73,21 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             Ok(())
         })
+        .on_event(move |app, event| {
+            if let tauri::RunEvent::Ready = event {
+                let app_handle = app.clone();
+                hypr_intercept::register_quit_handler(PLUGIN_NAME, move || {
+                    let state = app_handle.state::<SharedState>();
+                    match state.try_lock() {
+                        Ok(guard) => guard.session_supervisor.is_none(),
+                        Err(_) => false,
+                    }
+                });
+            }
+        })
+        .on_drop(|_app| {
+            hypr_intercept::unregister_quit_handler(PLUGIN_NAME);
+        })
         .build()
 }
 
@@ -77,14 +97,18 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

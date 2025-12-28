@@ -1,8 +1,8 @@
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
-use ractor::concurrency::Duration;
 use ractor::ActorRef;
+use ractor::concurrency::Duration;
 use ractor_supervisor::dynamic::{
     DynamicSupervisor, DynamicSupervisorMsg, DynamicSupervisorOptions,
 };

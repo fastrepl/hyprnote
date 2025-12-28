@@ -9,10 +9,10 @@ use std::path::PathBuf;
 use std::{fs, io};
 use tauri::Manager;
 
-use file_rotate::{compression::Compression, suffix::AppendCount, ContentLimit, FileRotate};
+use file_rotate::{ContentLimit, FileRotate, compression::Compression, suffix::AppendCount};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
-    fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
+    EnvFilter, fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
 };
 
 const PLUGIN_NAME: &str = "tracing";
@@ -41,7 +41,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 .add_directive("ort=warn".parse().unwrap());
 
             if let Some((file_writer, guard)) =
-                make_file_writer_if_enabled(true, &app.logs_dir().unwrap())
+                make_file_writer_if_enabled(true, &app.tracing().logs_dir().unwrap())
             {
                 tracing_subscriber::Registry::default()
                     .with(env_filter)
@@ -72,12 +72,13 @@ fn cleanup_old_daily_logs(logs_dir: &PathBuf) -> io::Result<()> {
         let entry = entry?;
         let path = entry.path();
 
-        if let Some(filename) = path.file_name().and_then(|n| n.to_str()) {
-            if filename.starts_with("log.") && filename.len() > 4 {
-                let suffix = &filename[4..];
-                if suffix.chars().all(|c| c.is_ascii_digit() || c == '-') {
-                    let _ = fs::remove_file(path);
-                }
+        if let Some(filename) = path.file_name().and_then(|n| n.to_str())
+            && filename.starts_with("log.")
+            && filename.len() > 4
+        {
+            let suffix = &filename[4..];
+            if suffix.chars().all(|c| c.is_ascii_digit() || c == '-') {
+                let _ = fs::remove_file(path);
             }
         }
     }
@@ -114,14 +115,18 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

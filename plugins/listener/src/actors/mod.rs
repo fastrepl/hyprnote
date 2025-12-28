@@ -21,15 +21,40 @@ pub enum ChannelMode {
 }
 
 impl ChannelMode {
-    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    #[cfg(target_os = "macos")]
     pub fn determine(onboarding: bool) -> Self {
         if onboarding {
-            ChannelMode::SpeakerOnly
-        } else if hypr_audio::is_using_headphone() {
-            ChannelMode::MicAndSpeaker
-        } else {
-            ChannelMode::MicOnly
+            return ChannelMode::SpeakerOnly;
         }
+
+        use hypr_device_heuristic::macos::*;
+
+        if is_headphone_from_default_output_device() {
+            return ChannelMode::MicAndSpeaker;
+        }
+
+        if is_builtin_display_foldable() && is_builtin_display_inactive() {
+            return ChannelMode::SpeakerOnly;
+        }
+
+        if has_builtin_mic() && !is_default_input_external() {
+            return ChannelMode::MicOnly;
+        }
+
+        ChannelMode::MicAndSpeaker
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn determine(onboarding: bool) -> Self {
+        if onboarding {
+            return ChannelMode::SpeakerOnly;
+        }
+
+        if hypr_device_heuristic::linux::is_headphone_from_default_output_device() {
+            return ChannelMode::MicAndSpeaker;
+        }
+
+        ChannelMode::MicAndSpeaker
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "linux")))]

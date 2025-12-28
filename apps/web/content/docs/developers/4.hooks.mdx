@@ -43,8 +43,8 @@ exit 0
 Every hook command receives additional CLI flags based on the event type. For listening-related hooks, these include:
 
 - `--resource-dir`: Path to the session's resource directory
-- `--app-hyprnote`: Application identifier (e.g., `com.hyprnote.app`)
-- `--app-meeting`: Optional meeting-specific data (if available)
+- `--app-hyprnote`: Hyprnote application identifier (e.g., `com.hyprnote.stable`)
+- `--app-meeting`: Optional Meeting application identifier (if available)
 
 Your scripts can parse these arguments to access session metadata, or simply ignore them if not needed.
 
@@ -59,17 +59,14 @@ cp scripts/yabai.sh "$HOME/Library/Application Support/hyprnote/hooks/yabai.sh"
 chmod +x "$HOME/Library/Application Support/hyprnote/hooks/yabai.sh"
 ```
 
-Then configure your hooks to automatically tile Hyprnote when recording starts and stops:
+Then configure your hooks to automatically tile Hyprnote when recording starts:
 
 ```json
 {
   "version": 0,
   "hooks": {
     "beforeListeningStarted": [
-      { "command": "$HOME/Library/Application Support/hyprnote/hooks/yabai.sh --app Hyprnote --position left" }
-    ],
-    "afterListeningStopped": [
-      { "command": "$HOME/Library/Application Support/hyprnote/hooks/yabai.sh --app Hyprnote --position right" }
+      { "command": "$HOME/dev/hyprnote/scripts/yabai.sh" }
     ]
   }
 }

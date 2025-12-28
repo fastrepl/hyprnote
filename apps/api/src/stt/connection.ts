@@ -105,6 +105,8 @@ export class WsProxyConnection {
       return;
     }
 
+    console.log("[ws-proxy] connecting to upstream:", this.upstreamUrl);
+
     const wsOptions: WebSocketOptions =
       this.headers && Object.keys(this.headers).length > 0
         ? { headers: this.headers }
@@ -282,6 +284,12 @@ export class WsProxyConnection {
     });
 
     this.upstream.addEventListener("close", (event) => {
+      console.log("[ws-proxy] upstream closed:", {
+        url: this.upstreamUrl,
+        code: event.code,
+        reason: event.reason,
+        wasReady: this.upstreamReady,
+      });
       this.clearErrorTimeout();
       if (!this.upstreamReady) {
         this.rejectUpstreamReadyWaiters(
@@ -298,9 +306,18 @@ export class WsProxyConnection {
     });
 
     this.upstream.addEventListener("error", (error) => {
+      console.error("[ws-proxy] upstream error:", {
+        url: this.upstreamUrl,
+        errorType: error?.constructor?.name,
+        message: error instanceof Error ? error.message : String(error),
+        readyState: this.upstream?.readyState,
+      });
       Sentry.captureException(
         error instanceof Error ? error : new Error("upstream_websocket_error"),
-        { tags: { operation: "upstream_error" } },
+        {
+          tags: { operation: "upstream_error" },
+          extra: { upstreamUrl: this.upstreamUrl },
+        },
       );
       if (!this.upstreamReady) {
         this.rejectUpstreamReadyWaiters(
@@ -379,7 +396,9 @@ export class WsProxyConnection {
     try {
       this.upstream.send(finalPayload);
     } catch (error) {
-      Sentry.captureException(error, { tags: { operation: "upstream_send" } });
+      Sentry.captureException(error, {
+        tags: { operation: "upstream_send" },
+      });
       this.closeConnections(DEFAULT_CLOSE_CODE, "upstream_send_failed");
     }
   }

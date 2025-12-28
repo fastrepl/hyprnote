@@ -1,22 +1,10 @@
-import {
-  createRootRouteWithContext,
-  type LinkProps,
-  Outlet,
-} from "@tanstack/react-router";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
-
-import type { DeepLink } from "@hypr/plugin-deeplink2";
 
 import type { Context } from "../types";
 import { isExtHostPath } from "../utils/ext-host";
 
-// Lazy load MainAppLayout to prevent auth.tsx from being imported in iframe context.
-// This is necessary because auth.tsx creates Supabase client at module level which uses Tauri APIs.
 const MainAppLayout = lazy(() => import("../components/main-app-layout"));
-
-0 as DeepLink["to"] extends NonNullable<LinkProps["to"]>
-  ? 0
-  : "DeepLink['to'] must match a valid route";
 
 export const Route = createRootRouteWithContext<Partial<Context>>()({
   component: Component,

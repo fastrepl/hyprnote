@@ -4,6 +4,9 @@
   "mainBinaryName": "Hyprnote",
   "identifier": "com.hyprnote.stable",
   "plugins": {
+    "deep-link": {
+      "desktop": { "schemes": ["hyprnote"] }
+    },
     "updater": {
       "active": true,
       "endpoints": [

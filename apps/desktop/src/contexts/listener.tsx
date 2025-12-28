@@ -60,7 +60,7 @@ const useHandleDetectEvents = (store: ListenerStore) => {
     detectEvents.detectEvent
       .listen(({ payload }) => {
         if (payload.type === "micStarted") {
-          getCurrentWindow()
+          void getCurrentWindow()
             .isFocused()
             .then((isFocused) => {
               if (isFocused) {
@@ -68,12 +68,12 @@ const useHandleDetectEvents = (store: ListenerStore) => {
               }
 
               notificationTimerId = setTimeout(() => {
-                notificationCommands.showNotification({
+                void notificationCommands.showNotification({
                   key: payload.key,
                   title: "Mic Started",
                   message: "Mic started",
-                  url: null,
                   timeout: { secs: 8, nanos: 0 },
+                  event_id: null,
                 });
               }, 2000);
             });

@@ -8,22 +8,22 @@ import { useAuth } from "../auth";
 import { useBillingAccess } from "../billing";
 import { ProviderId } from "../components/settings/ai/stt/shared";
 import { env } from "../env";
-import * as main from "../store/tinybase/main";
+import * as settings from "../store/tinybase/settings";
 
 export const useSTTConnection = () => {
   const auth = useAuth();
   const billing = useBillingAccess();
-  const { current_stt_provider, current_stt_model } = main.UI.useValues(
-    main.STORE_ID,
+  const { current_stt_provider, current_stt_model } = settings.UI.useValues(
+    settings.STORE_ID,
   ) as {
     current_stt_provider: ProviderId | undefined;
     current_stt_model: string | undefined;
   };
 
-  const providerConfig = main.UI.useRow(
+  const providerConfig = settings.UI.useRow(
     "ai_providers",
     current_stt_provider ?? "",
-    main.STORE_ID,
+    settings.STORE_ID,
   ) as AIProviderStorage | undefined;
 
   const isLocalModel =
@@ -94,7 +94,7 @@ export const useSTTConnection = () => {
       return {
         provider: current_stt_provider,
         model: current_stt_model,
-        baseUrl: `${env.VITE_API_URL}`,
+        baseUrl: baseUrl ?? new URL("/stt", env.VITE_AI_URL).toString(),
         apiKey: auth.session.access_token,
       };
     }

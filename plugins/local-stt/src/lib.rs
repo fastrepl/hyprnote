@@ -14,7 +14,7 @@ mod types;
 pub use error::*;
 pub use ext::*;
 pub use model::*;
-pub use server::supervisor::{SupervisorRef, SUPERVISOR_NAME};
+pub use server::supervisor::{SUPERVISOR_NAME, SupervisorRef};
 pub use server::*;
 pub use types::*;
 
@@ -102,14 +102,18 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

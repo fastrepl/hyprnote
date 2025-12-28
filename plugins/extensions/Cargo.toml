@@ -2,7 +2,7 @@
 name = "tauri-plugin-extensions"
 version = "0.1.0"
 authors = ["You"]
-edition = "2021"
+edition = "2024"
 exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-extensions"
 description = "Tauri plugin for managing Deno-powered extensions"

@@ -1,8 +1,7 @@
 import { useHover } from "@uidotdev/usehooks";
 import { MicOff } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Tooltip,
@@ -13,13 +12,146 @@ import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
-import { SoundIndicator } from "../../shared";
+import { useTabs } from "../../../../../store/zustand/tabs";
 import {
   ActionableTooltipContent,
   RecordingIcon,
   useHasTranscript,
   useListenButtonState,
 } from "../shared";
+
+function ScrollingWaveform({
+  amplitude,
+  color = "#e5e5e5",
+  height = 32,
+  width = 120,
+  barWidth = 2,
+  gap = 1,
+  minBarHeight = 2,
+  maxBarHeight,
+}: {
+  amplitude: number;
+  color?: string;
+  height?: number;
+  width?: number;
+  barWidth?: number;
+  gap?: number;
+  minBarHeight?: number;
+  maxBarHeight?: number;
+}) {
+  const resolvedMaxBarHeight = maxBarHeight ?? height;
+  const maxBars = Math.floor(width / (barWidth + gap));
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const amplitudesRef = useRef<number[]>([]);
+  const amplitudeRef = useRef(amplitude);
+
+  amplitudeRef.current = amplitude;
+
+  const dprRef = useRef(window.devicePixelRatio || 1);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    dprRef.current = dpr;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.scale(dpr, dpr);
+    }
+  }, [width, height]);
+
+  useEffect(() => {
+    amplitudesRef.current = [];
+
+    const draw = () => {
+      const amp = amplitudeRef.current;
+      const linear = amp < 30 ? 0 : Math.min((amp - 30) / 40, 1);
+      const normalized = Math.pow(linear, 0.6);
+
+      amplitudesRef.current.push(normalized);
+      if (amplitudesRef.current.length > maxBars) {
+        amplitudesRef.current = amplitudesRef.current.slice(-maxBars);
+      }
+
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.clearRect(0, 0, width, height);
+
+      const amplitudes = amplitudesRef.current;
+      const startX = width - amplitudes.length * (barWidth + gap);
+
+      ctx.fillStyle = color;
+      amplitudes.forEach((amp, index) => {
+        const barHeight =
+          minBarHeight + amp * (resolvedMaxBarHeight - minBarHeight);
+        const x = startX + index * (barWidth + gap);
+        const y = (height - barHeight) / 2;
+
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, barHeight, barWidth / 2);
+        ctx.fill();
+      });
+    };
+
+    draw();
+    const interval = setInterval(draw, 100);
+    return () => clearInterval(interval);
+  }, [
+    color,
+    height,
+    width,
+    barWidth,
+    gap,
+    minBarHeight,
+    resolvedMaxBarHeight,
+    maxBars,
+  ]);
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        width,
+        height,
+        minWidth: width,
+        minHeight: height,
+      }}
+    >
+      <canvas ref={canvasRef} style={{ width, height }} />
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: 12,
+          height: "100%",
+          background:
+            "linear-gradient(to right, rgb(254 242 242), transparent)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          width: 12,
+          height: "100%",
+          background: "linear-gradient(to left, rgb(254 242 242), transparent)",
+          pointerEvents: "none",
+        }}
+      />
+    </div>
+  );
+}
 
 export function ListenButton({ sessionId }: { sessionId: string }) {
   const { shouldRender } = useListenButtonState(sessionId);
@@ -39,21 +171,11 @@ export function ListenButton({ sessionId }: { sessionId: string }) {
 function StartButton({ sessionId }: { sessionId: string }) {
   const { isDisabled, warningMessage } = useListenButtonState(sessionId);
   const handleClick = useStartListening(sessionId);
+  const openNew = useTabs((state) => state.openNew);
 
   const handleConfigureAction = useCallback(() => {
-    windowsCommands
-      .windowShow({ type: "settings" })
-      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-      .then(() =>
-        windowsCommands.windowEmitNavigate(
-          { type: "settings" },
-          {
-            path: "/app/settings",
-            search: { tab: "transcription" },
-          },
-        ),
-      );
-  }, []);
+    openNew({ type: "ai", state: { tab: "transcription" } });
+  }, [openNew]);
 
   const button = (
     <Button
@@ -107,7 +229,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
     muted: state.live.muted,
   }));
 
-  const active = mode === "running_active" || mode === "finalizing";
+  const active = mode === "active" || mode === "finalizing";
   const finalizing = mode === "finalizing";
 
   if (!active) {
@@ -134,34 +256,37 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
         <div className="flex items-center gap-1.5">
           <span className="animate-pulse">...</span>
         </div>
-      ) : hovered ? (
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 bg-red-500 rounded-none" />
-          <span>Stop</span>
-        </div>
-      ) : muted ? (
-        <div className="flex items-center gap-1.5">
-          <MicOff size={14} />
-          <SoundIndicator
-            value={[amplitude.mic, amplitude.speaker]}
-            color="#ef4444"
-            size="long"
-            height={16}
-            width={32}
-            stickWidth={2}
-            gap={1}
-          />
-        </div>
       ) : (
-        <SoundIndicator
-          value={[amplitude.mic, amplitude.speaker]}
-          color="#ef4444"
-          size="long"
-          height={16}
-          width={32}
-          stickWidth={2}
-          gap={1}
-        />
+        <>
+          <div
+            className={cn([
+              "flex items-center gap-1.5",
+              hovered ? "hidden" : "flex",
+            ])}
+          >
+            {muted && <MicOff size={14} />}
+            <ScrollingWaveform
+              amplitude={
+                ((amplitude.mic + amplitude.speaker) / 2 / 65535) * 100 * 1000
+              }
+              color="#ef4444"
+              height={16}
+              width={muted ? 50 : 75}
+              barWidth={2}
+              gap={1}
+              minBarHeight={2}
+            />
+          </div>
+          <div
+            className={cn([
+              "flex items-center gap-1.5",
+              hovered ? "flex" : "hidden",
+            ])}
+          >
+            <span className="w-3 h-3 bg-red-500 rounded-none" />
+            <span>Stop</span>
+          </div>
+        </>
       )}
     </Button>
   );

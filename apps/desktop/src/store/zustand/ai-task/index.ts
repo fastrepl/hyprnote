@@ -1,6 +1,6 @@
 import { createStore } from "zustand";
 
-import type { Store as PersistedStore } from "../../tinybase/main";
+import type { Store as MainStore } from "../../tinybase/main";
 import { createTasksSlice, type TasksActions, type TasksState } from "./tasks";
 
 type State = TasksState;
@@ -12,7 +12,7 @@ export type AITaskStore = ReturnType<typeof createAITaskStore>;
 export const createAITaskStore = ({
   persistedStore,
 }: {
-  persistedStore: PersistedStore;
+  persistedStore: MainStore;
 }) => {
   return createStore<Store>((set, get) => ({
     ...createTasksSlice(set, get, { persistedStore }),

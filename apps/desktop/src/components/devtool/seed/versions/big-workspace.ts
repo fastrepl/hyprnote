@@ -1,0 +1,129 @@
+import { faker } from "@faker-js/faker/locale/en";
+import type { Tables } from "tinybase/with-schemas";
+
+import type { Schemas } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/main";
+import type { SeedDefinition } from "../shared";
+import {
+  buildCalendars,
+  buildChatGroups,
+  buildChatMessages,
+  buildChatShortcuts,
+  buildEnhancedNotesForSessions,
+  buildEventsByHuman,
+  buildFolders,
+  buildHumans,
+  buildOrganizations,
+  buildSessionParticipants,
+  buildSessionTags,
+  buildTags,
+  buildTemplates,
+} from "../shared";
+import {
+  buildLongTranscriptsForSessions,
+  buildSessionsForBigWorkspace,
+} from "./big-workspace-builders";
+
+const buildBigWorkspaceData = (): Tables<Schemas[0]> => {
+  faker.seed(456);
+
+  const organizations = buildOrganizations(8);
+  const orgIds = Object.keys(organizations);
+
+  const humans = buildHumans(orgIds, {
+    includeCurrentUser: true,
+    countPerOrg: { min: 3, max: 8 },
+  });
+  const humanIds = Object.keys(humans);
+
+  const calendars = buildCalendars(5);
+  const calendarIds = Object.keys(calendars);
+
+  const { events } = buildEventsByHuman(humanIds, calendarIds, {
+    min: 2,
+    max: 6,
+  });
+
+  const folders = buildFolders(10, { min: 2, max: 5 });
+  const folderIds = Object.keys(folders);
+
+  const tags = buildTags(15);
+  const tagIds = Object.keys(tags);
+
+  const templates = buildTemplates(10);
+  const templateIds = Object.keys(templates);
+
+  const sessions = buildSessionsForBigWorkspace(150, {
+    eventIds: Object.keys(events),
+    folderIds,
+    eventLinkProbability: 0.7,
+    folderProbability: 0.8,
+  });
+  const sessionIds = Object.keys(sessions);
+
+  const { transcripts, words } = buildLongTranscriptsForSessions(sessionIds, {
+    turnCount: { min: 1500, max: 2000 },
+    days: 90,
+  });
+
+  const mapping_session_participant = buildSessionParticipants(
+    sessionIds,
+    humanIds,
+    {
+      min: 2,
+      max: 6,
+    },
+  );
+
+  const mapping_tag_session = buildSessionTags(sessionIds, tagIds, {
+    tagProbability: 0.8,
+    tagsPerSession: { min: 1, max: 4 },
+  });
+
+  const chat_groups = buildChatGroups(10);
+  const chatGroupIds = Object.keys(chat_groups);
+
+  const chat_messages = buildChatMessages(chatGroupIds, { min: 5, max: 15 });
+
+  const enhanced_notes = buildEnhancedNotesForSessions(
+    sessionIds,
+    templateIds,
+    {
+      notesPerSession: { min: 1, max: 4 },
+      templateProbability: 0.5,
+    },
+  );
+
+  const chat_shortcuts = buildChatShortcuts(8);
+
+  return {
+    organizations,
+    humans,
+    calendars,
+    folders,
+    sessions,
+    transcripts,
+    words,
+    events,
+    mapping_session_participant,
+    tags,
+    mapping_tag_session,
+    templates,
+    chat_groups,
+    chat_messages,
+    enhanced_notes,
+    chat_shortcuts,
+  };
+};
+
+export const bigWorkspaceSeed: SeedDefinition = {
+  id: "big-workspace",
+  label: "Big Workspace",
+  run: (store: MainStore) => {
+    const data = buildBigWorkspaceData();
+    store.transaction(() => {
+      store.delTables();
+      store.setTables(data);
+    });
+  },
+};

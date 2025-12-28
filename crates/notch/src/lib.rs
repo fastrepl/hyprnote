@@ -1,4 +1,4 @@
-use swift_rs::{swift, SRString};
+use swift_rs::{SRString, swift};
 
 swift!(fn notch_show_info(title: SRString, description: SRString, icon_name: SRString));
 

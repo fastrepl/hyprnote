@@ -1,5 +1,6 @@
 import {
   AuthRetryableFetchError,
+  AuthSessionMissingError,
   createClient,
   processLock,
   type Session,
@@ -10,16 +11,19 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { load } from "@tauri-apps/plugin-store";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
+import { commands } from "@hypr/plugin-auth";
+
 import { env } from "./env";
+import { getScheme } from "./utils";
 
 const isLocalAuthServer = (url: string | undefined): boolean => {
   if (!url) return false;
@@ -33,9 +37,7 @@ const isLocalAuthServer = (url: string | undefined): boolean => {
 
 const clearAuthStorage = async (): Promise<void> => {
   try {
-    const store = await load("auth.json");
-    await store.clear();
-    await store.save();
+    await commands.clear();
   } catch {
     // Ignore storage errors
   }
@@ -50,19 +52,17 @@ const tauriStorage: SupportedStorage | null = isIframeContext
   ? null
   : {
       async getItem(key: string): Promise<string | null> {
-        const store = await load("auth.json");
-        const val = await store.get<string>(key);
-        return val ?? null;
+        const result = await commands.getItem(key);
+        if (result.status === "error") {
+          return null;
+        }
+        return result.data;
       },
       async setItem(key: string, value: string): Promise<void> {
-        const store = await load("auth.json");
-        await store.set(key, value);
-        await store.save();
+        await commands.setItem(key, value);
       },
       async removeItem(key: string): Promise<void> {
-        const store = await load("auth.json");
-        await store.delete(key);
-        await store.save();
+        await commands.removeItem(key);
       },
     };
 
@@ -91,7 +91,12 @@ const AuthContext = createContext<{
   session: Session | null;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  refreshSession: () => Promise<Session | null>;
   handleAuthCallback: (url: string) => Promise<void>;
+  setSessionFromTokens: (
+    accessToken: string,
+    refreshToken: string,
+  ) => Promise<void>;
   getHeaders: () => Record<string, string> | null;
   getAvatarUrl: () => Promise<string>;
 } | null>(null);
@@ -100,33 +105,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [serverReachable, setServerReachable] = useState(true);
 
-  const handleAuthCallback = async (url: string) => {
-    if (!supabase) {
-      console.error("Supabase client not found");
-      return;
-    }
+  const setSessionFromTokens = useCallback(
+    async (accessToken: string, refreshToken: string) => {
+      if (!supabase) {
+        console.error("Supabase client not found");
+        return;
+      }
 
-    const parsed = new URL(url);
-    const accessToken = parsed.searchParams.get("access_token");
-    const refreshToken = parsed.searchParams.get("refresh_token");
+      const res = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
 
-    if (!accessToken || !refreshToken) {
-      console.error("invalid_callback_url");
-      return;
-    }
+      if (res.error) {
+        console.error(res.error);
+      } else {
+        setSession(res.data.session);
+        setServerReachable(true);
+        void supabase.auth.startAutoRefresh();
+      }
+    },
+    [],
+  );
 
-    const res = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
+  const handleAuthCallback = useCallback(
+    async (url: string) => {
+      const parsed = new URL(url);
+      const accessToken = parsed.searchParams.get("access_token");
+      const refreshToken = parsed.searchParams.get("refresh_token");
 
-    if (res.error) {
-      console.error(res.error);
-    } else {
-      setServerReachable(true);
-      supabase.auth.startAutoRefresh();
-    }
-  };
+      if (!accessToken || !refreshToken) {
+        console.error("invalid_callback_url");
+        return;
+      }
+
+      await setSessionFromTokens(accessToken, refreshToken);
+    },
+    [setSessionFromTokens],
+  );
 
   useEffect(() => {
     if (!supabase) {
@@ -137,20 +153,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const unlistenFocus = appWindow.listen("tauri://focus", () => {
       if (serverReachable) {
-        supabase.auth.startAutoRefresh();
+        void supabase.auth.startAutoRefresh();
       }
     });
     const unlistenBlur = appWindow.listen("tauri://blur", () => {
-      supabase.auth.stopAutoRefresh();
+      void supabase.auth.stopAutoRefresh();
     });
 
-    onOpenUrl(([url]) => {
-      handleAuthCallback(url);
+    void onOpenUrl(([url]) => {
+      void handleAuthCallback(url);
     });
 
     return () => {
-      unlistenFocus.then((fn) => fn());
-      unlistenBlur.then((fn) => fn());
+      void unlistenFocus.then((fn) => fn());
+      void unlistenBlur.then((fn) => fn());
     };
   }, [serverReachable]);
 
@@ -167,37 +183,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             error instanceof AuthRetryableFetchError &&
             isLocalAuthServer(env.VITE_SUPABASE_URL)
           ) {
-            await clearAuthStorage();
             setServerReachable(false);
-            setSession(null);
             return;
           }
         }
         if (data.session) {
-          setSession(data.session);
-          setServerReachable(true);
-          supabase.auth.startAutoRefresh();
+          const { data: refreshData, error: refreshError } =
+            await supabase.auth.refreshSession();
+          if (refreshError) {
+            if (refreshError instanceof AuthSessionMissingError) {
+              await clearAuthStorage();
+              setSession(null);
+              return;
+            }
+            if (
+              refreshError instanceof AuthRetryableFetchError &&
+              isLocalAuthServer(env.VITE_SUPABASE_URL)
+            ) {
+              setServerReachable(false);
+              setSession(data.session);
+              void supabase.auth.startAutoRefresh();
+              return;
+            }
+          }
+          if (refreshData.session) {
+            setSession(refreshData.session);
+            setServerReachable(true);
+            void supabase.auth.startAutoRefresh();
+          }
         }
       } catch (e) {
+        if (e instanceof AuthSessionMissingError) {
+          await clearAuthStorage();
+          setSession(null);
+          return;
+        }
         if (
           e instanceof AuthRetryableFetchError &&
           isLocalAuthServer(env.VITE_SUPABASE_URL)
         ) {
-          await clearAuthStorage();
           setServerReachable(false);
-          setSession(null);
         }
       }
     };
 
-    initSession();
+    void initSession();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "TOKEN_REFRESHED" && !session) {
         if (isLocalAuthServer(env.VITE_SUPABASE_URL)) {
-          clearAuthStorage();
+          void clearAuthStorage();
           setServerReachable(false);
         }
       }
@@ -209,12 +246,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const signIn = async () => {
+  const signIn = useCallback(async () => {
     const base = env.VITE_APP_URL ?? "http://localhost:3000";
-    await openUrl(`${base}/auth?flow=desktop`);
-  };
+    const scheme = await getScheme();
+    await openUrl(`${base}/auth?flow=desktop&scheme=${scheme}`);
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     if (!supabase) {
       return;
     }
@@ -222,7 +260,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        if (error instanceof AuthRetryableFetchError) {
+        if (
+          error instanceof AuthRetryableFetchError ||
+          error instanceof AuthSessionMissingError
+        ) {
           await clearAuthStorage();
           setSession(null);
           return;
@@ -230,19 +271,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error(error);
       }
     } catch (e) {
-      if (e instanceof AuthRetryableFetchError) {
+      if (
+        e instanceof AuthRetryableFetchError ||
+        e instanceof AuthSessionMissingError
+      ) {
         await clearAuthStorage();
         setSession(null);
       }
     }
-  };
+  }, []);
+
+  const refreshSession = useCallback(async (): Promise<Session | null> => {
+    if (!supabase) {
+      return null;
+    }
+
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error) {
+      return null;
+    }
+    if (data.session) {
+      setSession(data.session);
+      return data.session;
+    }
+    return null;
+  }, []);
 
   const getHeaders = useCallback(() => {
     if (!session) {
       return null;
     }
 
-    return { Authorization: `${session.token_type} ${session.access_token}` };
+    return {
+      Authorization: `${session.token_type} ${session.access_token}`,
+    };
   }, [session]);
 
   const getAvatarUrl = useCallback(async () => {
@@ -262,15 +324,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return `https://gravatar.com/avatar/${hash}`;
   }, [session]);
 
-  const value = {
-    session,
-    supabase,
-    signIn,
-    signOut,
-    handleAuthCallback,
-    getHeaders,
-    getAvatarUrl,
-  };
+  const value = useMemo(
+    () => ({
+      session,
+      supabase,
+      signIn,
+      signOut,
+      refreshSession,
+      handleAuthCallback,
+      setSessionFromTokens,
+      getHeaders,
+      getAvatarUrl,
+    }),
+    [
+      session,
+      signIn,
+      signOut,
+      refreshSession,
+      handleAuthCallback,
+      setSessionFromTokens,
+      getHeaders,
+      getAvatarUrl,
+    ],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

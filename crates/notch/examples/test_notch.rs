@@ -4,11 +4,11 @@ use std::time::Duration;
 
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
-use objc2::{define_class, msg_send, MainThreadOnly};
+use objc2::{MainThreadOnly, define_class, msg_send};
 use objc2_app_kit::{
     NSAppearance, NSApplication, NSApplicationActivationPolicy, NSApplicationDelegate,
 };
-use objc2_foundation::{ns_string, MainThreadMarker, NSObject, NSObjectProtocol};
+use objc2_foundation::{MainThreadMarker, NSObject, NSObjectProtocol, ns_string};
 
 #[derive(Debug, Default)]
 struct AppDelegateIvars {}

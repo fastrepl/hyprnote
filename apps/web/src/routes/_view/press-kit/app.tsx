@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Menu, X, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   ResizableHandle,
@@ -116,9 +116,12 @@ function Component() {
   const handleSetSelectedItem = (item: SelectedItem | null) => {
     setSelectedItem(item);
     if (item === null) {
-      navigate({ search: {} });
+      navigate({ search: {}, resetScroll: false });
     } else if (item.type === "screenshot") {
-      navigate({ search: { type: "screenshot", id: item.data.id } });
+      navigate({
+        search: { type: "screenshot", id: item.data.id },
+        resetScroll: false,
+      });
     }
   };
 
@@ -241,7 +244,10 @@ function ScreenshotsGrid({
           <button
             key={screenshot.id}
             onClick={() =>
-              setSelectedItem({ type: "screenshot", data: screenshot })
+              setSelectedItem({
+                type: "screenshot",
+                data: screenshot,
+              })
             }
             className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
           >
@@ -271,11 +277,29 @@ function AppDetailView({
   selectedItem: SelectedItem;
   setSelectedItem: (item: SelectedItem | null) => void;
 }) {
+  const sidebarScrollRef = useRef<HTMLDivElement>(null);
+  const sidebarScrollPosRef = useRef<number>(0);
+
+  useEffect(() => {
+    const el = sidebarScrollRef.current;
+    if (!el) return;
+
+    el.scrollTop = sidebarScrollPosRef.current;
+
+    const handleScroll = () => {
+      sidebarScrollPosRef.current = el.scrollTop;
+    };
+
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [selectedItem]);
+
   return (
     <ResizablePanelGroup direction="horizontal" className="h-[480px]">
       <AppSidebar
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}
+        scrollRef={sidebarScrollRef}
       />
       <ResizableHandle withHandle className="bg-neutral-200 w-px" />
       <AppDetailPanel
@@ -314,7 +338,11 @@ function MobileSidebarDrawer({
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            transition={{
+              type: "spring",
+              damping: 25,
+              stiffness: 300,
+            }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
               <span className="text-sm font-medium text-stone-600">
@@ -366,13 +394,15 @@ function AppDetailContent({
 function AppSidebar({
   selectedItem,
   setSelectedItem,
+  scrollRef,
 }: {
   selectedItem: SelectedItem;
   setSelectedItem: (item: SelectedItem) => void;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
     <ResizablePanel defaultSize={35} minSize={25} maxSize={45}>
-      <div className="p-4 h-full overflow-y-auto">
+      <div ref={scrollRef} className="p-4 h-full overflow-y-auto">
         <ScreenshotsSidebar
           selectedItem={selectedItem}
           setSelectedItem={setSelectedItem}
@@ -461,6 +491,14 @@ function ScreenshotDetail({
   screenshot: (typeof screenshots)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [screenshot.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -482,7 +520,7 @@ function ScreenshotDetail({
         </div>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <Image
           src={screenshot.url}
           alt={screenshot.name}

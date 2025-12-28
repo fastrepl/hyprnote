@@ -1,12 +1,14 @@
-import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allRoadmaps } from "content-collections";
-import { useState } from "react";
+import { useRef } from "react";
 
 import { cn } from "@hypr/utils";
 
-import { MDXLink } from "@/components/mdx";
+import { DownloadButton } from "@/components/download-button";
+import { GithubStars } from "@/components/github-stars";
+import { Image } from "@/components/image";
+import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
 export const Route = createFileRoute("/_view/roadmap/")({
   component: Component,
@@ -24,6 +26,8 @@ export const Route = createFileRoute("/_view/roadmap/")({
 
 type RoadmapStatus = "done" | "in-progress" | "todo";
 
+type RoadmapPriority = "high" | "mid" | "low";
+
 type RoadmapItem = {
   slug: string;
   title: string;
@@ -33,12 +37,25 @@ type RoadmapItem = {
   created: string;
   updated?: string;
   mdx: string;
+  priority: RoadmapPriority;
+  date?: string;
+  description: string;
 };
 
-const DEFAULT_VISIBLE_ITEMS = 5;
+const priorityOrder: Record<RoadmapPriority, number> = {
+  high: 1,
+  mid: 2,
+  low: 3,
+};
+
+const statusOrder: Record<RoadmapStatus, number> = {
+  "in-progress": 1,
+  todo: 2,
+  done: 3,
+};
 
 function getRoadmapItems(): RoadmapItem[] {
-  return allRoadmaps.map((item) => ({
+  const items = allRoadmaps.map((item) => ({
     slug: item.slug,
     title: item.title,
     status: item.status,
@@ -47,15 +64,21 @@ function getRoadmapItems(): RoadmapItem[] {
     created: item.created,
     updated: item.updated,
     mdx: item.mdx,
+    priority: item.priority,
+    date: item.date,
+    description: item.content.trim(),
   }));
+
+  return items.sort((a, b) => {
+    const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+    if (statusDiff !== 0) return statusDiff;
+    return priorityOrder[a.priority] - priorityOrder[b.priority];
+  });
 }
 
 function Component() {
   const items = getRoadmapItems();
-
-  const done = items.filter((item) => item.status === "done");
-  const inProgress = items.filter((item) => item.status === "in-progress");
-  const todo = items.filter((item) => item.status === "todo");
+  const heroInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div
@@ -74,267 +97,225 @@ function Component() {
             </p>
           </header>
 
-          <KanbanView done={done} inProgress={inProgress} todo={todo} />
-          <ColumnView done={done} inProgress={inProgress} todo={todo} />
+          <TableView items={items} />
 
-          <div className="mt-16 bg-stone-50 border border-neutral-200 rounded-lg p-8 text-center">
-            <h3 className="text-2xl font-serif text-stone-600 mb-4">
-              Have a feature request?
-            </h3>
-            <p className="text-neutral-600 mb-6">
-              We'd love to hear your ideas. Join our community and share your
-              thoughts.
-            </p>
-            <a
-              href="https://github.com/fastrepl/hyprnote/discussions"
-              target="_blank"
-              rel="noopener noreferrer"
+          <CTASection heroInputRef={heroInputRef} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const priorityConfig: Record<
+  RoadmapPriority,
+  { label: string; className: string }
+> = {
+  high: {
+    label: "High",
+    className: "bg-linear-to-t from-red-200 to-red-100 text-red-900",
+  },
+  mid: {
+    label: "Mid",
+    className: "bg-linear-to-t from-orange-200 to-orange-100 text-orange-900",
+  },
+  low: {
+    label: "Low",
+    className:
+      "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+  },
+};
+
+const statusConfig: Record<
+  RoadmapStatus,
+  { label: string; icon: string; className: string }
+> = {
+  "in-progress": {
+    label: "In Progress",
+    icon: "mdi:progress-clock",
+    className: "bg-linear-to-b from-[#03BCF1] to-[#127FE5] text-white",
+  },
+  todo: {
+    label: "To Do",
+    icon: "mdi:calendar-clock",
+    className:
+      "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+  },
+  done: {
+    label: "Done",
+    icon: "mdi:check-circle",
+    className: "bg-linear-to-t from-green-200 to-green-100 text-green-900",
+  },
+};
+
+function TableView({ items }: { items: RoadmapItem[] }) {
+  return (
+    <div className="overflow-x-auto -mx-6">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-neutral-50">
+            <th className="text-left py-2 px-3 text-sm font-medium text-stone-500 border-y border-neutral-100 whitespace-nowrap">
+              Name
+            </th>
+            <th className="text-left py-2 px-3 text-sm font-medium text-stone-500 border-y border-l border-neutral-100">
+              Description
+            </th>
+            <th className="text-left py-2 px-3 text-sm font-medium text-stone-500 border-y border-l border-neutral-100 whitespace-nowrap">
+              Status
+            </th>
+            <th className="text-left py-2 px-3 text-sm font-medium text-stone-500 border-y border-l border-neutral-100 whitespace-nowrap">
+              Priority
+            </th>
+            <th className="text-left py-2 px-3 text-sm font-medium text-stone-500 border-y border-l border-neutral-100 whitespace-nowrap">
+              Date
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => {
+            const priorityInfo = priorityConfig[item.priority];
+            const statusInfo = statusConfig[item.status];
+
+            return (
+              <tr
+                key={item.slug}
+                className="hover:bg-stone-50 transition-colors"
+              >
+                <td className="py-2 px-3 border-y border-neutral-100 whitespace-nowrap">
+                  <Link
+                    to="/roadmap/$slug"
+                    params={{ slug: item.slug }}
+                    className="font-medium text-stone-700 hover:text-stone-900 hover:underline"
+                  >
+                    {item.title}
+                  </Link>
+                </td>
+                <td className="py-2 px-3 border-y border-l border-neutral-100 text-sm text-stone-600">
+                  {item.description}
+                </td>
+                <td className="py-2 px-3 border-y border-l border-neutral-100">
+                  <span
+                    className={cn([
+                      "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap",
+                      statusInfo.className,
+                    ])}
+                  >
+                    <Icon icon={statusInfo.icon} />
+                    {statusInfo.label}
+                  </span>
+                </td>
+                <td className="py-2 px-3 border-y border-l border-neutral-100">
+                  <span
+                    className={cn([
+                      "inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap",
+                      priorityInfo.className,
+                    ])}
+                  >
+                    {priorityInfo.label}
+                  </span>
+                </td>
+                <td className="py-2 px-3 border-y border-l border-neutral-100 text-sm text-stone-500 whitespace-nowrap">
+                  {item.date || "—"}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function CTASection({
+  heroInputRef,
+}: {
+  heroInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const platform = usePlatform();
+  const platformCTA = getPlatformCTA(platform);
+
+  const getButtonLabel = () => {
+    if (platform === "mobile") {
+      return "Get reminder";
+    }
+    return platformCTA.label;
+  };
+
+  const handleCTAClick = () => {
+    if (platformCTA.action === "waitlist") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(() => {
+        if (heroInputRef.current) {
+          heroInputRef.current.focus();
+          heroInputRef.current.parentElement?.classList.add(
+            "animate-shake",
+            "border-stone-600",
+          );
+          setTimeout(() => {
+            heroInputRef.current?.parentElement?.classList.remove(
+              "animate-shake",
+              "border-stone-600",
+            );
+          }, 500);
+        }
+      }, 500);
+    }
+  };
+
+  return (
+    <section className="mt-16 py-16 bg-linear-to-t from-stone-50/30 to-stone-100/30 -mx-6 px-6">
+      <div className="flex flex-col gap-6 items-center text-center">
+        <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
+          <Image
+            src="/api/images/hyprnote/icon.png"
+            alt="Hyprnote"
+            width={144}
+            height={144}
+            className="size-36 mx-auto rounded-[40px] border border-neutral-100"
+          />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-serif">
+          Where conversations
+          <br className="sm:hidden" /> stay yours
+        </h2>
+        <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+          Start using Hyprnote today and bring clarity to your back-to-back
+          meetings
+        </p>
+        <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
+          {platformCTA.action === "download" ? (
+            <DownloadButton />
+          ) : (
+            <button
+              onClick={handleCTAClick}
               className={cn([
-                "inline-block px-6 py-3 text-base font-medium rounded-full",
-                "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-                "hover:scale-105 active:scale-95 transition-transform",
+                "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+                "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
+                "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                "transition-all",
               ])}
             >
-              Share feedback
-            </a>
+              {getButtonLabel()}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+              </svg>
+            </button>
+          )}
+          <div className="hidden sm:block">
+            <GithubStars />
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function KanbanView({
-  done,
-  inProgress,
-  todo,
-}: {
-  done: RoadmapItem[];
-  inProgress: RoadmapItem[];
-  todo: RoadmapItem[];
-}) {
-  return (
-    <div className="hidden lg:grid lg:grid-cols-3 gap-6">
-      <KanbanColumn
-        title="To Do"
-        icon="mdi:calendar-clock"
-        iconColor="text-neutral-400"
-        items={todo}
-        status="todo"
-      />
-      <KanbanColumn
-        title="In Progress"
-        icon="mdi:progress-clock"
-        iconColor="text-blue-600"
-        items={inProgress}
-        status="in-progress"
-      />
-      <KanbanColumn
-        title="Done"
-        icon="mdi:check-circle"
-        iconColor="text-green-600"
-        items={done}
-        status="done"
-      />
-    </div>
-  );
-}
-
-function KanbanColumn({
-  title,
-  icon,
-  iconColor,
-  items,
-  status,
-}: {
-  title: string;
-  icon: string;
-  iconColor: string;
-  items: RoadmapItem[];
-  status: RoadmapStatus;
-}) {
-  const [showAll, setShowAll] = useState(false);
-  const visibleItems = showAll ? items : items.slice(0, DEFAULT_VISIBLE_ITEMS);
-  const hasMore = items.length > DEFAULT_VISIBLE_ITEMS;
-
-  return (
-    <div className="flex flex-col">
-      <div
-        className={cn([
-          "flex items-center gap-2 mb-4 pb-3",
-          "border-b-2",
-          status === "done" && "border-green-200",
-          status === "in-progress" && "border-blue-200",
-          status === "todo" && "border-neutral-200",
-        ])}
-      >
-        <Icon icon={icon} className={cn(["text-xl", iconColor])} />
-        <h2 className="text-lg font-medium text-stone-600">{title}</h2>
-        <span className="text-sm text-neutral-400 ml-auto">{items.length}</span>
-      </div>
-      <div className="flex flex-col gap-3 flex-1">
-        {visibleItems.length === 0 ? (
-          <div className="text-center py-8 text-neutral-400 text-sm">
-            No items
-          </div>
-        ) : (
-          visibleItems.map((item) => (
-            <RoadmapCard key={item.slug} item={item} compact />
-          ))
-        )}
-        {hasMore && (
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className={cn([
-              "text-sm text-stone-500 hover:text-stone-700",
-              "py-2 transition-colors",
-            ])}
-          >
-            {showAll
-              ? "Show less"
-              : `Show ${items.length - DEFAULT_VISIBLE_ITEMS} more`}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ColumnView({
-  done,
-  inProgress,
-  todo,
-}: {
-  done: RoadmapItem[];
-  inProgress: RoadmapItem[];
-  todo: RoadmapItem[];
-}) {
-  return (
-    <div className="lg:hidden space-y-12">
-      <ColumnSection
-        title="To Do"
-        icon="mdi:calendar-clock"
-        iconColor="text-neutral-400"
-        items={todo}
-      />
-      <ColumnSection
-        title="In Progress"
-        icon="mdi:progress-clock"
-        iconColor="text-blue-600"
-        items={inProgress}
-      />
-      <ColumnSection
-        title="Done"
-        icon="mdi:check-circle"
-        iconColor="text-green-600"
-        items={done}
-      />
-    </div>
-  );
-}
-
-function ColumnSection({
-  title,
-  icon,
-  iconColor,
-  items,
-}: {
-  title: string;
-  icon: string;
-  iconColor: string;
-  items: RoadmapItem[];
-}) {
-  const [showAll, setShowAll] = useState(false);
-  const mobileLimit = 3;
-  const visibleItems = showAll ? items : items.slice(0, mobileLimit);
-  const hasMore = items.length > mobileLimit;
-
-  if (items.length === 0) {
-    return null;
-  }
-
-  return (
-    <section>
-      <div className="flex items-center gap-3 mb-6">
-        <Icon icon={icon} className={cn(["text-2xl", iconColor])} />
-        <h2 className="text-2xl font-serif text-stone-600">{title}</h2>
-        <span className="text-sm text-neutral-400">({items.length})</span>
-      </div>
-      <div className="space-y-4">
-        {visibleItems.map((item) => (
-          <RoadmapCard key={item.slug} item={item} />
-        ))}
-        {hasMore && (
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className={cn([
-              "w-full text-sm text-stone-500 hover:text-stone-700",
-              "py-3 border border-dashed border-neutral-200 rounded-lg",
-              "hover:border-neutral-300 transition-colors",
-            ])}
-          >
-            {showAll
-              ? "Show less"
-              : `Show ${items.length - mobileLimit} more items`}
-          </button>
-        )}
       </div>
     </section>
-  );
-}
-
-function RoadmapCard({
-  item,
-  compact = false,
-}: {
-  item: RoadmapItem;
-  compact?: boolean;
-}) {
-  return (
-    <Link
-      to="/roadmap/$slug"
-      params={{ slug: item.slug }}
-      className={cn([
-        "block p-4 border border-neutral-200 rounded-sm bg-white",
-        "hover:shadow-sm hover:border-neutral-300 transition-all",
-        "group",
-      ])}
-    >
-      <div className="flex items-start gap-3 mb-3">
-        <div className="flex-1 min-w-0">
-          <h3
-            className={cn([
-              "font-medium text-stone-600 group-hover:text-stone-800",
-              "transition-colors",
-              compact ? "text-sm" : "text-base",
-            ])}
-          >
-            {item.title}
-          </h3>
-          {item.labels.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {item.labels.slice(0, compact ? 2 : 4).map((label) => (
-                <span
-                  key={label}
-                  className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600"
-                >
-                  {label}
-                </span>
-              ))}
-              {item.labels.length > (compact ? 2 : 4) && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500">
-                  +{item.labels.length - (compact ? 2 : 4)}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-      {!compact && (
-        <div className="prose prose-sm prose-stone max-w-none">
-          <MDXContent code={item.mdx} components={{ a: MDXLink }} />
-        </div>
-      )}
-    </Link>
   );
 }

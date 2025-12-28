@@ -88,7 +88,11 @@ export function DancingSticks({
       >
         <div
           className="rounded-full"
-          style={{ width: resolvedWidth, height: 1, backgroundColor: color }}
+          style={{
+            width: resolvedWidth,
+            height: 1,
+            backgroundColor: color,
+          }}
         />
       </div>
     );
@@ -97,7 +101,11 @@ export function DancingSticks({
   return (
     <div
       className="flex items-center justify-center"
-      style={{ height: resolvedHeight, width: resolvedWidth, gap: resolvedGap }}
+      style={{
+        height: resolvedHeight,
+        width: resolvedWidth,
+        gap: resolvedGap,
+      }}
     >
       {pattern.map((baseLength, index) => (
         <EqualizerStick

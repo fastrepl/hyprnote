@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { faker } from "@faker-js/faker/locale/en";
 
 import type { SessionStorage } from "@hypr/store";
 import { md2json } from "@hypr/tiptap/shared";
@@ -30,7 +30,9 @@ export const generateEnhancedMarkdown = () => {
     const bulletCount = faker.number.int({ min: 2, max: 5 });
     const bullets = faker.helpers.multiple(
       () => `- ${faker.lorem.sentence()}`,
-      { count: bulletCount },
+      {
+        count: bulletCount,
+      },
     );
     current.push(bullets.join("\n"));
     sections.push(current.join("\n"));

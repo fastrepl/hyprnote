@@ -6,6 +6,8 @@ mod supervisor;
 use ext::*;
 use store::*;
 
+use tauri_plugin_permissions::{Permission, PermissionsPluginExt};
+use tauri_plugin_updater2::Updater2PluginExt;
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
@@ -22,10 +24,13 @@ pub async fn main() {
         let dsn = option_env!("SENTRY_DSN");
 
         if let Some(dsn) = dsn {
+            let release =
+                option_env!("APP_VERSION").map(|v| format!("hyprnote-desktop@{}", v).into());
+
             let client = sentry::init((
                 dsn,
                 sentry::ClientOptions {
-                    release: sentry::release_name!(),
+                    release,
                     traces_sample_rate: 1.0,
                     auto_session_tracking: true,
                     ..Default::default()
@@ -40,7 +45,7 @@ pub async fn main() {
 
     let _guard = sentry_client
         .as_ref()
-        .map(|client| tauri_plugin_sentry::minidump::init(client));
+        .map(|client| tauri_plugin_sentry::minidump::init(&**client));
 
     let mut builder = tauri::Builder::default();
 
@@ -48,7 +53,7 @@ pub async fn main() {
     // should always be the first plugin
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            app.window_show(AppWindow::Main).unwrap();
+            app.windows().show(AppWindow::Main).unwrap();
         }));
     }
 
@@ -57,18 +62,24 @@ pub async fn main() {
         .plugin(tauri_plugin_cli2::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_auth::init())
         .plugin(tauri_plugin_analytics::init())
+        .plugin(tauri_plugin_importer::init())
+        .plugin(tauri_plugin_apple_calendar::init())
+        .plugin(tauri_plugin_auth::init())
         .plugin(tauri_plugin_db2::init())
         .plugin(tauri_plugin_tracing::init())
         .plugin(tauri_plugin_hooks::init())
+        .plugin(tauri_plugin_icon::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_permissions::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_deeplink2::init())
+        .plugin(tauri_plugin_export::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_path2::init())
+        .plugin(tauri_plugin_pdf::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_misc::init())
         .plugin(tauri_plugin_template::init())
@@ -80,7 +91,10 @@ pub async fn main() {
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_store2::init())
+        .plugin(tauri_plugin_settings::init())
+        .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_windows::init())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_listener2::init())
         .plugin(tauri_plugin_local_stt::init(
@@ -100,10 +114,11 @@ pub async fn main() {
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--background"]),
-        ));
+        ))
+        .plugin(tauri_plugin_updater2::init());
 
     if let Some(client) = sentry_client.as_ref() {
-        builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(client));
+        builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(&**client));
     }
 
     #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
@@ -132,14 +147,14 @@ pub async fn main() {
 
             {
                 use tauri_plugin_tray::TrayPluginExt;
-                app_handle.create_tray_menu().unwrap();
-                app_handle.create_app_menu().unwrap();
+                app_handle.tray().create_tray_menu().unwrap();
+                app_handle.tray().create_app_menu().unwrap();
             }
 
             tokio::spawn(async move {
                 use tauri_plugin_db2::Database2PluginExt;
 
-                if let Err(e) = app_clone.init_local().await {
+                if let Err(e) = app_clone.db2().init_local().await {
                     tracing::error!("failed_to_init_local: {}", e);
                 }
             });
@@ -149,17 +164,42 @@ pub async fn main() {
             }
 
             specta_builder.mount_events(&app_handle);
+            app_handle.updater2().maybe_emit_updated();
+
             Ok(())
         })
         .build(tauri::generate_context!())
         .unwrap();
 
-    // Skip onboarding if ONBOARDING=0 is set
-    if std::env::var("ONBOARDING")
-        .map(|v| v == "0")
-        .unwrap_or(false)
-    {
-        app.set_onboarding_needed(false).unwrap();
+    match get_onboarding_flag() {
+        None => {}
+        Some(false) => app.set_onboarding_needed(false).unwrap(),
+        Some(true) => {
+            use tauri_plugin_settings::SettingsPluginExt;
+            use tauri_plugin_store2::Store2PluginExt;
+
+            if let Ok(path) = app.settings().path() {
+                let _ = std::fs::remove_file(path);
+            }
+            if let Ok(path) = app.store2().path() {
+                let _ = std::fs::remove_file(path);
+            }
+            let _ = app.set_onboarding_needed(true);
+
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                let permissions = app_handle.permissions();
+                let _ = permissions.reset(Permission::Microphone).await;
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                let _ = permissions.reset(Permission::SystemAudio).await;
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                let _ = permissions.reset(Permission::Accessibility).await;
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                let _ = permissions.reset(Permission::Calendar).await;
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                let _ = permissions.reset(Permission::Contacts).await;
+            });
+        }
     }
 
     {
@@ -173,6 +213,7 @@ pub async fn main() {
         }
     }
 
+    #[allow(unused_variables)]
     app.run(move |app, event| match event {
         #[cfg(target_os = "macos")]
         tauri::RunEvent::Reopen { .. } => {
@@ -195,11 +236,47 @@ pub async fn main() {
     });
 }
 
+fn get_onboarding_flag() -> Option<bool> {
+    let parse_value = |v: &str| -> Option<bool> {
+        match v {
+            "1" | "true" => Some(true),
+            "0" | "false" => Some(false),
+            _ => {
+                if let Ok(timestamp) = v.parse::<u64>() {
+                    let now = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .ok()?
+                        .as_millis() as u64;
+                    let elapsed = now.saturating_sub(timestamp * 1000);
+                    if elapsed < 2500 { Some(true) } else { None }
+                } else {
+                    None
+                }
+            }
+        }
+    };
+
+    pico_args::Arguments::from_env()
+        .opt_value_from_str::<_, String>("--onboarding")
+        .ok()
+        .flatten()
+        .and_then(|v| parse_value(&v))
+        .or_else(|| {
+            std::env::var("ONBOARDING")
+                .ok()
+                .and_then(|v| parse_value(&v))
+        })
+}
+
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .commands(tauri_specta::collect_commands![
             commands::get_onboarding_needed::<tauri::Wry>,
             commands::set_onboarding_needed::<tauri::Wry>,
+            commands::get_dismissed_toasts::<tauri::Wry>,
+            commands::set_dismissed_toasts::<tauri::Wry>,
+            commands::get_onboarding_local::<tauri::Wry>,
+            commands::set_onboarding_local::<tauri::Wry>,
             commands::get_env::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
@@ -211,14 +288,18 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "../src/types/tauri.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "../src/types/tauri.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

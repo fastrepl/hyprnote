@@ -1,0 +1,11 @@
+[package]
+name = "supabase-auth"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+jsonwebtoken = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+tokio = { workspace = true }

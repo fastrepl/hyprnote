@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allVs } from "content-collections";
 import { useRef, useState } from "react";
 
@@ -39,7 +39,10 @@ export const Route = createFileRoute("/_view/vs/$slug")({
         { property: "og:title", content: metaTitle },
         { property: "og:description", content: doc.metaDescription },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: `https://hyprnote.com/vs/${doc.slug}` },
+        {
+          property: "og:url",
+          content: `https://hyprnote.com/vs/${doc.slug}`,
+        },
         { name: "twitter:card", content: "summary" },
         { name: "twitter:title", content: metaTitle },
         { name: "twitter:description", content: doc.metaDescription },
@@ -127,23 +130,41 @@ function HeroSection({
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 px-6 py-12 lg:py-20">
       <header className="text-center max-w-4xl mx-auto">
-        <div className="flex items-center justify-center mb-12">
-          <div className="size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent opacity-30">
-            <img
-              src={competitorIcon}
-              alt={competitorName}
-              className="size-36 rounded-[40px] border border-neutral-100"
-            />
+        <div className="flex flex-row items-center justify-center mb-12 sm:gap-0">
+          <div className="relative w-40 h-40 sm:hidden">
+            <div className="absolute top-0 left-0 size-28 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[32px] bg-white opacity-50 z-0">
+              <img
+                src={competitorIcon}
+                alt={competitorName}
+                className="size-24 rounded-[28px] border border-neutral-100"
+              />
+            </div>
+            <div className="absolute bottom-0 right-0 size-28 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[32px] bg-white z-10">
+              <img
+                src="/api/images/hyprnote/icon.png"
+                alt="Hyprnote"
+                className="size-24 rounded-[28px] border border-neutral-100"
+              />
+            </div>
           </div>
-          <div className="text-3xl sm:text-4xl text-neutral-400 font-light pl-6 pr-8">
-            vs
-          </div>
-          <div className="size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent scale-110">
-            <img
-              src="/api/images/hyprnote/icon.png"
-              alt="Hyprnote"
-              className="size-36 rounded-[40px] border border-neutral-100"
-            />
+          <div className="hidden sm:flex sm:flex-row sm:items-center sm:gap-0">
+            <div className="size-32 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[40px] bg-transparent opacity-30">
+              <img
+                src={competitorIcon}
+                alt={competitorName}
+                className="size-28 rounded-4xl border border-neutral-100"
+              />
+            </div>
+            <div className="text-3xl text-neutral-400 font-light pl-5 pr-6">
+              vs
+            </div>
+            <div className="size-32 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[40px] bg-transparent scale-110">
+              <img
+                src="/api/images/hyprnote/icon.png"
+                alt="Hyprnote"
+                className="size-28 rounded-4xl border border-neutral-100"
+              />
+            </div>
           </div>
         </div>
 
@@ -155,8 +176,8 @@ function HeroSection({
         </p>
 
         <div className="mt-8">
-          <a
-            href="https://hyprnote.com/download"
+          <Link
+            to="/download"
             className={cn([
               "inline-block px-8 py-3 text-base font-medium rounded-full",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white",
@@ -164,7 +185,7 @@ function HeroSection({
             ])}
           >
             Download Hyprnote for free
-          </a>
+          </Link>
         </div>
       </header>
     </div>

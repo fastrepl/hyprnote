@@ -2,14 +2,17 @@ import * as Sentry from "@sentry/bun";
 import type { Handler } from "hono";
 import { upgradeWebSocket } from "hono/bun";
 
-import { Metrics } from "./sentry/metrics";
+import type { AppBindings } from "./hono-bindings";
 import {
   createProxyFromRequest,
   normalizeWsData,
   WsProxyConnection,
 } from "./stt";
 
-export const listenSocketHandler: Handler = async (c, next) => {
+export const listenSocketHandler: Handler<AppBindings> = async (c, next) => {
+  const emit = c.get("emit");
+  const userId = c.get("supabaseUserId");
+
   const clientUrl = new URL(c.req.url, "http://localhost");
   const provider = clientUrl.searchParams.get("provider") ?? "deepgram";
 
@@ -31,7 +34,7 @@ export const listenSocketHandler: Handler = async (c, next) => {
         try {
           connection = createProxyFromRequest(clientUrl, c.req.raw.headers);
           await connection.preconnectUpstream();
-          Metrics.websocketConnected(provider);
+          emit({ type: "stt.websocket.connected", userId, provider });
           Sentry.addBreadcrumb({
             category: "websocket",
             message: "Upstream STT service connected",
@@ -39,6 +42,13 @@ export const listenSocketHandler: Handler = async (c, next) => {
             data: { provider },
           });
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : "upstream_connect_failed";
+          console.error("[listen] preconnect failed:", {
+            provider,
+            error: errorMessage,
+            stack: error instanceof Error ? error.stack : undefined,
+          });
           Sentry.addBreadcrumb({
             category: "websocket",
             message: "Upstream connection failed",
@@ -46,12 +56,30 @@ export const listenSocketHandler: Handler = async (c, next) => {
             data: { provider, error: String(error) },
           });
           Sentry.captureException(error, {
-            tags: { provider, operation: "upstream_connect" },
+            tags: {
+              operation: "stt_preconnect",
+              provider,
+            },
+            extra: {
+              errorMessage,
+              userId,
+            },
           });
-          const detail =
-            error instanceof Error ? error.message : "upstream_connect_failed";
-          const status = detail === "upstream_connect_timeout" ? 504 : 502;
-          return c.json({ error: "upstream_connect_failed", detail }, status);
+          emit({
+            type: "stt.websocket.error",
+            userId,
+            provider,
+            error:
+              error instanceof Error
+                ? error
+                : new Error("upstream_connect_failed"),
+          });
+          const status =
+            errorMessage === "upstream_connect_timeout" ? 504 : 502;
+          return c.json(
+            { error: "upstream_connect_failed", detail: errorMessage },
+            status,
+          );
         }
 
         const connectionStartTime = performance.now();
@@ -84,10 +112,12 @@ export const listenSocketHandler: Handler = async (c, next) => {
                 level: "info",
                 data: { provider, code, reason },
               });
-              Metrics.websocketDisconnected(
+              emit({
+                type: "stt.websocket.disconnected",
+                userId,
                 provider,
-                performance.now() - connectionStartTime,
-              );
+                durationMs: performance.now() - connectionStartTime,
+              });
             },
             onError(event) {
               Sentry.addBreadcrumb({
@@ -96,12 +126,15 @@ export const listenSocketHandler: Handler = async (c, next) => {
                 level: "error",
                 data: { provider },
               });
-              Sentry.captureException(
-                event instanceof Error
-                  ? event
-                  : new Error("websocket_client_error"),
-                { tags: { provider, operation: "websocket" } },
-              );
+              emit({
+                type: "stt.websocket.error",
+                userId,
+                provider,
+                error:
+                  event instanceof Error
+                    ? event
+                    : new Error("websocket_client_error"),
+              });
               connection.closeConnections(1011, "client_error");
             },
           };

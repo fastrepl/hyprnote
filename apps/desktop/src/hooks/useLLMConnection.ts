@@ -19,8 +19,12 @@ import {
   type ProviderId,
   PROVIDERS,
 } from "../components/settings/ai/llm/shared";
+import {
+  getProviderSelectionBlockers,
+  type ProviderEligibilityContext,
+} from "../components/settings/ai/shared/eligibility";
 import { env } from "../env";
-import * as main from "../store/tinybase/main";
+import * as settings from "../store/tinybase/settings";
 import { tracedFetch } from "../utils/traced-fetch";
 
 type LLMConnectionInfo = {
@@ -51,221 +55,150 @@ type LLMConnectionResult = {
 
 export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
   const { conn } = useLLMConnection();
-
-  return useMemo(() => {
-    if (!conn) {
-      return null;
-    }
-
-    if (conn.providerId === "hyprnote") {
-      const hyprnoteProvider = createOpenAICompatible({
-        fetch: tracedFetch,
-        name: "hyprnote",
-        baseURL: conn.baseUrl,
-        apiKey: conn.apiKey,
-        headers: {
-          Authorization: `Bearer ${conn.apiKey}`,
-        },
-      });
-
-      return wrapWithThinkingMiddleware(
-        hyprnoteProvider.chatModel(conn.modelId),
-      );
-    }
-
-    if (conn.providerId === "anthropic") {
-      const anthropicProvider = createAnthropic({
-        fetch: tauriFetch,
-        apiKey: conn.apiKey,
-        headers: {
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
-      });
-
-      return wrapWithThinkingMiddleware(anthropicProvider(conn.modelId));
-    }
-
-    if (conn.providerId === "google_generative_ai") {
-      const googleProvider = createGoogleGenerativeAI({
-        fetch: tauriFetch,
-        baseURL: conn.baseUrl,
-        apiKey: conn.apiKey,
-      });
-
-      return wrapWithThinkingMiddleware(googleProvider(conn.modelId));
-    }
-
-    if (conn.providerId === "openrouter") {
-      const openRouterProvider = createOpenRouter({
-        fetch: tauriFetch,
-        apiKey: conn.apiKey,
-        extraBody: {
-          provider: {
-            // https://openrouter.ai/docs/features/provider-routing#provider-sorting
-            sort: "latency",
-          },
-        },
-      });
-
-      return wrapWithThinkingMiddleware(openRouterProvider(conn.modelId));
-    }
-
-    if (conn.providerId === "openai") {
-      const openAIProvider = createOpenAI({
-        fetch: tauriFetch,
-        apiKey: conn.apiKey,
-      });
-
-      return wrapWithThinkingMiddleware(openAIProvider(conn.modelId));
-    }
-
-    const config: Parameters<typeof createOpenAICompatible>[0] = {
-      fetch: tauriFetch,
-      name: conn.providerId,
-      baseURL: conn.baseUrl,
-    };
-
-    if (conn.apiKey) {
-      config.apiKey = conn.apiKey;
-    }
-
-    const openAICompatibleProvider = createOpenAICompatible(config);
-
-    return wrapWithThinkingMiddleware(
-      openAICompatibleProvider.chatModel(conn.modelId),
-    );
-  }, [conn]);
+  return useMemo(() => (conn ? createLanguageModel(conn) : null), [conn]);
 };
 
 export const useLLMConnection = (): LLMConnectionResult => {
   const auth = useAuth();
   const billing = useBillingAccess();
 
-  const { current_llm_provider, current_llm_model } = main.UI.useValues(
-    main.STORE_ID,
+  const { current_llm_provider, current_llm_model } = settings.UI.useValues(
+    settings.STORE_ID,
   );
-  const providerConfig = main.UI.useRow(
+  const providerConfig = settings.UI.useRow(
     "ai_providers",
     current_llm_provider ?? "",
-    main.STORE_ID,
+    settings.STORE_ID,
   ) as AIProviderStorage | undefined;
 
-  return useMemo<LLMConnectionResult>(() => {
-    if (!current_llm_provider) {
-      return {
-        conn: null,
-        status: { status: "pending", reason: "missing_provider" },
-      };
-    }
-
-    const providerId = current_llm_provider as ProviderId;
-
-    if (!current_llm_model) {
-      return {
-        conn: null,
-        status: {
-          status: "pending",
-          reason: "missing_model",
-          providerId,
-        },
-      };
-    }
-
-    const providerDefinition = PROVIDERS.find(
-      (provider) => provider.id === current_llm_provider,
-    );
-
-    if (!providerDefinition) {
-      return {
-        conn: null,
-        status: {
-          status: "error",
-          reason: "provider_not_found",
-          providerId: current_llm_provider,
-        },
-      };
-    }
-
-    if (providerId === "hyprnote") {
-      if (!auth?.session) {
-        return {
-          conn: null,
-          status: { status: "error", reason: "unauthenticated", providerId },
-        };
-      }
-
-      if (!billing.isPro) {
-        return {
-          conn: null,
-          status: { status: "error", reason: "not_pro", providerId },
-        };
-      }
-
-      const conn: LLMConnectionInfo = {
-        providerId,
+  return useMemo<LLMConnectionResult>(
+    () =>
+      resolveLLMConnection({
+        providerId: current_llm_provider,
         modelId: current_llm_model,
-        baseUrl: `${env.VITE_API_URL}`,
-        apiKey: auth.session.access_token,
-      };
+        providerConfig,
+        session: auth?.session,
+        isPro: billing.isPro,
+      }),
+    [
+      auth,
+      billing.isPro,
+      current_llm_model,
+      current_llm_provider,
+      providerConfig,
+    ],
+  );
+};
 
+export const useLLMConnectionStatus = (): LLMConnectionStatus => {
+  const { status } = useLLMConnection();
+  return status;
+};
+
+const resolveLLMConnection = (params: {
+  providerId: string | undefined;
+  modelId: string | undefined;
+  providerConfig: AIProviderStorage | undefined;
+  session: { access_token: string } | null | undefined;
+  isPro: boolean;
+}): LLMConnectionResult => {
+  const {
+    providerId: rawProviderId,
+    modelId,
+    providerConfig,
+    session,
+    isPro,
+  } = params;
+
+  if (!rawProviderId) {
+    return {
+      conn: null,
+      status: { status: "pending", reason: "missing_provider" },
+    };
+  }
+
+  const providerId = rawProviderId as ProviderId;
+
+  if (!modelId) {
+    return {
+      conn: null,
+      status: { status: "pending", reason: "missing_model", providerId },
+    };
+  }
+
+  const providerDefinition = PROVIDERS.find((p) => p.id === rawProviderId);
+
+  if (!providerDefinition) {
+    return {
+      conn: null,
+      status: {
+        status: "error",
+        reason: "provider_not_found",
+        providerId: rawProviderId,
+      },
+    };
+  }
+
+  const baseUrl =
+    providerConfig?.base_url?.trim() ||
+    providerDefinition.baseUrl?.trim() ||
+    "";
+  const apiKey = providerConfig?.api_key?.trim() || "";
+
+  const context: ProviderEligibilityContext = {
+    isAuthenticated: !!session,
+    isPro,
+    config: { base_url: baseUrl, api_key: apiKey },
+  };
+
+  const blockers = getProviderSelectionBlockers(
+    providerDefinition.requirements,
+    context,
+  );
+
+  if (blockers.length > 0) {
+    const blocker = blockers[0];
+    if (blocker.code === "requires_auth" && providerId === "hyprnote") {
       return {
-        conn,
-        status: { status: "success", providerId, isHosted: true },
+        conn: null,
+        status: { status: "error", reason: "unauthenticated", providerId },
       };
     }
-
-    const baseUrl =
-      providerConfig?.base_url?.trim() ||
-      providerDefinition.baseUrl?.trim() ||
-      "";
-    const apiKey = providerConfig?.api_key?.trim() || "";
-
-    const missing: Array<"base_url" | "api_key"> = [];
-
-    if (!baseUrl) {
-      missing.push("base_url");
+    if (blocker.code === "requires_entitlement" && providerId === "hyprnote") {
+      return {
+        conn: null,
+        status: { status: "error", reason: "not_pro", providerId },
+      };
     }
-
-    if (providerDefinition.apiKey && !apiKey) {
-      missing.push("api_key");
-    }
-
-    if (missing.length > 0) {
+    if (blocker.code === "missing_config") {
       return {
         conn: null,
         status: {
           status: "error",
           reason: "missing_config",
           providerId,
-          missing,
+          missing: blocker.fields,
         },
       };
     }
+  }
 
-    const conn: LLMConnectionInfo = {
-      providerId,
-      modelId: current_llm_model,
-      baseUrl,
-      apiKey,
-    };
-
+  if (providerId === "hyprnote" && session) {
     return {
-      conn,
-      status: { status: "success", providerId, isHosted: false },
+      conn: {
+        providerId,
+        modelId,
+        baseUrl: baseUrl ?? new URL("/llm", env.VITE_AI_URL).toString(),
+        apiKey: session.access_token,
+      },
+      status: { status: "success", providerId, isHosted: true },
     };
-  }, [
-    auth,
-    billing.isPro,
-    current_llm_model,
-    current_llm_provider,
-    providerConfig,
-  ]);
-};
+  }
 
-export const useLLMConnectionStatus = (): LLMConnectionStatus => {
-  const { status } = useLLMConnection();
-  return status;
+  return {
+    conn: { providerId, modelId, baseUrl, apiKey },
+    status: { status: "success", providerId, isHosted: false },
+  };
 };
 
 const wrapWithThinkingMiddleware = (model: Exclude<LanguageModel, string>) => {
@@ -276,4 +209,90 @@ const wrapWithThinkingMiddleware = (model: Exclude<LanguageModel, string>) => {
       extractReasoningMiddleware({ tagName: "thinking" }),
     ],
   });
+};
+
+const createLanguageModel = (
+  conn: LLMConnectionInfo,
+): Exclude<LanguageModel, string> => {
+  switch (conn.providerId) {
+    case "hyprnote": {
+      const provider = createOpenAICompatible({
+        fetch: tracedFetch,
+        name: "hyprnote",
+        baseURL: conn.baseUrl,
+        apiKey: conn.apiKey,
+        headers: {
+          Authorization: `Bearer ${conn.apiKey}`,
+        },
+      });
+      return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
+    }
+
+    case "anthropic": {
+      const provider = createAnthropic({
+        fetch: tauriFetch,
+        apiKey: conn.apiKey,
+        headers: {
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+      });
+      return wrapWithThinkingMiddleware(provider(conn.modelId));
+    }
+
+    case "google_generative_ai": {
+      const provider = createGoogleGenerativeAI({
+        fetch: tauriFetch,
+        baseURL: conn.baseUrl,
+        apiKey: conn.apiKey,
+      });
+      return wrapWithThinkingMiddleware(provider(conn.modelId));
+    }
+
+    case "openrouter": {
+      const provider = createOpenRouter({
+        fetch: tauriFetch,
+        apiKey: conn.apiKey,
+      });
+      return wrapWithThinkingMiddleware(provider(conn.modelId));
+    }
+
+    case "openai": {
+      const provider = createOpenAI({
+        fetch: tauriFetch,
+        apiKey: conn.apiKey,
+      });
+      return wrapWithThinkingMiddleware(provider(conn.modelId));
+    }
+
+    case "ollama": {
+      const ollamaFetch: typeof fetch = async (input, init) => {
+        const headers = new Headers(init?.headers);
+        headers.set("Origin", "http://localhost");
+        return tauriFetch(input as RequestInfo | URL, {
+          ...init,
+          headers,
+        });
+      };
+      const provider = createOpenAICompatible({
+        fetch: ollamaFetch,
+        name: conn.providerId,
+        baseURL: conn.baseUrl,
+      });
+      return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
+    }
+
+    default: {
+      const config: Parameters<typeof createOpenAICompatible>[0] = {
+        fetch: tauriFetch,
+        name: conn.providerId,
+        baseURL: conn.baseUrl,
+      };
+      if (conn.apiKey) {
+        config.apiKey = conn.apiKey;
+      }
+      const provider = createOpenAICompatible(config);
+      return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
+    }
+  }
 };

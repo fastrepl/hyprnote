@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Menu, X, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   ResizableHandle,
@@ -83,7 +83,7 @@ const TYPOGRAPHY = [
   {
     id: "display-font",
     name: "Lora",
-    fontFamily: "Lora, serif",
+    fontFamily: "Lora",
     description:
       "Lora is our display typeface for headlines and featured text. Adds elegance and personality.",
     preview: "The quick brown fox jumps over the lazy dog",
@@ -350,7 +350,12 @@ function TypographyGrid({
             >
               Aa
             </div>
-            <div className="font-medium text-stone-600">{font.name}</div>
+            <div
+              className="font-medium text-stone-600"
+              style={{ fontFamily: font.fontFamily }}
+            >
+              {font.name}
+            </div>
           </button>
         ))}
       </div>
@@ -439,7 +444,11 @@ function MobileSidebarDrawer({
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            transition={{
+              type: "tween",
+              duration: 0.2,
+              ease: "easeOut",
+            }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
               <span className="text-sm font-medium text-stone-600">
@@ -620,10 +629,16 @@ function TypographySidebar({
               Aa
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-stone-600 truncate">
+              <p
+                className="text-sm font-medium text-stone-600 truncate"
+                style={{ fontFamily: font.fontFamily }}
+              >
                 {font.name}
               </p>
-              <p className="text-xs text-neutral-500 truncate">
+              <p
+                className="text-xs text-neutral-500 truncate"
+                style={{ fontFamily: font.fontFamily }}
+              >
                 {font.fontFamily}
               </p>
             </div>
@@ -720,6 +735,14 @@ function VisualAssetDetail({
   asset: (typeof VISUAL_ASSETS)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [asset.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -743,7 +766,7 @@ function VisualAssetDetail({
         </div>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <img
           src={asset.url}
           alt={asset.name}
@@ -762,6 +785,14 @@ function TypographyDetail({
   font: (typeof TYPOGRAPHY)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [font.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -774,7 +805,7 @@ function TypographyDetail({
         </button>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <div className="space-y-6">
           <div>
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
@@ -848,6 +879,14 @@ function ColorDetail({
   color: (typeof COLORS)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [color.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -860,7 +899,7 @@ function ColorDetail({
         </button>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <div className="space-y-6">
           <div>
             <div

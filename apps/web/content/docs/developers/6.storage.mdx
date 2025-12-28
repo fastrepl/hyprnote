@@ -15,11 +15,13 @@ We follow [XDG Specification](https://specifications.freedesktop.org/basedir/lat
 # XDG Base Directory Migration Plan (macOS)
 
 ## Overview
+
 Migrate from bundle-specific directories (`com.hyprnote.{stable,nightly,dev}`) to shared `hyprnote` directories, allowing all app variants to share the same data. **macOS only** - follows macOS conventions aligned with XDG principles.
 
 ## Current vs New Structure
 
 ### Current (Bundle-Specific)
+
 ```
 ~/Library/Application Support/com.hyprnote.{bundle}/
 ├── db.sqlite                 # User database
@@ -31,6 +33,7 @@ Migrate from bundle-specific directories (`com.hyprnote.{stable,nightly,dev}`) t
 ```
 
 ### New (Shared, No Bundle Prefix)
+
 ```
 ~/Library/Application Support/hyprnote/     # Data (persistent)
 ├── db.sqlite
@@ -50,7 +53,9 @@ Migrate from bundle-specific directories (`com.hyprnote.{stable,nightly,dev}`) t
 ## Code Changes Required
 
 ### 1. Core Path Infrastructure (NEW - Optional)
+
 **Create**: `apps/desktop/src-tauri/src/paths.rs`
+
 ```rust
 // Centralized path helper (optional but recommended)
 pub fn data_dir() -> PathBuf {
@@ -91,7 +96,9 @@ pub fn sessions_dir() -> PathBuf {
 ### 2. Replace `app.path().app_data_dir()` Pattern
 
 #### Database (2 files)
+
 - **`plugins/db/src/ext.rs:40`**
+
   ```rust
   // OLD: let dir = app.path().app_data_dir()?;
   // NEW:
@@ -105,7 +112,9 @@ pub fn sessions_dir() -> PathBuf {
 - **`plugins/db2/src/ext.rs:30-31`** → Same pattern
 
 #### STT Models (2 files)
+
 - **`plugins/local-stt/src/ext.rs:52`**
+
   ```rust
   // OLD: self.path().app_data_dir().unwrap().join("stt")
   // NEW:
@@ -118,7 +127,9 @@ pub fn sessions_dir() -> PathBuf {
 - **`plugins/local-stt/src/ext.rs:135`** → Same pattern
 
 #### LLM Models (2 files)
+
 - **`plugins/local-llm/src/ext/plugin.rs:51`**
+
   ```rust
   // OLD: self.path().app_data_dir().unwrap().join("ttt")
   // NEW:
@@ -131,6 +142,7 @@ pub fn sessions_dir() -> PathBuf {
 - **`plugins/local-llm/src/lib.rs:72`** → Same pattern
 
 #### Session Audio (1 file, 6 functions)
+
 - **`plugins/misc/src/commands.rs:39, 58, 91, 124, 142, 158`**
   ```rust
   // OLD: let data_dir = app.path().app_data_dir().unwrap();
@@ -143,6 +155,7 @@ pub fn sessions_dir() -> PathBuf {
   ```
 
 #### Logs (1 file)
+
 - **`plugins/tracing/src/ext.rs:9-12`**
   ```rust
   // OLD: fn logs_dir(&self, bundle_id: impl Into<String>) -> Result<PathBuf> {
@@ -159,7 +172,9 @@ pub fn sessions_dir() -> PathBuf {
   ```
 
 #### Store/Config (3 locations)
+
 - **`plugins/store2/src/ext.rs`**
+
   ```rust
   // Update STORE_FILENAME path resolution
   // Store in data dir for simplicity:
@@ -179,6 +194,7 @@ pub fn sessions_dir() -> PathBuf {
   ```
 
 #### Other Plugins (1 file)
+
 - **`plugins/listener/src/actors/controller.rs:282`**
   ```rust
   // OLD: app_dir: state.app.path().app_data_dir().unwrap(),
@@ -187,7 +203,9 @@ pub fn sessions_dir() -> PathBuf {
   ```
 
 #### owhisper Integration (1 file, 3 functions)
+
 - **`owhisper/owhisper-config/src/lib.rs:49, 53, 57`**
+
   ```rust
   // OLD: dirs::cache_dir().unwrap().join("com.fastrepl.owhisper")
   // NEW: dirs::cache_dir().unwrap().join("owhisper")
@@ -200,20 +218,25 @@ pub fn sessions_dir() -> PathBuf {
   ```
 
 ### 3. Test Files (4 files)
+
 Replace `com.hyprnote.dev` → `hyprnote`:
+
 - **`crates/llama/src/lib.rs:442-445`**
 - **`crates/gguf/src/lib.rs:164-167`**
 - **`crates/transcribe-whisper-local/src/lib.rs:17-20`**
 - **`owhisper/owhisper-server/src/server.rs:385-387`**
 
 ### 4. Scripts (3 files)
+
 - **`scripts/info.sh:8-16`**
+
   ```bash
   # OLD: "$HOME/Library/Application Support/com.hyprnote.stable"
   # NEW: "$HOME/Library/Application Support/hyprnote"
   ```
 
 - **`scripts/swap.sh:13-14`**
+
   ```bash
   # OLD: STABLE_DIR="$HOME/Library/Application Support/com.hyprnote.stable"
   # NEW: STABLE_DIR="$HOME/Library/Application Support/hyprnote"
@@ -226,6 +249,7 @@ Replace `com.hyprnote.dev` → `hyprnote`:
   ```
 
 ### 5. Frontend (1 file)
+
 - **`apps/desktop/src/routes/__root.tsx:46`**
   ```typescript
   // OLD: ["com.hyprnote.dev", "com.hyprnote.staging"].includes(appIdentifier ?? "")
@@ -233,6 +257,7 @@ Replace `com.hyprnote.dev` → `hyprnote`:
   ```
 
 ### 6. Detection/Permissions (4 files)
+
 - **`plugins/detect/src/handler.rs:67-69`** - Update bundle ID list if needed
 - **`crates/tcc/src/lib.rs:66, 73`** - Update test bundle IDs
 - **`plugins/analytics/src/lib.rs:72`** - Update identifier if needed
@@ -241,6 +266,7 @@ Replace `com.hyprnote.dev` → `hyprnote`:
 ## Migration Strategy
 
 ### User Data Migration (Run on First Launch)
+
 ```rust
 async fn migrate_from_bundle_dirs(app: &AppHandle) -> Result<()> {
     let bundle_id = app.config().identifier; // e.g., "com.hyprnote.stable"
@@ -269,6 +295,7 @@ async fn migrate_from_bundle_dirs(app: &AppHandle) -> Result<()> {
 ```
 
 ### Migration Checklist
+
 - [ ] Detect existing bundle-specific directories
 - [ ] Move/rename entire directory structure
 - [ ] Reorganize models: `stt/` → `models/stt/`, `ttt/` → `models/llm/`
@@ -279,6 +306,7 @@ async fn migrate_from_bundle_dirs(app: &AppHandle) -> Result<()> {
 - [ ] Log migration success/failure
 
 ## Testing Checklist
+
 - [ ] Fresh install creates correct structure
 - [ ] Upgrade from `com.hyprnote.stable` migrates data
 - [ ] Upgrade from `com.hyprnote.nightly` migrates data
@@ -294,6 +322,7 @@ async fn migrate_from_bundle_dirs(app: &AppHandle) -> Result<()> {
 ## Files Summary (27 locations)
 
 **Rust Core** (15 files):
+
 1. Database: `plugins/db/src/ext.rs`, `plugins/db2/src/ext.rs`
 2. Models: `plugins/local-stt/src/ext.rs` (2 locations), `plugins/local-llm/src/ext/plugin.rs`, `plugins/local-llm/src/lib.rs`
 3. Sessions: `plugins/misc/src/commands.rs` (6 functions)
@@ -303,20 +332,24 @@ async fn migrate_from_bundle_dirs(app: &AppHandle) -> Result<()> {
 7. owhisper: `owhisper/owhisper-config/src/lib.rs` (3 functions)
 
 **Tests** (4 files):
+
 - `crates/llama/src/lib.rs`
 - `crates/gguf/src/lib.rs`
 - `crates/transcribe-whisper-local/src/lib.rs`
 - `owhisper/owhisper-server/src/server.rs`
 
 **Scripts** (3 files):
+
 - `scripts/info.sh`
 - `scripts/swap.sh`
 - `Taskfile.yaml`
 
 **Frontend** (1 file):
+
 - `apps/desktop/src/routes/__root.tsx`
 
 **Config/Detection** (4 files):
+
 - `plugins/detect/src/handler.rs`
 - `crates/tcc/src/lib.rs`
 - `plugins/analytics/src/lib.rs`
@@ -342,6 +375,7 @@ async fn migrate_from_bundle_dirs(app: &AppHandle) -> Result<()> {
 ```
 
 ## Benefits
+
 ✓ All app variants (stable/nightly/dev) share data
 ✓ Follows macOS conventions
 ✓ Clear organization with `models/` and `sessions/` subdirectories
@@ -350,6 +384,7 @@ async fn migrate_from_bundle_dirs(app: &AppHandle) -> Result<()> {
 ✓ Simpler mental model for users
 
 ## Risks & Mitigation
+
 - **Risk**: Migration fails, user loses data
   **Mitigation**: Use `fs::rename()` (atomic on same filesystem), log errors, keep backups
 
@@ -360,6 +395,7 @@ async fn migrate_from_bundle_dirs(app: &AppHandle) -> Result<()> {
   **Mitigation**: Staged rollout, version checks, clear migration logs
 
 ## Documentation Updates
+
 - [ ] User docs: Update data location references
 - [ ] Developer docs: Document new path structure
 - [ ] Changelog: Add migration notes

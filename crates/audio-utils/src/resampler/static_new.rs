@@ -1,8 +1,8 @@
-use futures_util::{pin_mut, Stream};
+use futures_util::{Stream, pin_mut};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use kalosm_sound::AsyncSource;
+use hypr_audio_interface::AsyncSource;
 use rubato::{FastFixedIn, PolynomialDegree};
 
 use super::driver::RubatoChunkResampler;

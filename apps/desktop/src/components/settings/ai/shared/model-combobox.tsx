@@ -1,4 +1,4 @@
-import { ChevronDown, CirclePlus, Eye, EyeOff } from "lucide-react";
+import { ChevronDown, CirclePlus, Eye, EyeOff, RefreshCcw } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -70,11 +70,12 @@ export function ModelCombobox({
   const [query, setQuery] = useState("");
   const [showIgnored, setShowIgnored] = useState(false);
 
-  const { data: fetchedResult, isLoading: isLoadingModels } = useModelMetadata(
-    providerId,
-    listModels,
-    { enabled: !disabled },
-  );
+  const {
+    data: fetchedResult,
+    isLoading: isLoadingModels,
+    refetch,
+    isFetching,
+  } = useModelMetadata(providerId, listModels, { enabled: !disabled });
 
   const options: string[] = useMemo(
     () => fetchedResult?.models ?? [],
@@ -119,7 +120,9 @@ export function ModelCombobox({
           role="combobox"
           disabled={disabled || isLoadingModels}
           aria-expanded={open}
-          className={cn(["w-full justify-between font-normal bg-white"])}
+          className={cn([
+            "w-full justify-between font-normal bg-white shadow-none focus-visible:ring-0",
+          ])}
         >
           {value && value.length > 0 ? (
             <span className="truncate">{value}</span>
@@ -243,27 +246,38 @@ export function ModelCombobox({
             </CommandGroup>
           </CommandList>
 
-          {hasIgnoredOptions && (
-            <div className="px-2 py-1.5 text-xs text-muted-foreground border-t flex items-center justify-between">
+          <div className="px-2 py-1.5 text-xs text-muted-foreground border-t flex items-center justify-between">
+            <button
+              type="button"
+              onClick={toggleShowIgnored}
+              className="flex items-center gap-1 text-xs hover:text-foreground transition-colors mr-1"
+            >
+              {showIgnored ? (
+                <EyeOff className="h-3 w-3" />
+              ) : (
+                <Eye className="h-3 w-3" />
+              )}
+            </button>
+
+            {hasIgnoredOptions && (
               <span>
                 {showIgnored
-                  ? `Showing ${ignoredOptions.length} more items.`
+                  ? `Showing total of ${options.length} models.`
                   : `${ignoredOptions.length} items ignored.`}
               </span>
-              <button
-                type="button"
-                onClick={toggleShowIgnored}
-                className="flex items-center gap-1 text-xs hover:text-foreground transition-colors"
-              >
-                {showIgnored ? (
-                  <EyeOff className="h-3 w-3" />
-                ) : (
-                  <Eye className="h-3 w-3" />
-                )}
-                {showIgnored ? "Hide" : "Show"}
-              </button>
-            </div>
-          )}
+            )}
+
+            <button
+              type="button"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="flex items-center gap-1 text-xs hover:text-foreground transition-colors disabled:opacity-50 ml-auto"
+            >
+              <RefreshCcw
+                className={cn(["h-3 w-3", isFetching && "animate-spin"])}
+              />
+            </button>
+          </div>
         </Command>
       </PopoverContent>
     </Popover>

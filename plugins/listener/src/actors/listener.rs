@@ -6,14 +6,15 @@ use tokio::time::error::Elapsed;
 
 use owhisper_client::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FinalizeHandle,
-    FireworksAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter, TraceHeaders,
+    FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+    TraceHeaders,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
 use tauri_specta::Event;
 
-use crate::SessionEvent;
+use crate::{SessionDataEvent, SessionErrorEvent, SessionProgressEvent};
 
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 const LISTEN_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
@@ -88,7 +89,24 @@ impl Actor for ListenerActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let (tx, rx_task, shutdown_tx) = spawn_rx_task(args.clone(), myself).await?;
+        if let Err(error) = (SessionProgressEvent::Connecting {
+            session_id: args.session_id.clone(),
+        })
+        .emit(&args.app)
+        {
+            tracing::error!(?error, "failed_to_emit_connecting");
+        }
+
+        let (tx, rx_task, shutdown_tx, adapter_name) = spawn_rx_task(args.clone(), myself).await?;
+
+        if let Err(error) = (SessionProgressEvent::Connected {
+            session_id: args.session_id.clone(),
+            adapter: adapter_name,
+        })
+        .emit(&args.app)
+        {
+            tracing::error!(?error, "failed_to_emit_connected");
+        }
 
         let state = ListenerState {
             args,
@@ -142,7 +160,7 @@ impl Actor for ListenerActor {
                     crate::actors::ChannelMode::MicAndSpeaker => {}
                 }
 
-                if let Err(error) = (SessionEvent::StreamResponse {
+                if let Err(error) = (SessionDataEvent::StreamResponse {
                     session_id: state.args.session_id.clone(),
                     response: Box::new(response),
                 })
@@ -197,13 +215,24 @@ async fn spawn_rx_task(
         ChannelSender,
         tokio::task::JoinHandle<()>,
         tokio::sync::oneshot::Sender<()>,
+        String, // adapter name
     ),
     ActorProcessingErr,
 > {
     let adapter_kind = AdapterKind::from_url_and_languages(&args.base_url, &args.languages);
     let is_dual = matches!(args.mode, crate::actors::ChannelMode::MicAndSpeaker);
 
-    match (adapter_kind, is_dual) {
+    let adapter_name = match adapter_kind {
+        AdapterKind::Argmax => "Argmax",
+        AdapterKind::Soniox => "Soniox",
+        AdapterKind::Fireworks => "Fireworks",
+        AdapterKind::Deepgram => "Deepgram",
+        AdapterKind::AssemblyAI => "AssemblyAI",
+        AdapterKind::OpenAI => "OpenAI",
+        AdapterKind::Gladia => "Gladia",
+    };
+
+    let result = match (adapter_kind, is_dual) {
         (AdapterKind::Argmax, false) => {
             spawn_rx_task_single_with_adapter::<ArgmaxAdapter>(args, myself).await
         }
@@ -240,7 +269,15 @@ async fn spawn_rx_task(
         (AdapterKind::OpenAI, true) => {
             spawn_rx_task_dual_with_adapter::<OpenAIAdapter>(args, myself).await
         }
-    }
+        (AdapterKind::Gladia, false) => {
+            spawn_rx_task_single_with_adapter::<GladiaAdapter>(args, myself).await
+        }
+        (AdapterKind::Gladia, true) => {
+            spawn_rx_task_dual_with_adapter::<GladiaAdapter>(args, myself).await
+        }
+    }?;
+
+    Ok((result.0, result.1, result.2, adapter_name.to_string()))
 }
 
 fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams {
@@ -338,7 +375,8 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
         .trace_headers(trace_headers)
-        .build_single();
+        .build_single()
+        .await;
 
     let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
 
@@ -352,10 +390,22 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
                 session_id = %args.session_id,
                 "listen_ws_connect_timeout(single)"
             );
+            let _ = (SessionErrorEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: "listen_ws_connect_timeout".to_string(),
+                is_retryable: true,
+            })
+            .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
             tracing::error!(error = ?e, session_id = %args.session_id, "listen_ws_connect_failed(single)");
+            let _ = (SessionErrorEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: format!("listen_ws_connect_failed: {:?}", e),
+                is_retryable: true,
+            })
+            .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
         }
         Ok(Ok(res)) => res,
@@ -410,7 +460,8 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
         .trace_headers(trace_headers)
-        .build_dual();
+        .build_dual()
+        .await;
 
     let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
 
@@ -424,10 +475,22 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
                 session_id = %args.session_id,
                 "listen_ws_connect_timeout(dual)"
             );
+            let _ = (SessionErrorEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: "listen_ws_connect_timeout".to_string(),
+                is_retryable: true,
+            })
+            .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
             tracing::error!(error = ?e, session_id = %args.session_id, "listen_ws_connect_failed(dual)");
+            let _ = (SessionErrorEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: format!("listen_ws_connect_failed: {:?}", e),
+                is_retryable: true,
+            })
+            .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
         }
         Ok(Ok(res)) => res,

@@ -10,7 +10,7 @@ const TRUE_PEAK_LIMIT: f64 = -1.0;
 const LIMITER_LOOKAHEAD_MS: usize = 10;
 const ANALYZE_CHUNK_SIZE: usize = 512;
 
-pub struct NormalizedSource<S: kalosm_sound::AsyncSource> {
+pub struct NormalizedSource<S: hypr_audio_interface::AsyncSource> {
     source: S,
     gain_linear: f32,
     ebur128: EbuR128,
@@ -57,11 +57,11 @@ impl TruePeakLimiter {
     }
 }
 
-pub trait NormalizeExt<S: kalosm_sound::AsyncSource> {
+pub trait NormalizeExt<S: hypr_audio_interface::AsyncSource> {
     fn normalize(self) -> NormalizedSource<S>;
 }
 
-impl<S: kalosm_sound::AsyncSource> NormalizeExt<S> for S {
+impl<S: hypr_audio_interface::AsyncSource> NormalizeExt<S> for S {
     fn normalize(self) -> NormalizedSource<S> {
         let sample_rate = self.sample_rate();
         let ebur128 = EbuR128::new(CHANNELS, sample_rate, Mode::I | Mode::TRUE_PEAK)
@@ -80,7 +80,7 @@ impl<S: kalosm_sound::AsyncSource> NormalizeExt<S> for S {
     }
 }
 
-impl<S: kalosm_sound::AsyncSource + Unpin> Stream for NormalizedSource<S> {
+impl<S: hypr_audio_interface::AsyncSource + Unpin> Stream for NormalizedSource<S> {
     type Item = f32;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
@@ -95,11 +95,12 @@ impl<S: kalosm_sound::AsyncSource + Unpin> Stream for NormalizedSource<S> {
                     let _ = this.ebur128.add_frames_f32(&this.loudness_buffer);
                     this.loudness_buffer.clear();
 
-                    if let Ok(current_lufs) = this.ebur128.loudness_global() {
-                        if current_lufs.is_finite() && current_lufs < 0.0 {
-                            let gain_db = TARGET_LUFS - current_lufs;
-                            this.gain_linear = 10_f32.powf(gain_db as f32 / 20.0);
-                        }
+                    if let Ok(current_lufs) = this.ebur128.loudness_global()
+                        && current_lufs.is_finite()
+                        && current_lufs < 0.0
+                    {
+                        let gain_db = TARGET_LUFS - current_lufs;
+                        this.gain_linear = 10_f32.powf(gain_db as f32 / 20.0);
                     }
                 }
 
@@ -114,7 +115,9 @@ impl<S: kalosm_sound::AsyncSource + Unpin> Stream for NormalizedSource<S> {
     }
 }
 
-impl<S: kalosm_sound::AsyncSource + Unpin> kalosm_sound::AsyncSource for NormalizedSource<S> {
+impl<S: hypr_audio_interface::AsyncSource + Unpin> hypr_audio_interface::AsyncSource
+    for NormalizedSource<S>
+{
     fn sample_rate(&self) -> u32 {
         self.source.sample_rate()
     }
@@ -128,7 +131,7 @@ impl<S: kalosm_sound::AsyncSource + Unpin> kalosm_sound::AsyncSource for Normali
 mod tests {
     use super::*;
     use futures_util::StreamExt;
-    use kalosm_sound::AsyncSource;
+    use hypr_audio_interface::AsyncSource;
 
     #[tokio::test]
     async fn test_normalize() {

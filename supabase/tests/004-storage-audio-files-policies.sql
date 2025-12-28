@@ -15,7 +15,7 @@ select lives_ok(
 select results_eq(
   $$select count(*) from storage.objects where bucket_id = 'audio-files'$$,
   array[1::bigint],
-  'Owner can view own files in bucket'
+  'Owner can view own files'
 );
 
 select tests.clear_authentication();
@@ -29,11 +29,10 @@ select throws_ok(
   'Cannot upload to another user folder'
 );
 
--- Bucket is now private, so other users cannot view files they do not own
 select results_eq(
   $$select count(*) from storage.objects where bucket_id = 'audio-files'$$,
   array[0::bigint],
-  'Other users cannot view files in private bucket'
+  'Other user cannot view files in private bucket'
 );
 
 select * from finish();

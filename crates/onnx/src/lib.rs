@@ -2,8 +2,8 @@ mod error;
 pub use error::*;
 
 use ort::{
-    session::{builder::GraphOptimizationLevel, Session},
     Result,
+    session::{Session, builder::GraphOptimizationLevel},
 };
 
 pub use ndarray;

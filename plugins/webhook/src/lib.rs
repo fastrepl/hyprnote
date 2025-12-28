@@ -47,21 +47,25 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 
     #[test]
     fn export_openapi() {
         let openapi_json = generate_openapi_json();
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("openapi.json");
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("openapi.gen.json");
         std::fs::write(&path, openapi_json).unwrap();
     }
 }

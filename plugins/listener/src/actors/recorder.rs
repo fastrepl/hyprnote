@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use hypr_audio_utils::{
-    decode_vorbis_to_wav_file, encode_wav_to_vorbis_file, mix_audio_f32, VorbisEncodeSettings,
+    VorbisEncodeSettings, decode_vorbis_to_wav_file, encode_wav_to_vorbis_file, mix_audio_f32,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 

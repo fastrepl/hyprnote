@@ -5,7 +5,7 @@
   font-weight: 400;
 
   color: #0f0f0f;
-  background-color: #f6f6f6;
+  background-color: transparent;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -20,22 +20,46 @@
   box-sizing: border-box;
 }
 
-main {
+html,
+body {
+  background: transparent;
+  overflow: hidden;
+}
+
+.menubar-panel {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 13px;
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 600;
+  margin-bottom: 8px;
+}
+
+p {
+  font-size: 0.875rem;
+  color: #666;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color: #f6f6f6;
-    background-color: #2f2f2f;
+  }
+
+  .menubar-panel {
+    background: rgba(40, 40, 40, 0.95);
+  }
+
+  p {
+    color: #999;
   }
 }

@@ -92,7 +92,12 @@ jobs:
       REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
-      - run: gh api repos/$REPO/issues/comments/${{ github.event.comment.id }}/reactions -f content='eyes' --silent
+      - uses: ./.github/actions/add-reaction
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          comment: ${{ github.event.comment.id }}
+          reaction: eyes
       - id: trigger
         uses: ./.github/actions/trigger-workflow
         with:

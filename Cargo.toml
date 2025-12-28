@@ -37,6 +37,7 @@ hypr-am2 = { path = "crates/am2", package = "am2" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-interface = { path = "crates/audio-interface", package = "audio-interface" }
+hypr-audio-priority = { path = "crates/audio-priority", package = "audio-priority" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
 hypr-data = { path = "crates/data", package = "data" }

@@ -127,6 +127,7 @@ tauri-plugin-window-state = "2.4"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
+tauri-plugin-audio-priority = { path = "plugins/audio-priority" }
 tauri-plugin-auth = { path = "plugins/auth" }
 tauri-plugin-cli2 = { path = "plugins/cli2" }
 tauri-plugin-db2 = { path = "plugins/db2" }

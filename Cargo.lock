@@ -4594,6 +4594,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-analytics",
  "tauri-plugin-apple-calendar",
+ "tauri-plugin-audio-priority",
  "tauri-plugin-auth",
  "tauri-plugin-autostart",
  "tauri-plugin-cli",
@@ -17032,6 +17033,21 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "tauri-plugin-audio-priority"
+version = "0.1.0"
+dependencies = [
+ "audio-priority",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
 ]
 
 [[package]]

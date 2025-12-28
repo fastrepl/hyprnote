@@ -202,6 +202,9 @@ importers:
       '@hypr/plugin-apple-calendar':
         specifier: workspace:*
         version: link:../../plugins/apple-calendar
+      '@hypr/plugin-audio-priority':
+        specifier: workspace:*
+        version: link:../../plugins/audio-priority
       '@hypr/plugin-auth':
         specifier: workspace:*
         version: link:../../plugins/auth
@@ -1377,6 +1380,12 @@ importers:
         version: 2.9.1
 
   plugins/apple-calendar:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/audio-priority:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

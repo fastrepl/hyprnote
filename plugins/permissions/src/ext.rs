@@ -309,12 +309,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
             use tauri_plugin_shell::ShellExt;
 
             let bundle_id = self.manager.config().identifier.clone();
-            self.manager
+            let _ = self
+                .manager
                 .shell()
                 .command("tccutil")
                 .args(["reset", "Calendar", &bundle_id])
-                .spawn()
-                .ok();
+                .output()
+                .await;
         }
 
         Ok(())
@@ -326,12 +327,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
             use tauri_plugin_shell::ShellExt;
 
             let bundle_id = self.manager.config().identifier.clone();
-            self.manager
+            let _ = self
+                .manager
                 .shell()
                 .command("tccutil")
                 .args(["reset", "AddressBook", &bundle_id])
-                .spawn()
-                .ok();
+                .output()
+                .await;
         }
 
         Ok(())
@@ -343,12 +345,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
             use tauri_plugin_shell::ShellExt;
 
             let bundle_id = self.manager.config().identifier.clone();
-            self.manager
+            let _ = self
+                .manager
                 .shell()
                 .command("tccutil")
                 .args(["reset", "Microphone", &bundle_id])
-                .spawn()
-                .ok();
+                .output()
+                .await;
         }
 
         Ok(())
@@ -360,12 +363,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
             use tauri_plugin_shell::ShellExt;
 
             let bundle_id = self.manager.config().identifier.clone();
-            self.manager
+            let _ = self
+                .manager
                 .shell()
                 .command("tccutil")
                 .args(["reset", "AudioCapture", &bundle_id])
-                .spawn()
-                .ok();
+                .output()
+                .await;
         }
 
         Ok(())
@@ -377,12 +381,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
             use tauri_plugin_shell::ShellExt;
 
             let bundle_id = self.manager.config().identifier.clone();
-            self.manager
+            let _ = self
+                .manager
                 .shell()
                 .command("tccutil")
                 .args(["reset", "Accessibility", &bundle_id])
-                .spawn()
-                .ok();
+                .output()
+                .await;
         }
 
         Ok(())

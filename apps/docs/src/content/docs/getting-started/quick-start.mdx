@@ -1,0 +1,46 @@
+---
+title: "Quick Start"
+description: "Get up and running with Hyprnote in minutes."
+---
+
+This guide walks you through your first meeting with Hyprnote.
+
+## Step 1: Grant Permissions
+
+When you first open Hyprnote, it will request access to your microphone and system audio. These permissions are required for transcription to work.
+
+On macOS, go to System Settings > Privacy & Security > Microphone and ensure Hyprnote is enabled. For system audio capture, Hyprnote uses a virtual audio device that requires no additional setup on Apple Silicon Macs.
+
+## Step 2: Configure Transcription
+
+Hyprnote supports both local and cloud-based transcription. Open Settings to choose your preferred method.
+
+For local transcription, Hyprnote can download and run Whisper models directly on your device. This keeps your audio data completely private. Go to Settings > Transcription and select a local model. The first time you use a model, Hyprnote will download it automatically.
+
+For cloud transcription, you can use services like Deepgram, AssemblyAI, or OpenAI. Enter your API key in Settings > Transcription to enable cloud-based speech-to-text.
+
+## Step 3: Set Up AI Enhancement
+
+Hyprnote uses AI to generate summaries and answer questions about your meetings. You can use local models via LM Studio or Ollama, or connect to cloud providers like OpenAI, Anthropic, or Google.
+
+For local AI, install [LM Studio](https://lmstudio.ai) or [Ollama](https://ollama.ai), download a model, and start the local server. Hyprnote will automatically detect it.
+
+For cloud AI, go to Settings > AI and enter your API key for your preferred provider.
+
+## Step 4: Start Your First Meeting
+
+Create a new note by clicking the + button or pressing Cmd+N. Give your note a title that describes the meeting.
+
+When you're ready to start recording, click the microphone button in the toolbar or press Cmd+Shift+R. Hyprnote will begin capturing audio from your microphone and speakers.
+
+During the meeting, jot down key points in the note editor. These notes help Hyprnote generate more personalized summaries later.
+
+## Step 5: Generate a Summary
+
+When your meeting ends, click the stop button to end the recording. Hyprnote will process the transcript and display it in the right panel.
+
+Click the "Enhance" button to generate an AI summary based on your notes and the transcript. The summary combines what you wrote with what was said to create a comprehensive meeting record.
+
+## Next Steps
+
+Explore [Templates](/templates) to customize how Hyprnote formats your meeting summaries. Check out the [FAQ](/docs/faq/general) for answers to common questions, or join our [Discord](https://discord.gg/hyprnote) to connect with other users.

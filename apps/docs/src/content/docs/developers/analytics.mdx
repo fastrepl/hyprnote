@@ -1,0 +1,19 @@
+---
+title: "Analytics"
+description: "Learn about analytics in Hyprnote"
+---
+
+## What are we tracking?
+
+We have some analytics code in the desktop application.
+
+```bash
+grep -r ".event(" apps/desktop/src
+grep -r ".event(" apps/desktop/src-tauri/src
+```
+
+You can opt-out from the settings menu.
+
+## How to make changes?
+
+See `.cursor/commands/add-analytics.md` for detailed instructions.

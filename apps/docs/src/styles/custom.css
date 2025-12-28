@@ -1,0 +1,127 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap");
+
+:root {
+  --sl-font: "Inter", system-ui, -apple-system, sans-serif;
+  --sl-font-system-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+
+  --sl-color-accent-low: #f5f5f4;
+  --sl-color-accent: #57534e;
+  --sl-color-accent-high: #292524;
+
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #f5f5f4;
+  --sl-color-gray-2: #e7e5e4;
+  --sl-color-gray-3: #d6d3d1;
+  --sl-color-gray-4: #a8a29e;
+  --sl-color-gray-5: #78716c;
+  --sl-color-gray-6: #57534e;
+  --sl-color-black: #1c1917;
+
+  --sl-color-text: #292524;
+  --sl-color-text-accent: #57534e;
+
+  --sl-nav-height: 69px;
+}
+
+:root[data-theme="dark"] {
+  --sl-color-accent-low: #292524;
+  --sl-color-accent: #a8a29e;
+  --sl-color-accent-high: #f5f5f4;
+
+  --sl-color-white: #1c1917;
+  --sl-color-gray-1: #292524;
+  --sl-color-gray-2: #44403c;
+  --sl-color-gray-3: #57534e;
+  --sl-color-gray-4: #78716c;
+  --sl-color-gray-5: #a8a29e;
+  --sl-color-gray-6: #d6d3d1;
+  --sl-color-black: #fafaf9;
+
+  --sl-color-text: #fafaf9;
+  --sl-color-text-accent: #d6d3d1;
+}
+
+html {
+  scroll-padding-top: 69px;
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4 {
+  font-family: "Lora", Georgia, serif;
+  font-weight: 600;
+}
+
+.sl-markdown-content h1 {
+  font-size: 2.25rem;
+  color: #57534e;
+}
+
+.sl-markdown-content h2 {
+  font-size: 1.5rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.sl-markdown-content h3 {
+  font-size: 1.25rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.sl-markdown-content a {
+  color: #57534e;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.sl-markdown-content a:hover {
+  color: #292524;
+}
+
+.sl-markdown-content code:not(pre code) {
+  background-color: #fafaf9;
+  border: 1px solid #e7e5e4;
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.875rem;
+  color: #57534e;
+}
+
+.sl-markdown-content pre {
+  background-color: #fafaf9;
+  border: 1px solid #e7e5e4;
+  border-radius: 0.25rem;
+}
+
+starlight-toc nav {
+  border-left: none;
+}
+
+starlight-toc a {
+  border-left: 2px solid transparent;
+  padding-left: 0.5rem;
+}
+
+starlight-toc a:hover {
+  border-left-color: #d6d3d1;
+}
+
+starlight-toc a[aria-current="true"] {
+  border-left-color: #57534e;
+  color: #57534e;
+  font-weight: 500;
+}
+
+.sidebar-content a[aria-current="page"] {
+  background-color: #f5f5f4;
+  color: #57534e;
+  font-weight: 500;
+}
+
+.sidebar-content a:hover {
+  background-color: #fafaf9;
+  color: #57534e;
+}

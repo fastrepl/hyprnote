@@ -186,13 +186,9 @@ pub async fn main() {
             tauri::async_runtime::spawn(async move {
                 let permissions = app_handle.permissions();
                 let _ = permissions.reset(Permission::Microphone).await;
-                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::SystemAudio).await;
-                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::Accessibility).await;
-                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::Calendar).await;
-                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                 let _ = permissions.reset(Permission::Contacts).await;
             });
         }

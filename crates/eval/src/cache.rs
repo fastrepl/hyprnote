@@ -12,19 +12,30 @@ fn default_cache_dir() -> Option<PathBuf> {
     dirs::cache_dir().map(|p| p.join("hyprnote").join("eval.cache"))
 }
 
+/// State of the disk cache initialization.
+#[derive(Debug, Clone)]
+enum DiskCacheState {
+    /// Disk cache is available at the given path.
+    Available(PathBuf),
+    /// Disk cache is disabled (no cache directory configured or creation failed).
+    Disabled,
+}
+
 pub struct CachingClient {
-    cache_dir: Option<PathBuf>,
-    cache: Mutex<HashMap<String, String>>,
+    disk_cache: DiskCacheState,
+    memory_cache: Mutex<HashMap<String, String>>,
     agent: Agent,
 }
 
 impl CachingClient {
     pub fn new(cache_dir: Option<String>) -> Self {
-        let dir = cache_dir.map(PathBuf::from).or_else(default_cache_dir);
-
-        if let Some(ref d) = dir {
-            let _ = fs::create_dir_all(d);
-        }
+        let disk_cache = match cache_dir.map(PathBuf::from).or_else(default_cache_dir) {
+            Some(dir) => match fs::create_dir_all(&dir) {
+                Ok(()) => DiskCacheState::Available(dir),
+                Err(_) => DiskCacheState::Disabled,
+            },
+            None => DiskCacheState::Disabled,
+        };
 
         let agent = Agent::config_builder()
             .timeout_global(Some(Duration::from_secs(30)))
@@ -32,8 +43,8 @@ impl CachingClient {
             .into();
 
         Self {
-            cache_dir: dir,
-            cache: Mutex::new(HashMap::new()),
+            disk_cache,
+            memory_cache: Mutex::new(HashMap::new()),
             agent,
         }
     }
@@ -54,30 +65,31 @@ impl CachingClient {
     }
 
     fn cache_path(&self, key: &str) -> Option<PathBuf> {
-        self.cache_dir
-            .as_ref()
-            .map(|d| d.join(format!("{}.json", key)))
+        match &self.disk_cache {
+            DiskCacheState::Available(dir) => Some(dir.join(format!("{}.json", key))),
+            DiskCacheState::Disabled => None,
+        }
     }
 
     fn get_cached(&self, key: &str) -> Option<String> {
         if let Some(path) = self.cache_path(key) {
-            if path.exists() {
-                if let Ok(content) = fs::read_to_string(&path) {
-                    return Some(content);
-                }
+            if let Ok(content) = fs::read_to_string(&path) {
+                return Some(content);
             }
         }
 
-        let cache = self.cache.lock().ok()?;
+        let cache = self.memory_cache.lock().ok()?;
         cache.get(key).cloned()
     }
 
     fn set_cached(&self, key: &str, value: &str) {
         if let Some(path) = self.cache_path(key) {
-            let _ = fs::write(&path, value);
+            if fs::write(&path, value).is_err() {
+                eprintln!("Warning: failed to write cache file: {}", path.display());
+            }
         }
 
-        if let Ok(mut cache) = self.cache.lock() {
+        if let Ok(mut cache) = self.memory_cache.lock() {
             cache.insert(key.to_string(), value.to_string());
         }
     }

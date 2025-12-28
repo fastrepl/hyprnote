@@ -7,15 +7,11 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 mod report;
 mod submissions;
 
-use hypr_eval::{EvalResult, Executor, ExecutorProgress, OpenRouterClient, parse_config};
+use hypr_eval::{
+    DEFAULT_MODELS, EvalResult, Executor, ExecutorProgress, OpenRouterClient, parse_config,
+};
 use report::{render_json, render_results};
 use submissions::{all_cases, filter_cases};
-
-static DEFAULT_MODELS: &[&str] = &[
-    "openai/gpt-4.1-nano",
-    "anthropic/claude-haiku-4.5",
-    "liquid/lfm-2.2-6b",
-];
 
 #[derive(Parser)]
 #[command(name = "evals")]

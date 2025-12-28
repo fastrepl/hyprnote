@@ -95,6 +95,10 @@ impl DeviceChangeWatcher {
                     tracing::info!(event = ?event, "device_event");
                     pending_change = true;
                 }
+                Ok(DeviceEvent::VolumeChanged { .. })
+                | Ok(DeviceEvent::MuteChanged { .. }) => {
+                    // Volume/mute changes don't require restarting the audio source
+                }
                 Err(RecvTimeoutError::Timeout) => {
                     if pending_change {
                         tracing::info!("device_change_debounced_restarting_source");

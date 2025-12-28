@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use hypr_audio_utils::{f32_to_i16_bytes, resample_audio, source_from_path, Source};
+use hypr_audio_utils::{Source, f32_to_i16_bytes, resample_audio, source_from_path};
 
 use crate::error::Error;
 

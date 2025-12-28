@@ -40,12 +40,14 @@ macro_rules! menu_items {
             }
         }
 
-        impl From<tauri::menu::MenuId> for HyprMenuItem {
-            fn from(id: tauri::menu::MenuId) -> Self {
+        impl TryFrom<tauri::menu::MenuId> for HyprMenuItem {
+            type Error = ();
+
+            fn try_from(id: tauri::menu::MenuId) -> std::result::Result<Self, Self::Error> {
                 let id = id.0.as_str();
                 match id {
-                    $(<$item as MenuItemHandler>::ID => HyprMenuItem::$variant,)*
-                    _ => unreachable!("Unknown menu id: {}", id),
+                    $(<$item as MenuItemHandler>::ID => Ok(HyprMenuItem::$variant),)*
+                    _ => Err(()),
                 }
             }
         }

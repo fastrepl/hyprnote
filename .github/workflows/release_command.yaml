@@ -123,27 +123,28 @@ jobs:
           MERGED="${{ needs.parse_command.outputs.merged }}"
           MERGE_SHA="${{ needs.parse_command.outputs.merge_sha }}"
           RUN_ID="${{ needs.trigger_release.outputs.run_id }}"
+          REPO="${{ github.repository }}"
 
           if [ "$MERGED" != "true" ]; then
-            echo "success=false" >> $GITHUB_OUTPUT
-            echo "title=Cannot trigger $CHANNEL release - PR must be merged first" >> $GITHUB_OUTPUT
-            echo "data={\"Channel\": \"\`$CHANNEL\`\"}" >> $GITHUB_OUTPUT
-          elif [ -n "$RUN_ID" ]; then
-            echo "success=true" >> $GITHUB_OUTPUT
-            echo "title=$CHANNEL release triggered" >> $GITHUB_OUTPUT
             DATA=$(jq -cn \
               --arg channel "\`$CHANNEL\`" \
-              --arg sha "\`${MERGE_SHA:0:8}\`" \
-              --arg run "[View run](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)" \
-              '{Channel: $channel, "Merge commit": $sha, Run: $run}')
+              --arg sha "-" \
+              --arg status "PR must be merged first" \
+              '[{header: "Channel", value: $channel}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
+            echo "data=$DATA" >> $GITHUB_OUTPUT
+          elif [ -n "$RUN_ID" ]; then
+            DATA=$(jq -cn \
+              --arg channel "\`$CHANNEL\`" \
+              --arg sha "[\`${MERGE_SHA:0:8}\`](https://github.com/$REPO/commit/$MERGE_SHA)" \
+              --arg status "[View](https://github.com/$REPO/actions/runs/$RUN_ID)" \
+              '[{header: "Channel", value: $channel}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
             echo "data=$DATA" >> $GITHUB_OUTPUT
           else
-            echo "success=false" >> $GITHUB_OUTPUT
-            echo "title=Failed to trigger $CHANNEL release" >> $GITHUB_OUTPUT
             DATA=$(jq -cn \
               --arg channel "\`$CHANNEL\`" \
-              --arg logs "[View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
-              '{Channel: $channel, Logs: $logs}')
+              --arg sha "[\`${MERGE_SHA:0:8}\`](https://github.com/$REPO/commit/$MERGE_SHA)" \
+              --arg status "[Logs](https://github.com/$REPO/actions/runs/${{ github.run_id }})" \
+              '[{header: "Channel", value: $channel}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
             echo "data=$DATA" >> $GITHUB_OUTPUT
           fi
       - uses: ./.github/actions/comment-result
@@ -151,8 +152,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           repo: ${{ github.repository }}
           issue_number: ${{ github.event.issue.number }}
-          success: ${{ steps.build_data.outputs.success }}
-          title: ${{ steps.build_data.outputs.title }}
           data: ${{ steps.build_data.outputs.data }}
       - if: needs.parse_command.outputs.needs_cleanup == 'true'
         env:

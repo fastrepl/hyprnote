@@ -121,24 +121,21 @@ jobs:
           BRANCH="${{ needs.parse_command.outputs.branch }}"
           SHA="${{ needs.parse_command.outputs.sha }}"
           RUN_ID="${{ needs.trigger_build.outputs.run_id }}"
+          REPO="${{ github.repository }}"
 
           if [ -n "$RUN_ID" ]; then
-            echo "success=true" >> $GITHUB_OUTPUT
-            echo "title=Staging build triggered" >> $GITHUB_OUTPUT
             DATA=$(jq -cn \
-              --arg branch "\`$BRANCH\`" \
-              --arg sha "\`${SHA:0:8}\`" \
-              --arg run "[View run](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)" \
-              '{Branch: $branch, SHA: $sha, Run: $run}')
+              --arg branch "[\`$BRANCH\`](https://github.com/$REPO/tree/$BRANCH)" \
+              --arg sha "[\`${SHA:0:8}\`](https://github.com/$REPO/commit/$SHA)" \
+              --arg status "[View](https://github.com/$REPO/actions/runs/$RUN_ID)" \
+              '[{header: "Branch", value: $branch}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
             echo "data=$DATA" >> $GITHUB_OUTPUT
           else
-            echo "success=false" >> $GITHUB_OUTPUT
-            echo "title=Failed to trigger staging build" >> $GITHUB_OUTPUT
             DATA=$(jq -cn \
-              --arg branch "\`$BRANCH\`" \
-              --arg sha "\`${SHA:0:8}\`" \
-              --arg logs "[View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
-              '{Branch: $branch, SHA: $sha, Logs: $logs}')
+              --arg branch "[\`$BRANCH\`](https://github.com/$REPO/tree/$BRANCH)" \
+              --arg sha "[\`${SHA:0:8}\`](https://github.com/$REPO/commit/$SHA)" \
+              --arg status "[Logs](https://github.com/$REPO/actions/runs/${{ github.run_id }})" \
+              '[{header: "Branch", value: $branch}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
             echo "data=$DATA" >> $GITHUB_OUTPUT
           fi
       - uses: ./.github/actions/comment-result
@@ -146,8 +143,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           repo: ${{ github.repository }}
           issue_number: ${{ github.event.issue.number }}
-          success: ${{ steps.build_data.outputs.success }}
-          title: ${{ steps.build_data.outputs.title }}
           data: ${{ steps.build_data.outputs.data }}
       - if: needs.parse_command.outputs.needs_cleanup == 'true'
         env:

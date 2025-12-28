@@ -3,6 +3,7 @@ import {
   type RefObject,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
 } from "react";
@@ -17,14 +18,12 @@ import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
 import { useScrollPreservation } from "../../../../../hooks/useScrollPreservation";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
-import { useCaretPosition } from "../caret-position-context";
+import { useCaretNearBottom } from "../caret-position-context";
 import { useCurrentNoteTab } from "../shared";
 import { Enhanced } from "./enhanced";
 import { Header, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
-
-const BOTTOM_THRESHOLD = 70;
 
 export const NoteInput = forwardRef<
   { editor: TiptapEditor | null },
@@ -36,15 +35,9 @@ export const NoteInput = forwardRef<
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const internalEditorRef = useRef<{ editor: TiptapEditor | null }>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const [editor, setEditor] = useState<TiptapEditor | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const caretPosition = useCaretPosition();
-
-  useEffect(() => {
-    if (ref && typeof ref === "object") {
-      ref.current = internalEditorRef.current;
-    }
-  });
 
   const sessionId = tab.id;
   useAutoEnhance(tab);
@@ -54,6 +47,12 @@ export const NoteInput = forwardRef<
   tabRef.current = tab;
 
   const currentTab: EditorView = useCurrentNoteTab(tab);
+  useImperativeHandle(
+    ref,
+    () => internalEditorRef.current ?? { editor: null },
+    [currentTab],
+  );
+
   const { scrollRef, onBeforeTabChange } = useScrollPreservation(
     currentTab.type === "enhanced"
       ? `enhanced-${currentTab.id}`
@@ -79,54 +78,24 @@ export const NoteInput = forwardRef<
   });
 
   useEffect(() => {
-    if (currentTab.type === "transcript" && internalEditorRef.current) {
+    if (currentTab.type === "transcript") {
       internalEditorRef.current = { editor: null };
+      setEditor(null);
     }
   }, [currentTab]);
 
   useEffect(() => {
-    const editor = internalEditorRef.current?.editor;
-    const container = containerRef.current;
-    if (
-      !editor ||
-      !caretPosition ||
-      !container ||
-      currentTab.type === "transcript"
-    ) {
-      caretPosition?.setCaretNearBottom(false);
-      return;
+    const editorInstance = internalEditorRef.current?.editor ?? null;
+    if (editorInstance !== editor) {
+      setEditor(editorInstance);
     }
+  });
 
-    const checkCaretPosition = () => {
-      if (!containerRef.current || !editor.isFocused) return;
-
-      const { view } = editor;
-      const { from } = view.state.selection;
-      const coords = view.coordsAtPos(from);
-
-      const distanceFromViewportBottom = window.innerHeight - coords.bottom;
-
-      caretPosition.setCaretNearBottom(
-        distanceFromViewportBottom < BOTTOM_THRESHOLD,
-      );
-    };
-
-    const handleBlur = () => caretPosition.setCaretNearBottom(false);
-
-    editor.on("selectionUpdate", checkCaretPosition);
-    editor.on("focus", checkCaretPosition);
-    editor.on("blur", handleBlur);
-    container.addEventListener("scroll", checkCaretPosition);
-
-    checkCaretPosition();
-
-    return () => {
-      editor.off("selectionUpdate", checkCaretPosition);
-      editor.off("focus", checkCaretPosition);
-      editor.off("blur", handleBlur);
-      container.removeEventListener("scroll", checkCaretPosition);
-    };
-  }, [internalEditorRef.current?.editor, caretPosition, currentTab.type]);
+  useCaretNearBottom({
+    editor,
+    container,
+    enabled: currentTab.type !== "transcript",
+  });
 
   const handleContainerClick = () => {
     if (currentTab.type !== "transcript") {
@@ -153,9 +122,9 @@ export const NoteInput = forwardRef<
             fadeRef.current = node;
             if (currentTab.type !== "transcript") {
               scrollRef.current = node;
-              containerRef.current = node;
+              setContainer(node);
             } else {
-              containerRef.current = null;
+              setContainer(null);
             }
           }}
           onClick={handleContainerClick}

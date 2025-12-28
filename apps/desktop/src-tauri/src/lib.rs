@@ -178,12 +178,8 @@ pub async fn main() {
             use tauri_plugin_settings::SettingsPluginExt;
             use tauri_plugin_store2::Store2PluginExt;
 
-            if let Ok(path) = app.settings().path() {
-                let _ = std::fs::remove_file(path);
-            }
-            if let Ok(path) = app.store2().path() {
-                let _ = std::fs::remove_file(path);
-            }
+            let _ = app.settings().reset();
+            let _ = app.store2().reset();
             let _ = app.set_onboarding_needed(true);
 
             let app_handle = app.handle().clone();

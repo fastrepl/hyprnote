@@ -92,59 +92,6 @@ pub trait AudioDeviceBackend {
 
     /// Check if a device is a headphone/headset based on its properties.
     fn is_headphone(&self, device: &AudioDevice) -> bool;
-
-    /// Get the volume of the current default output device (0.0 to 1.0).
-    fn get_output_volume(&self) -> Result<f32, Error> {
-        Err(Error::PlatformNotSupported(
-            "Volume control not implemented".to_string(),
-        ))
-    }
-
-    /// Get the volume of a specific output device (0.0 to 1.0).
-    fn get_device_volume(&self, _device_id: &DeviceId) -> Result<f32, Error> {
-        Err(Error::PlatformNotSupported(
-            "Volume control not implemented".to_string(),
-        ))
-    }
-
-    /// Set the volume of the current default output device (0.0 to 1.0).
-    fn set_output_volume(&self, _volume: f32) -> Result<(), Error> {
-        Err(Error::PlatformNotSupported(
-            "Volume control not implemented".to_string(),
-        ))
-    }
-
-    /// Set the volume of a specific output device (0.0 to 1.0).
-    fn set_device_volume(&self, _device_id: &DeviceId, _volume: f32) -> Result<(), Error> {
-        Err(Error::PlatformNotSupported(
-            "Volume control not implemented".to_string(),
-        ))
-    }
-
-    /// Check if a specific device is muted.
-    fn is_device_muted(
-        &self,
-        _device_id: &DeviceId,
-        _direction: AudioDirection,
-    ) -> Result<bool, Error> {
-        Err(Error::PlatformNotSupported(
-            "Mute detection not implemented".to_string(),
-        ))
-    }
-
-    /// Check if the default output device is muted.
-    fn is_default_output_muted(&self) -> Result<bool, Error> {
-        Err(Error::PlatformNotSupported(
-            "Mute detection not implemented".to_string(),
-        ))
-    }
-
-    /// Check if the default input device is muted.
-    fn is_default_input_muted(&self) -> Result<bool, Error> {
-        Err(Error::PlatformNotSupported(
-            "Mute detection not implemented".to_string(),
-        ))
-    }
 }
 
 #[cfg(test)]

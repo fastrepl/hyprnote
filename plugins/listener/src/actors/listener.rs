@@ -171,6 +171,12 @@ impl Actor for ListenerActor {
 
             ListenerMsg::StreamError(error) => {
                 tracing::info!("listen_stream_error: {}", error);
+                let _ = (SessionErrorEvent::ConnectionError {
+                    session_id: state.args.session_id.clone(),
+                    error: format!("listen_stream_error: {}", error),
+                    is_retryable: false,
+                })
+                .emit(&state.args.app);
                 myself.stop(None);
             }
 
@@ -181,6 +187,12 @@ impl Actor for ListenerActor {
 
             ListenerMsg::StreamTimeout(elapsed) => {
                 tracing::info!("listen_stream_timeout: {}", elapsed);
+                let _ = (SessionErrorEvent::ConnectionError {
+                    session_id: state.args.session_id.clone(),
+                    error: format!("listen_stream_timeout: {}", elapsed),
+                    is_retryable: false,
+                })
+                .emit(&state.args.app);
                 myself.stop(None);
             }
         }
@@ -353,11 +365,11 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
             tracing::error!(error = ?e, "listen_ws_connect_failed(single)");
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
-                error: format!("listen_ws_connect_failed: {:?}", e),
+                error: format!("listen_ws_connect_failed: {}", e),
                 is_retryable: true,
             })
             .emit(&args.app);
-            return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
+            return Err(actor_error(format!("listen_ws_connect_failed: {}", e)));
         }
         Ok(Ok(res)) => res,
     };
@@ -425,11 +437,11 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
             tracing::error!(error = ?e, "listen_ws_connect_failed(dual)");
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
-                error: format!("listen_ws_connect_failed: {:?}", e),
+                error: format!("listen_ws_connect_failed: {}", e),
                 is_retryable: true,
             })
             .emit(&args.app);
-            return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
+            return Err(actor_error(format!("listen_ws_connect_failed: {}", e)));
         }
         Ok(Ok(res)) => res,
     };

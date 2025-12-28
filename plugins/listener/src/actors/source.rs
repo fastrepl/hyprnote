@@ -44,8 +44,8 @@ pub struct SourceArgs {
 }
 
 pub struct SourceState {
-    app: tauri::AppHandle,
     session_id: String,
+    app: tauri::AppHandle,
     mic_device: Option<String>,
     onboarding: bool,
     mic_muted: Arc<AtomicBool>,
@@ -144,8 +144,8 @@ impl Actor for SourceActor {
         let pipeline = Pipeline::new(args.app.clone(), args.session_id.clone());
 
         let mut st = SourceState {
-            app: args.app,
             session_id: args.session_id,
+            app: args.app,
             mic_device,
             onboarding: args.onboarding,
             mic_muted: Arc::new(AtomicBool::new(false)),

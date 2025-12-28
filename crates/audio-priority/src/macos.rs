@@ -67,13 +67,31 @@ impl MacOSBackend {
             .map(|id| device.0.0 == id)
             .unwrap_or(false);
 
-        Some(AudioDevice {
+        let mut audio_device = AudioDevice {
             id: DeviceId::new(uid.to_string()),
             name: name.to_string(),
             direction,
             transport_type,
             is_default,
-        })
+            volume: None,
+            is_muted: None,
+        };
+
+        if direction == AudioDirection::Output {
+            let volume_addr = ca::PropSelector::DEVICE_VOLUME_SCALAR
+                .addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
+            if let Ok(volume) = device.prop::<f32>(&volume_addr) {
+                audio_device.volume = Some(volume);
+            }
+
+            let mute_addr = ca::PropSelector::DEVICE_PROCESS_MUTE
+                .addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
+            if let Ok(mute_value) = device.prop::<u32>(&mute_addr) {
+                audio_device.is_muted = Some(mute_value != 0);
+            }
+        }
+
+        Some(audio_device)
     }
 }
 
@@ -197,6 +215,80 @@ impl AudioDeviceBackend for MacOSBackend {
             _ => false,
         }
     }
+
+    fn get_device_volume(&self, device_id: &DeviceId) -> Result<f32, Error> {
+        let uid = cf::String::from_str(device_id.as_str());
+        let ca_device = ca::Device::with_uid(&uid)
+            .map_err(|e| Error::DeviceNotFound(format!("{}: {:?}", device_id, e)))?;
+
+        if ca_device.is_unknown() {
+            return Err(Error::DeviceNotFound(device_id.to_string()));
+        }
+
+        let addr = ca::PropSelector::DEVICE_VOLUME_SCALAR
+            .addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
+
+        ca_device
+            .prop(&addr)
+            .map_err(|e| Error::AudioSystemError(format!("Failed to get volume: {:?}", e)))
+    }
+
+    fn set_device_volume(&self, device_id: &DeviceId, volume: f32) -> Result<(), Error> {
+        let volume = volume.clamp(0.0, 1.0);
+
+        let uid = cf::String::from_str(device_id.as_str());
+        let ca_device = ca::Device::with_uid(&uid)
+            .map_err(|e| Error::DeviceNotFound(format!("{}: {:?}", device_id, e)))?;
+
+        if ca_device.is_unknown() {
+            return Err(Error::DeviceNotFound(device_id.to_string()));
+        }
+
+        let addr = ca::PropSelector::DEVICE_VOLUME_SCALAR
+            .addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
+
+        ca_device
+            .set_prop(&addr, &volume)
+            .map_err(|e| Error::AudioSystemError(format!("Failed to set volume: {:?}", e)))
+    }
+
+    fn is_device_muted(&self, device_id: &DeviceId) -> Result<bool, Error> {
+        let uid = cf::String::from_str(device_id.as_str());
+        let ca_device = ca::Device::with_uid(&uid)
+            .map_err(|e| Error::DeviceNotFound(format!("{}: {:?}", device_id, e)))?;
+
+        if ca_device.is_unknown() {
+            return Err(Error::DeviceNotFound(device_id.to_string()));
+        }
+
+        let addr = ca::PropSelector::DEVICE_PROCESS_MUTE
+            .addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
+
+        let mute_value: u32 = ca_device
+            .prop(&addr)
+            .map_err(|e| Error::AudioSystemError(format!("Failed to get mute state: {:?}", e)))?;
+
+        Ok(mute_value != 0)
+    }
+
+    fn set_device_mute(&self, device_id: &DeviceId, muted: bool) -> Result<(), Error> {
+        let uid = cf::String::from_str(device_id.as_str());
+        let ca_device = ca::Device::with_uid(&uid)
+            .map_err(|e| Error::DeviceNotFound(format!("{}: {:?}", device_id, e)))?;
+
+        if ca_device.is_unknown() {
+            return Err(Error::DeviceNotFound(device_id.to_string()));
+        }
+
+        let addr = ca::PropSelector::DEVICE_PROCESS_MUTE
+            .addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
+
+        let mute_value: u32 = if muted { 1 } else { 0 };
+
+        ca_device
+            .set_prop(&addr, &mute_value)
+            .map_err(|e| Error::AudioSystemError(format!("Failed to set mute state: {:?}", e)))
+    }
 }
 
 #[cfg(test)]
@@ -252,6 +344,106 @@ mod tests {
             }
             Err(e) => {
                 println!("Error getting default output: {}", e);
+            }
+        }
+    }
+
+    #[test]
+    fn test_get_set_volume() {
+        let backend = MacOSBackend;
+
+        match backend.get_default_output_device() {
+            Ok(Some(device)) => {
+                let original_volume = backend.get_device_volume(&device.id).ok();
+                println!(
+                    "Testing volume on device: {} (original volume: {:?})",
+                    device.name, original_volume
+                );
+
+                match backend.set_device_volume(&device.id, 0.5) {
+                    Ok(()) => {
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+
+                        match backend.get_device_volume(&device.id) {
+                            Ok(vol) => {
+                                println!("Set volume to 0.5, read back: {}", vol);
+                                assert!(
+                                    (vol - 0.5).abs() < 0.1,
+                                    "Volume should be close to 0.5, got {}",
+                                    vol
+                                );
+                            }
+                            Err(e) => {
+                                println!("Error reading back volume: {}", e);
+                            }
+                        }
+
+                        if let Some(orig) = original_volume {
+                            if let Err(e) = backend.set_device_volume(&device.id, orig) {
+                                println!("Error restoring original volume: {}", e);
+                            } else {
+                                println!("Restored original volume: {}", orig);
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        println!("Error setting volume: {}", e);
+                    }
+                }
+            }
+            Ok(None) => {
+                println!("No default output device for volume test");
+            }
+            Err(e) => {
+                println!("Error getting default output device: {}", e);
+            }
+        }
+    }
+
+    #[test]
+    fn test_get_set_mute() {
+        let backend = MacOSBackend;
+
+        match backend.get_default_output_device() {
+            Ok(Some(device)) => {
+                let original_mute = backend.is_device_muted(&device.id).ok();
+                println!(
+                    "Testing mute on device: {} (original mute state: {:?})",
+                    device.name, original_mute
+                );
+
+                match backend.set_device_mute(&device.id, true) {
+                    Ok(()) => {
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+
+                        match backend.is_device_muted(&device.id) {
+                            Ok(muted) => {
+                                println!("Set mute to true, read back: {}", muted);
+                                assert!(muted, "Device should be muted");
+                            }
+                            Err(e) => {
+                                println!("Error reading back mute state: {}", e);
+                            }
+                        }
+
+                        if let Some(orig) = original_mute {
+                            if let Err(e) = backend.set_device_mute(&device.id, orig) {
+                                println!("Error restoring original mute state: {}", e);
+                            } else {
+                                println!("Restored original mute state: {}", orig);
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        println!("Error setting mute: {}", e);
+                    }
+                }
+            }
+            Ok(None) => {
+                println!("No default output device for mute test");
+            }
+            Err(e) => {
+                println!("Error getting default output device: {}", e);
             }
         }
     }

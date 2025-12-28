@@ -12,6 +12,8 @@ mod windows;
 pub enum DeviceEvent {
     DefaultInputChanged,
     DefaultOutputChanged { headphone: bool },
+    VolumeChanged { device_uid: String, volume: f32 },
+    MuteChanged { device_uid: String, is_muted: bool },
 }
 
 pub struct DeviceMonitorHandle {

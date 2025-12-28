@@ -462,6 +462,62 @@ impl AudioPriorityManager {
             }
         }
     }
+
+    /// Get the volume for a device (0.0 to 1.0).
+    pub fn get_device_volume(&self, device: &AudioDevice) -> Result<f32, crate::Error> {
+        let backend = backend();
+        backend.get_device_volume(&device.id)
+    }
+
+    /// Set the volume for a device (0.0 to 1.0).
+    pub fn set_device_volume(
+        &mut self,
+        device: &AudioDevice,
+        volume: f32,
+    ) -> Result<(), crate::Error> {
+        let backend = backend();
+        backend.set_device_volume(&device.id, volume)
+    }
+
+    /// Check if a device is muted.
+    pub fn is_device_muted(&self, device: &AudioDevice) -> Result<bool, crate::Error> {
+        let backend = backend();
+        backend.is_device_muted(&device.id)
+    }
+
+    /// Set the mute state for a device.
+    pub fn set_device_mute(
+        &mut self,
+        device: &AudioDevice,
+        muted: bool,
+    ) -> Result<(), crate::Error> {
+        let backend = backend();
+        backend.set_device_mute(&device.id, muted)
+    }
+
+    /// Get the current default output device's volume.
+    pub fn get_current_output_volume(&self) -> Result<f32, crate::Error> {
+        let backend = backend();
+        if let Some(device) = backend.get_default_output_device()? {
+            backend.get_device_volume(&device.id)
+        } else {
+            Err(crate::Error::AudioSystemError(
+                "No default output device".into(),
+            ))
+        }
+    }
+
+    /// Set the current default output device's volume.
+    pub fn set_current_output_volume(&mut self, volume: f32) -> Result<(), crate::Error> {
+        let backend = backend();
+        if let Some(device) = backend.get_default_output_device()? {
+            backend.set_device_volume(&device.id, volume)
+        } else {
+            Err(crate::Error::AudioSystemError(
+                "No default output device".into(),
+            ))
+        }
+    }
 }
 
 #[cfg(test)]

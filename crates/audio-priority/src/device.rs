@@ -69,7 +69,7 @@ pub enum OutputCategory {
 }
 
 /// Represents an audio device with stable identification.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct AudioDevice {
     /// Stable, platform-specific device identifier
     pub id: DeviceId,
@@ -81,6 +81,12 @@ pub struct AudioDevice {
     pub transport_type: TransportType,
     /// Whether this device is currently the system default
     pub is_default: bool,
+    /// Volume level (0.0 to 1.0), if available
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub volume: Option<f32>,
+    /// Whether the device is muted, if available
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_muted: Option<bool>,
 }
 
 impl AudioDevice {
@@ -96,11 +102,23 @@ impl AudioDevice {
             direction,
             transport_type,
             is_default: false,
+            volume: None,
+            is_muted: None,
         }
     }
 
     pub fn with_default(mut self, is_default: bool) -> Self {
         self.is_default = is_default;
+        self
+    }
+
+    pub fn with_volume(mut self, volume: f32) -> Self {
+        self.volume = Some(volume);
+        self
+    }
+
+    pub fn with_muted(mut self, is_muted: bool) -> Self {
+        self.is_muted = Some(is_muted);
         self
     }
 }

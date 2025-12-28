@@ -8,8 +8,8 @@ use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
 use windows::Win32::Devices::FunctionDiscovery::PKEY_Device_FriendlyName;
 use windows::Win32::Media::Audio::{
-    DEVICE_STATE_ACTIVE, Endpoints, IMMDevice, IMMDeviceEnumerator, MMDeviceEnumerator, eAll,
-    eCapture, eConsole, eRender,
+    DEVICE_STATE_ACTIVE, Endpoints, IAudioEndpointVolume, IMMDevice, IMMDeviceEnumerator,
+    MMDeviceEnumerator, eAll, eCapture, eConsole, eRender,
 };
 use windows::Win32::System::Com::{
     CLSCTX_ALL, COINIT_MULTITHREADED, CoCreateInstance, CoInitializeEx, CoUninitialize, STGM_READ,
@@ -246,13 +246,30 @@ impl AudioDeviceBackend for WindowsBackend {
                         .unwrap_or(false),
                 };
 
-                devices.push(AudioDevice {
+                let mut audio_device = AudioDevice {
                     id: DeviceId::new(id),
                     name,
                     direction,
                     transport_type,
                     is_default,
-                });
+                    volume: None,
+                    is_muted: None,
+                };
+
+                if direction == AudioDirection::Output {
+                    if let Ok(volume_control) =
+                        device.Activate::<IAudioEndpointVolume>(CLSCTX_ALL, None)
+                    {
+                        if let Ok(volume) = volume_control.GetMasterVolumeLevelScalar() {
+                            audio_device.volume = Some(volume);
+                        }
+                        if let Ok(muted) = volume_control.GetMute() {
+                            audio_device.is_muted = Some(muted.as_bool());
+                        }
+                    }
+                }
+
+                devices.push(audio_device);
             }
 
             Ok(devices)
@@ -283,6 +300,8 @@ impl AudioDeviceBackend for WindowsBackend {
                 direction: AudioDirection::Input,
                 transport_type,
                 is_default: true,
+                volume: None,
+                is_muted: None,
             }))
         }
     }
@@ -305,13 +324,26 @@ impl AudioDeviceBackend for WindowsBackend {
             let name = get_device_name(&device)?;
             let transport_type = get_transport_type_from_name(&name);
 
-            Ok(Some(AudioDevice {
+            let mut audio_device = AudioDevice {
                 id: DeviceId::new(id),
                 name,
                 direction: AudioDirection::Output,
                 transport_type,
                 is_default: true,
-            }))
+                volume: None,
+                is_muted: None,
+            };
+
+            if let Ok(volume_control) = device.Activate::<IAudioEndpointVolume>(CLSCTX_ALL, None) {
+                if let Ok(volume) = volume_control.GetMasterVolumeLevelScalar() {
+                    audio_device.volume = Some(volume);
+                }
+                if let Ok(muted) = volume_control.GetMute() {
+                    audio_device.is_muted = Some(muted.as_bool());
+                }
+            }
+
+            Ok(Some(audio_device))
         }
     }
 
@@ -357,6 +389,135 @@ impl AudioDeviceBackend for WindowsBackend {
         // On Windows, we primarily rely on device name heuristics
         // since there's no reliable API for terminal type detection
         is_headphone_from_name(&device.name) || device.transport_type == TransportType::Bluetooth
+    }
+
+    fn get_device_volume(&self, device_id: &DeviceId) -> Result<f32, Error> {
+        let _com = ComGuard::new()?;
+
+        unsafe {
+            let enumerator: IMMDeviceEnumerator =
+                CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL).map_err(|e| {
+                    Error::AudioSystemError(format!("Failed to create enumerator: {}", e))
+                })?;
+
+            let device_id_wide: Vec<u16> = device_id
+                .0
+                .encode_utf16()
+                .chain(std::iter::once(0))
+                .collect();
+
+            let device = enumerator
+                .GetDevice(PCWSTR(device_id_wide.as_ptr()))
+                .map_err(|e| Error::DeviceNotFound(format!("{}: {}", device_id.0, e)))?;
+
+            let volume_control: IAudioEndpointVolume =
+                device.Activate(CLSCTX_ALL, None).map_err(|e| {
+                    Error::AudioSystemError(format!("Failed to activate volume control: {}", e))
+                })?;
+
+            let level = volume_control
+                .GetMasterVolumeLevelScalar()
+                .map_err(|e| Error::AudioSystemError(format!("Failed to get volume: {}", e)))?;
+
+            Ok(level)
+        }
+    }
+
+    fn set_device_volume(&self, device_id: &DeviceId, volume: f32) -> Result<(), Error> {
+        let volume = volume.clamp(0.0, 1.0);
+        let _com = ComGuard::new()?;
+
+        unsafe {
+            let enumerator: IMMDeviceEnumerator =
+                CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL).map_err(|e| {
+                    Error::AudioSystemError(format!("Failed to create enumerator: {}", e))
+                })?;
+
+            let device_id_wide: Vec<u16> = device_id
+                .0
+                .encode_utf16()
+                .chain(std::iter::once(0))
+                .collect();
+
+            let device = enumerator
+                .GetDevice(PCWSTR(device_id_wide.as_ptr()))
+                .map_err(|e| Error::DeviceNotFound(format!("{}: {}", device_id.0, e)))?;
+
+            let volume_control: IAudioEndpointVolume =
+                device.Activate(CLSCTX_ALL, None).map_err(|e| {
+                    Error::AudioSystemError(format!("Failed to activate volume control: {}", e))
+                })?;
+
+            volume_control
+                .SetMasterVolumeLevelScalar(volume, std::ptr::null())
+                .map_err(|e| Error::AudioSystemError(format!("Failed to set volume: {}", e)))?;
+
+            Ok(())
+        }
+    }
+
+    fn is_device_muted(&self, device_id: &DeviceId) -> Result<bool, Error> {
+        let _com = ComGuard::new()?;
+
+        unsafe {
+            let enumerator: IMMDeviceEnumerator =
+                CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL).map_err(|e| {
+                    Error::AudioSystemError(format!("Failed to create enumerator: {}", e))
+                })?;
+
+            let device_id_wide: Vec<u16> = device_id
+                .0
+                .encode_utf16()
+                .chain(std::iter::once(0))
+                .collect();
+
+            let device = enumerator
+                .GetDevice(PCWSTR(device_id_wide.as_ptr()))
+                .map_err(|e| Error::DeviceNotFound(format!("{}: {}", device_id.0, e)))?;
+
+            let volume_control: IAudioEndpointVolume =
+                device.Activate(CLSCTX_ALL, None).map_err(|e| {
+                    Error::AudioSystemError(format!("Failed to activate volume control: {}", e))
+                })?;
+
+            let muted = volume_control
+                .GetMute()
+                .map_err(|e| Error::AudioSystemError(format!("Failed to get mute state: {}", e)))?;
+
+            Ok(muted.as_bool())
+        }
+    }
+
+    fn set_device_mute(&self, device_id: &DeviceId, muted: bool) -> Result<(), Error> {
+        let _com = ComGuard::new()?;
+
+        unsafe {
+            let enumerator: IMMDeviceEnumerator =
+                CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL).map_err(|e| {
+                    Error::AudioSystemError(format!("Failed to create enumerator: {}", e))
+                })?;
+
+            let device_id_wide: Vec<u16> = device_id
+                .0
+                .encode_utf16()
+                .chain(std::iter::once(0))
+                .collect();
+
+            let device = enumerator
+                .GetDevice(PCWSTR(device_id_wide.as_ptr()))
+                .map_err(|e| Error::DeviceNotFound(format!("{}: {}", device_id.0, e)))?;
+
+            let volume_control: IAudioEndpointVolume =
+                device.Activate(CLSCTX_ALL, None).map_err(|e| {
+                    Error::AudioSystemError(format!("Failed to activate volume control: {}", e))
+                })?;
+
+            volume_control
+                .SetMute(muted, std::ptr::null())
+                .map_err(|e| Error::AudioSystemError(format!("Failed to set mute state: {}", e)))?;
+
+            Ok(())
+        }
     }
 }
 

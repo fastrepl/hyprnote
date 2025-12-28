@@ -1,4 +1,0 @@
-[build]
-base = "."
-command = "pnpm -F @hypr/web build && pnpm -F @hypr/docs build && mkdir -p apps/web/dist/client/docs && cp -r apps/docs/dist/* apps/web/dist/client/docs/"
-publish = "apps/web/dist/client"

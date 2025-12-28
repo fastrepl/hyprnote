@@ -78,7 +78,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       !startedTasksRef.current.has(autoEnhancedNoteId)
     ) {
       startedTasksRef.current.add(autoEnhancedNoteId);
-      analyticsCommands.event({
+      void analyticsCommands.event({
         event: "summary_generated",
         is_auto: true,
       });
@@ -91,8 +91,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
 
   useEffect(() => {
     const listenerJustStopped =
-      prevListenerStatus === "running_active" &&
-      listenerStatus !== "running_active";
+      prevListenerStatus === "active" && listenerStatus !== "active";
 
     if (listenerJustStopped) {
       createAndStartEnhance();

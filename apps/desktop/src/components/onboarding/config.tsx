@@ -1,92 +1,68 @@
-import { useQuery } from "@tanstack/react-query";
-import { arch, type Platform } from "@tauri-apps/plugin-os";
 import type { ComponentType } from "react";
 
-import { useAuth } from "../../auth";
-import { usePlatform } from "../../hooks/usePlatform";
-import { ConfigureNotice } from "./configure-notice";
-import { Login } from "./login";
-import { Permissions } from "./permissions";
-import type { OnboardingNext } from "./shared";
-import { Welcome } from "./welcome";
+import type { Search } from "../../routes/app/onboarding/_layout.index";
+import { ConfigureNotice, STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
+import { Login, STEP_ID_LOGIN } from "./login";
+import { Permissions, STEP_ID_PERMISSIONS } from "./permissions";
+import { Ready, STEP_ID_READY } from "./ready";
+import { STEP_ID_WELCOME, Welcome } from "./welcome";
 
-export type OnboardingStepId =
-  | "welcome"
-  | "login"
-  | "configure-notice"
-  | "permissions";
+export type NavigateTarget = Search;
 
-export type OnboardingContext = {
-  platform: Platform;
-  isAppleSilicon: boolean;
-  isLoggedIn: boolean;
-  local: boolean;
-  flags: {
-    calendarReady: boolean;
-  };
+export type StepProps = {
+  onNavigate: (ctx: NavigateTarget) => void;
 };
 
-export type OnboardingStepConfig = {
-  id: OnboardingStepId;
-  shouldShow: (ctx: OnboardingContext) => boolean;
-  component: ComponentType<{ onNext: OnboardingNext; onBack?: () => void }>;
-};
-
-export function getPreviousStep(
-  ctx: OnboardingContext,
-  currentStep: OnboardingStepId,
-): OnboardingStepId | null {
-  const visibleSteps = STEP_CONFIGS.filter((s) => s.shouldShow(ctx));
-  const currentIndex = visibleSteps.findIndex((s) => s.id === currentStep);
-  return visibleSteps[currentIndex - 1]?.id ?? null;
-}
-
-export const STEP_CONFIGS: OnboardingStepConfig[] = [
-  {
-    id: "welcome",
-    shouldShow: () => true,
-    component: Welcome,
-  },
-  {
-    id: "login",
-    shouldShow: (ctx) => !ctx.local,
-    component: Login,
-  },
-  {
-    id: "configure-notice",
-    shouldShow: (ctx) => ctx.local,
-    component: ConfigureNotice,
-  },
-  {
-    id: "permissions",
-    shouldShow: (ctx) => ctx.platform === "macos",
-    component: Permissions,
-  },
-];
-
-export function useOnboardingContext(
-  local?: boolean,
-): OnboardingContext | null {
-  const platform = usePlatform();
-  const auth = useAuth();
-  const archQuery = useQuery({
-    queryKey: ["arch"],
-    queryFn: () => arch(),
-  });
-
-  if (archQuery.isPending) {
-    return null;
+export function getNext(ctx: Search): Search["step"] | null {
+  switch (ctx.step) {
+    case STEP_ID_WELCOME:
+      if (ctx.platform === "macos") return STEP_ID_PERMISSIONS;
+      if (ctx.local) return STEP_ID_CONFIGURE_NOTICE;
+      return STEP_ID_LOGIN;
+    case STEP_ID_PERMISSIONS:
+      return ctx.local ? STEP_ID_CONFIGURE_NOTICE : STEP_ID_LOGIN;
+    case STEP_ID_LOGIN:
+      return ctx.pro ? STEP_ID_READY : STEP_ID_CONFIGURE_NOTICE;
+    case STEP_ID_CONFIGURE_NOTICE:
+      return STEP_ID_READY;
+    case STEP_ID_READY:
+      return null;
   }
-
-  const isAppleSilicon = platform === "macos" && archQuery.data === "aarch64";
-
-  return {
-    platform,
-    isAppleSilicon,
-    isLoggedIn: auth?.session !== null,
-    local: local ?? false,
-    flags: {
-      calendarReady: false,
-    },
-  };
 }
+
+export function getBack(ctx: Search): Search["step"] | null {
+  switch (ctx.step) {
+    case STEP_ID_WELCOME:
+      return null;
+    case STEP_ID_PERMISSIONS:
+      return STEP_ID_WELCOME;
+    case STEP_ID_LOGIN:
+      return ctx.platform === "macos" ? STEP_ID_PERMISSIONS : STEP_ID_WELCOME;
+    case STEP_ID_CONFIGURE_NOTICE:
+      if (ctx.local) return STEP_ID_WELCOME;
+      return STEP_ID_LOGIN;
+    case STEP_ID_READY:
+      return null;
+  }
+}
+
+type StepConfig = {
+  id: Search["step"];
+  component: ComponentType<StepProps>;
+};
+
+export const STEP_IDS = [
+  STEP_ID_WELCOME,
+  STEP_ID_LOGIN,
+  STEP_ID_CONFIGURE_NOTICE,
+  STEP_ID_PERMISSIONS,
+  STEP_ID_READY,
+] as const;
+
+export const STEP_CONFIGS: StepConfig[] = [
+  { id: STEP_ID_WELCOME, component: Welcome },
+  { id: STEP_ID_LOGIN, component: Login },
+  { id: STEP_ID_CONFIGURE_NOTICE, component: ConfigureNotice },
+  { id: STEP_ID_PERMISSIONS, component: Permissions },
+  { id: STEP_ID_READY, component: Ready },
+];

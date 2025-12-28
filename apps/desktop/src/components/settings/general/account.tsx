@@ -30,7 +30,7 @@ export function AccountSettings() {
   }, [isAuthenticated]);
 
   const handleOpenAccount = useCallback(() => {
-    openUrl(`${WEB_APP_BASE_URL}/app/account`);
+    void openUrl(`${WEB_APP_BASE_URL}/app/account`);
   }, []);
 
   const handleSignIn = useCallback(async () => {
@@ -59,7 +59,7 @@ export function AccountSettings() {
           <Input
             type="text"
             className="text-xs font-mono"
-            placeholder="hyprnote://auth/callback?access_token=...&refresh_token=..."
+            placeholder="hyprnote://deeplink/auth?access_token=...&refresh_token=..."
             value={callbackUrl}
             onChange={(e) => setCallbackUrl(e.target.value)}
           />
@@ -108,9 +108,12 @@ export function AccountSettings() {
         title="Sign in to Hyprnote"
         description="Hyprnote account is required to access pro plan."
         action={
-          <Button onClick={handleSignIn}>
-            <span>Get Started</span>
-          </Button>
+          <button
+            onClick={handleSignIn}
+            className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
+          >
+            Get Started
+          </button>
         }
       ></Container>
     );
@@ -203,11 +206,11 @@ function BillingButton() {
   });
 
   const handleProUpgrade = useCallback(() => {
-    openUrl(`${WEB_APP_BASE_URL}/app/checkout?period=monthly`);
+    void openUrl(`${WEB_APP_BASE_URL}/app/checkout?period=monthly`);
   }, []);
 
   const handleOpenAccount = useCallback(() => {
-    openUrl(`${WEB_APP_BASE_URL}/app/account`);
+    void openUrl(`${WEB_APP_BASE_URL}/app/account`);
   }, []);
 
   if (isPro) {

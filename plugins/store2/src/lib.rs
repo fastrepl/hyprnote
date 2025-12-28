@@ -36,7 +36,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 }
 
 fn migrate<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<(), Error> {
-    let old_path = app.path().data_dir()?.join(STORE_FILENAME);
+    let old_path = app.path().app_data_dir()?.join(FILENAME);
     if !old_path.exists() {
         return Ok(());
     }
@@ -82,7 +82,7 @@ mod test {
     #[tokio::test]
     async fn test_store() -> anyhow::Result<()> {
         let app = create_app(tauri::test::mock_builder());
-        assert!(app.store().is_ok());
+        assert!(app.store2().store().is_ok());
 
         #[derive(PartialEq, Eq, Hash, strum::Display)]
         enum TestKey {
@@ -94,7 +94,7 @@ mod test {
 
         impl ScopedStoreKey for TestKey {}
 
-        let scoped_store = app.scoped_store::<TestKey>("test")?;
+        let scoped_store = app.store2().scoped_store::<TestKey>("test")?;
         assert!(scoped_store.get::<String>(TestKey::KeyA)?.is_none());
 
         scoped_store.set(TestKey::KeyA, "test".to_string())?;

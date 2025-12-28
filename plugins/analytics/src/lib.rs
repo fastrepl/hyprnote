@@ -87,13 +87,14 @@ mod test {
     async fn test_analytics() {
         let app = create_app(tauri::test::mock_builder());
         let result = app
+            .analytics()
             .event(hypr_analytics::AnalyticsPayload::builder("test_event").build())
             .await;
         assert!(result.is_ok());
 
         {
             use tauri_plugin_misc::MiscPluginExt;
-            let git_hash = app.get_git_hash();
+            let git_hash = app.misc().get_git_hash();
             println!("git_hash: {}", git_hash);
         }
 

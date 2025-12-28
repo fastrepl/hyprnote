@@ -2,9 +2,12 @@ use std::str::FromStr;
 
 mod commands;
 mod error;
+mod events;
 mod ext;
+mod handler;
 
 pub use error::*;
+pub use events::*;
 pub use ext::*;
 
 const PLUGIN_NAME: &str = "notification";
@@ -16,6 +19,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::show_notification::<tauri::Wry>,
             commands::clear_notifications::<tauri::Wry>,
         ])
+        .events(tauri_specta::collect_events![NotificationEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -24,17 +28,20 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|_app, _api| Ok(()))
+        .setup(move |app, _api| {
+            specta_builder.mount_events(app);
+            handler::init(app.clone());
+            Ok(())
+        })
         .on_event(|app, event| match event {
             tauri::RunEvent::MainEventsCleared => {}
             tauri::RunEvent::Ready => {}
             tauri::RunEvent::WindowEvent { label, event, .. } => {
                 if let Ok(tauri_plugin_windows::AppWindow::Main) =
                     tauri_plugin_windows::AppWindow::from_str(label.as_ref())
+                    && let tauri::WindowEvent::Focused(true) = event
                 {
-                    if let tauri::WindowEvent::Focused(true) = event {
-                        app.clear_notifications().unwrap();
-                    }
+                    app.notification().clear().unwrap();
                 }
             }
             _ => {}

@@ -1,21 +1,15 @@
-use tauri::Manager;
-
 #[cfg(target_os = "macos")]
 mod apple;
-#[cfg(target_os = "macos")]
-mod recurrence;
 
 mod commands;
 mod error;
 mod events;
 mod ext;
-pub mod model;
 mod types;
 
 pub use error::{Error, Result};
 pub use events::*;
-pub use ext::AppleCalendarPluginExt;
-pub use model::*;
+pub use ext::{AppleCalendarExt, AppleCalendarPluginExt};
 pub use types::*;
 
 const PLUGIN_NAME: &str = "apple-calendar";
@@ -42,6 +36,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
             #[cfg(target_os = "macos")]
             {
+                use tauri::Manager;
                 use tauri_specta::Event;
 
                 let app_handle = app.app_handle().clone();
@@ -84,7 +79,37 @@ mod test {
     }
 
     #[test]
-    fn test_apple_calendar() {
-        let _app = create_app(tauri::test::mock_builder());
+    fn test_list_calendars() {
+        let app = create_app(tauri::test::mock_builder());
+
+        let calendars = app.apple_calendar().list_calendars();
+        println!("calendars: {:?}", calendars);
+    }
+
+    #[test]
+    fn test_list_events() {
+        let app = create_app(tauri::test::mock_builder());
+
+        match app.apple_calendar().list_calendars() {
+            Ok(calendars) => {
+                if let Some(calendar) = calendars.first() {
+                    println!(
+                        "Testing with calendar: {} ({})",
+                        calendar.title, calendar.id
+                    );
+                    let events = app.apple_calendar().list_events(EventFilter {
+                        from: chrono::Utc::now(),
+                        to: chrono::Utc::now() + chrono::Duration::days(7),
+                        calendar_tracking_id: calendar.id.clone(),
+                    });
+                    println!("events: {:?}", events);
+                } else {
+                    println!("No calendars found");
+                }
+            }
+            Err(e) => {
+                println!("Error listing calendars: {:?}", e);
+            }
+        }
     }
 }

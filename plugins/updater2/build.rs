@@ -1,4 +1,4 @@
-const COMMANDS: &[&str] = &["get_pending_update"];
+const COMMANDS: &[&str] = &["check", "download", "install"];
 
 fn main() {
     tauri_plugin::Builder::new(COMMANDS).build();

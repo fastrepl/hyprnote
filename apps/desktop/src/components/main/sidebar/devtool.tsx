@@ -5,7 +5,7 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
 
 import {
-  type Store as PersistedStore,
+  type Store as MainStore,
   STORE_ID as STORE_ID_PERSISTED,
 } from "../../../store/tinybase/main";
 import { type SeedDefinition, seeds } from "../../devtool/seed/index";
@@ -23,7 +23,7 @@ declare global {
 export function DevtoolView() {
   const stores = useStores();
   const persistedStore = stores[STORE_ID_PERSISTED] as unknown as
-    | PersistedStore
+    | MainStore
     | undefined;
 
   useEffect(() => {
@@ -127,12 +127,12 @@ function ExtensionStateMonitor() {
 
 function NavigationList() {
   const handleShowMain = useCallback(() => {
-    windowsCommands.windowShow({ type: "main" });
+    void windowsCommands.windowShow({ type: "main" });
   }, []);
 
   const handleShowOnboarding = useCallback(() => {
-    windowsCommands.windowShow({ type: "onboarding" }).then(() => {
-      windowsCommands.windowEmitNavigate(
+    void windowsCommands.windowShow({ type: "onboarding" }).then(() => {
+      void windowsCommands.windowEmitNavigate(
         { type: "onboarding" },
         { path: "/app/onboarding", search: {} },
       );

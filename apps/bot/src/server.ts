@@ -17,4 +17,4 @@ async function start() {
   await server.start();
 }
 
-start();
+void start();

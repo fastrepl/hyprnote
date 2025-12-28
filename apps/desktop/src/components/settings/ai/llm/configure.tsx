@@ -48,29 +48,20 @@ function HyprProviderCard({
   providerName: string;
   icon: React.ReactNode;
 }) {
-  const billing = useBillingAccess();
-  const locked = providerId === "hyprnote" && !billing.isPro;
-
   return (
     <AccordionItem
       value={providerId}
-      disabled={locked}
       className={cn([
         "rounded-xl border-2 bg-neutral-50",
-        true ? "border-solid border-neutral-300" : "border-dashed",
+        "border-solid border-neutral-300",
       ])}
     >
-      <AccordionTrigger
-        className={cn([
-          "capitalize gap-2 px-4",
-          locked && "cursor-not-allowed opacity-30",
-        ])}
-      >
+      <AccordionTrigger className="capitalize gap-2 px-4">
         <div className="flex items-center gap-2">
           {icon}
           <span>{providerName}</span>
           <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
-            {locked ? "Pro Required" : "Recommended"}
+            Recommended
           </span>
         </div>
       </AccordionTrigger>
@@ -86,7 +77,7 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
 
   const content =
     providerId === "hyprnote"
-      ? "We continuously test models to provide the **best performance & reliability.**"
+      ? "A curated set of models we continuously test to provide the **best performance & reliability**."
       : providerId === "lmstudio"
         ? "- Ensure LM Studio server is **running.** (Default port is 1234)\n- Enable **CORS** in LM Studio config."
         : providerId === "custom"
@@ -102,7 +93,7 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
       <div className="flex flex-row justify-between items-center gap-2">
         <StyledStreamdown>{content}</StyledStreamdown>
         <Button size="sm" variant="default" onClick={upgradeToPro}>
-          Upgrade to Pro
+          Start Free Trial
         </Button>
       </div>
     );

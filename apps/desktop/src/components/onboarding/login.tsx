@@ -7,16 +7,16 @@ import { createClient, createConfig } from "@hypr/api-client/client";
 import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
+import { Route } from "../../routes/app/onboarding/_layout.index";
 import * as settings from "../../store/tinybase/settings";
-import { Divider, OnboardingContainer, type OnboardingNext } from "./shared";
+import { getBack, getNext, type StepProps } from "./config";
+import { STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
+import { Divider, OnboardingContainer } from "./shared";
 
-export function Login({
-  onNext,
-  onBack,
-}: {
-  onNext: OnboardingNext;
-  onBack?: () => void;
-}) {
+export const STEP_ID_LOGIN = "login" as const;
+
+export function Login({ onNavigate }: StepProps) {
+  const search = Route.useSearch();
   const auth = useAuth();
   const [callbackUrl, setCallbackUrl] = useState("");
 
@@ -79,31 +79,38 @@ export function Login({
       if (isPro) {
         setTrialDefaults();
       }
-      onNext({ local: !isPro });
+      const nextSearch = { ...search, pro: isPro };
+      onNavigate({ ...nextSearch, step: getNext(nextSearch)! });
     },
     onError: (e) => {
       console.error(e);
-      onNext({ local: true });
+      onNavigate({ ...search, step: STEP_ID_CONFIGURE_NOTICE });
     },
   });
 
-  useEffect(() => {
-    if (auth?.session && processLoginMutation.isIdle) {
-      processLoginMutation.mutate();
-    }
-  }, [auth?.session, processLoginMutation]);
+  const { mutate, isIdle } = processLoginMutation;
 
   useEffect(() => {
-    if (processLoginMutation.isIdle && !auth?.session) {
-      auth?.signIn();
+    if (auth?.session && isIdle) {
+      mutate();
     }
-  }, [auth, processLoginMutation.isIdle]);
+  }, [auth?.session, isIdle, mutate]);
+
+  useEffect(() => {
+    if (isIdle && !auth?.session) {
+      void auth?.signIn();
+    }
+  }, [auth?.session, auth?.signIn, isIdle]);
+
+  const backStep = getBack(search);
 
   return (
     <OnboardingContainer
       title="Waiting for sign in..."
       description="Complete the process in your browser"
-      onBack={onBack}
+      onBack={
+        backStep ? () => onNavigate({ ...search, step: backStep }) : undefined
+      }
     >
       <button
         onClick={() => auth?.signIn()}

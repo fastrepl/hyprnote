@@ -125,7 +125,7 @@ export function AudioPlayerProvider({
 
   const start = useCallback(() => {
     if (wavesurfer) {
-      wavesurfer.play();
+      void wavesurfer.play();
       setState("playing");
     }
   }, [wavesurfer]);
@@ -139,7 +139,7 @@ export function AudioPlayerProvider({
 
   const resume = useCallback(() => {
     if (wavesurfer) {
-      wavesurfer.play();
+      void wavesurfer.play();
       setState("playing");
     }
   }, [wavesurfer]);

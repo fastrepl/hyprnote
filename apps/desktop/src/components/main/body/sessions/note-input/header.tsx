@@ -100,7 +100,7 @@ function HeaderTabEnhanced({
   const handleRegenerateClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      onRegenerate(null);
+      void onRegenerate(null);
     },
     [onRegenerate],
   );
@@ -251,7 +251,7 @@ function CreateOtherFormatButton({
         return;
       }
 
-      analyticsCommands.event({
+      void analyticsCommands.event({
         event: "template_summary_created",
         template_id: templateId,
       });
@@ -333,7 +333,7 @@ export function Header({
 }) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const isBatchProcessing = sessionMode === "running_batch";
-  const isLiveProcessing = sessionMode === "running_active";
+  const isLiveProcessing = sessionMode === "active";
 
   if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
@@ -408,7 +408,7 @@ export function useEditorTabs({
     main.STORE_ID,
   );
 
-  if (sessionMode === "running_active" || sessionMode === "running_batch") {
+  if (sessionMode === "active" || sessionMode === "running_batch") {
     return [{ type: "raw" }, { type: "transcript" }];
   }
 
@@ -472,7 +472,7 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
 
       setMissingModelError(null);
 
-      analyticsCommands.event({
+      void analyticsCommands.event({
         event: "summary_generated",
         is_auto: false,
       });

@@ -27,13 +27,17 @@ impl ChannelMode {
             return ChannelMode::SpeakerOnly;
         }
 
-        if hypr_device_heuristic::macos::is_headphone_from_default_output_device() {
+        use hypr_device_heuristic::macos::*;
+
+        if is_headphone_from_default_output_device() {
             return ChannelMode::MicAndSpeaker;
         }
 
-        if hypr_device_heuristic::macos::has_builtin_mic()
-            && !hypr_device_heuristic::macos::is_default_input_external()
-        {
+        if is_builtin_display_foldable() && is_builtin_display_inactive() {
+            return ChannelMode::SpeakerOnly;
+        }
+
+        if has_builtin_mic() && !is_default_input_external() {
             return ChannelMode::MicOnly;
         }
 

@@ -47,9 +47,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "status"
-                  ],
+                  "required": ["status"],
                   "additionalProperties": false
                 }
               }
@@ -57,9 +55,7 @@
           }
         },
         "operationId": "getHealth",
-        "tags": [
-          "private-skip-openapi"
-        ],
+        "tags": ["private-skip-openapi"],
         "parameters": []
       }
     },
@@ -77,9 +73,7 @@
                       "type": "boolean"
                     }
                   },
-                  "required": [
-                    "started"
-                  ],
+                  "required": ["started"],
                   "additionalProperties": false
                 }
               }
@@ -87,9 +81,7 @@
           }
         },
         "operationId": "postBillingStart-trial",
-        "tags": [
-          "private"
-        ],
+        "tags": ["private"],
         "parameters": [
           {
             "in": "query",
@@ -97,10 +89,7 @@
             "schema": {
               "default": "monthly",
               "type": "string",
-              "enum": [
-                "monthly",
-                "yearly"
-              ]
+              "enum": ["monthly", "yearly"]
             },
             "required": true
           }
@@ -118,9 +107,7 @@
           }
         },
         "operationId": "postChatCompletions",
-        "tags": [
-          "private-skip-openapi"
-        ],
+        "tags": ["private-skip-openapi"],
         "parameters": [],
         "security": [
           {
@@ -143,20 +130,13 @@
                       "properties": {
                         "role": {
                           "type": "string",
-                          "enum": [
-                            "system",
-                            "user",
-                            "assistant"
-                          ]
+                          "enum": ["system", "user", "assistant"]
                         },
                         "content": {
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "role",
-                        "content"
-                      ],
+                      "required": ["role", "content"],
                       "additionalProperties": false
                     }
                   },
@@ -168,11 +148,7 @@
                     "anyOf": [
                       {
                         "type": "string",
-                        "enum": [
-                          "none",
-                          "auto",
-                          "required"
-                        ]
+                        "enum": ["none", "auto", "required"]
                       },
                       {
                         "type": "object",
@@ -188,16 +164,11 @@
                                 "type": "string"
                               }
                             },
-                            "required": [
-                              "name"
-                            ],
+                            "required": ["name"],
                             "additionalProperties": false
                           }
                         },
-                        "required": [
-                          "type",
-                          "function"
-                        ],
+                        "required": ["type", "function"],
                         "additionalProperties": false
                       }
                     ]
@@ -212,9 +183,7 @@
                     "type": "number"
                   }
                 },
-                "required": [
-                  "messages"
-                ],
+                "required": ["messages"],
                 "additionalProperties": {}
               }
             }
@@ -239,10 +208,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "pipelineId",
-                    "invocationId"
-                  ],
+                  "required": ["pipelineId", "invocationId"],
                   "additionalProperties": false
                 }
               }
@@ -259,9 +225,7 @@
           }
         },
         "operationId": "postFile-transcriptionStart",
-        "tags": [
-          "private"
-        ],
+        "tags": ["private"],
         "parameters": [],
         "security": [
           {
@@ -281,9 +245,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "fileId"
-                ],
+                "required": ["fileId"],
                 "additionalProperties": false
               }
             }
@@ -322,9 +284,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "status"
-                  ],
+                  "required": ["status"],
                   "additionalProperties": false
                 }
               }
@@ -338,9 +298,7 @@
           }
         },
         "operationId": "getFile-transcriptionStatusByPipelineId",
-        "tags": [
-          "private"
-        ],
+        "tags": ["private"],
         "parameters": [
           {
             "in": "path",
@@ -389,9 +347,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "status"
-                  ],
+                  "required": ["status"],
                   "additionalProperties": false
                 }
               }
@@ -405,9 +361,7 @@
           }
         },
         "operationId": "getFile-transcriptionResultByPipelineId",
-        "tags": [
-          "private"
-        ],
+        "tags": ["private"],
         "parameters": [
           {
             "in": "path",
@@ -439,9 +393,7 @@
                       "type": "boolean"
                     }
                   },
-                  "required": [
-                    "canStartTrial"
-                  ],
+                  "required": ["canStartTrial"],
                   "additionalProperties": false
                 }
               }
@@ -449,9 +401,7 @@
           }
         },
         "operationId": "getRpcCan-start-trial",
-        "tags": [
-          "private"
-        ],
+        "tags": ["private"],
         "parameters": []
       }
     },
@@ -475,9 +425,7 @@
           }
         },
         "operationId": "getListen",
-        "tags": [
-          "private-skip-openapi"
-        ],
+        "tags": ["private-skip-openapi"],
         "parameters": [],
         "security": [
           {
@@ -554,42 +502,26 @@
                                             ]
                                           }
                                         },
-                                        "required": [
-                                          "word",
-                                          "start",
-                                          "end",
-                                          "confidence"
-                                        ],
+                                        "required": ["word", "start", "end", "confidence"],
                                         "additionalProperties": false
                                       }
                                     }
                                   },
-                                  "required": [
-                                    "transcript",
-                                    "confidence",
-                                    "words"
-                                  ],
+                                  "required": ["transcript", "confidence", "words"],
                                   "additionalProperties": false
                                 }
                               }
                             },
-                            "required": [
-                              "alternatives"
-                            ],
+                            "required": ["alternatives"],
                             "additionalProperties": false
                           }
                         }
                       },
-                      "required": [
-                        "channels"
-                      ],
+                      "required": ["channels"],
                       "additionalProperties": false
                     }
                   },
-                  "required": [
-                    "metadata",
-                    "results"
-                  ],
+                  "required": ["metadata", "results"],
                   "additionalProperties": false
                 }
               }
@@ -609,9 +541,7 @@
           }
         },
         "operationId": "postTranscribe",
-        "tags": [
-          "private-skip-openapi"
-        ],
+        "tags": ["private-skip-openapi"],
         "parameters": [],
         "security": [
           {
@@ -634,9 +564,7 @@
                       "type": "boolean"
                     }
                   },
-                  "required": [
-                    "ok"
-                  ],
+                  "required": ["ok"],
                   "additionalProperties": false
                 }
               }
@@ -650,9 +578,7 @@
           }
         },
         "operationId": "postWebhookStripe",
-        "tags": [
-          "private-skip-openapi"
-        ],
+        "tags": ["private-skip-openapi"],
         "parameters": [
           {
             "in": "header",

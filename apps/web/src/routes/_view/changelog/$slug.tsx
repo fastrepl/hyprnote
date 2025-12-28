@@ -137,9 +137,7 @@ function HeroSection({ changelog }: { changelog: ChangelogWithMeta }) {
 }
 
 function DownloadButtons({ version }: { version: string }) {
-  const isNightly = version.includes("-nightly");
-  const channel = isNightly ? "nightly" : "stable";
-  const baseUrl = `https://desktop2.hyprnote.com/download/${version}`;
+  const baseUrl = `https://github.com/fastrepl/hyprnote/releases/download/desktop_v${version}`;
   const [isOpen, setIsOpen] = useState(false);
   const [detectedOS, setDetectedOS] = useState<
     "apple-silicon" | "apple-intel" | "linux-appimage" | "linux-deb"
@@ -159,25 +157,25 @@ function DownloadButtons({ version }: { version: string }) {
       id: "apple-silicon" as const,
       icon: "ri:apple-fill",
       label: "Apple Silicon",
-      url: `${baseUrl}/dmg-aarch64?channel=${channel}`,
+      url: `${baseUrl}/hyprnote-macos-aarch64.dmg`,
     },
     {
       id: "apple-intel" as const,
       icon: "ri:apple-fill",
       label: "Intel Mac",
-      url: `${baseUrl}/dmg-x86_64?channel=${channel}`,
+      url: `${baseUrl}/hyprnote-macos-x86_64.dmg`,
     },
     {
       id: "linux-appimage" as const,
       icon: "simple-icons:linux",
       label: "Linux (AppImage)",
-      url: `${baseUrl}/appimage-x86_64?channel=${channel}`,
+      url: `${baseUrl}/hyprnote-linux-x86_64.AppImage`,
     },
     {
       id: "linux-deb" as const,
       icon: "simple-icons:linux",
       label: "Linux (.deb)",
-      url: `${baseUrl}/deb-x86_64?channel=${channel}`,
+      url: `${baseUrl}/hyprnote-linux-x86_64.deb`,
     },
   ];
 

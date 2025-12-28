@@ -1,16 +1,26 @@
 use tauri::Wry;
 
 mod commands;
+mod error;
 mod ext;
+mod sources;
+mod types;
 
-pub use ext::ImporterPluginExt;
+pub use error::*;
+pub use ext::*;
+pub use sources::{ImportSource, ImportSourceDyn, all_sources, get_source, list_available_sources};
+pub use types::*;
 
 const PLUGIN_NAME: &str = "importer";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![commands::ping::<Wry>,])
+        .commands(tauri_specta::collect_commands![
+            commands::list_available_sources::<Wry>,
+            commands::run_import::<Wry>,
+            commands::run_import_dry::<Wry>,
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 

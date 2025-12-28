@@ -26,8 +26,5 @@
   "rust-analyzer.cargo.extraEnv": { "MACOSX_DEPLOYMENT_TARGET": "14.2" },
   "deno.enable": true,
   "deno.lint": true,
-  "deno.enablePaths": [
-    "apps/web/netlify/edge-functions",
-    "extensions/shared"
-  ]
+  "deno.enablePaths": ["apps/web/netlify/edge-functions", "extensions/shared"]
 }

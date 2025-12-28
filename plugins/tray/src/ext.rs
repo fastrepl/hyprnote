@@ -1,7 +1,7 @@
 use tauri::{
     AppHandle, Result,
     image::Image,
-    menu::{Menu, MenuItemKind, PredefinedMenuItem},
+    menu::{Menu, MenuItemKind, PredefinedMenuItem, Submenu},
     tray::TrayIconBuilder,
 };
 
@@ -12,15 +12,14 @@ use crate::menu_items::{
 
 const TRAY_ID: &str = "hypr-tray";
 
-pub trait TrayPluginExt<R: tauri::Runtime> {
-    fn create_app_menu(&self) -> Result<()>;
-    fn create_tray_menu(&self) -> Result<()>;
-    fn set_start_disabled(&self, disabled: bool) -> Result<()>;
+pub struct Tray<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
-    fn create_app_menu(&self) -> Result<()> {
-        let app = self.app_handle();
+impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
+    pub fn create_app_menu(&self) -> Result<()> {
+        let app = self.manager.app_handle();
 
         let info_item = AppInfo::build(app)?;
         let check_update_item = TrayCheckUpdate::build(app)?;
@@ -34,14 +33,32 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             let items = menu.items()?;
 
             if !items.is_empty()
-                && let MenuItemKind::Submenu(submenu) = &items[0]
+                && let MenuItemKind::Submenu(old_submenu) = &items[0]
             {
-                submenu.remove_at(0)?;
-                submenu.remove_at(0)?;
-                submenu.prepend(&cli_item)?;
-                submenu.prepend(&settings_item)?;
-                submenu.prepend(&check_update_item)?;
-                submenu.prepend(&info_item)?;
+                let app_name = old_submenu.text()?;
+
+                let new_app_submenu = Submenu::with_items(
+                    app,
+                    &app_name,
+                    true,
+                    &[
+                        &info_item,
+                        &check_update_item,
+                        &settings_item,
+                        &cli_item,
+                        &PredefinedMenuItem::separator(app)?,
+                        &PredefinedMenuItem::services(app, None)?,
+                        &PredefinedMenuItem::separator(app)?,
+                        &PredefinedMenuItem::hide(app, None)?,
+                        &PredefinedMenuItem::hide_others(app, None)?,
+                        &PredefinedMenuItem::show_all(app, None)?,
+                        &PredefinedMenuItem::separator(app)?,
+                        &PredefinedMenuItem::quit(app, None)?,
+                    ],
+                )?;
+
+                menu.remove(old_submenu)?;
+                menu.prepend(&new_app_submenu)?;
             }
 
             if items.len() > 1
@@ -54,8 +71,8 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         Ok(())
     }
 
-    fn create_tray_menu(&self) -> Result<()> {
-        let app = self.app_handle();
+    pub fn create_tray_menu(&self) -> Result<()> {
+        let app = self.manager.app_handle();
 
         let menu = Menu::with_items(
             app,
@@ -77,15 +94,19 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             .menu(&menu)
             .show_menu_on_left_click(true)
             .on_menu_event(move |app: &AppHandle, event| {
-                HyprMenuItem::from(event.id.clone()).handle(app);
+                // Tauri dispatches menu events globally, so we receive events from context menus
+                // created elsewhere. TryFrom gracefully ignores unknown menu IDs that don't belong to the tray menu.
+                if let Ok(item) = HyprMenuItem::try_from(event.id.clone()) {
+                    item.handle(app);
+                }
             })
             .build(app)?;
 
         Ok(())
     }
 
-    fn set_start_disabled(&self, disabled: bool) -> Result<()> {
-        let app = self.app_handle();
+    pub fn set_start_disabled(&self, disabled: bool) -> Result<()> {
+        let app = self.manager.app_handle();
 
         if let Some(tray) = app.tray_by_id(TRAY_ID) {
             let menu = Menu::with_items(
@@ -104,5 +125,23 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         }
 
         Ok(())
+    }
+}
+
+pub trait TrayPluginExt<R: tauri::Runtime> {
+    fn tray(&self) -> Tray<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> TrayPluginExt<R> for T {
+    fn tray(&self) -> Tray<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Tray {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

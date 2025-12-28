@@ -129,7 +129,7 @@ function ProductLinks() {
             to="/changelog"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
-            Releases
+            Changelog
           </Link>
         </li>
         <li>
@@ -247,7 +247,7 @@ function ResourcesLinks() {
         <li>
           <Link
             to={currentUseCase.to}
-            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline group-hover:underline group-focus:underline decoration-dotted"
+            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
             aria-label={`Hyprnote for ${currentUseCase.label}`}
             onMouseEnter={() => {
               setUseCaseIndex((prev) =>
@@ -261,7 +261,7 @@ function ResourcesLinks() {
             }}
           >
             👍 for{" "}
-            <span className="inline-block blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
+            <span className="blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
               {currentUseCase.label}
             </span>
           </Link>
@@ -270,7 +270,7 @@ function ResourcesLinks() {
           <Link
             to="/vs/$slug"
             params={{ slug: currentVs.slug }}
-            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline group-hover:underline group-focus:underline decoration-dotted"
+            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
             aria-label={`Versus ${currentVs.name}`}
             onMouseEnter={() => {
               setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
@@ -287,7 +287,7 @@ function ResourcesLinks() {
               className="size-4 rounded border border-neutral-100 inline"
             />{" "}
             vs{" "}
-            <span className="inline-block blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
+            <span className="blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
               {currentVs.name}
             </span>
           </Link>
@@ -445,6 +445,17 @@ function SocialLinks() {
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
           >
             YouTube
+            <ExternalLinkIcon className="size-3" />
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://www.linkedin.com/company/hyprnote"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
+          >
+            LinkedIn
             <ExternalLinkIcon className="size-3" />
           </a>
         </li>

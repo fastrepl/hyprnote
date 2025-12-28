@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/bun";
 import type { Handler } from "hono";
 import { upgradeWebSocket } from "hono/bun";
 
@@ -21,6 +22,23 @@ export const listenSocketHandler: Handler<AppBindings> = async (c, next) => {
     await connection.preconnectUpstream();
     emit({ type: "stt.websocket.connected", userId, provider });
   } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "upstream_connect_failed";
+    console.error("[listen] preconnect failed:", {
+      provider,
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    Sentry.captureException(error, {
+      tags: {
+        operation: "stt_preconnect",
+        provider,
+      },
+      extra: {
+        errorMessage,
+        userId,
+      },
+    });
     emit({
       type: "stt.websocket.error",
       userId,
@@ -28,10 +46,11 @@ export const listenSocketHandler: Handler<AppBindings> = async (c, next) => {
       error:
         error instanceof Error ? error : new Error("upstream_connect_failed"),
     });
-    const detail =
-      error instanceof Error ? error.message : "upstream_connect_failed";
-    const status = detail === "upstream_connect_timeout" ? 504 : 502;
-    return c.json({ error: "upstream_connect_failed", detail }, status);
+    const status = errorMessage === "upstream_connect_timeout" ? 504 : 502;
+    return c.json(
+      { error: "upstream_connect_failed", detail: errorMessage },
+      status,
+    );
   }
 
   const connectionStartTime = performance.now();

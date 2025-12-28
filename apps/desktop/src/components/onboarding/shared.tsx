@@ -3,32 +3,17 @@ import type { ReactNode } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 
-export type OnboardingNext = (params?: {
-  local?: boolean;
-  step?: string;
-}) => void;
-
-type OnboardingAction = {
-  kind: "skip" | "next";
-  hide?: boolean;
-  onClick: () => void;
-};
-
-type OnboardingContainerProps = {
-  title: string;
-  description?: string;
-  action?: OnboardingAction;
-  children: ReactNode;
-  onBack?: () => void;
-};
-
 export function OnboardingContainer({
   title,
   description,
-  action,
   children,
   onBack,
-}: OnboardingContainerProps) {
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  onBack?: () => void;
+}) {
   return (
     <>
       {onBack && (
@@ -51,15 +36,6 @@ export function OnboardingContainer({
       </div>
 
       <div className="flex flex-col gap-6 w-full max-w-md">{children}</div>
-
-      {action && !action.hide && (
-        <button
-          className="self-center text-sm font-medium text-neutral-400 transition hover:text-neutral-600"
-          onClick={action.onClick}
-        >
-          {action.kind}
-        </button>
-      )}
     </>
   );
 }

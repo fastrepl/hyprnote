@@ -31,6 +31,9 @@ tauri = { workspace = true, features = ["test", "macos-private-api"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 tauri-plugin-analytics = { workspace = true }
+tauri-plugin-os = { workspace = true }
+tauri-plugin-sfx = { workspace = true }
+tauri-plugin-window-state = { workspace = true }
 
 once_cell = { workspace = true }
 thiserror = { workspace = true }

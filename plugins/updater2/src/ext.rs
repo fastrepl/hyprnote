@@ -1,57 +1,38 @@
+use std::path::PathBuf;
+
 use tauri::Manager;
-use tauri_plugin_store2::StorePluginExt;
+use tauri_plugin_store2::Store2PluginExt;
+use tauri_plugin_updater::UpdaterExt;
 use tauri_specta::Event;
 
 use crate::events::UpdatedEvent;
 
-pub trait Updater2PluginExt<R: tauri::Runtime> {
-    fn get_last_seen_version(&self) -> Result<Option<String>, crate::Error>;
-    fn set_last_seen_version(&self, version: String) -> Result<(), crate::Error>;
-    fn get_pending_update_version(&self) -> Result<Option<String>, crate::Error>;
-    fn set_pending_update_version(&self, version: Option<String>) -> Result<(), crate::Error>;
-    fn maybe_emit_updated(&self);
+pub struct Updater2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: Manager<R>> crate::Updater2PluginExt<R> for T {
-    fn get_last_seen_version(&self) -> Result<Option<String>, crate::Error> {
-        let store = self.scoped_store(crate::PLUGIN_NAME)?;
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
+    pub fn get_last_seen_version(&self) -> Result<Option<String>, crate::Error> {
+        let store = self.manager.store2().scoped_store(crate::PLUGIN_NAME)?;
         let v = store.get(crate::StoreKey::LastSeenVersion)?;
         Ok(v)
     }
 
-    fn set_last_seen_version(&self, version: String) -> Result<(), crate::Error> {
-        let store = self.scoped_store(crate::PLUGIN_NAME)?;
+    pub fn set_last_seen_version(&self, version: String) -> Result<(), crate::Error> {
+        let store = self.manager.store2().scoped_store(crate::PLUGIN_NAME)?;
         store.set(crate::StoreKey::LastSeenVersion, version)?;
         Ok(())
     }
 
-    fn get_pending_update_version(&self) -> Result<Option<String>, crate::Error> {
-        let store = self.scoped_store(crate::PLUGIN_NAME)?;
-        let v: Option<String> = store.get(crate::StoreKey::PendingUpdateVersion)?;
-        Ok(v.filter(|s| !s.is_empty()))
-    }
-
-    fn set_pending_update_version(&self, version: Option<String>) -> Result<(), crate::Error> {
-        let store = self.scoped_store(crate::PLUGIN_NAME)?;
-        store.set(
-            crate::StoreKey::PendingUpdateVersion,
-            version.unwrap_or_default(),
-        )?;
-        Ok(())
-    }
-
-    fn maybe_emit_updated(&self) {
-        let current_version = match self.config().version.as_ref() {
+    pub fn maybe_emit_updated(&self) {
+        let current_version = match self.manager.config().version.as_ref() {
             Some(v) => v.clone(),
             None => {
                 tracing::warn!("no_version_in_config");
                 return;
             }
         };
-
-        if let Err(e) = self.set_pending_update_version(None) {
-            tracing::warn!("failed_to_clear_pending_update: {}", e);
-        }
 
         let (should_emit, previous) = match self.get_last_seen_version() {
             Ok(Some(last_version)) if !last_version.is_empty() => {
@@ -70,7 +51,7 @@ impl<R: tauri::Runtime, T: Manager<R>> crate::Updater2PluginExt<R> for T {
                 current: current_version.clone(),
             };
 
-            if let Err(e) = payload.emit(self.app_handle()) {
+            if let Err(e) = payload.emit(self.manager.app_handle()) {
                 tracing::error!("failed_to_emit_updated_event: {}", e);
             }
         }
@@ -79,4 +60,100 @@ impl<R: tauri::Runtime, T: Manager<R>> crate::Updater2PluginExt<R> for T {
             tracing::error!("failed_to_update_version: {}", e);
         }
     }
+
+    fn cache_update_bytes(&self, version: &str, bytes: &[u8]) -> Result<(), crate::Error> {
+        let cache_path =
+            get_cache_path(self.manager, version).ok_or(crate::Error::CachePathUnavailable)?;
+
+        if let Some(parent) = cache_path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+
+        std::fs::write(&cache_path, bytes)?;
+        tracing::debug!("cached_update_bytes: {:?}", cache_path);
+        Ok(())
+    }
+
+    fn get_cached_update_bytes(&self, version: &str) -> Result<Vec<u8>, crate::Error> {
+        let cache_path =
+            get_cache_path(self.manager, version).ok_or(crate::Error::CachePathUnavailable)?;
+
+        if !cache_path.exists() {
+            return Err(crate::Error::CachedUpdateNotFound);
+        }
+
+        let bytes = std::fs::read(&cache_path)?;
+        Ok(bytes)
+    }
+
+    pub async fn check(&self) -> Result<Option<String>, crate::Error> {
+        let updater = self.manager.updater()?;
+        let update = updater.check().await?;
+        Ok(update.map(|u| u.version))
+    }
+
+    pub async fn download(&self, version: &str) -> Result<(), crate::Error> {
+        let updater = self.manager.updater()?;
+        let update = updater
+            .check()
+            .await?
+            .ok_or(crate::Error::UpdateNotAvailable)?;
+
+        if update.version != version {
+            return Err(crate::Error::VersionMismatch {
+                expected: version.to_string(),
+                actual: update.version,
+            });
+        }
+
+        let bytes = update.download(|_, _| {}, || {}).await?;
+        self.cache_update_bytes(version, &bytes)?;
+
+        Ok(())
+    }
+
+    pub async fn install(&self, version: &str) -> Result<(), crate::Error> {
+        let bytes = self.get_cached_update_bytes(version)?;
+
+        let updater = self.manager.updater()?;
+        let update = updater
+            .check()
+            .await?
+            .ok_or(crate::Error::UpdateNotAvailable)?;
+
+        update.install(&bytes)?;
+
+        Ok(())
+    }
+}
+
+pub trait Updater2PluginExt<R: tauri::Runtime> {
+    fn updater2(&self) -> Updater2<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> Updater2PluginExt<R> for T {
+    fn updater2(&self) -> Updater2<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Updater2 {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
+    }
+}
+
+fn get_cache_path<R: tauri::Runtime, M: tauri::Manager<R>>(
+    manager: &M,
+    version: &str,
+) -> Option<PathBuf> {
+    let dir = manager
+        .app_handle()
+        .path()
+        .app_cache_dir()
+        .ok()
+        .map(|p: PathBuf| p.join("updates"))?;
+    Some(dir.join(format!("{}.bin", version)))
 }

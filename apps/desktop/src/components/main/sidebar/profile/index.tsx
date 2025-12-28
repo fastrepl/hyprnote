@@ -5,19 +5,13 @@ import {
   FolderOpenIcon,
   SettingsIcon,
   SparklesIcon,
-  UserIcon,
   UsersIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useResizeObserver } from "usehooks-ts";
 
-import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
@@ -68,35 +62,22 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     }
   }, [isExpanded]);
 
-  useLayoutEffect(() => {
-    if (!isExpanded || currentView !== "main") {
-      return;
-    }
-
-    const element = mainViewRef.current;
-    if (!element) {
-      return;
-    }
-
-    const updateHeight = () => {
-      const height = element.getBoundingClientRect().height;
-      if (height > 0) {
+  const handleMainViewResize = useCallback(
+    ({ height }: { width?: number; height?: number }) => {
+      if (!isExpanded || currentView !== "main") {
+        return;
+      }
+      if (height && height > 0) {
         setMainViewHeight(height);
       }
-    };
+    },
+    [isExpanded, currentView],
+  );
 
-    updateHeight();
-
-    const observer = new ResizeObserver(() => {
-      updateHeight();
-    });
-
-    observer.observe(element);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [isExpanded, currentView, isAuthenticated]);
+  useResizeObserver({
+    ref: mainViewRef as React.RefObject<HTMLDivElement>,
+    onResize: handleMainViewResize,
+  });
 
   const profileRef = useAutoCloser(closeMenu, {
     esc: isExpanded,
@@ -137,39 +118,52 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     setCurrentView("main");
   }, []);
 
-  const handleClickProfile = useCallback(() => {
-    // TODO: Show the user's own profile in the contacts view
-    openNew({
-      type: "contacts",
-      state: {
-        selectedOrganization: null,
-        selectedPerson: null,
-      },
-    });
-    closeMenu();
-  }, [openNew, closeMenu]);
-
   const handleClickAI = useCallback(() => {
     openNew({ type: "ai" });
     closeMenu();
   }, [openNew, closeMenu]);
 
+  // const handleClickData = useCallback(() => {
+  //   openNew({ type: "data" });
+  //   closeMenu();
+  // }, [openNew, closeMenu]);
+
+  const kbdClass = cn([
+    "transition-all duration-100",
+    "group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_0_0_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
+    "group-active:translate-y-0.5 group-active:shadow-none",
+  ]);
+
   const menuItems = [
-    { icon: FolderOpenIcon, label: "Folders", onClick: handleClickFolders },
-    { icon: UsersIcon, label: "Contacts", onClick: handleClickContacts },
-    { icon: CalendarIcon, label: "Calendar", onClick: handleClickCalendar },
-    { icon: SparklesIcon, label: "AI", onClick: handleClickAI },
-    { icon: UserIcon, label: "My Profile", onClick: handleClickProfile },
+    {
+      icon: FolderOpenIcon,
+      label: "Folders",
+      onClick: handleClickFolders,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ D</Kbd>,
+    },
+    {
+      icon: UsersIcon,
+      label: "Contacts",
+      onClick: handleClickContacts,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ O</Kbd>,
+    },
+    {
+      icon: CalendarIcon,
+      label: "Calendar",
+      onClick: handleClickCalendar,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ C</Kbd>,
+    },
+    {
+      icon: SparklesIcon,
+      label: "AI",
+      onClick: handleClickAI,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ A</Kbd>,
+    },
     {
       icon: SettingsIcon,
       label: "Settings",
       onClick: handleClickSettings,
-      badge: (
-        <KbdGroup>
-          <Kbd className="bg-neutral-200">⌘</Kbd>
-          <Kbd className="bg-neutral-200">,</Kbd>
-        </KbdGroup>
-      ),
+      badge: <Kbd className={kbdClass}>⌘ ,</Kbd>,
     },
   ];
 
@@ -210,7 +204,10 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                         <MenuItem key={item.label} {...item} />
                       ))}
 
-                      <AuthSection isAuthenticated={isAuthenticated} />
+                      <AuthSection
+                        isAuthenticated={isAuthenticated}
+                        onClose={closeMenu}
+                      />
                     </motion.div>
                   ) : (
                     <motion.div

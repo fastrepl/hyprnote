@@ -1,37 +1,41 @@
-pub trait TemplatePluginExt<R: tauri::Runtime> {
-    fn render(
-        &self,
-        name: hypr_template::Template,
-        ctx: serde_json::Map<String, serde_json::Value>,
-    ) -> Result<String, String>;
-
-    fn render_custom(
-        &self,
-        template_content: &str,
-        ctx: serde_json::Map<String, serde_json::Value>,
-    ) -> Result<String, String>;
+pub struct Template<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    #[allow(dead_code)]
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> TemplatePluginExt<R> for T {
+impl<R: tauri::Runtime, M: tauri::Manager<R>> Template<'_, R, M> {
     #[tracing::instrument(skip_all)]
-    fn render(
-        &self,
-        name: hypr_template::Template,
-        ctx: serde_json::Map<String, serde_json::Value>,
-    ) -> Result<String, String> {
-        hypr_template::render(name, &ctx)
-            .map(|s| s.trim().to_string())
-            .map_err(|e| e.to_string())
+    pub fn render(&self, tpl: hypr_template_app::Template) -> Result<String, String> {
+        hypr_template_app::render(tpl).map_err(|e| e.to_string())
     }
 
     #[tracing::instrument(skip_all)]
-    fn render_custom(
+    pub fn render_custom(
         &self,
         template_content: &str,
         ctx: serde_json::Map<String, serde_json::Value>,
     ) -> Result<String, String> {
-        hypr_template::render_custom(template_content, &ctx)
+        hypr_template_app_legacy::render_custom(template_content, &ctx)
             .map(|s| s.trim().to_string())
             .map_err(|e| e.to_string())
+    }
+}
+
+pub trait TemplatePluginExt<R: tauri::Runtime> {
+    fn template(&self) -> Template<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> TemplatePluginExt<R> for T {
+    fn template(&self) -> Template<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Template {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

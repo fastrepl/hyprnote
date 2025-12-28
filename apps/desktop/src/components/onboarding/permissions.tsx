@@ -3,15 +3,11 @@ import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 import { cn } from "@hypr/utils";
 
 import { usePermissions } from "../../hooks/use-permissions";
-import { OnboardingContainer, type OnboardingNext } from "./shared";
+import { Route } from "../../routes/app/onboarding/_layout.index";
+import { getBack, getNext, type StepProps } from "./config";
+import { OnboardingContainer } from "./shared";
 
-type PermissionBlockProps = {
-  name: string;
-  status: string | undefined;
-  description: { authorized: string; unauthorized: string };
-  isPending: boolean;
-  onAction: () => void;
-};
+export const STEP_ID_PERMISSIONS = "permissions" as const;
 
 function PermissionBlock({
   name,
@@ -19,7 +15,13 @@ function PermissionBlock({
   description,
   isPending,
   onAction,
-}: PermissionBlockProps) {
+}: {
+  name: string;
+  status: string | undefined;
+  description: { authorized: string; unauthorized: string };
+  isPending: boolean;
+  onAction: () => void;
+}) {
   const isAuthorized = status === "authorized";
 
   return (
@@ -71,12 +73,8 @@ function PermissionBlock({
   );
 }
 
-type PermissionsProps = {
-  onNext: OnboardingNext;
-  onBack?: () => void;
-};
-
-export function Permissions({ onNext, onBack }: PermissionsProps) {
+export function Permissions({ onNavigate }: StepProps) {
+  const search = Route.useSearch();
   const {
     micPermissionStatus,
     systemAudioPermissionStatus,
@@ -94,10 +92,14 @@ export function Permissions({ onNext, onBack }: PermissionsProps) {
     systemAudioPermissionStatus.data === "authorized" &&
     accessibilityPermissionStatus.data === "authorized";
 
+  const backStep = getBack(search);
+
   return (
     <OnboardingContainer
       title="Permissions needed for best experience"
-      onBack={onBack}
+      onBack={
+        backStep ? () => onNavigate({ ...search, step: backStep }) : undefined
+      }
     >
       <div className="flex flex-col gap-4">
         <PermissionBlock
@@ -135,7 +137,7 @@ export function Permissions({ onNext, onBack }: PermissionsProps) {
       </div>
 
       <button
-        onClick={() => onNext()}
+        onClick={() => onNavigate({ ...search, step: getNext(search)! })}
         disabled={!allPermissionsGranted}
         className={cn([
           "w-full py-3 rounded-full text-sm font-medium duration-150",

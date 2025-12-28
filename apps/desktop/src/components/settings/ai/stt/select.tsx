@@ -16,6 +16,10 @@ import { cn } from "@hypr/utils";
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import * as settings from "../../../../store/tinybase/settings";
+import {
+  getProviderSelectionBlockers,
+  requiresEntitlement,
+} from "../shared/eligibility";
 import { HealthCheckForConnection } from "./health";
 import {
   displayModelId,
@@ -60,7 +64,7 @@ export function SelectProviderAndModel() {
           console.log(errors);
         }
 
-        formApi.handleSubmit();
+        void formApi.handleSubmit();
       },
     },
     onSubmit: ({ value }) => {
@@ -96,7 +100,7 @@ export function SelectProviderAndModel() {
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
                 >
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-white shadow-none focus:ring-0">
                     <SelectValue placeholder="Select a provider" />
                   </SelectTrigger>
                   <SelectContent>
@@ -104,7 +108,11 @@ export function SelectProviderAndModel() {
                       (provider) => {
                         const configured =
                           configuredProviders[provider.id]?.configured ?? false;
-                        const locked = provider.requiresPro && !billing.isPro;
+                        const requiresPro = requiresEntitlement(
+                          provider.requirements,
+                          "pro",
+                        );
+                        const locked = requiresPro && !billing.isPro;
                         return (
                           <SelectItem
                             key={provider.id}
@@ -117,7 +125,7 @@ export function SelectProviderAndModel() {
                               <div className="flex items-center gap-2">
                                 {provider.icon}
                                 <span>{provider.displayName}</span>
-                                {provider.requiresPro ? (
+                                {requiresPro ? (
                                   <span className="text-[10px] uppercase tracking-wide text-neutral-500 border border-neutral-200 rounded-full px-2 py-0.5">
                                     Pro
                                   </span>
@@ -179,7 +187,7 @@ export function SelectProviderAndModel() {
                     onValueChange={(value) => field.handleChange(value)}
                     disabled={models.length === 0}
                   >
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-white shadow-none focus:ring-0">
                       <SelectValue placeholder="Select a model" />
                     </SelectTrigger>
                     <SelectContent>
@@ -250,7 +258,20 @@ function useConfiguredMapping(): Record<
 
   return Object.fromEntries(
     PROVIDERS.map((provider) => {
-      if (provider.requiresPro && !billing.isPro) {
+      const config = configuredProviders[provider.id] as
+        | AIProviderStorage
+        | undefined;
+      const baseUrl = String(config?.base_url || provider.baseUrl || "").trim();
+      const apiKey = String(config?.api_key || "").trim();
+
+      const eligible =
+        getProviderSelectionBlockers(provider.requirements, {
+          isAuthenticated: true,
+          isPro: billing.isPro,
+          config: { base_url: baseUrl, api_key: apiKey },
+        }).length === 0;
+
+      if (!eligible) {
         return [provider.id, { configured: false, models: [] }];
       }
 
@@ -291,14 +312,6 @@ function useConfiguredMapping(): Record<
             models,
           },
         ];
-      }
-
-      const config = configuredProviders[provider.id] as
-        | AIProviderStorage
-        | undefined;
-
-      if (!config) {
-        return [provider.id, { configured: false, models: [] }];
       }
 
       if (provider.id === "custom") {

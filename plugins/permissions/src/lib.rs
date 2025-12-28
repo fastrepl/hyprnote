@@ -1,9 +1,11 @@
 mod commands;
 mod error;
 mod models;
+mod ext;
 
-pub use error::{Error, Result};
-pub use models::PermissionStatus;
+pub use ext::*;
+pub use error::*;
+pub use models::*;
 
 const PLUGIN_NAME: &str = "permissions";
 
@@ -11,23 +13,15 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::check_microphone_permission::<tauri::Wry>,
-            commands::request_microphone_permission::<tauri::Wry>,
-            commands::check_system_audio_permission::<tauri::Wry>,
-            commands::request_system_audio_permission::<tauri::Wry>,
-            commands::check_accessibility_permission::<tauri::Wry>,
-            commands::request_accessibility_permission::<tauri::Wry>,
-            commands::check_calendar_permission::<tauri::Wry>,
-            commands::request_calendar_permission::<tauri::Wry>,
-            commands::check_contacts_permission::<tauri::Wry>,
-            commands::request_contacts_permission::<tauri::Wry>,
-            commands::open_calendar_settings::<tauri::Wry>,
-            commands::open_contacts_settings::<tauri::Wry>,
+            commands::open_permission::<tauri::Wry>,
+            commands::check_permission::<tauri::Wry>,
+            commands::request_permission::<tauri::Wry>,
+            commands::reset_permission::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
-pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
@@ -55,5 +49,20 @@ mod test {
 
         let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
+    }
+
+    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+        builder
+        .plugin(tauri_plugin_shell::init())
+            .plugin(init())
+            .build(tauri::test::mock_context(tauri::test::noop_assets()))
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_permissions() {
+        let app = create_app(tauri::test::mock_builder());
+        let status = app.permissions().check(Permission::Calendar).await;
+        println!("status: {:?}", status);
     }
 }

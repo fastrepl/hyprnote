@@ -49,6 +49,7 @@ export function useRegisterTools(
   deps: React.DependencyList,
 ): void {
   const registry = useToolRegistry();
+  // oxlint-disable-next-line eslint-plugin-react-hooks(exhaustive-deps)
   const memoFactory = useCallback(factory, deps);
 
   useEffect(() => {

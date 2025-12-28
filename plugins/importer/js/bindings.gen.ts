@@ -6,9 +6,25 @@
 
 
 export const commands = {
-async ping() : Promise<Result<string, string>> {
+async listAvailableSources() : Promise<Result<ImportSourceInfo[], string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|ping") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|list_available_sources") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async runImport(source: ImportSourceKind) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|run_import", { source }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async runImportDry(source: ImportSourceKind) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|run_import_dry", { source }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -26,7 +42,8 @@ async ping() : Promise<Result<string, string>> {
 
 /** user-defined types **/
 
-
+export type ImportSourceInfo = { kind: ImportSourceKind; name: string; description: string }
+export type ImportSourceKind = "granola" | "hyprnote_v0_stable" | "hyprnote_v0_nightly"
 
 /** tauri-specta globals **/
 

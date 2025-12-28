@@ -49,12 +49,26 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
 
   useEffect(() => {
     setIsLoading(true);
-    const templateName = `${selectedTask}.user` as Parameters<
-      typeof templateCommands.render
-    >[0];
 
-    templateCommands
-      .render(templateName, {})
+    const template: Parameters<typeof templateCommands.render>[0] =
+      selectedTask === "enhance"
+        ? {
+            enhanceUser: {
+              session: {
+                event: null,
+                title: null,
+                startedAt: null,
+                endedAt: null,
+              },
+              participants: [],
+              template: null,
+              transcripts: [],
+            },
+          }
+        : { titleUser: { enhancedNote: "" } };
+
+    void templateCommands
+      .render(template)
       .then((result) => {
         if (result.status === "ok") {
           setDefaultContent(result.data);

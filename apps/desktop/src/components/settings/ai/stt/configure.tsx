@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { arch } from "@tauri-apps/plugin-os";
+import { arch, platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -20,7 +20,6 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
-import { useIsMacos } from "../../../../hooks/usePlatform";
 import * as settings from "../../../../store/tinybase/settings";
 import { NonHyprProviderCard, StyledStreamdown } from "../shared";
 import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
@@ -65,7 +64,7 @@ function HyprProviderCard({
   icon: React.ReactNode;
   badge?: string | null;
 }) {
-  const isMacos = useIsMacos();
+  const isMacos = platform() === "macos";
   const targetArch = useQuery({
     queryKey: ["target-arch"],
     queryFn: () => arch(),
@@ -73,12 +72,15 @@ function HyprProviderCard({
   });
   const isAppleSilicon = isMacos && targetArch.data === "aarch64";
 
+  const providerDef = PROVIDERS.find((p) => p.id === providerId);
+  const isConfigured = providerDef?.requirements.length === 0;
+
   return (
     <AccordionItem
       value={providerId}
       className={cn([
         "rounded-xl border-2 bg-neutral-50",
-        true ? "border-solid border-neutral-300" : "border-dashed",
+        isConfigured ? "border-solid border-neutral-300" : "border-dashed",
       ])}
     >
       <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
@@ -222,9 +224,8 @@ function HyprProviderCloudRow() {
           className="w-[110px]"
           size="sm"
           variant="default"
-          disabled={!isPro}
         >
-          {isPro ? "Ready to use" : "Pro users only"}
+          {isPro ? "Ready to use" : "Start Free Trial"}
         </Button>
       </div>
     </HyprProviderRow>
@@ -315,12 +316,13 @@ function HyprProviderLocalRow({
     handleCancel,
   } = useLocalModelDownload(model, handleSelectModel);
 
-  const handleOpen = () =>
-    localSttCommands.modelsDir().then((result) => {
+  const handleOpen = () => {
+    void localSttCommands.modelsDir().then((result) => {
       if (result.status === "ok") {
-        openPath(result.data);
+        void openPath(result.data);
       }
     });
+  };
 
   return (
     <HyprProviderRow>
@@ -378,7 +380,7 @@ function useLocalModelDownload(
     });
 
     return () => {
-      unlisten.then((fn) => fn());
+      void unlisten.then((fn) => fn());
     };
   }, [model]);
 
@@ -396,7 +398,7 @@ function useLocalModelDownload(
     setHasError(false);
     setIsStarting(true);
     setProgress(0);
-    localSttCommands.downloadModel(model).then((result) => {
+    void localSttCommands.downloadModel(model).then((result) => {
       if (result.status === "error") {
         setHasError(true);
         setIsStarting(false);
@@ -405,7 +407,7 @@ function useLocalModelDownload(
   };
 
   const handleCancel = () => {
-    localSttCommands.cancelDownload(model);
+    void localSttCommands.cancelDownload(model);
     setIsStarting(false);
     setProgress(0);
   };

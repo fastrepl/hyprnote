@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -15,9 +15,11 @@ export { SegmentRenderer } from "./segment-renderer";
 export function TranscriptContainer({
   sessionId,
   operations,
+  scrollRef,
 }: {
   sessionId: string;
   operations?: Operations;
+  scrollRef: RefObject<HTMLDivElement | null>;
 }) {
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -27,7 +29,7 @@ export function TranscriptContainer({
 
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const currentActive =
-    sessionMode === "running_active" || sessionMode === "finalizing";
+    sessionMode === "active" || sessionMode === "finalizing";
   const editable =
     sessionMode === "inactive" && Object.keys(operations ?? {}).length > 0;
 
@@ -74,17 +76,22 @@ export function TranscriptContainer({
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
     null,
   );
-  const handleContainerRef = useCallback((node: HTMLDivElement | null) => {
-    containerRef.current = node;
-    setScrollElement(node);
-  }, []);
+  const handleContainerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      containerRef.current = node;
+      setScrollElement(node);
+      scrollRef.current = node;
+    },
+    [scrollRef],
+  );
 
   const { isAtBottom, autoScrollEnabled, scrollToBottom } =
     useScrollDetection(containerRef);
+  const shouldAutoScroll = currentActive && autoScrollEnabled;
   useAutoScroll(
     containerRef,
-    [transcriptIds, partialWords, autoScrollEnabled],
-    autoScrollEnabled,
+    [transcriptIds, partialWords, shouldAutoScroll],
+    shouldAutoScroll,
   );
 
   const shouldShowButton = !isAtBottom && currentActive;
@@ -95,7 +102,7 @@ export function TranscriptContainer({
 
   const handleSelectionAction = (action: string, selectedText: string) => {
     if (action === "copy") {
-      navigator.clipboard.writeText(selectedText);
+      void navigator.clipboard.writeText(selectedText);
     }
   };
 

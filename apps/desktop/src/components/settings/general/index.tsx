@@ -8,6 +8,7 @@ import { useConfigValues } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/settings";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
+import { LabSettings } from "./lab";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
@@ -33,9 +34,6 @@ export function SettingsGeneral() {
         ignored_platforms: row.ignored_platforms
           ? JSON.stringify(row.ignored_platforms)
           : undefined,
-        dismissed_banners: row.dismissed_banners
-          ? JSON.stringify(row.dismissed_banners)
-          : undefined,
       }) satisfies Partial<GeneralStorage>,
     [],
     settings.STORE_ID,
@@ -58,22 +56,27 @@ export function SettingsGeneral() {
         if (errors.length > 0) {
           console.log(errors);
         }
-        formApi.handleSubmit();
+        void formApi.handleSubmit();
       },
     },
     onSubmit: ({ value }) => {
       setPartialValues(value);
 
       if (value.autostart) {
-        enable();
+        void enable();
       } else {
-        disable();
+        void disable();
       }
     },
   });
 
   return (
     <div className="flex flex-col gap-8">
+      <div>
+        <h2 className="font-semibold mb-4">Account & Billing</h2>
+        <AccountSettings />
+      </div>
+
       <form.Field name="autostart">
         {(autostartField) => (
           <form.Field name="notification_detect">
@@ -156,10 +159,7 @@ export function SettingsGeneral() {
 
       <Permissions />
 
-      <div>
-        <h2 className="font-semibold mb-4">Account & Billing</h2>
-        <AccountSettings />
-      </div>
+      <LabSettings />
     </div>
   );
 }

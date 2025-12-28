@@ -942,35 +942,40 @@ describe("buildSegments", () => {
     },
   ];
 
-  test.each(testCases)("$name", ({
-    finalWords,
-    partialWords,
-    speakerHints,
-    expected,
-    maxGapMs,
-    numSpeakers,
-  }) => {
-    finalWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
-    partialWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
-
-    const options =
-      maxGapMs !== undefined || numSpeakers !== undefined
-        ? {
-            ...(maxGapMs !== undefined && { maxGapMs }),
-            ...(numSpeakers !== undefined && { numSpeakers }),
-          }
-        : undefined;
-
-    const segments = buildSegments(
+  test.each(testCases)(
+    "$name",
+    ({
       finalWords,
       partialWords,
       speakerHints,
-      options,
-    );
-    expect(segments).toEqual(expected);
+      expected,
+      maxGapMs,
+      numSpeakers,
+    }) => {
+      finalWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
+      partialWords.forEach((word) =>
+        expect(word.channel).toBeLessThanOrEqual(2),
+      );
 
-    console.error(visualizeSegments(finalWords, partialWords));
-  });
+      const options =
+        maxGapMs !== undefined || numSpeakers !== undefined
+          ? {
+              ...(maxGapMs !== undefined && { maxGapMs }),
+              ...(numSpeakers !== undefined && { numSpeakers }),
+            }
+          : undefined;
+
+      const segments = buildSegments(
+        finalWords,
+        partialWords,
+        speakerHints,
+        options,
+      );
+      expect(segments).toEqual(expected);
+
+      console.error(visualizeSegments(finalWords, partialWords));
+    },
+  );
 });
 
 function visualizeSegments(

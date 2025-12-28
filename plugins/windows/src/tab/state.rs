@@ -25,6 +25,7 @@ crate::common_derives! {
 
 crate::common_derives! {
     pub struct TemplatesState {
+        pub show_homepage: Option<bool>,
         pub is_web_mode: Option<bool>,
         pub selected_mine_id: Option<String>,
         pub selected_web_index: Option<i32>,
@@ -61,9 +62,9 @@ crate::common_derives! {
 crate::common_derives! {
     #[derive(Default)]
     pub enum AiTab {
+        #[default]
         #[serde(rename = "transcription")]
         Transcription,
-        #[default]
         #[serde(rename = "intelligence")]
         Intelligence,
     }
@@ -73,5 +74,23 @@ crate::common_derives! {
     #[derive(Default)]
     pub struct AiState {
         pub tab: Option<AiTab>,
+    }
+}
+
+crate::common_derives! {
+    #[derive(Default)]
+    pub enum DataTab {
+        #[default]
+        #[serde(rename = "import")]
+        Import,
+        #[serde(rename = "export")]
+        Export,
+    }
+}
+
+crate::common_derives! {
+    #[derive(Default)]
+    pub struct DataState {
+        pub tab: Option<DataTab>,
     }
 }

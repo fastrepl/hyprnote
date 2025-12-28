@@ -16,17 +16,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@deepgram/sdk": "^4.11.2",
+    "@deepgram/sdk": "^4.11.3",
     "@openrouter/sdk": "^0.1.27",
     "@restatedev/restate-sdk-cloudflare-workers": "^1.9.1",
     "@restatedev/restate-sdk-zod": "^1.9.1",
-    "zod": "^4.1.13"
+    "zod": "^4.2.1"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20251209.0",
-    "@dotenvx/dotenvx": "^1.51.1",
-    "@restatedev/restate": "^1.5.5",
+    "@cloudflare/workers-types": "^4.20251221.0",
+    "@dotenvx/dotenvx": "^1.51.2",
+    "@restatedev/restate": "^1.5.6",
     "typescript": "^5.9.3",
-    "wrangler": "^4.53.0"
+    "wrangler": "^4.56.0"
   }
 }

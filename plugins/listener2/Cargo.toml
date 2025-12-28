@@ -14,10 +14,12 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
+tauri-plugin-path2 = { workspace = true }
+
 hypr-audio-utils = { workspace = true }
 hypr-language = { workspace = true }
 
-owhisper-client = { workspace = true }
+owhisper-client = { workspace = true, features = ["argmax"] }
 owhisper-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }

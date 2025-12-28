@@ -1,3 +1,4 @@
+import { platform } from "@tauri-apps/plugin-os";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -7,13 +8,13 @@ import {
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useResizeObserver } from "usehooks-ts";
 import { useShallow } from "zustand/shallow";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../../contexts/shell";
-import { useIsLinux } from "../../../hooks/usePlatform";
 import {
   type Tab,
   uniqueIdfromTab,
@@ -27,6 +28,7 @@ import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
+import { TabContentData, TabItemData } from "./data";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
 import { TabContentEvent, TabItemEvent } from "./events";
 import {
@@ -41,6 +43,7 @@ import { TabContentHuman, TabItemHuman } from "./humans";
 import { TabContentPrompt, TabItemPrompt } from "./prompts";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
+import { useCaretPosition } from "./sessions/caret-position-context";
 import { TabContentSettings, TabItemSettings } from "./settings";
 import { TabContentTemplate, TabItemTemplate } from "./templates";
 import { Update } from "./update";
@@ -54,7 +57,7 @@ export function Body() {
   );
 
   useEffect(() => {
-    loadExtensionPanels();
+    void loadExtensionPanels();
   }, []);
 
   if (!currentTab) {
@@ -73,7 +76,7 @@ export function Body() {
 
 function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
-  const isLinux = useIsLinux();
+  const isLinux = platform() === "linux";
   const {
     select,
     close,
@@ -99,35 +102,11 @@ function Header({ tabs }: { tabs: Tab[] }) {
   );
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const handleNewEmptyTab = useNewEmptyTab();
-  const [scrollState, setScrollState] = useState({
-    atStart: true,
-    atEnd: true,
-  });
-
-  const updateScrollState = useCallback(() => {
-    const container = tabsScrollContainerRef.current;
-    if (!container) return;
-
-    const { scrollLeft, scrollWidth, clientWidth } = container;
-    const atStart = scrollLeft <= 1;
-    const atEnd = scrollLeft + clientWidth >= scrollWidth - 1;
-    setScrollState({ atStart, atEnd });
-  }, []);
-
-  useEffect(() => {
-    const container = tabsScrollContainerRef.current;
-    if (!container) return;
-
-    updateScrollState();
-    container.addEventListener("scroll", updateScrollState);
-    const resizeObserver = new ResizeObserver(updateScrollState);
-    resizeObserver.observe(container);
-
-    return () => {
-      container.removeEventListener("scroll", updateScrollState);
-      resizeObserver.disconnect();
-    };
-  }, [updateScrollState, tabs]);
+  const [isSearchManuallyExpanded, setIsSearchManuallyExpanded] =
+    useState(false);
+  const { ref: rightContainerRef, hasSpace: hasSpaceForSearch } =
+    useHasSpaceForSearch();
+  const scrollState = useScrollState(tabsScrollContainerRef, [tabs]);
 
   const setTabRef = useScrollActiveTabIntoView(tabs);
   useTabsShortcuts();
@@ -145,6 +124,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
         <Button
           size="icon"
           variant="ghost"
+          className="shrink-0"
           onClick={() => leftsidebar.setExpanded(true)}
         >
           <PanelLeftOpenIcon size={16} className="text-neutral-600" />
@@ -224,21 +204,27 @@ function Header({ tabs }: { tabs: Tab[] }) {
       </div>
 
       <div
+        ref={rightContainerRef}
         data-tauri-drag-region
         className="flex-1 flex h-full items-center justify-between"
       >
-        <Button
-          onClick={handleNewEmptyTab}
-          variant="ghost"
-          size="icon"
-          className="text-neutral-600"
-        >
-          <PlusIcon size={16} />
-        </Button>
+        {!(isSearchManuallyExpanded && !hasSpaceForSearch) && (
+          <Button
+            onClick={handleNewEmptyTab}
+            variant="ghost"
+            size="icon"
+            className="text-neutral-600"
+          >
+            <PlusIcon size={16} />
+          </Button>
+        )}
 
-        <div className="flex items-center gap-1 h-full">
+        <div className="flex items-center gap-1 h-full ml-auto">
           <Update />
-          <Search />
+          <Search
+            hasSpace={hasSpaceForSearch}
+            onManualExpandChange={setIsSearchManuallyExpanded}
+          />
         </div>
       </div>
     </div>
@@ -442,6 +428,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "data") {
+    return (
+      <TabItemData
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
 
   return null;
 }
@@ -492,11 +490,18 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "ai") {
     return <TabContentAI tab={tab} />;
   }
+  if (tab.type === "data") {
+    return <TabContentData tab={tab} />;
+  }
 
   return null;
 }
 
-function TabChatButton() {
+function TabChatButton({
+  isCaretNearBottom = false,
+}: {
+  isCaretNearBottom?: boolean;
+}) {
   const { chat } = useShell();
   const currentTab = useTabs((state) => state.currentTab);
 
@@ -504,11 +509,15 @@ function TabChatButton() {
     return null;
   }
 
-  if (currentTab?.type === "ai" || currentTab?.type === "settings") {
+  if (
+    currentTab?.type === "ai" ||
+    currentTab?.type === "settings" ||
+    currentTab?.type === "data"
+  ) {
     return null;
   }
 
-  return <ChatFloatingButton />;
+  return <ChatFloatingButton isCaretNearBottom={isCaretNearBottom} />;
 }
 
 export function StandardTabWrapper({
@@ -525,11 +534,66 @@ export function StandardTabWrapper({
       <div className="flex flex-col rounded-xl border border-neutral-200 flex-1 overflow-hidden relative">
         {children}
         {floatingButton}
-        <TabChatButton />
+        <StandardTabChatButton />
       </div>
       {afterBorder}
     </div>
   );
+}
+
+function StandardTabChatButton() {
+  const caretPosition = useCaretPosition();
+  const isCaretNearBottom = caretPosition?.isCaretNearBottom ?? false;
+
+  return <TabChatButton isCaretNearBottom={isCaretNearBottom} />;
+}
+
+function useHasSpaceForSearch() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { width = 0 } = useResizeObserver({
+    ref: ref as React.RefObject<HTMLDivElement>,
+  });
+  return { ref, hasSpace: width >= 220 };
+}
+
+function useScrollState(
+  ref: React.RefObject<HTMLDivElement | null>,
+  deps: unknown[] = [],
+) {
+  const [scrollState, setScrollState] = useState({
+    atStart: true,
+    atEnd: true,
+  });
+
+  const updateScrollState = useCallback(() => {
+    const container = ref.current;
+    if (!container) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    setScrollState({
+      atStart: scrollLeft <= 1,
+      atEnd: scrollLeft + clientWidth >= scrollWidth - 1,
+    });
+  }, [ref]);
+
+  useResizeObserver({
+    ref: ref as React.RefObject<HTMLDivElement>,
+    onResize: updateScrollState,
+  });
+
+  useEffect(() => {
+    const container = ref.current;
+    if (!container) return;
+
+    updateScrollState();
+    container.addEventListener("scroll", updateScrollState);
+
+    return () => {
+      container.removeEventListener("scroll", updateScrollState);
+    };
+  }, [updateScrollState, ...deps]);
+
+  return scrollState;
 }
 
 function useScrollActiveTabIntoView(tabs: Tab[]) {
@@ -562,12 +626,25 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
 }
 
 function useTabsShortcuts() {
-  const { tabs, currentTab, close, select } = useTabs(
+  const {
+    tabs,
+    currentTab,
+    close,
+    select,
+    selectNext,
+    selectPrev,
+    restoreLastClosedTab,
+    openNew,
+  } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
       currentTab: state.currentTab,
       close: state.close,
       select: state.select,
+      selectNext: state.selectNext,
+      selectPrev: state.selectPrev,
+      restoreLastClosedTab: state.restoreLastClosedTab,
+      openNew: state.openNew,
     })),
   );
   const newNote = useNewNote({ behavior: "new" });
@@ -634,6 +711,98 @@ function useTabsShortcuts() {
       enableOnContentEditable: true,
     },
     [tabs, select],
+  );
+
+  useHotkeys(
+    "mod+alt+left",
+    () => selectPrev(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [selectPrev],
+  );
+
+  useHotkeys(
+    "mod+alt+right",
+    () => selectNext(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [selectNext],
+  );
+
+  useHotkeys(
+    "mod+shift+t",
+    () => restoreLastClosedTab(),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [restoreLastClosedTab],
+  );
+
+  useHotkeys(
+    "mod+shift+c",
+    () => openNew({ type: "calendar" }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+o",
+    () =>
+      openNew({
+        type: "contacts",
+        state: { selectedOrganization: null, selectedPerson: null },
+      }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+a",
+    () => openNew({ type: "ai" }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+d",
+    () => openNew({ type: "folders", id: null }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
+  );
+
+  useHotkeys(
+    "mod+shift+f",
+    () => openNew({ type: "data", state: { tab: null } }),
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [openNew],
   );
 
   return {};

@@ -1104,7 +1104,7 @@ dependencies = [
  "cpal",
  "dasp",
  "data",
- "device-heuristic",
+ "device-monitor",
  "ebur128",
  "futures-channel",
  "futures-util",
@@ -4683,6 +4683,16 @@ dependencies = [
  "libpulse-binding",
  "mac 0.1.0",
  "objc2-core-graphics",
+ "tracing",
+]
+
+[[package]]
+name = "device-monitor"
+version = "0.1.0"
+dependencies = [
+ "cidre",
+ "device-heuristic",
+ "libpulse-binding",
  "tracing",
 ]
 

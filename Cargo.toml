@@ -45,6 +45,7 @@ hypr-db-core = { path = "crates/db-core", package = "db-core" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }
 hypr-detect = { path = "crates/detect", package = "detect" }
 hypr-device-heuristic = { path = "crates/device-heuristic", package = "device-heuristic" }
+hypr-device-monitor = { path = "crates/device-monitor", package = "device-monitor" }
 hypr-docs = { path = "crates/docs", package = "docs" }
 hypr-download-interface = { path = "crates/download-interface", package = "download-interface" }
 hypr-eval = { path = "crates/eval", package = "eval" }

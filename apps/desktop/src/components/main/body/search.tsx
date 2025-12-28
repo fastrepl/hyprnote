@@ -95,12 +95,15 @@ function ExpandedSearch({
   onFocus?: () => void;
   onBlur?: () => void;
 }) {
-  const { query, setQuery, isSearching, isIndexing, inputRef } = useSearch();
+  const { query, setQuery, isSearching, isIndexing, inputRef, results } =
+    useSearch();
   const [isFocused, setIsFocused] = useState(false);
   const isCmdPressed = useCmdKeyPressed();
 
   const showLoading = isSearching || isIndexing;
   const showShortcut = isCmdPressed && !query;
+  const hasResults = results && results.totalResults > 0;
+  const resultCount = results?.totalResults ?? 0;
 
   const width = hasSpace
     ? isFocused
@@ -150,11 +153,30 @@ function ExpandedSearch({
           className={cn([
             "text-sm placeholder:text-sm placeholder:text-neutral-400",
             "w-full pl-9 h-full",
-            query ? "pr-9" : showShortcut ? "pr-14" : "pr-4",
+            query
+              ? hasResults
+                ? "pr-16"
+                : "pr-9"
+              : showShortcut
+                ? "pr-14"
+                : "pr-4",
             "rounded-xl bg-neutral-100",
             "focus:outline-none focus:bg-neutral-200",
           ])}
         />
+        {hasResults && query && (
+          <div
+            className={cn([
+              "absolute right-9",
+              "px-2 py-0.5",
+              "rounded-full bg-neutral-400",
+              "text-xs text-white font-semibold",
+              "pointer-events-none",
+            ])}
+          >
+            {resultCount}
+          </div>
+        )}
         {query && (
           <button
             onClick={() => setQuery("")}

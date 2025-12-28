@@ -6,7 +6,7 @@ import {
   createSessionSearchableContent,
 } from "./content";
 import type { Index } from "./types";
-import { collectCells, toNumber, toTrimmedString } from "./utils";
+import { collectCells, toEpochMs, toTrimmedString } from "./utils";
 
 export function indexSessions(db: Index, store: MainStore): void {
   const fields = [
@@ -29,7 +29,7 @@ export function indexSessions(db: Index, store: MainStore): void {
       type: "session",
       title,
       content: createSessionSearchableContent(row),
-      created_at: toNumber(row.created_at),
+      created_at: toEpochMs(row.created_at),
     });
   });
 }
@@ -54,7 +54,7 @@ export function indexHumans(db: Index, store: MainStore): void {
       type: "human",
       title,
       content: createHumanSearchableContent(row),
-      created_at: toNumber(row.created_at),
+      created_at: toEpochMs(row.created_at),
     });
   });
 }
@@ -71,7 +71,7 @@ export function indexOrganizations(db: Index, store: MainStore): void {
       type: "organization",
       title,
       content: "",
-      created_at: toNumber(row.created_at),
+      created_at: toEpochMs(row.created_at),
     });
   });
 }

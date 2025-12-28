@@ -16,33 +16,18 @@ export function SearchResults() {
       {empty ? (
         <SearchNoResults query={query} setQuery={setQuery} />
       ) : (
-        <SearchYesResults results={results} query={query} />
+        <SearchYesResults results={results} />
       )}
     </div>
   );
 }
 
-function SearchYesResults({
-  results,
-  query,
-}: {
-  results: GroupedSearchResults;
-  query: string;
-}) {
+function SearchYesResults({ results }: { results: GroupedSearchResults }) {
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="px-3 py-3">
-        <div className="px-2 py-2 mb-4">
-          <p className="text-xs text-neutral-500 font-medium">
-            {results.totalResults} result
-            {results.totalResults !== 1 ? "s" : ""} for "{query}"
-          </p>
-        </div>
-
-        {results.groups.map((group) => (
-          <SearchResultGroup key={group.key} group={group} />
-        ))}
-      </div>
+    <div className="h-full overflow-y-auto scrollbar-hide">
+      {results.groups.map((group) => (
+        <SearchResultGroup key={group.key} group={group} />
+      ))}
     </div>
   );
 }

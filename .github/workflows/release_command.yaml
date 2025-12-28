@@ -131,7 +131,7 @@ jobs:
           elif [ -n "$RUN_ID" ]; then
             echo "success=true" >> $GITHUB_OUTPUT
             echo "title=$CHANNEL release triggered" >> $GITHUB_OUTPUT
-            DATA=$(jq -n \
+            DATA=$(jq -cn \
               --arg channel "\`$CHANNEL\`" \
               --arg sha "\`${MERGE_SHA:0:8}\`" \
               --arg run "[View run](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)" \
@@ -140,7 +140,7 @@ jobs:
           else
             echo "success=false" >> $GITHUB_OUTPUT
             echo "title=Failed to trigger $CHANNEL release" >> $GITHUB_OUTPUT
-            DATA=$(jq -n \
+            DATA=$(jq -cn \
               --arg channel "\`$CHANNEL\`" \
               --arg logs "[View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
               '{Channel: $channel, Logs: $logs}')

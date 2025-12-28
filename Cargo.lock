@@ -1134,7 +1134,6 @@ dependencies = [
 name = "audio-priority"
 version = "0.1.0"
 dependencies = [
- "cidre",
  "libpulse-binding",
  "serde",
  "serde_json",

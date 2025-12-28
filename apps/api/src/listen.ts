@@ -23,13 +23,6 @@ export const listenSocketHandler: Handler<AppBindings> = async (c, next) => {
     return Sentry.startSpan(
       { name: `WebSocket /listen ${provider}`, op: "websocket.server" },
       async () => {
-        Sentry.addBreadcrumb({
-          category: "websocket",
-          message: `Starting WebSocket connection for provider: ${provider}`,
-          level: "info",
-          data: { provider },
-        });
-
         let connection: WsProxyConnection;
         try {
           connection = createProxyFromRequest(clientUrl, c.req.raw.headers);
@@ -88,12 +81,6 @@ export const listenSocketHandler: Handler<AppBindings> = async (c, next) => {
           return {
             onOpen(_event, ws) {
               connection.initializeUpstream(ws.raw);
-              Sentry.addBreadcrumb({
-                category: "websocket",
-                message: "Client WebSocket opened",
-                level: "info",
-                data: { provider },
-              });
             },
             async onMessage(event) {
               const payload = await normalizeWsData(event.data);

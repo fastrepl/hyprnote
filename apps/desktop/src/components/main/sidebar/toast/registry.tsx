@@ -1,11 +1,11 @@
-import type { BannerCondition, BannerType } from "./types";
+import type { ToastCondition, ToastType } from "./types";
 
-type BannerRegistryEntry = {
-  banner: BannerType;
-  condition: BannerCondition;
+type ToastRegistryEntry = {
+  toast: ToastType;
+  condition: ToastCondition;
 };
 
-type BannerRegistryParams = {
+type ToastRegistryParams = {
   isAuthenticated: boolean;
   hasLLMConfigured: boolean;
   hasSttConfigured: boolean;
@@ -16,7 +16,7 @@ type BannerRegistryParams = {
   onOpenSTTSettings: () => void;
 };
 
-export function createBannerRegistry({
+export function createToastRegistry({
   isAuthenticated,
   hasLLMConfigured,
   hasSttConfigured,
@@ -25,11 +25,11 @@ export function createBannerRegistry({
   onSignIn,
   onOpenLLMSettings,
   onOpenSTTSettings,
-}: BannerRegistryParams): BannerRegistryEntry[] {
+}: ToastRegistryParams): ToastRegistryEntry[] {
   // order matters
   return [
     {
-      banner: {
+      toast: {
         id: "missing-stt",
         description: (
           <>
@@ -46,7 +46,7 @@ export function createBannerRegistry({
       condition: () => !hasSttConfigured && !isAiTranscriptionTabActive,
     },
     {
-      banner: {
+      toast: {
         id: "missing-llm",
         description: (
           <>
@@ -64,7 +64,7 @@ export function createBannerRegistry({
         hasSttConfigured && !hasLLMConfigured && !isAiIntelligenceTabActive,
     },
     {
-      banner: {
+      toast: {
         id: "upgrade-to-pro",
         icon: (
           <img
@@ -87,13 +87,13 @@ export function createBannerRegistry({
   ];
 }
 
-export function getBannerToShow(
-  registry: BannerRegistryEntry[],
+export function getToastToShow(
+  registry: ToastRegistryEntry[],
   isDismissed: (id: string) => boolean,
-): BannerType | null {
+): ToastType | null {
   for (const entry of registry) {
-    if (entry.condition() && !isDismissed(entry.banner.id)) {
-      return entry.banner;
+    if (entry.condition() && !isDismissed(entry.toast.id)) {
+      return entry.toast;
     }
   }
   return null;

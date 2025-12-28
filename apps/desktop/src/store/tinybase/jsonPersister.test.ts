@@ -41,7 +41,6 @@ describe("jsonPersister roundtrip", () => {
         telemetry_consent: false,
         ai_language: "en",
         spoken_languages: "en,ko",
-        dismissed_banners: "banner1,banner2",
       },
     };
 
@@ -92,7 +91,6 @@ describe("jsonPersister roundtrip", () => {
       telemetry_consent: false,
       ai_language: "en",
       spoken_languages: "en,ko",
-      dismissed_banners: "banner1",
     };
 
     store.setTables(originalTables);

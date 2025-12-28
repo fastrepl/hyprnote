@@ -19,6 +19,23 @@ pub async fn set_onboarding_needed<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_dismissed_toasts<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    app.get_dismissed_toasts()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_dismissed_toasts<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    v: Vec<String>,
+) -> Result<(), String> {
+    app.set_dismissed_toasts(v)
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn get_onboarding_local<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {

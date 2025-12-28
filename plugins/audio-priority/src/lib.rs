@@ -14,6 +14,14 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::ping::<tauri::Wry>,
+            commands::list_devices::<tauri::Wry>,
+            commands::list_input_devices::<tauri::Wry>,
+            commands::list_output_devices::<tauri::Wry>,
+            commands::get_default_input_device::<tauri::Wry>,
+            commands::get_default_output_device::<tauri::Wry>,
+            commands::set_default_input_device::<tauri::Wry>,
+            commands::set_default_output_device::<tauri::Wry>,
+            commands::is_headphone::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

@@ -22,6 +22,7 @@ tauri-build = { workspace = true, features = [] }
 [dependencies]
 tauri = { workspace = true, features = ["specta", "macos-private-api", "protocol-asset"] }
 
+portpicker = { version = "0.1", optional = true }
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-apple-calendar = { workspace = true }
 tauri-plugin-audio-priority = { workspace = true }
@@ -45,6 +46,7 @@ tauri-plugin-importer = { workspace = true }
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-listener2 = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
+tauri-plugin-localhost = { workspace = true, optional = true }
 tauri-plugin-misc = { workspace = true }
 tauri-plugin-network = { workspace = true }
 tauri-plugin-notification = { workspace = true }
@@ -69,8 +71,6 @@ tauri-plugin-updater = { workspace = true }
 tauri-plugin-updater2 = { workspace = true }
 tauri-plugin-window-state = { workspace = true }
 tauri-plugin-windows = { workspace = true }
-tauri-plugin-localhost = { workspace = true, optional = true }
-portpicker = { version = "0.1", optional = true }
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }

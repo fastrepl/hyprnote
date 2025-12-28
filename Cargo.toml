@@ -123,7 +123,6 @@ tauri-plugin-shell = "2.3"
 tauri-plugin-single-instance = "2.3"
 tauri-plugin-store = "2.4"
 tauri-plugin-updater = "2.9"
-tauri-plugin-localhost = "2.2"
 tauri-plugin-window-state = "2.4"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
@@ -143,6 +142,7 @@ tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-listener2 = { path = "plugins/listener2" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }
 tauri-plugin-local-stt = { path = "plugins/local-stt" }
+tauri-plugin-localhost = "2.2"
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-network = { path = "plugins/network" }
 tauri-plugin-notification = { path = "plugins/notification" }

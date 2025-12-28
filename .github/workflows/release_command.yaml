@@ -9,8 +9,8 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: staging-${{ github.event.issue.number }}
-  cancel-in-progress: true
+  group: release-${{ github.event.issue.number }}
+  cancel-in-progress: false
 
 jobs:
   permission:
@@ -31,8 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       valid: ${{ steps.parse.outputs.valid }}
-      ref: ${{ steps.resolve_ref.outputs.ref }}
-      sha: ${{ steps.resolve_ref.outputs.sha }}
+      channel: ${{ steps.parse.outputs.channel }}
+      merged: ${{ steps.resolve_ref.outputs.merged }}
+      merge_sha: ${{ steps.resolve_ref.outputs.merge_sha }}
       branch: ${{ steps.resolve_ref.outputs.branch }}
       needs_cleanup: ${{ steps.resolve_ref.outputs.needs_cleanup }}
     steps:
@@ -41,10 +42,14 @@ jobs:
         env:
           COMMENT: ${{ github.event.comment.body }}
         run: |
-          [[ "$COMMENT" =~ (^|[[:space:]])/staging($|[[:space:]]) ]] || { echo "valid=false" >> $GITHUB_OUTPUT; exit 0; }
-          echo "valid=true" >> $GITHUB_OUTPUT
-          if [[ "$COMMENT" =~ /staging[[:space:]]+([a-zA-Z0-9_.][a-zA-Z0-9_./-]*)($|[[:space:]]) ]]; then
-            echo "ref=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          if [[ "$COMMENT" =~ (^|[[:space:]])/nightly($|[[:space:]]) ]]; then
+            echo "valid=true" >> $GITHUB_OUTPUT
+            echo "channel=nightly" >> $GITHUB_OUTPUT
+          elif [[ "$COMMENT" =~ (^|[[:space:]])/stable($|[[:space:]]) ]]; then
+            echo "valid=true" >> $GITHUB_OUTPUT
+            echo "channel=stable" >> $GITHUB_OUTPUT
+          else
+            echo "valid=false" >> $GITHUB_OUTPUT
           fi
       - if: steps.parse.outputs.valid == 'true'
         id: resolve_ref
@@ -52,38 +57,34 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          EXPLICIT_REF="${{ steps.parse.outputs.ref }}"
           IS_PR="${{ github.event.issue.pull_request }}"
 
-          output_ref() {
-            echo "ref=$1" >> $GITHUB_OUTPUT
-            echo "sha=$2" >> $GITHUB_OUTPUT
-            echo "branch=$3" >> $GITHUB_OUTPUT
-            echo "needs_cleanup=$4" >> $GITHUB_OUTPUT
-          }
-
-          if [ -z "$EXPLICIT_REF" ] && [ -n "$IS_PR" ]; then
-            PR_DATA=$(gh api repos/$REPO/pulls/${{ github.event.issue.number }})
-            BRANCH=$(echo "$PR_DATA" | jq -r '.head.ref')
-            SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
-            output_ref "$BRANCH" "$SHA" "$BRANCH" "false"
-          elif [ -n "$EXPLICIT_REF" ]; then
-            SHA=$(gh api repos/$REPO/commits/$EXPLICIT_REF --jq '.sha')
-            if gh api repos/$REPO/git/refs/heads/$EXPLICIT_REF --jq '.ref' >/dev/null 2>&1; then
-              output_ref "$EXPLICIT_REF" "$SHA" "$EXPLICIT_REF" "false"
-            else
-              TEMP_BRANCH="staging-temp-${SHA:0:8}"
-              GH_TOKEN=${{ secrets.PAT_TOKEN }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$SHA"
-              output_ref "$EXPLICIT_REF" "$SHA" "$TEMP_BRANCH" "true"
-            fi
-          else
-            echo "No ref provided and not in a PR context"
-            exit 1
+          if [ -z "$IS_PR" ]; then
+            echo "merged=false" >> $GITHUB_OUTPUT
+            exit 0
           fi
 
-  trigger_build:
+          PR_DATA=$(gh api repos/$REPO/pulls/${{ github.event.issue.number }})
+          MERGED=$(echo "$PR_DATA" | jq -r '.merged')
+
+          if [ "$MERGED" != "true" ]; then
+            echo "merged=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          MERGE_SHA=$(echo "$PR_DATA" | jq -r '.merge_commit_sha')
+          TEMP_BRANCH="release-temp-${MERGE_SHA:0:8}"
+
+          GH_TOKEN=${{ secrets.PAT_TOKEN }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$MERGE_SHA"
+
+          echo "merged=true" >> $GITHUB_OUTPUT
+          echo "merge_sha=$MERGE_SHA" >> $GITHUB_OUTPUT
+          echo "branch=$TEMP_BRANCH" >> $GITHUB_OUTPUT
+          echo "needs_cleanup=true" >> $GITHUB_OUTPUT
+
+  trigger_release:
     needs: [permission, parse_command]
-    if: needs.permission.outputs.allowed == 'true' && needs.parse_command.outputs.valid == 'true'
+    if: needs.permission.outputs.allowed == 'true' && needs.parse_command.outputs.valid == 'true' && needs.parse_command.outputs.merged == 'true'
     runs-on: ubuntu-latest
     outputs:
       run_id: ${{ steps.trigger.outputs.run_id }}
@@ -92,19 +93,19 @@ jobs:
       REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
-      - run: gh api repos/$REPO/issues/comments/${{ github.event.comment.id }}/reactions -f content='eyes' --silent
+      - run: gh api repos/$REPO/issues/comments/${{ github.event.comment.id }}/reactions -f content='rocket' --silent
       - id: trigger
         uses: ./.github/actions/trigger-workflow
         with:
           workflow: desktop_cd.yaml
           ref: ${{ needs.parse_command.outputs.branch }}
-          channel: staging
+          channel: ${{ needs.parse_command.outputs.channel }}
           token: ${{ secrets.GITHUB_TOKEN }}
           repo: ${{ github.repository }}
-          max_attempts: "6"
+          max_attempts: "10"
 
   comment_result:
-    needs: [permission, parse_command, trigger_build]
+    needs: [permission, parse_command, trigger_release]
     if: always() && needs.permission.outputs.allowed == 'true' && needs.parse_command.outputs.valid == 'true'
     runs-on: ubuntu-latest
     env:
@@ -113,27 +114,31 @@ jobs:
       - uses: actions/checkout@v4
       - id: build_data
         run: |
-          BRANCH="${{ needs.parse_command.outputs.branch }}"
-          SHA="${{ needs.parse_command.outputs.sha }}"
-          RUN_ID="${{ needs.trigger_build.outputs.run_id }}"
+          CHANNEL="${{ needs.parse_command.outputs.channel }}"
+          MERGED="${{ needs.parse_command.outputs.merged }}"
+          MERGE_SHA="${{ needs.parse_command.outputs.merge_sha }}"
+          RUN_ID="${{ needs.trigger_release.outputs.run_id }}"
 
-          if [ -n "$RUN_ID" ]; then
+          if [ "$MERGED" != "true" ]; then
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "title=Cannot trigger $CHANNEL release - PR must be merged first" >> $GITHUB_OUTPUT
+            echo "data={\"Channel\": \"\`$CHANNEL\`\"}" >> $GITHUB_OUTPUT
+          elif [ -n "$RUN_ID" ]; then
             echo "success=true" >> $GITHUB_OUTPUT
-            echo "title=Staging build triggered" >> $GITHUB_OUTPUT
+            echo "title=$CHANNEL release triggered" >> $GITHUB_OUTPUT
             DATA=$(jq -n \
-              --arg branch "\`$BRANCH\`" \
-              --arg sha "\`${SHA:0:8}\`" \
+              --arg channel "\`$CHANNEL\`" \
+              --arg sha "\`${MERGE_SHA:0:8}\`" \
               --arg run "[View run](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)" \
-              '{Branch: $branch, SHA: $sha, Run: $run}')
+              '{Channel: $channel, "Merge commit": $sha, Run: $run}')
             echo "data=$DATA" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
-            echo "title=Failed to trigger staging build" >> $GITHUB_OUTPUT
+            echo "title=Failed to trigger $CHANNEL release" >> $GITHUB_OUTPUT
             DATA=$(jq -n \
-              --arg branch "\`$BRANCH\`" \
-              --arg sha "\`${SHA:0:8}\`" \
+              --arg channel "\`$CHANNEL\`" \
               --arg logs "[View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
-              '{Branch: $branch, SHA: $sha, Logs: $logs}')
+              '{Channel: $channel, Logs: $logs}')
             echo "data=$DATA" >> $GITHUB_OUTPUT
           fi
       - uses: ./.github/actions/comment-result

@@ -1104,7 +1104,6 @@ dependencies = [
  "cpal",
  "dasp",
  "data",
- "device-monitor",
  "ebur128",
  "futures-channel",
  "futures-util",
@@ -3385,6 +3384,16 @@ dependencies = [
  "getrandom 0.2.16",
  "once_cell",
  "tiny-keccak",
+]
+
+[[package]]
+name = "control-tauri"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
 ]
 
 [[package]]
@@ -17395,6 +17404,7 @@ dependencies = [
  "codes-iso-639",
  "data",
  "device-heuristic",
+ "device-monitor",
  "dirs 6.0.0",
  "futures-util",
  "hound",

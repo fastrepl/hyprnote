@@ -16,6 +16,7 @@ members = [
   "plugins/*",
 ]
 exclude = [
+  "apps/control",
   "apps/desktop",
   "apps/desktop-e2e",
   "apps/k6",

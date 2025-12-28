@@ -10,6 +10,10 @@ on:
           - staging
           - nightly
           - stable
+      target_ref:
+        description: "Git ref (SHA or branch) to build. If empty, uses the workflow's ref."
+        required: false
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.channel }}
@@ -28,6 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.target_ref || github.ref }}
           lfs: true
           fetch-depth: 0
           fetch-tags: true
@@ -85,6 +90,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.target_ref || github.ref }}
           lfs: true
           fetch-depth: 0
           fetch-tags: true
@@ -199,6 +205,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.target_ref || github.ref }}
           lfs: true
           fetch-depth: 0
           fetch-tags: true

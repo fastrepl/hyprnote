@@ -1,0 +1,114 @@
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: false
+        type: string
+      issue_number:
+        required: true
+        type: number
+      comment_id:
+        required: true
+        type: number
+
+concurrency:
+  group: staging-${{ inputs.issue_number }}
+  cancel-in-progress: true
+
+jobs:
+  resolve-and-trigger:
+    runs-on: ubuntu-latest
+    outputs:
+      success: ${{ steps.result.outputs.success }}
+      title: ${{ steps.result.outputs.title }}
+      data: ${{ steps.result.outputs.data }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/add-reaction
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          comment: ${{ inputs.comment_id }}
+          reaction: eyes
+      - id: resolve
+        run: |
+          EXPLICIT_REF="${{ inputs.ref }}"
+
+          PR_DATA=$(gh api repos/$REPO/pulls/${{ inputs.issue_number }} 2>/dev/null) || PR_DATA=""
+
+          if [ -z "$EXPLICIT_REF" ] && [ -n "$PR_DATA" ]; then
+            BRANCH=$(echo "$PR_DATA" | jq -r '.head.ref')
+            SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
+            echo "ref=$BRANCH" >> $GITHUB_OUTPUT
+            echo "sha=$SHA" >> $GITHUB_OUTPUT
+            echo "display_ref=$BRANCH" >> $GITHUB_OUTPUT
+          elif [ -n "$EXPLICIT_REF" ]; then
+            SHA=$(gh api repos/$REPO/commits/$EXPLICIT_REF --jq '.sha' 2>/dev/null) || {
+              echo "error=Could not resolve ref: $EXPLICIT_REF" >> $GITHUB_OUTPUT
+              exit 0
+            }
+            echo "ref=$EXPLICIT_REF" >> $GITHUB_OUTPUT
+            echo "sha=$SHA" >> $GITHUB_OUTPUT
+            echo "display_ref=$EXPLICIT_REF" >> $GITHUB_OUTPUT
+          else
+            echo "error=No ref provided and not in a PR context" >> $GITHUB_OUTPUT
+          fi
+      - if: steps.resolve.outputs.sha != ''
+        id: trigger
+        run: |
+          gh workflow run desktop_cd.yaml --repo $REPO --ref main -f channel=staging -f target_ref=${{ steps.resolve.outputs.sha }}
+          for i in $(seq 1 6); do
+            sleep 5
+            RUN_ID=$(gh run list --workflow=desktop_cd.yaml --repo $REPO --branch=main --json databaseId,createdAt --jq 'sort_by(.createdAt) | reverse | .[0].databaseId // empty')
+            [ -n "$RUN_ID" ] && break
+          done
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+      - id: result
+        run: |
+          REF="${{ steps.resolve.outputs.display_ref }}"
+          SHA="${{ steps.resolve.outputs.sha }}"
+          RUN_ID="${{ steps.trigger.outputs.run_id }}"
+          ERROR="${{ steps.resolve.outputs.error }}"
+
+          if [ -n "$ERROR" ]; then
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "title=Failed to trigger staging build - $ERROR" >> $GITHUB_OUTPUT
+            DATA=$(jq -n --arg logs "[View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" '{Logs: $logs}')
+            echo "data=$DATA" >> $GITHUB_OUTPUT
+          elif [ -n "$RUN_ID" ]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "title=Staging build triggered" >> $GITHUB_OUTPUT
+            DATA=$(jq -n \
+              --arg ref "\`$REF\`" \
+              --arg sha "\`${SHA:0:8}\`" \
+              --arg run "[View run](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)" \
+              '{Ref: $ref, SHA: $sha, Run: $run}')
+            echo "data=$DATA" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "title=Failed to trigger staging build" >> $GITHUB_OUTPUT
+            DATA=$(jq -n \
+              --arg ref "\`$REF\`" \
+              --arg sha "\`${SHA:0:8}\`" \
+              --arg logs "[View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
+              '{Ref: $ref, SHA: $sha, Logs: $logs}')
+            echo "data=$DATA" >> $GITHUB_OUTPUT
+          fi
+
+  comment:
+    needs: resolve-and-trigger
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/comment-result
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          issue_number: ${{ inputs.issue_number }}
+          success: ${{ needs.resolve-and-trigger.outputs.success }}
+          title: ${{ needs.resolve-and-trigger.outputs.title }}
+          data: ${{ needs.resolve-and-trigger.outputs.data }}

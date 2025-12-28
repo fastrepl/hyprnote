@@ -125,7 +125,7 @@ jobs:
           if [ -n "$RUN_ID" ]; then
             echo "success=true" >> $GITHUB_OUTPUT
             echo "title=Staging build triggered" >> $GITHUB_OUTPUT
-            DATA=$(jq -n \
+            DATA=$(jq -cn \
               --arg branch "\`$BRANCH\`" \
               --arg sha "\`${SHA:0:8}\`" \
               --arg run "[View run](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)" \
@@ -134,7 +134,7 @@ jobs:
           else
             echo "success=false" >> $GITHUB_OUTPUT
             echo "title=Failed to trigger staging build" >> $GITHUB_OUTPUT
-            DATA=$(jq -n \
+            DATA=$(jq -cn \
               --arg branch "\`$BRANCH\`" \
               --arg sha "\`${SHA:0:8}\`" \
               --arg logs "[View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" \

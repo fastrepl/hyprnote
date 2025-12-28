@@ -1,5 +1,6 @@
 mod argmax;
 mod assemblyai;
+#[cfg(feature = "argmax")]
 pub mod audio;
 mod deepgram;
 mod deepgram_compat;

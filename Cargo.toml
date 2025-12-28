@@ -18,6 +18,7 @@ members = [
 exclude = [
   "apps/desktop",
   "apps/desktop-e2e",
+  "apps/docs",
   "apps/k6",
   "apps/pro",
   "apps/restate",

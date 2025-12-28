@@ -5,26 +5,27 @@
   "markup": {
     "associations": ["!**/*.html", "!**/*.jinja", "**/*.wxs", "**/*.wxl"]
   },
-  "excludes": [
-    ".venv",
-    ".drizzle",
-    "**/*-lock.yaml",
-    "**/*-lock.json",
-    "**/locales",
-    "**/*.gen.*",
-    "**/dist",
-    "**/target",
-    "**/public",
-    "**/gen/**",
-    "**/generated/**",
-    "**/permissions/**",
-    "**/*.swift",
-    "**/migrations/**",
-    "**/tests/*.sql",
-    "**/charts/**",
-    "**/schema.json",
-    "**/netlify/edge-functions"
-  ],
+    "excludes": [
+      ".venv",
+      ".drizzle",
+      "**/.astro",
+      "**/*-lock.yaml",
+      "**/*-lock.json",
+      "**/locales",
+      "**/*.gen.*",
+      "**/dist",
+      "**/target",
+      "**/public",
+      "**/gen/**",
+      "**/generated/**",
+      "**/permissions/**",
+      "**/*.swift",
+      "**/migrations/**",
+      "**/tests/*.sql",
+      "**/charts/**",
+      "**/schema.json",
+      "**/netlify/edge-functions"
+    ],
   "exec": {
     "cwd": "${configDir}",
     "commands": [

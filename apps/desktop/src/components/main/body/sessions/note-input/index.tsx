@@ -1,7 +1,9 @@
 import {
+  forwardRef,
   type RefObject,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
 } from "react";
@@ -16,20 +18,25 @@ import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
 import { useScrollPreservation } from "../../../../../hooks/useScrollPreservation";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
+import { useCaretNearBottom } from "../caret-position-context";
 import { useCurrentNoteTab } from "../shared";
 import { Enhanced } from "./enhanced";
 import { Header, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
 
-export function NoteInput({
-  tab,
-}: {
-  tab: Extract<Tab, { type: "sessions" }>;
-}) {
+export const NoteInput = forwardRef<
+  { editor: TiptapEditor | null },
+  {
+    tab: Extract<Tab, { type: "sessions" }>;
+    onNavigateToTitle?: () => void;
+  }
+>(({ tab, onNavigateToTitle: _onNavigateToTitle }, ref) => {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
-  const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const internalEditorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const [editor, setEditor] = useState<TiptapEditor | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const sessionId = tab.id;
@@ -40,6 +47,12 @@ export function NoteInput({
   tabRef.current = tab;
 
   const currentTab: EditorView = useCurrentNoteTab(tab);
+  useImperativeHandle(
+    ref,
+    () => internalEditorRef.current ?? { editor: null },
+    [currentTab],
+  );
+
   const { scrollRef, onBeforeTabChange } = useScrollPreservation(
     currentTab.type === "enhanced"
       ? `enhanced-${currentTab.id}`
@@ -65,14 +78,28 @@ export function NoteInput({
   });
 
   useEffect(() => {
-    if (currentTab.type === "transcript" && editorRef.current) {
-      editorRef.current = { editor: null };
+    if (currentTab.type === "transcript") {
+      internalEditorRef.current = { editor: null };
+      setEditor(null);
     }
   }, [currentTab]);
 
+  useEffect(() => {
+    const editorInstance = internalEditorRef.current?.editor ?? null;
+    if (editorInstance !== editor) {
+      setEditor(editorInstance);
+    }
+  });
+
+  useCaretNearBottom({
+    editor,
+    container,
+    enabled: currentTab.type !== "transcript",
+  });
+
   const handleContainerClick = () => {
     if (currentTab.type !== "transcript") {
-      editorRef.current?.editor?.commands.focus();
+      internalEditorRef.current?.editor?.commands.focus();
     }
   };
 
@@ -95,6 +122,9 @@ export function NoteInput({
             fadeRef.current = node;
             if (currentTab.type !== "transcript") {
               scrollRef.current = node;
+              setContainer(node);
+            } else {
+              setContainer(null);
             }
           }}
           onClick={handleContainerClick}
@@ -107,13 +137,13 @@ export function NoteInput({
         >
           {currentTab.type === "enhanced" && (
             <Enhanced
-              ref={editorRef}
+              ref={internalEditorRef}
               sessionId={sessionId}
               enhancedNoteId={currentTab.id}
             />
           )}
           {currentTab.type === "raw" && (
-            <RawEditor ref={editorRef} sessionId={sessionId} />
+            <RawEditor ref={internalEditorRef} sessionId={sessionId} />
           )}
           {currentTab.type === "transcript" && (
             <Transcript
@@ -128,7 +158,7 @@ export function NoteInput({
       </div>
     </div>
   );
-}
+});
 
 function useTabShortcuts({
   editorTabs,

@@ -1,8 +1,8 @@
 # https://docs.netlify.com/build/configure-builds/overview/#definitions
 # We must set package="apps/web" in the UI
 [build]
-command = "pnpm -F @hypr/web build && pnpm -F @hypr/docs build && rm -rf dist/client/docs && cp -r ../docs/dist dist/client/docs"
-publish = "dist/client"
+command = "cd ../.. && pnpm -F @hypr/web build && pnpm -F @hypr/docs build && rm -rf apps/web/dist/client/docs && cp -r apps/docs/dist apps/web/dist/client/docs"
+publish = "apps/web/dist/client"
 
 [build.environment]
 VITE_APP_URL = "https://hyprnote.com"

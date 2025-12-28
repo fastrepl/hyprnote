@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
+import { env } from "./env";
 import { PostHogProvider } from "./providers/posthog";
 import { routeTree } from "./routeTree.gen";
 
@@ -25,9 +26,12 @@ export function getRouter() {
     },
   });
 
-  if (!router.isServer) {
+  if (!router.isServer && env.VITE_SENTRY_DSN) {
     Sentry.init({
-      dsn: import.meta.env.VITE_SENTRY_DSN,
+      dsn: env.VITE_SENTRY_DSN,
+      release: env.VITE_APP_VERSION
+        ? `hyprnote-web@${env.VITE_APP_VERSION}`
+        : undefined,
       sendDefaultPii: true,
       integrations: [
         Sentry.tanstackRouterBrowserTracingIntegration(router),

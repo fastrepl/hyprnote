@@ -9,11 +9,11 @@ use async_openai::types::{
     FunctionCallStream, Role,
 };
 use axum::{
+    Router,
     extract::State as AxumState,
     http::StatusCode,
-    response::{sse, IntoResponse, Json, Response},
+    response::{IntoResponse, Json, Response, sse},
     routing::{get, post},
-    Router,
 };
 
 use futures_util::StreamExt;
@@ -22,7 +22,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 use tower_http::cors::{self, CorsLayer};
 
-use crate::{events::LLMEvent, ModelManager};
+use crate::{ModelManager, events::LLMEvent};
 
 #[derive(Clone)]
 pub struct ServerHandle {
@@ -184,7 +184,7 @@ impl LocalProvider {
         request: &CreateChatCompletionRequest,
     ) -> Result<
         (
-            Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
+            Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send + 'static>>,
             CancellationToken,
         ),
         crate::Error,

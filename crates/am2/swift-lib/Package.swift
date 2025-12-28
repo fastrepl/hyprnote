@@ -3,11 +3,11 @@
 import PackageDescription
 
 let package = Package(
-  name: "swift-lib",
+  name: "am2-swift",
   platforms: [.macOS("13.0")],
   products: [
     .library(
-      name: "swift-lib",
+      name: "am2-swift",
       type: .static,
       targets: ["swift-lib"])
   ],
@@ -18,16 +18,13 @@ let package = Package(
     .package(
       id: "argmaxinc.argmax-sdk-swift",
       exact: "1.9.3"),
-    .package(
-      url: "https://github.com/huggingface/swift-transformers.git",
-      exact: "0.1.24")
   ],
   targets: [
     .target(
       name: "swift-lib",
       dependencies: [
         .product(name: "SwiftRs", package: "swift-rs"),
-        .product(name: "Argmax", package: "argmaxinc.argmax-sdk-swift")
+        .product(name: "Argmax", package: "argmaxinc.argmax-sdk-swift"),
       ],
       path: "src",
       swiftSettings: [
@@ -36,4 +33,3 @@ let package = Package(
     )
   ]
 )
-

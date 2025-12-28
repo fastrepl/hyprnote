@@ -11,7 +11,7 @@ pub use static_new::*;
 mod tests {
     use super::*;
     use futures_util::{Stream, StreamExt};
-    use kalosm_sound::AsyncSource;
+    use hypr_audio_interface::AsyncSource;
     use rodio::Source;
     use std::pin::Pin;
     use std::task::{Context, Poll};
@@ -127,13 +127,6 @@ mod tests {
             }
             writer.finalize().unwrap();
         }};
-    }
-
-    #[tokio::test]
-    async fn test_kalosm_builtin_resampler() {
-        let source = create_test_source();
-        let resampled = source.resample(16000);
-        assert_eq!(resampled.collect::<Vec<_>>().await.len(), 9906153);
     }
 
     #[tokio::test]

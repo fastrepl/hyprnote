@@ -1,9 +1,9 @@
 use nom::{
+    IResult, Parser,
     bytes::complete::{tag, take_until},
     character::complete::multispace0,
     combinator::map,
     sequence::{delimited, terminated},
-    IResult, Parser,
 };
 use std::collections::HashMap;
 
@@ -65,12 +65,12 @@ impl StreamingParser {
             return Some(Response::ToolCall { name, arguments });
         }
 
-        if let Some(pos) = self.find_next_block_start() {
-            if pos > 0 {
-                let text = self.buffer[..pos].to_string();
-                self.buffer = self.buffer[pos..].to_string();
-                return Some(Response::TextDelta(text));
-            }
+        if let Some(pos) = self.find_next_block_start()
+            && pos > 0
+        {
+            let text = self.buffer[..pos].to_string();
+            self.buffer = self.buffer[pos..].to_string();
+            return Some(Response::TextDelta(text));
         }
 
         None

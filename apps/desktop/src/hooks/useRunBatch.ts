@@ -53,6 +53,14 @@ export const useRunBatch = (sessionId: string) => {
           return "deepgram";
         }
 
+        if (conn.provider === "soniox") {
+          return "soniox";
+        }
+
+        if (conn.provider === "assemblyai") {
+          return "assemblyai";
+        }
+
         if (conn.provider === "hyprnote" && conn.model.startsWith("am-")) {
           return "am";
         }
@@ -61,8 +69,9 @@ export const useRunBatch = (sessionId: string) => {
       })();
 
       if (!provider) {
-        console.error("unsupported_batch_provider", conn.provider);
-        return;
+        throw new Error(
+          `Batch transcription is not supported for provider: ${conn.provider}`,
+        );
       }
 
       if (sessionTabRef.current) {

@@ -23,30 +23,30 @@ sequenceDiagram
     Client->>Server: Upload audio file
     Server->>Server: Store file, get audioUrl
     Server->>Restate: workflowSubmit(userId, audioUrl)
-    
+
     Note over Restate: Status: QUEUED
-    
+
     Restate->>RateLimiter: checkAndConsume(windowMs: 60s, max: 5)
-    
+
     alt Rate limit exceeded
         RateLimiter-->>Restate: TerminalError(429)
         Restate-->>Server: Error
     else Within limit
         RateLimiter-->>Restate: OK (count incremented)
     end
-    
+
     Note over Restate: Status: TRANSCRIBING
-    
+
     Restate->>Deepgram: transcribeUrlCallback(audioUrl, callbackUrl)
     Deepgram-->>Restate: request_id
-    
+
     Note over Restate: Waiting for callback...
-    
+
     Deepgram->>Restate: POST /onDeepgramResult (transcript)
     Restate->>Restate: promise("deepgram-result").resolve(transcript)
-    
+
     Note over Restate: Status: DONE
-    
+
     Restate-->>Server: { status: DONE, transcript }
     Server-->>Client: Pipeline complete
 ```

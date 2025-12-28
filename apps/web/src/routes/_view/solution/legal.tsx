@@ -23,7 +23,10 @@ export const Route = createFileRoute("/_view/solution/legal")({
           "Attorney-client privilege protected. Local AI processing keeps confidential legal discussions secure while capturing every important detail.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://hyprnote.com/solution/legal" },
+      {
+        property: "og:url",
+        content: "https://hyprnote.com/solution/legal",
+      },
     ],
   }),
 });

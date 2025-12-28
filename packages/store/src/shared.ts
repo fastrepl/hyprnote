@@ -15,20 +15,20 @@ export const jsonObject = <T extends z.ZodTypeAny>(schema: T) => {
   });
 };
 
-type InferCellSchema<T> = T extends string | undefined
-  ? { type: "string"; default?: string }
-  : T extends number | undefined
-    ? { type: "number"; default?: number }
-    : T extends boolean | undefined
-      ? { type: "boolean"; default?: boolean }
+type InferCellSchema<T> = T extends string | null | undefined
+  ? { type: "string"; default?: string; allowNull?: true }
+  : T extends number | null | undefined
+    ? { type: "number"; default?: number; allowNull?: true }
+    : T extends boolean | null | undefined
+      ? { type: "boolean"; default?: boolean; allowNull?: true }
       : T extends string
-        ? { type: "string"; default?: string }
+        ? { type: "string"; default?: string; allowNull?: true }
         : T extends number
-          ? { type: "number"; default?: number }
+          ? { type: "number"; default?: number; allowNull?: true }
           : T extends boolean
-            ? { type: "boolean"; default?: boolean }
+            ? { type: "boolean"; default?: boolean; allowNull?: true }
             : T extends object
-              ? { type: "string" }
+              ? { type: "string"; allowNull?: true }
               : never;
 
 export type InferTinyBaseSchema<T> = T extends { _output: infer Output }

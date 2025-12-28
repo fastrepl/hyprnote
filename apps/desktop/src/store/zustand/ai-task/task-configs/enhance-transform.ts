@@ -1,3 +1,12 @@
+import type {
+  EnhanceTemplate,
+  Participant,
+  Segment,
+  Session,
+  TemplateSection,
+  Transcript,
+} from "@hypr/plugin-template";
+
 import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
 import {
   buildSegments,
@@ -15,6 +24,7 @@ import type { Store as MainStore } from "../../../tinybase/main";
 type TranscriptMeta = {
   id: string;
   startedAt: number;
+  endedAt: number | null;
 };
 
 type WordRow = Record<string, unknown> & {
@@ -50,39 +60,84 @@ async function transformArgs(
   args: TaskArgsMap["enhance"],
   store: MainStore,
 ): Promise<TaskArgsMapTransformed["enhance"]> {
-  const { sessionId, enhancedNoteId, templateId } = args;
+  const { sessionId, templateId } = args;
 
   const sessionContext = getSessionContext(sessionId, store);
-  const template = templateId ? getTemplateData(templateId, store) : undefined;
+  const template = templateId ? getTemplateData(templateId, store) : null;
   const language = getLanguage(store);
 
   return {
-    sessionId,
-    enhancedNoteId,
-    rawMd: sessionContext.rawMd,
     language,
-    sessionData: sessionContext.sessionData,
+    session: sessionContext.session,
     participants: sessionContext.participants,
-    segments: sessionContext.segments,
     template,
+    transcripts: formatTranscripts(
+      sessionContext.rawMd,
+      sessionContext.segments,
+      sessionContext.transcriptsMeta,
+    ),
   };
 }
 
-function getLanguage(store: MainStore): string {
+function formatTranscripts(
+  rawMd: string,
+  segments: SegmentPayload[],
+  transcriptsMeta: TranscriptMeta[],
+): Transcript[] {
+  if (segments.length > 0 && transcriptsMeta.length > 0) {
+    const startedAt = transcriptsMeta.reduce(
+      (min, t) => Math.min(min, t.startedAt),
+      Number.POSITIVE_INFINITY,
+    );
+    const endedAt = transcriptsMeta.reduce(
+      (max, t) => Math.max(max, t.endedAt ?? t.startedAt),
+      Number.NEGATIVE_INFINITY,
+    );
+
+    return [
+      {
+        segments: segments.map(
+          (s): Segment => ({
+            speaker: s.speaker_label,
+            text: s.text,
+          }),
+        ),
+        startedAt: Number.isFinite(startedAt) ? startedAt : null,
+        endedAt: Number.isFinite(endedAt) ? endedAt : null,
+      },
+    ];
+  }
+
+  if (rawMd) {
+    return [
+      {
+        segments: [{ speaker: "", text: rawMd }],
+        startedAt: null,
+        endedAt: null,
+      },
+    ];
+  }
+
+  return [];
+}
+
+function getLanguage(store: MainStore): string | null {
   const value = store.getValue("ai_language");
-  return typeof value === "string" && value.length > 0 ? value : "en";
+  return typeof value === "string" && value.length > 0 ? value : null;
 }
 
 function getSessionContext(sessionId: string, store: MainStore) {
+  const transcriptsMeta = collectTranscripts(sessionId, store);
   return {
     rawMd: getStringCell(store, "sessions", sessionId, "raw_md"),
-    sessionData: getSessionData(sessionId, store),
+    session: getSessionData(sessionId, store),
     participants: getParticipants(sessionId, store),
-    segments: getTranscriptSegments(sessionId, store),
+    segments: getTranscriptSegmentsFromMeta(transcriptsMeta, store),
+    transcriptsMeta,
   };
 }
 
-function getSessionData(sessionId: string, store: MainStore) {
+function getSessionData(sessionId: string, store: MainStore): Session {
   const rawTitle = getStringCell(store, "sessions", sessionId, "title");
   const eventId = getOptionalStringCell(
     store,
@@ -92,24 +147,29 @@ function getSessionData(sessionId: string, store: MainStore) {
   );
 
   if (eventId) {
+    const eventTitle = getStringCell(store, "events", eventId, "title");
     return {
-      title: getStringCell(store, "events", eventId, "title") || rawTitle,
-      started_at: getStringCell(store, "events", eventId, "started_at"),
-      ended_at: getStringCell(store, "events", eventId, "ended_at"),
-      location: getStringCell(store, "events", eventId, "location"),
-      description: getStringCell(store, "events", eventId, "description"),
-      is_event: true,
+      title: eventTitle || rawTitle || null,
+      startedAt:
+        getOptionalStringCell(store, "events", eventId, "started_at") ?? null,
+      endedAt:
+        getOptionalStringCell(store, "events", eventId, "ended_at") ?? null,
+      event: {
+        name: eventTitle || rawTitle || "",
+      },
     };
   }
 
   return {
-    title: rawTitle,
-    is_event: false,
+    title: rawTitle || null,
+    startedAt: null,
+    endedAt: null,
+    event: null,
   };
 }
 
-function getParticipants(sessionId: string, store: MainStore) {
-  const participants: Array<{ name: string; job_title: string }> = [];
+function getParticipants(sessionId: string, store: MainStore): Participant[] {
+  const participants: Participant[] = [];
 
   store.forEachRow("mapping_session_participant", (mappingId, _forEachCell) => {
     const mappingSessionId = getOptionalStringCell(
@@ -139,26 +199,30 @@ function getParticipants(sessionId: string, store: MainStore) {
 
     participants.push({
       name,
-      job_title: getStringCell(store, "humans", humanId, "job_title"),
+      jobTitle:
+        getOptionalStringCell(store, "humans", humanId, "job_title") ?? null,
     });
   });
 
   return participants;
 }
 
-function getTemplateData(templateId: string, store: MainStore) {
+function getTemplateData(
+  templateId: string,
+  store: MainStore,
+): EnhanceTemplate {
   return {
-    user_id: getStringCell(store, "templates", templateId, "user_id"),
-    created_at: getStringCell(store, "templates", templateId, "created_at"),
     title: getStringCell(store, "templates", templateId, "title"),
-    description: getStringCell(store, "templates", templateId, "description"),
+    description:
+      getOptionalStringCell(store, "templates", templateId, "description") ??
+      null,
     sections: parseTemplateSections(
       store.getCell("templates", templateId, "sections"),
     ),
   };
 }
 
-function parseTemplateSections(raw: unknown) {
+function parseTemplateSections(raw: unknown): TemplateSection[] {
   let value: unknown = raw;
 
   if (typeof raw === "string") {
@@ -174,9 +238,9 @@ function parseTemplateSections(raw: unknown) {
   }
 
   return value
-    .map((section) => {
+    .map((section): TemplateSection | null => {
       if (typeof section === "string") {
-        return { title: section, description: "" };
+        return { title: section, description: null };
       }
 
       if (section && typeof section === "object") {
@@ -188,20 +252,19 @@ function parseTemplateSections(raw: unknown) {
         }
 
         const description =
-          typeof record.description === "string" ? record.description : "";
+          typeof record.description === "string" ? record.description : null;
         return { title, description };
       }
 
       return null;
     })
-    .filter(
-      (section): section is { title: string; description: string } =>
-        section !== null,
-    );
+    .filter((section): section is TemplateSection => section !== null);
 }
 
-function getTranscriptSegments(sessionId: string, store: MainStore) {
-  const transcripts = collectTranscripts(sessionId, store);
+function getTranscriptSegmentsFromMeta(
+  transcripts: TranscriptMeta[],
+  store: MainStore,
+) {
   if (transcripts.length === 0) {
     return [];
   }
@@ -264,7 +327,9 @@ function collectTranscripts(
 
     const startedAt =
       getNumberCell(store, "transcripts", transcriptId, "started_at") ?? 0;
-    transcripts.push({ id: transcriptId, startedAt });
+    const endedAt =
+      getNumberCell(store, "transcripts", transcriptId, "ended_at") ?? null;
+    transcripts.push({ id: transcriptId, startedAt, endedAt });
   });
 
   return transcripts;

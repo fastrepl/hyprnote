@@ -39,15 +39,19 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
@@ -108,8 +112,7 @@ mod test {
                     Alice
                     Need to reschedule or cancel? https://cal.com/booking/dnHcnBV5RX8Jp3iq2E2QTe?changes=true
                 "#},
-                expected:
-                    "https://us05web.zoom.us/j/87636383039?pwd=NOWbxkY9GNblR0yaLKaIzcy76IWRoj.1",
+                expected: "https://us05web.zoom.us/j/87636383039?pwd=NOWbxkY9GNblR0yaLKaIzcy76IWRoj.1",
             },
             TestCase {
                 name: "google meet link",
@@ -129,8 +132,7 @@ mod test {
                     View meeting insights with Zoom AI Companion<br/>https://hyprnote.zoom.us/launch/edl?muid=8fff7a40-04e0-4a8e-ae46-026a86793906<br/><br/>
                     Meeting ID: 867 4631 3244<br/>Passcode: 291681</p>
                 "#},
-                expected:
-                    "https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
+                expected: "https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
             },
             TestCase {
                 name: "korean google meet link",
@@ -193,13 +195,12 @@ mod test {
                     Join by SIP
                     • 86746313244@zoomcrc.com
                 "#},
-                expected:
-                    "https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
+                expected: "https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
             },
         ];
 
         for test_case in test_cases {
-            let result = app.parse_meeting_link(test_case.input);
+            let result = app.misc().parse_meeting_link(test_case.input);
             assert_eq!(
                 result,
                 Some(test_case.expected.to_string()),

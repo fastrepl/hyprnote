@@ -6,7 +6,7 @@ import {
   payloadIsControlMessage,
 } from "./utils";
 
-mock.module("../env", () => ({
+void mock.module("../env", () => ({
   env: {
     DEEPGRAM_API_KEY: "test-deepgram-key",
     ASSEMBLYAI_API_KEY: "test-assemblyai-key",

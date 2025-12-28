@@ -56,7 +56,7 @@ export function SegmentHeader({
       formatTimestamp,
     );
     return `${from} - ${to}`;
-  }, [segment.words.length, formatTimestamp]);
+  }, [segment.words, formatTimestamp]);
 
   const color = useSegmentColor(segment.key);
   const label = useSpeakerLabel(segment.key, speakerLabelManager);

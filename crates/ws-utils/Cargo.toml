@@ -1,14 +1,14 @@
 [package]
 name = "ws-utils"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 hypr-audio-utils = { workspace = true }
 owhisper-interface = { workspace = true }
 
 axum = { workspace = true, features = ["ws"] }
-kalosm-sound = { workspace = true, default-features = false }
+hypr-audio-interface = { workspace = true }
 serde_json = { workspace = true }
 
 futures-util = { workspace = true }

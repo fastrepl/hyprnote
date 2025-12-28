@@ -2,7 +2,7 @@
 name = "tauri-plugin-local-llm"
 version = "0.1.0"
 authors = ["You"]
-edition = "2021"
+edition = "2024"
 exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-local-llm"
 description = ""

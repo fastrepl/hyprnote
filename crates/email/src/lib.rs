@@ -97,7 +97,7 @@ impl EmailComposer {
 
         // Add attachments
         for &path in attachments {
-            let file_url = Self::create_file_url(path)?;
+            let file_url = unsafe { Self::create_file_url(path)? };
             items.push(unsafe { Retained::cast_unchecked(file_url) });
         }
 

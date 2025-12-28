@@ -3,8 +3,10 @@ use std::ffi::OsString;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub enum HookEvent {
+    #[serde(rename = "afterListeningStopped")]
     #[specta(rename = "afterListeningStopped")]
     AfterListeningStopped { args: AfterListeningStoppedArgs },
+    #[serde(rename = "beforeListeningStarted")]
     #[specta(rename = "beforeListeningStarted")]
     BeforeListeningStarted { args: BeforeListeningStartedArgs },
 }

@@ -1,6 +1,6 @@
 use std::{hint::black_box, path::PathBuf};
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use hound::WavReader;
 
 use aec::AEC;

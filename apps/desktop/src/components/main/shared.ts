@@ -32,7 +32,10 @@ export function useNewNote({
       title: "",
     });
 
-    analyticsCommands.event({ event: "note_created", has_event_id: false });
+    void analyticsCommands.event({
+      event: "note_created",
+      has_event_id: false,
+    });
 
     const ff = behavior === "new" ? openNew : openCurrent;
     ff({ type: "sessions", id: sessionId });

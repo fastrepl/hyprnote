@@ -1,10 +1,14 @@
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 
 import { signOutFn } from "@/functions/auth";
-import { createPortalSession } from "@/functions/billing";
+import {
+  canStartTrial,
+  createPortalSession,
+  createTrialCheckoutSession,
+  syncAfterSuccess,
+} from "@/functions/billing";
 import { addContact } from "@/functions/loops";
 import { useAnalytics } from "@/hooks/use-posthog";
 
@@ -54,9 +58,15 @@ function Component() {
 }
 
 function AccountSettingsCard() {
-  const [currentPlan] = useState<"free" | "trial" | "trial_over" | "pro">(
-    "free",
-  );
+  const billingQuery = useQuery({
+    queryKey: ["billing"],
+    queryFn: () => syncAfterSuccess(),
+  });
+
+  const canTrialQuery = useQuery({
+    queryKey: ["canStartTrial"],
+    queryFn: () => canStartTrial(),
+  });
 
   const manageBillingMutation = useMutation({
     mutationFn: async () => {
@@ -67,8 +77,47 @@ function AccountSettingsCard() {
     },
   });
 
+  const startTrialMutation = useMutation({
+    mutationFn: async () => {
+      const { url } = await createTrialCheckoutSession();
+      if (url) {
+        window.location.href = url;
+      }
+    },
+  });
+
+  const currentPlan = (() => {
+    if (!billingQuery.data || billingQuery.data.status === "none") {
+      return "free";
+    }
+    const status = billingQuery.data.status;
+    if (status === "trialing") return "trial";
+    if (status === "active") return "pro";
+    return "free";
+  })();
+
   const renderPlanButton = () => {
+    if (billingQuery.isLoading || canTrialQuery.isLoading) {
+      return (
+        <div className="px-4 h-8 flex items-center text-sm text-neutral-400">
+          Loading...
+        </div>
+      );
+    }
+
     if (currentPlan === "free") {
+      if (canTrialQuery.data) {
+        return (
+          <button
+            onClick={() => startTrialMutation.mutate()}
+            disabled={startTrialMutation.isPending}
+            className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
+          >
+            {startTrialMutation.isPending ? "Loading..." : "Start Free Trial"}
+          </button>
+        );
+      }
+
       return (
         <Link
           to="/app/checkout"
@@ -80,58 +129,21 @@ function AccountSettingsCard() {
       );
     }
 
-    if (currentPlan === "trial") {
-      return (
-        <button
-          onClick={() => manageBillingMutation.mutate()}
-          disabled={manageBillingMutation.isPending}
-          className="px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
-        >
-          {manageBillingMutation.isPending ? "Loading..." : "Manage Billing"}
-        </button>
-      );
-    }
-
-    if (currentPlan === "trial_over") {
-      return (
-        <div className="flex gap-2">
-          <Link
-            to="/app/checkout"
-            search={{ period: "monthly" }}
-            className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
-          >
-            Upgrade to Pro
-          </Link>
-        </div>
-      );
-    }
-
-    if (currentPlan === "pro") {
-      return (
-        <button
-          onClick={() => manageBillingMutation.mutate()}
-          disabled={manageBillingMutation.isPending}
-          className="px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
-        >
-          {manageBillingMutation.isPending ? "Loading..." : "Manage Billing"}
-        </button>
-      );
-    }
+    return (
+      <button
+        onClick={() => manageBillingMutation.mutate()}
+        disabled={manageBillingMutation.isPending}
+        className="px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
+      >
+        {manageBillingMutation.isPending ? "Loading..." : "Manage Billing"}
+      </button>
+    );
   };
 
   const getPlanDisplay = () => {
-    if (currentPlan === "free") {
-      return "Free";
-    }
-    if (currentPlan === "trial") {
-      return "Trial";
-    }
-    if (currentPlan === "trial_over") {
-      return "Trial Ended";
-    }
-    if (currentPlan === "pro") {
-      return "Pro";
-    }
+    if (billingQuery.isLoading) return "...";
+    if (currentPlan === "trial") return "Trial";
+    if (currentPlan === "pro") return "Pro";
     return "Free";
   };
 
@@ -157,8 +169,7 @@ function AccountSettingsCard() {
 }
 
 function IntegrationsSettingsCard() {
-  // TODO: Get actual count from API
-  const [connectedApps] = useState(0);
+  const connectedApps = 1;
 
   return (
     <div className="border border-neutral-100 rounded-sm">

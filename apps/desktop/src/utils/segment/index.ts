@@ -164,7 +164,7 @@ function finalizeSegments(segments: ProtoSegment[]): Segment[] {
   return segments.map((segment) => ({
     key: segment.key,
     words: segment.words.map(({ word }) => {
-      const { order, ...rest } = word;
+      const { order: _order, ...rest } = word;
       return rest as SegmentWord;
     }),
   }));

@@ -7,14 +7,6 @@ pub enum AppWindow {
     Onboarding,
     #[serde(rename = "main")]
     Main,
-    #[serde(rename = "settings")]
-    Settings,
-    #[serde(rename = "auth")]
-    Auth,
-    #[serde(rename = "chat")]
-    Chat,
-    #[serde(rename = "devtool")]
-    Devtool,
     #[serde(rename = "control")]
     Control,
 }
@@ -24,10 +16,6 @@ impl std::fmt::Display for AppWindow {
         match self {
             Self::Onboarding => write!(f, "onboarding"),
             Self::Main => write!(f, "main"),
-            Self::Settings => write!(f, "settings"),
-            Self::Auth => write!(f, "auth"),
-            Self::Chat => write!(f, "chat"),
-            Self::Devtool => write!(f, "devtool"),
             Self::Control => write!(f, "control"),
         }
     }
@@ -40,10 +28,6 @@ impl std::str::FromStr for AppWindow {
         match s {
             "onboarding" => return Ok(Self::Onboarding),
             "main" => return Ok(Self::Main),
-            "settings" => return Ok(Self::Settings),
-            "auth" => return Ok(Self::Auth),
-            "chat" => return Ok(Self::Chat),
-            "devtool" => return Ok(Self::Devtool),
             "control" => return Ok(Self::Control),
             _ => {}
         }
@@ -67,11 +51,31 @@ impl AppWindow {
 
         #[cfg(target_os = "macos")]
         {
+            let traffic_light_y = {
+                use tauri_plugin_os::{Version, version};
+                let major = match version() {
+                    Version::Semantic(major, _, _) => major,
+                    Version::Custom(s) => s
+                        .split('.')
+                        .next()
+                        .and_then(|v| v.parse::<u64>().ok())
+                        .unwrap_or(0),
+                    _ => 0,
+                };
+
+                if major >= 26 && cfg!(debug_assertions) {
+                    24.0
+                } else {
+                    18.0
+                }
+            };
+
             builder = builder
+                .visible(false)
                 .decorations(true)
                 .hidden_title(true)
                 .theme(Some(tauri::Theme::Light))
-                .traffic_light_position(tauri::LogicalPosition::new(12.0, 18.0))
+                .traffic_light_position(tauri::LogicalPosition::new(12.0, traffic_light_y))
                 .title_bar_style(tauri::TitleBarStyle::Overlay);
         }
 
@@ -94,10 +98,6 @@ impl WindowImpl for AppWindow {
         match self {
             Self::Onboarding => "Onboarding".into(),
             Self::Main => "Main".into(),
-            Self::Settings => "Settings".into(),
-            Self::Auth => "Auth".into(),
-            Self::Chat => "Chat".into(),
-            Self::Devtool => "Devtool".into(),
             Self::Control => "Control".into(),
         }
     }
@@ -126,60 +126,6 @@ impl WindowImpl for AppWindow {
                     .min_inner_size(620.0, 500.0);
                 let window = builder.build()?;
                 window.set_size(LogicalSize::new(910.0, 600.0))?;
-                window
-            }
-            Self::Settings => {
-                let window = self
-                    .window_builder(app, "/app/settings")
-                    .resizable(true)
-                    .minimizable(true)
-                    .maximizable(true)
-                    .min_inner_size(800.0, 600.0)
-                    .build()?;
-
-                let desired_size = LogicalSize::new(800.0, 600.0);
-                window.set_size(LogicalSize::new(1.0, 1.0))?;
-                std::thread::sleep(std::time::Duration::from_millis(10));
-                window.set_size(desired_size)?;
-                window
-            }
-            Self::Auth => {
-                let window = self
-                    .window_builder(app, "/app/auth")
-                    .resizable(false)
-                    .min_inner_size(400.0, 600.0)
-                    .build()?;
-
-                let desired_size = LogicalSize::new(400.0, 600.0);
-                window.set_size(LogicalSize::new(1.0, 1.0))?;
-                std::thread::sleep(std::time::Duration::from_millis(10));
-                window.set_size(desired_size)?;
-                window
-            }
-            Self::Chat => {
-                let window = self
-                    .window_builder(app, "/app/chat")
-                    .resizable(true)
-                    .min_inner_size(400.0, 500.0)
-                    .build()?;
-
-                let desired_size = LogicalSize::new(400.0, 600.0);
-                window.set_size(LogicalSize::new(1.0, 1.0))?;
-                std::thread::sleep(std::time::Duration::from_millis(10));
-                window.set_size(desired_size)?;
-                window
-            }
-            Self::Devtool => {
-                let window = self
-                    .window_builder(app, "/app/devtool")
-                    .resizable(true)
-                    .min_inner_size(400.0, 600.0)
-                    .build()?;
-
-                let desired_size = LogicalSize::new(400.0, 600.0);
-                window.set_size(LogicalSize::new(1.0, 1.0))?;
-                std::thread::sleep(std::time::Duration::from_millis(10));
-                window.set_size(desired_size)?;
                 window
             }
             Self::Control => {

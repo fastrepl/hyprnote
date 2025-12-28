@@ -1,24 +1,27 @@
+import { platform } from "@tauri-apps/plugin-os";
 import { AxeIcon, PanelLeftCloseIcon } from "lucide-react";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useSearch } from "../../../contexts/search/ui";
 import { useShell } from "../../../contexts/shell";
-import { useIsLinux } from "../../../hooks/usePlatform";
 import { TrafficLights } from "../../window/traffic-lights";
-import { BannerArea } from "./banner";
 import { ProfileSection } from "./profile";
 import { SearchResults } from "./search";
 import { TimelineView } from "./timeline";
+import { ToastArea } from "./toast";
+
+const DevtoolView = lazy(() =>
+  import("./devtool").then((m) => ({ default: m.DevtoolView })),
+);
 
 export function LeftSidebar() {
   const { leftsidebar } = useShell();
   const { query } = useSearch();
   const [isProfileExpanded, setIsProfileExpanded] = useState(false);
-  const isLinux = useIsLinux();
+  const isLinux = platform() === "linux";
 
   const showSearchResults = query.trim() !== "";
 
@@ -40,7 +43,7 @@ export function LeftSidebar() {
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => windowsCommands.windowShow({ type: "devtool" })}
+              onClick={leftsidebar.toggleDevtool}
             >
               <AxeIcon size={16} />
             </Button>
@@ -57,8 +60,18 @@ export function LeftSidebar() {
 
       <div className="flex flex-col flex-1 overflow-hidden gap-1">
         <div className="flex-1 min-h-0 overflow-hidden relative">
-          {showSearchResults ? <SearchResults /> : <TimelineView />}
-          <BannerArea isProfileExpanded={isProfileExpanded} />
+          {leftsidebar.showDevtool ? (
+            <Suspense fallback={null}>
+              <DevtoolView />
+            </Suspense>
+          ) : showSearchResults ? (
+            <SearchResults />
+          ) : (
+            <TimelineView />
+          )}
+          {!leftsidebar.showDevtool && (
+            <ToastArea isProfileExpanded={isProfileExpanded} />
+          )}
         </div>
         <div className="relative z-30">
           <ProfileSection onExpandChange={setIsProfileExpanded} />

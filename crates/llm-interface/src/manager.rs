@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
-use tokio::sync::{watch, Mutex};
+use tokio::sync::{Mutex, watch};
 
 #[derive(Default)]
 pub struct ModelManagerBuilder {

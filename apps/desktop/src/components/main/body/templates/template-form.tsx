@@ -89,7 +89,7 @@ export function TemplateForm({
             form: { errors },
           } = formApi.getAllErrors();
           if (errors.length === 0) {
-            formApi.handleSubmit();
+            void formApi.handleSubmit();
           }
         });
       },

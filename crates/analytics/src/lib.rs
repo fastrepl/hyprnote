@@ -24,10 +24,6 @@ impl AnalyticsClient {
         distinct_id: impl Into<String>,
         payload: AnalyticsPayload,
     ) -> Result<(), Error> {
-        if !hypr_network::is_online().await {
-            return Ok(());
-        }
-
         let mut e = posthog::Event::new(payload.event, distinct_id.into());
         e.set_timestamp(chrono::Utc::now().naive_utc());
 
@@ -58,10 +54,6 @@ impl AnalyticsClient {
         distinct_id: impl Into<String>,
         payload: PropertiesPayload,
     ) -> Result<(), Error> {
-        if !hypr_network::is_online().await {
-            return Ok(());
-        }
-
         let distinct_id = distinct_id.into();
         let mut e = posthog::Event::new("$set", &distinct_id);
         e.set_timestamp(chrono::Utc::now().naive_utc());
@@ -135,7 +127,7 @@ pub struct AnalyticsPayloadBuilder {
 }
 
 impl AnalyticsPayload {
-    pub fn new(event: impl Into<String>) -> AnalyticsPayloadBuilder {
+    pub fn builder(event: impl Into<String>) -> AnalyticsPayloadBuilder {
         AnalyticsPayloadBuilder {
             event: Some(event.into()),
             props: HashMap::new(),
@@ -169,7 +161,7 @@ mod tests {
     #[tokio::test]
     async fn test_analytics() {
         let client = AnalyticsClient::new(Some(""));
-        let payload = AnalyticsPayload::new("test_event")
+        let payload = AnalyticsPayload::builder("test_event")
             .with("key1", "value1")
             .with("key2", 2)
             .build();

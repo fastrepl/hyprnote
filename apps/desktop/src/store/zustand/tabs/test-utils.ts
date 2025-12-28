@@ -21,6 +21,7 @@ export const createSessionTab = (
   active: overrides.active ?? false,
   slotId: id(),
   state: {
+    editor: null,
     ...overrides.state,
   },
 });
@@ -48,6 +49,7 @@ type TabsStateSlice = Pick<
   | "canGoNext"
   | "onClose"
   | "onEmpty"
+  | "closedTabs"
 >;
 
 const createDefaultTabsState = (): TabsStateSlice => ({
@@ -58,6 +60,7 @@ const createDefaultTabsState = (): TabsStateSlice => ({
   canGoNext: false,
   onClose: null,
   onEmpty: null,
+  closedTabs: [],
 });
 
 export const seedTabsStore = (

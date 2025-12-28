@@ -83,11 +83,14 @@ export function EditingControls({
     handleEdit,
     handleSave,
     handleCancel,
-  } = useTranscriptEditing({ isEditing, setIsEditing });
+  } = useTranscriptEditing({
+    isEditing,
+    setIsEditing,
+  });
 
   const handleRedoClick = useCallback(() => {
     setOpen(false);
-    handleRedoTranscript();
+    void handleRedoTranscript();
   }, [handleRedoTranscript]);
 
   const viewModeControls = audioExists ? (

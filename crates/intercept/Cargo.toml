@@ -1,7 +1,7 @@
 [package]
 name = "intercept"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [target.'cfg(target_os = "macos")'.build-dependencies]
 swift-rs = { workspace = true, features = ["build"] }

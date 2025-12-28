@@ -295,28 +295,28 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the calendar_access_status command without any pre-configured scope.",
+          "description": "Enables the list_calendars command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-calendar-access-status",
-          "markdownDescription": "Enables the calendar_access_status command without any pre-configured scope."
+          "const": "allow-list-calendars",
+          "markdownDescription": "Enables the list_calendars command without any pre-configured scope."
         },
         {
-          "description": "Denies the calendar_access_status command without any pre-configured scope.",
+          "description": "Denies the list_calendars command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-calendar-access-status",
-          "markdownDescription": "Denies the calendar_access_status command without any pre-configured scope."
+          "const": "deny-list-calendars",
+          "markdownDescription": "Denies the list_calendars command without any pre-configured scope."
         },
         {
-          "description": "Enables the contacts_access_status command without any pre-configured scope.",
+          "description": "Enables the list_events command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-contacts-access-status",
-          "markdownDescription": "Enables the contacts_access_status command without any pre-configured scope."
+          "const": "allow-list-events",
+          "markdownDescription": "Enables the list_events command without any pre-configured scope."
         },
         {
-          "description": "Denies the contacts_access_status command without any pre-configured scope.",
+          "description": "Denies the list_events command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-contacts-access-status",
-          "markdownDescription": "Denies the contacts_access_status command without any pre-configured scope."
+          "const": "deny-list-events",
+          "markdownDescription": "Denies the list_events command without any pre-configured scope."
         },
         {
           "description": "Enables the open_calendar command without any pre-configured scope.",
@@ -331,58 +331,10 @@
           "markdownDescription": "Denies the open_calendar command without any pre-configured scope."
         },
         {
-          "description": "Enables the open_calendar_access_settings command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-open-calendar-access-settings",
-          "markdownDescription": "Enables the open_calendar_access_settings command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the open_calendar_access_settings command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-open-calendar-access-settings",
-          "markdownDescription": "Denies the open_calendar_access_settings command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the open_contacts_access_settings command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-open-contacts-access-settings",
-          "markdownDescription": "Enables the open_contacts_access_settings command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the open_contacts_access_settings command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-open-contacts-access-settings",
-          "markdownDescription": "Denies the open_contacts_access_settings command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the request_calendar_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-request-calendar-access",
-          "markdownDescription": "Enables the request_calendar_access command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the request_calendar_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-request-calendar-access",
-          "markdownDescription": "Denies the request_calendar_access command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the request_contacts_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-request-contacts-access",
-          "markdownDescription": "Enables the request_contacts_access command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the request_contacts_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-request-contacts-access",
-          "markdownDescription": "Denies the request_contacts_access command without any pre-configured scope."
-        },
-        {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-open-calendar-access-settings`\n- `allow-open-contacts-access-settings`\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`\n- `allow-sync-calendars`\n- `allow-sync-events`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-list-calendars`\n- `allow-list-events`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-open-calendar-access-settings`\n- `allow-open-contacts-access-settings`\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`\n- `allow-sync-calendars`\n- `allow-sync-events`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-list-calendars`\n- `allow-list-events`"
         }
       ]
     }

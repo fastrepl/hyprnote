@@ -1,21 +1,11 @@
-use serde::{ser::Serializer, Serialize};
-
-pub type Result<T> = std::result::Result<T, Error>;
+use serde::{Serialize, ser::Serializer};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    IO(#[from] std::io::Error),
+    Store2Error(#[from] tauri_plugin_store2::Error),
     #[error(transparent)]
-    Serde(#[from] serde_json::Error),
-    #[error(transparent)]
-    Keyring(#[from] keyring::Error),
-    #[error(transparent)]
-    Minijinja(#[from] minijinja::Error),
-    #[error(transparent)]
-    Store(#[from] tauri_plugin_store::Error),
-    #[error("Vault not initialized")]
-    VaultNotInitialized,
+    SerdeJsonError(#[from] serde_json::Error),
 }
 
 impl Serialize for Error {
@@ -26,3 +16,5 @@ impl Serialize for Error {
         serializer.serialize_str(self.to_string().as_ref())
     }
 }
+
+pub type Result<T> = std::result::Result<T, Error>;

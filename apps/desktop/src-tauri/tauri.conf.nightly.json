@@ -4,6 +4,9 @@
   "mainBinaryName": "Hyprnote Nightly",
   "identifier": "com.hyprnote.nightly",
   "plugins": {
+    "deep-link": {
+      "desktop": { "schemes": ["hyprnote-nightly"] }
+    },
     "updater": {
       "active": true,
       "endpoints": [

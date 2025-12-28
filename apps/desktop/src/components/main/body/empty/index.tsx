@@ -1,7 +1,7 @@
-import { ArrowUpRight, ChevronDown, FileIcon } from "lucide-react";
+import { AppWindowIcon, ChevronDown } from "lucide-react";
 import { useCallback, useState } from "react";
 
-import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
@@ -19,9 +19,10 @@ export const TabItemEmpty: TabItem<Extract<Tab, { type: "empty" }>> = ({
 }) => {
   return (
     <TabItemBase
-      icon={<FileIcon className="w-4 h-4" />}
+      icon={<AppWindowIcon className="w-4 h-4" />}
       title="New tab"
       selected={tab.active}
+      isEmptyTab
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
@@ -48,7 +49,7 @@ function EmptyView() {
   const newNote = useNewNote({ behavior: "current" });
   const openCurrent = useTabs((state) => state.openCurrent);
   const openCalendar = useCallback(
-    () => openCurrent({ type: "extension", extensionId: "calendar" }),
+    () => openCurrent({ type: "calendar" }),
     [openCurrent],
   );
   const openContacts = useCallback(
@@ -73,6 +74,16 @@ function EmptyView() {
       <div className="relative flex flex-col gap-1 text-center min-w-[280px]">
         <ActionItem label="New Note" shortcut={["⌘", "N"]} onClick={newNote} />
         <ActionItem
+          label="Calendar"
+          shortcut={["⌘", "⇧", "C"]}
+          onClick={openCalendar}
+        />
+        <ActionItem
+          label="Contacts"
+          shortcut={["⌘", "⇧", "O"]}
+          onClick={openContacts}
+        />
+        <ActionItem
           label="Others"
           icon={
             <ChevronDown
@@ -86,11 +97,9 @@ function EmptyView() {
         />
         {showOthers && (
           <div className="absolute top-full left-0 right-0 flex flex-col gap-1 pt-1">
-            <ActionItem label="Open Calendar" onClick={openCalendar} />
-            <ActionItem label="Open Contacts" onClick={openContacts} />
-            <ActionItem label="Open Templates" onClick={openTemplates} />
-            <ActionItem label="Open Shortcuts" onClick={openShortcuts} />
-            <ActionItem label="Open Prompts" onClick={openPrompts} />
+            <ActionItem label="Templates" onClick={openTemplates} />
+            <ActionItem label="Shortcuts" onClick={openShortcuts} />
+            <ActionItem label="Prompts" onClick={openPrompts} />
           </div>
         )}
       </div>
@@ -113,6 +122,7 @@ function ActionItem({
     <button
       onClick={onClick}
       className={cn([
+        "group",
         "flex items-center justify-between gap-8",
         "text-sm",
         "rounded-md px-4 py-2",
@@ -121,17 +131,17 @@ function ActionItem({
     >
       <span>{label}</span>
       {shortcut && shortcut.length > 0 ? (
-        <KbdGroup>
-          {shortcut.map((key, index) => (
-            <Kbd key={index} className="bg-neutral-200">
-              {key}
-            </Kbd>
-          ))}
-        </KbdGroup>
-      ) : icon ? (
-        icon
+        <Kbd
+          className={cn([
+            "transition-all duration-100",
+            "group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_0_0_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
+            "group-active:translate-y-0.5 group-active:shadow-none",
+          ])}
+        >
+          {shortcut.join(" ")}
+        </Kbd>
       ) : (
-        <ArrowUpRight className="w-4 h-4 text-neutral-400" />
+        icon
       )}
     </button>
   );

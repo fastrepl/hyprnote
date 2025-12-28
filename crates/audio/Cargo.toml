@@ -1,7 +1,7 @@
 [package]
 name = "audio"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 anyhow = { workspace = true }
@@ -21,7 +21,8 @@ dasp = { workspace = true }
 rodio = { workspace = true }
 
 ebur128 = "0.1.10"
-kalosm-sound = { workspace = true, default-features = false }
+hypr-audio-interface = { workspace = true }
+hypr-device-heuristic = { workspace = true }
 ringbuf = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]

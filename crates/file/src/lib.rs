@@ -7,7 +7,7 @@ pub use remote::*;
 pub use types::*;
 
 use {
-    futures_util::{stream::FuturesUnordered, StreamExt, TryStreamExt},
+    futures_util::{StreamExt, TryStreamExt, stream::FuturesUnordered},
     hypr_download_interface::DownloadProgress,
     reqwest::StatusCode,
     std::{
@@ -178,21 +178,21 @@ pub async fn download_file_with_callback_cancellable<F: Fn(DownloadProgress)>(
 
     loop {
         // Check for cancellation
-        if let Some(ref token) = cancellation_token {
-            if token.is_cancelled() {
-                // Flush any buffered data before exiting
-                if !write_buffer.is_empty() {
-                    file.write_all(&write_buffer)?;
-                    write_buffer.clear();
-                }
-                file.flush()?;
-                file.sync_all()?;
-                tracing::info!(
-                    "Download cancelled, partial file saved at: {:?}",
-                    output_path.as_ref()
-                );
-                return Err(crate::Error::Cancelled);
+        if let Some(ref token) = cancellation_token
+            && token.is_cancelled()
+        {
+            // Flush any buffered data before exiting
+            if !write_buffer.is_empty() {
+                file.write_all(&write_buffer)?;
+                write_buffer.clear();
             }
+            file.flush()?;
+            file.sync_all()?;
+            tracing::info!(
+                "Download cancelled, partial file saved at: {:?}",
+                output_path.as_ref()
+            );
+            return Err(crate::Error::Cancelled);
         }
 
         match stream.next().await {
@@ -387,26 +387,26 @@ pub async fn download_file_parallel_cancellable<F: Fn(DownloadProgress) + Send +
 
     for chunk_idx in 0..num_chunks {
         // Check for cancellation before starting new chunks
-        if let Some(ref token) = cancellation_token {
-            if token.is_cancelled() {
-                // Process any remaining tasks and flush data
-                while let Some(result) = tasks.next().await {
-                    let _ = process_task_result(result, &file, &pending_writes, &next_write_offset);
-                }
-
-                // Ensure all pending writes are flushed
-                {
-                    let mut file_guard = file.lock().unwrap();
-                    file_guard.flush()?;
-                    file_guard.sync_all()?;
-                }
-
-                tracing::info!(
-                    "Download cancelled, partial file saved at: {:?}",
-                    output_path.as_ref()
-                );
-                return Err(crate::Error::Cancelled);
+        if let Some(ref token) = cancellation_token
+            && token.is_cancelled()
+        {
+            // Process any remaining tasks and flush data
+            while let Some(result) = tasks.next().await {
+                let _ = process_task_result(result, &file, &pending_writes, &next_write_offset);
             }
+
+            // Ensure all pending writes are flushed
+            {
+                let mut file_guard = file.lock().unwrap();
+                file_guard.flush()?;
+                file_guard.sync_all()?;
+            }
+
+            tracing::info!(
+                "Download cancelled, partial file saved at: {:?}",
+                output_path.as_ref()
+            );
+            return Err(crate::Error::Cancelled);
         }
 
         let start = existing_size + chunk_idx * chunk_size;
@@ -419,10 +419,10 @@ pub async fn download_file_parallel_cancellable<F: Fn(DownloadProgress) + Send +
 
         let task = async move {
             // Check cancellation at chunk level
-            if let Some(ref token) = cancellation_token_clone {
-                if token.is_cancelled() {
-                    return Err(crate::Error::Cancelled);
-                }
+            if let Some(ref token) = cancellation_token_clone
+                && token.is_cancelled()
+            {
+                return Err(crate::Error::Cancelled);
             }
 
             let client = get_client();
@@ -446,10 +446,10 @@ pub async fn download_file_parallel_cancellable<F: Fn(DownloadProgress) + Send +
 
             while let Some(chunk) = stream.try_next().await? {
                 // Check cancellation during chunk download
-                if let Some(ref token) = cancellation_token_clone {
-                    if token.is_cancelled() {
-                        return Ok((start, bytes)); // Return what we have so far
-                    }
+                if let Some(ref token) = cancellation_token_clone
+                    && token.is_cancelled()
+                {
+                    return Ok((start, bytes)); // Return what we have so far
                 }
 
                 bytes.extend_from_slice(&chunk);
@@ -467,10 +467,10 @@ pub async fn download_file_parallel_cancellable<F: Fn(DownloadProgress) + Send +
 
         tasks.push(task);
 
-        if tasks.len() >= MAX_CONCURRENT_CHUNKS {
-            if let Some(result) = tasks.next().await {
-                process_task_result(result, &file, &pending_writes, &next_write_offset)?;
-            }
+        if tasks.len() >= MAX_CONCURRENT_CHUNKS
+            && let Some(result) = tasks.next().await
+        {
+            process_task_result(result, &file, &pending_writes, &next_write_offset)?;
         }
     }
 
@@ -902,7 +902,13 @@ mod tests {
             "Downloaded file should match expected size"
         );
 
-        assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);
+        assert!(
+            speedup >= 1.1,
+            "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x",
+            serial_duration,
+            parallel_duration,
+            speedup
+        );
     }
 
     #[tokio::test]
@@ -1002,6 +1008,12 @@ mod tests {
             "Both downloads should produce files of the same size"
         );
 
-        assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);
+        assert!(
+            speedup >= 1.1,
+            "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x",
+            serial_duration,
+            parallel_duration,
+            speedup
+        );
     }
 }

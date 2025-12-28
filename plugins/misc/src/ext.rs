@@ -1,26 +1,23 @@
-use tauri::{Manager, Runtime};
-
-pub trait MiscPluginExt<R: Runtime> {
-    fn get_git_hash(&self) -> String;
-    fn get_fingerprint(&self) -> String;
-    fn opinionated_md_to_html(&self, text: impl AsRef<str>) -> Result<String, String>;
-    fn parse_meeting_link(&self, text: impl AsRef<str>) -> Option<String>;
+pub struct Misc<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    #[allow(dead_code)]
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: Runtime, T: Manager<R>> MiscPluginExt<R> for T {
-    fn get_git_hash(&self) -> String {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Misc<'a, R, M> {
+    pub fn get_git_hash(&self) -> String {
         env!("VERGEN_GIT_SHA").to_string()
     }
 
-    fn get_fingerprint(&self) -> String {
+    pub fn get_fingerprint(&self) -> String {
         hypr_host::fingerprint()
     }
 
-    fn opinionated_md_to_html(&self, text: impl AsRef<str>) -> Result<String, String> {
+    pub fn opinionated_md_to_html(&self, text: impl AsRef<str>) -> Result<String, String> {
         hypr_buffer::opinionated_md_to_html(text.as_ref()).map_err(|e| e.to_string())
     }
 
-    fn parse_meeting_link(&self, text: impl AsRef<str>) -> Option<String> {
+    pub fn parse_meeting_link(&self, text: impl AsRef<str>) -> Option<String> {
         let text = text.as_ref();
 
         for regex in MEETING_REGEXES.iter() {
@@ -30,13 +27,31 @@ impl<R: Runtime, T: Manager<R>> MiscPluginExt<R> for T {
         }
 
         let url_pattern = r"https?://[^\s]+";
-        if let Ok(regex) = regex::Regex::new(url_pattern) {
-            if let Some(capture) = regex.find(text) {
-                return Some(capture.as_str().to_string());
-            }
+        if let Ok(regex) = regex::Regex::new(url_pattern)
+            && let Some(capture) = regex.find(text)
+        {
+            return Some(capture.as_str().to_string());
         }
 
         None
+    }
+}
+
+pub trait MiscPluginExt<R: tauri::Runtime> {
+    fn misc(&self) -> Misc<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> MiscPluginExt<R> for T {
+    fn misc(&self) -> Misc<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Misc {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }
 

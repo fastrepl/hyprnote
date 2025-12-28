@@ -31,7 +31,7 @@ async function findAgentsFiles(dir, baseDir = dir, results = []) {
         results.push(relativePath);
       }
     }
-  } catch (err) {
+  } catch {
     // Ignore errors (e.g., permission denied)
   }
 

@@ -6,6 +6,7 @@ publish = "apps/web/dist/client"
 
 [build.environment]
 VITE_APP_URL = "https://hyprnote.com"
+VITE_APP_VERSION = "${COMMIT_REF}"
 NODE_VERSION = "22"
 
 [images]

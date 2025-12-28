@@ -37,7 +37,6 @@ interface EditorProps {
   mentionConfig?: MentionConfig;
   placeholderComponent?: PlaceholderFunction;
   fileHandlerConfig?: FileHandlerConfig;
-  onNavigateToTitle?: () => void;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
@@ -50,7 +49,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       mentionConfig,
       placeholderComponent,
       fileHandlerConfig,
-      onNavigateToTitle,
     } = props;
     const previousContentRef = useRef<JSONContent>(initialContent);
 

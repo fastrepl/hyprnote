@@ -69,6 +69,8 @@ tauri-plugin-updater = { workspace = true }
 tauri-plugin-updater2 = { workspace = true }
 tauri-plugin-window-state = { workspace = true }
 tauri-plugin-windows = { workspace = true }
+tauri-plugin-localhost = { workspace = true, optional = true }
+portpicker = { version = "0.1", optional = true }
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }
@@ -90,3 +92,4 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [features]
 devtools = ["tauri/devtools"]
+localhost = ["dep:tauri-plugin-localhost", "dep:portpicker"]

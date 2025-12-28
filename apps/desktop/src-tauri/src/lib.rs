@@ -121,11 +121,18 @@ pub async fn main() {
         builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(&**client));
     }
 
-    #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
-    {
-        let plugin = tauri_plugin_prevent_default::init();
-        builder = builder.plugin(plugin);
-    }
+        #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
+        {
+            let plugin = tauri_plugin_prevent_default::init();
+            builder = builder.plugin(plugin);
+        }
+
+        #[cfg(feature = "localhost")]
+        {
+            let port = portpicker::pick_unused_port().expect("failed to find unused port");
+            tracing::info!("localhost plugin enabled on port {}", port);
+            builder = builder.plugin(tauri_plugin_localhost::Builder::new(port).build());
+        }
 
     let specta_builder = make_specta_builder();
 

@@ -922,6 +922,12 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
 
+  crates/control-tauri:
+    devDependencies:
+      '@tauri-apps/cli':
+        specifier: ^2.9.6
+        version: 2.9.6
+
   e2e/blackbox:
     devDependencies:
       '@wdio/cli':

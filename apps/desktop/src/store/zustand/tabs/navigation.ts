@@ -98,12 +98,34 @@ export const createNavigationSlice = <T extends NavigationState & BasicState>(
       }
     }
 
-    const nextTabs = tabs.filter((tab) => !isResourceMatch(tab, type, id));
+    const filteredTabs = tabs.filter((tab) => !isResourceMatch(tab, type, id));
+    const needsNewActiveTab =
+      currentTab && isResourceMatch(currentTab, type, id);
 
-    const nextCurrentTab =
-      currentTab && isResourceMatch(currentTab, type, id)
-        ? nextTabs.find((t) => t.active) || nextTabs[0] || null
-        : currentTab;
+    let nextTabs: Tab[];
+    let nextCurrentTab: Tab | null;
+
+    if (filteredTabs.length === 0) {
+      nextTabs = [];
+      nextCurrentTab = null;
+    } else if (needsNewActiveTab) {
+      const removedIndex = tabs.findIndex(
+        (t) => isResourceMatch(t, type, id) && t.active,
+      );
+      const nextActiveIndex =
+        removedIndex < filteredTabs.length
+          ? removedIndex
+          : filteredTabs.length - 1;
+      const nextActiveTab = filteredTabs[nextActiveIndex];
+      nextTabs = filteredTabs.map((t) => ({
+        ...t,
+        active: t === nextActiveTab,
+      }));
+      nextCurrentTab = { ...nextActiveTab, active: true };
+    } else {
+      nextTabs = filteredTabs;
+      nextCurrentTab = currentTab;
+    }
 
     if (hasChanges || nextTabs.length !== tabs.length) {
       set({

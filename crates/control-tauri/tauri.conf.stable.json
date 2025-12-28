@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Hyprnote Control",
+  "mainBinaryName": "Hyprnote Control",
+  "identifier": "com.hyprnote.control.stable",
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://control.hyprnote.com/update/{{target}}-{{arch}}/{{current_version}}?channel=stable"
+      ]
+    }
+  }
+}

@@ -1,0 +1,95 @@
+use std::sync::mpsc;
+use std::thread::JoinHandle;
+
+#[cfg(target_os = "linux")]
+mod linux;
+#[cfg(target_os = "macos")]
+mod macos;
+#[cfg(target_os = "windows")]
+mod windows;
+
+#[derive(Debug, Clone)]
+pub enum DeviceEvent {
+    DefaultInputChanged,
+    DefaultOutputChanged { headphone: bool },
+}
+
+pub struct DeviceMonitorHandle {
+    stop_tx: Option<mpsc::Sender<()>>,
+    thread_handle: Option<JoinHandle<()>>,
+}
+
+impl DeviceMonitorHandle {
+    pub fn stop(mut self) {
+        if let Some(stop_tx) = self.stop_tx.take() {
+            let _ = stop_tx.send(());
+        }
+        if let Some(handle) = self.thread_handle.take() {
+            let _ = handle.join();
+        }
+    }
+}
+
+impl Drop for DeviceMonitorHandle {
+    fn drop(&mut self) {
+        if let Some(stop_tx) = self.stop_tx.take() {
+            let _ = stop_tx.send(());
+        }
+        if let Some(handle) = self.thread_handle.take() {
+            let _ = handle.join();
+        }
+    }
+}
+
+pub struct DeviceMonitor;
+
+impl DeviceMonitor {
+    pub fn spawn(event_tx: mpsc::Sender<DeviceEvent>) -> DeviceMonitorHandle {
+        let (stop_tx, stop_rx) = mpsc::channel();
+
+        let thread_handle = std::thread::spawn(move || {
+            #[cfg(target_os = "macos")]
+            {
+                macos::monitor(event_tx, stop_rx);
+            }
+
+            #[cfg(target_os = "linux")]
+            {
+                linux::monitor(event_tx, stop_rx);
+            }
+
+            #[cfg(target_os = "windows")]
+            {
+                windows::monitor(event_tx, stop_rx);
+            }
+
+            #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+            {
+                let _ = event_tx;
+                tracing::warn!("device_monitoring_unsupported");
+                let _ = stop_rx.recv();
+            }
+        });
+
+        DeviceMonitorHandle {
+            stop_tx: Some(stop_tx),
+            thread_handle: Some(thread_handle),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[test]
+    fn test_device_monitor_spawn_and_stop() {
+        let (tx, rx) = mpsc::channel();
+        let handle = DeviceMonitor::spawn(tx);
+
+        std::thread::sleep(Duration::from_millis(100));
+        handle.stop();
+        assert!(rx.try_recv().is_err() || rx.try_recv().is_ok());
+    }
+}

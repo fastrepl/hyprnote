@@ -18,8 +18,9 @@ use crate::{
 };
 use hypr_aec::AEC;
 use hypr_agc::VadAgc;
-use hypr_audio::{AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
+use hypr_audio::AudioInput;
 use hypr_audio_utils::{ResampleExtDynamicNew, chunk_size_for_stt, f32_to_i16_bytes};
+use hypr_device_monitor::{DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
 use tauri_specta::Event;
 
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);

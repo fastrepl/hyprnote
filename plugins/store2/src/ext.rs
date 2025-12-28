@@ -34,6 +34,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Store2<'a, R, M> {
         let store = self.store()?;
         Ok(ScopedStore::new(store, scope.into()))
     }
+
+    pub fn reset(&self) -> Result<(), crate::Error> {
+        let store = self.store()?;
+        store.clear();
+        store.save()?;
+        Ok(())
+    }
 }
 
 pub trait Store2PluginExt<R: tauri::Runtime> {

@@ -58,18 +58,23 @@ impl SettingsState {
             (_, new) => new,
         };
 
-        let tmp_path = self.path.with_extension("json.tmp");
-        let content = serde_json::to_string_pretty(&merged)
-            .map_err(|e| Error::Settings(format!("serialize: {}", e)))?;
+        let tmp_path = self.path.with_extension("for-save.tmp");
+        let content = serde_json::to_string_pretty(&merged)?;
 
-        tokio::fs::write(&tmp_path, &content)
-            .await
-            .map_err(|e| Error::Settings(format!("write tmp: {}", e)))?;
+        tokio::fs::write(&tmp_path, &content).await?;
+        tokio::fs::rename(&tmp_path, &self.path).await?;
 
-        tokio::fs::rename(&tmp_path, &self.path)
-            .await
-            .map_err(|e| Error::Settings(format!("rename: {}", e)))?;
+        Ok(())
+    }
 
+    pub fn reset(&self) -> crate::Result<()> {
+        if let Some(parent) = self.path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+
+        let tmp_path = self.path.with_extension("for-reset.tmp");
+        std::fs::write(&tmp_path, "{}")?;
+        std::fs::rename(&tmp_path, &self.path)?;
         Ok(())
     }
 }

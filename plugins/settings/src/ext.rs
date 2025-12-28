@@ -30,6 +30,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
         let state = self.manager.state::<crate::state::SettingsState>();
         state.save(settings).await
     }
+
+    pub fn reset(&self) -> crate::Result<()> {
+        let state = self.manager.state::<crate::state::SettingsState>();
+        state.reset()
+    }
 }
 
 pub trait SettingsPluginExt<R: tauri::Runtime> {

@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use tauri_plugin_path2::Path2PluginExt;
+
 /// Configuration for hook execution.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct HooksConfig {
@@ -9,7 +11,7 @@ pub struct HooksConfig {
     pub version: u8,
     /// Map of event names to their associated hook definitions.
     #[serde(default)]
-    pub hooks: HashMap<String, Vec<HookDefinition>>,
+    pub on: HashMap<String, Vec<HookDefinition>>,
 }
 
 /// Defines a single hook to be executed on an event.
@@ -30,8 +32,15 @@ impl HooksConfig {
         let content =
             std::fs::read_to_string(&path).map_err(|e| crate::Error::ConfigLoad(e.to_string()))?;
 
-        let config: HooksConfig =
+        let settings: serde_json::Value =
             serde_json::from_str(&content).map_err(|e| crate::Error::ConfigParse(e.to_string()))?;
+
+        let Some(hooks_value) = settings.get("hooks").cloned() else {
+            return Ok(Self::empty());
+        };
+
+        let config: HooksConfig = serde_json::from_value(hooks_value)
+            .map_err(|e| crate::Error::ConfigParse(e.to_string()))?;
 
         if config.version != 0 {
             return Err(crate::Error::UnsupportedVersion(config.version));
@@ -40,17 +49,19 @@ impl HooksConfig {
         Ok(config)
     }
 
-    fn config_path<R: tauri::Runtime>(_app: &impl tauri::Manager<R>) -> crate::Result<PathBuf> {
-        let data_dir =
-            dirs::data_dir().ok_or_else(|| crate::Error::ConfigLoad("no data dir".to_string()))?;
+    fn config_path<R: tauri::Runtime>(app: &impl tauri::Manager<R>) -> crate::Result<PathBuf> {
+        let base = app
+            .path2()
+            .base()
+            .map_err(|e| crate::Error::ConfigLoad(e.to_string()))?;
 
-        Ok(data_dir.join("hyprnote").join("hooks.json"))
+        Ok(base.join("settings.json"))
     }
 
     fn empty() -> Self {
         Self {
             version: 0,
-            hooks: HashMap::new(),
+            on: HashMap::new(),
         }
     }
 }

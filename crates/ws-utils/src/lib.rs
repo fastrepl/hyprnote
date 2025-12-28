@@ -5,8 +5,8 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use axum::extract::ws::{Message, WebSocket};
-use futures_util::{stream::SplitStream, Stream, StreamExt};
-use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
+use futures_util::{Stream, StreamExt, stream::SplitStream};
+use tokio::sync::mpsc::{UnboundedReceiver, unbounded_channel};
 
 use hypr_audio_utils::{bytes_to_f32_samples, mix_audio_f32};
 use owhisper_interface::ListenInputChunk;

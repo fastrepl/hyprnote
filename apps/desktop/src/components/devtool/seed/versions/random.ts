@@ -1,8 +1,8 @@
-import { faker } from "@faker-js/faker";
+import { faker } from "@faker-js/faker/locale/en";
 import type { Tables } from "tinybase/with-schemas";
 
 import type { Schemas } from "../../../../store/tinybase/main";
-import type { Store as PersistedStore } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/main";
 import type { SeedDefinition } from "../shared";
 import {
   buildCalendars,
@@ -22,9 +22,9 @@ import {
   buildTranscriptsForSessions,
 } from "../shared";
 
-faker.seed(123);
+const buildRandomData = (): Tables<Schemas[0]> => {
+  faker.seed(123);
 
-const RANDOM_DATA = (() => {
   const organizations = buildOrganizations(4);
   const orgIds = Object.keys(organizations);
 
@@ -39,7 +39,7 @@ const RANDOM_DATA = (() => {
 
   const { events, eventsByHuman } = buildEventsByHuman(humanIds, calendarIds, {
     min: 1,
-    max: 4,
+    max: 3,
   });
 
   const folders = buildFolders(3, { min: 0, max: 3 });
@@ -53,7 +53,7 @@ const RANDOM_DATA = (() => {
 
   const sessions = buildSessionsPerHuman(
     humanIds,
-    { min: 1, max: 4 },
+    { min: 1, max: 3 },
     {
       eventsByHuman,
       folderIds,
@@ -63,14 +63,16 @@ const RANDOM_DATA = (() => {
   );
   const sessionIds = Object.keys(sessions);
 
-  const { transcripts, words } = buildTranscriptsForSessions(sessionIds);
+  const { transcripts, words } = buildTranscriptsForSessions(sessionIds, {
+    turnCount: { min: 20, max: 50 },
+  });
 
   const mapping_session_participant = buildSessionParticipants(
     sessionIds,
     humanIds,
     {
       min: 1,
-      max: 4,
+      max: 3,
     },
   );
 
@@ -82,7 +84,7 @@ const RANDOM_DATA = (() => {
   const chat_groups = buildChatGroups(5);
   const chatGroupIds = Object.keys(chat_groups);
 
-  const chat_messages = buildChatMessages(chatGroupIds, { min: 3, max: 10 });
+  const chat_messages = buildChatMessages(chatGroupIds, { min: 2, max: 5 });
 
   const enhanced_notes = buildEnhancedNotesForSessions(
     sessionIds,
@@ -112,16 +114,17 @@ const RANDOM_DATA = (() => {
     chat_messages,
     enhanced_notes,
     chat_shortcuts,
-  } satisfies Tables<Schemas[0]>;
-})();
+  };
+};
 
 export const randomSeed: SeedDefinition = {
   id: "random",
   label: "Random",
-  run: (store: PersistedStore) => {
+  run: (store: MainStore) => {
+    const data = buildRandomData();
     store.transaction(() => {
       store.delTables();
-      store.setTables(RANDOM_DATA);
+      store.setTables(data);
     });
   },
 };

@@ -20,6 +20,22 @@ import {
 } from "@hypr/ui/components/ui/command";
 import { cn } from "@hypr/utils";
 
+function SearchKbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd
+      className={cn([
+        "pointer-events-none inline-flex h-5 w-fit min-w-5 select-none items-center justify-center gap-1 rounded px-1 font-mono text-xs font-medium",
+        "border border-neutral-300",
+        "bg-linear-to-b from-white to-neutral-100",
+        "text-neutral-400",
+        "shadow-[0_1px_0_0_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
+      ])}
+    >
+      {children}
+    </kbd>
+  );
+}
+
 interface SearchResult {
   url: string;
   meta: {
@@ -45,7 +61,6 @@ interface PagefindInstance {
   search: (query: string) => Promise<{ results: PagefindSearchResult[] }>;
 }
 
-// Context for shared search palette state
 const SearchPaletteContext = createContext<{
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -54,9 +69,7 @@ const SearchPaletteContext = createContext<{
 function useSearchPalette() {
   const ctx = useContext(SearchPaletteContext);
   if (!ctx) {
-    throw new Error(
-      "useSearchPalette must be used within SearchPaletteProvider",
-    );
+    return { open: false, setOpen: () => {} };
   }
   return ctx;
 }
@@ -68,7 +81,6 @@ export function SearchPaletteProvider({
 }) {
   const [open, setOpen] = useState(false);
 
-  // Single global Cmd+K handler
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -103,7 +115,7 @@ export function SearchTrigger({
         type="button"
         onClick={() => setOpen(true)}
         className={cn([
-          "w-full flex items-center gap-2 px-3 py-2",
+          "group w-full flex items-center gap-2 px-3 py-2",
           "text-sm text-neutral-500",
           "bg-neutral-50 hover:bg-neutral-100",
           "border border-neutral-200 rounded-md",
@@ -113,16 +125,7 @@ export function SearchTrigger({
       >
         <SearchIcon size={16} className="text-neutral-400" />
         <span className="flex-1 text-left">Search docs...</span>
-        <kbd
-          className={cn([
-            "hidden sm:inline-flex h-5 items-center gap-1",
-            "rounded border border-neutral-200 bg-white",
-            "px-1.5 font-mono text-[10px] font-medium text-neutral-500",
-            "select-none",
-          ])}
-        >
-          <span className="text-xs">⌘</span>K
-        </kbd>
+        <SearchKbd>⌘ K</SearchKbd>
       </button>
     );
   }
@@ -151,25 +154,14 @@ export function SearchTrigger({
         type="button"
         onClick={() => setOpen(true)}
         className={cn([
-          "cursor-pointer flex items-center gap-1.5",
+          "group cursor-pointer flex items-center gap-1.5",
           "text-neutral-400 hover:text-neutral-600",
           "transition-colors",
           className,
         ])}
       >
         <SearchIcon size={16} />
-        <kbd
-          className={cn([
-            "hidden sm:inline-flex h-5 items-center gap-1",
-            "rounded border border-neutral-300",
-            "bg-linear-to-b from-white to-neutral-100",
-            "px-1.5 font-mono text-[10px] font-medium text-neutral-400",
-            "shadow-[0_1px_0_0_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.8)]",
-            "select-none",
-          ])}
-        >
-          <span className="text-sm">⌘</span>K
-        </kbd>
+        <SearchKbd>⌘ K</SearchKbd>
       </button>
     );
   }
@@ -189,16 +181,7 @@ export function SearchTrigger({
     >
       <SearchIcon size={14} className="text-neutral-400" />
       <span className="hidden lg:inline">Search</span>
-      <kbd
-        className={cn([
-          "hidden lg:inline-flex h-5 items-center gap-1",
-          "rounded border border-neutral-200 bg-white",
-          "px-1.5 font-mono text-[10px] font-medium text-neutral-500",
-          "select-none",
-        ])}
-      >
-        <span className="text-xs">⌘</span>K
-      </kbd>
+      <SearchKbd>⌘ K</SearchKbd>
     </button>
   );
 }
@@ -296,9 +279,13 @@ function SearchCommandPalette({
   }, [open, onOpenChange]);
 
   useEffect(() => {
-    const zendeskWidget = document.getElementById("launcher");
-    if (zendeskWidget) {
-      zendeskWidget.style.display = open ? "none" : "";
+    const zE = (window as { zE?: (...args: unknown[]) => void }).zE;
+    if (zE) {
+      if (open) {
+        zE("messenger", "hide");
+      } else {
+        zE("messenger", "show");
+      }
     }
   }, [open]);
 
@@ -315,7 +302,7 @@ function SearchCommandPalette({
 
   return createPortal(
     <div
-      className="fixed inset-x-0 top-[69px] bottom-0 z-9999 backdrop-blur-sm"
+      className="fixed inset-x-0 top-17.25 bottom-0 z-9999 backdrop-blur-sm"
       onClick={() => onOpenChange(false)}
     >
       <div className="absolute left-1/2 top-[10%] -translate-x-1/2 w-full max-w-xl px-4">
@@ -334,7 +321,7 @@ function SearchCommandPalette({
               onValueChange={setQuery}
             />
             <div className="border-t border-neutral-100" />
-            <CommandList className="max-h-[400px] px-1">
+            <CommandList className="max-h-100 px-1">
               {isLoading && (
                 <div className="py-6 text-center text-sm text-neutral-500">
                   Searching...
@@ -366,7 +353,9 @@ function SearchCommandPalette({
                         {result.excerpt && (
                           <span
                             className="text-xs text-neutral-500 line-clamp-2"
-                            dangerouslySetInnerHTML={{ __html: result.excerpt }}
+                            dangerouslySetInnerHTML={{
+                              __html: result.excerpt,
+                            }}
                           />
                         )}
                       </div>

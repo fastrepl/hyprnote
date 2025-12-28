@@ -1,126 +1,141 @@
-import { useEffect, useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient, createConfig } from "@hypr/api-client/client";
-import { Button } from "@hypr/ui/components/ui/button";
-import { Input } from "@hypr/ui/components/ui/input";
 
 import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
-import { OnboardingContainer, type OnboardingNext } from "./shared";
+import { Route } from "../../routes/app/onboarding/_layout.index";
+import * as settings from "../../store/tinybase/settings";
+import { getBack, getNext, type StepProps } from "./config";
+import { STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
+import { Divider, OnboardingContainer } from "./shared";
 
-export function Login({ onNext }: { onNext: OnboardingNext }) {
+export const STEP_ID_LOGIN = "login" as const;
+
+export function Login({ onNavigate }: StepProps) {
+  const search = Route.useSearch();
   const auth = useAuth();
-  const [showManualInput, setShowManualInput] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("");
 
-  const signInStarted = useRef(false);
-  const trialStarted = useRef(false);
+  const setLlmProvider = settings.UI.useSetValueCallback(
+    "current_llm_provider",
+    () => "hyprnote",
+    [],
+    settings.STORE_ID,
+  );
+  const setLlmModel = settings.UI.useSetValueCallback(
+    "current_llm_model",
+    () => "Auto",
+    [],
+    settings.STORE_ID,
+  );
+  const setSttProvider = settings.UI.useSetValueCallback(
+    "current_stt_provider",
+    () => "hyprnote",
+    [],
+    settings.STORE_ID,
+  );
+  const setSttModel = settings.UI.useSetValueCallback(
+    "current_stt_model",
+    () => "cloud",
+    [],
+    settings.STORE_ID,
+  );
 
-  useEffect(() => {
-    if (auth?.session && !trialStarted.current) {
-      trialStarted.current = true;
+  const setTrialDefaults = useCallback(() => {
+    setLlmProvider();
+    setLlmModel();
+    setSttProvider();
+    setSttModel();
+  }, [setLlmProvider, setLlmModel, setSttProvider, setSttModel]);
 
+  const processLoginMutation = useMutation({
+    mutationFn: async () => {
       const client = createClient(
         createConfig({
           baseUrl: env.VITE_API_URL,
-          headers: { Authorization: `Bearer ${auth.session.access_token}` },
+          headers: {
+            Authorization: `Bearer ${auth!.session!.access_token}`,
+          },
         }),
       );
 
-      (async () => {
-        try {
-          const { data } = await getRpcCanStartTrial({ client });
-          if (data?.canStartTrial) {
-            await postBillingStartTrial({
-              client,
-              query: { interval: "monthly" },
-            });
-          }
+      const { data } = await getRpcCanStartTrial({ client });
+      if (data?.canStartTrial) {
+        await postBillingStartTrial({ client, query: { interval: "monthly" } });
+      }
 
-          const newSession = await auth.refreshSession();
-          const isPro = newSession
-            ? getEntitlementsFromToken(newSession.access_token).includes(
-                "hyprnote_pro",
-              )
-            : false;
-          onNext({ local: !isPro });
-        } catch (e) {
-          console.error("Failed to process login:", e);
-          onNext({ local: true });
-        }
-      })();
-    }
-  }, [auth?.session, auth?.refreshSession, onNext]);
+      const newSession = await auth!.refreshSession();
+      return newSession
+        ? getEntitlementsFromToken(newSession.access_token).includes(
+            "hyprnote_pro",
+          )
+        : false;
+    },
+    onSuccess: (isPro) => {
+      if (isPro) {
+        setTrialDefaults();
+      }
+      const nextSearch = { ...search, pro: isPro };
+      onNavigate({ ...nextSearch, step: getNext(nextSearch)! });
+    },
+    onError: (e) => {
+      console.error(e);
+      onNavigate({ ...search, step: STEP_ID_CONFIGURE_NOTICE });
+    },
+  });
+
+  const { mutate, isIdle } = processLoginMutation;
 
   useEffect(() => {
-    if (!signInStarted.current) {
-      signInStarted.current = true;
-      auth?.signIn();
+    if (auth?.session && isIdle) {
+      mutate();
     }
-  }, [auth]);
+  }, [auth?.session, isIdle, mutate]);
 
-  if (showManualInput) {
-    return (
-      <OnboardingContainer
-        title="Enter callback URL manually"
-        description="Useful if deep linking is not working"
-      >
-        <Input
-          type="text"
-          className="text-xs font-mono"
-          placeholder="<SOMETHING>?access_token=...&refresh_token=..."
-          value={callbackUrl}
-          onChange={(e) => setCallbackUrl(e.target.value)}
-        />
-        <div className="flex flex-col gap-2">
-          <Button
-            onClick={() => auth?.handleAuthCallback(callbackUrl)}
-            className="w-full"
-          >
-            Submit
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setShowManualInput(false)}
-            className="w-full"
-          >
-            Back
-          </Button>
-        </div>
-      </OnboardingContainer>
-    );
-  }
+  useEffect(() => {
+    if (isIdle && !auth?.session) {
+      void auth?.signIn();
+    }
+  }, [auth?.session, auth?.signIn, isIdle]);
+
+  const backStep = getBack(search);
 
   return (
     <OnboardingContainer
       title="Waiting for sign in..."
       description="Complete the process in your browser"
+      onBack={
+        backStep ? () => onNavigate({ ...search, step: backStep }) : undefined
+      }
     >
-      <p className="text-xs text-neutral-500 text-center">Having trouble?</p>
-      <div className="flex flex-col gap-2">
-        <Button
-          onClick={() => auth?.signIn()}
-          variant="outline"
-          className="w-full"
+      <button
+        onClick={() => auth?.signIn()}
+        className="w-full py-3 rounded-full bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900 text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
+      >
+        Open sign in page in browser
+      </button>
+
+      <Divider text="or paste callback URL" />
+
+      <div className="relative flex items-center border rounded-full overflow-hidden transition-all duration-200 border-neutral-200 focus-within:border-neutral-400">
+        <input
+          type="text"
+          className="flex-1 px-4 py-3 text-xs font-mono outline-none bg-white"
+          placeholder="hyprnote://...?access_token=..."
+          value={callbackUrl}
+          onChange={(e) => setCallbackUrl(e.target.value)}
+        />
+        <button
+          onClick={() => auth?.handleAuthCallback(callbackUrl)}
+          disabled={!callbackUrl}
+          className="absolute right-0.5 px-4 py-2 text-sm bg-gradient-to-t from-neutral-600 to-neutral-500 text-white rounded-full enabled:hover:scale-[1.02] enabled:active:scale-[0.98] transition-all disabled:opacity-50"
         >
-          Open sign in page in browser
-        </Button>
-        <Button
-          onClick={() => setShowManualInput(true)}
-          variant="outline"
-          className="w-full"
-        >
-          Paste callback URL manually
-        </Button>
-        <Button
-          onClick={() => onNext({ local: true, step: "configure-notice" })}
-          variant="outline"
-          className="w-full"
-        >
-          Continue without account
-        </Button>
+          Submit
+        </button>
       </div>
     </OnboardingContainer>
   );

@@ -632,7 +632,13 @@ function ConfettiIcons({
         {icons.map((item) => (
           <motion.div
             key={item.id}
-            initial={{ y: -30, x: 0, opacity: 0, rotate: 0, scale: item.scale }}
+            initial={{
+              y: -30,
+              x: 0,
+              opacity: 0,
+              rotate: 0,
+              scale: item.scale,
+            }}
             animate={{
               y: 150,
               x: item.xDrift,

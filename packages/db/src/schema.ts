@@ -111,7 +111,9 @@ export const folders: any = pgTable(
     name: text("name").notNull(),
     parent_folder_id: uuid("parent_folder_id").references(
       (): any => folders.id,
-      { onDelete: "cascade" },
+      {
+        onDelete: "cascade",
+      },
     ),
   },
   (table) => createPolicies(TABLE_FOLDERS, table.user_id),
@@ -185,6 +187,7 @@ export const events = pgTable(
   TABLE_EVENTS,
   {
     ...SHARED,
+    tracking_id_event: text("tracking_id_event").notNull(),
     calendar_id: uuid("calendar_id")
       .notNull()
       .references(() => calendars.id, { onDelete: "cascade" }),
@@ -204,6 +207,7 @@ export const calendars = pgTable(
   TABLE_CALENDARS,
   {
     ...SHARED,
+    tracking_id_calendar: text("tracking_id_calendar").notNull(),
     name: text("name").notNull(),
   },
   (table) => createPolicies(TABLE_CALENDARS, table.user_id),

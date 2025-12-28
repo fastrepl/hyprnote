@@ -1,6 +1,9 @@
 use std::ffi::OsString;
+use std::time::Duration;
 
 use crate::{config::HooksConfig, event::HookEvent};
+
+const HOOK_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct HookResult {
@@ -19,7 +22,7 @@ pub async fn run_hooks_for_event<R: tauri::Runtime>(
     let condition_key = event.condition_key();
     let cli_args = event.cli_args();
 
-    let Some(hooks) = config.hooks.get(condition_key) else {
+    let Some(hooks) = config.on.get(condition_key) else {
         return Ok(vec![]);
     };
 
@@ -61,21 +64,67 @@ async fn execute_hook(command: &str, args: &[OsString]) -> HookResult {
 
     cmd.args(args);
 
-    match cmd.output().await {
-        Ok(output) => HookResult {
-            command: command.to_string(),
-            success: output.status.success(),
-            exit_code: output.status.code(),
-            stdout: String::from_utf8_lossy(&output.stdout).to_string(),
-            stderr: String::from_utf8_lossy(&output.stderr).to_string(),
-        },
-        Err(e) => HookResult {
+    let mut child = match cmd
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+    {
+        Ok(child) => child,
+        Err(e) => {
+            return HookResult {
+                command: command.to_string(),
+                success: false,
+                exit_code: None,
+                stdout: String::new(),
+                stderr: format!("failed to spawn command: {}", e),
+            };
+        }
+    };
+
+    match tokio::time::timeout(HOOK_TIMEOUT, child.wait()).await {
+        Ok(Ok(status)) => {
+            let stdout = match child.stdout.take() {
+                Some(mut stdout) => {
+                    let mut buf = Vec::new();
+                    let _ = tokio::io::AsyncReadExt::read_to_end(&mut stdout, &mut buf).await;
+                    String::from_utf8_lossy(&buf).to_string()
+                }
+                None => String::new(),
+            };
+            let stderr = match child.stderr.take() {
+                Some(mut stderr) => {
+                    let mut buf = Vec::new();
+                    let _ = tokio::io::AsyncReadExt::read_to_end(&mut stderr, &mut buf).await;
+                    String::from_utf8_lossy(&buf).to_string()
+                }
+                None => String::new(),
+            };
+            HookResult {
+                command: command.to_string(),
+                success: status.success(),
+                exit_code: status.code(),
+                stdout,
+                stderr,
+            }
+        }
+        Ok(Err(e)) => HookResult {
             command: command.to_string(),
             success: false,
             exit_code: None,
             stdout: String::new(),
-            stderr: format!("failed to spawn command: {}", e),
+            stderr: format!("failed to wait for command: {}", e),
         },
+        Err(_) => {
+            let _ = child.kill().await;
+            let _ = child.wait().await;
+            HookResult {
+                command: command.to_string(),
+                success: false,
+                exit_code: None,
+                stdout: String::new(),
+                stderr: format!("hook timed out after {} seconds", HOOK_TIMEOUT.as_secs()),
+            }
+        }
     }
 }
 

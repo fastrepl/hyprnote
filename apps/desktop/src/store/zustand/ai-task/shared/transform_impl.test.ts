@@ -73,7 +73,11 @@ describe("trimBeforeMarker", () => {
   it("should handle marker split across chunks", async () => {
     const stream = convertArrayToReadableStream<TextStreamPart<ToolSet>>([
       { type: "text-start", id: "1" },
-      { text: "ok. I will give you that! #", type: "text-delta", id: "1" },
+      {
+        text: "ok. I will give you that! #",
+        type: "text-delta",
+        id: "1",
+      },
       { text: "# Header", type: "text-delta", id: "1" },
       { text: " content", type: "text-delta", id: "1" },
       { type: "text-end", id: "1" },
@@ -500,7 +504,10 @@ describe("addMarkdownSectionSeparators", () => {
 
     const reader = source
       .pipeThrough(
-        addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+        addMarkdownSectionSeparators()({
+          tools: {},
+          stopStream: () => {},
+        }),
       )
       .getReader();
 
@@ -514,7 +521,11 @@ describe("addMarkdownSectionSeparators", () => {
       id: "1",
     });
 
-    streamController.enqueue({ type: "text-delta", text: "# Second", id: "1" });
+    streamController.enqueue({
+      type: "text-delta",
+      text: "# Second",
+      id: "1",
+    });
 
     const third = await reader.read();
     expect(third.value).toEqual({

@@ -47,7 +47,10 @@ export const extractKeywordsFromMarkdown = (
             processMarkdown(cleaned),
             Effect.map((file) => gatherKeywords(file, hashtags)),
             Effect.orElse(() =>
-              Effect.succeed({ keywords: hashtags, keyphrases: [] }),
+              Effect.succeed({
+                keywords: hashtags,
+                keyphrases: [],
+              }),
             ),
           ),
     ),
@@ -132,4 +135,4 @@ const extractHashtags = (text: string): string[] =>
   );
 
 const stripMarkdownFormatting = (text: string): string =>
-  text.replace(/[#*_~`\[\]()]/g, " ");
+  text.replace(/[#*_~`[\]()]/g, " ");

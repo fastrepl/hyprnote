@@ -1,11 +1,10 @@
-use std::future::Future;
 use std::sync::{Arc, Mutex};
 
 use owhisper_client::BatchSttAdapter;
 use tauri_specta::Event;
 
-use crate::batch::{spawn_batch_actor, BatchArgs};
 use crate::BatchEvent;
+use crate::batch::{BatchArgs, spawn_batch_actor};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
@@ -31,13 +30,14 @@ pub struct BatchParams {
     pub keywords: Vec<String>,
 }
 
-pub trait Listener2PluginExt<R: tauri::Runtime> {
-    fn run_batch(&self, params: BatchParams) -> impl Future<Output = Result<(), crate::Error>>;
+pub struct Listener2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
     #[tracing::instrument(skip_all)]
-    async fn run_batch(&self, params: BatchParams) -> Result<(), crate::Error> {
+    pub async fn run_batch(&self, params: BatchParams) -> Result<(), crate::Error> {
         let metadata = tokio::task::spawn_blocking({
             let path = params.file_path.clone();
             move || hypr_audio_utils::audio_file_metadata(path)
@@ -59,7 +59,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
             redemption_time_ms: None,
         };
 
-        let state = self.state::<crate::SharedState>();
+        let state = self.manager.state::<crate::SharedState>();
         let guard = state.lock().await;
         let app = guard.app.clone();
         drop(guard);
@@ -86,6 +86,69 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
                 )
                 .await
             }
+        }
+    }
+
+    pub fn parse_subtitle(&self, path: String) -> Result<crate::Subtitle, String> {
+        use aspasia::TimedSubtitleFile;
+        let sub = TimedSubtitleFile::new(&path).unwrap();
+        Ok(sub.into())
+    }
+
+    pub fn export_to_vtt(
+        &self,
+        session_id: String,
+        words: Vec<crate::VttWord>,
+    ) -> Result<String, String> {
+        use aspasia::{Moment, Subtitle, WebVttSubtitle, webvtt::WebVttCue};
+        use tauri_plugin_path2::Path2PluginExt;
+
+        let base = self.manager.path2().base().map_err(|e| e.to_string())?;
+        let session_dir = base.join("sessions").join(&session_id);
+
+        std::fs::create_dir_all(&session_dir).map_err(|e| e.to_string())?;
+
+        let vtt_path = session_dir.join("transcript.vtt");
+
+        let cues: Vec<WebVttCue> = words
+            .into_iter()
+            .map(|word| {
+                let start_i64 = i64::try_from(word.start_ms)
+                    .map_err(|_| format!("start_ms {} exceeds i64::MAX", word.start_ms))?;
+                let end_i64 = i64::try_from(word.end_ms)
+                    .map_err(|_| format!("end_ms {} exceeds i64::MAX", word.end_ms))?;
+
+                Ok(WebVttCue {
+                    identifier: word.speaker,
+                    text: word.text,
+                    settings: None,
+                    start: Moment::from(start_i64),
+                    end: Moment::from(end_i64),
+                })
+            })
+            .collect::<Result<_, String>>()?;
+
+        let vtt = WebVttSubtitle::builder().cues(cues).build();
+        vtt.export(&vtt_path).map_err(|e| e.to_string())?;
+
+        Ok(vtt_path.to_string_lossy().to_string())
+    }
+}
+
+pub trait Listener2PluginExt<R: tauri::Runtime> {
+    fn listener2(&self) -> Listener2<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
+    fn listener2(&self) -> Listener2<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Listener2 {
+            manager: self,
+            _runtime: std::marker::PhantomData,
         }
     }
 }
@@ -155,10 +218,10 @@ async fn run_batch_am(
         }
         Err(e) => {
             tracing::error!("batch supervisor spawn failed: {:?}", e);
-            if let Ok(mut notifier) = start_notifier.lock() {
-                if let Some(tx) = notifier.take() {
-                    let _ = tx.send(Err(format!("failed to spawn batch supervisor: {e:?}")));
-                }
+            if let Ok(mut notifier) = start_notifier.lock()
+                && let Some(tx) = notifier.take()
+            {
+                let _ = tx.send(Err(format!("failed to spawn batch supervisor: {e:?}")));
             }
             return Err(e.into());
         }

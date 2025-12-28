@@ -148,7 +148,7 @@ export function useEnsureDefaultSummary(sessionId: string) {
   useEffect(() => {
     if (
       !hasTranscript ||
-      sessionMode === "running_active" ||
+      sessionMode === "active" ||
       sessionMode === "running_batch" ||
       sessionMode === "finalizing" ||
       (enhancedNoteIds && enhancedNoteIds.length > 0)

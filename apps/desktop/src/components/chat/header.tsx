@@ -182,7 +182,9 @@ function ChatGroupItem({
   }
 
   const formattedTime = chatGroup.created_at
-    ? formatDistanceToNow(new Date(chatGroup.created_at), { addSuffix: true })
+    ? formatDistanceToNow(new Date(chatGroup.created_at), {
+        addSuffix: true,
+      })
     : "";
 
   return (

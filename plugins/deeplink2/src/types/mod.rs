@@ -1,5 +1,6 @@
-mod notification;
-pub use notification::*;
+mod auth_callback;
+
+pub use auth_callback::*;
 
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -12,8 +13,16 @@ pub struct DeepLinkEvent(pub DeepLink);
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 #[serde(tag = "to", content = "search")]
 pub enum DeepLink {
-    #[serde(rename = "/notification")]
-    Notification(NotificationSearch),
+    #[serde(rename = "/auth/callback")]
+    AuthCallback(AuthCallbackSearch),
+}
+
+impl DeepLink {
+    pub fn path(&self) -> &'static str {
+        match self {
+            DeepLink::AuthCallback(_) => "/auth/callback",
+        }
+    }
 }
 
 impl FromStr for DeepLink {
@@ -33,8 +42,8 @@ impl FromStr for DeepLink {
         let query_params: HashMap<String, String> = parsed.query_pairs().into_owned().collect();
 
         match full_path.as_str() {
-            "notification" => Ok(DeepLink::Notification(
-                NotificationSearch::from_query_params(&query_params)?,
+            "auth/callback" => Ok(DeepLink::AuthCallback(
+                AuthCallbackSearch::from_query_params(&query_params)?,
             )),
             _ => Err(crate::Error::UnknownPath(full_path)),
         }

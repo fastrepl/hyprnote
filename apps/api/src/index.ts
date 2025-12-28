@@ -16,6 +16,7 @@ import {
   observabilityMiddleware,
   sentryMiddleware,
   supabaseAuthMiddleware,
+  verifySlackWebhook,
   verifyStripeWebhook,
 } from "./middleware";
 import { openAPIDocumentation } from "./openapi";
@@ -51,6 +52,7 @@ app.use("*", (c, next) => {
 
 app.use("/chat/completions", loadTestOverride, supabaseAuthMiddleware);
 app.use("/webhook/stripe", verifyStripeWebhook);
+app.use("/webhook/slack/events", verifySlackWebhook);
 
 if (env.NODE_ENV !== "development") {
   app.use("/listen", loadTestOverride, supabaseAuthMiddleware);

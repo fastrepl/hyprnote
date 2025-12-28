@@ -23,7 +23,10 @@ export const Route = createFileRoute("/_view/solution/sales")({
           "Never miss a sales opportunity. AI-powered meeting notes capture every detail, extract action items, and help you close deals faster.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://hyprnote.com/solution/sales" },
+      {
+        property: "og:url",
+        content: "https://hyprnote.com/solution/sales",
+      },
     ],
   }),
 });

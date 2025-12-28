@@ -2,7 +2,7 @@
 name = "desktop"
 version = "0.0.0"
 authors = ["you"]
-edition = "2021"
+edition = "2024"
 description = "Hyprnote desktop App"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -24,6 +24,8 @@ tauri = { workspace = true, features = ["specta", "macos-private-api", "protocol
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-apple-calendar = { workspace = true }
+tauri-plugin-audio-priority = { workspace = true }
+tauri-plugin-auth = { workspace = true }
 tauri-plugin-autostart = { workspace = true }
 tauri-plugin-cli = { workspace = true }
 tauri-plugin-cli2 = { workspace = true }
@@ -33,10 +35,12 @@ tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-deeplink2 = { workspace = true }
 tauri-plugin-detect = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
+tauri-plugin-export = { workspace = true }
 tauri-plugin-extensions = { workspace = true }
 tauri-plugin-fs = { workspace = true }
 tauri-plugin-hooks = { workspace = true }
 tauri-plugin-http = { workspace = true }
+tauri-plugin-icon = { workspace = true }
 tauri-plugin-importer = { workspace = true }
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-listener2 = { workspace = true }
@@ -46,10 +50,14 @@ tauri-plugin-network = { workspace = true }
 tauri-plugin-notification = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-os = { workspace = true }
+tauri-plugin-path2 = { workspace = true }
+tauri-plugin-pdf = { workspace = true }
 tauri-plugin-permissions = { workspace = true }
 tauri-plugin-prevent-default = { workspace = true }
 tauri-plugin-process = { workspace = true }
 tauri-plugin-sentry = { workspace = true }
+tauri-plugin-settings = { workspace = true }
+tauri-plugin-sfx = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-single-instance = { workspace = true }
 tauri-plugin-store = { workspace = true }
@@ -58,6 +66,8 @@ tauri-plugin-template = { workspace = true }
 tauri-plugin-tracing = { workspace = true }
 tauri-plugin-tray = { workspace = true }
 tauri-plugin-updater = { workspace = true }
+tauri-plugin-updater2 = { workspace = true }
+tauri-plugin-window-state = { workspace = true }
 tauri-plugin-windows = { workspace = true }
 
 specta = { workspace = true }
@@ -75,6 +85,7 @@ hypr-host = { workspace = true }
 ractor = { workspace = true }
 ractor-supervisor = { workspace = true }
 
+pico-args = "0.5"
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [features]

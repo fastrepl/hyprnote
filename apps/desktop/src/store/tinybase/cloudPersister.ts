@@ -189,7 +189,7 @@ const useCloudLoader = () => {
     }
 
     return results;
-  }, [metaTable]);
+  }, [metaTable, user_id, store]);
 
   return load;
 };

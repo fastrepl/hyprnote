@@ -5,7 +5,7 @@ use std::{
     time::Duration,
 };
 
-use futures_util::{future, Stream, StreamExt};
+use futures_util::{Stream, StreamExt, future};
 use hypr_audio_interface::AsyncSource;
 use silero_rs::{VadConfig, VadSession, VadTransition};
 

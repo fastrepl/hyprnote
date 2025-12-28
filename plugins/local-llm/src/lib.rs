@@ -67,8 +67,8 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _api| {
-            use tauri::path::BaseDirectory;
             use tauri::Manager as _;
+            use tauri::path::BaseDirectory;
             specta_builder.mount_events(app);
 
             let data_dir = app.path().resolve("hyprnote", BaseDirectory::Data)?;
@@ -124,15 +124,19 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
@@ -319,8 +323,10 @@ mod test {
 
         assert!(!content.is_empty());
         assert!(content.chars().next().unwrap().is_uppercase());
-        assert!(content
-            .chars()
-            .all(|c| c.is_alphabetic() || c.is_whitespace()));
+        assert!(
+            content
+                .chars()
+                .all(|c| c.is_alphabetic() || c.is_whitespace())
+        );
     }
 }

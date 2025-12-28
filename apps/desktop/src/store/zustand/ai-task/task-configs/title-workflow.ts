@@ -56,8 +56,10 @@ async function* executeWorkflow(params: {
 }
 
 async function getSystemPrompt(args: TaskArgsMapTransformed["title"]) {
-  const result = await templateCommands.render("title.system", {
-    language: args.language,
+  const result = await templateCommands.render({
+    titleSystem: {
+      language: args.language,
+    },
   });
 
   if (result.status === "error") {
@@ -71,8 +73,8 @@ async function getUserPrompt(
   args: TaskArgsMapTransformed["title"],
   store: Store,
 ) {
-  const { enhancedMd } = args;
-  const ctx = { enhanced_note: enhancedMd };
+  const { enhancedNote } = args;
+  const ctx = { enhanced_note: enhancedNote };
 
   const customPrompt = getCustomPrompt(store, "title");
 
@@ -84,7 +86,11 @@ async function getUserPrompt(
     return result.data;
   }
 
-  const result = await templateCommands.render("title.user", ctx);
+  const result = await templateCommands.render({
+    titleUser: {
+      enhancedNote,
+    },
+  });
 
   if (result.status === "error") {
     throw new Error(result.error);

@@ -24,10 +24,6 @@ impl AnalyticsClient {
         distinct_id: impl Into<String>,
         payload: AnalyticsPayload,
     ) -> Result<(), Error> {
-        if !hypr_network::is_online().await {
-            return Ok(());
-        }
-
         let mut e = posthog::Event::new(payload.event, distinct_id.into());
         e.set_timestamp(chrono::Utc::now().naive_utc());
 
@@ -58,10 +54,6 @@ impl AnalyticsClient {
         distinct_id: impl Into<String>,
         payload: PropertiesPayload,
     ) -> Result<(), Error> {
-        if !hypr_network::is_online().await {
-            return Ok(());
-        }
-
         let distinct_id = distinct_id.into();
         let mut e = posthog::Event::new("$set", &distinct_id);
         e.set_timestamp(chrono::Utc::now().naive_utc());

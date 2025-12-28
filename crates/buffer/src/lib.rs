@@ -166,20 +166,20 @@ fn set_heading_level_from(node: &mut markdown::mdast::Node, depth: u8, header_fo
 }
 
 fn flatten_headings(node: &mut markdown::mdast::Node) {
-    if let markdown::mdast::Node::Heading(heading) = node {
-        if heading.depth > 1 {
-            let children = node.children().cloned().unwrap_or_default();
+    if let markdown::mdast::Node::Heading(heading) = node
+        && heading.depth > 1
+    {
+        let children = node.children().cloned().unwrap_or_default();
 
-            let strong_node = markdown::mdast::Node::Strong(markdown::mdast::Strong {
-                children,
-                position: None,
-            });
+        let strong_node = markdown::mdast::Node::Strong(markdown::mdast::Strong {
+            children,
+            position: None,
+        });
 
-            *node = markdown::mdast::Node::Paragraph(markdown::mdast::Paragraph {
-                children: vec![strong_node],
-                position: None,
-            });
-        }
+        *node = markdown::mdast::Node::Paragraph(markdown::mdast::Paragraph {
+            children: vec![strong_node],
+            position: None,
+        });
     }
 
     if let Some(children) = node.children_mut() {
@@ -208,13 +208,12 @@ fn remove_empty_headings(node: &mut markdown::mdast::Node) {
     if let Some(children) = node.children_mut() {
         let mut i = 0;
         while i < children.len() {
-            if let Some(next) = children.get(i + 1) {
-                if matches!(&children[i], markdown::mdast::Node::Heading(_))
-                    && matches!(next, markdown::mdast::Node::Heading(_))
-                {
-                    children.remove(i);
-                    continue;
-                }
+            if let Some(next) = children.get(i + 1)
+                && matches!(&children[i], markdown::mdast::Node::Heading(_))
+                && matches!(next, markdown::mdast::Node::Heading(_))
+            {
+                children.remove(i);
+                continue;
             }
             i += 1;
         }
@@ -275,12 +274,12 @@ mod tests {
 2. Bye!
 "#;
 
-        insta::assert_snapshot!(md_to_md(input).unwrap().to_string(), @r###"
+        insta::assert_snapshot!(md_to_md(input).unwrap().to_string(), @"
         # World
 
         - Hi
         - Bye!
-        "###);
+        ");
     }
 
     #[test]
@@ -293,12 +292,12 @@ mod tests {
 1. Hi
 2. Bye!
 "#;
-        insta::assert_snapshot!(md_to_md(input).unwrap().to_string(), @r###"
+        insta::assert_snapshot!(md_to_md(input).unwrap().to_string(), @"
         # World
 
         - Hi
         - Bye!
-        "###);
+        ");
     }
 
     #[test]
@@ -333,7 +332,7 @@ mod tests {
 (No raw excerpt provided, utilized to generate the enhanced note)
 "#;
 
-        insta::assert_snapshot!(md_to_md(input).unwrap().to_string(), @r###"
+        insta::assert_snapshot!(md_to_md(input).unwrap().to_string(), @"
         # What Hyprnote Does
 
         - A smart notepad for people with back-to-back meetings.
@@ -375,7 +374,7 @@ mod tests {
         # Meeting Transcript
 
         (No raw excerpt provided, utilized to generate the enhanced note)
-        "###);
+        ");
     }
 
     // TODO: not ideal
@@ -427,7 +426,7 @@ mod tests {
 - Join the community and chat on [Discord](https://hyprnote.com/discord).
 "#;
 
-        insta::assert_snapshot!(opinionated_md_to_html(input).unwrap().to_string(), @r###"
+        insta::assert_snapshot!(opinionated_md_to_html(input).unwrap().to_string(), @r#"
         <h1>What Hyprnote Does</h1>
         <ul>
         <li>A smart notepad for people with back-to-back meetings.</li>
@@ -454,7 +453,7 @@ mod tests {
         <li>Follow updates on <a href="https://hyprnote.com/x">X</a>.</li>
         <li>Join the community and chat on <a href="https://hyprnote.com/discord">Discord</a>.</li>
         </ul>
-        "###);
+        "#);
     }
 
     #[test]

@@ -1,3 +1,4 @@
+import { isNodeActive } from "@tiptap/core";
 import {
   EditorContent,
   type JSONContent,
@@ -19,7 +20,10 @@ const safeRequestIdleCallback =
     : (cb: IdleRequestCallback) =>
         setTimeout(
           () =>
-            cb({ didTimeout: false, timeRemaining: () => 50 } as IdleDeadline),
+            cb({
+              didTimeout: false,
+              timeRemaining: () => 50,
+            } as IdleDeadline),
           1,
         );
 
@@ -36,8 +40,8 @@ interface EditorProps {
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
-  (
-    {
+  (props, ref) => {
+    const {
       handleChange,
       initialContent,
       editable = true,
@@ -45,9 +49,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       mentionConfig,
       placeholderComponent,
       fileHandlerConfig,
-    },
-    ref,
-  ) => {
+    } = props;
     const previousContentRef = useRef<JSONContent>(initialContent);
 
     const onUpdate = useDebounceCallback(
@@ -95,6 +97,13 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           }
 
           if (event.key === "Tab") {
+            const { state } = view;
+            const isInListItem =
+              isNodeActive(state, "listItem") ||
+              isNodeActive(state, "taskItem");
+            if (isInListItem) {
+              return false;
+            }
             event.preventDefault();
             return true;
           }
@@ -115,6 +124,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         onCreate: ({ editor }) => {
           editor.view.dom.setAttribute("spellcheck", "false");
           editor.view.dom.setAttribute("autocomplete", "off");
+          editor.view.dom.setAttribute("autocorrect", "off");
           editor.view.dom.setAttribute("autocapitalize", "off");
         },
         onUpdate,

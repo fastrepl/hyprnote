@@ -102,7 +102,7 @@ export function OrganizationDetailsColumn({
                                   size="icon"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    openUrl(`mailto:${human.email}`);
+                                    void openUrl(`mailto:${human.email}`);
                                   }}
                                   title="Send email"
                                 >

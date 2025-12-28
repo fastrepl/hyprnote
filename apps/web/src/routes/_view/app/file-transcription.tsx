@@ -103,7 +103,9 @@ function Component() {
       if (!pipelineId) {
         throw new Error("Missing pipelineId");
       }
-      const res = (await getAudioPipelineStatus({ data: { pipelineId } })) as
+      const res = (await getAudioPipelineStatus({
+        data: { pipelineId },
+      })) as
         | { success: true; status: StatusStateType }
         | { error: true; message?: string };
       if ("error" in res && res.error) {

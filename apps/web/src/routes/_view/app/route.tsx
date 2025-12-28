@@ -6,11 +6,15 @@ export const Route = createFileRoute("/_view/app")({
   beforeLoad: async ({ location }) => {
     const user = await fetchUser();
     if (!user) {
+      const searchStr =
+        Object.keys(location.search).length > 0
+          ? `?${new URLSearchParams(location.search as Record<string, string>).toString()}`
+          : "";
       throw redirect({
         to: "/auth",
         search: {
           flow: "web",
-          redirect: location.pathname + location.search,
+          redirect: location.pathname + searchStr,
         },
       });
     }

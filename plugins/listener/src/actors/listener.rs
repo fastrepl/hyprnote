@@ -6,14 +6,14 @@ use tokio::time::error::Elapsed;
 
 use owhisper_client::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FinalizeHandle,
-    FireworksAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+    FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
 use tauri_specta::Event;
 
-use crate::SessionEvent;
+use crate::{SessionDataEvent, SessionErrorEvent, SessionProgressEvent};
 
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 const LISTEN_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
@@ -77,22 +77,6 @@ fn actor_error(msg: impl Into<String>) -> ActorProcessingErr {
     Box::new(ListenerInitError(msg.into()))
 }
 
-fn emit_session_error(
-    app: &tauri::AppHandle,
-    session_id: &str,
-    error_type: &str,
-    message: &str,
-    context: Option<String>,
-) {
-    let _ = (SessionEvent::Error {
-        session_id: session_id.to_string(),
-        error_type: error_type.to_string(),
-        message: message.to_string(),
-        context,
-    })
-    .emit(app);
-}
-
 #[ractor::async_trait]
 impl Actor for ListenerActor {
     type Msg = ListenerMsg;
@@ -104,7 +88,24 @@ impl Actor for ListenerActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let (tx, rx_task, shutdown_tx) = spawn_rx_task(args.clone(), myself).await?;
+        if let Err(error) = (SessionProgressEvent::Connecting {
+            session_id: args.session_id.clone(),
+        })
+        .emit(&args.app)
+        {
+            tracing::error!(?error, "failed_to_emit_connecting");
+        }
+
+        let (tx, rx_task, shutdown_tx, adapter_name) = spawn_rx_task(args.clone(), myself).await?;
+
+        if let Err(error) = (SessionProgressEvent::Connected {
+            session_id: args.session_id.clone(),
+            adapter: adapter_name,
+        })
+        .emit(&args.app)
+        {
+            tracing::error!(?error, "failed_to_emit_connected");
+        }
 
         let state = ListenerState {
             args,
@@ -158,7 +159,7 @@ impl Actor for ListenerActor {
                     crate::actors::ChannelMode::MicAndSpeaker => {}
                 }
 
-                if let Err(error) = (SessionEvent::StreamResponse {
+                if let Err(error) = (SessionDataEvent::StreamResponse {
                     session_id: state.args.session_id.clone(),
                     response: Box::new(response),
                 })
@@ -170,13 +171,12 @@ impl Actor for ListenerActor {
 
             ListenerMsg::StreamError(error) => {
                 tracing::info!("listen_stream_error: {}", error);
-                emit_session_error(
-                    &state.args.app,
-                    &state.args.session_id,
-                    "stream_error",
-                    "Transcription stream encountered an error",
-                    Some(error),
-                );
+                let _ = (SessionErrorEvent::ConnectionError {
+                    session_id: state.args.session_id.clone(),
+                    error: format!("listen_stream_error: {}", error),
+                    is_retryable: false,
+                })
+                .emit(&state.args.app);
                 myself.stop(None);
             }
 
@@ -187,13 +187,12 @@ impl Actor for ListenerActor {
 
             ListenerMsg::StreamTimeout(elapsed) => {
                 tracing::info!("listen_stream_timeout: {}", elapsed);
-                emit_session_error(
-                    &state.args.app,
-                    &state.args.session_id,
-                    "stream_timeout",
-                    "Transcription stream timed out",
-                    Some(format!("{}", elapsed)),
-                );
+                let _ = (SessionErrorEvent::ConnectionError {
+                    session_id: state.args.session_id.clone(),
+                    error: format!("listen_stream_timeout: {}", elapsed),
+                    is_retryable: false,
+                })
+                .emit(&state.args.app);
                 myself.stop(None);
             }
         }
@@ -227,13 +226,24 @@ async fn spawn_rx_task(
         ChannelSender,
         tokio::task::JoinHandle<()>,
         tokio::sync::oneshot::Sender<()>,
+        String, // adapter name
     ),
     ActorProcessingErr,
 > {
     let adapter_kind = AdapterKind::from_url_and_languages(&args.base_url, &args.languages);
     let is_dual = matches!(args.mode, crate::actors::ChannelMode::MicAndSpeaker);
 
-    match (adapter_kind, is_dual) {
+    let adapter_name = match adapter_kind {
+        AdapterKind::Argmax => "Argmax",
+        AdapterKind::Soniox => "Soniox",
+        AdapterKind::Fireworks => "Fireworks",
+        AdapterKind::Deepgram => "Deepgram",
+        AdapterKind::AssemblyAI => "AssemblyAI",
+        AdapterKind::OpenAI => "OpenAI",
+        AdapterKind::Gladia => "Gladia",
+    };
+
+    let result = match (adapter_kind, is_dual) {
         (AdapterKind::Argmax, false) => {
             spawn_rx_task_single_with_adapter::<ArgmaxAdapter>(args, myself).await
         }
@@ -270,7 +280,15 @@ async fn spawn_rx_task(
         (AdapterKind::OpenAI, true) => {
             spawn_rx_task_dual_with_adapter::<OpenAIAdapter>(args, myself).await
         }
-    }
+        (AdapterKind::Gladia, false) => {
+            spawn_rx_task_single_with_adapter::<GladiaAdapter>(args, myself).await
+        }
+        (AdapterKind::Gladia, true) => {
+            spawn_rx_task_dual_with_adapter::<GladiaAdapter>(args, myself).await
+        }
+    }?;
+
+    Ok((result.0, result.1, result.2, adapter_name.to_string()))
 }
 
 fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams {
@@ -335,27 +353,22 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
                 "listen_ws_connect_timeout(single)"
             );
-            emit_session_error(
-                &args.app,
-                &args.session_id,
-                "ws_connect_timeout",
-                "Connection to transcription service timed out",
-                Some(format!(
-                    "Timeout after {} seconds",
-                    LISTEN_CONNECT_TIMEOUT.as_secs()
-                )),
-            );
+            let _ = (SessionErrorEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: "listen_ws_connect_timeout".to_string(),
+                is_retryable: true,
+            })
+            .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
             tracing::error!(error = ?e, "listen_ws_connect_failed(single)");
-            emit_session_error(
-                &args.app,
-                &args.session_id,
-                "ws_connect_failed",
-                "Failed to connect to transcription service",
-                Some(e.to_string()),
-            );
+            let _ = (SessionErrorEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: format!("listen_ws_connect_failed: {}", e),
+                is_retryable: true,
+            })
+            .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {}", e)));
         }
         Ok(Ok(res)) => res,
@@ -412,27 +425,22 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
                 "listen_ws_connect_timeout(dual)"
             );
-            emit_session_error(
-                &args.app,
-                &args.session_id,
-                "ws_connect_timeout",
-                "Connection to transcription service timed out",
-                Some(format!(
-                    "Timeout after {} seconds",
-                    LISTEN_CONNECT_TIMEOUT.as_secs()
-                )),
-            );
+            let _ = (SessionErrorEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: "listen_ws_connect_timeout".to_string(),
+                is_retryable: true,
+            })
+            .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
             tracing::error!(error = ?e, "listen_ws_connect_failed(dual)");
-            emit_session_error(
-                &args.app,
-                &args.session_id,
-                "ws_connect_failed",
-                "Failed to connect to transcription service",
-                Some(e.to_string()),
-            );
+            let _ = (SessionErrorEvent::ConnectionError {
+                session_id: args.session_id.clone(),
+                error: format!("listen_ws_connect_failed: {}", e),
+                is_retryable: true,
+            })
+            .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {}", e)));
         }
         Ok(Ok(res)) => res,

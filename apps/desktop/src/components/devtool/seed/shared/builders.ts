@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { faker } from "@faker-js/faker/locale/en";
 
 import type {
   Calendar,
@@ -6,10 +6,10 @@ import type {
   ChatMessageStorage,
   ChatShortcutStorage,
   EnhancedNoteStorage,
-  Event,
+  EventStorage,
   Folder,
   Human,
-  mappingSessionParticipant,
+  MappingSessionParticipant,
   MappingTagSession,
   Organization,
   SessionStorage,
@@ -19,7 +19,6 @@ import type {
   WordStorage,
 } from "@hypr/store";
 
-import { DEFAULT_USER_ID, id } from "../../../../utils";
 import { createCalendar } from "./calendar";
 import { createChatGroup, createChatMessage } from "./chat";
 import { createChatShortcut } from "./chat-shortcut";
@@ -28,7 +27,7 @@ import { createEvent } from "./event";
 import { createFolder } from "./folder";
 import { createHuman } from "./human";
 import {
-  createmappingSessionParticipant,
+  createMappingSessionParticipant,
   createMappingTagSession,
 } from "./mapping";
 import { createOrganization } from "./organization";
@@ -93,8 +92,8 @@ export const buildHumans = (
 export const buildEvents = (
   calendarIds: string[],
   count: { min: number; max: number },
-): Record<string, Event> => {
-  const events: Record<string, Event> = {};
+): Record<string, EventStorage> => {
+  const events: Record<string, EventStorage> = {};
   const eventCount = faker.number.int(count);
 
   for (let i = 0; i < eventCount; i++) {
@@ -111,10 +110,10 @@ export const buildEventsByHuman = (
   calendarIds: string[],
   countPerHuman: { min: number; max: number },
 ): {
-  events: Record<string, Event>;
+  events: Record<string, EventStorage>;
   eventsByHuman: Record<string, string[]>;
 } => {
-  const events: Record<string, Event> = {};
+  const events: Record<string, EventStorage> = {};
   const eventsByHuman: Record<string, string[]> = {};
 
   humanIds.forEach((humanId) => {
@@ -266,6 +265,9 @@ export const buildSessionsPerHuman = (
 
 export const buildTranscriptsForSessions = (
   sessionIds: string[],
+  options: {
+    turnCount?: { min: number; max: number };
+  } = {},
 ): {
   transcripts: Record<string, Transcript>;
   words: Record<string, WordStorage>;
@@ -274,36 +276,22 @@ export const buildTranscriptsForSessions = (
   const words: Record<string, WordStorage> = {};
 
   sessionIds.forEach((sessionId) => {
-    const transcriptId = id();
-    const createdAt = faker.date.recent({ days: 30 });
-    const startedAt = createdAt.getTime();
-
-    const transcript = generateTranscript();
-    let maxEndMs = 0;
-
-    transcript.words.forEach((word) => {
-      if (word.end_ms !== undefined && word.end_ms > maxEndMs) {
-        maxEndMs = word.end_ms;
-      }
-      const wordId = id();
-      words[wordId] = {
-        user_id: DEFAULT_USER_ID,
-        transcript_id: transcriptId,
-        text: word.text,
-        start_ms: word.start_ms,
-        end_ms: word.end_ms,
-        channel: word.channel,
-        created_at: faker.date.recent({ days: 30 }).toISOString(),
-      };
+    const result = generateTranscript({
+      sessionId,
+      turnCount: options.turnCount,
     });
 
-    transcripts[transcriptId] = {
-      user_id: DEFAULT_USER_ID,
-      session_id: sessionId,
-      created_at: createdAt.toISOString(),
-      started_at: startedAt,
-      ended_at: maxEndMs > 0 ? startedAt + maxEndMs : undefined,
-    };
+    if (!("transcript" in result)) {
+      throw new Error("Expected transcript metadata");
+    }
+
+    const { transcriptId, transcript, words: transcriptWords } = result;
+
+    Object.entries(transcriptWords).forEach(([wordId, word]) => {
+      words[wordId] = word;
+    });
+
+    transcripts[transcriptId] = transcript;
   });
 
   return { transcripts, words };
@@ -313,8 +301,8 @@ export const buildSessionParticipants = (
   sessionIds: string[],
   humanIds: string[],
   participantsPerSession: { min: number; max: number },
-): Record<string, mappingSessionParticipant> => {
-  const mapping_session_participant: Record<string, mappingSessionParticipant> =
+): Record<string, MappingSessionParticipant> => {
+  const mapping_session_participant: Record<string, MappingSessionParticipant> =
     {};
 
   sessionIds.forEach((sessionId) => {
@@ -325,7 +313,7 @@ export const buildSessionParticipants = (
     );
 
     selectedHumans.forEach((humanId) => {
-      const mapping = createmappingSessionParticipant(sessionId, humanId);
+      const mapping = createMappingSessionParticipant(sessionId, humanId);
       mapping_session_participant[mapping.id] = mapping.data;
     });
   });
@@ -345,7 +333,9 @@ export const buildSessionTags = (
   const { tagProbability = 0.6, tagsPerSession = { min: 1, max: 3 } } = options;
 
   sessionIds.forEach((sessionId) => {
-    const shouldTag = faker.datatype.boolean({ probability: tagProbability });
+    const shouldTag = faker.datatype.boolean({
+      probability: tagProbability,
+    });
     if (shouldTag) {
       const tagCount = faker.number.int(tagsPerSession);
       const selectedTags = faker.helpers.arrayElements(tagIds, tagCount);

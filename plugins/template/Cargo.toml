@@ -2,7 +2,7 @@
 name = "tauri-plugin-template"
 version = "0.1.0"
 authors = ["You"]
-edition = "2021"
+edition = "2024"
 exclude = ["/node_modules"]
 links = "tauri-plugin-template"
 description = ""
@@ -15,7 +15,8 @@ specta-typescript = { workspace = true }
 
 [dependencies]
 hypr-gbnf = { workspace = true }
-hypr-template = { workspace = true }
+hypr-template-app = { workspace = true }
+hypr-template-app-legacy = { workspace = true }
 
 serde_json = { workspace = true }
 tracing = { workspace = true }

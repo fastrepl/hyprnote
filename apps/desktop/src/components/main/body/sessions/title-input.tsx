@@ -22,9 +22,11 @@ export function TitleInput({
     main.STORE_ID,
   );
 
+  const editorId = editor ? "active" : "inactive";
+
   return (
     <input
-      id={`title-input-${sessionId}-${editor}`}
+      id={`title-input-${sessionId}-${editorId}`}
       placeholder="Untitled"
       type="text"
       onChange={(e) => handleEditTitle(e.target.value)}

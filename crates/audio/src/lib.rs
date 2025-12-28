@@ -3,14 +3,12 @@ mod errors;
 mod mic;
 mod norm;
 mod speaker;
-mod utils;
 
 pub use device_monitor::*;
 pub use errors::*;
 pub use mic::*;
 pub use norm::*;
 pub use speaker::*;
-pub use utils::*;
 
 pub use cpal;
 use cpal::traits::{DeviceTrait, HostTrait};
@@ -45,8 +43,8 @@ impl AudioOutput {
 
     pub fn silence() -> std::sync::mpsc::Sender<()> {
         use rodio::{
-            source::{Source, Zero},
             OutputStream, Sink,
+            source::{Source, Zero},
         };
 
         let (tx, rx) = std::sync::mpsc::channel();
@@ -207,27 +205,12 @@ impl AsyncSource for AudioStream {
     }
 }
 
-pub fn is_using_headphone() -> bool {
-    #[cfg(target_os = "macos")]
-    {
-        utils::macos::is_headphone_from_default_output_device()
-    }
-    #[cfg(target_os = "linux")]
-    {
-        utils::linux::is_headphone_from_default_output_device()
-    }
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    {
-        false
-    }
-}
-
 #[cfg(all(test, target_os = "macos"))]
 pub(crate) fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
     use rodio::{
+        OutputStream,
         cpal::SampleRate,
         source::{Function::Sine, SignalGenerator, Source},
-        OutputStream,
     };
     use std::{
         thread::{sleep, spawn},

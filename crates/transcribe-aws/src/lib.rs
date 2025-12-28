@@ -9,8 +9,8 @@ use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use axum::{
     extract::{
-        ws::{Message, WebSocket, WebSocketUpgrade},
         FromRequest,
+        ws::{Message, WebSocket, WebSocketUpgrade},
     },
     response::{IntoResponse, Response},
 };
@@ -22,12 +22,12 @@ use std::{
 };
 use tower::Service;
 
-use aws_config::{meta::region::RegionProviderChain, BehaviorVersion};
+use aws_config::{BehaviorVersion, meta::region::RegionProviderChain};
 use aws_sdk_transcribestreaming::primitives::Blob;
 use aws_sdk_transcribestreaming::types::{
     AudioEvent, AudioStream, LanguageCode, MediaEncoding, TranscriptResultStream,
 };
-use aws_sdk_transcribestreaming::{config::Region, Client};
+use aws_sdk_transcribestreaming::{Client, config::Region};
 use hypr_audio_utils::mix_audio_pcm16le;
 
 use owhisper_interface::{ListenInputChunk, ListenOutputChunk, ListenParams, Word2};

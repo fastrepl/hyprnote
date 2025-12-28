@@ -8,3 +8,4 @@
 .env.*.local
 
 config.toml
+signing_keys.json

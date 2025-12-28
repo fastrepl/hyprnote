@@ -12,5 +12,7 @@ const COMMANDS: &[&str] = &[
 ];
 
 fn main() {
+    println!("cargo:rerun-if-env-changed=AM_API_KEY");
+
     tauri_plugin::Builder::new(COMMANDS).build();
 }

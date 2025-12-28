@@ -1,13 +1,13 @@
-use ractor::{concurrency::Duration, registry, ActorCell, ActorProcessingErr, ActorRef};
+use ractor::{ActorCell, ActorProcessingErr, ActorRef, concurrency::Duration, registry};
 use ractor_supervisor::{
     core::{ChildBackoffFn, ChildSpec, Restart, SpawnFn, SupervisorError},
     dynamic::{DynamicSupervisor, DynamicSupervisorMsg, DynamicSupervisorOptions},
 };
 
 use super::{
+    ServerType,
     external::{ExternalSTTActor, ExternalSTTArgs},
     internal::{InternalSTTActor, InternalSTTArgs},
-    ServerType,
 };
 
 pub type SupervisorRef = ActorRef<DynamicSupervisorMsg>;
@@ -112,10 +112,10 @@ pub async fn stop_stt_server(
     let result = DynamicSupervisor::terminate_child(supervisor.clone(), child_id.to_string()).await;
 
     if let Err(e) = result {
-        if let Some(supervisor_error) = e.downcast_ref::<SupervisorError>() {
-            if matches!(supervisor_error, SupervisorError::ChildNotFound { .. }) {
-                return Ok(());
-            }
+        if let Some(supervisor_error) = e.downcast_ref::<SupervisorError>()
+            && matches!(supervisor_error, SupervisorError::ChildNotFound { .. })
+        {
+            return Ok(());
         }
         return Err(e);
     }

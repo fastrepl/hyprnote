@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -8,6 +9,8 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
+import { useListener } from "../../../../contexts/listener";
+import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { deleteSessionCascade } from "../../../../store/tinybase/deleteSession";
 import * as main from "../../../../store/tinybase/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
@@ -36,6 +39,14 @@ export const TimelineItemComponent = memo(
     const title = item.data.title || "Untitled";
     const timestamp =
       item.type === "event" ? item.data.started_at : item.data.created_at;
+
+    const sessionId = item.type === "session" ? item.id : null;
+    const sessionMode = useListener((state) =>
+      sessionId ? state.getSessionMode(sessionId) : "inactive",
+    );
+    const isEnhancing = useIsSessionEnhancing(sessionId ?? "");
+    const isFinalizing = sessionMode === "finalizing";
+    const showSpinner = isFinalizing || isEnhancing;
 
     const calendarId = useMemo(() => {
       if (!store || !eventId) {
@@ -79,6 +90,11 @@ export const TimelineItemComponent = memo(
         ])}
       >
         <div className="flex items-center gap-2">
+          {showSpinner && (
+            <div className="flex-shrink-0">
+              <Spinner size={14} />
+            </div>
+          )}
           <div className="flex flex-col gap-0.5 flex-1 min-w-0">
             <div className="text-sm font-normal truncate">{title}</div>
             {displayTime && (

@@ -7,6 +7,7 @@ import { commands as miscCommands } from "@hypr/plugin-misc";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
+import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import * as main from "../../../../store/tinybase/main";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -37,7 +38,10 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
     main.STORE_ID,
   );
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
+  const isEnhancing = useIsSessionEnhancing(tab.id);
   const isActive = sessionMode === "active" || sessionMode === "finalizing";
+  const isFinalizing = sessionMode === "finalizing";
+  const showSpinner = isFinalizing || isEnhancing;
 
   return (
     <TabItemBase
@@ -45,6 +49,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
       title={title || "Untitled"}
       selected={tab.active}
       active={isActive}
+      finalizing={showSpinner}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}

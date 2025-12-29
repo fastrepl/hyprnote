@@ -70,9 +70,9 @@ export function TabItemBase({
   };
 
   const contextMenu =
-    selected && !isEmptyTab
-      ? [{ id: "close-tab", text: "Close", action: handleCloseThis }]
-      : [
+    active || (selected && !isEmptyTab)
+      ? [
+          { id: "close-tab", text: "Close", action: handleCloseThis },
           ...(allowPin
             ? [
                 pinned
@@ -84,6 +84,8 @@ export function TabItemBase({
                   : { id: "pin-tab", text: "Pin tab", action: handlePinThis },
               ]
             : []),
+        ]
+      : [
           { id: "close-tab", text: "Close", action: handleCloseThis },
           {
             id: "close-others",
@@ -91,6 +93,17 @@ export function TabItemBase({
             action: handleCloseOthers,
           },
           { id: "close-all", text: "Close all", action: handleCloseAll },
+          ...(allowPin
+            ? [
+                pinned
+                  ? {
+                      id: "unpin-tab",
+                      text: "Unpin tab",
+                      action: handleUnpinThis,
+                    }
+                  : { id: "pin-tab", text: "Pin tab", action: handlePinThis },
+              ]
+            : []),
         ];
 
   const showShortcut = isCmdPressed && tabIndex !== undefined;

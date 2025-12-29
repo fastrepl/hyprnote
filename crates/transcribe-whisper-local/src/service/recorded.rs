@@ -13,7 +13,7 @@ pub fn process_recorded(
         let resampled_samples = if original_sample_rate != 16000 {
             hypr_audio_utils::resample_audio(source, 16000).unwrap()
         } else {
-            source.convert_samples().collect()
+            source.collect()
         };
 
         hypr_audio_utils::f32_to_i16_samples(&resampled_samples)

@@ -1,0 +1,16 @@
+---
+import Layout from "../layouts/Layout.astro";
+import TableOfContents from "../components/TableOfContents.astro";
+import { Content, getHeadings } from "../content/macos-input-device.mdx";
+
+const title = "macOS Input Device Selection";
+const description =
+  "How macOS handles audio input device selection and solutions for maintaining a preferred microphone configuration.";
+const headings = await getHeadings();
+---
+
+<Layout title={title} description={description}>
+  <h1>{title}</h1>
+  <TableOfContents headings={headings} />
+  <Content />
+</Layout>

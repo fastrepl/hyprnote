@@ -67,7 +67,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     setAutoEnhancedNoteId(enhancedNoteId);
 
     updateSessionTabState(tabRef.current, {
-      editor: { type: "enhanced", id: enhancedNoteId },
+      view: { type: "enhanced", id: enhancedNoteId },
     });
   }, [hasTranscript, sessionId, updateSessionTabState, createEnhancedNote]);
 

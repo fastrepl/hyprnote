@@ -226,7 +226,7 @@ function OptionsMenu({
 
               if (sessionTab) {
                 updateSessionTabState(sessionTab, {
-                  editor: { type: "transcript" },
+                  view: { type: "transcript" },
                 });
               }
 

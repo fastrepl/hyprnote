@@ -85,7 +85,6 @@ windowDestroyed: "plugin:windows:window-destroyed"
 
 export type AiState = { tab: AiTab | null }
 export type AiTab = "transcription" | "intelligence"
-export type AppRoute = { path: "/app/main"; search: MainRouteSearch | null } | { path: "/app/onboarding" } | { path: "/app/control" }
 export type AppWindow = { type: "onboarding" } | { type: "main" } | { type: "control" }
 export type ChangelogState = { previous: string | null; current: string }
 export type ChatShortcutsState = { isWebMode: boolean | null; selectedMineId: string | null; selectedWebIndex: number | null }
@@ -95,12 +94,11 @@ export type DataTab = "import" | "export"
 export type EditorView = { type: "raw" } | { type: "transcript" } | { type: "enhanced"; id: string }
 export type ExtensionsState = { selectedExtension: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type MainRouteSearch = { record: boolean | null }
-export type Navigate = { route: AppRoute }
+export type Navigate = { path: string; search: Partial<{ [key in string]: JsonValue }> | null }
 export type OpenTab = { tab: TabInput }
 export type OverlayBound = { x: number; y: number; width: number; height: number }
 export type PromptsState = { selectedTask: string | null }
-export type SessionsState = { editor: EditorView | null }
+export type SessionsState = { view: EditorView | null }
 export type TabInput = { type: "sessions"; id: string; state?: SessionsState | null } | { type: "contacts"; state?: ContactsState | null } | { type: "templates"; state?: TemplatesState | null } | { type: "prompts"; state?: PromptsState | null } | { type: "chat_shortcuts"; state?: ChatShortcutsState | null } | { type: "extensions"; state?: ExtensionsState | null } | { type: "events"; id: string } | { type: "humans"; id: string } | { type: "organizations"; id: string } | { type: "folders"; id: string | null } | { type: "empty" } | { type: "extension"; extensionId: string; state?: Partial<{ [key in string]: JsonValue }> | null } | { type: "calendar" } | { type: "changelog"; state: ChangelogState } | { type: "settings" } | { type: "ai"; state?: AiState | null } | { type: "data"; state?: DataState | null }
 export type TemplatesState = { showHomepage: boolean | null; isWebMode: boolean | null; selectedMineId: string | null; selectedWebIndex: number | null }
 export type WindowDestroyed = { window: AppWindow }

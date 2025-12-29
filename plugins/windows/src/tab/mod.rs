@@ -1,5 +1,5 @@
 mod state;
-use state::*;
+pub use state::*;
 
 #[macro_export]
 macro_rules! common_derives {

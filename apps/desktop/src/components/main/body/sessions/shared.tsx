@@ -36,8 +36,8 @@ export function useCurrentNoteTab(
   const firstEnhancedNoteId = enhancedNoteIds?.[0];
 
   return useMemo(() => {
-    if (tab.state.editor) {
-      return tab.state.editor;
+    if (tab.state.view) {
+      return tab.state.view;
     }
 
     if (isListenerActive) {
@@ -49,7 +49,7 @@ export function useCurrentNoteTab(
     }
 
     return { type: "raw" };
-  }, [tab.state.editor, isListenerActive, firstEnhancedNoteId]);
+  }, [tab.state.view, isListenerActive, firstEnhancedNoteId]);
 }
 
 export function RecordingIcon({ disabled }: { disabled?: boolean }) {

@@ -66,7 +66,7 @@ export const NoteInput = forwardRef<
   const handleTabChange = useCallback(
     (view: EditorView) => {
       onBeforeTabChange();
-      updateSessionTabState(tabRef.current, { editor: view });
+      updateSessionTabState(tabRef.current, { view });
     },
     [onBeforeTabChange, updateSessionTabState],
   );

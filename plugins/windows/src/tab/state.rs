@@ -12,7 +12,7 @@ crate::common_derives! {
 
 crate::common_derives! {
     pub struct SessionsState {
-        pub editor: Option<EditorView>,
+        pub view: Option<EditorView>,
     }
 }
 

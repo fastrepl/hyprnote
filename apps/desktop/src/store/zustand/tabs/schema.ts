@@ -104,7 +104,7 @@ export const getDefaultState = (tab: TabInput): Tab => {
         ...base,
         type: "sessions",
         id: tab.id,
-        state: tab.state ?? { editor: null },
+        state: tab.state ?? { view: null },
       };
     case "contacts":
       return {

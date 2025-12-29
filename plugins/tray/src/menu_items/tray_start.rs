@@ -16,20 +16,19 @@ impl MenuItemHandler for TrayStart {
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {
-        use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
+        use tauri_plugin_windows::{AppWindow, OpenTab, SessionsState, TabInput, WindowsPluginExt};
+        use tauri_specta::Event;
+
         if app.windows().show(AppWindow::Main).is_ok() {
-            let _ = app.windows().emit_navigate(
-                AppWindow::Main,
-                Navigate {
-                    path: "/app/new".to_string(),
-                    search: Some(
-                        serde_json::json!({ "record": true })
-                            .as_object()
-                            .cloned()
-                            .unwrap(),
-                    ),
+            let event = OpenTab {
+                tab: TabInput::Sessions {
+                    id: "new".to_string(),
+                    state: Some(SessionsState {
+                        view: Default::default(),
+                    }),
                 },
-            );
+            };
+            let _ = event.emit(app);
         }
     }
 }

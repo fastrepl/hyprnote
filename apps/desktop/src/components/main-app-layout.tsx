@@ -7,6 +7,7 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { useTabs } from "../store/zustand/tabs";
+import { useNewNote } from "./main/shared";
 
 export default function MainAppLayout() {
   useNavigationEvents();
@@ -23,6 +24,7 @@ export default function MainAppLayout() {
 const useNavigationEvents = () => {
   const navigate = useNavigate();
   const openNew = useTabs((state) => state.openNew);
+  const openNewNote = useNewNote({ behavior: "new" });
 
   useEffect(() => {
     let unlistenNavigate: (() => void) | undefined;
@@ -33,6 +35,7 @@ const useNavigationEvents = () => {
     void windowsEvents
       .navigate(webview)
       .listen(({ payload }) => {
+        // TODO: Not very ideal
         if (payload.path === "/app/settings") {
           let tab = (payload.search?.tab as string) ?? "general";
           if (tab === "notifications" || tab === "account") {
@@ -64,7 +67,12 @@ const useNavigationEvents = () => {
     void windowsEvents
       .openTab(webview)
       .listen(({ payload }) => {
-        openNew(payload.tab);
+        // TODO: Not very ideal
+        if (payload.tab.type === "sessions" && payload.tab.id === "new") {
+          openNewNote();
+        } else {
+          openNew(payload.tab);
+        }
       })
       .then((fn) => {
         unlistenOpenTab = fn;
@@ -74,5 +82,5 @@ const useNavigationEvents = () => {
       unlistenNavigate?.();
       unlistenOpenTab?.();
     };
-  }, [navigate, openNew]);
+  }, [navigate, openNew, openNewNote]);
 };

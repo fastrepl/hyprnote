@@ -14,7 +14,7 @@ export const TitleInput = forwardRef<
 >(({ tab, onNavigateToEditor }, ref) => {
   const {
     id: sessionId,
-    state: { editor },
+    state: { view },
   } = tab;
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
 
@@ -26,7 +26,7 @@ export const TitleInput = forwardRef<
     main.STORE_ID,
   );
 
-  const editorId = editor ? "active" : "inactive";
+  const editorId = view ? "active" : "inactive";
   const internalRef = useRef<HTMLInputElement>(null);
   const inputRef = (ref as React.RefObject<HTMLInputElement>) || internalRef;
 

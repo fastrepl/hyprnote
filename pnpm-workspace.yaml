@@ -1,6 +1,5 @@
 packages:
   - "apps/*"
-  - "crates/control-tauri"
   - "packages/*"
   - "plugins/*"
   - "extensions/*"

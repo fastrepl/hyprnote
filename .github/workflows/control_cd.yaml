@@ -15,7 +15,7 @@ concurrency:
 env:
   CN_APPLICATION: "fastrepl/hyprnote-control"
   RELEASE_CHANNEL: ${{ inputs.channel }}
-  TAURI_CONF_PATH: ./tauri.conf.${{ inputs.channel }}.json
+  TAURI_CONF_PATH: ./src-tauri/tauri.conf.${{ inputs.channel }}.json
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: ./scripts/version.sh "./crates/control-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - run: ./scripts/version.sh "./apps/control/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/cn_release
         with:
           cmd: draft
@@ -55,7 +55,7 @@ jobs:
           key: ${{ secrets.CN_API_KEY }}
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
-          working-directory: ./crates/control-tauri
+          working-directory: ./apps/control
 
   build-macos:
     needs: [compute-version, cn-draft]
@@ -84,7 +84,7 @@ jobs:
           fetch-tags: true
       - run: git fetch --tags --force
       - uses: ./.github/actions/macos_tcc
-      - run: ./scripts/version.sh "./crates/control-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - run: ./scripts/version.sh "./apps/control/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/install_desktop_deps
         with:
           target: macos
@@ -103,7 +103,7 @@ jobs:
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
             FEATURES_FLAG="--features devtools"
           fi
-          pnpm -F @hypr/control-tauri tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
+          pnpm -F @hypr/control tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
         env:
           CI: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -120,7 +120,7 @@ jobs:
           mkdir -p target/release/
           find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
         shell: bash
-        working-directory: ./crates/control-tauri
+        working-directory: ./apps/control/src-tauri
       - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:
@@ -129,10 +129,10 @@ jobs:
           key: ${{ secrets.CN_API_KEY }}
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
-          working-directory: ./crates/control-tauri
+          working-directory: ./apps/control
       - if: ${{ inputs.channel != 'staging' }}
         run: |
-          DMG_FILE=$(find "crates/control-tauri/target/${{ matrix.target }}/release/bundle/dmg/" -name "*.dmg" -type f)
+          DMG_FILE=$(find "apps/control/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/" -name "*.dmg" -type f)
           cp "$DMG_FILE" "hyprnote-control-macos-${{ matrix.arch }}.dmg"
           aws s3 cp "hyprnote-control-macos-${{ matrix.arch }}.dmg" \
             "s3://hyprnote-build/control/${{ needs.compute-version.outputs.version }}/hyprnote-control-macos-${{ matrix.arch }}.dmg" \
@@ -145,7 +145,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-control-staging-macos-${{ matrix.artifact_name }}
-          path: crates/control-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          path: apps/control/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
           retention-days: 3
 
   cn-publish:
@@ -154,7 +154,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: ./scripts/version.sh "./crates/control-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - run: ./scripts/version.sh "./apps/control/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/cn_release
         with:
           cmd: publish
@@ -162,7 +162,7 @@ jobs:
           key: ${{ secrets.CN_API_KEY }}
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
-          working-directory: ./crates/control-tauri
+          working-directory: ./apps/control
 
   release:
     if: ${{ inputs.channel != 'staging' }}

@@ -1,5 +1,8 @@
 use std::sync::mpsc;
 use std::thread::JoinHandle;
+use std::time::Duration;
+
+mod debounce;
 
 #[cfg(target_os = "linux")]
 mod linux;
@@ -53,31 +56,53 @@ impl Drop for DeviceMonitorHandle {
     }
 }
 
+pub const DEFAULT_DEBOUNCE_DELAY: Duration = Duration::from_millis(500);
+
 pub struct DeviceSwitchMonitor;
 
 impl DeviceSwitchMonitor {
     pub fn spawn(event_tx: mpsc::Sender<DeviceSwitch>) -> DeviceMonitorHandle {
+        Self::spawn_with_debounce(event_tx, None)
+    }
+
+    pub fn spawn_debounced(event_tx: mpsc::Sender<DeviceSwitch>) -> DeviceMonitorHandle {
+        Self::spawn_with_debounce(event_tx, Some(DEFAULT_DEBOUNCE_DELAY))
+    }
+
+    pub fn spawn_with_debounce(
+        event_tx: mpsc::Sender<DeviceSwitch>,
+        debounce_delay: Option<Duration>,
+    ) -> DeviceMonitorHandle {
         let (stop_tx, stop_rx) = mpsc::channel();
+
+        let raw_tx = match debounce_delay {
+            Some(delay) => {
+                let (raw_tx, raw_rx) = mpsc::channel();
+                debounce::spawn_debounced(delay, raw_rx, event_tx);
+                raw_tx
+            }
+            None => event_tx,
+        };
 
         let thread_handle = std::thread::spawn(move || {
             #[cfg(target_os = "macos")]
             {
-                macos::monitor_device_change(event_tx, stop_rx);
+                macos::monitor_device_change(raw_tx, stop_rx);
             }
 
             #[cfg(target_os = "linux")]
             {
-                linux::monitor_device_change(event_tx, stop_rx);
+                linux::monitor_device_change(raw_tx, stop_rx);
             }
 
             #[cfg(target_os = "windows")]
             {
-                windows::monitor_device_change(event_tx, stop_rx);
+                windows::monitor_device_change(raw_tx, stop_rx);
             }
 
             #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
             {
-                let _ = event_tx;
+                let _ = raw_tx;
                 tracing::warn!("device_monitoring_unsupported");
                 let _ = stop_rx.recv();
             }

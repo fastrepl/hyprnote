@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Hyprnote Control Staging",
+  "mainBinaryName": "Hyprnote Control Staging",
+  "identifier": "com.hyprnote.control.staging",
+  "plugins": {
+    "updater": {
+      "active": false
+    }
+  }
+}

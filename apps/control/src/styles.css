@@ -1,65 +1,13 @@
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: transparent;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 html,
 body {
-  background: transparent;
-  overflow: hidden;
+  @apply bg-transparent overflow-hidden;
 }
 
 .menubar-panel {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  @apply backdrop-blur-xl;
   -webkit-backdrop-filter: blur(20px);
-  border-radius: 13px;
-}
-
-h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-p {
-  font-size: 0.875rem;
-  color: #666;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-  }
-
-  .menubar-panel {
-    background: rgba(40, 40, 40, 0.95);
-  }
-
-  p {
-    color: #999;
-  }
 }

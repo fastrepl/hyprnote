@@ -8,6 +8,7 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
+import { useDeleteSession } from "../../../../hooks/useDeleteSession";
 import * as main from "../../../../store/tinybase/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { id } from "../../../../utils";
@@ -154,6 +155,7 @@ function useTimelineItemActions(
   const openCurrent = useTabs((state) => state.openCurrent);
   const openNew = useTabs((state) => state.openNew);
   const invalidateResource = useTabs((state) => state.invalidateResource);
+  const deleteSession = useDeleteSession();
 
   const handleEventClick = useCallback(
     (openInNewTab: boolean) => {
@@ -223,10 +225,9 @@ function useTimelineItemActions(
       invalidateResource("events", item.id);
       store.delRow("events", item.id);
     } else {
-      invalidateResource("sessions", item.id);
-      store.delRow("sessions", item.id);
+      void deleteSession(item.id);
     }
-  }, [store, item.id, item.type, invalidateResource]);
+  }, [store, item.id, item.type, invalidateResource, deleteSession]);
 
   return { handleClick, handleCmdClick, handleDelete };
 }

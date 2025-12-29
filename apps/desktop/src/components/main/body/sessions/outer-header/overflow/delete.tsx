@@ -1,28 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, TrashIcon } from "lucide-react";
-import { useCallback } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../../../store/tinybase/main";
+import { useDeleteSession } from "../../../../../../hooks/useDeleteSession";
 
 export function DeleteNote({ sessionId }: { sessionId: string }) {
-  const deleteRow = main.UI.useDelRowCallback(
-    "sessions",
-    sessionId,
-    main.STORE_ID,
-  );
-
-  const handleDeleteNote = useCallback(() => {
-    deleteRow();
-    void miscCommands.audioDelete(sessionId);
-  }, [sessionId, deleteRow]);
+  const deleteSession = useDeleteSession();
 
   return (
     <DropdownMenuItem
-      onClick={handleDeleteNote}
+      onClick={() => void deleteSession(sessionId)}
       className="text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer"
     >
       <TrashIcon />

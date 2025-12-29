@@ -21,14 +21,10 @@ export function DeleteNote({ sessionId }: { sessionId: string }) {
       return;
     }
 
-    void analyticsCommands.event({
-      event: "session_deleted",
-      includes_recording: true,
-    });
-
     invalidateResource("sessions", sessionId);
 
     void deleteSessionCascade(store, indexes, sessionId);
+
     void analyticsCommands.event({
       event: "session_deleted",
       includes_recording: true,

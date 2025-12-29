@@ -69,8 +69,8 @@ export function TabItemBase({
     }
   };
 
-  const contextMenu = !active
-    ? selected && !isEmptyTab
+  const contextMenu =
+    selected && !isEmptyTab
       ? [{ id: "close-tab", text: "Close", action: handleCloseThis }]
       : [
           ...(allowPin
@@ -91,8 +91,7 @@ export function TabItemBase({
             action: handleCloseOthers,
           },
           { id: "close-all", text: "Close all", action: handleCloseAll },
-        ]
-    : undefined;
+        ];
 
   const showShortcut = isCmdPressed && tabIndex !== undefined;
 

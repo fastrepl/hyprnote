@@ -11,7 +11,7 @@ thiserror = { workspace = true }
 
 dasp = { workspace = true }
 hound = { workspace = true }
-rodio = { workspace = true }
+rodio = { workspace = true, features = ["symphonia"] }
 rubato = "0.16.2"
 vorbis_rs = { workspace = true }
 

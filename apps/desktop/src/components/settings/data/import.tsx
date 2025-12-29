@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { CheckCircleIcon, Loader2Icon, XCircleIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import {
@@ -11,9 +12,47 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import {
+  importFromFile,
+  type ImportResult,
+} from "../../../store/tinybase/importer";
+import { STORE_ID, UI } from "../../../store/tinybase/main";
+
 export function Import() {
   const [dryRunCompleted, setDryRunCompleted] =
     useState<ImportSourceKind | null>(null);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+
+  const store = UI.useStore(STORE_ID);
+  const persister = UI.usePersister(STORE_ID);
+
+  useEffect(() => {
+    let unlisten: UnlistenFn | undefined;
+
+    const setupListener = async () => {
+      unlisten = await listen<string>("importer://ready", async (event) => {
+        if (!store || !persister) {
+          console.error("[Import] Store or persister not available");
+          return;
+        }
+
+        const filePath = event.payload;
+        console.log("[Import] Received import ready event, file:", filePath);
+
+        const result = await importFromFile(store, filePath, async () => {
+          await persister.save();
+        });
+
+        setImportResult(result);
+      });
+    };
+
+    void setupListener();
+
+    return () => {
+      unlisten?.();
+    };
+  }, [store, persister]);
 
   const { data: sources } = useQuery({
     queryKey: ["import-sources"],
@@ -94,7 +133,7 @@ export function Import() {
             </div>
           )}
 
-          {importMutation.isSuccess && (
+          {(importMutation.isSuccess || importResult?.status === "success") && (
             <div
               className={cn([
                 "flex items-center gap-2 text-sm text-green-600",
@@ -102,7 +141,23 @@ export function Import() {
               ])}
             >
               <CheckCircleIcon size={16} />
-              <span>Import completed successfully.</span>
+              <span>
+                {importResult?.status === "success"
+                  ? `Import completed: ${importResult.tablesImported} tables imported.`
+                  : "Import completed successfully."}
+              </span>
+            </div>
+          )}
+
+          {importResult?.status === "error" && (
+            <div
+              className={cn([
+                "flex items-center gap-2 text-sm text-red-600",
+                "p-3 rounded-lg bg-red-50 border border-red-200",
+              ])}
+            >
+              <XCircleIcon size={16} />
+              <span>Import failed: {importResult.error}</span>
             </div>
           )}
 

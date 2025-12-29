@@ -24,6 +24,7 @@ exclude = [
   "apps/pro",
   "apps/restate",
   "apps/storybook",
+  "apps/howto",
   "apps/api",
   "apps/bot",
   "apps/web",

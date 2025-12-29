@@ -278,9 +278,7 @@ function OptionsMenu({
             });
           }),
         ),
-        Effect.flatMap((importedPath) =>
-          Effect.promise(() => runBatch(importedPath)),
-        ),
+        Effect.flatMap(() => Effect.promise(() => runBatch(path))),
       );
     },
     [

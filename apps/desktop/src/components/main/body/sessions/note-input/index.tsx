@@ -116,16 +116,48 @@ export const NoteInput = forwardRef<
     };
 
     const handleMoveToEditorPosition = (e: Event) => {
-      const customEvent = e as CustomEvent<{ position: number }>;
-      const position = customEvent.detail.position;
+      const customEvent = e as CustomEvent<{ pixelWidth: number }>;
+      const pixelWidth = customEvent.detail.pixelWidth;
       const editorInstance = internalEditorRef.current?.editor;
 
       if (editorInstance) {
-        const targetPos = Math.min(
-          position,
-          editorInstance.state.doc.content.size - 1,
-        );
-        editorInstance.commands.setTextSelection(targetPos);
+        const editorDom = editorInstance.view.dom;
+        const firstTextNode = editorDom.querySelector(".ProseMirror > *");
+
+        if (firstTextNode) {
+          const editorStyle = window.getComputedStyle(firstTextNode);
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          if (ctx) {
+            ctx.font = `${editorStyle.fontWeight} ${editorStyle.fontSize} ${editorStyle.fontFamily}`;
+
+            const firstBlock = editorInstance.state.doc.firstChild;
+            if (firstBlock && firstBlock.textContent) {
+              const text = firstBlock.textContent;
+              let charPos = 0;
+
+              for (let i = 0; i <= text.length; i++) {
+                const currentWidth = ctx.measureText(text.slice(0, i)).width;
+                if (currentWidth >= pixelWidth) {
+                  charPos = i;
+                  break;
+                }
+                charPos = i;
+              }
+
+              const targetPos = Math.min(
+                charPos,
+                editorInstance.state.doc.content.size - 1,
+              );
+              editorInstance.commands.setTextSelection(targetPos);
+              editorInstance.commands.focus();
+              return;
+            }
+          }
+        }
+
+        editorInstance.commands.setTextSelection(0);
         editorInstance.commands.focus();
       }
     };

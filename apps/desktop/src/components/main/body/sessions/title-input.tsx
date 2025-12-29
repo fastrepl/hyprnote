@@ -67,13 +67,26 @@ export const TitleInput = forwardRef<
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       const input = inputRef.current;
-      const cursorPos = input?.selectionStart ?? 0;
-      setTimeout(() => {
-        const event = new CustomEvent("title-move-to-editor-position", {
-          detail: { position: cursorPos },
-        });
-        window.dispatchEvent(event);
-      }, 0);
+      if (!input) return;
+
+      const cursorPos = input.selectionStart ?? 0;
+      const textBeforeCursor = input.value.slice(0, cursorPos);
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const titleStyle = window.getComputedStyle(input);
+        ctx.font = `${titleStyle.fontWeight} ${titleStyle.fontSize} ${titleStyle.fontFamily}`;
+        const titleWidth = ctx.measureText(textBeforeCursor).width;
+
+        setTimeout(() => {
+          const event = new CustomEvent("title-move-to-editor-position", {
+            detail: { pixelWidth: titleWidth },
+          });
+          window.dispatchEvent(event);
+        }, 0);
+      }
+
       onNavigateToEditor?.();
     }
   };

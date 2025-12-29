@@ -51,7 +51,6 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         .events(tauri_specta::collect_events![
             events::Navigate,
             events::WindowDestroyed,
-            events::MainWindowState,
             events::OpenTab,
         ])
         .commands(tauri_specta::collect_commands![

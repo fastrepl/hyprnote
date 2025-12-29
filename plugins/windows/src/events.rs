@@ -80,13 +80,6 @@ common_event_derives! {
 }
 
 common_event_derives! {
-    pub struct MainWindowState {
-        pub left_sidebar_expanded: Option<bool>,
-        pub right_panel_expanded: Option<bool>,
-    }
-}
-
-common_event_derives! {
     pub struct OpenTab {
         pub tab: crate::TabInput,
     }

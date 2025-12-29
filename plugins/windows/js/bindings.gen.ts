@@ -68,12 +68,10 @@ async removeFakeWindow(name: string) : Promise<Result<null, string>> {
 
 
 export const events = __makeEvents__<{
-mainWindowState: MainWindowState,
 navigate: Navigate,
 openTab: OpenTab,
 windowDestroyed: WindowDestroyed
 }>({
-mainWindowState: "plugin:windows:main-window-state",
 navigate: "plugin:windows:navigate",
 openTab: "plugin:windows:open-tab",
 windowDestroyed: "plugin:windows:window-destroyed"
@@ -87,6 +85,7 @@ windowDestroyed: "plugin:windows:window-destroyed"
 
 export type AiState = { tab: AiTab | null }
 export type AiTab = "transcription" | "intelligence"
+export type AppRoute = { path: "/app/main"; search: MainRouteSearch | null } | { path: "/app/onboarding" } | { path: "/app/control" }
 export type AppWindow = { type: "onboarding" } | { type: "main" } | { type: "control" }
 export type ChangelogState = { previous: string | null; current: string }
 export type ChatShortcutsState = { isWebMode: boolean | null; selectedMineId: string | null; selectedWebIndex: number | null }
@@ -96,8 +95,8 @@ export type DataTab = "import" | "export"
 export type EditorView = { type: "raw" } | { type: "transcript" } | { type: "enhanced"; id: string }
 export type ExtensionsState = { selectedExtension: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type MainWindowState = { left_sidebar_expanded: boolean | null; right_panel_expanded: boolean | null }
-export type Navigate = { path: string; search: Partial<{ [key in string]: JsonValue }> | null }
+export type MainRouteSearch = { record: boolean | null }
+export type Navigate = { route: AppRoute }
 export type OpenTab = { tab: TabInput }
 export type OverlayBound = { x: number; y: number; width: number; height: number }
 export type PromptsState = { selectedTask: string | null }

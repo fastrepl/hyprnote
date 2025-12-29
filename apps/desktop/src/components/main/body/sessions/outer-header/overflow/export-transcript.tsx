@@ -3,6 +3,7 @@ import { openPath } from "@tauri-apps/plugin-opener";
 import { FileTextIcon, Loader2Icon } from "lucide-react";
 import { useMemo } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import {
   commands as listener2Commands,
   type VttWord,
@@ -59,6 +60,11 @@ export function ExportTranscript({ sessionId }: { sessionId: string }) {
       return result.data;
     },
     onSuccess: (path) => {
+      void analyticsCommands.event({
+        event: "session_exported",
+        format: "vtt",
+        word_count: words.length,
+      });
       openPath(path);
     },
   });

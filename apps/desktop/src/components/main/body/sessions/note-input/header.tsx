@@ -252,8 +252,9 @@ function CreateOtherFormatButton({
       }
 
       void analyticsCommands.event({
-        event: "template_summary_created",
+        event: "note_enhanced",
         template_id: templateId,
+        is_auto: false,
       });
 
       handleTabChange({ type: "enhanced", id: enhancedNoteId });
@@ -479,7 +480,7 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
       setMissingModelError(null);
 
       void analyticsCommands.event({
-        event: "summary_generated",
+        event: "note_enhanced",
         is_auto: false,
       });
 

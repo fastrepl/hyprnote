@@ -5,6 +5,7 @@ import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
@@ -43,6 +44,9 @@ export function AccountSettings() {
   }, [auth]);
 
   const handleSignOut = useCallback(async () => {
+    void analyticsCommands.event({
+      event: "user_signed_out",
+    });
     await auth?.signOut();
   }, [auth]);
 
@@ -201,11 +205,19 @@ function BillingButton() {
       await new Promise((resolve) => setTimeout(resolve, 3000));
     },
     onSuccess: async () => {
+      void analyticsCommands.event({
+        event: "trial_started",
+        plan: "pro",
+      });
       await auth?.refreshSession();
     },
   });
 
   const handleProUpgrade = useCallback(() => {
+    void analyticsCommands.event({
+      event: "upgrade_clicked",
+      plan: "pro",
+    });
     void openUrl(`${WEB_APP_BASE_URL}/app/checkout?period=monthly`);
   }, []);
 

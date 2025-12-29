@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useCallback, useState } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as listener2Commands } from "@hypr/plugin-listener2";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -252,6 +253,12 @@ function OptionsMenu({
                   created_at: new Date().toISOString(),
                 });
               });
+
+              void analyticsCommands.event({
+                event: "file_uploaded",
+                file_type: "transcript",
+                token_count: subtitle.tokens.length,
+              });
             }),
           ),
         );
@@ -270,6 +277,10 @@ function OptionsMenu({
         fromResult(miscCommands.audioImport(sessionId, path)),
         Effect.tap(() =>
           Effect.sync(() => {
+            void analyticsCommands.event({
+              event: "file_uploaded",
+              file_type: "audio",
+            });
             void queryClient.invalidateQueries({
               queryKey: ["audio", sessionId, "exist"],
             });

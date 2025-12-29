@@ -79,7 +79,7 @@ export const RawEditor = forwardRef<
         if (hasContent) {
           hasTrackedWriteRef.current = true;
           void analyticsCommands.event({
-            event: "note_written",
+            event: "note_edited",
             has_content: true,
           });
         }

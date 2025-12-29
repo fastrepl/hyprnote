@@ -43,7 +43,6 @@ export const createBasicSlice = <
     } else {
       set(openTab(tabs, tab, history, true));
     }
-    set(openTab(tabs, tab, history, true));
     void analyticsCommands.event({
       event: "tab_opened",
       view: tab.type,

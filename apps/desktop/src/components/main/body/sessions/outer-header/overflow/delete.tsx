@@ -8,17 +8,20 @@ import { cn } from "@hypr/utils";
 
 import { deleteSessionCascade } from "../../../../../../store/tinybase/deleteSession";
 import * as main from "../../../../../../store/tinybase/main";
+import { useTabs } from "../../../../../../store/zustand/tabs";
 
 export function DeleteNote({ sessionId }: { sessionId: string }) {
   const store = main.UI.useStore(main.STORE_ID);
   const indexes = main.UI.useIndexes(main.STORE_ID);
+  const invalidateResource = useTabs((state) => state.invalidateResource);
 
   const handleDeleteNote = useCallback(() => {
     if (!store) {
       return;
     }
+    invalidateResource("sessions", sessionId);
     void deleteSessionCascade(store, indexes, sessionId);
-  }, [store, indexes, sessionId]);
+  }, [store, indexes, sessionId, invalidateResource]);
 
   return (
     <DropdownMenuItem

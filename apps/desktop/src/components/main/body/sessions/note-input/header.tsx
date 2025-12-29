@@ -56,7 +56,7 @@ function HeaderTab({
             ],
       ])}
     >
-      {children}
+      <span className="flex items-center h-5">{children}</span>
     </button>
   );
 }
@@ -159,7 +159,7 @@ function HeaderTabEnhanced({
             ],
       ])}
     >
-      <span className="flex items-center gap-1">
+      <span className="flex items-center gap-1 h-5">
         <TruncatedTitle title={title} isActive={isActive} />
         {isActive && (
           <div className="flex items-center gap-1">
@@ -373,12 +373,10 @@ export function Header({
               </HeaderTab>
             );
           })}
-          {currentTab.type === "enhanced" && (
-            <CreateOtherFormatButton
-              sessionId={sessionId}
-              handleTabChange={handleTabChange}
-            />
-          )}
+          <CreateOtherFormatButton
+            sessionId={sessionId}
+            handleTabChange={handleTabChange}
+          />
         </div>
         {showProgress && <TranscriptionProgress sessionId={sessionId} />}
         {showEditingControls && (

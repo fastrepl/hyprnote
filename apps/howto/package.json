@@ -13,6 +13,7 @@
     "@astrojs/mdx": "^4.3.13",
     "@astrojs/netlify": "^6.6.3",
     "@astrojs/react": "^4.4.2",
+    "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",

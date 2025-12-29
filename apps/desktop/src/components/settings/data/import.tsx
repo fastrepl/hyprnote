@@ -16,14 +16,14 @@ import {
   importFromFile,
   type ImportResult,
 } from "../../../store/tinybase/importer";
-import { STORE_ID, UI } from "../../../store/tinybase/main";
+import { type Store, STORE_ID, UI } from "../../../store/tinybase/main";
 
 export function Import() {
   const [dryRunCompleted, setDryRunCompleted] =
     useState<ImportSourceKind | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
-  const store = UI.useStore(STORE_ID);
+  const store = UI.useStore(STORE_ID) as Store | undefined;
   const persister = UI.usePersister(STORE_ID);
 
   useEffect(() => {

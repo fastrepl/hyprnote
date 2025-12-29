@@ -42,8 +42,6 @@ export const TitleInput = forwardRef<
 
       handleEditTitle(beforeCursor);
 
-      onNavigateToEditor?.();
-
       if (afterCursor) {
         setTimeout(() => {
           const event = new CustomEvent("title-content-transfer", {
@@ -51,7 +49,14 @@ export const TitleInput = forwardRef<
           });
           window.dispatchEvent(event);
         }, 0);
+      } else {
+        setTimeout(() => {
+          const event = new CustomEvent("title-move-to-editor-start");
+          window.dispatchEvent(event);
+        }, 0);
       }
+
+      onNavigateToEditor?.();
     } else if (e.key === "Tab" || e.key === "ArrowDown") {
       e.preventDefault();
       onNavigateToEditor?.();

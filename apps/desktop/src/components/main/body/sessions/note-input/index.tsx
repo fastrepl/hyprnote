@@ -107,11 +107,27 @@ export const NoteInput = forwardRef<
       }
     };
 
+    const handleMoveToEditorStart = () => {
+      const editorInstance = internalEditorRef.current?.editor;
+      if (editorInstance) {
+        editorInstance.commands.setTextSelection(0);
+        editorInstance.commands.focus();
+      }
+    };
+
     window.addEventListener("title-content-transfer", handleContentTransfer);
+    window.addEventListener(
+      "title-move-to-editor-start",
+      handleMoveToEditorStart,
+    );
     return () => {
       window.removeEventListener(
         "title-content-transfer",
         handleContentTransfer,
+      );
+      window.removeEventListener(
+        "title-move-to-editor-start",
+        handleMoveToEditorStart,
       );
     };
   }, []);

@@ -7,8 +7,14 @@ import { defineConfig } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://howto.hyprnote.com",
   integrations: [mdx(), react()],
   adapter: netlify(),
+  markdown: {
+    shikiConfig: {
+      theme: "github-light",
+    },
+  },
   vite: {
     plugins: [tailwindcss()],
   },

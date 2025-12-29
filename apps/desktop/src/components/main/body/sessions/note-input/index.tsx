@@ -31,7 +31,7 @@ export const NoteInput = forwardRef<
     tab: Extract<Tab, { type: "sessions" }>;
     onNavigateToTitle?: () => void;
   }
->(({ tab, onNavigateToTitle: _onNavigateToTitle }, ref) => {
+>(({ tab, onNavigateToTitle }, ref) => {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const internalEditorRef = useRef<{ editor: TiptapEditor | null }>(null);
@@ -91,6 +91,30 @@ export const NoteInput = forwardRef<
     }
   });
 
+  useEffect(() => {
+    const handleContentTransfer = (e: Event) => {
+      const customEvent = e as CustomEvent<{ content: string }>;
+      const content = customEvent.detail.content;
+      const editorInstance = internalEditorRef.current?.editor;
+
+      if (editorInstance && content) {
+        const { from } = editorInstance.state.selection;
+        editorInstance.commands.insertContentAt(from, [
+          { type: "paragraph", content: [{ type: "text", text: content }] },
+        ]);
+        editorInstance.commands.focus();
+      }
+    };
+
+    window.addEventListener("title-content-transfer", handleContentTransfer);
+    return () => {
+      window.removeEventListener(
+        "title-content-transfer",
+        handleContentTransfer,
+      );
+    };
+  }, []);
+
   useCaretNearBottom({
     editor,
     container,
@@ -140,10 +164,15 @@ export const NoteInput = forwardRef<
               ref={internalEditorRef}
               sessionId={sessionId}
               enhancedNoteId={currentTab.id}
+              onNavigateToTitle={onNavigateToTitle}
             />
           )}
           {currentTab.type === "raw" && (
-            <RawEditor ref={internalEditorRef} sessionId={sessionId} />
+            <RawEditor
+              ref={internalEditorRef}
+              sessionId={sessionId}
+              onNavigateToTitle={onNavigateToTitle}
+            />
           )}
           {currentTab.type === "transcript" && (
             <Transcript

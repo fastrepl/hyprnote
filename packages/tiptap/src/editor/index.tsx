@@ -37,6 +37,7 @@ interface EditorProps {
   mentionConfig?: MentionConfig;
   placeholderComponent?: PlaceholderFunction;
   fileHandlerConfig?: FileHandlerConfig;
+  onNavigateToTitle?: () => void;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
@@ -49,6 +50,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       mentionConfig,
       placeholderComponent,
       fileHandlerConfig,
+      onNavigateToTitle,
     } = props;
     const previousContentRef = useRef<JSONContent>(initialContent);
 
@@ -87,9 +89,28 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             return false;
           }
 
+          const { state } = view;
+          const isAtStart = state.selection.$head.pos === 0;
+          const isFirstLine = state.selection.$head.pos <= 1;
+
+          if (event.key === "ArrowUp" && isFirstLine && onNavigateToTitle) {
+            event.preventDefault();
+            onNavigateToTitle();
+            return true;
+          }
+
+          if (event.key === "Tab" && event.shiftKey) {
+            const isInListItem =
+              isNodeActive(state, "listItem") ||
+              isNodeActive(state, "taskItem");
+            if (!isInListItem && isFirstLine && onNavigateToTitle) {
+              event.preventDefault();
+              onNavigateToTitle();
+              return true;
+            }
+          }
+
           if (event.key === "Backspace") {
-            const { state } = view;
-            const isAtStart = state.selection.$head.pos === 0;
             if (isAtStart && state.selection.empty) {
               event.preventDefault();
               return true;
@@ -97,7 +118,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           }
 
           if (event.key === "Tab") {
-            const { state } = view;
             const isInListItem =
               isNodeActive(state, "listItem") ||
               isNodeActive(state, "taskItem");
@@ -111,7 +131,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           return false;
         },
       }),
-      [],
+      [onNavigateToTitle],
     );
 
     const editor = useEditor(

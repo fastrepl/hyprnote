@@ -12,6 +12,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 vergen-gix = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+hypr-data = { workspace = true }
 indoc = { workspace = true }
 specta-typescript = { workspace = true }
 
@@ -29,7 +30,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 dirs = { workspace = true }
 lazy_static = { workspace = true }
 regex = { workspace = true }
-rodio = { workspace = true, features = ["wav"] }
+rodio = { workspace = true, features = ["symphonia-all"] }
 specta = { workspace = true }
 sysinfo = { workspace = true }
 thiserror = { workspace = true }

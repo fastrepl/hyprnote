@@ -17770,6 +17770,7 @@ version = "0.1.0"
 dependencies = [
  "audio-utils",
  "buffer",
+ "data",
  "dirs 6.0.0",
  "host",
  "indoc",

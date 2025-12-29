@@ -1,5 +1,5 @@
 use std::fs::{File, copy, remove_file, rename, write};
-use std::io::{BufReader, ErrorKind};
+use std::io::ErrorKind;
 use std::num::{NonZeroU8, NonZeroU32};
 use std::path::{Path, PathBuf};
 
@@ -16,8 +16,8 @@ pub fn import_audio(
     tmp_path: &Path,
     target_path: &Path,
 ) -> Result<PathBuf, AudioProcessingError> {
-    let reader = BufReader::new(File::open(source_path)?);
-    let decoder = rodio::Decoder::new(reader)?;
+    let file = File::open(source_path)?;
+    let decoder = rodio::Decoder::try_from(file)?;
     let channel_count_raw = decoder.channels().max(1);
     let channel_count_u8 = u8::try_from(channel_count_raw).map_err(|_| {
         AudioProcessingError::UnsupportedChannelCount {
@@ -85,4 +85,48 @@ pub fn import_audio(
     }
 
     Ok(target_path.to_path_buf())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    macro_rules! test_import_audio {
+        ($($name:ident: $path:expr),* $(,)?) => {
+            $(
+                #[test]
+                fn $name() {
+                    let source_path = std::path::Path::new($path);
+                    let unique_id = format!("{}_{:?}", std::process::id(), std::thread::current().id());
+                    let tmp_dir = std::env::temp_dir();
+                    let tmp_path = tmp_dir.join(format!("{}_{}_tmp.ogg", stringify!($name), unique_id));
+                    let target_path = tmp_dir.join(format!("{}_{}_target.ogg", stringify!($name), unique_id));
+
+                    let _ = std::fs::remove_file(&tmp_path);
+                    let _ = std::fs::remove_file(&target_path);
+
+                    let result = import_audio(source_path, &tmp_path, &target_path);
+                    assert!(result.is_ok(), "import_audio failed: {:?}", result.err());
+                    assert!(target_path.exists());
+
+                    let metadata = std::fs::metadata(&target_path).unwrap();
+                    assert!(metadata.len() > 0, "Output file is empty");
+
+                    let _ = std::fs::remove_file(&tmp_path);
+                    let _ = std::fs::remove_file(&target_path);
+                }
+            )*
+        };
+    }
+
+    test_import_audio! {
+        test_import_mp3: hypr_data::english_1::AUDIO_MP3_PATH,
+        test_import_mp4: hypr_data::english_1::AUDIO_MP4_PATH,
+        test_import_m4a: hypr_data::english_1::AUDIO_M4A_PATH,
+        test_import_ogg: hypr_data::english_1::AUDIO_OGG_PATH,
+        test_import_flac: hypr_data::english_1::AUDIO_FLAC_PATH,
+        test_import_aac: hypr_data::english_1::AUDIO_AAC_PATH,
+        test_import_aiff: hypr_data::english_1::AUDIO_AIFF_PATH,
+        test_import_caf: hypr_data::english_1::AUDIO_CAF_PATH,
+    }
 }

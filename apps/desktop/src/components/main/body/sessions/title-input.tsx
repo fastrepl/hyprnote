@@ -1,4 +1,4 @@
-import { forwardRef, useRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -30,7 +30,53 @@ export const TitleInput = forwardRef<
   const internalRef = useRef<HTMLInputElement>(null);
   const inputRef = (ref as React.RefObject<HTMLInputElement>) || internalRef;
 
+  useEffect(() => {
+    const handleMoveToTitlePosition = (e: Event) => {
+      const customEvent = e as CustomEvent<{ pixelWidth: number }>;
+      const pixelWidth = customEvent.detail.pixelWidth;
+      const input = inputRef.current;
+
+      if (input && input.value) {
+        const titleStyle = window.getComputedStyle(input);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        if (ctx) {
+          ctx.font = `${titleStyle.fontWeight} ${titleStyle.fontSize} ${titleStyle.fontFamily}`;
+
+          let charPos = 0;
+          for (let i = 0; i <= input.value.length; i++) {
+            const currentWidth = ctx.measureText(input.value.slice(0, i)).width;
+            if (currentWidth >= pixelWidth) {
+              charPos = i;
+              break;
+            }
+            charPos = i;
+          }
+
+          input.setSelectionRange(charPos, charPos);
+        }
+      }
+    };
+
+    window.addEventListener(
+      "editor-move-to-title-position",
+      handleMoveToTitlePosition,
+    );
+    return () => {
+      window.removeEventListener(
+        "editor-move-to-title-position",
+        handleMoveToTitlePosition,
+      );
+    };
+  }, [inputRef]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      return;
+    }
+
     if (e.key === "Enter") {
       e.preventDefault();
       const input = inputRef.current;

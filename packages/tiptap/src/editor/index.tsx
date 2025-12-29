@@ -108,6 +108,38 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
 
           if (event.key === "ArrowUp" && isInFirstBlock && onNavigateToTitle) {
             event.preventDefault();
+
+            const firstBlock = state.doc.firstChild;
+            if (firstBlock && firstBlock.textContent) {
+              const text = firstBlock.textContent;
+              const posInBlock = $head.pos - $head.start();
+              const textBeforeCursor = text.slice(0, posInBlock);
+
+              const editorDom = view.dom;
+              const firstTextNode = editorDom.querySelector(".ProseMirror > *");
+
+              if (firstTextNode) {
+                const editorStyle = window.getComputedStyle(firstTextNode);
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+
+                if (ctx) {
+                  ctx.font = `${editorStyle.fontWeight} ${editorStyle.fontSize} ${editorStyle.fontFamily}`;
+                  const editorWidth = ctx.measureText(textBeforeCursor).width;
+
+                  setTimeout(() => {
+                    const navEvent = new CustomEvent(
+                      "editor-move-to-title-position",
+                      {
+                        detail: { pixelWidth: editorWidth },
+                      },
+                    );
+                    window.dispatchEvent(navEvent);
+                  }, 0);
+                }
+              }
+            }
+
             onNavigateToTitle();
             return true;
           }

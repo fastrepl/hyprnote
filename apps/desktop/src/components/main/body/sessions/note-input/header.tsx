@@ -300,15 +300,20 @@ function CreateOtherFormatButton({
               </TemplateButton>
             </>
           ) : (
-            <button
-              onClick={() => {
-                setOpen(false);
-                openNew({ type: "templates" });
-              }}
-              className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
-            >
-              Create templates
-            </button>
+            <>
+              <p className="text-sm text-neutral-600 text-center mb-2">
+                No templates yet
+              </p>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  openNew({ type: "templates" });
+                }}
+                className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
+              >
+                Create templates
+              </button>
+            </>
           )}
         </div>
       </PopoverContent>

@@ -48,6 +48,7 @@ export type GeneralState = {
     sessionId: string | null;
     muted: boolean;
     lastError: string | null;
+    lastErrorRetryable: boolean;
   };
 };
 
@@ -75,6 +76,7 @@ const initialState: GeneralState = {
     sessionId: null,
     muted: false,
     lastError: null,
+    lastErrorRetryable: true,
   },
 };
 
@@ -178,6 +180,8 @@ export const createGeneralSlice = <
             draft.live.seconds = 0;
             draft.live.intervalId = intervalId;
             draft.live.sessionId = targetSessionId;
+            draft.live.lastError = null;
+            draft.live.lastErrorRetryable = true;
           }),
         );
       } else if (payload.type === "finalizing") {
@@ -205,6 +209,7 @@ export const createGeneralSlice = <
             draft.live.sessionId = null;
             draft.live.eventUnlisteners = undefined;
             draft.live.lastError = null;
+            draft.live.lastErrorRetryable = true;
           }),
         );
 
@@ -263,6 +268,10 @@ export const createGeneralSlice = <
         set((state) =>
           mutate(state, (draft) => {
             draft.live.lastError = payload.error;
+            draft.live.lastErrorRetryable = payload.is_retryable;
+            if (!payload.is_retryable) {
+              draft.live.loading = false;
+            }
           }),
         );
       }

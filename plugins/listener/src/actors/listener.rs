@@ -77,6 +77,27 @@ fn actor_error(msg: impl Into<String>) -> ActorProcessingErr {
     Box::new(ListenerInitError(msg.into()))
 }
 
+fn is_connection_error_retryable(error: &owhisper_client::hypr_ws_client::Error) -> bool {
+    use owhisper_client::hypr_ws_client::tokio_tungstenite::tungstenite::Error as WsError;
+    use owhisper_client::hypr_ws_client::Error as WsClientError;
+
+    match error {
+        WsClientError::Connection(tungstenite_err) => {
+            match tungstenite_err {
+                WsError::Http(response) => {
+                    let status = response.status().as_u16();
+                    // Auth errors (401, 403) are NOT retryable - user needs to fix API key
+                    !(status == 401 || status == 403)
+                }
+                // Network/protocol errors are retryable
+                _ => true,
+            }
+        }
+        WsClientError::Timeout(_) => true,
+        _ => true,
+    }
+}
+
 #[ractor::async_trait]
 impl Actor for ListenerActor {
     type Msg = ListenerMsg;
@@ -351,10 +372,11 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
         }
         Ok(Err(e)) => {
             tracing::error!(error = ?e, "listen_ws_connect_failed(single)");
+            let is_retryable = is_connection_error_retryable(&e);
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),
-                is_retryable: true,
+                is_retryable,
             })
             .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
@@ -423,10 +445,11 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
         }
         Ok(Err(e)) => {
             tracing::error!(error = ?e, "listen_ws_connect_failed(dual)");
+            let is_retryable = is_connection_error_retryable(&e);
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),
-                is_retryable: true,
+                is_retryable,
             })
             .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));

@@ -260,7 +260,8 @@ function OptionsMenu({
       if (
         !normalizedPath.endsWith(".wav") &&
         !normalizedPath.endsWith(".mp3") &&
-        !normalizedPath.endsWith(".ogg")
+        !normalizedPath.endsWith(".ogg") &&
+        !normalizedPath.endsWith(".m4a")
       ) {
         return Effect.void;
       }
@@ -338,7 +339,7 @@ function OptionsMenu({
     selectAndHandleFile(
       {
         title: "Upload Audio",
-        filters: [{ name: "Audio", extensions: ["wav", "mp3", "ogg"] }],
+        filters: [{ name: "Audio", extensions: ["wav", "mp3", "ogg", "m4a"] }],
       },
       "audio",
     );

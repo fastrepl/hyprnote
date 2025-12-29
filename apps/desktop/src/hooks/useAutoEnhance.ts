@@ -20,6 +20,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const createEnhancedNote = useCreateEnhancedNote();
 
   const listenerStatus = useListener((state) => state.live.status);
+  const lastError = useListener((state) => state.live.lastError);
   const prevListenerStatus = usePrevious(listenerStatus);
 
   const transcriptIds = main.UI.useSliceRowIds(
@@ -91,10 +92,12 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
 
   useEffect(() => {
     const listenerJustStopped =
-      prevListenerStatus === "active" && listenerStatus !== "active";
+      (prevListenerStatus === "active" ||
+        prevListenerStatus === "finalizing") &&
+      listenerStatus === "inactive";
 
-    if (listenerJustStopped) {
+    if (listenerJustStopped && !lastError) {
       createAndStartEnhance();
     }
-  }, [listenerStatus, prevListenerStatus, createAndStartEnhance]);
+  }, [listenerStatus, prevListenerStatus, lastError, createAndStartEnhance]);
 }

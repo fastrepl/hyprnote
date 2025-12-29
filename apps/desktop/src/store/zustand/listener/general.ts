@@ -26,15 +26,10 @@ import { fromResult } from "../../../effect";
 import type { BatchActions, BatchState } from "./batch";
 import type { HandlePersistCallback, TranscriptActions } from "./transcript";
 
-type LiveSessionStatus = "inactive" | "active" | "finalizing";
+type LiveSessionStatus = SessionLifecycleEvent["type"];
 export type SessionMode = LiveSessionStatus | "running_batch";
 
-export type LoadingPhase =
-  | "idle"
-  | "audio_initializing"
-  | "audio_ready"
-  | "connecting"
-  | "connected";
+export type LoadingPhase = "idle" | SessionProgressEvent["type"];
 
 export type GeneralState = {
   live: {
@@ -58,6 +53,7 @@ export type GeneralActions = {
   ) => void;
   stop: () => void;
   setMuted: (value: boolean) => void;
+  clearLastError: () => void;
   runBatch: (
     params: BatchParams,
     options?: { handlePersist?: HandlePersistCallback; sessionId?: string },
@@ -193,6 +189,9 @@ export const createGeneralSlice = <
         );
       } else if (payload.type === "inactive") {
         const currentState = get();
+        if (currentState.live.intervalId) {
+          clearInterval(currentState.live.intervalId);
+        }
         if (currentState.live.eventUnlisteners) {
           currentState.live.eventUnlisteners.forEach((fn) => fn());
         }
@@ -204,7 +203,10 @@ export const createGeneralSlice = <
             draft.live.loadingPhase = "idle";
             draft.live.sessionId = null;
             draft.live.eventUnlisteners = undefined;
-            draft.live.lastError = null;
+            draft.live.intervalId = undefined;
+            draft.live.amplitude = { mic: 0, speaker: 0 };
+            draft.live.seconds = 0;
+            draft.live.lastError = payload.error ?? null;
           }),
         );
 
@@ -427,6 +429,13 @@ export const createGeneralSlice = <
       mutate(state, (draft) => {
         draft.live.muted = value;
         void listenerCommands.setMicMuted(value);
+      }),
+    );
+  },
+  clearLastError: () => {
+    set((state) =>
+      mutate(state, (draft) => {
+        draft.live.lastError = null;
       }),
     );
   },

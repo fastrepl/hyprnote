@@ -68,6 +68,7 @@ export function RecordingIcon({ disabled }: { disabled?: boolean }) {
 
 export function useListenButtonState(sessionId: string) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const lastError = useListener((state) => state.live.lastError);
   const active = sessionMode === "active" || sessionMode === "finalizing";
   const batching = sessionMode === "running_batch";
 
@@ -95,6 +96,7 @@ export function useListenButtonState(sessionId: string) {
     shouldRender,
     isDisabled,
     warningMessage,
+    lastError,
   };
 }
 

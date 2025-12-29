@@ -5,9 +5,11 @@ import { open as selectFile } from "@tauri-apps/plugin-dialog";
 import { useMediaQuery } from "@uidotdev/usehooks";
 import { Effect, pipe } from "effect";
 import {
+  AlertCircleIcon,
   EllipsisVerticalIcon,
   FileTextIcon,
   UploadCloudIcon,
+  XIcon,
 } from "lucide-react";
 import { useCallback, useState } from "react";
 
@@ -71,7 +73,10 @@ function BeforeMeeingButton({
   const remote = useRemoteMeeting(tab.id);
   const isNarrow = useMediaQuery("(max-width: 870px)");
 
-  const { isDisabled, warningMessage } = useListenButtonState(tab.id);
+  const { isDisabled, warningMessage, lastError } = useListenButtonState(
+    tab.id,
+  );
+  const clearLastError = useListener((state) => state.clearLastError);
   const handleClick = useStartListening(tab.id);
 
   let icon: React.ReactNode;
@@ -95,14 +100,28 @@ function BeforeMeeingButton({
   }
 
   return (
-    <ListenSplitButton
-      icon={icon}
-      text={text}
-      disabled={isDisabled}
-      warningMessage={warningMessage}
-      onPrimaryClick={handleClick}
-      sessionId={tab.id}
-    />
+    <div className="flex flex-col items-center gap-2">
+      {lastError && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm max-w-xs">
+          <AlertCircleIcon className="w-4 h-4 flex-shrink-0" />
+          <span className="flex-1 truncate">Session failed to start</span>
+          <button
+            onClick={clearLastError}
+            className="p-0.5 hover:bg-red-100 rounded"
+          >
+            <XIcon className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+      <ListenSplitButton
+        icon={icon}
+        text={text}
+        disabled={isDisabled}
+        warningMessage={warningMessage}
+        onPrimaryClick={handleClick}
+        sessionId={tab.id}
+      />
+    </div>
   );
 }
 

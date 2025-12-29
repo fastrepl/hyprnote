@@ -1,5 +1,5 @@
 import { useHover } from "@uidotdev/usehooks";
-import { MicOff } from "lucide-react";
+import { AlertCircleIcon, MicOff } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -169,7 +169,9 @@ export function ListenButton({ sessionId }: { sessionId: string }) {
 }
 
 function StartButton({ sessionId }: { sessionId: string }) {
-  const { isDisabled, warningMessage } = useListenButtonState(sessionId);
+  const { isDisabled, warningMessage, lastError } =
+    useListenButtonState(sessionId);
+  const clearLastError = useListener((state) => state.clearLastError);
   const handleClick = useStartListening(sessionId);
   const openNew = useTabs((state) => state.openNew);
 
@@ -177,27 +179,48 @@ function StartButton({ sessionId }: { sessionId: string }) {
     openNew({ type: "ai", state: { tab: "transcription" } });
   }, [openNew]);
 
+  const handleButtonClick = useCallback(() => {
+    if (lastError) {
+      clearLastError();
+    }
+    handleClick();
+  }, [lastError, clearLastError, handleClick]);
+
   const button = (
     <Button
       size="sm"
       variant="ghost"
-      onClick={handleClick}
+      onClick={handleButtonClick}
       disabled={isDisabled}
       className={cn([
-        "bg-white text-neutral-900 hover:bg-neutral-100",
+        lastError
+          ? "bg-red-50 text-red-700 hover:bg-red-100"
+          : "bg-white text-neutral-900 hover:bg-neutral-100",
         "gap-1.5",
       ])}
-      title={warningMessage || "Start listening"}
+      title={lastError || warningMessage || "Start listening"}
       aria-label="Start listening"
     >
-      <RecordingIcon disabled={true} />
-      <span className="text-neutral-900 hover:text-neutral-800">
-        Start listening
+      {lastError ? (
+        <AlertCircleIcon className="w-3.5 h-3.5" />
+      ) : (
+        <RecordingIcon disabled={true} />
+      )}
+      <span
+        className={
+          lastError ? "text-red-700" : "text-neutral-900 hover:text-neutral-800"
+        }
+      >
+        {lastError ? "Retry" : "Start listening"}
       </span>
     </Button>
   );
 
-  if (!warningMessage) {
+  const tooltipMessage = lastError
+    ? "Previous session failed. Click to retry."
+    : warningMessage;
+
+  if (!tooltipMessage) {
     return button;
   }
 
@@ -208,11 +231,15 @@ function StartButton({ sessionId }: { sessionId: string }) {
       </TooltipTrigger>
       <TooltipContent side="bottom">
         <ActionableTooltipContent
-          message={warningMessage}
-          action={{
-            label: "Configure",
-            handleClick: handleConfigureAction,
-          }}
+          message={tooltipMessage}
+          action={
+            warningMessage && !lastError
+              ? {
+                  label: "Configure",
+                  handleClick: handleConfigureAction,
+                }
+              : undefined
+          }
         />
       </TooltipContent>
     </Tooltip>

@@ -6,19 +6,19 @@ import { commands as miscCommands } from "@hypr/plugin-misc";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
+import { deleteSessionCascade } from "../../../../../../store/tinybase/deleteSession";
 import * as main from "../../../../../../store/tinybase/main";
 
 export function DeleteNote({ sessionId }: { sessionId: string }) {
-  const deleteRow = main.UI.useDelRowCallback(
-    "sessions",
-    sessionId,
-    main.STORE_ID,
-  );
+  const store = main.UI.useStore(main.STORE_ID);
+  const indexes = main.UI.useIndexes(main.STORE_ID);
 
   const handleDeleteNote = useCallback(() => {
-    deleteRow();
-    void miscCommands.audioDelete(sessionId);
-  }, [sessionId, deleteRow]);
+    if (!store) {
+      return;
+    }
+    void deleteSessionCascade(store, indexes, sessionId);
+  }, [store, indexes, sessionId]);
 
   return (
     <DropdownMenuItem

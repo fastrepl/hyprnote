@@ -4,6 +4,7 @@ import { type TiptapEditor } from "@hypr/tiptap/editor";
 
 import { useAITaskTask } from "../../../../../../hooks/useAITaskTask";
 import { useLLMConnectionStatus } from "../../../../../../hooks/useLLMConnection";
+import * as main from "../../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../../store/zustand/ai-task/task-configs";
 import { ConfigError } from "./config-error";
 import { EnhancedEditor } from "./editor";
@@ -16,6 +17,14 @@ export const Enhanced = forwardRef<
   const taskId = createTaskId(enhancedNoteId, "enhance");
   const llmStatus = useLLMConnectionStatus();
   const { status } = useAITaskTask(taskId, "enhance");
+  const content = main.UI.useCell(
+    "enhanced_notes",
+    enhancedNoteId,
+    "content",
+    main.STORE_ID,
+  );
+
+  const hasContent = typeof content === "string" && content.trim().length > 0;
 
   const isConfigError =
     llmStatus.status === "pending" ||
@@ -23,7 +32,7 @@ export const Enhanced = forwardRef<
       (llmStatus.reason === "missing_config" ||
         llmStatus.reason === "unauthenticated"));
 
-  if (status === "idle" && isConfigError) {
+  if (status === "idle" && isConfigError && !hasContent) {
     return <ConfigError status={llmStatus} />;
   }
 

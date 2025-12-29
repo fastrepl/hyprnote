@@ -1104,7 +1104,6 @@ dependencies = [
  "cpal",
  "dasp",
  "data",
- "device-monitor",
  "ebur128",
  "futures-channel",
  "futures-util",
@@ -3385,6 +3384,23 @@ dependencies = [
  "getrandom 0.2.16",
  "once_cell",
  "tiny-keccak",
+]
+
+[[package]]
+name = "control-tauri"
+version = "0.1.0"
+dependencies = [
+ "monitor",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-nspanel",
+ "tauri-plugin-store",
+ "tauri-plugin-updater",
 ]
 
 [[package]]
@@ -10904,6 +10920,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "monitor"
+version = "0.1.0"
+source = "git+https://github.com/ahkohd/tauri-toolkit?branch=v2#5a8255e79ea739398787df009be385f8d296834e"
+dependencies = [
+ "cocoa 0.26.0",
+ "core-foundation 0.10.0",
+ "core-graphics 0.24.0",
+ "objc",
+ "serde",
+ "tauri",
+ "thiserror 2.0.17",
+]
+
+[[package]]
 name = "monostate"
 version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16985,6 +17015,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-nspanel"
+version = "2.1.0"
+source = "git+https://github.com/ahkohd/tauri-nspanel?branch=v2.1#da9c9a8d4eb7f0524a2508988df1a7d9585b4904"
+dependencies = [
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
+ "pastey",
+ "tauri",
+]
+
+[[package]]
 name = "tauri-plugin"
 version = "2.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -17395,6 +17437,7 @@ dependencies = [
  "codes-iso-639",
  "data",
  "device-heuristic",
+ "device-monitor",
  "dirs 6.0.0",
  "futures-util",
  "hound",

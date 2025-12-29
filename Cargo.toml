@@ -11,17 +11,20 @@ debug = false
 resolver = "2"
 members = [
   "apps/*",
+  "apps/control/src-tauri",
   "apps/desktop/src-tauri",
   "crates/*",
   "plugins/*",
 ]
 exclude = [
+  "apps/control",
   "apps/desktop",
   "apps/desktop-e2e",
   "apps/k6",
   "apps/pro",
   "apps/restate",
   "apps/storybook",
+  "apps/howto",
   "apps/api",
   "apps/bot",
   "apps/web",

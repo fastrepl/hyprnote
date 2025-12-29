@@ -1,0 +1,58 @@
+---
+import { ClientRouter } from "astro:transitions";
+import "../styles.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  editPath?: string;
+}
+
+const { title, description = "Documentation and guides for Hyprnote", editPath } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const GITHUB_BASE_URL = "https://github.com/fastrepl/hyprnote/tree/main/apps/howto";
+const editUrl = editPath ? `${GITHUB_BASE_URL}/${editPath}` : null;
+---
+
+<!doctype html>
+<html lang="en" class="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <ClientRouter />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content="Hyprnote" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <meta name="color-scheme" content="light" />
+  </head>
+  <body class="min-h-screen bg-gray-50 text-gray-900">
+    <main class="max-w-3xl mx-auto px-6 py-12 prose prose-gray prose-headings:font-semibold prose-a:text-blue-600 hover:prose-a:text-blue-800 prose-code:before:content-none prose-code:after:content-none prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-normal">
+      <slot />
+      {editUrl && (
+        <div class="not-prose mt-12 pt-6 border-t border-gray-200">
+          <a
+            href={editUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm text-gray-500 hover:text-blue-600 transition-colors"
+          >
+            Edit this page on GitHub
+          </a>
+        </div>
+      )}
+    </main>
+  </body>
+</html>

@@ -8,6 +8,7 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
+import { deleteSessionCascade } from "../../../../store/tinybase/deleteSession";
 import * as main from "../../../../store/tinybase/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { id } from "../../../../utils";
@@ -28,6 +29,7 @@ export const TimelineItemComponent = memo(
     selected: boolean;
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
+    const indexes = main.UI.useIndexes(main.STORE_ID);
 
     const eventId =
       item.type === "event" ? item.id : item.data.event_id || undefined;
@@ -55,7 +57,7 @@ export const TimelineItemComponent = memo(
     );
 
     const { handleClick, handleCmdClick, handleDelete } =
-      useTimelineItemActions(item, store, eventId, title);
+      useTimelineItemActions(item, store, indexes, eventId, title);
 
     const contextMenu = useMemo(
       () => [
@@ -148,6 +150,7 @@ function CalendarIndicator({ calendarId }: { calendarId: string }) {
 function useTimelineItemActions(
   item: TimelineItem,
   store: ReturnType<typeof main.UI.useStore>,
+  indexes: ReturnType<typeof main.UI.useIndexes>,
   eventId: string | undefined,
   title: string,
 ) {
@@ -224,9 +227,9 @@ function useTimelineItemActions(
       store.delRow("events", item.id);
     } else {
       invalidateResource("sessions", item.id);
-      store.delRow("sessions", item.id);
+      void deleteSessionCascade(store, indexes, item.id);
     }
-  }, [store, item.id, item.type, invalidateResource]);
+  }, [store, indexes, item.id, item.type, invalidateResource]);
 
   return { handleClick, handleCmdClick, handleDelete };
 }

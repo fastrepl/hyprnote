@@ -210,7 +210,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
               <div key={idx} className="flex gap-3 items-start">
                 <IconComponent
                   className={cn([
-                    "size-[18px] mt-0.5 shrink-0",
+                    "size-4.5 mt-0.5 shrink-0",
                     feature.included === true
                       ? "text-green-700"
                       : feature.included === "partial"

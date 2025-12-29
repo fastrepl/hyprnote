@@ -35,6 +35,7 @@ impl RealtimeSttAdapter for SonioxAdapter {
         None
     }
 
+    // https://soniox.com/docs/stt/rt/connection-keepalive
     fn keep_alive_message(&self) -> Option<Message> {
         Some(Message::Text(r#"{"type":"keepalive"}"#.into()))
     }
@@ -99,7 +100,7 @@ impl RealtimeSttAdapter for SonioxAdapter {
             return vec![];
         }
 
-        let has_fin_token = msg.tokens.iter().any(|t| t.text == "<fin>");
+        let has_fin_token = msg.tokens.iter().any(Token::is_fin_marker);
         let has_end_token = msg.tokens.iter().any(|t| t.text == "<end>");
         let is_finished = msg.finished.unwrap_or(false) || has_fin_token || has_end_token;
 
@@ -141,6 +142,7 @@ impl RealtimeSttAdapter for SonioxAdapter {
         responses
     }
 
+    // https://soniox.com/docs/stt/rt/manual-finalization
     fn finalize_message(&self) -> Message {
         Message::Text(r#"{"type":"finalize"}"#.into())
     }
@@ -180,6 +182,13 @@ struct Token {
     is_final: Option<bool>,
     #[serde(default)]
     speaker: Option<SpeakerId>,
+}
+
+impl Token {
+    // https://soniox.com/docs/stt/rt/manual-finalization
+    fn is_fin_marker(&self) -> bool {
+        self.text == "<fin>" && self.is_final == Some(true)
+    }
 }
 
 #[derive(Debug, Deserialize)]

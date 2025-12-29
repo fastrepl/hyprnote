@@ -78,7 +78,10 @@ impl DeviceSwitchMonitor {
         let raw_tx = match debounce_delay {
             Some(delay) => {
                 let (raw_tx, raw_rx) = mpsc::channel();
-                debounce::spawn_debounced(delay, raw_rx, event_tx);
+                debounce::spawn_debounced_by_key(delay, raw_rx, event_tx, |switch| match switch {
+                    DeviceSwitch::DefaultInputChanged => 0u8,
+                    DeviceSwitch::DefaultOutputChanged { .. } => 1u8,
+                });
                 raw_tx
             }
             None => event_tx,

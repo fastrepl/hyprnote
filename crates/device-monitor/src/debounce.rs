@@ -2,61 +2,54 @@ use std::collections::VecDeque;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
-use crate::DeviceSwitch;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum SwitchKind {
-    DefaultInputChanged,
-    DefaultOutputChanged,
-}
-
-impl From<&DeviceSwitch> for SwitchKind {
-    fn from(switch: &DeviceSwitch) -> Self {
-        match switch {
-            DeviceSwitch::DefaultInputChanged => SwitchKind::DefaultInputChanged,
-            DeviceSwitch::DefaultOutputChanged { .. } => SwitchKind::DefaultOutputChanged,
-        }
-    }
-}
-
-struct PendingEvent {
-    event: DeviceSwitch,
+struct PendingEvent<T, K> {
+    event: T,
+    key: K,
     release_at: Instant,
 }
 
-pub struct EventBuffer {
+pub struct EventBuffer<T, K, F>
+where
+    F: Fn(&T) -> K,
+{
     delay: Duration,
-    events: VecDeque<PendingEvent>,
+    events: VecDeque<PendingEvent<T, K>>,
+    key_fn: F,
 }
 
-pub enum State {
-    Ready(DeviceSwitch),
+pub enum State<T> {
+    Ready(T),
     Wait(Duration),
     Empty,
 }
 
-impl EventBuffer {
-    pub fn new(delay: Duration) -> Self {
+impl<T, K, F> EventBuffer<T, K, F>
+where
+    K: PartialEq,
+    F: Fn(&T) -> K,
+{
+    pub fn new(delay: Duration, key_fn: F) -> Self {
         Self {
             delay,
             events: VecDeque::new(),
+            key_fn,
         }
     }
 
-    pub fn put(&mut self, event: DeviceSwitch) {
+    pub fn put(&mut self, event: T) {
         let now = Instant::now();
-        let kind = SwitchKind::from(&event);
+        let key = (self.key_fn)(&event);
 
-        self.events
-            .retain(|e| e.release_at <= now || SwitchKind::from(&e.event) != kind);
+        self.events.retain(|e| e.release_at <= now || e.key != key);
 
         self.events.push_back(PendingEvent {
             event,
+            key,
             release_at: now + self.delay,
         });
     }
 
-    pub fn get(&mut self) -> State {
+    pub fn get(&mut self) -> State<T> {
         let now = Instant::now();
         match self.events.front() {
             None => State::Empty,
@@ -66,13 +59,18 @@ impl EventBuffer {
     }
 }
 
-pub fn spawn_debounced(
+pub fn spawn_debounced_by_key<T, K, F>(
     delay: Duration,
-    raw_rx: mpsc::Receiver<DeviceSwitch>,
-    debounced_tx: mpsc::Sender<DeviceSwitch>,
-) {
+    raw_rx: mpsc::Receiver<T>,
+    debounced_tx: mpsc::Sender<T>,
+    key_fn: F,
+) where
+    T: Send + 'static,
+    K: PartialEq + Send + 'static,
+    F: Fn(&T) -> K + Send + 'static,
+{
     std::thread::spawn(move || {
-        let mut buffer = EventBuffer::new(delay);
+        let mut buffer = EventBuffer::new(delay, key_fn);
 
         loop {
             let timeout = match buffer.get() {
@@ -102,15 +100,35 @@ pub fn spawn_debounced(
     });
 }
 
+pub fn spawn_debounced<T>(delay: Duration, raw_rx: mpsc::Receiver<T>, debounced_tx: mpsc::Sender<T>)
+where
+    T: PartialEq + Clone + Send + 'static,
+{
+    spawn_debounced_by_key(delay, raw_rx, debounced_tx, |t: &T| t.clone())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::thread;
 
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    enum TestEvent {
+        Simple,
+        WithPayload { value: i32 },
+    }
+
+    fn test_event_key(event: &TestEvent) -> u8 {
+        match event {
+            TestEvent::Simple => 0,
+            TestEvent::WithPayload { .. } => 1,
+        }
+    }
+
     #[test]
     fn test_event_buffer_wait() {
-        let mut buffer = EventBuffer::new(Duration::from_millis(20));
-        buffer.put(DeviceSwitch::DefaultInputChanged);
+        let mut buffer = EventBuffer::new(Duration::from_millis(20), test_event_key);
+        buffer.put(TestEvent::Simple);
         assert!(matches!(buffer.get(), State::Wait(_)));
         thread::sleep(Duration::from_millis(10));
         assert!(matches!(buffer.get(), State::Wait(_)));
@@ -119,12 +137,12 @@ mod tests {
     }
 
     #[test]
-    fn test_event_buffer_deduplication() {
-        let mut buffer = EventBuffer::new(Duration::from_millis(20));
-        buffer.put(DeviceSwitch::DefaultInputChanged);
-        buffer.put(DeviceSwitch::DefaultOutputChanged { headphone: false });
+    fn test_event_buffer_deduplication_by_key() {
+        let mut buffer = EventBuffer::new(Duration::from_millis(20), test_event_key);
+        buffer.put(TestEvent::Simple);
+        buffer.put(TestEvent::WithPayload { value: 1 });
         thread::sleep(Duration::from_millis(10));
-        buffer.put(DeviceSwitch::DefaultInputChanged);
+        buffer.put(TestEvent::Simple);
         thread::sleep(Duration::from_millis(25));
 
         let mut results = Vec::new();
@@ -133,18 +151,32 @@ mod tests {
         }
 
         assert_eq!(results.len(), 2);
-        assert!(matches!(
-            results[0],
-            DeviceSwitch::DefaultOutputChanged { .. }
-        ));
-        assert!(matches!(results[1], DeviceSwitch::DefaultInputChanged));
+        assert!(matches!(results[0], TestEvent::WithPayload { .. }));
+        assert!(matches!(results[1], TestEvent::Simple));
     }
 
     #[test]
-    fn test_event_buffer_different_events_not_deduplicated() {
-        let mut buffer = EventBuffer::new(Duration::from_millis(20));
-        buffer.put(DeviceSwitch::DefaultInputChanged);
-        buffer.put(DeviceSwitch::DefaultOutputChanged { headphone: true });
+    fn test_event_buffer_preserves_latest_payload() {
+        let mut buffer = EventBuffer::new(Duration::from_millis(20), test_event_key);
+        buffer.put(TestEvent::WithPayload { value: 1 });
+        buffer.put(TestEvent::WithPayload { value: 2 });
+        buffer.put(TestEvent::WithPayload { value: 3 });
+        thread::sleep(Duration::from_millis(25));
+
+        let mut results = Vec::new();
+        while let State::Ready(event) = buffer.get() {
+            results.push(event);
+        }
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0], TestEvent::WithPayload { value: 3 });
+    }
+
+    #[test]
+    fn test_event_buffer_different_keys_not_deduplicated() {
+        let mut buffer = EventBuffer::new(Duration::from_millis(20), test_event_key);
+        buffer.put(TestEvent::Simple);
+        buffer.put(TestEvent::WithPayload { value: 42 });
         thread::sleep(Duration::from_millis(25));
 
         let mut results = Vec::new();
@@ -156,44 +188,81 @@ mod tests {
     }
 
     #[test]
-    fn test_spawn_debounced() {
+    fn test_spawn_debounced_by_key() {
         let (raw_tx, raw_rx) = mpsc::channel();
         let (debounced_tx, debounced_rx) = mpsc::channel();
 
-        spawn_debounced(Duration::from_millis(50), raw_rx, debounced_tx);
+        spawn_debounced_by_key(
+            Duration::from_millis(50),
+            raw_rx,
+            debounced_tx,
+            test_event_key,
+        );
 
-        raw_tx.send(DeviceSwitch::DefaultInputChanged).unwrap();
-        raw_tx.send(DeviceSwitch::DefaultInputChanged).unwrap();
-        raw_tx.send(DeviceSwitch::DefaultInputChanged).unwrap();
+        raw_tx.send(TestEvent::Simple).unwrap();
+        raw_tx.send(TestEvent::Simple).unwrap();
+        raw_tx.send(TestEvent::Simple).unwrap();
 
         thread::sleep(Duration::from_millis(100));
 
         let results: Vec<_> = debounced_rx.try_iter().collect();
         assert_eq!(results.len(), 1);
-        assert!(matches!(results[0], DeviceSwitch::DefaultInputChanged));
+        assert!(matches!(results[0], TestEvent::Simple));
     }
 
     #[test]
-    fn test_spawn_debounced_preserves_latest_payload() {
+    fn test_spawn_debounced_by_key_preserves_latest_payload() {
         let (raw_tx, raw_rx) = mpsc::channel();
         let (debounced_tx, debounced_rx) = mpsc::channel();
 
-        spawn_debounced(Duration::from_millis(50), raw_rx, debounced_tx);
+        spawn_debounced_by_key(
+            Duration::from_millis(50),
+            raw_rx,
+            debounced_tx,
+            test_event_key,
+        );
 
-        raw_tx
-            .send(DeviceSwitch::DefaultOutputChanged { headphone: false })
-            .unwrap();
-        raw_tx
-            .send(DeviceSwitch::DefaultOutputChanged { headphone: true })
-            .unwrap();
+        raw_tx.send(TestEvent::WithPayload { value: 1 }).unwrap();
+        raw_tx.send(TestEvent::WithPayload { value: 2 }).unwrap();
 
         thread::sleep(Duration::from_millis(100));
 
         let results: Vec<_> = debounced_rx.try_iter().collect();
         assert_eq!(results.len(), 1);
-        assert!(matches!(
-            results[0],
-            DeviceSwitch::DefaultOutputChanged { headphone: true }
-        ));
+        assert_eq!(results[0], TestEvent::WithPayload { value: 2 });
+    }
+
+    #[test]
+    fn test_spawn_debounced_with_eq() {
+        let (raw_tx, raw_rx) = mpsc::channel();
+        let (debounced_tx, debounced_rx) = mpsc::channel();
+
+        spawn_debounced(Duration::from_millis(50), raw_rx, debounced_tx);
+
+        raw_tx.send(TestEvent::Simple).unwrap();
+        raw_tx.send(TestEvent::Simple).unwrap();
+        raw_tx.send(TestEvent::Simple).unwrap();
+
+        thread::sleep(Duration::from_millis(100));
+
+        let results: Vec<_> = debounced_rx.try_iter().collect();
+        assert_eq!(results.len(), 1);
+        assert!(matches!(results[0], TestEvent::Simple));
+    }
+
+    #[test]
+    fn test_spawn_debounced_with_eq_different_payloads_not_deduplicated() {
+        let (raw_tx, raw_rx) = mpsc::channel();
+        let (debounced_tx, debounced_rx) = mpsc::channel();
+
+        spawn_debounced(Duration::from_millis(50), raw_rx, debounced_tx);
+
+        raw_tx.send(TestEvent::WithPayload { value: 1 }).unwrap();
+        raw_tx.send(TestEvent::WithPayload { value: 2 }).unwrap();
+
+        thread::sleep(Duration::from_millis(100));
+
+        let results: Vec<_> = debounced_rx.try_iter().collect();
+        assert_eq!(results.len(), 2);
     }
 }

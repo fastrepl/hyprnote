@@ -3,6 +3,7 @@
 [build]
 command = "pnpm -F @hypr/howto build"
 publish = "apps/howto/dist"
+ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF apps/howto package.json pnpm-lock.yaml"
 
 [build.environment]
 NODE_VERSION = "22"

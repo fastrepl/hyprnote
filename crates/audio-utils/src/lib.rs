@@ -139,7 +139,6 @@ pub fn source_from_path(
 fn metadata_from_source<S>(source: &S) -> Result<AudioMetadata, crate::Error>
 where
     S: Source,
-    S::Item: rodio::Sample,
 {
     let sample_rate = source.sample_rate();
     if sample_rate == 0 {
@@ -170,10 +169,9 @@ pub fn audio_file_metadata(
     metadata_from_source(&source)
 }
 
-pub fn resample_audio<S, T>(source: S, to_rate: u32) -> Result<Vec<f32>, crate::Error>
+pub fn resample_audio<S>(source: S, to_rate: u32) -> Result<Vec<f32>, crate::Error>
 where
-    S: rodio::Source<Item = T> + Iterator<Item = T>,
-    T: rodio::Sample,
+    S: rodio::Source,
 {
     use rubato::{
         Resampler, SincFixedIn, SincInterpolationParameters, SincInterpolationType, WindowFunction,
@@ -183,7 +181,7 @@ where
     let channels = source.channels() as usize;
     let to_rate_f64 = to_rate as f64;
 
-    let samples: Vec<f32> = source.map(|sample| sample.to_f32()).collect();
+    let samples: Vec<f32> = source.collect();
 
     if (from_rate - to_rate_f64).abs() < 1.0 {
         return Ok(samples);

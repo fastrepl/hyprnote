@@ -262,7 +262,7 @@ flume = "0.11.1"
 hound = "3.5.1"
 realfft = "3.5.0"
 ringbuf = "0.4.8"
-rodio = "0.20.1"
+rodio = "0.21"
 silero-rs = { git = "https://github.com/emotechlab/silero-rs", rev = "26a6460", package = "silero" }
 vorbis_rs = "0.5.5"
 

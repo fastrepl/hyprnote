@@ -10,19 +10,18 @@ pub use static_new::*;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures_util::{Stream, StreamExt};
-    use hypr_audio_interface::AsyncSource;
-    use rodio::Source;
+
     use std::pin::Pin;
     use std::task::{Context, Poll};
 
+    use futures_util::{Stream, StreamExt};
+    use hypr_audio_interface::AsyncSource;
+
     fn get_samples_with_rate(path: impl AsRef<std::path::Path>) -> (Vec<f32>, u32) {
-        let source =
-            rodio::Decoder::new(std::io::BufReader::new(std::fs::File::open(path).unwrap()))
-                .unwrap();
+        let source = rodio::Decoder::try_from(std::fs::File::open(path).unwrap()).unwrap();
 
         let sample_rate = rodio::Source::sample_rate(&source);
-        let samples = source.convert_samples::<f32>().collect();
+        let samples = source.collect();
         (samples, sample_rate)
     }
 

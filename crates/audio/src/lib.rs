@@ -207,7 +207,6 @@ impl AsyncSource for AudioStream {
 pub(crate) fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
     use rodio::{
         OutputStreamBuilder, Sink,
-        cpal::SampleRate,
         source::{Function::Sine, SignalGenerator, Source},
     };
     use std::{
@@ -217,7 +216,7 @@ pub(crate) fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
 
     spawn(move || {
         let stream = OutputStreamBuilder::open_default_stream().unwrap();
-        let source = SignalGenerator::new(SampleRate(44100), 440.0, Sine);
+        let source = SignalGenerator::new(44100, 440.0, Sine);
 
         let source = source
             .take_duration(Duration::from_secs(seconds))

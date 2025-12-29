@@ -2,8 +2,6 @@ mod commands;
 mod panel;
 mod tray;
 
-use tauri::Manager;
-
 pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![

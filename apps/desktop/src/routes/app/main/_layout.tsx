@@ -17,11 +17,40 @@ import { SearchUIProvider } from "../../../contexts/search/ui";
 import { ShellProvider } from "../../../contexts/shell";
 import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
+import * as main from "../../../store/tinybase/main";
 import { useTabs } from "../../../store/zustand/tabs";
 
 export const Route = createFileRoute("/app/main/_layout")({
   component: Component,
 });
+
+function useSessionDeletionMonitor() {
+  const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
+  const { tabs, close } = useTabs();
+  const prevSessionIdsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const currentSessionIds = new Set(sessionIds);
+    const prevSessionIds = prevSessionIdsRef.current;
+
+    const deletedSessionIds = [...prevSessionIds].filter(
+      (id) => !currentSessionIds.has(id),
+    );
+
+    if (deletedSessionIds.length > 0) {
+      for (const deletedId of deletedSessionIds) {
+        const tabToClose = tabs.find(
+          (tab) => tab.type === "sessions" && tab.id === deletedId,
+        );
+        if (tabToClose) {
+          close(tabToClose);
+        }
+      }
+    }
+
+    prevSessionIdsRef.current = currentSessionIds;
+  }, [sessionIds, tabs, close]);
+}
 
 function Component() {
   const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({
@@ -56,6 +85,8 @@ function Component() {
       return mode !== "active" && mode !== "finalizing";
     });
   }, [registerCanClose, getSessionMode]);
+
+  useSessionDeletionMonitor();
 
   if (!aiTaskStore) {
     return null;

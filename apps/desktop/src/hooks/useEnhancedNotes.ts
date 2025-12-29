@@ -1,8 +1,10 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 import { useHasTranscript } from "../components/main/body/sessions/shared";
+import { useAITask } from "../contexts/ai-task";
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
+import { createTaskId } from "../store/zustand/ai-task/task-configs";
 
 export function useCreateEnhancedNote() {
   const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
@@ -169,4 +171,25 @@ export function useEnsureDefaultSummary(sessionId: string) {
     existingEnhancedMd,
     createEnhancedNote,
   ]);
+}
+
+export function useIsSessionEnhancing(sessionId: string): boolean {
+  const enhancedNoteIds = main.UI.useSliceRowIds(
+    main.INDEXES.enhancedNotesBySession,
+    sessionId,
+    main.STORE_ID,
+  );
+
+  const taskIds = useMemo(
+    () => (enhancedNoteIds || []).map((id) => createTaskId(id, "enhance")),
+    [enhancedNoteIds],
+  );
+
+  const isEnhancing = useAITask((state) => {
+    return taskIds.some(
+      (taskId) => state.tasks[taskId]?.status === "generating",
+    );
+  });
+
+  return isEnhancing;
 }

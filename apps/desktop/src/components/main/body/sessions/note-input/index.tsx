@@ -102,6 +102,7 @@ export const NoteInput = forwardRef<
         editorInstance.commands.insertContentAt(from, [
           { type: "paragraph", content: [{ type: "text", text: content }] },
         ]);
+        editorInstance.commands.setTextSelection(from);
         editorInstance.commands.focus();
       }
     };

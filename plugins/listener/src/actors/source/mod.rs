@@ -1,0 +1,224 @@
+mod pipeline;
+mod stream;
+
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+    mpsc::{self, Receiver},
+};
+use std::time::Duration;
+
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
+use tokio_util::sync::CancellationToken;
+
+use crate::{
+    SessionErrorEvent, SessionProgressEvent,
+    actors::{AudioChunk, ChannelMode},
+};
+use hypr_audio::AudioInput;
+use tauri_specta::Event;
+
+use pipeline::Pipeline;
+use stream::start_source_loop;
+
+use hypr_device_monitor::{DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
+
+pub enum SourceMsg {
+    SetMicMute(bool),
+    GetMicMute(RpcReplyPort<bool>),
+    GetMicDevice(RpcReplyPort<Option<String>>),
+    GetSessionId(RpcReplyPort<String>),
+    MicChunk(AudioChunk),
+    SpeakerChunk(AudioChunk),
+    StreamFailed(String),
+}
+
+pub struct SourceArgs {
+    pub mic_device: Option<String>,
+    pub onboarding: bool,
+    pub app: tauri::AppHandle,
+    pub session_id: String,
+}
+
+pub struct SourceState {
+    pub(super) app: tauri::AppHandle,
+    pub(super) session_id: String,
+    pub(super) mic_device: Option<String>,
+    pub(super) onboarding: bool,
+    pub(super) mic_muted: Arc<AtomicBool>,
+    pub(super) run_task: Option<tokio::task::JoinHandle<()>>,
+    pub(super) stream_cancel_token: Option<CancellationToken>,
+    pub(super) current_mode: ChannelMode,
+    pub(super) pipeline: Pipeline,
+    _device_watcher: Option<DeviceChangeWatcher>,
+    _silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
+}
+
+pub struct SourceActor;
+
+struct DeviceChangeWatcher {
+    _handle: DeviceMonitorHandle,
+    _thread: std::thread::JoinHandle<()>,
+}
+
+impl DeviceChangeWatcher {
+    fn spawn(actor: ActorRef<SourceMsg>) -> Self {
+        let (event_tx, event_rx) = mpsc::channel();
+        let handle = DeviceMonitor::spawn(event_tx);
+        let thread = std::thread::spawn(move || Self::event_loop(event_rx, actor));
+
+        Self {
+            _handle: handle,
+            _thread: thread,
+        }
+    }
+
+    fn event_loop(event_rx: Receiver<DeviceEvent>, actor: ActorRef<SourceMsg>) {
+        use std::sync::mpsc::RecvTimeoutError;
+
+        let debounce_duration = Duration::from_millis(1000);
+        let mut pending_change = false;
+
+        loop {
+            let event = if pending_change {
+                event_rx.recv_timeout(debounce_duration)
+            } else {
+                event_rx.recv().map_err(|_| RecvTimeoutError::Disconnected)
+            };
+
+            match event {
+                Ok(DeviceEvent::DefaultInputChanged)
+                | Ok(DeviceEvent::DefaultOutputChanged { .. }) => {
+                    tracing::info!(event = ?event, "device_event");
+                    pending_change = true;
+                }
+                Err(RecvTimeoutError::Timeout) => {
+                    if pending_change {
+                        tracing::info!("device_change_debounced_restarting_source");
+                        actor.stop(Some("device_change".to_string()));
+                        pending_change = false;
+                    }
+                }
+                Err(RecvTimeoutError::Disconnected) => break,
+            }
+        }
+    }
+}
+
+impl SourceActor {
+    pub fn name() -> ActorName {
+        "source".into()
+    }
+}
+
+#[ractor::async_trait]
+impl Actor for SourceActor {
+    type Msg = SourceMsg;
+    type State = SourceState;
+    type Arguments = SourceArgs;
+
+    async fn pre_start(
+        &self,
+        myself: ActorRef<Self::Msg>,
+        args: Self::Arguments,
+    ) -> Result<Self::State, ActorProcessingErr> {
+        if let Err(error) = (SessionProgressEvent::AudioInitializing {
+            session_id: args.session_id.clone(),
+        })
+        .emit(&args.app)
+        {
+            tracing::error!(?error, "failed_to_emit_audio_initializing");
+        }
+
+        let device_watcher = DeviceChangeWatcher::spawn(myself.clone());
+
+        let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
+        let mic_device = args
+            .mic_device
+            .or_else(|| Some(AudioInput::get_default_device_name()));
+        tracing::info!(mic_device = ?mic_device);
+
+        let pipeline = Pipeline::new(args.app.clone(), args.session_id.clone());
+
+        let mut st = SourceState {
+            app: args.app,
+            session_id: args.session_id,
+            mic_device,
+            onboarding: args.onboarding,
+            mic_muted: Arc::new(AtomicBool::new(false)),
+            run_task: None,
+            stream_cancel_token: None,
+            _device_watcher: Some(device_watcher),
+            _silence_stream_tx: silence_stream_tx,
+            current_mode: ChannelMode::MicAndSpeaker,
+            pipeline,
+        };
+
+        start_source_loop(&myself, &mut st).await?;
+        Ok(st)
+    }
+
+    async fn handle(
+        &self,
+        myself: ActorRef<Self::Msg>,
+        msg: Self::Msg,
+        st: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        match msg {
+            SourceMsg::SetMicMute(muted) => {
+                st.mic_muted.store(muted, Ordering::Relaxed);
+            }
+            SourceMsg::GetMicMute(reply) => {
+                if !reply.is_closed() {
+                    let _ = reply.send(st.mic_muted.load(Ordering::Relaxed));
+                }
+            }
+            SourceMsg::GetMicDevice(reply) => {
+                if !reply.is_closed() {
+                    let _ = reply.send(st.mic_device.clone());
+                }
+            }
+            SourceMsg::GetSessionId(reply) => {
+                if !reply.is_closed() {
+                    let _ = reply.send(st.session_id.clone());
+                }
+            }
+            SourceMsg::MicChunk(chunk) => {
+                st.pipeline.ingest_mic(chunk);
+                st.pipeline.flush(st.current_mode);
+            }
+            SourceMsg::SpeakerChunk(chunk) => {
+                st.pipeline.ingest_speaker(chunk);
+                st.pipeline.flush(st.current_mode);
+            }
+            SourceMsg::StreamFailed(reason) => {
+                tracing::error!(%reason, "source_stream_failed_stopping");
+                let _ = (SessionErrorEvent::AudioError {
+                    session_id: st.session_id.clone(),
+                    error: reason.clone(),
+                    device: st.mic_device.clone(),
+                    is_fatal: true,
+                })
+                .emit(&st.app);
+                myself.stop(Some(reason));
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn post_stop(
+        &self,
+        _myself: ActorRef<Self::Msg>,
+        st: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        if let Some(cancel_token) = st.stream_cancel_token.take() {
+            cancel_token.cancel();
+        }
+        if let Some(task) = st.run_task.take() {
+            task.abort();
+        }
+
+        Ok(())
+    }
+}

@@ -61,6 +61,14 @@ impl ChannelMode {
     pub fn determine(_onboarding: bool) -> Self {
         ChannelMode::MicAndSpeaker
     }
+
+    pub fn uses_mic(self) -> bool {
+        matches!(self, ChannelMode::MicOnly | ChannelMode::MicAndSpeaker)
+    }
+
+    pub fn uses_speaker(self) -> bool {
+        matches!(self, ChannelMode::SpeakerOnly | ChannelMode::MicAndSpeaker)
+    }
 }
 
 #[derive(Clone)]

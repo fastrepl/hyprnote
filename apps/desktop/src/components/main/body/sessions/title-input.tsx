@@ -59,6 +59,10 @@ export const TitleInput = forwardRef<
       onNavigateToEditor?.();
     } else if (e.key === "Tab" || e.key === "ArrowDown") {
       e.preventDefault();
+      setTimeout(() => {
+        const event = new CustomEvent("title-move-to-editor-start");
+        window.dispatchEvent(event);
+      }, 0);
       onNavigateToEditor?.();
     }
   };

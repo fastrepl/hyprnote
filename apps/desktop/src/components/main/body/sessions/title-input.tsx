@@ -57,10 +57,21 @@ export const TitleInput = forwardRef<
       }
 
       onNavigateToEditor?.();
-    } else if (e.key === "Tab" || e.key === "ArrowDown") {
+    } else if (e.key === "Tab") {
       e.preventDefault();
       setTimeout(() => {
         const event = new CustomEvent("title-move-to-editor-start");
+        window.dispatchEvent(event);
+      }, 0);
+      onNavigateToEditor?.();
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const input = inputRef.current;
+      const cursorPos = input?.selectionStart ?? 0;
+      setTimeout(() => {
+        const event = new CustomEvent("title-move-to-editor-position", {
+          detail: { position: cursorPos },
+        });
         window.dispatchEvent(event);
       }, 0);
       onNavigateToEditor?.();

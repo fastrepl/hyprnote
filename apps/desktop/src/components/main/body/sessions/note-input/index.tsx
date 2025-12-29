@@ -115,10 +115,29 @@ export const NoteInput = forwardRef<
       }
     };
 
+    const handleMoveToEditorPosition = (e: Event) => {
+      const customEvent = e as CustomEvent<{ position: number }>;
+      const position = customEvent.detail.position;
+      const editorInstance = internalEditorRef.current?.editor;
+
+      if (editorInstance) {
+        const targetPos = Math.min(
+          position,
+          editorInstance.state.doc.content.size - 1,
+        );
+        editorInstance.commands.setTextSelection(targetPos);
+        editorInstance.commands.focus();
+      }
+    };
+
     window.addEventListener("title-content-transfer", handleContentTransfer);
     window.addEventListener(
       "title-move-to-editor-start",
       handleMoveToEditorStart,
+    );
+    window.addEventListener(
+      "title-move-to-editor-position",
+      handleMoveToEditorPosition,
     );
     return () => {
       window.removeEventListener(
@@ -128,6 +147,10 @@ export const NoteInput = forwardRef<
       window.removeEventListener(
         "title-move-to-editor-start",
         handleMoveToEditorStart,
+      );
+      window.removeEventListener(
+        "title-move-to-editor-position",
+        handleMoveToEditorPosition,
       );
     };
   }, []);

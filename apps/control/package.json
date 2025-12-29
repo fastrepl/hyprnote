@@ -8,8 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "tauri:dev": "pnpm -F @hypr/control-tauri tauri:dev",
-    "tauri:build": "pnpm -F @hypr/control-tauri tauri:build",
+    "tauri:dev": "tauri dev --no-watch",
+    "tauri:build": "tauri build",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

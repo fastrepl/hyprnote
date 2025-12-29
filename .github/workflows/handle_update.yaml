@@ -62,4 +62,3 @@ jobs:
           repo: ${{ github.repository }}
           comment: ${{ inputs.comment_id }}
           reaction: confused
-

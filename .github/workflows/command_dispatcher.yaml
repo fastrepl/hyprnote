@@ -74,4 +74,3 @@ jobs:
       issue_number: ${{ github.event.issue.number }}
       comment_id: ${{ github.event.comment.id }}
     secrets: inherit
-

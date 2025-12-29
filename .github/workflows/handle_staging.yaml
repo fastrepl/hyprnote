@@ -105,4 +105,3 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: gh api repos/${{ github.repository }}/git/refs/heads/${{ steps.resolve.outputs.branch }} -X DELETE || true
-

@@ -15,9 +15,10 @@ path = "src/main.rs"
 tauri-build = { workspace = true, features = [] }
 
 [dependencies]
+tauri = { workspace = true, features = ["macos-private-api", "tray-icon", "image-png"] }
+
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-tauri = { workspace = true, features = ["macos-private-api", "tray-icon", "image-png"] }
 
 tauri-plugin-store = { workspace = true }
 tauri-plugin-updater = { workspace = true }
@@ -31,5 +32,5 @@ objc2-app-kit = { workspace = true }
 objc2-foundation = { workspace = true }
 
 [features]
-default = ["custom-protocol"]
-custom-protocol = ["tauri/custom-protocol"]
+default = []
+devtools = ["tauri/devtools"]

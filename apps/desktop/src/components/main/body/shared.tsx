@@ -75,6 +75,7 @@ export function TabItemBase({
           { id: "close-tab", text: "Close", action: handleCloseThis },
           ...(allowPin
             ? [
+                { separator: true as const },
                 pinned
                   ? {
                       id: "unpin-tab",
@@ -95,6 +96,7 @@ export function TabItemBase({
           { id: "close-all", text: "Close all", action: handleCloseAll },
           ...(allowPin
             ? [
+                { separator: true as const },
                 pinned
                   ? {
                       id: "unpin-tab",

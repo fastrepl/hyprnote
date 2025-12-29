@@ -1,12 +1,14 @@
-import { Menu, MenuItem } from "@tauri-apps/api/menu";
+import { Menu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
 import { type MouseEvent, useCallback } from "react";
 
-export type MenuItemDef = {
-  id: string;
-  text: string;
-  action: () => void;
-  disabled?: boolean;
-};
+export type MenuItemDef =
+  | {
+      id: string;
+      text: string;
+      action: () => void;
+      disabled?: boolean;
+    }
+  | { separator: true };
 
 export function useNativeContextMenu(items: MenuItemDef[]) {
   const showMenu = useCallback(
@@ -15,12 +17,14 @@ export function useNativeContextMenu(items: MenuItemDef[]) {
 
       const menuItems = await Promise.all(
         items.map((item) =>
-          MenuItem.new({
-            id: item.id,
-            text: item.text,
-            enabled: !item.disabled,
-            action: item.action,
-          }),
+          "separator" in item
+            ? PredefinedMenuItem.new({ item: "Separator" })
+            : MenuItem.new({
+                id: item.id,
+                text: item.text,
+                enabled: !item.disabled,
+                action: item.action,
+              }),
         ),
       );
 

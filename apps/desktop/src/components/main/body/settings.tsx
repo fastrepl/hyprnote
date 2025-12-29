@@ -12,17 +12,22 @@ export const TabItemSettings: TabItem<Extract<Tab, { type: "settings" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   return (
     <TabItemBase
       icon={<SettingsIcon className="w-4 h-4" />}
       title={"Settings"}
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };

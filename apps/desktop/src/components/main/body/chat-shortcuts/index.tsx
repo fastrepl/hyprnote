@@ -27,17 +27,22 @@ export const TabItemChatShortcut: TabItem<
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   return (
     <TabItemBase
       icon={<MessageSquare className="w-4 h-4" />}
       title="Shortcuts"
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };

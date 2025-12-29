@@ -12,6 +12,8 @@ export const TabItemEvent: TabItem<Extract<Tab, { type: "events" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   const title = main.UI.useCell(
     "events",
@@ -25,11 +27,14 @@ export const TabItemEvent: TabItem<Extract<Tab, { type: "events" }>> = ({
       icon={<CalendarIcon className="w-4 h-4" />}
       title={title ?? ""}
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };

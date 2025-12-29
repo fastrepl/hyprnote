@@ -59,6 +59,33 @@ impl SonioxAdapter {
         Ok(upload_response.id)
     }
 
+    async fn delete_file(
+        client: &ClientWithMiddleware,
+        api_base: &str,
+        api_key: &str,
+        file_id: &str,
+    ) {
+        let url = format!("https://{}/v1/files/{}", Self::api_host(api_base), file_id);
+        match client
+            .delete(&url)
+            .header("Authorization", format!("Bearer {}", api_key))
+            .send()
+            .await
+        {
+            Ok(response) if response.status().is_success() => {
+                tracing::info!(file_id = %file_id, "file deleted from Soniox");
+            }
+            Ok(response) => {
+                let status = response.status();
+                let body = response.text().await.unwrap_or_default();
+                tracing::warn!(file_id = %file_id, %status, %body, "failed to delete file from Soniox");
+            }
+            Err(e) => {
+                tracing::warn!(file_id = %file_id, error = ?e, "failed to delete file from Soniox");
+            }
+        }
+    }
+
     async fn create_transcription(
         client: &ClientWithMiddleware,
         api_base: &str,
@@ -307,8 +334,22 @@ impl SonioxAdapter {
         let file_id = Self::upload_file(client, api_base, api_key, file_path).await?;
         tracing::info!(file_id = %file_id, "file uploaded, creating transcription");
 
+        let result = Self::transcribe_and_fetch(client, api_base, api_key, params, &file_id).await;
+
+        Self::delete_file(client, api_base, api_key, &file_id).await;
+
+        result
+    }
+
+    async fn transcribe_and_fetch(
+        client: &ClientWithMiddleware,
+        api_base: &str,
+        api_key: &str,
+        params: &ListenParams,
+        file_id: &str,
+    ) -> Result<BatchResponse, Error> {
         let transcription_id =
-            Self::create_transcription(client, api_base, api_key, params, &file_id).await?;
+            Self::create_transcription(client, api_base, api_key, params, file_id).await?;
         tracing::info!(transcription_id = %transcription_id, "transcription created, polling for completion");
 
         Self::poll_transcription(client, api_base, api_key, &transcription_id).await?;

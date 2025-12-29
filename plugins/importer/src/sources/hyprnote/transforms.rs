@@ -1,6 +1,4 @@
-use crate::types::{
-    ImportedNote, ImportedTranscript, ImportedTranscriptSegment, ImportedWord,
-};
+use crate::types::{ImportedNote, ImportedTranscript, ImportedTranscriptSegment, ImportedWord};
 use hypr_db_user::{Session, Tag};
 
 pub(super) fn session_to_imported_note(session: Session, tags: Vec<Tag>) -> ImportedNote {

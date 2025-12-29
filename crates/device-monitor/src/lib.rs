@@ -9,11 +9,21 @@ mod macos;
 mod windows;
 
 #[derive(Debug, Clone)]
-pub enum DeviceEvent {
+pub enum DeviceSwitch {
     DefaultInputChanged,
     DefaultOutputChanged { headphone: bool },
+}
+
+#[derive(Debug, Clone)]
+pub enum DeviceUpdate {
     VolumeChanged { device_uid: String, volume: f32 },
     MuteChanged { device_uid: String, is_muted: bool },
+}
+
+#[derive(Debug, Clone)]
+pub enum DeviceEvent {
+    Switch(DeviceSwitch),
+    Update(DeviceUpdate),
 }
 
 pub struct DeviceMonitorHandle {
@@ -39,6 +49,80 @@ impl Drop for DeviceMonitorHandle {
         }
         if let Some(handle) = self.thread_handle.take() {
             let _ = handle.join();
+        }
+    }
+}
+
+pub struct DeviceSwitchMonitor;
+
+impl DeviceSwitchMonitor {
+    pub fn spawn(event_tx: mpsc::Sender<DeviceSwitch>) -> DeviceMonitorHandle {
+        let (stop_tx, stop_rx) = mpsc::channel();
+
+        let thread_handle = std::thread::spawn(move || {
+            #[cfg(target_os = "macos")]
+            {
+                macos::monitor_device_change(event_tx, stop_rx);
+            }
+
+            #[cfg(target_os = "linux")]
+            {
+                linux::monitor_device_change(event_tx, stop_rx);
+            }
+
+            #[cfg(target_os = "windows")]
+            {
+                windows::monitor_device_change(event_tx, stop_rx);
+            }
+
+            #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+            {
+                let _ = event_tx;
+                tracing::warn!("device_monitoring_unsupported");
+                let _ = stop_rx.recv();
+            }
+        });
+
+        DeviceMonitorHandle {
+            stop_tx: Some(stop_tx),
+            thread_handle: Some(thread_handle),
+        }
+    }
+}
+
+pub struct DeviceUpdateMonitor;
+
+impl DeviceUpdateMonitor {
+    pub fn spawn(event_tx: mpsc::Sender<DeviceUpdate>) -> DeviceMonitorHandle {
+        let (stop_tx, stop_rx) = mpsc::channel();
+
+        let thread_handle = std::thread::spawn(move || {
+            #[cfg(target_os = "macos")]
+            {
+                macos::monitor_volume_mute(event_tx, stop_rx);
+            }
+
+            #[cfg(target_os = "linux")]
+            {
+                linux::monitor_volume_mute(event_tx, stop_rx);
+            }
+
+            #[cfg(target_os = "windows")]
+            {
+                windows::monitor_volume_mute(event_tx, stop_rx);
+            }
+
+            #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+            {
+                let _ = event_tx;
+                tracing::warn!("device_monitoring_unsupported");
+                let _ = stop_rx.recv();
+            }
+        });
+
+        DeviceMonitorHandle {
+            stop_tx: Some(stop_tx),
+            thread_handle: Some(thread_handle),
         }
     }
 }
@@ -85,13 +169,27 @@ mod tests {
     use super::*;
     use std::time::Duration;
 
-    #[test]
-    fn test_device_monitor_spawn_and_stop() {
-        let (tx, rx) = mpsc::channel();
-        let handle = DeviceMonitor::spawn(tx);
+    macro_rules! monitor_test {
+        ($name:ident, $monitor:ty, $duration_secs:expr) => {
+            #[test]
+            fn $name() {
+                let (tx, rx) = mpsc::channel();
+                let handle = <$monitor>::spawn(tx);
 
-        std::thread::sleep(Duration::from_millis(100));
-        handle.stop();
-        assert!(rx.try_recv().is_err() || rx.try_recv().is_ok());
+                let start = std::time::Instant::now();
+                while start.elapsed() < Duration::from_secs($duration_secs) {
+                    match rx.recv_timeout(Duration::from_millis(100)) {
+                        Ok(event) => println!("{:?}", event),
+                        Err(mpsc::RecvTimeoutError::Timeout) => continue,
+                        Err(mpsc::RecvTimeoutError::Disconnected) => break,
+                    }
+                }
+                handle.stop();
+            }
+        };
     }
+
+    monitor_test!(test_device_switch_monitor, DeviceSwitchMonitor, 30);
+    monitor_test!(test_device_update_monitor, DeviceUpdateMonitor, 30);
+    monitor_test!(test_device_monitor, DeviceMonitor, 30);
 }

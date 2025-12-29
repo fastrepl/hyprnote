@@ -21,7 +21,9 @@ use tauri_specta::Event;
 use pipeline::Pipeline;
 use stream::start_source_loop;
 
-use hypr_device_monitor::{DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
+use hypr_device_monitor::{
+    DeviceEvent, DeviceMonitor, DeviceMonitorHandle, DeviceSwitch, DeviceUpdate,
+};
 
 pub enum SourceMsg {
     SetMicMute(bool),
@@ -87,12 +89,13 @@ impl DeviceChangeWatcher {
             };
 
             match event {
-                Ok(DeviceEvent::DefaultInputChanged)
-                | Ok(DeviceEvent::DefaultOutputChanged { .. }) => {
+                Ok(DeviceEvent::Switch(DeviceSwitch::DefaultInputChanged))
+                | Ok(DeviceEvent::Switch(DeviceSwitch::DefaultOutputChanged { .. })) => {
                     tracing::info!(event = ?event, "device_event");
                     pending_change = true;
                 }
-                Ok(DeviceEvent::VolumeChanged { .. }) | Ok(DeviceEvent::MuteChanged { .. }) => {
+                Ok(DeviceEvent::Update(DeviceUpdate::VolumeChanged { .. }))
+                | Ok(DeviceEvent::Update(DeviceUpdate::MuteChanged { .. })) => {
                     // Volume/mute changes don't require restarting the audio source
                 }
                 Err(RecvTimeoutError::Timeout) => {

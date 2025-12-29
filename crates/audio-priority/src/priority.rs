@@ -379,6 +379,8 @@ mod tests {
             direction,
             transport_type: TransportType::Unknown,
             is_default: false,
+            volume: None,
+            is_muted: None,
         }
     }
 

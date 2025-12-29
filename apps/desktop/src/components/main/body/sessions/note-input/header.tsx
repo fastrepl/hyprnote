@@ -300,15 +300,15 @@ function CreateOtherFormatButton({
               </TemplateButton>
             </>
           ) : (
-            <TemplateButton
-              className="italic text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50"
+            <button
               onClick={() => {
                 setOpen(false);
                 openNew({ type: "templates" });
               }}
+              className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
             >
               Create templates
-            </TemplateButton>
+            </button>
           )}
         </div>
       </PopoverContent>
@@ -334,6 +334,7 @@ export function Header({
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const isBatchProcessing = sessionMode === "running_batch";
   const isLiveProcessing = sessionMode === "active";
+  const isMeetingOver = !isLiveProcessing && !isBatchProcessing;
 
   if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
@@ -373,10 +374,12 @@ export function Header({
               </HeaderTab>
             );
           })}
-          <CreateOtherFormatButton
-            sessionId={sessionId}
-            handleTabChange={handleTabChange}
-          />
+          {isMeetingOver && (
+            <CreateOtherFormatButton
+              sessionId={sessionId}
+              handleTabChange={handleTabChange}
+            />
+          )}
         </div>
         {showProgress && <TranscriptionProgress sessionId={sessionId} />}
         {showEditingControls && (

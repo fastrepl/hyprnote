@@ -6,17 +6,34 @@ use hypr_device_heuristic::macos::is_headphone_from_default_output_device;
 
 type ListenerFn = extern "C-unwind" fn(ca::Obj, u32, *const ca::PropAddr, *mut ()) -> os::Status;
 
-trait UpdateSender {
+const SELECTORS: [ca::PropSelector; 2] = [
+    ca::PropSelector::HW_DEFAULT_INPUT_DEVICE,
+    ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE,
+];
+
+trait EventSender: Clone {
+    fn send_switch(&self, switch: DeviceSwitch);
     fn send_update(&self, update: DeviceUpdate);
 }
 
-impl UpdateSender for mpsc::Sender<DeviceUpdate> {
+impl EventSender for mpsc::Sender<DeviceSwitch> {
+    fn send_switch(&self, switch: DeviceSwitch) {
+        let _ = self.send(switch);
+    }
+    fn send_update(&self, _update: DeviceUpdate) {}
+}
+
+impl EventSender for mpsc::Sender<DeviceUpdate> {
+    fn send_switch(&self, _switch: DeviceSwitch) {}
     fn send_update(&self, update: DeviceUpdate) {
         let _ = self.send(update);
     }
 }
 
-impl UpdateSender for mpsc::Sender<DeviceEvent> {
+impl EventSender for mpsc::Sender<DeviceEvent> {
+    fn send_switch(&self, switch: DeviceSwitch) {
+        let _ = self.send(DeviceEvent::Switch(switch));
+    }
     fn send_update(&self, update: DeviceUpdate) {
         let _ = self.send(DeviceEvent::Update(update));
     }
@@ -31,166 +48,228 @@ where
     F: FnMut() -> bool,
 {
     let run_loop = ns::RunLoop::current();
-    let (stop_notifier_tx, stop_notifier_rx) = mpsc::channel();
-
-    std::thread::spawn(move || {
-        let _ = stop_rx.recv();
-        let _ = stop_notifier_tx.send(());
-    });
 
     loop {
         run_loop.run_until_date(&ns::Date::distant_future());
 
-        if !on_tick() {
-            break;
-        }
-
-        if stop_notifier_rx.try_recv().is_ok() {
+        if !on_tick() || stop_rx.try_recv().is_ok() {
             break;
         }
         std::thread::sleep(std::time::Duration::from_millis(100));
     }
 }
 
-struct VolumeMuteListeners {
-    device: ca::Device,
-    volume_elements: Vec<ca::PropElement>,
-    listener: ListenerFn,
-    event_tx_ptr: *mut (),
+fn get_volume_elements(device: &ca::Device) -> Vec<ca::PropElement> {
+    let has_volume = |element: ca::PropElement| {
+        let addr = ca::PropSelector::DEVICE_VOLUME_SCALAR.addr(ca::PropScope::OUTPUT, element);
+        device.prop::<f32>(&addr).is_ok()
+    };
+
+    if has_volume(ca::PropElement::MAIN) {
+        return vec![ca::PropElement::MAIN];
+    }
+
+    (1..=2)
+        .map(ca::PropElement)
+        .filter(|&e| has_volume(e))
+        .collect()
 }
 
-impl VolumeMuteListeners {
-    fn new(device: ca::Device, listener: ListenerFn, event_tx_ptr: *mut ()) -> Option<Self> {
+struct ListenerBase {
+    device: ca::Device,
+    listener: ListenerFn,
+    ptr: *mut (),
+}
+
+impl ListenerBase {
+    fn add(&self, addr: &ca::PropAddr) -> bool {
+        self.device
+            .add_prop_listener(addr, self.listener, self.ptr)
+            .is_ok()
+    }
+
+    fn remove(&self, addr: &ca::PropAddr) {
+        let _ = self
+            .device
+            .remove_prop_listener(addr, self.listener, self.ptr);
+    }
+}
+
+struct OutputListeners {
+    base: ListenerBase,
+    volume_elements: Vec<ca::PropElement>,
+}
+
+impl OutputListeners {
+    const fn mute_addr() -> ca::PropAddr {
+        ca::PropSelector::DEVICE_MUTE.addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN)
+    }
+
+    fn volume_addr(element: ca::PropElement) -> ca::PropAddr {
+        ca::PropSelector::DEVICE_VOLUME_SCALAR.addr(ca::PropScope::OUTPUT, element)
+    }
+
+    fn new(device: ca::Device, listener: ListenerFn, ptr: *mut ()) -> Option<Self> {
         if device.is_unknown() {
             return None;
         }
 
-        let volume_elements = get_volume_elements(&device);
+        let base = ListenerBase {
+            device,
+            listener,
+            ptr,
+        };
+        let volume_elements = get_volume_elements(&base.device);
 
-        for element in &volume_elements {
-            let addr = ca::PropSelector::DEVICE_VOLUME_SCALAR.addr(ca::PropScope::OUTPUT, *element);
-            if device
-                .add_prop_listener(&addr, listener, event_tx_ptr)
-                .is_err()
-            {
-                return None;
-            }
+        let volume_ok = volume_elements
+            .iter()
+            .all(|&e| base.add(&Self::volume_addr(e)));
+        if !volume_ok {
+            return None;
         }
-
-        let mute_addr = ca::PropSelector::DEVICE_PROCESS_MUTE
-            .addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
-        let _ = device.add_prop_listener(&mute_addr, listener, event_tx_ptr);
+        base.add(&Self::mute_addr());
 
         Some(Self {
-            device,
+            base,
             volume_elements,
-            listener,
-            event_tx_ptr,
         })
     }
 
     fn update(&mut self) {
         self.remove_listeners();
 
-        if let Ok(device) = ca::System::default_output_device()
-            && !device.is_unknown()
-        {
-            let volume_elements = get_volume_elements(&device);
+        let Ok(device) = ca::System::default_output_device() else {
+            return;
+        };
+        if device.is_unknown() {
+            return;
+        }
 
-            let mut success = true;
-            for element in &volume_elements {
-                let addr =
-                    ca::PropSelector::DEVICE_VOLUME_SCALAR.addr(ca::PropScope::OUTPUT, *element);
-                if device
-                    .add_prop_listener(&addr, self.listener, self.event_tx_ptr)
-                    .is_err()
-                {
-                    success = false;
-                    break;
-                }
-            }
+        self.base.device = device;
+        self.volume_elements = get_volume_elements(&self.base.device);
 
-            if success {
-                let mute_addr = ca::PropSelector::DEVICE_PROCESS_MUTE
-                    .addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
-                let _ = device.add_prop_listener(&mute_addr, self.listener, self.event_tx_ptr);
-
-                self.device = device;
-                self.volume_elements = volume_elements;
-            } else {
-                tracing::error!("device_listener_update_failed");
-            }
+        let volume_ok = self
+            .volume_elements
+            .iter()
+            .all(|&e| self.base.add(&Self::volume_addr(e)));
+        if volume_ok {
+            self.base.add(&Self::mute_addr());
+        } else {
+            tracing::error!("device_listener_update_failed");
         }
     }
 
     fn remove_listeners(&self) {
-        for element in &self.volume_elements {
-            let addr = ca::PropSelector::DEVICE_VOLUME_SCALAR.addr(ca::PropScope::OUTPUT, *element);
-            let _ = self
-                .device
-                .remove_prop_listener(&addr, self.listener, self.event_tx_ptr);
+        for &element in &self.volume_elements {
+            self.base.remove(&Self::volume_addr(element));
         }
-
-        let mute_addr = ca::PropSelector::DEVICE_PROCESS_MUTE
-            .addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
-        let _ = self
-            .device
-            .remove_prop_listener(&mute_addr, self.listener, self.event_tx_ptr);
+        self.base.remove(&Self::mute_addr());
     }
 }
 
-impl Drop for VolumeMuteListeners {
+impl Drop for OutputListeners {
     fn drop(&mut self) {
         self.remove_listeners();
     }
 }
 
-fn get_volume_elements(device: &ca::Device) -> Vec<ca::PropElement> {
-    let main_addr =
-        ca::PropSelector::DEVICE_VOLUME_SCALAR.addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
-
-    if device.prop::<f32>(&main_addr).is_ok() {
-        return vec![ca::PropElement::MAIN];
-    }
-
-    let mut elements = Vec::new();
-    for i in 1..=2 {
-        let element = ca::PropElement(i);
-        let addr = ca::PropSelector::DEVICE_VOLUME_SCALAR.addr(ca::PropScope::OUTPUT, element);
-        if device.prop::<f32>(&addr).is_ok() {
-            elements.push(element);
-        }
-    }
-    elements
+struct InputMuteListener {
+    base: ListenerBase,
 }
 
-fn handle_volume_mute_event<S: UpdateSender>(sender: &S, addr: &ca::PropAddr) {
+impl InputMuteListener {
+    const fn mute_addr() -> ca::PropAddr {
+        ca::PropSelector::DEVICE_MUTE.addr(ca::PropScope::INPUT, ca::PropElement::MAIN)
+    }
+
+    fn new(device: ca::Device, listener: ListenerFn, ptr: *mut ()) -> Option<Self> {
+        if device.is_unknown() {
+            return None;
+        }
+
+        let base = ListenerBase {
+            device,
+            listener,
+            ptr,
+        };
+        base.add(&Self::mute_addr()).then_some(Self { base })
+    }
+
+    fn update(&mut self) {
+        self.base.remove(&Self::mute_addr());
+
+        if let Ok(device) = ca::System::default_input_device()
+            && !device.is_unknown()
+        {
+            self.base.device = device;
+            self.base.add(&Self::mute_addr());
+        }
+    }
+}
+
+impl Drop for InputMuteListener {
+    fn drop(&mut self) {
+        self.base.remove(&Self::mute_addr());
+    }
+}
+
+fn send_volume_update<S: EventSender>(sender: &S, device: &ca::Device, element: ca::PropElement) {
+    let addr = ca::PropSelector::DEVICE_VOLUME_SCALAR.addr(ca::PropScope::OUTPUT, element);
+    if let Ok(uid) = device.uid()
+        && let Ok(volume) = device.prop::<f32>(&addr)
+    {
+        sender.send_update(DeviceUpdate::VolumeChanged {
+            device_uid: uid.to_string(),
+            volume,
+        });
+    }
+}
+
+fn send_mute_update<S: EventSender>(
+    sender: &S,
+    device: &ca::Device,
+    selector: ca::PropSelector,
+    scope: ca::PropScope,
+    element: ca::PropElement,
+) {
+    let addr = selector.addr(scope, element);
+    if let Ok(uid) = device.uid()
+        && let Ok(mute_value) = device.prop::<u32>(&addr)
+    {
+        sender.send_update(DeviceUpdate::MuteChanged {
+            device_uid: uid.to_string(),
+            is_muted: mute_value != 0,
+        });
+    }
+}
+
+fn handle_volume_mute_event<S: EventSender>(sender: &S, addr: &ca::PropAddr) {
     match addr.selector {
         ca::PropSelector::DEVICE_VOLUME_SCALAR => {
-            if let Ok(device) = ca::System::default_output_device()
-                && let Ok(uid) = device.uid()
-            {
-                let volume_addr = ca::PropSelector::DEVICE_VOLUME_SCALAR
-                    .addr(ca::PropScope::OUTPUT, addr.element);
-                if let Ok(volume) = device.prop::<f32>(&volume_addr) {
-                    sender.send_update(DeviceUpdate::VolumeChanged {
-                        device_uid: uid.to_string(),
-                        volume,
-                    });
-                }
+            if let Ok(device) = ca::System::default_output_device() {
+                send_volume_update(sender, &device, addr.element);
             }
         }
-        ca::PropSelector::DEVICE_PROCESS_MUTE => {
-            if let Ok(device) = ca::System::default_output_device()
-                && let Ok(uid) = device.uid()
-            {
-                let mute_addr = ca::PropSelector::DEVICE_PROCESS_MUTE
-                    .addr(ca::PropScope::OUTPUT, ca::PropElement::MAIN);
-                if let Ok(mute_value) = device.prop::<u32>(&mute_addr) {
-                    sender.send_update(DeviceUpdate::MuteChanged {
-                        device_uid: uid.to_string(),
-                        is_muted: mute_value != 0,
-                    });
+        ca::PropSelector::DEVICE_MUTE => {
+            if addr.scope == ca::PropScope::OUTPUT {
+                if let Ok(device) = ca::System::default_output_device() {
+                    send_mute_update(
+                        sender,
+                        &device,
+                        ca::PropSelector::DEVICE_MUTE,
+                        ca::PropScope::OUTPUT,
+                        addr.element,
+                    );
+                }
+            } else if addr.scope == ca::PropScope::INPUT {
+                if let Ok(device) = ca::System::default_input_device() {
+                    send_mute_update(
+                        sender,
+                        &device,
+                        ca::PropSelector::DEVICE_MUTE,
+                        ca::PropScope::INPUT,
+                        addr.element,
+                    );
                 }
             }
         }
@@ -198,29 +277,42 @@ fn handle_volume_mute_event<S: UpdateSender>(sender: &S, addr: &ca::PropAddr) {
     }
 }
 
-struct DeviceSwitchContext {
-    event_tx: mpsc::Sender<DeviceSwitch>,
+struct MonitorContext<S> {
+    event_tx: S,
+    update_output_tx: mpsc::Sender<()>,
+    update_input_tx: mpsc::Sender<()>,
+    listen_switch: bool,
+    listen_volume_mute: bool,
 }
 
-extern "C-unwind" fn device_switch_system_listener(
+extern "C-unwind" fn system_listener<S: EventSender>(
     _obj_id: ca::Obj,
     number_addresses: u32,
     addresses: *const ca::PropAddr,
     client_data: *mut (),
 ) -> os::Status {
-    let context = unsafe { &*(client_data as *const DeviceSwitchContext) };
+    let ctx = unsafe { &*(client_data as *const MonitorContext<S>) };
     let addresses = unsafe { std::slice::from_raw_parts(addresses, number_addresses as usize) };
 
     for addr in addresses {
         match addr.selector {
             ca::PropSelector::HW_DEFAULT_INPUT_DEVICE => {
-                let _ = context.event_tx.send(DeviceSwitch::DefaultInputChanged);
+                if ctx.listen_switch {
+                    ctx.event_tx.send_switch(DeviceSwitch::DefaultInputChanged);
+                }
+                if ctx.listen_volume_mute {
+                    let _ = ctx.update_input_tx.send(());
+                }
             }
             ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE => {
-                let headphone = is_headphone_from_default_output_device();
-                let _ = context
-                    .event_tx
-                    .send(DeviceSwitch::DefaultOutputChanged { headphone });
+                if ctx.listen_switch {
+                    let headphone = is_headphone_from_default_output_device();
+                    ctx.event_tx
+                        .send_switch(DeviceSwitch::DefaultOutputChanged { headphone });
+                }
+                if ctx.listen_volume_mute {
+                    let _ = ctx.update_output_tx.send(());
+                }
             }
             _ => {}
         }
@@ -228,68 +320,13 @@ extern "C-unwind" fn device_switch_system_listener(
     os::Status::NO_ERR
 }
 
-struct VolumeMuteContext {
-    update_device_listeners_tx: mpsc::Sender<()>,
-}
-
-extern "C-unwind" fn volume_mute_system_listener(
+extern "C-unwind" fn device_listener<S: EventSender>(
     _obj_id: ca::Obj,
     number_addresses: u32,
     addresses: *const ca::PropAddr,
     client_data: *mut (),
 ) -> os::Status {
-    let context = unsafe { &*(client_data as *const VolumeMuteContext) };
-    let addresses = unsafe { std::slice::from_raw_parts(addresses, number_addresses as usize) };
-
-    for addr in addresses {
-        if addr.selector == ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE {
-            let _ = context.update_device_listeners_tx.send(());
-        }
-    }
-    os::Status::NO_ERR
-}
-
-struct CombinedContext {
-    event_tx: mpsc::Sender<DeviceEvent>,
-    update_device_listeners_tx: mpsc::Sender<()>,
-}
-
-extern "C-unwind" fn combined_system_listener(
-    _obj_id: ca::Obj,
-    number_addresses: u32,
-    addresses: *const ca::PropAddr,
-    client_data: *mut (),
-) -> os::Status {
-    let context = unsafe { &*(client_data as *const CombinedContext) };
-    let addresses = unsafe { std::slice::from_raw_parts(addresses, number_addresses as usize) };
-
-    for addr in addresses {
-        match addr.selector {
-            ca::PropSelector::HW_DEFAULT_INPUT_DEVICE => {
-                let _ = context
-                    .event_tx
-                    .send(DeviceEvent::Switch(DeviceSwitch::DefaultInputChanged));
-            }
-            ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE => {
-                let headphone = is_headphone_from_default_output_device();
-                let _ = context.event_tx.send(DeviceEvent::Switch(
-                    DeviceSwitch::DefaultOutputChanged { headphone },
-                ));
-                let _ = context.update_device_listeners_tx.send(());
-            }
-            _ => {}
-        }
-    }
-    os::Status::NO_ERR
-}
-
-extern "C-unwind" fn volume_mute_device_listener(
-    _obj_id: ca::Obj,
-    number_addresses: u32,
-    addresses: *const ca::PropAddr,
-    client_data: *mut (),
-) -> os::Status {
-    let sender = unsafe { &*(client_data as *const mpsc::Sender<DeviceUpdate>) };
+    let sender = unsafe { &*(client_data as *const S) };
     let addresses = unsafe { std::slice::from_raw_parts(addresses, number_addresses as usize) };
 
     for addr in addresses {
@@ -298,162 +335,101 @@ extern "C-unwind" fn volume_mute_device_listener(
     os::Status::NO_ERR
 }
 
-extern "C-unwind" fn combined_device_listener(
-    _obj_id: ca::Obj,
-    number_addresses: u32,
-    addresses: *const ca::PropAddr,
-    client_data: *mut (),
-) -> os::Status {
-    let sender = unsafe { &*(client_data as *const mpsc::Sender<DeviceEvent>) };
-    let addresses = unsafe { std::slice::from_raw_parts(addresses, number_addresses as usize) };
+fn monitor_internal<S: EventSender>(
+    event_tx: S,
+    stop_rx: mpsc::Receiver<()>,
+    listen_switch: bool,
+    listen_volume_mute: bool,
+    name: &str,
+) {
+    let (update_output_tx, update_output_rx) = mpsc::channel();
+    let (update_input_tx, update_input_rx) = mpsc::channel();
 
-    for addr in addresses {
-        handle_volume_mute_event(sender, addr);
+    let context = MonitorContext {
+        event_tx: event_tx.clone(),
+        update_output_tx,
+        update_input_tx,
+        listen_switch,
+        listen_volume_mute,
+    };
+    let context_ptr = as_ptr(&context);
+    let event_tx_ptr = as_ptr(&event_tx);
+
+    for selector in SELECTORS {
+        if let Err(e) = ca::System::OBJ.add_prop_listener(
+            &selector.global_addr(),
+            system_listener::<S>,
+            context_ptr,
+        ) {
+            tracing::error!("system_listener_add_failed: {:?}", e);
+            return;
+        }
     }
-    os::Status::NO_ERR
+
+    let (mut output_listeners, mut input_listener) = if listen_volume_mute {
+        let output = ca::System::default_output_device()
+            .ok()
+            .and_then(|d| OutputListeners::new(d, device_listener::<S>, event_tx_ptr));
+        let input = ca::System::default_input_device()
+            .ok()
+            .and_then(|d| InputMuteListener::new(d, device_listener::<S>, event_tx_ptr));
+        (output, input)
+    } else {
+        (None, None)
+    };
+
+    tracing::info!("{}_started", name);
+
+    run_event_loop(stop_rx, || {
+        if listen_volume_mute {
+            if update_output_rx.try_recv().is_ok() {
+                if let Some(ref mut l) = output_listeners {
+                    l.update();
+                } else if let Ok(device) = ca::System::default_output_device() {
+                    output_listeners =
+                        OutputListeners::new(device, device_listener::<S>, event_tx_ptr);
+                }
+            }
+            if update_input_rx.try_recv().is_ok() {
+                if let Some(ref mut l) = input_listener {
+                    l.update();
+                } else if let Ok(device) = ca::System::default_input_device() {
+                    input_listener =
+                        InputMuteListener::new(device, device_listener::<S>, event_tx_ptr);
+                }
+            }
+        }
+        true
+    });
+
+    drop(output_listeners);
+    drop(input_listener);
+
+    for selector in SELECTORS {
+        let _ = ca::System::OBJ.remove_prop_listener(
+            &selector.global_addr(),
+            system_listener::<S>,
+            context_ptr,
+        );
+    }
+
+    tracing::info!("{}_stopped", name);
 }
 
 pub(crate) fn monitor_device_change(
     event_tx: mpsc::Sender<DeviceSwitch>,
     stop_rx: mpsc::Receiver<()>,
 ) {
-    let selectors = [
-        ca::PropSelector::HW_DEFAULT_INPUT_DEVICE,
-        ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE,
-    ];
-
-    let context = DeviceSwitchContext { event_tx };
-    let context_ptr = as_ptr(&context);
-
-    for selector in selectors {
-        if let Err(e) = ca::System::OBJ.add_prop_listener(
-            &selector.global_addr(),
-            device_switch_system_listener,
-            context_ptr,
-        ) {
-            tracing::error!("system_listener_add_failed: {:?}", e);
-            return;
-        }
-    }
-
-    tracing::info!("monitor_device_change_started");
-
-    run_event_loop(stop_rx, || true);
-
-    for selector in selectors {
-        let _ = ca::System::OBJ.remove_prop_listener(
-            &selector.global_addr(),
-            device_switch_system_listener,
-            context_ptr,
-        );
-    }
-
-    tracing::info!("monitor_device_change_stopped");
+    monitor_internal(event_tx, stop_rx, true, false, "monitor_device_change");
 }
 
 pub(crate) fn monitor_volume_mute(
     event_tx: mpsc::Sender<DeviceUpdate>,
     stop_rx: mpsc::Receiver<()>,
 ) {
-    let (update_device_listeners_tx, update_device_listeners_rx) = mpsc::channel();
-
-    let context = VolumeMuteContext {
-        update_device_listeners_tx,
-    };
-    let context_ptr = as_ptr(&context);
-    let event_tx_ptr = as_ptr(&event_tx);
-
-    if let Err(e) = ca::System::OBJ.add_prop_listener(
-        &ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE.global_addr(),
-        volume_mute_system_listener,
-        context_ptr,
-    ) {
-        tracing::error!("system_listener_add_failed: {:?}", e);
-        return;
-    }
-
-    let mut listeners = ca::System::default_output_device().ok().and_then(|device| {
-        VolumeMuteListeners::new(device, volume_mute_device_listener, event_tx_ptr)
-    });
-
-    tracing::info!("monitor_volume_mute_started");
-
-    run_event_loop(stop_rx, || {
-        if update_device_listeners_rx.try_recv().is_ok() {
-            if let Some(ref mut l) = listeners {
-                l.update();
-            } else if let Ok(device) = ca::System::default_output_device() {
-                listeners =
-                    VolumeMuteListeners::new(device, volume_mute_device_listener, event_tx_ptr);
-            }
-        }
-        true
-    });
-
-    drop(listeners);
-
-    let _ = ca::System::OBJ.remove_prop_listener(
-        &ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE.global_addr(),
-        volume_mute_system_listener,
-        context_ptr,
-    );
-
-    tracing::info!("monitor_volume_mute_stopped");
+    monitor_internal(event_tx, stop_rx, false, true, "monitor_volume_mute");
 }
 
 pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiver<()>) {
-    let selectors = [
-        ca::PropSelector::HW_DEFAULT_INPUT_DEVICE,
-        ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE,
-    ];
-
-    let (update_device_listeners_tx, update_device_listeners_rx) = mpsc::channel();
-
-    let context = CombinedContext {
-        event_tx: event_tx.clone(),
-        update_device_listeners_tx,
-    };
-    let context_ptr = as_ptr(&context);
-    let event_tx_ptr = as_ptr(&event_tx);
-
-    for selector in selectors {
-        if let Err(e) = ca::System::OBJ.add_prop_listener(
-            &selector.global_addr(),
-            combined_system_listener,
-            context_ptr,
-        ) {
-            tracing::error!("system_listener_add_failed: {:?}", e);
-            return;
-        }
-    }
-
-    let mut listeners = ca::System::default_output_device().ok().and_then(|device| {
-        VolumeMuteListeners::new(device, combined_device_listener, event_tx_ptr)
-    });
-
-    tracing::info!("monitor_started");
-
-    run_event_loop(stop_rx, || {
-        if update_device_listeners_rx.try_recv().is_ok() {
-            if let Some(ref mut l) = listeners {
-                l.update();
-            } else if let Ok(device) = ca::System::default_output_device() {
-                listeners =
-                    VolumeMuteListeners::new(device, combined_device_listener, event_tx_ptr);
-            }
-        }
-        true
-    });
-
-    drop(listeners);
-
-    for selector in selectors {
-        let _ = ca::System::OBJ.remove_prop_listener(
-            &selector.global_addr(),
-            combined_system_listener,
-            context_ptr,
-        );
-    }
-
-    tracing::info!("monitor_stopped");
+    monitor_internal(event_tx, stop_rx, true, true, "monitor");
 }

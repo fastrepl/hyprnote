@@ -1,4 +1,4 @@
-use crate::DeviceEvent;
+use crate::{DeviceEvent, DeviceSwitch, DeviceUpdate};
 use libpulse_binding::{
     context::{
         Context, FlagSet as ContextFlagSet,
@@ -11,13 +11,19 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::mpsc;
 
-pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiver<()>) {
+fn is_headphone_from_default_output_device() -> bool {
+    hypr_device_heuristic::linux::is_headphone_from_default_output_device()
+}
+
+fn setup_pulseaudio(
+    stop_rx: &mpsc::Receiver<()>,
+) -> Option<(Rc<RefCell<Mainloop>>, Rc<RefCell<Context>>)> {
     let mut proplist = match Proplist::new() {
         Some(p) => p,
         None => {
             tracing::error!("Failed to create PulseAudio proplist");
             let _ = stop_rx.recv();
-            return;
+            return None;
         }
     };
 
@@ -30,7 +36,7 @@ pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiv
     {
         tracing::error!("Failed to set PulseAudio application name");
         let _ = stop_rx.recv();
-        return;
+        return None;
     }
 
     let mainloop = match Mainloop::new() {
@@ -38,7 +44,7 @@ pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiv
         None => {
             tracing::error!("Failed to create PulseAudio mainloop");
             let _ = stop_rx.recv();
-            return;
+            return None;
         }
     };
 
@@ -48,7 +54,7 @@ pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiv
             None => {
                 tracing::error!("Failed to create PulseAudio context");
                 let _ = stop_rx.recv();
-                return;
+                return None;
             }
         };
 
@@ -58,7 +64,7 @@ pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiv
     {
         tracing::error!("Failed to connect to PulseAudio: {:?}", e);
         let _ = stop_rx.recv();
-        return;
+        return None;
     }
 
     mainloop.borrow_mut().lock();
@@ -67,7 +73,7 @@ pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiv
         tracing::error!("Failed to start PulseAudio mainloop: {:?}", e);
         mainloop.borrow_mut().unlock();
         let _ = stop_rx.recv();
-        return;
+        return None;
     }
 
     loop {
@@ -80,7 +86,7 @@ pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiv
             | libpulse_binding::context::State::Terminated => {
                 tracing::error!("PulseAudio context failed");
                 mainloop.borrow_mut().unlock();
-                return;
+                return None;
             }
             _ => {
                 mainloop.borrow_mut().unlock();
@@ -89,6 +95,24 @@ pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiv
             }
         }
     }
+
+    Some((mainloop, context))
+}
+
+fn cleanup_pulseaudio(mainloop: Rc<RefCell<Mainloop>>, context: Rc<RefCell<Context>>) {
+    mainloop.borrow_mut().lock();
+    context.borrow_mut().disconnect();
+    mainloop.borrow_mut().unlock();
+    mainloop.borrow_mut().stop();
+}
+
+pub(crate) fn monitor_device_change(
+    event_tx: mpsc::Sender<DeviceSwitch>,
+    stop_rx: mpsc::Receiver<()>,
+) {
+    let Some((mainloop, context)) = setup_pulseaudio(&stop_rx) else {
+        return;
+    };
 
     context.borrow_mut().subscribe(
         InterestMaskSet::SINK | InterestMaskSet::SOURCE | InterestMaskSet::SERVER,
@@ -103,18 +127,78 @@ pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiv
     context.borrow_mut().set_subscribe_callback(Some(Box::new(
         move |facility, operation, _index| match (facility, operation) {
             (Some(Facility::Server), Some(Operation::Changed)) => {
-                let _ = event_tx_for_callback.send(DeviceEvent::DefaultInputChanged);
-                let _ = event_tx_for_callback.send(DeviceEvent::DefaultOutputChanged {
+                let _ = event_tx_for_callback.send(DeviceSwitch::DefaultInputChanged);
+                let _ = event_tx_for_callback.send(DeviceSwitch::DefaultOutputChanged {
                     headphone: is_headphone_from_default_output_device(),
                 });
             }
             (Some(Facility::Sink), Some(Operation::Changed | Operation::New)) => {
-                let _ = event_tx_for_callback.send(DeviceEvent::DefaultOutputChanged {
+                let _ = event_tx_for_callback.send(DeviceSwitch::DefaultOutputChanged {
                     headphone: is_headphone_from_default_output_device(),
                 });
             }
             (Some(Facility::Source), Some(Operation::Changed | Operation::New)) => {
-                let _ = event_tx_for_callback.send(DeviceEvent::DefaultInputChanged);
+                let _ = event_tx_for_callback.send(DeviceSwitch::DefaultInputChanged);
+            }
+            _ => {}
+        },
+    )));
+
+    mainloop.borrow_mut().unlock();
+
+    tracing::info!("monitor_device_change_started");
+
+    let _ = stop_rx.recv();
+
+    cleanup_pulseaudio(mainloop, context);
+
+    tracing::info!("monitor_device_change_stopped");
+}
+
+pub(crate) fn monitor_volume_mute(
+    _event_tx: mpsc::Sender<DeviceUpdate>,
+    stop_rx: mpsc::Receiver<()>,
+) {
+    tracing::warn!("volume_mute_monitoring_unsupported_on_linux");
+    let _ = stop_rx.recv();
+}
+
+pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiver<()>) {
+    let Some((mainloop, context)) = setup_pulseaudio(&stop_rx) else {
+        return;
+    };
+
+    context.borrow_mut().subscribe(
+        InterestMaskSet::SINK | InterestMaskSet::SOURCE | InterestMaskSet::SERVER,
+        |success| {
+            if !success {
+                tracing::error!("Failed to subscribe to PulseAudio events");
+            }
+        },
+    );
+
+    let event_tx_for_callback = event_tx.clone();
+    context.borrow_mut().set_subscribe_callback(Some(Box::new(
+        move |facility, operation, _index| match (facility, operation) {
+            (Some(Facility::Server), Some(Operation::Changed)) => {
+                let _ = event_tx_for_callback
+                    .send(DeviceEvent::Switch(DeviceSwitch::DefaultInputChanged));
+                let _ = event_tx_for_callback.send(DeviceEvent::Switch(
+                    DeviceSwitch::DefaultOutputChanged {
+                        headphone: is_headphone_from_default_output_device(),
+                    },
+                ));
+            }
+            (Some(Facility::Sink), Some(Operation::Changed | Operation::New)) => {
+                let _ = event_tx_for_callback.send(DeviceEvent::Switch(
+                    DeviceSwitch::DefaultOutputChanged {
+                        headphone: is_headphone_from_default_output_device(),
+                    },
+                ));
+            }
+            (Some(Facility::Source), Some(Operation::Changed | Operation::New)) => {
+                let _ = event_tx_for_callback
+                    .send(DeviceEvent::Switch(DeviceSwitch::DefaultInputChanged));
             }
             _ => {}
         },
@@ -126,15 +210,7 @@ pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiv
 
     let _ = stop_rx.recv();
 
-    mainloop.borrow_mut().lock();
-    context.borrow_mut().disconnect();
-    mainloop.borrow_mut().unlock();
-
-    mainloop.borrow_mut().stop();
+    cleanup_pulseaudio(mainloop, context);
 
     tracing::info!("monitor_stopped");
-}
-
-fn is_headphone_from_default_output_device() -> bool {
-    hypr_device_heuristic::linux::is_headphone_from_default_output_device()
 }

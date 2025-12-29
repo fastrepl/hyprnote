@@ -20,7 +20,7 @@ use hypr_aec::AEC;
 use hypr_agc::VadAgc;
 use hypr_audio::AudioInput;
 use hypr_audio_utils::{ResampleExtDynamicNew, chunk_size_for_stt, f32_to_i16_bytes};
-use hypr_device_monitor::{DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
+use hypr_device_monitor::{DeviceMonitorHandle, DeviceSwitch, DeviceSwitchMonitor};
 use tauri_specta::Event;
 
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
@@ -67,7 +67,7 @@ struct DeviceChangeWatcher {
 impl DeviceChangeWatcher {
     fn spawn(actor: ActorRef<SourceMsg>) -> Self {
         let (event_tx, event_rx) = mpsc::channel();
-        let handle = DeviceMonitor::spawn(event_tx);
+        let handle = DeviceSwitchMonitor::spawn(event_tx);
         let thread = std::thread::spawn(move || Self::event_loop(event_rx, actor));
 
         Self {
@@ -76,7 +76,7 @@ impl DeviceChangeWatcher {
         }
     }
 
-    fn event_loop(event_rx: Receiver<DeviceEvent>, actor: ActorRef<SourceMsg>) {
+    fn event_loop(event_rx: Receiver<DeviceSwitch>, actor: ActorRef<SourceMsg>) {
         use std::sync::mpsc::RecvTimeoutError;
 
         let debounce_duration = Duration::from_millis(1000);
@@ -90,13 +90,9 @@ impl DeviceChangeWatcher {
             };
 
             match event {
-                Ok(DeviceEvent::DefaultInputChanged)
-                | Ok(DeviceEvent::DefaultOutputChanged { .. }) => {
-                    tracing::info!(event = ?event, "device_event");
+                Ok(event) => {
+                    tracing::info!(?event, "device_event");
                     pending_change = true;
-                }
-                Ok(DeviceEvent::VolumeChanged { .. }) | Ok(DeviceEvent::MuteChanged { .. }) => {
-                    // Volume/mute changes don't require restarting the audio source
                 }
                 Err(RecvTimeoutError::Timeout) => {
                     if pending_change {

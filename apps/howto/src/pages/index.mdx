@@ -1,30 +1,293 @@
 ---
 layout: ../layouts/Layout.astro
-title: How To
+title: macOS Input Device Selection
 ---
 
-import Counter from "../components/Counter.tsx";
+# macOS Input Device Selection Behavior
 
-# How To
+This document explains how macOS handles audio input device selection and provides solutions for users who want to maintain a preferred microphone configuration.
 
-Welcome to the Hyprnote How To guide.
+## Default Behavior
 
-## Interactive Example
+macOS automatically switches the system's default audio input (and output) to the most recently connected device. When you turn on Bluetooth headphones or plug in a USB microphone, macOS immediately routes input to that new device. There is no built-in setting to change this behavior or set a priority order.
 
-Here's an interactive React component rendered within this MDX page:
+Apple assumes the newest device is what you intend to use. Unlike Windows, macOS doesn't let you "lock" a preferred default microphone in system settings. The Mac will always default to the newly added input device unless you manually intervene.
 
-<Counter client:load />
+### The Bluetooth Audio Quality Problem
 
-## Getting Started
+When AirPods or other Bluetooth headphones connect to a Mac, macOS auto-selects their built-in microphone as the input device. This triggers a codec switch from AAC (high-quality stereo) to SCO/HFP (low-bandwidth bidirectional mode), degrading audio output quality significantly. The audio drops from high-fidelity stereo to approximately 8-16 kHz mono.
 
-This is a simple single-page app built with:
+To restore high-quality audio, you must switch input back to the Mac's internal microphone or another non-Bluetooth source. This keeps the Bluetooth headphones in AAC mode for output while using a higher-quality microphone for input.
 
-- **Astro** - The web framework for content-driven websites
-- **MDX** - Markdown with JSX support
-- **React** - For interactive components
-- **Tailwind CSS** - For styling
-- **Netlify** - For deployment
+## Manual Switching Methods
 
-## Next Steps
+### System Settings
 
-Add your content here. You can use standard Markdown syntax, and embed React components anywhere in the document.
+Navigate to System Settings > Sound > Input to select your preferred input device. On modern macOS, clicking the volume icon in Control Center also provides quick access to input/output device selection.
+
+### Keyboard Shortcuts
+
+Option-click the volume icon in the menu bar to access the Sound menu directly. You can also enable the Sound menu bar item in System Settings for one-click access to device switching.
+
+### Audio MIDI Setup
+
+For advanced users, Audio MIDI Setup (found in /Applications/Utilities/) provides detailed control over audio device configuration, including sample rates and channel layouts.
+
+## Aggregate Device Workaround
+
+macOS's Audio MIDI Setup allows creating an Aggregate Input Device containing only your preferred microphone. Setting this aggregate as the default input may prevent macOS from switching to newly connected devices.
+
+### Setup Procedure
+
+1. Open Audio MIDI Setup
+2. Click the "+" button and select "Create Aggregate Device"
+3. Include only your preferred microphone (e.g., built-in mic)
+4. Right-click the aggregate device and select "Use This Device For Sound Input"
+
+### Limitations
+
+This technique has inconsistent results across macOS versions and hardware configurations. Some users report success on older systems but failure on Apple Silicon Macs. The aggregate device approach also locks you to a single input source and may confuse certain applications.
+
+## Command-Line Solutions
+
+### SwitchAudioSource
+
+SwitchAudioSource is an open-source command-line utility for changing default audio devices. Install via Homebrew:
+
+```bash
+brew install switchaudio-osx
+```
+
+Common commands:
+
+```bash
+# List all audio devices
+SwitchAudioSource -a
+
+# Get current input device
+SwitchAudioSource -t input -c
+
+# Set input device by name
+SwitchAudioSource -t input -s "MacBook Pro Microphone"
+```
+
+### Persistent Enforcement Script
+
+A background script can continuously monitor and correct the input device. This approach polls the current input and reverts unwanted changes:
+
+```bash
+#!/bin/bash
+PREFERRED_MIC="MacBook Pro Microphone"
+UNWANTED_MIC="AirPods"
+
+while true; do
+  CURRENT=$(SwitchAudioSource -t input -c)
+  if [[ "$CURRENT" == *"$UNWANTED_MIC"* ]]; then
+    SwitchAudioSource -t input -s "$PREFERRED_MIC"
+  fi
+  sleep 1
+done
+```
+
+To run this script at login, create a launchd agent in `~/Library/LaunchAgents/`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" 
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.user.audio-input-enforcer</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/path/to/your/script.sh</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+</dict>
+</plist>
+```
+
+### Event-Driven Approach with Hammerspoon
+
+Hammerspoon provides an event-driven alternative that reacts to audio device changes without continuous polling. The `hs.audiodevice.watcher` module triggers callbacks when devices are added, removed, or when the default changes.
+
+```lua
+-- ~/.hammerspoon/init.lua
+local preferredMic = "MacBook Pro Microphone"
+
+function audioDeviceCallback(event)
+  if event == "dIn " then  -- Note: space after "dIn"
+    local currentInput = hs.audiodevice.defaultInputDevice()
+    if currentInput and currentInput:name() ~= preferredMic then
+      local preferred = hs.audiodevice.findInputByName(preferredMic)
+      if preferred then
+        preferred:setDefaultInputDevice()
+      end
+    end
+  end
+end
+
+hs.audiodevice.watcher.setCallback(audioDeviceCallback)
+hs.audiodevice.watcher.start()
+```
+
+For a priority-based approach that selects the best available microphone:
+
+```lua
+local micPriority = {
+  "Jabra Speak 510",
+  "Blue Yeti",
+  "MacBook Pro Microphone"
+}
+
+function selectBestMic()
+  for _, micName in ipairs(micPriority) do
+    local mic = hs.audiodevice.findInputByName(micName)
+    if mic then
+      mic:setDefaultInputDevice()
+      return
+    end
+  end
+end
+
+hs.audiodevice.watcher.setCallback(function(event)
+  if event == "dIn " or event == "dev#" then
+    selectBestMic()
+  end
+end)
+hs.audiodevice.watcher.start()
+```
+
+## Third-Party Applications
+
+### SoundSource
+
+SoundSource by Rogue Amoeba provides comprehensive audio control with Apple Shortcuts integration. Version 5.5+ includes 17 automation actions for setting default input/output devices programmatically.
+
+Key features include menu bar device switching, per-app audio routing, and the ability to create Shortcuts workflows that trigger on specific conditions. The Shortcuts integration enables automation scenarios like "when connecting to external monitor, set input to USB microphone."
+
+Cost: ~$39 with free trial.
+
+### Recadio
+
+Recadio is purpose-built for remembering audio device preferences. It monitors connected devices and automatically restores your preferred input/output configuration for each device combination.
+
+The application learns your preferences: use each device combination once, set your desired microphone, and Recadio recalls that configuration going forward. This approach handles multiple setups (office, home, etc.) where each device combination should trigger specific audio routing.
+
+Cost: ~$10.
+
+### Bluetooth-Specific Solutions
+
+**AirPods Sound Quality Fixer** is a free, open-source menu bar application that prevents AirPods from being selected as the input device. When AirPods connect, it immediately switches input to the built-in microphone, keeping AirPods in high-quality stereo output mode.
+
+**Bluetooth Mic Switch** (Mac App Store) provides similar functionality for any Bluetooth audio device. It detects Bluetooth device connections and automatically reverts the system microphone to your configured preference.
+
+Both applications solve the codec degradation problem by ensuring Bluetooth headphones are never used as the input source.
+
+### Ears
+
+Ears provides a keyboard-driven quick-switcher interface for audio devices. Press a customizable hotkey to display available inputs and outputs, then select devices with keystrokes. While not automatic, it significantly streamlines manual device switching.
+
+Additional features include Instamute (universal push-to-talk), default volume settings per device, and AppleScript/CLI support for integration with other automation tools.
+
+## Core Audio Technical Details
+
+### Property Listeners
+
+macOS Core Audio provides `AudioObjectAddPropertyListener` for monitoring audio device changes. Applications can register callbacks for:
+
+- `kAudioHardwarePropertyDefaultInputDevice` - Default input device changed
+- `kAudioHardwarePropertyDefaultOutputDevice` - Default output device changed  
+- `kAudioHardwarePropertyDevices` - Device list changed (connect/disconnect)
+
+### Setting Default Devices Programmatically
+
+The `AudioObjectSetPropertyData` function with `kAudioHardwarePropertyDefaultInputDevice` selector allows programmatic control of the default input device. This is the underlying mechanism used by SwitchAudioSource and similar tools.
+
+```c
+AudioObjectPropertyAddress propertyAddress = {
+  kAudioHardwarePropertyDefaultInputDevice,
+  kAudioObjectPropertyScopeGlobal,
+  kAudioObjectPropertyElementMain
+};
+
+AudioDeviceID deviceId = /* target device ID */;
+AudioObjectSetPropertyData(
+  kAudioObjectSystemObject,
+  &propertyAddress,
+  0,
+  NULL,
+  sizeof(AudioDeviceID),
+  &deviceId
+);
+```
+
+### Device Enumeration
+
+To list available input devices:
+
+```c
+AudioObjectPropertyAddress propertyAddress = {
+  kAudioHardwarePropertyDevices,
+  kAudioObjectPropertyScopeGlobal,
+  kAudioObjectPropertyElementMain
+};
+
+UInt32 dataSize;
+AudioObjectGetPropertyDataSize(
+  kAudioObjectSystemObject,
+  &propertyAddress,
+  0,
+  NULL,
+  &dataSize
+);
+
+int deviceCount = dataSize / sizeof(AudioDeviceID);
+AudioDeviceID *devices = malloc(dataSize);
+AudioObjectGetPropertyData(
+  kAudioObjectSystemObject,
+  &propertyAddress,
+  0,
+  NULL,
+  &dataSize,
+  devices
+);
+```
+
+Filter for input-capable devices by checking `kAudioDevicePropertyStreamConfiguration` with `kAudioObjectPropertyScopeInput`.
+
+## Solution Comparison
+
+| Approach | Automation | Setup Effort | Cost | Scope |
+|----------|------------|--------------|------|-------|
+| Manual switching | None | Minimal | Free | Universal |
+| Aggregate device | Passive | Low | Free | Unreliable |
+| SwitchAudioSource + launchd | Polling | Medium | Free | Universal |
+| Hammerspoon | Event-driven | Medium | Free | Universal |
+| SoundSource + Shortcuts | Configurable | Low | $39 | Universal |
+| Recadio | Automatic | Minimal | $10 | Universal |
+| Bluetooth Mic Switch | Automatic | Minimal | Free | Bluetooth only |
+| AirPods Sound Quality Fixer | Automatic | Minimal | Free | Bluetooth only |
+
+## Recommendations
+
+For users experiencing Bluetooth audio quality degradation, the simplest solution is a dedicated Bluetooth mic switcher (AirPods Sound Quality Fixer or Bluetooth Mic Switch). These lightweight applications solve the specific problem with minimal configuration.
+
+For comprehensive audio device management across multiple setups, Recadio provides the best balance of automation and simplicity. It learns your preferences and applies them automatically without requiring scripting knowledge.
+
+Power users comfortable with scripting should consider Hammerspoon for its event-driven architecture and flexibility. The ability to implement priority-based device selection and complex conditional logic makes it the most powerful option.
+
+For users who need broader audio control features (per-app routing, equalizers, etc.) alongside device automation, SoundSource with Shortcuts integration provides a complete solution despite the higher cost.
+
+## References
+
+- [SwitchAudioSource GitHub](https://github.com/deweller/switchaudio-osx)
+- [Hammerspoon Documentation](https://www.hammerspoon.org/docs/hs.audiodevice.html)
+- [AirPods Sound Quality Fixer](https://github.com/milgra/airpodssoundqualityfixer)
+- [Rogue Amoeba SoundSource](https://rogueamoeba.com/soundsource/)
+- [Recadio](https://www.recadio.com/)
+- [Apple Core Audio Documentation](https://developer.apple.com/documentation/coreaudio)

@@ -31,27 +31,17 @@ jobs:
   control_ci:
     needs: optimize_ci
     if: needs.optimize_ci.outputs.skip == 'false'
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: "macos"
-            runner: "depot-macos-14"
-          - platform: "linux"
-            runner: "depot-ubuntu-22.04-8"
-          - platform: "linux"
-            runner: "depot-ubuntu-24.04-8"
-    runs-on: ${{ matrix.runner }}
+    runs-on: depot-macos-14
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/pnpm_install
       - run: pnpm -F @hypr/control typecheck
       - uses: ./.github/actions/install_desktop_deps
         with:
-          target: ${{ matrix.platform }}
+          target: macos
       - uses: ./.github/actions/rust_install
         with:
-          platform: ${{ matrix.platform }}
+          platform: macos
       - run: cargo check -p control-tauri
       - run: cargo test -p control-tauri
 

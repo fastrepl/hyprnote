@@ -148,89 +148,9 @@ jobs:
           path: crates/control-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
           retention-days: 3
 
-  build-linux:
-    needs: [compute-version, cn-draft]
-    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
-    permissions:
-      contents: write
-    runs-on: depot-ubuntu-24.04-8
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-          fetch-depth: 0
-          fetch-tags: true
-      - run: git fetch --tags --force
-      - run: ./scripts/version.sh "./crates/control-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
-      - uses: ./.github/actions/install_desktop_deps
-        with:
-          target: linux
-      - uses: ./.github/actions/rust_install
-        with:
-          platform: linux
-      - uses: ./.github/actions/pnpm_install
-      - run: |
-          FEATURES_FLAG=""
-          if [[ "${{ inputs.channel }}" == "staging" ]]; then
-            FEATURES_FLAG="--features devtools"
-          fi
-          pnpm -F @hypr/control-tauri tauri build --bundles appimage,deb --target x86_64-unknown-linux-gnu --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
-        env:
-          CI: false
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APP_VERSION: ${{ needs.compute-version.outputs.version }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      - run: |
-          mkdir -p target/release/
-          find target/x86_64-unknown-linux-gnu/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
-        shell: bash
-        working-directory: ./crates/control-tauri
-      - if: ${{ inputs.channel != 'staging' }}
-        uses: ./.github/actions/cn_release
-        with:
-          cmd: upload
-          app: ${{ env.CN_APPLICATION }}
-          key: ${{ secrets.CN_API_KEY }}
-          channel: ${{ env.RELEASE_CHANNEL }}
-          framework: tauri
-          working-directory: ./crates/control-tauri
-      - if: ${{ inputs.channel != 'staging' }}
-        run: |
-          APPIMAGE_FILE=$(find "crates/control-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/" -name "*.AppImage" -type f)
-          cp "$APPIMAGE_FILE" "hyprnote-control-linux-x86_64.AppImage"
-          aws s3 cp "hyprnote-control-linux-x86_64.AppImage" \
-            "s3://hyprnote-build/control/${{ needs.compute-version.outputs.version }}/hyprnote-control-linux-x86_64.AppImage" \
-            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto
-          DEB_FILE=$(find "crates/control-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/" -name "*.deb" -type f)
-          cp "$DEB_FILE" "hyprnote-control-linux-x86_64.deb"
-          aws s3 cp "hyprnote-control-linux-x86_64.deb" \
-            "s3://hyprnote-build/control/${{ needs.compute-version.outputs.version }}/hyprnote-control-linux-x86_64.deb" \
-            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - if: ${{ inputs.channel == 'staging' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: hyprnote-control-staging-linux-appimage
-          path: crates/control-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
-          retention-days: 3
-      - if: ${{ inputs.channel == 'staging' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: hyprnote-control-staging-linux-deb
-          path: crates/control-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb
-          retention-days: 3
-
   cn-publish:
     if: ${{ inputs.channel != 'staging' }}
-    needs: [compute-version, build-macos, build-linux]
+    needs: [compute-version, build-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -246,14 +166,13 @@ jobs:
 
   release:
     if: ${{ inputs.channel != 'staging' }}
-    needs: [compute-version, build-macos, build-linux, cn-publish]
+    needs: [compute-version, build-macos, cn-publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - if: ${{ needs.build-macos.result == 'success' }}
-        run: |
+      - run: |
           aws s3 cp \
             "s3://hyprnote-build/control/${{ needs.compute-version.outputs.version }}/hyprnote-control-macos-aarch64.dmg" \
             "hyprnote-control-macos-aarch64.dmg" \
@@ -262,21 +181,6 @@ jobs:
           aws s3 cp \
             "s3://hyprnote-build/control/${{ needs.compute-version.outputs.version }}/hyprnote-control-macos-x86_64.dmg" \
             "hyprnote-control-macos-x86_64.dmg" \
-            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - if: ${{ needs.build-linux.result == 'success' }}
-        run: |
-          aws s3 cp \
-            "s3://hyprnote-build/control/${{ needs.compute-version.outputs.version }}/hyprnote-control-linux-x86_64.AppImage" \
-            "hyprnote-control-linux-x86_64.AppImage" \
-            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto
-          aws s3 cp \
-            "s3://hyprnote-build/control/${{ needs.compute-version.outputs.version }}/hyprnote-control-linux-x86_64.deb" \
-            "hyprnote-control-linux-x86_64.deb" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
@@ -291,34 +195,11 @@ jobs:
         uses: ./.github/actions/generate_checksums
         with:
           files: |
-            ${{ needs.build-macos.result == 'success' && 'hyprnote-control-macos-aarch64.dmg' || '' }}
-            ${{ needs.build-macos.result == 'success' && 'hyprnote-control-macos-x86_64.dmg' || '' }}
-            ${{ needs.build-linux.result == 'success' && 'hyprnote-control-linux-x86_64.AppImage' || '' }}
-            ${{ needs.build-linux.result == 'success' && 'hyprnote-control-linux-x86_64.deb' || '' }}
-      - id: artifacts
-        run: |
-          ARTIFACTS=""
-          if [[ "${{ needs.build-macos.result }}" == "success" ]]; then
-            ARTIFACTS="hyprnote-control-macos-aarch64.dmg,hyprnote-control-macos-x86_64.dmg"
-          fi
-          if [[ "${{ needs.build-linux.result }}" == "success" ]]; then
-            if [[ -n "$ARTIFACTS" ]]; then
-              ARTIFACTS="$ARTIFACTS,hyprnote-control-linux-x86_64.AppImage,hyprnote-control-linux-x86_64.deb"
-            else
-              ARTIFACTS="hyprnote-control-linux-x86_64.AppImage,hyprnote-control-linux-x86_64.deb"
-            fi
-          fi
-          if [[ -z "$ARTIFACTS" ]]; then
-            echo "No artifacts to release" >&2
-            exit 1
-          fi
-          if [[ -n "${{ steps.checksums.outputs.checksum_files }}" ]]; then
-            ARTIFACTS="$ARTIFACTS,${{ steps.checksums.outputs.checksum_files }}"
-          fi
-          echo "list=$ARTIFACTS" >> $GITHUB_OUTPUT
+            hyprnote-control-macos-aarch64.dmg
+            hyprnote-control-macos-x86_64.dmg
       - uses: ncipollo/release-action@v1
         with:
           tag: control_v${{ needs.compute-version.outputs.version }}
           name: control_v${{ needs.compute-version.outputs.version }}
           body: "Hyprnote Control ${{ needs.compute-version.outputs.version }}"
-          artifacts: ${{ steps.artifacts.outputs.list }}
+          artifacts: hyprnote-control-macos-aarch64.dmg,hyprnote-control-macos-x86_64.dmg,${{ steps.checksums.outputs.checksum_files }}

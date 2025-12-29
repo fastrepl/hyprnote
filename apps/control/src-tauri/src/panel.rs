@@ -1,10 +1,12 @@
-use tauri::{AppHandle, Emitter, Listener, Manager, WebviewWindow};
-use tauri_nspanel::{ManagerExt, Panel, WebviewWindowExt, panel};
+use tauri::{AppHandle, Listener, Manager, WebviewWindow};
+use tauri_nspanel::{ManagerExt, WebviewWindowExt, panel};
 
 #[cfg(target_os = "macos")]
 use objc2::msg_send;
 #[cfg(target_os = "macos")]
-use objc2::runtime::AnyObject;
+use objc2::runtime::{AnyObject, NSObjectProtocol};
+#[cfg(target_os = "macos")]
+use objc2::{ClassType, Message};
 #[cfg(target_os = "macos")]
 use objc2_app_kit::NSWindowCollectionBehavior;
 #[cfg(target_os = "macos")]
@@ -12,8 +14,6 @@ use objc2_foundation::NSPoint;
 
 #[cfg(target_os = "macos")]
 const NS_MAIN_MENU_WINDOW_LEVEL: i64 = 24;
-#[cfg(target_os = "macos")]
-const NS_WINDOW_STYLE_MASK_NON_ACTIVATING_PANEL: i64 = 1 << 7;
 
 panel!(MenubarPanel {
     config: {
@@ -83,8 +83,6 @@ pub fn update_menubar_appearance(app_handle: &AppHandle) {
 
 #[cfg(target_os = "macos")]
 pub fn set_corner_radius(window: &WebviewWindow, radius: f64) {
-    use tauri::WebviewWindowExt as TauriWebviewWindowExt;
-
     let ns_window = window.ns_window().unwrap();
 
     unsafe {
@@ -116,8 +114,6 @@ pub fn position_menubar_panel(app_handle: &AppHandle, padding_top: f64) {
 
     #[cfg(target_os = "macos")]
     {
-        use tauri::WebviewWindowExt as TauriWebviewWindowExt;
-
         let mouse_location: NSPoint =
             unsafe { msg_send![objc2_app_kit::NSEvent::class(), mouseLocation] };
 
@@ -150,7 +146,7 @@ pub fn position_menubar_panel(app_handle: &AppHandle, padding_top: f64) {
                 size: win_frame.size,
             };
 
-            let _: () = msg_send![ns_window, setFrame: new_frame display: false];
+            let _: () = msg_send![ns_window, setFrame: new_frame, display: false];
         }
     }
 
@@ -161,25 +157,9 @@ pub fn position_menubar_panel(app_handle: &AppHandle, padding_top: f64) {
 }
 
 #[cfg(target_os = "macos")]
-fn register_workspace_listener(name: String, callback: Box<dyn Fn() + Send + Sync>) {
-    use std::ffi::CString;
-
-    unsafe {
-        let workspace: *mut AnyObject =
-            msg_send![objc2_app_kit::NSWorkspace::class(), sharedWorkspace];
-        let notification_center: *mut AnyObject = msg_send![workspace, notificationCenter];
-
-        let block = objc2::rc::Retained::into_raw(objc2::rc::Retained::new(
-            objc2::runtime::AnyObject::class(),
-        ));
-
-        let name_cstr = CString::new(name).unwrap();
-        let ns_name: *mut AnyObject = msg_send![objc2_foundation::NSString::class(), stringWithUTF8String: name_cstr.as_ptr()];
-
-        // Note: This is a simplified version. In production, you'd want to use block2 crate
-        // for proper block handling. For now, we'll rely on the panel delegate for resign key events.
-        let _ = (notification_center, block, ns_name, callback);
-    }
+fn register_workspace_listener(_name: String, _callback: Box<dyn Fn() + Send + Sync>) {
+    // Note: This is a simplified version. In production, you'd want to use block2 crate
+    // for proper block handling. For now, we rely on the panel delegate for resign key events.
 }
 
 #[cfg(not(target_os = "macos"))]

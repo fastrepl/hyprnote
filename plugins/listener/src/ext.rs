@@ -1,15 +1,9 @@
-use std::time::{Instant, SystemTime};
-
 use ractor::{ActorRef, call_t, registry};
-use tauri::{Manager, path::BaseDirectory};
-use tauri_specta::Event;
 
-use crate::{
-    SessionLifecycleEvent,
-    actors::{SessionContext, SessionParams, SourceActor, SourceMsg, spawn_session_supervisor},
-};
+use crate::actors::{RootActor, RootMsg, SessionParams, SourceActor, SourceMsg};
 
 pub struct Listener<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    #[allow(unused)]
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
@@ -35,9 +29,15 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
 
     #[tracing::instrument(skip_all)]
     pub async fn get_state(&self) -> crate::fsm::State {
-        let state = self.manager.state::<crate::SharedState>();
-        let guard = state.lock().await;
-        guard.get_state()
+        if let Some(cell) = registry::where_is(RootActor::name()) {
+            let actor: ActorRef<RootMsg> = cell.into();
+            match call_t!(actor, RootMsg::GetState, 100) {
+                Ok(fsm_state) => fsm_state,
+                Err(_) => crate::fsm::State::Inactive,
+            }
+        } else {
+            crate::fsm::State::Inactive
+        }
     }
 
     #[tracing::instrument(skip_all)]
@@ -63,101 +63,18 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
 
     #[tracing::instrument(skip_all)]
     pub async fn start_session(&self, params: SessionParams) {
-        let state = self.manager.state::<crate::SharedState>();
-        let mut guard = state.lock().await;
-
-        if guard.session_supervisor.is_some() {
-            tracing::warn!("session_already_running");
-            return;
-        }
-
-        let app_dir = match guard
-            .app
-            .path()
-            .resolve("hyprnote/sessions", BaseDirectory::Data)
-        {
-            Ok(dir) => dir,
-            Err(e) => {
-                tracing::error!(error = ?e, "failed_to_resolve_app_dir");
-                return;
-            }
-        };
-
-        {
-            use tauri_plugin_tray::TrayPluginExt;
-            let _ = guard.app.tray().set_start_disabled(true);
-        }
-
-        let ctx = SessionContext {
-            app: guard.app.clone(),
-            params: params.clone(),
-            app_dir,
-            started_at_instant: Instant::now(),
-            started_at_system: SystemTime::now(),
-        };
-
-        match spawn_session_supervisor(ctx).await {
-            Ok((supervisor_ref, handle)) => {
-                guard.session_supervisor = Some(supervisor_ref);
-                guard.supervisor_handle = Some(handle);
-
-                if let Err(error) = (SessionLifecycleEvent::Active {
-                    session_id: params.session_id,
-                })
-                .emit(&guard.app)
-                {
-                    tracing::error!(?error, "failed_to_emit_active");
-                }
-
-                tracing::info!("session_started");
-            }
-            Err(e) => {
-                tracing::error!(error = ?e, "failed_to_start_session");
-
-                use tauri_plugin_tray::TrayPluginExt;
-                let _ = guard.app.tray().set_start_disabled(false);
-            }
+        if let Some(cell) = registry::where_is(RootActor::name()) {
+            let actor: ActorRef<RootMsg> = cell.into();
+            let _ = ractor::call!(actor, RootMsg::StartSession, params);
         }
     }
 
     #[tracing::instrument(skip_all)]
     pub async fn stop_session(&self) {
-        let state = self.manager.state::<crate::SharedState>();
-        let mut guard = state.lock().await;
-
-        let session_id = if let Some(cell) = registry::where_is(SourceActor::name()) {
-            let actor: ActorRef<SourceMsg> = cell.into();
-            call_t!(actor, SourceMsg::GetSessionId, 100).ok()
-        } else {
-            None
-        };
-
-        if let Some(session_id) = session_id.clone()
-            && let Err(error) = (SessionLifecycleEvent::Finalizing { session_id }).emit(&guard.app)
-        {
-            tracing::error!(?error, "failed_to_emit_finalizing");
+        if let Some(cell) = registry::where_is(RootActor::name()) {
+            let actor: ActorRef<RootMsg> = cell.into();
+            let _ = ractor::call!(actor, RootMsg::StopSession);
         }
-
-        if let Some(supervisor_cell) = guard.session_supervisor.take() {
-            supervisor_cell.stop(None);
-        }
-
-        if let Some(handle) = guard.supervisor_handle.take() {
-            let _ = handle.await;
-        }
-
-        {
-            use tauri_plugin_tray::TrayPluginExt;
-            let _ = guard.app.tray().set_start_disabled(false);
-        }
-
-        if let Some(session_id) = session_id
-            && let Err(error) = (SessionLifecycleEvent::Inactive { session_id }).emit(&guard.app)
-        {
-            tracing::error!(?error, "failed_to_emit_inactive");
-        }
-
-        tracing::info!("session_stopped");
     }
 }
 

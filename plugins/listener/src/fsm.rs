@@ -1,8 +1,9 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum State {
     Active,
-    Finalizing,
     Inactive,
+    // Transitioning from Active to Inactive. For ex, waiting for `from_finalize=true` from upstream provider.
+    Finalizing,
 }
 
 impl serde::Serialize for State {

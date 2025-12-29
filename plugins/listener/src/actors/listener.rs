@@ -344,7 +344,6 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: "listen_ws_connect_timeout".to_string(),
-                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
@@ -354,7 +353,6 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),
-                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
@@ -416,7 +414,6 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: "listen_ws_connect_timeout".to_string(),
-                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
@@ -426,7 +423,6 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),
-                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));

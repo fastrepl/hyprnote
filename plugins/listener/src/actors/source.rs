@@ -239,11 +239,7 @@ async fn start_source_loop(
 
     st.pipeline.reset();
 
-    let result = match new_mode {
-        ChannelMode::MicOnly => start_source_loop_mic_only(myself, st).await,
-        ChannelMode::SpeakerOnly => start_source_loop_speaker_only(myself, st).await,
-        ChannelMode::MicAndSpeaker => start_source_loop_mic_and_speaker(myself, st).await,
-    };
+    let result = start_streams(myself, st).await;
 
     if result.is_ok()
         && let Err(error) = (SessionProgressEvent::AudioReady {
@@ -257,156 +253,11 @@ async fn start_source_loop(
     result
 }
 
-async fn start_source_loop_mic_only(
+async fn start_streams(
     myself: &ActorRef<SourceMsg>,
     st: &mut SourceState,
 ) -> Result<(), ActorProcessingErr> {
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    {
-        st.run_task = Some(tokio::spawn(async move {}));
-        return Ok(());
-    }
-
-    #[cfg(any(target_os = "macos", target_os = "linux"))]
-    {
-        let myself2 = myself.clone();
-        let mic_muted = st.mic_muted.clone();
-        let mic_device = st.mic_device.clone();
-
-        let stream_cancel_token = CancellationToken::new();
-        st.stream_cancel_token = Some(stream_cancel_token.clone());
-
-        let handle = tokio::spawn(async move {
-            let mic_stream = {
-                let mut mic_input = match AudioInput::from_mic(mic_device.clone()) {
-                    Ok(input) => input,
-                    Err(err) => {
-                        tracing::error!(error = ?err, device = ?mic_device, "mic_open_failed");
-                        let _ = myself2.cast(SourceMsg::StreamFailed("mic_open_failed".into()));
-                        return;
-                    }
-                };
-
-                let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
-                match mic_input
-                    .stream()
-                    .resampled_chunks(super::SAMPLE_RATE, chunk_size)
-                {
-                    Ok(stream) => stream,
-                    Err(err) => {
-                        tracing::error!(error = ?err, device = ?mic_device, "mic_stream_setup_failed");
-                        let _ =
-                            myself2.cast(SourceMsg::StreamFailed("mic_stream_setup_failed".into()));
-                        return;
-                    }
-                }
-            };
-
-            tokio::pin!(mic_stream);
-
-            loop {
-                tokio::select! {
-                    _ = stream_cancel_token.cancelled() => {
-                        return;
-                    }
-                    mic_next = mic_stream.next() => match mic_next {
-                        Some(Ok(data)) => {
-                            let output_data = if mic_muted.load(Ordering::Relaxed) {
-                                vec![0.0; data.len()]
-                            } else {
-                                data
-                            };
-                            if myself2.cast(SourceMsg::MicChunk(AudioChunk { data: output_data })).is_err() {
-                                tracing::warn!("failed_to_cast_mic_chunk");
-                                return;
-                            }
-                        }
-                        Some(Err(err)) => {
-                            tracing::error!(error = ?err, device = ?mic_device, "mic_resample_failed");
-                            let _ = myself2.cast(SourceMsg::StreamFailed("mic_resample_failed".into()));
-                            return;
-                        }
-                        None => {
-                            tracing::error!(device = ?mic_device, "mic_stream_ended");
-                            let _ = myself2.cast(SourceMsg::StreamFailed("mic_stream_ended".into()));
-                            return;
-                        }
-                    },
-                }
-            }
-        });
-
-        st.run_task = Some(handle);
-        Ok(())
-    }
-}
-
-async fn start_source_loop_speaker_only(
-    myself: &ActorRef<SourceMsg>,
-    st: &mut SourceState,
-) -> Result<(), ActorProcessingErr> {
-    let myself2 = myself.clone();
-
-    let stream_cancel_token = CancellationToken::new();
-    st.stream_cancel_token = Some(stream_cancel_token.clone());
-
-    let handle = tokio::spawn(async move {
-        let spk_stream = {
-            let mut spk_input = hypr_audio::AudioInput::from_speaker();
-            let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
-            let spk_stream_res = spk_input
-                .stream()
-                .resampled_chunks(super::SAMPLE_RATE, chunk_size);
-
-            match spk_stream_res {
-                Ok(stream) => stream,
-                Err(err) => {
-                    tracing::error!(error = ?err, "speaker_stream_setup_failed");
-                    let _ = myself2.cast(SourceMsg::StreamFailed(
-                        "speaker_stream_setup_failed".into(),
-                    ));
-                    return;
-                }
-            }
-        };
-
-        tokio::pin!(spk_stream);
-
-        loop {
-            tokio::select! {
-                _ = stream_cancel_token.cancelled() => {
-                    return;
-                }
-                spk_next = spk_stream.next() => match spk_next {
-                    Some(Ok(data)) => {
-                        if myself2.cast(SourceMsg::SpeakerChunk(AudioChunk { data })).is_err() {
-                            tracing::warn!("failed_to_cast_speaker_chunk");
-                            return;
-                        }
-                    }
-                    Some(Err(err)) => {
-                        tracing::error!(error = ?err, "speaker_resample_failed");
-                        let _ = myself2.cast(SourceMsg::StreamFailed("speaker_resample_failed".into()));
-                        return;
-                    }
-                    None => {
-                        tracing::error!("speaker_stream_ended");
-                        let _ = myself2.cast(SourceMsg::StreamFailed("speaker_stream_ended".into()));
-                        return;
-                    }
-                },
-            }
-        }
-    });
-
-    st.run_task = Some(handle);
-    Ok(())
-}
-
-async fn start_source_loop_mic_and_speaker(
-    myself: &ActorRef<SourceMsg>,
-    st: &mut SourceState,
-) -> Result<(), ActorProcessingErr> {
+    let mode = st.current_mode;
     let myself2 = myself.clone();
     let mic_muted = st.mic_muted.clone();
     let mic_device = st.mic_device.clone();
@@ -415,107 +266,200 @@ async fn start_source_loop_mic_and_speaker(
     st.stream_cancel_token = Some(stream_cancel_token.clone());
 
     let handle = tokio::spawn(async move {
-        let mic_stream = {
-            let mut mic_input = match AudioInput::from_mic(mic_device.clone()) {
-                Ok(input) => input,
-                Err(err) => {
-                    tracing::error!(error = ?err, device = ?mic_device, "mic_open_failed");
-                    let _ = myself2.cast(SourceMsg::StreamFailed("mic_open_failed".into()));
-                    return;
-                }
-            };
-
-            let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
-            let mic_stream_res = mic_input
-                .stream()
-                .resampled_chunks(super::SAMPLE_RATE, chunk_size);
-
-            match mic_stream_res {
-                Ok(stream) => stream,
-                Err(err) => {
-                    tracing::error!(error = ?err, device = ?mic_device, "mic_stream_setup_failed");
-                    let _ = myself2.cast(SourceMsg::StreamFailed("mic_stream_setup_failed".into()));
-                    return;
-                }
-            }
+        let ctx = StreamContext {
+            actor: myself2,
+            cancel_token: stream_cancel_token,
+            mic_muted,
+            mic_device,
         };
 
-        tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-
-        let spk_stream = {
-            let mut spk_input = hypr_audio::AudioInput::from_speaker();
-            let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
-            let spk_stream_res = spk_input
-                .stream()
-                .resampled_chunks(super::SAMPLE_RATE, chunk_size);
-
-            match spk_stream_res {
-                Ok(stream) => stream,
-                Err(err) => {
-                    tracing::error!(error = ?err, "speaker_stream_setup_failed");
-                    let _ = myself2.cast(SourceMsg::StreamFailed(
-                        "speaker_stream_setup_failed".into(),
-                    ));
-                    return;
-                }
-            }
-        };
-
-        tokio::pin!(mic_stream);
-        tokio::pin!(spk_stream);
-
-        loop {
-            tokio::select! {
-                _ = stream_cancel_token.cancelled() => {
-                    return;
-                }
-                mic_next = mic_stream.next() => match mic_next {
-                    Some(Ok(data)) => {
-                        let output_data = if mic_muted.load(Ordering::Relaxed) {
-                            vec![0.0; data.len()]
-                        } else {
-                            data
-                        };
-                        if myself2.cast(SourceMsg::MicChunk(AudioChunk { data: output_data })).is_err() {
-                            tracing::warn!("failed_to_cast_mic_chunk");
-                            return;
-                        }
-                    }
-                    Some(Err(err)) => {
-                        tracing::error!(error = ?err, device = ?mic_device, "mic_resample_failed");
-                        let _ = myself2.cast(SourceMsg::StreamFailed("mic_resample_failed".into()));
-                        return;
-                    }
-                    None => {
-                        tracing::error!(device = ?mic_device, "mic_stream_ended");
-                        let _ = myself2.cast(SourceMsg::StreamFailed("mic_stream_ended".into()));
-                        return;
-                    }
-                },
-                spk_next = spk_stream.next() => match spk_next {
-                    Some(Ok(data)) => {
-                        if myself2.cast(SourceMsg::SpeakerChunk(AudioChunk { data })).is_err() {
-                            tracing::warn!("failed_to_cast_speaker_chunk");
-                            return;
-                        }
-                    }
-                    Some(Err(err)) => {
-                        tracing::error!(error = ?err, "speaker_resample_failed");
-                        let _ = myself2.cast(SourceMsg::StreamFailed("speaker_resample_failed".into()));
-                        return;
-                    }
-                    None => {
-                        tracing::error!("speaker_stream_ended");
-                        let _ = myself2.cast(SourceMsg::StreamFailed("speaker_stream_ended".into()));
-                        return;
-                    }
-                },
-            }
-        }
+        run_stream_loop(ctx, mode).await;
     });
 
     st.run_task = Some(handle);
     Ok(())
+}
+
+struct StreamContext {
+    actor: ActorRef<SourceMsg>,
+    cancel_token: CancellationToken,
+    mic_muted: Arc<AtomicBool>,
+    mic_device: Option<String>,
+}
+
+impl StreamContext {
+    fn report_failure(&self, reason: &str) {
+        let _ = self.actor.cast(SourceMsg::StreamFailed(reason.into()));
+    }
+
+    fn is_cancelled(&self) -> bool {
+        self.cancel_token.is_cancelled()
+    }
+}
+
+enum StreamResult {
+    Continue,
+    Stop,
+}
+
+async fn run_stream_loop(ctx: StreamContext, mode: ChannelMode) {
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+    if mode == ChannelMode::MicOnly {
+        return;
+    }
+
+    let mic_stream = if mode.uses_mic() {
+        match setup_mic_stream(&ctx) {
+            Ok(stream) => Some(stream),
+            Err(()) => return,
+        }
+    } else {
+        None
+    };
+
+    if mode == ChannelMode::MicAndSpeaker {
+        tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+    }
+
+    let spk_stream = if mode.uses_speaker() {
+        match setup_speaker_stream(&ctx) {
+            Ok(stream) => Some(stream),
+            Err(()) => return,
+        }
+    } else {
+        None
+    };
+
+    tokio::pin!(mic_stream);
+    tokio::pin!(spk_stream);
+
+    loop {
+        let result = tokio::select! {
+            _ = ctx.cancel_token.cancelled() => StreamResult::Stop,
+            item = async { mic_stream.as_mut().as_pin_mut()?.next().await }, if mic_stream.is_some() => {
+                handle_mic_item(&ctx, item)
+            }
+            item = async { spk_stream.as_mut().as_pin_mut()?.next().await }, if spk_stream.is_some() => {
+                handle_speaker_item(&ctx, item)
+            }
+        };
+
+        if matches!(result, StreamResult::Stop) {
+            return;
+        }
+    }
+}
+
+fn setup_mic_stream(
+    ctx: &StreamContext,
+) -> Result<impl futures_util::Stream<Item = Result<Vec<f32>, hypr_audio_utils::Error>>, ()> {
+    let mut mic_input = match AudioInput::from_mic(ctx.mic_device.clone()) {
+        Ok(input) => input,
+        Err(err) => {
+            tracing::error!(error = ?err, device = ?ctx.mic_device, "mic_open_failed");
+            ctx.report_failure("mic_open_failed");
+            return Err(());
+        }
+    };
+
+    let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
+    match mic_input
+        .stream()
+        .resampled_chunks(super::SAMPLE_RATE, chunk_size)
+    {
+        Ok(stream) => Ok(stream),
+        Err(err) => {
+            tracing::error!(error = ?err, device = ?ctx.mic_device, "mic_stream_setup_failed");
+            ctx.report_failure("mic_stream_setup_failed");
+            Err(())
+        }
+    }
+}
+
+fn setup_speaker_stream(
+    ctx: &StreamContext,
+) -> Result<impl futures_util::Stream<Item = Result<Vec<f32>, hypr_audio_utils::Error>>, ()> {
+    let mut spk_input = hypr_audio::AudioInput::from_speaker();
+    let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
+    match spk_input
+        .stream()
+        .resampled_chunks(super::SAMPLE_RATE, chunk_size)
+    {
+        Ok(stream) => Ok(stream),
+        Err(err) => {
+            tracing::error!(error = ?err, "speaker_stream_setup_failed");
+            ctx.report_failure("speaker_stream_setup_failed");
+            Err(())
+        }
+    }
+}
+
+fn handle_mic_item(
+    ctx: &StreamContext,
+    item: Option<Result<Vec<f32>, hypr_audio_utils::Error>>,
+) -> StreamResult {
+    match item {
+        Some(Ok(data)) => {
+            let output_data = if ctx.mic_muted.load(Ordering::Relaxed) {
+                vec![0.0; data.len()]
+            } else {
+                data
+            };
+            if ctx
+                .actor
+                .cast(SourceMsg::MicChunk(AudioChunk { data: output_data }))
+                .is_err()
+            {
+                tracing::warn!("failed_to_cast_mic_chunk");
+                return StreamResult::Stop;
+            }
+            StreamResult::Continue
+        }
+        Some(Err(err)) => {
+            tracing::error!(error = ?err, device = ?ctx.mic_device, "mic_resample_failed");
+            ctx.report_failure("mic_resample_failed");
+            StreamResult::Stop
+        }
+        None => {
+            // If the stream is ended, but we didn't stopped it manually, consider it to be an error.
+            if !ctx.is_cancelled() {
+                tracing::error!(device = ?ctx.mic_device, "mic_stream_ended");
+                ctx.report_failure("mic_stream_ended");
+            }
+            StreamResult::Stop
+        }
+    }
+}
+
+fn handle_speaker_item(
+    ctx: &StreamContext,
+    item: Option<Result<Vec<f32>, hypr_audio_utils::Error>>,
+) -> StreamResult {
+    match item {
+        Some(Ok(data)) => {
+            if ctx
+                .actor
+                .cast(SourceMsg::SpeakerChunk(AudioChunk { data }))
+                .is_err()
+            {
+                tracing::warn!("failed_to_cast_speaker_chunk");
+                return StreamResult::Stop;
+            }
+            StreamResult::Continue
+        }
+        Some(Err(err)) => {
+            tracing::error!(error = ?err, "speaker_resample_failed");
+            ctx.report_failure("speaker_resample_failed");
+            StreamResult::Stop
+        }
+        None => {
+            if !ctx.is_cancelled() {
+                tracing::error!("speaker_stream_ended");
+                ctx.report_failure("speaker_stream_ended");
+            }
+            StreamResult::Stop
+        }
+    }
 }
 
 struct Pipeline {

@@ -46,6 +46,33 @@ declare module "@tanstack/react-router" {
   }
 }
 
+function AppLoading() {
+  return (
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#fafafa",
+      }}
+    >
+      <div
+        style={{
+          width: 24,
+          height: 24,
+          border: "2px solid #e5e5e5",
+          borderTopColor: "#737373",
+          borderRadius: "50%",
+          animation: "spin 0.8s linear infinite",
+        }}
+      />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
 function App() {
   const stores = useStores();
 
@@ -59,7 +86,7 @@ function App() {
   }, [store]);
 
   if (!store || !aiTaskStore) {
-    return null;
+    return <AppLoading />;
   }
 
   return (
@@ -119,7 +146,12 @@ function AppWithTiny() {
 
 // Initialize plugins - the polyfill in index.html handles iframe context
 initWindowsPlugin();
-initExtensionGlobals();
+
+// Only initialize extension globals for iframe/extension contexts
+// This defers heavy UI component loading until actually needed
+if (isIframeContext) {
+  void initExtensionGlobals();
+}
 
 const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {

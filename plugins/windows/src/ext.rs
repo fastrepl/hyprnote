@@ -115,7 +115,7 @@ impl AppWindow {
         }
 
         let window = self.build_window(app)?;
-        std::thread::sleep(std::time::Duration::from_millis(100));
+        std::thread::sleep(std::time::Duration::from_millis(10));
         self.finalize_show(&window)?;
 
         Ok(window)

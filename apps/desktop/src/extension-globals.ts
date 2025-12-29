@@ -11,31 +11,42 @@ import { useTabs } from "./store/zustand/tabs";
 
 const rawHyprUiModules = import.meta.glob<Record<string, unknown>>(
   "../../../packages/ui/src/components/**/*.{ts,tsx}",
-  { eager: true },
 );
 
-const hyprUiModules = Object.entries(rawHyprUiModules).reduce<
+async function loadHyprUiModules(): Promise<
   Record<string, Record<string, unknown>>
->((acc, [modulePath, moduleExports]) => {
-  const relativeFromSrc =
-    modulePath.split("packages/ui/src/")[1] ??
-    modulePath.split("packages\\ui\\src\\")[1];
+> {
+  const entries = await Promise.all(
+    Object.entries(rawHyprUiModules).map(async ([modulePath, loader]) => {
+      const moduleExports = await loader();
+      return [modulePath, moduleExports] as const;
+    }),
+  );
 
-  if (!relativeFromSrc) {
-    return acc;
-  }
+  return entries.reduce<Record<string, Record<string, unknown>>>(
+    (acc, [modulePath, moduleExports]) => {
+      const relativeFromSrc =
+        modulePath.split("packages/ui/src/")[1] ??
+        modulePath.split("packages\\ui\\src\\")[1];
 
-  const normalized = relativeFromSrc
-    .replace(/\\/g, "/")
-    .replace(/\.(ts|tsx)$/, "");
+      if (!relativeFromSrc) {
+        return acc;
+      }
 
-  if (!normalized.startsWith("components/")) {
-    return acc;
-  }
+      const normalized = relativeFromSrc
+        .replace(/\\/g, "/")
+        .replace(/\.(ts|tsx)$/, "");
 
-  acc[normalized] = moduleExports as Record<string, unknown>;
-  return acc;
-}, {});
+      if (!normalized.startsWith("components/")) {
+        return acc;
+      }
+
+      acc[normalized] = moduleExports as Record<string, unknown>;
+      return acc;
+    },
+    {},
+  );
+}
 
 type HyprnoteRuntime = {
   react: typeof React;
@@ -62,13 +73,14 @@ declare global {
   }
 }
 
-export function initExtensionGlobals() {
+export async function initExtensionGlobals() {
   window.__hypr_react = React;
   window.__hypr_react_dom = ReactDOM;
   window.__hypr_jsx_runtime = jsxRuntime;
   window.__hypr_utils = utils;
   window.__hypr_tinybase_ui_react = tinybaseUiReact;
 
+  const hyprUiModules = await loadHyprUiModules();
   window.__hypr_ui = hyprUiModules;
 
   window.__hypr_store = main;

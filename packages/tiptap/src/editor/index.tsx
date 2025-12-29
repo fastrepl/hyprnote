@@ -91,9 +91,22 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
 
           const { state } = view;
           const isAtStart = state.selection.$head.pos === 0;
-          const isFirstLine = state.selection.$head.pos <= 1;
 
-          if (event.key === "ArrowUp" && isFirstLine && onNavigateToTitle) {
+          const $head = state.selection.$head;
+          const depth = $head.depth;
+          let isInFirstBlock = false;
+
+          for (let d = depth; d > 0; d--) {
+            const node = $head.node(d);
+            if (node.type.name === "doc") continue;
+            const parentNode = $head.node(d - 1);
+            if (parentNode.type.name === "doc") {
+              isInFirstBlock = parentNode.firstChild === node;
+              break;
+            }
+          }
+
+          if (event.key === "ArrowUp" && isInFirstBlock && onNavigateToTitle) {
             event.preventDefault();
             onNavigateToTitle();
             return true;
@@ -103,7 +116,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             const isInListItem =
               isNodeActive(state, "listItem") ||
               isNodeActive(state, "taskItem");
-            if (!isInListItem && isFirstLine && onNavigateToTitle) {
+            if (!isInListItem && isInFirstBlock && onNavigateToTitle) {
               event.preventDefault();
               onNavigateToTitle();
               return true;

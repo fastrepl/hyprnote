@@ -78,8 +78,8 @@ fn actor_error(msg: impl Into<String>) -> ActorProcessingErr {
 }
 
 fn is_connection_error_retryable(error: &owhisper_client::hypr_ws_client::Error) -> bool {
-    use owhisper_client::hypr_ws_client::tokio_tungstenite::tungstenite::Error as WsError;
     use owhisper_client::hypr_ws_client::Error as WsClientError;
+    use owhisper_client::hypr_ws_client::tokio_tungstenite::tungstenite::Error as WsError;
 
     match error {
         WsClientError::Connection(tungstenite_err) => {

@@ -98,11 +98,8 @@ export const NoteInput = forwardRef<
       const editorInstance = internalEditorRef.current?.editor;
 
       if (editorInstance && content) {
-        const { from } = editorInstance.state.selection;
-        editorInstance.commands.insertContentAt(from, [
-          { type: "paragraph", content: [{ type: "text", text: content }] },
-        ]);
-        editorInstance.commands.setTextSelection(from);
+        editorInstance.commands.insertContentAt(0, content);
+        editorInstance.commands.setTextSelection(0);
         editorInstance.commands.focus();
       }
     };

@@ -90,6 +90,18 @@ pub trait AudioDeviceBackend {
 
     /// Check if a device is a headphone/headset based on its properties.
     fn is_headphone(&self, device: &AudioDevice) -> bool;
+
+    /// Get the main volume for an output device (0.0 to 1.0).
+    fn get_device_volume(&self, device_id: &DeviceId) -> Result<f32, Error>;
+
+    /// Set the main volume for an output device (0.0 to 1.0).
+    fn set_device_volume(&self, device_id: &DeviceId, volume: f32) -> Result<(), Error>;
+
+    /// Get the mute state for a device.
+    fn is_device_muted(&self, device_id: &DeviceId) -> Result<bool, Error>;
+
+    /// Set the mute state for a device.
+    fn set_device_mute(&self, device_id: &DeviceId, muted: bool) -> Result<(), Error>;
 }
 
 #[cfg(test)]

@@ -163,12 +163,18 @@ impl AudioDeviceBackend for LinuxBackend {
                             .map(|d| d == name.as_ref())
                             .unwrap_or(false);
 
+                        let volume = sink_info.volume.avg().0 as f32
+                            / pulse::volume::Volume::NORMAL.0 as f32;
+                        let is_muted = sink_info.mute;
+
                         let device = AudioDevice {
                             id: DeviceId::new(name.to_string()),
                             name: description,
                             direction: AudioDirection::Output,
                             transport_type,
                             is_default,
+                            volume: Some(volume),
+                            is_muted: Some(is_muted),
                         };
 
                         if let Ok(mut devs) = devices.lock() {
@@ -222,6 +228,8 @@ impl AudioDeviceBackend for LinuxBackend {
                             direction: AudioDirection::Input,
                             transport_type,
                             is_default,
+                            volume: None,
+                            is_muted: None,
                         };
 
                         if let Ok(mut devs) = devices.lock() {
@@ -361,6 +369,174 @@ impl AudioDeviceBackend for LinuxBackend {
         wait_for_done(&done, QUERY_TIMEOUT);
 
         result.lock().map(|r| *r).unwrap_or(false)
+    }
+
+    fn get_device_volume(&self, device_id: &DeviceId) -> Result<f32, Error> {
+        let mut conn = PulseConnection::new()?;
+        conn.connect()?;
+
+        let result = Arc::new(Mutex::new(None::<f32>));
+        let done = Arc::new(AtomicBool::new(false));
+
+        let result_clone = result.clone();
+        let done_clone = done.clone();
+        let device_name = device_id.0.clone();
+
+        conn.mainloop.lock();
+        let introspector = conn.context.introspect();
+        introspector.get_sink_info_by_name(&device_name, move |list_result| {
+            if let pulse::callbacks::ListResult::Item(sink_info) = list_result {
+                let avg_volume =
+                    sink_info.volume.avg().0 as f32 / pulse::volume::Volume::NORMAL.0 as f32;
+                if let Ok(mut r) = result_clone.lock() {
+                    *r = Some(avg_volume);
+                }
+            }
+            done_clone.store(true, Ordering::Release);
+        });
+        conn.mainloop.unlock();
+
+        wait_for_done(&done, QUERY_TIMEOUT);
+
+        let vol = result
+            .lock()
+            .map_err(|_| Error::AudioSystemError("Failed to acquire volume lock".into()))?
+            .ok_or_else(|| Error::DeviceNotFound(device_id.to_string()))?;
+
+        Ok(vol)
+    }
+
+    fn set_device_volume(&self, device_id: &DeviceId, volume: f32) -> Result<(), Error> {
+        let volume = volume.clamp(0.0, 1.0);
+
+        let mut conn = PulseConnection::new()?;
+        conn.connect()?;
+
+        let volume_value = (volume * pulse::volume::Volume::NORMAL.0 as f32) as u32;
+
+        let volume_info = Arc::new(Mutex::new(None::<pulse::volume::ChannelVolumes>));
+        let info_done = Arc::new(AtomicBool::new(false));
+
+        let volume_info_clone = volume_info.clone();
+        let info_done_clone = info_done.clone();
+        let device_name = device_id.0.clone();
+
+        conn.mainloop.lock();
+        let introspector = conn.context.introspect();
+        introspector.get_sink_info_by_name(&device_name, move |list_result| {
+            if let pulse::callbacks::ListResult::Item(sink_info) = list_result {
+                let mut new_volume = sink_info.volume;
+                new_volume.set(new_volume.len(), pulse::volume::Volume(volume_value));
+                if let Ok(mut v) = volume_info_clone.lock() {
+                    *v = Some(new_volume);
+                }
+            }
+            info_done_clone.store(true, Ordering::Release);
+        });
+        conn.mainloop.unlock();
+
+        wait_for_done(&info_done, QUERY_TIMEOUT);
+
+        let new_volume = volume_info
+            .lock()
+            .map_err(|_| Error::AudioSystemError("Failed to acquire volume info lock".into()))?
+            .ok_or_else(|| Error::DeviceNotFound(device_id.to_string()))?;
+
+        let success = Arc::new(AtomicBool::new(false));
+        let done = Arc::new(AtomicBool::new(false));
+
+        let success_clone = success.clone();
+        let done_clone = done.clone();
+
+        conn.mainloop.lock();
+        let mut introspector = conn.context.introspect();
+        introspector.set_sink_volume_by_name(
+            &device_id.0,
+            &new_volume,
+            Some(Box::new(move |result| {
+                success_clone.store(result, Ordering::Release);
+                done_clone.store(true, Ordering::Release);
+            })),
+        );
+        conn.mainloop.unlock();
+
+        wait_for_done(&done, QUERY_TIMEOUT);
+
+        if success.load(Ordering::Acquire) {
+            Ok(())
+        } else {
+            Err(Error::AudioSystemError(format!(
+                "Failed to set volume for device: {}",
+                device_id.0
+            )))
+        }
+    }
+
+    fn is_device_muted(&self, device_id: &DeviceId) -> Result<bool, Error> {
+        let mut conn = PulseConnection::new()?;
+        conn.connect()?;
+
+        let result = Arc::new(Mutex::new(None::<bool>));
+        let done = Arc::new(AtomicBool::new(false));
+
+        let result_clone = result.clone();
+        let done_clone = done.clone();
+        let device_name = device_id.0.clone();
+
+        conn.mainloop.lock();
+        let introspector = conn.context.introspect();
+        introspector.get_sink_info_by_name(&device_name, move |list_result| {
+            if let pulse::callbacks::ListResult::Item(sink_info) = list_result {
+                if let Ok(mut r) = result_clone.lock() {
+                    *r = Some(sink_info.mute);
+                }
+            }
+            done_clone.store(true, Ordering::Release);
+        });
+        conn.mainloop.unlock();
+
+        wait_for_done(&done, QUERY_TIMEOUT);
+
+        let muted = result
+            .lock()
+            .map_err(|_| Error::AudioSystemError("Failed to acquire mute lock".into()))?
+            .ok_or_else(|| Error::DeviceNotFound(device_id.to_string()))?;
+
+        Ok(muted)
+    }
+
+    fn set_device_mute(&self, device_id: &DeviceId, muted: bool) -> Result<(), Error> {
+        let mut conn = PulseConnection::new()?;
+        conn.connect()?;
+
+        let success = Arc::new(AtomicBool::new(false));
+        let done = Arc::new(AtomicBool::new(false));
+
+        let success_clone = success.clone();
+        let done_clone = done.clone();
+
+        conn.mainloop.lock();
+        let mut introspector = conn.context.introspect();
+        introspector.set_sink_mute_by_name(
+            &device_id.0,
+            muted,
+            Some(Box::new(move |result| {
+                success_clone.store(result, Ordering::Release);
+                done_clone.store(true, Ordering::Release);
+            })),
+        );
+        conn.mainloop.unlock();
+
+        wait_for_done(&done, QUERY_TIMEOUT);
+
+        if success.load(Ordering::Acquire) {
+            Ok(())
+        } else {
+            Err(Error::AudioSystemError(format!(
+                "Failed to set mute for device: {}",
+                device_id.0
+            )))
+        }
     }
 }
 

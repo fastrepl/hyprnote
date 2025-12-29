@@ -1,0 +1,14 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const title = "Dummy Page";
+const description = "A dummy page for testing view transitions.";
+---
+
+<Layout title={title} description={description} editPath="src/pages/dummy.astro">
+  <h1>{title}</h1>
+  <p>This is a dummy page for testing view transitions.</p>
+  <p>
+    <a href="/">Go back to the main page</a>
+  </p>
+</Layout>

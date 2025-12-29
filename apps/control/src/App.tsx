@@ -1,7 +1,15 @@
+import { invoke } from "@tauri-apps/api/core";
+import { useEffect } from "react";
+
 function App() {
+  useEffect(() => {
+    invoke("init");
+  }, []);
+
   return (
-    <main className="flex flex-col justify-center items-center min-h-screen bg-[#f6f6f6] text-[#0f0f0f] dark:bg-[#2f2f2f] dark:text-[#f6f6f6] font-sans antialiased">
-      <h1 className="text-2xl font-semibold">Hyprnote Control</h1>
+    <main className="menubar-panel flex flex-col justify-center items-center min-h-screen p-4 bg-white/95 dark:bg-neutral-800/95 backdrop-blur-xl rounded-[13px] font-sans antialiased">
+      <h1 className="text-xl font-semibold mb-2">Hyprnote Control</h1>
+      <p className="text-sm text-neutral-500 dark:text-neutral-400">Your menubar content goes here...</p>
     </main>
   );
 }

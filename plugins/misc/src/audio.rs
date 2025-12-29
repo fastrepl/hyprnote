@@ -120,6 +120,7 @@ mod tests {
     }
 
     test_import_audio! {
+        test_import_wav: hypr_data::english_1::AUDIO_PATH,
         test_import_mp3: hypr_data::english_1::AUDIO_MP3_PATH,
         test_import_mp4: hypr_data::english_1::AUDIO_MP4_PATH,
         test_import_m4a: hypr_data::english_1::AUDIO_M4A_PATH,

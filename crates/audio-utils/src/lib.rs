@@ -132,7 +132,7 @@ pub fn source_from_path(
     path: impl AsRef<std::path::Path>,
 ) -> Result<rodio::Decoder<std::io::BufReader<std::fs::File>>, crate::Error> {
     let file = std::fs::File::open(path.as_ref())?;
-    let decoder = rodio::Decoder::new(std::io::BufReader::new(file))?;
+    let decoder = rodio::Decoder::try_from(file)?;
     Ok(decoder)
 }
 
@@ -276,4 +276,33 @@ pub fn chunk_size_for_stt(sample_rate: u32) -> usize {
 
     let samples = ((sample_rate as u64) * (CHUNK_MS as u64)) / 1000;
     samples.clamp(1024, 7168) as usize
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    macro_rules! test_audio_file_metadata {
+        ($($name:ident: $path:expr),* $(,)?) => {
+            $(
+                #[test]
+                fn $name() {
+                    let metadata = audio_file_metadata($path).unwrap();
+                    assert!(metadata.sample_rate > 0);
+                    assert!(metadata.channels > 0);
+                }
+            )*
+        };
+    }
+
+    test_audio_file_metadata! {
+        test_audio_file_metadata_wav: hypr_data::english_1::AUDIO_PATH,
+        test_audio_file_metadata_mp3: hypr_data::english_1::AUDIO_MP3_PATH,
+        test_audio_file_metadata_mp4: hypr_data::english_1::AUDIO_MP4_PATH,
+        test_audio_file_metadata_m4a: hypr_data::english_1::AUDIO_M4A_PATH,
+        test_audio_file_metadata_ogg: hypr_data::english_1::AUDIO_OGG_PATH,
+        test_audio_file_metadata_flac: hypr_data::english_1::AUDIO_FLAC_PATH,
+        test_audio_file_metadata_aac: hypr_data::english_1::AUDIO_AAC_PATH,
+        test_audio_file_metadata_aiff: hypr_data::english_1::AUDIO_AIFF_PATH,
+    }
 }

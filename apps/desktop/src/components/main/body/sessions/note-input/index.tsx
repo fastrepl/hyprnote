@@ -31,7 +31,7 @@ export const NoteInput = forwardRef<
     tab: Extract<Tab, { type: "sessions" }>;
     onNavigateToTitle?: () => void;
   }
->(({ tab, onNavigateToTitle: _onNavigateToTitle }, ref) => {
+>(({ tab, onNavigateToTitle }, ref) => {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const internalEditorRef = useRef<{ editor: TiptapEditor | null }>(null);
@@ -91,6 +91,99 @@ export const NoteInput = forwardRef<
     }
   });
 
+  useEffect(() => {
+    const handleContentTransfer = (e: Event) => {
+      const customEvent = e as CustomEvent<{ content: string }>;
+      const content = customEvent.detail.content;
+      const editorInstance = internalEditorRef.current?.editor;
+
+      if (editorInstance && content) {
+        editorInstance.commands.insertContentAt(0, content);
+        editorInstance.commands.setTextSelection(0);
+        editorInstance.commands.focus();
+      }
+    };
+
+    const handleMoveToEditorStart = () => {
+      const editorInstance = internalEditorRef.current?.editor;
+      if (editorInstance) {
+        editorInstance.commands.setTextSelection(0);
+        editorInstance.commands.focus();
+      }
+    };
+
+    const handleMoveToEditorPosition = (e: Event) => {
+      const customEvent = e as CustomEvent<{ pixelWidth: number }>;
+      const pixelWidth = customEvent.detail.pixelWidth;
+      const editorInstance = internalEditorRef.current?.editor;
+
+      if (editorInstance) {
+        const editorDom = editorInstance.view.dom;
+        const firstTextNode = editorDom.querySelector(".ProseMirror > *");
+
+        if (firstTextNode) {
+          const editorStyle = window.getComputedStyle(firstTextNode);
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          if (ctx) {
+            ctx.font = `${editorStyle.fontWeight} ${editorStyle.fontSize} ${editorStyle.fontFamily}`;
+
+            const firstBlock = editorInstance.state.doc.firstChild;
+            if (firstBlock && firstBlock.textContent) {
+              const text = firstBlock.textContent;
+              let charPos = 0;
+
+              for (let i = 0; i <= text.length; i++) {
+                const currentWidth = ctx.measureText(text.slice(0, i)).width;
+                if (currentWidth >= pixelWidth) {
+                  charPos = i;
+                  break;
+                }
+                charPos = i;
+              }
+
+              const targetPos = Math.min(
+                charPos,
+                editorInstance.state.doc.content.size - 1,
+              );
+              editorInstance.commands.setTextSelection(targetPos);
+              editorInstance.commands.focus();
+              return;
+            }
+          }
+        }
+
+        editorInstance.commands.setTextSelection(0);
+        editorInstance.commands.focus();
+      }
+    };
+
+    window.addEventListener("title-content-transfer", handleContentTransfer);
+    window.addEventListener(
+      "title-move-to-editor-start",
+      handleMoveToEditorStart,
+    );
+    window.addEventListener(
+      "title-move-to-editor-position",
+      handleMoveToEditorPosition,
+    );
+    return () => {
+      window.removeEventListener(
+        "title-content-transfer",
+        handleContentTransfer,
+      );
+      window.removeEventListener(
+        "title-move-to-editor-start",
+        handleMoveToEditorStart,
+      );
+      window.removeEventListener(
+        "title-move-to-editor-position",
+        handleMoveToEditorPosition,
+      );
+    };
+  }, []);
+
   useCaretNearBottom({
     editor,
     container,
@@ -140,10 +233,15 @@ export const NoteInput = forwardRef<
               ref={internalEditorRef}
               sessionId={sessionId}
               enhancedNoteId={currentTab.id}
+              onNavigateToTitle={onNavigateToTitle}
             />
           )}
           {currentTab.type === "raw" && (
-            <RawEditor ref={internalEditorRef} sessionId={sessionId} />
+            <RawEditor
+              ref={internalEditorRef}
+              sessionId={sessionId}
+              onNavigateToTitle={onNavigateToTitle}
+            />
           )}
           {currentTab.type === "transcript" && (
             <Transcript

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
+import React from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 
@@ -96,6 +97,18 @@ function TabContentNoteInner({
 }) {
   const search = useTranscriptSearch();
   const showSearchBar = search?.isVisible ?? false;
+  const titleInputRef = React.useRef<HTMLInputElement>(null);
+  const noteInputRef = React.useRef<{
+    editor: import("@hypr/tiptap/editor").TiptapEditor | null;
+  }>(null);
+
+  const focusTitle = React.useCallback(() => {
+    titleInputRef.current?.focus();
+  }, []);
+
+  const focusEditor = React.useCallback(() => {
+    noteInputRef.current?.editor?.commands.focus();
+  }, []);
 
   return (
     <StandardTabWrapper
@@ -107,10 +120,18 @@ function TabContentNoteInner({
           {showSearchBar ? <SearchBar /> : <OuterHeader sessionId={tab.id} />}
         </div>
         <div className="mt-2 px-3 shrink-0">
-          <TitleInput tab={tab} />
+          <TitleInput
+            ref={titleInputRef}
+            tab={tab}
+            onNavigateToEditor={focusEditor}
+          />
         </div>
         <div className="mt-2 px-2 flex-1 min-h-0">
-          <NoteInput tab={tab} />
+          <NoteInput
+            ref={noteInputRef}
+            tab={tab}
+            onNavigateToTitle={focusTitle}
+          />
         </div>
       </div>
     </StandardTabWrapper>

@@ -12,8 +12,8 @@ import { StreamingView } from "./streaming";
 
 export const Enhanced = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string; enhancedNoteId: string }
->(({ sessionId, enhancedNoteId }, ref) => {
+  { sessionId: string; enhancedNoteId: string; onNavigateToTitle?: () => void }
+>(({ sessionId, enhancedNoteId, onNavigateToTitle }, ref) => {
   const taskId = createTaskId(enhancedNoteId, "enhance");
   const llmStatus = useLLMConnectionStatus();
   const { status } = useAITaskTask(taskId, "enhance");
@@ -49,6 +49,7 @@ export const Enhanced = forwardRef<
       ref={ref}
       sessionId={sessionId}
       enhancedNoteId={enhancedNoteId}
+      onNavigateToTitle={onNavigateToTitle}
     />
   );
 });

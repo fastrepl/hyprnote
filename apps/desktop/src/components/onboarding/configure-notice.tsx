@@ -1,4 +1,15 @@
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
+
+import {
+  commands as localSttCommands,
+  type SupportedSttModel,
+} from "@hypr/plugin-local-stt";
+import { cn } from "@hypr/utils";
+
+import { localSttQueries } from "../../hooks/useLocalSttModel";
 import { Route } from "../../routes/app/onboarding/_layout.index";
+import * as settings from "../../store/tinybase/settings";
 import { getBack, getNext, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 
@@ -7,6 +18,17 @@ export const STEP_ID_CONFIGURE_NOTICE = "configure-notice" as const;
 export function ConfigureNotice({ onNavigate }: StepProps) {
   const search = Route.useSearch();
   const backStep = getBack(search);
+
+  if (search.local) {
+    return (
+      <LocalConfigureNotice
+        onNavigate={onNavigate}
+        onBack={
+          backStep ? () => onNavigate({ ...search, step: backStep }) : undefined
+        }
+      />
+    );
+  }
 
   return (
     <OnboardingContainer
@@ -36,6 +58,158 @@ export function ConfigureNotice({ onNavigate }: StepProps) {
         </button>
       </div>
     </OnboardingContainer>
+  );
+}
+
+function LocalConfigureNotice({
+  onNavigate,
+  onBack,
+}: {
+  onNavigate: StepProps["onNavigate"];
+  onBack?: () => void;
+}) {
+  const search = Route.useSearch();
+  const [selectedModel, setSelectedModel] = useState<SupportedSttModel | null>(
+    null,
+  );
+
+  const handleSelectProvider = settings.UI.useSetValueCallback(
+    "current_stt_provider",
+    (provider: string) => provider,
+    [],
+    settings.STORE_ID,
+  );
+
+  const handleSelectModel = settings.UI.useSetValueCallback(
+    "current_stt_model",
+    (model: string) => model,
+    [],
+    settings.STORE_ID,
+  );
+
+  const p2Downloaded = useQuery(localSttQueries.isDownloaded("am-parakeet-v2"));
+  const p3Downloaded = useQuery(localSttQueries.isDownloaded("am-parakeet-v3"));
+
+  useEffect(() => {
+    if (p2Downloaded.data || p3Downloaded.data) {
+      onNavigate({ ...search, step: getNext(search)! });
+    }
+  }, [p2Downloaded.data, p3Downloaded.data, search, onNavigate]);
+
+  const handleUseModel = useCallback(() => {
+    if (!selectedModel) return;
+
+    handleSelectProvider("hyprnote");
+    handleSelectModel(selectedModel);
+    void localSttCommands.downloadModel(selectedModel);
+    onNavigate({ ...search, step: getNext(search)! });
+  }, [
+    selectedModel,
+    search,
+    onNavigate,
+    handleSelectProvider,
+    handleSelectModel,
+  ]);
+
+  if (p2Downloaded.isLoading || p3Downloaded.isLoading) {
+    return (
+      <OnboardingContainer
+        title="Checking for existing models..."
+        onBack={onBack}
+      >
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stone-500"></div>
+        </div>
+      </OnboardingContainer>
+    );
+  }
+
+  return (
+    <OnboardingContainer
+      title="Help Hyprnote listen to your conversations"
+      description="Select a speech-to-text model to download"
+      onBack={onBack}
+    >
+      <div className="flex flex-col gap-3">
+        <LocalModelRow
+          model="am-parakeet-v2"
+          displayName="Parakeet v2"
+          description="Best for English"
+          isSelected={selectedModel === "am-parakeet-v2"}
+          onSelect={() => setSelectedModel("am-parakeet-v2")}
+        />
+        <LocalModelRow
+          model="am-parakeet-v3"
+          displayName="Parakeet v3"
+          description="Better for European languages"
+          isSelected={selectedModel === "am-parakeet-v3"}
+          onSelect={() => setSelectedModel("am-parakeet-v3")}
+        />
+      </div>
+
+      <div className="flex flex-col gap-3 mt-4">
+        <button
+          onClick={handleUseModel}
+          disabled={!selectedModel}
+          className={cn([
+            "w-full py-3 rounded-full text-white text-sm font-medium duration-150",
+            selectedModel
+              ? "bg-gradient-to-t from-stone-600 to-stone-500 hover:scale-[1.01] active:scale-[0.99]"
+              : "bg-gray-300 cursor-not-allowed opacity-50",
+          ])}
+        >
+          Use this model
+        </button>
+      </div>
+    </OnboardingContainer>
+  );
+}
+
+function LocalModelRow({
+  model,
+  displayName,
+  description,
+  isSelected,
+  onSelect,
+}: {
+  model: SupportedSttModel;
+  displayName: string;
+  description: string;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
+  const isDownloaded = useQuery(localSttQueries.isDownloaded(model));
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      className={cn([
+        "relative border rounded-xl py-3 px-4 flex flex-col gap-1 text-left transition-all cursor-pointer",
+        isSelected
+          ? "border-stone-500 bg-stone-50"
+          : "border-neutral-200 hover:border-neutral-300",
+      ])}
+    >
+      <div className="flex items-center justify-between w-full">
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-medium">{displayName}</p>
+          <p className="text-xs text-neutral-500 flex-1">{description}</p>
+        </div>
+        {isDownloaded.data && (
+          <span className="text-xs text-green-600 font-medium">
+            Already downloaded
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 

@@ -1,9 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { AssemblyAI, Fireworks, OpenAI } from "@lobehub/icons";
-import { queryOptions } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
-import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import type {
   AmModel,
   SupportedSttModel,
@@ -11,11 +9,14 @@ import type {
 } from "@hypr/plugin-local-stt";
 
 import { env } from "../../../../env";
+import { localSttQueries } from "../../../../hooks/useLocalSttModel";
 import {
   type ProviderRequirement,
   requiresEntitlement,
 } from "../shared/eligibility";
 import { sortProviders } from "../shared/sort-providers";
+
+export { localSttQueries as sttModelQueries };
 
 type Provider = {
   disabled: boolean;
@@ -199,33 +200,4 @@ export type ProviderId = (typeof _PROVIDERS)[number]["id"];
 export const sttProviderRequiresPro = (providerId: ProviderId) => {
   const provider = PROVIDERS.find((p) => p.id === providerId);
   return provider ? requiresEntitlement(provider.requirements, "pro") : false;
-};
-
-export const sttModelQueries = {
-  isDownloaded: (model: SupportedSttModel) =>
-    queryOptions({
-      refetchInterval: 1000,
-      queryKey: ["stt", "model", model, "downloaded"],
-      queryFn: () => localSttCommands.isModelDownloaded(model),
-      select: (result) => {
-        if (result.status === "error") {
-          throw new Error(result.error);
-        }
-
-        return result.data;
-      },
-    }),
-  isDownloading: (model: SupportedSttModel) =>
-    queryOptions({
-      refetchInterval: 1000,
-      queryKey: ["stt", "model", model, "downloading"],
-      queryFn: () => localSttCommands.isModelDownloading(model),
-      select: (result) => {
-        if (result.status === "error") {
-          throw new Error(result.error);
-        }
-
-        return result.data;
-      },
-    }),
 };

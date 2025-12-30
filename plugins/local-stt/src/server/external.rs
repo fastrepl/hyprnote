@@ -14,17 +14,19 @@ pub enum ExternalSTTMessage {
 
 #[derive(Clone)]
 pub struct CommandBuilder {
-    factory: Arc<dyn Fn() -> Command + Send + Sync>,
+    factory: Arc<dyn Fn() -> Result<Command, crate::Error> + Send + Sync>,
 }
 
 impl CommandBuilder {
-    pub fn new(factory: impl Fn() -> Command + Send + Sync + 'static) -> Self {
+    pub fn new(
+        factory: impl Fn() -> Result<Command, crate::Error> + Send + Sync + 'static,
+    ) -> Self {
         Self {
             factory: Arc::new(factory),
         }
     }
 
-    pub fn build(&self) -> Command {
+    pub fn build(&self) -> Result<Command, crate::Error> {
         (self.factory)()
     }
 }
@@ -122,7 +124,7 @@ impl Actor for ExternalSTTActor {
             port,
         } = args;
 
-        let cmd = cmd_builder.build();
+        let cmd = cmd_builder.build()?;
         let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
         let base_url = format!("http://localhost:{}/v1", port);
         let client = hypr_am::Client::new(&base_url);

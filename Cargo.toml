@@ -154,6 +154,7 @@ tauri-plugin-pdf = { path = "plugins/pdf" }
 tauri-plugin-permissions = { path = "plugins/permissions" }
 tauri-plugin-settings = { path = "plugins/settings" }
 tauri-plugin-sfx = { path = "plugins/sfx" }
+tauri-plugin-sidecar2 = { path = "plugins/sidecar2" }
 tauri-plugin-store2 = { path = "plugins/store2" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tracing = { path = "plugins/tracing" }

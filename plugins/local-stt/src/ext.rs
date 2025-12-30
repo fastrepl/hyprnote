@@ -1,11 +1,11 @@
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, path::PathBuf};
 
 use ractor::{ActorRef, call_t, registry};
 use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
 use tauri::{Manager, Runtime};
-use tauri_plugin_shell::ShellExt;
+use tauri_plugin_sidecar2::Sidecar2PluginExt;
 
 use hypr_download_interface::DownloadProgress;
 use hypr_file::download_file_parallel_cancellable;
@@ -455,42 +455,19 @@ async fn start_external_server<R: Runtime, T: Manager<R>>(
         .ok_or_else(|| crate::Error::ServerStartFailed("failed_to_find_free_port".to_string()))?;
 
     let app_handle = manager.app_handle().clone();
-    let cmd_builder = {
+    let cmd_builder = external::CommandBuilder::new(move || {
+        let mut cmd = app_handle
+            .sidecar2()
+            .sidecar("hyprnote-sidecar-stt")?
+            .args(["serve", "--any-token"]);
+
         #[cfg(debug_assertions)]
         {
-            let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin");
-            let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin");
-
-            if !passthrough_path.exists() || !stt_path.exists() {
-                return Err(crate::Error::AmBinaryNotFound);
-            }
-
-            let passthrough_path = Arc::new(passthrough_path);
-            let stt_path = Arc::new(stt_path);
-            external::CommandBuilder::new(move || {
-                app_handle
-                    .shell()
-                    .command(passthrough_path.as_ref())
-                    .current_dir(dirs::home_dir().unwrap())
-                    .arg(stt_path.as_ref())
-                    .args(["serve", "--any-token", "-v", "-d"])
-            })
+            cmd = cmd.args(["-v", "-d"]);
         }
 
-        #[cfg(not(debug_assertions))]
-        {
-            external::CommandBuilder::new(move || {
-                app_handle
-                    .shell()
-                    .sidecar("hyprnote-sidecar-stt")
-                    .expect("failed to create sidecar command")
-                    .current_dir(dirs::home_dir().unwrap())
-                    .args(["serve", "--any-token"])
-            })
-        }
-    };
+        Ok(cmd)
+    });
 
     supervisor::start_external_stt(
         supervisor,

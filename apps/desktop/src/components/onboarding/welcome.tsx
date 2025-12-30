@@ -2,7 +2,6 @@ import { arch, platform } from "@tauri-apps/plugin-os";
 import { memo, useCallback, useEffect, useMemo } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
 import { usePermissions } from "../../hooks/use-permissions";
 import { Route } from "../../routes/app/onboarding/_layout.index";
@@ -36,10 +35,15 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
         .getOnboardingLocal()
         .then((result) => result.status === "ok" && result.data);
 
-      onNavigate({ ...search, local, step: getNext(search)! });
+      onNavigate({
+        ...search,
+        local,
+        skipAutoForward: false,
+        step: getNext(search)!,
+      });
     };
 
-    if (hasAnyPermissionGranted) {
+    if (hasAnyPermissionGranted && !search.skipAutoForward) {
       void fetchLocal();
     }
   }, [hasAnyPermissionGranted, onNavigate, search]);
@@ -66,14 +70,9 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
         draggable={false}
       />
 
-      <TextAnimate
-        animation="slideUp"
-        by="word"
-        once
-        className="mb-16 text-center text-xl font-medium text-neutral-600"
-      >
+      <p className="mb-16 text-center text-xl font-medium text-neutral-600">
         Where Conversations Stay Yours
-      </TextAnimate>
+      </p>
 
       <button
         onClick={handleClickCloud}

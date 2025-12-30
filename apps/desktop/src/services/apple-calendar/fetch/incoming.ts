@@ -1,12 +1,18 @@
 import type { AppleEvent, Participant } from "@hypr/plugin-apple-calendar";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import type { EventParticipant } from "@hypr/store";
 
 import type { Ctx } from "../ctx";
-import type { IncomingEvent } from "./types";
+import type {
+  EventParticipant,
+  IncomingEvent,
+  IncomingParticipants,
+} from "./types";
 
-export async function fetchIncomingEvents(ctx: Ctx): Promise<IncomingEvent[]> {
+export async function fetchIncomingEvents(ctx: Ctx): Promise<{
+  events: IncomingEvent[];
+  participants: IncomingParticipants;
+}> {
   const trackingIds = Array.from(ctx.calendarTrackingIdToId.keys());
 
   const results = await Promise.all(
@@ -25,36 +31,51 @@ export async function fetchIncomingEvents(ctx: Ctx): Promise<IncomingEvent[]> {
     }),
   );
 
-  const events = results.flat();
+  const appleEvents = results.flat();
+  const events: IncomingEvent[] = [];
+  const participants: IncomingParticipants = new Map();
 
-  return Promise.all(events.map(normalizeAppleEvent));
-}
-
-async function normalizeAppleEvent(event: AppleEvent): Promise<IncomingEvent> {
-  const meetingLink =
-    event.url ?? (await extractMeetingLink(event.notes, event.location));
-
-  const participants: EventParticipant[] = [];
-
-  if (event.organizer) {
-    participants.push(normalizeParticipant(event.organizer, true));
+  for (const appleEvent of appleEvents) {
+    const { event, eventParticipants } = await normalizeAppleEvent(appleEvent);
+    events.push(event);
+    if (eventParticipants.length > 0) {
+      participants.set(event.tracking_id_event, eventParticipants);
+    }
   }
 
-  for (const attendee of event.attendees) {
-    participants.push(normalizeParticipant(attendee, false));
+  return { events, participants };
+}
+
+async function normalizeAppleEvent(appleEvent: AppleEvent): Promise<{
+  event: IncomingEvent;
+  eventParticipants: EventParticipant[];
+}> {
+  const meetingLink =
+    appleEvent.url ??
+    (await extractMeetingLink(appleEvent.notes, appleEvent.location));
+
+  const eventParticipants: EventParticipant[] = [];
+
+  if (appleEvent.organizer) {
+    eventParticipants.push(normalizeParticipant(appleEvent.organizer, true));
+  }
+
+  for (const attendee of appleEvent.attendees) {
+    eventParticipants.push(normalizeParticipant(attendee, false));
   }
 
   return {
-    tracking_id_event: event.event_identifier,
-    tracking_id_calendar: event.calendar.id,
-    title: event.title,
-    started_at: event.start_date,
-    ended_at: event.end_date,
-    location: event.location ?? undefined,
-    meeting_link: meetingLink ?? undefined,
-    description: event.notes ?? undefined,
-    participants:
-      participants.length > 0 ? JSON.stringify(participants) : undefined,
+    event: {
+      tracking_id_event: appleEvent.event_identifier,
+      tracking_id_calendar: appleEvent.calendar.id,
+      title: appleEvent.title,
+      started_at: appleEvent.start_date,
+      ended_at: appleEvent.end_date,
+      location: appleEvent.location ?? undefined,
+      meeting_link: meetingLink ?? undefined,
+      description: appleEvent.notes ?? undefined,
+    },
+    eventParticipants,
   };
 }
 

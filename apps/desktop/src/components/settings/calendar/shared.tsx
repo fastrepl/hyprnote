@@ -17,7 +17,7 @@ export type CalendarProviderId = (typeof _PROVIDERS)[number]["id"];
 
 const _PROVIDERS = [
   {
-    disabled: true,
+    disabled: false,
     id: "apple",
     displayName: "Apple",
     badge: "Almost Done, really",

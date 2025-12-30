@@ -1,4 +1,4 @@
-import { RefreshCwIcon } from "lucide-react";
+import { CalendarOffIcon, RefreshCwIcon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Switch } from "@hypr/ui/components/ui/switch";
@@ -31,8 +31,9 @@ export function CalendarSelection({
 }: CalendarSelectionProps) {
   if (groups.length === 0) {
     return (
-      <div className="py-4 text-center text-sm text-neutral-500">
-        No calendars found
+      <div className="flex flex-col items-center justify-center py-8 px-4 border border-dashed border-neutral-200 rounded-lg bg-neutral-50/50">
+        <CalendarOffIcon className="size-8 text-neutral-300 mb-3" />
+        <p className="text-sm text-neutral-500">No calendars found</p>
       </div>
     );
   }
@@ -54,13 +55,6 @@ export function CalendarSelection({
         </Button>
       </div>
       <div className="space-y-4">
-        <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-xs text-amber-700">
-            Event fetching is not implemented yet. Calendar selection will be
-            used once event syncing is available.
-          </p>
-        </div>
-
         {groups.map((group) => (
           <div key={group.sourceName}>
             <h5 className="text-xs font-medium text-neutral-500 mb-2">

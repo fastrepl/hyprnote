@@ -48,7 +48,6 @@ function createIncomingEvent(
     title: "Test Event",
     started_at: "2024-01-15T10:00:00Z",
     ended_at: "2024-01-15T11:00:00Z",
-    participants: [],
     ...overrides,
   };
 }

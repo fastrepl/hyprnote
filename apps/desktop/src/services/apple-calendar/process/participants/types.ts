@@ -1,7 +1,10 @@
+import type { IncomingParticipants } from "../../fetch/types";
+
 export type ParticipantMappingId = string;
 
 export type ParticipantsSyncInput = {
-  eventIds: string[];
+  incomingParticipants: IncomingParticipants;
+  trackingIdToEventId: Map<string, string>;
 };
 
 export type ParticipantMappingToAdd = {

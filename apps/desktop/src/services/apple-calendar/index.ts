@@ -28,14 +28,16 @@ async function run(store: Store, queries: Queries<Schemas>) {
     return null;
   }
 
-  const incoming = await fetchIncomingEvents(ctx);
+  const { events: incoming, participants: incomingParticipants } =
+    await fetchIncomingEvents(ctx);
   const existing = fetchExistingEvents(ctx);
 
-  const out = syncEvents(ctx, { incoming, existing });
-  const { addedEventIds } = executeForEventsSync(ctx, out);
+  const eventsOut = syncEvents(ctx, { incoming, existing });
+  const { trackingIdToEventId } = executeForEventsSync(ctx, eventsOut);
 
   const participantsOut = syncParticipants(ctx, {
-    eventIds: [...out.toUpdate.map((e) => e.id), ...addedEventIds],
+    incomingParticipants,
+    trackingIdToEventId,
   });
   executeForParticipantsSync(ctx, participantsOut);
 }

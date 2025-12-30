@@ -31,7 +31,6 @@ export function fetchExistingEvents(ctx: Ctx): ExistingEvent[] {
         meeting_link: event.meeting_link as string | undefined,
         description: event.description as string | undefined,
         note: event.note as string | undefined,
-        participants: event.participants as string | undefined,
       });
     }
   });

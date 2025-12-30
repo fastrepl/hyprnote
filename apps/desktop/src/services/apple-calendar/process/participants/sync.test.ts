@@ -47,7 +47,10 @@ describe("syncParticipants", () => {
     });
     const ctx = createMockCtx(store);
 
-    const result = syncParticipants(ctx, { events: [] });
+    const result = syncParticipants(ctx, {
+      incomingParticipants: new Map(),
+      trackingIdToEventId: new Map(),
+    });
 
     expect(result.toAdd).toHaveLength(0);
     expect(result.toDelete).toHaveLength(0);
@@ -63,12 +66,10 @@ describe("syncParticipants", () => {
     const ctx = createMockCtx(store);
 
     const result = syncParticipants(ctx, {
-      events: [
-        {
-          eventId: "event-1",
-          participants: [{ email: "test@example.com", name: "Test" }],
-        },
-      ],
+      incomingParticipants: new Map([
+        ["tracking-1", [{ email: "test@example.com", name: "Test" }]],
+      ]),
+      trackingIdToEventId: new Map([["tracking-1", "event-1"]]),
     });
 
     expect(result.toAdd).toHaveLength(0);
@@ -84,12 +85,10 @@ describe("syncParticipants", () => {
     const ctx = createMockCtx(store);
 
     const result = syncParticipants(ctx, {
-      events: [
-        {
-          eventId: "event-1",
-          participants: [{ email: "new@example.com", name: "New Person" }],
-        },
-      ],
+      incomingParticipants: new Map([
+        ["tracking-1", [{ email: "new@example.com", name: "New Person" }]],
+      ]),
+      trackingIdToEventId: new Map([["tracking-1", "event-1"]]),
     });
 
     expect(result.humansToCreate).toHaveLength(1);
@@ -106,12 +105,10 @@ describe("syncParticipants", () => {
     const ctx = createMockCtx(store);
 
     const result = syncParticipants(ctx, {
-      events: [
-        {
-          eventId: "event-1",
-          participants: [{ email: "existing@example.com", name: "Existing" }],
-        },
-      ],
+      incomingParticipants: new Map([
+        ["tracking-1", [{ email: "existing@example.com", name: "Existing" }]],
+      ]),
+      trackingIdToEventId: new Map([["tracking-1", "event-1"]]),
     });
 
     expect(result.humansToCreate).toHaveLength(0);
@@ -134,7 +131,8 @@ describe("syncParticipants", () => {
     const ctx = createMockCtx(store);
 
     const result = syncParticipants(ctx, {
-      events: [{ eventId: "event-1", participants: [] }],
+      incomingParticipants: new Map([["tracking-1", []]]),
+      trackingIdToEventId: new Map([["tracking-1", "event-1"]]),
     });
 
     expect(result.toDelete).toContain("mapping-1");
@@ -155,7 +153,8 @@ describe("syncParticipants", () => {
     const ctx = createMockCtx(store);
 
     const result = syncParticipants(ctx, {
-      events: [{ eventId: "event-1", participants: [] }],
+      incomingParticipants: new Map([["tracking-1", []]]),
+      trackingIdToEventId: new Map([["tracking-1", "event-1"]]),
     });
 
     expect(result.toDelete).not.toContain("mapping-1");

@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import {
   commands as appleCalendarCommands,
@@ -188,43 +188,49 @@ function useAppleCalendarSelection() {
   const calendars = main.UI.useTable("calendars", main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
 
-  const { mutate: syncCalendars, isPending } = useMutation({
-    mutationKey: ["appleCalendars", "sync"],
-    mutationFn: async () => {
+  const {
+    data: incomingCalendars,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ["appleCalendars"],
+    queryFn: async () => {
       const [result] = await Promise.all([
         appleCalendarCommands.listCalendars(),
-        new Promise((resolve) => setTimeout(resolve, 250)),
+        new Promise((resolve) => setTimeout(resolve, 150)),
       ]);
+
       if (result.status === "error") {
         throw new Error(result.error);
       }
       return result.data;
     },
-    onSuccess: (incomingCalendars) => {
-      if (!store || !user_id) return;
-
-      store.transaction(() => {
-        for (const cal of incomingCalendars) {
-          const existingRowId = findCalendarByTrackingId(store, cal.id);
-          const rowId = existingRowId ?? crypto.randomUUID();
-          const existing = existingRowId
-            ? store.getRow("calendars", existingRowId)
-            : null;
-
-          store.setRow("calendars", rowId, {
-            user_id,
-            created_at: existing?.created_at || new Date().toISOString(),
-            tracking_id_calendar: cal.id,
-            name: cal.title,
-            enabled: existing?.enabled ?? false,
-            provider: "apple",
-            source: cal.source.title,
-            color: colorToCSS(cal.color),
-          });
-        }
-      });
-    },
   });
+
+  useEffect(() => {
+    if (!incomingCalendars || !store || !user_id) return;
+
+    store.transaction(() => {
+      for (const cal of incomingCalendars) {
+        const existingRowId = findCalendarByTrackingId(store, cal.id);
+        const rowId = existingRowId ?? crypto.randomUUID();
+        const existing = existingRowId
+          ? store.getRow("calendars", existingRowId)
+          : null;
+
+        store.setRow("calendars", rowId, {
+          user_id,
+          created_at: existing?.created_at || new Date().toISOString(),
+          tracking_id_calendar: cal.id,
+          name: cal.title,
+          enabled: existing?.enabled ?? false,
+          provider: "apple",
+          source: cal.source.title,
+          color: colorToCSS(cal.color),
+        });
+      }
+    });
+  }, [incomingCalendars, store, user_id]);
 
   const groups = useMemo((): CalendarGroup[] => {
     const appleCalendars = Object.entries(calendars).filter(
@@ -256,8 +262,8 @@ function useAppleCalendarSelection() {
   return {
     groups,
     handleToggle,
-    handleRefresh: syncCalendars,
-    isLoading: isPending,
+    handleRefresh: refetch,
+    isLoading: isFetching,
   };
 }
 
@@ -281,7 +287,7 @@ function DocumentationLink({ href }: { href: string }) {
       onClick={() => openUrl(href)}
       className="mb-3 text-xs text-neutral-500 hover:text-neutral-700 hover:underline"
     >
-      Read the docs →
+      Read the docs ↗
     </button>
   );
 }

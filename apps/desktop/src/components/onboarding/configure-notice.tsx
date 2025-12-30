@@ -96,12 +96,25 @@ function LocalConfigureNotice({
     }
   }, [p2Downloaded.data, p3Downloaded.data, search, onNavigate]);
 
-  const handleUseModel = useCallback(() => {
+  const [isStarting, setIsStarting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleUseModel = useCallback(async () => {
     if (!selectedModel) return;
+
+    setIsStarting(true);
+    setError(null);
 
     handleSelectProvider("hyprnote");
     handleSelectModel(selectedModel);
-    void localSttCommands.downloadModel(selectedModel);
+
+    const result = await localSttCommands.downloadModel(selectedModel);
+    if (result.status === "error") {
+      setIsStarting(false);
+      setError("Failed to start download. Please try again.");
+      return;
+    }
+
     onNavigate({ ...search, step: getNext(search)! });
   }, [
     selectedModel,
@@ -148,17 +161,18 @@ function LocalConfigureNotice({
       </div>
 
       <div className="flex flex-col gap-3 mt-4">
+        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
         <button
           onClick={handleUseModel}
-          disabled={!selectedModel}
+          disabled={!selectedModel || isStarting}
           className={cn([
             "w-full py-3 rounded-full text-white text-sm font-medium duration-150",
-            selectedModel
+            selectedModel && !isStarting
               ? "bg-gradient-to-t from-stone-600 to-stone-500 hover:scale-[1.01] active:scale-[0.99]"
               : "bg-gray-300 cursor-not-allowed opacity-50",
           ])}
         >
-          Use this model
+          {isStarting ? "Starting download..." : "Use this model"}
         </button>
       </div>
     </OnboardingContainer>

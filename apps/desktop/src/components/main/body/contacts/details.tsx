@@ -420,6 +420,7 @@ function OrganizationControl({
   closePopover: () => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const userId = main.UI.useValue("user_id", main.STORE_ID);
 
   const organizationsData = main.UI.useResultTable(
     main.QUERIES.visibleOrganizations,
@@ -438,6 +439,25 @@ function OrganizationControl({
         org.name.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     : allOrganizations;
+
+  const createOrganization = main.UI.useSetRowCallback(
+    "organizations",
+    (p: { name: string; orgId: string }) => p.orgId,
+    (p: { name: string; orgId: string }) => ({
+      user_id: userId || "",
+      name: p.name,
+      created_at: new Date().toISOString(),
+    }),
+    [userId],
+    main.STORE_ID,
+  );
+
+  const handleCreateOrganization = () => {
+    const orgId = crypto.randomUUID();
+    createOrganization({ orgId, name: searchTerm.trim() });
+    onChange(orgId);
+    closePopover();
+  };
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -494,7 +514,7 @@ function OrganizationControl({
                 <button
                   type="button"
                   className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
-                  onClick={() => {}}
+                  onClick={() => handleCreateOrganization()}
                 >
                   <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
                     <span className="text-xs">+</span>

@@ -13,6 +13,7 @@ export type ToastType = {
   primaryAction?: ToastAction;
   secondaryAction?: ToastAction;
   dismissible: boolean;
+  progress?: number;
 };
 
 export type ToastCondition = () => boolean;

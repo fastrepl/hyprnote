@@ -11,6 +11,9 @@ type ToastRegistryParams = {
   hasSttConfigured: boolean;
   isAiTranscriptionTabActive: boolean;
   isAiIntelligenceTabActive: boolean;
+  hasActiveDownload: boolean;
+  downloadProgress: number | null;
+  downloadingModel: string | null;
   onSignIn: () => void | Promise<void>;
   onOpenLLMSettings: () => void;
   onOpenSTTSettings: () => void;
@@ -22,12 +25,25 @@ export function createToastRegistry({
   hasSttConfigured,
   isAiTranscriptionTabActive,
   isAiIntelligenceTabActive,
+  hasActiveDownload,
+  downloadProgress,
+  downloadingModel,
   onSignIn,
   onOpenLLMSettings,
   onOpenSTTSettings,
 }: ToastRegistryParams): ToastRegistryEntry[] {
   // order matters
   return [
+    {
+      toast: {
+        id: "downloading-model",
+        title: `Downloading ${downloadingModel}`,
+        description: "This may take a few minutes",
+        dismissible: false,
+        progress: downloadProgress ?? 0,
+      },
+      condition: () => hasActiveDownload,
+    },
     {
       toast: {
         id: "missing-stt",

@@ -16,20 +16,13 @@ import {
   type CalendarItem,
   CalendarSelection,
 } from "../shared";
+import { useSync } from "./context";
 import { Section } from "./index";
 import { SyncIndicator } from "./sync";
 
-export function AppleCalendarSelection({
-  syncActions,
-}: {
-  syncActions: {
-    scheduleSync: () => void;
-    scheduleDebouncedSync: () => void;
-    cancelDebouncedSync: () => void;
-  };
-}) {
+export function AppleCalendarSelection() {
   const { groups, handleToggle, handleRefresh, isLoading } =
-    useAppleCalendarSelection(syncActions);
+    useAppleCalendarSelection();
 
   return (
     <Section
@@ -58,11 +51,10 @@ export function AppleCalendarSelection({
   );
 }
 
-function useAppleCalendarSelection(syncActions: {
-  scheduleSync: () => void;
-  scheduleDebouncedSync: () => void;
-  cancelDebouncedSync: () => void;
-}) {
+function useAppleCalendarSelection() {
+  const { scheduleSync, scheduleDebouncedSync, cancelDebouncedSync } =
+    useSync();
+
   const store = main.UI.useStore(main.STORE_ID);
   const calendars = main.UI.useTable("calendars", main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -137,16 +129,16 @@ function useAppleCalendarSelection(syncActions: {
   const handleToggle = useCallback(
     (calendar: CalendarItem, enabled: boolean) => {
       store?.setPartialRow("calendars", calendar.id, { enabled });
-      syncActions.scheduleDebouncedSync();
+      scheduleDebouncedSync();
     },
-    [store, syncActions],
+    [store, scheduleDebouncedSync],
   );
 
   const handleRefresh = useCallback(async () => {
-    syncActions.cancelDebouncedSync();
+    cancelDebouncedSync();
     await refetch();
-    syncActions.scheduleSync();
-  }, [refetch, syncActions]);
+    scheduleSync();
+  }, [refetch, scheduleSync, cancelDebouncedSync]);
 
   return {
     groups,

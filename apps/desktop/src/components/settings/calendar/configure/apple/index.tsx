@@ -1,5 +1,4 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useMemo } from "react";
 
 import { commands as permissionsCommands } from "@hypr/plugin-permissions";
 import {
@@ -11,8 +10,8 @@ import {
 import { StyledStreamdown } from "../../../ai/shared";
 import { PROVIDERS } from "../../shared";
 import { AppleCalendarSelection } from "./calendar-selection";
+import { SyncProvider } from "./context";
 import { AccessPermissionRow, useAccessPermission } from "./permission";
-import { useSyncStatus } from "./sync";
 
 export function Section({
   title,
@@ -38,8 +37,6 @@ export function Section({
 
 export function AppleCalendarProviderCard() {
   const config = PROVIDERS.find((p) => p.id === "apple")!;
-  const { scheduleSync, scheduleDebouncedSync, cancelDebouncedSync } =
-    useSyncStatus();
 
   const calendar = useAccessPermission({
     queryKey: "appleCalendarAccess",
@@ -54,11 +51,6 @@ export function AppleCalendarProviderCard() {
     requestPermission: () => permissionsCommands.requestPermission("contacts"),
     openSettings: () => permissionsCommands.openPermission("contacts"),
   });
-
-  const syncActions = useMemo(
-    () => ({ scheduleSync, scheduleDebouncedSync, cancelDebouncedSync }),
-    [scheduleSync, scheduleDebouncedSync, cancelDebouncedSync],
-  );
 
   return (
     <AccordionItem
@@ -112,7 +104,9 @@ export function AppleCalendarProviderCard() {
         </Section>
 
         {calendar.isAuthorized && (
-          <AppleCalendarSelection syncActions={syncActions} />
+          <SyncProvider>
+            <AppleCalendarSelection />
+          </SyncProvider>
         )}
       </AccordionContent>
     </AccordionItem>

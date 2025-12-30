@@ -1,12 +1,13 @@
 import { platform } from "@tauri-apps/plugin-os";
 import { AxeIcon, PanelLeftCloseIcon } from "lucide-react";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useSearch } from "../../../contexts/search/ui";
 import { useShell } from "../../../contexts/shell";
+import { commands } from "../../../types/tauri.gen";
 import { TrafficLights } from "../../window/traffic-lights";
 import { ProfileSection } from "./profile";
 import { SearchResults } from "./search";
@@ -21,7 +22,12 @@ export function LeftSidebar() {
   const { leftsidebar } = useShell();
   const { query } = useSearch();
   const [isProfileExpanded, setIsProfileExpanded] = useState(false);
+  const [showDevtoolButton, setShowDevtoolButton] = useState(false);
   const isLinux = platform() === "linux";
+
+  useEffect(() => {
+    commands.showDevtool().then(setShowDevtoolButton);
+  }, []);
 
   const showSearchResults = query.trim() !== "";
 
@@ -39,7 +45,7 @@ export function LeftSidebar() {
       >
         {isLinux && <TrafficLights />}
         <div className="flex items-center">
-          {import.meta.env.DEV && (
+          {showDevtoolButton && (
             <Button
               size="icon"
               variant="ghost"

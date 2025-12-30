@@ -295,6 +295,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::get_onboarding_local::<tauri::Wry>,
             commands::set_onboarding_local::<tauri::Wry>,
             commands::get_env::<tauri::Wry>,
+            commands::show_devtool,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

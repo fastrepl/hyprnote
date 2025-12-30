@@ -80,7 +80,7 @@ fn imported_human_to_db(human: &ImportedHuman) -> Human {
     Human {
         id: human.id.clone(),
         organization_id: human.org_id.clone(),
-        is_user: human.is_user,
+        is_user: false,
         full_name: if human.name.is_empty() {
             None
         } else {

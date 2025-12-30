@@ -1,8 +1,10 @@
 mod granola;
 mod hyprnote;
+mod noop;
 
 pub use granola::GranolaSource;
 pub use hyprnote::{HyprnoteV0NightlySource, HyprnoteV0StableSource};
+pub use noop::NoOpSource;
 
 use crate::error::Result;
 use crate::types::{
@@ -43,6 +45,7 @@ pub fn get_source(
         }),
         ImportSourceKind::HyprnoteV0Stable => Box::new(HyprnoteV0StableSource),
         ImportSourceKind::HyprnoteV0Nightly => Box::new(HyprnoteV0NightlySource),
+        ImportSourceKind::NoOp => Box::new(NoOpSource),
     }
 }
 
@@ -51,6 +54,7 @@ pub fn all_sources() -> Vec<Box<dyn ImportSourceDyn>> {
         Box::new(GranolaSource::default()),
         Box::new(HyprnoteV0StableSource),
         Box::new(HyprnoteV0NightlySource),
+        Box::new(NoOpSource),
     ]
 }
 

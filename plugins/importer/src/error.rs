@@ -11,8 +11,14 @@ pub enum Error {
     #[error("database error: {0}")]
     Database(#[from] hypr_db_user::Error),
 
+    #[error("json error: {0}")]
+    Json(#[from] serde_json::Error),
+
     #[error("import source not found: {0}")]
     SourceNotFound(String),
+
+    #[error("validation error: {0}")]
+    Validation(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

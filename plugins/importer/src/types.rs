@@ -78,6 +78,7 @@ pub enum ImportSourceKind {
     Granola,
     HyprnoteV0Stable,
     HyprnoteV0Nightly,
+    NoOp,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]

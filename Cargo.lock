@@ -17589,19 +17589,23 @@ dependencies = [
 name = "tauri-plugin-importer"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "db-core",
  "db-user",
  "dirs 6.0.0",
  "granola",
  "owhisper-interface",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-path2",
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

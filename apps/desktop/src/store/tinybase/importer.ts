@@ -16,10 +16,56 @@ const IMPORT_PATH = "hyprnote/import.json";
 const IMPORT_PROCESSING_PATH = "hyprnote/import.processing.json";
 const BASE_DIR = BaseDirectory.Data;
 
+const VALID_TABLE_NAMES = Object.keys(SCHEMA.table);
+
 export type ImportResult =
   | { status: "skipped"; reason: "not_main_window" | "no_import_file" }
   | { status: "success"; tablesImported: number; valuesImported: number }
   | { status: "error"; error: string };
+
+export type ValidationResult =
+  | { valid: true }
+  | { valid: false; errors: string[] };
+
+export const validateImportData = (
+  tables: Record<string, unknown> | null,
+): ValidationResult => {
+  const errors: string[] = [];
+
+  if (!tables || typeof tables !== "object") {
+    return { valid: true };
+  }
+
+  const tableNames = Object.keys(tables);
+
+  for (const tableName of tableNames) {
+    if (!VALID_TABLE_NAMES.includes(tableName)) {
+      errors.push(`Unknown table name: "${tableName}"`);
+    }
+  }
+
+  for (const tableName of tableNames) {
+    const tableData = tables[tableName];
+    if (
+      tableData &&
+      typeof tableData === "object" &&
+      !Array.isArray(tableData)
+    ) {
+      const rows = tableData as Record<string, unknown>;
+      for (const rowId of Object.keys(rows)) {
+        if (!rowId || rowId.trim() === "") {
+          errors.push(`Empty row ID found in table "${tableName}"`);
+        }
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    return { valid: false, errors };
+  }
+
+  return { valid: true };
+};
 
 export const maybeImportFromJson = async (
   store: Store,
@@ -65,6 +111,15 @@ export const maybeImportFromJson = async (
     if (values !== null && typeof values !== "object") {
       throw new Error(
         "Invalid import format: values must be an object or null",
+      );
+    }
+
+    const validationResult = validateImportData(
+      tables as Record<string, unknown> | null,
+    );
+    if (!validationResult.valid) {
+      throw new Error(
+        `Validation failed: ${validationResult.errors.join(", ")}`,
       );
     }
 
@@ -128,6 +183,15 @@ export const importFromFile = async (
     if (values !== null && typeof values !== "object") {
       throw new Error(
         "Invalid import format: values must be an object or null",
+      );
+    }
+
+    const validationResult = validateImportData(
+      tables as Record<string, unknown> | null,
+    );
+    if (!validationResult.valid) {
+      throw new Error(
+        `Validation failed: ${validationResult.errors.join(", ")}`,
       );
     }
 

@@ -11,9 +11,19 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import {
+  type ImportResult,
+  maybeImportFromJson,
+} from "../../../store/tinybase/importer";
+import { type Store, STORE_ID, UI } from "../../../store/tinybase/main";
+
 export function Import() {
   const [dryRunCompleted, setDryRunCompleted] =
     useState<ImportSourceKind | null>(null);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+
+  const store = UI.useStore(STORE_ID) as Store | undefined;
+  const persister = UI.usePersister(STORE_ID);
 
   const { data: sources } = useQuery({
     queryKey: ["import-sources"],
@@ -34,12 +44,19 @@ export function Import() {
       }
       return source;
     },
-    onSuccess: (source) => {
+    onSuccess: async (source) => {
       void analyticsCommands.event({
         event: "data_imported",
         source,
       });
       setDryRunCompleted(null);
+
+      if (store && persister) {
+        const result = await maybeImportFromJson(store, async () => {
+          await persister.save();
+        });
+        setImportResult(result);
+      }
     },
   });
 
@@ -94,7 +111,7 @@ export function Import() {
             </div>
           )}
 
-          {importMutation.isSuccess && (
+          {(importMutation.isSuccess || importResult?.status === "success") && (
             <div
               className={cn([
                 "flex items-center gap-2 text-sm text-green-600",
@@ -102,7 +119,23 @@ export function Import() {
               ])}
             >
               <CheckCircleIcon size={16} />
-              <span>Import completed successfully.</span>
+              <span>
+                {importResult?.status === "success"
+                  ? `Import completed: ${importResult.tablesImported} tables imported.`
+                  : "Import completed successfully."}
+              </span>
+            </div>
+          )}
+
+          {importResult?.status === "error" && (
+            <div
+              className={cn([
+                "flex items-center gap-2 text-sm text-red-600",
+                "p-3 rounded-lg bg-red-50 border border-red-200",
+              ])}
+            >
+              <XCircleIcon size={16} />
+              <span>Import failed: {importResult.error}</span>
             </div>
           )}
 

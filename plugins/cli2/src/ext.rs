@@ -24,31 +24,56 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Cli2<'a, R, M> {
         Ok(())
     }
 
+    pub fn get_cli_binary_name(&self) -> String {
+        if let Ok(exe_path) = std::env::current_exe() {
+            if let Some(file_name) = exe_path.file_stem() {
+                return file_name.to_string_lossy().to_string();
+            }
+        }
+        "hyprnote".to_string()
+    }
+
     pub fn get_cli_symlink_path(&self) -> PathBuf {
+        let binary_name = self.get_cli_binary_name();
+
         #[cfg(unix)]
         {
             if let Some(home) = std::env::var_os("HOME") {
-                return PathBuf::from(home).join(".local/bin/hyprnote");
+                return PathBuf::from(home).join(".local/bin").join(&binary_name);
             }
-            PathBuf::from("/usr/local/bin/hyprnote")
+            PathBuf::from("/usr/local/bin").join(&binary_name)
         }
 
         #[cfg(windows)]
         {
+            let binary_name_exe = format!("{}.exe", binary_name);
             if let Some(home) = std::env::var_os("USERPROFILE") {
-                return PathBuf::from(home).join(".local\\bin\\hyprnote.exe");
+                return PathBuf::from(home)
+                    .join(".local\\bin")
+                    .join(&binary_name_exe);
             }
-            PathBuf::from("C:\\Program Files\\hyprnote\\hyprnote.exe")
+            PathBuf::from("C:\\Program Files\\hyprnote").join(&binary_name_exe)
         }
 
         #[cfg(not(any(unix, windows)))]
         {
-            PathBuf::from("hyprnote")
+            PathBuf::from(&binary_name)
         }
     }
 
     pub fn get_cli_executable_path(&self) -> Result<PathBuf, crate::Error> {
         std::env::current_exe().map_err(|e| e.into())
+    }
+
+    pub fn is_cli_path_in_env_path(&self) -> bool {
+        let symlink_path = self.get_cli_symlink_path();
+        if let Some(parent) = symlink_path.parent() {
+            if let Some(env_path) = std::env::var_os("PATH") {
+                let paths: Vec<PathBuf> = std::env::split_paths(&env_path).collect();
+                return paths.iter().any(|p| p == parent);
+            }
+        }
+        false
     }
 
     pub fn install_cli_to_path(&self) -> Result<(), crate::Error> {
@@ -114,6 +139,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Cli2<'a, R, M> {
 
     pub fn check_cli_status(&self) -> Result<CliStatus, crate::Error> {
         let symlink_path = self.get_cli_symlink_path();
+        let binary_name = self.get_cli_binary_name();
+        let is_in_path = self.is_cli_path_in_env_path();
 
         match std::fs::symlink_metadata(&symlink_path) {
             Ok(metadata) if metadata.file_type().is_symlink() => {
@@ -122,17 +149,23 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Cli2<'a, R, M> {
                     is_installed: true,
                     symlink_path: Some(symlink_path.to_string_lossy().to_string()),
                     target_path: target.map(|p| p.to_string_lossy().to_string()),
+                    binary_name,
+                    is_in_path,
                 })
             }
             Ok(_) => Ok(CliStatus {
                 is_installed: false,
                 symlink_path: None,
                 target_path: None,
+                binary_name,
+                is_in_path,
             }),
             Err(_) => Ok(CliStatus {
                 is_installed: false,
                 symlink_path: None,
                 target_path: None,
+                binary_name,
+                is_in_path,
             }),
         }
     }
@@ -162,4 +195,6 @@ pub struct CliStatus {
     pub is_installed: bool,
     pub symlink_path: Option<String>,
     pub target_path: Option<String>,
+    pub binary_name: String,
+    pub is_in_path: bool,
 }

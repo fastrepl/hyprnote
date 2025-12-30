@@ -27,12 +27,30 @@ impl MenuItemHandler for AppCliInstall {
 
     fn handle(app: &AppHandle<tauri::Wry>) {
         let app_clone = app.clone();
+        let status = app.cli2().check_cli_status().ok();
+        let binary_name = status
+            .as_ref()
+            .map(|s| s.binary_name.clone())
+            .unwrap_or_else(|| "hyprnote".to_string());
+        let is_in_path = status.as_ref().map(|s| s.is_in_path).unwrap_or(false);
+
         match app.cli2().install_cli_to_path() {
             Ok(_) => {
                 let _ = app.tray().create_app_menu();
+                let message = if is_in_path {
+                    format!(
+                        "CLI has been installed successfully.\n\nYou can now use '{}' command in your terminal.",
+                        binary_name
+                    )
+                } else {
+                    format!(
+                        "CLI has been installed successfully.\n\nYou can now use '{}' command in your terminal.\n\nNote: ~/.local/bin may not be in your PATH. Add it with:\nexport PATH=\"$HOME/.local/bin:$PATH\"",
+                        binary_name
+                    )
+                };
                 app_clone
                     .dialog()
-                    .message("CLI has been installed successfully.\n\nYou can now use 'hyprnote' command in your terminal.")
+                    .message(message)
                     .title("CLI Installed")
                     .buttons(MessageDialogButtons::Ok)
                     .show(|_| {});

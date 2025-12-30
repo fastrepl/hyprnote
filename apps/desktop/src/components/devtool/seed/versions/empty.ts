@@ -4,6 +4,7 @@ import type { SeedDefinition } from "../shared";
 export const emptySeed: SeedDefinition = {
   id: "empty",
   label: "Empty",
+  calendarFixtureBase: "default",
   run: (store: MainStore) => {
     store.transaction(() => {
       store.delTables();

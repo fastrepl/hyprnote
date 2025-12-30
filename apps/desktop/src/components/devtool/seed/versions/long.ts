@@ -42,6 +42,7 @@ const buildLongData = (): Tables<Schemas[0]> => {
 export const longSeed: SeedDefinition = {
   id: "long",
   label: "Long",
+  calendarFixtureBase: "default",
   run: (store: MainStore) => {
     const data = buildLongData();
     store.transaction(() => {

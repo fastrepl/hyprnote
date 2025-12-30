@@ -6,6 +6,7 @@ import type { SeedDefinition } from "../shared";
 export const curatedSeed: SeedDefinition = {
   id: "curated",
   label: "Curated",
+  calendarFixtureBase: "default",
   run: (store: MainStore) => {
     const validated = CuratedDataSchema.parse(curatedData);
     const tables = loadCuratedData(validated);

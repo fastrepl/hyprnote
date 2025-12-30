@@ -197,4 +197,102 @@ mod tests {
         let bases = list_bases();
         assert!(bases.contains(&"default"));
     }
+
+    mod schema_validation {
+        use jsonschema::Validator;
+        use schemars::schema_for;
+
+        use crate::types::{AppleCalendar, AppleEvent};
+
+        fn calendars_schema() -> serde_json::Value {
+            let schema = schema_for!(Vec<AppleCalendar>);
+            serde_json::to_value(schema).expect("Failed to serialize calendars schema")
+        }
+
+        fn events_schema() -> serde_json::Value {
+            let schema = schema_for!(Vec<AppleEvent>);
+            serde_json::to_value(schema).expect("Failed to serialize events schema")
+        }
+
+        fn assert_valid(validator: &Validator, data: &serde_json::Value, context: &str) {
+            let errors: Vec<String> = validator.iter_errors(data).map(|e| e.to_string()).collect();
+            assert!(
+                errors.is_empty(),
+                "{} failed schema validation:\n{}",
+                context,
+                errors.join("\n")
+            );
+        }
+
+        macro_rules! schema_file_test {
+            ($name:ident, $schema:expr, $json_path:literal, $label:literal) => {
+                #[test]
+                fn $name() {
+                    let validator = Validator::new(&$schema).expect("Failed to compile schema");
+                    let data: serde_json::Value = serde_json::from_str(include_str!($json_path))
+                        .expect(concat!("Failed to parse ", $label));
+                    assert_valid(&validator, &data, $label);
+                }
+            };
+        }
+
+        macro_rules! schema_patched_test {
+            ($name:ident, $schema:expr, $base_path:literal, $patch_path:literal, $label:literal) => {
+                #[test]
+                fn $name() {
+                    let validator = Validator::new(&$schema).expect("Failed to compile schema");
+
+                    let mut data: serde_json::Value =
+                        serde_json::from_str(include_str!($base_path))
+                            .expect(concat!("Failed to parse base for ", $label));
+
+                    let patch: json_patch::Patch = serde_json::from_str(include_str!($patch_path))
+                        .expect(concat!("Failed to parse patch for ", $label));
+
+                    json_patch::patch(&mut data, &patch)
+                        .expect(concat!("Failed to apply patch for ", $label));
+
+                    assert_valid(&validator, &data, $label);
+                }
+            };
+        }
+
+        schema_file_test!(
+            test_base_calendars,
+            calendars_schema(),
+            "data/default/base/calendars.json",
+            "base calendars"
+        );
+
+        schema_file_test!(
+            test_base_events,
+            events_schema(),
+            "data/default/base/events.json",
+            "base events"
+        );
+
+        schema_patched_test!(
+            test_patched_events_added,
+            events_schema(),
+            "data/default/base/events.json",
+            "data/default/patch/event_added.json",
+            "patched events (event_added)"
+        );
+
+        schema_patched_test!(
+            test_patched_events_removed,
+            events_schema(),
+            "data/default/base/events.json",
+            "data/default/patch/event_removed.json",
+            "patched events (event_removed)"
+        );
+
+        schema_patched_test!(
+            test_patched_events_rescheduled,
+            events_schema(),
+            "data/default/base/events.json",
+            "data/default/patch/event_rescheduled.json",
+            "patched events (event_rescheduled)"
+        );
+    }
 }

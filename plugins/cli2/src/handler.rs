@@ -41,15 +41,6 @@ enum Commands {
 /// These are passed by Tauri/Sentry and are not user-facing CLI arguments.
 const TAURI_INTERNAL_ARGS: &[&str] = &["--crash-reporter-server"];
 
-/// Get the actual binary name from the current executable path.
-fn get_binary_name() -> Option<String> {
-    std::env::args().next().and_then(|p| {
-        std::path::Path::new(&p)
-            .file_name()
-            .map(|n| n.to_string_lossy().to_string())
-    })
-}
-
 /// Filter out Tauri-internal arguments from the argument list.
 /// Handles both `--flag value` and `--flag=value` formats.
 fn filter_tauri_internal_args(args: Vec<String>) -> Vec<String> {
@@ -91,23 +82,8 @@ pub fn handle_cli_early() -> EarlyCliResult {
         return EarlyCliResult::Continue;
     }
 
-    let first_arg = args.get(1).map(|s| s.as_str()).unwrap_or("");
-
-    if first_arg == "--help" || first_arg == "-h" {
-        // Use try_parse_from to let clap handle help with correct binary name from args[0]
-        let _ = Cli::try_parse_from(&args);
-        return EarlyCliResult::Exit(0);
-    }
-
-    // Handle --version using clap's generated version
-    if first_arg == "--version" || first_arg == "-V" {
-        let bin_name = get_binary_name().unwrap_or_else(|| "hyprnote".to_string());
-        let version = env!("CARGO_PKG_VERSION");
-        println!("{bin_name} {version}");
-        return EarlyCliResult::Exit(0);
-    }
-
     // Try to parse the filtered CLI args
+    // Note: clap handles --help and --version by returning Err with the formatted output
     match Cli::try_parse_from(&args) {
         Ok(cli) => match cli.command {
             Some(Commands::Bug) => {

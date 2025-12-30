@@ -29,6 +29,20 @@ async listEvents(filter: EventFilter) : Promise<Result<AppleEvent[], string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async switchFixture(fixtureId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|switch_fixture", { fixtureId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async listFixtures() : Promise<string[]> {
+    return await TAURI_INVOKE("plugin:apple-calendar|list_fixtures");
+},
+async getCurrentFixture() : Promise<string> {
+    return await TAURI_INVOKE("plugin:apple-calendar|get_current_fixture");
 }
 }
 

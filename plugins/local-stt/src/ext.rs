@@ -1,11 +1,11 @@
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, path::PathBuf};
 
 use ractor::{ActorRef, call_t, registry};
 use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
 use tauri::{Manager, Runtime};
-use tauri_plugin_shell::ShellExt;
+use tauri_plugin_sidecar2::Sidecar2PluginExt;
 
 use hypr_download_interface::DownloadProgress;
 use hypr_file::download_file_parallel_cancellable;
@@ -455,123 +455,19 @@ async fn start_external_server<R: Runtime, T: Manager<R>>(
         .ok_or_else(|| crate::Error::ServerStartFailed("failed_to_find_free_port".to_string()))?;
 
     let app_handle = manager.app_handle().clone();
-    let cmd_builder = {
+    let cmd_builder = external::CommandBuilder::new(move || {
+        let mut cmd = app_handle
+            .sidecar2()
+            .sidecar("hyprnote-sidecar-stt")?
+            .args(["serve", "--any-token"]);
+
         #[cfg(debug_assertions)]
         {
-            let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin");
-            let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin");
-
-            if !passthrough_path.exists() || !stt_path.exists() {
-                return Err(crate::Error::AmBinaryNotFound);
-            }
-
-            let passthrough_path = Arc::new(passthrough_path);
-            let stt_path = Arc::new(stt_path);
-            external::CommandBuilder::new(move || {
-                app_handle
-                    .shell()
-                    .command(passthrough_path.as_ref())
-                    .current_dir(dirs::home_dir().unwrap())
-                    .arg(stt_path.as_ref())
-                    .args(["serve", "--any-token", "-v", "-d"])
-            })
+            cmd = cmd.args(["-v", "-d"]);
         }
 
-        #[cfg(not(debug_assertions))]
-        {
-            // Try to create sidecar command normally first.
-            // If it fails due to symlink (CLI launch), fall back to manual path resolution.
-            let sidecar_result = app_handle.shell().sidecar("hyprnote-sidecar-stt");
-
-            match sidecar_result {
-                Ok(_) => external::CommandBuilder::new(move || {
-                    app_handle
-                        .shell()
-                        .sidecar("hyprnote-sidecar-stt")
-                        .expect("sidecar command should succeed after initial check")
-                        .current_dir(dirs::home_dir().unwrap())
-                        .args(["serve", "--any-token"])
-                }),
-                Err(e) => {
-                    let error_msg = e.to_string();
-                    if error_msg.contains("symlink") {
-                        // CLI launch case: resolve symlink and use .command() instead
-                        let exe_path = std::env::current_exe().map_err(|e| {
-                            crate::Error::ServerStartFailed(format!(
-                                "failed to get current exe: {}",
-                                e
-                            ))
-                        })?;
-                        let resolved_exe = std::fs::canonicalize(&exe_path).map_err(|e| {
-                            crate::Error::ServerStartFailed(format!(
-                                "failed to resolve symlink: {}",
-                                e
-                            ))
-                        })?;
-
-                        // Find sidecar in the same directory as the resolved executable
-                        let exe_dir = resolved_exe.parent().ok_or_else(|| {
-                            crate::Error::ServerStartFailed(
-                                "failed to get exe parent directory".to_string(),
-                            )
-                        })?;
-
-                        // Look for sidecar binary with target triple suffix
-                        let sidecar_path = std::fs::read_dir(exe_dir)
-                            .map_err(|e| {
-                                crate::Error::ServerStartFailed(format!(
-                                    "failed to read exe directory: {}",
-                                    e
-                                ))
-                            })?
-                            .filter_map(|entry| entry.ok())
-                            .map(|entry| entry.path())
-                            .find(|path| {
-                                path.file_name()
-                                    .and_then(|n| n.to_str())
-                                    .map(|n| n.starts_with("hyprnote-sidecar-stt-"))
-                                    .unwrap_or(false)
-                            })
-                            .ok_or_else(|| {
-                                crate::Error::ServerStartFailed(format!(
-                                    "sidecar not found in {}",
-                                    exe_dir.display()
-                                ))
-                            })?;
-
-                        // Verify sidecar is not a symlink
-                        let metadata = std::fs::symlink_metadata(&sidecar_path).map_err(|e| {
-                            crate::Error::ServerStartFailed(format!(
-                                "failed to get sidecar metadata: {}",
-                                e
-                            ))
-                        })?;
-                        if metadata.file_type().is_symlink() {
-                            return Err(crate::Error::ServerStartFailed(
-                                "sidecar binary is a symlink".to_string(),
-                            ));
-                        }
-
-                        let sidecar_path = Arc::new(sidecar_path);
-                        external::CommandBuilder::new(move || {
-                            app_handle
-                                .shell()
-                                .command(sidecar_path.as_ref())
-                                .current_dir(dirs::home_dir().unwrap())
-                                .args(["serve", "--any-token"])
-                        })
-                    } else {
-                        return Err(crate::Error::ServerStartFailed(format!(
-                            "failed to create sidecar command: {}",
-                            e
-                        )));
-                    }
-                }
-            }
-        }
-    };
+        Ok(cmd)
+    });
 
     supervisor::start_external_stt(
         supervisor,

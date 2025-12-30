@@ -40,7 +40,7 @@ where
         let now = Instant::now();
         let key = (self.key_fn)(&event);
 
-        self.events.retain(|e| e.release_at <= now || e.key != key);
+        self.events.retain(|e| e.release_at > now && e.key != key);
 
         self.events.push_back(PendingEvent {
             event,
@@ -105,6 +105,51 @@ where
     T: PartialEq + Clone + Send + 'static,
 {
     spawn_debounced_by_key(delay, raw_rx, debounced_tx, |t: &T| t.clone())
+}
+
+use crate::{DeviceEvent, DeviceSwitch};
+
+pub fn spawn_device_event_debouncer(
+    delay: Duration,
+    raw_rx: mpsc::Receiver<DeviceEvent>,
+    debounced_tx: mpsc::Sender<DeviceEvent>,
+) {
+    std::thread::spawn(move || {
+        let mut buffer: EventBuffer<DeviceSwitch, u8, _> =
+            EventBuffer::new(delay, |switch: &DeviceSwitch| match switch {
+                DeviceSwitch::DefaultInputChanged => 0u8,
+                DeviceSwitch::DefaultOutputChanged { .. } => 1u8,
+            });
+
+        loop {
+            let timeout = match buffer.get() {
+                State::Ready(switch) => {
+                    let _ = debounced_tx.send(DeviceEvent::Switch(switch));
+                    continue;
+                }
+                State::Wait(duration) => duration,
+                State::Empty => Duration::from_secs(60),
+            };
+
+            match raw_rx.recv_timeout(timeout) {
+                Ok(DeviceEvent::Switch(switch)) => {
+                    buffer.put(switch);
+                }
+                Ok(update @ DeviceEvent::Update(_)) => {
+                    let _ = debounced_tx.send(update);
+                }
+                Err(mpsc::RecvTimeoutError::Timeout) => {
+                    continue;
+                }
+                Err(mpsc::RecvTimeoutError::Disconnected) => {
+                    while let State::Ready(switch) = buffer.get() {
+                        let _ = debounced_tx.send(DeviceEvent::Switch(switch));
+                    }
+                    break;
+                }
+            }
+        }
+    });
 }
 
 #[cfg(test)]

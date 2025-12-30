@@ -197,4 +197,129 @@ mod tests {
         let bases = list_bases();
         assert!(bases.contains(&"default"));
     }
+
+    mod schema_validation {
+        use jsonschema::Validator;
+        use schemars::schema_for;
+
+        use crate::types::{AppleCalendar, AppleEvent};
+
+        fn calendars_schema() -> serde_json::Value {
+            let schema = schema_for!(Vec<AppleCalendar>);
+            serde_json::to_value(schema).expect("Failed to serialize calendars schema")
+        }
+
+        fn events_schema() -> serde_json::Value {
+            let schema = schema_for!(Vec<AppleEvent>);
+            serde_json::to_value(schema).expect("Failed to serialize events schema")
+        }
+
+        #[test]
+        fn test_base_calendars_valid_against_schema() {
+            let schema = calendars_schema();
+            let validator =
+                Validator::new(&schema).expect("Failed to compile calendars schema validator");
+
+            let data: serde_json::Value =
+                serde_json::from_str(include_str!("data/default/base/calendars.json"))
+                    .expect("Failed to parse calendars.json");
+
+            let result = validator.validate(&data);
+            assert!(
+                result.is_ok(),
+                "Base calendars.json failed schema validation: {:?}",
+                result.err()
+            );
+        }
+
+        #[test]
+        fn test_base_events_valid_against_schema() {
+            let schema = events_schema();
+            let validator =
+                Validator::new(&schema).expect("Failed to compile events schema validator");
+
+            let data: serde_json::Value =
+                serde_json::from_str(include_str!("data/default/base/events.json"))
+                    .expect("Failed to parse events.json");
+
+            let result = validator.validate(&data);
+            assert!(
+                result.is_ok(),
+                "Base events.json failed schema validation: {:?}",
+                result.err()
+            );
+        }
+
+        #[test]
+        fn test_patched_events_event_added_valid_against_schema() {
+            let schema = events_schema();
+            let validator =
+                Validator::new(&schema).expect("Failed to compile events schema validator");
+
+            let mut data: serde_json::Value =
+                serde_json::from_str(include_str!("data/default/base/events.json"))
+                    .expect("Failed to parse events.json");
+
+            let patch: json_patch::Patch =
+                serde_json::from_str(include_str!("data/default/patch/event_added.json"))
+                    .expect("Failed to parse event_added.json patch");
+
+            json_patch::patch(&mut data, &patch).expect("Failed to apply event_added patch");
+
+            let result = validator.validate(&data);
+            assert!(
+                result.is_ok(),
+                "Patched events (event_added) failed schema validation: {:?}",
+                result.err()
+            );
+        }
+
+        #[test]
+        fn test_patched_events_event_removed_valid_against_schema() {
+            let schema = events_schema();
+            let validator =
+                Validator::new(&schema).expect("Failed to compile events schema validator");
+
+            let mut data: serde_json::Value =
+                serde_json::from_str(include_str!("data/default/base/events.json"))
+                    .expect("Failed to parse events.json");
+
+            let patch: json_patch::Patch =
+                serde_json::from_str(include_str!("data/default/patch/event_removed.json"))
+                    .expect("Failed to parse event_removed.json patch");
+
+            json_patch::patch(&mut data, &patch).expect("Failed to apply event_removed patch");
+
+            let result = validator.validate(&data);
+            assert!(
+                result.is_ok(),
+                "Patched events (event_removed) failed schema validation: {:?}",
+                result.err()
+            );
+        }
+
+        #[test]
+        fn test_patched_events_event_rescheduled_valid_against_schema() {
+            let schema = events_schema();
+            let validator =
+                Validator::new(&schema).expect("Failed to compile events schema validator");
+
+            let mut data: serde_json::Value =
+                serde_json::from_str(include_str!("data/default/base/events.json"))
+                    .expect("Failed to parse events.json");
+
+            let patch: json_patch::Patch =
+                serde_json::from_str(include_str!("data/default/patch/event_rescheduled.json"))
+                    .expect("Failed to parse event_rescheduled.json patch");
+
+            json_patch::patch(&mut data, &patch).expect("Failed to apply event_rescheduled patch");
+
+            let result = validator.validate(&data);
+            assert!(
+                result.is_ok(),
+                "Patched events (event_rescheduled) failed schema validation: {:?}",
+                result.err()
+            );
+        }
+    }
 }

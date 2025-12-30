@@ -1,6 +1,7 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
+import { AppLoading } from "../main";
 import type { Context } from "../types";
 import { isExtHostPath } from "../utils/ext-host";
 
@@ -19,7 +20,7 @@ function Component() {
   }
 
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<AppLoading />}>
       <MainAppLayout />
     </Suspense>
   );

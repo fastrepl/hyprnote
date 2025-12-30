@@ -46,29 +46,173 @@ declare module "@tanstack/react-router" {
   }
 }
 
-function AppLoading() {
+export function AppLoading() {
   return (
     <div
       style={{
         width: "100vw",
         height: "100vh",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#fafafa",
+        backgroundColor: "white",
+        padding: "4px",
+        gap: "4px",
       }}
     >
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            background-position: -468px 0;
+          }
+          100% {
+            background-position: 468px 0;
+          }
+        }
+        .shimmer {
+          animation: shimmer 2s infinite linear;
+          background: linear-gradient(
+            to right,
+            #fafafa 0%,
+            #f5f5f5 20%,
+            #fafafa 40%,
+            #fafafa 100%
+          );
+          background-size: 800px 100%;
+        }
+        .shimmer-white {
+          animation: shimmer 2s infinite linear;
+          background: linear-gradient(
+            to right,
+            #ffffff 0%,
+            #f5f5f5 20%,
+            #ffffff 40%,
+            #ffffff 100%
+          );
+          background-size: 800px 100%;
+        }
+      `}</style>
+      {/* Left Sidebar Skeleton */}
       <div
         style={{
-          width: 24,
-          height: 24,
-          border: "2px solid #e5e5e5",
-          borderTopColor: "#737373",
-          borderRadius: "50%",
-          animation: "spin 0.8s linear infinite",
+          width: "280px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "4px",
+          flexShrink: 0,
         }}
-      />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      >
+        {/* Sidebar Header */}
+        <div
+          className="shimmer"
+          style={{
+            height: "36px",
+            borderRadius: "12px",
+          }}
+        />
+        {/* Sidebar Content */}
+        <div
+          className="shimmer"
+          style={{
+            flex: 1,
+            borderRadius: "12px",
+          }}
+        />
+        {/* Profile Section */}
+        <div
+          className="shimmer"
+          style={{
+            height: "48px",
+            borderRadius: "12px",
+          }}
+        />
+      </div>
+
+      {/* Main Body Skeleton */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: "4px",
+        }}
+      >
+        {/* Header with Tabs */}
+        <div
+          style={{
+            height: "36px",
+            display: "flex",
+            gap: "8px",
+            alignItems: "center",
+          }}
+        >
+          {/* Back/Forward buttons */}
+          <div style={{ display: "flex", gap: "4px" }}>
+            <div
+              className="shimmer"
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "6px",
+              }}
+            />
+            <div
+              className="shimmer"
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "6px",
+              }}
+            />
+          </div>
+          {/* Tab items + Plus button */}
+          <div
+            style={{
+              display: "flex",
+              gap: "4px",
+              flex: 1,
+              minWidth: 0,
+              alignItems: "center",
+            }}
+          >
+            <div
+              className="shimmer"
+              style={{
+                width: "180px",
+                height: "36px",
+                borderRadius: "12px",
+              }}
+            />
+            <div
+              className="shimmer"
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "6px",
+              }}
+            />
+          </div>
+          {/* Right side: Search */}
+          <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+            <div
+              className="shimmer"
+              style={{
+                width: "180px",
+                height: "36px",
+                borderRadius: "12px",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Body Content */}
+        <div
+          className="shimmer-white"
+          style={{
+            flex: 1,
+            border: "1px solid #e5e5e5",
+            borderRadius: "12px",
+          }}
+        />
+      </div>
     </div>
   );
 }

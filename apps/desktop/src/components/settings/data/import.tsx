@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { CheckCircleIcon, Loader2Icon, XCircleIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import {
@@ -13,8 +12,8 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import {
-  importFromFile,
   type ImportResult,
+  maybeImportFromJson,
 } from "../../../store/tinybase/importer";
 import { type Store, STORE_ID, UI } from "../../../store/tinybase/main";
 
@@ -25,34 +24,6 @@ export function Import() {
 
   const store = UI.useStore(STORE_ID) as Store | undefined;
   const persister = UI.usePersister(STORE_ID);
-
-  useEffect(() => {
-    let unlisten: UnlistenFn | undefined;
-
-    const setupListener = async () => {
-      unlisten = await listen<string>("importer://ready", async (event) => {
-        if (!store || !persister) {
-          console.error("[Import] Store or persister not available");
-          return;
-        }
-
-        const filePath = event.payload;
-        console.log("[Import] Received import ready event, file:", filePath);
-
-        const result = await importFromFile(store, filePath, async () => {
-          await persister.save();
-        });
-
-        setImportResult(result);
-      });
-    };
-
-    void setupListener();
-
-    return () => {
-      unlisten?.();
-    };
-  }, [store, persister]);
 
   const { data: sources } = useQuery({
     queryKey: ["import-sources"],
@@ -73,12 +44,19 @@ export function Import() {
       }
       return source;
     },
-    onSuccess: (source) => {
+    onSuccess: async (source) => {
       void analyticsCommands.event({
         event: "data_imported",
         source,
       });
       setDryRunCompleted(null);
+
+      if (store && persister) {
+        const result = await maybeImportFromJson(store, async () => {
+          await persister.save();
+        });
+        setImportResult(result);
+      }
     },
   });
 

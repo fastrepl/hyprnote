@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use serde_json::{Map, Value, json};
-use tauri::Emitter;
 use tauri_plugin_path2::Path2PluginExt;
 
 use crate::sources::get_source;
@@ -36,14 +35,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
 
         let content = serde_json::to_string_pretty(&json!([tables, values]))?;
         std::fs::write(&import_path, content)?;
-
-        self.manager
-            .app_handle()
-            .emit(
-                "importer://ready",
-                import_path.to_string_lossy().to_string(),
-            )
-            .ok();
 
         Ok(())
     }

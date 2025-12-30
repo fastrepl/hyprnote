@@ -238,14 +238,11 @@ function useTimelineItemActions(
     if (!store) {
       return;
     }
-    if (item.type === "event") {
-      invalidateResource("events", item.id);
-      store.delRow("events", item.id);
-    } else {
+    if (item.type === "session") {
       invalidateResource("sessions", item.id);
       void deleteSessionCascade(store, indexes, item.id);
     }
-  }, [store, indexes, item.id, item.type, invalidateResource]);
+  }, [store, indexes, item.id, invalidateResource]);
 
   return { handleClick, handleCmdClick, handleDelete };
 }

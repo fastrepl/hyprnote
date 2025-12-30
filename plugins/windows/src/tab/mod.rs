@@ -44,8 +44,6 @@ common_derives! {
             #[serde(skip_serializing_if = "Option::is_none")]
             state: Option<ExtensionsState>,
         },
-        #[serde(rename = "events")]
-        Events { id: String },
         #[serde(rename = "humans")]
         Humans { id: String },
         #[serde(rename = "organizations")]

@@ -30,7 +30,6 @@ import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentData, TabItemData } from "./data";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
-import { TabContentEvent, TabItemEvent } from "./events";
 import {
   TabContentExtension,
   TabContentExtensions,
@@ -274,20 +273,6 @@ function TabItem({
       />
     );
   }
-  if (tab.type === "events") {
-    return (
-      <TabItemEvent
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
   if (tab.type === "folders") {
     return (
       <TabItemFolder
@@ -491,9 +476,6 @@ function TabItem({
 function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "sessions") {
     return <TabContentNote tab={tab} />;
-  }
-  if (tab.type === "events") {
-    return <TabContentEvent tab={tab} />;
   }
   if (tab.type === "folders") {
     return <TabContentFolder tab={tab} />;

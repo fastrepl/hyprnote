@@ -71,7 +71,6 @@ export type Tab =
       type: "extensions";
       state: ExtensionsState;
     })
-  | (BaseTab & { type: "events"; id: string })
   | (BaseTab & { type: "humans"; id: string })
   | (BaseTab & { type: "organizations"; id: string })
   | (BaseTab & { type: "folders"; id: string | null })
@@ -153,8 +152,6 @@ export const getDefaultState = (tab: TabInput): Tab => {
           selectedExtension: null,
         },
       };
-    case "events":
-      return { ...base, type: "events", id: tab.id };
     case "humans":
       return { ...base, type: "humans", id: tab.id };
     case "organizations":
@@ -192,14 +189,15 @@ export const getDefaultState = (tab: TabInput): Tab => {
         type: "data",
         state: tab.state ?? { tab: null },
       };
+    default:
+      const _exhaustive: never = tab;
+      return _exhaustive;
   }
 };
 
 export const rowIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
     case "sessions":
-      return tab.id;
-    case "events":
       return tab.id;
     case "humans":
       return tab.id;
@@ -230,8 +228,6 @@ export const uniqueIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
     case "sessions":
       return `sessions-${tab.id}`;
-    case "events":
-      return `events-${tab.id}`;
     case "humans":
       return `humans-${tab.id}`;
     case "organizations":

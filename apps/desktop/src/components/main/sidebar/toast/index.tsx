@@ -5,6 +5,7 @@ import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
 import { useConfigValues } from "../../../../config/use-config";
+import { useNotifications } from "../../../../contexts/notifications";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Toast } from "./component";
 import { createToastRegistry, getToastToShow } from "./registry";
@@ -18,6 +19,8 @@ export function ToastArea({
   const auth = useAuth();
   const { dismissToast, isDismissed } = useDismissedToasts();
   const shouldShowToast = useShouldShowToast(isProfileExpanded);
+  const { hasActiveDownload, downloadProgress, downloadingModel } =
+    useNotifications();
 
   const isAuthenticated = !!auth?.session;
   const {
@@ -74,6 +77,9 @@ export function ToastArea({
         hasSttConfigured,
         isAiTranscriptionTabActive,
         isAiIntelligenceTabActive,
+        hasActiveDownload,
+        downloadProgress,
+        downloadingModel,
         onSignIn: handleSignIn,
         onOpenLLMSettings: handleOpenLLMSettings,
         onOpenSTTSettings: handleOpenSTTSettings,
@@ -84,6 +90,9 @@ export function ToastArea({
       hasSttConfigured,
       isAiTranscriptionTabActive,
       isAiIntelligenceTabActive,
+      hasActiveDownload,
+      downloadProgress,
+      downloadingModel,
       handleSignIn,
       handleOpenLLMSettings,
       handleOpenSTTSettings,

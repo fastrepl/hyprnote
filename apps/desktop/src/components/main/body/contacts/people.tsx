@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { CornerDownLeft } from "lucide-react";
+import React, { useMemo, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -14,6 +15,7 @@ export function PeopleColumn({
   currentHumanId?: string | null;
   setSelectedPerson: (id: string | null) => void;
 }) {
+  const [showNewPerson, setShowNewPerson] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const { humanIds, sortOption, setSortOption } =
     useSortedHumanIds(currentOrgId);
@@ -40,12 +42,22 @@ export function PeopleColumn({
         title="People"
         sortOption={sortOption}
         setSortOption={setSortOption}
-        onAdd={() => {}}
+        onAdd={() => setShowNewPerson(true)}
         searchValue={searchValue}
         onSearchChange={setSearchValue}
       />
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
+          {showNewPerson && (
+            <NewPersonForm
+              currentOrgId={currentOrgId}
+              onSave={(humanId) => {
+                setShowNewPerson(false);
+                setSelectedPerson(humanId);
+              }}
+              onCancel={() => setShowNewPerson(false)}
+            />
+          )}
           {filteredHumanIds.map((humanId) => (
             <PersonItem
               key={humanId}
@@ -162,5 +174,89 @@ function PersonItem({
         )}
       </div>
     </button>
+  );
+}
+
+function NewPersonForm({
+  currentOrgId,
+  onSave,
+  onCancel,
+}: {
+  currentOrgId?: string | null;
+  onSave: (humanId: string) => void;
+  onCancel: () => void;
+}) {
+  const [name, setName] = useState("");
+  const userId = main.UI.useValue("user_id", main.STORE_ID);
+
+  const createHuman = main.UI.useSetRowCallback(
+    "humans",
+    (p: { name: string; humanId: string }) => p.humanId,
+    (p: { name: string; humanId: string }) => ({
+      user_id: userId || "",
+      created_at: new Date().toISOString(),
+      name: p.name,
+      email: "",
+      org_id: currentOrgId || "",
+      job_title: "",
+      linkedin_username: "",
+      is_user: false,
+      memo: "",
+    }),
+    [userId, currentOrgId],
+    main.STORE_ID,
+  );
+
+  const handleAdd = () => {
+    const humanId = crypto.randomUUID();
+    createHuman({ humanId, name: name.trim() });
+    setName("");
+    onSave(humanId);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name.trim()) {
+      handleAdd();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (name.trim()) {
+        handleAdd();
+      }
+    }
+    if (e.key === "Escape") {
+      onCancel();
+    }
+  };
+
+  return (
+    <div className="p-2">
+      <form onSubmit={handleSubmit}>
+        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Add person"
+            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+            autoFocus
+          />
+          {name.trim() && (
+            <button
+              type="submit"
+              className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
+              aria-label="Add person"
+            >
+              <CornerDownLeft className="size-4" />
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
   );
 }

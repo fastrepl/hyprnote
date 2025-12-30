@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, path::PathBuf};
 
 use ractor::{ActorRef, call_t, registry};
 use tauri_specta::Event;
@@ -455,45 +455,19 @@ async fn start_external_server<R: Runtime, T: Manager<R>>(
         .ok_or_else(|| crate::Error::ServerStartFailed("failed_to_find_free_port".to_string()))?;
 
     let app_handle = manager.app_handle().clone();
-    let cmd_builder = {
+    let cmd_builder = external::CommandBuilder::new(move || {
+        let mut cmd = app_handle
+            .sidecar2()
+            .sidecar("hyprnote-sidecar-stt")
+            .args(["serve", "--any-token"]);
+
         #[cfg(debug_assertions)]
-        let passthrough_path = {
-            let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin");
-            let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin");
+        {
+            cmd = cmd.args(["-v", "-d"]);
+        }
 
-            if !passthrough_path.exists() || !stt_path.exists() {
-                return Err(crate::Error::AmBinaryNotFound);
-            }
-
-            Some(Arc::new((passthrough_path, stt_path)))
-        };
-
-        #[cfg(not(debug_assertions))]
-        let passthrough_path: Option<Arc<(std::path::PathBuf, std::path::PathBuf)>> = None;
-
-        external::CommandBuilder::new(move || {
-            #[cfg(debug_assertions)]
-            {
-                if let Some(ref paths) = passthrough_path {
-                    return app_handle
-                        .sidecar2()
-                        .sidecar_with_passthrough("hyprnote-sidecar-stt", Some(&paths.0))
-                        .arg(&paths.1)
-                        .args(["serve", "--any-token", "-v", "-d"]);
-                }
-            }
-
-            #[cfg(not(debug_assertions))]
-            let _ = &passthrough_path;
-
-            app_handle
-                .sidecar2()
-                .sidecar("hyprnote-sidecar-stt")
-                .args(["serve", "--any-token"])
-        })
-    };
+        cmd
+    });
 
     supervisor::start_external_stt(
         supervisor,

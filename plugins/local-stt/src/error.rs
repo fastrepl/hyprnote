@@ -18,8 +18,6 @@ pub enum Error {
     ServerStopFailed(String),
     #[error("Supervisor not found")]
     SupervisorNotFound,
-    #[error("AM binary not found")]
-    AmBinaryNotFound,
     #[error("AM API key not set")]
     AmApiKeyNotSet,
     #[error("Internal server only supports Whisper models")]

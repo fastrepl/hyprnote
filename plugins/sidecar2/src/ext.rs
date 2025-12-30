@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use tauri::Manager;
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_shell::process::Command;
@@ -11,35 +9,44 @@ pub struct Sidecar2<'a, R: tauri::Runtime, M: Manager<R>> {
 
 impl<'a, R: tauri::Runtime, M: Manager<R>> Sidecar2<'a, R, M> {
     pub fn sidecar(&self, name: impl AsRef<str>) -> Command {
-        self.sidecar_with_passthrough(name, None::<&str>)
-    }
-
-    pub fn sidecar_with_passthrough(
-        &self,
-        name: impl AsRef<str>,
-        passthrough_path: Option<impl AsRef<Path>>,
-    ) -> Command {
+        let name = name.as_ref();
         let home_dir = dirs::home_dir().unwrap();
 
         #[cfg(debug_assertions)]
         {
-            if let Some(passthrough) = passthrough_path {
-                return self
-                    .manager
-                    .shell()
-                    .command(passthrough.as_ref())
-                    .current_dir(home_dir);
+            if let Some(binary_name) = name.strip_prefix("hyprnote-sidecar-") {
+                if let Some((passthrough, binary)) = resolve_debug_paths(binary_name) {
+                    return self
+                        .manager
+                        .shell()
+                        .command(&passthrough)
+                        .current_dir(home_dir)
+                        .arg(&binary);
+                }
             }
         }
 
-        #[cfg(not(debug_assertions))]
-        let _ = passthrough_path;
-
         self.manager
             .shell()
-            .sidecar(name.as_ref())
+            .sidecar(name)
             .expect("failed to create sidecar command")
             .current_dir(home_dir)
+    }
+}
+
+#[cfg(debug_assertions)]
+fn resolve_debug_paths(binary_name: &str) -> Option<(std::path::PathBuf, std::path::PathBuf)> {
+    let passthrough = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin");
+    let binary = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(format!(
+        "../../apps/desktop/src-tauri/resources/{}-aarch64-apple-darwin",
+        binary_name
+    ));
+
+    if passthrough.exists() && binary.exists() {
+        Some((passthrough, binary))
+    } else {
+        None
     }
 }
 

@@ -8,6 +8,8 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error("Sidecar binary not found")]
     BinaryNotFound,
+    #[error("Sidecar creation failed: {0}")]
+    SidecarCreationFailed(String),
 }
 
 impl Serialize for Error {

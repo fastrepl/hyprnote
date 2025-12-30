@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use tauri::Manager;
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_shell::process::Command;
@@ -28,12 +30,33 @@ impl<'a, R: tauri::Runtime, M: Manager<R>> Sidecar2<'a, R, M> {
             }
         }
 
-        Ok(self
-            .manager
-            .shell()
-            .sidecar(name)
-            .expect("failed to create sidecar command")
-            .current_dir(home_dir))
+        #[cfg(not(debug_assertions))]
+        {
+            match self.manager.shell().sidecar(name) {
+                Ok(cmd) => return Ok(cmd.current_dir(home_dir)),
+                Err(e) => {
+                    if is_symlink_launch() {
+                        let sidecar_path = resolve_sidecar_for_symlink_launch(name)?;
+                        return Ok(self
+                            .manager
+                            .shell()
+                            .command(&sidecar_path)
+                            .current_dir(home_dir));
+                    }
+                    return Err(Error::SidecarCreationFailed(e.to_string()));
+                }
+            }
+        }
+
+        #[cfg(debug_assertions)]
+        {
+            Ok(self
+                .manager
+                .shell()
+                .sidecar(name)
+                .map_err(|e| Error::SidecarCreationFailed(e.to_string()))?
+                .current_dir(home_dir))
+        }
     }
 }
 
@@ -51,6 +74,66 @@ fn resolve_debug_paths(binary_name: &str) -> Option<(std::path::PathBuf, std::pa
     } else {
         None
     }
+}
+
+#[cfg(not(debug_assertions))]
+fn is_symlink_launch() -> bool {
+    let Ok(exe_path) = std::env::current_exe() else {
+        return false;
+    };
+
+    let Ok(metadata) = std::fs::symlink_metadata(&exe_path) else {
+        return false;
+    };
+
+    metadata.file_type().is_symlink()
+}
+
+#[cfg(not(debug_assertions))]
+fn resolve_sidecar_for_symlink_launch(name: &str) -> Result<PathBuf, crate::Error> {
+    let exe_path = std::env::current_exe().map_err(|e| {
+        crate::Error::SidecarCreationFailed(format!("failed to get current exe: {}", e))
+    })?;
+
+    let resolved_exe = std::fs::canonicalize(&exe_path).map_err(|e| {
+        crate::Error::SidecarCreationFailed(format!("failed to resolve symlink: {}", e))
+    })?;
+
+    let exe_dir = resolved_exe.parent().ok_or_else(|| {
+        crate::Error::SidecarCreationFailed("failed to get exe parent directory".to_string())
+    })?;
+
+    let sidecar_path = std::fs::read_dir(exe_dir)
+        .map_err(|e| {
+            crate::Error::SidecarCreationFailed(format!("failed to read exe directory: {}", e))
+        })?
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .find(|path| {
+            path.file_name()
+                .and_then(|n| n.to_str())
+                .map(|n| n.starts_with(&format!("{}-", name)))
+                .unwrap_or(false)
+        })
+        .ok_or_else(|| {
+            crate::Error::SidecarCreationFailed(format!(
+                "sidecar '{}' not found in {}",
+                name,
+                exe_dir.display()
+            ))
+        })?;
+
+    let metadata = std::fs::symlink_metadata(&sidecar_path).map_err(|e| {
+        crate::Error::SidecarCreationFailed(format!("failed to get sidecar metadata: {}", e))
+    })?;
+
+    if metadata.file_type().is_symlink() {
+        return Err(crate::Error::SidecarCreationFailed(
+            "sidecar binary is a symlink".to_string(),
+        ));
+    }
+
+    Ok(sidecar_path)
 }
 
 pub trait Sidecar2PluginExt<R: tauri::Runtime> {

@@ -42,6 +42,7 @@ export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   meeting_link: z.preprocess((val) => val ?? undefined, z.string().optional()),
   description: z.preprocess((val) => val ?? undefined, z.string().optional()),
   note: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  ignored: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
 });
 
 export const calendarProviderSchema = z.enum(["apple", "google", "outlook"]);
@@ -299,6 +300,7 @@ export const externalTableSchemaForTinybase = {
     meeting_link: { type: "string" },
     description: { type: "string" },
     note: { type: "string" },
+    ignored: { type: "boolean" },
   } as const satisfies InferTinyBaseSchema<typeof eventSchema>,
   mapping_session_participant: {
     user_id: { type: "string" },

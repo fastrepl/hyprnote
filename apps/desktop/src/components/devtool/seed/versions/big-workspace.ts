@@ -1,7 +1,5 @@
 import { faker } from "@faker-js/faker/locale/en";
-import type { Tables } from "tinybase/with-schemas";
 
-import type { Schemas } from "../../../../store/tinybase/main";
 import type { Store as MainStore } from "../../../../store/tinybase/main";
 import type { SeedDefinition } from "../shared";
 import {
@@ -24,7 +22,7 @@ import {
   buildSessionsForBigWorkspace,
 } from "./big-workspace-builders";
 
-const buildBigWorkspaceData = (): Tables<Schemas[0]> => {
+const buildBigWorkspaceData = () => {
   faker.seed(456);
 
   const organizations = buildOrganizations(8);
@@ -124,7 +122,8 @@ export const bigWorkspaceSeed: SeedDefinition = {
     const data = buildBigWorkspaceData();
     store.transaction(() => {
       store.delTables();
-      store.setTables(data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      store.setTables(data as any);
     });
   },
 };

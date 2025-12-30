@@ -16,6 +16,8 @@ import * as main from "../../../../store/tinybase/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { id } from "../../../../utils";
 import {
+  type EventTimelineItem,
+  type SessionTimelineItem,
   type TimelineItem,
   TimelinePrecision,
 } from "../../../../utils/timeline";
@@ -31,79 +33,222 @@ export const TimelineItemComponent = memo(
     precision: TimelinePrecision;
     selected: boolean;
   }) => {
+    if (item.type === "event") {
+      return (
+        <EventItem item={item} precision={precision} selected={selected} />
+      );
+    }
+    return (
+      <SessionItem item={item} precision={precision} selected={selected} />
+    );
+  },
+);
+
+function ItemBase({
+  title,
+  displayTime,
+  calendarId,
+  showSpinner,
+  selected,
+  onClick,
+  onCmdClick,
+  contextMenu,
+}: {
+  title: string;
+  displayTime: string;
+  calendarId: string | null;
+  showSpinner?: boolean;
+  selected: boolean;
+  onClick: () => void;
+  onCmdClick: () => void;
+  contextMenu: Array<{ id: string; text: string; action: () => void }>;
+}) {
+  return (
+    <InteractiveButton
+      onClick={onClick}
+      onCmdClick={onCmdClick}
+      contextMenu={contextMenu}
+      className={cn([
+        "w-full text-left px-3 py-2 rounded-lg",
+        selected && "bg-neutral-200",
+        !selected && "hover:bg-neutral-100",
+      ])}
+    >
+      <div className="flex items-center gap-2">
+        {showSpinner && (
+          <div className="flex-shrink-0">
+            <Spinner size={14} />
+          </div>
+        )}
+        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+          <div className="text-sm font-normal truncate">{title}</div>
+          {displayTime && (
+            <div className="text-xs text-neutral-500">{displayTime}</div>
+          )}
+        </div>
+        {calendarId && <CalendarIndicator calendarId={calendarId} />}
+      </div>
+    </InteractiveButton>
+  );
+}
+
+const EventItem = memo(
+  ({
+    item,
+    precision,
+    selected,
+  }: {
+    item: EventTimelineItem;
+    precision: TimelinePrecision;
+    selected: boolean;
+  }) => {
+    const store = main.UI.useStore(main.STORE_ID);
+    const openCurrent = useTabs((state) => state.openCurrent);
+    const openNew = useTabs((state) => state.openNew);
+
+    const eventId = item.id;
+    const title = item.data.title || "Untitled";
+    const calendarId = item.data.calendar_id ?? null;
+    const displayTime = useMemo(
+      () => formatDisplayTime(item.data.started_at, precision),
+      [item.data.started_at, precision],
+    );
+
+    const openEvent = useCallback(
+      (openInNewTab: boolean) => {
+        if (!store) {
+          return;
+        }
+
+        const sessions = store.getTable("sessions");
+        let existingSessionId: string | null = null;
+
+        Object.entries(sessions).forEach(([sessionId, session]) => {
+          if (session.event_id === eventId) {
+            existingSessionId = sessionId;
+          }
+        });
+
+        if (existingSessionId) {
+          const tab: TabInput = { id: existingSessionId, type: "sessions" };
+          openInNewTab ? openNew(tab) : openCurrent(tab);
+        } else {
+          const sessionId = id();
+          store.setRow("sessions", sessionId, {
+            event_id: eventId,
+            title: title,
+            created_at: new Date().toISOString(),
+          });
+          void analyticsCommands.event({
+            event: "note_created",
+            has_event_id: true,
+          });
+          const tab: TabInput = { id: sessionId, type: "sessions" };
+          openInNewTab ? openNew(tab) : openCurrent(tab);
+        }
+      },
+      [eventId, store, title, openCurrent, openNew],
+    );
+
+    const handleClick = useCallback(() => openEvent(false), [openEvent]);
+    const handleCmdClick = useCallback(() => openEvent(true), [openEvent]);
+
+    const handleIgnore = main.UI.useSetPartialRowCallback(
+      "events",
+      eventId,
+      () => ({ ignored: true }),
+      [],
+      main.STORE_ID,
+    );
+
+    const contextMenu = useMemo(
+      () => [{ id: "ignore", text: "Ignore this event", action: handleIgnore }],
+      [handleCmdClick, handleIgnore],
+    );
+
+    return (
+      <ItemBase
+        title={title}
+        displayTime={displayTime}
+        calendarId={calendarId}
+        selected={selected}
+        onClick={handleClick}
+        onCmdClick={handleCmdClick}
+        contextMenu={contextMenu}
+      />
+    );
+  },
+);
+
+const SessionItem = memo(
+  ({
+    item,
+    precision,
+    selected,
+  }: {
+    item: SessionTimelineItem;
+    precision: TimelinePrecision;
+    selected: boolean;
+  }) => {
     const store = main.UI.useStore(main.STORE_ID);
     const indexes = main.UI.useIndexes(main.STORE_ID);
+    const openCurrent = useTabs((state) => state.openCurrent);
+    const openNew = useTabs((state) => state.openNew);
+    const invalidateResource = useTabs((state) => state.invalidateResource);
 
-    const eventId =
-      item.type === "event" ? item.id : item.data.event_id || undefined;
+    const sessionId = item.id;
     const title = item.data.title || "Untitled";
-    const timestamp =
-      item.type === "event" ? item.data.started_at : item.data.created_at;
 
-    const sessionId = item.type === "session" ? item.id : null;
-    const sessionMode = useListener((state) =>
-      sessionId ? state.getSessionMode(sessionId) : "inactive",
-    );
-    const isEnhancing = useIsSessionEnhancing(sessionId ?? "");
+    const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+    const isEnhancing = useIsSessionEnhancing(sessionId);
     const isFinalizing = sessionMode === "finalizing";
     const showSpinner = isFinalizing || isEnhancing;
 
     const calendarId = useMemo(() => {
-      if (!store || !eventId) {
+      if (!store || !item.data.event_id) {
         return null;
       }
-      if (item.type === "event") {
-        return item.data.calendar_id ?? null;
-      }
-      if (item.data.event_id) {
-        const event = store.getRow("events", item.data.event_id);
-        return event?.calendar_id ? String(event.calendar_id) : null;
-      }
-      return null;
-    }, [store, eventId, item]);
+      const event = store.getRow("events", item.data.event_id);
+      return event?.calendar_id ? String(event.calendar_id) : null;
+    }, [store, item.data.event_id]);
 
     const displayTime = useMemo(
-      () => formatDisplayTime(timestamp, precision),
-      [timestamp, precision],
+      () => formatDisplayTime(item.data.created_at, precision),
+      [item.data.created_at, precision],
     );
 
-    const { handleClick, handleCmdClick, handleDelete } =
-      useTimelineItemActions(item, store, indexes, eventId, title);
+    const handleClick = useCallback(() => {
+      openCurrent({ id: sessionId, type: "sessions" });
+    }, [sessionId, openCurrent]);
+
+    const handleCmdClick = useCallback(() => {
+      openNew({ id: sessionId, type: "sessions" });
+    }, [sessionId, openNew]);
+
+    const handleDelete = useCallback(() => {
+      if (!store) {
+        return;
+      }
+      invalidateResource("sessions", sessionId);
+      void deleteSessionCascade(store, indexes, sessionId);
+    }, [store, indexes, sessionId, invalidateResource]);
 
     const contextMenu = useMemo(
-      () => [
-        { id: "open-new-tab", text: "Open in New Tab", action: handleCmdClick },
-        { id: "delete", text: "Delete Completely", action: handleDelete },
-      ],
+      () => [{ id: "delete", text: "Delete Completely", action: handleDelete }],
       [handleCmdClick, handleDelete],
     );
 
     return (
-      <InteractiveButton
+      <ItemBase
+        title={title}
+        displayTime={displayTime}
+        calendarId={calendarId}
+        showSpinner={showSpinner}
+        selected={selected}
         onClick={handleClick}
         onCmdClick={handleCmdClick}
         contextMenu={contextMenu}
-        className={cn([
-          "w-full text-left px-3 py-2 rounded-lg",
-          selected && "bg-neutral-200",
-          !selected && "hover:bg-neutral-100",
-        ])}
-      >
-        <div className="flex items-center gap-2">
-          {showSpinner && (
-            <div className="flex-shrink-0">
-              <Spinner size={14} />
-            </div>
-          )}
-          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-            <div className="text-sm font-normal truncate">{title}</div>
-            {displayTime && (
-              <div className="text-xs text-neutral-500">{displayTime}</div>
-            )}
-          </div>
-          {calendarId && <CalendarIndicator calendarId={calendarId} />}
-        </div>
-      </InteractiveButton>
+      />
     );
   },
 );
@@ -161,88 +306,4 @@ function CalendarIndicator({ calendarId }: { calendarId: string }) {
       </TooltipContent>
     </Tooltip>
   );
-}
-
-function useTimelineItemActions(
-  item: TimelineItem,
-  store: ReturnType<typeof main.UI.useStore>,
-  indexes: ReturnType<typeof main.UI.useIndexes>,
-  eventId: string | undefined,
-  title: string,
-) {
-  const openCurrent = useTabs((state) => state.openCurrent);
-  const openNew = useTabs((state) => state.openNew);
-  const invalidateResource = useTabs((state) => state.invalidateResource);
-
-  const handleEventClick = useCallback(
-    (openInNewTab: boolean) => {
-      if (!eventId || !store) {
-        return;
-      }
-
-      const sessions = store.getTable("sessions");
-      let existingSessionId: string | null = null;
-
-      Object.entries(sessions).forEach(([sessionId, session]) => {
-        if (session.event_id === eventId) {
-          existingSessionId = sessionId;
-        }
-      });
-
-      if (existingSessionId) {
-        const tab: TabInput = { id: existingSessionId, type: "sessions" };
-        if (openInNewTab) {
-          openNew(tab);
-        } else {
-          openCurrent(tab);
-        }
-      } else {
-        const sessionId = id();
-        store.setRow("sessions", sessionId, {
-          event_id: eventId,
-          title: title,
-          created_at: new Date().toISOString(),
-        });
-        void analyticsCommands.event({
-          event: "note_created",
-          has_event_id: true,
-        });
-        const tab: TabInput = { id: sessionId, type: "sessions" };
-        if (openInNewTab) {
-          openNew(tab);
-        } else {
-          openCurrent(tab);
-        }
-      }
-    },
-    [eventId, store, title, openCurrent, openNew],
-  );
-
-  const handleClick = useCallback(() => {
-    if (item.type === "event") {
-      handleEventClick(false);
-    } else {
-      openCurrent({ id: item.id, type: "sessions" });
-    }
-  }, [item, handleEventClick, openCurrent]);
-
-  const handleCmdClick = useCallback(() => {
-    if (item.type === "event") {
-      handleEventClick(true);
-    } else {
-      openNew({ id: item.id, type: "sessions" });
-    }
-  }, [item, handleEventClick, openNew]);
-
-  const handleDelete = useCallback(() => {
-    if (!store) {
-      return;
-    }
-    if (item.type === "session") {
-      invalidateResource("sessions", item.id);
-      void deleteSessionCascade(store, indexes, item.id);
-    }
-  }, [store, indexes, item.id, invalidateResource]);
-
-  return { handleClick, handleCmdClick, handleDelete };
 }

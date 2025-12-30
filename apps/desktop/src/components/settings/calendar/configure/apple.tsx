@@ -1,7 +1,16 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import {
+  AlertCircleIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  RefreshCwIcon,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useScheduleTaskRunCallback,
+  useTaskRunRunning,
+} from "tinytick/ui-react";
 
 import {
   commands as appleCalendarCommands,
@@ -19,6 +28,7 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { CALENDAR_SYNC_TASK_ID } from "../../../../services/apple-calendar";
 import * as main from "../../../../store/tinybase/main";
 import { findCalendarByTrackingId } from "../../../../utils/calendar";
 import { PROVIDERS } from "../shared";
@@ -130,6 +140,12 @@ function AccessPermissionRow({
 
 export function AppleCalendarProviderCard() {
   const config = PROVIDERS.find((p) => p.id === "apple")!;
+  const {
+    status: syncStatus,
+    scheduleSync,
+    scheduleDebouncedSync,
+    cancelDebouncedSync,
+  } = useSyncStatus();
 
   const calendar = useAccessPermission({
     queryKey: "appleCalendarAccess",
@@ -145,6 +161,11 @@ export function AppleCalendarProviderCard() {
     openSettings: () => permissionsCommands.openPermission("contacts"),
   });
 
+  const syncActions = useMemo(
+    () => ({ scheduleSync, scheduleDebouncedSync, cancelDebouncedSync }),
+    [scheduleSync, scheduleDebouncedSync, cancelDebouncedSync],
+  );
+
   return (
     <AccordionItem
       value={config.id}
@@ -156,34 +177,111 @@ export function AppleCalendarProviderCard() {
           <span>{config.displayName}</span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-4">
-        <DocumentationLink href={config.docsPath} />
+      <AccordionContent className="px-4 space-y-5">
+        <InfoRow status={syncStatus} docsHref={config.docsPath} />
 
-        <div className="flex flex-col divide-y">
-          <AccessPermissionRow
-            title="Calendar Access"
-            grantedDescription="Permission granted. Click to open settings."
-            requestDescription="Grant access to sync events from your Apple Calendar"
-            isAuthorized={calendar.isAuthorized}
-            isPending={calendar.isPending}
-            onAction={calendar.handleAction}
-          />
-          <AccessPermissionRow
-            title="Contacts Access"
-            grantedDescription="Permission granted. Click to open settings."
-            requestDescription="Grant access to match participants with your contacts"
-            isAuthorized={contacts.isAuthorized}
-            isPending={contacts.isPending}
-            onAction={contacts.handleAction}
-          />
-        </div>
-        {calendar.isAuthorized && <AppleCalendarSelection />}
+        <Section title="Permissions">
+          <div className="space-y-1">
+            <AccessPermissionRow
+              title="Calendar Access"
+              grantedDescription="Permission granted. Click to open settings."
+              requestDescription="Grant access to sync events from your Apple Calendar"
+              isAuthorized={calendar.isAuthorized}
+              isPending={calendar.isPending}
+              onAction={calendar.handleAction}
+            />
+            <AccessPermissionRow
+              title="Contacts Access"
+              grantedDescription="Permission granted. Click to open settings."
+              requestDescription="Grant access to match participants with your contacts"
+              isAuthorized={contacts.isAuthorized}
+              isPending={contacts.isPending}
+              onAction={contacts.handleAction}
+            />
+          </div>
+        </Section>
+
+        {calendar.isAuthorized && (
+          <AppleCalendarSelection syncActions={syncActions} />
+        )}
       </AccordionContent>
     </AccordionItem>
   );
 }
 
-function useAppleCalendarSelection() {
+const TOGGLE_SYNC_DEBOUNCE_MS = 5000;
+
+type SyncStatus = "idle" | "scheduled" | "syncing";
+
+function useSyncStatus() {
+  const scheduleEventSync = useScheduleTaskRunCallback(
+    CALENDAR_SYNC_TASK_ID,
+    undefined,
+    0,
+  );
+  const toggleSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const [pendingTaskRunId, setPendingTaskRunId] = useState<string | null>(null);
+  const [isDebouncing, setIsDebouncing] = useState(false);
+
+  const isTaskRunning = useTaskRunRunning(pendingTaskRunId ?? "");
+  const isSyncing = pendingTaskRunId !== null && isTaskRunning === true;
+
+  const status: SyncStatus = isSyncing
+    ? "syncing"
+    : isDebouncing
+      ? "scheduled"
+      : "idle";
+
+  useEffect(() => {
+    if (pendingTaskRunId && isTaskRunning === false) {
+      setPendingTaskRunId(null);
+    }
+  }, [pendingTaskRunId, isTaskRunning]);
+
+  useEffect(() => {
+    return () => {
+      if (toggleSyncTimeoutRef.current) {
+        clearTimeout(toggleSyncTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const scheduleSync = useCallback(() => {
+    const taskRunId = scheduleEventSync();
+    if (taskRunId) {
+      setPendingTaskRunId(taskRunId);
+    }
+  }, [scheduleEventSync]);
+
+  const scheduleDebouncedSync = useCallback(() => {
+    if (toggleSyncTimeoutRef.current) {
+      clearTimeout(toggleSyncTimeoutRef.current);
+    }
+    setIsDebouncing(true);
+    toggleSyncTimeoutRef.current = setTimeout(() => {
+      toggleSyncTimeoutRef.current = null;
+      setIsDebouncing(false);
+      scheduleSync();
+    }, TOGGLE_SYNC_DEBOUNCE_MS);
+  }, [scheduleSync]);
+
+  const cancelDebouncedSync = useCallback(() => {
+    if (toggleSyncTimeoutRef.current) {
+      clearTimeout(toggleSyncTimeoutRef.current);
+      setIsDebouncing(false);
+    }
+  }, []);
+
+  return { status, scheduleSync, scheduleDebouncedSync, cancelDebouncedSync };
+}
+
+function useAppleCalendarSelection(syncActions: {
+  scheduleSync: () => void;
+  scheduleDebouncedSync: () => void;
+  cancelDebouncedSync: () => void;
+}) {
   const store = main.UI.useStore(main.STORE_ID);
   const calendars = main.UI.useTable("calendars", main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -255,39 +353,116 @@ function useAppleCalendarSelection() {
     }));
   }, [calendars]);
 
-  const handleToggle = (calendar: CalendarItem, enabled: boolean) => {
-    store?.setPartialRow("calendars", calendar.id, { enabled });
-  };
+  const handleToggle = useCallback(
+    (calendar: CalendarItem, enabled: boolean) => {
+      store?.setPartialRow("calendars", calendar.id, { enabled });
+      syncActions.scheduleDebouncedSync();
+    },
+    [store, syncActions],
+  );
+
+  const handleRefresh = useCallback(async () => {
+    syncActions.cancelDebouncedSync();
+    await refetch();
+    syncActions.scheduleSync();
+  }, [refetch, syncActions]);
 
   return {
     groups,
     handleToggle,
-    handleRefresh: refetch,
+    handleRefresh,
     isLoading: isFetching,
   };
 }
 
-function AppleCalendarSelection() {
-  const { groups, handleToggle, handleRefresh, isLoading } =
-    useAppleCalendarSelection();
-
+function Section({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <CalendarSelection
-      groups={groups}
-      onToggle={handleToggle}
-      onRefresh={handleRefresh}
-      isLoading={isLoading}
-    />
+    <div className="space-y-2 border-t border-neutral-200 pt-4">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wide">
+          {title}
+        </h4>
+        {action}
+      </div>
+      {children}
+    </div>
   );
 }
 
-function DocumentationLink({ href }: { href: string }) {
+function InfoRow({
+  status,
+  docsHref,
+}: {
+  status: SyncStatus;
+  docsHref: string;
+}) {
   return (
-    <button
-      onClick={() => openUrl(href)}
-      className="mb-3 text-xs text-neutral-500 hover:text-neutral-700 hover:underline"
+    <div className="flex items-center justify-between border-t border-neutral-200 pt-4 pb-1">
+      <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+        <span
+          className={cn([
+            "size-1.5 rounded-full",
+            status === "syncing" && "bg-blue-500 animate-pulse",
+            status === "scheduled" && "bg-amber-500",
+            status === "idle" && "bg-neutral-300",
+          ])}
+        />
+        <span>
+          {status === "syncing"
+            ? "Syncing"
+            : status === "scheduled"
+              ? "Sync scheduled"
+              : "Ready"}
+        </span>
+      </div>
+      <button
+        onClick={() => openUrl(docsHref)}
+        className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
+      >
+        Docs ↗
+      </button>
+    </div>
+  );
+}
+
+function AppleCalendarSelection({
+  syncActions,
+}: {
+  syncActions: {
+    scheduleSync: () => void;
+    scheduleDebouncedSync: () => void;
+    cancelDebouncedSync: () => void;
+  };
+}) {
+  const { groups, handleToggle, handleRefresh, isLoading } =
+    useAppleCalendarSelection(syncActions);
+
+  return (
+    <Section
+      title="Calendars"
+      action={
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRefresh}
+          className="size-6"
+          disabled={isLoading}
+        >
+          <RefreshCwIcon
+            className={cn(["size-3.5", isLoading && "animate-spin"])}
+          />
+        </Button>
+      }
     >
-      Read the docs ↗
-    </button>
+      <CalendarSelection groups={groups} onToggle={handleToggle} />
+    </Section>
   );
 }

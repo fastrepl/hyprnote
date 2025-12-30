@@ -366,7 +366,11 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
               });
               return id;
             }).as("session");
-            where((getTableCell) => !getTableCell("session", "user_id"));
+            where(
+              (getTableCell) =>
+                !getTableCell("session", "user_id") &&
+                !getTableCell("events", "ignored"),
+            );
           },
         )
         .setQueryDefinition(

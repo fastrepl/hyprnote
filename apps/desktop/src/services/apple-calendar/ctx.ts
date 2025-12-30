@@ -2,6 +2,8 @@ import type { Queries } from "tinybase/with-schemas";
 
 import { QUERIES, type Schemas, type Store } from "../../store/tinybase/main";
 
+// ---
+
 export interface Ctx {
   store: Store;
   userId: string;
@@ -10,6 +12,8 @@ export interface Ctx {
   calendarIds: Set<string>;
   calendarTrackingIdToId: Map<string, string>;
 }
+
+// ---
 
 export function createCtx(store: Store, queries: Queries<Schemas>): Ctx | null {
   const resultTable = queries.getResultTable(QUERIES.enabledAppleCalendars);
@@ -45,6 +49,8 @@ export function createCtx(store: Store, queries: Queries<Schemas>): Ctx | null {
     calendarTrackingIdToId,
   };
 }
+
+// ---
 
 const getRange = () => {
   const now = new Date();

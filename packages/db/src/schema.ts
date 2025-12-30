@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   AnyPgColumn,
+  boolean,
   integer,
   json,
   pgPolicy,
@@ -198,6 +199,7 @@ export const events = pgTable(
     meeting_link: text("meeting_link"),
     description: text("description"),
     note: text("note"),
+    ignored: boolean("ignored"),
   },
   (table) => createPolicies(TABLE_EVENTS, table.user_id),
 ).enableRLS();

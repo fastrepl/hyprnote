@@ -1,7 +1,5 @@
 import { faker } from "@faker-js/faker/locale/en";
-import type { Tables } from "tinybase/with-schemas";
 
-import type { Schemas } from "../../../../store/tinybase/main";
 import type { Store as MainStore } from "../../../../store/tinybase/main";
 import type { SeedDefinition } from "../shared";
 import {
@@ -22,7 +20,7 @@ import {
   buildTranscriptsForSessions,
 } from "../shared";
 
-const buildRandomData = (): Tables<Schemas[0]> => {
+const buildRandomData = () => {
   faker.seed(123);
 
   const organizations = buildOrganizations(4);
@@ -125,7 +123,8 @@ export const randomSeed: SeedDefinition = {
     const data = buildRandomData();
     store.transaction(() => {
       store.delTables();
-      store.setTables(data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      store.setTables(data as any);
     });
   },
 };

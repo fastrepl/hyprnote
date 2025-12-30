@@ -109,6 +109,7 @@ const EventItem = memo(
     const eventId = item.id;
     const title = item.data.title || "Untitled";
     const calendarId = item.data.calendar_id ?? null;
+    const recurrenceSeriesId = item.data.recurrence_series_id;
     const displayTime = useMemo(
       () => formatDisplayTime(item.data.started_at, precision),
       [item.data.started_at, precision],
@@ -161,10 +162,45 @@ const EventItem = memo(
       main.STORE_ID,
     );
 
-    const contextMenu = useMemo(
-      () => [{ id: "ignore", text: "Ignore this event", action: handleIgnore }],
-      [handleCmdClick, handleIgnore],
-    );
+    const handleIgnoreSeries = useCallback(() => {
+      if (!store || !recurrenceSeriesId) {
+        return;
+      }
+      store.transaction(() => {
+        store.forEachRow("events", (rowId, _forEachCell) => {
+          const event = store.getRow("events", rowId);
+          if (event?.recurrence_series_id === recurrenceSeriesId) {
+            store.setPartialRow("events", rowId, { ignored: true });
+          }
+        });
+
+        const currentIgnored = store.getValue("ignored_recurring_series");
+        const ignoredList: string[] = currentIgnored
+          ? JSON.parse(String(currentIgnored))
+          : [];
+        if (!ignoredList.includes(recurrenceSeriesId)) {
+          ignoredList.push(recurrenceSeriesId);
+          store.setValue(
+            "ignored_recurring_series",
+            JSON.stringify(ignoredList),
+          );
+        }
+      });
+    }, [store, recurrenceSeriesId]);
+
+    const contextMenu = useMemo(() => {
+      const menu = [
+        { id: "ignore", text: "Ignore this event", action: handleIgnore },
+      ];
+      if (recurrenceSeriesId) {
+        menu.push({
+          id: "ignore-series",
+          text: "Ignore all recurring events",
+          action: handleIgnoreSeries,
+        });
+      }
+      return menu;
+    }, [handleIgnore, handleIgnoreSeries, recurrenceSeriesId]);
 
     return (
       <ItemBase

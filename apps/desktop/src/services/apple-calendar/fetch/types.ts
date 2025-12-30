@@ -16,6 +16,7 @@ export type IncomingEvent = {
   location?: string;
   meeting_link?: string;
   description?: string;
+  recurrence_series_id?: string;
 };
 
 export type IncomingParticipants = Map<string, EventParticipant[]>;

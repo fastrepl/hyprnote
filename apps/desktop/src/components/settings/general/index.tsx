@@ -35,6 +35,9 @@ export function SettingsGeneral() {
         ignored_platforms: row.ignored_platforms
           ? JSON.stringify(row.ignored_platforms)
           : undefined,
+        ignored_recurring_series: row.ignored_recurring_series
+          ? JSON.stringify(row.ignored_recurring_series)
+          : undefined,
       }) satisfies Partial<GeneralStorage>,
     [],
     settings.STORE_ID,

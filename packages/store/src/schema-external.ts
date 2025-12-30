@@ -43,6 +43,10 @@ export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   description: z.preprocess((val) => val ?? undefined, z.string().optional()),
   note: z.preprocess((val) => val ?? undefined, z.string().optional()),
   ignored: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
+  recurrence_series_id: z.preprocess(
+    (val) => val ?? undefined,
+    z.string().optional(),
+  ),
 });
 
 export const calendarProviderSchema = z.enum(["apple", "google", "outlook"]);
@@ -301,6 +305,7 @@ export const externalTableSchemaForTinybase = {
     description: { type: "string" },
     note: { type: "string" },
     ignored: { type: "boolean" },
+    recurrence_series_id: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof eventSchema>,
   mapping_session_participant: {
     user_id: { type: "string" },

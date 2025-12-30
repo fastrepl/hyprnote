@@ -38,9 +38,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::open_calendar::<tauri::Wry>,
             commands::list_calendars::<tauri::Wry>,
             commands::list_events::<tauri::Wry>,
-            commands::switch_fixture,
-            commands::list_fixtures,
-            commands::get_current_fixture,
+            commands::advance_fixture,
+            commands::reset_fixture,
+            commands::get_fixture_info,
         ])
         .events(tauri_specta::collect_events![CalendarChangedEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)

@@ -21,16 +21,9 @@ export { generateTranscript } from "./transcript";
 
 export type CalendarFixtureBase = "default";
 
-export type CalendarFixture =
-  | "default"
-  | "event_added"
-  | "event_removed"
-  | "event_rescheduled";
-
 export type SeedDefinition = {
   id: string;
   label: string;
   run: (store: MainStore) => void;
   calendarFixtureBase?: CalendarFixtureBase;
-  calendarFixture?: CalendarFixture;
 };

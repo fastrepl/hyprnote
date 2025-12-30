@@ -295,6 +295,30 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the advance_fixture command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-advance-fixture",
+          "markdownDescription": "Enables the advance_fixture command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the advance_fixture command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-advance-fixture",
+          "markdownDescription": "Denies the advance_fixture command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_fixture_info command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-fixture-info",
+          "markdownDescription": "Enables the get_fixture_info command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_fixture_info command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-fixture-info",
+          "markdownDescription": "Denies the get_fixture_info command without any pre-configured scope."
+        },
+        {
           "description": "Enables the list_calendars command without any pre-configured scope.",
           "type": "string",
           "const": "allow-list-calendars",
@@ -331,10 +355,22 @@
           "markdownDescription": "Denies the open_calendar command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-list-calendars`\n- `allow-list-events`",
+          "description": "Enables the reset_fixture command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-reset-fixture",
+          "markdownDescription": "Enables the reset_fixture command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the reset_fixture command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-reset-fixture",
+          "markdownDescription": "Denies the reset_fixture command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-list-calendars`\n- `allow-list-events`\n- `allow-advance-fixture`\n- `allow-reset-fixture`\n- `allow-get-fixture-info`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-list-calendars`\n- `allow-list-events`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-list-calendars`\n- `allow-list-events`\n- `allow-advance-fixture`\n- `allow-reset-fixture`\n- `allow-get-fixture-info`"
         }
       ]
     }

@@ -26,30 +26,46 @@ pub fn list_events<R: tauri::Runtime>(
 }
 
 #[cfg(feature = "fixture")]
-#[tauri::command]
-#[specta::specta]
-pub fn switch_fixture(fixture_id: String) -> Result<(), String> {
-    use std::str::FromStr;
-    let fixture = crate::fixture::FixtureSet::from_str(&fixture_id)
-        .map_err(|_| format!("Unknown fixture: {}", fixture_id))?;
-    crate::fixture::set_fixture(fixture);
-    Ok(())
+#[derive(serde::Serialize, specta::Type)]
+pub struct FixtureInfo {
+    pub current_step: usize,
+    pub max_steps: usize,
+    pub step_name: String,
 }
 
 #[cfg(feature = "fixture")]
 #[tauri::command]
 #[specta::specta]
-pub fn list_fixtures() -> Vec<String> {
-    use strum::VariantNames;
-    crate::fixture::FixtureSet::VARIANTS
-        .iter()
-        .map(|s| s.to_string())
-        .collect()
+pub fn advance_fixture() -> FixtureInfo {
+    let step = crate::fixture::advance_step();
+    FixtureInfo {
+        current_step: step,
+        max_steps: crate::fixture::get_max_steps(),
+        step_name: crate::fixture::get_step_name(step).to_string(),
+    }
 }
 
 #[cfg(feature = "fixture")]
 #[tauri::command]
 #[specta::specta]
-pub fn get_current_fixture() -> String {
-    crate::fixture::get_fixture().as_ref().to_string()
+pub fn reset_fixture() -> FixtureInfo {
+    crate::fixture::reset_step();
+    let step = crate::fixture::get_step();
+    FixtureInfo {
+        current_step: step,
+        max_steps: crate::fixture::get_max_steps(),
+        step_name: crate::fixture::get_step_name(step).to_string(),
+    }
+}
+
+#[cfg(feature = "fixture")]
+#[tauri::command]
+#[specta::specta]
+pub fn get_fixture_info() -> FixtureInfo {
+    let step = crate::fixture::get_step();
+    FixtureInfo {
+        current_step: step,
+        max_steps: crate::fixture::get_max_steps(),
+        step_name: crate::fixture::get_step_name(step).to_string(),
+    }
 }

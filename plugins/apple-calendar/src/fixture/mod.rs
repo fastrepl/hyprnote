@@ -12,18 +12,10 @@ pub enum FixtureBase {
     Default,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, EnumString, AsRefStr, VariantNames)]
-#[strum(serialize_all = "snake_case")]
-pub enum FixtureSet {
-    #[default]
-    Default,
-    EventAdded,
-    EventRemoved,
-    EventRescheduled,
-}
+pub const STEP_NAMES: &[&str] = &["Base", "Event Added", "Event Removed", "Event Rescheduled"];
 
 static CURRENT_BASE: RwLock<FixtureBase> = RwLock::new(FixtureBase::Default);
-static CURRENT_FIXTURE: RwLock<FixtureSet> = RwLock::new(FixtureSet::Default);
+static CURRENT_STEP: RwLock<usize> = RwLock::new(0);
 
 pub fn set_base(base: FixtureBase) {
     if let Ok(mut current) = CURRENT_BASE.write() {
@@ -39,14 +31,33 @@ pub fn list_bases() -> &'static [&'static str] {
     FixtureBase::VARIANTS
 }
 
-pub fn set_fixture(fixture: FixtureSet) {
-    if let Ok(mut current) = CURRENT_FIXTURE.write() {
-        *current = fixture;
+pub fn get_step() -> usize {
+    CURRENT_STEP.read().map(|s| *s).unwrap_or(0)
+}
+
+pub fn get_max_steps() -> usize {
+    STEP_NAMES.len()
+}
+
+pub fn advance_step() -> usize {
+    if let Ok(mut step) = CURRENT_STEP.write() {
+        if *step < STEP_NAMES.len() - 1 {
+            *step += 1;
+        }
+        *step
+    } else {
+        0
     }
 }
 
-pub fn get_fixture() -> FixtureSet {
-    CURRENT_FIXTURE.read().map(|f| *f).unwrap_or_default()
+pub fn reset_step() {
+    if let Ok(mut step) = CURRENT_STEP.write() {
+        *step = 0;
+    }
+}
+
+pub fn get_step_name(step: usize) -> &'static str {
+    STEP_NAMES.get(step).unwrap_or(&"Unknown")
 }
 
 macro_rules! include_base_calendars {
@@ -58,18 +69,6 @@ macro_rules! include_base_calendars {
 macro_rules! include_base_events {
     (Default) => {
         include_str!("data/default/base/events.json")
-    };
-}
-
-macro_rules! include_patch {
-    (Default, EventAdded) => {
-        include_str!("data/default/patch/event_added.json")
-    };
-    (Default, EventRemoved) => {
-        include_str!("data/default/patch/event_removed.json")
-    };
-    (Default, EventRescheduled) => {
-        include_str!("data/default/patch/event_rescheduled.json")
     };
 }
 
@@ -87,23 +86,25 @@ fn load_base_events(base: FixtureBase) -> serde_json::Value {
     serde_json::from_str(data).expect("Failed to parse base events.json")
 }
 
-fn load_patch(base: FixtureBase, fixture: FixtureSet) -> Option<Patch> {
-    let patch_data = match (base, fixture) {
-        (_, FixtureSet::Default) => return None,
-        (FixtureBase::Default, FixtureSet::EventAdded) => include_patch!(Default, EventAdded),
-        (FixtureBase::Default, FixtureSet::EventRemoved) => include_patch!(Default, EventRemoved),
-        (FixtureBase::Default, FixtureSet::EventRescheduled) => {
-            include_patch!(Default, EventRescheduled)
-        }
-    };
-    Some(serde_json::from_str(patch_data).expect("Failed to parse patch file"))
+fn ordered_patches(base: FixtureBase) -> Vec<Patch> {
+    match base {
+        FixtureBase::Default => vec![
+            serde_json::from_str(include_str!("data/default/patch/event_added.json"))
+                .expect("Failed to parse event_added.json"),
+            serde_json::from_str(include_str!("data/default/patch/event_removed.json"))
+                .expect("Failed to parse event_removed.json"),
+            serde_json::from_str(include_str!("data/default/patch/event_rescheduled.json"))
+                .expect("Failed to parse event_rescheduled.json"),
+        ],
+    }
 }
 
-fn load_events(base: FixtureBase, fixture: FixtureSet) -> Vec<AppleEvent> {
+fn load_events(base: FixtureBase, step: usize) -> Vec<AppleEvent> {
     let mut events = load_base_events(base);
+    let patches = ordered_patches(base);
 
-    if let Some(p) = load_patch(base, fixture) {
-        patch(&mut events, &p).expect("Failed to apply patch");
+    for p in patches.iter().take(step) {
+        patch(&mut events, p).expect("Failed to apply patch");
     }
 
     serde_json::from_value(events).expect("Failed to deserialize patched events")
@@ -116,8 +117,8 @@ pub fn list_calendars() -> Result<Vec<AppleCalendar>, String> {
 
 pub fn list_events(filter: EventFilter) -> Result<Vec<AppleEvent>, String> {
     let base = get_base();
-    let fixture = get_fixture();
-    let all_events = load_events(base, fixture);
+    let step = get_step();
+    let all_events = load_events(base, step);
 
     let filtered_events: Vec<AppleEvent> = all_events
         .into_iter()
@@ -143,47 +144,73 @@ mod tests {
     }
 
     #[test]
-    fn test_default_fixture_has_two_events() {
-        let events = load_events(FixtureBase::Default, FixtureSet::Default);
+    fn test_step_0_base_has_two_events() {
+        let events = load_events(FixtureBase::Default, 0);
         assert_eq!(events.len(), 2);
         assert_eq!(events[0].event_identifier, "fixture-event-1");
         assert_eq!(events[1].event_identifier, "fixture-event-2");
     }
 
     #[test]
-    fn test_event_added_fixture_has_three_events() {
-        let events = load_events(FixtureBase::Default, FixtureSet::EventAdded);
+    fn test_step_1_event_added_has_three_events() {
+        let events = load_events(FixtureBase::Default, 1);
         assert_eq!(events.len(), 3);
+        assert_eq!(events[0].event_identifier, "fixture-event-1");
+        assert_eq!(events[1].event_identifier, "fixture-event-2");
         assert_eq!(events[2].event_identifier, "fixture-event-3");
         assert_eq!(events[2].title, "New Client Call");
     }
 
     #[test]
-    fn test_event_removed_fixture_has_one_event() {
-        let events = load_events(FixtureBase::Default, FixtureSet::EventRemoved);
-        assert_eq!(events.len(), 1);
+    fn test_step_2_event_removed_has_two_events() {
+        let events = load_events(FixtureBase::Default, 2);
+        assert_eq!(events.len(), 2);
         assert_eq!(events[0].event_identifier, "fixture-event-1");
+        assert_eq!(events[1].event_identifier, "fixture-event-3");
     }
 
     #[test]
-    fn test_event_rescheduled_fixture() {
-        let events = load_events(FixtureBase::Default, FixtureSet::EventRescheduled);
+    fn test_step_3_event_rescheduled() {
+        let events = load_events(FixtureBase::Default, 3);
         assert_eq!(events.len(), 2);
         assert_eq!(
             events[0].start_date.to_rfc3339(),
             "2025-01-02T10:00:00+00:00"
         );
-        assert_eq!(events[1].event_identifier, "fixture-event-2-rescheduled");
-        assert_eq!(events[1].notes.as_deref(), Some("Rescheduled to next day"));
+        assert_eq!(events[0].notes.as_deref(), Some("Rescheduled standup"));
+        assert_eq!(
+            events[1].start_date.to_rfc3339(),
+            "2025-01-03T16:00:00+00:00"
+        );
     }
 
     #[test]
-    fn test_switch_fixture() {
-        set_fixture(FixtureSet::EventAdded);
-        assert_eq!(get_fixture(), FixtureSet::EventAdded);
+    fn test_advance_step() {
+        reset_step();
+        assert_eq!(get_step(), 0);
 
-        set_fixture(FixtureSet::Default);
-        assert_eq!(get_fixture(), FixtureSet::Default);
+        assert_eq!(advance_step(), 1);
+        assert_eq!(get_step(), 1);
+
+        assert_eq!(advance_step(), 2);
+        assert_eq!(advance_step(), 3);
+        assert_eq!(advance_step(), 3);
+
+        reset_step();
+        assert_eq!(get_step(), 0);
+    }
+
+    #[test]
+    fn test_get_max_steps() {
+        assert_eq!(get_max_steps(), 4);
+    }
+
+    #[test]
+    fn test_get_step_name() {
+        assert_eq!(get_step_name(0), "Base");
+        assert_eq!(get_step_name(1), "Event Added");
+        assert_eq!(get_step_name(2), "Event Removed");
+        assert_eq!(get_step_name(3), "Event Rescheduled");
     }
 
     #[test]
@@ -202,6 +229,7 @@ mod tests {
         use jsonschema::Validator;
         use schemars::schema_for;
 
+        use super::*;
         use crate::types::{AppleCalendar, AppleEvent};
 
         fn calendars_schema() -> serde_json::Value {
@@ -236,27 +264,6 @@ mod tests {
             };
         }
 
-        macro_rules! schema_patched_test {
-            ($name:ident, $schema:expr, $base_path:literal, $patch_path:literal, $label:literal) => {
-                #[test]
-                fn $name() {
-                    let validator = Validator::new(&$schema).expect("Failed to compile schema");
-
-                    let mut data: serde_json::Value =
-                        serde_json::from_str(include_str!($base_path))
-                            .expect(concat!("Failed to parse base for ", $label));
-
-                    let patch: json_patch::Patch = serde_json::from_str(include_str!($patch_path))
-                        .expect(concat!("Failed to parse patch for ", $label));
-
-                    json_patch::patch(&mut data, &patch)
-                        .expect(concat!("Failed to apply patch for ", $label));
-
-                    assert_valid(&validator, &data, $label);
-                }
-            };
-        }
-
         schema_file_test!(
             test_base_calendars,
             calendars_schema(),
@@ -271,28 +278,16 @@ mod tests {
             "base events"
         );
 
-        schema_patched_test!(
-            test_patched_events_added,
-            events_schema(),
-            "data/default/base/events.json",
-            "data/default/patch/event_added.json",
-            "patched events (event_added)"
-        );
+        #[test]
+        fn test_all_cumulative_steps_valid() {
+            let validator =
+                Validator::new(&events_schema()).expect("Failed to compile events schema");
 
-        schema_patched_test!(
-            test_patched_events_removed,
-            events_schema(),
-            "data/default/base/events.json",
-            "data/default/patch/event_removed.json",
-            "patched events (event_removed)"
-        );
-
-        schema_patched_test!(
-            test_patched_events_rescheduled,
-            events_schema(),
-            "data/default/base/events.json",
-            "data/default/patch/event_rescheduled.json",
-            "patched events (event_rescheduled)"
-        );
+            for step in 0..=3 {
+                let events = load_events(FixtureBase::Default, step);
+                let data = serde_json::to_value(&events).expect("Failed to serialize events");
+                assert_valid(&validator, &data, &format!("step {}", step));
+            }
+        }
     }
 }

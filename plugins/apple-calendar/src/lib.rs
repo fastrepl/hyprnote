@@ -94,7 +94,7 @@ mod test {
         let calendars = app.apple_calendar().list_calendars();
         println!("calendars: {:?}", calendars);
 
-        if let (Some(output_dir), Ok(ref cals)) = (get_fixture_output_dir(), &calendars) {
+        if let (Some(output_dir), Ok(cals)) = (get_fixture_output_dir(), &calendars) {
             std::fs::create_dir_all(&output_dir).expect("Failed to create fixture output dir");
             let path = output_dir.join("calendars.json");
             let json = serde_json::to_string_pretty(cals).expect("Failed to serialize calendars");
@@ -121,7 +121,7 @@ mod test {
                     });
                     println!("events: {:?}", events);
 
-                    if let (Some(output_dir), Ok(ref evts)) = (get_fixture_output_dir(), &events) {
+                    if let (Some(output_dir), Ok(evts)) = (get_fixture_output_dir(), &events) {
                         std::fs::create_dir_all(&output_dir)
                             .expect("Failed to create fixture output dir");
                         let path = output_dir.join("events.json");

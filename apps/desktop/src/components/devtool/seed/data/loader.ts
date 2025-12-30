@@ -58,7 +58,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       email: person.email,
       job_title: person.job_title,
       linkedin_username: person.linkedin_username,
-      is_user: person.is_user,
       org_id: orgId,
       created_at: new Date().toISOString(),
     };

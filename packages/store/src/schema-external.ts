@@ -30,7 +30,6 @@ export const humanSchema = baseHumanSchema.omit({ id: true }).extend({
     (val) => val ?? undefined,
     z.string().optional(),
   ),
-  is_user: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
   memo: z.preprocess((val) => val ?? undefined, z.string().optional()),
 });
 
@@ -274,7 +273,6 @@ export const externalTableSchemaForTinybase = {
     org_id: { type: "string" },
     job_title: { type: "string" },
     linkedin_username: { type: "string" },
-    is_user: { type: "boolean" },
     memo: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof humanSchema>,
   organizations: {

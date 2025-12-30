@@ -1,1 +1,2 @@
-`crates/db-user` is legacy. Should be only used in `plugins/importer`.
+- `crates/db-user` is legacy and READ-ONLY.
+- Should be only used in `plugins/importer`.

@@ -15,7 +15,7 @@ const buildLongData = (): Tables<Schemas[0]> => {
   faker.seed(789);
 
   const organization = createOrganization();
-  const human = createHuman(organization.id, true);
+  const human = createHuman(organization.id);
   const session = createSession();
 
   const result = generateTranscript({

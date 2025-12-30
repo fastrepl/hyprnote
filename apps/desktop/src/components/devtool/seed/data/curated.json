@@ -14,40 +14,35 @@
       "email": "john@acme.com",
       "job_title": "Software Engineer",
       "linkedin_username": "johndoe",
-      "organization": "Acme Corp",
-      "is_user": true
+      "organization": "Acme Corp"
     },
     {
       "name": "Sarah Chen",
       "email": "sarah@acme.com",
       "job_title": "Product Manager",
       "linkedin_username": "sarahchen",
-      "organization": "Acme Corp",
-      "is_user": false
+      "organization": "Acme Corp"
     },
     {
       "name": "Michael Rodriguez",
       "email": "michael@acme.com",
       "job_title": "Engineering Lead",
       "linkedin_username": "mrodriguez",
-      "organization": "Acme Corp",
-      "is_user": false
+      "organization": "Acme Corp"
     },
     {
       "name": "Emma Watson",
       "email": "emma@techstart.com",
       "job_title": "CEO",
       "linkedin_username": "emmawatson",
-      "organization": "TechStart Labs",
-      "is_user": false
+      "organization": "TechStart Labs"
     },
     {
       "name": "David Kim",
       "email": "david@techstart.com",
       "job_title": "VP Engineering",
       "linkedin_username": "davidkim",
-      "organization": "TechStart Labs",
-      "is_user": false
+      "organization": "TechStart Labs"
     }
   ],
   "calendars": [

@@ -144,6 +144,8 @@ function PersonItem({
   setSelectedPerson: (id: string | null) => void;
 }) {
   const person = main.UI.useRow("humans", humanId, main.STORE_ID);
+  const currentUserId = main.UI.useValue("user_id", main.STORE_ID);
+  const isCurrentUser = humanId === currentUserId;
 
   return (
     <button
@@ -161,7 +163,7 @@ function PersonItem({
       <div className="flex-1 min-w-0">
         <div className="font-medium truncate flex items-center gap-1">
           {person.name || person.email || "Unnamed"}
-          {person.is_user && (
+          {isCurrentUser && (
             <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
               You
             </span>
@@ -200,7 +202,6 @@ function NewPersonForm({
       org_id: currentOrgId || "",
       job_title: "",
       linkedin_username: "",
-      is_user: false,
       memo: "",
     }),
     [userId, currentOrgId],

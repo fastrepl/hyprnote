@@ -54,7 +54,6 @@ pub struct ImportedHuman {
     pub org_id: Option<String>,
     pub job_title: Option<String>,
     pub linkedin_username: Option<String>,
-    pub is_user: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]

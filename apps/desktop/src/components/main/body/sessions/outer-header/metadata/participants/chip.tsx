@@ -85,7 +85,6 @@ function useParticipantDetails(mappingId: string) {
     humanJobTitle: (result.human_job_title as string | undefined) || undefined,
     humanLinkedinUsername:
       (result.human_linkedin_username as string | undefined) || undefined,
-    humanIsUser: result.human_is_user as boolean,
     orgId: (result.org_id as string | undefined) || undefined,
     orgName: result.org_name as string | undefined,
     sessionId: result.session_id as string,

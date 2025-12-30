@@ -57,9 +57,10 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     return () => {
       if (toggleSyncTimeoutRef.current) {
         clearTimeout(toggleSyncTimeoutRef.current);
+        scheduleEventSync();
       }
     };
-  }, []);
+  }, [scheduleEventSync]);
 
   const scheduleSync = useCallback(() => {
     const taskRunId = scheduleEventSync();

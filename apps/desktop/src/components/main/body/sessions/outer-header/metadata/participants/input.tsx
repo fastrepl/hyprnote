@@ -321,7 +321,6 @@ function useCreateHuman(userId: string): (name: string) => string {
       org_id: "",
       job_title: "",
       linkedin_username: "",
-      is_user: false,
       memo: "",
     }),
     [userId],

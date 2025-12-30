@@ -112,8 +112,11 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         if (!store.hasValue("user_id")) {
           store.setValue("user_id", DEFAULT_USER_ID);
         }
-        if (!store.hasRow("humans", DEFAULT_USER_ID)) {
-          store.setRow("humans", DEFAULT_USER_ID, {
+
+        const userId = store.getValue("user_id") as string;
+        if (!store.hasRow("humans", userId)) {
+          store.setRow("humans", userId, {
+            user_id: userId,
             created_at: new Date().toISOString(),
           });
         }
@@ -392,7 +395,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           select("org_id");
           select("job_title");
           select("linkedin_username");
-          select("is_user");
           select("created_at");
         })
         .setQueryDefinition(
@@ -451,7 +453,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             select("human", "job_title").as("human_job_title");
             select("human", "linkedin_username").as("human_linkedin_username");
             select("human", "org_id").as("org_id");
-            select("human", "is_user").as("human_is_user");
 
             join("organizations", "human", "org_id").as("org");
             select("org", "name").as("org_name");

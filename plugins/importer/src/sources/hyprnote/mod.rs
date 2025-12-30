@@ -66,13 +66,12 @@ pub(super) async fn import_humans_from_db(
         .into_iter()
         .map(|h| ImportedHuman {
             id: h.id,
-            created_at: String::new(), // Not available in old DB
+            created_at: String::new(),
             name: h.full_name.unwrap_or_default(),
             email: h.email,
             org_id: h.organization_id,
             job_title: h.job_title,
             linkedin_username: h.linkedin_username,
-            is_user: h.is_user,
         })
         .collect())
 }

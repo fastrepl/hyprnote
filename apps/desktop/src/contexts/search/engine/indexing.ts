@@ -41,7 +41,6 @@ export function indexHumans(db: Index, store: MainStore): void {
     "org_id",
     "job_title",
     "linkedin_username",
-    "is_user",
     "created_at",
   ];
 

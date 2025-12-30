@@ -7,7 +7,25 @@ pub struct AppleCalendarExt<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "fixture")]
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
+    #[tracing::instrument(skip_all)]
+    pub fn open_calendar(&self) -> Result<(), String> {
+        Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
+    pub fn list_calendars(&self) -> Result<Vec<AppleCalendar>, String> {
+        crate::fixture::list_calendars()
+    }
+
+    #[tracing::instrument(skip_all)]
+    pub fn list_events(&self, filter: EventFilter) -> Result<Vec<AppleEvent>, String> {
+        crate::fixture::list_events(filter)
+    }
+}
+
+#[cfg(all(target_os = "macos", not(feature = "fixture")))]
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
     #[tracing::instrument(skip_all)]
     pub fn open_calendar(&self) -> Result<(), String> {
@@ -45,7 +63,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
     }
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(all(not(target_os = "macos"), not(feature = "fixture")))]
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
     pub fn open_calendar(&self) -> Result<(), String> {
         Err("not supported on this platform".to_string())

@@ -119,6 +119,7 @@ const buildBigWorkspaceData = (): Tables<Schemas[0]> => {
 export const bigWorkspaceSeed: SeedDefinition = {
   id: "big-workspace",
   label: "Big Workspace",
+  calendarFixtureBase: "default",
   run: (store: MainStore) => {
     const data = buildBigWorkspaceData();
     store.transaction(() => {

@@ -11,7 +11,7 @@ pub struct EventFilter {
 
 macro_rules! common_derives {
     ($item:item) => {
-        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
         $item
     };
 }
@@ -329,5 +329,36 @@ common_derives! {
         pub alarms: Vec<Alarm>,
         pub birthday_contact_identifier: Option<String>,
         pub is_birthday: bool,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use schemars::schema_for;
+    use std::fs;
+    use std::path::PathBuf;
+
+    fn get_schemas_dir() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/fixture/schema")
+    }
+
+    #[test]
+    #[ignore]
+    fn generate_schemas() {
+        let schemas_dir = get_schemas_dir();
+        fs::create_dir_all(&schemas_dir).expect("Failed to create schemas directory");
+
+        let calendars_schema = schema_for!(Vec<AppleCalendar>);
+        let calendars_json =
+            serde_json::to_string_pretty(&calendars_schema).expect("Failed to serialize schema");
+        fs::write(schemas_dir.join("calendars.schema.json"), calendars_json)
+            .expect("Failed to write calendars schema");
+
+        let events_schema = schema_for!(Vec<AppleEvent>);
+        let events_json =
+            serde_json::to_string_pretty(&events_schema).expect("Failed to serialize schema");
+        fs::write(schemas_dir.join("events.schema.json"), events_json)
+            .expect("Failed to write events schema");
     }
 }

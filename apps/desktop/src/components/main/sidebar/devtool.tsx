@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { useRow, useStores } from "tinybase/ui-react";
 
+import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
 
@@ -8,6 +9,7 @@ import {
   type Store as MainStore,
   STORE_ID as STORE_ID_PERSISTED,
 } from "../../../store/tinybase/main";
+import { CalendarFixtureMonitor } from "../../devtool/calendar-fixture";
 import { type SeedDefinition, seeds } from "../../devtool/seed/index";
 import { TinyTickMonitor } from "../../devtool/tinytick";
 
@@ -52,11 +54,17 @@ export function DevtoolView() {
   }, [persistedStore]);
 
   const handleSeed = useCallback(
-    (seed: SeedDefinition) => {
+    async (seed: SeedDefinition) => {
       if (!persistedStore) {
         return;
       }
       seed.run(persistedStore);
+
+      if (seed.calendarFixture && "switchFixture" in appleCalendarCommands) {
+        await (appleCalendarCommands as any).switchFixture(
+          seed.calendarFixture,
+        );
+      }
     },
     [persistedStore],
   );
@@ -69,6 +77,7 @@ export function DevtoolView() {
     <div className="h-full flex flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
         <TinyTickMonitor />
+        <CalendarFixtureMonitor />
         <ExtensionStateMonitor />
         <SeedList onSeed={handleSeed} />
         <NavigationList />

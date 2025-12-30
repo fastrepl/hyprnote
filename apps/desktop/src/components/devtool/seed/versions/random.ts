@@ -120,6 +120,7 @@ const buildRandomData = (): Tables<Schemas[0]> => {
 export const randomSeed: SeedDefinition = {
   id: "random",
   label: "Random",
+  calendarFixtureBase: "default",
   run: (store: MainStore) => {
     const data = buildRandomData();
     store.transaction(() => {

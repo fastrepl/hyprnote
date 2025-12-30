@@ -1,4 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { vi } from "vitest";
+
+Object.defineProperty(globalThis.crypto, "randomUUID", { value: randomUUID });
 
 vi.mock("@hypr/plugin-analytics", () => ({
   commands: {

@@ -1,4 +1,3 @@
-mod commands;
 mod error;
 mod ext;
 
@@ -10,9 +9,7 @@ const PLUGIN_NAME: &str = "sidecar2";
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![
-            commands::ping::<tauri::Wry>,
-        ])
+        .commands(tauri_specta::collect_commands![])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 

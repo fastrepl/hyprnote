@@ -481,14 +481,95 @@ async fn start_external_server<R: Runtime, T: Manager<R>>(
 
         #[cfg(not(debug_assertions))]
         {
-            external::CommandBuilder::new(move || {
-                app_handle
-                    .shell()
-                    .sidecar("hyprnote-sidecar-stt")
-                    .expect("failed to create sidecar command")
-                    .current_dir(dirs::home_dir().unwrap())
-                    .args(["serve", "--any-token"])
-            })
+            // Try to create sidecar command normally first.
+            // If it fails due to symlink (CLI launch), fall back to manual path resolution.
+            let sidecar_result = app_handle.shell().sidecar("hyprnote-sidecar-stt");
+
+            match sidecar_result {
+                Ok(_) => external::CommandBuilder::new(move || {
+                    app_handle
+                        .shell()
+                        .sidecar("hyprnote-sidecar-stt")
+                        .expect("sidecar command should succeed after initial check")
+                        .current_dir(dirs::home_dir().unwrap())
+                        .args(["serve", "--any-token"])
+                }),
+                Err(e) => {
+                    let error_msg = e.to_string();
+                    if error_msg.contains("symlink") {
+                        // CLI launch case: resolve symlink and use .command() instead
+                        let exe_path = std::env::current_exe().map_err(|e| {
+                            crate::Error::ServerStartFailed(format!(
+                                "failed to get current exe: {}",
+                                e
+                            ))
+                        })?;
+                        let resolved_exe = std::fs::canonicalize(&exe_path).map_err(|e| {
+                            crate::Error::ServerStartFailed(format!(
+                                "failed to resolve symlink: {}",
+                                e
+                            ))
+                        })?;
+
+                        // Find sidecar in the same directory as the resolved executable
+                        let exe_dir = resolved_exe.parent().ok_or_else(|| {
+                            crate::Error::ServerStartFailed(
+                                "failed to get exe parent directory".to_string(),
+                            )
+                        })?;
+
+                        // Look for sidecar binary with target triple suffix
+                        let sidecar_path = std::fs::read_dir(exe_dir)
+                            .map_err(|e| {
+                                crate::Error::ServerStartFailed(format!(
+                                    "failed to read exe directory: {}",
+                                    e
+                                ))
+                            })?
+                            .filter_map(|entry| entry.ok())
+                            .map(|entry| entry.path())
+                            .find(|path| {
+                                path.file_name()
+                                    .and_then(|n| n.to_str())
+                                    .map(|n| n.starts_with("hyprnote-sidecar-stt-"))
+                                    .unwrap_or(false)
+                            })
+                            .ok_or_else(|| {
+                                crate::Error::ServerStartFailed(format!(
+                                    "sidecar not found in {}",
+                                    exe_dir.display()
+                                ))
+                            })?;
+
+                        // Verify sidecar is not a symlink
+                        let metadata = std::fs::symlink_metadata(&sidecar_path).map_err(|e| {
+                            crate::Error::ServerStartFailed(format!(
+                                "failed to get sidecar metadata: {}",
+                                e
+                            ))
+                        })?;
+                        if metadata.file_type().is_symlink() {
+                            return Err(crate::Error::ServerStartFailed(
+                                "sidecar binary is a symlink".to_string(),
+                            ));
+                        }
+
+                        let sidecar_path = Arc::new(sidecar_path);
+                        external::CommandBuilder::new(move || {
+                            app_handle
+                                .shell()
+                                .command(sidecar_path.as_ref())
+                                .current_dir(dirs::home_dir().unwrap())
+                                .args(["serve", "--any-token"])
+                        })
+                    } else {
+                        return Err(crate::Error::ServerStartFailed(format!(
+                            "failed to create sidecar command: {}",
+                            e
+                        )));
+                    }
+                }
+            }
         }
     };
 

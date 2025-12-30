@@ -11,6 +11,7 @@ import { useAuth } from "../../../auth";
 import { buildChatTools } from "../../../chat/tools";
 import { AITaskProvider } from "../../../contexts/ai-task";
 import { useListener } from "../../../contexts/listener";
+import { NotificationProvider } from "../../../contexts/notifications";
 import { useSearchEngine } from "../../../contexts/search/engine";
 import { SearchEngineProvider } from "../../../contexts/search/engine";
 import { SearchUIProvider } from "../../../contexts/search/ui";
@@ -66,8 +67,10 @@ function Component() {
         <ShellProvider>
           <ToolRegistryProvider registry={toolRegistry}>
             <AITaskProvider store={aiTaskStore}>
-              <ToolRegistration />
-              <Outlet />
+              <NotificationProvider>
+                <ToolRegistration />
+                <Outlet />
+              </NotificationProvider>
             </AITaskProvider>
           </ToolRegistryProvider>
         </ShellProvider>

@@ -1,6 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { platform } from "@tauri-apps/plugin-os";
 import { AxeIcon, PanelLeftCloseIcon } from "lucide-react";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -22,12 +23,12 @@ export function LeftSidebar() {
   const { leftsidebar } = useShell();
   const { query } = useSearch();
   const [isProfileExpanded, setIsProfileExpanded] = useState(false);
-  const [showDevtoolButton, setShowDevtoolButton] = useState(false);
   const isLinux = platform() === "linux";
 
-  useEffect(() => {
-    commands.showDevtool().then(setShowDevtoolButton);
-  }, []);
+  const { data: showDevtoolButton = false } = useQuery({
+    queryKey: ["show_devtool"],
+    queryFn: () => commands.showDevtool(),
+  });
 
   const showSearchResults = query.trim() !== "";
 

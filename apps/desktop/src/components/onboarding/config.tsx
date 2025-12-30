@@ -39,7 +39,9 @@ export function getBack(ctx: Search): Search["step"] | null {
     case STEP_ID_LOGIN:
       return ctx.platform === "macos" ? STEP_ID_PERMISSIONS : STEP_ID_WELCOME;
     case STEP_ID_CONFIGURE_NOTICE:
-      if (ctx.local) return STEP_ID_WELCOME;
+      if (ctx.local) {
+        return ctx.platform === "macos" ? STEP_ID_PERMISSIONS : STEP_ID_WELCOME;
+      }
       return STEP_ID_LOGIN;
     case STEP_ID_READY:
       return null;

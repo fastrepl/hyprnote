@@ -17,6 +17,7 @@ const validateSearch = z.object({
   local: z.boolean().default(false),
   pro: z.boolean().default(false),
   platform: z.string().default(platform()),
+  skipAutoForward: z.boolean().default(false),
 });
 
 export type Search = z.infer<typeof validateSearch>;

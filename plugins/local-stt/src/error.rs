@@ -10,6 +10,8 @@ pub enum Error {
     HyprFileError(#[from] hypr_file::Error),
     #[error(transparent)]
     ShellError(#[from] tauri_plugin_shell::Error),
+    #[error(transparent)]
+    Sidecar2Error(#[from] tauri_plugin_sidecar2::Error),
     #[error("Model not downloaded")]
     ModelNotDownloaded,
     #[error("Server start failed {0}")]

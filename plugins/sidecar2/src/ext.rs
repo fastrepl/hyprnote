@@ -2,35 +2,38 @@ use tauri::Manager;
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_shell::process::Command;
 
+use crate::Error;
+
 pub struct Sidecar2<'a, R: tauri::Runtime, M: Manager<R>> {
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
 impl<'a, R: tauri::Runtime, M: Manager<R>> Sidecar2<'a, R, M> {
-    pub fn sidecar(&self, name: impl AsRef<str>) -> Command {
+    pub fn sidecar(&self, name: impl AsRef<str>) -> Result<Command, Error> {
         let name = name.as_ref();
         let home_dir = dirs::home_dir().unwrap();
 
         #[cfg(debug_assertions)]
         {
             if let Some(binary_name) = name.strip_prefix("hyprnote-sidecar-") {
-                if let Some((passthrough, binary)) = resolve_debug_paths(binary_name) {
-                    return self
-                        .manager
-                        .shell()
-                        .command(&passthrough)
-                        .current_dir(home_dir)
-                        .arg(&binary);
-                }
+                let (passthrough, binary) =
+                    resolve_debug_paths(binary_name).ok_or(Error::BinaryNotFound)?;
+                return Ok(self
+                    .manager
+                    .shell()
+                    .command(&passthrough)
+                    .current_dir(home_dir)
+                    .arg(&binary));
             }
         }
 
-        self.manager
+        Ok(self
+            .manager
             .shell()
             .sidecar(name)
             .expect("failed to create sidecar command")
-            .current_dir(home_dir)
+            .current_dir(home_dir))
     }
 }
 

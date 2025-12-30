@@ -1,8 +1,11 @@
-import { forwardRef, useEffect, useRef } from "react";
+import { WandSparklesIcon } from "lucide-react";
+import { forwardRef, useCallback, useEffect, useRef } from "react";
 
 import { cn } from "@hypr/utils";
 
+import { useListener } from "../../../../contexts/listener";
 import { useAITaskTask } from "../../../../hooks/useAITaskTask";
+import { useLanguageModel } from "../../../../hooks/useLLMConnection";
 import * as main from "../../../../store/tinybase/main";
 import { createTaskId } from "../../../../store/zustand/ai-task/task-configs";
 import { type Tab } from "../../../../store/zustand/tabs";
@@ -19,12 +22,48 @@ export const TitleInput = forwardRef<
     state: { view },
   } = tab;
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
+  const model = useLanguageModel();
+
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const isListenerInactive = sessionMode === "inactive";
+
+  const enhancedNoteIds = main.UI.useSliceRowIds(
+    main.INDEXES.enhancedNotesBySession,
+    sessionId,
+    main.STORE_ID,
+  );
+  const hasEnhancedNote = enhancedNoteIds && enhancedNoteIds.length > 0;
 
   const titleTaskId = createTaskId(sessionId, "title");
-  const { isGenerating: isTitleGenerating } = useAITaskTask(
-    titleTaskId,
-    "title",
+  const titleTask = useAITaskTask(titleTaskId, "title");
+  const isTitleGenerating = titleTask.isGenerating;
+
+  const updateTitle = main.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (input: string) => ({ title: input }),
+    [],
+    main.STORE_ID,
   );
+
+  const handleGenerateTitle = useCallback(() => {
+    if (!model) return;
+    void titleTask.start({
+      model,
+      args: { sessionId },
+      onComplete: (text) => {
+        if (text) {
+          updateTitle(text);
+        }
+      },
+    });
+  }, [model, titleTask, sessionId, updateTitle]);
+
+  const showSuggestionButton =
+    isListenerInactive &&
+    hasEnhancedNote &&
+    !!title?.trim() &&
+    !isTitleGenerating;
 
   const handleEditTitle = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -160,19 +199,36 @@ export const TitleInput = forwardRef<
   }
 
   return (
-    <input
-      ref={inputRef}
-      id={`title-input-${sessionId}-${editorId}`}
-      placeholder="Untitled"
-      type="text"
-      onChange={(e) => handleEditTitle(e.target.value)}
-      onKeyDown={handleKeyDown}
-      value={title ?? ""}
-      className={cn([
-        "w-full transition-opacity duration-200",
-        "border-none bg-transparent focus:outline-none",
-        "text-xl font-semibold placeholder:text-muted-foreground",
-      ])}
-    />
+    <div className="flex items-center gap-2">
+      <input
+        ref={inputRef}
+        id={`title-input-${sessionId}-${editorId}`}
+        placeholder="Untitled"
+        type="text"
+        onChange={(e) => handleEditTitle(e.target.value)}
+        onKeyDown={handleKeyDown}
+        value={title ?? ""}
+        className={cn([
+          "flex-1 transition-opacity duration-200",
+          "border-none bg-transparent focus:outline-none",
+          "text-xl font-semibold placeholder:text-muted-foreground",
+        ])}
+      />
+      {showSuggestionButton && (
+        <button
+          type="button"
+          onClick={handleGenerateTitle}
+          className={cn([
+            "flex items-center gap-1.5 px-2 py-1 shrink-0",
+            "text-sm text-neutral-500 hover:text-neutral-700",
+            "border border-neutral-200 rounded-md",
+            "hover:bg-neutral-50 transition-colors",
+          ])}
+        >
+          <WandSparklesIcon size={14} />
+          <span>Generate new title</span>
+        </button>
+      )}
+    </div>
   );
 });

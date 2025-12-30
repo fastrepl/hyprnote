@@ -1,6 +1,9 @@
 #[cfg(target_os = "macos")]
 mod apple;
 
+#[cfg(feature = "fixture")]
+pub mod fixture;
+
 mod commands;
 mod error;
 mod events;
@@ -78,12 +81,26 @@ mod test {
             .unwrap()
     }
 
+    fn get_fixture_output_dir() -> Option<std::path::PathBuf> {
+        std::env::var("FIXTURE_OUTPUT_DIR")
+            .ok()
+            .map(std::path::PathBuf::from)
+    }
+
     #[test]
     fn test_list_calendars() {
         let app = create_app(tauri::test::mock_builder());
 
         let calendars = app.apple_calendar().list_calendars();
         println!("calendars: {:?}", calendars);
+
+        if let (Some(output_dir), Ok(ref cals)) = (get_fixture_output_dir(), &calendars) {
+            std::fs::create_dir_all(&output_dir).expect("Failed to create fixture output dir");
+            let path = output_dir.join("calendars.json");
+            let json = serde_json::to_string_pretty(cals).expect("Failed to serialize calendars");
+            std::fs::write(&path, json).expect("Failed to write calendars.json");
+            println!("Wrote fixture to: {:?}", path);
+        }
     }
 
     #[test]
@@ -103,6 +120,16 @@ mod test {
                         calendar_tracking_id: calendar.id.clone(),
                     });
                     println!("events: {:?}", events);
+
+                    if let (Some(output_dir), Ok(ref evts)) = (get_fixture_output_dir(), &events) {
+                        std::fs::create_dir_all(&output_dir)
+                            .expect("Failed to create fixture output dir");
+                        let path = output_dir.join("events.json");
+                        let json =
+                            serde_json::to_string_pretty(evts).expect("Failed to serialize events");
+                        std::fs::write(&path, json).expect("Failed to write events.json");
+                        println!("Wrote fixture to: {:?}", path);
+                    }
                 } else {
                     println!("No calendars found");
                 }

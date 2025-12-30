@@ -90,3 +90,4 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [features]
 devtools = ["tauri/devtools"]
+apple-calendar-fixture = ["tauri-plugin-apple-calendar/fixture"]

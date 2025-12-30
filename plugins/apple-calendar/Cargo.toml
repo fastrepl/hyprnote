@@ -7,6 +7,10 @@ exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-apple-calendar"
 description = ""
 
+[features]
+default = []
+fixture = []
+
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 

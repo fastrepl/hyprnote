@@ -58,24 +58,6 @@
     }
   },
   "plugins": {
-    "cli": {
-      "description": "Hyprnote",
-      "args": [],
-      "subcommands": {
-        "bug": {
-          "description": "Open GitHub issues page to report a bug"
-        },
-        "web": {
-          "description": "Open https://hyprnote.com"
-        },
-        "changelog": {
-          "description": "Open the changelog page"
-        },
-        "update": {
-          "description": "Check for updates and install if available"
-        }
-      }
-    },
     "deep-link": {
       "desktop": { "schemes": ["hyprnote"] }
     },

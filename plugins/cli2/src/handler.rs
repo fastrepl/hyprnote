@@ -1,7 +1,5 @@
 use clap::{CommandFactory, Parser, Subcommand};
-use serde_json::Value;
 use tauri::AppHandle;
-use tauri_plugin_cli::Matches;
 use tauri_plugin_updater::UpdaterExt;
 
 /// Result of early CLI argument handling.
@@ -95,15 +93,9 @@ pub fn handle_cli_early() -> EarlyCliResult {
 
     let first_arg = args.get(1).map(|s| s.as_str()).unwrap_or("");
 
-    // Handle --help using clap's generated help
     if first_arg == "--help" || first_arg == "-h" {
-        let mut cmd = Cli::command();
-        // Use the actual binary name for help output
-        if let Some(bin_name) = get_binary_name() {
-            cmd = cmd.name(bin_name);
-        }
-        cmd.print_help().ok();
-        println!();
+        // Use try_parse_from to let clap handle help with correct binary name from args[0]
+        let _ = Cli::try_parse_from(&args);
         return EarlyCliResult::Exit(0);
     }
 
@@ -159,83 +151,43 @@ pub fn handle_cli_early() -> EarlyCliResult {
     }
 }
 
+/// Handle CLI arguments when the app is already running (single-instance callback).
+/// Returns true if the main window should be shown, false otherwise.
 pub fn handle_cli_args<R: tauri::Runtime>(app: &AppHandle<R>, argv: Vec<String>) -> bool {
-    if argv.len() <= 1 {
+    let args = filter_tauri_internal_args(argv);
+
+    if args.len() <= 1 {
         return true;
     }
 
-    let args: Vec<&str> = argv.iter().skip(1).map(|s| s.as_str()).collect();
-
-    if args.is_empty() {
-        return true;
-    }
-
-    let first_arg = args[0];
-
-    if first_arg == "--help" || first_arg == "-h" {
-        return false;
-    }
-
-    if first_arg == "--version" || first_arg == "-V" {
-        return false;
-    }
-
-    let version = app.package_info().version.to_string();
-    match first_arg {
-        "bug" => {
-            url(
-                app,
-                format!("https://github.com/fastrepl/hyprnote/issues/new?labels=bug,v{version}"),
-            );
-            false
-        }
-        "web" => {
-            url(app, "https://hyprnote.com");
-            false
-        }
-        "changelog" => {
-            url(app, "https://hyprnote.com/changelog");
-            false
-        }
-        "update" => false,
-        _ => true,
-    }
-}
-
-pub fn entrypoint<R: tauri::Runtime>(app: &AppHandle<R>, matches: Matches) {
-    if let Some(arg) = matches.args.get("help") {
-        if let Value::String(help_text) = &arg.value {
-            print!("{help_text}");
-        }
-        std::process::exit(0);
-    }
-
-    if matches.args.contains_key("version") {
-        let name = &app.package_info().name;
-        let version = &app.package_info().version;
-        println!("{name} {version}");
-        std::process::exit(0);
-    }
-
-    let version = app.package_info().version.to_string();
-    if let Some(subcommand_matches) = matches.subcommand {
-        match subcommand_matches.name.as_str() {
-            "bug" => url(
-                app,
-                format!("https://github.com/fastrepl/hyprnote/issues/new?labels=bug,v{version}"),
-            ),
-            "web" => url(app, "https://hyprnote.com"),
-            "changelog" => url(app, "https://hyprnote.com/changelog"),
-            "update" => update(app),
-            _ => {
-                tracing::warn!("unknown_subcommand: {}", subcommand_matches.name);
-                std::process::exit(1);
+    match Cli::try_parse_from(&args) {
+        Ok(cli) => match cli.command {
+            Some(Commands::Bug) => {
+                let version = app.package_info().version.to_string();
+                open_url(format!(
+                    "https://github.com/fastrepl/hyprnote/issues/new?labels=bug,v{version}"
+                ));
+                false
             }
-        }
+            Some(Commands::Web) => {
+                open_url("https://hyprnote.com");
+                false
+            }
+            Some(Commands::Changelog) => {
+                open_url("https://hyprnote.com/changelog");
+                false
+            }
+            Some(Commands::Update) => {
+                update(app);
+                false
+            }
+            None => true,
+        },
+        Err(_) => true,
     }
 }
 
-fn url<R: tauri::Runtime>(_app: &AppHandle<R>, url: impl Into<String>) {
+fn open_url(url: impl Into<String>) {
     match open::that(url.into()) {
         Ok(_) => std::process::exit(0),
         Err(e) => {

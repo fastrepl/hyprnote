@@ -7,8 +7,6 @@ pub use error::{Error, Result};
 pub use ext::*;
 pub use handler::{EarlyCliResult, generate_manpage, handle_cli_args, handle_cli_early};
 
-pub use tauri_plugin_cli::CliExt;
-
 const PLUGIN_NAME: &str = "cli2";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -27,19 +25,6 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
-            let matches = {
-                use tauri_plugin_cli::CliExt;
-                app.cli().matches()
-            };
-
-            match matches {
-                Ok(matches) => handler::entrypoint(app, matches),
-                Err(error) => tracing::error!("cli_matches_error: {error}"),
-            }
-
-            Ok(())
-        })
         .build()
 }
 

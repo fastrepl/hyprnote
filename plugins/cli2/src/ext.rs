@@ -6,24 +6,6 @@ pub struct Cli2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Cli2<'a, R, M> {
-    pub fn handle_cli_matches(&self) -> Result<(), crate::Error> {
-        use tauri_plugin_cli::CliExt;
-
-        match self.manager.app_handle().cli().matches() {
-            Ok(matches) => {
-                if matches.args.contains_key("help") || matches.args.contains_key("version") {
-                    std::process::exit(0);
-                }
-            }
-            Err(error) => {
-                eprintln!("failed to read CLI matches: {error}");
-                std::process::exit(1);
-            }
-        }
-
-        Ok(())
-    }
-
     pub fn get_cli_binary_name(&self) -> String {
         if let Ok(exe_path) = std::env::current_exe() {
             if let Some(file_name) = exe_path.file_stem() {

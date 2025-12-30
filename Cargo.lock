@@ -4659,7 +4659,6 @@ dependencies = [
  "tauri-plugin-auth",
  "tauri-plugin-automation",
  "tauri-plugin-autostart",
- "tauri-plugin-cli",
  "tauri-plugin-cli2",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-db2",
@@ -17347,21 +17346,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-cli"
-version = "2.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28e78fb2c09a81546bcd376d34db4bda5769270d00990daa9f0d6e7ac1107e25"
-dependencies = [
- "clap",
- "log",
- "serde",
- "serde_json",
- "tauri",
- "tauri-plugin",
- "thiserror 2.0.17",
-]
-
-[[package]]
 name = "tauri-plugin-cli2"
 version = "0.1.0"
 dependencies = [
@@ -17374,7 +17358,6 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "tauri-plugin",
- "tauri-plugin-cli",
  "tauri-plugin-updater",
  "tauri-specta",
  "thiserror 2.0.17",

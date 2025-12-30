@@ -42,7 +42,7 @@ async checkCliStatus() : Promise<Result<CliStatus, string>> {
 
 /** user-defined types **/
 
-export type CliStatus = { isInstalled: boolean; symlinkPath: string | null; targetPath: string | null }
+export type CliStatus = { isInstalled: boolean; symlinkPath: string | null; targetPath: string | null; binaryName: string; isInPath: boolean }
 
 /** tauri-specta globals **/
 

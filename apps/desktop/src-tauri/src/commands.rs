@@ -56,3 +56,21 @@ pub async fn set_onboarding_local<R: tauri::Runtime>(
 pub async fn get_env<R: tauri::Runtime>(_app: tauri::AppHandle<R>, key: String) -> String {
     std::env::var(&key).unwrap_or_default()
 }
+
+#[tauri::command]
+#[specta::specta]
+pub fn show_devtool() -> bool {
+    if cfg!(debug_assertions) {
+        return true;
+    }
+
+    #[cfg(feature = "devtools")]
+    {
+        return true;
+    }
+
+    #[cfg(not(feature = "devtools"))]
+    {
+        return false;
+    }
+}

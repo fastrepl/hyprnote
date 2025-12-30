@@ -19,6 +19,45 @@ import {
 import { Section } from "./index";
 import { SyncIndicator } from "./sync";
 
+export function AppleCalendarSelection({
+  syncActions,
+}: {
+  syncActions: {
+    scheduleSync: () => void;
+    scheduleDebouncedSync: () => void;
+    cancelDebouncedSync: () => void;
+  };
+}) {
+  const { groups, handleToggle, handleRefresh, isLoading } =
+    useAppleCalendarSelection(syncActions);
+
+  return (
+    <Section
+      title="Calendars"
+      action={
+        <div className="flex items-center gap-2">
+          <SyncIndicator />
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRefresh}
+            className="size-6"
+            disabled={isLoading}
+          >
+            <RefreshCwIcon
+              className={cn(["size-3.5", isLoading && "animate-spin"])}
+            />
+          </Button>
+        </div>
+      }
+    >
+      <div className="pt-0.5"></div>
+      <CalendarSelection groups={groups} onToggle={handleToggle} />
+    </Section>
+  );
+}
+
 function useAppleCalendarSelection(syncActions: {
   scheduleSync: () => void;
   scheduleDebouncedSync: () => void;
@@ -115,42 +154,4 @@ function useAppleCalendarSelection(syncActions: {
     handleRefresh,
     isLoading: isFetching,
   };
-}
-
-export function AppleCalendarSelection({
-  syncActions,
-}: {
-  syncActions: {
-    scheduleSync: () => void;
-    scheduleDebouncedSync: () => void;
-    cancelDebouncedSync: () => void;
-  };
-}) {
-  const { groups, handleToggle, handleRefresh, isLoading } =
-    useAppleCalendarSelection(syncActions);
-
-  return (
-    <Section
-      title="Calendars"
-      action={
-        <div className="flex items-center gap-2">
-          <SyncIndicator />
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRefresh}
-            className="size-6"
-            disabled={isLoading}
-          >
-            <RefreshCwIcon
-              className={cn(["size-3.5", isLoading && "animate-spin"])}
-            />
-          </Button>
-        </div>
-      }
-    >
-      <CalendarSelection groups={groups} onToggle={handleToggle} />
-    </Section>
-  );
 }

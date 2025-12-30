@@ -22,18 +22,30 @@ export function NotificationBadge({
   return (
     <AnimatePresence>
       {show && (
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0, opacity: 0 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className={cn(
-            "absolute -top-1 -right-1 z-50",
-            "bg-red-500 rounded-full",
-            sizeClasses[size],
-            className,
-          )}
-        />
+        <span className="absolute top-1 right-1 z-50">
+          <span className="relative flex size-fit">
+            <motion.span
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className={cn([
+                "animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75",
+              ])}
+            />
+            <motion.span
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className={cn([
+                "relative inline-flex rounded-full bg-red-500",
+                sizeClasses[size],
+                className,
+              ])}
+            />
+          </span>
+        </span>
       )}
     </AnimatePresence>
   );

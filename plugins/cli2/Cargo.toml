@@ -19,6 +19,8 @@ tauri-plugin-cli = { workspace = true }
 tauri-plugin-updater = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
+clap = { workspace = true, features = ["derive"] }
+clap_mangen = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }

@@ -12,6 +12,17 @@ use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
 pub async fn main() {
+    // Handle CLI commands early, before single-instance plugin takes over.
+    // This ensures CLI works regardless of whether the app is already running.
+    let cli_result = tauri_plugin_cli2::handle_cli_early();
+    let show_window_on_startup = match cli_result {
+        tauri_plugin_cli2::EarlyCliResult::Exit(code) => {
+            std::process::exit(code);
+        }
+        tauri_plugin_cli2::EarlyCliResult::Continue => true,
+        tauri_plugin_cli2::EarlyCliResult::ContinueWithoutWindow => false,
+    };
+
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     let (root_supervisor_ctx, root_supervisor_handle) =
@@ -205,12 +216,18 @@ pub async fn main() {
 
     {
         let app_handle = app.handle().clone();
-        if app.get_onboarding_needed().unwrap_or(true) {
-            AppWindow::Main.hide(&app_handle).unwrap();
-            AppWindow::Onboarding.show(&app_handle).unwrap();
+        if show_window_on_startup {
+            if app.get_onboarding_needed().unwrap_or(true) {
+                AppWindow::Main.hide(&app_handle).unwrap();
+                AppWindow::Onboarding.show(&app_handle).unwrap();
+            } else {
+                AppWindow::Onboarding.destroy(&app_handle).unwrap();
+                AppWindow::Main.show(&app_handle).unwrap();
+            }
         } else {
-            AppWindow::Onboarding.destroy(&app_handle).unwrap();
-            AppWindow::Main.show(&app_handle).unwrap();
+            // CLI command mode - don't show any windows
+            AppWindow::Main.hide(&app_handle).unwrap();
+            AppWindow::Onboarding.hide(&app_handle).unwrap();
         }
     }
 

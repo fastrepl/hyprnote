@@ -1,7 +1,117 @@
+use clap::{CommandFactory, Parser, Subcommand};
 use serde_json::Value;
 use tauri::AppHandle;
 use tauri_plugin_cli::Matches;
 use tauri_plugin_updater::UpdaterExt;
+
+/// Result of early CLI argument handling.
+/// This is called before single-instance plugin takes over.
+pub enum EarlyCliResult {
+    /// CLI command was handled and process should exit with the given code
+    Exit(i32),
+    /// No CLI command detected, continue with normal app startup
+    Continue,
+    /// CLI command detected but needs app to run (e.g., update command)
+    /// The bool indicates whether to show the window
+    ContinueWithoutWindow,
+}
+
+#[derive(Parser)]
+#[command(
+    name = "hyprnote",
+    version,
+    about = "AI-powered notetaking for meetings"
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Open GitHub issues page to report a bug
+    Bug,
+    /// Open https://hyprnote.com
+    Web,
+    /// Open the changelog page
+    Changelog,
+    /// Check for updates and install if available
+    Update,
+}
+
+/// Handle CLI arguments early, before single-instance plugin takes over.
+/// This ensures CLI commands work regardless of whether the app is already running.
+pub fn handle_cli_early() -> EarlyCliResult {
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() <= 1 {
+        return EarlyCliResult::Continue;
+    }
+
+    let first_arg = args.get(1).map(|s| s.as_str()).unwrap_or("");
+
+    // Handle --help using clap's generated help
+    if first_arg == "--help" || first_arg == "-h" {
+        let mut cmd = Cli::command();
+        cmd.print_help().ok();
+        println!();
+        return EarlyCliResult::Exit(0);
+    }
+
+    // Handle --version using clap's generated version
+    if first_arg == "--version" || first_arg == "-V" {
+        let cmd = Cli::command();
+        println!(
+            "{} {}",
+            cmd.get_name(),
+            cmd.get_version().unwrap_or("unknown")
+        );
+        return EarlyCliResult::Exit(0);
+    }
+
+    // Try to parse the CLI args
+    match Cli::try_parse() {
+        Ok(cli) => match cli.command {
+            Some(Commands::Bug) => {
+                let version = env!("CARGO_PKG_VERSION");
+                let url = format!(
+                    "https://github.com/fastrepl/hyprnote/issues/new?labels=bug,v{version}"
+                );
+                match open::that(&url) {
+                    Ok(_) => EarlyCliResult::Exit(0),
+                    Err(e) => {
+                        eprintln!("Failed to open URL: {e}");
+                        EarlyCliResult::Exit(1)
+                    }
+                }
+            }
+            Some(Commands::Web) => match open::that("https://hyprnote.com") {
+                Ok(_) => EarlyCliResult::Exit(0),
+                Err(e) => {
+                    eprintln!("Failed to open URL: {e}");
+                    EarlyCliResult::Exit(1)
+                }
+            },
+            Some(Commands::Changelog) => match open::that("https://hyprnote.com/changelog") {
+                Ok(_) => EarlyCliResult::Exit(0),
+                Err(e) => {
+                    eprintln!("Failed to open URL: {e}");
+                    EarlyCliResult::Exit(1)
+                }
+            },
+            Some(Commands::Update) => {
+                // Update command needs the full app to run
+                EarlyCliResult::ContinueWithoutWindow
+            }
+            None => EarlyCliResult::Continue,
+        },
+        Err(e) => {
+            // If parsing fails, let clap handle the error display
+            e.print().ok();
+            EarlyCliResult::Exit(e.exit_code())
+        }
+    }
+}
 
 pub fn handle_cli_args<R: tauri::Runtime>(app: &AppHandle<R>, argv: Vec<String>) -> bool {
     if argv.len() <= 1 {
@@ -87,6 +197,16 @@ fn url<R: tauri::Runtime>(_app: &AppHandle<R>, url: impl Into<String>) {
             std::process::exit(1);
         }
     }
+}
+
+/// Generate the CLI manpage content as a string.
+/// This can be used to export the manpage for documentation.
+pub fn generate_manpage() -> std::io::Result<Vec<u8>> {
+    let cmd = Cli::command();
+    let man = clap_mangen::Man::new(cmd);
+    let mut buffer: Vec<u8> = Vec::new();
+    man.render(&mut buffer)?;
+    Ok(buffer)
 }
 
 fn update<R: tauri::Runtime>(app: &AppHandle<R>) {

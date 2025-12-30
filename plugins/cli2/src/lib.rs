@@ -5,7 +5,7 @@ mod handler;
 
 pub use error::{Error, Result};
 pub use ext::*;
-pub use handler::handle_cli_args;
+pub use handler::{EarlyCliResult, generate_manpage, handle_cli_args, handle_cli_early};
 
 pub use tauri_plugin_cli::CliExt;
 
@@ -62,5 +62,13 @@ mod test {
 
         let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
+    }
+
+    #[test]
+    fn export_manpage() {
+        const OUTPUT_FILE: &str = "../../../apps/web/public/hyprnote.1";
+
+        let manpage = generate_manpage().expect("Failed to generate manpage");
+        std::fs::write(OUTPUT_FILE, manpage).expect("Failed to write manpage");
     }
 }

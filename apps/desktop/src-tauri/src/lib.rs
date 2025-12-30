@@ -49,6 +49,12 @@ pub async fn main() {
 
     let mut builder = tauri::Builder::default();
 
+    // https://docs.crabnebula.dev/plugins/tauri-e2e-tests/#macos-support
+    #[cfg(all(target_os = "macos", feature = "automation"))]
+    {
+        builder = builder.plugin(tauri_plugin_automation::init());
+    }
+
     // https://v2.tauri.app/plugin/deep-linking/#desktop
     // should always be the first plugin
     {

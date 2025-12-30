@@ -4647,6 +4647,7 @@ dependencies = [
  "tauri-plugin-apple-calendar",
  "tauri-plugin-audio-priority",
  "tauri-plugin-auth",
+ "tauri-plugin-automation",
  "tauri-plugin-autostart",
  "tauri-plugin-cli",
  "tauri-plugin-cli2",
@@ -17299,6 +17300,20 @@ dependencies = [
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",
+]
+
+[[package]]
+name = "tauri-plugin-automation"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa45d3573de0fc3dd3e26ad22d638c59e762a98122eda9b88e7bc6ae76f1c743"
+dependencies = [
+ "libloading 0.8.9",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

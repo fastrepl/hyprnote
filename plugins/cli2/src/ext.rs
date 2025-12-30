@@ -63,7 +63,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Cli2<'a, R, M> {
 
         #[cfg(unix)]
         {
-            if symlink_path.exists() {
+            if std::fs::symlink_metadata(&symlink_path).is_ok() {
                 std::fs::remove_file(&symlink_path)?;
             }
 
@@ -72,7 +72,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Cli2<'a, R, M> {
 
         #[cfg(windows)]
         {
-            if symlink_path.exists() {
+            if std::fs::symlink_metadata(&symlink_path).is_ok() {
                 std::fs::remove_file(&symlink_path)?;
             }
 
@@ -115,21 +115,26 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Cli2<'a, R, M> {
     pub fn check_cli_status(&self) -> Result<CliStatus, crate::Error> {
         let symlink_path = self.get_cli_symlink_path();
 
-        if !symlink_path.exists() {
-            return Ok(CliStatus {
+        match std::fs::symlink_metadata(&symlink_path) {
+            Ok(metadata) if metadata.file_type().is_symlink() => {
+                let target = std::fs::read_link(&symlink_path).ok();
+                Ok(CliStatus {
+                    is_installed: true,
+                    symlink_path: Some(symlink_path.to_string_lossy().to_string()),
+                    target_path: target.map(|p| p.to_string_lossy().to_string()),
+                })
+            }
+            Ok(_) => Ok(CliStatus {
                 is_installed: false,
                 symlink_path: None,
                 target_path: None,
-            });
+            }),
+            Err(_) => Ok(CliStatus {
+                is_installed: false,
+                symlink_path: None,
+                target_path: None,
+            }),
         }
-
-        let target = std::fs::read_link(&symlink_path).ok();
-
-        Ok(CliStatus {
-            is_installed: true,
-            symlink_path: Some(symlink_path.to_string_lossy().to_string()),
-            target_path: target.map(|p| p.to_string_lossy().to_string()),
-        })
     }
 }
 

@@ -3,6 +3,49 @@ use tauri::AppHandle;
 use tauri_plugin_cli::Matches;
 use tauri_plugin_updater::UpdaterExt;
 
+pub fn handle_cli_args<R: tauri::Runtime>(app: &AppHandle<R>, argv: Vec<String>) -> bool {
+    if argv.len() <= 1 {
+        return true;
+    }
+
+    let args: Vec<&str> = argv.iter().skip(1).map(|s| s.as_str()).collect();
+
+    if args.is_empty() {
+        return true;
+    }
+
+    let first_arg = args[0];
+
+    if first_arg == "--help" || first_arg == "-h" {
+        return false;
+    }
+
+    if first_arg == "--version" || first_arg == "-V" {
+        return false;
+    }
+
+    let version = app.package_info().version.to_string();
+    match first_arg {
+        "bug" => {
+            url(
+                app,
+                format!("https://github.com/fastrepl/hyprnote/issues/new?labels=bug,v{version}"),
+            );
+            false
+        }
+        "web" => {
+            url(app, "https://hyprnote.com");
+            false
+        }
+        "changelog" => {
+            url(app, "https://hyprnote.com/changelog");
+            false
+        }
+        "update" => false,
+        _ => true,
+    }
+}
+
 pub fn entrypoint<R: tauri::Runtime>(app: &AppHandle<R>, matches: Matches) {
     if let Some(arg) = matches.args.get("help") {
         if let Value::String(help_text) = &arg.value {

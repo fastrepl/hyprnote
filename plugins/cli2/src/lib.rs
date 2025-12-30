@@ -5,6 +5,7 @@ mod handler;
 
 pub use error::{Error, Result};
 pub use ext::*;
+pub use handler::handle_cli_args;
 
 pub use tauri_plugin_cli::CliExt;
 

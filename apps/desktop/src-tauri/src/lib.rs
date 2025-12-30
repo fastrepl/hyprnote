@@ -58,8 +58,11 @@ pub async fn main() {
     // https://v2.tauri.app/plugin/deep-linking/#desktop
     // should always be the first plugin
     {
-        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            app.windows().show(AppWindow::Main).unwrap();
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+            let should_show_window = tauri_plugin_cli2::handle_cli_args(app, argv);
+            if should_show_window {
+                app.windows().show(AppWindow::Main).unwrap();
+            }
         }));
     }
 

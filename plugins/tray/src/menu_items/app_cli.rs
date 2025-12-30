@@ -32,7 +32,7 @@ impl MenuItemHandler for AppCliInstall {
                 let _ = app.tray().create_app_menu();
                 app_clone
                     .dialog()
-                    .message("CLI has been installed successfully.\n\nYou can now use 'hypr' command in your terminal.")
+                    .message("CLI has been installed successfully.\n\nYou can now use 'hyprnote' command in your terminal.")
                     .title("CLI Installed")
                     .buttons(MessageDialogButtons::Ok)
                     .show(|_| {});

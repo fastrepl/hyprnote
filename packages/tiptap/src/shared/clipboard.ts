@@ -8,12 +8,12 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { html2md } from "./utils";
 
 export const ClipboardTextSerializer = Extension.create({
-  name: "clipboardTextSerializer",
+  name: "hyprnoteClipboardTextSerializer",
 
   addProseMirrorPlugins() {
     return [
       new Plugin({
-        key: new PluginKey("clipboardTextSerializer"),
+        key: new PluginKey("hyprnoteClipboardTextSerializer"),
         props: {
           clipboardTextSerializer: () => {
             const { editor } = this;

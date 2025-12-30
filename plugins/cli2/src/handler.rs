@@ -39,10 +39,55 @@ enum Commands {
     Update,
 }
 
+/// Known Tauri-internal arguments that should be filtered out before CLI parsing.
+/// These are passed by Tauri/Sentry and are not user-facing CLI arguments.
+const TAURI_INTERNAL_ARGS: &[&str] = &["--crash-reporter-server"];
+
+/// Get the actual binary name from the current executable path.
+fn get_binary_name() -> Option<String> {
+    std::env::args().next().and_then(|p| {
+        std::path::Path::new(&p)
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+    })
+}
+
+/// Filter out Tauri-internal arguments from the argument list.
+/// Handles both `--flag value` and `--flag=value` formats.
+fn filter_tauri_internal_args(args: Vec<String>) -> Vec<String> {
+    let mut filtered = Vec::new();
+    let mut skip_next = false;
+
+    for arg in args {
+        if skip_next {
+            skip_next = false;
+            continue;
+        }
+
+        // Check if this arg is a Tauri internal arg
+        let is_internal = TAURI_INTERNAL_ARGS
+            .iter()
+            .any(|internal| arg == *internal || arg.starts_with(&format!("{internal}=")));
+
+        if is_internal {
+            // If it's `--flag value` format (no =), skip the next arg too
+            if !arg.contains('=') {
+                skip_next = true;
+            }
+            continue;
+        }
+
+        filtered.push(arg);
+    }
+
+    filtered
+}
+
 /// Handle CLI arguments early, before single-instance plugin takes over.
 /// This ensures CLI commands work regardless of whether the app is already running.
 pub fn handle_cli_early() -> EarlyCliResult {
-    let args: Vec<String> = std::env::args().collect();
+    let raw_args: Vec<String> = std::env::args().collect();
+    let args = filter_tauri_internal_args(raw_args);
 
     if args.len() <= 1 {
         return EarlyCliResult::Continue;
@@ -53,6 +98,10 @@ pub fn handle_cli_early() -> EarlyCliResult {
     // Handle --help using clap's generated help
     if first_arg == "--help" || first_arg == "-h" {
         let mut cmd = Cli::command();
+        // Use the actual binary name for help output
+        if let Some(bin_name) = get_binary_name() {
+            cmd = cmd.name(bin_name);
+        }
         cmd.print_help().ok();
         println!();
         return EarlyCliResult::Exit(0);
@@ -60,17 +109,14 @@ pub fn handle_cli_early() -> EarlyCliResult {
 
     // Handle --version using clap's generated version
     if first_arg == "--version" || first_arg == "-V" {
-        let cmd = Cli::command();
-        println!(
-            "{} {}",
-            cmd.get_name(),
-            cmd.get_version().unwrap_or("unknown")
-        );
+        let bin_name = get_binary_name().unwrap_or_else(|| "hyprnote".to_string());
+        let version = env!("CARGO_PKG_VERSION");
+        println!("{bin_name} {version}");
         return EarlyCliResult::Exit(0);
     }
 
-    // Try to parse the CLI args
-    match Cli::try_parse() {
+    // Try to parse the filtered CLI args
+    match Cli::try_parse_from(&args) {
         Ok(cli) => match cli.command {
             Some(Commands::Bug) => {
                 let version = env!("CARGO_PKG_VERSION");

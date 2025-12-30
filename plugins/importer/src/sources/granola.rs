@@ -1,4 +1,3 @@
-use crate::error::Result;
 use crate::sources::ImportSource;
 use crate::types::{
     ImportSourceInfo, ImportSourceKind, ImportedHuman, ImportedNote, ImportedOrganization,
@@ -37,7 +36,7 @@ impl ImportSource for GranolaSource {
         hypr_granola::default_supabase_path().exists()
     }
 
-    async fn import_notes(&self) -> Result<Vec<ImportedNote>> {
+    async fn import_notes(&self) -> Result<Vec<ImportedNote>, crate::Error> {
         let supabase_path = self
             .supabase_path
             .clone()
@@ -55,7 +54,7 @@ impl ImportSource for GranolaSource {
             .collect())
     }
 
-    async fn import_transcripts(&self) -> Result<Vec<ImportedTranscript>> {
+    async fn import_transcripts(&self) -> Result<Vec<ImportedTranscript>, crate::Error> {
         let cache_path = self
             .cache_path
             .clone()
@@ -66,15 +65,17 @@ impl ImportSource for GranolaSource {
         Ok(cache_data_to_imported_transcripts(&cache_data))
     }
 
-    async fn import_humans(&self) -> Result<Vec<ImportedHuman>> {
+    async fn import_humans(&self) -> Result<Vec<ImportedHuman>, crate::Error> {
         Ok(vec![])
     }
 
-    async fn import_organizations(&self) -> Result<Vec<ImportedOrganization>> {
+    async fn import_organizations(&self) -> Result<Vec<ImportedOrganization>, crate::Error> {
         Ok(vec![])
     }
 
-    async fn import_session_participants(&self) -> Result<Vec<ImportedSessionParticipant>> {
+    async fn import_session_participants(
+        &self,
+    ) -> Result<Vec<ImportedSessionParticipant>, crate::Error> {
         Ok(vec![])
     }
 }

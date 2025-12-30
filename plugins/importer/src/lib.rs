@@ -8,7 +8,9 @@ mod types;
 
 pub use error::*;
 pub use ext::*;
-pub use sources::{ImportSource, ImportSourceDyn, all_sources, get_source, list_available_sources};
+pub use sources::{
+    AsIsData, ImportSource, ImportSourceDyn, all_sources, get_source, list_available_sources,
+};
 pub use types::*;
 
 const PLUGIN_NAME: &str = "importer";

@@ -1,4 +1,3 @@
-use crate::error::Result;
 use crate::sources::ImportSource;
 use crate::types::{
     ImportSourceInfo, ImportSourceKind, ImportedHuman, ImportedNote, ImportedOrganization,
@@ -25,27 +24,29 @@ impl ImportSource for HyprnoteV0StableSource {
         hyprnote_stable_db_path().exists()
     }
 
-    async fn import_notes(&self) -> Result<Vec<ImportedNote>> {
+    async fn import_notes(&self) -> Result<Vec<ImportedNote>, crate::Error> {
         let db = open_database(&hyprnote_stable_db_path()).await?;
         import_notes_from_db(&db).await
     }
 
-    async fn import_transcripts(&self) -> Result<Vec<ImportedTranscript>> {
+    async fn import_transcripts(&self) -> Result<Vec<ImportedTranscript>, crate::Error> {
         let db = open_database(&hyprnote_stable_db_path()).await?;
         import_transcripts_from_db(&db).await
     }
 
-    async fn import_humans(&self) -> Result<Vec<ImportedHuman>> {
+    async fn import_humans(&self) -> Result<Vec<ImportedHuman>, crate::Error> {
         let db = open_database(&hyprnote_stable_db_path()).await?;
         import_humans_from_db(&db).await
     }
 
-    async fn import_organizations(&self) -> Result<Vec<ImportedOrganization>> {
+    async fn import_organizations(&self) -> Result<Vec<ImportedOrganization>, crate::Error> {
         let db = open_database(&hyprnote_stable_db_path()).await?;
         import_organizations_from_db(&db).await
     }
 
-    async fn import_session_participants(&self) -> Result<Vec<ImportedSessionParticipant>> {
+    async fn import_session_participants(
+        &self,
+    ) -> Result<Vec<ImportedSessionParticipant>, crate::Error> {
         let db = open_database(&hyprnote_stable_db_path()).await?;
         import_session_participants_from_db(&db).await
     }

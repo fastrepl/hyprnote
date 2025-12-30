@@ -5,7 +5,6 @@ mod transforms;
 pub use nightly::HyprnoteV0NightlySource;
 pub use stable::HyprnoteV0StableSource;
 
-use crate::error::Result;
 use crate::types::{
     ImportedHuman, ImportedNote, ImportedOrganization, ImportedSessionParticipant,
     ImportedTranscript,
@@ -14,7 +13,7 @@ use hypr_db_user::UserDatabase;
 use std::path::PathBuf;
 use transforms::{session_to_imported_note, session_to_imported_transcript};
 
-pub(super) async fn open_database(path: &PathBuf) -> Result<UserDatabase> {
+pub(super) async fn open_database(path: &PathBuf) -> Result<UserDatabase, crate::Error> {
     let db = hypr_db_core::DatabaseBuilder::default()
         .local(path)
         .build()
@@ -22,7 +21,9 @@ pub(super) async fn open_database(path: &PathBuf) -> Result<UserDatabase> {
     Ok(UserDatabase::from(db))
 }
 
-pub(super) async fn import_notes_from_db(db: &UserDatabase) -> Result<Vec<ImportedNote>> {
+pub(super) async fn import_notes_from_db(
+    db: &UserDatabase,
+) -> Result<Vec<ImportedNote>, crate::Error> {
     let sessions = db.list_sessions(None).await?;
     let mut notes = Vec::new();
 
@@ -41,7 +42,7 @@ pub(super) async fn import_notes_from_db(db: &UserDatabase) -> Result<Vec<Import
 
 pub(super) async fn import_transcripts_from_db(
     db: &UserDatabase,
-) -> Result<Vec<ImportedTranscript>> {
+) -> Result<Vec<ImportedTranscript>, crate::Error> {
     let sessions = db.list_sessions(None).await?;
     let mut transcripts = Vec::new();
 
@@ -57,7 +58,9 @@ pub(super) async fn import_transcripts_from_db(
     Ok(transcripts)
 }
 
-pub(super) async fn import_humans_from_db(db: &UserDatabase) -> Result<Vec<ImportedHuman>> {
+pub(super) async fn import_humans_from_db(
+    db: &UserDatabase,
+) -> Result<Vec<ImportedHuman>, crate::Error> {
     let humans = db.list_humans(None).await?;
     Ok(humans
         .into_iter()
@@ -76,7 +79,7 @@ pub(super) async fn import_humans_from_db(db: &UserDatabase) -> Result<Vec<Impor
 
 pub(super) async fn import_organizations_from_db(
     db: &UserDatabase,
-) -> Result<Vec<ImportedOrganization>> {
+) -> Result<Vec<ImportedOrganization>, crate::Error> {
     let orgs = db.list_organizations(None).await?;
     Ok(orgs
         .into_iter()
@@ -91,7 +94,7 @@ pub(super) async fn import_organizations_from_db(
 
 pub(super) async fn import_session_participants_from_db(
     db: &UserDatabase,
-) -> Result<Vec<ImportedSessionParticipant>> {
+) -> Result<Vec<ImportedSessionParticipant>, crate::Error> {
     let sessions = db.list_sessions(None).await?;
     let mut participants = Vec::new();
 

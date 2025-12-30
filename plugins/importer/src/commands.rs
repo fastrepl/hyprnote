@@ -1,5 +1,5 @@
 use crate::ext::ImporterPluginExt;
-use crate::types::{ImportSourceInfo, ImportSourceKind};
+use crate::types::{ImportSourceInfo, ImportSourceKind, ImportStats};
 
 #[tauri::command]
 #[specta::specta]
@@ -15,7 +15,7 @@ pub async fn list_available_sources<R: tauri::Runtime>(
 pub async fn run_import<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     source: ImportSourceKind,
-) -> Result<(), String> {
+) -> Result<ImportStats, String> {
     app.importer()
         .run_import(source)
         .await
@@ -27,7 +27,7 @@ pub async fn run_import<R: tauri::Runtime>(
 pub async fn run_import_dry<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     source: ImportSourceKind,
-) -> Result<(), String> {
+) -> Result<ImportStats, String> {
     app.importer()
         .run_import_dry(source)
         .await

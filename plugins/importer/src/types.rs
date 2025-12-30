@@ -78,6 +78,7 @@ pub enum ImportSourceKind {
     Granola,
     HyprnoteV0Stable,
     HyprnoteV0Nightly,
+    AsIs,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -85,4 +86,13 @@ pub struct ImportSourceInfo {
     pub kind: ImportSourceKind,
     pub name: String,
     pub description: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
+pub struct ImportStats {
+    pub notes_count: usize,
+    pub transcripts_count: usize,
+    pub humans_count: usize,
+    pub organizations_count: usize,
+    pub participants_count: usize,
 }

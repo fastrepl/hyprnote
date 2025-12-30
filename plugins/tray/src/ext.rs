@@ -7,7 +7,7 @@ use tauri::{
 
 use crate::menu_items::{
     AppInfo, AppNew, HyprMenuItem, MenuItemHandler, TrayCheckUpdate, TrayOpen, TrayQuit,
-    TraySettings, TrayStart, app_cli_menu,
+    TraySettings, TrayStart, TrayVersion, app_cli_menu,
 };
 
 const TRAY_ID: &str = "hypr-tray";
@@ -83,6 +83,8 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                 &TrayCheckUpdate::build(app)?,
                 &PredefinedMenuItem::separator(app)?,
                 &TrayQuit::build(app)?,
+                &PredefinedMenuItem::separator(app)?,
+                &TrayVersion::build(app)?,
             ],
         )?;
 
@@ -118,6 +120,8 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                     &TrayCheckUpdate::build(app)?,
                     &PredefinedMenuItem::separator(app)?,
                     &TrayQuit::build(app)?,
+                    &PredefinedMenuItem::separator(app)?,
+                    &TrayVersion::build(app)?,
                 ],
             )?;
 

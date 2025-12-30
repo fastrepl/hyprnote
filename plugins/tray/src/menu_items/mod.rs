@@ -6,6 +6,7 @@ mod tray_open;
 mod tray_quit;
 mod tray_settings;
 mod tray_start;
+mod tray_version;
 
 pub use app_cli::{AppCliInstall, AppCliUninstall, app_cli_menu};
 pub use app_info::AppInfo;
@@ -15,6 +16,7 @@ pub use tray_open::TrayOpen;
 pub use tray_quit::TrayQuit;
 pub use tray_settings::{TraySettings, TraySettingsAI, TraySettingsGeneral};
 pub use tray_start::TrayStart;
+pub use tray_version::TrayVersion;
 
 use tauri::{AppHandle, Result, menu::MenuItemKind};
 
@@ -70,6 +72,7 @@ menu_items! {
     TraySettingsAI => TraySettingsAI,
     TrayCheckUpdate => TrayCheckUpdate,
     TrayQuit => TrayQuit,
+    TrayVersion => TrayVersion,
     AppInfo => AppInfo,
     AppCliInstall => AppCliInstall,
     AppCliUninstall => AppCliUninstall,

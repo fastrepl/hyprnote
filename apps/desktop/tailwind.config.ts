@@ -8,14 +8,14 @@ const config = {
         serif: ["Lora", "Georgia", "serif"],
         sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
       },
+      animation: {
+        shimmer: "shimmer 1.5s ease-in-out infinite",
+      },
       keyframes: {
         shimmer: {
-          "0%": { transform: "translateX(-100%)" },
-          "100%": { transform: "translateX(100%)" },
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
         },
-      },
-      animation: {
-        shimmer: "shimmer 2s infinite",
       },
     },
   },

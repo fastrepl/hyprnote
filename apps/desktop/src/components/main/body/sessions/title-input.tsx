@@ -2,7 +2,9 @@ import { forwardRef, useEffect, useRef } from "react";
 
 import { cn } from "@hypr/utils";
 
+import { useAITaskTask } from "../../../../hooks/useAITaskTask";
 import * as main from "../../../../store/tinybase/store/main";
+import { createTaskId } from "../../../../store/zustand/ai-task/task-configs";
 import { type Tab } from "../../../../store/zustand/tabs";
 
 export const TitleInput = forwardRef<
@@ -17,6 +19,12 @@ export const TitleInput = forwardRef<
     state: { view },
   } = tab;
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
+
+  const titleTaskId = createTaskId(sessionId, "title");
+  const { isGenerating: isTitleGenerating } = useAITaskTask(
+    titleTaskId,
+    "title",
+  );
 
   const handleEditTitle = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -137,6 +145,20 @@ export const TitleInput = forwardRef<
     }
   };
 
+  if (isTitleGenerating) {
+    return (
+      <div className="w-full h-7">
+        <div
+          className={cn([
+            "h-6 w-48 rounded-md",
+            "bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200",
+            "animate-shimmer bg-[length:200%_100%]",
+          ])}
+        />
+      </div>
+    );
+  }
+
   return (
     <input
       ref={inputRef}
@@ -146,11 +168,11 @@ export const TitleInput = forwardRef<
       onChange={(e) => handleEditTitle(e.target.value)}
       onKeyDown={handleKeyDown}
       value={title ?? ""}
-      className={cn(
+      className={cn([
         "w-full transition-opacity duration-200",
         "border-none bg-transparent focus:outline-none",
         "text-xl font-semibold placeholder:text-muted-foreground",
-      )}
+      ])}
     />
   );
 });

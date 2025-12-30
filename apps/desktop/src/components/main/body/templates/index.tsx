@@ -548,7 +548,7 @@ function TemplateCard({
         <div className="text-base font-medium font-serif line-clamp-1">
           {template.title || "Untitled"}
         </div>
-        <div className="text-sm text-stone-600 line-clamp-1">
+        <div className="text-sm text-stone-600 truncate">
           {template.description || "No description"}
         </div>
         {template.targets && template.targets.length > 0 && (

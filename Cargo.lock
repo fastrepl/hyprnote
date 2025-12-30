@@ -4693,6 +4693,7 @@ dependencies = [
  "tauri-plugin-settings",
  "tauri-plugin-sfx",
  "tauri-plugin-shell",
+ "tauri-plugin-sidecar2",
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
  "tauri-plugin-store2",
@@ -17869,6 +17870,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-shell",
+ "tauri-plugin-sidecar2",
  "tauri-plugin-windows",
  "tauri-specta",
  "thiserror 2.0.17",
@@ -18139,6 +18141,22 @@ dependencies = [
  "shared_child",
  "tauri",
  "tauri-plugin",
+ "thiserror 2.0.17",
+ "tokio",
+]
+
+[[package]]
+name = "tauri-plugin-sidecar2"
+version = "0.1.0"
+dependencies = [
+ "dirs 6.0.0",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-shell",
+ "tauri-specta",
  "thiserror 2.0.17",
  "tokio",
 ]

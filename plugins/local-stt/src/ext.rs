@@ -5,7 +5,7 @@ use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
 use tauri::{Manager, Runtime};
-use tauri_plugin_shell::ShellExt;
+use tauri_plugin_sidecar2::Sidecar2PluginExt;
 
 use hypr_download_interface::DownloadProgress;
 use hypr_file::download_file_parallel_cancellable;
@@ -457,7 +457,7 @@ async fn start_external_server<R: Runtime, T: Manager<R>>(
     let app_handle = manager.app_handle().clone();
     let cmd_builder = {
         #[cfg(debug_assertions)]
-        {
+        let passthrough_path = {
             let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("../../apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin");
             let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -467,29 +467,32 @@ async fn start_external_server<R: Runtime, T: Manager<R>>(
                 return Err(crate::Error::AmBinaryNotFound);
             }
 
-            let passthrough_path = Arc::new(passthrough_path);
-            let stt_path = Arc::new(stt_path);
-            external::CommandBuilder::new(move || {
-                app_handle
-                    .shell()
-                    .command(passthrough_path.as_ref())
-                    .current_dir(dirs::home_dir().unwrap())
-                    .arg(stt_path.as_ref())
-                    .args(["serve", "--any-token", "-v", "-d"])
-            })
-        }
+            Some(Arc::new((passthrough_path, stt_path)))
+        };
 
         #[cfg(not(debug_assertions))]
-        {
-            external::CommandBuilder::new(move || {
-                app_handle
-                    .shell()
-                    .sidecar("hyprnote-sidecar-stt")
-                    .expect("failed to create sidecar command")
-                    .current_dir(dirs::home_dir().unwrap())
-                    .args(["serve", "--any-token"])
-            })
-        }
+        let passthrough_path: Option<Arc<(std::path::PathBuf, std::path::PathBuf)>> = None;
+
+        external::CommandBuilder::new(move || {
+            #[cfg(debug_assertions)]
+            {
+                if let Some(ref paths) = passthrough_path {
+                    return app_handle
+                        .sidecar2()
+                        .sidecar_with_passthrough("hyprnote-sidecar-stt", Some(&paths.0))
+                        .arg(&paths.1)
+                        .args(["serve", "--any-token", "-v", "-d"]);
+                }
+            }
+
+            #[cfg(not(debug_assertions))]
+            let _ = &passthrough_path;
+
+            app_handle
+                .sidecar2()
+                .sidecar("hyprnote-sidecar-stt")
+                .args(["serve", "--any-token"])
+        })
     };
 
     supervisor::start_external_stt(

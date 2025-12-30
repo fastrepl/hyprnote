@@ -20,7 +20,7 @@ const _PROVIDERS = [
     disabled: false,
     id: "apple",
     displayName: "Apple",
-    badge: null,
+    badge: "Beta",
     icon: <Icon icon="logos:apple" width={20} height={20} />,
     platform: "macos",
     docsPath: "https://hyprnote.com/docs/calendar/apple",

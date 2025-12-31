@@ -5,6 +5,7 @@ common_derives! {
     #[template(path = "title.system.md.jinja")]
     pub struct TitleSystem {
         pub language: Option<String>,
+        pub current_date: Option<String>,
     }
 }
 
@@ -24,16 +25,19 @@ mod tests {
     tpl_assert!(
         test_language_as_specified,
         TitleSystem {
-            language: Some("ko".to_string())
+            language: Some("ko".to_string()),
+            current_date: None,
         },
         |v| v.contains("Korean")
     );
 
     tpl_snapshot!(
         test_title_system, 
-        TitleSystem { language: None }, 
+        TitleSystem { language: None, current_date: None },
         @r#"
     # General Instructions
+
+    Current date: 2025-01-01
 
     - You are a professional assistant that generates a perfect title for a meeting note, in English language.
 

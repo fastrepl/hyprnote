@@ -115,4 +115,3 @@ pub struct ImportedSessionParticipant {
     pub human_id: String,
     pub source: String,
 }
-

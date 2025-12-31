@@ -15,6 +15,7 @@ import {
   type SupportedSttModel,
 } from "@hypr/plugin-local-stt";
 
+import type { DownloadProgress } from "../components/main/sidebar/toast/types";
 import { useConfigValues } from "../config/use-config";
 import { useTabs } from "../store/zustand/tabs";
 
@@ -24,6 +25,7 @@ interface NotificationState {
   hasActiveDownload: boolean;
   downloadProgress: number | null;
   downloadingModel: string | null;
+  activeDownloads: DownloadProgress[];
   notificationCount: number;
   shouldShowBadge: boolean;
   localSttStatus: ServerStatus | null;
@@ -86,21 +88,23 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const localSttStatus = isLocalSttModel ? (localSttQuery.data ?? null) : null;
 
-  const [downloadingModel, setDownloadingModel] =
-    useState<SupportedSttModel | null>(null);
-  const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
+  const [activeDownloads, setActiveDownloads] = useState<
+    Map<SupportedSttModel, number>
+  >(new Map());
 
   useEffect(() => {
     const unlisten = localSttEvents.downloadProgressPayload.listen((event) => {
       const { model: eventModel, progress: eventProgress } = event.payload;
 
-      if (eventProgress < 0 || eventProgress >= 100) {
-        setDownloadingModel(null);
-        setDownloadProgress(null);
-      } else {
-        setDownloadingModel(eventModel);
-        setDownloadProgress(Math.max(0, Math.min(100, eventProgress)));
-      }
+      setActiveDownloads((prev) => {
+        const next = new Map(prev);
+        if (eventProgress < 0 || eventProgress >= 100) {
+          next.delete(eventModel);
+        } else {
+          next.set(eventModel, Math.max(0, Math.min(100, eventProgress)));
+        }
+        return next;
+      });
     });
 
     return () => {
@@ -119,8 +123,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<NotificationState>(() => {
     const hasActiveBanner = hasConfigBanner && !isAiTab;
-    const hasActiveDownload =
-      downloadingModel !== null && downloadProgress !== null;
+    const hasActiveDownload = activeDownloads.size > 0;
+
+    const downloadsArray: DownloadProgress[] = Array.from(
+      activeDownloads.entries(),
+    ).map(([model, progress]) => ({
+      model,
+      displayName: MODEL_DISPLAY_NAMES[model] ?? model,
+      progress,
+    }));
+
+    const firstDownload = downloadsArray[0];
+    const downloadProgress = firstDownload?.progress ?? null;
+    const downloadingModel = firstDownload?.displayName ?? null;
 
     const notificationCount =
       (hasActiveBanner ? 1 : 0) +
@@ -132,9 +147,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       hasActiveEnhancement,
       hasActiveDownload,
       downloadProgress,
-      downloadingModel: downloadingModel
-        ? (MODEL_DISPLAY_NAMES[downloadingModel] ?? downloadingModel)
-        : null,
+      downloadingModel,
+      activeDownloads: downloadsArray,
       notificationCount,
       shouldShowBadge: notificationCount > 0,
       localSttStatus,
@@ -143,8 +157,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [
     hasConfigBanner,
     hasActiveEnhancement,
-    downloadingModel,
-    downloadProgress,
+    activeDownloads,
     isAiTab,
     localSttStatus,
     isLocalSttModel,
@@ -157,12 +170,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_NOTIFICATION_STATE: NotificationState = {
+  hasActiveBanner: false,
+  hasActiveEnhancement: false,
+  hasActiveDownload: false,
+  downloadProgress: null,
+  downloadingModel: null,
+  activeDownloads: [],
+  notificationCount: 0,
+  shouldShowBadge: false,
+  localSttStatus: null,
+  isLocalSttModel: false,
+};
+
 export function useNotifications() {
   const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error(
-      "useNotifications must be used within NotificationProvider",
-    );
-  }
-  return context;
+  return context ?? DEFAULT_NOTIFICATION_STATE;
 }

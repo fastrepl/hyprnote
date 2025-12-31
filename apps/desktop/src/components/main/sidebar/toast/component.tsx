@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 
 import { cn } from "@hypr/utils";
 
-import type { ToastType } from "./types";
+import type { DownloadProgress, ToastType } from "./types";
 
 export function Toast({
   toast,
@@ -53,19 +53,13 @@ export function Toast({
 
         <div className="flex flex-col gap-2 mt-1">
           {toast.progress !== undefined && (
-            <div className="relative w-full py-2 rounded-full bg-gradient-to-t from-neutral-200 to-neutral-100 overflow-hidden">
-              <div
-                className="absolute inset-0 bg-gradient-to-t from-stone-600 to-stone-500 transition-all duration-300"
-                style={{ width: `${toast.progress}%` }}
-              />
-              <span
-                className={cn([
-                  "relative z-10 block text-center text-sm font-medium transition-colors duration-150",
-                  toast.progress >= 48 ? "text-white" : "text-neutral-900",
-                ])}
-              >
-                {Math.round(toast.progress)}%
-              </span>
+            <ProgressBar progress={toast.progress} />
+          )}
+          {toast.downloads && toast.downloads.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {toast.downloads.map((download) => (
+                <DownloadProgressBar key={download.model} download={download} />
+              ))}
             </div>
           )}
           {toast.primaryAction && (
@@ -85,6 +79,42 @@ export function Toast({
             </button>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ProgressBar({ progress }: { progress: number }) {
+  return (
+    <div className="relative w-full py-2 rounded-full bg-gradient-to-t from-neutral-200 to-neutral-100 overflow-hidden">
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-stone-600 to-stone-500 transition-all duration-300"
+        style={{ width: `${progress}%` }}
+      />
+      <span
+        className={cn([
+          "relative z-10 block text-center text-sm font-medium transition-colors duration-150",
+          progress >= 48 ? "text-white" : "text-neutral-900",
+        ])}
+      >
+        {Math.round(progress)}%
+      </span>
+    </div>
+  );
+}
+
+function DownloadProgressBar({ download }: { download: DownloadProgress }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center justify-between text-xs text-neutral-600">
+        <span className="font-medium truncate">{download.displayName}</span>
+        <span>{Math.round(download.progress)}%</span>
+      </div>
+      <div className="relative w-full h-2 rounded-full bg-gradient-to-t from-neutral-200 to-neutral-100 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-stone-600 to-stone-500 transition-all duration-300 rounded-full"
+          style={{ width: `${download.progress}%` }}
+        />
       </div>
     </div>
   );

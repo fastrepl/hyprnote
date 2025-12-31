@@ -5,6 +5,12 @@ export type ToastAction = {
   onClick: () => void | Promise<void>;
 };
 
+export type DownloadProgress = {
+  model: string;
+  displayName: string;
+  progress: number;
+};
+
 export type ToastType = {
   id: string;
   icon?: ReactNode;
@@ -14,6 +20,7 @@ export type ToastType = {
   secondaryAction?: ToastAction;
   dismissible: boolean;
   progress?: number;
+  downloads?: DownloadProgress[];
   variant?: "default" | "error";
 };
 

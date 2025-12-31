@@ -9,6 +9,8 @@ import { getSupabaseServerClient } from "@/functions/supabase";
 
 const validateSearch = z.object({
   code: z.string().optional(),
+  token_hash: z.string().optional(),
+  type: z.enum(["email", "magiclink"]).optional(),
   flow: z.enum(["desktop", "web"]).default("desktop"),
   scheme: z.string().default("hyprnote"),
   redirect: z.string().optional(),
@@ -47,6 +49,34 @@ export const Route = createFileRoute("/_view/callback/auth")({
             refresh_token: data.session.refresh_token,
           },
         });
+      } else {
+        console.error(error);
+      }
+    }
+
+    if (search.token_hash && search.type) {
+      const supabase = getSupabaseServerClient();
+      const { data, error } = await supabase.auth.verifyOtp({
+        token_hash: search.token_hash,
+        type: search.type,
+      });
+
+      if (!error && data.session) {
+        if (search.flow === "web") {
+          throw redirect({ href: search.redirect || "/app/account" });
+        }
+
+        if (search.flow === "desktop") {
+          throw redirect({
+            to: "/callback/auth",
+            search: {
+              flow: "desktop",
+              scheme: search.scheme,
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token,
+            },
+          });
+        }
       } else {
         console.error(error);
       }

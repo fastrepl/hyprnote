@@ -1,5 +1,4 @@
 import { Loader2Icon } from "lucide-react";
-import { LayoutGroup, motion } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
@@ -20,22 +19,18 @@ export function StreamingView({ enhancedNoteId }: { enhancedNoteId: string }) {
 
   return (
     <div ref={containerRef} className="flex flex-col pb-2 space-y-1">
-      <LayoutGroup>
-        <motion.div layout>
-          <Streamdown
-            components={streamdownComponents}
-            className={cn(["space-y-2"])}
-          >
-            {streamedText}
-          </Streamdown>
-        </motion.div>
+      <Streamdown
+        components={streamdownComponents}
+        className={cn(["space-y-2"])}
+      >
+        {streamedText}
+      </Streamdown>
 
-        {isGenerating && (
-          <motion.div className="sticky bottom-0 pt-1">
-            <Status taskId={taskId} />
-          </motion.div>
-        )}
-      </LayoutGroup>
+      {isGenerating && (
+        <div className="sticky bottom-0 z-30 pt-1">
+          <Status taskId={taskId} />
+        </div>
+      )}
     </div>
   );
 }

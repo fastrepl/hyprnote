@@ -1,5 +1,10 @@
+mod commands;
+mod ext;
+
+pub use ext::*;
+
 use once_cell::sync::Lazy;
-use std::{collections::HashMap, sync::Arc, sync::Mutex, time::Duration};
+use std::{collections::HashMap, sync::Arc, sync::Mutex};
 use tauri::{AppHandle, Manager, WebviewWindow};
 use tokio::{sync::RwLock, time::sleep};
 
@@ -39,7 +44,7 @@ pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) {
         let mut last_focus_state = false;
 
         loop {
-            sleep(Duration::from_millis(1000 / 10)).await;
+            sleep(std::time::Duration::from_millis(1000 / 10)).await;
 
             let map = state.0.read().await;
 
@@ -100,12 +105,10 @@ pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) {
 
             let focused = window.is_focused().unwrap_or(false);
             if !ignore && !focused {
-                // Only try to set focus if we haven't already done so for this hover state
                 if !last_focus_state && window.set_focus().is_ok() {
                     last_focus_state = true;
                 }
             } else if ignore || focused {
-                // Reset focus state when cursor leaves or window gains focus naturally
                 last_focus_state = false;
             }
         }
@@ -116,5 +119,52 @@ pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) {
             old_handle.abort();
         }
         *guard = Some(handle);
+    }
+}
+
+const PLUGIN_NAME: &str = "overlay";
+
+fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
+    tauri_specta::Builder::<tauri::Wry>::new()
+        .plugin_name(PLUGIN_NAME)
+        .commands(tauri_specta::collect_commands![
+            commands::set_fake_window_bounds,
+            commands::remove_fake_window,
+        ])
+        .error_handling(tauri_specta::ErrorHandlingMode::Result)
+}
+
+pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    let specta_builder = make_specta_builder();
+
+    tauri::plugin::Builder::new(PLUGIN_NAME)
+        .invoke_handler(specta_builder.invoke_handler())
+        .setup(move |app, _api| {
+            let fake_bounds_state = FakeWindowBounds::default();
+            app.manage(fake_bounds_state);
+            Ok(())
+        })
+        .build()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
+        make_specta_builder()
+            .export(
+                specta_typescript::Typescript::default()
+                    .formatter(specta_typescript::formatter::prettier)
+                    .bigint(specta_typescript::BigIntExportBehavior::Number),
+                OUTPUT_FILE,
+            )
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

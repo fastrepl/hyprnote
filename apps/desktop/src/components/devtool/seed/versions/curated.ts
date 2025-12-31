@@ -7,9 +7,10 @@ export const curatedSeed: SeedDefinition = {
   id: "curated",
   label: "Curated",
   calendarFixtureBase: "default",
-  run: (store: MainStore) => {
+  run: async (store: MainStore) => {
     const validated = CuratedDataSchema.parse(curatedData);
     const tables = loadCuratedData(validated);
+    await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {
       store.delTables();
       store.setTables(tables);

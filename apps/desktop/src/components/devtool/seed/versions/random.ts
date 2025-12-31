@@ -119,8 +119,9 @@ export const randomSeed: SeedDefinition = {
   id: "random",
   label: "Random",
   calendarFixtureBase: "default",
-  run: (store: MainStore) => {
+  run: async (store: MainStore) => {
     const data = buildRandomData();
+    await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {
       store.delTables();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

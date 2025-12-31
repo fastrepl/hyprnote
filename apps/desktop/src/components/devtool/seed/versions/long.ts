@@ -43,8 +43,9 @@ export const longSeed: SeedDefinition = {
   id: "long",
   label: "Long",
   calendarFixtureBase: "default",
-  run: (store: MainStore) => {
+  run: async (store: MainStore) => {
     const data = buildLongData();
+    await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {
       store.delTables();
       store.setTables(data);

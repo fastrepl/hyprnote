@@ -9,8 +9,6 @@ Default permissions for the plugin
 - `allow-window-navigate`
 - `allow-window-emit-navigate`
 - `allow-window-is-exists`
-- `allow-set-fake-window-bounds`
-- `allow-remove-fake-window`
 
 ## Permission Table
 

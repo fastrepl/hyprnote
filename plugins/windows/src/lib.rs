@@ -2,7 +2,6 @@ mod commands;
 mod errors;
 mod events;
 mod ext;
-mod overlay;
 mod tab;
 mod window;
 
@@ -11,8 +10,6 @@ pub use events::*;
 pub use ext::{Windows, WindowsPluginExt};
 pub use tab::*;
 pub use window::*;
-
-pub use overlay::{FakeWindowBounds, OverlayBound};
 
 const PLUGIN_NAME: &str = "windows";
 
@@ -59,8 +56,6 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::window_navigate,
             commands::window_emit_navigate,
             commands::window_is_exists,
-            commands::set_fake_window_bounds,
-            commands::remove_fake_window,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
@@ -72,11 +67,6 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
-
-            {
-                let fake_bounds_state = FakeWindowBounds::default();
-                app.manage(fake_bounds_state);
-            }
 
             {
                 let ready_state = WindowReadyState::default();

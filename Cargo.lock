@@ -4693,6 +4693,7 @@ dependencies = [
  "tauri-plugin-notification",
  "tauri-plugin-opener",
  "tauri-plugin-os",
+ "tauri-plugin-overlay",
  "tauri-plugin-path2",
  "tauri-plugin-pdf",
  "tauri-plugin-permissions",
@@ -17994,6 +17995,21 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "tauri-plugin-overlay"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

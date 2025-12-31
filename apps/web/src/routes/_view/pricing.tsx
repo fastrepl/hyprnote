@@ -251,13 +251,13 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
 
         {plan.price ? (
           <Link
-            to="/join-waitlist"
+            to="/auth"
             className={cn([
               "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
             ])}
           >
-            Join Waitlist
+            Get Started
           </Link>
         ) : (
           <Link

@@ -13,8 +13,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::export_tiptap_json_to_md::<tauri::Wry>,
-            commands::export_tiptap_json_to_md_batch::<tauri::Wry>,
+            commands::export_tiptap_json_to_md,
+            commands::export_tiptap_json_to_md_batch,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

@@ -14,7 +14,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@hypr/ui/components/ui/accordion";
-import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
@@ -22,21 +21,33 @@ import { useListener } from "../../../../contexts/listener";
 import { useLocalModelDownload } from "../../../../hooks/useLocalSttModel";
 import * as settings from "../../../../store/tinybase/store/settings";
 import { NonHyprProviderCard, StyledStreamdown } from "../shared";
+import { useSttSettings } from "./context";
 import { ProviderId, PROVIDERS } from "./shared";
 
 export function ConfigureProviders() {
+  const { accordionValue, setAccordionValue, hyprAccordionRef } =
+    useSttSettings();
+
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-md font-semibold">Configure Providers</h3>
-      <Accordion type="single" collapsible className="space-y-3">
-        <HyprProviderCard
-          providerId="hyprnote"
-          providerName="Hyprnote"
-          icon={
-            <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />
-          }
-          badge={PROVIDERS.find((p) => p.id === "hyprnote")?.badge}
-        />
+      <Accordion
+        type="single"
+        collapsible
+        className="space-y-3"
+        value={accordionValue}
+        onValueChange={setAccordionValue}
+      >
+        <div ref={hyprAccordionRef}>
+          <HyprProviderCard
+            providerId="hyprnote"
+            providerName="Hyprnote"
+            icon={
+              <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />
+            }
+            badge={PROVIDERS.find((p) => p.id === "hyprnote")?.badge}
+          />
+        </div>
         {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map(
           (provider) => (
             <NonHyprProviderCard
@@ -186,6 +197,7 @@ function HyprProviderRow({ children }: { children: React.ReactNode }) {
 
 function HyprProviderCloudRow() {
   const { isPro, upgradeToPro } = useBillingAccess();
+  const { shouldHighlightDownload } = useSttSettings();
 
   const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_stt_provider",
@@ -210,6 +222,8 @@ function HyprProviderCloudRow() {
     }
   }, [isPro, upgradeToPro, handleSelectProvider, handleSelectModel]);
 
+  const showShimmer = shouldHighlightDownload && !isPro;
+
   return (
     <HyprProviderRow>
       <div className="flex items-center justify-between w-full">
@@ -219,14 +233,30 @@ function HyprProviderCloudRow() {
             Use the Hyprnote Cloud API to transcribe your audio.
           </span>
         </div>
-        <Button
+        <button
           onClick={handleClick}
-          className="w-[110px]"
-          size="sm"
-          variant="default"
+          className={cn([
+            "relative overflow-hidden",
+            "px-4 py-1.5 rounded-full text-sm font-medium",
+            "transition-all duration-150",
+            isPro
+              ? "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm hover:shadow-md"
+              : "bg-gradient-to-t from-stone-600 to-stone-500 text-white shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+          ])}
         >
-          {isPro ? "Ready to use" : "Start Free Trial"}
-        </Button>
+          {showShimmer && (
+            <div
+              className={cn([
+                "absolute inset-0 -translate-x-full",
+                "bg-gradient-to-r from-transparent via-white/20 to-transparent",
+                "animate-[shimmer_2s_infinite]",
+              ])}
+            />
+          )}
+          <span className="relative z-10">
+            {isPro ? "Ready to use" : "Start Free Trial"}
+          </span>
+        </button>
       </div>
     </HyprProviderRow>
   );
@@ -237,6 +267,7 @@ function LocalModelAction({
   showProgress,
   progress,
   hasError,
+  highlight,
   onOpen,
   onDownload,
   onCancel,
@@ -245,54 +276,101 @@ function LocalModelAction({
   showProgress: boolean;
   progress: number;
   hasError: boolean;
+  highlight: boolean;
   onOpen: () => void;
   onDownload: () => void;
   onCancel: () => void;
 }) {
-  return (
-    <Button
-      size="sm"
-      className={cn([
-        "w-[110px] relative overflow-hidden group",
-        hasError && "border-red-500",
-      ])}
-      variant={isDownloaded ? "outline" : hasError ? "destructive" : "default"}
-      onClick={isDownloaded ? onOpen : showProgress ? onCancel : onDownload}
-    >
-      {showProgress && (
+  const showShimmer = highlight && !isDownloaded && !showProgress && !hasError;
+
+  if (isDownloaded) {
+    return (
+      <button
+        onClick={onOpen}
+        className={cn([
+          "px-4 py-1.5 rounded-full text-sm font-medium",
+          "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+          "shadow-sm hover:shadow-md",
+          "transition-all duration-150",
+          "flex items-center gap-1.5",
+        ])}
+      >
+        <Icon icon="mdi:folder-open" className="size-4" />
+        <span>Show Model</span>
+      </button>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <button
+        onClick={onDownload}
+        className={cn([
+          "px-4 py-1.5 rounded-full text-sm font-medium",
+          "bg-gradient-to-t from-red-600 to-red-500 text-white",
+          "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+          "transition-all duration-150",
+          "flex items-center gap-1.5",
+        ])}
+      >
+        <Icon icon="mdi:alert-circle" className="size-4" />
+        <span>Retry</span>
+      </button>
+    );
+  }
+
+  if (showProgress) {
+    return (
+      <button
+        onClick={onCancel}
+        className={cn([
+          "relative overflow-hidden group",
+          "w-[110px] px-4 py-1.5 rounded-full text-sm font-medium",
+          "bg-gradient-to-t from-neutral-300 to-neutral-200 text-neutral-900",
+          "shadow-sm",
+          "transition-all duration-150",
+        ])}
+      >
         <div
-          className="absolute inset-0 bg-black/50 transition-all duration-300"
+          className="absolute inset-0 bg-neutral-400/50 transition-all duration-300 rounded-full"
           style={{ width: `${progress}%` }}
         />
+        <div className="relative z-10 flex items-center justify-center gap-1.5 group-hover:hidden">
+          <Icon icon="mdi:loading" className="size-4 animate-spin" />
+          <span>{Math.round(progress)}%</span>
+        </div>
+        <div className="relative z-10 hidden items-center justify-center gap-1.5 group-hover:flex">
+          <Icon icon="mdi:close" className="size-4" />
+          <span>Cancel</span>
+        </div>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={onDownload}
+      className={cn([
+        "relative overflow-hidden",
+        "px-4 py-1.5 rounded-full text-sm font-medium",
+        "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+        "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+        "transition-all duration-150",
+        "flex items-center gap-1.5",
+      ])}
+    >
+      {showShimmer && (
+        <div
+          className={cn([
+            "absolute inset-0 -translate-x-full",
+            "bg-gradient-to-r from-transparent via-neutral-400/30 to-transparent",
+            "animate-[shimmer_2s_infinite]",
+          ])}
+        />
       )}
-      {isDownloaded ? (
-        <div className="relative z-10 flex items-center gap-1">
-          <Icon icon="mdi:folder-open" size={16} />
-          <span>Show Model</span>
-        </div>
-      ) : hasError ? (
-        <div className="relative z-10 flex items-center gap-2">
-          <Icon icon="mdi:alert-circle" size={16} />
-          <span>Retry</span>
-        </div>
-      ) : showProgress ? (
-        <>
-          <div className="relative z-10 flex items-center gap-2 group-hover:hidden">
-            <Icon icon="mdi:loading" size={16} className="animate-spin" />
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <div className="relative z-10 hidden items-center gap-2 group-hover:flex">
-            <Icon icon="mdi:close" size={16} />
-            <span>Cancel</span>
-          </div>
-        </>
-      ) : (
-        <div className="relative z-10 flex items-center gap-2">
-          <Icon icon="mdi:download" size={16} />
-          <span>Download</span>
-        </div>
-      )}
-    </Button>
+      <Icon icon="mdi:download" className="size-4 relative z-10" />
+      <span className="relative z-10">Download</span>
+    </button>
   );
 }
 
@@ -306,6 +384,7 @@ function HyprProviderLocalRow({
   description: string;
 }) {
   const handleSelectModel = useSafeSelectModel();
+  const { shouldHighlightDownload } = useSttSettings();
 
   const {
     progress,
@@ -336,6 +415,7 @@ function HyprProviderLocalRow({
         showProgress={showProgress}
         progress={progress}
         hasError={hasError}
+        highlight={shouldHighlightDownload}
         onOpen={handleOpen}
         onDownload={handleDownload}
         onCancel={handleCancel}

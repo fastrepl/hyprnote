@@ -29,7 +29,7 @@ import { listOllamaModels } from "../shared/list-ollama";
 import { listGenericModels, listOpenAIModels } from "../shared/list-openai";
 import { listOpenRouterModels } from "../shared/list-openrouter";
 import { ModelCombobox } from "../shared/model-combobox";
-import { HealthCheckForConnection } from "./health";
+import { HealthStatusIndicator, useConnectionHealth } from "./health";
 import { PROVIDERS } from "./shared";
 
 export function SelectProviderAndModel() {
@@ -39,6 +39,10 @@ export function SelectProviderAndModel() {
     "current_llm_model",
     "current_llm_provider",
   ] as const);
+
+  const health = useConnectionHealth();
+  const isConfigured = !!(current_llm_provider && current_llm_model);
+  const hasError = isConfigured && health.status === "error";
 
   const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_llm_provider",
@@ -83,9 +87,7 @@ export function SelectProviderAndModel() {
         className={cn([
           "flex flex-col gap-4",
           "p-4 rounded-xl border border-neutral-200",
-          !!current_llm_provider && !!current_llm_model
-            ? "bg-neutral-50"
-            : "bg-red-50",
+          !isConfigured || hasError ? "bg-red-50" : "bg-neutral-50",
         ])}
       >
         <div className="flex flex-row items-center gap-4">
@@ -150,23 +152,28 @@ export function SelectProviderAndModel() {
                     onChange={(value) => field.handleChange(value)}
                     disabled={!status?.listModels}
                     listModels={status?.listModels}
+                    suffix={
+                      isConfigured ? <HealthStatusIndicator /> : undefined
+                    }
                   />
                 </div>
               );
             }}
           </form.Field>
-
-          {current_llm_provider && current_llm_model && (
-            <HealthCheckForConnection />
-          )}
         </div>
 
-        {(!current_llm_provider || !current_llm_model) && (
+        {!isConfigured && (
           <div className="flex items-center gap-2 pt-2 border-t border-red-200">
             <span className="text-sm text-red-600">
               <strong className="font-medium">Language model</strong> is needed
               to make Hyprnote summarize and chat about your conversations.
             </span>
+          </div>
+        )}
+
+        {hasError && health.message && (
+          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
+            <span className="text-sm text-red-600">{health.message}</span>
           </div>
         )}
       </div>

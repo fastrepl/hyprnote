@@ -1,7 +1,10 @@
+import { Icon } from "@iconify-icon/react";
 import { useForm } from "@tanstack/react-form";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { arch } from "@tauri-apps/plugin-os";
+import { useEffect } from "react";
 
+import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 import type { AIProviderStorage } from "@hypr/store";
 import { Input } from "@hypr/ui/components/ui/input";
 import {
@@ -15,12 +18,14 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
+import { useNotifications } from "../../../../contexts/notifications";
 import * as settings from "../../../../store/tinybase/store/settings";
 import {
   getProviderSelectionBlockers,
   requiresEntitlement,
 } from "../shared/eligibility";
-import { HealthCheckForConnection } from "./health";
+import { useSttSettings } from "./context";
+import { HealthStatusIndicator, useConnectionHealth } from "./health";
 import {
   displayModelId,
   type ProviderId,
@@ -35,6 +40,11 @@ export function SelectProviderAndModel() {
   ] as const);
   const billing = useBillingAccess();
   const configuredProviders = useConfiguredMapping();
+  const { startDownload, startTrial } = useSttSettings();
+  const health = useConnectionHealth();
+
+  const isConfigured = !!(current_stt_provider && current_stt_model);
+  const hasError = isConfigured && health.status === "error";
 
   const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_stt_provider",
@@ -73,6 +83,36 @@ export function SelectProviderAndModel() {
     },
   });
 
+  useEffect(() => {
+    if (!current_stt_provider || !current_stt_model) {
+      return;
+    }
+
+    const providerConfig =
+      configuredProviders[current_stt_provider as ProviderId];
+    if (!providerConfig) {
+      return;
+    }
+
+    if (current_stt_provider === "custom") {
+      return;
+    }
+
+    const modelEntry = providerConfig.models.find(
+      (m) => m.id === current_stt_model,
+    );
+    if (modelEntry && !modelEntry.isDownloaded) {
+      handleSelectModel("");
+      form.setFieldValue("model", "");
+    }
+  }, [
+    current_stt_provider,
+    current_stt_model,
+    configuredProviders,
+    handleSelectModel,
+    form,
+  ]);
+
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-md font-semibold">Model being used</h3>
@@ -80,9 +120,7 @@ export function SelectProviderAndModel() {
         className={cn([
           "flex flex-col gap-4",
           "p-4 rounded-xl border border-neutral-200",
-          !!current_stt_provider && !!current_stt_model
-            ? "bg-neutral-50"
-            : "bg-red-50",
+          !isConfigured || hasError ? "bg-red-50" : "bg-neutral-50",
         ])}
       >
         <div className="flex flex-row items-center gap-4">
@@ -187,18 +225,20 @@ export function SelectProviderAndModel() {
                     onValueChange={(value) => field.handleChange(value)}
                     disabled={models.length === 0}
                   >
-                    <SelectTrigger className="bg-white shadow-none focus:ring-0">
+                    <SelectTrigger className="bg-white shadow-none focus:ring-0 [&>span]:flex [&>span]:items-center [&>span]:justify-between [&>span]:w-full [&>span]:gap-2 [&>svg]:-mr-1">
                       <SelectValue placeholder="Select a model" />
+                      {isConfigured && <HealthStatusIndicator />}
                     </SelectTrigger>
                     <SelectContent>
                       {models.map((model) => (
-                        <SelectItem
+                        <ModelSelectItem
                           key={model.id}
-                          value={model.id}
-                          disabled={!model.isDownloaded}
-                        >
-                          {displayModelId(model.id)}
-                        </SelectItem>
+                          model={model}
+                          onDownload={() =>
+                            startDownload(model.id as SupportedSttModel)
+                          }
+                          onStartTrial={startTrial}
+                        />
                       ))}
                     </SelectContent>
                   </Select>
@@ -206,18 +246,20 @@ export function SelectProviderAndModel() {
               );
             }}
           </form.Field>
-
-          {current_stt_provider && current_stt_model && (
-            <HealthCheckForConnection />
-          )}
         </div>
 
-        {(!current_stt_provider || !current_stt_model) && (
+        {!isConfigured && (
           <div className="flex items-center gap-2 pt-2 border-t border-red-200">
             <span className="text-sm text-red-600">
               <strong className="font-medium">Transcription model</strong> is
               needed to make Hyprnote listen to your conversations.
             </span>
+          </div>
+        )}
+
+        {hasError && health.message && (
+          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
+            <span className="text-sm text-red-600">{health.message}</span>
           </div>
         )}
       </div>
@@ -336,4 +378,80 @@ function useConfiguredMapping(): Record<
       models: Array<{ id: string; isDownloaded: boolean }>;
     }
   >;
+}
+
+function ModelSelectItem({
+  model,
+  onDownload,
+  onStartTrial,
+}: {
+  model: { id: string; isDownloaded: boolean };
+  onDownload: () => void;
+  onStartTrial: () => void;
+}) {
+  const isCloud = model.id === "cloud";
+  const { activeDownloads } = useNotifications();
+  const downloadInfo = activeDownloads.find((d) => d.model === model.id);
+  const isDownloading = !!downloadInfo;
+
+  if (model.isDownloaded) {
+    return (
+      <SelectItem key={model.id} value={model.id}>
+        {displayModelId(model.id)}
+      </SelectItem>
+    );
+  }
+
+  const handleAction = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isDownloading) {
+      return;
+    }
+    if (isCloud) {
+      onStartTrial();
+    } else {
+      onDownload();
+    }
+  };
+
+  return (
+    <div
+      className={cn([
+        "relative flex items-center justify-between",
+        "rounded-sm px-2 py-1.5 text-sm outline-none",
+        "cursor-pointer select-none",
+        "hover:bg-accent hover:text-accent-foreground",
+        "group",
+      ])}
+    >
+      <span className="text-neutral-400">{displayModelId(model.id)}</span>
+      {isDownloading ? (
+        <span
+          className={cn([
+            "px-2 py-0.5 rounded-full text-[11px] font-medium",
+            "flex items-center gap-1",
+            "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-500",
+          ])}
+        >
+          <Icon icon="lucide:loader-2" className="size-3 animate-spin" />
+          <span>{Math.round(downloadInfo.progress)}%</span>
+        </span>
+      ) : (
+        <button
+          className={cn([
+            "px-2 py-0.5 rounded-full text-[11px] font-medium",
+            "opacity-0 group-hover:opacity-100",
+            "transition-all duration-150",
+            isCloud
+              ? "bg-gradient-to-t from-stone-600 to-stone-500 text-white shadow-sm hover:shadow-md"
+              : "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm hover:shadow-md",
+          ])}
+          onClick={handleAction}
+        >
+          {isCloud ? "Free Trial" : "Download"}
+        </button>
+      )}
+    </div>
+  );
 }

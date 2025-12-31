@@ -41,6 +41,8 @@ mod tests {
         @r#"
     # General Instructions
 
+    Current date: 2025-01-01
+
     You are an expert at creating structured, comprehensive meeting summaries in English. Maintain accuracy, completeness, and professional terminology.
 
     # Format Requirements

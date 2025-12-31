@@ -263,7 +263,6 @@ function useTransport(attachedSessionId?: string) {
       .render({
         chatSystem: {
           language,
-          currentDate: new Date().toISOString(),
           context: chatContext,
         },
       })

@@ -1,9 +1,6 @@
 use chrono::Utc;
 use isolang::Language;
 
-/// Filter that returns the current date in ISO format (YYYY-MM-DD).
-/// The input value is ignored - use with a dummy value like `{{ ""|current_date }}`.
-/// In tests, returns a fixed date for determinism.
 #[askama::filter_fn]
 pub fn current_date<T: ?Sized>(_value: &T, _env: &dyn askama::Values) -> askama::Result<String> {
     #[cfg(test)]

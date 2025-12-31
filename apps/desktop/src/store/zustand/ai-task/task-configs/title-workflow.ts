@@ -59,7 +59,6 @@ async function getSystemPrompt(args: TaskArgsMapTransformed["title"]) {
   const result = await templateCommands.render({
     titleSystem: {
       language: args.language,
-      currentDate: args.currentDate,
     },
   });
 

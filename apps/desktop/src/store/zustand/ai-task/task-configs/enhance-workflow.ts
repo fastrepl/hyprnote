@@ -75,7 +75,6 @@ async function getSystemPrompt(args: TaskArgsMapTransformed["enhance"]) {
   const result = await templateCommands.render({
     enhanceSystem: {
       language: args.language,
-      currentDate: args.currentDate,
     },
   });
 

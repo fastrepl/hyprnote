@@ -68,7 +68,6 @@ async function transformArgs(
 
   return {
     language,
-    currentDate: new Date().toISOString(),
     session: sessionContext.session,
     participants: sessionContext.participants,
     template,

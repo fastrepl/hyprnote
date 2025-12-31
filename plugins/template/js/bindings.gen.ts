@@ -35,8 +35,8 @@ async renderCustom(templateContent: string, ctx: Partial<{ [key in string]: Json
 /** user-defined types **/
 
 export type ChatContext = { title: string | null; date: string | null; rawContent: string | null; enhancedContent: string | null; transcript: Transcript | null }
-export type ChatSystem = { language: string | null; currentDate: string | null; context: ChatContext | null }
-export type EnhanceSystem = { language: string | null; currentDate: string | null }
+export type ChatSystem = { language: string | null; context: ChatContext | null }
+export type EnhanceSystem = { language: string | null }
 export type EnhanceTemplate = { title: string; description: string | null; sections: TemplateSection[] }
 export type EnhanceUser = { session: Session; participants: Participant[]; template: EnhanceTemplate | null; transcripts: Transcript[] }
 export type Event = { name: string }
@@ -47,7 +47,7 @@ export type Segment = { text: string; speaker: string }
 export type Session = { title: string | null; startedAt: string | null; endedAt: string | null; event: Event | null }
 export type Template = { enhanceSystem: EnhanceSystem } | { enhanceUser: EnhanceUser } | { titleSystem: TitleSystem } | { titleUser: TitleUser } | { chatSystem: ChatSystem }
 export type TemplateSection = { title: string; description: string | null }
-export type TitleSystem = { language: string | null; currentDate: string | null }
+export type TitleSystem = { language: string | null }
 export type TitleUser = { enhancedNote: string }
 export type Transcript = { segments: Segment[]; startedAt: number | null; endedAt: number | null }
 

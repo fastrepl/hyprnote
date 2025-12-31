@@ -37,6 +37,8 @@ mod tests {
         @r#"
     # General Instructions
 
+    Current date: 2025-01-01
+
     - You are a professional assistant that generates a perfect title for a meeting note, in English language.
 
     # Format Requirements

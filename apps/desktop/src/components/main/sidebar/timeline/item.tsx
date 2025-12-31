@@ -1,6 +1,5 @@
 import { memo, useCallback, useMemo } from "react";
 
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import {
   Tooltip,
@@ -13,8 +12,8 @@ import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { deleteSessionCascade } from "../../../../store/tinybase/deleteSession";
 import * as main from "../../../../store/tinybase/main";
+import { getOrCreateSessionForEventId } from "../../../../store/tinybase/sessions";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
-import { id } from "../../../../utils";
 import {
   type EventTimelineItem,
   type SessionTimelineItem,
@@ -121,32 +120,9 @@ const EventItem = memo(
           return;
         }
 
-        const sessions = store.getTable("sessions");
-        let existingSessionId: string | null = null;
-
-        Object.entries(sessions).forEach(([sessionId, session]) => {
-          if (session.event_id === eventId) {
-            existingSessionId = sessionId;
-          }
-        });
-
-        if (existingSessionId) {
-          const tab: TabInput = { id: existingSessionId, type: "sessions" };
-          openInNewTab ? openNew(tab) : openCurrent(tab);
-        } else {
-          const sessionId = id();
-          store.setRow("sessions", sessionId, {
-            event_id: eventId,
-            title: title,
-            created_at: new Date().toISOString(),
-          });
-          void analyticsCommands.event({
-            event: "note_created",
-            has_event_id: true,
-          });
-          const tab: TabInput = { id: sessionId, type: "sessions" };
-          openInNewTab ? openNew(tab) : openCurrent(tab);
-        }
+        const sessionId = getOrCreateSessionForEventId(store, eventId, title);
+        const tab: TabInput = { id: sessionId, type: "sessions" };
+        openInNewTab ? openNew(tab) : openCurrent(tab);
       },
       [eventId, store, title, openCurrent, openNew],
     );

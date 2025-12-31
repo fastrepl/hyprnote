@@ -227,6 +227,7 @@ function OptionsMenu({
 
               if (sessionTab) {
                 updateSessionTabState(sessionTab, {
+                  ...sessionTab.state,
                   view: { type: "transcript" },
                 });
               }

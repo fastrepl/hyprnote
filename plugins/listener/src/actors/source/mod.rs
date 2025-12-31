@@ -20,7 +20,7 @@ use tauri_specta::Event;
 use pipeline::Pipeline;
 use stream::start_source_loop;
 
-use hypr_device_monitor::{DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
+use hypr_device_monitor::{DeviceMonitorHandle, DeviceSwitch, DeviceSwitchMonitor};
 
 pub enum SourceMsg {
     SetMicMute(bool),
@@ -63,7 +63,7 @@ struct DeviceChangeWatcher {
 impl DeviceChangeWatcher {
     fn spawn(actor: ActorRef<SourceMsg>) -> Self {
         let (event_tx, event_rx) = mpsc::channel();
-        let handle = DeviceMonitor::spawn_debounced(event_tx);
+        let handle = DeviceSwitchMonitor::spawn_debounced(event_tx);
         let thread = std::thread::spawn(move || Self::event_loop(event_rx, actor));
 
         Self {
@@ -72,15 +72,12 @@ impl DeviceChangeWatcher {
         }
     }
 
-    fn event_loop(event_rx: Receiver<DeviceEvent>, actor: ActorRef<SourceMsg>) {
+    fn event_loop(event_rx: Receiver<DeviceSwitch>, actor: ActorRef<SourceMsg>) {
         loop {
             match event_rx.recv() {
-                Ok(DeviceEvent::Switch(switch)) => {
+                Ok(switch) => {
                     tracing::info!(?switch, "device_switch_event_restarting_source");
                     actor.stop(Some("device_change".to_string()));
-                }
-                Ok(DeviceEvent::Update(_)) => {
-                    // Volume/mute changes don't require restarting the audio source
                 }
                 Err(_) => break,
             }

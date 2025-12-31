@@ -1,18 +1,12 @@
-use crate::sources::ImportSource;
-use crate::types::{
-    ImportSourceInfo, ImportSourceKind, ImportedHuman, ImportedNote, ImportedOrganization,
-    ImportedSessionParticipant, ImportedTranscript,
-};
+use crate::types::{ImportResult, ImportSourceInfo, ImportSourceKind};
+use std::path::PathBuf;
 
-use super::{
-    import_humans_from_db, import_notes_from_db, import_organizations_from_db,
-    import_session_participants_from_db, import_transcripts_from_db, open_database,
-};
+use super::import_all_from_path;
 
 pub struct HyprnoteV0NightlySource;
 
-impl ImportSource for HyprnoteV0NightlySource {
-    fn info(&self) -> ImportSourceInfo {
+impl HyprnoteV0NightlySource {
+    pub fn info(&self) -> ImportSourceInfo {
         ImportSourceInfo {
             kind: ImportSourceKind::HyprnoteV0Nightly,
             name: "Hyprnote (Nightly)".to_string(),
@@ -20,40 +14,17 @@ impl ImportSource for HyprnoteV0NightlySource {
         }
     }
 
-    fn is_available(&self) -> bool {
-        hyprnote_nightly_db_path().exists()
+    pub fn is_available(&self) -> bool {
+        Self::db_path().exists()
     }
 
-    async fn import_notes(&self) -> Result<Vec<ImportedNote>, crate::Error> {
-        let db = open_database(&hyprnote_nightly_db_path()).await?;
-        import_notes_from_db(&db).await
+    pub(in crate::sources) async fn import_all(&self) -> Result<ImportResult, crate::Error> {
+        import_all_from_path(&Self::db_path()).await
     }
 
-    async fn import_transcripts(&self) -> Result<Vec<ImportedTranscript>, crate::Error> {
-        let db = open_database(&hyprnote_nightly_db_path()).await?;
-        import_transcripts_from_db(&db).await
+    fn db_path() -> PathBuf {
+        dirs::data_dir()
+            .map(|data| data.join("com.hyprnote.nightly").join("db.sqlite"))
+            .unwrap()
     }
-
-    async fn import_humans(&self) -> Result<Vec<ImportedHuman>, crate::Error> {
-        let db = open_database(&hyprnote_nightly_db_path()).await?;
-        import_humans_from_db(&db).await
-    }
-
-    async fn import_organizations(&self) -> Result<Vec<ImportedOrganization>, crate::Error> {
-        let db = open_database(&hyprnote_nightly_db_path()).await?;
-        import_organizations_from_db(&db).await
-    }
-
-    async fn import_session_participants(
-        &self,
-    ) -> Result<Vec<ImportedSessionParticipant>, crate::Error> {
-        let db = open_database(&hyprnote_nightly_db_path()).await?;
-        import_session_participants_from_db(&db).await
-    }
-}
-
-fn hyprnote_nightly_db_path() -> std::path::PathBuf {
-    dirs::data_dir()
-        .map(|data| data.join("com.hyprnote.nightly").join("db.sqlite"))
-        .unwrap()
 }

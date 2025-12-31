@@ -60,7 +60,7 @@ export function TabContentData({
 
 function DataView({ tab }: { tab: Extract<Tab, { type: "data" }> }) {
   const updateDataTabState = useTabs((state) => state.updateDataTabState);
-  const activeTab = tab.state.tab ?? "import";
+  const activeTab = tab.state.tab ?? "export";
 
   const setActiveTab = useCallback(
     (newTab: DataTabKey) => {
@@ -75,26 +75,26 @@ function DataView({ tab }: { tab: Extract<Tab, { type: "data" }> }) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setActiveTab("import")}
-          className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent",
-            activeTab === "import" && "bg-neutral-100 border-neutral-200",
-          ])}
-        >
-          <UploadIcon size={14} />
-          <span className="text-xs">Import</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
           onClick={() => setActiveTab("export")}
           className={cn([
             "px-1 gap-1.5 h-7 border border-transparent",
             activeTab === "export" && "bg-neutral-100 border-neutral-200",
           ])}
         >
-          <DownloadIcon size={14} />
+          <UploadIcon size={14} />
           <span className="text-xs">Export</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setActiveTab("import")}
+          className={cn([
+            "px-1 gap-1.5 h-7 border border-transparent",
+            activeTab === "import" && "bg-neutral-100 border-neutral-200",
+          ])}
+        >
+          <DownloadIcon size={14} />
+          <span className="text-xs">Import</span>
         </Button>
       </div>
       <div className="flex-1 w-full overflow-y-auto scrollbar-hide px-6 pb-6">

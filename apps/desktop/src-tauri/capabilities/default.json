@@ -111,6 +111,14 @@
         }
       ]
     },
+    {
+      "identifier": "fs:allow-rename",
+      "allow": [
+        {
+          "path": "$DATA/hyprnote/**/*"
+        }
+      ]
+    },
     "apple-calendar:default",
     "audio-priority:default",
     "auth:default",

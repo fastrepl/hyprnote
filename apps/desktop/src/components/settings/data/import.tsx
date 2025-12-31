@@ -1,5 +1,14 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CheckCircleIcon, Loader2Icon, XCircleIcon } from "lucide-react";
+import {
+  Building2Icon,
+  CheckCircleIcon,
+  FileTextIcon,
+  Loader2Icon,
+  MicIcon,
+  UserIcon,
+  UsersIcon,
+  XCircleIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -7,13 +16,24 @@ import {
   commands,
   type ImportSourceInfo,
   type ImportSourceKind,
+  type ImportStats,
 } from "@hypr/plugin-importer";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { maybeImportFromJson } from "../../../store/tinybase/importer";
+import * as main from "../../../store/tinybase/main";
+import { save } from "../../../store/tinybase/save";
+
+type DryRunResult = {
+  source: ImportSourceKind;
+  stats: ImportStats;
+};
+
 export function Import() {
-  const [dryRunCompleted, setDryRunCompleted] =
-    useState<ImportSourceKind | null>(null);
+  const [dryRunResult, setDryRunResult] = useState<DryRunResult | null>(null);
+  const store = main.UI.useStore(main.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
 
   const { data: sources } = useQuery({
     queryKey: ["import-sources"],
@@ -28,18 +48,28 @@ export function Import() {
 
   const importMutation = useMutation({
     mutationFn: async (source: ImportSourceKind) => {
-      const result = await commands.runImport(source);
+      const result = await commands.runImport(source, user_id ?? "");
       if (result.status === "error") {
         throw new Error(result.error);
       }
-      return source;
+
+      if (!store) {
+        throw new Error("Store not available");
+      }
+
+      const importResult = await maybeImportFromJson(store as main.Store, save);
+      if (importResult.status === "error") {
+        throw new Error(importResult.error);
+      }
+
+      return result.data;
     },
-    onSuccess: (source) => {
+    onSuccess: () => {
       void analyticsCommands.event({
         event: "data_imported",
-        source,
+        source: dryRunResult?.source,
       });
-      setDryRunCompleted(null);
+      setDryRunResult(null);
     },
   });
 
@@ -49,12 +79,18 @@ export function Import() {
       if (result.status === "error") {
         throw new Error(result.error);
       }
-      return source;
+      return { source, stats: result.data };
     },
-    onSuccess: (source) => {
-      setDryRunCompleted(source);
+    onSuccess: (result) => {
+      setDryRunResult(result);
     },
   });
+
+  const handleCancel = () => {
+    setDryRunResult(null);
+    dryImportMutation.reset();
+    importMutation.reset();
+  };
 
   const isPending = importMutation.isPending || dryImportMutation.isPending;
 
@@ -67,30 +103,38 @@ export function Import() {
         </p>
 
         <div className="flex flex-col gap-4 p-4 rounded-xl border bg-neutral-50">
-          <div className="flex flex-col gap-2">
-            {sources?.map((source: ImportSourceInfo) => (
-              <SourceItem
-                key={source.kind}
-                source={source}
-                onDryRun={dryImportMutation.mutate}
-                onConfirm={importMutation.mutate}
-                isConfirmMode={dryRunCompleted === source.kind}
-                disabled={isPending}
-              />
-            ))}
-          </div>
+          {dryRunResult ? (
+            <ImportPreview
+              stats={dryRunResult.stats}
+              sourceName={
+                sources?.find((s) => s.kind === dryRunResult.source)?.name ??
+                "Unknown"
+              }
+              onConfirm={() => importMutation.mutate(dryRunResult.source)}
+              onCancel={handleCancel}
+              isPending={importMutation.isPending}
+            />
+          ) : (
+            <div className="flex flex-col gap-2">
+              {sources?.map((source: ImportSourceInfo) => (
+                <SourceItem
+                  key={source.kind}
+                  source={source}
+                  onScan={() => dryImportMutation.mutate(source.kind)}
+                  disabled={isPending}
+                  isScanning={
+                    dryImportMutation.isPending &&
+                    dryImportMutation.variables === source.kind
+                  }
+                />
+              ))}
+            </div>
+          )}
 
           {dryImportMutation.isPending && (
             <div className="flex items-center gap-2 text-sm text-neutral-600">
               <Loader2Icon size={16} className="animate-spin" />
-              <span>Running dry run...</span>
-            </div>
-          )}
-
-          {importMutation.isPending && (
-            <div className="flex items-center gap-2 text-sm text-neutral-600">
-              <Loader2Icon size={16} className="animate-spin" />
-              <span>Importing...</span>
+              <span>Scanning for data...</span>
             </div>
           )}
 
@@ -117,7 +161,7 @@ export function Import() {
               <span>
                 {importMutation.isError
                   ? `Import failed: ${importMutation.error.message}`
-                  : `Dry run failed: ${dryImportMutation.error?.message}`}
+                  : `Scan failed: ${dryImportMutation.error?.message}`}
               </span>
             </div>
           )}
@@ -129,16 +173,14 @@ export function Import() {
 
 function SourceItem({
   source,
-  onDryRun,
-  onConfirm,
-  isConfirmMode,
+  onScan,
   disabled,
+  isScanning,
 }: {
   source: ImportSourceInfo;
-  onDryRun: (source: ImportSourceKind) => void;
-  onConfirm: (source: ImportSourceKind) => void;
-  isConfirmMode: boolean;
+  onScan: () => void;
   disabled: boolean;
+  isScanning: boolean;
 }) {
   return (
     <div className="flex items-center justify-between p-3 rounded-lg bg-white border">
@@ -146,16 +188,135 @@ function SourceItem({
         <span className="font-medium text-sm">{source.name}</span>
         <span className="text-xs text-neutral-500">{source.description}</span>
       </div>
-      <Button
-        size="sm"
-        variant={isConfirmMode ? "default" : "outline"}
-        onClick={() =>
-          isConfirmMode ? onConfirm(source.kind) : onDryRun(source.kind)
-        }
-        disabled={disabled}
-      >
-        {isConfirmMode ? "Confirm" : "Import"}
+      <Button size="sm" variant="outline" onClick={onScan} disabled={disabled}>
+        {isScanning ? (
+          <>
+            <Loader2Icon size={14} className="animate-spin mr-1" />
+            Scanning...
+          </>
+        ) : (
+          "Scan"
+        )}
       </Button>
+    </div>
+  );
+}
+
+function ImportPreview({
+  stats,
+  sourceName,
+  onConfirm,
+  onCancel,
+  isPending,
+}: {
+  stats: ImportStats;
+  sourceName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isPending: boolean;
+}) {
+  const totalItems =
+    stats.notes_count +
+    stats.transcripts_count +
+    stats.humans_count +
+    stats.organizations_count;
+
+  const hasData = totalItems > 0;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <h4 className="font-medium text-sm">Import Preview</h4>
+        <p className="text-xs text-neutral-500">
+          Found the following data from {sourceName}:
+        </p>
+      </div>
+
+      {hasData ? (
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            <StatCard
+              icon={FileTextIcon}
+              label="Notes"
+              count={stats.notes_count}
+            />
+            <StatCard
+              icon={MicIcon}
+              label="Transcripts"
+              count={stats.transcripts_count}
+            />
+            <StatCard
+              icon={UserIcon}
+              label="People"
+              count={stats.humans_count}
+            />
+            <StatCard
+              icon={Building2Icon}
+              label="Organizations"
+              count={stats.organizations_count}
+            />
+            {stats.participants_count > 0 && (
+              <StatCard
+                icon={UsersIcon}
+                label="Participants"
+                count={stats.participants_count}
+              />
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 pt-2 border-t">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button size="sm" onClick={onConfirm} disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2Icon size={14} className="animate-spin mr-1" />
+                  Importing...
+                </>
+              ) : (
+                `Import ${totalItems} items`
+              )}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col items-center gap-2 py-4 text-neutral-500">
+          <p className="text-sm">No data found to import.</p>
+          <Button size="sm" variant="outline" onClick={onCancel}>
+            Back
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatCard({
+  icon: Icon,
+  label,
+  count,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  count: number;
+}) {
+  if (count === 0) return null;
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-white border">
+      <div className="p-2 rounded-md bg-neutral-100">
+        <Icon size={16} className="text-neutral-600" />
+      </div>
+      <div className="flex flex-col">
+        <span className="text-lg font-semibold">{count}</span>
+        <span className="text-xs text-neutral-500">{label}</span>
+      </div>
     </div>
   );
 }

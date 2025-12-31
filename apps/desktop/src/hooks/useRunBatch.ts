@@ -76,6 +76,7 @@ export const useRunBatch = (sessionId: string) => {
 
       if (sessionTabRef.current) {
         updateSessionTabState(sessionTabRef.current, {
+          ...sessionTabRef.current.state,
           view: { type: "transcript" },
         });
       }

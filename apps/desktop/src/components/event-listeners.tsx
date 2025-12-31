@@ -8,7 +8,6 @@ import {
 } from "@hypr/plugin-updater2";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
-import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
 import { getOrCreateSessionForEventId } from "../store/tinybase/sessions";
 import { useTabs } from "../store/zustand/tabs";
@@ -44,9 +43,6 @@ function useUpdaterEvents() {
 function useNotificationEvents() {
   const store = main.UI.useStore(main.STORE_ID);
   const openNew = useTabs((state) => state.openNew);
-  const setAutoStartSessionId = useListener(
-    (state) => state.setAutoStartSessionId,
-  );
   const pendingEventId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -54,10 +50,13 @@ function useNotificationEvents() {
       const eventId = pendingEventId.current;
       pendingEventId.current = null;
       const sessionId = getOrCreateSessionForEventId(store, eventId);
-      openNew({ type: "sessions", id: sessionId });
-      setAutoStartSessionId(sessionId);
+      openNew({
+        type: "sessions",
+        id: sessionId,
+        state: { view: null, autoStart: true },
+      });
     }
-  }, [store, openNew, setAutoStartSessionId]);
+  }, [store, openNew]);
 
   useEffect(() => {
     if (getCurrentWebviewWindowLabel() !== "main") {
@@ -81,8 +80,11 @@ function useNotificationEvents() {
             store,
             payload.event_id,
           );
-          openNew({ type: "sessions", id: sessionId });
-          setAutoStartSessionId(sessionId);
+          openNew({
+            type: "sessions",
+            id: sessionId,
+            state: { view: null, autoStart: true },
+          });
         }
       })
       .then((f) => {
@@ -92,7 +94,7 @@ function useNotificationEvents() {
     return () => {
       unlisten?.();
     };
-  }, [store, openNew, setAutoStartSessionId]);
+  }, [store, openNew]);
 }
 
 export function EventListeners() {

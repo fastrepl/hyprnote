@@ -167,7 +167,7 @@ export type OverlayBound = {
   height: number;
 };
 export type PromptsState = { selectedTask: string | null };
-export type SessionsState = { view: EditorView | null };
+export type SessionsState = { view: EditorView | null; autoStart: boolean | null };
 export type TabInput =
   | { type: "sessions"; id: string; state?: SessionsState | null }
   | { type: "contacts"; state?: ContactsState | null }

@@ -5,7 +5,7 @@ import { Building2, Mail } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { getInitials } from "./shared";
 
 export function OrganizationDetailsColumn({

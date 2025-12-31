@@ -14,8 +14,8 @@ import {
 import { templateSectionSchema } from "@hypr/store";
 
 import type { TaskArgsMapTransformed, TaskConfig } from ".";
-import type { Store } from "../../../tinybase/main";
-import { getCustomPrompt } from "../../../tinybase/prompts";
+import type { Store } from "../../../tinybase/store/main";
+import { getCustomPrompt } from "../../../tinybase/store/prompts";
 import {
   addMarkdownSectionSeparators,
   trimBeforeMarker,

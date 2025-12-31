@@ -6,10 +6,9 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
-import * as settings from "../../../store/tinybase/settings";
+import * as settings from "../../../store/tinybase/store/settings";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
-import { LabSettings } from "./lab";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
@@ -34,6 +33,9 @@ export function SettingsGeneral() {
           : undefined,
         ignored_platforms: row.ignored_platforms
           ? JSON.stringify(row.ignored_platforms)
+          : undefined,
+        ignored_recurring_series: row.ignored_recurring_series
+          ? JSON.stringify(row.ignored_recurring_series)
           : undefined,
       }) satisfies Partial<GeneralStorage>,
     [],
@@ -167,8 +169,6 @@ export function SettingsGeneral() {
       </div>
 
       <Permissions />
-
-      <LabSettings />
     </div>
   );
 }

@@ -19,7 +19,7 @@ import {
   SpeakerLabelManager,
 } from "../../../../utils/segment/shared";
 import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
-import type { Store as MainStore } from "../../../tinybase/main";
+import type { Store as MainStore } from "../../../tinybase/store/main";
 
 type TranscriptMeta = {
   id: string;

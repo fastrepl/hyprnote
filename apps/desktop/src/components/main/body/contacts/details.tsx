@@ -10,7 +10,7 @@ import {
 } from "@hypr/ui/components/ui/popover";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { getInitials } from "./shared";
 
 export function DetailsColumn({
@@ -27,6 +27,8 @@ export function DetailsColumn({
     selectedHumanId ?? "",
     main.STORE_ID,
   );
+  const currentUserId = main.UI.useValue("user_id", main.STORE_ID);
+  const isCurrentUser = selectedHumanId === currentUserId;
 
   const mappingIdsByHuman = main.UI.useSliceRowIds(
     main.INDEXES.sessionsByHuman,
@@ -86,7 +88,7 @@ export function DetailsColumn({
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <EditablePersonNameField personId={selectedHumanId} />
-                    {selectedPersonData.is_user && (
+                    {isCurrentUser && (
                       <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
                         You
                       </span>
@@ -167,7 +169,7 @@ export function DetailsColumn({
               </div>
             </div>
 
-            {!selectedPersonData.is_user && (
+            {!isCurrentUser && (
               <div className="p-6">
                 <div className="border border-red-200 rounded-lg overflow-hidden">
                   <div className="bg-red-50 px-4 py-3 border-b border-red-200">

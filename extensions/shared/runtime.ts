@@ -81,10 +81,7 @@ export const HYPR_MODULES = {
     wordsByTranscript: string;
     speakerHintsByTranscript: string;
     speakerHintsByWord: string;
-    eventsByCalendar: string;
-    tagsByName: string;
     tagSessionsBySession: string;
-    tagSessionsByTag: string;
     chatMessagesByGroup: string;
     sessionsByHuman: string;
     enhancedNotesBySession: string;
@@ -117,20 +114,9 @@ export const HYPR_MODULES = {
       },
       RELATIONSHIPS: {
         type: `{
-    sessionHuman: string;
     sessionToFolder: string;
     sessionToEvent: string;
     folderToParentFolder: string;
-    transcriptToSession: string;
-    wordToTranscript: string;
-    speakerHintToTranscript: string;
-    speakerHintToWord: string;
-    sessionParticipantToHuman: string;
-    sessionParticipantToSession: string;
-    eventToCalendar: string;
-    tagSessionToTag: string;
-    tagSessionToSession: string;
-    chatMessageToGroup: string;
     enhancedNoteToSession: string;
   }`,
         description: "Available TinyBase relationships",

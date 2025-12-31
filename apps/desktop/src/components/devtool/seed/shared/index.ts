@@ -1,4 +1,4 @@
-import type { Store as MainStore } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 
 export * from "./builders";
 export { createCalendar } from "./calendar";
@@ -24,6 +24,6 @@ export type CalendarFixtureBase = "default";
 export type SeedDefinition = {
   id: string;
   label: string;
-  run: (store: MainStore) => void;
+  run: (store: MainStore) => void | Promise<void>;
   calendarFixtureBase?: CalendarFixtureBase;
 };

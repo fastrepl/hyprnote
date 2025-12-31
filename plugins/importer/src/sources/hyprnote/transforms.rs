@@ -34,23 +34,24 @@ pub(super) fn session_to_imported_note(session: Session, tags: Vec<Tag>) -> Impo
 }
 
 pub(super) fn session_to_imported_transcript(session: Session) -> ImportedTranscript {
+    let record_start_ms = session
+        .record_start
+        .map(|dt| dt.timestamp_millis() as u64)
+        .or_else(|| session.words.first().and_then(|w| w.start_ms));
+
     let words: Vec<ImportedWord> = session
         .words
         .iter()
         .enumerate()
         .map(|(idx, word)| {
-            let speaker = match &word.speaker {
-                Some(owhisper_interface::SpeakerIdentity::Assigned { label, .. }) => label.clone(),
-                Some(owhisper_interface::SpeakerIdentity::Unassigned { index }) => {
-                    format!("Speaker {}", index)
-                }
-                None => "Unknown".to_string(),
-            };
+            let speaker = get_speaker_label(&word.speaker);
+            let relative_start_ms = compute_relative_ms(word.start_ms, record_start_ms);
+            let relative_end_ms = compute_relative_ms(word.end_ms, record_start_ms);
 
             ImportedWord {
                 id: format!("{}-{}", session.id, idx),
-                start_ms: word.start_ms.map(|ms| ms as f64),
-                end_ms: word.end_ms.map(|ms| ms as f64),
+                start_ms: relative_start_ms,
+                end_ms: relative_end_ms,
                 text: word.text.clone(),
                 speaker,
             }
@@ -62,18 +63,18 @@ pub(super) fn session_to_imported_transcript(session: Session) -> ImportedTransc
         .iter()
         .enumerate()
         .map(|(idx, word)| {
-            let speaker = match &word.speaker {
-                Some(owhisper_interface::SpeakerIdentity::Assigned { label, .. }) => label.clone(),
-                Some(owhisper_interface::SpeakerIdentity::Unassigned { index }) => {
-                    format!("Speaker {}", index)
-                }
-                None => "Unknown".to_string(),
-            };
+            let speaker = get_speaker_label(&word.speaker);
+            let relative_start_ms = compute_relative_ms(word.start_ms, record_start_ms);
+            let relative_end_ms = compute_relative_ms(word.end_ms, record_start_ms);
 
             ImportedTranscriptSegment {
                 id: format!("{}-{}", session.id, idx),
-                start_timestamp: word.start_ms.map(format_timestamp).unwrap_or_default(),
-                end_timestamp: word.end_ms.map(format_timestamp).unwrap_or_default(),
+                start_timestamp: relative_start_ms
+                    .map(|ms| format_timestamp(ms as u64))
+                    .unwrap_or_default(),
+                end_timestamp: relative_end_ms
+                    .map(|ms| format_timestamp(ms as u64))
+                    .unwrap_or_default(),
                 text: word.text.clone(),
                 speaker,
             }
@@ -90,6 +91,23 @@ pub(super) fn session_to_imported_transcript(session: Session) -> ImportedTransc
         words,
         start_ms: session.record_start.map(|dt| dt.timestamp_millis() as f64),
         end_ms: session.record_end.map(|dt| dt.timestamp_millis() as f64),
+    }
+}
+
+fn get_speaker_label(speaker: &Option<owhisper_interface::SpeakerIdentity>) -> String {
+    match speaker {
+        Some(owhisper_interface::SpeakerIdentity::Assigned { label, .. }) => label.clone(),
+        Some(owhisper_interface::SpeakerIdentity::Unassigned { index }) => {
+            format!("Speaker {}", index)
+        }
+        None => "Unknown".to_string(),
+    }
+}
+
+fn compute_relative_ms(absolute_ms: Option<u64>, base_ms: Option<u64>) -> Option<f64> {
+    match (absolute_ms, base_ms) {
+        (Some(abs), Some(base)) => Some(abs.saturating_sub(base) as f64),
+        _ => None,
     }
 }
 

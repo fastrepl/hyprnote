@@ -3,7 +3,7 @@ import { message } from "@tauri-apps/plugin-dialog";
 
 import { commands as permissionsCommands } from "@hypr/plugin-permissions";
 
-import { relaunch } from "../store/tinybase/save";
+import { relaunch } from "../store/tinybase/store/save";
 
 export function usePermissions() {
   const micPermissionStatus = useQuery({

@@ -31,7 +31,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["serde_json"] }
 
-futures-util = { workspace = true }
 rayon = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true, features = ["fs"] }
+tokio = { workspace = true }

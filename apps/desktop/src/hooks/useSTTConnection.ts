@@ -8,7 +8,7 @@ import { useAuth } from "../auth";
 import { useBillingAccess } from "../billing";
 import { ProviderId } from "../components/settings/ai/stt/shared";
 import { env } from "../env";
-import * as settings from "../store/tinybase/settings";
+import * as settings from "../store/tinybase/store/settings";
 
 export const useSTTConnection = () => {
   const auth = useAuth();

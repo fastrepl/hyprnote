@@ -1,8 +1,6 @@
 import { faker } from "@faker-js/faker/locale/en";
-import type { Tables } from "tinybase/with-schemas";
 
-import type { Schemas } from "../../../../store/tinybase/main";
-import type { Store as MainStore } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 import type { SeedDefinition } from "../shared";
 import {
   buildCalendars,
@@ -22,7 +20,7 @@ import {
   buildTranscriptsForSessions,
 } from "../shared";
 
-const buildRandomData = (): Tables<Schemas[0]> => {
+const buildRandomData = () => {
   faker.seed(123);
 
   const organizations = buildOrganizations(4);
@@ -121,11 +119,13 @@ export const randomSeed: SeedDefinition = {
   id: "random",
   label: "Random",
   calendarFixtureBase: "default",
-  run: (store: MainStore) => {
+  run: async (store: MainStore) => {
     const data = buildRandomData();
+    await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {
       store.delTables();
-      store.setTables(data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      store.setTables(data as any);
     });
   },
 };

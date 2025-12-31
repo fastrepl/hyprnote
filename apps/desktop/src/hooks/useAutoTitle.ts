@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 import { createTaskId } from "../store/zustand/ai-task/task-configs";
 import type { Tab } from "../store/zustand/tabs";
 import { useAITaskTask } from "./useAITaskTask";

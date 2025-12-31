@@ -1,15 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
-import * as main from "../../../../store/tinybase/main";
-import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
+import { useStartListening } from "../../../../hooks/useStartListening";
+import { useSTTConnection } from "../../../../hooks/useSTTConnection";
+import * as main from "../../../../store/tinybase/store/main";
+import {
+  rowIdfromTab,
+  type Tab,
+  useTabs,
+} from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 import { CaretPositionProvider } from "./caret-position-context";
@@ -70,6 +76,34 @@ export function TabContentNote({
   tab: Extract<Tab, { type: "sessions" }>;
 }) {
   const listenerStatus = useListener((state) => state.live.status);
+  const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
+  const { conn } = useSTTConnection();
+  const startListening = useStartListening(tab.id);
+  const hasAttemptedAutoStart = useRef(false);
+
+  useEffect(() => {
+    if (!tab.state.autoStart) {
+      hasAttemptedAutoStart.current = false;
+      return;
+    }
+
+    if (hasAttemptedAutoStart.current) {
+      return;
+    }
+
+    if (listenerStatus !== "inactive") {
+      return;
+    }
+
+    if (!conn) {
+      return;
+    }
+
+    hasAttemptedAutoStart.current = true;
+    startListening();
+    updateSessionTabState(tab, { ...tab.state, autoStart: null });
+  }, [tab, listenerStatus, conn, startListening, updateSessionTabState]);
+
   const { data: audioUrl } = useQuery({
     enabled: listenerStatus === "inactive",
     queryKey: ["audio", tab.id, "url"],

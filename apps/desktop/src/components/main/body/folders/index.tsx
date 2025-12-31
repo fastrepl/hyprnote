@@ -8,7 +8,7 @@ import {
 import { cn } from "@hypr/utils";
 
 import { useFolder, useSession } from "../../../../hooks/tinybase";
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";

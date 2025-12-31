@@ -9,7 +9,7 @@ import {
 
 import type { SpeakerHintStorage, Word } from "@hypr/store";
 
-import * as main from "../../../../../../../store/tinybase/main";
+import * as main from "../../../../../../../store/tinybase/store/main";
 import {
   buildSegments,
   type RuntimeSpeakerHint,

@@ -10,7 +10,7 @@ import type {
   TemplateStorage,
 } from "@hypr/store";
 
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 
 export function useSession(sessionId: string) {
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
@@ -86,11 +86,10 @@ export function useHuman(humanId: string) {
     "linkedin_username",
     main.STORE_ID,
   );
-  const isUser = main.UI.useCell("humans", humanId, "is_user", main.STORE_ID);
 
   return useMemo(
-    () => ({ name, email, orgId, jobTitle, linkedinUsername, isUser }),
-    [name, email, orgId, jobTitle, linkedinUsername, isUser],
+    () => ({ name, email, orgId, jobTitle, linkedinUsername }),
+    [name, email, orgId, jobTitle, linkedinUsername],
   );
 }
 
@@ -316,7 +315,6 @@ export function TinyBaseTestWrapper({
           select("org_id");
           select("job_title");
           select("linkedin_username");
-          select("is_user");
           select("created_at");
         },
       )

@@ -1,6 +1,6 @@
 import { type RefObject, useCallback } from "react";
 
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
 import { id } from "../../../../../../utils";
 import { TranscriptContainer } from "./shared";
 

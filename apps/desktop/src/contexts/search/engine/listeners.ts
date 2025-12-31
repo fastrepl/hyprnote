@@ -1,8 +1,8 @@
 import { remove, type TypedDocument, update } from "@orama/orama";
 import { RowListener } from "tinybase/with-schemas";
 
-import { Schemas } from "../../../store/tinybase/main";
-import { type Store as MainStore } from "../../../store/tinybase/main";
+import { Schemas } from "../../../store/tinybase/store/main";
+import { type Store as MainStore } from "../../../store/tinybase/store/main";
 import {
   createHumanSearchableContent,
   createSessionSearchableContent,

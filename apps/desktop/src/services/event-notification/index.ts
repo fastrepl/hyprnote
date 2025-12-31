@@ -1,7 +1,7 @@
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 
-import type * as main from "../../store/tinybase/main";
-import type * as settings from "../../store/tinybase/settings";
+import type * as main from "../../store/tinybase/store/main";
+import type * as settings from "../../store/tinybase/store/settings";
 
 export const EVENT_NOTIFICATION_TASK_ID = "eventNotification";
 export const EVENT_NOTIFICATION_INTERVAL = 30 * 1000; // 30 sec

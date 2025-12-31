@@ -7,7 +7,6 @@ use ext::*;
 use store::*;
 
 use tauri_plugin_permissions::{Permission, PermissionsPluginExt};
-use tauri_plugin_updater2::Updater2PluginExt;
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
@@ -106,6 +105,7 @@ pub async fn main() {
         .plugin(tauri_plugin_detect::init())
         .plugin(tauri_plugin_extensions::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_overlay::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())
@@ -183,7 +183,6 @@ pub async fn main() {
             }
 
             specta_builder.mount_events(&app_handle);
-            app_handle.updater2().maybe_emit_updated();
 
             Ok(())
         })
@@ -295,6 +294,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::get_onboarding_local::<tauri::Wry>,
             commands::set_onboarding_local::<tauri::Wry>,
             commands::get_env::<tauri::Wry>,
+            commands::show_devtool,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

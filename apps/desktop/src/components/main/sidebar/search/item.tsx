@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import { cn } from "@hypr/utils";
 
 import { type SearchResult } from "../../../../contexts/search/ui";
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { getInitials } from "../../body/contacts/shared";
 

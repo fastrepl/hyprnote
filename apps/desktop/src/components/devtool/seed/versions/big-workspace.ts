@@ -1,8 +1,6 @@
 import { faker } from "@faker-js/faker/locale/en";
-import type { Tables } from "tinybase/with-schemas";
 
-import type { Schemas } from "../../../../store/tinybase/main";
-import type { Store as MainStore } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 import type { SeedDefinition } from "../shared";
 import {
   buildCalendars,
@@ -24,7 +22,7 @@ import {
   buildSessionsForBigWorkspace,
 } from "./big-workspace-builders";
 
-const buildBigWorkspaceData = (): Tables<Schemas[0]> => {
+const buildBigWorkspaceData = () => {
   faker.seed(456);
 
   const organizations = buildOrganizations(8);
@@ -120,11 +118,13 @@ export const bigWorkspaceSeed: SeedDefinition = {
   id: "big-workspace",
   label: "Big Workspace",
   calendarFixtureBase: "default",
-  run: (store: MainStore) => {
+  run: async (store: MainStore) => {
     const data = buildBigWorkspaceData();
+    await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {
       store.delTables();
-      store.setTables(data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      store.setTables(data as any);
     });
   },
 };

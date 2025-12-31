@@ -15,9 +15,10 @@ pub async fn list_available_sources<R: tauri::Runtime>(
 pub async fn run_import<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     source: ImportSourceKind,
+    user_id: String,
 ) -> Result<ImportStats, String> {
     app.importer()
-        .run_import(source)
+        .run_import(source, user_id)
         .await
         .map_err(|e| e.to_string())
 }

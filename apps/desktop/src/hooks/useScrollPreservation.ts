@@ -1,6 +1,9 @@
 import { type RefObject, useCallback, useEffect, useRef } from "react";
 
-export function useScrollPreservation(key: string): {
+export function useScrollPreservation(
+  key: string,
+  options: { skipRestoration?: boolean } = {},
+): {
   scrollRef: RefObject<HTMLDivElement | null>;
   onBeforeTabChange: () => void;
 } {
@@ -23,6 +26,8 @@ export function useScrollPreservation(key: string): {
     const container = scrollRef.current;
     if (!container) return;
 
+    if (options.skipRestoration) return;
+
     const savedPosition = scrollPositions.current.get(key);
     if (savedPosition === undefined) return;
 
@@ -33,7 +38,7 @@ export function useScrollPreservation(key: string): {
     });
 
     return () => cancelAnimationFrame(rafId);
-  }, [key]);
+  }, [key, options.skipRestoration]);
 
   return { scrollRef, onBeforeTabChange };
 }

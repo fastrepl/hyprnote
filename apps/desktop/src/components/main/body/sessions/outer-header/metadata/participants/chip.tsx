@@ -5,7 +5,7 @@ import type { SpeakerHintStorage } from "@hypr/store";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 
-import * as main from "../../../../../../../store/tinybase/main";
+import * as main from "../../../../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../../../../store/zustand/tabs/index";
 
 export function ParticipantChip({ mappingId }: { mappingId: string }) {
@@ -85,7 +85,6 @@ function useParticipantDetails(mappingId: string) {
     humanJobTitle: (result.human_job_title as string | undefined) || undefined,
     humanLinkedinUsername:
       (result.human_linkedin_username as string | undefined) || undefined,
-    humanIsUser: result.human_is_user as boolean,
     orgId: (result.org_id as string | undefined) || undefined,
     orgName: result.org_name as string | undefined,
     sessionId: result.session_id as string,

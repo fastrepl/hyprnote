@@ -17,7 +17,7 @@ import {
 import { cn, formatDistanceToNow } from "@hypr/utils";
 
 import { useShell } from "../../contexts/shell";
-import * as main from "../../store/tinybase/main";
+import * as main from "../../store/tinybase/store/main";
 
 export function ChatHeader({
   currentChatGroupId,

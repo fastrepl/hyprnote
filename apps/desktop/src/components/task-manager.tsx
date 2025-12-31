@@ -1,6 +1,12 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { Queries } from "tinybase/with-schemas";
-import { useScheduleTaskRun, useSetTask } from "tinytick/ui-react";
+import {
+  useScheduleTaskRun,
+  useScheduleTaskRunCallback,
+  useSetTask,
+} from "tinytick/ui-react";
+
+import { events as appleCalendarEvents } from "@hypr/plugin-apple-calendar";
 
 import {
   CALENDAR_SYNC_TASK_ID,
@@ -11,8 +17,8 @@ import {
   EVENT_NOTIFICATION_INTERVAL,
   EVENT_NOTIFICATION_TASK_ID,
 } from "../services/event-notification";
-import * as main from "../store/tinybase/main";
-import * as settings from "../store/tinybase/settings";
+import * as main from "../store/tinybase/store/main";
+import * as settings from "../store/tinybase/store/settings";
 
 const CALENDAR_SYNC_INTERVAL = 60 * 1000; // 60 sec
 
@@ -33,6 +39,22 @@ export function TaskManager() {
   useScheduleTaskRun(CALENDAR_SYNC_TASK_ID, undefined, 0, {
     repeatDelay: CALENDAR_SYNC_INTERVAL,
   });
+
+  const scheduleCalendarSync = useScheduleTaskRunCallback(
+    CALENDAR_SYNC_TASK_ID,
+    undefined,
+    0,
+  );
+
+  useEffect(() => {
+    const unlisten = appleCalendarEvents.calendarChangedEvent.listen(() => {
+      scheduleCalendarSync();
+    });
+
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [scheduleCalendarSync]);
 
   useSetTask(EVENT_NOTIFICATION_TASK_ID, async () => {
     if (!store || !settingsStore) return;

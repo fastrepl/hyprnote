@@ -1,34 +1,34 @@
+import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 
+import { Spinner } from "@hypr/ui/components/ui/spinner";
+
 import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
-import { ConnectionHealth } from "../shared/health";
 
-type HealthStatus = {
+export type HealthStatus = {
   status: "pending" | "error" | "success" | null;
-  tooltip?: string;
+  message?: string;
 };
 
-export function HealthCheckForConnection() {
+export function HealthStatusIndicator() {
   const health = useConnectionHealth();
 
-  const props =
-    health.status === "pending"
-      ? {
-          status: "pending" as const,
-          tooltip: health.tooltip ?? "Checking connection...",
-        }
-      : health.status === "error"
-        ? {
-            status: "error" as const,
-            tooltip: health.tooltip ?? "Connection failed.",
-          }
-        : health.status === "success"
-          ? { status: "success" as const }
-          : { status: null };
+  if (health.status === "pending") {
+    return <Spinner size={14} className="shrink-0 text-neutral-400 mr-2" />;
+  }
 
-  return <ConnectionHealth {...props} />;
+  if (health.status === "success") {
+    return (
+      <Icon
+        icon="lucide:check"
+        className="size-4 text-green-500 shrink-0 mr-2"
+      />
+    );
+  }
+
+  return null;
 }
 
 function useDeepgramHealth(enabled: boolean, apiKey?: string) {
@@ -55,7 +55,7 @@ function useDeepgramHealth(enabled: boolean, apiKey?: string) {
   });
 }
 
-function useConnectionHealth(): HealthStatus {
+export function useConnectionHealth(): HealthStatus {
   const { conn, local } = useSTTConnection();
   const { current_stt_provider, current_stt_model } = useConfigValues([
     "current_stt_provider",
@@ -72,29 +72,32 @@ function useConnectionHealth(): HealthStatus {
   if (!isCloud) {
     const serverStatus = local.data?.status ?? "unavailable";
     if (serverStatus === "loading") {
-      return { status: "pending", tooltip: "Local STT server is starting up…" };
+      return {
+        status: "pending",
+        message: "Local STT server is starting up…",
+      };
     }
     if (serverStatus === "ready" && conn) {
       return { status: "success" };
     }
     return {
       status: "error",
-      tooltip: `Local server status: ${serverStatus}.`,
+      message: "Could not connect to the local speech-to-text model.",
     };
   }
 
   if (!conn) {
-    return { status: "error", tooltip: "Provider not configured." };
+    return { status: "error", message: "Provider not configured." };
   }
 
   if (isDeepgram) {
     if (deepgramHealth.isPending) {
-      return { status: "pending", tooltip: "Verifying API key..." };
+      return { status: "pending", message: "Verifying API key..." };
     }
     if (deepgramHealth.isError) {
       return {
         status: "error",
-        tooltip: `API key verification failed: ${deepgramHealth.error.message}`,
+        message: `API key verification failed: ${deepgramHealth.error.message}`,
       };
     }
     if (deepgramHealth.isSuccess) {

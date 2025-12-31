@@ -7,8 +7,8 @@ import { commands as miscCommands } from "@hypr/plugin-misc";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
-import { deleteSessionCascade } from "../../../../../../store/tinybase/deleteSession";
-import * as main from "../../../../../../store/tinybase/main";
+import { deleteSessionCascade } from "../../../../../../store/tinybase/store/deleteSession";
+import * as main from "../../../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../../../store/zustand/tabs";
 
 export function DeleteNote({ sessionId }: { sessionId: string }) {

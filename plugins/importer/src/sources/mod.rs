@@ -6,59 +6,76 @@ pub use as_is::{AsIsData, AsIsSource};
 pub use granola::GranolaSource;
 pub use hyprnote::{HyprnoteV0NightlySource, HyprnoteV0StableSource};
 
-use crate::types::{
-    ImportSourceInfo, ImportSourceKind, ImportedHuman, ImportedNote, ImportedOrganization,
-    ImportedSessionParticipant, ImportedTranscript,
-};
-use std::future::Future;
-use std::path::PathBuf;
+use crate::types::{ImportResult, ImportSourceInfo, ImportSourceKind};
 
-pub trait ImportSource: Send + Sync {
-    fn info(&self) -> ImportSourceInfo;
-    fn is_available(&self) -> bool;
-
-    fn import_notes(&self) -> impl Future<Output = Result<Vec<ImportedNote>, crate::Error>> + Send;
-
-    fn import_transcripts(
-        &self,
-    ) -> impl Future<Output = Result<Vec<ImportedTranscript>, crate::Error>> + Send;
-
-    fn import_humans(
-        &self,
-    ) -> impl Future<Output = Result<Vec<ImportedHuman>, crate::Error>> + Send;
-
-    fn import_organizations(
-        &self,
-    ) -> impl Future<Output = Result<Vec<ImportedOrganization>, crate::Error>> + Send;
-
-    fn import_session_participants(
-        &self,
-    ) -> impl Future<Output = Result<Vec<ImportedSessionParticipant>, crate::Error>> + Send;
+pub enum AnyImportSource {
+    Granola(GranolaSource),
+    HyprnoteV0Stable(HyprnoteV0StableSource),
+    HyprnoteV0Nightly(HyprnoteV0NightlySource),
+    AsIs(AsIsSource),
 }
 
-pub fn get_source(
-    kind: ImportSourceKind,
-    supabase_path: Option<PathBuf>,
-    cache_path: Option<PathBuf>,
-    json_path: Option<PathBuf>,
-) -> Box<dyn ImportSourceDyn> {
-    match kind {
-        ImportSourceKind::Granola => Box::new(GranolaSource {
-            supabase_path,
-            cache_path,
-        }),
-        ImportSourceKind::HyprnoteV0Stable => Box::new(HyprnoteV0StableSource),
-        ImportSourceKind::HyprnoteV0Nightly => Box::new(HyprnoteV0NightlySource),
-        ImportSourceKind::AsIs => Box::new(AsIsSource { json_path }),
+impl AnyImportSource {
+    pub fn info(&self) -> ImportSourceInfo {
+        match self {
+            Self::Granola(s) => s.info(),
+            Self::HyprnoteV0Stable(s) => s.info(),
+            Self::HyprnoteV0Nightly(s) => s.info(),
+            Self::AsIs(s) => s.info(),
+        }
+    }
+
+    pub fn is_available(&self) -> bool {
+        match self {
+            Self::Granola(s) => s.is_available(),
+            Self::HyprnoteV0Stable(s) => s.is_available(),
+            Self::HyprnoteV0Nightly(s) => s.is_available(),
+            Self::AsIs(s) => s.is_available(),
+        }
+    }
+
+    pub async fn import_all(&self) -> Result<ImportResult, crate::Error> {
+        match self {
+            Self::Granola(s) => Ok(ImportResult {
+                notes: s.import_notes().await?,
+                transcripts: s.import_transcripts().await?,
+                humans: vec![],
+                organizations: vec![],
+                participants: vec![],
+            }),
+            Self::HyprnoteV0Stable(s) => s.import_all().await,
+            Self::HyprnoteV0Nightly(s) => s.import_all().await,
+            Self::AsIs(s) => {
+                let data = s.load_data()?;
+                Ok(ImportResult {
+                    notes: data.notes,
+                    transcripts: data.transcripts,
+                    humans: data.humans,
+                    organizations: data.organizations,
+                    participants: data.session_participants,
+                })
+            }
+        }
     }
 }
 
-pub fn all_sources() -> Vec<Box<dyn ImportSourceDyn>> {
+impl From<ImportSourceKind> for AnyImportSource {
+    fn from(kind: ImportSourceKind) -> Self {
+        match kind {
+            ImportSourceKind::Granola => Self::Granola(GranolaSource::default()),
+            ImportSourceKind::HyprnoteV0Stable => Self::HyprnoteV0Stable(HyprnoteV0StableSource),
+            ImportSourceKind::HyprnoteV0Nightly => Self::HyprnoteV0Nightly(HyprnoteV0NightlySource),
+            ImportSourceKind::AsIs => Self::AsIs(AsIsSource::default()),
+        }
+    }
+}
+
+pub fn all_sources() -> Vec<AnyImportSource> {
     vec![
-        Box::new(GranolaSource::default()),
-        Box::new(HyprnoteV0StableSource),
-        Box::new(HyprnoteV0NightlySource),
-        Box::new(AsIsSource::default()),
+        AnyImportSource::Granola(GranolaSource::default()),
+        AnyImportSource::HyprnoteV0Stable(HyprnoteV0StableSource),
+        AnyImportSource::HyprnoteV0Nightly(HyprnoteV0NightlySource),
+        AnyImportSource::AsIs(AsIsSource::default()),
     ]
 }
 
@@ -68,78 +85,4 @@ pub fn list_available_sources() -> Vec<ImportSourceInfo> {
         .filter(|s| s.is_available())
         .map(|s| s.info())
         .collect()
-}
-
-pub trait ImportSourceDyn: Send + Sync {
-    fn info(&self) -> ImportSourceInfo;
-    fn is_available(&self) -> bool;
-    fn import_notes_boxed(
-        &self,
-    ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedNote>, crate::Error>> + Send + '_>>;
-    fn import_transcripts_boxed(
-        &self,
-    ) -> std::pin::Pin<
-        Box<dyn Future<Output = Result<Vec<ImportedTranscript>, crate::Error>> + Send + '_>,
-    >;
-    fn import_humans_boxed(
-        &self,
-    ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedHuman>, crate::Error>> + Send + '_>>;
-    fn import_organizations_boxed(
-        &self,
-    ) -> std::pin::Pin<
-        Box<dyn Future<Output = Result<Vec<ImportedOrganization>, crate::Error>> + Send + '_>,
-    >;
-    fn import_session_participants_boxed(
-        &self,
-    ) -> std::pin::Pin<
-        Box<dyn Future<Output = Result<Vec<ImportedSessionParticipant>, crate::Error>> + Send + '_>,
-    >;
-}
-
-impl<T: ImportSource> ImportSourceDyn for T {
-    fn info(&self) -> ImportSourceInfo {
-        ImportSource::info(self)
-    }
-
-    fn is_available(&self) -> bool {
-        ImportSource::is_available(self)
-    }
-
-    fn import_notes_boxed(
-        &self,
-    ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedNote>, crate::Error>> + Send + '_>>
-    {
-        Box::pin(self.import_notes())
-    }
-
-    fn import_transcripts_boxed(
-        &self,
-    ) -> std::pin::Pin<
-        Box<dyn Future<Output = Result<Vec<ImportedTranscript>, crate::Error>> + Send + '_>,
-    > {
-        Box::pin(self.import_transcripts())
-    }
-
-    fn import_humans_boxed(
-        &self,
-    ) -> std::pin::Pin<Box<dyn Future<Output = Result<Vec<ImportedHuman>, crate::Error>> + Send + '_>>
-    {
-        Box::pin(self.import_humans())
-    }
-
-    fn import_organizations_boxed(
-        &self,
-    ) -> std::pin::Pin<
-        Box<dyn Future<Output = Result<Vec<ImportedOrganization>, crate::Error>> + Send + '_>,
-    > {
-        Box::pin(self.import_organizations())
-    }
-
-    fn import_session_participants_boxed(
-        &self,
-    ) -> std::pin::Pin<
-        Box<dyn Future<Output = Result<Vec<ImportedSessionParticipant>, crate::Error>> + Send + '_>,
-    > {
-        Box::pin(self.import_session_participants())
-    }
 }

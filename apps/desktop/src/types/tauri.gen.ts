@@ -56,6 +56,9 @@ async setOnboardingLocal(v: boolean) : Promise<Result<null, string>> {
 },
 async getEnv(key: string) : Promise<string> {
     return await TAURI_INVOKE("get_env", { key });
+},
+async showDevtool() : Promise<boolean> {
+    return await TAURI_INVOKE("show_devtool");
 }
 }
 

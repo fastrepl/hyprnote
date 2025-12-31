@@ -73,7 +73,7 @@ export const buildHumans = (
   const humans: Record<string, Human> = {};
 
   if (options.includeCurrentUser && orgIds.length > 0) {
-    const currentUser = createHuman(orgIds[0], true);
+    const currentUser = createHuman(orgIds[0]);
     humans[currentUser.id] = currentUser.data;
   }
 
@@ -81,7 +81,7 @@ export const buildHumans = (
     const humanCount = faker.number.int(options.countPerOrg);
 
     for (let i = 0; i < humanCount; i++) {
-      const human = createHuman(orgId, false);
+      const human = createHuman(orgId);
       humans[human.id] = human.data;
     }
   });

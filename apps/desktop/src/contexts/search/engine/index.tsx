@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-import { type Store as MainStore } from "../../../store/tinybase/main";
+import { type Store as MainStore } from "../../../store/tinybase/store/main";
 import { buildOramaFilters } from "./filters";
 import { indexHumans, indexOrganizations, indexSessions } from "./indexing";
 import {

@@ -7,6 +7,7 @@ import { useAuth } from "../../../../auth";
 import { useConfigValues } from "../../../../config/use-config";
 import { useNotifications } from "../../../../contexts/notifications";
 import { useTabs } from "../../../../store/zustand/tabs";
+import { useToastAction } from "../../../../store/zustand/toast-action";
 import { Toast } from "./component";
 import { createToastRegistry, getToastToShow } from "./registry";
 import { useDismissedToasts } from "./useDismissedToasts";
@@ -19,8 +20,14 @@ export function ToastArea({
   const auth = useAuth();
   const { dismissToast, isDismissed } = useDismissedToasts();
   const shouldShowToast = useShouldShowToast(isProfileExpanded);
-  const { hasActiveDownload, downloadProgress, downloadingModel } =
-    useNotifications();
+  const {
+    hasActiveDownload,
+    downloadProgress,
+    downloadingModel,
+    activeDownloads,
+    localSttStatus,
+    isLocalSttModel,
+  } = useNotifications();
 
   const isAuthenticated = !!auth?.session;
   const {
@@ -45,6 +52,7 @@ export function ToastArea({
 
   const openNew = useTabs((state) => state.openNew);
   const updateAiTabState = useTabs((state) => state.updateAiTabState);
+  const setToastActionTarget = useToastAction((state) => state.setTarget);
 
   const handleSignIn = useCallback(async () => {
     await auth?.signIn();
@@ -62,12 +70,14 @@ export function ToastArea({
   );
 
   const handleOpenLLMSettings = useCallback(() => {
+    setToastActionTarget("llm");
     openAiTab("intelligence");
-  }, [openAiTab]);
+  }, [openAiTab, setToastActionTarget]);
 
   const handleOpenSTTSettings = useCallback(() => {
+    setToastActionTarget("stt");
     openAiTab("transcription");
-  }, [openAiTab]);
+  }, [openAiTab, setToastActionTarget]);
 
   const registry = useMemo(
     () =>
@@ -80,6 +90,9 @@ export function ToastArea({
         hasActiveDownload,
         downloadProgress,
         downloadingModel,
+        activeDownloads,
+        localSttStatus,
+        isLocalSttModel,
         onSignIn: handleSignIn,
         onOpenLLMSettings: handleOpenLLMSettings,
         onOpenSTTSettings: handleOpenSTTSettings,
@@ -93,6 +106,9 @@ export function ToastArea({
       hasActiveDownload,
       downloadProgress,
       downloadingModel,
+      activeDownloads,
+      localSttStatus,
+      isLocalSttModel,
       handleSignIn,
       handleOpenLLMSettings,
       handleOpenSTTSettings,

@@ -15,7 +15,7 @@ import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
 
 import { useConfigValues } from "../../../config/use-config";
-import * as settings from "../../../store/tinybase/settings";
+import * as settings from "../../../store/tinybase/store/settings";
 
 export function NotificationSettingsView() {
   const [inputValue, setInputValue] = useState("");

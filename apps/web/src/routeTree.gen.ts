@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as YoutubeRouteImport } from './routes/youtube'
 import { Route as XRouteImport } from './routes/x'
 import { Route as LinkedinRouteImport } from './routes/linkedin'
-import { Route as JoinWaitlistRouteImport } from './routes/join-waitlist'
 import { Route as GithubRouteImport } from './routes/github'
 import { Route as FoundersRouteImport } from './routes/founders'
 import { Route as DiscordRouteImport } from './routes/discord'
@@ -116,11 +115,6 @@ const XRoute = XRouteImport.update({
 const LinkedinRoute = LinkedinRouteImport.update({
   id: '/linkedin',
   path: '/linkedin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JoinWaitlistRoute = JoinWaitlistRouteImport.update({
-  id: '/join-waitlist',
-  path: '/join-waitlist',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GithubRoute = GithubRouteImport.update({
@@ -584,7 +578,6 @@ export interface FileRoutesByFullPath {
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
-  '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
@@ -678,7 +671,6 @@ export interface FileRoutesByTo {
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
-  '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
@@ -771,7 +763,6 @@ export interface FileRoutesById {
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
-  '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
@@ -867,7 +858,6 @@ export interface FileRouteTypes {
     | '/discord'
     | '/founders'
     | '/github'
-    | '/join-waitlist'
     | '/linkedin'
     | '/x'
     | '/youtube'
@@ -961,7 +951,6 @@ export interface FileRouteTypes {
     | '/discord'
     | '/founders'
     | '/github'
-    | '/join-waitlist'
     | '/linkedin'
     | '/x'
     | '/youtube'
@@ -1053,7 +1042,6 @@ export interface FileRouteTypes {
     | '/discord'
     | '/founders'
     | '/github'
-    | '/join-waitlist'
     | '/linkedin'
     | '/x'
     | '/youtube'
@@ -1149,7 +1137,6 @@ export interface RootRouteChildren {
   DiscordRoute: typeof DiscordRoute
   FoundersRoute: typeof FoundersRoute
   GithubRoute: typeof GithubRoute
-  JoinWaitlistRoute: typeof JoinWaitlistRoute
   LinkedinRoute: typeof LinkedinRoute
   XRoute: typeof XRoute
   YoutubeRoute: typeof YoutubeRoute
@@ -1182,13 +1169,6 @@ declare module '@tanstack/react-router' {
       path: '/linkedin'
       fullPath: '/linkedin'
       preLoaderRoute: typeof LinkedinRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/join-waitlist': {
-      id: '/join-waitlist'
-      path: '/join-waitlist'
-      fullPath: '/join-waitlist'
-      preLoaderRoute: typeof JoinWaitlistRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/github': {
@@ -2020,7 +2000,6 @@ const rootRouteChildren: RootRouteChildren = {
   DiscordRoute: DiscordRoute,
   FoundersRoute: FoundersRoute,
   GithubRoute: GithubRoute,
-  JoinWaitlistRoute: JoinWaitlistRoute,
   LinkedinRoute: LinkedinRoute,
   XRoute: XRoute,
   YoutubeRoute: YoutubeRoute,

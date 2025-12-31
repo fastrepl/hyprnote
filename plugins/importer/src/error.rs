@@ -1,3 +1,4 @@
+use crate::types::ImportSourceKind;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -9,13 +10,13 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error("database error: {0}")]
-    Database(#[from] hypr_db_user::Error),
+    Database(#[from] hypr_db_core::Error),
 
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
 
-    #[error("import source not found: {0}")]
-    SourceNotFound(String),
+    #[error("import source not available: {0:?}")]
+    SourceNotFound(ImportSourceKind),
 
     #[error("tauri error: {0}")]
     Tauri(#[from] tauri::Error),

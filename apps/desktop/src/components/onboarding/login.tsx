@@ -8,7 +8,7 @@ import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
 import { Route } from "../../routes/app/onboarding/_layout.index";
-import * as settings from "../../store/tinybase/settings";
+import * as settings from "../../store/tinybase/store/settings";
 import { getBack, getNext, type StepProps } from "./config";
 import { STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
 import { Divider, OnboardingContainer } from "./shared";

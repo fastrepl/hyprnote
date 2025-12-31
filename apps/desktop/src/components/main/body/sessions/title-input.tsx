@@ -7,6 +7,8 @@ import { useListener } from "../../../../contexts/listener";
 import { useAITaskTask } from "../../../../hooks/useAITaskTask";
 import { useLanguageModel } from "../../../../hooks/useLLMConnection";
 import * as main from "../../../../store/tinybase/main";
+import { useAITaskTask } from "../../../../hooks/useAITaskTask";
+import * as main from "../../../../store/tinybase/store/main";
 import { createTaskId } from "../../../../store/zustand/ai-task/task-configs";
 import { type Tab } from "../../../../store/zustand/tabs";
 
@@ -64,6 +66,12 @@ export const TitleInput = forwardRef<
     hasEnhancedNote &&
     !!title?.trim() &&
     !isTitleGenerating;
+
+  const titleTaskId = createTaskId(sessionId, "title");
+  const { isGenerating: isTitleGenerating } = useAITaskTask(
+    titleTaskId,
+    "title",
+  );
 
   const handleEditTitle = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -230,5 +238,19 @@ export const TitleInput = forwardRef<
         </button>
       )}
     </div>
+    <input
+      ref={inputRef}
+      id={`title-input-${sessionId}-${editorId}`}
+      placeholder="Untitled"
+      type="text"
+      onChange={(e) => handleEditTitle(e.target.value)}
+      onKeyDown={handleKeyDown}
+      value={title ?? ""}
+      className={cn([
+        "w-full transition-opacity duration-200",
+        "border-none bg-transparent focus:outline-none",
+        "text-xl font-semibold placeholder:text-muted-foreground",
+      ])}
+    />
   );
 });

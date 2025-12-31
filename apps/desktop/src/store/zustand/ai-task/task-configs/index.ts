@@ -7,7 +7,7 @@ import type {
   TitleUser,
 } from "@hypr/plugin-template";
 
-import type { Store as MainStore } from "../../../tinybase/main";
+import type { Store as MainStore } from "../../../tinybase/store/main";
 import { StreamTransform } from "../shared/transform_infra";
 import type { TaskStepInfo } from "../tasks";
 import { enhanceTransform } from "./enhance-transform";

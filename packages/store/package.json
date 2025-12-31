@@ -12,7 +12,6 @@
   },
   "types": "./src/index.ts",
   "dependencies": {
-    "@hypr/db": "workspace:*",
     "tinybase": "^7.3.0",
     "zod": "^4.2.1"
   },

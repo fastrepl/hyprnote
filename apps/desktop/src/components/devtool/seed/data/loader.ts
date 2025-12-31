@@ -2,7 +2,7 @@ import type { Tables } from "tinybase/with-schemas";
 
 import { md2json } from "@hypr/tiptap/shared";
 
-import type { Schemas } from "../../../../store/tinybase/main";
+import type { Schemas } from "../../../../store/tinybase/store/main";
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 import { type CuratedData, CuratedDataSchema } from "./schema";
 
@@ -58,7 +58,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       email: person.email,
       job_title: person.job_title,
       linkedin_username: person.linkedin_username,
-      is_user: person.is_user,
       org_id: orgId,
       created_at: new Date().toISOString(),
     };

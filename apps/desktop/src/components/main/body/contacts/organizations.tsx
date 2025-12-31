@@ -3,7 +3,7 @@ import React, { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { ColumnHeader, type SortOption } from "./shared";
 
 export function OrganizationsColumn({

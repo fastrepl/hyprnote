@@ -2,7 +2,7 @@ use tauri::{
     AppHandle, Result,
     menu::{MenuItem, MenuItemKind, Submenu},
 };
-use tauri_plugin_windows::{AppWindow, OpenTab, TabInput, WindowsPluginExt};
+use tauri_plugin_windows::{AppWindow, DataState, DataTab, OpenTab, TabInput, WindowsPluginExt};
 use tauri_specta::Event;
 
 use super::MenuItemHandler;
@@ -16,6 +16,12 @@ impl MenuItemHandler for TraySettings {
         let submenu = {
             let submenu = Submenu::with_id(app, Self::ID, "Settings", true)?;
 
+            let open_ai =
+                MenuItem::with_id(app, TraySettingsAI::ID, "Open AI", true, None::<&str>)?;
+
+            let open_data =
+                MenuItem::with_id(app, TraySettingsData::ID, "Open Data", true, None::<&str>)?;
+
             let open_general = MenuItem::with_id(
                 app,
                 TraySettingsGeneral::ID,
@@ -24,10 +30,7 @@ impl MenuItemHandler for TraySettings {
                 None::<&str>,
             )?;
 
-            let open_ai =
-                MenuItem::with_id(app, TraySettingsAI::ID, "Open AI", true, None::<&str>)?;
-
-            submenu.append_items(&[&open_general, &open_ai])?;
+            submenu.append_items(&[&open_ai, &open_data, &open_general])?;
             submenu
         };
 
@@ -78,6 +81,32 @@ impl MenuItemHandler for TraySettingsAI {
             };
             if let Err(e) = event.emit(app) {
                 tracing::warn!("failed_emit_open_ai_tab: {e}");
+            }
+        }
+    }
+}
+
+pub struct TraySettingsData;
+
+impl MenuItemHandler for TraySettingsData {
+    const ID: &'static str = "hypr_tray_settings_data";
+
+    fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
+        let item = MenuItem::with_id(app, Self::ID, "Open Data", true, None::<&str>)?;
+        Ok(MenuItemKind::MenuItem(item))
+    }
+
+    fn handle(app: &AppHandle<tauri::Wry>) {
+        if app.windows().show(AppWindow::Main).is_ok() {
+            let event = OpenTab {
+                tab: TabInput::Data {
+                    state: Some(DataState {
+                        tab: Some(DataTab::Import),
+                    }),
+                },
+            };
+            if let Err(e) = event.emit(app) {
+                tracing::warn!("failed_emit_open_data_tab: {e}");
             }
         }
     }

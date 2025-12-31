@@ -18,31 +18,26 @@ async function embedGithubCode(content: string): Promise<string> {
   for (const match of matches) {
     const [fullMatch, url] = match;
 
-    // Check if it's a same-repo URL (fastrepl/hyprnote)
     const repoMatch = url.match(
       /github\.com\/fastrepl\/hyprnote\/blob\/[^/]+\/(.+)/,
     );
     if (repoMatch) {
       const filePath = repoMatch[1];
       const fileName = path.basename(filePath);
-      // Use process.cwd() which is the apps/web directory during content-collections build
       const localPath = path.resolve(process.cwd(), "..", "..", filePath);
 
       try {
         const fileContent = fs.readFileSync(localPath, "utf-8");
 
-        // Extract code block content if the file is markdown
         const codeBlockMatch = fileContent.match(/```(\w+)\n([\s\S]*?)```/);
         if (codeBlockMatch) {
           const [, lang, code] = codeBlockMatch;
-          // Generate GithubEmbed component with escaped code
           const escapedCode = JSON.stringify(code.trimEnd());
           result = result.replace(
             fullMatch,
             `<GithubEmbed code={${escapedCode}} fileName="${fileName}" language="${lang}" />`,
           );
         } else {
-          // If no code block, embed the whole file as plain text
           const escapedCode = JSON.stringify(fileContent.trimEnd());
           result = result.replace(
             fullMatch,
@@ -201,7 +196,6 @@ const docs = defineCollection({
     updated: z.string().optional(),
   }),
   transform: async (document, context) => {
-    // Preprocess content to embed GitHub code snippets at build time
     const processedContent = await embedGithubCode(document.content);
     const processedDocument = { ...document, content: processedContent };
 

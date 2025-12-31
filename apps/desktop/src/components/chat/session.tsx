@@ -13,7 +13,7 @@ import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
 import { useSession } from "../../hooks/tinybase";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
-import * as main from "../../store/tinybase/main";
+import * as main from "../../store/tinybase/store/main";
 import { id } from "../../utils";
 import { buildSegments, SegmentKey, type WordLike } from "../../utils/segment";
 import {

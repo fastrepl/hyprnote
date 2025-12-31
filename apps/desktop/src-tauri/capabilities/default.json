@@ -42,6 +42,9 @@
           "path": "$DATA/hyprnote/**/*"
         },
         {
+          "path": "$APPDATA/**/*"
+        },
+        {
           "path": "$DOWNLOAD/**/*"
         }
       ]
@@ -51,6 +54,9 @@
       "allow": [
         {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
         }
       ]
     },
@@ -62,6 +68,9 @@
         },
         {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
         }
       ]
     },
@@ -70,6 +79,9 @@
       "allow": [
         {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
         }
       ]
     },
@@ -78,6 +90,9 @@
       "allow": [
         {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
         }
       ]
     },
@@ -86,6 +101,9 @@
       "allow": [
         {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
         },
         {
           "path": "$DOWNLOAD/**/*"
@@ -99,6 +117,9 @@
           "path": "$DATA/hyprnote/**/*"
         },
         {
+          "path": "$APPDATA/**/*"
+        },
+        {
           "path": "$DOWNLOAD/**/*"
         }
       ]
@@ -108,6 +129,20 @@
       "allow": [
         {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-rename",
+      "allow": [
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
         }
       ]
     },
@@ -136,6 +171,7 @@
     "listener2:default",
     "template:default",
     "notification:default",
+    "overlay:default",
     "shell:allow-open",
     {
       "identifier": "shell:allow-execute",

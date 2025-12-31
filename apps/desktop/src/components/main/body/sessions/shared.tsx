@@ -6,7 +6,7 @@ import { cn } from "@hypr/utils";
 import { useListener } from "../../../../contexts/listener";
 import { useAITaskTask } from "../../../../hooks/useAITaskTask";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { createTaskId } from "../../../../store/zustand/ai-task/task-configs";
 import type { Tab } from "../../../../store/zustand/tabs/schema";
 import { type EditorView } from "../../../../store/zustand/tabs/schema";

@@ -1,4 +1,6 @@
-import type { ToastCondition, ToastType } from "./types";
+import type { ServerStatus } from "@hypr/plugin-local-stt";
+
+import type { DownloadProgress, ToastCondition, ToastType } from "./types";
 
 type ToastRegistryEntry = {
   toast: ToastType;
@@ -14,6 +16,9 @@ type ToastRegistryParams = {
   hasActiveDownload: boolean;
   downloadProgress: number | null;
   downloadingModel: string | null;
+  activeDownloads: DownloadProgress[];
+  localSttStatus: ServerStatus | null;
+  isLocalSttModel: boolean;
   onSignIn: () => void | Promise<void>;
   onOpenLLMSettings: () => void;
   onOpenSTTSettings: () => void;
@@ -28,21 +33,63 @@ export function createToastRegistry({
   hasActiveDownload,
   downloadProgress,
   downloadingModel,
+  activeDownloads,
+  localSttStatus,
+  isLocalSttModel,
   onSignIn,
   onOpenLLMSettings,
   onOpenSTTSettings,
 }: ToastRegistryParams): ToastRegistryEntry[] {
+  const downloadTitle =
+    activeDownloads.length === 1
+      ? `Downloading ${downloadingModel}`
+      : `Downloading ${activeDownloads.length} models`;
+
   // order matters
   return [
     {
       toast: {
         id: "downloading-model",
-        title: `Downloading ${downloadingModel}`,
+        title: downloadTitle,
         description: "This may take a few minutes",
         dismissible: false,
-        progress: downloadProgress ?? 0,
+        progress:
+          activeDownloads.length === 1 ? (downloadProgress ?? 0) : undefined,
+        downloads: activeDownloads.length > 1 ? activeDownloads : undefined,
       },
       condition: () => hasActiveDownload,
+    },
+    {
+      toast: {
+        id: "local-stt-loading",
+        title: "Starting local transcription",
+        description: "The local speech-to-text model is starting up...",
+        dismissible: false,
+      },
+      condition: () =>
+        isLocalSttModel && localSttStatus === "loading" && !hasActiveDownload,
+    },
+    {
+      toast: {
+        id: "local-stt-unreachable",
+        description: (
+          <>
+            <strong className="text-red-600">Could not connect</strong> to the
+            local speech-to-text model. Please check your settings.
+          </>
+        ),
+        primaryAction: {
+          label: "Check settings",
+          onClick: onOpenSTTSettings,
+        },
+        dismissible: true,
+        variant: "error",
+      },
+      condition: () =>
+        isLocalSttModel &&
+        localSttStatus === "unreachable" &&
+        !hasActiveDownload &&
+        !isAiTranscriptionTabActive,
     },
     {
       toast: {

@@ -4,7 +4,7 @@ import type { Template, TemplateSection, TemplateStorage } from "@hypr/store";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { DangerZone } from "../resource-list";
 import { RelatedSessions } from "./related-sessions";
 import { SectionsList } from "./sections-editor";

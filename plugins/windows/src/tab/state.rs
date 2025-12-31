@@ -13,6 +13,7 @@ crate::common_derives! {
 crate::common_derives! {
     pub struct SessionsState {
         pub view: Option<EditorView>,
+        pub auto_start: Option<bool>,
     }
 }
 
@@ -83,8 +84,6 @@ crate::common_derives! {
         #[default]
         #[serde(rename = "import")]
         Import,
-        #[serde(rename = "export")]
-        Export,
     }
 }
 

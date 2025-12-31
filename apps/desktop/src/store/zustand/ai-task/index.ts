@@ -1,6 +1,6 @@
 import { createStore } from "zustand";
 
-import type { Store as MainStore } from "../../tinybase/main";
+import type { Store as MainStore } from "../../tinybase/store/main";
 import { createTasksSlice, type TasksActions, type TasksState } from "./tasks";
 
 type State = TasksState;

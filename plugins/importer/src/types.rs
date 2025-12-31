@@ -1,5 +1,50 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, PartialEq, Eq, Hash)]
+#[serde(rename_all = "snake_case")]
+pub enum ImportSourceKind {
+    Granola,
+    HyprnoteV0Stable,
+    HyprnoteV0Nightly,
+    AsIs,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct ImportSourceInfo {
+    pub kind: ImportSourceKind,
+    pub name: String,
+    pub description: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
+pub struct ImportStats {
+    pub notes_count: usize,
+    pub transcripts_count: usize,
+    pub humans_count: usize,
+    pub organizations_count: usize,
+    pub participants_count: usize,
+}
+
+pub struct ImportResult {
+    pub notes: Vec<ImportedNote>,
+    pub transcripts: Vec<ImportedTranscript>,
+    pub humans: Vec<ImportedHuman>,
+    pub organizations: Vec<ImportedOrganization>,
+    pub participants: Vec<ImportedSessionParticipant>,
+}
+
+impl ImportResult {
+    pub fn stats(&self) -> ImportStats {
+        ImportStats {
+            organizations_count: self.organizations.len(),
+            humans_count: self.humans.len(),
+            notes_count: self.notes.len(),
+            transcripts_count: self.transcripts.len(),
+            participants_count: self.participants.len(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct ImportedNote {
     pub id: String,
@@ -54,7 +99,6 @@ pub struct ImportedHuman {
     pub org_id: Option<String>,
     pub job_title: Option<String>,
     pub linkedin_username: Option<String>,
-    pub is_user: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -70,29 +114,4 @@ pub struct ImportedSessionParticipant {
     pub session_id: String,
     pub human_id: String,
     pub source: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, PartialEq, Eq, Hash)]
-#[serde(rename_all = "snake_case")]
-pub enum ImportSourceKind {
-    Granola,
-    HyprnoteV0Stable,
-    HyprnoteV0Nightly,
-    AsIs,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct ImportSourceInfo {
-    pub kind: ImportSourceKind,
-    pub name: String,
-    pub description: String,
-}
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
-pub struct ImportStats {
-    pub notes_count: usize,
-    pub transcripts_count: usize,
-    pub humans_count: usize,
-    pub organizations_count: usize,
-    pub participants_count: usize,
 }

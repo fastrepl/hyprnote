@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useHasTranscript } from "../components/main/body/sessions/shared";
 import { useAITask } from "../contexts/ai-task";
 import { useListener } from "../contexts/listener";
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 import { createTaskId } from "../store/zustand/ai-task/task-configs";
 
 export function useCreateEnhancedNote() {

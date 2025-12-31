@@ -18,7 +18,7 @@ import {
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
 
-import * as main from "../../../../../store/tinybase/main";
+import * as main from "../../../../../store/tinybase/store/main";
 
 export const RawEditor = forwardRef<
   { editor: TiptapEditor | null },

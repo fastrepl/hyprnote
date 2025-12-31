@@ -8,7 +8,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as pdfCommands, type TranscriptItem } from "@hypr/plugin-pdf";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
 
 export function ExportPDF({ sessionId }: { sessionId: string }) {
   const store = main.UI.useStore(main.STORE_ID);

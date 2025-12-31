@@ -13,6 +13,7 @@ import { useResizeObserver } from "usehooks-ts";
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
 
+import { useListener } from "../../../../../contexts/listener";
 import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
 import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
 import { useScrollPreservation } from "../../../../../hooks/useScrollPreservation";
@@ -53,10 +54,19 @@ export const NoteInput = forwardRef<
     [currentTab],
   );
 
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const isMeetingInProgress =
+    sessionMode === "active" ||
+    sessionMode === "finalizing" ||
+    sessionMode === "running_batch";
+
   const { scrollRef, onBeforeTabChange } = useScrollPreservation(
     currentTab.type === "enhanced"
       ? `enhanced-${currentTab.id}`
       : currentTab.type,
+    {
+      skipRestoration: currentTab.type === "transcript" && isMeetingInProgress,
+    },
   );
 
   const { fadeRef, atStart, atEnd } = useScrollFade<HTMLDivElement>([
@@ -66,7 +76,10 @@ export const NoteInput = forwardRef<
   const handleTabChange = useCallback(
     (view: EditorView) => {
       onBeforeTabChange();
-      updateSessionTabState(tabRef.current, { view });
+      updateSessionTabState(tabRef.current, {
+        ...tabRef.current.state,
+        view,
+      });
     },
     [onBeforeTabChange, updateSessionTabState],
   );

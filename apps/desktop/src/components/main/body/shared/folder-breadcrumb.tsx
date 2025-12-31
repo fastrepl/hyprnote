@@ -1,6 +1,6 @@
 import { type ReactNode, useMemo } from "react";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 
 export function FolderBreadcrumb({
   folderId,

@@ -74,6 +74,8 @@ async function normalizeAppleEvent(appleEvent: AppleEvent): Promise<{
       location: appleEvent.location ?? undefined,
       meeting_link: meetingLink ?? undefined,
       description: appleEvent.notes ?? undefined,
+      recurrence_series_id:
+        appleEvent.recurrence?.series_identifier ?? undefined,
     },
     eventParticipants,
   };

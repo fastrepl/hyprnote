@@ -1,6 +1,18 @@
 import type { Ctx } from "../ctx";
 import type { ExistingEvent } from "./types";
 
+function isEventInRange(
+  startedAt: string,
+  endedAt: string | undefined,
+  from: Date,
+  to: Date,
+): boolean {
+  const eventStart = new Date(startedAt);
+  const eventEnd = endedAt ? new Date(endedAt) : eventStart;
+
+  return eventStart <= to && eventEnd >= from;
+}
+
 export function fetchExistingEvents(ctx: Ctx): ExistingEvent[] {
   const events: ExistingEvent[] = [];
 
@@ -16,8 +28,8 @@ export function fetchExistingEvents(ctx: Ctx): ExistingEvent[] {
     const startedAt = event.started_at as string | undefined;
     if (!startedAt) return;
 
-    const eventDate = new Date(startedAt);
-    if (eventDate >= ctx.from && eventDate <= ctx.to) {
+    const endedAt = event.ended_at as string | undefined;
+    if (isEventInRange(startedAt, endedAt, ctx.from, ctx.to)) {
       events.push({
         id: rowId,
         tracking_id_event: event.tracking_id_event as string | undefined,
@@ -26,11 +38,12 @@ export function fetchExistingEvents(ctx: Ctx): ExistingEvent[] {
         calendar_id: calendarId,
         title: event.title as string | undefined,
         started_at: startedAt,
-        ended_at: event.ended_at as string | undefined,
+        ended_at: endedAt,
         location: event.location as string | undefined,
         meeting_link: event.meeting_link as string | undefined,
         description: event.description as string | undefined,
         note: event.note as string | undefined,
+        recurrence_series_id: event.recurrence_series_id as string | undefined,
       });
     }
   });

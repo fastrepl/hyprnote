@@ -10,7 +10,7 @@ import retextStringify from "retext-stringify";
 import { unified } from "unified";
 import type { VFile } from "vfile";
 
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 
 export function useKeywords(sessionId: string) {
   const vocabsTable = main.UI.useResultTable(

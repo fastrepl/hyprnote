@@ -20,10 +20,10 @@ const _PROVIDERS = [
     disabled: false,
     id: "apple",
     displayName: "Apple",
-    badge: "Almost Done, really",
+    badge: "Beta",
     icon: <Icon icon="logos:apple" width={20} height={20} />,
     platform: "macos",
-    docsPath: "/docs/calendar/apple",
+    docsPath: "https://hyprnote.com/docs/calendar/apple",
   },
   {
     disabled: true,
@@ -32,7 +32,7 @@ const _PROVIDERS = [
     badge: "After Apple Calendar",
     icon: <Icon icon="logos:google-calendar" width={20} height={20} />,
     platform: "all",
-    docsPath: "/docs/calendar/gcal",
+    docsPath: "https://hyprnote.com/docs/calendar/gcal",
   },
   {
     disabled: true,
@@ -41,7 +41,7 @@ const _PROVIDERS = [
     badge: "After Apple Calendar",
     icon: <OutlookIcon size={20} />,
     platform: "all",
-    docsPath: "/docs/calendar/outlook",
+    docsPath: "https://hyprnote.com/docs/calendar/outlook",
   },
 ] as const satisfies readonly CalendarProvider[];
 

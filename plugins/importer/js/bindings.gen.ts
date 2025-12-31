@@ -14,9 +14,9 @@ async listAvailableSources() : Promise<Result<ImportSourceInfo[], string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async runImport(source: ImportSourceKind) : Promise<Result<ImportStats, string>> {
+async runImport(source: ImportSourceKind, userId: string) : Promise<Result<ImportStats, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|run_import", { source }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|run_import", { source, userId }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

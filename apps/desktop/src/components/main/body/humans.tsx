@@ -1,6 +1,6 @@
 import { UserIcon } from "lucide-react";
 
-import * as main from "../../../store/tinybase/main";
+import * as main from "../../../store/tinybase/store/main";
 import { type Tab } from "../../../store/zustand/tabs";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";

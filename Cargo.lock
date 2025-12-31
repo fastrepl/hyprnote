@@ -4693,6 +4693,7 @@ dependencies = [
  "tauri-plugin-notification",
  "tauri-plugin-opener",
  "tauri-plugin-os",
+ "tauri-plugin-overlay",
  "tauri-plugin-path2",
  "tauri-plugin-pdf",
  "tauri-plugin-permissions",
@@ -17587,7 +17588,6 @@ name = "tauri-plugin-export"
 version = "0.1.0"
 dependencies = [
  "criterion",
- "futures-util",
  "insta",
  "markdown",
  "mdast_util_to_markdown",
@@ -17658,6 +17658,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-path2",
+ "tauri-plugin-settings",
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",
@@ -17994,6 +17995,21 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "tauri-plugin-overlay"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -18535,6 +18551,7 @@ version = "0.1.0"
 dependencies = [
  "askama",
  "askama-utils",
+ "chrono",
  "insta",
  "isolang",
  "serde",

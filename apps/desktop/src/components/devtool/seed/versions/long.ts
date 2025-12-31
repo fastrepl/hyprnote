@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker/locale/en";
 import type { Tables } from "tinybase/with-schemas";
 
-import type { Schemas } from "../../../../store/tinybase/main";
-import type { Store as MainStore } from "../../../../store/tinybase/main";
+import type { Schemas } from "../../../../store/tinybase/store/main";
+import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 import type { SeedDefinition } from "../shared";
 import {
   createHuman,
@@ -15,7 +15,7 @@ const buildLongData = (): Tables<Schemas[0]> => {
   faker.seed(789);
 
   const organization = createOrganization();
-  const human = createHuman(organization.id, true);
+  const human = createHuman(organization.id);
   const session = createSession();
 
   const result = generateTranscript({
@@ -43,8 +43,9 @@ export const longSeed: SeedDefinition = {
   id: "long",
   label: "Long",
   calendarFixtureBase: "default",
-  run: (store: MainStore) => {
+  run: async (store: MainStore) => {
     const data = buildLongData();
+    await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {
       store.delTables();
       store.setTables(data);

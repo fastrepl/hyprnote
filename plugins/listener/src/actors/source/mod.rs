@@ -6,7 +6,6 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
     mpsc::{self, Receiver},
 };
-use std::time::Duration;
 
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 use tokio_util::sync::CancellationToken;
@@ -21,9 +20,7 @@ use tauri_specta::Event;
 use pipeline::Pipeline;
 use stream::start_source_loop;
 
-use hypr_device_monitor::{
-    DeviceEvent, DeviceMonitor, DeviceMonitorHandle, DeviceSwitch, DeviceUpdate,
-};
+use hypr_device_monitor::{DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
 
 pub enum SourceMsg {
     SetMicMute(bool),
@@ -66,7 +63,7 @@ struct DeviceChangeWatcher {
 impl DeviceChangeWatcher {
     fn spawn(actor: ActorRef<SourceMsg>) -> Self {
         let (event_tx, event_rx) = mpsc::channel();
-        let handle = DeviceMonitor::spawn(event_tx);
+        let handle = DeviceMonitor::spawn_debounced(event_tx);
         let thread = std::thread::spawn(move || Self::event_loop(event_rx, actor));
 
         Self {
@@ -76,36 +73,16 @@ impl DeviceChangeWatcher {
     }
 
     fn event_loop(event_rx: Receiver<DeviceEvent>, actor: ActorRef<SourceMsg>) {
-        use std::sync::mpsc::RecvTimeoutError;
-
-        let debounce_duration = Duration::from_millis(1000);
-        let mut pending_change = false;
-
         loop {
-            let event = if pending_change {
-                event_rx.recv_timeout(debounce_duration)
-            } else {
-                event_rx.recv().map_err(|_| RecvTimeoutError::Disconnected)
-            };
-
-            match event {
-                Ok(DeviceEvent::Switch(DeviceSwitch::DefaultInputChanged))
-                | Ok(DeviceEvent::Switch(DeviceSwitch::DefaultOutputChanged { .. })) => {
-                    tracing::info!(event = ?event, "device_event");
-                    pending_change = true;
+            match event_rx.recv() {
+                Ok(DeviceEvent::Switch(switch)) => {
+                    tracing::info!(?switch, "device_switch_event_restarting_source");
+                    actor.stop(Some("device_change".to_string()));
                 }
-                Ok(DeviceEvent::Update(DeviceUpdate::VolumeChanged { .. }))
-                | Ok(DeviceEvent::Update(DeviceUpdate::MuteChanged { .. })) => {
+                Ok(DeviceEvent::Update(_)) => {
                     // Volume/mute changes don't require restarting the audio source
                 }
-                Err(RecvTimeoutError::Timeout) => {
-                    if pending_change {
-                        tracing::info!("device_change_debounced_restarting_source");
-                        actor.stop(Some("device_change".to_string()));
-                        pending_change = false;
-                    }
-                }
-                Err(RecvTimeoutError::Disconnected) => break,
+                Err(_) => break,
             }
         }
     }

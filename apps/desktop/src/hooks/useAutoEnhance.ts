@@ -5,7 +5,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { md2json } from "@hypr/tiptap/shared";
 
 import { useListener } from "../contexts/listener";
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 import { createTaskId } from "../store/zustand/ai-task/task-configs";
 import { useTabs } from "../store/zustand/tabs";
 import type { Tab } from "../store/zustand/tabs/schema";

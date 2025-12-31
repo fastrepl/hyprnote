@@ -6,7 +6,7 @@ import { Spinner } from "@hypr/ui/components/ui/spinner";
 
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
-import * as main from "../../../../../store/tinybase/main";
+import * as main from "../../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { RecordingIcon, useListenButtonState } from "../shared";
 import { OptionsMenu } from "./options-menu";

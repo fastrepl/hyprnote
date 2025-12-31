@@ -18,8 +18,8 @@ import {
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
 
-import { createIframeSynchronizer } from "../../../../store/tinybase/iframe-sync";
-import { type Store, STORE_ID } from "../../../../store/tinybase/main";
+import { createIframeSynchronizer } from "../../../../store/tinybase/store/iframe-sync";
+import { type Store, STORE_ID } from "../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";

@@ -20,7 +20,7 @@ import {
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
-import * as settings from "../../../../store/tinybase/settings";
+import * as settings from "../../../../store/tinybase/store/settings";
 import {
   getProviderSelectionBlockers,
   getRequiredConfigFields,

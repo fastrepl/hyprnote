@@ -17,8 +17,8 @@ import {
   EVENT_NOTIFICATION_INTERVAL,
   EVENT_NOTIFICATION_TASK_ID,
 } from "../services/event-notification";
-import * as main from "../store/tinybase/main";
-import * as settings from "../store/tinybase/settings";
+import * as main from "../store/tinybase/store/main";
+import * as settings from "../store/tinybase/store/settings";
 
 const CALENDAR_SYNC_INTERVAL = 60 * 1000; // 60 sec
 

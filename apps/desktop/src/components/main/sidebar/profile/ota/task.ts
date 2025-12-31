@@ -2,7 +2,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { check } from "@tauri-apps/plugin-updater";
 import { useSelector } from "@xstate/store/react";
 
-import { relaunch } from "../../../../../store/tinybase/save";
+import { relaunch } from "../../../../../store/tinybase/store/save";
 import { updateStore } from "./store";
 
 export function useOTA() {

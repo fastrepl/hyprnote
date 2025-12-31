@@ -10,7 +10,7 @@ import {
 } from "@hypr/plugin-listener2";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
 
 export function ExportTranscript({ sessionId }: { sessionId: string }) {
   const store = main.UI.useStore(main.STORE_ID);

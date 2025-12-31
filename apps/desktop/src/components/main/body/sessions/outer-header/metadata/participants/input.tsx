@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAutoCloser } from "../../../../../../../hooks/useAutoCloser";
-import * as main from "../../../../../../../store/tinybase/main";
+import * as main from "../../../../../../../store/tinybase/store/main";
 import { ParticipantChip } from "./chip";
 import { ParticipantDropdown } from "./dropdown";
 

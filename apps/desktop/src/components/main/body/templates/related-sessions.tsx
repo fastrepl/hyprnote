@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { cn, formatDistanceToNow } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 
 export function RelatedSessions({ templateId }: { templateId: string }) {

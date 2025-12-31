@@ -8,8 +8,8 @@ import {
 } from "@hypr/plugin-updater2";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
-import * as main from "../store/tinybase/main";
-import { getOrCreateSessionForEventId } from "../store/tinybase/sessions";
+import * as main from "../store/tinybase/store/main";
+import { getOrCreateSessionForEventId } from "../store/tinybase/store/sessions";
 import { useTabs } from "../store/zustand/tabs";
 
 function useUpdaterEvents() {

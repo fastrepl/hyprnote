@@ -10,9 +10,9 @@ import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
-import { deleteSessionCascade } from "../../../../store/tinybase/deleteSession";
-import * as main from "../../../../store/tinybase/main";
-import { getOrCreateSessionForEventId } from "../../../../store/tinybase/sessions";
+import { deleteSessionCascade } from "../../../../store/tinybase/store/deleteSession";
+import * as main from "../../../../store/tinybase/store/main";
+import { getOrCreateSessionForEventId } from "../../../../store/tinybase/store/sessions";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import {
   type EventTimelineItem,

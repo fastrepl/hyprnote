@@ -1,9 +1,9 @@
 import { createMergeableStore } from "tinybase/with-schemas";
 import { describe, expect, test } from "vitest";
 
-import { settingsToContent, storeToSettings } from "./jsonPersister";
+import { settingsToContent, storeToSettings } from "./settings";
 
-describe("jsonPersister roundtrip", () => {
+describe("settingsPersister roundtrip", () => {
   test("settings -> store -> settings preserves all data", () => {
     const original = {
       ai: {

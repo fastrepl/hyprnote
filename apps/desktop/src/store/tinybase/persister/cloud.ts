@@ -5,8 +5,8 @@ import {
 } from "@electric-sql/client";
 import { useCallback } from "react";
 
-import { useAuth } from "../../auth";
-import * as main from "./main";
+import { useAuth } from "../../../auth";
+import * as main from "../store/main";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 

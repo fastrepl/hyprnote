@@ -6,7 +6,7 @@ import * as tinybaseUiReact from "tinybase/ui-react";
 import * as utils from "@hypr/utils";
 
 import { getUiComponentAlias } from "../../../extensions/shared/runtime";
-import * as main from "./store/tinybase/main";
+import * as main from "./store/tinybase/store/main";
 import { useTabs } from "./store/zustand/tabs";
 
 const rawHyprUiModules = import.meta.glob<Record<string, unknown>>(

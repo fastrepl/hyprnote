@@ -16,7 +16,7 @@ import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { AuthSection } from "./auth";
 import { NotificationsMenuContent } from "./notification";

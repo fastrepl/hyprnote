@@ -9,7 +9,7 @@ import { cn } from "@hypr/utils";
 
 import { localSttQueries } from "../../hooks/useLocalSttModel";
 import { Route } from "../../routes/app/onboarding/_layout.index";
-import * as settings from "../../store/tinybase/settings";
+import * as settings from "../../store/tinybase/store/settings";
 import { getBack, getNext, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 

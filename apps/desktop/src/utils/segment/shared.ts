@@ -1,6 +1,6 @@
 import { Data, Schema } from "effect";
 
-import { type Store } from "../../store/tinybase/main";
+import { type Store } from "../../store/tinybase/store/main";
 
 export enum ChannelProfile {
   DirectMic = 0,

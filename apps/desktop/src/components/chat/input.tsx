@@ -12,7 +12,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../contexts/shell";
-import * as main from "../../store/tinybase/main";
+import * as main from "../../store/tinybase/store/main";
 
 export function ChatMessageInput({
   onSendMessage,

@@ -1,4 +1,4 @@
-import type { Store as MainStore } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 import curatedData from "../data/curated.json";
 import { CuratedDataSchema, loadCuratedData } from "../data/loader";
 import type { SeedDefinition } from "../shared";

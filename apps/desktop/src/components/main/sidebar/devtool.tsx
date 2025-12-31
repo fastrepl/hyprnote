@@ -8,7 +8,7 @@ import { cn } from "@hypr/utils";
 import {
   type Store as MainStore,
   STORE_ID as STORE_ID_PERSISTED,
-} from "../../../store/tinybase/main";
+} from "../../../store/tinybase/store/main";
 import { type SeedDefinition, seeds } from "../../devtool/seed/index";
 
 declare global {

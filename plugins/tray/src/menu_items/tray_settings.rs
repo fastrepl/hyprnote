@@ -101,7 +101,7 @@ impl MenuItemHandler for TraySettingsData {
             let event = OpenTab {
                 tab: TabInput::Data {
                     state: Some(DataState {
-                        tab: Some(DataTab::Export),
+                        tab: Some(DataTab::Import),
                     }),
                 },
             };

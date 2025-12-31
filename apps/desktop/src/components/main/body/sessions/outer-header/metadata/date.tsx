@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
 
 export function DateDisplay({ sessionId }: { sessionId: string }) {
   const createdAt = main.UI.useCell(

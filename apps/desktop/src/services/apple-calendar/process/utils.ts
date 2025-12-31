@@ -1,4 +1,4 @@
-import type { Store } from "../../../store/tinybase/main";
+import type { Store } from "../../../store/tinybase/store/main";
 
 export function isSessionEmpty(store: Store, sessionId: string): boolean {
   const session = store.getRow("sessions", sessionId);

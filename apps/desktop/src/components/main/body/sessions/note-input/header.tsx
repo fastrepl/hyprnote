@@ -25,7 +25,7 @@ import {
   useLanguageModel,
   useLLMConnectionStatus,
 } from "../../../../../hooks/useLLMConnection";
-import * as main from "../../../../../store/tinybase/main";
+import * as main from "../../../../../store/tinybase/store/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";

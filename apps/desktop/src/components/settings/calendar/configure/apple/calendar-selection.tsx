@@ -9,7 +9,7 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../../store/tinybase/main";
+import * as main from "../../../../../store/tinybase/store/main";
 import { findCalendarByTrackingId } from "../../../../../utils/calendar";
 import {
   type CalendarGroup,

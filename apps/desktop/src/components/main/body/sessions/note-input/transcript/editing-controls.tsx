@@ -13,7 +13,7 @@ import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../contexts/listener";
 import { useRunBatch } from "../../../../../../hooks/useRunBatch";
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
 
 export function EditingControls({
   sessionId,

@@ -1,7 +1,7 @@
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
-import { DEFAULT_USER_ID } from "../../utils";
-import { id } from "../../utils";
+import { DEFAULT_USER_ID } from "../../../utils";
+import { id } from "../../../utils";
 import * as main from "./main";
 
 type Store = NonNullable<ReturnType<typeof main.UI.useStore>>;

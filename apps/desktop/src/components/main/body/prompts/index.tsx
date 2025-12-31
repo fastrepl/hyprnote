@@ -7,7 +7,7 @@ import {
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
 
-import type { TaskType } from "../../../../store/tinybase/prompts";
+import type { TaskType } from "../../../../store/tinybase/store/prompts";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";

@@ -15,7 +15,7 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
-import * as settings from "../../../../store/tinybase/settings";
+import * as settings from "../../../../store/tinybase/store/settings";
 import {
   getProviderSelectionBlockers,
   requiresEntitlement,

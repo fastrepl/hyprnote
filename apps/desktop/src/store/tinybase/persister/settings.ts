@@ -13,8 +13,8 @@ import type {
 
 import { commands } from "@hypr/plugin-settings";
 
-import { SETTINGS_MAPPING } from "./settings";
-import { StoreOrMergeableStore } from "./shared";
+import { SETTINGS_MAPPING } from "../store/settings";
+import { StoreOrMergeableStore } from "../store/shared";
 
 type ProviderData = { base_url: string; api_key: string };
 type ProviderRow = { type: "llm" | "stt"; base_url: string; api_key: string };

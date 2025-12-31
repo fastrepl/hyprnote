@@ -27,7 +27,7 @@ import { cn } from "@hypr/utils";
 
 import { fromResult } from "../../../../../effect";
 import { useRunBatch } from "../../../../../hooks/useRunBatch";
-import * as main from "../../../../../store/tinybase/main";
+import * as main from "../../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { ChannelProfile } from "../../../../../utils/segment";
 import { ActionableTooltipContent } from "./shared";

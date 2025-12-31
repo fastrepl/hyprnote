@@ -4,7 +4,7 @@ import { type TiptapEditor } from "@hypr/tiptap/editor";
 
 import { useAITaskTask } from "../../../../../../hooks/useAITaskTask";
 import { useLLMConnectionStatus } from "../../../../../../hooks/useLLMConnection";
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
 import { createTaskId } from "../../../../../../store/zustand/ai-task/task-configs";
 import { ConfigError } from "./config-error";
 import { EnhancedEditor } from "./editor";

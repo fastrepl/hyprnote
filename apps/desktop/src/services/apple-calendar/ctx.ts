@@ -1,6 +1,10 @@
 import type { Queries } from "tinybase/with-schemas";
 
-import { QUERIES, type Schemas, type Store } from "../../store/tinybase/main";
+import {
+  QUERIES,
+  type Schemas,
+  type Store,
+} from "../../store/tinybase/store/main";
 
 // ---
 

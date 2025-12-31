@@ -24,7 +24,7 @@ import {
   type ProviderEligibilityContext,
 } from "../components/settings/ai/shared/eligibility";
 import { env } from "../env";
-import * as settings from "../store/tinybase/settings";
+import * as settings from "../store/tinybase/store/settings";
 import { tracedFetch } from "../utils/traced-fetch";
 
 type LLMConnectionInfo = {

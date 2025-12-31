@@ -10,7 +10,7 @@ import {
 } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
 import { DateDisplay } from "./date";
 import { ParticipantsDisplay } from "./participants";
 

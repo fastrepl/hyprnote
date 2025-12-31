@@ -11,7 +11,7 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { ResourceListLayout, useWebResources } from "../resource-list";

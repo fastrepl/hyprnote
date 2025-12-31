@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useRef } from "react";
 
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { type Tab } from "../../../../store/zustand/tabs";
 
 export const TitleInput = forwardRef<

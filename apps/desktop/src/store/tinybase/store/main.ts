@@ -17,10 +17,10 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { SCHEMA, type Schemas } from "@hypr/store";
 import { format } from "@hypr/utils";
 
-import { DEFAULT_USER_ID } from "../../utils";
+import { DEFAULT_USER_ID } from "../../../utils";
+import { createLocalPersister } from "../persister/local";
+import { createNotePersister } from "../persister/note";
 import { maybeImportFromJson } from "./importer";
-import { createLocalPersister } from "./localPersister";
-import { createLocalPersister2 } from "./localPersister2";
 import { registerSaveHandler } from "./save";
 import * as settings from "./settings";
 
@@ -143,7 +143,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     [persist],
   );
 
-  const localPersister2 = useCreatePersister(
+  const markdownPersister = useCreatePersister(
     store,
     async (store) => {
       if (!persist) {
@@ -165,13 +165,12 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         throw error;
       }
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store as Store,
-        (sessionId, content) =>
+        (sessionId: string, content: string) =>
           store.setPartialRow("sessions", sessionId, {
             enhanced_md: content,
           }),
-        { notes: () => settingsStore?.getValue("auto_export") === true },
       );
 
       return persister;
@@ -180,7 +179,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   );
 
   useEffect(() => {
-    if (!persist || !localPersister || !localPersister2) {
+    if (!persist || !localPersister || !markdownPersister) {
       return;
     }
 
@@ -194,10 +193,12 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     const register = async () => {
       unlistenClose = await listen(
         TauriEvent.WINDOW_CLOSE_REQUESTED,
-        // We call prevent_close in the rust side
         async () => {
           try {
-            await Promise.all([localPersister2.save(), localPersister.save()]);
+            await Promise.all([
+              markdownPersister.save(),
+              localPersister.save(),
+            ]);
           } catch (error) {
             console.error(error);
           }
@@ -209,7 +210,10 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         TauriEvent.WINDOW_BLUR,
         async () => {
           try {
-            await Promise.all([localPersister2.save(), localPersister.save()]);
+            await Promise.all([
+              markdownPersister.save(),
+              localPersister.save(),
+            ]);
           } catch (error) {
             console.error(error);
           }
@@ -224,10 +228,10 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
       unlistenBlur?.();
       unlistenClose?.();
     };
-  }, [localPersister, localPersister2, persist]);
+  }, [localPersister, markdownPersister, persist]);
 
   useEffect(() => {
-    if (!persist || !localPersister || !localPersister2) {
+    if (!persist || !localPersister || !markdownPersister) {
       return;
     }
 
@@ -236,9 +240,9 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     }
 
     return registerSaveHandler(async () => {
-      await Promise.all([localPersister2.save(), localPersister.save()]);
+      await Promise.all([markdownPersister.save(), localPersister.save()]);
     });
-  }, [localPersister, localPersister2, persist]);
+  }, [localPersister, markdownPersister, persist]);
 
   const synchronizer = useCreateSynchronizer(store, async (store) =>
     createBroadcastChannelSynchronizer(
@@ -562,7 +566,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
   useProvidePersister(STORE_ID, persist ? localPersister : undefined);
-  useProvidePersister("TODO", persist ? localPersister2 : undefined);
+  useProvidePersister("markdown", persist ? markdownPersister : undefined);
   useProvideSynchronizer(STORE_ID, synchronizer);
   useProvideCheckpoints(STORE_ID, checkpoints!);
 

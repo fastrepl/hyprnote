@@ -10,7 +10,7 @@ import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useStartListening } from "../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import {
   rowIdfromTab,
   type Tab,

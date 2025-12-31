@@ -20,7 +20,7 @@ import { cn } from "@hypr/utils";
 import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
 import { useLocalModelDownload } from "../../../../hooks/useLocalSttModel";
-import * as settings from "../../../../store/tinybase/settings";
+import * as settings from "../../../../store/tinybase/store/settings";
 import { NonHyprProviderCard, StyledStreamdown } from "../shared";
 import { ProviderId, PROVIDERS } from "./shared";
 

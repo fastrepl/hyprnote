@@ -1,5 +1,5 @@
 import { useListener } from "../contexts/listener";
-import * as settings from "../store/tinybase/settings";
+import * as settings from "../store/tinybase/store/settings";
 import { CONFIG_REGISTRY, type ConfigKey } from "./registry";
 
 type ConfigValueType<K extends ConfigKey> =

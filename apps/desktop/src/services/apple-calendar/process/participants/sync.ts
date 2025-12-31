@@ -1,4 +1,4 @@
-import type { Store } from "../../../../store/tinybase/main";
+import type { Store } from "../../../../store/tinybase/store/main";
 import { id } from "../../../../utils";
 import type { Ctx } from "../../ctx";
 import type { EventParticipant } from "../../fetch/types";

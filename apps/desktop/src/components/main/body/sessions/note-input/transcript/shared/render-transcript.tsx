@@ -2,7 +2,7 @@ import { memo, useEffect, useMemo } from "react";
 
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../../../../store/tinybase/main";
+import * as main from "../../../../../../../store/tinybase/store/main";
 import {
   PartialWord,
   RuntimeSpeakerHint,

@@ -10,7 +10,7 @@ import type {
   TemplateStorage,
 } from "@hypr/store";
 
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 
 export function useSession(sessionId: string) {
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);

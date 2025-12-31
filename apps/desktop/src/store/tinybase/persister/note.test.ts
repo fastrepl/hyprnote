@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { SCHEMA, type Schemas } from "@hypr/store";
 
-import { createLocalPersister2 } from "./localPersister2";
+import { createNotePersister } from "./note";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {
@@ -30,7 +30,7 @@ function createTestStore() {
     .setValuesSchema(SCHEMA.value);
 }
 
-describe("createLocalPersister2", () => {
+describe("createNotePersister", () => {
   let store: ReturnType<typeof createTestStore>;
   let handleSyncToSession: ReturnType<typeof vi.fn>;
 
@@ -41,10 +41,7 @@ describe("createLocalPersister2", () => {
   });
 
   test("returns a persister object with expected methods", () => {
-    const persister = createLocalPersister2<Schemas>(
-      store,
-      handleSyncToSession,
-    );
+    const persister = createNotePersister<Schemas>(store, handleSyncToSession);
 
     expect(persister).toBeDefined();
     expect(persister.save).toBeTypeOf("function");
@@ -53,10 +50,7 @@ describe("createLocalPersister2", () => {
   });
 
   test("load returns undefined (no-op)", async () => {
-    const persister = createLocalPersister2<Schemas>(
-      store,
-      handleSyncToSession,
-    );
+    const persister = createNotePersister<Schemas>(store, handleSyncToSession);
 
     const result = await persister.load();
     expect(result).toBe(persister);
@@ -84,7 +78,7 @@ describe("createLocalPersister2", () => {
         sections: "[]",
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -111,7 +105,7 @@ describe("createLocalPersister2", () => {
         position: 0,
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -135,7 +129,7 @@ describe("createLocalPersister2", () => {
         position: 0,
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -166,7 +160,7 @@ describe("createLocalPersister2", () => {
         sections: "[]",
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -195,7 +189,7 @@ describe("createLocalPersister2", () => {
         sections: "[]",
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -222,7 +216,7 @@ describe("createLocalPersister2", () => {
         position: 0,
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -263,7 +257,7 @@ describe("createLocalPersister2", () => {
         sections: "[]",
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -288,7 +282,7 @@ describe("createLocalPersister2", () => {
         enhanced_md: "",
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -314,7 +308,7 @@ describe("createLocalPersister2", () => {
         enhanced_md: "",
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -336,7 +330,7 @@ describe("createLocalPersister2", () => {
         position: 0,
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -360,7 +354,7 @@ describe("createLocalPersister2", () => {
         position: 0,
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
       );
@@ -370,7 +364,7 @@ describe("createLocalPersister2", () => {
       expect(commands.exportTiptapJsonToMdBatch).not.toHaveBeenCalled();
     });
 
-    test("skips when isEnabled.notes returns false", async () => {
+    test("skips when isEnabled returns false", async () => {
       const { commands } = await import("@hypr/plugin-export");
 
       store.setRow("enhanced_notes", "note-1", {
@@ -381,10 +375,9 @@ describe("createLocalPersister2", () => {
         position: 0,
       });
 
-      const persister = createLocalPersister2<Schemas>(
+      const persister = createNotePersister<Schemas>(
         store,
         handleSyncToSession,
-        { notes: () => false },
       );
 
       await persister.save();

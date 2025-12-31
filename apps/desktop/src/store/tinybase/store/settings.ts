@@ -14,7 +14,7 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import {
   createSettingsPersister,
   migrateKeysJsonToSettings,
-} from "./jsonPersister";
+} from "../persister/settings";
 import * as main from "./main";
 import { registerSaveHandler } from "./save";
 
@@ -68,10 +68,6 @@ export const SETTINGS_MAPPING = {
     current_stt_model: {
       type: "string",
       path: ["ai", "current_stt_model"],
-    },
-    auto_export: {
-      type: "boolean",
-      path: ["data", "auto_export"],
     },
   },
   tables: {

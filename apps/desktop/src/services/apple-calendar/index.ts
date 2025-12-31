@@ -1,6 +1,6 @@
 import type { Queries } from "tinybase/with-schemas";
 
-import type { Schemas, Store } from "../../store/tinybase/main";
+import type { Schemas, Store } from "../../store/tinybase/store/main";
 import { createCtx } from "./ctx";
 import { fetchExistingEvents, fetchIncomingEvents } from "./fetch";
 import {

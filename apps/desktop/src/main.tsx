@@ -16,8 +16,8 @@ import {
 } from "@hypr/plugin-windows";
 import "@hypr/ui/globals.css";
 
-import { ChangelogListener } from "./components/changelog-listener";
 import { ErrorComponent, NotFoundComponent } from "./components/control";
+import { EventListeners } from "./components/event-listeners";
 import { TaskManager } from "./components/task-manager";
 import { createToolRegistry } from "./contexts/tool-registry/core";
 import { env } from "./env";
@@ -110,7 +110,7 @@ function AppWithTiny() {
           <StoreComponent persist={isMainWindow} />
           <SettingsStoreComponent persist={isMainWindow} />
           {!isIframeContext && <TaskManager />}
-          {!isIframeContext && <ChangelogListener />}
+          {!isIframeContext && <EventListeners />}
         </TinyBaseProvider>
       </TinyTickProvider>
     </QueryClientProvider>

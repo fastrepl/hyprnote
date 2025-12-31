@@ -7,7 +7,6 @@ use ext::*;
 use store::*;
 
 use tauri_plugin_permissions::{Permission, PermissionsPluginExt};
-use tauri_plugin_updater2::Updater2PluginExt;
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
@@ -183,7 +182,6 @@ pub async fn main() {
             }
 
             specta_builder.mount_events(&app_handle);
-            app_handle.updater2().maybe_emit_updated();
 
             Ok(())
         })

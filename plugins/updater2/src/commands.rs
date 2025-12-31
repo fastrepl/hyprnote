@@ -31,3 +31,9 @@ pub(crate) async fn install<R: tauri::Runtime>(
         .await
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn maybe_emit_updated<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
+    app.updater2().maybe_emit_updated();
+}

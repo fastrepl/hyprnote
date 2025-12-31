@@ -17,7 +17,10 @@ export function Toast({
         className={cn([
           "relative group overflow-hidden rounded-lg",
           "flex flex-col gap-2",
-          "bg-white border border-neutral-200 shadow-sm p-4",
+          "bg-white p-4",
+          toast.variant === "error"
+            ? "border border-red-300 shadow-sm shadow-red-200"
+            : "border border-neutral-200 shadow-sm",
         ])}
       >
         {toast.dismissible && onDismiss && (

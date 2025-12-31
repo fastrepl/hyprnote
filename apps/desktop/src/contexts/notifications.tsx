@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   createContext,
   type ReactNode,
@@ -8,7 +9,9 @@ import {
 } from "react";
 
 import {
+  commands as localSttCommands,
   events as localSttEvents,
+  type ServerStatus,
   type SupportedSttModel,
 } from "@hypr/plugin-local-stt";
 
@@ -23,6 +26,8 @@ interface NotificationState {
   downloadingModel: string | null;
   notificationCount: number;
   shouldShowBadge: boolean;
+  localSttStatus: ServerStatus | null;
+  isLocalSttModel: boolean;
 }
 
 const NotificationContext = createContext<NotificationState | null>(null);
@@ -53,6 +58,33 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     !current_stt_model ||
     !current_llm_provider ||
     !current_llm_model;
+
+  const sttModel = current_stt_model as string | undefined;
+  const isLocalSttModel =
+    current_stt_provider === "hyprnote" &&
+    !!sttModel &&
+    (sttModel.startsWith("am-") || sttModel.startsWith("Quantized"));
+
+  const localSttQuery = useQuery({
+    enabled: isLocalSttModel,
+    queryKey: ["local-stt-status", sttModel],
+    refetchInterval: 1000,
+    queryFn: async () => {
+      if (!sttModel) return null;
+
+      const servers = await localSttCommands.getServers();
+      if (servers.status !== "ok") return null;
+
+      const isInternalModel = sttModel.startsWith("Quantized");
+      const server = isInternalModel
+        ? servers.data.internal
+        : servers.data.external;
+
+      return server?.status ?? null;
+    },
+  });
+
+  const localSttStatus = isLocalSttModel ? (localSttQuery.data ?? null) : null;
 
   const [downloadingModel, setDownloadingModel] =
     useState<SupportedSttModel | null>(null);
@@ -105,6 +137,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         : null,
       notificationCount,
       shouldShowBadge: notificationCount > 0,
+      localSttStatus,
+      isLocalSttModel,
     };
   }, [
     hasConfigBanner,
@@ -112,6 +146,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     downloadingModel,
     downloadProgress,
     isAiTab,
+    localSttStatus,
+    isLocalSttModel,
   ]);
 
   return (

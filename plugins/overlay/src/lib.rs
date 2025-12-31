@@ -3,10 +3,9 @@ mod ext;
 
 pub use ext::*;
 
-use once_cell::sync::Lazy;
-use std::{collections::HashMap, sync::Arc, sync::Mutex};
+use std::{collections::HashMap, sync::Arc};
 use tauri::{AppHandle, Manager, WebviewWindow};
-use tokio::{sync::RwLock, time::sleep};
+use tokio::{sync::RwLock, task::JoinHandle, time::sleep};
 
 #[derive(Debug, Default, serde::Serialize, serde::Deserialize, specta::Type, Clone, Copy)]
 pub struct OverlayBound {
@@ -24,27 +23,52 @@ impl Default for FakeWindowBounds {
     }
 }
 
-static OVERLAY_JOIN_HANDLE: Lazy<Mutex<Option<tokio::task::JoinHandle<()>>>> =
-    Lazy::new(|| Mutex::new(None));
+pub struct OverlayListenerHandles(pub Arc<RwLock<HashMap<String, JoinHandle<()>>>>);
 
-pub fn abort_overlay_join_handle() {
-    if let Ok(mut guard) = OVERLAY_JOIN_HANDLE.lock()
-        && let Some(handle) = guard.take()
-    {
+impl Default for OverlayListenerHandles {
+    fn default() -> Self {
+        Self(Arc::new(RwLock::new(HashMap::new())))
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct OverlayOptions {
+    pub steal_focus: bool,
+}
+
+impl Default for OverlayOptions {
+    fn default() -> Self {
+        Self { steal_focus: false }
+    }
+}
+
+pub async fn abort_overlay_listener(app: &AppHandle, window_label: &str) {
+    let handles = app.state::<OverlayListenerHandles>();
+    let mut handles_map = handles.0.write().await;
+    if let Some(handle) = handles_map.remove(window_label) {
         handle.abort();
     }
 }
 
-pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) {
+pub async fn spawn_overlay_listener(
+    app: AppHandle,
+    window: WebviewWindow,
+    options: OverlayOptions,
+) {
+    let window_label = window.label().to_string();
+
+    abort_overlay_listener(&app, &window_label).await;
+
     window.set_ignore_cursor_events(true).ok();
 
+    let app_clone = app.clone();
     let handle = tokio::spawn(async move {
-        let state = app.state::<FakeWindowBounds>();
+        let state = app_clone.state::<FakeWindowBounds>();
         let mut last_ignore_state = true;
         let mut last_focus_state = false;
 
         loop {
-            sleep(std::time::Duration::from_millis(1000 / 10)).await;
+            sleep(std::time::Duration::from_millis(1000 / 20)).await;
 
             let map = state.0.read().await;
 
@@ -103,23 +127,22 @@ pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) {
                 last_ignore_state = ignore;
             }
 
-            let focused = window.is_focused().unwrap_or(false);
-            if !ignore && !focused {
-                if !last_focus_state && window.set_focus().is_ok() {
-                    last_focus_state = true;
+            if options.steal_focus {
+                let focused = window.is_focused().unwrap_or(false);
+                if !ignore && !focused {
+                    if !last_focus_state && window.set_focus().is_ok() {
+                        last_focus_state = true;
+                    }
+                } else if ignore || focused {
+                    last_focus_state = false;
                 }
-            } else if ignore || focused {
-                last_focus_state = false;
             }
         }
     });
 
-    if let Ok(mut guard) = OVERLAY_JOIN_HANDLE.lock() {
-        if let Some(old_handle) = guard.take() {
-            old_handle.abort();
-        }
-        *guard = Some(handle);
-    }
+    let handles = app.state::<OverlayListenerHandles>();
+    let mut handles_map = handles.0.write().await;
+    handles_map.insert(window_label, handle);
 }
 
 const PLUGIN_NAME: &str = "overlay";
@@ -140,8 +163,8 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _api| {
-            let fake_bounds_state = FakeWindowBounds::default();
-            app.manage(fake_bounds_state);
+            app.manage(FakeWindowBounds::default());
+            app.manage(OverlayListenerHandles::default());
             Ok(())
         })
         .build()

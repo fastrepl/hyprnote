@@ -133,6 +133,9 @@ impl WindowImpl for AppWindow {
                     .window_builder(app, "/app/control")
                     .transparent(true)
                     .resizable(true)
+                    .always_on_top(true)
+                    .skip_taskbar(true)
+                    .visible_on_all_workspaces(true)
                     .min_inner_size(300.0, 200.0)
                     .build()?;
 

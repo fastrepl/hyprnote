@@ -66,11 +66,27 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
   const activeTab = tab.state.tab ?? "transcription";
   const { ref, atStart, atEnd } = useScrollFade<HTMLDivElement>([activeTab]);
 
+  const scrollPositions = useRef<Record<AITabKey, number>>({
+    transcription: 0,
+    intelligence: 0,
+  });
+  const previousTab = useRef<AITabKey>(activeTab);
+
+  useEffect(() => {
+    if (previousTab.current !== activeTab && ref.current) {
+      ref.current.scrollTop = scrollPositions.current[activeTab];
+    }
+    previousTab.current = activeTab;
+  }, [activeTab, ref]);
+
   const setActiveTab = useCallback(
     (newTab: AITabKey) => {
+      if (ref.current) {
+        scrollPositions.current[activeTab] = ref.current.scrollTop;
+      }
       updateAiTabState(tab, { tab: newTab });
     },
-    [updateAiTabState, tab],
+    [updateAiTabState, tab, activeTab, ref],
   );
 
   return (

@@ -21,9 +21,9 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import { maybeImportFromJson } from "../../../store/tinybase/importer";
-import * as main from "../../../store/tinybase/main";
-import { save } from "../../../store/tinybase/save";
+import { maybeImportFromJson } from "../../../store/tinybase/store/importer";
+import * as main from "../../../store/tinybase/store/main";
+import { save } from "../../../store/tinybase/store/save";
 
 type DryRunResult = {
   source: ImportSourceKind;

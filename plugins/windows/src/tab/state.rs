@@ -81,11 +81,9 @@ crate::common_derives! {
 crate::common_derives! {
     #[derive(Default)]
     pub enum DataTab {
+        #[default]
         #[serde(rename = "import")]
         Import,
-        #[default]
-        #[serde(rename = "export")]
-        Export,
     }
 }
 

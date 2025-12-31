@@ -1,6 +1,6 @@
 import type { ServerStatus } from "@hypr/plugin-local-stt";
 
-import type { ToastCondition, ToastType } from "./types";
+import type { DownloadProgress, ToastCondition, ToastType } from "./types";
 
 type ToastRegistryEntry = {
   toast: ToastType;
@@ -16,6 +16,7 @@ type ToastRegistryParams = {
   hasActiveDownload: boolean;
   downloadProgress: number | null;
   downloadingModel: string | null;
+  activeDownloads: DownloadProgress[];
   localSttStatus: ServerStatus | null;
   isLocalSttModel: boolean;
   onSignIn: () => void | Promise<void>;
@@ -32,21 +33,29 @@ export function createToastRegistry({
   hasActiveDownload,
   downloadProgress,
   downloadingModel,
+  activeDownloads,
   localSttStatus,
   isLocalSttModel,
   onSignIn,
   onOpenLLMSettings,
   onOpenSTTSettings,
 }: ToastRegistryParams): ToastRegistryEntry[] {
+  const downloadTitle =
+    activeDownloads.length === 1
+      ? `Downloading ${downloadingModel}`
+      : `Downloading ${activeDownloads.length} models`;
+
   // order matters
   return [
     {
       toast: {
         id: "downloading-model",
-        title: `Downloading ${downloadingModel}`,
+        title: downloadTitle,
         description: "This may take a few minutes",
         dismissible: false,
-        progress: downloadProgress ?? 0,
+        progress:
+          activeDownloads.length === 1 ? (downloadProgress ?? 0) : undefined,
+        downloads: activeDownloads.length > 1 ? activeDownloads : undefined,
       },
       condition: () => hasActiveDownload,
     },

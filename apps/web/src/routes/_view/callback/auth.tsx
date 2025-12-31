@@ -10,7 +10,7 @@ import { getSupabaseServerClient } from "@/functions/supabase";
 const validateSearch = z.object({
   code: z.string().optional(),
   token_hash: z.string().optional(),
-  type: z.enum(["email", "magiclink"]).optional(),
+  type: z.literal("email").optional(),
   flow: z.enum(["desktop", "web"]).default("desktop"),
   scheme: z.string().default("hyprnote"),
   redirect: z.string().optional(),

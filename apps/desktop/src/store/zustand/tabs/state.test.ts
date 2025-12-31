@@ -114,7 +114,9 @@ describe("State Updater Actions", () => {
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
-      expect(state.tabs[1]).toMatchObject({ state: { view: null, autoStart: null } });
+      expect(state.tabs[1]).toMatchObject({
+        state: { view: null, autoStart: null },
+      });
       expect(useTabs.getState()).toHaveLastHistoryEntry({
         id: session.id,
       });

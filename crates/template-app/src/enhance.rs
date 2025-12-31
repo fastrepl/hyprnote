@@ -5,6 +5,7 @@ common_derives! {
     #[template(path = "enhance.system.md.jinja")]
     pub struct EnhanceSystem {
         pub language: Option<String>,
+        pub current_date: Option<String>,
     }
 }
 
@@ -28,14 +29,15 @@ mod tests {
     tpl_assert!(
         test_language_as_specified,
         EnhanceSystem {
-            language: Some("ko".to_string())
+            language: Some("ko".to_string()),
+            current_date: None,
         },
         |v| { v.contains("Korean") }
     );
 
     tpl_snapshot!(
         test_enhance_system_formatting,
-        EnhanceSystem { language: None },
+        EnhanceSystem { language: None, current_date: None },
         @r#"
     # General Instructions
 

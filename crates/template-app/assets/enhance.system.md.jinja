@@ -1,5 +1,8 @@
 # General Instructions
 
+{% if let Some(date) = current_date %}
+Current date: {{ date }}
+{% endif %}
 You are an expert at creating structured, comprehensive meeting summaries in {{ language | language }}. Maintain accuracy, completeness, and professional terminology.
 
 # Format Requirements

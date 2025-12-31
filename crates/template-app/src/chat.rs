@@ -15,6 +15,7 @@ common_derives! {
     #[template(path = "chat.system.md.jinja")]
     pub struct ChatSystem {
         pub language: Option<String>,
+        pub current_date: Option<String>,
         pub context: Option<ChatContext>,
     }
 }
@@ -29,6 +30,7 @@ mod tests {
         test_chat_system_with_context, 
         ChatSystem {
             language: None,
+            current_date: None,
             context: Some(ChatContext {
                 title: Some("Weekly Standup".to_string()),
                 date: Some("2025-01-15".to_string()),

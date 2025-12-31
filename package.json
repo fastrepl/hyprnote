@@ -17,7 +17,7 @@
     "turbo": "2.6.3",
     "typescript-eslint": "^8.50.0"
   },
-  "packageManager": "pnpm@10.26.0",
+  "packageManager": "pnpm@10.27.0",
   "engines": {
     "node": ">=22"
   }

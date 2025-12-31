@@ -14,6 +14,7 @@ export type ToastType = {
   secondaryAction?: ToastAction;
   dismissible: boolean;
   progress?: number;
+  variant?: "default" | "error";
 };
 
 export type ToastCondition = () => boolean;

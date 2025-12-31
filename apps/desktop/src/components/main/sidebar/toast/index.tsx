@@ -19,8 +19,13 @@ export function ToastArea({
   const auth = useAuth();
   const { dismissToast, isDismissed } = useDismissedToasts();
   const shouldShowToast = useShouldShowToast(isProfileExpanded);
-  const { hasActiveDownload, downloadProgress, downloadingModel } =
-    useNotifications();
+  const {
+    hasActiveDownload,
+    downloadProgress,
+    downloadingModel,
+    localSttStatus,
+    isLocalSttModel,
+  } = useNotifications();
 
   const isAuthenticated = !!auth?.session;
   const {
@@ -80,6 +85,8 @@ export function ToastArea({
         hasActiveDownload,
         downloadProgress,
         downloadingModel,
+        localSttStatus,
+        isLocalSttModel,
         onSignIn: handleSignIn,
         onOpenLLMSettings: handleOpenLLMSettings,
         onOpenSTTSettings: handleOpenSTTSettings,
@@ -93,6 +100,8 @@ export function ToastArea({
       hasActiveDownload,
       downloadProgress,
       downloadingModel,
+      localSttStatus,
+      isLocalSttModel,
       handleSignIn,
       handleOpenLLMSettings,
       handleOpenSTTSettings,

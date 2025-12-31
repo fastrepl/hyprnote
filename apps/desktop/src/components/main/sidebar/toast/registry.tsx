@@ -1,3 +1,5 @@
+import type { ServerStatus } from "@hypr/plugin-local-stt";
+
 import type { ToastCondition, ToastType } from "./types";
 
 type ToastRegistryEntry = {
@@ -14,6 +16,8 @@ type ToastRegistryParams = {
   hasActiveDownload: boolean;
   downloadProgress: number | null;
   downloadingModel: string | null;
+  localSttStatus: ServerStatus | null;
+  isLocalSttModel: boolean;
   onSignIn: () => void | Promise<void>;
   onOpenLLMSettings: () => void;
   onOpenSTTSettings: () => void;
@@ -28,6 +32,8 @@ export function createToastRegistry({
   hasActiveDownload,
   downloadProgress,
   downloadingModel,
+  localSttStatus,
+  isLocalSttModel,
   onSignIn,
   onOpenLLMSettings,
   onOpenSTTSettings,
@@ -43,6 +49,38 @@ export function createToastRegistry({
         progress: downloadProgress ?? 0,
       },
       condition: () => hasActiveDownload,
+    },
+    {
+      toast: {
+        id: "local-stt-loading",
+        title: "Starting local transcription",
+        description: "The local speech-to-text model is starting up...",
+        dismissible: false,
+      },
+      condition: () =>
+        isLocalSttModel && localSttStatus === "loading" && !hasActiveDownload,
+    },
+    {
+      toast: {
+        id: "local-stt-unreachable",
+        description: (
+          <>
+            <strong className="text-red-600">Could not connect</strong> to the
+            local speech-to-text model. Please check your settings.
+          </>
+        ),
+        primaryAction: {
+          label: "Check settings",
+          onClick: onOpenSTTSettings,
+        },
+        dismissible: true,
+        variant: "error",
+      },
+      condition: () =>
+        isLocalSttModel &&
+        localSttStatus === "unreachable" &&
+        !hasActiveDownload &&
+        !isAiTranscriptionTabActive,
     },
     {
       toast: {

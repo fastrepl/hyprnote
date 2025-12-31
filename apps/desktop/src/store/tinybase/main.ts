@@ -13,7 +13,6 @@ import {
   type MergeableStore,
 } from "tinybase/with-schemas";
 
-import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { SCHEMA, type Schemas } from "@hypr/store";
 import { format } from "@hypr/utils";
@@ -253,12 +252,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     (store) =>
       createRelationships(store)
         .setRelationshipDefinition(
-          RELATIONSHIPS.sessionHuman,
-          TABLE_SESSIONS,
-          TABLE_HUMANS,
-          "user_id",
-        )
-        .setRelationshipDefinition(
           RELATIONSHIPS.sessionToFolder,
           "sessions",
           "folders",
@@ -275,66 +268,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           "folders",
           "folders",
           "parent_folder_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.transcriptToSession,
-          "transcripts",
-          "sessions",
-          "session_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.wordToTranscript,
-          "words",
-          "transcripts",
-          "transcript_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.speakerHintToTranscript,
-          "speaker_hints",
-          "transcripts",
-          "transcript_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.speakerHintToWord,
-          "speaker_hints",
-          "words",
-          "word_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.sessionParticipantToHuman,
-          "mapping_session_participant",
-          "humans",
-          "human_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.sessionParticipantToSession,
-          "mapping_session_participant",
-          "sessions",
-          "session_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.eventToCalendar,
-          "events",
-          "calendars",
-          "calendar_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.tagSessionToTag,
-          "mapping_tag_session",
-          "tags",
-          "tag_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.tagSessionToSession,
-          "mapping_tag_session",
-          "sessions",
-          "session_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.chatMessageToGroup,
-          "chat_messages",
-          "chat_groups",
-          "chat_group_id",
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.enhancedNoteToSession,
@@ -515,12 +448,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         "session_id",
         "created_at",
       )
-      .setIndexDefinition(
-        INDEXES.wordsByTranscript,
-        "words",
-        "transcript_id",
-        "start_ms",
-      )
+      .setIndexDefinition(INDEXES.wordsByTranscript, "words", "transcript_id")
       .setIndexDefinition(
         INDEXES.speakerHintsByTranscript,
         "speaker_hints",
@@ -531,12 +459,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         INDEXES.speakerHintsByWord,
         "speaker_hints",
         "word_id",
-      )
-      .setIndexDefinition(
-        INDEXES.eventsByCalendar,
-        "events",
-        "calendar_id",
-        "started_at",
       )
       .setIndexDefinition(
         INDEXES.eventsByDate,
@@ -588,16 +510,10 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         "event_id",
         "created_at",
       )
-      .setIndexDefinition(INDEXES.tagsByName, "tags", "name")
       .setIndexDefinition(
         INDEXES.tagSessionsBySession,
         "mapping_tag_session",
         "session_id",
-      )
-      .setIndexDefinition(
-        INDEXES.tagSessionsByTag,
-        "mapping_tag_session",
-        "tag_id",
       )
       .setIndexDefinition(
         INDEXES.chatMessagesByGroup,
@@ -684,13 +600,10 @@ export const INDEXES = {
   wordsByTranscript: "wordsByTranscript",
   speakerHintsByTranscript: "speakerHintsByTranscript",
   speakerHintsByWord: "speakerHintsByWord",
-  eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",
   sessionByDateWithoutEvent: "sessionByDateWithoutEvent",
   sessionsByEvent: "sessionsByEvent",
-  tagsByName: "tagsByName",
   tagSessionsBySession: "tagSessionsBySession",
-  tagSessionsByTag: "tagSessionsByTag",
   chatMessagesByGroup: "chatMessagesByGroup",
   sessionsByHuman: "sessionsByHuman",
   enhancedNotesBySession: "enhancedNotesBySession",
@@ -698,19 +611,8 @@ export const INDEXES = {
 };
 
 export const RELATIONSHIPS = {
-  sessionHuman: "sessionHuman",
   sessionToFolder: "sessionToFolder",
   sessionToEvent: "sessionToEvent",
   folderToParentFolder: "folderToParentFolder",
-  transcriptToSession: "transcriptToSession",
-  wordToTranscript: "wordToTranscript",
-  speakerHintToTranscript: "speakerHintToTranscript",
-  speakerHintToWord: "speakerHintToWord",
-  sessionParticipantToHuman: "sessionParticipantToHuman",
-  sessionParticipantToSession: "sessionParticipantToSession",
-  eventToCalendar: "eventToCalendar",
-  tagSessionToTag: "tagSessionToTag",
-  tagSessionToSession: "tagSessionToSession",
-  chatMessageToGroup: "chatMessageToGroup",
   enhancedNoteToSession: "enhancedNoteToSession",
 };

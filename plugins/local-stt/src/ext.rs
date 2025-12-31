@@ -379,6 +379,24 @@ impl<'a, R: Runtime, M: Manager<R>> LocalStt<'a, R, M> {
         if let Some((task, token)) = existing {
             token.cancel();
             let _ = task.await;
+
+            match &model {
+                SupportedSttModel::Am(m) => {
+                    let tar_path = self.models_dir().join(format!("{}.tar", m.model_dir()));
+                    let _ = std::fs::remove_file(&tar_path);
+                }
+                SupportedSttModel::Whisper(m) => {
+                    let model_path = self.models_dir().join(m.file_name());
+                    let _ = std::fs::remove_file(&model_path);
+                }
+            }
+
+            let _ = DownloadProgressPayload {
+                model,
+                progress: 100,
+            }
+            .emit(self.manager.app_handle());
+
             true
         } else {
             false

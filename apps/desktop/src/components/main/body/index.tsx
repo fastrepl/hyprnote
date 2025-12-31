@@ -6,7 +6,15 @@ import {
   PlusIcon,
 } from "lucide-react";
 import { Reorder } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useResizeObserver } from "usehooks-ts";
 import { useShallow } from "zustand/shallow";
@@ -49,6 +57,19 @@ import { TabContentSettings, TabItemSettings } from "./settings";
 import { TabContentTemplate, TabItemTemplate } from "./templates";
 import { Update } from "./update";
 
+type ScrollPositionContextType = {
+  saveScrollPosition: (tabId: string, scrollTop: number) => void;
+  getScrollPosition: (tabId: string) => number;
+};
+
+const ScrollPositionContext = createContext<ScrollPositionContextType | null>(
+  null,
+);
+
+export function useScrollPosition() {
+  return useContext(ScrollPositionContext);
+}
+
 export function Body() {
   const { tabs, currentTab } = useTabs(
     useShallow((state) => ({
@@ -56,6 +77,52 @@ export function Body() {
       currentTab: state.currentTab,
     })),
   );
+
+  const scrollPositionsRef = useRef<Map<string, number>>(new Map());
+  const contentContainerRef = useRef<HTMLDivElement>(null);
+  const previousTabIdRef = useRef<string | null>(null);
+
+  const saveScrollPosition = useCallback((tabId: string, scrollTop: number) => {
+    scrollPositionsRef.current.set(tabId, scrollTop);
+  }, []);
+
+  const getScrollPosition = useCallback((tabId: string) => {
+    return scrollPositionsRef.current.get(tabId) ?? 0;
+  }, []);
+
+  useEffect(() => {
+    if (!currentTab) return;
+
+    const currentTabId = uniqueIdfromTab(currentTab);
+    const container = contentContainerRef.current;
+
+    if (
+      previousTabIdRef.current &&
+      previousTabIdRef.current !== currentTabId &&
+      container
+    ) {
+      scrollPositionsRef.current.set(
+        previousTabIdRef.current,
+        container.scrollTop,
+      );
+    }
+
+    previousTabIdRef.current = currentTabId;
+  }, [currentTab]);
+
+  useLayoutEffect(() => {
+    if (!currentTab) return;
+
+    const currentTabId = uniqueIdfromTab(currentTab);
+    const container = contentContainerRef.current;
+    const savedPosition = scrollPositionsRef.current.get(currentTabId) ?? 0;
+
+    if (container) {
+      requestAnimationFrame(() => {
+        container.scrollTop = savedPosition;
+      });
+    }
+  }, [currentTab]);
 
   useEffect(() => {
     void loadExtensionPanels();
@@ -66,12 +133,16 @@ export function Body() {
   }
 
   return (
-    <div className="flex flex-col gap-1 h-full flex-1 relative">
-      <Header tabs={tabs} />
-      <div className="flex-1 overflow-auto">
-        <ContentWrapper key={uniqueIdfromTab(currentTab)} tab={currentTab} />
+    <ScrollPositionContext.Provider
+      value={{ saveScrollPosition, getScrollPosition }}
+    >
+      <div className="flex flex-col gap-1 h-full flex-1 relative">
+        <Header tabs={tabs} />
+        <div ref={contentContainerRef} className="flex-1 overflow-auto">
+          <ContentWrapper key={uniqueIdfromTab(currentTab)} tab={currentTab} />
+        </div>
       </div>
-    </div>
+    </ScrollPositionContext.Provider>
   );
 }
 

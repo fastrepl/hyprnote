@@ -7,7 +7,7 @@ import { createNotePersister } from "./note";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {
-    base: vi.fn().mockResolvedValue("/mock/data/dir/"),
+    base: vi.fn().mockResolvedValue("/mock/data/dir/hyprnote"),
   },
 }));
 
@@ -351,27 +351,6 @@ describe("createNotePersister", () => {
         created_at: new Date().toISOString(),
         session_id: "session-1",
         content: "not valid json",
-        position: 0,
-      });
-
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
-
-      await persister.save();
-
-      expect(commands.exportTiptapJsonToMdBatch).not.toHaveBeenCalled();
-    });
-
-    test("skips when isEnabled returns false", async () => {
-      const { commands } = await import("@hypr/plugin-export");
-
-      store.setRow("enhanced_notes", "note-1", {
-        user_id: "user-1",
-        created_at: new Date().toISOString(),
-        session_id: "session-1",
-        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
         position: 0,
       });
 

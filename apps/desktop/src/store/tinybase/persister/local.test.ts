@@ -7,7 +7,7 @@ import { createNotePersister } from "./note";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {
-    base: vi.fn().mockResolvedValue("/mock/data/dir/"),
+    base: vi.fn().mockResolvedValue("/mock/data/dir/hyprnote"),
   },
 }));
 

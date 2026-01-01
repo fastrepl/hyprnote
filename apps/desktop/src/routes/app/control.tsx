@@ -1,13 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Mic, MicOff, Square, X } from "lucide-react";
-import { useRef } from "react";
+import { ChevronDown, Mic, MicOff, Square, X } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../contexts/listener";
-import { useFakeWindowBounds } from "../../hooks/useFakeWindowBounds";
+import { useWidgetState } from "../../hooks/useWidgetState";
 
 export const Route = createFileRoute("/app/control")({
   component: Component,
@@ -20,8 +19,7 @@ function formatTime(seconds: number): string {
 }
 
 function Component() {
-  const interactiveRef = useRef<HTMLDivElement>(null);
-  useFakeWindowBounds("control-interactive", interactiveRef);
+  const { isExpanded, expand, collapse } = useWidgetState();
 
   const { status, seconds, muted, amplitude } = useListener((state) => ({
     status: state.live.status,
@@ -38,6 +36,82 @@ function Component() {
   const isActive = status === "active";
   const isFinalizing = status === "finalizing";
 
+  if (!isExpanded) {
+    return (
+      <CollapsedWidget
+        onExpand={expand}
+        isActive={isActive}
+        isFinalizing={isFinalizing}
+      />
+    );
+  }
+
+  return (
+    <ExpandedPanel
+      onCollapse={collapse}
+      isActive={isActive}
+      isFinalizing={isFinalizing}
+      seconds={seconds}
+      muted={muted}
+      amplitude={amplitude}
+      stop={stop}
+      setMuted={setMuted}
+    />
+  );
+}
+
+function CollapsedWidget({
+  onExpand,
+  isActive,
+  isFinalizing,
+}: {
+  onExpand: () => void;
+  isActive: boolean;
+  isFinalizing: boolean;
+}) {
+  return (
+    <div
+      onClick={onExpand}
+      className={cn([
+        "h-full w-full flex items-center justify-center cursor-pointer",
+        "bg-black/70 backdrop-blur-md rounded-full",
+      ])}
+    >
+      {isActive || isFinalizing ? (
+        <div
+          className={cn(
+            "w-3 h-3 rounded-full",
+            isFinalizing
+              ? "bg-yellow-500 animate-pulse"
+              : "bg-red-500 animate-pulse",
+          )}
+        />
+      ) : (
+        <div className="w-3 h-3 rounded-full bg-white/40" />
+      )}
+    </div>
+  );
+}
+
+function ExpandedPanel({
+  onCollapse,
+  isActive,
+  isFinalizing,
+  seconds,
+  muted,
+  amplitude,
+  stop,
+  setMuted,
+}: {
+  onCollapse: () => void;
+  isActive: boolean;
+  isFinalizing: boolean;
+  seconds: number;
+  muted: boolean;
+  amplitude: { mic: number };
+  stop: () => void;
+  setMuted: (muted: boolean) => void;
+}) {
   const handleClose = () => {
     getCurrentWindow().close();
   };
@@ -53,10 +127,18 @@ function Component() {
         data-tauri-drag-region
         className={cn([
           "flex flex-row shrink-0",
-          "w-full items-center justify-end h-8",
+          "w-full items-center justify-between h-8",
           "px-3",
         ])}
       >
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-5 w-5 text-white/40 hover:text-white hover:bg-white/10"
+          onClick={onCollapse}
+        >
+          <ChevronDown className="h-3 w-3" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
@@ -67,10 +149,7 @@ function Component() {
         </Button>
       </header>
 
-      <div
-        ref={interactiveRef}
-        className="flex-1 p-4 flex flex-col items-center justify-center gap-4"
-      >
+      <div className="flex-1 p-4 flex flex-col items-center justify-center gap-4">
         {isActive || isFinalizing ? (
           <>
             <div className="flex items-center gap-3">

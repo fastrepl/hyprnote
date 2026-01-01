@@ -291,10 +291,10 @@ function formatDisplayTime(
   const dateStr = sameYear
     ? date.toLocaleDateString([], { month: "short", day: "numeric" })
     : date.toLocaleDateString([], {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
 
   return `${dateStr}, ${time}`;
 }

@@ -1,5 +1,4 @@
 import { AlertCircleIcon, PlusIcon, RefreshCcwIcon, XIcon } from "lucide-react";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -9,12 +8,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@hypr/ui/components/ui/popover";
-
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
 import { useAITaskTask } from "../../../../../hooks/useAITaskTask";
-import { type TaskStepInfo } from "../../../../../store/zustand/ai-task/tasks";
 import {
   useCreateEnhancedNote,
   useEnsureDefaultSummary,
@@ -25,6 +23,7 @@ import {
 } from "../../../../../hooks/useLLMConnection";
 import * as main from "../../../../../store/tinybase/store/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
+import { type TaskStepInfo } from "../../../../../store/zustand/ai-task/tasks";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useHasTranscript } from "../shared";
@@ -33,7 +32,7 @@ import { TranscriptionProgress } from "./transcript/progress";
 
 function HeaderTab({
   isActive,
-  onClick = () => { },
+  onClick = () => {},
   children,
 }: {
   isActive: boolean;
@@ -48,10 +47,10 @@ function HeaderTab({
         isActive
           ? ["border-neutral-900", "text-neutral-900"]
           : [
-            "border-transparent",
-            "text-neutral-600",
-            "hover:text-neutral-800",
-          ],
+              "border-transparent",
+              "text-neutral-600",
+              "hover:text-neutral-800",
+            ],
       ])}
     >
       <span className="flex items-center h-5">{children}</span>
@@ -77,7 +76,7 @@ function TruncatedTitle({
 
 function HeaderTabEnhanced({
   isActive,
-  onClick = () => { },
+  onClick = () => {},
   sessionId,
   enhancedNoteId,
 }: {
@@ -116,7 +115,11 @@ function HeaderTabEnhanced({
           "group/tab relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
           isActive
             ? ["text-neutral-900", "border-neutral-900"]
-            : ["text-neutral-600", "border-transparent", "hover:text-neutral-800"],
+            : [
+                "text-neutral-600",
+                "border-transparent",
+                "hover:text-neutral-800",
+              ],
         ])}
       >
         <span className="flex items-center gap-1 h-5">
@@ -126,16 +129,16 @@ function HeaderTabEnhanced({
             className="inline-flex h-5 w-5 items-center justify-center rounded cursor-pointer hover:bg-neutral-200"
           >
             <span className="group-hover/tab:hidden flex items-center justify-center">
-              {step?.type === "generating"
-                ? (
-                  <img
-                    src="/assets/write-animation.gif"
-                    alt=""
-                    aria-hidden="true"
-                    className="size-3"
-                  />
-                )
-                : <Spinner size={14} />}
+              {step?.type === "generating" ? (
+                <img
+                  src="/assets/write-animation.gif"
+                  alt=""
+                  aria-hidden="true"
+                  className="size-3"
+                />
+              ) : (
+                <Spinner size={14} />
+              )}
             </span>
             <XIcon className="hidden group-hover/tab:flex items-center justify-center size-4" />
           </span>
@@ -151,8 +154,8 @@ function HeaderTabEnhanced({
         "group relative inline-flex h-5 w-5 items-center justify-center rounded transition-colors cursor-pointer",
         isError
           ? [
-            "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",
-          ]
+              "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",
+            ]
           : ["hover:bg-neutral-200 focus-visible:bg-neutral-200"],
       ])}
     >
@@ -182,10 +185,10 @@ function HeaderTabEnhanced({
         isActive
           ? ["text-neutral-900", "border-neutral-900"]
           : [
-            "text-neutral-600",
-            "border-transparent",
-            "hover:text-neutral-800",
-          ],
+              "text-neutral-600",
+              "border-transparent",
+              "hover:text-neutral-800",
+            ],
       ])}
     >
       <span className="flex items-center gap-1 h-5">

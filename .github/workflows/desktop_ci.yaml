@@ -42,8 +42,6 @@ jobs:
             runner: "depot-macos-14"
           - platform: "linux"
             runner: "depot-ubuntu-22.04-8"
-          - platform: "linux"
-            runner: "depot-ubuntu-24.04-8"
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4

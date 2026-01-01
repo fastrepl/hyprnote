@@ -222,7 +222,7 @@ export const NoteInput = forwardRef<
         />
       </div>
 
-      <div className="relative flex-1 mt-2 overflow-hidden">
+      <div className="relative flex-1 overflow-hidden">
         <div
           ref={(node) => {
             fadeRef.current = node;
@@ -238,7 +238,7 @@ export const NoteInput = forwardRef<
             "h-full px-3",
             currentTab.type === "transcript"
               ? "overflow-hidden"
-              : ["overflow-auto", "pb-6"],
+              : ["overflow-auto", "pt-2", "pb-6"],
           ])}
         >
           {currentTab.type === "enhanced" && (

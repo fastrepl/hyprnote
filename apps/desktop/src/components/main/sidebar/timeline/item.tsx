@@ -214,7 +214,7 @@ const SessionItem = memo(
     const sessionMode = useListener((state) => state.getSessionMode(sessionId));
     const isEnhancing = useIsSessionEnhancing(sessionId);
     const isFinalizing = sessionMode === "finalizing";
-    const showSpinner = isFinalizing || isEnhancing;
+    const showSpinner = !selected && (isFinalizing || isEnhancing);
 
     const calendarId = useMemo(() => {
       if (!store || !item.data.event_id) {

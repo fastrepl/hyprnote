@@ -2,6 +2,7 @@ import { SettingsIcon } from "lucide-react";
 
 import { type Tab } from "../../../store/zustand/tabs";
 import { SettingsGeneral } from "../../settings/general";
+import { SettingsLab } from "../../settings/lab";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
 
@@ -41,6 +42,11 @@ export function TabContentSettings({
     <StandardTabWrapper>
       <div className="flex-1 w-full overflow-y-auto scrollbar-hide p-6">
         <SettingsGeneral />
+
+        <div className="mt-8">
+          <h2 className="font-semibold mb-4">Lab</h2>
+          <SettingsLab />
+        </div>
       </div>
     </StandardTabWrapper>
   );

@@ -7,6 +7,7 @@ import { commands as miscCommands } from "@hypr/plugin-misc";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
+import { useAutoTitle } from "../../../../hooks/useAutoTitle";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useStartListening } from "../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
@@ -146,6 +147,8 @@ function TabContentNoteInner({
     editor: import("@hypr/tiptap/editor").TiptapEditor | null;
   }>(null);
 
+  const { generateTitle } = useAutoTitle(tab);
+
   const focusTitle = React.useCallback(() => {
     titleInputRef.current?.focus();
   }, []);
@@ -168,6 +171,7 @@ function TabContentNoteInner({
             ref={titleInputRef}
             tab={tab}
             onNavigateToEditor={focusEditor}
+            onGenerateTitle={generateTitle}
           />
         </div>
         <div className="mt-2 px-2 flex-1 min-h-0">

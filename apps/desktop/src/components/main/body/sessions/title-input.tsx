@@ -1,4 +1,5 @@
 import { usePrevious } from "@uidotdev/usehooks";
+import { SparklesIcon } from "lucide-react";
 import { forwardRef, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
@@ -12,8 +13,9 @@ export const TitleInput = forwardRef<
   {
     tab: Extract<Tab, { type: "sessions" }>;
     onNavigateToEditor?: () => void;
+    onGenerateTitle?: () => void;
   }
->(({ tab, onNavigateToEditor }, ref) => {
+>(({ tab, onNavigateToEditor, onGenerateTitle }, ref) => {
   const {
     id: sessionId,
     state: { view },
@@ -23,15 +25,19 @@ export const TitleInput = forwardRef<
   const wasGenerating = usePrevious(isGenerating);
   const [showRevealAnimation, setShowRevealAnimation] = useState(false);
 
+  const editorId = view ? "active" : "inactive";
+  const internalRef = useRef<HTMLInputElement>(null);
+  const inputRef = (ref as React.RefObject<HTMLInputElement>) || internalRef;
+
   useEffect(() => {
-    if (wasGenerating && !isGenerating && title) {
+    if (wasGenerating && !isGenerating) {
       setShowRevealAnimation(true);
       const timer = setTimeout(() => {
         setShowRevealAnimation(false);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [wasGenerating, isGenerating, title]);
+  }, [wasGenerating, isGenerating]);
 
   const handleEditTitle = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -40,10 +46,6 @@ export const TitleInput = forwardRef<
     [],
     main.STORE_ID,
   );
-
-  const editorId = view ? "active" : "inactive";
-  const internalRef = useRef<HTMLInputElement>(null);
-  const inputRef = (ref as React.RefObject<HTMLInputElement>) || internalRef;
 
   useEffect(() => {
     const handleMoveToTitlePosition = (e: Event) => {
@@ -172,20 +174,42 @@ export const TitleInput = forwardRef<
     );
   }
 
+  const hasTitle = Boolean(title?.trim());
+  const showButton = hasTitle && onGenerateTitle;
+
   return (
-    <input
-      ref={inputRef}
-      id={`title-input-${sessionId}-${editorId}`}
-      placeholder="Untitled"
-      type="text"
-      onChange={(e) => handleEditTitle(e.target.value)}
-      onKeyDown={handleKeyDown}
-      value={title ?? ""}
-      className={cn([
-        "w-full transition-opacity duration-200",
-        "border-none bg-transparent focus:outline-none",
-        "text-xl font-semibold placeholder:text-muted-foreground",
-      ])}
-    />
+    <div className="flex items-center gap-2 w-full">
+      <input
+        ref={inputRef}
+        id={`title-input-${sessionId}-${editorId}`}
+        placeholder="Untitled"
+        type="text"
+        onChange={(e) => handleEditTitle(e.target.value)}
+        onKeyDown={handleKeyDown}
+        value={title ?? ""}
+        className={cn([
+          "flex-1 min-w-0 transition-opacity duration-200",
+          "border-none bg-transparent focus:outline-none",
+          "text-xl font-semibold placeholder:text-muted-foreground",
+        ])}
+      />
+      {showButton && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onGenerateTitle?.();
+          }}
+          onMouseDown={(e) => e.preventDefault()}
+          className={cn([
+            "shrink-0 p-1",
+            "text-muted-foreground hover:text-foreground",
+            "opacity-50 hover:opacity-100 transition-opacity",
+          ])}
+        >
+          <SparklesIcon className="w-4 h-4" />
+        </button>
+      )}
+    </div>
   );
 });

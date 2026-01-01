@@ -17,6 +17,7 @@ serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
+hypr-bundle = { workspace = true }
 cidre = { workspace = true }
 
 objc2-foundation = { workspace = true }

@@ -13,7 +13,7 @@ macro_rules! check {
     ($permission:literal, $raw:expr) => {{
         let raw = $raw;
         let status: PermissionStatus = raw.into();
-        tracing::info!(permission = $permission, ?raw, ?status);
+        tracing::debug!(permission = $permission, ?raw, ?status);
         Ok(status)
     }};
 }
@@ -298,92 +298,65 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
 
     async fn reset_calendar(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
-        {
-            use tauri_plugin_shell::ShellExt;
-
-            let bundle_id = self.manager.config().identifier.clone();
-            let _ = self
-                .manager
-                .shell()
-                .command("tccutil")
-                .args(["reset", "Calendar", &bundle_id])
-                .output()
-                .await;
-        }
+        self.reset_tcc("Calendar").await;
 
         Ok(())
     }
 
     async fn reset_contacts(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
-        {
-            use tauri_plugin_shell::ShellExt;
-
-            let bundle_id = self.manager.config().identifier.clone();
-            let _ = self
-                .manager
-                .shell()
-                .command("tccutil")
-                .args(["reset", "AddressBook", &bundle_id])
-                .output()
-                .await;
-        }
+        self.reset_tcc("AddressBook").await;
 
         Ok(())
     }
 
     async fn reset_microphone(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
-        {
-            use tauri_plugin_shell::ShellExt;
-
-            let bundle_id = self.manager.config().identifier.clone();
-            let _ = self
-                .manager
-                .shell()
-                .command("tccutil")
-                .args(["reset", "Microphone", &bundle_id])
-                .output()
-                .await;
-        }
+        self.reset_tcc("Microphone").await;
 
         Ok(())
     }
 
     async fn reset_system_audio(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
-        {
-            use tauri_plugin_shell::ShellExt;
-
-            let bundle_id = self.manager.config().identifier.clone();
-            let _ = self
-                .manager
-                .shell()
-                .command("tccutil")
-                .args(["reset", "AudioCapture", &bundle_id])
-                .output()
-                .await;
-        }
+        self.reset_tcc("AudioCapture").await;
 
         Ok(())
     }
 
     async fn reset_accessibility(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
-        {
-            use tauri_plugin_shell::ShellExt;
-
-            let bundle_id = self.manager.config().identifier.clone();
-            let _ = self
-                .manager
-                .shell()
-                .command("tccutil")
-                .args(["reset", "Accessibility", &bundle_id])
-                .output()
-                .await;
-        }
+        self.reset_tcc("Accessibility").await;
 
         Ok(())
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn reset_tcc(&self, service: &str) {
+        use tauri_plugin_shell::ShellExt;
+
+        let bundle_id = if cfg!(debug_assertions) {
+            match hypr_bundle::get_ancestor_bundle_id() {
+                Some(id) => {
+                    tracing::info!(service, bundle_id = %id, "resolving_ancestor_bundle_id");
+                    id
+                }
+                None => {
+                    tracing::warn!(service, "skipping_tcc_reset");
+                    return;
+                }
+            }
+        } else {
+            self.manager.config().identifier.clone()
+        };
+
+        let _ = self
+            .manager
+            .shell()
+            .command("tccutil")
+            .args(["reset", service, &bundle_id])
+            .output()
+            .await;
     }
 }
 

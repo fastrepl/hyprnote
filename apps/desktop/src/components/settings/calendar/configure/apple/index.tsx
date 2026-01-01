@@ -1,17 +1,17 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 
-import { commands as permissionsCommands } from "@hypr/plugin-permissions";
 import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@hypr/ui/components/ui/accordion";
 
+import { usePermission } from "../../../../../hooks/use-permissions";
 import { StyledStreamdown } from "../../../ai/shared";
 import { PROVIDERS } from "../../shared";
 import { AppleCalendarSelection } from "./calendar-selection";
 import { SyncProvider } from "./context";
-import { AccessPermissionRow, useAccessPermission } from "./permission";
+import { AccessPermissionRow } from "./permission";
 
 export function Section({
   title,
@@ -38,19 +38,8 @@ export function Section({
 export function AppleCalendarProviderCard() {
   const config = PROVIDERS.find((p) => p.id === "apple")!;
 
-  const calendar = useAccessPermission({
-    queryKey: "appleCalendarAccess",
-    checkPermission: () => permissionsCommands.checkPermission("calendar"),
-    requestPermission: () => permissionsCommands.requestPermission("calendar"),
-    openSettings: () => permissionsCommands.openPermission("calendar"),
-  });
-
-  const contacts = useAccessPermission({
-    queryKey: "appleContactsAccess",
-    checkPermission: () => permissionsCommands.checkPermission("contacts"),
-    requestPermission: () => permissionsCommands.requestPermission("contacts"),
-    openSettings: () => permissionsCommands.openPermission("contacts"),
-  });
+  const calendar = usePermission("calendar");
+  const contacts = usePermission("contacts");
 
   return (
     <AccordionItem
@@ -85,25 +74,25 @@ export function AppleCalendarProviderCard() {
         <Section title="Permissions">
           <div className="space-y-1">
             <AccessPermissionRow
-              title="Calendar Access"
-              grantedDescription="Permission granted. Click to open settings."
-              requestDescription="Grant access to sync events from your Apple Calendar"
-              isAuthorized={calendar.isAuthorized}
+              title="Calendar"
+              status={calendar.status}
               isPending={calendar.isPending}
-              onAction={calendar.handleAction}
+              onOpen={calendar.open}
+              onRequest={calendar.request}
+              onReset={calendar.reset}
             />
             <AccessPermissionRow
-              title="Contacts Access"
-              grantedDescription="Permission granted. Click to open settings."
-              requestDescription="Grant access to match participants with your contacts"
-              isAuthorized={contacts.isAuthorized}
+              title="Contacts"
+              status={contacts.status}
               isPending={contacts.isPending}
-              onAction={contacts.handleAction}
+              onOpen={contacts.open}
+              onRequest={contacts.request}
+              onReset={contacts.reset}
             />
           </div>
         </Section>
 
-        {calendar.isAuthorized && (
+        {calendar.status === "authorized" && (
           <SyncProvider>
             <AppleCalendarSelection />
           </SyncProvider>

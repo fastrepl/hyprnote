@@ -1,69 +1,61 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
+import { useState } from "react";
 
 import { type PermissionStatus } from "@hypr/plugin-permissions";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-export function useAccessPermission(config: {
-  queryKey: string;
-  checkPermission: () => Promise<
-    | { status: "ok"; data: PermissionStatus }
-    | { status: "error"; error: string }
-  >;
-  requestPermission: () => Promise<unknown>;
-  openSettings: () => Promise<unknown>;
+function ActionLink({
+  onClick,
+  disabled,
+  children,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
 }) {
-  const status = useQuery({
-    queryKey: [config.queryKey],
-    queryFn: async () => {
-      const result = await config.checkPermission();
-      if (result.status === "ok") {
-        return result.data;
-      }
-      return "denied" as PermissionStatus;
-    },
-    refetchInterval: 1000,
-  });
-
-  const requestAccess = useMutation({
-    mutationFn: config.requestPermission,
-    onSuccess: () => {
-      setTimeout(() => status.refetch(), 1000);
-    },
-  });
-
-  const isAuthorized = status.data === "authorized";
-  const isPending = requestAccess.isPending;
-
-  const handleAction = async () => {
-    if (isAuthorized) {
-      await config.openSettings();
-    } else if (status.data === "denied") {
-      await config.openSettings();
-    } else {
-      requestAccess.mutate();
-    }
-  };
-
-  return { status: status.data, isAuthorized, isPending, handleAction };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn([
+        "underline hover:text-neutral-900 transition-colors",
+        disabled && "opacity-50 cursor-not-allowed",
+      ])}
+    >
+      {children}
+    </button>
+  );
 }
 
 export function AccessPermissionRow({
   title,
-  grantedDescription,
-  requestDescription,
-  isAuthorized,
+  status,
   isPending,
-  onAction,
+  onOpen,
+  onRequest,
+  onReset,
 }: {
   title: string;
-  grantedDescription: string;
-  requestDescription: string;
-  isAuthorized: boolean;
+  status: PermissionStatus | undefined;
   isPending: boolean;
-  onAction: () => void;
+  onOpen: () => void;
+  onRequest: () => void;
+  onReset: () => void;
 }) {
+  const [showActions, setShowActions] = useState(false);
+  const isAuthorized = status === "authorized";
+  const isDenied = status === "denied";
+
+  const handleButtonClick = () => {
+    if (isAuthorized || isDenied) {
+      onOpen();
+    } else {
+      onRequest();
+    }
+  };
+
   return (
     <div className="flex items-center justify-between gap-4 py-2">
       <div className="flex-1">
@@ -76,14 +68,37 @@ export function AccessPermissionRow({
           {!isAuthorized && <AlertCircleIcon className="size-4" />}
           <h3 className="text-sm font-medium">{title}</h3>
         </div>
-        <p className="text-xs text-neutral-600">
-          {isAuthorized ? grantedDescription : requestDescription}
-        </p>
+        <div className="text-xs text-neutral-600">
+          {!showActions ? (
+            <button
+              type="button"
+              onClick={() => setShowActions(true)}
+              className="underline hover:text-neutral-900 transition-colors"
+            >
+              Having trouble?
+            </button>
+          ) : (
+            <div>
+              You can{" "}
+              <ActionLink onClick={onRequest} disabled={isPending}>
+                Request,
+              </ActionLink>{" "}
+              <ActionLink onClick={onReset} disabled={isPending}>
+                Reset
+              </ActionLink>{" "}
+              or{" "}
+              <ActionLink onClick={onOpen} disabled={isPending}>
+                Open
+              </ActionLink>{" "}
+              permission panel.
+            </div>
+          )}
+        </div>
       </div>
       <Button
         variant={isAuthorized ? "outline" : "default"}
         size="icon"
-        onClick={onAction}
+        onClick={handleButtonClick}
         disabled={isPending}
         className={cn([
           "size-8",

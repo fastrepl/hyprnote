@@ -43,6 +43,7 @@ hypr-audio-interface = { path = "crates/audio-interface", package = "audio-inter
 hypr-audio-priority = { path = "crates/audio-priority", package = "audio-priority" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
+hypr-bundle = { path = "crates/bundle", package = "bundle" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }

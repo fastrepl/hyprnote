@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { cn } from "@hypr/utils";
@@ -32,10 +32,12 @@ export function FloatingActionButton({
 }
 
 function FloatingButtonContainer({ children }: { children: ReactNode }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const caretPosition = useCaretPosition();
   const { leftsidebar, chat } = useShell();
   const isCaretNearBottom = caretPosition?.isCaretNearBottom ?? false;
   const [chatPanelWidth, setChatPanelWidth] = useState(0);
+  const [isMouseNearButton, setIsMouseNearButton] = useState(false);
 
   const isChatPanelOpen = chat.mode === "RightPanelOpen";
 
@@ -68,6 +70,30 @@ function FloatingButtonContainer({ children }: { children: ReactNode }) {
     };
   }, [isChatPanelOpen]);
 
+  useEffect(() => {
+    if (!isCaretNearBottom) {
+      setIsMouseNearButton(false);
+      return;
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const threshold = 60;
+      const isNear =
+        e.clientX >= rect.left - threshold &&
+        e.clientX <= rect.right + threshold &&
+        e.clientY >= rect.top - threshold &&
+        e.clientY <= rect.bottom + threshold;
+      setIsMouseNearButton(isNear);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [isCaretNearBottom]);
+
+  const shouldHide = isCaretNearBottom && !isMouseNearButton;
+
   const leftOffset = leftsidebar.expanded
     ? (SIDEBAR_WIDTH + LAYOUT_PADDING) / 2
     : 0;
@@ -76,11 +102,12 @@ function FloatingButtonContainer({ children }: { children: ReactNode }) {
 
   return createPortal(
     <div
+      ref={containerRef}
       style={{ left: `calc(50% + ${totalOffset}px)` }}
       className={cn([
         "fixed -translate-x-1/2 z-[100] flex items-center gap-3",
         "transition-all duration-200 ease-out",
-        isCaretNearBottom ? "bottom-0 translate-y-[85%]" : "bottom-4",
+        shouldHide ? "bottom-0 translate-y-[85%]" : "bottom-4",
       ])}
     >
       {children}

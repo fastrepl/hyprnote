@@ -1,0 +1,11 @@
+[package]
+name = "hyprnote-cli"
+version = "0.1.0"
+edition = "2024"
+description = "CLI interface for Hyprnote"
+
+[dependencies]
+clap = { workspace = true, features = ["derive"] }
+clap_mangen = { workspace = true }
+open = { workspace = true }
+thiserror = { workspace = true }

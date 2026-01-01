@@ -1,0 +1,11 @@
+[package]
+name = "hyprnote-cli-tauri"
+version = "0.1.0"
+edition = "2024"
+description = "Tauri-dependent CLI handlers for Hyprnote"
+
+[dependencies]
+hyprnote-cli = { workspace = true }
+tauri = { workspace = true }
+tauri-plugin-updater = { workspace = true }
+tracing = { workspace = true }

@@ -15,15 +15,14 @@ specta-typescript = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-updater = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
-clap = { workspace = true, features = ["derive"] }
-clap_mangen = { workspace = true }
+hyprnote-cli = { workspace = true }
+hyprnote-cli-tauri = { workspace = true }
+
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
 
-open = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }

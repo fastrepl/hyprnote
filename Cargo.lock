@@ -8914,6 +8914,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74e25026c579b170c59f8d3ddfc523d7dab0abe079f09eb8edaebd2417044f60"
 
 [[package]]
+name = "hyprnote-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "clap_mangen",
+ "open",
+ "thiserror 2.0.17",
+]
+
+[[package]]
 name = "iana-time-zone"
 version = "0.1.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"

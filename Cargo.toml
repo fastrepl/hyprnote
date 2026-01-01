@@ -103,6 +103,9 @@ hypr-whisper-local-model = { path = "crates/whisper-local-model", package = "whi
 hypr-ws-client = { path = "crates/ws-client", package = "ws-client" }
 hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 
+hyprnote-cli = { path = "crates/hyprnote-cli" }
+hyprnote-cli-tauri = { path = "crates/hyprnote-cli-tauri" }
+
 owhisper-client = { path = "crates/owhisper-client", package = "owhisper-client" }
 owhisper-config = { path = "crates/owhisper-config", package = "owhisper-config" }
 owhisper-interface = { path = "crates/owhisper-interface", package = "owhisper-interface" }

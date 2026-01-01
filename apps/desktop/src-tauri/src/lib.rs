@@ -13,7 +13,8 @@ use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 pub async fn main() {
     // Handle CLI commands early, before single-instance plugin takes over.
     // This ensures CLI works regardless of whether the app is already running.
-    let cli_result = tauri_plugin_cli2::handle_cli_early();
+    // We capture the invocation so we can execute runtime-dependent commands after app setup.
+    let (cli_result, pending_invocation) = tauri_plugin_cli2::handle_cli_early_with_invocation();
     let show_window_on_startup = match cli_result {
         tauri_plugin_cli2::EarlyCliResult::Exit(code) => {
             std::process::exit(code);
@@ -188,6 +189,16 @@ pub async fn main() {
         })
         .build(tauri::generate_context!())
         .unwrap();
+
+    // Execute pending CLI command that needs app runtime (e.g., update)
+    // This fixes the bug where commands like `hyprnote update` didn't work on first instance
+    if let Some(invocation) = pending_invocation {
+        let app_handle = app.handle().clone();
+        let code = tauri::async_runtime::block_on(async move {
+            hyprnote_cli_tauri::run_with_app(&app_handle, &invocation).await
+        });
+        std::process::exit(code);
+    }
 
     match get_onboarding_flag() {
         None => {}

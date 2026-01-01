@@ -124,9 +124,11 @@ function HeaderTabEnhanced({
       >
         <span className="flex items-center gap-1 h-5">
           <TruncatedTitle title={title} isActive={isActive} />
-          <span
+          <button
+            type="button"
             onClick={handleCancelClick}
             className="inline-flex h-5 w-5 items-center justify-center rounded cursor-pointer hover:bg-neutral-200"
+            aria-label="Cancel enhancement"
           >
             <span className="group-hover/tab:hidden flex items-center justify-center">
               {step?.type === "generating" ? (
@@ -141,7 +143,7 @@ function HeaderTabEnhanced({
               )}
             </span>
             <XIcon className="hidden group-hover/tab:flex items-center justify-center size-4" />
-          </span>
+          </button>
         </span>
       </button>
     );

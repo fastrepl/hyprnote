@@ -25,6 +25,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
 
         let base = self.manager.app_handle().path2().base()?;
         let app_handle = self.manager.app_handle().clone();
+        let base_for_closure = base.clone();
 
         let mut debouncer = new_debouncer(
             Duration::from_millis(DEBOUNCE_DELAY_MS),
@@ -33,8 +34,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                 if let Ok(events) = events {
                     for event in events {
                         for path in &event.paths {
+                            let relative_path = path
+                                .strip_prefix(&base_for_closure)
+                                .unwrap_or(path)
+                                .to_string_lossy()
+                                .to_string();
                             let _ = FileChanged {
-                                path: path.to_string_lossy().to_string(),
+                                path: relative_path,
                             }
                             .emit(&app_handle);
                         }

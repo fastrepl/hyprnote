@@ -1,5 +1,29 @@
 use std::path::PathBuf;
 
+use codes_iso_639::part_1::LanguageCode;
+
+fn detect_language(content: &str) -> String {
+    let lang_code = match whichlang::detect_language(content) {
+        whichlang::Lang::Ara => LanguageCode::Ar,
+        whichlang::Lang::Cmn => LanguageCode::Zh,
+        whichlang::Lang::Deu => LanguageCode::De,
+        whichlang::Lang::Eng => LanguageCode::En,
+        whichlang::Lang::Fra => LanguageCode::Fr,
+        whichlang::Lang::Hin => LanguageCode::Hi,
+        whichlang::Lang::Ita => LanguageCode::It,
+        whichlang::Lang::Jpn => LanguageCode::Ja,
+        whichlang::Lang::Kor => LanguageCode::Ko,
+        whichlang::Lang::Nld => LanguageCode::Nl,
+        whichlang::Lang::Por => LanguageCode::Pt,
+        whichlang::Lang::Rus => LanguageCode::Ru,
+        whichlang::Lang::Spa => LanguageCode::Es,
+        whichlang::Lang::Swe => LanguageCode::Sv,
+        whichlang::Lang::Tur => LanguageCode::Tr,
+        whichlang::Lang::Vie => LanguageCode::Vi,
+    };
+    lang_code.code().to_string()
+}
+
 #[derive(Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct IndexRecord {
     pub url: String,
@@ -61,7 +85,6 @@ fn build_index_sync(pagefind_dir: PathBuf, records: Vec<IndexRecord>) -> Result<
     rt.block_on(async {
         let options = PagefindServiceConfig::builder()
             .keep_index_url(true)
-            .force_language("en".to_string())
             .build();
 
         let mut index = PagefindIndex::new(Some(options)).map_err(|e| crate::Error::Anyhow(e))?;
@@ -72,15 +95,9 @@ fn build_index_sync(pagefind_dir: PathBuf, records: Vec<IndexRecord>) -> Result<
                 meta.insert("title".to_string(), t);
             }
 
+            let language = detect_language(&record.content);
             index
-                .add_custom_record(
-                    record.url,
-                    record.content,
-                    "en".to_string(),
-                    Some(meta),
-                    None,
-                    None,
-                )
+                .add_custom_record(record.url, record.content, language, Some(meta), None, None)
                 .await
                 .map_err(|e| crate::Error::Anyhow(e))?;
         }

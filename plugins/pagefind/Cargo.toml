@@ -15,7 +15,9 @@ specta-typescript = { workspace = true }
 tokio = { workspace = true, features = ["macros", "sync"] }
 
 [dependencies]
+codes-iso-639 = { workspace = true }
 pagefind = "1.4.0"
+whichlang = "0.1.0"
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }

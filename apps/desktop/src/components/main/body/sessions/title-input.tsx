@@ -30,14 +30,14 @@ export const TitleInput = forwardRef<
   const inputRef = (ref as React.RefObject<HTMLInputElement>) || internalRef;
 
   useEffect(() => {
-    if (wasGenerating && !isGenerating && title) {
+    if (wasGenerating && !isGenerating) {
       setShowRevealAnimation(true);
       const timer = setTimeout(() => {
         setShowRevealAnimation(false);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [wasGenerating, isGenerating, title]);
+  }, [wasGenerating, isGenerating]);
 
   const handleEditTitle = main.UI.useSetPartialRowCallback(
     "sessions",

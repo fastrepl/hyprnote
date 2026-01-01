@@ -67,6 +67,8 @@ function useNotificationEvents() {
 
     void notificationEvents.notificationEvent
       .listen(({ payload }) => {
+        console.log("notificationEvent", payload);
+
         if (
           (payload.type === "notification_confirm" ||
             payload.type === "notification_accept") &&

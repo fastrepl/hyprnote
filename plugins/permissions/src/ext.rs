@@ -9,6 +9,16 @@ use objc2_contacts::{CNContactStore, CNEntityType};
 #[cfg(target_os = "macos")]
 use objc2_event_kit::{EKEntityType, EKEventStore};
 
+macro_rules! check {
+    ($permission:literal, $raw:expr) => {{
+        let raw = $raw;
+        let status: PermissionStatus = raw.into();
+        tracing::info!(permission = $permission, ?raw, ?status);
+        Ok(status)
+    }};
+}
+
+
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum Permission {
@@ -127,11 +137,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
 
     async fn check_calendar(&self) -> Result<PermissionStatus, crate::Error> {
         #[cfg(target_os = "macos")]
-        {
-            let status =
-                unsafe { EKEventStore::authorizationStatusForEntityType(EKEntityType::Event) };
-            Ok(status.into())
-        }
+        return check!(
+            "calendar",
+            unsafe { EKEventStore::authorizationStatusForEntityType(EKEntityType::Event) }
+        );
 
         #[cfg(not(target_os = "macos"))]
         {
@@ -141,12 +150,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
 
     async fn check_contacts(&self) -> Result<PermissionStatus, crate::Error> {
         #[cfg(target_os = "macos")]
-        {
-            let status = unsafe {
-                CNContactStore::authorizationStatusForEntityType(CNEntityType::Contacts)
-            };
-            Ok(status.into())
-        }
+        return check!(
+            "contacts",
+            unsafe { CNContactStore::authorizationStatusForEntityType(CNEntityType::Contacts) }
+        );
 
         #[cfg(not(target_os = "macos"))]
         {
@@ -156,13 +163,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
 
     async fn check_microphone(&self) -> Result<PermissionStatus, crate::Error> {
         #[cfg(target_os = "macos")]
-        {
-            let status = unsafe {
-                let media_type = AVMediaTypeAudio.unwrap();
-                AVCaptureDevice::authorizationStatusForMediaType(media_type)
-            };
-            Ok(status.into())
-        }
+        return check!("microphone", unsafe {
+            let media_type = AVMediaTypeAudio.unwrap();
+            AVCaptureDevice::authorizationStatusForMediaType(media_type)
+        });
 
         #[cfg(not(target_os = "macos"))]
         {
@@ -179,10 +183,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
 
     async fn check_system_audio(&self) -> Result<PermissionStatus, crate::Error> {
         #[cfg(target_os = "macos")]
-        {
-            let status = hypr_tcc::audio_capture_permission_status();
-            Ok(status.into())
-        }
+        return check!("system_audio", hypr_tcc::audio_capture_permission_status());
 
         #[cfg(not(target_os = "macos"))]
         {
@@ -199,15 +200,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Permissions<'a, R, M> {
 
     async fn check_accessibility(&self) -> Result<PermissionStatus, crate::Error> {
         #[cfg(target_os = "macos")]
-        {
-            let is_trusted =
-                macos_accessibility_client::accessibility::application_is_trusted();
-            Ok(if is_trusted {
-                PermissionStatus::Authorized
-            } else {
-                PermissionStatus::Denied
-            })
-        }
+        return check!("accessibility", macos_accessibility_client::accessibility::application_is_trusted());
 
         #[cfg(not(target_os = "macos"))]
         {
@@ -411,3 +404,4 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> PermissionsPluginExt<R> for T {
         }
     }
 }
+

@@ -30,7 +30,10 @@ export function useWidgetState() {
 
   const collapse = useCallback(async () => {
     const monitor = await currentMonitor();
-    if (!monitor) return;
+    if (!monitor) {
+      setIsExpanded(false); // Update state even if operations fail
+      return;
+    }
 
     const { width: screenWidth, height: screenHeight } = monitor.size;
     const { x: screenX, y: screenY } = monitor.position;

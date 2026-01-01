@@ -50,7 +50,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   const isEnhancing = useIsSessionEnhancing(tab.id);
   const isActive = sessionMode === "active" || sessionMode === "finalizing";
   const isFinalizing = sessionMode === "finalizing";
-  const showSpinner = isFinalizing || isEnhancing;
+  const showSpinner = !tab.active && (isFinalizing || isEnhancing);
 
   return (
     <TabItemBase

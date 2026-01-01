@@ -2,7 +2,11 @@ import type { Queries } from "tinybase/with-schemas";
 
 import type { Schemas, Store } from "../../store/tinybase/store/main";
 import { createCtx } from "./ctx";
-import { fetchExistingEvents, fetchIncomingEvents } from "./fetch";
+import {
+  CalendarFetchError,
+  fetchExistingEvents,
+  fetchIncomingEvents,
+} from "./fetch";
 import {
   executeForEventsSync,
   executeForParticipantsSync,
@@ -28,8 +32,23 @@ async function run(store: Store, queries: Queries<Schemas>) {
     return null;
   }
 
-  const { events: incoming, participants: incomingParticipants } =
-    await fetchIncomingEvents(ctx);
+  let incoming;
+  let incomingParticipants;
+
+  try {
+    const result = await fetchIncomingEvents(ctx);
+    incoming = result.events;
+    incomingParticipants = result.participants;
+  } catch (error) {
+    if (error instanceof CalendarFetchError) {
+      console.error(
+        `[calendar-sync] Aborting sync due to fetch error: ${error.message}`,
+      );
+      return null;
+    }
+    throw error;
+  }
+
   const existing = fetchExistingEvents(ctx);
 
   const eventsOut = syncEvents(ctx, { incoming, existing });

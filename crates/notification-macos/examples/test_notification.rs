@@ -47,18 +47,23 @@ fn main() {
     std::thread::spawn(|| {
         std::thread::sleep(Duration::from_millis(200));
 
+        setup_notification_accept_handler(|id| {
+            println!("accept: {}", id);
+        });
         setup_notification_confirm_handler(|id| {
             println!("confirm: {}", id);
         });
         setup_notification_dismiss_handler(|id| {
             println!("dismiss: {}", id);
         });
+        setup_notification_timeout_handler(|id| {
+            println!("timeout: {}", id);
+        });
 
         let notification = Notification::builder()
             .key("test_notification")
             .title("Test Notification")
             .message("Hover/click should now react")
-            .url("https://example.com")
             .timeout(Duration::from_secs(30))
             .build();
 

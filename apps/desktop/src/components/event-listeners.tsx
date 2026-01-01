@@ -9,7 +9,10 @@ import {
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
 import * as main from "../store/tinybase/store/main";
-import { getOrCreateSessionForEventId } from "../store/tinybase/store/sessions";
+import {
+  createSession,
+  getOrCreateSessionForEventId,
+} from "../store/tinybase/store/sessions";
 import { useTabs } from "../store/zustand/tabs";
 
 function useUpdaterEvents() {
@@ -43,13 +46,22 @@ function useUpdaterEvents() {
 function useNotificationEvents() {
   const store = main.UI.useStore(main.STORE_ID);
   const openNew = useTabs((state) => state.openNew);
-  const pendingEventId = useRef<string | null>(null);
+  const pendingAutoStart = useRef<{ eventId: string | null } | null>(null);
+  const storeRef = useRef(store);
+  const openNewRef = useRef(openNew);
 
   useEffect(() => {
-    if (pendingEventId.current && store) {
-      const eventId = pendingEventId.current;
-      pendingEventId.current = null;
-      const sessionId = getOrCreateSessionForEventId(store, eventId);
+    storeRef.current = store;
+    openNewRef.current = openNew;
+  }, [store, openNew]);
+
+  useEffect(() => {
+    if (pendingAutoStart.current && store) {
+      const { eventId } = pendingAutoStart.current;
+      pendingAutoStart.current = null;
+      const sessionId = eventId
+        ? getOrCreateSessionForEventId(store, eventId)
+        : createSession(store);
       openNew({
         type: "sessions",
         id: sessionId,
@@ -64,23 +76,23 @@ function useNotificationEvents() {
     }
 
     let unlisten: UnlistenFn | null = null;
+    let cancelled = false;
 
     void notificationEvents.notificationEvent
       .listen(({ payload }) => {
         if (
-          (payload.type === "notification_confirm" ||
-            payload.type === "notification_accept") &&
-          payload.event_id
+          payload.type === "notification_confirm" ||
+          payload.type === "notification_accept"
         ) {
-          if (!store) {
-            pendingEventId.current = payload.event_id;
+          const currentStore = storeRef.current;
+          if (!currentStore) {
+            pendingAutoStart.current = { eventId: payload.event_id };
             return;
           }
-          const sessionId = getOrCreateSessionForEventId(
-            store,
-            payload.event_id,
-          );
-          openNew({
+          const sessionId = payload.event_id
+            ? getOrCreateSessionForEventId(currentStore, payload.event_id)
+            : createSession(currentStore);
+          openNewRef.current({
             type: "sessions",
             id: sessionId,
             state: { view: null, autoStart: true },
@@ -88,13 +100,18 @@ function useNotificationEvents() {
         }
       })
       .then((f) => {
-        unlisten = f;
+        if (cancelled) {
+          f();
+        } else {
+          unlisten = f;
+        }
       });
 
     return () => {
+      cancelled = true;
       unlisten?.();
     };
-  }, [store, openNew]);
+  }, []);
 }
 
 export function EventListeners() {

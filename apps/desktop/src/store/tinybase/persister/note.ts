@@ -12,6 +12,7 @@ import {
   getDataDir,
   getSessionDir,
   iterateTableRows,
+  type PersisterMode,
   sanitizeFilename,
   type TablesContent,
 } from "./utils";
@@ -19,41 +20,50 @@ import {
 export function createNotePersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   handleSyncToSession: (sessionId: string, content: string) => void,
+  config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
+  const saveFn =
+    config.mode === "load-only"
+      ? async () => {}
+      : async (getContent: () => unknown) => {
+          const [tables] = getContent() as [TablesContent | undefined, unknown];
+          const dataDir = await getDataDir();
+
+          const enhancedNotes = collectEnhancedNoteBatchItems(
+            store,
+            tables,
+            dataDir,
+            handleSyncToSession,
+          );
+          const sessions = collectSessionBatchItems(tables, dataDir);
+          const batchItems = [...enhancedNotes.items, ...sessions.items];
+          const dirsToCreate = new Set([
+            ...enhancedNotes.dirs,
+            ...sessions.dirs,
+          ]);
+          if (batchItems.length === 0) {
+            return;
+          }
+
+          try {
+            await ensureDirsExist(dirsToCreate);
+          } catch (e) {
+            console.error("Failed to ensure dirs exist:", e);
+            return;
+          }
+
+          const result = await commands.exportTiptapJsonToMdBatch(batchItems);
+          if (result.status === "error") {
+            console.error("Failed to export batch:", result.error);
+          }
+        };
+
   return createCustomPersister(
     store,
     async () => {
       return undefined;
     },
-    async (getContent) => {
-      const [tables] = getContent() as [TablesContent | undefined, unknown];
-      const dataDir = await getDataDir();
-
-      const enhancedNotes = collectEnhancedNoteBatchItems(
-        store,
-        tables,
-        dataDir,
-        handleSyncToSession,
-      );
-      const sessions = collectSessionBatchItems(tables, dataDir);
-      const batchItems = [...enhancedNotes.items, ...sessions.items];
-      const dirsToCreate = new Set([...enhancedNotes.dirs, ...sessions.dirs]);
-      if (batchItems.length === 0) {
-        return;
-      }
-
-      try {
-        await ensureDirsExist(dirsToCreate);
-      } catch (e) {
-        console.error("Failed to ensure dirs exist:", e);
-        return;
-      }
-
-      const result = await commands.exportTiptapJsonToMdBatch(batchItems);
-      if (result.status === "error") {
-        console.error("Failed to export batch:", result.error);
-      }
-    },
+    saveFn,
     (listener) => setInterval(listener, 1000),
     (interval) => clearInterval(interval),
   );

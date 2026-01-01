@@ -2,10 +2,17 @@ import { mkdir } from "@tauri-apps/plugin-fs";
 
 import { commands as path2Commands } from "@hypr/plugin-path2";
 import type {
+  ChatGroup,
+  ChatMessageStorage,
   EnhancedNoteStorage,
   SessionStorage,
+  SpeakerHintStorage,
   TemplateStorage,
+  TranscriptStorage,
+  WordStorage,
 } from "@hypr/store";
+
+export type PersisterMode = "load-only" | "save-only" | "load-and-save";
 
 export async function getDataDir(): Promise<string> {
   return path2Commands.base();
@@ -13,6 +20,10 @@ export async function getDataDir(): Promise<string> {
 
 export function getSessionDir(dataDir: string, sessionId: string): string {
   return `${dataDir}/sessions/${sessionId}`;
+}
+
+export function getChatDir(dataDir: string, chatGroupId: string): string {
+  return `${dataDir}/chats/${chatGroupId}`;
 }
 
 export async function ensureDirsExist(dirs: Set<string>): Promise<void> {
@@ -58,6 +69,11 @@ export type TablesContent = {
   enhanced_notes?: Record<string, EnhancedNoteStorage>;
   sessions?: Record<string, SessionStorage>;
   templates?: Record<string, TemplateStorage>;
+  transcripts?: Record<string, TranscriptStorage>;
+  words?: Record<string, WordStorage>;
+  speaker_hints?: Record<string, SpeakerHintStorage>;
+  chat_groups?: Record<string, ChatGroup>;
+  chat_messages?: Record<string, ChatMessageStorage>;
 };
 
 type TableRowType<K extends keyof TablesContent> =

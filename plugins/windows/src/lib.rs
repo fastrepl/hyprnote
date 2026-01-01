@@ -49,6 +49,7 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             events::Navigate,
             events::WindowDestroyed,
             events::OpenTab,
+            events::VisibilityEvent,
         ])
         .commands(tauri_specta::collect_commands![
             commands::window_show,

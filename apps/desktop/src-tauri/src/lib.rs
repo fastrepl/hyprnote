@@ -1,4 +1,5 @@
 mod commands;
+mod control;
 mod ext;
 mod store;
 mod supervisor;
@@ -158,6 +159,8 @@ pub async fn main() {
             let app_handle = app.handle().clone();
             let app_clone = app_handle.clone();
 
+            specta_builder.mount_events(&app_handle);
+
             #[cfg(any(windows, target_os = "linux"))]
             {
                 // https://v2.tauri.app/ko/plugin/deep-linking/#desktop-1
@@ -183,7 +186,7 @@ pub async fn main() {
                 supervisor::monitor_supervisor(handle, ctx.is_exiting.clone(), app_handle.clone());
             }
 
-            specta_builder.mount_events(&app_handle);
+            // control::setup(&app_handle);
 
             Ok(())
         })

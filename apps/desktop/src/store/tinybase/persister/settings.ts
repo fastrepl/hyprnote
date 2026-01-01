@@ -225,16 +225,17 @@ export function createSettingsPersister<Schemas extends OptionalSchemas>(
         interval: setInterval(listener, FALLBACK_POLL_INTERVAL),
       };
 
-      events.settingsChanged
-        .listen(() => {
-          listener();
-        })
-        .then((unlisten) => {
-          handle.unlisten = unlisten;
-        })
-        .catch((error) => {
-          console.error("[SettingsPersister] event listen error:", error);
+      (async () => {
+        const settingsPath = await commands.path();
+        const unlisten = await events.fileChanged.listen((event) => {
+          if (event.payload.path === settingsPath) {
+            listener();
+          }
         });
+        handle.unlisten = unlisten;
+      })().catch((error) => {
+        console.error("[SettingsPersister] event listen error:", error);
+      });
 
       return handle;
     },

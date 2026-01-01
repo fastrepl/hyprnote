@@ -3,7 +3,9 @@ use owhisper_interface::stream::StreamResponse;
 #[macro_export]
 macro_rules! common_event_derives {
     ($item:item) => {
-        #[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
+        #[derive(
+            serde::Serialize, serde::Deserialize, Clone, specta::Type, tauri_specta::Event,
+        )]
         $item
     };
 }

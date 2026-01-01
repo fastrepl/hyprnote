@@ -6,22 +6,19 @@ use crate::AppWindow;
 
 // TODO: https://github.com/fastrepl/hyprnote/commit/150c8a1 this not worked. webview_window not found.
 pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::WindowEvent) {
-    let _app = window.app_handle();
+    let app = window.app_handle();
 
     match event {
         tauri::WindowEvent::CloseRequested { api, .. } => {
             match window.label().parse::<AppWindow>() {
                 Err(e) => tracing::warn!("window_parse_error: {:?}", e),
                 Ok(w) => {
-                    if w == AppWindow::Main && window.hide().is_ok() {
+                    if w == AppWindow::Main && w.hide(&app).is_ok() {
                         api.prevent_close();
                     }
                     if w == AppWindow::Onboarding {
                         use tauri_plugin_sfx::SfxPluginExt;
-                        window
-                            .app_handle()
-                            .sfx()
-                            .stop(tauri_plugin_sfx::AppSounds::BGM);
+                        app.sfx().stop(tauri_plugin_sfx::AppSounds::BGM);
                     }
                 }
             }
@@ -82,6 +79,13 @@ common_event_derives! {
 common_event_derives! {
     pub struct OpenTab {
         pub tab: crate::TabInput,
+    }
+}
+
+common_event_derives! {
+    pub struct VisibilityEvent {
+        pub window: AppWindow,
+        pub visible: bool,
     }
 }
 

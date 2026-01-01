@@ -224,6 +224,10 @@ function NavigationCard() {
     });
   }, []);
 
+  const handleShowControl = useCallback(() => {
+    void windowsCommands.windowShow({ type: "control" });
+  }, []);
+
   return (
     <DevtoolCard title="Navigation">
       <div className="flex flex-col gap-1.5">
@@ -252,6 +256,19 @@ function NavigationCard() {
           ])}
         >
           Main
+        </button>
+        <button
+          type="button"
+          onClick={handleShowControl}
+          className={cn([
+            "w-full px-2.5 py-1.5 rounded-md",
+            "text-xs font-medium text-left",
+            "border border-neutral-200 text-neutral-700",
+            "cursor-pointer transition-colors",
+            "hover:bg-neutral-50 hover:border-neutral-300",
+          ])}
+        >
+          Control
         </button>
       </div>
     </DevtoolCard>

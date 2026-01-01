@@ -135,6 +135,7 @@ impl WindowImpl for AppWindow {
                     .resizable(false)
                     .always_on_top(true)
                     .skip_taskbar(true)
+                    .accept_first_mouse(true)
                     .visible_on_all_workspaces(true)
                     .decorations(false)
                     .build()?;

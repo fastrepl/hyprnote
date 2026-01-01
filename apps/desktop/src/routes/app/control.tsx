@@ -1,7 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ChevronDown, Mic, MicOff, Square, X } from "lucide-react";
+import { useRef } from "react";
 
+import { commands as iconCommands } from "@hypr/plugin-icon";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
@@ -69,25 +72,75 @@ function CollapsedWidget({
   isActive: boolean;
   isFinalizing: boolean;
 }) {
+  const mouseDownPos = useRef<{ x: number; y: number } | null>(null);
+
+  const { data: iconBase64 } = useQuery({
+    queryKey: ["app-icon"],
+    queryFn: async () => {
+      const result = await iconCommands.getIcon();
+      if (result.status === "ok") {
+        return result.data;
+      }
+      return null;
+    },
+    staleTime: Infinity,
+  });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    mouseDownPos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (!mouseDownPos.current) return;
+
+    const dx = Math.abs(e.clientX - mouseDownPos.current.x);
+    const dy = Math.abs(e.clientY - mouseDownPos.current.y);
+    const wasDrag = dx > 5 || dy > 5;
+
+    mouseDownPos.current = null;
+
+    if (!wasDrag) {
+      onExpand();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    mouseDownPos.current = null;
+  };
+
   return (
     <div
-      onClick={onExpand}
+      data-tauri-drag-region
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
       className={cn([
         "h-full w-full flex items-center justify-center cursor-pointer",
-        "bg-black/70 backdrop-blur-md rounded-full",
       ])}
     >
       {isActive || isFinalizing ? (
         <div
-          className={cn(
+          data-tauri-drag-region
+          className={cn([
             "w-3 h-3 rounded-full",
             isFinalizing
               ? "bg-yellow-500 animate-pulse"
               : "bg-red-500 animate-pulse",
-          )}
+          ])}
+        />
+      ) : iconBase64 ? (
+        <img
+          data-tauri-drag-region
+          src={`data:image/png;base64,${iconBase64}`}
+          alt="App Icon"
+          className="w-12 h-12 rounded-xl"
+          draggable={false}
         />
       ) : (
-        <div className="w-3 h-3 rounded-full bg-white/40" />
+        <div
+          data-tauri-drag-region
+          className="w-12 h-12 rounded-full bg-white/40"
+        />
       )}
     </div>
   );

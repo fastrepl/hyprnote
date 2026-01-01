@@ -46,12 +46,7 @@ export function useAutoTitle(tab: Extract<Tab, { type: "sessions" }>) {
     },
   });
 
-  const attemptGenerateTitle = useCallback(() => {
-    const trimmedTitle = title?.trim();
-    if (trimmedTitle) {
-      return;
-    }
-
+  const generateTitle = useCallback(() => {
     if (!model) {
       return;
     }
@@ -60,7 +55,16 @@ export function useAutoTitle(tab: Extract<Tab, { type: "sessions" }>) {
       model,
       args: { sessionId },
     });
-  }, [title, model, titleTask, sessionId]);
+  }, [model, titleTask, sessionId]);
+
+  const attemptGenerateTitle = useCallback(() => {
+    const trimmedTitle = title?.trim();
+    if (trimmedTitle) {
+      return;
+    }
+
+    generateTitle();
+  }, [title, generateTitle]);
 
   const hasGeneratedForContentRef = useRef<string | null>(null);
 
@@ -86,5 +90,6 @@ export function useAutoTitle(tab: Extract<Tab, { type: "sessions" }>) {
 
   return {
     isGenerating: titleTask.isGenerating,
+    generateTitle,
   };
 }

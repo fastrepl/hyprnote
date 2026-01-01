@@ -172,6 +172,7 @@
     "template:default",
     "notification:default",
     "overlay:default",
+    "pagefind:default",
     "shell:allow-open",
     {
       "identifier": "shell:allow-execute",

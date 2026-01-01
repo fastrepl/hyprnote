@@ -290,6 +290,9 @@ importers:
       '@hypr/plugin-notification':
         specifier: workspace:*
         version: link:../../plugins/notification
+      '@hypr/plugin-notify':
+        specifier: workspace:*
+        version: link:../../plugins/notify
       '@hypr/plugin-overlay':
         specifier: workspace:*
         version: link:../../plugins/overlay
@@ -1542,6 +1545,12 @@ importers:
         version: 2.9.1
 
   plugins/notification:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/notify:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

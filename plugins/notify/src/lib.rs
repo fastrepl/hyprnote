@@ -1,9 +1,10 @@
-mod commands;
 mod error;
 mod events;
 mod ext;
 
-pub use error::{Error, Result};
+use tauri::Manager;
+
+pub use error::*;
 pub use events::*;
 pub use ext::*;
 
@@ -12,10 +13,12 @@ const PLUGIN_NAME: &str = "notify";
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![
-            commands::ping::<tauri::Wry>,
+        .commands(tauri_specta::collect_commands![])
+        .events(tauri_specta::collect_events![
+            EntityChanged,
+            SettingsChanged,
+            FileChanged,
         ])
-        .events(tauri_specta::collect_events![SettingsChanged,])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -26,6 +29,16 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
+
+            match app.notify().setup_watcher() {
+                Ok(state) => {
+                    app.manage(state);
+                }
+                Err(e) => {
+                    tracing::error!("failed_to_setup_watcher: {}", e);
+                }
+            }
+
             Ok(())
         })
         .build()

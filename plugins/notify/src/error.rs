@@ -1,11 +1,13 @@
 use serde::{Serialize, ser::Serializer};
 
-pub type Result<T> = std::result::Result<T, Error>;
-
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
     Notify(#[from] notify::Error),
+    #[error(transparent)]
+    Tauri(#[from] tauri::Error),
+    #[error(transparent)]
+    Path2(#[from] tauri_plugin_path2::Error),
 }
 
 impl Serialize for Error {

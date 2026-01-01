@@ -18,9 +18,11 @@ tokio = { workspace = true, features = ["macros"] }
 notify = "8"
 
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-path2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
 specta = { workspace = true }
 
 thiserror = { workspace = true }
+tracing = { workspace = true }

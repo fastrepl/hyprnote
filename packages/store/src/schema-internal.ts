@@ -71,17 +71,6 @@ export const internalSchemaForTinybase = {
       base_url: { type: "string" },
       api_key: { type: "string" },
     } as const satisfies InferTinyBaseSchema<typeof aiProviderSchema>,
-    changes: {
-      row_id: { type: "string" },
-      table: { type: "string" },
-      updated: { type: "boolean" },
-      deleted: { type: "boolean" },
-    } as const,
-    electric: {
-      offset: { type: "string" },
-      handle: { type: "string" },
-      table: { type: "string" },
-    } as const,
     extension_state: {
       counter: { type: "number" },
       last_updated: { type: "string" },

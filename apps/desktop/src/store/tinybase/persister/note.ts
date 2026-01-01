@@ -2,59 +2,68 @@ import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import { commands, type JsonValue } from "@hypr/plugin-export";
-import { type EnhancedNote, type Session } from "@hypr/store";
+import type { EnhancedNoteStorage } from "@hypr/store";
 import { isValidTiptapContent } from "@hypr/tiptap/shared";
 
 import {
+  type BatchCollectorResult,
+  type BatchItem,
   ensureDirsExist,
   getDataDir,
   getSessionDir,
+  iterateTableRows,
+  type PersisterMode,
   sanitizeFilename,
+  type TablesContent,
 } from "./utils";
-
-type BatchItem = [JsonValue, string];
 
 export function createNotePersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   handleSyncToSession: (sessionId: string, content: string) => void,
+  config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
+  const saveFn =
+    config.mode === "load-only"
+      ? async () => {}
+      : async (getContent: () => unknown) => {
+          const [tables] = getContent() as [TablesContent | undefined, unknown];
+          const dataDir = await getDataDir();
+
+          const enhancedNotes = collectEnhancedNoteBatchItems(
+            store,
+            tables,
+            dataDir,
+            handleSyncToSession,
+          );
+          const sessions = collectSessionBatchItems(tables, dataDir);
+          const batchItems = [...enhancedNotes.items, ...sessions.items];
+          const dirsToCreate = new Set([
+            ...enhancedNotes.dirs,
+            ...sessions.dirs,
+          ]);
+          if (batchItems.length === 0) {
+            return;
+          }
+
+          try {
+            await ensureDirsExist(dirsToCreate);
+          } catch (e) {
+            console.error("Failed to ensure dirs exist:", e);
+            return;
+          }
+
+          const result = await commands.exportTiptapJsonToMdBatch(batchItems);
+          if (result.status === "error") {
+            console.error("Failed to export batch:", result.error);
+          }
+        };
+
   return createCustomPersister(
     store,
     async () => {
       return undefined;
     },
-    async (getContent) => {
-      const [tables] = getContent();
-      const dataDir = await getDataDir();
-
-      const enhancedNotes = collectEnhancedNoteBatchItems(
-        store,
-        tables as Record<string, unknown> | undefined,
-        dataDir,
-        handleSyncToSession,
-      );
-      const sessions = collectSessionBatchItems(
-        tables as Record<string, unknown> | undefined,
-        dataDir,
-      );
-      const batchItems = [...enhancedNotes.items, ...sessions.items];
-      const dirsToCreate = new Set([...enhancedNotes.dirs, ...sessions.dirs]);
-      if (batchItems.length === 0) {
-        return;
-      }
-
-      try {
-        await ensureDirsExist(dirsToCreate);
-      } catch (e) {
-        console.error("Failed to ensure dirs exist:", e);
-        return;
-      }
-
-      const result = await commands.exportTiptapJsonToMdBatch(batchItems);
-      if (result.status === "error") {
-        console.error("Failed to export batch:", result.error);
-      }
-    },
+    saveFn,
     (listener) => setInterval(listener, 1000),
     (interval) => clearInterval(interval),
   );
@@ -77,7 +86,7 @@ function parseTiptapContent(content: string): JsonValue | undefined {
 
 function getEnhancedNoteFilename<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
-  enhancedNote: EnhancedNote & { id: string },
+  enhancedNote: EnhancedNoteStorage & { id: string },
 ): string {
   if (enhancedNote.template_id) {
     // @ts-ignore
@@ -96,18 +105,14 @@ function getEnhancedNoteFilename<Schemas extends OptionalSchemas>(
 
 function collectEnhancedNoteBatchItems<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
-  tables: Record<string, unknown> | undefined,
+  tables: TablesContent | undefined,
   dataDir: string,
   handleSyncToSession: (sessionId: string, content: string) => void,
-): { items: BatchItem[]; dirs: Set<string> } {
-  const items: BatchItem[] = [];
+): BatchCollectorResult<JsonValue> {
+  const items: BatchItem<JsonValue>[] = [];
   const dirs = new Set<string>();
 
-  for (const [id, row] of Object.entries(tables?.enhanced_notes ?? {})) {
-    // @ts-ignore
-    row.id = id;
-    const enhancedNote = row as EnhancedNote & { id: string };
-
+  for (const enhancedNote of iterateTableRows(tables, "enhanced_notes")) {
     if (!enhancedNote.content || !enhancedNote.session_id) {
       continue;
     }
@@ -131,17 +136,13 @@ function collectEnhancedNoteBatchItems<Schemas extends OptionalSchemas>(
 }
 
 function collectSessionBatchItems(
-  tables: Record<string, unknown> | undefined,
+  tables: TablesContent | undefined,
   dataDir: string,
-): { items: BatchItem[]; dirs: Set<string> } {
-  const items: BatchItem[] = [];
+): BatchCollectorResult<JsonValue> {
+  const items: BatchItem<JsonValue>[] = [];
   const dirs = new Set<string>();
 
-  for (const [id, row] of Object.entries(tables?.sessions ?? {})) {
-    // @ts-ignore
-    row.id = id;
-    const session = row as Session & { id: string };
-
+  for (const session of iterateTableRows(tables, "sessions")) {
     if (!session.raw_md) {
       continue;
     }

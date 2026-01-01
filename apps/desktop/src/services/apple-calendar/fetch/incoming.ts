@@ -9,6 +9,18 @@ import type {
   IncomingParticipants,
 } from "./types";
 
+export class CalendarFetchError extends Error {
+  constructor(
+    public readonly calendarTrackingId: string,
+    public readonly cause: string,
+  ) {
+    super(
+      `Failed to fetch events for calendar ${calendarTrackingId}: ${cause}`,
+    );
+    this.name = "CalendarFetchError";
+  }
+}
+
 export async function fetchIncomingEvents(ctx: Ctx): Promise<{
   events: IncomingEvent[];
   participants: IncomingParticipants;
@@ -24,7 +36,7 @@ export async function fetchIncomingEvents(ctx: Ctx): Promise<{
       });
 
       if (result.status === "error") {
-        return [];
+        throw new CalendarFetchError(trackingId, result.error);
       }
 
       return result.data;

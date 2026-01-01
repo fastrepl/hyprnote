@@ -5,9 +5,11 @@ use std::time::{Duration, Instant};
 pub use hypr_notification_interface::*;
 
 static RECENT_NOTIFICATIONS: OnceLock<Mutex<HashMap<String, Instant>>> = OnceLock::new();
-static NOTIFICATION_CONTEXT: OnceLock<Mutex<HashMap<String, Option<String>>>> = OnceLock::new();
+static NOTIFICATION_CONTEXT: OnceLock<Mutex<HashMap<String, (Option<String>, Instant)>>> =
+    OnceLock::new();
 
 const DEDUPE_WINDOW: Duration = Duration::from_secs(60 * 5);
+const CONTEXT_TTL: Duration = Duration::from_secs(60 * 10);
 
 pub enum NotificationMutation {
     Confirm,
@@ -16,12 +18,22 @@ pub enum NotificationMutation {
 
 fn store_context(key: &str, event_id: Option<String>) {
     let ctx_map = NOTIFICATION_CONTEXT.get_or_init(|| Mutex::new(HashMap::new()));
-    ctx_map.lock().unwrap().insert(key.to_string(), event_id);
+    let mut map = ctx_map.lock().unwrap();
+
+    let now = Instant::now();
+    map.retain(|_, (_, timestamp)| now.duration_since(*timestamp) < CONTEXT_TTL);
+
+    map.insert(key.to_string(), (event_id, now));
 }
 
 fn get_context(key: &str) -> NotificationContext {
     let ctx_map = NOTIFICATION_CONTEXT.get_or_init(|| Mutex::new(HashMap::new()));
-    let event_id = ctx_map.lock().unwrap().remove(key).flatten();
+    let event_id = ctx_map
+        .lock()
+        .unwrap()
+        .remove(key)
+        .map(|(event_id, _)| event_id)
+        .flatten();
     NotificationContext {
         key: key.to_string(),
         event_id,

@@ -134,7 +134,7 @@ class ClickableView: NSView {
       notification.key.withCString { keyPtr in
         rustOnNotificationConfirm(keyPtr)
       }
-      notification.dismissWithUserAction()
+      notification.dismiss()
     }
   }
 
@@ -239,8 +239,8 @@ class ActionButton: NSButton {
     wantsLayer = true
     isBordered = false
     bezelStyle = .rounded
-    controlSize = .regular
-    font = NSFont.systemFont(ofSize: 14, weight: .semibold)
+    controlSize = .small
+    font = NSFont.systemFont(ofSize: 12, weight: .medium)
     focusRingType = .none
 
     contentTintColor = NSColor(calibratedWhite: 0.1, alpha: 1.0)
@@ -248,21 +248,21 @@ class ActionButton: NSButton {
       bezelColor = NSColor(calibratedWhite: 0.9, alpha: 1.0)
     }
 
-    layer?.cornerRadius = 10
+    layer?.cornerRadius = 8
     layer?.backgroundColor = NSColor(calibratedWhite: 0.95, alpha: 0.9).cgColor
     layer?.borderColor = NSColor(calibratedWhite: 0.7, alpha: 0.5).cgColor
     layer?.borderWidth = 0.5
 
     layer?.shadowColor = NSColor(calibratedWhite: 0.0, alpha: 0.5).cgColor
-    layer?.shadowOpacity = 0.3
-    layer?.shadowRadius = 3
+    layer?.shadowOpacity = 0.2
+    layer?.shadowRadius = 2
     layer?.shadowOffset = CGSize(width: 0, height: 1)
   }
 
   override var intrinsicContentSize: NSSize {
     var s = super.intrinsicContentSize
-    s.width += 22
-    s.height = max(28, s.height + 4)
+    s.width += 12
+    s.height = max(24, s.height + 2)
     return s
   }
 
@@ -547,8 +547,7 @@ class NotificationManager {
 
     NSLayoutConstraint.activate([
       contentView.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 12),
-      contentView.trailingAnchor.constraint(
-        equalTo: effectView.trailingAnchor, constant: -35),
+      contentView.trailingAnchor.constraint(equalTo: effectView.trailingAnchor, constant: -12),
       contentView.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 9),
       contentView.bottomAnchor.constraint(equalTo: effectView.bottomAnchor, constant: -9),
     ])
@@ -617,8 +616,14 @@ class NotificationManager {
     textStack.addArrangedSubview(titleLabel)
     textStack.addArrangedSubview(bodyLabel)
 
+    let actionButton = ActionButton()
+    actionButton.title = "Take notes"
+    actionButton.notification = notification
+    actionButton.setContentHuggingPriority(.required, for: .horizontal)
+
     container.addArrangedSubview(iconContainer)
     container.addArrangedSubview(textStack)
+    container.addArrangedSubview(actionButton)
 
     return container
   }

@@ -6,6 +6,22 @@ import * as main from "./main";
 
 type Store = NonNullable<ReturnType<typeof main.UI.useStore>>;
 
+export function createSession(store: Store, title?: string): string {
+  const sessionId = id();
+  store.setRow("sessions", sessionId, {
+    title: title ?? "",
+    created_at: new Date().toISOString(),
+    raw_md: "",
+    enhanced_md: "",
+    user_id: DEFAULT_USER_ID,
+  });
+  void analyticsCommands.event({
+    event: "note_created",
+    has_event_id: false,
+  });
+  return sessionId;
+}
+
 export function getOrCreateSessionForEventId(
   store: Store,
   eventId: string,

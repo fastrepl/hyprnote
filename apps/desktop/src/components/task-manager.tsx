@@ -16,6 +16,7 @@ import {
   checkEventNotifications,
   EVENT_NOTIFICATION_INTERVAL,
   EVENT_NOTIFICATION_TASK_ID,
+  type NotifiedEventsMap,
 } from "../services/event-notification";
 import * as main from "../store/tinybase/store/main";
 import * as settings from "../store/tinybase/store/settings";
@@ -27,7 +28,7 @@ export function TaskManager() {
   const queries = main.UI.useQueries(main.STORE_ID);
 
   const settingsStore = settings.UI.useStore(settings.STORE_ID);
-  const notifiedEventsRef = useRef<Set<string>>(new Set());
+  const notifiedEventsRef = useRef<NotifiedEventsMap>(new Map());
 
   useSetTask(CALENDAR_SYNC_TASK_ID, async () => {
     await syncCalendarEvents(

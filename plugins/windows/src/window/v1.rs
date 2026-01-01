@@ -132,17 +132,17 @@ impl WindowImpl for AppWindow {
                 let window = self
                     .window_builder(app, "/app/control")
                     .transparent(true)
-                    .resizable(true)
+                    .resizable(false)
                     .always_on_top(true)
                     .skip_taskbar(true)
                     .visible_on_all_workspaces(true)
-                    .min_inner_size(300.0, 200.0)
+                    .decorations(false)
                     .build()?;
 
-                let desired_size = LogicalSize::new(300.0, 200.0);
+                let collapsed_size = LogicalSize::new(80.0, 80.0);
                 window.set_size(LogicalSize::new(1.0, 1.0))?;
                 std::thread::sleep(std::time::Duration::from_millis(10));
-                window.set_size(desired_size)?;
+                window.set_size(collapsed_size)?;
                 window
             }
         };

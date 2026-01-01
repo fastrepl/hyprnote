@@ -295,34 +295,46 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the index command without any pre-configured scope.",
+          "description": "Enables the build_index command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-index",
-          "markdownDescription": "Enables the index command without any pre-configured scope."
+          "const": "allow-build-index",
+          "markdownDescription": "Enables the build_index command without any pre-configured scope."
         },
         {
-          "description": "Denies the index command without any pre-configured scope.",
+          "description": "Denies the build_index command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-index",
-          "markdownDescription": "Denies the index command without any pre-configured scope."
+          "const": "deny-build-index",
+          "markdownDescription": "Denies the build_index command without any pre-configured scope."
         },
         {
-          "description": "Enables the search command without any pre-configured scope.",
+          "description": "Enables the clear_index command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-search",
-          "markdownDescription": "Enables the search command without any pre-configured scope."
+          "const": "allow-clear-index",
+          "markdownDescription": "Enables the clear_index command without any pre-configured scope."
         },
         {
-          "description": "Denies the search command without any pre-configured scope.",
+          "description": "Denies the clear_index command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-search",
-          "markdownDescription": "Denies the search command without any pre-configured scope."
+          "const": "deny-clear-index",
+          "markdownDescription": "Denies the clear_index command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-search`\n- `allow-index`",
+          "description": "Enables the get_bundle_path command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-bundle-path",
+          "markdownDescription": "Enables the get_bundle_path command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_bundle_path command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-bundle-path",
+          "markdownDescription": "Denies the get_bundle_path command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-build-index`\n- `allow-get-bundle-path`\n- `allow-clear-index`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-search`\n- `allow-index`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-build-index`\n- `allow-get-bundle-path`\n- `allow-clear-index`"
         }
       ]
     }

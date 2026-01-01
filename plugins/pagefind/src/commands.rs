@@ -2,12 +2,13 @@ use crate::{IndexRecord, PagefindPluginExt};
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) fn build_index<R: tauri::Runtime>(
+pub(crate) async fn build_index<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     records: Vec<IndexRecord>,
 ) -> Result<(), String> {
-    app.pagefind()
-        .build_index(records)
+    let pagefind_dir = app.pagefind().pagefind_dir().map_err(|e| e.to_string())?;
+    crate::build_index_inner(pagefind_dir, records)
+        .await
         .map_err(|e| e.to_string())
 }
 

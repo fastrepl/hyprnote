@@ -13,68 +13,14 @@ pub struct Pagefind<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Pagefind<'a, R, M> {
-    fn pagefind_dir(&self) -> Result<PathBuf, crate::Error> {
+    pub fn pagefind_dir(&self) -> Result<PathBuf, crate::Error> {
         let app_data_dir = self.manager.path().app_data_dir()?;
         Ok(app_data_dir.join("pagefind"))
     }
 
-    pub fn build_index(&self, records: Vec<IndexRecord>) -> Result<(), crate::Error> {
-        use pagefind::api::PagefindIndex;
-        use pagefind::options::PagefindServiceConfig;
-
+    pub async fn build_index(&self, records: Vec<IndexRecord>) -> Result<(), crate::Error> {
         let pagefind_dir = self.pagefind_dir()?;
-        std::fs::create_dir_all(&pagefind_dir)?;
-
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .map_err(|e| crate::Error::Pagefind(e.to_string()))?;
-
-        rt.block_on(async {
-            let options = PagefindServiceConfig::builder()
-                .keep_index_url(true)
-                .force_language("en".to_string())
-                .build();
-
-            let mut index =
-                PagefindIndex::new(Some(options)).map_err(|e| crate::Error::Anyhow(e))?;
-
-            for record in records {
-                let mut meta = std::collections::BTreeMap::new();
-                if let Some(t) = record.title {
-                    meta.insert("title".to_string(), t);
-                }
-
-                index
-                    .add_custom_record(
-                        record.url,
-                        record.content,
-                        "en".to_string(),
-                        Some(meta),
-                        None,
-                        None,
-                    )
-                    .await
-                    .map_err(|e| crate::Error::Anyhow(e))?;
-            }
-
-            let files = index
-                .get_files()
-                .await
-                .map_err(|e| crate::Error::Anyhow(e))?;
-
-            for file in files {
-                let file_path = pagefind_dir.join(&file.filename);
-                if let Some(parent) = file_path.parent() {
-                    std::fs::create_dir_all(parent)?;
-                }
-                std::fs::write(&file_path, &file.contents)?;
-            }
-
-            Ok::<(), crate::Error>(())
-        })?;
-
-        Ok(())
+        build_index_inner(pagefind_dir, records).await
     }
 
     pub fn get_bundle_path(&self) -> Result<String, crate::Error> {
@@ -90,6 +36,70 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Pagefind<'a, R, M> {
         }
         Ok(())
     }
+}
+
+pub async fn build_index_inner(
+    pagefind_dir: PathBuf,
+    records: Vec<IndexRecord>,
+) -> Result<(), crate::Error> {
+    tokio::task::spawn_blocking(move || build_index_sync(pagefind_dir, records))
+        .await
+        .map_err(|e| crate::Error::Pagefind(e.to_string()))?
+}
+
+fn build_index_sync(pagefind_dir: PathBuf, records: Vec<IndexRecord>) -> Result<(), crate::Error> {
+    use pagefind::api::PagefindIndex;
+    use pagefind::options::PagefindServiceConfig;
+
+    std::fs::create_dir_all(&pagefind_dir)?;
+
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .map_err(|e| crate::Error::Pagefind(e.to_string()))?;
+
+    rt.block_on(async {
+        let options = PagefindServiceConfig::builder()
+            .keep_index_url(true)
+            .force_language("en".to_string())
+            .build();
+
+        let mut index = PagefindIndex::new(Some(options)).map_err(|e| crate::Error::Anyhow(e))?;
+
+        for record in records {
+            let mut meta = std::collections::BTreeMap::new();
+            if let Some(t) = record.title {
+                meta.insert("title".to_string(), t);
+            }
+
+            index
+                .add_custom_record(
+                    record.url,
+                    record.content,
+                    "en".to_string(),
+                    Some(meta),
+                    None,
+                    None,
+                )
+                .await
+                .map_err(|e| crate::Error::Anyhow(e))?;
+        }
+
+        let files = index
+            .get_files()
+            .await
+            .map_err(|e| crate::Error::Anyhow(e))?;
+
+        for file in files {
+            let file_path = pagefind_dir.join(&file.filename);
+            if let Some(parent) = file_path.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            std::fs::write(&file_path, &file.contents)?;
+        }
+
+        Ok::<(), crate::Error>(())
+    })
 }
 
 pub trait PagefindPluginExt<R: tauri::Runtime> {

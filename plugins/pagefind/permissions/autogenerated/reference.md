@@ -4,8 +4,9 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-search`
-- `allow-index`
+- `allow-build-index`
+- `allow-get-bundle-path`
+- `allow-clear-index`
 
 ## Permission Table
 
@@ -19,25 +20,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`pagefind:allow-index`
+`pagefind:allow-build-index`
 
 </td>
 <td>
 
-Enables the index command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`pagefind:deny-index`
-
-</td>
-<td>
-
-Denies the index command without any pre-configured scope.
+Enables the build_index command without any pre-configured scope.
 
 </td>
 </tr>
@@ -45,12 +33,12 @@ Denies the index command without any pre-configured scope.
 <tr>
 <td>
 
-`pagefind:allow-search`
+`pagefind:deny-build-index`
 
 </td>
 <td>
 
-Enables the search command without any pre-configured scope.
+Denies the build_index command without any pre-configured scope.
 
 </td>
 </tr>
@@ -58,12 +46,51 @@ Enables the search command without any pre-configured scope.
 <tr>
 <td>
 
-`pagefind:deny-search`
+`pagefind:allow-clear-index`
 
 </td>
 <td>
 
-Denies the search command without any pre-configured scope.
+Enables the clear_index command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`pagefind:deny-clear-index`
+
+</td>
+<td>
+
+Denies the clear_index command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`pagefind:allow-get-bundle-path`
+
+</td>
+<td>
+
+Enables the get_bundle_path command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`pagefind:deny-get-bundle-path`
+
+</td>
+<td>
+
+Denies the get_bundle_path command without any pre-configured scope.
 
 </td>
 </tr>

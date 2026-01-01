@@ -112,6 +112,16 @@ export async function initPagefind(): Promise<void> {
   pagefindInstance = pagefind;
 }
 
+async function getPagefind(): Promise<PagefindInstance> {
+  if (!pagefindInstance) {
+    await initPagefind();
+  }
+  if (!pagefindInstance) {
+    throw new Error("Pagefind not initialized");
+  }
+  return pagefindInstance;
+}
+
 export async function search(
   query: string,
   options?: {
@@ -119,15 +129,8 @@ export async function search(
     sort?: Record<string, "asc" | "desc">;
   },
 ): Promise<PagefindSearchResponse> {
-  if (!pagefindInstance) {
-    await initPagefind();
-  }
-
-  if (!pagefindInstance) {
-    throw new Error("Pagefind not initialized");
-  }
-
-  return pagefindInstance.search(query, options);
+  const pagefind = await getPagefind();
+  return pagefind.search(query, options);
 }
 
 export async function debouncedSearch(
@@ -138,29 +141,15 @@ export async function debouncedSearch(
   },
   debounceMs?: number,
 ): Promise<PagefindSearchResponse | null> {
-  if (!pagefindInstance) {
-    await initPagefind();
-  }
-
-  if (!pagefindInstance) {
-    throw new Error("Pagefind not initialized");
-  }
-
-  return pagefindInstance.debouncedSearch(query, options, debounceMs);
+  const pagefind = await getPagefind();
+  return pagefind.debouncedSearch(query, options, debounceMs);
 }
 
 export async function getFilters(): Promise<
   Record<string, Record<string, number>>
 > {
-  if (!pagefindInstance) {
-    await initPagefind();
-  }
-
-  if (!pagefindInstance) {
-    throw new Error("Pagefind not initialized");
-  }
-
-  return pagefindInstance.filters();
+  const pagefind = await getPagefind();
+  return pagefind.filters();
 }
 
 export async function preload(
@@ -169,15 +158,8 @@ export async function preload(
     filters?: Record<string, string | string[]>;
   },
 ): Promise<void> {
-  if (!pagefindInstance) {
-    await initPagefind();
-  }
-
-  if (!pagefindInstance) {
-    throw new Error("Pagefind not initialized");
-  }
-
-  return pagefindInstance.preload(query, options);
+  const pagefind = await getPagefind();
+  return pagefind.preload(query, options);
 }
 
 export async function destroyPagefind(): Promise<void> {

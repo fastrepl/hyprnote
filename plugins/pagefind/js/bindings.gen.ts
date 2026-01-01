@@ -42,7 +42,7 @@ async clearIndex() : Promise<Result<null, string>> {
 
 /** user-defined types **/
 
-export type IndexRecord = { url: string; content: string; title: string | null }
+export type IndexRecord = { url: string; content: string; title: string | null; filters: Partial<{ [key in string]: string[] }> | null; meta: Partial<{ [key in string]: string }> | null }
 
 /** tauri-specta globals **/
 

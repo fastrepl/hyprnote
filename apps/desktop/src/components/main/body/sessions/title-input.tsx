@@ -202,7 +202,7 @@ export const TitleInput = forwardRef<
           }}
           onMouseDown={(e) => e.preventDefault()}
           className={cn([
-            "shrink-0 p-1",
+            "shrink-0",
             "text-muted-foreground hover:text-foreground",
             "opacity-50 hover:opacity-100 transition-opacity",
           ])}

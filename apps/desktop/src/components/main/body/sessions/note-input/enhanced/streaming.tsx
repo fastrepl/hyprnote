@@ -1,41 +1,43 @@
-import { Loader2Icon } from "lucide-react";
-import { LayoutGroup, motion } from "motion/react";
-import { useCallback, useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
 import { cn } from "@hypr/utils";
 
 import { useAITaskTask } from "../../../../../../hooks/useAITaskTask";
-import {
-  createTaskId,
-  type TaskId,
-} from "../../../../../../store/zustand/ai-task/task-configs";
+import { createTaskId } from "../../../../../../store/zustand/ai-task/task-configs";
 import { type TaskStepInfo } from "../../../../../../store/zustand/ai-task/tasks";
 
 export function StreamingView({ enhancedNoteId }: { enhancedNoteId: string }) {
   const taskId = createTaskId(enhancedNoteId, "enhance");
-  const { streamedText, isGenerating } = useAITaskTask(taskId, "enhance");
+  const { streamedText, currentStep, isGenerating } = useAITaskTask(taskId, "enhance");
 
-  const containerRef = useAutoScrollToBottom(streamedText);
+  const step = currentStep as TaskStepInfo<"enhance"> | undefined;
+  const hasContent = streamedText.length > 0;
+
+  let statusText: string | null = null;
+  if (isGenerating && !hasContent) {
+    if (step?.type === "analyzing") {
+      statusText = "Analyzing structure...";
+    } else if (step?.type === "generating") {
+      statusText = "Generating...";
+    } else if (step?.type === "retrying") {
+      statusText = `Retrying (attempt ${step.attempt})...`;
+    } else {
+      statusText = "Loading...";
+    }
+  }
 
   return (
-    <div ref={containerRef} className="flex flex-col pb-2 space-y-1">
-      <LayoutGroup>
-        <motion.div layout>
+    <div className="pb-2">
+      {statusText
+        ? <p className="text-sm text-neutral-500">{statusText}</p>
+        : (
           <Streamdown
             components={streamdownComponents}
             className={cn(["space-y-2"])}
           >
             {streamedText}
           </Streamdown>
-        </motion.div>
-
-        {isGenerating && (
-          <motion.div className="sticky bottom-0 pt-1">
-            <Status taskId={taskId} />
-          </motion.div>
         )}
-      </LayoutGroup>
     </div>
   );
 }
@@ -106,81 +108,3 @@ const streamdownComponents = {
     return <p className="py-2">{props.children as React.ReactNode}</p>;
   },
 } as const;
-
-function Status({ taskId }: { taskId: TaskId<"enhance"> }) {
-  const { currentStep, cancel, isGenerating } = useAITaskTask(
-    taskId,
-    "enhance",
-  );
-  if (!isGenerating) {
-    return null;
-  }
-  const step = currentStep as TaskStepInfo<"enhance"> | undefined;
-
-  const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      cancel();
-    },
-    [cancel],
-  );
-
-  let statusText = "Loading";
-  if (step?.type === "analyzing") {
-    statusText = "Analyzing structure...";
-  } else if (step?.type === "generating") {
-    statusText = "Generating";
-  } else if (step?.type === "retrying") {
-    statusText = `Retrying (attempt ${step.attempt})...`;
-  }
-
-  return (
-    <button
-      className={cn([
-        "group flex items-center justify-center w-[calc(100%-24px)] gap-3",
-        "border border-neutral-200 bg-neutral-800 rounded-lg py-3 transition-colors",
-        "cursor-pointer hover:bg-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-100/60",
-      ])}
-      type="button"
-      aria-label="Cancel enhance task"
-      onClick={handleClick}
-    >
-      <Loader2Icon
-        aria-hidden="true"
-        className="w-4 h-4 animate-spin text-neutral-50"
-      />
-      <span className="text-xs text-neutral-50 group-hover:hidden group-focus-visible:hidden">
-        {statusText}
-      </span>
-      <span className="hidden text-xs text-neutral-50 group-hover:inline group-focus-visible:inline">
-        Press to cancel
-      </span>
-    </button>
-  );
-}
-
-function useAutoScrollToBottom(text: string) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-
-    const scrollableParent = container.parentElement;
-    if (!scrollableParent) {
-      return;
-    }
-
-    const { scrollTop, scrollHeight, clientHeight } = scrollableParent;
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-
-    if (isNearBottom) {
-      scrollableParent.scrollTop = scrollHeight;
-    }
-  }, [text]);
-
-  return containerRef;
-}

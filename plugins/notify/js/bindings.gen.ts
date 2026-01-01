@@ -6,20 +6,31 @@
 
 
 export const commands = {
-
+async start() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:notify|start") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async stop() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:notify|stop") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+}
 }
 
 /** user-defined events **/
 
 
 export const events = __makeEvents__<{
-entityChanged: EntityChanged,
-fileChanged: FileChanged,
-settingsChanged: SettingsChanged
+fileChanged: FileChanged
 }>({
-entityChanged: "plugin:notify:entity-changed",
-fileChanged: "plugin:notify:file-changed",
-settingsChanged: "plugin:notify:settings-changed"
+fileChanged: "plugin:notify:file-changed"
 })
 
 /** user-defined constants **/
@@ -28,11 +39,7 @@ settingsChanged: "plugin:notify:settings-changed"
 
 /** user-defined types **/
 
-export type ChangeAction = "created" | "updated" | "deleted"
-export type EntityChanged = { entity_type: EntityType; entity_id: string; action: ChangeAction }
-export type EntityType = "session" | "transcript" | "human" | "organization" | "event" | "chat_group" | "chat_message" | "enhanced_note" | "template" | "memory" | "folder" | "tag" | "prompt" | "chat_shortcut"
 export type FileChanged = { path: string }
-export type SettingsChanged = { path: string }
 
 /** tauri-specta globals **/
 

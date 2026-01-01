@@ -16,6 +16,7 @@ tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
 notify = "8"
+notify-debouncer-full = "0.5"
 
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-path2 = { workspace = true }

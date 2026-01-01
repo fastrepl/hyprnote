@@ -1,14 +1,13 @@
-use std::sync::Mutex;
+use std::time::Duration;
 
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use notify::RecursiveMode;
+use notify_debouncer_full::{DebouncedEvent, new_debouncer};
 use tauri_plugin_path2::Path2PluginExt;
 use tauri_specta::Event;
 
-use crate::{FileChanged, SettingsChanged};
+use crate::{FileChanged, WatcherState};
 
-pub struct WatcherState {
-    _watcher: Mutex<Option<RecommendedWatcher>>,
-}
+const DEBOUNCE_DELAY_MS: u64 = 500;
 
 pub struct Notify<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -16,50 +15,45 @@ pub struct Notify<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
-    pub fn setup_watcher(&self) -> Result<WatcherState, crate::Error> {
+    pub fn start(&self) -> Result<(), crate::Error> {
+        let state = self.manager.state::<WatcherState>();
+        let mut guard = state.debouncer.lock().unwrap();
+
+        if guard.is_some() {
+            return Ok(());
+        }
+
         let base = self.manager.app_handle().path2().base()?;
         let app_handle = self.manager.app_handle().clone();
 
-        let mut watcher =
-            notify::recommended_watcher(move |res: Result<notify::Event, notify::Error>| {
-                let event = match res {
-                    Ok(e) => e,
-                    Err(e) => {
-                        tracing::warn!("File watcher error: {}", e);
-                        return;
-                    }
-                };
-
-                if !event.kind.is_modify() && !event.kind.is_create() {
-                    return;
-                }
-
-                for path in event.paths {
-                    let path_str = path.to_string_lossy().to_string();
-
-                    let file_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-
-                    if file_name == "settings.json" {
-                        let _ = SettingsChanged {
-                            path: path_str.clone(),
+        let mut debouncer = new_debouncer(
+            Duration::from_millis(DEBOUNCE_DELAY_MS),
+            None,
+            move |events: Result<Vec<DebouncedEvent>, Vec<notify::Error>>| {
+                if let Ok(events) = events {
+                    for event in events {
+                        for path in &event.paths {
+                            let _ = FileChanged {
+                                path: path.to_string_lossy().to_string(),
+                            }
+                            .emit(&app_handle);
                         }
-                        .emit(&app_handle);
-                    }
-
-                    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
-                    if ext == "json" || ext == "md" {
-                        let _ = FileChanged { path: path_str }.emit(&app_handle);
                     }
                 }
-            })?;
+            },
+        )?;
 
-        watcher.watch(&base, RecursiveMode::Recursive)?;
+        debouncer.watch(&base, RecursiveMode::Recursive)?;
+        *guard = Some(debouncer);
 
-        tracing::info!("File watcher started for: {:?}", base);
+        Ok(())
+    }
 
-        Ok(WatcherState {
-            _watcher: Mutex::new(Some(watcher)),
-        })
+    pub fn stop(&self) -> Result<(), crate::Error> {
+        let state = self.manager.state::<WatcherState>();
+        let mut guard = state.debouncer.lock().unwrap();
+        *guard = None;
+        Ok(())
     }
 }
 

@@ -94,8 +94,7 @@ export function useListenButtonState(sessionId: string) {
   if (isLocalServerLoading) {
     warningMessage = "Local STT server is starting up...";
   } else if (isOfflineWithCloudModel) {
-    warningMessage =
-      "Network unavailable. Switch to a local model to continue.";
+    warningMessage = "You're offline. Use on-device models to continue.";
   } else if (!sttConnection) {
     warningMessage = "Transcription model not available.";
   } else if (batching) {

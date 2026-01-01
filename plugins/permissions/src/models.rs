@@ -24,6 +24,16 @@ impl From<isize> for PermissionStatus {
     }
 }
 
+impl From<bool> for PermissionStatus {
+    fn from(status: bool) -> Self {
+        if status {
+            Self::Authorized
+        } else {
+            Self::Denied
+        }
+    }
+}
+
 #[cfg(target_os = "macos")]
 impl From<AVAuthorizationStatus> for PermissionStatus {
     fn from(status: AVAuthorizationStatus) -> Self {

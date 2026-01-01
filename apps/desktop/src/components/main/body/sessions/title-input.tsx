@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useRef } from "react";
 
 import { cn } from "@hypr/utils";
 
+import { useTitleGenerating } from "../../../../hooks/useTitleGenerating";
 import * as main from "../../../../store/tinybase/store/main";
 import { type Tab } from "../../../../store/zustand/tabs";
 
@@ -17,6 +18,7 @@ export const TitleInput = forwardRef<
     state: { view },
   } = tab;
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
+  const isGenerating = useTitleGenerating(sessionId);
 
   const handleEditTitle = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -137,6 +139,15 @@ export const TitleInput = forwardRef<
     }
   };
 
+  if (isGenerating) {
+    return (
+      <div className="w-full h-[28px] relative overflow-hidden rounded">
+        <div className="absolute inset-0 bg-muted/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" />
+      </div>
+    );
+  }
+
   return (
     <input
       ref={inputRef}
@@ -146,11 +157,11 @@ export const TitleInput = forwardRef<
       onChange={(e) => handleEditTitle(e.target.value)}
       onKeyDown={handleKeyDown}
       value={title ?? ""}
-      className={cn(
+      className={cn([
         "w-full transition-opacity duration-200",
         "border-none bg-transparent focus:outline-none",
         "text-xl font-semibold placeholder:text-muted-foreground",
-      )}
+      ])}
     />
   );
 });

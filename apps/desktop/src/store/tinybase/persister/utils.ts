@@ -5,8 +5,14 @@ import type {
   ChatGroup,
   ChatMessageStorage,
   EnhancedNoteStorage,
+  EventStorage,
+  HumanStorage,
+  MappingSessionParticipantStorage,
+  MappingTagSession,
+  OrganizationStorage,
   SessionStorage,
   SpeakerHintStorage,
+  Tag,
   TemplateStorage,
   TranscriptStorage,
   WordStorage,
@@ -74,6 +80,15 @@ export type TablesContent = {
   speaker_hints?: Record<string, SpeakerHintStorage>;
   chat_groups?: Record<string, ChatGroup>;
   chat_messages?: Record<string, ChatMessageStorage>;
+  mapping_session_participant?: Record<
+    string,
+    MappingSessionParticipantStorage
+  >;
+  mapping_tag_session?: Record<string, MappingTagSession>;
+  tags?: Record<string, Tag>;
+  humans?: Record<string, HumanStorage>;
+  organizations?: Record<string, OrganizationStorage>;
+  events?: Record<string, EventStorage>;
 };
 
 type TableRowType<K extends keyof TablesContent> =

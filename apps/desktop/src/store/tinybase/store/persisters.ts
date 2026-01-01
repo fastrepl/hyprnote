@@ -11,6 +11,7 @@ import { createChatPersister } from "../persister/chat";
 import { createEventPersister } from "../persister/events";
 import { createHumanPersister } from "../persister/human";
 import { createLocalPersister } from "../persister/local";
+import { createMetaPersister } from "../persister/meta";
 import { createNotePersister } from "../persister/note";
 import { createOrganizationPersister } from "../persister/organization";
 import { createTranscriptPersister } from "../persister/transcript";
@@ -211,6 +212,18 @@ export function useMainPersisters(
     [persist],
   );
 
+  const metaPersister = useCreatePersister(
+    store,
+    async (store) => {
+      if (!persist) {
+        return undefined;
+      }
+
+      return createMetaPersister<Schemas>(store as Store);
+    },
+    [persist],
+  );
+
   const persisters = useMemo(
     () =>
       localPersister &&
@@ -219,7 +232,8 @@ export function useMainPersisters(
       organizationPersister &&
       humanPersister &&
       eventPersister &&
-      chatPersister
+      chatPersister &&
+      metaPersister
         ? [
             localPersister,
             markdownPersister,
@@ -228,6 +242,7 @@ export function useMainPersisters(
             humanPersister,
             eventPersister,
             chatPersister,
+            metaPersister,
           ]
         : null,
     [
@@ -238,6 +253,7 @@ export function useMainPersisters(
       humanPersister,
       eventPersister,
       chatPersister,
+      metaPersister,
     ],
   );
 
@@ -251,6 +267,7 @@ export function useMainPersisters(
     humanPersister,
     eventPersister,
     chatPersister,
+    metaPersister,
   };
 }
 

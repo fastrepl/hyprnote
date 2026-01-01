@@ -1,7 +1,9 @@
-import { forwardRef, useEffect, useRef } from "react";
+import { usePrevious } from "@uidotdev/usehooks";
+import { forwardRef, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
+import { useTitleGenerating } from "../../../../hooks/useTitleGenerating";
 import * as main from "../../../../store/tinybase/store/main";
 import { type Tab } from "../../../../store/zustand/tabs";
 
@@ -17,6 +19,19 @@ export const TitleInput = forwardRef<
     state: { view },
   } = tab;
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
+  const isGenerating = useTitleGenerating(sessionId);
+  const wasGenerating = usePrevious(isGenerating);
+  const [showRevealAnimation, setShowRevealAnimation] = useState(false);
+
+  useEffect(() => {
+    if (wasGenerating && !isGenerating && title) {
+      setShowRevealAnimation(true);
+      const timer = setTimeout(() => {
+        setShowRevealAnimation(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [wasGenerating, isGenerating, title]);
 
   const handleEditTitle = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -137,6 +152,26 @@ export const TitleInput = forwardRef<
     }
   };
 
+  if (isGenerating) {
+    return (
+      <div className="w-full h-[28px] flex items-center">
+        <span className="text-xl font-semibold text-muted-foreground animate-pulse">
+          Generating title...
+        </span>
+      </div>
+    );
+  }
+
+  if (showRevealAnimation) {
+    return (
+      <div className="w-full h-[28px] flex items-center overflow-hidden">
+        <span className="text-xl font-semibold animate-reveal-left whitespace-nowrap">
+          {title}
+        </span>
+      </div>
+    );
+  }
+
   return (
     <input
       ref={inputRef}
@@ -146,11 +181,11 @@ export const TitleInput = forwardRef<
       onChange={(e) => handleEditTitle(e.target.value)}
       onKeyDown={handleKeyDown}
       value={title ?? ""}
-      className={cn(
+      className={cn([
         "w-full transition-opacity duration-200",
         "border-none bg-transparent focus:outline-none",
         "text-xl font-semibold placeholder:text-muted-foreground",
-      )}
+      ])}
     />
   );
 });

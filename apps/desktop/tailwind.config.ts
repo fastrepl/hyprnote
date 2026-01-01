@@ -13,9 +13,14 @@ const config = {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(100%)" },
         },
+        "reveal-left": {
+          "0%": { clipPath: "inset(0 100% 0 0)" },
+          "100%": { clipPath: "inset(0 0 0 0)" },
+        },
       },
       animation: {
         shimmer: "shimmer 2s infinite",
+        "reveal-left": "reveal-left 0.5s ease-out forwards",
       },
     },
   },

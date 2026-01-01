@@ -11,10 +11,13 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
+import { events } from "@hypr/plugin-notify";
 import { commands } from "@hypr/plugin-settings";
 
 import { SETTINGS_MAPPING } from "../store/settings";
 import { StoreOrMergeableStore } from "../store/shared";
+
+const FALLBACK_POLL_INTERVAL = 60000;
 
 type ProviderData = { base_url: string; api_key: string };
 type ProviderRow = { type: "llm" | "stt"; base_url: string; api_key: string };
@@ -189,6 +192,11 @@ export async function migrateKeysJsonToSettings(): Promise<boolean> {
   }
 }
 
+type ListenerHandle = {
+  unlisten: (() => void) | null;
+  interval: ReturnType<typeof setInterval>;
+};
+
 export function createSettingsPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ) {
@@ -211,8 +219,31 @@ export function createSettingsPersister<Schemas extends OptionalSchemas>(
         console.error("[SettingsPersister] save error:", result.error);
       }
     },
-    (listener) => setInterval(listener, 1000),
-    (handle) => clearInterval(handle),
+    (listener) => {
+      const handle: ListenerHandle = {
+        unlisten: null,
+        interval: setInterval(listener, FALLBACK_POLL_INTERVAL),
+      };
+
+      events.settingsChanged
+        .listen(() => {
+          listener();
+        })
+        .then((unlisten) => {
+          handle.unlisten = unlisten;
+        })
+        .catch((error) => {
+          console.error("[SettingsPersister] event listen error:", error);
+        });
+
+      return handle;
+    },
+    (handle: ListenerHandle) => {
+      if (handle.unlisten) {
+        handle.unlisten();
+      }
+      clearInterval(handle.interval);
+    },
     (error) => console.error("[SettingsPersister]:", error),
     StoreOrMergeableStore,
   );

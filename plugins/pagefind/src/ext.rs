@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use codes_iso_639::part_1::LanguageCode;
@@ -29,11 +30,19 @@ pub struct IndexRecord {
     pub url: String,
     pub content: String,
     pub title: Option<String>,
+    pub filters: Option<std::collections::HashMap<String, Vec<String>>>,
+    pub meta: Option<std::collections::HashMap<String, String>>,
 }
 
 pub struct Pagefind<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
+}
+
+fn get_index_lock<R: tauri::Runtime>(
+    manager: &impl tauri::Manager<R>,
+) -> std::sync::Arc<std::sync::Mutex<()>> {
+    std::sync::Arc::clone(&manager.state::<crate::ManagedState>().index_lock)
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Pagefind<'a, R, M> {
@@ -44,7 +53,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Pagefind<'a, R, M> {
 
     pub async fn build_index(&self, records: Vec<IndexRecord>) -> Result<(), crate::Error> {
         let pagefind_dir = self.pagefind_dir()?;
-        build_index_inner(pagefind_dir, records).await
+        let lock = get_index_lock(self.manager);
+        build_index_inner(pagefind_dir, records, lock).await
     }
 
     pub fn get_bundle_path(&self) -> Result<String, crate::Error> {
@@ -54,6 +64,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Pagefind<'a, R, M> {
     }
 
     pub fn clear_index(&self) -> Result<(), crate::Error> {
+        let lock = get_index_lock(self.manager);
+        let _guard = lock.lock().unwrap();
         let pagefind_dir = self.pagefind_dir()?;
         if pagefind_dir.exists() {
             std::fs::remove_dir_all(&pagefind_dir)?;
@@ -65,13 +77,20 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Pagefind<'a, R, M> {
 pub async fn build_index_inner(
     pagefind_dir: PathBuf,
     records: Vec<IndexRecord>,
+    lock: std::sync::Arc<std::sync::Mutex<()>>,
 ) -> Result<(), crate::Error> {
-    tokio::task::spawn_blocking(move || build_index_sync(pagefind_dir, records))
-        .await
-        .map_err(|e| crate::Error::Pagefind(e.to_string()))?
+    tokio::task::spawn_blocking(move || {
+        let _guard = lock.lock().unwrap();
+        build_index_sync(pagefind_dir, records)
+    })
+    .await
+    .map_err(|e| crate::Error::Pagefind(e.to_string()))?
 }
 
-fn build_index_sync(pagefind_dir: PathBuf, records: Vec<IndexRecord>) -> Result<(), crate::Error> {
+pub fn build_index_sync(
+    pagefind_dir: PathBuf,
+    records: Vec<IndexRecord>,
+) -> Result<(), crate::Error> {
     use pagefind::api::PagefindIndex;
     use pagefind::options::PagefindServiceConfig;
 
@@ -94,10 +113,26 @@ fn build_index_sync(pagefind_dir: PathBuf, records: Vec<IndexRecord>) -> Result<
             if let Some(t) = record.title {
                 meta.insert("title".to_string(), t);
             }
+            if let Some(m) = record.meta {
+                for (k, v) in m {
+                    meta.insert(k, v);
+                }
+            }
+
+            let filters = record
+                .filters
+                .map(|f| f.into_iter().collect::<BTreeMap<_, _>>());
 
             let language = detect_language(&record.content);
             index
-                .add_custom_record(record.url, record.content, language, Some(meta), None, None)
+                .add_custom_record(
+                    record.url,
+                    record.content,
+                    language,
+                    Some(meta),
+                    filters,
+                    None,
+                )
                 .await
                 .map_err(|e| crate::Error::Anyhow(e))?;
         }

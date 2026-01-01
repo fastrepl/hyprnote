@@ -9,6 +9,11 @@ pub use ext::*;
 
 const PLUGIN_NAME: &str = "pagefind";
 
+#[derive(Default)]
+pub struct ManagedState {
+    pub index_lock: std::sync::Arc<std::sync::Mutex<()>>,
+}
+
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
@@ -31,9 +36,6 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         })
         .build()
 }
-
-#[derive(Default)]
-pub struct ManagedState {}
 
 #[cfg(test)]
 mod test {

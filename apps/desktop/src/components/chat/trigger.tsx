@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { cn } from "@hypr/utils";
@@ -10,28 +10,36 @@ export function ChatTrigger({
   onClick: () => void;
   isCaretNearBottom?: boolean;
 }) {
-  const [isMouseNearBottom, setIsMouseNearBottom] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [isMouseNearButton, setIsMouseNearButton] = useState(false);
 
   useEffect(() => {
     if (!isCaretNearBottom) {
-      setIsMouseNearBottom(false);
+      setIsMouseNearButton(false);
       return;
     }
 
     const handleMouseMove = (e: MouseEvent) => {
-      const threshold = 100;
-      const distanceFromBottom = window.innerHeight - e.clientY;
-      setIsMouseNearBottom(distanceFromBottom < threshold);
+      if (!buttonRef.current) return;
+      const rect = buttonRef.current.getBoundingClientRect();
+      const threshold = 60;
+      const isNear =
+        e.clientX >= rect.left - threshold &&
+        e.clientX <= rect.right + threshold &&
+        e.clientY >= rect.top - threshold &&
+        e.clientY <= rect.bottom + threshold;
+      setIsMouseNearButton(isNear);
     };
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [isCaretNearBottom]);
 
-  const shouldHide = isCaretNearBottom && !isMouseNearBottom;
+  const shouldHide = isCaretNearBottom && !isMouseNearButton;
 
   return createPortal(
     <button
+      ref={buttonRef}
       onClick={onClick}
       className={cn([
         "fixed right-4 z-[100]",

@@ -49,6 +49,7 @@
     "@hypr/plugin-notification": "workspace:*",
     "@hypr/plugin-notify": "workspace:*",
     "@hypr/plugin-overlay": "workspace:*",
+    "@hypr/plugin-pagefind": "workspace:*",
     "@hypr/plugin-path2": "workspace:*",
     "@hypr/plugin-pdf": "workspace:*",
     "@hypr/plugin-permissions": "workspace:*",

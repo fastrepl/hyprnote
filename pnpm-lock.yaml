@@ -296,6 +296,9 @@ importers:
       '@hypr/plugin-overlay':
         specifier: workspace:*
         version: link:../../plugins/overlay
+      '@hypr/plugin-pagefind':
+        specifier: workspace:*
+        version: link:../../plugins/pagefind
       '@hypr/plugin-path2':
         specifier: workspace:*
         version: link:../../plugins/path2
@@ -1557,6 +1560,12 @@ importers:
         version: 2.9.1
 
   plugins/overlay:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/pagefind:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

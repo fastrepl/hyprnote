@@ -171,6 +171,7 @@
     "listener2:default",
     "template:default",
     "notification:default",
+    "notify:default",
     "overlay:default",
     "shell:allow-open",
     {

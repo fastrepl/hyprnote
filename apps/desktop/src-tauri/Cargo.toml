@@ -47,6 +47,7 @@ tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-misc = { workspace = true }
 tauri-plugin-network = { workspace = true }
 tauri-plugin-notification = { workspace = true }
+tauri-plugin-notify = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-os = { workspace = true }
 tauri-plugin-overlay = { workspace = true }

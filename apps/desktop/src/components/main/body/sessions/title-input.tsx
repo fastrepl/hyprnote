@@ -1,4 +1,5 @@
-import { forwardRef, useEffect, useRef } from "react";
+import { usePrevious } from "@uidotdev/usehooks";
+import { forwardRef, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -19,6 +20,18 @@ export const TitleInput = forwardRef<
   } = tab;
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
   const isGenerating = useTitleGenerating(sessionId);
+  const wasGenerating = usePrevious(isGenerating);
+  const [showRevealAnimation, setShowRevealAnimation] = useState(false);
+
+  useEffect(() => {
+    if (wasGenerating && !isGenerating && title) {
+      setShowRevealAnimation(true);
+      const timer = setTimeout(() => {
+        setShowRevealAnimation(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [wasGenerating, isGenerating, title]);
 
   const handleEditTitle = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -141,9 +154,20 @@ export const TitleInput = forwardRef<
 
   if (isGenerating) {
     return (
-      <div className="w-full h-[28px] relative overflow-hidden rounded">
-        <div className="absolute inset-0 bg-muted/50" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" />
+      <div className="w-full h-[28px] flex items-center">
+        <span className="text-xl font-semibold text-muted-foreground animate-pulse">
+          Generating title...
+        </span>
+      </div>
+    );
+  }
+
+  if (showRevealAnimation) {
+    return (
+      <div className="w-full h-[28px] flex items-center overflow-hidden">
+        <span className="text-xl font-semibold animate-reveal-left whitespace-nowrap">
+          {title}
+        </span>
       </div>
     );
   }

@@ -222,7 +222,7 @@ export const NoteInput = forwardRef<
         />
       </div>
 
-      <div className="relative flex-1 mt-2 overflow-hidden">
+      <div className="relative flex-1 overflow-hidden">
         <div
           ref={(node) => {
             fadeRef.current = node;
@@ -238,7 +238,7 @@ export const NoteInput = forwardRef<
             "h-full px-3",
             currentTab.type === "transcript"
               ? "overflow-hidden"
-              : ["overflow-auto", "pb-6"],
+              : ["overflow-auto", "pt-2", "pb-6"],
           ])}
         >
           {currentTab.type === "enhanced" && (
@@ -416,9 +416,9 @@ function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
       className={cn([
         "absolute left-0 w-full h-8 z-20 pointer-events-none",
         position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
+        "top-0 bg-gradient-to-b from-white to-transparent",
         position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
+        "bottom-0 bg-gradient-to-t from-white to-transparent",
       ])}
     />
   );

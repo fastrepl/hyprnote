@@ -18531,6 +18531,7 @@ dependencies = [
 name = "tauri-plugin-pagefind"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "pagefind",
  "serde",
  "specta",

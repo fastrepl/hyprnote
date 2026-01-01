@@ -1,25 +1,26 @@
-use crate::PagefindPluginExt;
+use crate::{IndexRecord, PagefindPluginExt};
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn search<R: tauri::Runtime>(
+pub(crate) fn build_index<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    query: String,
-) -> Result<Vec<String>, String> {
+    records: Vec<IndexRecord>,
+) -> Result<(), String> {
     app.pagefind()
-        .search(query)
-        .await
+        .build_index(records)
         .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn index<R: tauri::Runtime>(
+pub(crate) fn get_bundle_path<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    content: String,
-) -> Result<(), String> {
-    app.pagefind()
-        .index(content)
-        .await
-        .map_err(|e| e.to_string())
+) -> Result<String, String> {
+    app.pagefind().get_bundle_path().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn clear_index<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
+    app.pagefind().clear_index().map_err(|e| e.to_string())
 }

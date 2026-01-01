@@ -13,8 +13,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::search::<tauri::Wry>,
-            commands::index::<tauri::Wry>,
+            commands::build_index::<tauri::Wry>,
+            commands::get_bundle_path::<tauri::Wry>,
+            commands::clear_index::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

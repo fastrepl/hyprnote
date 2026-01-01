@@ -8,6 +8,10 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error("{0}")]
     Pagefind(String),
+    #[error(transparent)]
+    Tauri(#[from] tauri::Error),
+    #[error(transparent)]
+    Anyhow(#[from] anyhow::Error),
 }
 
 impl Serialize for Error {

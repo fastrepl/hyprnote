@@ -12,7 +12,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }
-tokio = { workspace = true, features = ["macros"] }
+tokio = { workspace = true, features = ["macros", "sync"] }
 
 [dependencies]
 pagefind = "1.4.0"
@@ -23,4 +23,6 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 serde = { workspace = true }
 specta = { workspace = true }
 
+anyhow = { workspace = true }
 thiserror = { workspace = true }
+tokio = { workspace = true, features = ["sync"] }

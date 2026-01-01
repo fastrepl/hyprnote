@@ -18,11 +18,12 @@ tokio = { workspace = true, features = ["macros"] }
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
+base64 = { workspace = true }
 serde = { workspace = true }
 specta = { workspace = true }
 thiserror = { workspace = true }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 objc2 = { workspace = true }
-objc2-app-kit = { workspace = true, features = ["NSApplication", "NSImage"] }
-objc2-foundation = { workspace = true, features = ["NSString"] }
+objc2-app-kit = { workspace = true, features = ["NSApplication", "NSImage", "NSBitmapImageRep", "NSGraphicsContext", "NSImageRep"] }
+objc2-foundation = { workspace = true, features = ["NSString", "NSData", "NSArray", "NSObject"] }

@@ -295,6 +295,18 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the get_icon command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-icon",
+          "markdownDescription": "Enables the get_icon command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_icon command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-icon",
+          "markdownDescription": "Denies the get_icon command without any pre-configured scope."
+        },
+        {
           "description": "Enables the reset_dock_icon command without any pre-configured scope.",
           "type": "string",
           "const": "allow-reset-dock-icon",
@@ -319,10 +331,10 @@
           "markdownDescription": "Denies the set_dock_icon command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`\n- `allow-get-icon`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`\n- `allow-get-icon`"
         }
       ]
     }

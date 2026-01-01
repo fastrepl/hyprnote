@@ -2,12 +2,15 @@ import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
-import * as main from "../../../store/tinybase/main";
+import * as settings from "../../../store/tinybase/store/settings";
+import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
 import { MainLanguageView } from "./main-language";
+import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 
@@ -21,7 +24,7 @@ export function SettingsGeneral() {
     "spoken_languages",
   ] as const);
 
-  const setPartialValues = main.UI.useSetPartialValuesCallback(
+  const setPartialValues = settings.UI.useSetPartialValuesCallback(
     (row: Partial<General>) =>
       ({
         ...row,
@@ -31,12 +34,12 @@ export function SettingsGeneral() {
         ignored_platforms: row.ignored_platforms
           ? JSON.stringify(row.ignored_platforms)
           : undefined,
-        dismissed_banners: row.dismissed_banners
-          ? JSON.stringify(row.dismissed_banners)
+        ignored_recurring_series: row.ignored_recurring_series
+          ? JSON.stringify(row.ignored_recurring_series)
           : undefined,
       }) satisfies Partial<GeneralStorage>,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const form = useForm({
@@ -56,22 +59,35 @@ export function SettingsGeneral() {
         if (errors.length > 0) {
           console.log(errors);
         }
-        formApi.handleSubmit();
+        void formApi.handleSubmit();
       },
     },
     onSubmit: ({ value }) => {
       setPartialValues(value);
 
       if (value.autostart) {
-        enable();
+        void enable();
       } else {
-        disable();
+        void disable();
       }
+
+      void analyticsCommands.event({
+        event: "settings_changed",
+        autostart: value.autostart,
+        notification_detect: value.notification_detect,
+        save_recordings: value.save_recordings,
+        telemetry_consent: value.telemetry_consent,
+      });
     },
   });
 
   return (
     <div className="flex flex-col gap-8">
+      <div>
+        <h2 className="font-semibold mb-4">Account & Billing</h2>
+        <AccountSettings />
+      </div>
+
       <form.Field name="autostart">
         {(autostartField) => (
           <form.Field name="notification_detect">
@@ -147,6 +163,11 @@ export function SettingsGeneral() {
         </div>
       </div>
 
+      <div>
+        <h2 className="font-semibold mb-4">Notifications</h2>
+        <NotificationSettingsView />
+      </div>
+
       <Permissions />
     </div>
   );
@@ -195,6 +216,7 @@ const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
   "sl",
   "ta",
   "lv",
+  "lt",
   "az",
   "he",
 ];

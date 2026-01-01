@@ -1,25 +1,34 @@
-use crate::types::{Calendar, Event, EventFilter};
+use crate::types::EventFilter;
+use crate::types::{AppleCalendar, AppleEvent};
 
-pub trait AppleCalendarPluginExt<R: tauri::Runtime> {
-    fn open_calendar(&self) -> Result<(), String>;
-
-    fn open_calendar_access_settings(&self) -> Result<(), String>;
-    fn open_contacts_access_settings(&self) -> Result<(), String>;
-
-    fn calendar_access_status(&self) -> bool;
-    fn contacts_access_status(&self) -> bool;
-
-    fn request_calendar_access(&self);
-    fn request_contacts_access(&self);
-
-    fn list_calendars(&self) -> Result<Vec<Calendar>, String>;
-    fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>, String>;
+pub struct AppleCalendarExt<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    #[allow(dead_code)]
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-#[cfg(target_os = "macos")]
-impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> for T {
+#[cfg(feature = "fixture")]
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
     #[tracing::instrument(skip_all)]
-    fn open_calendar(&self) -> Result<(), String> {
+    pub fn open_calendar(&self) -> Result<(), String> {
+        Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
+    pub fn list_calendars(&self) -> Result<Vec<AppleCalendar>, String> {
+        crate::fixture::list_calendars()
+    }
+
+    #[tracing::instrument(skip_all)]
+    pub fn list_events(&self, filter: EventFilter) -> Result<Vec<AppleEvent>, String> {
+        crate::fixture::list_events(filter)
+    }
+}
+
+#[cfg(all(target_os = "macos", not(feature = "fixture")))]
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
+    #[tracing::instrument(skip_all)]
+    pub fn open_calendar(&self) -> Result<(), String> {
         let script = String::from(
             "
             tell application \"Calendar\"
@@ -42,117 +51,47 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
     }
 
     #[tracing::instrument(skip_all)]
-    fn open_calendar_access_settings(&self) -> Result<(), String> {
-        std::process::Command::new("open")
-            .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars")
-            .spawn()
-            .map_err(|e| e.to_string())?
-            .wait()
-            .map_err(|e| e.to_string())?;
-
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    fn open_contacts_access_settings(&self) -> Result<(), String> {
-        std::process::Command::new("open")
-            .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Contacts")
-            .spawn()
-            .map_err(|e| e.to_string())?
-            .wait()
-            .map_err(|e| e.to_string())?;
-
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    fn calendar_access_status(&self) -> bool {
-        let handle = crate::apple::Handle::new();
-        handle.calendar_access_status()
-    }
-
-    #[tracing::instrument(skip_all)]
-    fn contacts_access_status(&self) -> bool {
-        let handle = crate::apple::Handle::new();
-        handle.contacts_access_status()
-    }
-
-    #[tracing::instrument(skip_all)]
-    fn request_calendar_access(&self) {
-        use tauri_plugin_shell::ShellExt;
-
-        let bundle_id = self.config().identifier.clone();
-        self.app_handle()
-            .shell()
-            .command("tccutil")
-            .args(["reset", "Calendar", &bundle_id])
-            .spawn()
-            .ok();
-
-        let mut handle = crate::apple::Handle::new();
-        handle.request_calendar_access();
-    }
-
-    #[tracing::instrument(skip_all)]
-    fn request_contacts_access(&self) {
-        use tauri_plugin_shell::ShellExt;
-
-        let bundle_id = self.config().identifier.clone();
-        self.app_handle()
-            .shell()
-            .command("tccutil")
-            .args(["reset", "AddressBook", &bundle_id])
-            .spawn()
-            .ok();
-
-        let mut handle = crate::apple::Handle::new();
-        handle.request_contacts_access();
-    }
-
-    #[tracing::instrument(skip_all)]
-    fn list_calendars(&self) -> Result<Vec<Calendar>, String> {
-        let handle = crate::apple::Handle::new();
+    pub fn list_calendars(&self) -> Result<Vec<AppleCalendar>, String> {
+        let handle = crate::apple::Handle;
         handle.list_calendars().map_err(|e| e.to_string())
     }
 
     #[tracing::instrument(skip_all)]
-    fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>, String> {
-        let handle = crate::apple::Handle::new();
+    pub fn list_events(&self, filter: EventFilter) -> Result<Vec<AppleEvent>, String> {
+        let handle = crate::apple::Handle;
         handle.list_events(filter).map_err(|e| e.to_string())
     }
 }
 
-#[cfg(not(target_os = "macos"))]
-impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> for T {
-    fn open_calendar(&self) -> Result<(), String> {
+#[cfg(all(not(target_os = "macos"), not(feature = "fixture")))]
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleCalendarExt<'a, R, M> {
+    pub fn open_calendar(&self) -> Result<(), String> {
         Err("not supported on this platform".to_string())
     }
 
-    fn open_calendar_access_settings(&self) -> Result<(), String> {
+    pub fn list_calendars(&self) -> Result<Vec<AppleCalendar>, String> {
         Err("not supported on this platform".to_string())
     }
 
-    fn open_contacts_access_settings(&self) -> Result<(), String> {
+    pub fn list_events(&self, _filter: EventFilter) -> Result<Vec<AppleEvent>, String> {
         Err("not supported on this platform".to_string())
     }
+}
 
-    fn calendar_access_status(&self) -> bool {
-        false
-    }
+pub trait AppleCalendarPluginExt<R: tauri::Runtime> {
+    fn apple_calendar(&self) -> AppleCalendarExt<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
 
-    fn contacts_access_status(&self) -> bool {
-        false
-    }
-
-    fn request_calendar_access(&self) {}
-
-    fn request_contacts_access(&self) {}
-
-    fn list_calendars(&self) -> Result<Vec<Calendar>, String> {
-        Err("not supported on this platform".to_string())
-    }
-
-    fn list_events(&self, _filter: EventFilter) -> Result<Vec<Event>, String> {
-        Err("not supported on this platform".to_string())
+impl<R: tauri::Runtime, T: tauri::Manager<R>> AppleCalendarPluginExt<R> for T {
+    fn apple_calendar(&self) -> AppleCalendarExt<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        AppleCalendarExt {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

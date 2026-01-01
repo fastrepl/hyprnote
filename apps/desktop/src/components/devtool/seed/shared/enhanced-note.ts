@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { faker } from "@faker-js/faker/locale/en";
 
 import type { EnhancedNoteStorage } from "@hypr/store";
 import { md2json } from "@hypr/tiptap/shared";

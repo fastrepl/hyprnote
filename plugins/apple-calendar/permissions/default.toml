@@ -2,10 +2,9 @@
 description = "Default permissions for the plugin"
 permissions = [
     "allow-open-calendar",
-    "allow-open-calendar-access-settings",
-    "allow-open-contacts-access-settings",
-    "allow-calendar-access-status",
-    "allow-contacts-access-status",
-    "allow-request-calendar-access",
-    "allow-request-contacts-access",
+    "allow-list-calendars",
+    "allow-list-events",
+    "allow-advance-fixture",
+    "allow-reset-fixture",
+    "allow-get-fixture-info",
 ]

@@ -2,7 +2,7 @@
 name = "tauri-plugin-cli2"
 version = "0.1.0"
 authors = ["You"]
-edition = "2021"
+edition = "2024"
 exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-cli2"
 description = ""
@@ -15,9 +15,11 @@ specta-typescript = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-cli = { workspace = true }
+tauri-plugin-updater = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
+clap = { workspace = true, features = ["derive"] }
+clap_mangen = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }

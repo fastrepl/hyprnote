@@ -1,11 +1,10 @@
-import { generateId, generateObject, type LanguageModel } from "ai";
-import { z } from "zod";
+import { generateId, type LanguageModel, streamText } from "ai";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
 
 import type { TaskArgsMapTransformed, TaskConfig } from ".";
-import type { Store } from "../../../tinybase/main";
-import { getCustomPrompt } from "../../../tinybase/prompts";
+import type { Store } from "../../../tinybase/store/main";
+import { getCustomPrompt } from "../../../tinybase/store/prompts";
 
 export const titleWorkflow: Pick<
   TaskConfig<"title">,
@@ -29,35 +28,29 @@ async function* executeWorkflow(params: {
 
   onProgress({ type: "generating" });
 
-  const schema = z.object({
-    title: z.string(),
+  const id = generateId();
+  const result = streamText({
+    model,
+    temperature: 0,
+    system,
+    prompt,
+    abortSignal: signal,
   });
 
-  try {
-    const { object } = await generateObject({
-      model,
-      temperature: 0,
-      schema,
-      system,
-      prompt,
-      abortSignal: signal,
-    });
-    const id = generateId();
-
+  for await (const chunk of result.textStream) {
     yield {
       type: "text-delta" as const,
       id,
-      text: object.title,
+      text: chunk,
     };
-  } catch (error) {
-    console.error(JSON.stringify(error));
-    throw error;
   }
 }
 
 async function getSystemPrompt(args: TaskArgsMapTransformed["title"]) {
-  const result = await templateCommands.render("title.system", {
-    language: args.language,
+  const result = await templateCommands.render({
+    titleSystem: {
+      language: args.language,
+    },
   });
 
   if (result.status === "error") {
@@ -71,8 +64,8 @@ async function getUserPrompt(
   args: TaskArgsMapTransformed["title"],
   store: Store,
 ) {
-  const { enhancedMd } = args;
-  const ctx = { enhanced_note: enhancedMd };
+  const { enhancedNote } = args;
+  const ctx = { enhanced_note: enhancedNote };
 
   const customPrompt = getCustomPrompt(store, "title");
 
@@ -84,7 +77,11 @@ async function getUserPrompt(
     return result.data;
   }
 
-  const result = await templateCommands.render("title.user", ctx);
+  const result = await templateCommands.render({
+    titleUser: {
+      enhancedNote,
+    },
+  });
 
   if (result.status === "error") {
     throw new Error(result.error);

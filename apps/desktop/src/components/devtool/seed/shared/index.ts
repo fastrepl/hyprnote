@@ -1,4 +1,4 @@
-import type { Store as PersistedStore } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 
 export * from "./builders";
 export { createCalendar } from "./calendar";
@@ -10,7 +10,7 @@ export { createFolder } from "./folder";
 export { createHuman } from "./human";
 export * from "./loader";
 export {
-  createmappingSessionParticipant,
+  createMappingSessionParticipant,
   createMappingTagSession,
 } from "./mapping";
 export { createOrganization } from "./organization";
@@ -19,8 +19,11 @@ export { createTag } from "./tag";
 export { createTemplate } from "./template";
 export { generateTranscript } from "./transcript";
 
+export type CalendarFixtureBase = "default";
+
 export type SeedDefinition = {
   id: string;
   label: string;
-  run: (store: PersistedStore) => void;
+  run: (store: MainStore) => void | Promise<void>;
+  calendarFixtureBase?: CalendarFixtureBase;
 };

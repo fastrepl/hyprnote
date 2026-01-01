@@ -12,7 +12,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../contexts/shell";
-import * as main from "../../store/tinybase/main";
+import * as main from "../../store/tinybase/store/main";
 
 export function ChatMessageInput({
   onSendMessage,
@@ -44,7 +44,7 @@ export function ChatMessageInput({
       return;
     }
 
-    analyticsCommands.event({ event: "chat_message_sent" });
+    void analyticsCommands.event({ event: "message_sent" });
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
   }, [disabled, onSendMessage]);
@@ -100,7 +100,11 @@ export function ChatMessageInput({
         Object.entries(sessions).forEach(([rowId, row]) => {
           const title = row.title as string | undefined;
           if (title && title.toLowerCase().includes(lowerQuery)) {
-            results.push({ id: rowId, type: "session", label: title });
+            results.push({
+              id: rowId,
+              type: "session",
+              label: title,
+            });
           }
         });
 
@@ -194,6 +198,7 @@ function Container({ children }: { children: React.ReactNode }) {
 }
 
 const ChatPlaceholder: PlaceholderFunction = ({ node, pos }) => {
+  "use no memo";
   if (node.type.name === "paragraph" && pos === 0) {
     return (
       <p className="text-sm text-neutral-400">

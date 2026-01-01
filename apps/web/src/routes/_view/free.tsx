@@ -13,7 +13,10 @@ export const Route = createFileRoute("/_view/free")({
         content:
           "Get powerful AI meeting notes completely free. Record meetings, transcribe audio, generate summaries, and more. No credit card required. Local AI processing for complete privacy.",
       },
-      { property: "og:title", content: "Free AI Meeting Notes - Hyprnote" },
+      {
+        property: "og:title",
+        content: "Free AI Meeting Notes - Hyprnote",
+      },
       {
         property: "og:description",
         content:

@@ -5,7 +5,7 @@ import { type ReactNode, useMemo } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import {
   buildTimelineBuckets,
@@ -104,7 +104,10 @@ export function TimelineView() {
                 <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
               )}
               <div
-                className={cn(["sticky top-0 z-10", "bg-neutral-50 px-2 py-1"])}
+                className={cn([
+                  "sticky top-0 z-10",
+                  "bg-neutral-50 pl-3 pr-1 py-1",
+                ])}
               >
                 <div className="text-base font-bold text-neutral-900">
                   {bucket.label}

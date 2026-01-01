@@ -3,7 +3,7 @@ use std::{
     path::PathBuf,
 };
 
-use axum::{error_handling::HandleError, Router};
+use axum::{Router, error_handling::HandleError};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 use reqwest::StatusCode;
 use tower_http::cors::{self, CorsLayer};

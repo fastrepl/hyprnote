@@ -60,7 +60,10 @@ export const HYPR_MODULES = {
     description:
       "TinyBase store with app data (sessions, events, humans, etc.)",
     exports: {
-      STORE_ID: { type: '"main"', description: "The main store identifier" },
+      STORE_ID: {
+        type: '"main"',
+        description: "The main store identifier",
+      },
       UI: {
         type: `_UI.WithSchemas<Schemas>`,
         description: "TinyBase UI hooks",
@@ -78,10 +81,7 @@ export const HYPR_MODULES = {
     wordsByTranscript: string;
     speakerHintsByTranscript: string;
     speakerHintsByWord: string;
-    eventsByCalendar: string;
-    tagsByName: string;
     tagSessionsBySession: string;
-    tagSessionsByTag: string;
     chatMessagesByGroup: string;
     sessionsByHuman: string;
     enhancedNotesBySession: string;
@@ -114,20 +114,9 @@ export const HYPR_MODULES = {
       },
       RELATIONSHIPS: {
         type: `{
-    sessionHuman: string;
     sessionToFolder: string;
     sessionToEvent: string;
     folderToParentFolder: string;
-    transcriptToSession: string;
-    wordToTranscript: string;
-    speakerHintToTranscript: string;
-    speakerHintToWord: string;
-    sessionParticipantToHuman: string;
-    sessionParticipantToSession: string;
-    eventToCalendar: string;
-    tagSessionToTag: string;
-    tagSessionToSession: string;
-    chatMessageToGroup: string;
     enhancedNoteToSession: string;
   }`,
         description: "Available TinyBase relationships",

@@ -4,7 +4,7 @@ import type { BatchParams } from "@hypr/plugin-listener2";
 
 import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
 import { type Tab, useTabs } from "../store/zustand/tabs";
 import { id } from "../utils";
@@ -76,7 +76,8 @@ export const useRunBatch = (sessionId: string) => {
 
       if (sessionTabRef.current) {
         updateSessionTabState(sessionTabRef.current, {
-          editor: { type: "transcript" },
+          ...sessionTabRef.current.state,
+          view: { type: "transcript" },
         });
       }
 

@@ -1,9 +1,17 @@
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 
-static PLAYING_SOUNDS: Lazy<
-    Mutex<std::collections::HashMap<AppSounds, std::sync::mpsc::Sender<()>>>,
-> = Lazy::new(|| Mutex::new(std::collections::HashMap::new()));
+pub(crate) enum SoundControl {
+    Stop,
+    SetVolume(f32),
+}
+
+struct SoundHandle {
+    control_tx: std::sync::mpsc::Sender<SoundControl>,
+}
+
+static PLAYING_SOUNDS: Lazy<Mutex<std::collections::HashMap<AppSounds, SoundHandle>>> =
+    Lazy::new(|| Mutex::new(std::collections::HashMap::new()));
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type, Clone, PartialEq, Eq, Hash)]
 pub enum AppSounds {
@@ -12,21 +20,52 @@ pub enum AppSounds {
     BGM,
 }
 
-pub fn to_speaker(bytes: &'static [u8]) -> std::sync::mpsc::Sender<()> {
-    use rodio::{Decoder, OutputStream, Sink};
+pub(crate) fn to_speaker(
+    bytes: &'static [u8],
+    looping: bool,
+) -> std::sync::mpsc::Sender<SoundControl> {
+    use rodio::source::Source;
+    use rodio::{Decoder, OutputStreamBuilder, Sink};
     let (tx, rx) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
-        if let Ok((_, stream)) = OutputStream::try_default() {
-            let file = std::io::Cursor::new(bytes);
-            if let Ok(source) = Decoder::new(file) {
-                let sink = Sink::try_new(&stream).unwrap();
-                sink.append(source);
+        let Ok(stream) = OutputStreamBuilder::open_default_stream() else {
+            return;
+        };
 
-                let _ = rx.recv_timeout(std::time::Duration::from_secs(3600));
-                sink.stop();
+        let file = std::io::Cursor::new(bytes);
+        let Ok(source) = Decoder::try_from(file) else {
+            return;
+        };
+
+        let sink = Sink::connect_new(stream.mixer());
+
+        if looping {
+            sink.append(source.repeat_infinite());
+        } else {
+            sink.append(source);
+        }
+
+        loop {
+            match rx.recv_timeout(std::time::Duration::from_millis(100)) {
+                Ok(SoundControl::Stop) => {
+                    sink.stop();
+                    break;
+                }
+                Ok(SoundControl::SetVolume(volume)) => {
+                    sink.set_volume(volume);
+                }
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                    if !looping && sink.empty() {
+                        break;
+                    }
+                }
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                    break;
+                }
             }
         }
+        drop(stream);
     });
 
     tx
@@ -37,18 +76,26 @@ impl AppSounds {
         self.stop();
 
         let bytes = self.get_sound_bytes();
-        let stop_sender = to_speaker(bytes);
+        let looping = matches!(self, AppSounds::BGM);
+        let control_tx = to_speaker(bytes, looping);
 
         {
             let mut sounds = PLAYING_SOUNDS.lock().unwrap();
-            sounds.insert(self.clone(), stop_sender);
+            sounds.insert(self.clone(), SoundHandle { control_tx });
         }
     }
 
     pub fn stop(&self) {
         let mut sounds = PLAYING_SOUNDS.lock().unwrap();
-        if let Some(tx) = sounds.remove(self) {
-            let _ = tx.send(());
+        if let Some(handle) = sounds.remove(self) {
+            let _ = handle.control_tx.send(SoundControl::Stop);
+        }
+    }
+
+    pub fn set_volume(&self, volume: f32) {
+        let sounds = PLAYING_SOUNDS.lock().unwrap();
+        if let Some(handle) = sounds.get(self) {
+            let _ = handle.control_tx.send(SoundControl::SetVolume(volume));
         }
     }
 
@@ -61,17 +108,42 @@ impl AppSounds {
     }
 }
 
-pub trait SfxPluginExt<R: tauri::Runtime> {
-    fn play(&self, sfx: AppSounds);
-    fn stop(&self, sfx: AppSounds);
+pub struct Sfx<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> SfxPluginExt<R> for T {
-    fn play(&self, sfx: AppSounds) {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Sfx<'a, R, M> {
+    pub fn play(&self, sfx: AppSounds) {
+        let _ = self.manager;
         sfx.play();
     }
 
-    fn stop(&self, sfx: AppSounds) {
+    pub fn stop(&self, sfx: AppSounds) {
+        let _ = self.manager;
         sfx.stop();
+    }
+
+    pub fn set_volume(&self, sfx: AppSounds, volume: f32) {
+        let _ = self.manager;
+        sfx.set_volume(volume);
+    }
+}
+
+pub trait SfxPluginExt<R: tauri::Runtime> {
+    fn sfx(&self) -> Sfx<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> SfxPluginExt<R> for T {
+    fn sfx(&self) -> Sfx<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Sfx {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

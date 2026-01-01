@@ -4,9 +4,9 @@ use crate::naming::cli_flag;
 use serde::{Deserialize, Serialize};
 
 use hypr_docs::{
-    collect_type_docs, first_property, is_false, parse_module, prop_name, property_by_name,
-    type_lit_from, type_name_from, Field, JsDocExtractor, Module, TsType,
-    TsUnionOrIntersectionType, TypeDoc,
+    Field, JsDocExtractor, Module, TsType, TsUnionOrIntersectionType, TypeDoc, collect_type_docs,
+    first_property, is_false, parse_module, prop_name, property_by_name, type_lit_from,
+    type_name_from,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

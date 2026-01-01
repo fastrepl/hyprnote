@@ -1,46 +1,34 @@
+import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
 import { generateText } from "ai";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 
-import { useBillingAccess } from "../../../../billing";
-import { useConfigValues } from "../../../../config/use-config";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
+
 import { useLanguageModel } from "../../../../hooks/useLLMConnection";
-import * as keys from "../../../../store/tinybase/keys";
-import { AvailabilityHealth, ConnectionHealth } from "../shared/health";
-import { llmProviderRequiresPro, PROVIDERS } from "./shared";
 
-export function HealthCheckForConnection() {
+export type LlmHealthStatus = {
+  status: "pending" | "error" | "success" | null;
+  message?: string;
+};
+
+export function HealthStatusIndicator() {
   const health = useConnectionHealth();
 
-  const props = useMemo(() => {
-    if (health.status === "pending") {
-      return {
-        status: "pending",
-        tooltip: "Checking connection...",
-      };
-    }
+  if (health.status === "pending") {
+    return <Spinner size={14} className="shrink-0 text-neutral-400" />;
+  }
 
-    if (health.status === "error") {
-      return {
-        status: "error",
-        tooltip: health.errorMessage || "Connection failed.",
-      };
-    }
+  if (health.status === "success") {
+    return (
+      <Icon icon="lucide:check" className="size-4 text-green-500 shrink-0" />
+    );
+  }
 
-    if (health.status === "success") {
-      return {
-        status: "success",
-        tooltip: "Connection ready",
-      };
-    }
-
-    return { status: null };
-  }, [health]) satisfies Parameters<typeof ConnectionHealth>[0];
-
-  return <ConnectionHealth {...props} />;
+  return null;
 }
 
-function useConnectionHealth() {
+export function useConnectionHealth(): LlmHealthStatus {
   const model = useLanguageModel();
 
   const text = useQuery({
@@ -61,78 +49,25 @@ function useConnectionHealth() {
     },
   });
 
+  const { refetch } = text;
   useEffect(() => {
     if (model) {
-      text.refetch();
+      void refetch();
     }
-  }, [model]);
+  }, [model, refetch]);
 
   if (!model) {
-    return { status: null, errorMessage: null };
+    return { status: null };
   }
 
-  const getErrorMessage = () => {
-    if (!text.error) {
-      return null;
-    }
-
+  if (text.status === "error") {
     const error = text.error as Error;
     const message = error.message || "Unknown error";
-    return `Connection failed: ${message}`;
-  };
-
-  return {
-    status: text.status,
-    errorMessage: getErrorMessage(),
-  };
-}
-
-export function HealthCheckForAvailability() {
-  const result = useAvailability();
-
-  if (result.available) {
-    return null;
+    return {
+      status: "error",
+      message: `Connection failed: ${message}`,
+    };
   }
 
-  return <AvailabilityHealth message={result.message} />;
-}
-
-function useAvailability() {
-  const { current_llm_provider, current_llm_model } = useConfigValues([
-    "current_llm_provider",
-    "current_llm_model",
-  ] as const);
-  const billing = useBillingAccess();
-
-  const configuredProviders = keys.UI.useResultTable(
-    keys.QUERIES.llmProviders,
-    keys.STORE_ID,
-  );
-
-  const result = useMemo(() => {
-    if (!current_llm_provider || !current_llm_model) {
-      return {
-        available: false,
-        message: "Please select a provider and model.",
-      };
-    }
-
-    if (!PROVIDERS.find((p) => p.id === current_llm_provider)) {
-      return {
-        available: false,
-        message: "Provider not found. Please select a valid provider.",
-      };
-    }
-
-    if (llmProviderRequiresPro(current_llm_provider) && !billing.isPro) {
-      return {
-        available: false,
-        message: "Upgrade to Pro to use this provider.",
-      };
-    }
-
-    return { available: true };
-  }, [current_llm_provider, current_llm_model, configuredProviders]);
-
-  return result as { available: true } | { available: false; message: string };
+  return { status: text.status };
 }

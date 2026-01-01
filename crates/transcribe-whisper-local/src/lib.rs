@@ -41,9 +41,9 @@ mod tests {
             .build_single()
             .await;
 
-        let audio = rodio::Decoder::new(std::io::BufReader::new(
+        let audio = rodio::Decoder::try_from(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
+        )
         .unwrap()
         .to_i16_le_chunks(16000, 512);
         let input = audio.map(|chunk| owhisper_interface::MixedMessage::Audio(chunk));

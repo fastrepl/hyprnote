@@ -31,10 +31,7 @@ declare module "@hypr/store" {
     wordsByTranscript: string;
     speakerHintsByTranscript: string;
     speakerHintsByWord: string;
-    eventsByCalendar: string;
-    tagsByName: string;
     tagSessionsBySession: string;
-    tagSessionsByTag: string;
     chatMessagesByGroup: string;
     sessionsByHuman: string;
     enhancedNotesBySession: string;
@@ -58,20 +55,9 @@ declare module "@hypr/store" {
     totalCustomVocabs: string;
   };
   export const RELATIONSHIPS: {
-    sessionHuman: string;
     sessionToFolder: string;
     sessionToEvent: string;
     folderToParentFolder: string;
-    transcriptToSession: string;
-    wordToTranscript: string;
-    speakerHintToTranscript: string;
-    speakerHintToWord: string;
-    sessionParticipantToHuman: string;
-    sessionParticipantToSession: string;
-    eventToCalendar: string;
-    tagSessionToTag: string;
-    tagSessionToSession: string;
-    chatMessageToGroup: string;
     enhancedNoteToSession: string;
   };
 }
@@ -502,10 +488,7 @@ declare module "hyprnote" {
       wordsByTranscript: string;
       speakerHintsByTranscript: string;
       speakerHintsByWord: string;
-      eventsByCalendar: string;
-      tagsByName: string;
       tagSessionsBySession: string;
-      tagSessionsByTag: string;
       chatMessagesByGroup: string;
       sessionsByHuman: string;
       enhancedNotesBySession: string;
@@ -529,20 +512,9 @@ declare module "hyprnote" {
       totalCustomVocabs: string;
     };
     RELATIONSHIPS: {
-      sessionHuman: string;
       sessionToFolder: string;
       sessionToEvent: string;
       folderToParentFolder: string;
-      transcriptToSession: string;
-      wordToTranscript: string;
-      speakerHintToTranscript: string;
-      speakerHintToWord: string;
-      sessionParticipantToHuman: string;
-      sessionParticipantToSession: string;
-      eventToCalendar: string;
-      tagSessionToTag: string;
-      tagSessionToSession: string;
-      chatMessageToGroup: string;
       enhancedNoteToSession: string;
     };
   };

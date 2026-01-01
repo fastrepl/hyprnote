@@ -19,8 +19,11 @@ export const createSessionTab = (
   type: "sessions",
   id: overrides.id ?? id(),
   active: overrides.active ?? false,
+  pinned: overrides.pinned ?? false,
   slotId: id(),
   state: {
+    view: null,
+    autoStart: null,
     ...overrides.state,
   },
 });
@@ -30,6 +33,7 @@ export const createContactsTab = (
 ): ContactsTab => ({
   type: "contacts",
   active: overrides.active ?? false,
+  pinned: overrides.pinned ?? false,
   slotId: id(),
   state: {
     selectedOrganization: null,
@@ -48,6 +52,7 @@ type TabsStateSlice = Pick<
   | "canGoNext"
   | "onClose"
   | "onEmpty"
+  | "closedTabs"
 >;
 
 const createDefaultTabsState = (): TabsStateSlice => ({
@@ -58,6 +63,7 @@ const createDefaultTabsState = (): TabsStateSlice => ({
   canGoNext: false,
   onClose: null,
   onEmpty: null,
+  closedTabs: [],
 });
 
 export const seedTabsStore = (

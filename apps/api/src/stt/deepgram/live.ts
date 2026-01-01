@@ -3,14 +3,17 @@ import { WsProxyConnection } from "../connection";
 
 const CONTROL_MESSAGE_TYPES = new Set(["KeepAlive", "CloseStream", "Finalize"]);
 
+const IGNORED_PARAMS = new Set(["provider", "keywords", "keyterm", "keyterms"]);
+
 export const buildDeepgramUrl = (incomingUrl: URL) => {
   const target = new URL("wss://api.deepgram.com/v1/listen");
 
   incomingUrl.searchParams.forEach((value, key) => {
-    if (key !== "provider") {
+    if (!IGNORED_PARAMS.has(key)) {
       target.searchParams.set(key, value);
     }
   });
+
   target.searchParams.set("model", "nova-3-general");
   target.searchParams.set("mip_opt_out", "false");
 

@@ -81,9 +81,7 @@ fn schedule_check(actor: ActorRef<NetworkMsg>) {
 }
 
 async fn check_network() -> bool {
-    let client = reqwest::Client::builder()
-        .timeout(REQUEST_TIMEOUT.into())
-        .build();
+    let client = reqwest::Client::builder().timeout(REQUEST_TIMEOUT).build();
 
     let client = match client {
         Ok(c) => c,

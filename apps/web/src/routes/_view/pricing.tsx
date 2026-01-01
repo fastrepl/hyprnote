@@ -32,7 +32,11 @@ const pricingPlans: PricingPlan[] = [
       "Fully functional with your own API keys. Perfect for individuals who want complete control.",
     features: [
       { label: "Local Transcription", included: true },
-      { label: "Speaker Identification", included: true, comingSoon: true },
+      {
+        label: "Speaker Identification",
+        included: true,
+        comingSoon: true,
+      },
       { label: "Bring Your Own Key (STT & LLM)", included: true },
       { label: "Basic Sharing (Copy, PDF)", included: true },
       { label: "All Data Local", included: true },
@@ -206,7 +210,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
               <div key={idx} className="flex gap-3 items-start">
                 <IconComponent
                   className={cn([
-                    "size-[18px] mt-0.5 shrink-0",
+                    "size-4.5 mt-0.5 shrink-0",
                     feature.included === true
                       ? "text-green-700"
                       : feature.included === "partial"
@@ -247,13 +251,13 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
 
         {plan.price ? (
           <Link
-            to="/join-waitlist"
+            to="/auth"
             className={cn([
               "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
             ])}
           >
-            Join Waitlist
+            Get Started
           </Link>
         ) : (
           <Link

@@ -12,55 +12,56 @@ const shared = z.object({
 
 export const doAuth = createServerFn({ method: "POST" })
   .inputValidator(
-    z.discriminatedUnion("method", [
-      shared.extend({ method: z.literal("email_otp"), email: z.email() }),
-      shared.extend({
-        method: z.literal("oauth"),
-        provider: z.enum(["google", "github"]),
-      }),
-    ]),
+    shared.extend({
+      provider: z.enum(["google", "github"]),
+    }),
   )
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
 
-    if (data.method === "email_otp") {
-      const params = new URLSearchParams({ flow: data.flow });
-      if (data.scheme) params.set("scheme", data.scheme);
-      if (data.redirect) params.set("redirect", data.redirect);
+    const params = new URLSearchParams({ flow: data.flow });
+    if (data.scheme) params.set("scheme", data.scheme);
+    if (data.redirect) params.set("redirect", data.redirect);
 
-      const { error } = await supabase.auth.signInWithOtp({
-        email: data.email,
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: `${env.VITE_APP_URL}/callback/auth?${params.toString()}`,
-        },
-      });
+    const { data: authData, error } = await supabase.auth.signInWithOAuth({
+      provider: data.provider,
+      options: {
+        redirectTo: `${env.VITE_APP_URL}/callback/auth?${params.toString()}`,
+      },
+    });
 
-      if (error) {
-        return { error: true, message: error.message };
-      }
-
-      return { success: true, message: "Check your email for the login link" };
+    if (error) {
+      return { error: true, message: error.message };
     }
 
-    if (data.method === "oauth") {
-      const params = new URLSearchParams({ flow: data.flow });
-      if (data.scheme) params.set("scheme", data.scheme);
-      if (data.redirect) params.set("redirect", data.redirect);
+    return { success: true, url: authData.url };
+  });
 
-      const { data: authData, error } = await supabase.auth.signInWithOAuth({
-        provider: data.provider,
-        options: {
-          redirectTo: `${env.VITE_APP_URL}/callback/auth?${params.toString()}`,
-        },
-      });
+export const doMagicLinkAuth = createServerFn({ method: "POST" })
+  .inputValidator(
+    shared.extend({
+      email: z.string().email(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
 
-      if (error) {
-        return { error: true, message: error.message };
-      }
+    const params = new URLSearchParams({ flow: data.flow });
+    if (data.scheme) params.set("scheme", data.scheme);
+    if (data.redirect) params.set("redirect", data.redirect);
 
-      return { success: true, url: authData.url };
+    const { error } = await supabase.auth.signInWithOtp({
+      email: data.email,
+      options: {
+        emailRedirectTo: `${env.VITE_APP_URL}/callback/auth?${params.toString()}`,
+      },
+    });
+
+    if (error) {
+      return { error: true, message: error.message };
     }
+
+    return { success: true };
   });
 
 export const fetchUser = createServerFn({ method: "GET" }).handler(async () => {

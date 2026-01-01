@@ -18,12 +18,12 @@ import {
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
 
-import * as main from "../../../../../store/tinybase/main";
+import * as main from "../../../../../store/tinybase/store/main";
 
 export const RawEditor = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string }
->(({ sessionId }, ref) => {
+  { sessionId: string; onNavigateToTitle?: () => void }
+>(({ sessionId, onNavigateToTitle }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
 
   const [initialContent, setInitialContent] =
@@ -63,9 +63,12 @@ export const RawEditor = forwardRef<
     hasTrackedWriteRef.current = false;
   }, [sessionId]);
 
-  const hasNonEmptyText = (node?: JSONContent): boolean =>
-    !!node?.text?.trim() ||
-    !!node?.content?.some((child) => hasNonEmptyText(child));
+  const hasNonEmptyText = useCallback(
+    (node?: JSONContent): boolean =>
+      !!node?.text?.trim() ||
+      !!node?.content?.some((child: JSONContent) => hasNonEmptyText(child)),
+    [],
+  );
 
   const handleChange = useCallback(
     (input: JSONContent) => {
@@ -75,11 +78,14 @@ export const RawEditor = forwardRef<
         const hasContent = hasNonEmptyText(input);
         if (hasContent) {
           hasTrackedWriteRef.current = true;
-          analyticsCommands.event({ event: "note_written", has_content: true });
+          void analyticsCommands.event({
+            event: "note_edited",
+            has_content: true,
+          });
         }
       }
     },
-    [persistChange],
+    [persistChange, hasNonEmptyText],
   );
 
   const mentionConfig = useMemo(
@@ -100,11 +106,13 @@ export const RawEditor = forwardRef<
       handleChange={handleChange}
       mentionConfig={mentionConfig}
       placeholderComponent={Placeholder}
+      onNavigateToTitle={onNavigateToTitle}
     />
   );
 });
 
 const Placeholder: PlaceholderFunction = ({ node, pos }) => {
+  "use no memo";
   if (node.type.name === "paragraph" && pos === 0) {
     return (
       <p className="text-[#e5e5e5]">

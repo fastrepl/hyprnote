@@ -1,10 +1,12 @@
 import type { StoreApi } from "zustand";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+
 import { id } from "../../../utils";
 import type { LifecycleState } from "./lifecycle";
 import type { NavigationState, TabHistory } from "./navigation";
 import { pushHistory } from "./navigation";
-import { isSameTab, type Tab, type TabInput, tabSchema } from "./schema";
+import { getDefaultState, isSameTab, type Tab, type TabInput } from "./schema";
 
 export type BasicState = {
   tabs: Tab[];
@@ -15,10 +17,14 @@ export type BasicActions = {
   openCurrent: (tab: TabInput) => void;
   openNew: (tab: TabInput) => void;
   select: (tab: Tab) => void;
+  selectNext: () => void;
+  selectPrev: () => void;
   close: (tab: Tab) => void;
   reorder: (tabs: Tab[]) => void;
   closeOthers: (tab: Tab) => void;
   closeAll: () => void;
+  pin: (tab: Tab) => void;
+  unpin: (tab: Tab) => void;
 };
 
 export const createBasicSlice = <
@@ -31,11 +37,24 @@ export const createBasicSlice = <
   currentTab: null,
   openCurrent: (tab) => {
     const { tabs, history } = get();
-    set(openTab(tabs, tab, history, true));
+    const currentActiveTab = tabs.find((t) => t.active);
+    if (currentActiveTab?.pinned) {
+      set(openTab(tabs, tab, history, false));
+    } else {
+      set(openTab(tabs, tab, history, true));
+    }
+    void analyticsCommands.event({
+      event: "tab_opened",
+      view: tab.type,
+    });
   },
   openNew: (tab) => {
     const { tabs, history } = get();
     set(openTab(tabs, tab, history, false));
+    void analyticsCommands.event({
+      event: "tab_opened",
+      view: tab.type,
+    });
   },
   select: (tab) => {
     const { tabs } = get();
@@ -43,11 +62,43 @@ export const createBasicSlice = <
     const currentTab = nextTabs.find((t) => t.active) || null;
     set({ tabs: nextTabs, currentTab } as Partial<T>);
   },
+  selectNext: () => {
+    const { tabs, currentTab } = get();
+    if (tabs.length === 0 || !currentTab) return;
+
+    const currentIndex = tabs.findIndex((t) => isSameTab(t, currentTab));
+    const nextIndex = (currentIndex + 1) % tabs.length;
+    const nextTab = tabs[nextIndex];
+
+    const nextTabs = setActiveFlags(tabs, nextTab);
+    set({
+      tabs: nextTabs,
+      currentTab: { ...nextTab, active: true },
+    } as Partial<T>);
+  },
+  selectPrev: () => {
+    const { tabs, currentTab } = get();
+    if (tabs.length === 0 || !currentTab) return;
+
+    const currentIndex = tabs.findIndex((t) => isSameTab(t, currentTab));
+    const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    const prevTab = tabs[prevIndex];
+
+    const nextTabs = setActiveFlags(tabs, prevTab);
+    set({
+      tabs: nextTabs,
+      currentTab: { ...prevTab, active: true },
+    } as Partial<T>);
+  },
   close: (tab) => {
-    const { tabs, history } = get();
+    const { tabs, history, canClose } = get();
     const tabToClose = tabs.find((t) => isSameTab(t, tab));
 
     if (!tabToClose) {
+      return;
+    }
+
+    if (canClose && !canClose(tabToClose)) {
       return;
     }
 
@@ -118,6 +169,34 @@ export const createBasicSlice = <
       canGoNext: false,
     } as unknown as Partial<T>);
   },
+  pin: (tab) => {
+    const { tabs } = get();
+    const tabIndex = tabs.findIndex((t) => isSameTab(t, tab));
+    if (tabIndex === -1) return;
+
+    const pinnedTab = { ...tabs[tabIndex], pinned: true };
+    const pinnedCount = tabs.filter((t) => t.pinned).length;
+
+    const nextTabs = [...tabs.slice(0, tabIndex), ...tabs.slice(tabIndex + 1)];
+    nextTabs.splice(pinnedCount, 0, pinnedTab);
+
+    const currentTab = nextTabs.find((t) => t.active) || null;
+    set({ tabs: nextTabs, currentTab } as Partial<T>);
+  },
+  unpin: (tab) => {
+    const { tabs } = get();
+    const tabIndex = tabs.findIndex((t) => isSameTab(t, tab));
+    if (tabIndex === -1) return;
+
+    const unpinnedTab = { ...tabs[tabIndex], pinned: false };
+    const pinnedCount = tabs.filter((t) => t.pinned).length;
+
+    const nextTabs = [...tabs.slice(0, tabIndex), ...tabs.slice(tabIndex + 1)];
+    nextTabs.splice(pinnedCount - 1, 0, unpinnedTab);
+
+    const currentTab = nextTabs.find((t) => t.active) || null;
+    set({ tabs: nextTabs, currentTab } as Partial<T>);
+  },
 });
 
 const removeDuplicates = (tabs: Tab[], newTab: Tab): Tab[] => {
@@ -151,11 +230,11 @@ const openTab = <T extends BasicState & NavigationState>(
   history: Map<string, TabHistory>,
   replaceActive: boolean,
 ): Partial<T> => {
-  const tabWithDefaults: Tab = tabSchema.parse({
-    ...newTab,
+  const tabWithDefaults: Tab = {
+    ...getDefaultState(newTab),
     active: false,
     slotId: id(),
-  });
+  };
 
   let nextTabs: Tab[];
   let activeTab: Tab;

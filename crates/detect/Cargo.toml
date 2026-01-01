@@ -1,11 +1,12 @@
 [package]
 name = "detect"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 lazy_static = { workspace = true }
 regex = { workspace = true }
+sysinfo = { workspace = true }
 thiserror = { workspace = true }
 url = { workspace = true }
 
@@ -16,6 +17,7 @@ serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
+hypr-bundle = { workspace = true }
 cidre = { workspace = true }
 
 objc2-foundation = { workspace = true }

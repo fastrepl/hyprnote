@@ -1,15 +1,62 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { message } from "@tauri-apps/plugin-dialog";
-import { Command } from "@tauri-apps/plugin-shell";
 
-import { commands as permissionsCommands } from "@hypr/plugin-permissions";
+import {
+  type Permission,
+  commands as permissionsCommands,
+  type PermissionStatus,
+} from "@hypr/plugin-permissions";
 
-import { relaunch } from "../store/tinybase/save";
+import { relaunch } from "../store/tinybase/store/save";
+
+export function usePermission(type: Permission) {
+  const status = useQuery({
+    queryKey: [`${type}Permission`],
+    queryFn: () => permissionsCommands.checkPermission(type),
+    refetchInterval: 1000,
+    select: (result): PermissionStatus => {
+      if (result.status === "error") {
+        return "denied";
+      }
+      return result.data;
+    },
+  });
+
+  const requestMutation = useMutation({
+    mutationFn: () => permissionsCommands.requestPermission(type),
+    onSuccess: () => {
+      setTimeout(() => status.refetch(), 1000);
+    },
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: () => permissionsCommands.resetPermission(type),
+    onSuccess: () => {
+      setTimeout(() => status.refetch(), 1000);
+    },
+  });
+
+  const isPending = requestMutation.isPending || resetMutation.isPending;
+
+  const open = async () => {
+    await permissionsCommands.openPermission(type);
+  };
+
+  const request = () => {
+    requestMutation.mutate();
+  };
+
+  const reset = () => {
+    resetMutation.mutate();
+  };
+
+  return { status: status.data, isPending, open, request, reset };
+}
 
 export function usePermissions() {
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
-    queryFn: () => permissionsCommands.checkMicrophonePermission(),
+    queryFn: () => permissionsCommands.checkPermission("microphone"),
     refetchInterval: 1000,
     select: (result) => {
       if (result.status === "error") {
@@ -21,7 +68,7 @@ export function usePermissions() {
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
-    queryFn: () => permissionsCommands.checkSystemAudioPermission(),
+    queryFn: () => permissionsCommands.checkPermission("systemAudio"),
     refetchInterval: 1000,
     select: (result) => {
       if (result.status === "error") {
@@ -33,7 +80,7 @@ export function usePermissions() {
 
   const accessibilityPermissionStatus = useQuery({
     queryKey: ["accessibilityPermission"],
-    queryFn: () => permissionsCommands.checkAccessibilityPermission(),
+    queryFn: () => permissionsCommands.checkPermission("accessibility"),
     refetchInterval: 1000,
     select: (result) => {
       if (result.status === "error") {
@@ -44,10 +91,10 @@ export function usePermissions() {
   });
 
   const micPermission = useMutation({
-    mutationFn: () => permissionsCommands.requestMicrophonePermission(),
+    mutationFn: () => permissionsCommands.requestPermission("microphone"),
     onSuccess: () => {
       setTimeout(() => {
-        micPermissionStatus.refetch();
+        void micPermissionStatus.refetch();
       }, 1000);
     },
     onError: (error) => {
@@ -56,9 +103,9 @@ export function usePermissions() {
   });
 
   const systemAudioPermission = useMutation({
-    mutationFn: () => permissionsCommands.requestSystemAudioPermission(),
+    mutationFn: () => permissionsCommands.requestPermission("systemAudio"),
     onSuccess: () => {
-      message("The app will now restart to apply the changes", {
+      void message("The app will now restart to apply the changes", {
         kind: "info",
         title: "System Audio Status Changed",
       });
@@ -68,41 +115,62 @@ export function usePermissions() {
   });
 
   const accessibilityPermission = useMutation({
-    mutationFn: () => permissionsCommands.requestAccessibilityPermission(),
+    mutationFn: () => permissionsCommands.requestPermission("accessibility"),
     onSuccess: () => {
       setTimeout(() => {
-        accessibilityPermissionStatus.refetch();
+        void accessibilityPermissionStatus.refetch();
+      }, 1000);
+    },
+    onError: console.error,
+  });
+
+  const micResetPermission = useMutation({
+    mutationFn: () => permissionsCommands.resetPermission("microphone"),
+    onSuccess: () => {
+      setTimeout(() => {
+        void micPermissionStatus.refetch();
+      }, 1000);
+    },
+    onError: console.error,
+  });
+
+  const systemAudioResetPermission = useMutation({
+    mutationFn: () => permissionsCommands.resetPermission("systemAudio"),
+    onSuccess: () => {
+      setTimeout(() => {
+        void systemAudioPermissionStatus.refetch();
+      }, 1000);
+    },
+    onError: console.error,
+  });
+
+  const accessibilityResetPermission = useMutation({
+    mutationFn: () => permissionsCommands.resetPermission("accessibility"),
+    onSuccess: () => {
+      setTimeout(() => {
+        void accessibilityPermissionStatus.refetch();
       }, 1000);
     },
     onError: console.error,
   });
 
   const openMicrophoneSettings = async () => {
-    await Command.create("exec-sh", [
-      "-c",
-      "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone'",
-    ]).execute();
+    await permissionsCommands.openPermission("microphone");
   };
 
   const openSystemAudioSettings = async () => {
-    await Command.create("exec-sh", [
-      "-c",
-      "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture'",
-    ]).execute();
+    await permissionsCommands.openPermission("systemAudio");
   };
 
   const openAccessibilitySettings = async () => {
-    await Command.create("exec-sh", [
-      "-c",
-      "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'",
-    ]).execute();
+    await permissionsCommands.openPermission("accessibility");
   };
 
   const handleMicPermissionAction = async () => {
     if (micPermissionStatus.data === "denied") {
       await openMicrophoneSettings();
     } else {
-      micPermission.mutate();
+      micPermission.mutate(undefined);
     }
   };
 
@@ -129,6 +197,9 @@ export function usePermissions() {
     micPermission,
     systemAudioPermission,
     accessibilityPermission,
+    micResetPermission,
+    systemAudioResetPermission,
+    accessibilityResetPermission,
     openMicrophoneSettings,
     openSystemAudioSettings,
     openAccessibilitySettings,

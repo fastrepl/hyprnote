@@ -64,7 +64,9 @@ fileTranscription.post(
       200: {
         description: "Pipeline started",
         content: {
-          "application/json": { schema: resolver(StartResponseSchema) },
+          "application/json": {
+            schema: resolver(StartResponseSchema),
+          },
         },
       },
       400: { description: "Invalid fileId" },
@@ -126,7 +128,9 @@ fileTranscription.get(
       200: {
         description: "Pipeline status",
         content: {
-          "application/json": { schema: resolver(StatusResponseSchema) },
+          "application/json": {
+            schema: resolver(StatusResponseSchema),
+          },
         },
       },
       401: { description: "Unauthorized" },
@@ -171,7 +175,9 @@ fileTranscription.get(
       200: {
         description: "Pipeline result",
         content: {
-          "application/json": { schema: resolver(StatusResponseSchema) },
+          "application/json": {
+            schema: resolver(StatusResponseSchema),
+          },
         },
       },
       401: { description: "Unauthorized" },

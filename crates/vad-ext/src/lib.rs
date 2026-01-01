@@ -12,17 +12,15 @@ pub use streaming::*;
 pub mod tests {
 
     use futures_util::StreamExt;
-    use rodio::Source;
 
     use super::*;
 
     #[tokio::test]
     async fn test_no_audio_drops_for_continuous_vad() {
-        let all_audio = rodio::Decoder::new(std::io::BufReader::new(
+        let all_audio = rodio::Decoder::try_from(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
+        )
         .unwrap()
-        .convert_samples::<f32>()
         .collect::<Vec<_>>();
 
         let vad = rodio::Decoder::new(std::io::BufReader::new(

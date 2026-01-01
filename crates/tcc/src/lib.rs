@@ -1,4 +1,4 @@
-use swift_rs::{swift, Bool, Int, SRString};
+use swift_rs::{Bool, Int, SRString, swift};
 
 swift!(fn _audio_capture_permission_status() -> Int);
 

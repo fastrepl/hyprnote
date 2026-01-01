@@ -1,9 +1,8 @@
-import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Pin, X } from "lucide-react";
+import { useState } from "react";
 
-import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
-import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
-import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { Kbd } from "@hypr/ui/components/ui/kbd";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
@@ -15,19 +14,27 @@ type TabItemProps<T extends Tab = Tab> = { tab: T; tabIndex?: number } & {
   handleCloseThis: (tab: T) => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
+  handlePinThis: (tab: T) => void;
+  handleUnpinThis: (tab: T) => void;
 };
 
 type TabItemBaseProps = {
   icon: React.ReactNode;
-  title: string;
+  title: React.ReactNode;
   selected: boolean;
   active?: boolean;
+  finalizing?: boolean;
+  pinned?: boolean;
+  allowPin?: boolean;
+  isEmptyTab?: boolean;
   tabIndex?: number;
 } & {
   handleCloseThis: () => void;
   handleSelectThis: () => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
+  handlePinThis: () => void;
+  handleUnpinThis: () => void;
 };
 
 export type TabItem<T extends Tab = Tab> = (
@@ -39,11 +46,17 @@ export function TabItemBase({
   title,
   selected,
   active = false,
+  finalizing = false,
+  pinned = false,
+  allowPin = true,
+  isEmptyTab = false,
   tabIndex,
   handleCloseThis,
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }: TabItemBaseProps) {
   const isCmdPressed = useCmdKeyPressed();
   const [isHovered, setIsHovered] = useState(false);
@@ -56,15 +69,44 @@ export function TabItemBase({
     }
   };
 
-  const contextMenu = !active ? (
-    <>
-      <ContextMenuItem onClick={handleCloseThis}>close tab</ContextMenuItem>
-      <ContextMenuItem onClick={handleCloseOthers}>
-        close others
-      </ContextMenuItem>
-      <ContextMenuItem onClick={handleCloseAll}>close all</ContextMenuItem>
-    </>
-  ) : undefined;
+  const contextMenu =
+    active || (selected && !isEmptyTab)
+      ? [
+          { id: "close-tab", text: "Close", action: handleCloseThis },
+          ...(allowPin
+            ? [
+                { separator: true as const },
+                pinned
+                  ? {
+                      id: "unpin-tab",
+                      text: "Unpin tab",
+                      action: handleUnpinThis,
+                    }
+                  : { id: "pin-tab", text: "Pin tab", action: handlePinThis },
+              ]
+            : []),
+        ]
+      : [
+          { id: "close-tab", text: "Close", action: handleCloseThis },
+          {
+            id: "close-others",
+            text: "Close others",
+            action: handleCloseOthers,
+          },
+          { id: "close-all", text: "Close all", action: handleCloseAll },
+          ...(allowPin
+            ? [
+                { separator: true as const },
+                pinned
+                  ? {
+                      id: "unpin-tab",
+                      text: "Unpin tab",
+                      action: handleUnpinThis,
+                    }
+                  : { id: "pin-tab", text: "Pin tab", action: handlePinThis },
+              ]
+            : []),
+        ];
 
   const showShortcut = isCmdPressed && tabIndex !== undefined;
 
@@ -86,7 +128,8 @@ export function TabItemBase({
           "cursor-pointer group",
           "transition-colors duration-200",
           active && selected && ["bg-red-50", "text-red-600", "border-red-400"],
-          active && !selected && ["bg-red-50", "text-red-500", "border-0"],
+          active &&
+            !selected && ["bg-red-50", "text-red-500", "border-transparent"],
           !active &&
             selected && ["bg-neutral-50", "text-black", "border-stone-400"],
           !active &&
@@ -105,11 +148,27 @@ export function TabItemBase({
                 isHovered ? "opacity-0" : "opacity-100",
               ])}
             >
-              {active ? (
+              {finalizing ? (
+                <Spinner size={16} />
+              ) : active ? (
                 <div className="relative size-2">
                   <div className="absolute inset-0 rounded-full bg-red-600"></div>
                   <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
                 </div>
+              ) : pinned ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUnpinThis();
+                  }}
+                  className={cn([
+                    "flex items-center justify-center transition-colors",
+                    selected && "text-neutral-700 hover:text-neutral-900",
+                    !selected && "text-neutral-500 hover:text-neutral-700",
+                  ])}
+                >
+                  <Pin size={14} />
+                </button>
               ) : (
                 icon
               )}
@@ -144,57 +203,10 @@ export function TabItemBase({
         </div>
         {showShortcut && (
           <div className="absolute top-[3px] right-2 pointer-events-none">
-            <KbdGroup>
-              <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>⌘</Kbd>
-              <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>
-                {tabIndex}
-              </Kbd>
-            </KbdGroup>
+            <Kbd>⌘ {tabIndex}</Kbd>
           </div>
         )}
       </InteractiveButton>
     </div>
-  );
-}
-
-type SoundIndicatorProps = {
-  value: number | Array<number>;
-  color?: string;
-  size?: "default" | "long";
-  height?: number;
-  width?: number;
-  stickWidth?: number;
-  gap?: number;
-};
-
-export function SoundIndicator({
-  value,
-  color,
-  size = "long",
-  height,
-  width,
-  stickWidth,
-  gap,
-}: SoundIndicatorProps) {
-  const [amplitude, setAmplitude] = useState(0);
-
-  const u16max = 65535;
-  useEffect(() => {
-    const sample = Array.isArray(value)
-      ? value.reduce((sum, v) => sum + v, 0) / value.length / u16max
-      : value / u16max;
-    setAmplitude(Math.min(sample, 1));
-  }, [value]);
-
-  return (
-    <DancingSticks
-      amplitude={amplitude}
-      color={color}
-      size={size}
-      height={height}
-      width={width}
-      stickWidth={stickWidth}
-      gap={gap}
-    />
   );
 }

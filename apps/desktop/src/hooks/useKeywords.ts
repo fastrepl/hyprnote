@@ -10,7 +10,7 @@ import retextStringify from "retext-stringify";
 import { unified } from "unified";
 import type { VFile } from "vfile";
 
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 
 export function useKeywords(sessionId: string) {
   const vocabsTable = main.UI.useResultTable(
@@ -47,7 +47,10 @@ export const extractKeywordsFromMarkdown = (
             processMarkdown(cleaned),
             Effect.map((file) => gatherKeywords(file, hashtags)),
             Effect.orElse(() =>
-              Effect.succeed({ keywords: hashtags, keyphrases: [] }),
+              Effect.succeed({
+                keywords: hashtags,
+                keyphrases: [],
+              }),
             ),
           ),
     ),
@@ -132,4 +135,4 @@ const extractHashtags = (text: string): string[] =>
   );
 
 const stripMarkdownFormatting = (text: string): string =>
-  text.replace(/[#*_~`\[\]()]/g, " ");
+  text.replace(/[#*_~`[\]()]/g, " ");

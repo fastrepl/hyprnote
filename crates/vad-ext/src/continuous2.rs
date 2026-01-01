@@ -84,17 +84,16 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures_util::{stream, StreamExt};
-    use rodio::Source;
+    use futures_util::{StreamExt, stream};
 
     #[tokio::test]
     async fn test_continuous_stream_preserves_length() {
-        let input_audio = rodio::Decoder::new(std::io::BufReader::new(
+        let input_audio = rodio::Decoder::try_from(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
+        )
         .unwrap();
 
-        let original_samples: Vec<f32> = input_audio.convert_samples::<f32>().collect();
+        let original_samples: Vec<f32> = input_audio.collect();
         let original_len = original_samples.len();
 
         let chunk_size = 512;
@@ -148,12 +147,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_different_chunk_sizes() {
-        let input_audio = rodio::Decoder::new(std::io::BufReader::new(
+        let input_audio = rodio::Decoder::try_from(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
+        )
         .unwrap();
 
-        let original_samples: Vec<f32> = input_audio.convert_samples::<f32>().collect();
+        let original_samples: Vec<f32> = input_audio.collect();
 
         for chunk_size in [160, 320, 480, 512, 1024] {
             let chunks_iter = original_samples
@@ -181,12 +180,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_vad_preserves_speech() {
-        let input_audio = rodio::Decoder::new(std::io::BufReader::new(
+        let input_audio = rodio::Decoder::try_from(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
+        )
         .unwrap();
 
-        let original_samples: Vec<f32> = input_audio.convert_samples::<f32>().collect();
+        let original_samples: Vec<f32> = input_audio.collect();
 
         let chunk_size = 512;
         let chunks_iter = original_samples

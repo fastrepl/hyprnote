@@ -10,7 +10,7 @@ import {
   CarouselPrevious,
 } from "@hypr/ui/components/ui/carousel";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Disclosure } from "../shared";
 import { ToolRenderer } from "../types";

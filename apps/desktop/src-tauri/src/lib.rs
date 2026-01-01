@@ -1,4 +1,5 @@
 mod commands;
+mod control;
 mod ext;
 mod store;
 mod supervisor;
@@ -6,10 +7,22 @@ mod supervisor;
 use ext::*;
 use store::*;
 
+use tauri_plugin_permissions::{Permission, PermissionsPluginExt};
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
 pub async fn main() {
+    // Handle CLI commands early, before single-instance plugin takes over.
+    // This ensures CLI works regardless of whether the app is already running.
+    let cli_result = tauri_plugin_cli2::handle_cli_early();
+    let show_window_on_startup = match cli_result {
+        tauri_plugin_cli2::EarlyCliResult::Exit(code) => {
+            std::process::exit(code);
+        }
+        tauri_plugin_cli2::EarlyCliResult::Continue => true,
+        tauri_plugin_cli2::EarlyCliResult::ContinueWithoutWindow => false,
+    };
+
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     let (root_supervisor_ctx, root_supervisor_handle) =
@@ -43,35 +56,49 @@ pub async fn main() {
 
     let _guard = sentry_client
         .as_ref()
-        .map(|client| tauri_plugin_sentry::minidump::init(client));
+        .map(|client| tauri_plugin_sentry::minidump::init(&**client));
 
     let mut builder = tauri::Builder::default();
+
+    // https://docs.crabnebula.dev/plugins/tauri-e2e-tests/#macos-support
+    #[cfg(all(target_os = "macos", feature = "automation"))]
+    {
+        builder = builder.plugin(tauri_plugin_automation::init());
+    }
 
     // https://v2.tauri.app/plugin/deep-linking/#desktop
     // should always be the first plugin
     {
-        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            app.window_show(AppWindow::Main).unwrap();
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+            let should_show_window = tauri_plugin_cli2::handle_cli_args(app, argv);
+            if should_show_window {
+                app.windows().show(AppWindow::Main).unwrap();
+            }
         }));
     }
 
     builder = builder
-        .plugin(tauri_plugin_cli::init())
         .plugin(tauri_plugin_cli2::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_analytics::init())
+        .plugin(tauri_plugin_importer::init())
         .plugin(tauri_plugin_apple_calendar::init())
+        .plugin(tauri_plugin_auth::init())
         .plugin(tauri_plugin_db2::init())
         .plugin(tauri_plugin_tracing::init())
         .plugin(tauri_plugin_hooks::init())
+        .plugin(tauri_plugin_icon::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_permissions::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_deeplink2::init())
+        .plugin(tauri_plugin_export::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_path2::init())
+        .plugin(tauri_plugin_pdf::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_misc::init())
         .plugin(tauri_plugin_template::init())
@@ -79,11 +106,16 @@ pub async fn main() {
         .plugin(tauri_plugin_detect::init())
         .plugin(tauri_plugin_extensions::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_overlay::init())
+        .plugin(tauri_plugin_pagefind::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_store2::init())
+        .plugin(tauri_plugin_settings::init())
+        .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_windows::init())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_listener2::init())
         .plugin(tauri_plugin_local_stt::init(
@@ -103,10 +135,11 @@ pub async fn main() {
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--background"]),
-        ));
+        ))
+        .plugin(tauri_plugin_updater2::init());
 
     if let Some(client) = sentry_client.as_ref() {
-        builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(client));
+        builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(&**client));
     }
 
     #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
@@ -126,6 +159,8 @@ pub async fn main() {
             let app_handle = app.handle().clone();
             let app_clone = app_handle.clone();
 
+            specta_builder.mount_events(&app_handle);
+
             #[cfg(any(windows, target_os = "linux"))]
             {
                 // https://v2.tauri.app/ko/plugin/deep-linking/#desktop-1
@@ -135,14 +170,14 @@ pub async fn main() {
 
             {
                 use tauri_plugin_tray::TrayPluginExt;
-                app_handle.create_tray_menu().unwrap();
-                app_handle.create_app_menu().unwrap();
+                app_handle.tray().create_tray_menu().unwrap();
+                app_handle.tray().create_app_menu().unwrap();
             }
 
             tokio::spawn(async move {
                 use tauri_plugin_db2::Database2PluginExt;
 
-                if let Err(e) = app_clone.init_local().await {
+                if let Err(e) = app_clone.db2().init_local().await {
                     tracing::error!("failed_to_init_local: {}", e);
                 }
             });
@@ -151,33 +186,54 @@ pub async fn main() {
                 supervisor::monitor_supervisor(handle, ctx.is_exiting.clone(), app_handle.clone());
             }
 
-            specta_builder.mount_events(&app_handle);
+            // control::setup(&app_handle);
+
             Ok(())
         })
         .build(tauri::generate_context!())
         .unwrap();
 
-    let onboarding_env = std::env::var("ONBOARDING");
+    match get_onboarding_flag() {
+        None => {}
+        Some(false) => app.set_onboarding_needed(false).unwrap(),
+        Some(true) => {
+            use tauri_plugin_settings::SettingsPluginExt;
+            use tauri_plugin_store2::Store2PluginExt;
 
-    if onboarding_env.as_ref().map(|v| v == "0").unwrap_or(false) {
-        app.set_onboarding_needed(false).unwrap();
-    }
+            let _ = app.settings().reset();
+            let _ = app.store2().reset();
+            let _ = app.set_onboarding_needed(true);
 
-    if onboarding_env.as_ref().map(|v| v == "1").unwrap_or(false) {
-        app.set_onboarding_needed(true).unwrap();
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                let permissions = app_handle.permissions();
+                let _ = permissions.reset(Permission::Microphone).await;
+                let _ = permissions.reset(Permission::SystemAudio).await;
+                let _ = permissions.reset(Permission::Accessibility).await;
+                let _ = permissions.reset(Permission::Calendar).await;
+                let _ = permissions.reset(Permission::Contacts).await;
+            });
+        }
     }
 
     {
         let app_handle = app.handle().clone();
-        if app.get_onboarding_needed().unwrap_or(true) {
-            AppWindow::Main.hide(&app_handle).unwrap();
-            AppWindow::Onboarding.show(&app_handle).unwrap();
+        if show_window_on_startup {
+            if app.get_onboarding_needed().unwrap_or(true) {
+                AppWindow::Main.hide(&app_handle).unwrap();
+                AppWindow::Onboarding.show(&app_handle).unwrap();
+            } else {
+                AppWindow::Onboarding.destroy(&app_handle).unwrap();
+                AppWindow::Main.show(&app_handle).unwrap();
+            }
         } else {
-            AppWindow::Onboarding.destroy(&app_handle).unwrap();
-            AppWindow::Main.show(&app_handle).unwrap();
+            // CLI command mode - don't show any windows
+            AppWindow::Main.hide(&app_handle).unwrap();
+            AppWindow::Onboarding.hide(&app_handle).unwrap();
         }
     }
 
+    #[allow(unused_variables)]
     app.run(move |app, event| match event {
         #[cfg(target_os = "macos")]
         tauri::RunEvent::Reopen { .. } => {
@@ -200,12 +256,49 @@ pub async fn main() {
     });
 }
 
+fn get_onboarding_flag() -> Option<bool> {
+    let parse_value = |v: &str| -> Option<bool> {
+        match v {
+            "1" | "true" => Some(true),
+            "0" | "false" => Some(false),
+            _ => {
+                if let Ok(timestamp) = v.parse::<u64>() {
+                    let now = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .ok()?
+                        .as_millis() as u64;
+                    let elapsed = now.saturating_sub(timestamp * 1000);
+                    if elapsed < 2500 { Some(true) } else { None }
+                } else {
+                    None
+                }
+            }
+        }
+    };
+
+    pico_args::Arguments::from_env()
+        .opt_value_from_str::<_, String>("--onboarding")
+        .ok()
+        .flatten()
+        .and_then(|v| parse_value(&v))
+        .or_else(|| {
+            std::env::var("ONBOARDING")
+                .ok()
+                .and_then(|v| parse_value(&v))
+        })
+}
+
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .commands(tauri_specta::collect_commands![
             commands::get_onboarding_needed::<tauri::Wry>,
             commands::set_onboarding_needed::<tauri::Wry>,
+            commands::get_dismissed_toasts::<tauri::Wry>,
+            commands::set_dismissed_toasts::<tauri::Wry>,
+            commands::get_onboarding_local::<tauri::Wry>,
+            commands::set_onboarding_local::<tauri::Wry>,
             commands::get_env::<tauri::Wry>,
+            commands::show_devtool,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
@@ -216,14 +309,18 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "../src/types/tauri.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "../src/types/tauri.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

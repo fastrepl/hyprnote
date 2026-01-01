@@ -1,42 +1,48 @@
-use std::sync::Mutex;
-
-use tauri::Manager;
-
 #[cfg(target_os = "macos")]
 mod apple;
 
+#[cfg(feature = "fixture")]
+pub mod fixture;
+
 mod commands;
 mod error;
+mod events;
 mod ext;
 mod types;
 
 pub use error::{Error, Result};
-pub use ext::AppleCalendarPluginExt;
+pub use events::*;
+pub use ext::{AppleCalendarExt, AppleCalendarPluginExt};
 pub use types::*;
-
-pub type ManagedState = Mutex<State>;
-
-#[derive(Default)]
-pub struct State {
-    pub worker_handle: Option<tokio::task::JoinHandle<()>>,
-}
 
 const PLUGIN_NAME: &str = "apple-calendar";
 
+#[cfg(not(feature = "fixture"))]
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::open_calendar::<tauri::Wry>,
-            commands::open_calendar_access_settings::<tauri::Wry>,
-            commands::open_contacts_access_settings::<tauri::Wry>,
-            commands::calendar_access_status::<tauri::Wry>,
-            commands::contacts_access_status::<tauri::Wry>,
-            commands::request_calendar_access::<tauri::Wry>,
-            commands::request_contacts_access::<tauri::Wry>,
             commands::list_calendars::<tauri::Wry>,
             commands::list_events::<tauri::Wry>,
         ])
+        .events(tauri_specta::collect_events![CalendarChangedEvent])
+        .error_handling(tauri_specta::ErrorHandlingMode::Result)
+}
+
+#[cfg(feature = "fixture")]
+fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
+    tauri_specta::Builder::<R>::new()
+        .plugin_name(PLUGIN_NAME)
+        .commands(tauri_specta::collect_commands![
+            commands::open_calendar::<tauri::Wry>,
+            commands::list_calendars::<tauri::Wry>,
+            commands::list_events::<tauri::Wry>,
+            commands::advance_fixture,
+            commands::reset_fixture,
+            commands::get_fixture_info,
+        ])
+        .events(tauri_specta::collect_events![CalendarChangedEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -45,8 +51,20 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
-            app.manage(ManagedState::default());
+        .setup(move |app, _api| {
+            specta_builder.mount_events(app);
+
+            #[cfg(all(target_os = "macos", not(feature = "fixture")))]
+            {
+                use tauri::Manager;
+                use tauri_specta::Event;
+
+                let app_handle = app.app_handle().clone();
+                apple::setup_change_notification(move || {
+                    let _ = CalendarChangedEvent.emit(&app_handle);
+                });
+            }
+
             Ok(())
         })
         .build()
@@ -58,15 +76,19 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
@@ -77,7 +99,37 @@ mod test {
     }
 
     #[test]
-    fn test_apple_calendar() {
-        let _app = create_app(tauri::test::mock_builder());
+    fn test_list_calendars() {
+        let app = create_app(tauri::test::mock_builder());
+
+        let calendars = app.apple_calendar().list_calendars();
+        println!("calendars: {:?}", calendars);
+    }
+
+    #[test]
+    fn test_list_events() {
+        let app = create_app(tauri::test::mock_builder());
+
+        match app.apple_calendar().list_calendars() {
+            Ok(calendars) => {
+                if let Some(calendar) = calendars.first() {
+                    println!(
+                        "Testing with calendar: {} ({})",
+                        calendar.title, calendar.id
+                    );
+                    let events = app.apple_calendar().list_events(EventFilter {
+                        from: chrono::Utc::now(),
+                        to: chrono::Utc::now() + chrono::Duration::days(7),
+                        calendar_tracking_id: calendar.id.clone(),
+                    });
+                    println!("events: {:?}", events);
+                } else {
+                    println!("No calendars found");
+                }
+            }
+            Err(e) => {
+                println!("Error listing calendars: {:?}", e);
+            }
+        }
     }
 }

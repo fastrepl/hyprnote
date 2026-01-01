@@ -10,7 +10,7 @@ import {
 } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
 import { DateDisplay } from "./date";
 import { ParticipantsDisplay } from "./participants";
 
@@ -51,7 +51,7 @@ const TriggerInner = forwardRef<
       size="sm"
       className={cn([open && "bg-neutral-100"])}
     >
-      <CalendarIcon />
+      <CalendarIcon size={16} className="-mt-0.5" />
       {formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date())}
     </Button>
   );

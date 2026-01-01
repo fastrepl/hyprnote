@@ -1,6 +1,6 @@
 import { MarkdownManager } from "@tiptap/markdown";
 import type { JSONContent } from "@tiptap/react";
-import { renderToMarkdown } from "@tiptap/static-renderer";
+import { renderToHTMLString } from "@tiptap/static-renderer";
 import TurndownService from "turndown";
 
 import { getExtensions } from "./extensions";
@@ -59,10 +59,9 @@ turndown.addRule("taskItem", {
     );
   },
   replacement: function (content, node) {
-    const checkbox = node.querySelector(
-      'input[type="checkbox"]',
-    ) as HTMLInputElement;
-    const isChecked = checkbox ? checkbox.checked : false;
+    const liElement = node as HTMLElement;
+    const dataChecked = liElement.getAttribute("data-checked");
+    const isChecked = dataChecked === "true";
     const checkboxSymbol = isChecked ? "[x]" : "[ ]";
 
     const cleanContent = content.replace(/^\s*\[[\sxX]\]\s*/, "").trim();
@@ -76,10 +75,11 @@ export function html2md(html: string) {
 }
 
 export function json2md(jsonContent: JSONContent): string {
-  return renderToMarkdown({
+  const html = renderToHTMLString({
     extensions: getExtensions(),
     content: jsonContent,
   });
+  return html2md(html);
 }
 
 export function md2json(markdown: string): JSONContent {
@@ -92,7 +92,10 @@ export function md2json(markdown: string): JSONContent {
     return {
       type: "doc",
       content: [
-        { type: "paragraph", content: [{ type: "text", text: markdown }] },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: markdown }],
+        },
       ],
     };
   }

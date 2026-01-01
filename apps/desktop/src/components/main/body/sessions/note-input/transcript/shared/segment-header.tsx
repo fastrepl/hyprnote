@@ -12,7 +12,7 @@ import {
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../../../../store/tinybase/main";
+import * as main from "../../../../../../../store/tinybase/store/main";
 import { type Segment, SegmentKey } from "../../../../../../../utils/segment";
 import {
   defaultRenderLabelContext,
@@ -56,7 +56,7 @@ export function SegmentHeader({
       formatTimestamp,
     );
     return `${from} - ${to}`;
-  }, [segment.words.length, formatTimestamp]);
+  }, [segment.words, formatTimestamp]);
 
   const color = useSegmentColor(segment.key);
   const label = useSpeakerLabel(segment.key, speakerLabelManager);

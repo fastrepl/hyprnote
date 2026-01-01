@@ -11,7 +11,7 @@ export type NavigationState = {
 
 type InvalidatableResourceType = Extract<
   Tab["type"],
-  "sessions" | "events" | "humans" | "organizations"
+  "sessions" | "humans" | "organizations"
 >;
 
 export type NavigationActions = {

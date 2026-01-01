@@ -3,7 +3,7 @@ import React, { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { ColumnHeader, type SortOption } from "./shared";
 
 export function OrganizationsColumn({
@@ -174,15 +174,16 @@ function NewOrganizationForm({
   onCancel: () => void;
 }) {
   const [name, setName] = useState("");
+  const userId = main.UI.useValue("user_id", main.STORE_ID);
 
   const handleAdd = main.UI.useAddRowCallback(
     "organizations",
     () => ({
+      user_id: userId || "",
       name: name.trim(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     }),
-    [name],
+    [name, userId],
     main.STORE_ID,
     () => {
       setName("");

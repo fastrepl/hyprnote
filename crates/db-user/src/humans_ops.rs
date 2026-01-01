@@ -93,7 +93,7 @@ impl UserDatabase {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::setup_db, Human};
+    use crate::{Human, tests::setup_db};
 
     #[tokio::test]
     async fn test_humans() {

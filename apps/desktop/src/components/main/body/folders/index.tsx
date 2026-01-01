@@ -8,7 +8,7 @@ import {
 import { cn } from "@hypr/utils";
 
 import { useFolder, useSession } from "../../../../hooks/tinybase";
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
@@ -32,21 +32,26 @@ export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (
 const TabItemFolderAll: TabItem<Extract<Tab, { type: "folders" }>> = ({
   tab,
   tabIndex,
-  handleCloseThis: handleCloseThis,
-  handleSelectThis: handleSelectThis,
+  handleCloseThis,
+  handleSelectThis,
   handleCloseAll,
   handleCloseOthers,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   return (
     <TabItemBase
       icon={<FoldersIcon className="w-4 h-4" />}
       title={"Folders"}
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };
@@ -58,6 +63,8 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   const folderId = tab.id!;
   const folders = useFolderChain(folderId);
@@ -71,11 +78,14 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
       icon={<FolderIcon className="w-4 h-4" />}
       title={title}
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };

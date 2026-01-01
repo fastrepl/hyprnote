@@ -50,8 +50,18 @@ export function InteractiveContainer({
           right: { width: "4px", right: 0 },
           bottom: { height: "4px", bottom: 0 },
           left: { width: "4px", left: 0 },
-          bottomRight: { width: "12px", height: "12px", bottom: 0, right: 0 },
-          bottomLeft: { width: "12px", height: "12px", bottom: 0, left: 0 },
+          bottomRight: {
+            width: "12px",
+            height: "12px",
+            bottom: 0,
+            right: 0,
+          },
+          bottomLeft: {
+            width: "12px",
+            height: "12px",
+            bottom: 0,
+            left: 0,
+          },
           topLeft: { width: "12px", height: "12px", top: 0, left: 0 },
         }}
         onResizeStart={() => setIsResizing(true)}

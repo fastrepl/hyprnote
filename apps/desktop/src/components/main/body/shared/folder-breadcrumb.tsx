@@ -1,6 +1,6 @@
 import { type ReactNode, useMemo } from "react";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 
 export function FolderBreadcrumb({
   folderId,
@@ -56,7 +56,13 @@ function FolderWrapper({
 }) {
   const name = main.UI.useCell("folders", folderId, "name", main.STORE_ID);
   return (
-    <>{children({ id: folderId, name: name ?? "Untitled", isLast: false })}</>
+    <>
+      {children({
+        id: folderId,
+        name: name ?? "Untitled",
+        isLast: false,
+      })}
+    </>
   );
 }
 

@@ -1,0 +1,29 @@
+[package]
+name = "tauri-plugin-notify"
+version = "0.1.0"
+authors = ["You"]
+edition = "2024"
+exclude = ["/js", "/node_modules"]
+links = "tauri-plugin-notify"
+description = ""
+
+[build-dependencies]
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+specta-typescript = { workspace = true }
+tokio = { workspace = true, features = ["macros"] }
+
+[dependencies]
+notify = "8"
+notify-debouncer-full = "0.5"
+
+tauri = { workspace = true, features = ["test"] }
+tauri-plugin-path2 = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+serde = { workspace = true }
+specta = { workspace = true }
+
+thiserror = { workspace = true }
+tracing = { workspace = true }

@@ -1,3 +1,4 @@
+import { isNodeActive } from "@tiptap/core";
 import {
   EditorContent,
   type JSONContent,
@@ -19,7 +20,10 @@ const safeRequestIdleCallback =
     : (cb: IdleRequestCallback) =>
         setTimeout(
           () =>
-            cb({ didTimeout: false, timeRemaining: () => 50 } as IdleDeadline),
+            cb({
+              didTimeout: false,
+              timeRemaining: () => 50,
+            } as IdleDeadline),
           1,
         );
 
@@ -33,11 +37,12 @@ interface EditorProps {
   mentionConfig?: MentionConfig;
   placeholderComponent?: PlaceholderFunction;
   fileHandlerConfig?: FileHandlerConfig;
+  onNavigateToTitle?: () => void;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
-  (
-    {
+  (props, ref) => {
+    const {
       handleChange,
       initialContent,
       editable = true,
@@ -45,9 +50,8 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       mentionConfig,
       placeholderComponent,
       fileHandlerConfig,
-    },
-    ref,
-  ) => {
+      onNavigateToTitle,
+    } = props;
     const previousContentRef = useRef<JSONContent>(initialContent);
 
     const onUpdate = useDebounceCallback(
@@ -85,9 +89,73 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             return false;
           }
 
+          const { state } = view;
+          const isAtStart = state.selection.$head.pos === 0;
+
+          const $head = state.selection.$head;
+          const depth = $head.depth;
+          let isInFirstBlock = false;
+
+          for (let d = depth; d > 0; d--) {
+            const node = $head.node(d);
+            if (node.type.name === "doc") continue;
+            const parentNode = $head.node(d - 1);
+            if (parentNode.type.name === "doc") {
+              isInFirstBlock = parentNode.firstChild === node;
+              break;
+            }
+          }
+
+          if (event.key === "ArrowUp" && isInFirstBlock && onNavigateToTitle) {
+            event.preventDefault();
+
+            const firstBlock = state.doc.firstChild;
+            if (firstBlock && firstBlock.textContent) {
+              const text = firstBlock.textContent;
+              const posInBlock = $head.pos - $head.start();
+              const textBeforeCursor = text.slice(0, posInBlock);
+
+              const editorDom = view.dom;
+              const firstTextNode = editorDom.querySelector(".ProseMirror > *");
+
+              if (firstTextNode) {
+                const editorStyle = window.getComputedStyle(firstTextNode);
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+
+                if (ctx) {
+                  ctx.font = `${editorStyle.fontWeight} ${editorStyle.fontSize} ${editorStyle.fontFamily}`;
+                  const editorWidth = ctx.measureText(textBeforeCursor).width;
+
+                  setTimeout(() => {
+                    const navEvent = new CustomEvent(
+                      "editor-move-to-title-position",
+                      {
+                        detail: { pixelWidth: editorWidth },
+                      },
+                    );
+                    window.dispatchEvent(navEvent);
+                  }, 0);
+                }
+              }
+            }
+
+            onNavigateToTitle();
+            return true;
+          }
+
+          if (event.key === "Tab" && event.shiftKey) {
+            const isInListItem =
+              isNodeActive(state, "listItem") ||
+              isNodeActive(state, "taskItem");
+            if (!isInListItem && isInFirstBlock && onNavigateToTitle) {
+              event.preventDefault();
+              onNavigateToTitle();
+              return true;
+            }
+          }
+
           if (event.key === "Backspace") {
-            const { state } = view;
-            const isAtStart = state.selection.$head.pos === 0;
             if (isAtStart && state.selection.empty) {
               event.preventDefault();
               return true;
@@ -95,6 +163,12 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           }
 
           if (event.key === "Tab") {
+            const isInListItem =
+              isNodeActive(state, "listItem") ||
+              isNodeActive(state, "taskItem");
+            if (isInListItem) {
+              return false;
+            }
             event.preventDefault();
             return true;
           }
@@ -102,7 +176,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           return false;
         },
       }),
-      [],
+      [onNavigateToTitle],
     );
 
     const editor = useEditor(
@@ -115,6 +189,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         onCreate: ({ editor }) => {
           editor.view.dom.setAttribute("spellcheck", "false");
           editor.view.dom.setAttribute("autocomplete", "off");
+          editor.view.dom.setAttribute("autocorrect", "off");
           editor.view.dom.setAttribute("autocapitalize", "off");
         },
         onUpdate,

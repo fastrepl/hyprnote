@@ -119,7 +119,9 @@ llm.post(
         const isTimeout = timeoutController.signal.aborted;
         return new Response(
           isTimeout ? "Request timeout" : "Client disconnected",
-          { status: isTimeout ? 504 : 499 },
+          {
+            status: isTimeout ? 504 : 499,
+          },
         );
       }
       throw error;

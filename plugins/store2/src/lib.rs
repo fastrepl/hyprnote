@@ -5,6 +5,8 @@ mod ext;
 pub use error::*;
 pub use ext::*;
 
+use tauri::Manager;
+
 const PLUGIN_NAME: &str = "store2";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -26,7 +28,26 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
+        .setup(|app, _| {
+            migrate(app).ok();
+            Ok(())
+        })
         .build()
+}
+
+fn migrate<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<(), Error> {
+    let old_path = app.path().app_data_dir()?.join(FILENAME);
+    if !old_path.exists() {
+        return Ok(());
+    }
+
+    let new_path = store_path(app)?;
+    if new_path.exists() {
+        return Ok(());
+    }
+
+    std::fs::rename(&old_path, &new_path)?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -35,15 +56,19 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
@@ -57,7 +82,7 @@ mod test {
     #[tokio::test]
     async fn test_store() -> anyhow::Result<()> {
         let app = create_app(tauri::test::mock_builder());
-        assert!(app.store().is_ok());
+        assert!(app.store2().store().is_ok());
 
         #[derive(PartialEq, Eq, Hash, strum::Display)]
         enum TestKey {
@@ -69,7 +94,7 @@ mod test {
 
         impl ScopedStoreKey for TestKey {}
 
-        let scoped_store = app.scoped_store::<TestKey>("test")?;
+        let scoped_store = app.store2().scoped_store::<TestKey>("test")?;
         assert!(scoped_store.get::<String>(TestKey::KeyA)?.is_none());
 
         scoped_store.set(TestKey::KeyA, "test".to_string())?;

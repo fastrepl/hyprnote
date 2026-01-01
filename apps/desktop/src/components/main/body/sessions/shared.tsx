@@ -7,7 +7,7 @@ import { useListener } from "../../../../contexts/listener";
 import { useNetwork } from "../../../../contexts/network";
 import { useAITaskTask } from "../../../../hooks/useAITaskTask";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { createTaskId } from "../../../../store/zustand/ai-task/task-configs";
 import type { Tab } from "../../../../store/zustand/tabs/schema";
 import { type EditorView } from "../../../../store/zustand/tabs/schema";
@@ -27,7 +27,7 @@ export function useCurrentNoteTab(
 ): EditorView {
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
   const isListenerActive =
-    sessionMode === "running_active" || sessionMode === "finalizing";
+    sessionMode === "active" || sessionMode === "finalizing";
 
   const enhancedNoteIds = main.UI.useSliceRowIds(
     main.INDEXES.enhancedNotesBySession,
@@ -37,8 +37,8 @@ export function useCurrentNoteTab(
   const firstEnhancedNoteId = enhancedNoteIds?.[0];
 
   return useMemo(() => {
-    if (tab.state.editor) {
-      return tab.state.editor;
+    if (tab.state.view) {
+      return tab.state.view;
     }
 
     if (isListenerActive) {
@@ -50,7 +50,7 @@ export function useCurrentNoteTab(
     }
 
     return { type: "raw" };
-  }, [tab.state.editor, isListenerActive, firstEnhancedNoteId]);
+  }, [tab.state.view, isListenerActive, firstEnhancedNoteId]);
 }
 
 export function RecordingIcon({ disabled }: { disabled?: boolean }) {
@@ -69,8 +69,7 @@ export function RecordingIcon({ disabled }: { disabled?: boolean }) {
 
 export function useListenButtonState(sessionId: string) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const active =
-    sessionMode === "running_active" || sessionMode === "finalizing";
+  const active = sessionMode === "active" || sessionMode === "finalizing";
   const batching = sessionMode === "running_batch";
 
   const taskId = createTaskId(sessionId, "enhance");

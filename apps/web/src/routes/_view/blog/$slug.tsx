@@ -60,21 +60,41 @@ export const Route = createFileRoute("/_view/blog/$slug")({
       meta: [
         { title: `${article.title} - Hyprnote Blog` },
         { name: "description", content: article.meta_description },
-        { property: "og:title", content: `${article.title} - Hyprnote Blog` },
-        { property: "og:description", content: article.meta_description },
+        {
+          property: "og:title",
+          content: `${article.title} - Hyprnote Blog`,
+        },
+        {
+          property: "og:description",
+          content: article.meta_description,
+        },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
         { property: "og:image", content: ogImage },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: `${article.title} - Hyprnote Blog` },
-        { name: "twitter:description", content: article.meta_description },
+        {
+          name: "twitter:title",
+          content: `${article.title} - Hyprnote Blog`,
+        },
+        {
+          name: "twitter:description",
+          content: article.meta_description,
+        },
         { name: "twitter:image", content: ogImage },
         ...(article.author
           ? [{ name: "author", content: article.author }]
           : []),
-        { property: "article:published_time", content: article.created },
+        {
+          property: "article:published_time",
+          content: article.created,
+        },
         ...(article.updated
-          ? [{ property: "article:modified_time", content: article.updated }]
+          ? [
+              {
+                property: "article:modified_time",
+                content: article.updated,
+              },
+            ]
           : []),
       ],
     };
@@ -92,7 +112,7 @@ function Component() {
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection article={article} />
         <SlashSeparator />
-        <div className="max-w-[800px] mx-auto px-4 py-8">
+        <div className="max-w-200 mx-auto px-4 py-8">
           <ArticleContent article={article} />
           <RelatedArticlesSection relatedArticles={relatedArticles} />
         </div>
@@ -114,7 +134,7 @@ function HeroSection({ article }: { article: any }) {
   const avatarUrl = AUTHOR_AVATARS[article.author];
 
   return (
-    <header className="py-12 lg:py-16 text-center max-w-[800px] mx-auto px-4">
+    <header className="py-12 lg:py-16 text-center max-w-200 mx-auto px-4">
       <Link
         to="/blog"
         className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8"

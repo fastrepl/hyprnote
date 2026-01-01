@@ -1,0 +1,16 @@
+[package]
+name = "device-heuristic"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tracing = { workspace = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+hypr-mac = { workspace = true }
+cidre = { workspace = true, features = ["av"] }
+libc = "0.2"
+objc2-core-graphics = { version = "0.3", default-features = false, features = ["CGDirectDisplay", "CGError", "CGDisplayConfiguration", "libc"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libpulse-binding = "2.30.1"

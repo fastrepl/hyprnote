@@ -14,7 +14,7 @@ where
     *PROGRESS_CB.lock().unwrap() = Some(Box::new(f));
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_on_transcribe_progress(fraction: f32) -> bool {
     if let Some(cb) = PROGRESS_CB.lock().unwrap().as_ref() {
         cb(fraction)

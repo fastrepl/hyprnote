@@ -9,7 +9,7 @@ import {
 
 import type { SpeakerHintStorage, Word } from "@hypr/store";
 
-import * as main from "../../../../../../../store/tinybase/main";
+import * as main from "../../../../../../../store/tinybase/store/main";
 import {
   buildSegments,
   type RuntimeSpeakerHint,
@@ -18,55 +18,23 @@ import {
 import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
 
 export function useFinalWords(transcriptId: string): (Word & { id: string })[] {
-  const queryId = useWordsQuery(transcriptId);
-  const resultTable = main.UI.useResultTable(queryId, main.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
+  const wordIds = main.UI.useSliceRowIds(
+    main.INDEXES.wordsByTranscript,
+    transcriptId,
+    main.STORE_ID,
+  );
 
   return useMemo(() => {
-    if (!resultTable) {
+    if (!store || !wordIds) {
       return [];
     }
 
-    const ret = Object.entries(resultTable)
-      .map(([wordId, row]) => ({
-        ...(row as unknown as Word),
-        id: wordId,
-      }))
-      .sort((a, b) => a.start_ms - b.start_ms);
-
-    return ret;
-  }, [resultTable]);
-}
-
-function useWordsQuery(transcriptId: string) {
-  const queries = main.UI.useQueries(main.STORE_ID);
-  const queryId = useMemo(
-    () => `wordsByTranscript:${transcriptId}`,
-    [transcriptId],
-  );
-
-  useEffect(() => {
-    if (!queries || !transcriptId) {
-      return;
-    }
-
-    queries.setQueryDefinition(queryId, "words", ({ select, where }) => {
-      select("text");
-      select("start_ms");
-      select("end_ms");
-      select("channel");
-      select("created_at");
-      select("transcript_id");
-      select("user_id");
-      select("metadata");
-      where((getCell) => getCell("transcript_id") === transcriptId);
-    });
-
-    return () => {
-      queries.delQueryDefinition(queryId);
-    };
-  }, [queries, queryId, transcriptId]);
-
-  return queryId;
+    return wordIds.map((wordId) => ({
+      ...(store.getRow("words", wordId) as unknown as Word),
+      id: wordId,
+    }));
+  }, [store, wordIds]);
 }
 
 export function useFinalSpeakerHints(
@@ -105,7 +73,7 @@ export function useFinalSpeakerHints(
     });
 
     return convertStorageHintsToRuntime(storageHints, wordIdToIndex);
-  }, [store, wordIds, speakerHintIds, transcriptId]);
+  }, [store, wordIds, speakerHintIds]);
 }
 
 export function useTranscriptOffset(transcriptId: string): number {
@@ -293,6 +261,9 @@ export function useScrollDetection(
   containerRef: RefObject<HTMLDivElement | null>,
 ) {
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const lastScrollTopRef = useRef(0);
+  const userScrolledAwayRef = useRef(false);
 
   useEffect(() => {
     const element = containerRef.current;
@@ -300,12 +271,28 @@ export function useScrollDetection(
       return;
     }
 
+    lastScrollTopRef.current = element.scrollTop;
+
     const handleScroll = () => {
       const threshold = 100;
-      const isNearBottom =
-        element.scrollHeight - element.scrollTop - element.clientHeight <
-        threshold;
+      const distanceToBottom =
+        element.scrollHeight - element.scrollTop - element.clientHeight;
+      const isNearBottom = distanceToBottom < threshold;
       setIsAtBottom(isNearBottom);
+
+      const currentTop = element.scrollTop;
+      const prevTop = lastScrollTopRef.current;
+      lastScrollTopRef.current = currentTop;
+
+      const scrolledUp = currentTop < prevTop - 2;
+      if (scrolledUp) {
+        userScrolledAwayRef.current = true;
+        setAutoScrollEnabled(false);
+      }
+
+      if (isNearBottom && !userScrolledAwayRef.current) {
+        setAutoScrollEnabled(true);
+      }
     };
 
     element.addEventListener("scroll", handleScroll);
@@ -317,19 +304,22 @@ export function useScrollDetection(
     if (!element) {
       return;
     }
+    userScrolledAwayRef.current = false;
+    setAutoScrollEnabled(true);
     element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
   };
 
-  return { isAtBottom, scrollToBottom };
+  return { isAtBottom, autoScrollEnabled, scrollToBottom };
 }
 
 export function useAutoScroll(
   containerRef: RefObject<HTMLElement | null>,
   deps: DependencyList,
+  enabled = true,
 ) {
   const rafRef = useRef<number | null>(null);
   const lastHeightRef = useRef(0);
-  const initialFlushRef = useRef(true);
+  const initialFlushRef = useRef(enabled);
 
   useEffect(() => {
     const element = containerRef.current;
@@ -350,7 +340,7 @@ export function useAutoScroll(
     };
 
     const schedule = (force = false) => {
-      if (!force && !isPinned()) {
+      if (!force && (!enabled || !isPinned())) {
         return;
       }
 

@@ -2,7 +2,7 @@ import type { LanguageModel } from "ai";
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
-import type { Store as PersistedStore } from "../../tinybase/main";
+import type { Store as MainStore } from "../../tinybase/store/main";
 import { applyTransforms } from "./shared/transform_infra";
 import {
   TASK_CONFIGS,
@@ -68,7 +68,7 @@ const initialState: TasksState = {
 export const createTasksSlice = <T extends TasksState>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
-  deps: { persistedStore: PersistedStore },
+  deps: { persistedStore: MainStore },
 ): TasksState & TasksActions => ({
   ...initialState,
   getState: <Task extends TaskType>(

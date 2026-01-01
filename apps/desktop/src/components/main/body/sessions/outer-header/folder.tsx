@@ -10,7 +10,7 @@ import {
 } from "@hypr/ui/components/ui/breadcrumb";
 import { Button } from "@hypr/ui/components/ui/button";
 
-import * as main from "../../../../../store/tinybase/main";
+import * as main from "../../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { FolderBreadcrumb } from "../../shared/folder-breadcrumb";
 import { SearchableFolderDropdown } from "./shared/folder";

@@ -19,6 +19,58 @@ pub async fn set_onboarding_needed<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_dismissed_toasts<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    app.get_dismissed_toasts()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_dismissed_toasts<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    v: Vec<String>,
+) -> Result<(), String> {
+    app.set_dismissed_toasts(v)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_onboarding_local<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<bool, String> {
+    app.get_onboarding_local().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_onboarding_local<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    v: bool,
+) -> Result<(), String> {
+    app.set_onboarding_local(v).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn get_env<R: tauri::Runtime>(_app: tauri::AppHandle<R>, key: String) -> String {
     std::env::var(&key).unwrap_or_default()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn show_devtool() -> bool {
+    if cfg!(debug_assertions) {
+        return true;
+    }
+
+    #[cfg(feature = "devtools")]
+    {
+        return true;
+    }
+
+    #[cfg(not(feature = "devtools"))]
+    {
+        return false;
+    }
 }

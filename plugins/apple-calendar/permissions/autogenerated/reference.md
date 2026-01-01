@@ -5,12 +5,11 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-open-calendar`
-- `allow-open-calendar-access-settings`
-- `allow-open-contacts-access-settings`
-- `allow-calendar-access-status`
-- `allow-contacts-access-status`
-- `allow-request-calendar-access`
-- `allow-request-contacts-access`
+- `allow-list-calendars`
+- `allow-list-events`
+- `allow-advance-fixture`
+- `allow-reset-fixture`
+- `allow-get-fixture-info`
 
 ## Permission Table
 
@@ -24,25 +23,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`apple-calendar:allow-calendar-access-status`
+`apple-calendar:allow-advance-fixture`
 
 </td>
 <td>
 
-Enables the calendar_access_status command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`apple-calendar:deny-calendar-access-status`
-
-</td>
-<td>
-
-Denies the calendar_access_status command without any pre-configured scope.
+Enables the advance_fixture command without any pre-configured scope.
 
 </td>
 </tr>
@@ -50,12 +36,12 @@ Denies the calendar_access_status command without any pre-configured scope.
 <tr>
 <td>
 
-`apple-calendar:allow-contacts-access-status`
+`apple-calendar:deny-advance-fixture`
 
 </td>
 <td>
 
-Enables the contacts_access_status command without any pre-configured scope.
+Denies the advance_fixture command without any pre-configured scope.
 
 </td>
 </tr>
@@ -63,12 +49,25 @@ Enables the contacts_access_status command without any pre-configured scope.
 <tr>
 <td>
 
-`apple-calendar:deny-contacts-access-status`
+`apple-calendar:allow-get-fixture-info`
 
 </td>
 <td>
 
-Denies the contacts_access_status command without any pre-configured scope.
+Enables the get_fixture_info command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-get-fixture-info`
+
+</td>
+<td>
+
+Denies the get_fixture_info command without any pre-configured scope.
 
 </td>
 </tr>
@@ -154,25 +153,12 @@ Denies the open_calendar command without any pre-configured scope.
 <tr>
 <td>
 
-`apple-calendar:allow-open-calendar-access-settings`
+`apple-calendar:allow-reset-fixture`
 
 </td>
 <td>
 
-Enables the open_calendar_access_settings command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`apple-calendar:deny-open-calendar-access-settings`
-
-</td>
-<td>
-
-Denies the open_calendar_access_settings command without any pre-configured scope.
+Enables the reset_fixture command without any pre-configured scope.
 
 </td>
 </tr>
@@ -180,77 +166,12 @@ Denies the open_calendar_access_settings command without any pre-configured scop
 <tr>
 <td>
 
-`apple-calendar:allow-open-contacts-access-settings`
+`apple-calendar:deny-reset-fixture`
 
 </td>
 <td>
 
-Enables the open_contacts_access_settings command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`apple-calendar:deny-open-contacts-access-settings`
-
-</td>
-<td>
-
-Denies the open_contacts_access_settings command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`apple-calendar:allow-request-calendar-access`
-
-</td>
-<td>
-
-Enables the request_calendar_access command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`apple-calendar:deny-request-calendar-access`
-
-</td>
-<td>
-
-Denies the request_calendar_access command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`apple-calendar:allow-request-contacts-access`
-
-</td>
-<td>
-
-Enables the request_contacts_access command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`apple-calendar:deny-request-contacts-access`
-
-</td>
-<td>
-
-Denies the request_contacts_access command without any pre-configured scope.
+Denies the reset_fixture command without any pre-configured scope.
 
 </td>
 </tr>

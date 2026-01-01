@@ -1,21 +1,34 @@
-import { z } from "zod";
+import type {
+  AiState,
+  AiTab,
+  ChangelogState,
+  ChatShortcutsState,
+  ContactsState,
+  DataState,
+  DataTab,
+  EditorView,
+  ExtensionsState,
+  PromptsState,
+  SessionsState,
+  TabInput,
+  TemplatesState,
+} from "@hypr/plugin-windows";
 
-import { TABLES } from "../../tinybase/main";
-
-const baseTabSchema = z.object({
-  active: z.boolean(),
-  slotId: z.string(),
-});
-
-export const editorViewSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("raw") }),
-  z.object({ type: z.literal("transcript") }),
-  z.object({
-    type: z.literal("enhanced"),
-    id: z.string(),
-  }),
-]);
-export type EditorView = z.infer<typeof editorViewSchema>;
+export type {
+  AiState,
+  AiTab,
+  ChangelogState,
+  ChatShortcutsState,
+  ContactsState,
+  DataState,
+  DataTab,
+  EditorView,
+  ExtensionsState,
+  PromptsState,
+  SessionsState,
+  TabInput,
+  TemplatesState,
+};
 
 export const isEnhancedView = (
   view: EditorView,
@@ -26,155 +39,165 @@ export const isTranscriptView = (
   view: EditorView,
 ): view is { type: "transcript" } => view.type === "transcript";
 
-export const tabSchema = z.discriminatedUnion("type", [
-  baseTabSchema.extend({
-    type: z.literal("sessions" satisfies (typeof TABLES)[number]),
-    id: z.string(),
-    state: z
-      .object({
-        editor: editorViewSchema.optional(),
-      })
-      .default({}),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("contacts"),
-    state: z
-      .object({
-        selectedOrganization: z.string().nullable().default(null),
-        selectedPerson: z.string().nullable().default(null),
-      })
-      .default({
-        selectedOrganization: null,
-        selectedPerson: null,
-      }),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("templates"),
-    state: z
-      .object({
-        isWebMode: z.boolean().optional(),
-        selectedMineId: z.string().nullable().default(null),
-        selectedWebIndex: z.number().nullable().default(null),
-      })
-      .default({
-        selectedMineId: null,
-        selectedWebIndex: null,
-      }),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("prompts"),
-    state: z
-      .object({
-        selectedTask: z.string().nullable().default(null),
-      })
-      .default({
-        selectedTask: null,
-      }),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("chat_shortcuts"),
-    state: z
-      .object({
-        isWebMode: z.boolean().optional(),
-        selectedMineId: z.string().nullable().default(null),
-        selectedWebIndex: z.number().nullable().default(null),
-      })
-      .default({
-        selectedMineId: null,
-        selectedWebIndex: null,
-      }),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("extensions"),
-    state: z
-      .object({
-        selectedExtension: z.string().nullable().default(null),
-      })
-      .default({
-        selectedExtension: null,
-      }),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("events" satisfies (typeof TABLES)[number]),
-    id: z.string(),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("humans" satisfies (typeof TABLES)[number]),
-    id: z.string(),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("organizations" satisfies (typeof TABLES)[number]),
-    id: z.string(),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("folders" satisfies (typeof TABLES)[number]),
-    id: z.string().nullable(),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("empty"),
-  }),
-  baseTabSchema.extend({
-    type: z.literal("extension"),
-    extensionId: z.string(),
-    state: z.record(z.string(), z.unknown()).default({}),
-  }),
-]);
+type BaseTab = {
+  active: boolean;
+  slotId: string;
+  pinned: boolean;
+};
 
-export type Tab = z.infer<typeof tabSchema>;
-
-export type TabInput =
-  | {
+export type Tab =
+  | (BaseTab & {
       type: "sessions";
       id: string;
-      state?: { editor?: EditorView };
-    }
-  | {
+      state: SessionsState;
+    })
+  | (BaseTab & {
       type: "contacts";
-      state?: {
-        selectedOrganization?: string | null;
-        selectedPerson?: string | null;
-      };
-    }
-  | {
+      state: ContactsState;
+    })
+  | (BaseTab & {
       type: "templates";
-      state?: {
-        isWebMode?: boolean;
-        selectedMineId?: string | null;
-        selectedWebIndex?: number | null;
-      };
-    }
-  | {
+      state: TemplatesState;
+    })
+  | (BaseTab & {
       type: "prompts";
-      state?: {
-        selectedTask?: string | null;
-      };
-    }
-  | {
+      state: PromptsState;
+    })
+  | (BaseTab & {
       type: "chat_shortcuts";
-      state?: {
-        isWebMode?: boolean;
-        selectedMineId?: string | null;
-        selectedWebIndex?: number | null;
-      };
-    }
-  | {
+      state: ChatShortcutsState;
+    })
+  | (BaseTab & {
       type: "extensions";
-      state?: {
-        selectedExtension?: string | null;
+      state: ExtensionsState;
+    })
+  | (BaseTab & { type: "humans"; id: string })
+  | (BaseTab & { type: "organizations"; id: string })
+  | (BaseTab & { type: "folders"; id: string | null })
+  | (BaseTab & { type: "empty" })
+  | (BaseTab & {
+      type: "extension";
+      extensionId: string;
+      state: Record<string, unknown>;
+    })
+  | (BaseTab & { type: "calendar" })
+  | (BaseTab & {
+      type: "changelog";
+      state: ChangelogState;
+    })
+  | (BaseTab & { type: "settings" })
+  | (BaseTab & {
+      type: "ai";
+      state: AiState;
+    })
+  | (BaseTab & {
+      type: "data";
+      state: DataState;
+    });
+
+export const getDefaultState = (tab: TabInput): Tab => {
+  const base = { active: false, slotId: "", pinned: false };
+
+  switch (tab.type) {
+    case "sessions":
+      return {
+        ...base,
+        type: "sessions",
+        id: tab.id,
+        state: tab.state ?? { view: null, autoStart: null },
       };
-    }
-  | { type: "events"; id: string }
-  | { type: "humans"; id: string }
-  | { type: "organizations"; id: string }
-  | { type: "folders"; id: string | null }
-  | { type: "empty" }
-  | { type: "extension"; extensionId: string; state?: Record<string, unknown> };
+    case "contacts":
+      return {
+        ...base,
+        type: "contacts",
+        state: tab.state ?? {
+          selectedOrganization: null,
+          selectedPerson: null,
+        },
+      };
+    case "templates":
+      return {
+        ...base,
+        type: "templates",
+        state: tab.state ?? {
+          showHomepage: true,
+          isWebMode: null,
+          selectedMineId: null,
+          selectedWebIndex: null,
+        },
+      };
+    case "prompts":
+      return {
+        ...base,
+        type: "prompts",
+        state: tab.state ?? {
+          selectedTask: null,
+        },
+      };
+    case "chat_shortcuts":
+      return {
+        ...base,
+        type: "chat_shortcuts",
+        state: tab.state ?? {
+          isWebMode: null,
+          selectedMineId: null,
+          selectedWebIndex: null,
+        },
+      };
+    case "extensions":
+      return {
+        ...base,
+        type: "extensions",
+        state: tab.state ?? {
+          selectedExtension: null,
+        },
+      };
+    case "humans":
+      return { ...base, type: "humans", id: tab.id };
+    case "organizations":
+      return { ...base, type: "organizations", id: tab.id };
+    case "folders":
+      return { ...base, type: "folders", id: tab.id };
+    case "empty":
+      return { ...base, type: "empty" };
+    case "extension":
+      return {
+        ...base,
+        type: "extension",
+        extensionId: tab.extensionId,
+        state: tab.state ?? {},
+      };
+    case "calendar":
+      return { ...base, type: "calendar" };
+    case "changelog":
+      return {
+        ...base,
+        type: "changelog",
+        state: tab.state,
+      };
+    case "settings":
+      return { ...base, type: "settings" };
+    case "ai":
+      return {
+        ...base,
+        type: "ai",
+        state: tab.state ?? { tab: null },
+      };
+    case "data":
+      return {
+        ...base,
+        type: "data",
+        state: tab.state ?? { tab: null },
+      };
+    default:
+      const _exhaustive: never = tab;
+      return _exhaustive;
+  }
+};
 
 export const rowIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
     case "sessions":
-      return tab.id;
-    case "events":
       return tab.id;
     case "humans":
       return tab.id;
@@ -187,6 +210,11 @@ export const rowIdfromTab = (tab: Tab): string => {
     case "extensions":
     case "empty":
     case "extension":
+    case "calendar":
+    case "changelog":
+    case "settings":
+    case "ai":
+    case "data":
       throw new Error("invalid_resource");
     case "folders":
       if (!tab.id) {
@@ -200,8 +228,6 @@ export const uniqueIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
     case "sessions":
       return `sessions-${tab.id}`;
-    case "events":
-      return `events-${tab.id}`;
     case "humans":
       return `humans-${tab.id}`;
     case "organizations":
@@ -222,6 +248,16 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `empty-${tab.slotId}`;
     case "extension":
       return `extension-${tab.extensionId}`;
+    case "calendar":
+      return `calendar`;
+    case "changelog":
+      return "changelog";
+    case "settings":
+      return `settings`;
+    case "ai":
+      return `ai`;
+    case "data":
+      return `data`;
   }
 };
 

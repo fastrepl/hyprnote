@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-build-index"
+description = "Enables the build_index command without any pre-configured scope."
+commands.allow = ["build_index"]
+
+[[permission]]
+identifier = "deny-build-index"
+description = "Denies the build_index command without any pre-configured scope."
+commands.deny = ["build_index"]

@@ -1,6 +1,6 @@
-import { faker } from "@faker-js/faker";
+import { faker } from "@faker-js/faker/locale/en";
 
-import type { Event } from "@hypr/store";
+import type { EventStorage } from "@hypr/store";
 
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
@@ -177,10 +177,12 @@ export const createEvent = (calendar_id: string) => {
     description = faker.helpers.arrayElement(topics);
   }
 
+  const eventId = id();
   return {
-    id: id(),
+    id: eventId,
     data: {
       user_id: DEFAULT_USER_ID,
+      tracking_id_event: `mock-${eventId}`,
       calendar_id,
       title,
       started_at: startsAt.toISOString(),
@@ -190,6 +192,7 @@ export const createEvent = (calendar_id: string) => {
       meeting_link,
       description,
       note,
-    } satisfies Event,
+      ignored: undefined,
+    } satisfies EventStorage,
   };
 };

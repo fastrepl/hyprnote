@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-bundle-path"
+description = "Enables the get_bundle_path command without any pre-configured scope."
+commands.allow = ["get_bundle_path"]
+
+[[permission]]
+identifier = "deny-get-bundle-path"
+description = "Denies the get_bundle_path command without any pre-configured scope."
+commands.deny = ["get_bundle_path"]

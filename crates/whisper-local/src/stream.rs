@@ -4,7 +4,6 @@ use std::{
     task::{Context, Poll},
 };
 
-use dasp::sample::FromSample;
 use futures_util::{Stream, StreamExt};
 use rodio::Source;
 
@@ -51,8 +50,6 @@ impl<S> TranscribeRodioSourceStreamExt<S> for S
 where
     S: Stream + Unpin + Send + 'static,
     <S as Stream>::Item: Source + Send + 'static,
-    <<S as Stream>::Item as Iterator>::Item: rodio::Sample,
-    f32: FromSample<<<S as Stream>::Item as Iterator>::Item>,
 {
     fn transcribe(self, whisper: Whisper) -> TranscriptionTask<S, RodioSourceMarker> {
         TranscriptionTask {
@@ -87,8 +84,6 @@ impl<S> Stream for TranscriptionTask<S, RodioSourceMarker>
 where
     S: Stream + Unpin + Send + 'static,
     <S as Stream>::Item: Source + Send + 'static,
-    <<S as Stream>::Item as Iterator>::Item: rodio::Sample,
-    f32: FromSample<<<S as Stream>::Item as Iterator>::Item>,
 {
     type Item = Segment;
 
@@ -110,7 +105,7 @@ where
 
             match this.stream.poll_next_unpin(cx) {
                 Poll::Ready(Some(source)) => {
-                    let samples: Vec<f32> = source.convert_samples().collect();
+                    let samples: Vec<f32> = source.collect();
                     match process_transcription(
                         &mut this.whisper,
                         &samples,

@@ -1,6 +1,6 @@
 import { UserIcon } from "lucide-react";
 
-import * as main from "../../../store/tinybase/main";
+import * as main from "../../../store/tinybase/store/main";
 import { type Tab } from "../../../store/zustand/tabs";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
@@ -12,6 +12,8 @@ export const TabItemHuman: TabItem<Extract<Tab, { type: "humans" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   const title = main.UI.useCell("humans", tab.id, "name", main.STORE_ID);
 
@@ -20,11 +22,14 @@ export const TabItemHuman: TabItem<Extract<Tab, { type: "humans" }>> = ({
       icon={<UserIcon className="w-4 h-4" />}
       title={title ?? "Human"}
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };

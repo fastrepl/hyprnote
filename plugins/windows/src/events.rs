@@ -1,9 +1,8 @@
 use std::str::FromStr;
 
 use tauri::Manager;
-use tauri_specta::Event;
 
-use crate::{AppWindow, WindowsPluginExt};
+use crate::AppWindow;
 
 // TODO: https://github.com/fastrepl/hyprnote/commit/150c8a1 this not worked. webview_window not found.
 pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::WindowEvent) {
@@ -14,30 +13,17 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
             match window.label().parse::<AppWindow>() {
                 Err(e) => tracing::warn!("window_parse_error: {:?}", e),
                 Ok(w) => {
-                    if w == AppWindow::Main && window.hide().is_ok() {
+                    if w == AppWindow::Main && w.hide(&app).is_ok() {
                         api.prevent_close();
                     }
-                }
-            }
-        }
-
-        tauri::WindowEvent::Destroyed => {
-            let app = window.app_handle();
-            let state = app.state::<crate::ManagedState>();
-
-            match window.label().parse::<AppWindow>() {
-                Err(e) => tracing::warn!("window_parse_error: {:?}", e),
-                Ok(w) => {
-                    {
-                        let mut guard = state.lock().unwrap();
-                        guard.windows.remove(&w);
+                    if w == AppWindow::Onboarding {
+                        use tauri_plugin_sfx::SfxPluginExt;
+                        app.sfx().stop(tauri_plugin_sfx::AppSounds::BGM);
                     }
-
-                    let event = WindowDestroyed { window: w };
-                    let _ = event.emit(app);
                 }
             }
         }
+
         _ => {}
     }
 }
@@ -91,9 +77,15 @@ common_event_derives! {
 }
 
 common_event_derives! {
-    pub struct MainWindowState {
-        pub left_sidebar_expanded: Option<bool>,
-        pub right_panel_expanded: Option<bool>,
+    pub struct OpenTab {
+        pub tab: crate::TabInput,
+    }
+}
+
+common_event_derives! {
+    pub struct VisibilityEvent {
+        pub window: AppWindow,
+        pub visible: bool,
     }
 }
 

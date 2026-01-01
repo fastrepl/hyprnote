@@ -1,157 +1,66 @@
 import { Icon } from "@iconify-icon/react";
-import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { arch } from "@tauri-apps/plugin-os";
-import { useCallback, useEffect, useState } from "react";
+import { arch, platform } from "@tauri-apps/plugin-os";
+import { useCallback } from "react";
 
 import {
   commands as localSttCommands,
-  events as localSttEvents,
   type SupportedSttModel,
 } from "@hypr/plugin-local-stt";
-import { type AIProvider, aiProviderSchema } from "@hypr/store";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@hypr/ui/components/ui/accordion";
-import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
-import { useIsMacos } from "../../../../hooks/usePlatform";
-import * as main from "../../../../store/tinybase/main";
-import { FormField, StyledStreamdown, useProvider } from "../shared";
-import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
+import { useLocalModelDownload } from "../../../../hooks/useLocalSttModel";
+import * as settings from "../../../../store/tinybase/store/settings";
+import { NonHyprProviderCard, StyledStreamdown } from "../shared";
+import { useSttSettings } from "./context";
+import { ProviderId, PROVIDERS } from "./shared";
 
 export function ConfigureProviders() {
+  const { accordionValue, setAccordionValue, hyprAccordionRef } =
+    useSttSettings();
+
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-sm font-semibold">Configure Providers</h3>
-      <Accordion type="single" collapsible className="space-y-3">
-        <HyprProviderCard
-          providerId="hyprnote"
-          providerName="Hyprnote"
-          icon={
-            <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />
-          }
-          badge={PROVIDERS.find((p) => p.id === "hyprnote")?.badge}
-        />
+      <h3 className="text-md font-semibold">Configure Providers</h3>
+      <Accordion
+        type="single"
+        collapsible
+        className="space-y-3"
+        value={accordionValue}
+        onValueChange={setAccordionValue}
+      >
+        <div ref={hyprAccordionRef}>
+          <HyprProviderCard
+            providerId="hyprnote"
+            providerName="Hyprnote"
+            icon={
+              <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />
+            }
+            badge={PROVIDERS.find((p) => p.id === "hyprnote")?.badge}
+          />
+        </div>
         {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map(
           (provider) => (
-            <NonHyprProviderCard key={provider.id} config={provider} />
+            <NonHyprProviderCard
+              key={provider.id}
+              config={provider}
+              providerType="stt"
+              providers={PROVIDERS}
+              providerContext={<ProviderContext providerId={provider.id} />}
+            />
           ),
         )}
       </Accordion>
     </div>
-  );
-}
-
-function NonHyprProviderCard({
-  config,
-}: {
-  config: (typeof PROVIDERS)[number];
-}) {
-  const billing = useBillingAccess();
-  const [provider, setProvider] = useProvider(config.id);
-  const locked = config.requiresPro && !billing.isPro;
-
-  const form = useForm({
-    onSubmit: ({ value }) => setProvider(value),
-    defaultValues:
-      provider ??
-      ({
-        type: "stt",
-        base_url: config.baseUrl ?? "",
-        api_key: "",
-      } satisfies AIProvider),
-    listeners: {
-      onChange: ({ formApi }) => {
-        queueMicrotask(() => {
-          const {
-            form: { errors },
-          } = formApi.getAllErrors();
-          if (errors.length > 0) {
-            console.log(errors);
-          }
-
-          formApi.handleSubmit();
-        });
-      },
-    },
-    validators: { onChange: aiProviderSchema },
-  });
-
-  return (
-    <AccordionItem
-      disabled={config.disabled || locked}
-      value={config.id}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
-    >
-      <AccordionTrigger
-        className={cn([
-          "capitalize gap-2 px-4",
-          (config.disabled || locked) && "cursor-not-allowed opacity-30",
-        ])}
-      >
-        <div className="flex items-center gap-2">
-          {config.icon}
-          <span>{config.displayName}</span>
-          {config.badge && (
-            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
-              {config.badge}
-            </span>
-          )}
-        </div>
-      </AccordionTrigger>
-      <AccordionContent className="px-4">
-        <ProviderContext providerId={config.id} />
-
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          {!config.baseUrl && (
-            <form.Field name="base_url">
-              {(field) => (
-                <FormField field={field} label="Base URL" icon="mdi:web" />
-              )}
-            </form.Field>
-          )}
-          <form.Field name="api_key">
-            {(field) => (
-              <FormField
-                field={field}
-                label="API Key"
-                icon="mdi:key"
-                placeholder="Enter your API key"
-                type="password"
-              />
-            )}
-          </form.Field>
-          {config.baseUrl && (
-            <details className="space-y-4 pt-2">
-              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
-                Advanced
-              </summary>
-              <div className="mt-4">
-                <form.Field name="base_url">
-                  {(field) => (
-                    <FormField field={field} label="Base URL" icon="mdi:web" />
-                  )}
-                </form.Field>
-              </div>
-            </details>
-          )}
-        </form>
-      </AccordionContent>
-    </AccordionItem>
   );
 }
 
@@ -166,7 +75,7 @@ function HyprProviderCard({
   icon: React.ReactNode;
   badge?: string | null;
 }) {
-  const isMacos = useIsMacos();
+  const isMacos = platform() === "macos";
   const targetArch = useQuery({
     queryKey: ["target-arch"],
     queryFn: () => arch(),
@@ -174,10 +83,16 @@ function HyprProviderCard({
   });
   const isAppleSilicon = isMacos && targetArch.data === "aarch64";
 
+  const providerDef = PROVIDERS.find((p) => p.id === providerId);
+  const isConfigured = providerDef?.requirements.length === 0;
+
   return (
     <AccordionItem
       value={providerId}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
+      className={cn([
+        "rounded-xl border-2 bg-neutral-50",
+        isConfigured ? "border-solid border-neutral-300" : "border-dashed",
+      ])}
     >
       <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
         <div className="flex items-center gap-2">
@@ -282,19 +197,20 @@ function HyprProviderRow({ children }: { children: React.ReactNode }) {
 
 function HyprProviderCloudRow() {
   const { isPro, upgradeToPro } = useBillingAccess();
+  const { shouldHighlightDownload } = useSttSettings();
 
-  const handleSelectProvider = main.UI.useSetValueCallback(
+  const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_stt_provider",
     (provider: string) => provider,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
-  const handleSelectModel = main.UI.useSetValueCallback(
+  const handleSelectModel = settings.UI.useSetValueCallback(
     "current_stt_model",
     (model: string) => model,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const handleClick = useCallback(() => {
@@ -306,6 +222,8 @@ function HyprProviderCloudRow() {
     }
   }, [isPro, upgradeToPro, handleSelectProvider, handleSelectModel]);
 
+  const showShimmer = shouldHighlightDownload && !isPro;
+
   return (
     <HyprProviderRow>
       <div className="flex items-center justify-between w-full">
@@ -315,15 +233,30 @@ function HyprProviderCloudRow() {
             Use the Hyprnote Cloud API to transcribe your audio.
           </span>
         </div>
-        <Button
+        <button
           onClick={handleClick}
-          className="w-[110px]"
-          size="sm"
-          variant="default"
-          disabled={!isPro}
+          className={cn([
+            "relative overflow-hidden",
+            "px-4 py-1.5 rounded-full text-sm font-medium",
+            "transition-all duration-150",
+            isPro
+              ? "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm hover:shadow-md"
+              : "bg-gradient-to-t from-stone-600 to-stone-500 text-white shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+          ])}
         >
-          {isPro ? "Ready to use" : "Pro users only"}
-        </Button>
+          {showShimmer && (
+            <div
+              className={cn([
+                "absolute inset-0 -translate-x-full",
+                "bg-gradient-to-r from-transparent via-white/20 to-transparent",
+                "animate-[shimmer_2s_infinite]",
+              ])}
+            />
+          )}
+          <span className="relative z-10">
+            {isPro ? "Ready to use" : "Start Free Trial"}
+          </span>
+        </button>
       </div>
     </HyprProviderRow>
   );
@@ -334,6 +267,7 @@ function LocalModelAction({
   showProgress,
   progress,
   hasError,
+  highlight,
   onOpen,
   onDownload,
   onCancel,
@@ -342,54 +276,101 @@ function LocalModelAction({
   showProgress: boolean;
   progress: number;
   hasError: boolean;
+  highlight: boolean;
   onOpen: () => void;
   onDownload: () => void;
   onCancel: () => void;
 }) {
-  return (
-    <Button
-      size="sm"
-      className={cn([
-        "w-[110px] relative overflow-hidden group",
-        hasError && "border-red-500",
-      ])}
-      variant={isDownloaded ? "outline" : hasError ? "destructive" : "default"}
-      onClick={isDownloaded ? onOpen : showProgress ? onCancel : onDownload}
-    >
-      {showProgress && (
+  const showShimmer = highlight && !isDownloaded && !showProgress && !hasError;
+
+  if (isDownloaded) {
+    return (
+      <button
+        onClick={onOpen}
+        className={cn([
+          "px-4 py-1.5 rounded-full text-sm font-medium",
+          "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+          "shadow-sm hover:shadow-md",
+          "transition-all duration-150",
+          "flex items-center gap-1.5",
+        ])}
+      >
+        <Icon icon="mdi:folder-open" className="size-4" />
+        <span>Show Model</span>
+      </button>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <button
+        onClick={onDownload}
+        className={cn([
+          "px-4 py-1.5 rounded-full text-sm font-medium",
+          "bg-gradient-to-t from-red-600 to-red-500 text-white",
+          "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+          "transition-all duration-150",
+          "flex items-center gap-1.5",
+        ])}
+      >
+        <Icon icon="mdi:alert-circle" className="size-4" />
+        <span>Retry</span>
+      </button>
+    );
+  }
+
+  if (showProgress) {
+    return (
+      <button
+        onClick={onCancel}
+        className={cn([
+          "relative overflow-hidden group",
+          "w-[110px] px-4 py-1.5 rounded-full text-sm font-medium",
+          "bg-gradient-to-t from-neutral-300 to-neutral-200 text-neutral-900",
+          "shadow-sm",
+          "transition-all duration-150",
+        ])}
+      >
         <div
-          className="absolute inset-0 bg-black/50 transition-all duration-300"
+          className="absolute inset-0 bg-neutral-400/50 transition-all duration-300 rounded-full"
           style={{ width: `${progress}%` }}
         />
+        <div className="relative z-10 flex items-center justify-center gap-1.5 group-hover:hidden">
+          <Icon icon="mdi:loading" className="size-4 animate-spin" />
+          <span>{Math.round(progress)}%</span>
+        </div>
+        <div className="relative z-10 hidden items-center justify-center gap-1.5 group-hover:flex">
+          <Icon icon="mdi:close" className="size-4" />
+          <span>Cancel</span>
+        </div>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={onDownload}
+      className={cn([
+        "relative overflow-hidden",
+        "px-4 py-1.5 rounded-full text-sm font-medium",
+        "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+        "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+        "transition-all duration-150",
+        "flex items-center gap-1.5",
+      ])}
+    >
+      {showShimmer && (
+        <div
+          className={cn([
+            "absolute inset-0 -translate-x-full",
+            "bg-gradient-to-r from-transparent via-neutral-400/30 to-transparent",
+            "animate-[shimmer_2s_infinite]",
+          ])}
+        />
       )}
-      {isDownloaded ? (
-        <div className="relative z-10 flex items-center gap-1">
-          <Icon icon="mdi:folder-open" size={16} />
-          <span>Show Model</span>
-        </div>
-      ) : hasError ? (
-        <div className="relative z-10 flex items-center gap-2">
-          <Icon icon="mdi:alert-circle" size={16} />
-          <span>Retry</span>
-        </div>
-      ) : showProgress ? (
-        <>
-          <div className="relative z-10 flex items-center gap-2 group-hover:hidden">
-            <Icon icon="mdi:loading" size={16} className="animate-spin" />
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <div className="relative z-10 hidden items-center gap-2 group-hover:flex">
-            <Icon icon="mdi:close" size={16} />
-            <span>Cancel</span>
-          </div>
-        </>
-      ) : (
-        <div className="relative z-10 flex items-center gap-2">
-          <Icon icon="mdi:download" size={16} />
-          <span>Download</span>
-        </div>
-      )}
-    </Button>
+      <Icon icon="mdi:download" className="size-4 relative z-10" />
+      <span className="relative z-10">Download</span>
+    </button>
   );
 }
 
@@ -403,6 +384,7 @@ function HyprProviderLocalRow({
   description: string;
 }) {
   const handleSelectModel = useSafeSelectModel();
+  const { shouldHighlightDownload } = useSttSettings();
 
   const {
     progress,
@@ -413,12 +395,13 @@ function HyprProviderLocalRow({
     handleCancel,
   } = useLocalModelDownload(model, handleSelectModel);
 
-  const handleOpen = () =>
-    localSttCommands.modelsDir().then((result) => {
+  const handleOpen = () => {
+    void localSttCommands.modelsDir().then((result) => {
       if (result.status === "ok") {
-        openPath(result.data);
+        void openPath(result.data);
       }
     });
+  };
 
   return (
     <HyprProviderRow>
@@ -432,90 +415,13 @@ function HyprProviderLocalRow({
         showProgress={showProgress}
         progress={progress}
         hasError={hasError}
+        highlight={shouldHighlightDownload}
         onOpen={handleOpen}
         onDownload={handleDownload}
         onCancel={handleCancel}
       />
     </HyprProviderRow>
   );
-}
-
-function useLocalModelDownload(
-  model: SupportedSttModel,
-  onDownloadComplete?: (model: SupportedSttModel) => void,
-) {
-  const [progress, setProgress] = useState<number>(0);
-  const [isStarting, setIsStarting] = useState(false);
-  const [hasError, setHasError] = useState(false);
-
-  const isDownloaded = useQuery(sttModelQueries.isDownloaded(model));
-  const isDownloading = useQuery(sttModelQueries.isDownloading(model));
-
-  const showProgress =
-    !isDownloaded.data && (isStarting || (isDownloading.data ?? false));
-
-  useEffect(() => {
-    if (isDownloading.data) {
-      setIsStarting(false);
-    }
-  }, [isDownloading.data]);
-
-  useEffect(() => {
-    const unlisten = localSttEvents.downloadProgressPayload.listen((event) => {
-      if (event.payload.model === model) {
-        if (event.payload.progress < 0) {
-          setHasError(true);
-          setIsStarting(false);
-          setProgress(0);
-        } else {
-          setHasError(false);
-          const next = Math.max(0, Math.min(100, event.payload.progress));
-          setProgress(next);
-        }
-      }
-    });
-
-    return () => {
-      unlisten.then((fn) => fn());
-    };
-  }, [model]);
-
-  useEffect(() => {
-    if (isDownloaded.data && progress > 0) {
-      setProgress(0);
-      onDownloadComplete?.(model);
-    }
-  }, [isDownloaded.data, model, onDownloadComplete, progress]);
-
-  const handleDownload = () => {
-    if (isDownloaded.data || isDownloading.data || isStarting) {
-      return;
-    }
-    setHasError(false);
-    setIsStarting(true);
-    setProgress(0);
-    localSttCommands.downloadModel(model).then((result) => {
-      if (result.status === "error") {
-        setHasError(true);
-        setIsStarting(false);
-      }
-    });
-  };
-
-  const handleCancel = () => {
-    localSttCommands.cancelDownload(model);
-    setIsStarting(false);
-    setProgress(0);
-  };
-
-  return {
-    progress,
-    hasError,
-    isDownloaded: isDownloaded.data ?? false,
-    showProgress,
-    handleDownload,
-    handleCancel,
-  };
 }
 
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
@@ -549,11 +455,11 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
 }
 
 function useSafeSelectModel() {
-  const handleSelectModel = main.UI.useSetValueCallback(
+  const handleSelectModel = settings.UI.useSetValueCallback(
     "current_stt_model",
     (model: SupportedSttModel) => model,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const active = useListener((state) => state.live.status !== "inactive");

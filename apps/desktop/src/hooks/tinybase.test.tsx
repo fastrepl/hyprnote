@@ -78,7 +78,6 @@ describe("TinyBase hooks", () => {
       expect(result.current).toHaveProperty("orgId");
       expect(result.current).toHaveProperty("jobTitle");
       expect(result.current).toHaveProperty("linkedinUsername");
-      expect(result.current).toHaveProperty("isUser");
     });
   });
 

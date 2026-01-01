@@ -1,13 +1,13 @@
 import { Icon } from "@iconify-icon/react";
-import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { z } from "zod";
 
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
-import { doAuth } from "@/functions/auth";
+import { doAuth, doMagicLinkAuth } from "@/functions/auth";
 
 const validateSearch = z.object({
   flow: z.enum(["desktop", "web"]).default("web"),
@@ -26,9 +26,6 @@ function Component() {
   return (
     <Container>
       <Header />
-      <EmailAuthForm flow={flow} scheme={scheme} redirect={redirect} />
-      <PrivacyPolicy />
-      <Divider />
       <div className="space-y-2">
         <OAuthButton
           flow={flow}
@@ -43,6 +40,9 @@ function Component() {
           provider="github"
         />
       </div>
+      <Divider />
+      <MagicLinkForm flow={flow} scheme={scheme} redirect={redirect} />
+      <PrivacyPolicy />
     </Container>
   );
 }
@@ -88,6 +88,104 @@ function Header() {
   );
 }
 
+function Divider() {
+  return (
+    <div className="flex items-center gap-3 my-4">
+      <div className="flex-1 h-px bg-neutral-200" />
+      <span className="text-sm text-neutral-400">or</span>
+      <div className="flex-1 h-px bg-neutral-200" />
+    </div>
+  );
+}
+
+function MagicLinkForm({
+  flow,
+  scheme,
+  redirect,
+}: {
+  flow: "desktop" | "web";
+  scheme?: string;
+  redirect?: string;
+}) {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const magicLinkMutation = useMutation({
+    mutationFn: (email: string) =>
+      doMagicLinkAuth({
+        data: {
+          email,
+          flow,
+          scheme,
+          redirect,
+        },
+      }),
+    onSuccess: (result) => {
+      if (result && !("error" in result)) {
+        setSubmitted(true);
+      }
+    },
+  });
+
+  if (submitted) {
+    return (
+      <div className="text-center p-4 bg-stone-50 rounded-lg border border-stone-200">
+        <p className="text-stone-700 font-medium">Check your email</p>
+        <p className="text-sm text-stone-500 mt-1">
+          We sent a magic link to {email}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (email) {
+          magicLinkMutation.mutate(email);
+        }
+      }}
+      className="space-y-2"
+    >
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Enter your email"
+        required
+        className={cn([
+          "w-full px-4 py-2",
+          "border border-neutral-300 rounded-lg",
+          "text-neutral-700 placeholder:text-neutral-400",
+          "focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
+        ])}
+      />
+      <button
+        type="submit"
+        disabled={magicLinkMutation.isPending || !email}
+        className={cn([
+          "w-full px-4 py-2 cursor-pointer",
+          "border border-neutral-300",
+          "rounded-lg font-medium text-neutral-700",
+          "hover:bg-neutral-50",
+          "focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
+          "disabled:opacity-50 disabled:cursor-not-allowed",
+          "transition-colors",
+          "flex items-center justify-center gap-2",
+        ])}
+      >
+        {magicLinkMutation.isPending ? "Sending..." : "Continue with Email"}
+      </button>
+      {magicLinkMutation.isError && (
+        <p className="text-sm text-red-500 text-center">
+          Failed to send magic link. Please try again.
+        </p>
+      )}
+    </form>
+  );
+}
+
 function PrivacyPolicy() {
   return (
     <p className="text-xs text-neutral-500 mt-4 text-left">
@@ -101,122 +199,6 @@ function PrivacyPolicy() {
       </a>
       .
     </p>
-  );
-}
-
-function Divider() {
-  return (
-    <div className="relative my-6">
-      <div className="absolute inset-0 flex items-center">
-        <div className="w-full border-t border-neutral-200"></div>
-      </div>
-      <div className="relative flex justify-center text-sm">
-        <span className="px-2 bg-white text-neutral-500">or</span>
-      </div>
-    </div>
-  );
-}
-
-function EmailAuthForm({
-  flow,
-  scheme,
-  redirect,
-}: {
-  flow: "desktop" | "web";
-  scheme?: string;
-  redirect?: string;
-}) {
-  const emailAuthMutation = useMutation({
-    mutationFn: (email: string) =>
-      doAuth({
-        data: {
-          method: "email_otp",
-          email,
-          flow,
-          scheme,
-          redirect,
-        },
-      }),
-    onSuccess: (result) => {
-      if (result?.success) {
-        form.reset();
-      }
-    },
-  });
-
-  const form = useForm({
-    defaultValues: {
-      email: "",
-    },
-    validators: {
-      onChange: z.object({
-        email: z.email("Please enter a valid email."),
-      }),
-    },
-    onSubmit: ({ value }) => {
-      emailAuthMutation.mutate(value.email);
-    },
-  });
-
-  return (
-    <>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
-      >
-        <form.Field
-          name="email"
-          children={(field) => (
-            <div>
-              <input
-                id="email"
-                type="email"
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Your email"
-                disabled={emailAuthMutation.isPending}
-                className={cn([
-                  "w-full px-4 py-2",
-                  "border border-neutral-300 rounded-lg",
-                  "focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                ])}
-              />
-              {field.state.meta.errors.length > 0 && (
-                <p className="mt-1 text-sm text-red-400">
-                  {field.state.meta.errors[0]?.message ??
-                    "An unexpected error occurred"}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={
-                  emailAuthMutation.isPending ||
-                  field.state.meta.errors.length > 0 ||
-                  !field.state.value
-                }
-                className={cn([
-                  "w-full px-4 py-2 mt-4",
-                  "bg-stone-600 text-white font-medium",
-                  "rounded-lg",
-                  "hover:bg-stone-700",
-                  "focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                  "transition-colors",
-                ])}
-              >
-                {emailAuthMutation.isPending ? "Loading..." : "Continue"}
-              </button>
-            </div>
-          )}
-        />
-      </form>
-    </>
   );
 }
 
@@ -235,7 +217,6 @@ function OAuthButton({
     mutationFn: (provider: "google" | "github") =>
       doAuth({
         data: {
-          method: "oauth",
           provider,
           flow,
           scheme,
@@ -263,9 +244,8 @@ function OAuthButton({
         "flex items-center justify-center gap-2",
       ])}
     >
-      <Icon
-        icon={provider === "google" ? "logos:google-icon" : "logos:github-icon"}
-      />
+      {provider === "google" && <Icon icon="logos:google-icon" />}
+      {provider === "github" && <Icon icon="logos:github-icon" />}
       Sign in with {provider.charAt(0).toUpperCase() + provider.slice(1)}
     </button>
   );

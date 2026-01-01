@@ -10,7 +10,7 @@ import {
 } from "@hypr/ui/components/ui/popover";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { getInitials } from "./shared";
 
 export function DetailsColumn({
@@ -27,6 +27,8 @@ export function DetailsColumn({
     selectedHumanId ?? "",
     main.STORE_ID,
   );
+  const currentUserId = main.UI.useValue("user_id", main.STORE_ID);
+  const isCurrentUser = selectedHumanId === currentUserId;
 
   const mappingIdsByHuman = main.UI.useSliceRowIds(
     main.INDEXES.sessionsByHuman,
@@ -86,7 +88,7 @@ export function DetailsColumn({
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <EditablePersonNameField personId={selectedHumanId} />
-                    {selectedPersonData.is_user && (
+                    {isCurrentUser && (
                       <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
                         You
                       </span>
@@ -167,7 +169,7 @@ export function DetailsColumn({
               </div>
             </div>
 
-            {!selectedPersonData.is_user && (
+            {!isCurrentUser && (
               <div className="p-6">
                 <div className="border border-red-200 rounded-lg overflow-hidden">
                   <div className="bg-red-50 px-4 py-3 border-b border-red-200">
@@ -420,6 +422,7 @@ function OrganizationControl({
   closePopover: () => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const userId = main.UI.useValue("user_id", main.STORE_ID);
 
   const organizationsData = main.UI.useResultTable(
     main.QUERIES.visibleOrganizations,
@@ -438,6 +441,25 @@ function OrganizationControl({
         org.name.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     : allOrganizations;
+
+  const createOrganization = main.UI.useSetRowCallback(
+    "organizations",
+    (p: { name: string; orgId: string }) => p.orgId,
+    (p: { name: string; orgId: string }) => ({
+      user_id: userId || "",
+      name: p.name,
+      created_at: new Date().toISOString(),
+    }),
+    [userId],
+    main.STORE_ID,
+  );
+
+  const handleCreateOrganization = () => {
+    const orgId = crypto.randomUUID();
+    createOrganization({ orgId, name: searchTerm.trim() });
+    onChange(orgId);
+    closePopover();
+  };
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -494,7 +516,7 @@ function OrganizationControl({
                 <button
                   type="button"
                   className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
-                  onClick={() => {}}
+                  onClick={() => handleCreateOrganization()}
                 >
                   <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
                     <span className="text-xs">+</span>

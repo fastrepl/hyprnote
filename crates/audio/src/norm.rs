@@ -95,11 +95,12 @@ impl<S: hypr_audio_interface::AsyncSource + Unpin> Stream for NormalizedSource<S
                     let _ = this.ebur128.add_frames_f32(&this.loudness_buffer);
                     this.loudness_buffer.clear();
 
-                    if let Ok(current_lufs) = this.ebur128.loudness_global() {
-                        if current_lufs.is_finite() && current_lufs < 0.0 {
-                            let gain_db = TARGET_LUFS - current_lufs;
-                            this.gain_linear = 10_f32.powf(gain_db as f32 / 20.0);
-                        }
+                    if let Ok(current_lufs) = this.ebur128.loudness_global()
+                        && current_lufs.is_finite()
+                        && current_lufs < 0.0
+                    {
+                        let gain_db = TARGET_LUFS - current_lufs;
+                        this.gain_linear = 10_f32.powf(gain_db as f32 / 20.0);
                     }
                 }
 

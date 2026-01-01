@@ -1,0 +1,27 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Image } from "astro:assets";
+import sampleImage from "../content/images/sample.jpg";
+
+const title = "Dummy Page";
+const description = "A dummy page for testing view transitions.";
+---
+
+<Layout title={title} description={description} editPath="src/pages/dummy.astro">
+  <h1>{title}</h1>
+  <p>This is a dummy page for testing view transitions.</p>
+
+  <h2>Image Example</h2>
+  <p>
+    Below is an example of how to include optimized images. The image is stored
+    in <code>src/content/images/</code> and rendered using Astro's Image
+    component. Netlify CDN automatically optimizes and serves it in the right
+    size/format.
+  </p>
+
+  <Image src={sampleImage} alt="Sample image from Picsum" />
+
+  <p>
+    <a href="/">Go back to the main page</a>
+  </p>
+</Layout>

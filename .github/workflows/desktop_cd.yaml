@@ -66,7 +66,7 @@ jobs:
     if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
     permissions:
       contents: write
-    runs-on: macos-14
+    runs-on: depot-macos-14
     strategy:
       fail-fast: true
       matrix:
@@ -89,6 +89,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - run: git fetch --tags --force
+      - uses: ./.github/actions/macos_tcc
       - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/install_desktop_deps
         with:
@@ -100,7 +101,7 @@ jobs:
       - run: pnpm -F ui build
       - if: ${{ matrix.include_am }}
         run: |
-          aws s3 cp s3://argmax/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \
+          aws s3 cp s3://argmax/stt apps/desktop/src-tauri/binaries/hyprnote-sidecar-stt-${{ matrix.target }} \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
@@ -108,9 +109,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
       - if: ${{ matrix.include_am }}
         run: |
-          chmod +x ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
-          ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/stt"
-      - run: ./scripts/resource.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/libonnxruntime.dylib"
+          chmod +x ./apps/desktop/src-tauri/binaries/hyprnote-sidecar-stt-${{ matrix.target }}
+          ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/hyprnote-sidecar-stt"
+      # - run: ./scripts/resource.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/libonnxruntime.dylib"
       - uses: ./.github/actions/apple_cert
         id: apple-cert
         with:
@@ -144,12 +145,13 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
+          APPLE_SIGNING_IDENTITY: ${{ steps.apple-cert.outputs.cert-id }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_APP_URL: "https://hyprnote.com"
+          VITE_AI_URL: "https://ai.hyprnote.com"
           VITE_API_URL: "https://api.hyprnote.com"
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
           VITE_APP_VERSION: ${{ needs.compute-version.outputs.version }}
@@ -211,7 +213,7 @@ jobs:
       - uses: ./.github/actions/pnpm_install
       # - uses: ./.github/actions/setup_flathub
       - run: pnpm -F ui build
-      - run: ./scripts/resource.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/libonnxruntime.so"
+      # - run: ./scripts/resource.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/libonnxruntime.so"
       - run: |
           FEATURES_FLAG=""
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
@@ -376,10 +378,3 @@ jobs:
           name: desktop_v${{ needs.compute-version.outputs.version }}
           body: "https://hyprnote.com/changelog/${{ needs.compute-version.outputs.version }}"
           artifacts: ${{ steps.artifacts.outputs.list }}
-      - run: |
-          set -e
-          curl -f -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/dispatches" \
-            -d '{"event_type": "desktop_release", "client_payload": {"tag": "desktop_v${{ needs.compute-version.outputs.version }}"}}'

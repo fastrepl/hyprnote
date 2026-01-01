@@ -4,8 +4,6 @@ const COMMANDS: &[&str] = &[
     "window_navigate",
     "window_emit_navigate",
     "window_is_exists",
-    "set_fake_window_bounds",
-    "remove_fake_window",
 ];
 
 fn main() {

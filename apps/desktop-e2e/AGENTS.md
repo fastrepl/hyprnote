@@ -1,2 +1,0 @@
-- Linux only.
-- See `scripts/setup-desktop-e2e.sh` if setup is missing for running the test.

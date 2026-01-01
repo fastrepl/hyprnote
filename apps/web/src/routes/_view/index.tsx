@@ -272,8 +272,9 @@ function HeroSection({
   });
 
   const handleTrigger = useCallback(() => {
-    if (heroInputRef.current) {
-      heroInputRef.current.focus();
+    const inputEl = heroInputRef.current;
+    if (inputEl) {
+      inputEl.focus();
       setShake(true);
       setTimeout(() => setShake(false), 500);
     }
@@ -618,7 +619,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         />
       </div>
 
-      <div className="h-[260px]">
+      <div className="h-65">
         <SocialCard
           platform="twitter"
           author="yoran was here"
@@ -629,7 +630,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         />
       </div>
 
-      <div className="h-[260px]">
+      <div className="h-65">
         <SocialCard
           platform="twitter"
           author="Tom Yang"
@@ -822,7 +823,7 @@ export function HowItWorksSection() {
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
             <MockWindow showAudioIndicator={enhancedLines === 0}>
-              <div className="p-6 h-[300px] overflow-hidden">
+              <div className="p-6 h-75 overflow-hidden">
                 <div className="text-neutral-700">ui update - moble</div>
                 <div className="text-neutral-700">api</div>
                 <div className="text-neutral-700 mt-4">new dash - urgnet</div>
@@ -854,7 +855,7 @@ export function HowItWorksSection() {
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
             <MockWindow>
-              <div className="p-6 space-y-4 h-[300px] overflow-hidden">
+              <div className="p-6 space-y-4 h-75 overflow-hidden">
                 <div className="space-y-2">
                   <h4
                     className={cn([
@@ -947,7 +948,7 @@ export function HowItWorksSection() {
               variant="mobile"
               showAudioIndicator={enhancedLines === 0}
             >
-              <div className="p-6 h-[200px] overflow-hidden">
+              <div className="p-6 h-50 overflow-hidden">
                 <div className="text-neutral-700">ui update - moble</div>
                 <div className="text-neutral-700">api</div>
                 <div className="text-neutral-700 mt-3">new dash - urgnet</div>
@@ -979,7 +980,7 @@ export function HowItWorksSection() {
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
             <MockWindow variant="mobile">
-              <div className="p-6 space-y-4 h-[200px] overflow-hidden">
+              <div className="p-6 space-y-4 h-50 overflow-hidden">
                 <div className="space-y-2">
                   <h4 className="text-lg font-semibold text-stone-700">
                     Mobile UI Update and API Adjustments
@@ -1133,7 +1134,10 @@ export function MainFeaturesSection({
         if (featuresScrollRef.current) {
           const container = featuresScrollRef.current;
           const scrollLeft = container.offsetWidth * nextIndex;
-          container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+          container.scrollTo({
+            left: scrollLeft,
+            behavior: "smooth",
+          });
         }
       } else {
         animationId = requestAnimationFrame(animate);
@@ -1424,7 +1428,10 @@ export function DetailsSection({
         if (detailsScrollRef.current) {
           const container = detailsScrollRef.current;
           const scrollLeft = container.offsetWidth * nextIndex;
-          container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+          container.scrollTo({
+            left: scrollLeft,
+            behavior: "smooth",
+          });
         }
       } else {
         animationId = requestAnimationFrame(animate);
@@ -1607,7 +1614,7 @@ function DetailsTabletView({
                   selectedDetail === index && onPauseChange(false)
                 }
                 className={cn([
-                  "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors relative overflow-hidden",
+                  "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-70 text-left transition-colors relative overflow-hidden",
                   selectedDetail !== index && "hover:bg-neutral-50",
                 ])}
               >

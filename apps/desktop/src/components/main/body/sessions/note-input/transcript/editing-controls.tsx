@@ -13,7 +13,7 @@ import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../contexts/listener";
 import { useRunBatch } from "../../../../../../hooks/useRunBatch";
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
 
 export function EditingControls({
   sessionId,
@@ -83,11 +83,14 @@ export function EditingControls({
     handleEdit,
     handleSave,
     handleCancel,
-  } = useTranscriptEditing({ isEditing, setIsEditing });
+  } = useTranscriptEditing({
+    isEditing,
+    setIsEditing,
+  });
 
   const handleRedoClick = useCallback(() => {
     setOpen(false);
-    handleRedoTranscript();
+    void handleRedoTranscript();
   }, [handleRedoTranscript]);
 
   const viewModeControls = audioExists ? (

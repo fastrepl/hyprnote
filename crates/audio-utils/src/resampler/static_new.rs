@@ -1,4 +1,4 @@
-use futures_util::{pin_mut, Stream};
+use futures_util::{Stream, pin_mut};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 

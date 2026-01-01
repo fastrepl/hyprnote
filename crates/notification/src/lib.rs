@@ -5,105 +5,222 @@ use std::time::{Duration, Instant};
 pub use hypr_notification_interface::*;
 
 static RECENT_NOTIFICATIONS: OnceLock<Mutex<HashMap<String, Instant>>> = OnceLock::new();
+static NOTIFICATION_CONTEXT: OnceLock<Mutex<HashMap<String, (Option<String>, Instant)>>> =
+    OnceLock::new();
 
 const DEDUPE_WINDOW: Duration = Duration::from_secs(60 * 5);
+const CONTEXT_TTL: Duration = Duration::from_secs(60 * 10);
 
 pub enum NotificationMutation {
     Confirm,
     Dismiss,
 }
 
-#[cfg(target_os = "macos")]
-pub fn show(notification: &hypr_notification_interface::Notification) {
-    let Some(key) = &notification.key else {
-        hypr_notification_macos::show(notification);
-        return;
-    };
+fn store_context(key: &str, event_id: Option<String>) {
+    let ctx_map = NOTIFICATION_CONTEXT.get_or_init(|| Mutex::new(HashMap::new()));
+    let mut map = ctx_map.lock().unwrap();
 
-    let recent_map = RECENT_NOTIFICATIONS.get_or_init(|| Mutex::new(HashMap::new()));
+    let now = Instant::now();
+    map.retain(|_, (_, timestamp)| now.duration_since(*timestamp) < CONTEXT_TTL);
 
-    {
-        let mut recent_notifications = recent_map.lock().unwrap();
-        let now = Instant::now();
-
-        recent_notifications
-            .retain(|_, &mut timestamp| now.duration_since(timestamp) < DEDUPE_WINDOW);
-
-        if let Some(&last_shown) = recent_notifications.get(key) {
-            let duration = now.duration_since(last_shown);
-
-            if duration < DEDUPE_WINDOW {
-                tracing::info!(key = key, duration = ?duration, "skipping_notification");
-                return;
-            }
-        }
-
-        recent_notifications.insert(key.clone(), now);
-    }
-
-    hypr_notification_macos::show(notification);
+    map.insert(key.to_string(), (event_id, now));
 }
 
-#[cfg(target_os = "linux")]
-pub fn show(notification: &hypr_notification_interface::Notification) {
-    let Some(key) = &notification.key else {
-        hypr_notification_linux::show(notification);
-        return;
-    };
-
-    let recent_map = RECENT_NOTIFICATIONS.get_or_init(|| Mutex::new(HashMap::new()));
-
-    {
-        let mut recent_notifications = recent_map.lock().unwrap();
-        let now = Instant::now();
-
-        recent_notifications
-            .retain(|_, &mut timestamp| now.duration_since(timestamp) < DEDUPE_WINDOW);
-
-        if let Some(&last_shown) = recent_notifications.get(key) {
-            let duration = now.duration_since(last_shown);
-
-            if duration < DEDUPE_WINDOW {
-                tracing::info!(key = key, duration = ?duration, "skipping_notification");
-                return;
-            }
-        }
-
-        recent_notifications.insert(key.clone(), now);
+fn get_context(key: &str) -> NotificationContext {
+    let ctx_map = NOTIFICATION_CONTEXT.get_or_init(|| Mutex::new(HashMap::new()));
+    let event_id = ctx_map
+        .lock()
+        .unwrap()
+        .remove(key)
+        .map(|(event_id, _)| event_id)
+        .flatten();
+    NotificationContext {
+        key: key.to_string(),
+        event_id,
     }
+}
 
+fn show_inner(notification: &hypr_notification_interface::Notification) {
+    #[cfg(feature = "new")]
+    hypr_notification_gpui::show(notification);
+
+    #[cfg(all(feature = "legacy", target_os = "macos"))]
+    hypr_notification_macos::show(notification);
+
+    #[cfg(all(feature = "legacy", target_os = "linux"))]
     hypr_notification_linux::show(notification);
 }
 
-#[cfg(not(any(target_os = "macos", target_os = "linux")))]
-pub fn show(notification: &hypr_notification_interface::Notification) {}
+pub fn show(notification: &hypr_notification_interface::Notification) {
+    let Some(key) = &notification.key else {
+        show_inner(notification);
+        return;
+    };
+
+    let recent_map = RECENT_NOTIFICATIONS.get_or_init(|| Mutex::new(HashMap::new()));
+
+    {
+        let mut recent_notifications = recent_map.lock().unwrap();
+        let now = Instant::now();
+
+        recent_notifications
+            .retain(|_, &mut timestamp| now.duration_since(timestamp) < DEDUPE_WINDOW);
+
+        if let Some(&last_shown) = recent_notifications.get(key) {
+            let duration = now.duration_since(last_shown);
+
+            if duration < DEDUPE_WINDOW {
+                tracing::info!(key = key, duration = ?duration, "skipping_notification");
+                return;
+            }
+        }
+
+        recent_notifications.insert(key.clone(), now);
+    }
+
+    store_context(key, notification.event_id.clone());
+    show_inner(notification);
+}
 
 pub fn clear() {
-    #[cfg(target_os = "macos")]
+    #[cfg(feature = "new")]
+    hypr_notification_gpui::dismiss_all();
+
+    #[cfg(all(feature = "legacy", target_os = "macos"))]
     hypr_notification_macos::dismiss_all();
 
-    #[cfg(target_os = "linux")]
+    #[cfg(all(feature = "legacy", target_os = "linux"))]
     hypr_notification_linux::dismiss_all();
 }
 
 pub fn setup_notification_dismiss_handler<F>(f: F)
 where
-    F: Fn(String) + Send + Sync + 'static,
+    F: Fn(NotificationContext) + Send + Sync + 'static,
 {
-    #[cfg(target_os = "macos")]
-    hypr_notification_macos::setup_notification_dismiss_handler(f);
+    let f = std::sync::Arc::new(f);
 
-    #[cfg(target_os = "linux")]
-    hypr_notification_linux::setup_notification_dismiss_handler(f);
+    #[cfg(feature = "new")]
+    {
+        let f = f.clone();
+        hypr_notification_gpui::setup_notification_dismiss_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    #[cfg(all(feature = "legacy", target_os = "macos"))]
+    {
+        let f = f.clone();
+        hypr_notification_macos::setup_notification_dismiss_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    #[cfg(all(feature = "legacy", target_os = "linux"))]
+    {
+        let f = f.clone();
+        hypr_notification_linux::setup_notification_dismiss_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    let _ = f;
 }
 
 pub fn setup_notification_confirm_handler<F>(f: F)
 where
-    F: Fn(String) + Send + Sync + 'static,
+    F: Fn(NotificationContext) + Send + Sync + 'static,
 {
-    #[cfg(target_os = "macos")]
-    hypr_notification_macos::setup_notification_confirm_handler(f);
+    let f = std::sync::Arc::new(f);
 
-    #[cfg(target_os = "linux")]
-    hypr_notification_linux::setup_notification_confirm_handler(f);
+    #[cfg(feature = "new")]
+    {
+        let f = f.clone();
+        hypr_notification_gpui::setup_notification_confirm_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    #[cfg(all(feature = "legacy", target_os = "macos"))]
+    {
+        let f = f.clone();
+        hypr_notification_macos::setup_notification_confirm_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    #[cfg(all(feature = "legacy", target_os = "linux"))]
+    {
+        let f = f.clone();
+        hypr_notification_linux::setup_notification_confirm_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    let _ = f;
+}
+
+pub fn setup_notification_accept_handler<F>(f: F)
+where
+    F: Fn(NotificationContext) + Send + Sync + 'static,
+{
+    let f = std::sync::Arc::new(f);
+
+    #[cfg(feature = "new")]
+    {
+        let f = f.clone();
+        hypr_notification_gpui::setup_notification_accept_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    #[cfg(all(feature = "legacy", target_os = "macos"))]
+    {
+        let f = f.clone();
+        hypr_notification_macos::setup_notification_accept_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    #[cfg(all(feature = "legacy", target_os = "linux"))]
+    {
+        let f = f.clone();
+        hypr_notification_linux::setup_notification_accept_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    let _ = f;
+}
+
+pub fn setup_notification_timeout_handler<F>(f: F)
+where
+    F: Fn(NotificationContext) + Send + Sync + 'static,
+{
+    let f = std::sync::Arc::new(f);
+
+    #[cfg(feature = "new")]
+    {
+        let f = f.clone();
+        hypr_notification_gpui::setup_notification_timeout_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    #[cfg(all(feature = "legacy", target_os = "macos"))]
+    {
+        let f = f.clone();
+        hypr_notification_macos::setup_notification_timeout_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    #[cfg(all(feature = "legacy", target_os = "linux"))]
+    {
+        let f = f.clone();
+        hypr_notification_linux::setup_notification_timeout_handler(move |key| {
+            f(get_context(&key));
+        });
+    }
+
+    let _ = f;
 }

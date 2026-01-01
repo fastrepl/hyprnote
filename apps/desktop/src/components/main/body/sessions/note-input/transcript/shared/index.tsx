@@ -1,9 +1,9 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../../../contexts/listener";
-import * as main from "../../../../../../../store/tinybase/main";
+import * as main from "../../../../../../../store/tinybase/store/main";
 import type { RuntimeSpeakerHint } from "../../../../../../../utils/segment";
 import { useAutoScroll, useScrollDetection } from "./hooks";
 import { Operations } from "./operations";
@@ -15,9 +15,11 @@ export { SegmentRenderer } from "./segment-renderer";
 export function TranscriptContainer({
   sessionId,
   operations,
+  scrollRef,
 }: {
   sessionId: string;
   operations?: Operations;
+  scrollRef: RefObject<HTMLDivElement | null>;
 }) {
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -27,7 +29,7 @@ export function TranscriptContainer({
 
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const currentActive =
-    sessionMode === "running_active" || sessionMode === "finalizing";
+    sessionMode === "active" || sessionMode === "finalizing";
   const editable =
     sessionMode === "inactive" && Object.keys(operations ?? {}).length > 0;
 
@@ -74,13 +76,25 @@ export function TranscriptContainer({
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
     null,
   );
-  const handleContainerRef = useCallback((node: HTMLDivElement | null) => {
-    containerRef.current = node;
-    setScrollElement(node);
-  }, []);
+  const handleContainerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      containerRef.current = node;
+      setScrollElement(node);
+      scrollRef.current = node;
+    },
+    [scrollRef],
+  );
 
-  const { isAtBottom, scrollToBottom } = useScrollDetection(containerRef);
-  useAutoScroll(containerRef, [transcriptIds, partialWords]);
+  const { isAtBottom, autoScrollEnabled, scrollToBottom } =
+    useScrollDetection(containerRef);
+  const shouldAutoScroll = currentActive && autoScrollEnabled;
+  useAutoScroll(
+    containerRef,
+    [transcriptIds, partialWords, shouldAutoScroll],
+    shouldAutoScroll,
+  );
+
+  const shouldShowButton = !isAtBottom && currentActive;
 
   if (transcriptIds.length === 0) {
     return null;
@@ -88,7 +102,7 @@ export function TranscriptContainer({
 
   const handleSelectionAction = (action: string, selectedText: string) => {
     if (action === "copy") {
-      navigator.clipboard.writeText(selectedText);
+      void navigator.clipboard.writeText(selectedText);
     }
   };
 
@@ -130,21 +144,20 @@ export function TranscriptContainer({
         )}
       </div>
 
-      {!isAtBottom && currentActive && (
-        <button
-          onClick={scrollToBottom}
-          className={cn([
-            "absolute bottom-3 left-1/2 -translate-x-1/2",
-            "px-4 py-2 rounded-full",
-            "shadow-lg bg-neutral-800 hover:bg-neutral-700",
-            "text-white text-xs font-light",
-            "transition-all duration-200",
-            "z-30",
-          ])}
-        >
-          Go to bottom
-        </button>
-      )}
+      <button
+        onClick={scrollToBottom}
+        className={cn([
+          "absolute bottom-3 left-1/2 -translate-x-1/2 z-30",
+          "px-4 py-2 rounded-full",
+          "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+          "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+          "text-xs font-light",
+          "transition-opacity duration-150",
+          shouldShowButton ? "opacity-100" : "opacity-0 pointer-events-none",
+        ])}
+      >
+        Go to bottom
+      </button>
     </div>
   );
 }

@@ -54,16 +54,15 @@ mod tests {
 
     use dasp::sample::{FromSample, Sample};
 
-    fn get_audio<T: FromSample<i16>>(path: &str) -> Vec<T> {
+    fn get_audio<T: FromSample<f32>>(path: &str) -> Vec<T> {
         let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
         let p = base.join("src/data").join(path);
 
-        let i16_samples =
-            rodio::Decoder::new(std::io::BufReader::new(std::fs::File::open(p).unwrap()))
-                .unwrap()
-                .collect::<Vec<_>>();
+        let f32_samples = rodio::Decoder::try_from(std::fs::File::open(p).unwrap())
+            .unwrap()
+            .collect::<Vec<f32>>();
 
-        i16_samples
+        f32_samples
             .iter()
             .map(|s| s.to_sample())
             .collect::<Vec<_>>()

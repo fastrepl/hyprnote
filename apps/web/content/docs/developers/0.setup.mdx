@@ -1,17 +1,80 @@
 ---
 title: "Setup"
 section: "Developers"
-description: "Learn how to setup Hyprnote"
+description: "Learn how to setup Hyprnote for development"
 ---
 
-# Setup
+Hyprnote uses [Taskfile](https://taskfile.dev) for most development tasks. See `**/Taskfile.yaml` for available commands.
 
-- We use [Taskfile](https://taskfile.dev) for most of the development tasks. See `**/Taskfile.yaml` for other CLI we use.
+## Prerequisites
+
+Before setting up Hyprnote, ensure you have the following installed:
+
+- [Rust](https://rustup.rs) (latest stable)
+- [Node.js](https://nodejs.org) (v20 or later)
+- [pnpm](https://pnpm.io) (v9 or later)
+- [Taskfile](https://taskfile.dev/installation)
 
 ## Mac
 
-TODO
+Install the required system dependencies via Homebrew:
+
+```bash
+brew install cmake pkg-config
+```
+
+Install Rust if you haven't already:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/fastrepl/hyprnote.git
+cd hyprnote
+pnpm install
+```
+
+Build the UI package before running the desktop app:
+
+```bash
+pnpm -F ui build
+```
+
+### macOS Permissions for Development
+
+When running Hyprnote in development mode, macOS requires you to grant permissions to the terminal application you're using to build and run the app (e.g., Terminal, iTerm2, VS Code, Warp). This is different from the production app, where permissions are granted directly to Hyprnote.
+
+Go to **System Settings > Privacy & Security** and grant the following permissions to your terminal application:
+
+**Microphone**: Required for audio capture during development. Without this, the app won't be able to record from your microphone.
+
+**Accessibility**: Required for certain system-level features. Your terminal needs accessibility access to allow the development build to interact with system APIs.
+
+If you're using VS Code's integrated terminal, you'll need to grant these permissions to Visual Studio Code. For standalone terminals like iTerm2 or the default Terminal app, grant permissions to those applications instead.
+
+After granting permissions, you may need to restart your terminal or IDE for the changes to take effect.
 
 ## Linux
 
-- `scripts/setup-linux.sh` is well-maintained script for `Ubuntu` based distros.
+For Ubuntu-based distributions, run the setup script:
+
+```bash
+bash scripts/setup-linux.sh
+```
+
+This script installs all required system dependencies including GTK, PulseAudio, and Tauri prerequisites. It also installs development tools like dprint, Taskfile, and Supabase CLI.
+
+After running the setup script, clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/fastrepl/hyprnote.git
+cd hyprnote
+pnpm install
+```
+
+## Next Steps
+
+See [Run](/docs/developers/run) to learn how to start the development server, and [Environment Variables](/docs/developers/env) for configuration options.

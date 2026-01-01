@@ -20,7 +20,7 @@ describe("Basic Tab Actions", () => {
     const session1 = createSessionTab({ active: false });
     const session2 = createSessionTab({
       active: false,
-      state: { editor: { type: "enhanced", id: "note-1" } },
+      state: { view: { type: "enhanced", id: "note-1" } },
     });
     const contacts = createContactsTab({ active: false });
 
@@ -189,7 +189,10 @@ describe("Basic Tab Actions", () => {
     const state = useTabs.getState();
     expect(state.tabs).toHaveLength(1);
     expect(state).toHaveCurrentTab({ id: session2.id });
-    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
+    expect(state).toHaveNavigationState({
+      canGoBack: false,
+      canGoNext: false,
+    });
     expect(state.history.size).toBe(1);
     expect(handler).toHaveBeenCalledTimes(2);
     expect(handler).toHaveBeenCalledWith(
@@ -217,7 +220,10 @@ describe("Basic Tab Actions", () => {
     expect(state.tabs).toHaveLength(0);
     expect(state.currentTab).toBeNull();
     expect(state.history.size).toBe(0);
-    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
+    expect(state).toHaveNavigationState({
+      canGoBack: false,
+      canGoNext: false,
+    });
     expect(onClose).toHaveBeenCalledTimes(2);
     expect(onClose).toHaveBeenCalledWith(
       expect.objectContaining({ id: first.id }),

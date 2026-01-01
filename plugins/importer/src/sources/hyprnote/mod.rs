@@ -1,0 +1,80 @@
+mod nightly;
+mod stable;
+mod transforms;
+
+pub use nightly::HyprnoteV0NightlySource;
+pub use stable::HyprnoteV0StableSource;
+
+use crate::types::{ImportResult, ImportedHuman, ImportedOrganization, ImportedSessionParticipant};
+use hypr_db_user::UserDatabase;
+use std::path::PathBuf;
+use transforms::{session_to_imported_note, session_to_imported_transcript};
+
+pub(super) async fn import_all_from_path(path: &PathBuf) -> Result<ImportResult, crate::Error> {
+    let db = hypr_db_core::DatabaseBuilder::default()
+        .local(path)
+        .build()
+        .await?;
+    let db = UserDatabase::from(db);
+
+    let sessions = db.list_sessions(None).await?;
+
+    let mut notes = Vec::new();
+    let mut transcripts = Vec::new();
+    let mut participants = Vec::new();
+
+    for session in sessions {
+        let session_participants = db.session_list_participants(&session.id).await?;
+        for human in session_participants {
+            participants.push(ImportedSessionParticipant {
+                session_id: session.id.clone(),
+                human_id: human.id,
+                source: "imported".to_string(),
+            });
+        }
+
+        if !session.words.is_empty() {
+            transcripts.push(session_to_imported_transcript(session.clone()));
+        }
+
+        if !session.is_empty() {
+            let tags = db.list_session_tags(&session.id).await?;
+            notes.push(session_to_imported_note(session, tags));
+        }
+    }
+
+    let humans = db
+        .list_humans(None)
+        .await?
+        .into_iter()
+        .map(|h| ImportedHuman {
+            id: h.id,
+            created_at: String::new(),
+            name: h.full_name.unwrap_or_default(),
+            email: h.email,
+            org_id: h.organization_id,
+            job_title: h.job_title,
+            linkedin_username: h.linkedin_username,
+        })
+        .collect();
+
+    let organizations = db
+        .list_organizations(None)
+        .await?
+        .into_iter()
+        .map(|o| ImportedOrganization {
+            id: o.id,
+            created_at: String::new(),
+            name: o.name,
+            description: o.description,
+        })
+        .collect();
+
+    Ok(ImportResult {
+        notes,
+        transcripts,
+        humans,
+        organizations,
+        participants,
+    })
+}

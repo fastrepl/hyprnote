@@ -17,13 +17,18 @@ import {
 import "@hypr/ui/globals.css";
 
 import { ErrorComponent, NotFoundComponent } from "./components/control";
+import { EventListeners } from "./components/event-listeners";
 import { TaskManager } from "./components/task-manager";
 import { createToolRegistry } from "./contexts/tool-registry/core";
 import { env } from "./env";
 import { initExtensionGlobals } from "./extension-globals";
 import { routeTree } from "./routeTree.gen";
-import { StoreComponent as KeysStoreComponent } from "./store/tinybase/keys";
-import { type Store, STORE_ID, StoreComponent } from "./store/tinybase/main";
+import {
+  type Store,
+  STORE_ID,
+  StoreComponent,
+} from "./store/tinybase/store/main";
+import { StoreComponent as SettingsStoreComponent } from "./store/tinybase/store/settings";
 import { createAITaskStore } from "./store/zustand/ai-task";
 import { createListenerStore } from "./store/zustand/listener";
 import "./styles/globals.css";
@@ -107,8 +112,9 @@ function AppWithTiny() {
         <TinyBaseProvider>
           <App />
           <StoreComponent persist={isMainWindow} />
-          <KeysStoreComponent persist={isMainWindow} />
+          <SettingsStoreComponent persist={isMainWindow} />
           {!isIframeContext && <TaskManager />}
+          {!isIframeContext && <EventListeners />}
         </TinyBaseProvider>
       </TinyTickProvider>
     </QueryClientProvider>

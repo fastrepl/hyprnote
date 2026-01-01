@@ -14,17 +14,19 @@ pub enum ExternalSTTMessage {
 
 #[derive(Clone)]
 pub struct CommandBuilder {
-    factory: Arc<dyn Fn() -> Command + Send + Sync>,
+    factory: Arc<dyn Fn() -> Result<Command, crate::Error> + Send + Sync>,
 }
 
 impl CommandBuilder {
-    pub fn new(factory: impl Fn() -> Command + Send + Sync + 'static) -> Self {
+    pub fn new(
+        factory: impl Fn() -> Result<Command, crate::Error> + Send + Sync + 'static,
+    ) -> Self {
         Self {
             factory: Arc::new(factory),
         }
     }
 
-    pub fn build(&self) -> Command {
+    pub fn build(&self) -> Result<Command, crate::Error> {
         (self.factory)()
     }
 }
@@ -77,20 +79,20 @@ impl ExternalSTTActor {
 fn cleanup_state(state: &mut ExternalSTTState) {
     let mut kill_failed = false;
 
-    if let Some(process) = state.process_handle.take() {
-        if let Err(e) = process.kill() {
-            if let tauri_plugin_shell::Error::Io(io_err) = &e {
-                match io_err.kind() {
-                    io::ErrorKind::InvalidInput | io::ErrorKind::NotFound => {}
-                    _ => {
-                        tracing::error!("failed_to_kill_process: {:?}", e);
-                        kill_failed = true;
-                    }
+    if let Some(process) = state.process_handle.take()
+        && let Err(e) = process.kill()
+    {
+        if let tauri_plugin_shell::Error::Io(io_err) = &e {
+            match io_err.kind() {
+                io::ErrorKind::InvalidInput | io::ErrorKind::NotFound => {}
+                _ => {
+                    tracing::error!("failed_to_kill_process: {:?}", e);
+                    kill_failed = true;
                 }
-            } else {
-                tracing::error!("failed_to_kill_process: {:?}", e);
-                kill_failed = true;
             }
+        } else {
+            tracing::error!("failed_to_kill_process: {:?}", e);
+            kill_failed = true;
         }
     }
 
@@ -122,7 +124,7 @@ impl Actor for ExternalSTTActor {
             port,
         } = args;
 
-        let cmd = cmd_builder.build();
+        let cmd = cmd_builder.build()?;
         let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
         let base_url = format!("http://localhost:{}/v1", port);
         let client = hypr_am::Client::new(&base_url);

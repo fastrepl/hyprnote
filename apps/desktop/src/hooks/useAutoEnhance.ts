@@ -5,7 +5,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { md2json } from "@hypr/tiptap/shared";
 
 import { useListener } from "../contexts/listener";
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 import { createTaskId } from "../store/zustand/ai-task/task-configs";
 import { useTabs } from "../store/zustand/tabs";
 import type { Tab } from "../store/zustand/tabs/schema";
@@ -67,7 +67,8 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     setAutoEnhancedNoteId(enhancedNoteId);
 
     updateSessionTabState(tabRef.current, {
-      editor: { type: "enhanced", id: enhancedNoteId },
+      ...tabRef.current.state,
+      view: { type: "enhanced", id: enhancedNoteId },
     });
   }, [hasTranscript, sessionId, updateSessionTabState, createEnhancedNote]);
 
@@ -78,7 +79,10 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       !startedTasksRef.current.has(autoEnhancedNoteId)
     ) {
       startedTasksRef.current.add(autoEnhancedNoteId);
-      analyticsCommands.event({ event: "summary_generated", is_auto: true });
+      void analyticsCommands.event({
+        event: "note_enhanced",
+        is_auto: true,
+      });
       void enhanceTask.start({
         model,
         args: { sessionId, enhancedNoteId: autoEnhancedNoteId },
@@ -88,8 +92,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
 
   useEffect(() => {
     const listenerJustStopped =
-      prevListenerStatus === "running_active" &&
-      listenerStatus !== "running_active";
+      prevListenerStatus === "active" && listenerStatus !== "active";
 
     if (listenerJustStopped) {
       createAndStartEnhance();

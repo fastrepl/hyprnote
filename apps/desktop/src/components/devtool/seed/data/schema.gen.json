@@ -41,17 +41,13 @@
           },
           "organization": {
             "type": "string"
-          },
-          "is_user": {
-            "type": "boolean"
           }
         },
         "required": [
           "name",
           "email",
           "job_title",
-          "organization",
-          "is_user"
+          "organization"
         ],
         "additionalProperties": false
       }

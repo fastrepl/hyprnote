@@ -1,0 +1,146 @@
+use crate::{EnhanceTemplate, Participant, Session, Transcript, common_derives, filters};
+
+common_derives! {
+    #[derive(askama::Template)]
+    #[template(path = "enhance.system.md.jinja")]
+    pub struct EnhanceSystem {
+        pub language: Option<String>,
+        pub current_date: Option<String>,
+    }
+}
+
+common_derives! {
+    #[derive(askama::Template)]
+    #[template(path = "enhance.user.md.jinja")]
+    pub struct EnhanceUser {
+        pub session: Session,
+        pub participants: Vec<Participant>,
+        pub template: Option<EnhanceTemplate>,
+        pub transcripts: Vec<Transcript>,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Segment, TemplateSection};
+    use askama_utils::{tpl_assert, tpl_snapshot};
+
+    tpl_assert!(
+        test_language_as_specified,
+        EnhanceSystem {
+            language: Some("ko".to_string()),
+            current_date: None,
+        },
+        |v| { v.contains("Korean") }
+    );
+
+    tpl_snapshot!(
+        test_enhance_system_formatting,
+        EnhanceSystem { language: None, current_date: None },
+        @r#"
+    # General Instructions
+
+    Current date: 2025-01-01
+
+    You are an expert at creating structured, comprehensive meeting summaries in English. Maintain accuracy, completeness, and professional terminology.
+
+    # Format Requirements
+
+    - Use Markdown format without code block wrappers.
+    - Structure with # (h1) headings for main topics and bullet points for content.
+    - Use only h1 headers. Do not use h2 or h3. Each header represents a section.
+    - Each section should have at least 3 detailed bullet points.
+    - Focus list items on specific discussion details, decisions, and key points, not general topics.
+    - Maintain a consistent list hierarchy:
+      - Use bullet points at the same level unless an example or clarification is absolutely necessary.
+      - Avoid nesting lists beyond one level of indentation.
+      - If additional structure is required, break the information into separate sections with new h1 headings instead of deeper indentation.
+    - Your final output MUST be ONLY the markdown summary itself.
+    - Do not include any explanations, commentary, or meta-discussion.
+    - Do not say things like "Here's the summary" or "I've analyzed".
+
+    # About Raw Notes
+
+    - The beginning of a raw note may include agenda items, discussion topics, and preliminary questions.
+    - Primarily consist of key phrases or sentences the user wants to remember, though they may also contain random or extraneous words.
+    - May sometimes be empty.
+
+    # Guidelines
+
+    - Raw notes and transcript may contain errors made by human and STT, respectively. Make the best out of every material.
+    - Do not include meeting note title, attendee lists nor explanatory notes about the output structure.
+    - Acknowledge what the user found important. Raw notes show a glimpse of important information and moments during the meeting. Naturally integrate raw note entries into relevant sections instead of forcefully converting them into headers.
+    - Preserve essential details; avoid excessive abstraction. Ensure content remains concrete and specific.
+    - Pay close attention to emphasized text in raw notes. Users highlight information using four styles: bold(**text**), italic(_text_), underline(<u>text</u>), strikethrough(~~text~~).
+    - Recognize H3 headers (### Header) in raw notes—these indicate highly important topics that the user wants to retain no matter what.
+    "#);
+
+    tpl_snapshot!(
+        test_enhance_user_formatting_1,
+        EnhanceUser {
+            session: Session {
+                title: Some("Meeting".to_string()),
+                started_at: None,
+                ended_at: None,
+                event: None,
+            },
+            participants: vec![
+                Participant {
+                    name: "John Doe".to_string(),
+                    job_title: Some("CEO".to_string()),
+                },
+                Participant {
+                    name: "Jane Smith".to_string(),
+                    job_title: Some("CTO".to_string()),
+                },
+            ],
+            template: Some(EnhanceTemplate {
+                title: "Meeting".to_string(),
+                description: Some("Meeting description".to_string()),
+                sections: vec![
+                    TemplateSection {
+                        title: "Section 1".to_string(),
+                        description: Some("Section 1 description".to_string()),
+                    },
+                    TemplateSection {
+                        title: "Section 2".to_string(),
+                        description: Some("Section 2 description".to_string()),
+                    },
+                ],
+            }),
+            transcripts: vec![Transcript {
+                segments: vec![Segment {
+                    text: "Hello".to_string(),
+                    speaker: "John Doe".to_string(),
+                }],
+                started_at: Some(1719859200),
+                ended_at: Some(1719862800),
+            }],
+        }, @"
+    # Context
+
+
+    Session: Meeting
+    Participants:
+    - John Doe (CEO)
+      - Jane Smith (CTO)
+      
+
+    # Transcript
+
+
+    John Doe: Hello
+
+    # Output Template
+
+    # Summary Template
+
+    Name: Meeting
+    Description: Meeting description
+
+    Sections:
+    1. Section 1 - Section 1 description
+    2. Section 2 - Section 2 description
+    ");
+}

@@ -16,7 +16,7 @@ describe("General Listener Slice", () => {
       expect(state.live.loading).toBe(false);
       expect(state.live.amplitude).toEqual({ mic: 0, speaker: 0 });
       expect(state.live.seconds).toBe(0);
-      expect(state.live.sessionEventUnlisten).toBeUndefined();
+      expect(state.live.eventUnlisteners).toBeUndefined();
       expect(state.live.intervalId).toBeUndefined();
       expect(state.batch).toEqual({});
     });

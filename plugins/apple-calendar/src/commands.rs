@@ -1,58 +1,19 @@
-use crate::types::{Calendar, Event, EventFilter};
 use crate::AppleCalendarPluginExt;
+use crate::types::EventFilter;
+use crate::types::{AppleCalendar, AppleEvent};
 
 #[tauri::command]
 #[specta::specta]
 pub fn open_calendar<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.open_calendar()
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn open_calendar_access_settings<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<(), String> {
-    app.open_calendar_access_settings()
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn open_contacts_access_settings<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<(), String> {
-    app.open_contacts_access_settings()
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn calendar_access_status<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> bool {
-    app.calendar_access_status()
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn contacts_access_status<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> bool {
-    app.contacts_access_status()
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn request_calendar_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
-    app.request_calendar_access();
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn request_contacts_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
-    app.request_contacts_access();
+    app.apple_calendar().open_calendar()
 }
 
 #[tauri::command]
 #[specta::specta]
 pub fn list_calendars<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<Vec<Calendar>, String> {
-    app.list_calendars()
+) -> Result<Vec<AppleCalendar>, String> {
+    app.apple_calendar().list_calendars()
 }
 
 #[tauri::command]
@@ -60,6 +21,51 @@ pub fn list_calendars<R: tauri::Runtime>(
 pub fn list_events<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     filter: EventFilter,
-) -> Result<Vec<Event>, String> {
-    app.list_events(filter)
+) -> Result<Vec<AppleEvent>, String> {
+    app.apple_calendar().list_events(filter)
+}
+
+#[cfg(feature = "fixture")]
+#[derive(serde::Serialize, specta::Type)]
+pub struct FixtureInfo {
+    pub current_step: usize,
+    pub max_steps: usize,
+    pub step_name: String,
+}
+
+#[cfg(feature = "fixture")]
+#[tauri::command]
+#[specta::specta]
+pub fn advance_fixture() -> FixtureInfo {
+    let step = crate::fixture::advance_step();
+    FixtureInfo {
+        current_step: step,
+        max_steps: crate::fixture::get_max_steps(),
+        step_name: crate::fixture::get_step_name(step).to_string(),
+    }
+}
+
+#[cfg(feature = "fixture")]
+#[tauri::command]
+#[specta::specta]
+pub fn reset_fixture() -> FixtureInfo {
+    crate::fixture::reset_step();
+    let step = crate::fixture::get_step();
+    FixtureInfo {
+        current_step: step,
+        max_steps: crate::fixture::get_max_steps(),
+        step_name: crate::fixture::get_step_name(step).to_string(),
+    }
+}
+
+#[cfg(feature = "fixture")]
+#[tauri::command]
+#[specta::specta]
+pub fn get_fixture_info() -> FixtureInfo {
+    let step = crate::fixture::get_step();
+    FixtureInfo {
+        current_step: step,
+        max_steps: crate::fixture::get_max_steps(),
+        step_name: crate::fixture::get_step_name(step).to_string(),
+    }
 }

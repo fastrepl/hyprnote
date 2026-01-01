@@ -11,7 +11,7 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { ResourceListLayout, useWebResources } from "../resource-list";
@@ -27,17 +27,22 @@ export const TabItemChatShortcut: TabItem<
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   return (
     <TabItemBase
       icon={<MessageSquare className="w-4 h-4" />}
       title="Shortcuts"
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };
@@ -73,7 +78,10 @@ function useChatShortcuts(): UserShortcut[] {
 
   return useMemo(() => {
     return Object.entries(shortcuts as Record<string, ChatShortcut>).map(
-      ([id, shortcut]) => ({ id, ...shortcut }),
+      ([id, shortcut]) => ({
+        id,
+        ...shortcut,
+      }),
     );
   }, [shortcuts]);
 }

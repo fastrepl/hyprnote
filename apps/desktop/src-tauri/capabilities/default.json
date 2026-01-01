@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["*"],
+  "windows": [
+    "*"
+  ],
   "permissions": [
     "core:default",
     "core:window:default",
@@ -21,55 +23,132 @@
     "opener:default",
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "https://**" }, { "url": "mailto:*" }, { "url": "obsidian://**" }]
+      "allow": [
+        {
+          "url": "https://**"
+        },
+        {
+          "url": "mailto:*"
+        },
+        {
+          "url": "obsidian://**"
+        }
+      ]
     },
     {
       "identifier": "opener:allow-open-path",
       "allow": [
-        { "path": "$DATA/hyprnote/**/*" },
-        { "path": "$DOWNLOAD/**/*" }
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        },
+        {
+          "path": "$DOWNLOAD/**/*"
+        }
       ]
     },
     {
       "identifier": "fs:allow-mkdir",
       "allow": [
-        { "path": "$DATA/hyprnote/**/*" }
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        }
       ]
     },
     {
       "identifier": "fs:allow-exists",
       "allow": [
-        { "path": "/Applications/*" },
-        { "path": "$DATA/hyprnote/**/*" }
+        {
+          "path": "/Applications/*"
+        },
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        }
       ]
     },
     {
       "identifier": "fs:allow-read-file",
       "allow": [
-        { "path": "$DATA/hyprnote/**/*" }
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        }
       ]
     },
     {
       "identifier": "fs:allow-read-text-file",
       "allow": [
-        { "path": "$DATA/hyprnote/**/*" }
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        }
       ]
     },
     {
       "identifier": "fs:allow-write-text-file",
       "allow": [
-        { "path": "$DATA/hyprnote/**/*" },
-        { "path": "$DOWNLOAD/**/*" }
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        },
+        {
+          "path": "$DOWNLOAD/**/*"
+        }
       ]
     },
     {
       "identifier": "fs:allow-write-file",
       "allow": [
-        { "path": "$DATA/hyprnote/**/*" },
-        { "path": "$DOWNLOAD/**/*" }
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        },
+        {
+          "path": "$DOWNLOAD/**/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-remove",
+      "allow": [
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-rename",
+      "allow": [
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        }
       ]
     },
     "apple-calendar:default",
+    "audio-priority:default",
+    "auth:default",
     "extensions:default",
     "db2:default",
     "windows:default",
@@ -78,6 +157,7 @@
     "analytics:default",
     "cli2:default",
     "updater:default",
+    "updater2:default",
     "deep-link:default",
     "deeplink2:default",
     "store:default",
@@ -85,11 +165,15 @@
     "local-stt:default",
     "dialog:default",
     "hooks:default",
+    "icon:default",
     "importer:default",
     "listener:default",
     "listener2:default",
     "template:default",
     "notification:default",
+    "notify:default",
+    "overlay:default",
+    "pagefind:default",
     "shell:allow-open",
     {
       "identifier": "shell:allow-execute",
@@ -99,7 +183,9 @@
           "cmd": "sh",
           "args": [
             "-c",
-            { "validator": ".+" }
+            {
+              "validator": ".+"
+            }
           ]
         }
       ]
@@ -107,16 +193,29 @@
     "misc:default",
     "os:default",
     "detect:default",
+    "export:default",
     "permissions:default",
+    "settings:default",
+    "sfx:default",
+    "path2:default",
+    "pdf:default",
     "autostart:default",
     {
       "identifier": "http:default",
       "deny": [],
       "allow": [
-        { "url": "http://localhost:*/**" },
-        { "url": "http://*.*.*.*:*/**" },
-        { "url": "https://**" },
-        { "url": "http://**" }
+        {
+          "url": "http://localhost:*/**"
+        },
+        {
+          "url": "http://*.*.*.*:*/**"
+        },
+        {
+          "url": "https://**"
+        },
+        {
+          "url": "http://**"
+        }
       ]
     }
   ]

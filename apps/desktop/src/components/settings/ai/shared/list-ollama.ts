@@ -47,7 +47,9 @@ const fetchOllamaInventory = (ollama: Ollama) =>
         Effect.tryPromise(() => ollama.list()),
         Effect.tryPromise(() => ollama.ps()).pipe(
           Effect.catchAll(() =>
-            Effect.succeed({ models: [] as Array<{ name: string }> }),
+            Effect.succeed({
+              models: [] as Array<{ name: string }>,
+            }),
           ),
         ),
       ],
@@ -87,7 +89,11 @@ const fetchOllamaDetails = (
   );
 
 const summarizeOllamaDetails = (
-  details: Array<{ name: string; capabilities: string[]; isRunning: boolean }>,
+  details: Array<{
+    name: string;
+    capabilities: string[];
+    isRunning: boolean;
+  }>,
 ): ListModelsResult => {
   const supported: Array<{ name: string; isRunning: boolean }> = [];
   const ignored: IgnoredModel[] = [];

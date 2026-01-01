@@ -1,5 +1,5 @@
 import { useListener } from "../contexts/listener";
-import * as main from "../store/tinybase/main";
+import * as settings from "../store/tinybase/store/settings";
 import { CONFIG_REGISTRY, type ConfigKey } from "./registry";
 
 type ConfigValueType<K extends ConfigKey> =
@@ -19,15 +19,11 @@ function tryParseJSON<T>(value: any, fallback: T): T {
 export function useConfigValue<K extends ConfigKey>(
   key: K,
 ): ConfigValueType<K> {
-  const storedValue = main.UI.useValue(key, main.STORE_ID);
+  const storedValue = settings.UI.useValue(key, settings.STORE_ID);
   const definition = CONFIG_REGISTRY[key];
 
   if (storedValue !== undefined) {
-    if (
-      key === "ignored_platforms" ||
-      key === "spoken_languages" ||
-      key === "dismissed_banners"
-    ) {
+    if (key === "ignored_platforms" || key === "spoken_languages") {
       return tryParseJSON(
         storedValue,
         definition.default,
@@ -42,7 +38,7 @@ export function useConfigValue<K extends ConfigKey>(
 export function useConfigValues<K extends ConfigKey>(
   keys: readonly K[],
 ): { [P in K]: ConfigValueType<P> } {
-  const allValues = main.UI.useValues(main.STORE_ID);
+  const allValues = settings.UI.useValues(settings.STORE_ID);
 
   const result = {} as { [P in K]: ConfigValueType<P> };
 
@@ -51,11 +47,7 @@ export function useConfigValues<K extends ConfigKey>(
     const definition = CONFIG_REGISTRY[key];
 
     if (storedValue !== undefined) {
-      if (
-        key === "ignored_platforms" ||
-        key === "spoken_languages" ||
-        key === "dismissed_banners"
-      ) {
+      if (key === "ignored_platforms" || key === "spoken_languages") {
         result[key] = tryParseJSON(
           storedValue,
           definition.default,
@@ -83,11 +75,7 @@ export function useConfigSideEffects() {
         const val = configs[k];
 
         if (val !== undefined) {
-          if (
-            k === "ignored_platforms" ||
-            k === "spoken_languages" ||
-            k === "dismissed_banners"
-          ) {
+          if (k === "ignored_platforms" || k === "spoken_languages") {
             return tryParseJSON(val, def.default) as ConfigValueType<K>;
           }
           return val as ConfigValueType<K>;
@@ -121,7 +109,7 @@ export function useConfigSideEffects() {
 function useValuesToWatch(): Partial<Record<ConfigKey, any>> {
   const inactive = useListener((state) => state.live.status === "inactive");
   const keys = inactive ? (Object.keys(CONFIG_REGISTRY) as ConfigKey[]) : [];
-  const allValues = main.UI.useValues(main.STORE_ID);
+  const allValues = settings.UI.useValues(settings.STORE_ID);
 
   return keys.reduce<Partial<Record<ConfigKey, any>>>((acc, key) => {
     acc[key] = allValues[key];

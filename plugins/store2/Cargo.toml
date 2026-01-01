@@ -2,7 +2,7 @@
 name = "tauri-plugin-store2"
 version = "0.1.0"
 authors = ["You"]
-edition = "2021"
+edition = "2024"
 exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-store2"
 description = ""
@@ -19,6 +19,7 @@ tokio = { workspace = true, features = ["rt", "macros"] }
 
 [dependencies]
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-path2 = { workspace = true }
 tauri-plugin-store = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 

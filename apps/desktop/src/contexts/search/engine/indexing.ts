@@ -1,14 +1,14 @@
 import { insert } from "@orama/orama";
 
-import { type Store as PersistedStore } from "../../../store/tinybase/main";
+import { type Store as MainStore } from "../../../store/tinybase/store/main";
 import {
   createHumanSearchableContent,
   createSessionSearchableContent,
 } from "./content";
 import type { Index } from "./types";
-import { collectCells, toNumber, toTrimmedString } from "./utils";
+import { collectCells, toEpochMs, toTrimmedString } from "./utils";
 
-export function indexSessions(db: Index, store: PersistedStore): void {
+export function indexSessions(db: Index, store: MainStore): void {
   const fields = [
     "user_id",
     "created_at",
@@ -29,19 +29,18 @@ export function indexSessions(db: Index, store: PersistedStore): void {
       type: "session",
       title,
       content: createSessionSearchableContent(row),
-      created_at: toNumber(row.created_at),
+      created_at: toEpochMs(row.created_at),
     });
   });
 }
 
-export function indexHumans(db: Index, store: PersistedStore): void {
+export function indexHumans(db: Index, store: MainStore): void {
   const fields = [
     "name",
     "email",
     "org_id",
     "job_title",
     "linkedin_username",
-    "is_user",
     "created_at",
   ];
 
@@ -54,12 +53,12 @@ export function indexHumans(db: Index, store: PersistedStore): void {
       type: "human",
       title,
       content: createHumanSearchableContent(row),
-      created_at: toNumber(row.created_at),
+      created_at: toEpochMs(row.created_at),
     });
   });
 }
 
-export function indexOrganizations(db: Index, store: PersistedStore): void {
+export function indexOrganizations(db: Index, store: MainStore): void {
   const fields = ["name", "created_at"];
 
   store.forEachRow("organizations", (rowId: string, _forEachCell) => {
@@ -71,7 +70,7 @@ export function indexOrganizations(db: Index, store: PersistedStore): void {
       type: "organization",
       title,
       content: "",
-      created_at: toNumber(row.created_at),
+      created_at: toEpochMs(row.created_at),
     });
   });
 }

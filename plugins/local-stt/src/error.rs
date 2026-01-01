@@ -1,4 +1,4 @@
-use serde::{ser::Serializer, Serialize};
+use serde::{Serialize, ser::Serializer};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -10,6 +10,8 @@ pub enum Error {
     HyprFileError(#[from] hypr_file::Error),
     #[error(transparent)]
     ShellError(#[from] tauri_plugin_shell::Error),
+    #[error(transparent)]
+    Sidecar2Error(#[from] tauri_plugin_sidecar2::Error),
     #[error("Model not downloaded")]
     ModelNotDownloaded,
     #[error("Server start failed {0}")]
@@ -18,8 +20,6 @@ pub enum Error {
     ServerStopFailed(String),
     #[error("Supervisor not found")]
     SupervisorNotFound,
-    #[error("AM binary not found")]
-    AmBinaryNotFound,
     #[error("AM API key not set")]
     AmApiKeyNotSet,
     #[error("Internal server only supports Whisper models")]

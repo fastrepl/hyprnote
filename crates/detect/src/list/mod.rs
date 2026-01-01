@@ -2,13 +2,13 @@
 mod macos;
 
 #[cfg(target_os = "macos")]
-pub use macos::list_installed_apps;
+pub use macos::*;
 
 #[cfg(target_os = "linux")]
 mod linux;
 
 #[cfg(target_os = "linux")]
-pub use linux::list_installed_apps;
+pub use linux::*;
 
 #[cfg(not(any(target_os = "macos", target_os = "linux")))]
 pub fn list_installed_apps() -> Vec<InstalledApp> {

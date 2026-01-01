@@ -2,7 +2,7 @@
 name = "tauri-plugin-local-stt"
 version = "0.1.0"
 authors = ["You"]
-edition = "2021"
+edition = "2024"
 exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-local-stt"
 description = ""
@@ -54,6 +54,7 @@ tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 tauri-plugin-shell = { workspace = true }
+tauri-plugin-sidecar2 = { workspace = true }
 tauri-plugin-windows = { workspace = true }
 
 dirs = { workspace = true }

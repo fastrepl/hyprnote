@@ -347,15 +347,6 @@ importers:
       '@openrouter/ai-sdk-provider':
         specifier: ^1.5.4
         version: 1.5.4(ai@5.0.116(zod@4.2.1))(zod@4.2.1)
-      '@orama/highlight':
-        specifier: ^0.1.9
-        version: 0.1.9
-      '@orama/orama':
-        specifier: ^3.1.18
-        version: 3.1.18
-      '@orama/plugin-qps':
-        specifier: ^3.1.18
-        version: 3.1.18
       '@sentry/react':
         specifier: ^8.55.0
         version: 8.55.0(react@19.2.3)
@@ -4950,16 +4941,6 @@ packages:
     engines: {node: ^18.19.0 || >=20.6.0}
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
-
-  '@orama/highlight@0.1.9':
-    resolution: {integrity: sha512-eH4uZMea4R9x9vBFJyS/87oR4Y8oIKxF7e1SItJ9DhPlexZWMVZRlFYvHS1BM/563/dU240ct4ZaGHoYKiCkyQ==}
-
-  '@orama/orama@3.1.18':
-    resolution: {integrity: sha512-a61ljmRVVyG5MC/698C8/FfFDw5a8LOIvyOLW5fztgUXqUpc1jOfQzOitSCbge657OgXXThmY3Tk8fpiDb4UcA==}
-    engines: {node: '>= 20.0.0'}
-
-  '@orama/plugin-qps@3.1.18':
-    resolution: {integrity: sha512-q19pFGF1jRk+dGR4j/4MscCACtZo6DKO8ZjnM3AWJICzjWVYJYBvlGuD2+Jt079iUW04cGh4EpMw5WxaTpZQCw==}
 
   '@oslojs/encoding@1.1.0':
     resolution: {integrity: sha512-70wQhgYmndg4GCPxPPxPGevRKqTIJ2Nh4OkiMWmDAVYsTQ+Ta7Sq+rPevXyXGdzr30/qZBnyOalCszoMxlyldQ==}
@@ -20502,14 +20483,6 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 2.2.0(@opentelemetry/api@1.9.0)
-
-  '@orama/highlight@0.1.9': {}
-
-  '@orama/orama@3.1.18': {}
-
-  '@orama/plugin-qps@3.1.18':
-    dependencies:
-      '@orama/orama': 3.1.18
 
   '@oslojs/encoding@1.1.0': {}
 

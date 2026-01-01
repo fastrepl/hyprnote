@@ -18648,6 +18648,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "codes-iso-639",
+ "criterion",
  "pagefind",
  "serde",
  "specta",
@@ -18655,6 +18656,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-specta",
+ "tempfile",
  "thiserror 2.0.17",
  "tokio",
  "whichlang",

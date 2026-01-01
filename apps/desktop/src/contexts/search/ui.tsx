@@ -1,4 +1,3 @@
-import { Highlight } from "@orama/highlight";
 import {
   createContext,
   useCallback,
@@ -77,21 +76,14 @@ function calculateDynamicThreshold(scores: number[]): number {
   return sortedScores[Math.min(thresholdIndex, sortedScores.length - 1)] || 0;
 }
 
-function createSearchResult(hit: SearchHit, query: string): SearchResult {
-  const titleHighlighter = new Highlight();
-  const contentHighlighter = new Highlight();
-
+function createSearchResult(hit: SearchHit, _query: string): SearchResult {
   return {
     id: hit.document.id,
     type: hit.document.type,
     title: hit.document.title,
-    titleHighlighted: titleHighlighter.highlight(hit.document.title, query)
-      .HTML,
+    titleHighlighted: hit.titleHighlighted ?? hit.document.title,
     content: hit.document.content,
-    contentHighlighted: contentHighlighter.highlight(
-      hit.document.content,
-      query,
-    ).HTML,
+    contentHighlighted: hit.contentHighlighted ?? hit.document.content,
     created_at: hit.document.created_at,
     score: hit.score,
   };

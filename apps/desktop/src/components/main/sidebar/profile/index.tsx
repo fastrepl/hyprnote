@@ -256,8 +256,13 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
 
                       <div className="my-1 border-t border-neutral-100" />
 
-                      {menuItems.map((item) => (
-                        <MenuItem key={item.label} {...item} />
+                      {menuItems.map((item, index) => (
+                        <div key={item.label}>
+                          <MenuItem {...item} />
+                          {(index === 2 || index === 5) && (
+                            <div className="my-1 border-t border-neutral-100" />
+                          )}
+                        </div>
                       ))}
 
                       <AuthSection

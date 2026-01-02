@@ -166,12 +166,13 @@ function ContributeBanner() {
         "transition-colors",
       ])}
     >
-      <Icon icon="mdi:github" className="text-base" />
-      <span>
-        <strong>Community-driven:</strong> Have a template idea?{" "}
-        <span className="group-hover:underline group-hover:decoration-dotted group-hover:underline-offset-2">
-          Contribute on GitHub
-        </span>
+      Have a template idea? Contribute on{" "}
+      <span className="group-hover:underline group-hover:decoration-dotted group-hover:underline-offset-2 items-center inline-flex gap-0.5">
+        <Icon
+          icon="mdi:github"
+          className="text-base inline-block align-middle"
+        />{" "}
+        GitHub
       </span>
     </a>
   );
@@ -312,7 +313,7 @@ function DesktopSidebar({
 }) {
   return (
     <aside className="hidden lg:block w-56 shrink-0">
-      <div className="sticky top-[85px]">
+      <div className="sticky top-21.25">
         <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">
           Categories
         </h3>

@@ -1,13 +1,21 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLinkIcon } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useResizeObserver } from "usehooks-ts";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
+import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
@@ -269,9 +277,29 @@ function Container({
   action?: ReactNode;
   children?: ReactNode;
 }) {
+  const containerRef = useRef<HTMLElement>(null);
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useResizeObserver({
+    ref: containerRef,
+    onResize: ({ width }) => {
+      if (width !== undefined) {
+        setIsNarrow(width < 400);
+      }
+    },
+  });
+
   return (
-    <section className="bg-neutral-50 p-4 rounded-lg flex flex-col gap-4">
-      <div className="flex flex-col [@media(min-width:400px)]:flex-row [@media(min-width:400px)]:items-center [@media(min-width:400px)]:justify-between gap-4">
+    <section
+      ref={containerRef}
+      className="bg-neutral-50 p-4 rounded-lg flex flex-col gap-4"
+    >
+      <div
+        className={cn([
+          "flex gap-4",
+          isNarrow ? "flex-col" : "flex-row items-center justify-between",
+        ])}
+      >
         <div className="flex flex-col gap-2">
           <h1 className="text-md font-semibold">{title}</h1>
           {description && (

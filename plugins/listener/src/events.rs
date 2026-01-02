@@ -14,7 +14,10 @@ common_event_derives! {
     #[serde(tag = "type")]
     pub enum SessionLifecycleEvent {
         #[serde(rename = "inactive")]
-        Inactive { session_id: String },
+        Inactive {
+            session_id: String,
+            error: Option<String>,
+        },
         #[serde(rename = "active")]
         Active { session_id: String },
         #[serde(rename = "finalizing")]
@@ -50,7 +53,6 @@ common_event_derives! {
         ConnectionError {
             session_id: String,
             error: String,
-            is_retryable: bool,
         },
     }
 }

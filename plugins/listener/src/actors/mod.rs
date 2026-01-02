@@ -1,10 +1,12 @@
 mod listener;
 mod recorder;
+mod root;
 mod session;
 mod source;
 
 pub use listener::*;
 pub use recorder::*;
+pub use root::*;
 pub use session::*;
 pub use source::*;
 

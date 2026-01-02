@@ -174,3 +174,19 @@ pub async fn parse_meeting_link<R: tauri::Runtime>(
 ) -> Option<String> {
     app.misc().parse_meeting_link(&text)
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn reveal_session_in_finder<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session_id: String,
+) -> Result<(), String> {
+    let base = app.path2().base().map_err(|e| e.to_string())?;
+    let session_dir = find_session_dir(&base.join("sessions"), &session_id);
+
+    app.opener()
+        .reveal_item_in_dir(session_dir)
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}

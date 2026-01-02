@@ -41,6 +41,14 @@ async deleteSessionFolder(sessionId: string) : Promise<Result<null, string>> {
 async parseMeetingLink(text: string) : Promise<string | null> {
     return await TAURI_INVOKE("plugin:misc|parse_meeting_link", { text });
 },
+async revealSessionInFinder(sessionId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:misc|reveal_session_in_finder", { sessionId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async audioExist(sessionId: string) : Promise<Result<boolean, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:misc|audio_exist", { sessionId }) };

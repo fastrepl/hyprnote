@@ -11,10 +11,7 @@ import {
 
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
-import {
-  createSettingsPersister,
-  migrateKeysJsonToSettings,
-} from "../persister/settings";
+import { createSettingsPersister } from "../persister/settings";
 import * as main from "./main";
 import { registerSaveHandler } from "./save";
 
@@ -140,10 +137,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const persister = useCreatePersister(
     store,
     async (store) => {
-      if (persist) {
-        await migrateKeysJsonToSettings();
-      }
-
       const settingsPersister = createSettingsPersister<Schemas>(
         store as Store,
       );

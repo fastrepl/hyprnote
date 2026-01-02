@@ -1,3 +1,4 @@
+import { sep } from "@tauri-apps/api/path";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
@@ -66,8 +67,8 @@ export function createNotePersister<Schemas extends OptionalSchemas>(
     store,
     loadFn,
     saveFn,
-    (listener) => setInterval(listener, 1000),
-    (interval) => clearInterval(interval),
+    () => null,
+    () => {},
     (error) => console.error("[NotePersister]:", error),
     StoreOrMergeableStore,
   );
@@ -139,7 +140,7 @@ function collectEnhancedNoteBatchItems<Schemas extends OptionalSchemas>(
       folderPath,
     );
     dirs.add(sessionDir);
-    items.push([parsed, `${sessionDir}/${filename}`]);
+    items.push([parsed, [sessionDir, filename].join(sep())]);
   }
 
   return { items, dirs };
@@ -165,7 +166,7 @@ function collectSessionBatchItems(
     const folderPath = session.folder_id ?? "";
     const sessionDir = getSessionDir(dataDir, session.id, folderPath);
     dirs.add(sessionDir);
-    items.push([parsed, `${sessionDir}/_memo.md`]);
+    items.push([parsed, [sessionDir, "_memo.md"].join(sep())]);
   }
 
   return { items, dirs };

@@ -1,9 +1,3 @@
-import {
-  BaseDirectory,
-  exists,
-  readTextFile,
-  remove,
-} from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type {
   Content,
@@ -137,59 +131,6 @@ export function storeToSettings<Schemas extends OptionalSchemas>(
   };
 
   return settings;
-}
-
-export async function migrateKeysJsonToSettings(): Promise<boolean> {
-  const keysPath = "hyprnote/keys.json";
-  const options = { baseDir: BaseDirectory.Data };
-
-  try {
-    let fileExists: boolean;
-    try {
-      fileExists = await exists(keysPath, options);
-    } catch {
-      return false;
-    }
-
-    if (!fileExists) {
-      return false;
-    }
-
-    const content = await readTextFile(keysPath, options);
-    const legacy = JSON.parse(content) as {
-      llm?: Record<string, ProviderData>;
-      stt?: Record<string, ProviderData>;
-    };
-
-    const settings = {
-      ai: {
-        llm: legacy.llm ?? {},
-        stt: legacy.stt ?? {},
-      },
-    };
-
-    const result = await commands.save(settings);
-    if (result.status === "error") {
-      console.error("[migrateKeysJsonToSettings] save error:", result.error);
-      return false;
-    }
-
-    await remove(keysPath, options);
-    console.info(
-      "[migrateKeysJsonToSettings] migrated keys.json to settings.json",
-    );
-    return true;
-  } catch (error) {
-    const errorStr = String(error);
-    if (
-      errorStr.includes("No such file or directory") ||
-      errorStr.includes("ENOENT")
-    ) {
-      return false;
-    }
-    console.error("[migrateKeysJsonToSettings] error:", error);
-    return false;
-  }
 }
 
 type ListenerHandle = {

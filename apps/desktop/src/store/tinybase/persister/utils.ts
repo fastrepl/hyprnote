@@ -1,3 +1,4 @@
+import { sep } from "@tauri-apps/api/path";
 import { mkdir, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type {
@@ -6,6 +7,7 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
+import { events as notifyEvents } from "@hypr/plugin-notify";
 import { commands as path2Commands } from "@hypr/plugin-path2";
 import type {
   ChatGroup,
@@ -32,11 +34,11 @@ export function getSessionDir(
   folderPath: string = "",
 ): string {
   const folder = folderPath || "_default";
-  return `${dataDir}/sessions/${folder}/${sessionId}`;
+  return [dataDir, "sessions", folder, sessionId].join(sep());
 }
 
 export function getChatDir(dataDir: string, chatGroupId: string): string {
-  return `${dataDir}/chats/${chatGroupId}`;
+  return [dataDir, "chats", chatGroupId].join(sep());
 }
 
 export async function ensureDirsExist(dirs: Set<string>): Promise<void> {
@@ -59,9 +61,10 @@ export function getParentFolderPath(folderPath: string): string {
   if (!folderPath) {
     return "";
   }
-  const parts = folderPath.split("/");
+  const s = sep();
+  const parts = folderPath.split(s);
   parts.pop();
-  return parts.join("/");
+  return parts.join(s);
 }
 
 export function safeParseJson(
@@ -124,6 +127,52 @@ function isFileNotFoundError(error: unknown): boolean {
   );
 }
 
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isUUID(str: string): boolean {
+  return UUID_REGEX.test(str);
+}
+
+type NotifyListenerHandle = {
+  unlisten: (() => void) | null;
+  interval: ReturnType<typeof setInterval> | null;
+};
+
+const FALLBACK_POLL_INTERVAL = 60000;
+
+export function createNotifyListener(
+  pathMatcher: (path: string) => boolean,
+  fallbackIntervalMs = FALLBACK_POLL_INTERVAL,
+): {
+  addListener: (listener: () => void) => NotifyListenerHandle;
+  delListener: (handle: NotifyListenerHandle) => void;
+} {
+  return {
+    addListener: (listener: () => void) => {
+      const handle: NotifyListenerHandle = { unlisten: null, interval: null };
+
+      (async () => {
+        const unlisten = await notifyEvents.fileChanged.listen((event) => {
+          if (pathMatcher(event.payload.path)) {
+            listener();
+          }
+        });
+        handle.unlisten = unlisten;
+      })().catch((error) => {
+        console.error("[NotifyListener] Failed to setup:", error);
+      });
+
+      handle.interval = setInterval(listener, fallbackIntervalMs);
+      return handle;
+    },
+    delListener: (handle: NotifyListenerHandle) => {
+      handle.unlisten?.();
+      if (handle.interval) clearInterval(handle.interval);
+    },
+  };
+}
+
 export function createSimpleJsonPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   options: {
@@ -144,7 +193,7 @@ export function createSimpleJsonPersister<Schemas extends OptionalSchemas>(
       : async (): Promise<Content<Schemas> | undefined> => {
           try {
             const base = await path2Commands.base();
-            const content = await readTextFile(`${base}/${filename}`);
+            const content = await readTextFile([base, filename].join(sep()));
             return jsonToContent(JSON.parse(content));
           } catch (error) {
             if (isFileNotFoundError(error)) return jsonToContent({});
@@ -162,7 +211,7 @@ export function createSimpleJsonPersister<Schemas extends OptionalSchemas>(
             await mkdir(base, { recursive: true });
             const data = store.getTable(tableName) ?? {};
             await writeTextFile(
-              `${base}/${filename}`,
+              [base, filename].join(sep()),
               JSON.stringify(data, null, 2),
             );
           } catch (error) {
@@ -170,12 +219,26 @@ export function createSimpleJsonPersister<Schemas extends OptionalSchemas>(
           }
         };
 
+  if (mode === "save-only") {
+    return createCustomPersister(
+      store,
+      loadFn,
+      saveFn,
+      () => null,
+      () => {},
+      (error) => console.error(`[${label}]:`, error),
+      StoreOrMergeableStore,
+    );
+  }
+
+  const notifyListener = createNotifyListener((path) => path === filename);
+
   return createCustomPersister(
     store,
     loadFn,
     saveFn,
-    (listener) => setInterval(listener, 1000),
-    (handle) => clearInterval(handle),
+    notifyListener.addListener,
+    notifyListener.delListener,
     (error) => console.error(`[${label}]:`, error),
     StoreOrMergeableStore,
   );

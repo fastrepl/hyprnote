@@ -1,4 +1,5 @@
-import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { sep } from "@tauri-apps/api/path";
+import { exists, readDir, remove, writeTextFile } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
@@ -9,6 +10,7 @@ import {
   ensureDirsExist,
   getChatDir,
   getDataDir,
+  isUUID,
   iterateTableRows,
   type PersisterMode,
   type TablesContent,
@@ -65,6 +67,42 @@ function collectMessagesByChatGroup(
   return messagesByChatGroup;
 }
 
+async function cleanupOrphanChatDirs(
+  dataDir: string,
+  validChatGroupIds: Set<string>,
+): Promise<void> {
+  const chatsDir = [dataDir, "chats"].join(sep());
+
+  let entries: { name: string; isDirectory: boolean }[];
+  try {
+    entries = await readDir(chatsDir);
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory) continue;
+
+    const messagesPath = [chatsDir, entry.name, "_messages.json"].join(sep());
+    const hasMessagesJson = await exists(messagesPath);
+
+    if (
+      hasMessagesJson &&
+      isUUID(entry.name) &&
+      !validChatGroupIds.has(entry.name)
+    ) {
+      try {
+        await remove([chatsDir, entry.name].join(sep()), { recursive: true });
+      } catch (e) {
+        console.error(
+          `[ChatPersister] Failed to remove orphan dir ${entry.name}:`,
+          e,
+        );
+      }
+    }
+  }
+}
+
 export function createChatPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   config: { mode: PersisterMode } = { mode: "save-only" },
@@ -80,9 +118,7 @@ export function createChatPersister<Schemas extends OptionalSchemas>(
           const dataDir = await getDataDir();
 
           const messagesByChatGroup = collectMessagesByChatGroup(tables);
-          if (messagesByChatGroup.size === 0) {
-            return;
-          }
+          const validChatGroupIds = new Set(messagesByChatGroup.keys());
 
           const dirs = new Set<string>();
           const writeOperations: Array<{ path: string; content: string }> = [];
@@ -103,33 +139,37 @@ export function createChatPersister<Schemas extends OptionalSchemas>(
               ),
             };
             writeOperations.push({
-              path: `${chatDir}/_messages.json`,
+              path: [chatDir, "_messages.json"].join(sep()),
               content: JSON.stringify(json, null, 2),
             });
           }
 
-          try {
-            await ensureDirsExist(dirs);
-          } catch (e) {
-            console.error("Failed to ensure dirs exist:", e);
-            return;
-          }
-
-          for (const op of writeOperations) {
+          if (writeOperations.length > 0) {
             try {
-              await writeTextFile(op.path, op.content);
+              await ensureDirsExist(dirs);
             } catch (e) {
-              console.error(`Failed to write ${op.path}:`, e);
+              console.error("Failed to ensure dirs exist:", e);
+              return;
+            }
+
+            for (const op of writeOperations) {
+              try {
+                await writeTextFile(op.path, op.content);
+              } catch (e) {
+                console.error(`Failed to write ${op.path}:`, e);
+              }
             }
           }
+
+          await cleanupOrphanChatDirs(dataDir, validChatGroupIds);
         };
 
   return createCustomPersister(
     store,
     loadFn,
     saveFn,
-    (listener) => setInterval(listener, 1000),
-    (interval) => clearInterval(interval),
+    () => null,
+    () => {},
     (error) => console.error("[ChatPersister]:", error),
     StoreOrMergeableStore,
   );

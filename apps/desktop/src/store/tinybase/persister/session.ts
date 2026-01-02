@@ -1,7 +1,9 @@
+import { sep } from "@tauri-apps/api/path";
 import {
   exists,
   readDir,
   readTextFile,
+  remove,
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
@@ -23,6 +25,7 @@ import {
   ensureDirsExist,
   getDataDir,
   getSessionDir,
+  isUUID,
   type PersisterMode,
 } from "./utils";
 
@@ -52,7 +55,10 @@ async function loadSessionMetaRecursively(
   result: LoadedData,
   now: string,
 ): Promise<void> {
-  const fullPath = currentPath ? `${sessionsDir}/${currentPath}` : sessionsDir;
+  const s = sep();
+  const fullPath = currentPath
+    ? [sessionsDir, currentPath].join(s)
+    : sessionsDir;
 
   let entries: { name: string; isDirectory: boolean }[];
   try {
@@ -64,8 +70,10 @@ async function loadSessionMetaRecursively(
   for (const entry of entries) {
     if (!entry.isDirectory) continue;
 
-    const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
-    const metaPath = `${sessionsDir}/${entryPath}/_meta.json`;
+    const entryPath = currentPath
+      ? [currentPath, entry.name].join(s)
+      : entry.name;
+    const metaPath = [sessionsDir, entryPath, "_meta.json"].join(s);
     const hasMetaJson = await exists(metaPath);
 
     if (hasMetaJson) {
@@ -130,12 +138,73 @@ async function loadAllSessionMeta(dataDir: string): Promise<LoadedData> {
     mapping_tag_session: {},
   };
 
-  const sessionsDir = `${dataDir}/sessions`;
+  const sessionsDir = [dataDir, "sessions"].join(sep());
   const now = new Date().toISOString();
 
   await loadSessionMetaRecursively(sessionsDir, "", result, now);
 
   return result;
+}
+
+async function collectSessionDirsRecursively(
+  sessionsDir: string,
+  currentPath: string,
+  result: Array<{ path: string; name: string }>,
+): Promise<void> {
+  const s = sep();
+  const fullPath = currentPath
+    ? [sessionsDir, currentPath].join(s)
+    : sessionsDir;
+
+  let entries: { name: string; isDirectory: boolean }[];
+  try {
+    entries = await readDir(fullPath);
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory) continue;
+
+    const entryPath = currentPath
+      ? [currentPath, entry.name].join(s)
+      : entry.name;
+    const metaPath = [sessionsDir, entryPath, "_meta.json"].join(s);
+    const hasMetaJson = await exists(metaPath);
+
+    if (hasMetaJson) {
+      result.push({ path: [sessionsDir, entryPath].join(s), name: entry.name });
+    } else {
+      await collectSessionDirsRecursively(sessionsDir, entryPath, result);
+    }
+  }
+}
+
+async function cleanupOrphanSessionDirs(
+  dataDir: string,
+  validSessionIds: Set<string>,
+): Promise<void> {
+  const sessionsDir = [dataDir, "sessions"].join(sep());
+  const existingDirs: Array<{ path: string; name: string }> = [];
+
+  try {
+    await collectSessionDirsRecursively(sessionsDir, "", existingDirs);
+  } catch {
+    return;
+  }
+
+  for (const dir of existingDirs) {
+    if (isUUID(dir.name) && !validSessionIds.has(dir.name)) {
+      try {
+        await remove(dir.path, { recursive: true });
+      } catch (e) {
+        console.error(
+          `[SessionPersister] Failed to remove orphan dir ${dir.path}:`,
+          e,
+        );
+      }
+    }
+  }
 }
 
 export function collectSessionMeta<Schemas extends OptionalSchemas>(
@@ -230,10 +299,6 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
             const dataDir = await getDataDir();
             const sessionMetas = collectSessionMeta(store);
 
-            if (sessionMetas.size === 0) {
-              return;
-            }
-
             const dirs = new Set<string>();
             const writeOperations: Array<{ path: string; content: string }> =
               [];
@@ -247,16 +312,23 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
               dirs.add(sessionDir);
 
               writeOperations.push({
-                path: `${sessionDir}/_meta.json`,
+                path: [sessionDir, "_meta.json"].join(sep()),
                 content: JSON.stringify(meta, null, 2),
               });
             }
 
-            await ensureDirsExist(dirs);
+            if (writeOperations.length > 0) {
+              await ensureDirsExist(dirs);
 
-            for (const op of writeOperations) {
-              await writeTextFile(op.path, op.content);
+              for (const op of writeOperations) {
+                await writeTextFile(op.path, op.content);
+              }
             }
+
+            await cleanupOrphanSessionDirs(
+              dataDir,
+              new Set(sessionMetas.keys()),
+            );
           } catch (error) {
             console.error("[SessionPersister] save error:", error);
           }
@@ -266,8 +338,8 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
     store,
     loadFn,
     saveFn,
-    (listener) => setInterval(listener, 1000),
-    (handle) => clearInterval(handle),
+    () => null,
+    () => {},
     (error) => console.error("[SessionPersister]:", error),
     StoreOrMergeableStore,
   );

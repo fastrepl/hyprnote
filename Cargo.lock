@@ -18617,6 +18617,7 @@ dependencies = [
  "tauri-plugin-folder",
  "tauri-plugin-path2",
  "tauri-specta",
+ "tempfile",
  "thiserror 2.0.17",
  "tokio",
  "tracing",

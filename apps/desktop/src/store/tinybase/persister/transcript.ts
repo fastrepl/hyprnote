@@ -1,3 +1,4 @@
+import { sep } from "@tauri-apps/api/path";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
@@ -106,7 +107,7 @@ export function createTranscriptPersister<Schemas extends OptionalSchemas>(
 
             const json: TranscriptJson = { transcripts };
             writeOperations.push({
-              path: `${sessionDir}/_transcript.json`,
+              path: [sessionDir, "_transcript.json"].join(sep()),
               content: JSON.stringify(json, null, 2),
             });
           }
@@ -131,8 +132,8 @@ export function createTranscriptPersister<Schemas extends OptionalSchemas>(
     store,
     loadFn,
     saveFn,
-    (listener) => setInterval(listener, 1000),
-    (interval) => clearInterval(interval),
+    () => null,
+    () => {},
     (error) => console.error("[TranscriptPersister]:", error),
     StoreOrMergeableStore,
   );

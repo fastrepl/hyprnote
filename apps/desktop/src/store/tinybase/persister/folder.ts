@@ -66,8 +66,8 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
     store,
     loadFn,
     saveFn,
-    (listener) => setInterval(listener, 5000),
-    (handle) => clearInterval(handle),
+    () => null,
+    () => {},
     (error) => console.error("[FolderPersister]:", error),
     StoreOrMergeableStore,
   );

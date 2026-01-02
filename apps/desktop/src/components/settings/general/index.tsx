@@ -93,7 +93,9 @@ export function SettingsGeneral({
 
   return (
     <div className="flex flex-col gap-8">
-      <AccountSettings />
+      <div className="pt-3">
+        <AccountSettings />
+      </div>
 
       <div ref={appRef}>
         <form.Field name="autostart">

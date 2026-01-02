@@ -7,17 +7,17 @@ fn main() {
     common::run_app(|| {
         std::thread::sleep(Duration::from_millis(200));
 
-        setup_notification_accept_handler(|id| {
-            println!("accept: {}", id);
+        setup_expanded_accept_handler(|id| {
+            println!("expanded_accept: {}", id);
         });
-        setup_notification_confirm_handler(|id| {
-            println!("confirm: {}", id);
+        setup_collapsed_confirm_handler(|id| {
+            println!("collapsed_confirm: {}", id);
         });
-        setup_notification_dismiss_handler(|id| {
+        setup_dismiss_handler(|id| {
             println!("dismiss: {}", id);
         });
-        setup_notification_timeout_handler(|id| {
-            println!("timeout: {}", id);
+        setup_collapsed_timeout_handler(|id| {
+            println!("collapsed_timeout: {}", id);
         });
 
         let participants = vec![

@@ -1,110 +1,129 @@
 import Cocoa
 
 class NotificationInstance {
-    let payload: NotificationPayload
-    let panel: NSPanel
-    let clickableView: ClickableView
-    private var dismissTimer: DispatchWorkItem?
+  let payload: NotificationPayload
+  let panel: NSPanel
+  let clickableView: ClickableView
+  private var dismissTimer: DispatchWorkItem?
+  private var timeoutSeconds: Double = 0
 
-    var key: String { payload.key }
+  var key: String { payload.key }
 
-    var isExpanded: Bool = false
-    var isAnimating: Bool = false
-    var compactContentView: NSView?
-    var expandedContentView: NSView?
+  var isExpanded: Bool = false
+  var isAnimating: Bool = false
+  var compactContentView: NSView?
+  var expandedContentView: NSView?
 
-    var countdownTimer: Timer?
-    var meetingStartTime: Date?
-    weak var timerLabel: NSTextField?
+  var countdownTimer: Timer?
+  var meetingStartTime: Date?
+  weak var timerLabel: NSTextField?
 
-    init(payload: NotificationPayload, panel: NSPanel, clickableView: ClickableView) {
-        self.payload = payload
-        self.panel = panel
-        self.clickableView = clickableView
+  init(payload: NotificationPayload, panel: NSPanel, clickableView: ClickableView) {
+    self.payload = payload
+    self.panel = panel
+    self.clickableView = clickableView
 
-        if let startTime = payload.startTime, startTime > 0 {
-            self.meetingStartTime = Date(timeIntervalSince1970: TimeInterval(startTime))
-        }
+    if let startTime = payload.startTime, startTime > 0 {
+      self.meetingStartTime = Date(timeIntervalSince1970: TimeInterval(startTime))
     }
+  }
 
-    func toggleExpansion() {
-        guard !isAnimating else { return }
-        isAnimating = true
-        isExpanded.toggle()
-        NotificationManager.shared.animateExpansion(notification: self, isExpanded: isExpanded)
+  func toggleExpansion() {
+    guard !isAnimating else { return }
+    isAnimating = true
+    isExpanded.toggle()
+    NotificationManager.shared.animateExpansion(notification: self, isExpanded: isExpanded)
+  }
+
+  func startCountdown(label: NSTextField) {
+    timerLabel = label
+    updateCountdown()
+
+    countdownTimer?.invalidate()
+    countdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+      self?.updateCountdown()
     }
+  }
 
-    func startCountdown(label: NSTextField) {
-        timerLabel = label
-        updateCountdown()
+  func stopCountdown() {
+    countdownTimer?.invalidate()
+    countdownTimer = nil
+    timerLabel = nil
+  }
 
-        countdownTimer?.invalidate()
-        countdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.updateCountdown()
-        }
-    }
+  private func updateCountdown() {
+    guard let startTime = meetingStartTime, let label = timerLabel else { return }
+    let remaining = startTime.timeIntervalSinceNow
 
-    func stopCountdown() {
-        countdownTimer?.invalidate()
-        countdownTimer = nil
-        timerLabel = nil
-    }
+    if remaining <= 0 {
+      label.stringValue = "Started"
+      countdownTimer?.invalidate()
+      countdownTimer = nil
 
-    private func updateCountdown() {
-        guard let startTime = meetingStartTime, let label = timerLabel else { return }
-        let remaining = startTime.timeIntervalSinceNow
-
-        if remaining <= 0 {
-            label.stringValue = "Started"
-            countdownTimer?.invalidate()
-            countdownTimer = nil
-        } else {
-            let minutes = Int(remaining) / 60
-            let seconds = Int(remaining) % 60
-            label.stringValue = "Begins in \(minutes):\(String(format: "%02d", seconds))"
-        }
-    }
-
-    func startDismissTimer(timeoutSeconds: Double) {
-        dismissTimer?.cancel()
-        let timer = DispatchWorkItem { [weak self] in
-            self?.dismissWithTimeout()
-        }
-        dismissTimer = timer
-        DispatchQueue.main.asyncAfter(deadline: .now() + timeoutSeconds, execute: timer)
-    }
-
-    func dismiss() {
-        dismissTimer?.cancel()
-        dismissTimer = nil
-        stopCountdown()
-
-        NSAnimationContext.runAnimationGroup({ context in
-            context.duration = Timing.dismiss
-            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            self.panel.animator().alphaValue = 0
-        }) {
-            self.panel.close()
-            NotificationManager.shared.removeNotification(self)
-        }
-    }
-
-    func dismissWithUserAction() {
-        self.key.withCString { keyPtr in
-            rustOnNotificationDismiss(keyPtr)
+      if isExpanded {
+        key.withCString { keyPtr in
+          rustOnExpandedStartTimeReached(keyPtr)
         }
         dismiss()
+      }
+    } else {
+      let minutes = Int(remaining) / 60
+      let seconds = Int(remaining) % 60
+      label.stringValue = "Begins in \(minutes):\(String(format: "%02d", seconds))"
     }
+  }
 
-    func dismissWithTimeout() {
-        self.key.withCString { keyPtr in
-            rustOnNotificationTimeout(keyPtr)
-        }
-        dismiss()
+  func startDismissTimer(timeoutSeconds: Double) {
+    self.timeoutSeconds = timeoutSeconds
+    dismissTimer?.cancel()
+    let timer = DispatchWorkItem { [weak self] in
+      self?.dismissWithTimeout()
     }
+    dismissTimer = timer
+    DispatchQueue.main.asyncAfter(deadline: .now() + timeoutSeconds, execute: timer)
+  }
 
-    deinit {
-        dismissTimer?.cancel()
-        countdownTimer?.invalidate()
+  func cancelDismissTimer() {
+    dismissTimer?.cancel()
+    dismissTimer = nil
+  }
+
+  func restartDismissTimer() {
+    guard timeoutSeconds > 0 else { return }
+    startDismissTimer(timeoutSeconds: timeoutSeconds)
+  }
+
+  func dismiss() {
+    dismissTimer?.cancel()
+    dismissTimer = nil
+    stopCountdown()
+
+    NSAnimationContext.runAnimationGroup({ context in
+      context.duration = Timing.dismiss
+      context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+      self.panel.animator().alphaValue = 0
+    }) {
+      self.panel.close()
+      NotificationManager.shared.removeNotification(self)
     }
+  }
+
+  func dismissWithUserAction() {
+    self.key.withCString { keyPtr in
+      rustOnDismiss(keyPtr)
+    }
+    dismiss()
+  }
+
+  func dismissWithTimeout() {
+    self.key.withCString { keyPtr in
+      rustOnCollapsedTimeout(keyPtr)
+    }
+    dismiss()
+  }
+
+  deinit {
+    dismissTimer?.cancel()
+    countdownTimer?.invalidate()
+  }
 }

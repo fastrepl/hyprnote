@@ -271,7 +271,7 @@ function Container({
 }) {
   return (
     <section className="bg-neutral-50 p-4 rounded-lg flex flex-col gap-4">
-      <div className="flex flex-row items-center justify-between gap-4">
+      <div className="flex flex-col [@media(min-width:400px)]:flex-row [@media(min-width:400px)]:items-center [@media(min-width:400px)]:justify-between gap-4">
         <div className="flex flex-col gap-2">
           <h1 className="text-md font-semibold">{title}</h1>
           {description && (

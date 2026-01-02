@@ -111,7 +111,7 @@ export function SettingsGeneral({
         <div
           className={cn([
             "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
-            "bg-neutral-900",
+            "bg-stone-400",
             activeSection === "app" ? "opacity-100" : "opacity-0",
           ])}
         />
@@ -171,7 +171,7 @@ export function SettingsGeneral({
         <div
           className={cn([
             "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
-            "bg-neutral-900",
+            "bg-stone-400",
             activeSection === "language" ? "opacity-100" : "opacity-0",
           ])}
         />
@@ -202,7 +202,7 @@ export function SettingsGeneral({
         <div
           className={cn([
             "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
-            "bg-neutral-900",
+            "bg-stone-400",
             activeSection === "notifications" ? "opacity-100" : "opacity-0",
           ])}
         />
@@ -214,7 +214,7 @@ export function SettingsGeneral({
         <div
           className={cn([
             "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
-            "bg-neutral-900",
+            "bg-stone-400",
             activeSection === "permissions" ? "opacity-100" : "opacity-0",
           ])}
         />

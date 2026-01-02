@@ -243,7 +243,7 @@ function SettingsView() {
             <div
               className={cn([
                 "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
-                "bg-neutral-900",
+                "bg-stone-400",
                 activeSection === "lab" ? "opacity-100" : "opacity-0",
               ])}
             />

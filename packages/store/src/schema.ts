@@ -206,6 +206,39 @@ export const providerSpeakerIndexSchema = z.object({
   channel: z.number().optional(),
 });
 
+export const generalSchema = z.object({
+  user_id: z.string(),
+  autostart: z.boolean().default(false),
+  telemetry_consent: z.boolean().default(true),
+  save_recordings: z.boolean().default(true),
+  notification_event: z.boolean().default(true),
+  notification_detect: z.boolean().default(true),
+  respect_dnd: z.boolean().default(false),
+  quit_intercept: z.boolean().default(false),
+  ai_language: z.string().default("en"),
+  spoken_languages: jsonObject(z.array(z.string()).default(["en"])),
+  ignored_platforms: jsonObject(z.array(z.string()).default([])),
+  ignored_recurring_series: jsonObject(z.array(z.string()).default([])),
+  current_llm_provider: z.string().optional(),
+  current_llm_model: z.string().optional(),
+  current_stt_provider: z.string().optional(),
+  current_stt_model: z.string().optional(),
+});
+
+export const aiProviderSchema = z
+  .object({
+    type: z.enum(["stt", "llm"]),
+    base_url: z.url().min(1),
+    api_key: z.string(),
+  })
+  .refine(
+    (data) => !data.base_url.startsWith("https:") || data.api_key.length > 0,
+    {
+      message: "API key is required for HTTPS URLs",
+      path: ["api_key"],
+    },
+  );
+
 export type ProviderSpeakerIndexHint = z.infer<
   typeof providerSpeakerIndexSchema
 >;
@@ -233,6 +266,8 @@ export type Memory = z.infer<typeof memorySchema>;
 export type ChatShortcut = z.infer<typeof chatShortcutSchema>;
 export type EnhancedNote = z.infer<typeof enhancedNoteSchema>;
 export type Prompt = z.infer<typeof promptSchema>;
+export type AIProvider = z.infer<typeof aiProviderSchema>;
+export type General = z.infer<typeof generalSchema>;
 
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
 export type TranscriptStorage = ToStorageType<typeof transcriptSchema>;
@@ -251,8 +286,10 @@ export type EventStorage = ToStorageType<typeof eventSchema>;
 export type MappingSessionParticipantStorage = ToStorageType<
   typeof mappingSessionParticipantSchema
 >;
+export type AIProviderStorage = ToStorageType<typeof aiProviderSchema>;
+export type GeneralStorage = ToStorageType<typeof generalSchema>;
 
-export const externalTableSchemaForTinybase = {
+export const tableSchemaForTinybase = {
   folders: {
     user_id: { type: "string" },
     created_at: { type: "string" },
@@ -402,4 +439,32 @@ export const externalTableSchemaForTinybase = {
     title: { type: "string" },
     content: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof chatShortcutSchema>,
+  ai_providers: {
+    type: { type: "string" },
+    base_url: { type: "string" },
+    api_key: { type: "string" },
+  } as const satisfies InferTinyBaseSchema<typeof aiProviderSchema>,
+  extension_state: {
+    counter: { type: "number" },
+    last_updated: { type: "string" },
+  } as const,
 } as const satisfies TablesSchema;
+
+export const valueSchemaForTinybase = {
+  user_id: { type: "string" },
+  autostart: { type: "boolean" },
+  save_recordings: { type: "boolean" },
+  notification_event: { type: "boolean" },
+  notification_detect: { type: "boolean" },
+  respect_dnd: { type: "boolean" },
+  quit_intercept: { type: "boolean" },
+  telemetry_consent: { type: "boolean" },
+  ai_language: { type: "string" },
+  spoken_languages: { type: "string" },
+  ignored_platforms: { type: "string" },
+  ignored_recurring_series: { type: "string" },
+  current_llm_provider: { type: "string" },
+  current_llm_model: { type: "string" },
+  current_stt_provider: { type: "string" },
+  current_stt_model: { type: "string" },
+} as const satisfies InferTinyBaseSchema<typeof generalSchema>;

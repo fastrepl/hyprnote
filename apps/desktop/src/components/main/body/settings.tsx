@@ -135,11 +135,18 @@ function SettingsView() {
       ];
 
       const { scrollTop, scrollHeight, clientHeight } = container;
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5;
 
-      if (isAtBottom) {
-        setActiveSection("lab");
-        return;
+      const labEl = labRef.current;
+      if (isAtBottom && labEl) {
+        const labRect = labEl.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const labTopRelative = labRect.top - containerRect.top;
+
+        if (labTopRelative < containerRect.height / 2) {
+          setActiveSection("lab");
+          return;
+        }
       }
 
       const containerRect = container.getBoundingClientRect();

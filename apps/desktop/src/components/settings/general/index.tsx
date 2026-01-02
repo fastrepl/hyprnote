@@ -7,6 +7,7 @@ import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/store/settings";
+import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
@@ -92,6 +93,11 @@ export function SettingsGeneral({
 
   return (
     <div className="flex flex-col gap-8">
+      <div>
+        <h2 className="font-semibold mb-4">Account & Billing</h2>
+        <AccountSettings />
+      </div>
+
       <div ref={appRef}>
         <form.Field name="autostart">
           {(autostartField) => (

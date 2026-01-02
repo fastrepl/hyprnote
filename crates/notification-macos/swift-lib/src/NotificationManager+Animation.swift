@@ -57,15 +57,15 @@ extension NotificationManager {
     guard
       let effectView = notification.clickableView.subviews.first?.subviews.first
         as? NSVisualEffectView
-    else { return }
+    else {
+      notification.isAnimating = false
+      return
+    }
 
     if isExpanded {
       notification.compactContentView?.alphaValue = 1.0
 
-      let expandedView = createExpandedNotificationView(
-        title: "Discovery call - Apple <> Hyprnote",
-        notification: notification
-      )
+      let expandedView = createExpandedNotificationView(notification: notification)
       expandedView.translatesAutoresizingMaskIntoConstraints = false
       expandedView.alphaValue = 0
       effectView.addSubview(expandedView)
@@ -87,23 +87,24 @@ extension NotificationManager {
         expandedView.animator().alphaValue = 1.0
       }) {
         notification.compactContentView?.isHidden = true
+        notification.isAnimating = false
         notification.clickableView.updateTrackingAreas()
         self.repositionNotifications()
       }
     } else {
       notification.stopCountdown()
-      notification.expandedContentView?.alphaValue = 1.0
+      notification.expandedContentView?.removeFromSuperview()
+      notification.expandedContentView = nil
+      notification.compactContentView?.alphaValue = 0
       notification.compactContentView?.isHidden = false
 
       NSAnimationContext.runAnimationGroup({ context in
         context.duration = 0.25
         context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         notification.panel.animator().setFrame(newFrame, display: true)
-        notification.expandedContentView?.animator().alphaValue = 0
         notification.compactContentView?.animator().alphaValue = 1.0
       }) {
-        notification.expandedContentView?.removeFromSuperview()
-        notification.expandedContentView = nil
+        notification.isAnimating = false
         notification.clickableView.updateTrackingAreas()
         self.repositionNotifications()
       }

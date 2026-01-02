@@ -6,13 +6,7 @@ use swift_rs::{Bool, SRString, swift};
 
 pub use hypr_notification_interface::*;
 
-swift!(fn _show_notification(
-    key: &SRString,
-    title: &SRString,
-    message: &SRString,
-    timeout_seconds: f64,
-    start_time: i64
-) -> Bool);
+swift!(fn _show_notification(json_payload: &SRString) -> Bool);
 
 swift!(fn _dismiss_all_notifications() -> Bool);
 
@@ -93,20 +87,42 @@ pub unsafe extern "C" fn rust_on_notification_timeout(key_ptr: *const c_char) {
     }
 }
 
-pub fn show(notification: &hypr_notification_interface::Notification) {
-    unsafe {
-        let key = SRString::from(
-            notification
-                .key
-                .as_deref()
-                .unwrap_or(notification.title.as_str()),
-        );
-        let title = SRString::from(notification.title.as_str());
-        let message = SRString::from(notification.message.as_str());
-        let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
-        let start_time = notification.start_time.unwrap_or(0);
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NotificationPayload<'a> {
+    key: &'a str,
+    title: &'a str,
+    message: &'a str,
+    timeout_seconds: f64,
+    start_time: Option<i64>,
+    participants: Option<&'a [Participant]>,
+    event_details: Option<&'a EventDetails>,
+    action_label: Option<&'a str>,
+}
 
-        _show_notification(&key, &title, &message, timeout_seconds, start_time);
+pub fn show(notification: &hypr_notification_interface::Notification) {
+    let key = notification
+        .key
+        .as_deref()
+        .unwrap_or(notification.title.as_str());
+    let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
+
+    let payload = NotificationPayload {
+        key,
+        title: &notification.title,
+        message: &notification.message,
+        timeout_seconds,
+        start_time: notification.start_time,
+        participants: notification.participants.as_deref(),
+        event_details: notification.event_details.as_ref(),
+        action_label: notification.action_label.as_deref(),
+    };
+
+    let json = serde_json::to_string(&payload).unwrap();
+    let json_str = SRString::from(json.as_str());
+
+    unsafe {
+        _show_notification(&json_str);
     }
 }
 

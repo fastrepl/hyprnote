@@ -1,6 +1,29 @@
 import Foundation
 import SwiftRs
 
+struct Participant: Codable {
+  let name: String?
+  let email: String
+  let status: String
+}
+
+struct EventDetails: Codable {
+  let what: String
+  let timezone: String?
+  let location: String?
+}
+
+struct NotificationPayload: Codable {
+  let key: String
+  let title: String
+  let message: String
+  let timeoutSeconds: Double
+  let startTime: Int64?
+  let participants: [Participant]?
+  let eventDetails: EventDetails?
+  let actionLabel: String?
+}
+
 @_silgen_name("rust_on_notification_confirm")
 func rustOnNotificationConfirm(_ keyPtr: UnsafePointer<CChar>)
 
@@ -14,24 +37,16 @@ func rustOnNotificationDismiss(_ keyPtr: UnsafePointer<CChar>)
 func rustOnNotificationTimeout(_ keyPtr: UnsafePointer<CChar>)
 
 @_cdecl("_show_notification")
-public func _showNotification(
-  key: SRString,
-  title: SRString,
-  message: SRString,
-  timeoutSeconds: Double,
-  startTime: Int64
-) -> Bool {
-  let keyStr = key.toString()
-  let titleStr = title.toString()
-  let messageStr = message.toString()
+public func _showNotification(jsonPayload: SRString) -> Bool {
+  let jsonString = jsonPayload.toString()
 
-  NotificationManager.shared.show(
-    key: keyStr,
-    title: titleStr,
-    message: messageStr,
-    timeoutSeconds: timeoutSeconds,
-    startTime: startTime > 0 ? Date(timeIntervalSince1970: TimeInterval(startTime)) : nil
-  )
+  guard let data = jsonString.data(using: .utf8),
+    let payload = try? JSONDecoder().decode(NotificationPayload.self, from: data)
+  else {
+    return false
+  }
+
+  NotificationManager.shared.show(payload: payload)
 
   Thread.sleep(forTimeInterval: 0.1)
   return true

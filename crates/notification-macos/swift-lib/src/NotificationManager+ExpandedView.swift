@@ -1,25 +1,41 @@
 import Cocoa
 
 extension NotificationManager {
-  func createExpandedNotificationView(
-    title: String,
-    notification: NotificationInstance
-  ) -> NSView {
+  func createExpandedNotificationView(notification: NotificationInstance) -> NSView {
     let container = NSStackView()
     container.orientation = .vertical
     container.alignment = .leading
     container.distribution = .fill
     container.spacing = 12
 
+    let headerStack = NSStackView()
+    headerStack.orientation = .horizontal
+    headerStack.alignment = .centerY
+    headerStack.distribution = .fill
+    headerStack.spacing = 8
+
+    let title = notification.payload.eventDetails?.what ?? notification.payload.title
     let titleLabel = NSTextField(labelWithString: title)
     titleLabel.font = NSFont.systemFont(ofSize: 15, weight: .semibold)
     titleLabel.textColor = NSColor.labelColor
     titleLabel.lineBreakMode = .byTruncatingTail
     titleLabel.maximumNumberOfLines = 1
-    container.addArrangedSubview(titleLabel)
+    titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-    let participantsStack = createParticipantsSection()
-    container.addArrangedSubview(participantsStack)
+    let collapseButton = CollapseButton()
+    collapseButton.notification = notification
+    collapseButton.setContentHuggingPriority(.required, for: .horizontal)
+
+    headerStack.addArrangedSubview(titleLabel)
+    headerStack.addArrangedSubview(collapseButton)
+    container.addArrangedSubview(headerStack)
+    headerStack.widthAnchor.constraint(equalTo: container.widthAnchor).isActive = true
+
+    if let participants = notification.payload.participants, !participants.isEmpty {
+      let participantsStack = createParticipantsSection(participants: participants)
+      container.addArrangedSubview(participantsStack)
+    }
 
     let separator = NSBox()
     separator.boxType = .separator
@@ -27,8 +43,13 @@ extension NotificationManager {
     container.addArrangedSubview(separator)
     separator.widthAnchor.constraint(equalTo: container.widthAnchor).isActive = true
 
-    let detailsStack = createDetailsSection()
-    container.addArrangedSubview(detailsStack)
+    if let eventDetails = notification.payload.eventDetails {
+      let detailsStack = createDetailsSection(
+        eventDetails: eventDetails,
+        participants: notification.payload.participants
+      )
+      container.addArrangedSubview(detailsStack)
+    }
 
     let (actionStack, timerLabel) = createActionSection(notification: notification)
     container.addArrangedSubview(actionStack)
@@ -39,44 +60,33 @@ extension NotificationManager {
     return container
   }
 
-  func createParticipantsSection() -> NSStackView {
+  func createParticipantsSection(participants: [Participant]) -> NSStackView {
     let stack = NSStackView()
     stack.orientation = .vertical
     stack.alignment = .leading
     stack.spacing = 4
 
-    let participants: [(name: String, email: String, status: ParticipantStatus)] = [
-      ("", "sjobs@apple.com", .accepted),
-      ("John Jeong", "john@hyprnote.com", .accepted),
-      ("Yujong Lee", "yujonglee@hyprnote.com", .maybe),
-      ("Tony Stark", "tony@hyprnote.com", .declined),
-    ]
-
     for participant in participants {
-      let row = createParticipantRow(
-        name: participant.name,
-        email: participant.email,
-        status: participant.status
-      )
+      let row = createParticipantRow(participant: participant)
       stack.addArrangedSubview(row)
     }
 
     return stack
   }
 
-  func createParticipantRow(name: String, email: String, status: ParticipantStatus)
-    -> NSView
-  {
+  func createParticipantRow(participant: Participant) -> NSView {
     let row = NSStackView()
     row.orientation = .horizontal
     row.alignment = .centerY
     row.spacing = 6
 
-    let displayText = name.isEmpty ? email : "\(name) (\(email))"
+    let name = participant.name ?? ""
+    let displayText = name.isEmpty ? participant.email : "\(name) (\(participant.email))"
     let label = NSTextField(labelWithString: displayText)
     label.font = NSFont.systemFont(ofSize: 12, weight: .regular)
     label.textColor = NSColor.labelColor
 
+    let status = ParticipantStatusDisplay(from: participant.status)
     let statusIcon = NSTextField(labelWithString: status.icon)
     statusIcon.font = NSFont.systemFont(ofSize: 12)
     statusIcon.textColor = status.color
@@ -87,22 +97,34 @@ extension NotificationManager {
     return row
   }
 
-  func createDetailsSection() -> NSStackView {
+  func createDetailsSection(eventDetails: EventDetails, participants: [Participant]?)
+    -> NSStackView
+  {
     let stack = NSStackView()
     stack.orientation = .vertical
     stack.alignment = .leading
     stack.spacing = 8
 
-    let details: [(label: String, value: String)] = [
-      ("What:", "Discovery call - Apple <> Hyprnote"),
-      ("Invitee Time Zone:", "America/Cupertino"),
-      ("Who:", "John Jeong - Organizer\njohn@hyprnote.com\nSteve\nsjobs@apple.com"),
-      ("Where:", "... See more"),
-    ]
+    let whatRow = createDetailRow(label: "What:", value: eventDetails.what)
+    stack.addArrangedSubview(whatRow)
 
-    for detail in details {
-      let row = createDetailRow(label: detail.label, value: detail.value)
-      stack.addArrangedSubview(row)
+    if let timezone = eventDetails.timezone {
+      let timezoneRow = createDetailRow(label: "Invitee Time Zone:", value: timezone)
+      stack.addArrangedSubview(timezoneRow)
+    }
+
+    if let participants = participants, !participants.isEmpty {
+      let whoValue = participants.map { p in
+        let name = p.name ?? ""
+        return name.isEmpty ? p.email : "\(name)\n\(p.email)"
+      }.joined(separator: "\n")
+      let whoRow = createDetailRow(label: "Who:", value: whoValue)
+      stack.addArrangedSubview(whoRow)
+    }
+
+    if let location = eventDetails.location {
+      let whereRow = createDetailRow(label: "Where:", value: location)
+      stack.addArrangedSubview(whereRow)
     }
 
     return stack
@@ -139,7 +161,8 @@ extension NotificationManager {
     stack.spacing = 8
 
     let actionButton = ActionButton()
-    actionButton.title = "  Join Zoom & Start listening"
+    let actionLabel = notification.payload.actionLabel ?? "Accept"
+    actionButton.title = "  \(actionLabel)"
     actionButton.notification = notification
     actionButton.font = NSFont.systemFont(ofSize: 13, weight: .medium)
     actionButton.layer?.cornerRadius = 10

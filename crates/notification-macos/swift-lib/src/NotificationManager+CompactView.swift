@@ -1,11 +1,7 @@
 import Cocoa
 
 extension NotificationManager {
-  func createNotificationView(
-    title: String,
-    body: String,
-    notification: NotificationInstance
-  ) -> NSView {
+  func createNotificationView(notification: NotificationInstance) -> NSView {
     let container = NSStackView()
     container.orientation = .horizontal
     container.alignment = .centerY
@@ -37,7 +33,7 @@ extension NotificationManager {
     textStack.setContentHuggingPriority(.defaultLow, for: .horizontal)
     textStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-    let titleLabel = NSTextField(labelWithString: title)
+    let titleLabel = NSTextField(labelWithString: notification.payload.title)
     titleLabel.font = NSFont.systemFont(ofSize: 14, weight: .semibold)
     titleLabel.textColor = NSColor.labelColor
     titleLabel.lineBreakMode = .byTruncatingTail
@@ -48,7 +44,7 @@ extension NotificationManager {
 
     titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-    let bodyLabel = NSTextField(labelWithString: body)
+    let bodyLabel = NSTextField(labelWithString: notification.payload.message)
     bodyLabel.font = NSFont.systemFont(ofSize: 11, weight: .regular)
     bodyLabel.textColor = NSColor.secondaryLabelColor
     bodyLabel.lineBreakMode = .byTruncatingTail

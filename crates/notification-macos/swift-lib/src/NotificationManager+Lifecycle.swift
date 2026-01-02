@@ -1,9 +1,7 @@
 import Cocoa
 
 extension NotificationManager {
-  func createAndShowNotification(
-    key: String, title: String, message: String, timeoutSeconds: Double, startTime: Date?
-  ) {
+  func createAndShowNotification(payload: NotificationPayload) {
     guard let screen = getTargetScreen() else { return }
 
     manageNotificationLimit()
@@ -14,36 +12,29 @@ extension NotificationManager {
     let container = createContainer(clickableView: clickableView)
     let effectView = createEffectView(container: container)
 
-    let notification = NotificationInstance(key: key, panel: panel, clickableView: clickableView)
-    notification.meetingStartTime = startTime
+    let notification = NotificationInstance(
+      payload: payload, panel: panel, clickableView: clickableView)
     clickableView.notification = notification
 
     clickableView.addSubview(container)
     panel.contentView = clickableView
 
-    setupContent(
-      effectView: effectView, container: container, title: title, message: message,
-      notification: notification)
+    setupContent(effectView: effectView, container: container, notification: notification)
 
     activeNotifications[notification.key] = notification
     hoverStates[notification.key] = false
 
-    showWithAnimation(notification: notification, screen: screen, timeoutSeconds: timeoutSeconds)
+    showWithAnimation(
+      notification: notification, screen: screen, timeoutSeconds: payload.timeoutSeconds)
     ensureGlobalMouseMonitor()
   }
 
   func setupContent(
     effectView: NSVisualEffectView,
     container: NSView,
-    title: String,
-    message: String,
     notification: NotificationInstance
   ) {
-    let contentView = createNotificationView(
-      title: title,
-      body: message,
-      notification: notification
-    )
+    let contentView = createNotificationView(notification: notification)
     contentView.translatesAutoresizingMaskIntoConstraints = false
     effectView.addSubview(contentView)
 

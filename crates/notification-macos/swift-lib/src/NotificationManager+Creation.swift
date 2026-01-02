@@ -1,5 +1,44 @@
 import Cocoa
 
+class NotificationBackgroundView: NSView {
+  let bgLayer = CALayer()
+  let borderLayer = CALayer()
+
+  override init(frame frameRect: NSRect) {
+    super.init(frame: frameRect)
+    setup()
+  }
+
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
+  }
+
+  private func setup() {
+    wantsLayer = true
+    layer?.cornerRadius = 14
+    layer?.masksToBounds = true
+
+    bgLayer.cornerRadius = 14
+    bgLayer.backgroundColor = NSColor(calibratedWhite: 0.92, alpha: 0.85).cgColor
+    layer?.addSublayer(bgLayer)
+
+    borderLayer.cornerRadius = 14
+    borderLayer.borderWidth = 2.0
+    borderLayer.borderColor = NSColor.white.cgColor
+    layer?.addSublayer(borderLayer)
+  }
+
+  override func layout() {
+    super.layout()
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    bgLayer.frame = bounds
+    borderLayer.frame = bounds
+    CATransaction.commit()
+  }
+}
+
 extension NotificationManager {
   func createPanel(screen: NSScreen? = nil, yPosition: CGFloat) -> NSPanel {
     let targetScreen = screen ?? getTargetScreen() ?? NSScreen.main!
@@ -51,7 +90,7 @@ extension NotificationManager {
       )
     )
     container.wantsLayer = true
-    container.layer?.cornerRadius = 11
+    container.layer?.cornerRadius = 14
     container.layer?.masksToBounds = false
     container.autoresizingMask = [.width, .height]
     container.layer?.shadowColor = NSColor.black.cgColor
@@ -67,16 +106,13 @@ extension NotificationManager {
     effectView.state = .active
     effectView.blendingMode = .behindWindow
     effectView.wantsLayer = true
-    effectView.layer?.cornerRadius = 11
+    effectView.layer?.cornerRadius = 14
     effectView.layer?.masksToBounds = true
     effectView.autoresizingMask = [.width, .height]
 
-    let borderLayer = CALayer()
-    borderLayer.frame = effectView.bounds
-    borderLayer.cornerRadius = 11
-    borderLayer.borderWidth = 0.5
-    borderLayer.borderColor = NSColor.white.withAlphaComponent(0.10).cgColor
-    effectView.layer?.addSublayer(borderLayer)
+    let backgroundView = NotificationBackgroundView(frame: effectView.bounds)
+    backgroundView.autoresizingMask = [.width, .height]
+    effectView.addSubview(backgroundView, positioned: .below, relativeTo: nil)
 
     container.addSubview(effectView)
     return effectView

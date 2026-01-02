@@ -1,9 +1,18 @@
 import Cocoa
 
-enum ParticipantStatus {
+enum ParticipantStatusDisplay {
   case accepted
   case maybe
   case declined
+
+  init(from string: String) {
+    switch string.lowercased() {
+    case "accepted": self = .accepted
+    case "maybe": self = .maybe
+    case "declined": self = .declined
+    default: self = .accepted
+    }
+  }
 
   var icon: String {
     switch self {

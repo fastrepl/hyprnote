@@ -87,8 +87,11 @@ class CloseButton: NSButton {
   }
 }
 
-class ActionButton: NSButton {
+class NotificationButton: NSButton {
   weak var notification: NotificationInstance?
+
+  private static let normalBg = NSColor(calibratedWhite: 0.95, alpha: 0.9).cgColor
+  private static let pressedBg = NSColor(calibratedWhite: 0.85, alpha: 0.9).cgColor
 
   override init(frame frameRect: NSRect) {
     super.init(frame: frameRect)
@@ -114,7 +117,7 @@ class ActionButton: NSButton {
     }
 
     layer?.cornerRadius = 8
-    layer?.backgroundColor = NSColor(calibratedWhite: 0.95, alpha: 0.9).cgColor
+    layer?.backgroundColor = Self.normalBg
     layer?.borderColor = NSColor(calibratedWhite: 0.7, alpha: 0.5).cgColor
     layer?.borderWidth = 0.5
 
@@ -131,22 +134,40 @@ class ActionButton: NSButton {
     return s
   }
 
-  override func mouseDown(with event: NSEvent) {
-    layer?.backgroundColor = NSColor(calibratedWhite: 0.85, alpha: 0.9).cgColor
+  func animatePress() {
+    layer?.backgroundColor = Self.pressedBg
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-      self.layer?.backgroundColor = NSColor(calibratedWhite: 0.95, alpha: 0.9).cgColor
+      self.layer?.backgroundColor = Self.normalBg
     }
-    if let notification = notification {
-      notification.key.withCString { keyPtr in
-        rustOnNotificationAccept(keyPtr)
-      }
-      notification.dismiss()
-    }
+  }
+
+  func performAction() {}
+
+  override func mouseDown(with event: NSEvent) {
+    animatePress()
+    performAction()
   }
 }
 
-class DetailsButton: NSButton {
+class ActionButton: NotificationButton {
+  override func performAction() {
+    guard let notification = notification else { return }
+    notification.key.withCString { keyPtr in
+      rustOnNotificationAccept(keyPtr)
+    }
+    notification.dismiss()
+  }
+}
+
+class DetailsButton: NotificationButton {
+  override func performAction() {
+    notification?.toggleExpansion()
+  }
+}
+
+class CollapseButton: NSButton {
   weak var notification: NotificationInstance?
+  var trackingArea: NSTrackingArea?
 
   override init(frame frameRect: NSRect) {
     super.init(frame: frameRect)
@@ -161,39 +182,50 @@ class DetailsButton: NSButton {
   private func setup() {
     wantsLayer = true
     isBordered = false
-    bezelStyle = .rounded
-    controlSize = .small
-    font = NSFont.systemFont(ofSize: 12, weight: .medium)
-    focusRingType = .none
-
-    contentTintColor = NSColor(calibratedWhite: 0.1, alpha: 1.0)
-    if #available(macOS 11.0, *) {
-      bezelColor = NSColor(calibratedWhite: 0.9, alpha: 1.0)
-    }
-
-    layer?.cornerRadius = 8
-    layer?.backgroundColor = NSColor(calibratedWhite: 0.95, alpha: 0.9).cgColor
-    layer?.borderColor = NSColor(calibratedWhite: 0.7, alpha: 0.5).cgColor
-    layer?.borderWidth = 0.5
-
-    layer?.shadowColor = NSColor(calibratedWhite: 0.0, alpha: 0.5).cgColor
-    layer?.shadowOpacity = 0.2
-    layer?.shadowRadius = 2
-    layer?.shadowOffset = CGSize(width: 0, height: 1)
+    bezelStyle = .regularSquare
+    imagePosition = .noImage
+    title = "Show less"
+    font = NSFont.systemFont(ofSize: 11, weight: .regular)
+    contentTintColor = NSColor.secondaryLabelColor
+    layer?.backgroundColor = NSColor.clear.cgColor
   }
 
   override var intrinsicContentSize: NSSize {
     var s = super.intrinsicContentSize
-    s.width += 12
-    s.height = max(24, s.height + 2)
+    s.height = max(16, s.height)
     return s
   }
 
+  override func updateTrackingAreas() {
+    super.updateTrackingAreas()
+    if let area = trackingArea { removeTrackingArea(area) }
+    let area = NSTrackingArea(
+      rect: bounds,
+      options: [.activeAlways, .mouseEnteredAndExited, .inVisibleRect],
+      owner: self,
+      userInfo: nil
+    )
+    addTrackingArea(area)
+    trackingArea = area
+  }
+
   override func mouseDown(with event: NSEvent) {
-    layer?.backgroundColor = NSColor(calibratedWhite: 0.85, alpha: 0.9).cgColor
+    contentTintColor = NSColor.tertiaryLabelColor
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-      self.layer?.backgroundColor = NSColor(calibratedWhite: 0.95, alpha: 0.9).cgColor
+      self.contentTintColor = NSColor.secondaryLabelColor
     }
     notification?.toggleExpansion()
+  }
+
+  override func mouseEntered(with event: NSEvent) {
+    super.mouseEntered(with: event)
+    NSCursor.pointingHand.push()
+    contentTintColor = NSColor.labelColor
+  }
+
+  override func mouseExited(with event: NSEvent) {
+    super.mouseExited(with: event)
+    NSCursor.pop()
+    contentTintColor = NSColor.secondaryLabelColor
   }
 }

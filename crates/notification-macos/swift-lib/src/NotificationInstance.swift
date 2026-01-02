@@ -1,12 +1,15 @@
 import Cocoa
 
 class NotificationInstance {
-  let key: String
+  let payload: NotificationPayload
   let panel: NSPanel
   let clickableView: ClickableView
   private var dismissTimer: DispatchWorkItem?
 
+  var key: String { payload.key }
+
   var isExpanded: Bool = false
+  var isAnimating: Bool = false
   var compactContentView: NSView?
   var expandedContentView: NSView?
 
@@ -14,13 +17,19 @@ class NotificationInstance {
   var meetingStartTime: Date?
   weak var timerLabel: NSTextField?
 
-  init(key: String, panel: NSPanel, clickableView: ClickableView) {
-    self.key = key
+  init(payload: NotificationPayload, panel: NSPanel, clickableView: ClickableView) {
+    self.payload = payload
     self.panel = panel
     self.clickableView = clickableView
+
+    if let startTime = payload.startTime, startTime > 0 {
+      self.meetingStartTime = Date(timeIntervalSince1970: TimeInterval(startTime))
+    }
   }
 
   func toggleExpansion() {
+    guard !isAnimating else { return }
+    isAnimating = true
     isExpanded.toggle()
     NotificationManager.shared.animateExpansion(notification: self, isExpanded: isExpanded)
   }

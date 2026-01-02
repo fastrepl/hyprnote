@@ -16,7 +16,7 @@ class NotificationManager {
   var displayChangeObserver: Any?
 
   struct Config {
-    static let notificationWidth: CGFloat = 360
+    static let notificationWidth: CGFloat = 344
     static let notificationHeight: CGFloat = 64
     static let expandedNotificationHeight: CGFloat = 380
     static let rightMargin: CGFloat = 15
@@ -25,17 +25,11 @@ class NotificationManager {
     static let buttonOverhang: CGFloat = 8
   }
 
-  func show(key: String, title: String, message: String, timeoutSeconds: Double, startTime: Date?) {
+  func show(payload: NotificationPayload) {
     DispatchQueue.main.async { [weak self] in
       guard let self else { return }
       self.setupApplicationIfNeeded()
-      self.createAndShowNotification(
-        key: key,
-        title: title,
-        message: message,
-        timeoutSeconds: timeoutSeconds,
-        startTime: startTime
-      )
+      self.createAndShowNotification(payload: payload)
     }
   }
 

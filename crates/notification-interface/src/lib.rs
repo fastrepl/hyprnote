@@ -6,6 +6,30 @@ pub enum NotificationEvent {
     Timeout,
 }
 
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize, specta::Type,
+)]
+pub enum ParticipantStatus {
+    #[default]
+    Accepted,
+    Maybe,
+    Declined,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct Participant {
+    pub name: Option<String>,
+    pub email: String,
+    pub status: ParticipantStatus,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct EventDetails {
+    pub what: String,
+    pub timezone: Option<String>,
+    pub location: Option<String>,
+}
+
 #[derive(Debug, Clone)]
 pub struct NotificationContext {
     pub key: String,
@@ -20,6 +44,9 @@ pub struct Notification {
     pub timeout: Option<std::time::Duration>,
     pub event_id: Option<String>,
     pub start_time: Option<i64>,
+    pub participants: Option<Vec<Participant>>,
+    pub event_details: Option<EventDetails>,
+    pub action_label: Option<String>,
 }
 
 impl Notification {
@@ -36,6 +63,9 @@ pub struct NotificationBuilder {
     timeout: Option<std::time::Duration>,
     event_id: Option<String>,
     start_time: Option<i64>,
+    participants: Option<Vec<Participant>>,
+    event_details: Option<EventDetails>,
+    action_label: Option<String>,
 }
 
 impl NotificationBuilder {
@@ -69,6 +99,21 @@ impl NotificationBuilder {
         self
     }
 
+    pub fn participants(mut self, participants: Vec<Participant>) -> Self {
+        self.participants = Some(participants);
+        self
+    }
+
+    pub fn event_details(mut self, event_details: EventDetails) -> Self {
+        self.event_details = Some(event_details);
+        self
+    }
+
+    pub fn action_label(mut self, action_label: impl Into<String>) -> Self {
+        self.action_label = Some(action_label.into());
+        self
+    }
+
     pub fn build(self) -> Notification {
         Notification {
             key: self.key,
@@ -77,6 +122,9 @@ impl NotificationBuilder {
             timeout: self.timeout,
             event_id: self.event_id,
             start_time: self.start_time,
+            participants: self.participants,
+            event_details: self.event_details,
+            action_label: self.action_label,
         }
     }
 }

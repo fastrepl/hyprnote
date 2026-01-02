@@ -238,7 +238,7 @@ function SettingsView() {
             permissionsRef={permissionsRef}
           />
 
-          <div ref={labRef} className="mt-8">
+          <div ref={labRef} className="mt-8 pb-[50vh]">
             <h2 className="font-semibold mb-4">Lab</h2>
             <SettingsLab />
           </div>

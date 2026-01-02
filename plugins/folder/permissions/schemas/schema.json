@@ -295,6 +295,42 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the create_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-create-folder",
+          "markdownDescription": "Enables the create_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-create-folder",
+          "markdownDescription": "Denies the create_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-delete-folder",
+          "markdownDescription": "Enables the delete_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-delete-folder",
+          "markdownDescription": "Denies the delete_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the move_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-move-session",
+          "markdownDescription": "Enables the move_session command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the move_session command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-move-session",
+          "markdownDescription": "Denies the move_session command without any pre-configured scope."
+        },
+        {
           "description": "Enables the ping command without any pre-configured scope.",
           "type": "string",
           "const": "allow-ping",
@@ -307,10 +343,22 @@
           "markdownDescription": "Denies the ping command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",
+          "description": "Enables the rename_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-rename-folder",
+          "markdownDescription": "Enables the rename_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the rename_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-rename-folder",
+          "markdownDescription": "Denies the rename_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`"
         }
       ]
     }

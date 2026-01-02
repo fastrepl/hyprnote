@@ -95,7 +95,9 @@ export function createTranscriptPersister<Schemas extends OptionalSchemas>(
           const writeOperations: Array<{ path: string; content: string }> = [];
 
           for (const [sessionId, transcripts] of transcriptsBySession) {
-            const sessionDir = getSessionDir(dataDir, sessionId);
+            const session = tables?.sessions?.[sessionId];
+            const folderPath = session?.folder_id ?? "";
+            const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
             dirs.add(sessionDir);
 
             const json: TranscriptJson = { transcripts };

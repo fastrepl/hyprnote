@@ -12,13 +12,17 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }
+tempfile = "3"
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-path2 = { path = "../path2" }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
 specta = { workspace = true }
 
 thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }

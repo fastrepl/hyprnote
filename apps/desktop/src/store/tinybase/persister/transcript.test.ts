@@ -100,7 +100,7 @@ describe("createTranscriptPersister", () => {
 
       expect(writeTextFile).toHaveBeenCalledTimes(1);
       expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/sessions/session-1/_transcript.json",
+        "/mock/data/dir/hyprnote/sessions/_default/session-1/_transcript.json",
         expect.any(String),
       );
 
@@ -179,10 +179,10 @@ describe("createTranscriptPersister", () => {
 
       const paths = vi.mocked(writeTextFile).mock.calls.map((call) => call[0]);
       expect(paths).toContain(
-        "/mock/data/dir/hyprnote/sessions/session-1/_transcript.json",
+        "/mock/data/dir/hyprnote/sessions/_default/session-1/_transcript.json",
       );
       expect(paths).toContain(
-        "/mock/data/dir/hyprnote/sessions/session-2/_transcript.json",
+        "/mock/data/dir/hyprnote/sessions/_default/session-2/_transcript.json",
       );
     });
 
@@ -202,7 +202,7 @@ describe("createTranscriptPersister", () => {
       await persister.save();
 
       expect(mkdir).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/sessions/session-1",
+        "/mock/data/dir/hyprnote/sessions/_default/session-1",
         { recursive: true },
       );
     });

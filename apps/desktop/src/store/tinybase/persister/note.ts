@@ -127,7 +127,13 @@ function collectEnhancedNoteBatchItems<Schemas extends OptionalSchemas>(
       handleSyncToSession(enhancedNote.session_id, enhancedNote.content);
     }
 
-    const sessionDir = getSessionDir(dataDir, enhancedNote.session_id);
+    const session = tables?.sessions?.[enhancedNote.session_id];
+    const folderPath = session?.folder_id ?? "";
+    const sessionDir = getSessionDir(
+      dataDir,
+      enhancedNote.session_id,
+      folderPath,
+    );
     dirs.add(sessionDir);
     items.push([parsed, `${sessionDir}/${filename}`]);
   }
@@ -152,7 +158,8 @@ function collectSessionBatchItems(
       continue;
     }
 
-    const sessionDir = getSessionDir(dataDir, session.id);
+    const folderPath = session.folder_id ?? "";
+    const sessionDir = getSessionDir(dataDir, session.id, folderPath);
     dirs.add(sessionDir);
     items.push([parsed, `${sessionDir}/_memo.md`]);
   }

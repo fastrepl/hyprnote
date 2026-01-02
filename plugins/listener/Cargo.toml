@@ -30,6 +30,7 @@ hypr-language = { workspace = true }
 hypr-llm = { workspace = true }
 hypr-vad-ext = { workspace = true }
 hypr-vad2 = { workspace = true }
+tauri-plugin-folder = { workspace = true }
 
 owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }

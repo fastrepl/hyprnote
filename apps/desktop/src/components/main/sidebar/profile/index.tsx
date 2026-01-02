@@ -2,10 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import {
   CalendarIcon,
   ChevronUpIcon,
+  FileTextIcon,
   FolderOpenIcon,
+  MessageSquareIcon,
   SettingsIcon,
   SparklesIcon,
   UsersIcon,
+  ZapIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -123,6 +126,41 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
+  const handleClickTemplates = useCallback(() => {
+    openNew({
+      type: "templates",
+      state: {
+        showHomepage: true,
+        isWebMode: false,
+        selectedMineId: null,
+        selectedWebIndex: null,
+      },
+    });
+    closeMenu();
+  }, [openNew, closeMenu]);
+
+  const handleClickShortcuts = useCallback(() => {
+    openNew({
+      type: "chat_shortcuts",
+      state: {
+        isWebMode: false,
+        selectedMineId: null,
+        selectedWebIndex: null,
+      },
+    });
+    closeMenu();
+  }, [openNew, closeMenu]);
+
+  const handleClickPrompts = useCallback(() => {
+    openNew({
+      type: "prompts",
+      state: {
+        selectedTask: null,
+      },
+    });
+    closeMenu();
+  }, [openNew, closeMenu]);
+
   // const handleClickData = useCallback(() => {
   //   openNew({ type: "data" });
   //   closeMenu();
@@ -154,14 +192,32 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       badge: <Kbd className={kbdClass}>⌘ ⇧ C</Kbd>,
     },
     {
+      icon: FileTextIcon,
+      label: "Templates",
+      onClick: handleClickTemplates,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ T</Kbd>,
+    },
+    {
+      icon: ZapIcon,
+      label: "Shortcuts",
+      onClick: handleClickShortcuts,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ S</Kbd>,
+    },
+    {
+      icon: MessageSquareIcon,
+      label: "Prompts",
+      onClick: handleClickPrompts,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ P</Kbd>,
+    },
+    {
       icon: SparklesIcon,
-      label: "AI",
+      label: "AI Settings",
       onClick: handleClickAI,
       badge: <Kbd className={kbdClass}>⌘ ⇧ A</Kbd>,
     },
     {
       icon: SettingsIcon,
-      label: "Settings",
+      label: "App Settings",
       onClick: handleClickSettings,
       badge: <Kbd className={kbdClass}>⌘ ,</Kbd>,
     },
@@ -200,8 +256,13 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
 
                       <div className="my-1 border-t border-neutral-100" />
 
-                      {menuItems.map((item) => (
-                        <MenuItem key={item.label} {...item} />
+                      {menuItems.map((item, index) => (
+                        <div key={item.label}>
+                          <MenuItem {...item} />
+                          {(index === 2 || index === 5) && (
+                            <div className="my-1 border-t border-neutral-100" />
+                          )}
+                        </div>
                       ))}
 
                       <AuthSection

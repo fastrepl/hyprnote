@@ -6,7 +6,13 @@ import {
   SettingsIcon,
   SmartphoneIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useResizeObserver } from "usehooks-ts";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -73,11 +79,7 @@ function SettingsView() {
   const labRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<SettingsSection>("app");
   const isProgrammaticScroll = useRef(false);
-  const {
-    ref: scrollFadeRef,
-    atStart,
-    atEnd,
-  } = useScrollFade<HTMLDivElement>([activeSection]);
+  const { atStart, atEnd } = useScrollFade(scrollContainerRef, [activeSection]);
 
   const scrollToSection = useCallback((section: SettingsSection) => {
     setActiveSection(section);
@@ -174,13 +176,6 @@ function SettingsView() {
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      (scrollFadeRef as React.MutableRefObject<HTMLDivElement | null>).current =
-        scrollContainerRef.current;
-    }
-  }, [scrollFadeRef]);
-
   return (
     <div className="flex flex-col flex-1 w-full overflow-hidden">
       <div className="flex gap-1 px-6 pt-6 pb-2 overflow-x-auto scrollbar-hide">
@@ -272,8 +267,10 @@ function SettingsView() {
   );
 }
 
-function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
-  const ref = useRef<T>(null);
+function useScrollFade<T extends HTMLElement>(
+  ref: RefObject<T | null>,
+  deps: unknown[] = [],
+) {
   const [state, setState] = useState({ atStart: true, atEnd: true });
 
   const update = useCallback(() => {
@@ -285,9 +282,12 @@ function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
       atStart: scrollTop <= 1,
       atEnd: scrollTop + clientHeight >= scrollHeight - 1,
     });
-  }, []);
+  }, [ref]);
 
-  useResizeObserver({ ref: ref as React.RefObject<T>, onResize: update });
+  useResizeObserver({
+    ref: ref as RefObject<T>,
+    onResize: update,
+  });
 
   useEffect(() => {
     const el = ref.current;
@@ -296,9 +296,9 @@ function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
     update();
     el.addEventListener("scroll", update);
     return () => el.removeEventListener("scroll", update);
-  }, [update, ...deps]);
+  }, [ref, update, ...deps]);
 
-  return { ref, ...state };
+  return state;
 }
 
 function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {

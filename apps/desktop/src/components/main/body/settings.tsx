@@ -124,17 +124,27 @@ function SettingsView() {
       ];
 
       const containerTop = container.getBoundingClientRect().top;
+      const containerHeight = container.clientHeight;
+      const centerPoint = containerHeight / 3;
 
-      for (let i = refs.length - 1; i >= 0; i--) {
-        const { section, ref } = refs[i];
+      let closestSection: SettingsSection | null = null;
+      let closestDistance = Infinity;
+
+      for (const { section, ref } of refs) {
         const el = ref.current;
         if (!el) continue;
 
         const top = el.getBoundingClientRect().top - containerTop;
-        if (top <= 100) {
-          setActiveSection(section);
-          break;
+        const distance = Math.abs(top - centerPoint);
+
+        if (top <= centerPoint && distance < closestDistance) {
+          closestDistance = distance;
+          closestSection = section;
         }
+      }
+
+      if (closestSection) {
+        setActiveSection(closestSection);
       }
     };
 

@@ -139,6 +139,7 @@ tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }
 tauri-plugin-detect = { path = "plugins/detect" }
 tauri-plugin-export = { path = "plugins/export" }
 tauri-plugin-extensions = { path = "plugins/extensions" }
+tauri-plugin-folder = { path = "plugins/folder" }
 tauri-plugin-hooks = { path = "plugins/hooks" }
 tauri-plugin-icon = { path = "plugins/icon" }
 tauri-plugin-importer = { path = "plugins/importer" }

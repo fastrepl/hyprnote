@@ -194,6 +194,7 @@
     "os:default",
     "detect:default",
     "export:default",
+    "folder:default",
     "permissions:default",
     "settings:default",
     "sfx:default",

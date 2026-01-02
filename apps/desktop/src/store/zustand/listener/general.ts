@@ -204,7 +204,7 @@ export const createGeneralSlice = <
             draft.live.loadingPhase = "idle";
             draft.live.sessionId = null;
             draft.live.eventUnlisteners = undefined;
-            draft.live.lastError = null;
+            draft.live.lastError = payload.error ?? null;
           }),
         );
 

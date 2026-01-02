@@ -68,6 +68,7 @@ export function RecordingIcon({ disabled }: { disabled?: boolean }) {
 
 export function useListenButtonState(sessionId: string) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const lastError = useListener((state) => state.live.lastError);
   const active = sessionMode === "active" || sessionMode === "finalizing";
   const batching = sessionMode === "running_batch";
 
@@ -83,7 +84,9 @@ export function useListenButtonState(sessionId: string) {
   const isDisabled = !sttConnection || batching || isLocalServerLoading;
 
   let warningMessage = "";
-  if (isLocalServerLoading) {
+  if (lastError) {
+    warningMessage = `Session failed: ${lastError}`;
+  } else if (isLocalServerLoading) {
     warningMessage = "Local STT server is starting up...";
   } else if (!sttConnection) {
     warningMessage = "Transcription model not available.";

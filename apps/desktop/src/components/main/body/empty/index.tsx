@@ -84,8 +84,16 @@ function EmptyView() {
           onClick={openContacts}
         />
         <div className="h-px bg-neutral-200 my-1" />
-        <ActionItem label="Settings" onClick={openSettings} />
-        <ActionItem label="AI Settings" onClick={openAiSettings} />
+        <ActionItem
+          label="Settings"
+          shortcut={["⌘", ","]}
+          onClick={openSettings}
+        />
+        <ActionItem
+          label="AI Settings"
+          shortcut={["⌘", "⇧", "A"]}
+          onClick={openAiSettings}
+        />
       </div>
     </div>
   );

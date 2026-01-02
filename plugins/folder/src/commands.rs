@@ -1,9 +1,11 @@
-use crate::FolderPluginExt;
+use crate::{FolderPluginExt, ext::ListFoldersResult};
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn ping<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
-    app.folder().ping().map_err(|e| e.to_string())
+pub(crate) async fn list_folders<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<ListFoldersResult, String> {
+    app.folder().list_folders().map_err(|e| e.to_string())
 }
 
 #[tauri::command]

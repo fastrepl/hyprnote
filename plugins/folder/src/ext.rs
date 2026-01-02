@@ -1,10 +1,27 @@
-use std::path::{Path, PathBuf};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
+use serde::{Deserialize, Serialize};
+use specta::Type;
 use tauri_plugin_path2::Path2PluginExt;
 use uuid::Uuid;
 
 pub fn is_uuid(name: &str) -> bool {
     Uuid::try_parse(name).is_ok()
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct FolderInfo {
+    pub name: String,
+    pub parent_folder_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct ListFoldersResult {
+    pub folders: HashMap<String, FolderInfo>,
+    pub session_folder_map: HashMap<String, String>,
 }
 
 pub fn find_session_dir(sessions_base: &Path, session_id: &str) -> PathBuf {
@@ -114,6 +131,72 @@ pub struct Folder<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
+fn get_parent_folder_path(path: &str) -> Option<String> {
+    let parts: Vec<&str> = path.split('/').collect();
+    if parts.len() <= 1 {
+        return None;
+    }
+    Some(parts[..parts.len() - 1].join("/"))
+}
+
+fn scan_directory_recursive(
+    sessions_dir: &Path,
+    current_path: &str,
+    result: &mut ListFoldersResult,
+) {
+    let full_path = if current_path.is_empty() {
+        sessions_dir.to_path_buf()
+    } else {
+        sessions_dir.join(current_path)
+    };
+
+    let entries = match std::fs::read_dir(&full_path) {
+        Ok(entries) => entries,
+        Err(_) => return,
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+
+        let name = match path.file_name().and_then(|n| n.to_str()) {
+            Some(name) => name.to_string(),
+            None => continue,
+        };
+
+        let entry_path = if current_path.is_empty() {
+            name.clone()
+        } else {
+            format!("{}/{}", current_path, name)
+        };
+
+        let has_memo_md = sessions_dir.join(&entry_path).join("_memo.md").exists();
+
+        if has_memo_md {
+            let folder_path = if current_path == "_default" {
+                String::new()
+            } else {
+                current_path.to_string()
+            };
+            result.session_folder_map.insert(name, folder_path);
+        } else {
+            if name != "_default" && !is_uuid(&name) {
+                result.folders.insert(
+                    entry_path.clone(),
+                    FolderInfo {
+                        name,
+                        parent_folder_id: get_parent_folder_path(&entry_path),
+                    },
+                );
+            }
+
+            scan_directory_recursive(sessions_dir, &entry_path, result);
+        }
+    }
+}
+
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Folder<'a, R, M> {
     pub fn ping(&self) -> Result<String, crate::Error> {
         Ok("pong".to_string())
@@ -127,6 +210,23 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Folder<'a, R, M> {
             .base()
             .map_err(|e| crate::Error::Path(e.to_string()))?;
         Ok(base.join("sessions"))
+    }
+
+    pub fn list_folders(&self) -> Result<ListFoldersResult, crate::Error> {
+        let sessions_dir = self.sessions_dir()?;
+
+        let mut result = ListFoldersResult {
+            folders: HashMap::new(),
+            session_folder_map: HashMap::new(),
+        };
+
+        if !sessions_dir.exists() {
+            return Ok(result);
+        }
+
+        scan_directory_recursive(&sessions_dir, "", &mut result);
+
+        Ok(result)
     }
 
     pub fn move_session(

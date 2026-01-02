@@ -6,9 +6,9 @@
 
 
 export const commands = {
-async ping() : Promise<Result<string, string>> {
+async listFolders() : Promise<Result<ListFoldersResult, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:folder|ping") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:folder|list_folders") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -58,7 +58,8 @@ async deleteFolder(folderPath: string) : Promise<Result<null, string>> {
 
 /** user-defined types **/
 
-
+export type FolderInfo = { name: string; parent_folder_id: string | null }
+export type ListFoldersResult = { folders: Partial<{ [key in string]: FolderInfo }>; session_folder_map: Partial<{ [key in string]: string }> }
 
 /** tauri-specta globals **/
 

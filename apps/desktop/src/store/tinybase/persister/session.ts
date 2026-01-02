@@ -1,4 +1,9 @@
-import { readDir, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import {
+  exists,
+  readDir,
+  readTextFile,
+  writeTextFile,
+} from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type {
   Content,
@@ -41,6 +46,82 @@ type LoadedData = {
   mapping_tag_session: Record<string, MappingTagSession>;
 };
 
+async function loadSessionMetaRecursively(
+  sessionsDir: string,
+  currentPath: string,
+  result: LoadedData,
+  now: string,
+): Promise<void> {
+  const fullPath = currentPath ? `${sessionsDir}/${currentPath}` : sessionsDir;
+
+  let entries: { name: string; isDirectory: boolean }[];
+  try {
+    entries = await readDir(fullPath);
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory) continue;
+
+    const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+    const metaPath = `${sessionsDir}/${entryPath}/_meta.json`;
+    const hasMetaJson = await exists(metaPath);
+
+    if (hasMetaJson) {
+      try {
+        const content = await readTextFile(metaPath);
+        const meta = JSON.parse(content) as SessionMetaJson;
+        const sessionId = entry.name;
+
+        result.sessions[sessionId] = {
+          user_id: meta.user_id,
+          created_at: meta.created_at,
+          title: meta.title,
+          folder_id: meta.folder_id,
+          event_id: meta.event_id,
+          raw_md: "",
+          enhanced_md: "",
+        };
+
+        for (const participant of meta.participants) {
+          result.mapping_session_participant[participant.id] = {
+            user_id: participant.user_id,
+            created_at: participant.created_at,
+            session_id: sessionId,
+            human_id: participant.human_id,
+            source: participant.source,
+          };
+        }
+
+        if (meta.tags) {
+          for (const tagName of meta.tags) {
+            if (!result.tags[tagName]) {
+              result.tags[tagName] = {
+                user_id: meta.user_id,
+                created_at: now,
+                name: tagName,
+              };
+            }
+
+            const mappingId = `${sessionId}:${tagName}`;
+            result.mapping_tag_session[mappingId] = {
+              user_id: meta.user_id,
+              created_at: now,
+              tag_id: tagName,
+              session_id: sessionId,
+            };
+          }
+        }
+      } catch {
+        continue;
+      }
+    } else {
+      await loadSessionMetaRecursively(sessionsDir, entryPath, result, now);
+    }
+  }
+}
+
 async function loadAllSessionMeta(dataDir: string): Promise<LoadedData> {
   const result: LoadedData = {
     sessions: {},
@@ -50,69 +131,9 @@ async function loadAllSessionMeta(dataDir: string): Promise<LoadedData> {
   };
 
   const sessionsDir = `${dataDir}/sessions`;
-
-  let entries: { name: string; isDirectory: boolean }[];
-  try {
-    entries = await readDir(sessionsDir);
-  } catch {
-    return result;
-  }
-
   const now = new Date().toISOString();
 
-  for (const entry of entries) {
-    if (!entry.isDirectory) continue;
-
-    const sessionId = entry.name;
-    const metaPath = `${sessionsDir}/${sessionId}/_meta.json`;
-
-    try {
-      const content = await readTextFile(metaPath);
-      const meta = JSON.parse(content) as SessionMetaJson;
-
-      result.sessions[sessionId] = {
-        user_id: meta.user_id,
-        created_at: meta.created_at,
-        title: meta.title,
-        folder_id: meta.folder_id,
-        event_id: meta.event_id,
-        raw_md: "",
-        enhanced_md: "",
-      };
-
-      for (const participant of meta.participants) {
-        result.mapping_session_participant[participant.id] = {
-          user_id: participant.user_id,
-          created_at: participant.created_at,
-          session_id: sessionId,
-          human_id: participant.human_id,
-          source: participant.source,
-        };
-      }
-
-      if (meta.tags) {
-        for (const tagName of meta.tags) {
-          if (!result.tags[tagName]) {
-            result.tags[tagName] = {
-              user_id: meta.user_id,
-              created_at: now,
-              name: tagName,
-            };
-          }
-
-          const mappingId = `${sessionId}:${tagName}`;
-          result.mapping_tag_session[mappingId] = {
-            user_id: meta.user_id,
-            created_at: now,
-            tag_id: tagName,
-            session_id: sessionId,
-          };
-        }
-      }
-    } catch {
-      continue;
-    }
-  }
+  await loadSessionMetaRecursively(sessionsDir, "", result, now);
 
   return result;
 }
@@ -218,7 +239,11 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
               [];
 
             for (const [sessionId, meta] of sessionMetas) {
-              const sessionDir = getSessionDir(dataDir, sessionId);
+              const sessionDir = getSessionDir(
+                dataDir,
+                sessionId,
+                meta.folder_id,
+              );
               dirs.add(sessionDir);
 
               writeOperations.push({

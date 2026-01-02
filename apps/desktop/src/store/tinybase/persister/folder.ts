@@ -1,102 +1,15 @@
-import { exists, readDir } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
+import { commands as folderCommands } from "@hypr/plugin-folder";
 import {
   commands as notifyCommands,
   events as notifyEvents,
 } from "@hypr/plugin-notify";
-import { commands as path2Commands } from "@hypr/plugin-path2";
-import type { FolderStorage } from "@hypr/store";
 
 import { DEFAULT_USER_ID } from "../../../utils";
 import { StoreOrMergeableStore } from "../store/shared";
-import { getParentFolderPath, type PersisterMode } from "./utils";
-
-type FoldersJson = Record<string, FolderStorage>;
-
-interface ScanResult {
-  folders: FoldersJson;
-  sessionFolderMap: Map<string, string>;
-}
-
-async function getSessionsDir(): Promise<string> {
-  const base = await path2Commands.base();
-  return `${base}/sessions`;
-}
-
-async function scanDirectoryRecursively(
-  sessionsDir: string,
-  currentPath: string = "",
-): Promise<ScanResult> {
-  const folders: FoldersJson = {};
-  const sessionFolderMap = new Map<string, string>();
-
-  const fullPath = currentPath ? `${sessionsDir}/${currentPath}` : sessionsDir;
-
-  try {
-    const entries = await readDir(fullPath);
-
-    for (const entry of entries) {
-      if (!entry.isDirectory) {
-        continue;
-      }
-
-      const entryPath = currentPath
-        ? `${currentPath}/${entry.name}`
-        : entry.name;
-
-      const hasMemoMd = await exists(`${sessionsDir}/${entryPath}/_memo.md`);
-
-      if (hasMemoMd) {
-        const folderPath = currentPath === "_default" ? "" : currentPath;
-        sessionFolderMap.set(entry.name, folderPath);
-      } else {
-        if (entry.name !== "_default") {
-          folders[entryPath] = {
-            user_id: DEFAULT_USER_ID,
-            created_at: new Date().toISOString(),
-            name: entry.name,
-            parent_folder_id: getParentFolderPath(entryPath),
-          };
-        }
-
-        const subResult = await scanDirectoryRecursively(
-          sessionsDir,
-          entryPath,
-        );
-
-        for (const [id, folder] of Object.entries(subResult.folders)) {
-          folders[id] = folder;
-        }
-        for (const [sessionId, folderPath] of subResult.sessionFolderMap) {
-          sessionFolderMap.set(sessionId, folderPath);
-        }
-      }
-    }
-  } catch (error) {
-    const errorStr = String(error);
-    if (
-      !errorStr.includes("No such file or directory") &&
-      !errorStr.includes("ENOENT") &&
-      !errorStr.includes("not found")
-    ) {
-      console.error("[FolderPersister] scan error:", error);
-    }
-  }
-
-  return { folders, sessionFolderMap };
-}
-
-export function jsonToContent<Schemas extends OptionalSchemas>(
-  data: FoldersJson,
-): Content<Schemas> {
-  return [{ folders: data }, {}] as unknown as Content<Schemas>;
-}
+import type { PersisterMode } from "./utils";
 
 export function createFolderPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
@@ -104,28 +17,43 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
 ) {
   const loadFn =
     config.mode === "save-only"
-      ? async (): Promise<Content<Schemas> | undefined> => undefined
-      : async (): Promise<Content<Schemas> | undefined> => {
+      ? async () => undefined
+      : async () => {
           try {
-            const sessionsDir = await getSessionsDir();
-            const dirExists = await exists(sessionsDir);
-
-            if (!dirExists) {
-              return jsonToContent<Schemas>({});
+            const result = await folderCommands.listFolders();
+            if (result.status === "error") {
+              console.error("[FolderPersister] list error:", result.error);
+              return undefined;
             }
 
-            const { folders, sessionFolderMap } =
-              await scanDirectoryRecursively(sessionsDir);
+            const { folders, session_folder_map } = result.data;
+            const now = new Date().toISOString();
 
-            for (const [sessionId, folderPath] of sessionFolderMap) {
-              // @ts-ignore - we're setting cells on the sessions table
-              if (store.hasRow("sessions", sessionId)) {
+            // @ts-ignore - directly update store to avoid wiping other tables
+            store.transaction(() => {
+              for (const [folderId, folder] of Object.entries(folders)) {
+                if (!folder) continue;
                 // @ts-ignore
-                store.setCell("sessions", sessionId, "folder_id", folderPath);
+                store.setRow("folders", folderId, {
+                  user_id: DEFAULT_USER_ID,
+                  created_at: now,
+                  name: folder.name,
+                  parent_folder_id: folder.parent_folder_id ?? "",
+                } as any);
               }
-            }
 
-            return jsonToContent<Schemas>(folders);
+              for (const [sessionId, folderPath] of Object.entries(
+                session_folder_map,
+              )) {
+                // @ts-ignore
+                if (store.hasRow("sessions", sessionId)) {
+                  // @ts-ignore
+                  store.setCell("sessions", sessionId, "folder_id", folderPath);
+                }
+              }
+            });
+
+            return undefined;
           } catch (error) {
             console.error("[FolderPersister] load error:", error);
             return undefined;

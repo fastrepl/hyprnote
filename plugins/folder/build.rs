@@ -1,5 +1,5 @@
 const COMMANDS: &[&str] = &[
-    "ping",
+    "list_folders",
     "move_session",
     "create_folder",
     "rename_folder",

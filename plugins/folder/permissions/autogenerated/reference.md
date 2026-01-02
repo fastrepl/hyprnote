@@ -4,7 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-ping`
+- `allow-list-folders`
 - `allow-move-session`
 - `allow-create-folder`
 - `allow-rename-folder`
@@ -74,6 +74,32 @@ Denies the delete_folder command without any pre-configured scope.
 <tr>
 <td>
 
+`folder:allow-list-folders`
+
+</td>
+<td>
+
+Enables the list_folders command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`folder:deny-list-folders`
+
+</td>
+<td>
+
+Denies the list_folders command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `folder:allow-move-session`
 
 </td>
@@ -93,32 +119,6 @@ Enables the move_session command without any pre-configured scope.
 <td>
 
 Denies the move_session command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`folder:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`folder:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
 
 </td>
 </tr>

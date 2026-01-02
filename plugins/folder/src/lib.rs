@@ -11,7 +11,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::ping::<tauri::Wry>,
+            commands::list_folders::<tauri::Wry>,
             commands::move_session::<tauri::Wry>,
             commands::create_folder::<tauri::Wry>,
             commands::rename_folder::<tauri::Wry>,

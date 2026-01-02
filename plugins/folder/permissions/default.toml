@@ -1,7 +1,7 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
-    "allow-ping",
+    "allow-list-folders",
     "allow-move-session",
     "allow-create-folder",
     "allow-rename-folder",

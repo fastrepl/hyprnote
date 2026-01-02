@@ -58,7 +58,9 @@ describe("createCalendarPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
 
-      const persister = createCalendarPersister<Schemas>(store);
+      const persister = createCalendarPersister<Schemas>(store, {
+        mode: "load-and-save",
+      });
       await persister.load();
 
       expect(readTextFile).toHaveBeenCalledWith(
@@ -74,7 +76,9 @@ describe("createCalendarPersister", () => {
         new Error("No such file or directory"),
       );
 
-      const persister = createCalendarPersister<Schemas>(store);
+      const persister = createCalendarPersister<Schemas>(store, {
+        mode: "load-and-save",
+      });
       await persister.load();
 
       expect(store.getTable("calendars")).toEqual({});

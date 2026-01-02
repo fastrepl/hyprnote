@@ -58,7 +58,9 @@ describe("createHumanPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister<Schemas>(store, {
+        mode: "load-and-save",
+      });
       await persister.load();
 
       expect(readTextFile).toHaveBeenCalledWith(
@@ -74,7 +76,9 @@ describe("createHumanPersister", () => {
         new Error("No such file or directory"),
       );
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister<Schemas>(store, {
+        mode: "load-and-save",
+      });
       await persister.load();
 
       expect(store.getTable("humans")).toEqual({});

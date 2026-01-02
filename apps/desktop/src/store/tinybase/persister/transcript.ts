@@ -86,8 +86,8 @@ export function createTranscriptPersister<Schemas extends OptionalSchemas>(
   const saveFn =
     config.mode === "load-only"
       ? async () => {}
-      : async (getContent: () => unknown) => {
-          const [tables] = getContent() as [TablesContent | undefined, unknown];
+      : async () => {
+          const tables = store.getTables() as TablesContent | undefined;
           const dataDir = await getDataDir();
 
           const transcriptsBySession = collectTranscriptsBySession(tables);

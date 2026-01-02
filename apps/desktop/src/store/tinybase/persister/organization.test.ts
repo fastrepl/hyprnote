@@ -53,7 +53,9 @@ describe("createOrganizationPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createOrganizationPersister<Schemas>(store, {
+        mode: "load-and-save",
+      });
       await persister.load();
 
       expect(readTextFile).toHaveBeenCalledWith(
@@ -69,7 +71,9 @@ describe("createOrganizationPersister", () => {
         new Error("No such file or directory"),
       );
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createOrganizationPersister<Schemas>(store, {
+        mode: "load-and-save",
+      });
       await persister.load();
 
       expect(store.getTable("organizations")).toEqual({});

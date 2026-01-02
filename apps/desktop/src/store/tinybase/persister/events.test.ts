@@ -63,7 +63,9 @@ describe("createEventPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
 
-      const persister = createEventPersister<Schemas>(store);
+      const persister = createEventPersister<Schemas>(store, {
+        mode: "load-and-save",
+      });
       await persister.load();
 
       expect(readTextFile).toHaveBeenCalledWith(
@@ -79,7 +81,9 @@ describe("createEventPersister", () => {
         new Error("No such file or directory"),
       );
 
-      const persister = createEventPersister<Schemas>(store);
+      const persister = createEventPersister<Schemas>(store, {
+        mode: "load-and-save",
+      });
       await persister.load();
 
       expect(store.getTable("events")).toEqual({});

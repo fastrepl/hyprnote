@@ -124,5 +124,6 @@ export const useSTTConnection = () => {
   return {
     conn: connection,
     local,
+    isLocalModel,
   };
 };

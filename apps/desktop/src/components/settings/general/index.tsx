@@ -96,7 +96,6 @@ export function SettingsGeneral({
   return (
     <div className="flex flex-col gap-8">
       <div ref={accountRef}>
-        <h2 className="font-semibold mb-4">Account & Billing</h2>
         <AccountSettings />
       </div>
 

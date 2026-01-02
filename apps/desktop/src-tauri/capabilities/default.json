@@ -53,10 +53,33 @@
       "identifier": "fs:allow-mkdir",
       "allow": [
         {
-          "path": "$DATA/hyprnote/**/*"
+          "path": "$DATA/hyprnote"
         },
         {
-          "path": "$APPDATA/**/*"
+          "path": "$DATA/hyprnote/**"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-dir",
+      "allow": [
+        {
+          "path": "$DATA/hyprnote"
+        },
+        {
+          "path": "$DATA/hyprnote/**"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**"
         }
       ]
     },

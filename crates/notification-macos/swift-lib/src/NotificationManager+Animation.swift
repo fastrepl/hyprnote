@@ -1,17 +1,28 @@
 import Cocoa
 
+private enum Timing {
+  static let slideIn: TimeInterval = 0.3
+  static let expansion: TimeInterval = 0.25
+  static let fadeIn: TimeInterval = 0.15
+}
+
+private enum Padding {
+  static let horizontal: CGFloat = 16
+  static let vertical: CGFloat = 14
+}
+
 extension NotificationManager {
   func showWithAnimation(
     notification: NotificationInstance, screen: NSScreen, timeoutSeconds: Double
   ) {
     let screenRect = screen.visibleFrame
-    let finalXPos = screenRect.maxX - panelWidth() - Config.rightMargin + Config.buttonOverhang
-    let currentFrame = notification.panel.frame
+    let finalX = screenRect.maxX - panelWidth() - Config.rightMargin + Config.buttonOverhang
+    let y = notification.panel.frame.minY
 
     notification.panel.setFrame(
       NSRect(
         x: screenRect.maxX + Config.slideInOffset,
-        y: currentFrame.minY,
+        y: y,
         width: panelWidth(),
         height: panelHeight()
       ),
@@ -21,93 +32,118 @@ extension NotificationManager {
     notification.panel.orderFrontRegardless()
     notification.panel.makeKeyAndOrderFront(nil)
 
-    NSAnimationContext.runAnimationGroup({ context in
-      context.duration = 0.3
-      context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+    animate(duration: Timing.slideIn, timing: .easeOut) {
       notification.panel.animator().setFrame(
-        NSRect(
-          x: finalXPos, y: currentFrame.minY, width: panelWidth(),
-          height: panelHeight()),
+        NSRect(x: finalX, y: y, width: self.panelWidth(), height: self.panelHeight()),
         display: true
       )
       notification.panel.animator().alphaValue = 1.0
-    }) {
-      DispatchQueue.main.async {
-        notification.clickableView.updateTrackingAreas()
-        notification.clickableView.window?.invalidateCursorRects(for: notification.clickableView)
-        notification.clickableView.window?.resetCursorRects()
-        self.updateHoverForAll(atScreenPoint: NSEvent.mouseLocation)
-      }
+    } completion: {
+      self.refreshTrackingAreas(for: notification)
+      self.updateHoverForAll(atScreenPoint: NSEvent.mouseLocation)
       notification.startDismissTimer(timeoutSeconds: timeoutSeconds)
     }
   }
 
   func animateExpansion(notification: NotificationInstance, isExpanded: Bool) {
-    let targetHeight = panelHeight(expanded: isExpanded)
     let currentFrame = notification.panel.frame
-
-    let heightDiff = targetHeight - currentFrame.height
+    let targetHeight = panelHeight(expanded: isExpanded)
     let newFrame = NSRect(
       x: currentFrame.minX,
-      y: currentFrame.minY - heightDiff,
+      y: currentFrame.minY - (targetHeight - currentFrame.height),
       width: currentFrame.width,
       height: targetHeight
     )
 
-    guard
-      let effectView = notification.clickableView.subviews.first?.subviews.first
-        as? NSVisualEffectView
-    else {
+    guard let effectView = findEffectView(in: notification) else {
       notification.isAnimating = false
       return
     }
 
     if isExpanded {
-      notification.compactContentView?.alphaValue = 1.0
-
-      let expandedView = createExpandedNotificationView(notification: notification)
-      expandedView.translatesAutoresizingMaskIntoConstraints = false
-      expandedView.alphaValue = 0
-      effectView.addSubview(expandedView)
-
-      NSLayoutConstraint.activate([
-        expandedView.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 16),
-        expandedView.trailingAnchor.constraint(equalTo: effectView.trailingAnchor, constant: -16),
-        expandedView.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 14),
-        expandedView.bottomAnchor.constraint(equalTo: effectView.bottomAnchor, constant: -14),
-      ])
-
-      notification.expandedContentView = expandedView
-
-      NSAnimationContext.runAnimationGroup({ context in
-        context.duration = 0.25
-        context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        notification.panel.animator().setFrame(newFrame, display: true)
-        notification.compactContentView?.animator().alphaValue = 0
-        expandedView.animator().alphaValue = 1.0
-      }) {
-        notification.compactContentView?.isHidden = true
-        notification.isAnimating = false
-        notification.clickableView.updateTrackingAreas()
-        self.repositionNotifications()
-      }
+      animateToExpanded(notification: notification, effectView: effectView, frame: newFrame)
     } else {
-      notification.stopCountdown()
-      notification.expandedContentView?.removeFromSuperview()
-      notification.expandedContentView = nil
-      notification.compactContentView?.alphaValue = 0
-      notification.compactContentView?.isHidden = false
+      animateToCompact(notification: notification, frame: newFrame)
+    }
+  }
 
-      NSAnimationContext.runAnimationGroup({ context in
-        context.duration = 0.25
-        context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        notification.panel.animator().setFrame(newFrame, display: true)
-        notification.compactContentView?.animator().alphaValue = 1.0
-      }) {
-        notification.isAnimating = false
-        notification.clickableView.updateTrackingAreas()
-        self.repositionNotifications()
+  private func animateToExpanded(
+    notification: NotificationInstance, effectView: NSVisualEffectView, frame: NSRect
+  ) {
+    notification.compactContentView?.isHidden = true
+
+    let expandedView = createExpandedNotificationView(notification: notification)
+    expandedView.translatesAutoresizingMaskIntoConstraints = false
+    expandedView.alphaValue = 0
+    notification.expandedContentView = expandedView
+
+    animate(duration: Timing.expansion, timing: .easeInEaseOut) {
+      notification.panel.animator().setFrame(frame, display: true)
+    } completion: {
+      effectView.addSubview(expandedView)
+      self.pinToEdges(expandedView, in: effectView)
+
+      self.animate(duration: Timing.fadeIn, timing: .easeOut) {
+        expandedView.animator().alphaValue = 1.0
+      } completion: {
+        self.finishExpansionAnimation(notification)
       }
     }
+  }
+
+  private func animateToCompact(notification: NotificationInstance, frame: NSRect) {
+    notification.stopCountdown()
+    notification.expandedContentView?.removeFromSuperview()
+    notification.expandedContentView = nil
+    notification.compactContentView?.alphaValue = 0
+    notification.compactContentView?.isHidden = false
+
+    animate(duration: Timing.expansion, timing: .easeInEaseOut) {
+      notification.panel.animator().setFrame(frame, display: true)
+      notification.compactContentView?.animator().alphaValue = 1.0
+    } completion: {
+      self.finishExpansionAnimation(notification)
+    }
+  }
+
+  private func finishExpansionAnimation(_ notification: NotificationInstance) {
+    notification.isAnimating = false
+    notification.clickableView.updateTrackingAreas()
+    repositionNotifications()
+  }
+
+  private func findEffectView(in notification: NotificationInstance) -> NSVisualEffectView? {
+    notification.clickableView.subviews.first?.subviews.first as? NSVisualEffectView
+  }
+
+  private func pinToEdges(_ view: NSView, in container: NSView) {
+    NSLayoutConstraint.activate([
+      view.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: Padding.horizontal),
+      view.trailingAnchor.constraint(
+        equalTo: container.trailingAnchor, constant: -Padding.horizontal),
+      view.topAnchor.constraint(equalTo: container.topAnchor, constant: Padding.vertical),
+      view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -Padding.vertical),
+    ])
+  }
+
+  private func refreshTrackingAreas(for notification: NotificationInstance) {
+    DispatchQueue.main.async {
+      notification.clickableView.updateTrackingAreas()
+      notification.clickableView.window?.invalidateCursorRects(for: notification.clickableView)
+      notification.clickableView.window?.resetCursorRects()
+    }
+  }
+
+  private func animate(
+    duration: TimeInterval,
+    timing: CAMediaTimingFunctionName,
+    animations: @escaping () -> Void,
+    completion: @escaping () -> Void
+  ) {
+    NSAnimationContext.runAnimationGroup({ context in
+      context.duration = duration
+      context.timingFunction = CAMediaTimingFunction(name: timing)
+      animations()
+    }, completionHandler: completion)
   }
 }

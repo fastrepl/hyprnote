@@ -7,7 +7,6 @@ import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/store/settings";
-import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
@@ -15,13 +14,11 @@ import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 
 export function SettingsGeneral({
-  accountRef,
   appRef,
   languageRef,
   notificationsRef,
   permissionsRef,
 }: {
-  accountRef?: React.RefObject<HTMLDivElement>;
   appRef?: React.RefObject<HTMLDivElement>;
   languageRef?: React.RefObject<HTMLDivElement>;
   notificationsRef?: React.RefObject<HTMLDivElement>;
@@ -95,10 +92,6 @@ export function SettingsGeneral({
 
   return (
     <div className="flex flex-col gap-8">
-      <div ref={accountRef}>
-        <AccountSettings />
-      </div>
-
       <div ref={appRef}>
         <h2 className="font-semibold mb-4">App</h2>
         <form.Field name="autostart">

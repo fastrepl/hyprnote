@@ -5,7 +5,6 @@ import {
   LockIcon,
   SettingsIcon,
   SmartphoneIcon,
-  UserIcon,
 } from "lucide-react";
 import {
   type RefObject,
@@ -65,7 +64,6 @@ export function TabContentSettings({
 }
 
 type SettingsSection =
-  | "account"
   | "app"
   | "language"
   | "notifications"
@@ -74,14 +72,12 @@ type SettingsSection =
 
 function SettingsView() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const accountRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<HTMLDivElement>(null);
   const languageRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
   const permissionsRef = useRef<HTMLDivElement>(null);
   const labRef = useRef<HTMLDivElement>(null);
-  const [activeSection, setActiveSection] =
-    useState<SettingsSection>("account");
+  const [activeSection, setActiveSection] = useState<SettingsSection>("app");
   const {
     ref: scrollFadeRef,
     atStart,
@@ -91,7 +87,6 @@ function SettingsView() {
   const scrollToSection = useCallback((section: SettingsSection) => {
     const container = scrollContainerRef.current;
     const refMap = {
-      account: accountRef,
       app: appRef,
       language: languageRef,
       notifications: notificationsRef,
@@ -119,7 +114,6 @@ function SettingsView() {
 
     const handleScroll = () => {
       const refs = [
-        { section: "account" as const, ref: accountRef },
         { section: "app" as const, ref: appRef },
         { section: "language" as const, ref: languageRef },
         { section: "notifications" as const, ref: notificationsRef },
@@ -158,18 +152,6 @@ function SettingsView() {
   return (
     <div className="flex flex-col flex-1 w-full overflow-hidden">
       <div className="flex gap-1 px-6 pt-6 pb-2 flex-wrap">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => scrollToSection("account")}
-          className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent",
-            activeSection === "account" && "bg-neutral-100 border-neutral-200",
-          ])}
-        >
-          <UserIcon size={14} />
-          <span className="text-xs">Account</span>
-        </Button>
         <Button
           variant="ghost"
           size="sm"
@@ -239,7 +221,6 @@ function SettingsView() {
           className="flex-1 w-full h-full overflow-y-auto scrollbar-hide px-6 pb-6"
         >
           <SettingsGeneral
-            accountRef={accountRef}
             appRef={appRef}
             languageRef={languageRef}
             notificationsRef={notificationsRef}

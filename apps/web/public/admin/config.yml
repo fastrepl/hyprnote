@@ -14,7 +14,7 @@ collections:
     create: true
     slug: "{{slug}}"
     extension: mdx
-    format: frontmatter
+    format: mdx-custom
     fields:
       - label: Meta Title
         name: meta_title
@@ -57,9 +57,10 @@ collections:
 
       - label: Cover Image
         name: coverImage
-        widget: string
+        widget: image
         required: false
-        hint: Path to cover image (e.g., /api/images/blog/article-name/cover.png)
+        choose_url: false
+        hint: Upload a cover image for this article
 
       - label: Featured
         name: featured

@@ -45,6 +45,10 @@
       {
         "command": "pnpm exec prettier --config .prettierrc --write",
         "exts": ["js", "ts", "jsx", "tsx", "mjs", "mts"]
+      },
+      {
+        "command": "node apps/web/scripts/format-mdx.js",
+        "exts": ["mdx"]
       }
     ]
   },

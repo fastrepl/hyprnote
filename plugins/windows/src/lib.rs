@@ -57,6 +57,7 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::window_navigate,
             commands::window_emit_navigate,
             commands::window_is_exists,
+            commands::share_files,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

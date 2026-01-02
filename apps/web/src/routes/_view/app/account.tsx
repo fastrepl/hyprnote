@@ -128,7 +128,7 @@ function AccountSettingsCard() {
       <button
         onClick={() => manageBillingMutation.mutate()}
         disabled={manageBillingMutation.isPending}
-        className="px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
+        className="cursor-pointer px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
       >
         {manageBillingMutation.isPending ? "Loading..." : "Manage Billing"}
       </button>
@@ -219,7 +219,7 @@ function SignOutSection() {
       <button
         onClick={() => signOut.mutate()}
         disabled={signOut.isPending}
-        className="px-4 h-8 flex items-center text-sm text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 rounded-full transition-all disabled:opacity-50 disabled:hover:border-red-200"
+        className="cursor-pointer px-4 h-8 flex items-center text-sm text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 rounded-full transition-all disabled:opacity-50 disabled:hover:border-red-200"
       >
         {signOut.isPending ? "Signing out..." : "Sign out"}
       </button>

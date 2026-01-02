@@ -134,42 +134,33 @@ function SettingsView() {
         { section: "lab" as const, ref: labRef },
       ];
 
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5;
-
-      const labEl = labRef.current;
-      if (isAtBottom && labEl) {
-        const labRect = labEl.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        const labTopRelative = labRect.top - containerRect.top;
-
-        if (labTopRelative < containerRect.height / 2) {
-          setActiveSection("lab");
-          return;
-        }
-      }
-
       const containerRect = container.getBoundingClientRect();
-      const containerCenter = containerRect.top + containerRect.height / 2;
+      const containerTop = containerRect.top;
+      const containerBottom = containerRect.bottom;
 
-      let activeSection: SettingsSection | null = null;
+      let maxVisibleArea = 0;
+      let mostVisibleSection: SettingsSection | null = null;
 
       for (const { section, ref } of refs) {
-        if (section === "lab") continue;
-
         const el = ref.current;
         if (!el) continue;
 
         const rect = el.getBoundingClientRect();
-        const sectionCenter = rect.top + rect.height / 2;
+        const sectionTop = rect.top;
+        const sectionBottom = rect.bottom;
 
-        if (sectionCenter <= containerCenter) {
-          activeSection = section;
+        const visibleTop = Math.max(sectionTop, containerTop);
+        const visibleBottom = Math.min(sectionBottom, containerBottom);
+        const visibleArea = Math.max(0, visibleBottom - visibleTop);
+
+        if (visibleArea > maxVisibleArea) {
+          maxVisibleArea = visibleArea;
+          mostVisibleSection = section;
         }
       }
 
-      if (activeSection) {
-        setActiveSection(activeSection);
+      if (mostVisibleSection) {
+        setActiveSection(mostVisibleSection);
       }
     };
 

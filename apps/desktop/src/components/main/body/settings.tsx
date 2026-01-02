@@ -194,7 +194,7 @@ function SettingsView() {
           className={cn([
             "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
             activeSection === "notifications" &&
-              "bg-neutral-100 border-neutral-200",
+            "bg-neutral-100 border-neutral-200",
           ])}
         >
           <BellIcon size={14} />
@@ -207,7 +207,7 @@ function SettingsView() {
           className={cn([
             "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
             activeSection === "permissions" &&
-              "bg-neutral-100 border-neutral-200",
+            "bg-neutral-100 border-neutral-200",
           ])}
         >
           <LockIcon size={14} />
@@ -236,9 +236,16 @@ function SettingsView() {
             languageRef={languageRef}
             notificationsRef={notificationsRef}
             permissionsRef={permissionsRef}
+            activeSection={activeSection}
           />
-
-          <div ref={labRef} className="mt-8 pb-[50vh]">
+          <div ref={labRef} className="mt-8 pb-[50vh] relative">
+            <div
+              className={cn([
+                "absolute left-[-24px] top-0 w-1 h-8 rounded-r-full transition-opacity duration-200",
+                "bg-neutral-900",
+                activeSection === "lab" ? "opacity-100" : "opacity-0",
+              ])}
+            />
             <h2 className="font-semibold mb-4">Lab</h2>
             <SettingsLab />
           </div>
@@ -265,7 +272,7 @@ function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
     });
   }, []);
 
-  useResizeObserver({ ref: ref as RefObject<T>, onResize: update });
+  useResizeObserver({ ref, onResize: update });
 
   useEffect(() => {
     const el = ref.current;
@@ -285,9 +292,9 @@ function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
       className={cn([
         "absolute left-0 w-full h-8 z-20 pointer-events-none",
         position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
+        "top-0 bg-gradient-to-b from-white to-transparent",
         position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
+        "bottom-0 bg-gradient-to-t from-white to-transparent",
       ])}
     />
   );

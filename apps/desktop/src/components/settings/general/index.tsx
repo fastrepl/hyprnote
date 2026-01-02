@@ -4,6 +4,7 @@ import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { General, GeneralStorage } from "@hypr/store";
+import { cn } from "@hypr/utils";
 
 import { useConfigValues } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/store/settings";
@@ -14,16 +15,25 @@ import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 
+type SettingsSection =
+  | "app"
+  | "language"
+  | "notifications"
+  | "permissions"
+  | "lab";
+
 export function SettingsGeneral({
   appRef,
   languageRef,
   notificationsRef,
   permissionsRef,
+  activeSection,
 }: {
   appRef?: React.RefObject<HTMLDivElement>;
   languageRef?: React.RefObject<HTMLDivElement>;
   notificationsRef?: React.RefObject<HTMLDivElement>;
   permissionsRef?: React.RefObject<HTMLDivElement>;
+  activeSection?: SettingsSection;
 } = {}) {
   const value = useConfigValues([
     "autostart",
@@ -97,7 +107,14 @@ export function SettingsGeneral({
         <AccountSettings />
       </div>
 
-      <div ref={appRef}>
+      <div ref={appRef} className="relative">
+        <div
+          className={cn([
+            "absolute left-[-24px] top-0 w-1 h-8 rounded-r-full transition-opacity duration-200",
+            "bg-neutral-900",
+            activeSection === "app" ? "opacity-100" : "opacity-0",
+          ])}
+        />
         <form.Field name="autostart">
           {(autostartField) => (
             <form.Field name="notification_detect">
@@ -150,7 +167,14 @@ export function SettingsGeneral({
         </form.Field>
       </div>
 
-      <div ref={languageRef}>
+      <div ref={languageRef} className="relative">
+        <div
+          className={cn([
+            "absolute left-[-24px] top-0 w-1 h-8 rounded-r-full transition-opacity duration-200",
+            "bg-neutral-900",
+            activeSection === "language" ? "opacity-100" : "opacity-0",
+          ])}
+        />
         <h2 className="font-semibold mb-4">Language & Vocabulary</h2>
         <div className="space-y-6">
           <form.Field name="ai_language">
@@ -174,12 +198,26 @@ export function SettingsGeneral({
         </div>
       </div>
 
-      <div ref={notificationsRef}>
+      <div ref={notificationsRef} className="relative">
+        <div
+          className={cn([
+            "absolute left-[-24px] top-0 w-1 h-8 rounded-r-full transition-opacity duration-200",
+            "bg-neutral-900",
+            activeSection === "notifications" ? "opacity-100" : "opacity-0",
+          ])}
+        />
         <h2 className="font-semibold mb-4">Notifications</h2>
         <NotificationSettingsView />
       </div>
 
-      <div ref={permissionsRef}>
+      <div ref={permissionsRef} className="relative">
+        <div
+          className={cn([
+            "absolute left-[-24px] top-0 w-1 h-8 rounded-r-full transition-opacity duration-200",
+            "bg-neutral-900",
+            activeSection === "permissions" ? "opacity-100" : "opacity-0",
+          ])}
+        />
         <Permissions />
       </div>
     </div>

@@ -99,7 +99,9 @@ extension NotificationManager {
     return imageView
   }
 
-  func createCloseButton(clickableView: ClickableView, container: NSView, notification: NotificationInstance)
+  func createCloseButton(
+    clickableView: ClickableView, container: NSView, notification: NotificationInstance
+  )
     -> CloseButton
   {
     let closeButton = CloseButton()
@@ -110,7 +112,8 @@ extension NotificationManager {
     let buttonOffset = (CloseButton.buttonSize / 2) - 2
     NSLayoutConstraint.activate([
       closeButton.centerYAnchor.constraint(equalTo: container.topAnchor, constant: buttonOffset),
-      closeButton.centerXAnchor.constraint(equalTo: container.leadingAnchor, constant: buttonOffset),
+      closeButton.centerXAnchor.constraint(
+        equalTo: container.leadingAnchor, constant: buttonOffset),
       closeButton.widthAnchor.constraint(equalToConstant: CloseButton.buttonSize),
       closeButton.heightAnchor.constraint(equalToConstant: CloseButton.buttonSize),
     ])

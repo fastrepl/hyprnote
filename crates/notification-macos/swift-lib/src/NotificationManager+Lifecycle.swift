@@ -22,7 +22,8 @@ extension NotificationManager {
     panel.contentView = clickableView
 
     setupContent(
-      effectView: effectView, container: container, title: title, message: message, notification: notification)
+      effectView: effectView, container: container, title: title, message: message,
+      notification: notification)
 
     activeNotifications[notification.key] = notification
     hoverStates[notification.key] = false

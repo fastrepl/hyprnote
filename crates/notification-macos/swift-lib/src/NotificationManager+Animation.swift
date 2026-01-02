@@ -54,8 +54,9 @@ extension NotificationManager {
       height: targetHeight
     )
 
-    guard let effectView = notification.clickableView.subviews.first?.subviews.first
-      as? NSVisualEffectView
+    guard
+      let effectView = notification.clickableView.subviews.first?.subviews.first
+        as? NSVisualEffectView
     else { return }
 
     if isExpanded {

@@ -1,0 +1,89 @@
+backend:
+  name: git-gateway
+  branch: main
+
+publish_mode: editorial_workflow
+
+media_folder: apps/web/public/images/blog
+public_folder: /images/blog
+
+collections:
+  - name: articles
+    label: Blog Articles
+    folder: apps/web/content/articles
+    create: true
+    slug: "{{slug}}"
+    extension: mdx
+    format: frontmatter
+    fields:
+      - label: Meta Title
+        name: meta_title
+        widget: string
+        hint: Title used for SEO and browser tab
+
+      - label: Display Title
+        name: display_title
+        widget: string
+        required: false
+        hint: Optional display title (defaults to meta_title if not set)
+
+      - label: Meta Description
+        name: meta_description
+        widget: text
+        hint: Description used for SEO
+
+      - label: Author
+        name: author
+        widget: select
+        options:
+          - Harshika
+          - John Jeong
+          - Yujong Lee
+
+      - label: Created Date
+        name: created
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+
+      - label: Updated Date
+        name: updated
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        required: false
+
+      - label: Cover Image
+        name: coverImage
+        widget: string
+        required: false
+        hint: Path to cover image (e.g., /api/images/blog/article-name/cover.png)
+
+      - label: Featured
+        name: featured
+        widget: boolean
+        default: false
+        required: false
+
+      - label: Published
+        name: published
+        widget: boolean
+        default: false
+        hint: Set to true to publish the article
+
+      - label: Category
+        name: category
+        widget: select
+        required: false
+        options:
+          - Case Study
+          - Hyprnote Weekly
+          - Productivity Hack
+          - Engineering
+
+      - label: Body
+        name: body
+        widget: markdown
+        hint: Use standard markdown. For images, use ![alt text](/api/images/blog/...) syntax.

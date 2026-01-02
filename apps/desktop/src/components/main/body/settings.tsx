@@ -242,7 +242,7 @@ function SettingsView() {
           <div ref={labRef} className="mt-8 pb-[50vh] relative">
             <div
               className={cn([
-                "absolute left-[-24px] top-0 w-1 h-8 rounded-r-full transition-opacity duration-200",
+                "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
                 "bg-neutral-900",
                 activeSection === "lab" ? "opacity-100" : "opacity-0",
               ])}

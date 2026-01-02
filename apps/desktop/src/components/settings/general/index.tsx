@@ -110,7 +110,7 @@ export function SettingsGeneral({
       <div ref={appRef} className="relative">
         <div
           className={cn([
-            "absolute left-[-24px] top-0 w-1 h-8 rounded-r-full transition-opacity duration-200",
+            "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
             "bg-neutral-900",
             activeSection === "app" ? "opacity-100" : "opacity-0",
           ])}
@@ -170,7 +170,7 @@ export function SettingsGeneral({
       <div ref={languageRef} className="relative">
         <div
           className={cn([
-            "absolute left-[-24px] top-0 w-1 h-8 rounded-r-full transition-opacity duration-200",
+            "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
             "bg-neutral-900",
             activeSection === "language" ? "opacity-100" : "opacity-0",
           ])}
@@ -201,7 +201,7 @@ export function SettingsGeneral({
       <div ref={notificationsRef} className="relative">
         <div
           className={cn([
-            "absolute left-[-24px] top-0 w-1 h-8 rounded-r-full transition-opacity duration-200",
+            "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
             "bg-neutral-900",
             activeSection === "notifications" ? "opacity-100" : "opacity-0",
           ])}
@@ -213,7 +213,7 @@ export function SettingsGeneral({
       <div ref={permissionsRef} className="relative">
         <div
           className={cn([
-            "absolute left-[-24px] top-0 w-1 h-8 rounded-r-full transition-opacity duration-200",
+            "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
             "bg-neutral-900",
             activeSection === "permissions" ? "opacity-100" : "opacity-0",
           ])}

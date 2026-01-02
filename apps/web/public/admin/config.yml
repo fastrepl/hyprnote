@@ -4,13 +4,12 @@ backend:
 
 publish_mode: editorial_workflow
 
-media_folder: apps/web/public/images/blog
-public_folder: /images/blog
-
 collections:
   - name: articles
     label: Blog Articles
     folder: apps/web/content/articles
+    media_folder: /apps/web/public/images/blog
+    public_folder: /images/blog
     create: true
     slug: "{{slug}}"
     extension: mdx
@@ -19,7 +18,8 @@ collections:
       - label: Meta Title
         name: meta_title
         widget: string
-        hint: Title used for SEO and browser tab
+        hint: Title for SEO/browser tab (50-60 chars ideal)
+        pattern: ['^.{1,70}$', "Keep under 70 characters for SEO"]
 
       - label: Display Title
         name: display_title
@@ -30,7 +30,8 @@ collections:
       - label: Meta Description
         name: meta_description
         widget: text
-        hint: Description used for SEO
+        hint: Description for SEO (150-160 chars ideal)
+        pattern: ['^.{50,200}$', "Aim for 150-160 characters"]
 
       - label: Author
         name: author
@@ -46,6 +47,8 @@ collections:
         format: "YYYY-MM-DD"
         date_format: "YYYY-MM-DD"
         time_format: false
+        default: "{{now}}"
+        picker_utc: true
 
       - label: Updated Date
         name: updated
@@ -54,6 +57,8 @@ collections:
         date_format: "YYYY-MM-DD"
         time_format: false
         required: false
+        default: "{{now}}"
+        picker_utc: true
 
       - label: Cover Image
         name: coverImage
@@ -66,7 +71,6 @@ collections:
         name: featured
         widget: boolean
         default: false
-        required: false
 
       - label: Published
         name: published
@@ -77,7 +81,6 @@ collections:
       - label: Category
         name: category
         widget: select
-        required: false
         options:
           - Case Study
           - Hyprnote Weekly
@@ -88,3 +91,36 @@ collections:
         name: body
         widget: markdown
         hint: Use standard markdown. For images, use ![alt text](/api/images/blog/...) syntax.
+
+  - name: handbook
+    label: Handbook
+    folder: apps/web/content/handbook
+    media_folder: /apps/web/public/images/handbook
+    public_folder: /images/handbook
+    create: true
+    slug: "{{slug}}"
+    extension: mdx
+    format: mdx-custom
+    nested:
+      depth: 10
+      summary: "{{title}}"
+      subfolders: false
+    fields:
+      - label: Title
+        name: title
+        widget: string
+      - label: Section
+        name: section
+        widget: select
+        options:
+          - About
+          - Communication
+          - Go to Market
+          - How We Work
+          - Who We Want
+      - label: Summary
+        name: summary
+        widget: text
+      - label: Body
+        name: body
+        widget: markdown

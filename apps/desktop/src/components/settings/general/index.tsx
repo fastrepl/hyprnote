@@ -107,14 +107,7 @@ export function SettingsGeneral({
         <AccountSettings />
       </div>
 
-      <div ref={appRef} className="relative">
-        <div
-          className={cn([
-            "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
-            "bg-stone-400",
-            activeSection === "app" ? "opacity-100" : "opacity-0",
-          ])}
-        />
+      <div ref={appRef}>
         <form.Field name="autostart">
           {(autostartField) => (
             <form.Field name="notification_detect">
@@ -167,14 +160,7 @@ export function SettingsGeneral({
         </form.Field>
       </div>
 
-      <div ref={languageRef} className="relative">
-        <div
-          className={cn([
-            "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
-            "bg-stone-400",
-            activeSection === "language" ? "opacity-100" : "opacity-0",
-          ])}
-        />
+      <div ref={languageRef}>
         <h2 className="font-semibold mb-4">Language & Vocabulary</h2>
         <div className="space-y-6">
           <form.Field name="ai_language">
@@ -198,26 +184,12 @@ export function SettingsGeneral({
         </div>
       </div>
 
-      <div ref={notificationsRef} className="relative">
-        <div
-          className={cn([
-            "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
-            "bg-stone-400",
-            activeSection === "notifications" ? "opacity-100" : "opacity-0",
-          ])}
-        />
+      <div ref={notificationsRef}>
         <h2 className="font-semibold mb-4">Notifications</h2>
         <NotificationSettingsView />
       </div>
 
-      <div ref={permissionsRef} className="relative">
-        <div
-          className={cn([
-            "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
-            "bg-stone-400",
-            activeSection === "permissions" ? "opacity-100" : "opacity-0",
-          ])}
-        />
+      <div ref={permissionsRef}>
         <Permissions />
       </div>
     </div>

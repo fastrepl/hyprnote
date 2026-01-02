@@ -85,6 +85,8 @@ function SettingsView() {
   } = useScrollFade<HTMLDivElement>([activeSection]);
 
   const scrollToSection = useCallback((section: SettingsSection) => {
+    setActiveSection(section);
+
     const container = scrollContainerRef.current;
     const refMap = {
       app: appRef,

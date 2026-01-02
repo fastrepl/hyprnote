@@ -28,6 +28,7 @@ import {
   useTranscriptSearch,
 } from "./note-input/transcript/search-context";
 import { OuterHeader } from "./outer-header";
+import { useCurrentNoteTab } from "./shared";
 import { TitleInput } from "./title-input";
 
 export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
@@ -147,6 +148,7 @@ function TabContentNoteInner({
     editor: import("@hypr/tiptap/editor").TiptapEditor | null;
   }>(null);
 
+  const currentView = useCurrentNoteTab(tab);
   const { generateTitle } = useAutoTitle(tab);
 
   const focusTitle = React.useCallback(() => {
@@ -164,7 +166,11 @@ function TabContentNoteInner({
     >
       <div className="flex flex-col h-full">
         <div className="pl-2 pr-1">
-          {showSearchBar ? <SearchBar /> : <OuterHeader sessionId={tab.id} />}
+          {showSearchBar ? (
+            <SearchBar />
+          ) : (
+            <OuterHeader sessionId={tab.id} currentView={currentView} />
+          )}
         </div>
         <div className="mt-2 px-3 shrink-0">
           <TitleInput

@@ -1,5 +1,5 @@
-import { AppWindowIcon, ChevronDown } from "lucide-react";
-import { useCallback, useState } from "react";
+import { AppWindowIcon } from "lucide-react";
+import { useCallback } from "react";
 
 import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
@@ -50,7 +50,6 @@ export function TabContentEmpty({
 }
 
 function EmptyView() {
-  const [showOthers, setShowOthers] = useState(false);
   const newNote = useNewNote({ behavior: "current" });
   const openCurrent = useTabs((state) => state.openCurrent);
   const openCalendar = useCallback(
@@ -61,22 +60,18 @@ function EmptyView() {
     () => openCurrent({ type: "contacts" }),
     [openCurrent],
   );
-  const openTemplates = useCallback(
-    () => openCurrent({ type: "templates" }),
+  const openSettings = useCallback(
+    () => openCurrent({ type: "settings" }),
     [openCurrent],
   );
-  const openShortcuts = useCallback(
-    () => openCurrent({ type: "chat_shortcuts" }),
-    [openCurrent],
-  );
-  const openPrompts = useCallback(
-    () => openCurrent({ type: "prompts" }),
+  const openAiSettings = useCallback(
+    () => openCurrent({ type: "ai" }),
     [openCurrent],
   );
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6 mb-12 text-neutral-600">
-      <div className="relative flex flex-col gap-1 text-center min-w-[280px]">
+      <div className="flex flex-col gap-1 text-center min-w-[280px]">
         <ActionItem label="New Note" shortcut={["⌘", "N"]} onClick={newNote} />
         <ActionItem
           label="Calendar"
@@ -88,25 +83,9 @@ function EmptyView() {
           shortcut={["⌘", "⇧", "O"]}
           onClick={openContacts}
         />
-        <ActionItem
-          label="Others"
-          icon={
-            <ChevronDown
-              className={cn([
-                "w-4 h-4 text-neutral-400 transition-transform",
-                showOthers && "rotate-180",
-              ])}
-            />
-          }
-          onClick={() => setShowOthers(!showOthers)}
-        />
-        {showOthers && (
-          <div className="absolute top-full left-0 right-0 flex flex-col gap-1 pt-1">
-            <ActionItem label="Templates" onClick={openTemplates} />
-            <ActionItem label="Shortcuts" onClick={openShortcuts} />
-            <ActionItem label="Prompts" onClick={openPrompts} />
-          </div>
-        )}
+        <div className="h-px bg-neutral-200 my-1" />
+        <ActionItem label="Settings" onClick={openSettings} />
+        <ActionItem label="AI Settings" onClick={openAiSettings} />
       </div>
     </div>
   );

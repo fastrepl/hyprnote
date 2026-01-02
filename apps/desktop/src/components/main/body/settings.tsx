@@ -151,7 +151,7 @@ function SettingsView() {
 
   return (
     <div className="flex flex-col flex-1 w-full overflow-hidden">
-      <div className="flex gap-1 px-6 pt-6 pb-2 flex-wrap">
+      <div className="flex gap-1 px-6 pt-6 pb-2 overflow-x-auto scrollbar-hide">
         <Button
           variant="ghost"
           size="sm"

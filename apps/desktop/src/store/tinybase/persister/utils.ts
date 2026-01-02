@@ -1,4 +1,10 @@
-import { mkdir } from "@tauri-apps/plugin-fs";
+import { mkdir, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { createCustomPersister } from "tinybase/persisters/with-schemas";
+import type {
+  Content,
+  MergeableStore,
+  OptionalSchemas,
+} from "tinybase/with-schemas";
 
 import { commands as path2Commands } from "@hypr/plugin-path2";
 import type {
@@ -11,6 +17,8 @@ import type {
   TranscriptStorage,
   WordStorage,
 } from "@hypr/store";
+
+import { StoreOrMergeableStore } from "../store/shared";
 
 export type PersisterMode = "load-only" | "save-only" | "load-and-save";
 
@@ -105,4 +113,70 @@ export function iterateTableRows<K extends keyof TablesContent>(
     }
   }
   return result;
+}
+
+function isFileNotFoundError(error: unknown): boolean {
+  const errorStr = String(error);
+  return (
+    errorStr.includes("No such file or directory") ||
+    errorStr.includes("ENOENT") ||
+    errorStr.includes("not found")
+  );
+}
+
+export function createSimpleJsonPersister<Schemas extends OptionalSchemas>(
+  store: MergeableStore<Schemas>,
+  options: {
+    tableName: string;
+    filename: string;
+    label: string;
+    mode?: PersisterMode;
+  },
+) {
+  const { tableName, filename, label, mode = "save-only" } = options;
+
+  const jsonToContent = (data: Record<string, unknown>): Content<Schemas> =>
+    [{ [tableName]: data }, {}] as unknown as Content<Schemas>;
+
+  const loadFn =
+    mode === "save-only"
+      ? async (): Promise<Content<Schemas> | undefined> => undefined
+      : async (): Promise<Content<Schemas> | undefined> => {
+          try {
+            const base = await path2Commands.base();
+            const content = await readTextFile(`${base}/${filename}`);
+            return jsonToContent(JSON.parse(content));
+          } catch (error) {
+            if (isFileNotFoundError(error)) return jsonToContent({});
+            console.error(`[${label}] load error:`, error);
+            return undefined;
+          }
+        };
+
+  const saveFn =
+    mode === "load-only"
+      ? async () => {}
+      : async () => {
+          try {
+            const base = await path2Commands.base();
+            await mkdir(base, { recursive: true });
+            const data = store.getTable(tableName) ?? {};
+            await writeTextFile(
+              `${base}/${filename}`,
+              JSON.stringify(data, null, 2),
+            );
+          } catch (error) {
+            console.error(`[${label}] save error:`, error);
+          }
+        };
+
+  return createCustomPersister(
+    store,
+    loadFn,
+    saveFn,
+    (listener) => setInterval(listener, 1000),
+    (handle) => clearInterval(handle),
+    (error) => console.error(`[${label}]:`, error),
+    StoreOrMergeableStore,
+  );
 }

@@ -3,11 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { SCHEMA, type Schemas } from "@hypr/store";
 
-import {
-  createOrganizationPersister,
-  jsonToContent,
-  storeToJson,
-} from "./organization";
+import { createOrganizationPersister } from "./organization";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {
@@ -16,6 +12,7 @@ vi.mock("@hypr/plugin-path2", () => ({
 }));
 
 vi.mock("@tauri-apps/plugin-fs", () => ({
+  mkdir: vi.fn().mockResolvedValue(undefined),
   readTextFile: vi.fn(),
   writeTextFile: vi.fn().mockResolvedValue(undefined),
 }));
@@ -25,64 +22,6 @@ function createTestStore() {
     .setTablesSchema(SCHEMA.table)
     .setValuesSchema(SCHEMA.value);
 }
-
-describe("organizationPersister roundtrip", () => {
-  test("json -> store -> json preserves all data", () => {
-    const original = {
-      "org-1": {
-        user_id: "user-1",
-        created_at: "2024-01-01T00:00:00Z",
-        name: "Acme Corp",
-      },
-      "org-2": {
-        user_id: "user-1",
-        created_at: "2024-01-02T00:00:00Z",
-        name: "Beta Inc",
-      },
-    };
-
-    const [tables] = jsonToContent(original);
-    const store = createMergeableStore();
-    store.setTables(tables);
-    const result = storeToJson(store);
-
-    expect(result).toEqual(original);
-  });
-
-  test("store -> json -> store preserves all data", () => {
-    const store = createMergeableStore();
-
-    const originalOrganizations = {
-      "org-1": {
-        user_id: "user-1",
-        created_at: "2024-01-01T00:00:00Z",
-        name: "Acme Corp",
-      },
-      "org-2": {
-        user_id: "user-1",
-        created_at: "2024-01-02T00:00:00Z",
-        name: "Beta Inc",
-      },
-    };
-
-    store.setTable("organizations", originalOrganizations);
-    const json = storeToJson(store);
-    const [tables] = jsonToContent(json);
-
-    expect(tables).toEqual({ organizations: originalOrganizations });
-  });
-
-  test("handles empty data", () => {
-    const original = {};
-
-    const [tables] = jsonToContent(original);
-    const store = createMergeableStore();
-    store.setTables(tables);
-    const result = storeToJson(store);
-
-    expect(result).toEqual({});
-  });
-});
 
 describe("createOrganizationPersister", () => {
   let store: ReturnType<typeof createTestStore>;

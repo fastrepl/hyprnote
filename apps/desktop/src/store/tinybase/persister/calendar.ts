@@ -2,14 +2,14 @@ import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import { createSimpleJsonPersister, type PersisterMode } from "./utils";
 
-export function createEventPersister<Schemas extends OptionalSchemas>(
+export function createCalendarPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
   return createSimpleJsonPersister(store, {
-    tableName: "events",
-    filename: "events.json",
-    label: "EventPersister",
+    tableName: "calendars",
+    filename: "calendars.json",
+    label: "CalendarPersister",
     mode: config.mode,
   });
 }

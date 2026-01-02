@@ -5,6 +5,7 @@ import { commands, type JsonValue } from "@hypr/plugin-export";
 import type { EnhancedNoteStorage } from "@hypr/store";
 import { isValidTiptapContent } from "@hypr/tiptap/shared";
 
+import { StoreOrMergeableStore } from "../store/shared";
 import {
   type BatchCollectorResult,
   type BatchItem,
@@ -22,6 +23,9 @@ export function createNotePersister<Schemas extends OptionalSchemas>(
   handleSyncToSession: (sessionId: string, content: string) => void,
   config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
+  const loadFn =
+    config.mode === "save-only" ? async () => undefined : async () => undefined;
+
   const saveFn =
     config.mode === "load-only"
       ? async () => {}
@@ -60,12 +64,12 @@ export function createNotePersister<Schemas extends OptionalSchemas>(
 
   return createCustomPersister(
     store,
-    async () => {
-      return undefined;
-    },
+    loadFn,
     saveFn,
     (listener) => setInterval(listener, 1000),
     (interval) => clearInterval(interval),
+    (error) => console.error("[NotePersister]:", error),
+    StoreOrMergeableStore,
   );
 }
 

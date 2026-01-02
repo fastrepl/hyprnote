@@ -6,8 +6,6 @@ publish_mode: editorial_workflow
 
 media_folder: apps/web/public/images
 public_folder: /images
-media_library:
-  name: default
 
 collections:
   - name: articles

@@ -93,7 +93,6 @@ export function SettingsGeneral({
   return (
     <div className="flex flex-col gap-8">
       <div ref={appRef}>
-        <h2 className="font-semibold mb-4">App</h2>
         <form.Field name="autostart">
           {(autostartField) => (
             <form.Field name="notification_detect">

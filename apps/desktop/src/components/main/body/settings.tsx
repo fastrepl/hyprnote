@@ -194,7 +194,7 @@ function SettingsView() {
           className={cn([
             "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
             activeSection === "notifications" &&
-            "bg-neutral-100 border-neutral-200",
+              "bg-neutral-100 border-neutral-200",
           ])}
         >
           <BellIcon size={14} />
@@ -207,7 +207,7 @@ function SettingsView() {
           className={cn([
             "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
             activeSection === "permissions" &&
-            "bg-neutral-100 border-neutral-200",
+              "bg-neutral-100 border-neutral-200",
           ])}
         >
           <LockIcon size={14} />
@@ -238,6 +238,7 @@ function SettingsView() {
             permissionsRef={permissionsRef}
             activeSection={activeSection}
           />
+
           <div ref={labRef} className="mt-8 pb-[50vh] relative">
             <div
               className={cn([
@@ -292,9 +293,9 @@ function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
       className={cn([
         "absolute left-0 w-full h-8 z-20 pointer-events-none",
         position === "top" &&
-        "top-0 bg-gradient-to-b from-white to-transparent",
+          "top-0 bg-gradient-to-b from-white to-transparent",
         position === "bottom" &&
-        "bottom-0 bg-gradient-to-t from-white to-transparent",
+          "bottom-0 bg-gradient-to-t from-white to-transparent",
       ])}
     />
   );

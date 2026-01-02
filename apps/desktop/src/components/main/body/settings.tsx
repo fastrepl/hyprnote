@@ -239,14 +239,7 @@ function SettingsView() {
             activeSection={activeSection}
           />
 
-          <div ref={labRef} className="mt-8 pb-[50vh] relative">
-            <div
-              className={cn([
-                "absolute left-[-24px] top-0 bottom-0 w-1 rounded-r-full transition-opacity duration-200",
-                "bg-stone-400",
-                activeSection === "lab" ? "opacity-100" : "opacity-0",
-              ])}
-            />
+          <div ref={labRef} className="mt-8">
             <h2 className="font-semibold mb-4">Lab</h2>
             <SettingsLab />
           </div>

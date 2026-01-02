@@ -1,6 +1,7 @@
 import Nango from "@nangohq/frontend";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 
 import { nangoCreateConnectSession } from "../../../functions/nango";
 
@@ -8,10 +9,9 @@ export const Route = createFileRoute("/_view/app/integration")({
   component: Component,
 });
 
-const nango = new Nango();
-
 function Component() {
   const getSessionToken = useServerFn(nangoCreateConnectSession);
+  const [nango] = useState(() => new Nango());
 
   const handleConnect = async () => {
     const connect = nango.openConnectUI({

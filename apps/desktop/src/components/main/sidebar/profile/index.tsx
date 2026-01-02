@@ -211,13 +211,13 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     },
     {
       icon: SparklesIcon,
-      label: "AI",
+      label: "AI Settings",
       onClick: handleClickAI,
       badge: <Kbd className={kbdClass}>⌘ ⇧ A</Kbd>,
     },
     {
       icon: SettingsIcon,
-      label: "Settings",
+      label: "App Settings",
       onClick: handleClickSettings,
       badge: <Kbd className={kbdClass}>⌘ ,</Kbd>,
     },

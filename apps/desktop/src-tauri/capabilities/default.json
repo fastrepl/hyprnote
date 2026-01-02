@@ -53,7 +53,30 @@
       "identifier": "fs:allow-mkdir",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-dir",
+      "allow": [
+        {
+          "path": "$DATA/hyprnote"
+        },
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
         },
         {
           "path": "$APPDATA/**/*"
@@ -67,7 +90,13 @@
           "path": "/Applications/*"
         },
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
         },
         {
           "path": "$APPDATA/**/*"
@@ -78,7 +107,13 @@
       "identifier": "fs:allow-read-file",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
         },
         {
           "path": "$APPDATA/**/*"
@@ -89,7 +124,13 @@
       "identifier": "fs:allow-read-text-file",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
         },
         {
           "path": "$APPDATA/**/*"
@@ -100,7 +141,13 @@
       "identifier": "fs:allow-write-text-file",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
         },
         {
           "path": "$APPDATA/**/*"
@@ -114,7 +161,13 @@
       "identifier": "fs:allow-write-file",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
         },
         {
           "path": "$APPDATA/**/*"
@@ -128,7 +181,13 @@
       "identifier": "fs:allow-remove",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
         },
         {
           "path": "$APPDATA/**/*"
@@ -139,7 +198,13 @@
       "identifier": "fs:allow-rename",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
         },
         {
           "path": "$APPDATA/**/*"
@@ -171,8 +236,8 @@
     "listener2:default",
     "template:default",
     "notification:default",
-    "notify:default",
     "overlay:default",
+    "notify:default",
     "pagefind:default",
     "shell:allow-open",
     {

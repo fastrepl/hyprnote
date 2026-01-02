@@ -2,6 +2,7 @@ mod commands;
 mod error;
 mod events;
 mod ext;
+mod migration;
 
 use std::sync::Mutex;
 
@@ -13,6 +14,7 @@ pub use commands::*;
 pub use error::*;
 pub use events::*;
 pub use ext::*;
+pub use migration::*;
 
 const PLUGIN_NAME: &str = "notify";
 
@@ -38,6 +40,9 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
+
+            migration::migrate_uuid_folders(app);
+
             app.manage(WatcherState {
                 debouncer: Mutex::new(None),
             });

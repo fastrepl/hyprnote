@@ -6,6 +6,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("Unknown error")]
     Unknown,
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Path error: {0}")]
+    Path(String),
 }
 
 impl Serialize for Error {

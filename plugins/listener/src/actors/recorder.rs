@@ -8,6 +8,7 @@ use hypr_audio_utils::{
     VorbisEncodeSettings, decode_vorbis_to_wav_file, encode_wav_to_vorbis_file, mix_audio_f32,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
+use tauri_plugin_folder::find_session_dir;
 
 const FLUSH_INTERVAL: std::time::Duration = std::time::Duration::from_millis(1000);
 
@@ -49,7 +50,7 @@ impl Actor for RecorderActor {
         _myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let dir = args.app_dir.join(&args.session_id);
+        let dir = find_session_dir(&args.app_dir, &args.session_id);
         std::fs::create_dir_all(&dir)?;
 
         let filename_base = "audio".to_string();

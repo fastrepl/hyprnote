@@ -5,7 +5,7 @@ use notify_debouncer_full::{DebouncedEvent, new_debouncer};
 use tauri_plugin_path2::Path2PluginExt;
 use tauri_specta::Event;
 
-use crate::{FileChanged, WatcherState};
+use crate::{FileChanged, WatcherState, migration};
 
 const DEBOUNCE_DELAY_MS: u64 = 500;
 
@@ -39,6 +39,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                                 .unwrap_or(path)
                                 .to_string_lossy()
                                 .to_string();
+
+                            migration::maybe_migrate_path(&base_for_closure, &relative_path);
+
                             let _ = FileChanged {
                                 path: relative_path,
                             }

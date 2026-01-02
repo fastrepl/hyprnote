@@ -18,8 +18,13 @@ export async function getDataDir(): Promise<string> {
   return path2Commands.base();
 }
 
-export function getSessionDir(dataDir: string, sessionId: string): string {
-  return `${dataDir}/sessions/${sessionId}`;
+export function getSessionDir(
+  dataDir: string,
+  sessionId: string,
+  folderPath: string = "",
+): string {
+  const folder = folderPath || "_default";
+  return `${dataDir}/sessions/${folder}/${sessionId}`;
 }
 
 export function getChatDir(dataDir: string, chatGroupId: string): string {
@@ -40,6 +45,15 @@ export async function ensureDirsExist(dirs: Set<string>): Promise<void> {
 
 export function sanitizeFilename(name: string): string {
   return name.replace(/[<>:"/\\|?*]/g, "_").trim();
+}
+
+export function getParentFolderPath(folderPath: string): string {
+  if (!folderPath) {
+    return "";
+  }
+  const parts = folderPath.split("/");
+  parts.pop();
+  return parts.join("/");
 }
 
 export function safeParseJson(

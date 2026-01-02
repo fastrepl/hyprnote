@@ -9,6 +9,7 @@ import { type Schemas } from "@hypr/store";
 import { DEFAULT_USER_ID } from "../../../utils";
 import { createChatPersister } from "../persister/chat";
 import { createEventPersister } from "../persister/events";
+import { createFolderPersister, startFolderWatcher } from "../persister/folder";
 import { createHumanPersister } from "../persister/human";
 import { createLocalPersister } from "../persister/local";
 import { createNotePersister } from "../persister/note";
@@ -87,6 +88,28 @@ export function useMainPersisters(
       });
 
       await persister.startAutoLoad();
+      return persister;
+    },
+    [persist],
+  );
+
+  const folderPersister = useCreatePersister(
+    store,
+    async (store) => {
+      if (!persist) {
+        return undefined;
+      }
+
+      const persister = createFolderPersister<Schemas>(store as Store, {
+        mode: "load-only",
+      });
+      await persister.load();
+      await persister.startAutoLoad();
+
+      if (getCurrentWebviewWindowLabel() === "main") {
+        void startFolderWatcher(persister);
+      }
+
       return persister;
     },
     [persist],
@@ -214,6 +237,7 @@ export function useMainPersisters(
   const persisters = useMemo(
     () =>
       localPersister &&
+      folderPersister &&
       markdownPersister &&
       transcriptPersister &&
       organizationPersister &&
@@ -222,6 +246,7 @@ export function useMainPersisters(
       chatPersister
         ? [
             localPersister,
+            folderPersister,
             markdownPersister,
             transcriptPersister,
             organizationPersister,
@@ -232,6 +257,7 @@ export function useMainPersisters(
         : null,
     [
       localPersister,
+      folderPersister,
       markdownPersister,
       transcriptPersister,
       organizationPersister,
@@ -245,6 +271,7 @@ export function useMainPersisters(
 
   return {
     localPersister,
+    folderPersister,
     markdownPersister,
     transcriptPersister,
     organizationPersister,

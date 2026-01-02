@@ -1,6 +1,7 @@
 import { FolderIcon } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 
+import { commands as folderCommands } from "@hypr/plugin-folder";
 import {
   Command,
   CommandEmpty,
@@ -31,13 +32,7 @@ export function SearchableFolderDropdown({
     main.STORE_ID,
   );
 
-  const handleSelectFolder = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (folderId: string) => ({ folder_id: folderId }),
-    [],
-    main.STORE_ID,
-  );
+  const handleSelectFolder = useMoveSessionToFolder(sessionId);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -71,13 +66,7 @@ export function SearchableFolderSubmenuContent({
     main.STORE_ID,
   );
 
-  const handleSelectFolder = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (folderId: string) => ({ folder_id: folderId }),
-    [],
-    main.STORE_ID,
-  );
+  const handleSelectFolder = useMoveSessionToFolder(sessionId);
 
   return (
     <DropdownMenuSubContent className="w-[200px] p-0">
@@ -102,11 +91,11 @@ function SearchableFolderContent({
   setOpen,
 }: {
   folders: Record<string, any>;
-  onSelectFolder: (folderId: string) => void;
+  onSelectFolder: (folderId: string) => Promise<void>;
   setOpen?: (open: boolean) => void;
 }) {
-  const handleSelect = (folderId: string) => {
-    onSelectFolder(folderId);
+  const handleSelect = async (folderId: string) => {
+    await onSelectFolder(folderId);
     setOpen?.(false);
   };
 
@@ -129,5 +118,23 @@ function SearchableFolderContent({
         </CommandGroup>
       </CommandList>
     </Command>
+  );
+}
+
+function useMoveSessionToFolder(sessionId: string) {
+  const setFolderId = main.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (folderId: string) => ({ folder_id: folderId }),
+    [],
+    main.STORE_ID,
+  );
+
+  return useCallback(
+    async (targetFolderId: string) => {
+      await folderCommands.moveSession(sessionId, targetFolderId);
+      setFolderId(targetFolderId);
+    },
+    [sessionId, setFolderId],
   );
 }

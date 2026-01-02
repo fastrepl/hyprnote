@@ -1,4 +1,12 @@
-import { FlaskConical, SettingsIcon, UserIcon } from "lucide-react";
+import {
+  BellIcon,
+  FlaskConical,
+  LanguagesIcon,
+  LockIcon,
+  SettingsIcon,
+  SmartphoneIcon,
+  UserIcon,
+} from "lucide-react";
 import {
   type RefObject,
   useCallback,
@@ -56,22 +64,41 @@ export function TabContentSettings({
   );
 }
 
+type SettingsSection =
+  | "account"
+  | "app"
+  | "language"
+  | "notifications"
+  | "permissions"
+  | "lab";
+
 function SettingsView() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const generalRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const appRef = useRef<HTMLDivElement>(null);
+  const languageRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const permissionsRef = useRef<HTMLDivElement>(null);
   const labRef = useRef<HTMLDivElement>(null);
-  const [activeSection, setActiveSection] = useState<"general" | "lab">(
-    "general",
-  );
+  const [activeSection, setActiveSection] =
+    useState<SettingsSection>("account");
   const {
     ref: scrollFadeRef,
     atStart,
     atEnd,
   } = useScrollFade<HTMLDivElement>([activeSection]);
 
-  const scrollToSection = useCallback((section: "general" | "lab") => {
+  const scrollToSection = useCallback((section: SettingsSection) => {
     const container = scrollContainerRef.current;
-    const targetRef = section === "general" ? generalRef : labRef;
+    const refMap = {
+      account: accountRef,
+      app: appRef,
+      language: languageRef,
+      notifications: notificationsRef,
+      permissions: permissionsRef,
+      lab: labRef,
+    };
+    const targetRef = refMap[section];
     const target = targetRef.current;
 
     if (container && target) {
@@ -91,19 +118,27 @@ function SettingsView() {
     if (!container) return;
 
     const handleScroll = () => {
-      const generalEl = generalRef.current;
-      const labEl = labRef.current;
-
-      if (!generalEl || !labEl) return;
+      const refs = [
+        { section: "account" as const, ref: accountRef },
+        { section: "app" as const, ref: appRef },
+        { section: "language" as const, ref: languageRef },
+        { section: "notifications" as const, ref: notificationsRef },
+        { section: "permissions" as const, ref: permissionsRef },
+        { section: "lab" as const, ref: labRef },
+      ];
 
       const containerTop = container.getBoundingClientRect().top;
-      const generalTop = generalEl.getBoundingClientRect().top - containerTop;
-      const labTop = labEl.getBoundingClientRect().top - containerTop;
 
-      if (labTop <= 100) {
-        setActiveSection("lab");
-      } else if (generalTop <= 100) {
-        setActiveSection("general");
+      for (let i = refs.length - 1; i >= 0; i--) {
+        const { section, ref } = refs[i];
+        const el = ref.current;
+        if (!el) continue;
+
+        const top = el.getBoundingClientRect().top - containerTop;
+        if (top <= 100) {
+          setActiveSection(section);
+          break;
+        }
       }
     };
 
@@ -122,18 +157,68 @@ function SettingsView() {
 
   return (
     <div className="flex flex-col flex-1 w-full overflow-hidden">
-      <div className="flex gap-1 px-6 pt-6 pb-2">
+      <div className="flex gap-1 px-6 pt-6 pb-2 flex-wrap">
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => scrollToSection("general")}
+          onClick={() => scrollToSection("account")}
           className={cn([
             "px-1 gap-1.5 h-7 border border-transparent",
-            activeSection === "general" && "bg-neutral-100 border-neutral-200",
+            activeSection === "account" && "bg-neutral-100 border-neutral-200",
           ])}
         >
           <UserIcon size={14} />
-          <span className="text-xs">General</span>
+          <span className="text-xs">Account</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => scrollToSection("app")}
+          className={cn([
+            "px-1 gap-1.5 h-7 border border-transparent",
+            activeSection === "app" && "bg-neutral-100 border-neutral-200",
+          ])}
+        >
+          <SmartphoneIcon size={14} />
+          <span className="text-xs">App</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => scrollToSection("language")}
+          className={cn([
+            "px-1 gap-1.5 h-7 border border-transparent",
+            activeSection === "language" && "bg-neutral-100 border-neutral-200",
+          ])}
+        >
+          <LanguagesIcon size={14} />
+          <span className="text-xs">Language</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => scrollToSection("notifications")}
+          className={cn([
+            "px-1 gap-1.5 h-7 border border-transparent",
+            activeSection === "notifications" &&
+              "bg-neutral-100 border-neutral-200",
+          ])}
+        >
+          <BellIcon size={14} />
+          <span className="text-xs">Notifications</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => scrollToSection("permissions")}
+          className={cn([
+            "px-1 gap-1.5 h-7 border border-transparent",
+            activeSection === "permissions" &&
+              "bg-neutral-100 border-neutral-200",
+          ])}
+        >
+          <LockIcon size={14} />
+          <span className="text-xs">Permissions</span>
         </Button>
         <Button
           variant="ghost"
@@ -153,9 +238,13 @@ function SettingsView() {
           ref={scrollContainerRef}
           className="flex-1 w-full h-full overflow-y-auto scrollbar-hide px-6 pb-6"
         >
-          <div ref={generalRef}>
-            <SettingsGeneral />
-          </div>
+          <SettingsGeneral
+            accountRef={accountRef}
+            appRef={appRef}
+            languageRef={languageRef}
+            notificationsRef={notificationsRef}
+            permissionsRef={permissionsRef}
+          />
 
           <div ref={labRef} className="mt-8">
             <h2 className="font-semibold mb-4">Lab</h2>

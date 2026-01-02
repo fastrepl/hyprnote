@@ -123,28 +123,27 @@ function SettingsView() {
         { section: "lab" as const, ref: labRef },
       ];
 
-      const containerTop = container.getBoundingClientRect().top;
-      const containerHeight = container.clientHeight;
-      const centerPoint = containerHeight / 3;
+      const containerRect = container.getBoundingClientRect();
+      const containerCenter = containerRect.top + containerRect.height / 2;
 
-      let closestSection: SettingsSection | null = null;
-      let closestDistance = Infinity;
+      let activeSection: SettingsSection | null = null;
 
       for (const { section, ref } of refs) {
         const el = ref.current;
         if (!el) continue;
 
-        const top = el.getBoundingClientRect().top - containerTop;
-        const distance = Math.abs(top - centerPoint);
+        const rect = el.getBoundingClientRect();
+        const sectionTop = rect.top;
+        const sectionBottom = rect.bottom;
+        const sectionCenter = sectionTop + rect.height / 2;
 
-        if (top <= centerPoint && distance < closestDistance) {
-          closestDistance = distance;
-          closestSection = section;
+        if (sectionCenter <= containerCenter) {
+          activeSection = section;
         }
       }
 
-      if (closestSection) {
-        setActiveSection(closestSection);
+      if (activeSection) {
+        setActiveSection(activeSection);
       }
     };
 

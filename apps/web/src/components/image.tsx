@@ -1,5 +1,6 @@
 import type { ImageProps } from "@unpic/react";
 import { Image as UnpicImage } from "@unpic/react/base";
+import { transform } from "unpic/providers/netlify";
 
 export const Image = ({
   layout = "constrained",
@@ -13,6 +14,7 @@ export const Image = ({
   return (
     <UnpicImage
       {...(props as any)}
+      transformer={transform}
       layout={layout}
       background={background}
       style={{

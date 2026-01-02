@@ -9,7 +9,7 @@ public_folder: /images
 
 collections:
   - name: articles
-    label: Blog Articles
+    label: Blog
     folder: apps/web/content/articles
     media_folder: /apps/web/public/images/blog
     public_folder: /images/blog

@@ -4,11 +4,13 @@ import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import type { ChatMessageStorage } from "@hypr/store";
 
+import { StoreOrMergeableStore } from "../store/shared";
 import {
   ensureDirsExist,
   getChatDir,
   getDataDir,
   iterateTableRows,
+  type PersisterMode,
   type TablesContent,
 } from "./utils";
 
@@ -65,61 +67,70 @@ function collectMessagesByChatGroup(
 
 export function createChatPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
+  config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
+  const loadFn =
+    config.mode === "save-only" ? async () => undefined : async () => undefined;
+
+  const saveFn =
+    config.mode === "load-only"
+      ? async () => {}
+      : async (getContent: () => unknown) => {
+          const [tables] = getContent() as [TablesContent | undefined, unknown];
+          const dataDir = await getDataDir();
+
+          const messagesByChatGroup = collectMessagesByChatGroup(tables);
+          if (messagesByChatGroup.size === 0) {
+            return;
+          }
+
+          const dirs = new Set<string>();
+          const writeOperations: Array<{ path: string; content: string }> = [];
+
+          for (const [
+            chatGroupId,
+            { chatGroup, messages },
+          ] of messagesByChatGroup) {
+            const chatDir = getChatDir(dataDir, chatGroupId);
+            dirs.add(chatDir);
+
+            const json: ChatJson = {
+              chat_group: chatGroup,
+              messages: messages.sort(
+                (a, b) =>
+                  new Date(a.created_at || 0).getTime() -
+                  new Date(b.created_at || 0).getTime(),
+              ),
+            };
+            writeOperations.push({
+              path: `${chatDir}/_messages.json`,
+              content: JSON.stringify(json, null, 2),
+            });
+          }
+
+          try {
+            await ensureDirsExist(dirs);
+          } catch (e) {
+            console.error("Failed to ensure dirs exist:", e);
+            return;
+          }
+
+          for (const op of writeOperations) {
+            try {
+              await writeTextFile(op.path, op.content);
+            } catch (e) {
+              console.error(`Failed to write ${op.path}:`, e);
+            }
+          }
+        };
+
   return createCustomPersister(
     store,
-    async () => {
-      return undefined;
-    },
-    async (getContent) => {
-      const [tables] = getContent() as [TablesContent | undefined, unknown];
-      const dataDir = await getDataDir();
-
-      const messagesByChatGroup = collectMessagesByChatGroup(tables);
-      if (messagesByChatGroup.size === 0) {
-        return;
-      }
-
-      const dirs = new Set<string>();
-      const writeOperations: Array<{ path: string; content: string }> = [];
-
-      for (const [
-        chatGroupId,
-        { chatGroup, messages },
-      ] of messagesByChatGroup) {
-        const chatDir = getChatDir(dataDir, chatGroupId);
-        dirs.add(chatDir);
-
-        const json: ChatJson = {
-          chat_group: chatGroup,
-          messages: messages.sort(
-            (a, b) =>
-              new Date(a.created_at || 0).getTime() -
-              new Date(b.created_at || 0).getTime(),
-          ),
-        };
-        writeOperations.push({
-          path: `${chatDir}/_messages.json`,
-          content: JSON.stringify(json, null, 2),
-        });
-      }
-
-      try {
-        await ensureDirsExist(dirs);
-      } catch (e) {
-        console.error("Failed to ensure dirs exist:", e);
-        return;
-      }
-
-      for (const op of writeOperations) {
-        try {
-          await writeTextFile(op.path, op.content);
-        } catch (e) {
-          console.error(`Failed to write ${op.path}:`, e);
-        }
-      }
-    },
+    loadFn,
+    saveFn,
     (listener) => setInterval(listener, 1000),
     (interval) => clearInterval(interval),
+    (error) => console.error("[ChatPersister]:", error),
+    StoreOrMergeableStore,
   );
 }

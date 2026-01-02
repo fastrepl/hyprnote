@@ -8,6 +8,7 @@ import type {
   WordStorage,
 } from "@hypr/store";
 
+import { StoreOrMergeableStore } from "../store/shared";
 import {
   ensureDirsExist,
   getDataDir,
@@ -79,6 +80,9 @@ export function createTranscriptPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
+  const loadFn =
+    config.mode === "save-only" ? async () => undefined : async () => undefined;
+
   const saveFn =
     config.mode === "load-only"
       ? async () => {}
@@ -123,11 +127,11 @@ export function createTranscriptPersister<Schemas extends OptionalSchemas>(
 
   return createCustomPersister(
     store,
-    async () => {
-      return undefined;
-    },
+    loadFn,
     saveFn,
     (listener) => setInterval(listener, 1000),
     (interval) => clearInterval(interval),
+    (error) => console.error("[TranscriptPersister]:", error),
+    StoreOrMergeableStore,
   );
 }

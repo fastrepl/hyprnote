@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { SCHEMA, type Schemas } from "@hypr/store";
 
-import { createHumanPersister } from "./human";
+import { createCalendarPersister } from "./calendar";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {
@@ -23,7 +23,7 @@ function createTestStore() {
     .setValuesSchema(SCHEMA.value);
 }
 
-describe("createHumanPersister", () => {
+describe("createCalendarPersister", () => {
   let store: ReturnType<typeof createTestStore>;
 
   beforeEach(() => {
@@ -32,7 +32,7 @@ describe("createHumanPersister", () => {
   });
 
   test("returns a persister object with expected methods", () => {
-    const persister = createHumanPersister<Schemas>(store);
+    const persister = createCalendarPersister<Schemas>(store);
 
     expect(persister).toBeDefined();
     expect(persister.save).toBeTypeOf("function");
@@ -41,66 +41,66 @@ describe("createHumanPersister", () => {
   });
 
   describe("load", () => {
-    test("loads humans from json file", async () => {
+    test("loads calendars from json file", async () => {
       const { readTextFile } = await import("@tauri-apps/plugin-fs");
 
       const mockData = {
-        "human-1": {
+        "cal-1": {
           user_id: "user-1",
           created_at: "2024-01-01T00:00:00Z",
-          name: "John Doe",
-          email: "john@example.com",
-          org_id: "org-1",
-          job_title: "Engineer",
-          linkedin_username: "johndoe",
-          memo: "Some notes",
+          tracking_id_calendar: "tracking-1",
+          name: "Work Calendar",
+          enabled: true,
+          provider: "apple",
+          source: "iCloud",
+          color: "#FF0000",
         },
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createCalendarPersister<Schemas>(store);
       await persister.load();
 
       expect(readTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/humans.json",
+        "/mock/data/dir/hyprnote/calendars.json",
       );
-      expect(store.getTable("humans")).toEqual(mockData);
+      expect(store.getTable("calendars")).toEqual(mockData);
     });
 
-    test("returns empty humans when file does not exist", async () => {
+    test("returns empty calendars when file does not exist", async () => {
       const { readTextFile } = await import("@tauri-apps/plugin-fs");
 
       vi.mocked(readTextFile).mockRejectedValue(
         new Error("No such file or directory"),
       );
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createCalendarPersister<Schemas>(store);
       await persister.load();
 
-      expect(store.getTable("humans")).toEqual({});
+      expect(store.getTable("calendars")).toEqual({});
     });
   });
 
   describe("save", () => {
-    test("saves humans to json file", async () => {
+    test("saves calendars to json file", async () => {
       const { writeTextFile } = await import("@tauri-apps/plugin-fs");
 
-      store.setRow("humans", "human-1", {
+      store.setRow("calendars", "cal-1", {
         user_id: "user-1",
         created_at: "2024-01-01T00:00:00Z",
-        name: "John Doe",
-        email: "john@example.com",
-        org_id: "org-1",
-        job_title: "Engineer",
-        linkedin_username: "johndoe",
-        memo: "Some notes",
+        tracking_id_calendar: "tracking-1",
+        name: "Work Calendar",
+        enabled: true,
+        provider: "apple",
+        source: "iCloud",
+        color: "#FF0000",
       });
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createCalendarPersister<Schemas>(store);
       await persister.save();
 
       expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/humans.json",
+        "/mock/data/dir/hyprnote/calendars.json",
         expect.any(String),
       );
 
@@ -108,65 +108,65 @@ describe("createHumanPersister", () => {
       const parsed = JSON.parse(writtenContent);
 
       expect(parsed).toEqual({
-        "human-1": {
+        "cal-1": {
           user_id: "user-1",
           created_at: "2024-01-01T00:00:00Z",
-          name: "John Doe",
-          email: "john@example.com",
-          org_id: "org-1",
-          job_title: "Engineer",
-          linkedin_username: "johndoe",
-          memo: "Some notes",
+          tracking_id_calendar: "tracking-1",
+          name: "Work Calendar",
+          enabled: true,
+          provider: "apple",
+          source: "iCloud",
+          color: "#FF0000",
         },
       });
     });
 
-    test("writes empty object when no humans exist", async () => {
+    test("writes empty object when no calendars exist", async () => {
       const { writeTextFile } = await import("@tauri-apps/plugin-fs");
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createCalendarPersister<Schemas>(store);
       await persister.save();
 
       expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/humans.json",
+        "/mock/data/dir/hyprnote/calendars.json",
         "{}",
       );
     });
 
-    test("saves multiple humans", async () => {
+    test("saves multiple calendars", async () => {
       const { writeTextFile } = await import("@tauri-apps/plugin-fs");
 
-      store.setRow("humans", "human-1", {
+      store.setRow("calendars", "cal-1", {
         user_id: "user-1",
         created_at: "2024-01-01T00:00:00Z",
-        name: "John Doe",
-        email: "john@example.com",
-        org_id: "org-1",
-        job_title: "Engineer",
-        linkedin_username: "johndoe",
-        memo: "",
+        tracking_id_calendar: "tracking-1",
+        name: "Work Calendar",
+        enabled: true,
+        provider: "apple",
+        source: "iCloud",
+        color: "#FF0000",
       });
 
-      store.setRow("humans", "human-2", {
+      store.setRow("calendars", "cal-2", {
         user_id: "user-1",
         created_at: "2024-01-02T00:00:00Z",
-        name: "Jane Smith",
-        email: "jane@example.com",
-        org_id: "org-2",
-        job_title: "Manager",
-        linkedin_username: "janesmith",
-        memo: "",
+        tracking_id_calendar: "tracking-2",
+        name: "Personal Calendar",
+        enabled: false,
+        provider: "google",
+        source: "Gmail",
+        color: "#00FF00",
       });
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createCalendarPersister<Schemas>(store);
       await persister.save();
 
       const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
       const parsed = JSON.parse(writtenContent);
 
       expect(Object.keys(parsed)).toHaveLength(2);
-      expect(parsed["human-1"].name).toBe("John Doe");
-      expect(parsed["human-2"].name).toBe("Jane Smith");
+      expect(parsed["cal-1"].name).toBe("Work Calendar");
+      expect(parsed["cal-2"].name).toBe("Personal Calendar");
     });
   });
 });

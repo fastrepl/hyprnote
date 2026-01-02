@@ -7,12 +7,16 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { type Schemas } from "@hypr/store";
 
 import { DEFAULT_USER_ID } from "../../../utils";
+import { createCalendarPersister } from "../persister/calendar";
 import { createChatPersister } from "../persister/chat";
 import { createEventPersister } from "../persister/events";
 import { createHumanPersister } from "../persister/human";
 import { createLocalPersister } from "../persister/local";
 import { createNotePersister } from "../persister/note";
 import { createOrganizationPersister } from "../persister/organization";
+import { createPromptPersister } from "../persister/prompts";
+import { createSessionPersister } from "../persister/session";
+import { createTemplatePersister } from "../persister/templates";
 import { createTranscriptPersister } from "../persister/transcript";
 import { maybeImportFromJson } from "./importer";
 import { type Store, STORE_ID } from "./main";
@@ -146,9 +150,7 @@ export function useMainPersisters(
         return undefined;
       }
 
-      return createOrganizationPersister<Schemas>(store as Store, {
-        mode: "save-only",
-      });
+      return createOrganizationPersister<Schemas>(store as Store);
     },
     [persist],
   );
@@ -160,9 +162,7 @@ export function useMainPersisters(
         return undefined;
       }
 
-      return createHumanPersister<Schemas>(store as Store, {
-        mode: "save-only",
-      });
+      return createHumanPersister<Schemas>(store as Store);
     },
     [persist],
   );
@@ -178,7 +178,7 @@ export function useMainPersisters(
         mode: "load-only",
       });
       await persister.load();
-      await persister.startAutoPersisting();
+      await persister.startAutoLoad();
       return persister;
     },
     [persist],
@@ -211,6 +211,54 @@ export function useMainPersisters(
     [persist],
   );
 
+  const promptPersister = useCreatePersister(
+    store,
+    async (store) => {
+      if (!persist) {
+        return undefined;
+      }
+
+      return createPromptPersister<Schemas>(store as Store);
+    },
+    [persist],
+  );
+
+  const templatePersister = useCreatePersister(
+    store,
+    async (store) => {
+      if (!persist) {
+        return undefined;
+      }
+
+      return createTemplatePersister<Schemas>(store as Store);
+    },
+    [persist],
+  );
+
+  const sessionPersister = useCreatePersister(
+    store,
+    async (store) => {
+      if (!persist) {
+        return undefined;
+      }
+
+      return createSessionPersister<Schemas>(store as Store);
+    },
+    [persist],
+  );
+
+  const calendarPersister = useCreatePersister(
+    store,
+    async (store) => {
+      if (!persist) {
+        return undefined;
+      }
+
+      return createCalendarPersister<Schemas>(store as Store);
+    },
+    [persist],
+  );
+
   const persisters = useMemo(
     () =>
       localPersister &&
@@ -219,7 +267,11 @@ export function useMainPersisters(
       organizationPersister &&
       humanPersister &&
       eventPersister &&
-      chatPersister
+      chatPersister &&
+      promptPersister &&
+      templatePersister &&
+      sessionPersister &&
+      calendarPersister
         ? [
             localPersister,
             markdownPersister,
@@ -228,6 +280,10 @@ export function useMainPersisters(
             humanPersister,
             eventPersister,
             chatPersister,
+            promptPersister,
+            templatePersister,
+            sessionPersister,
+            calendarPersister,
           ]
         : null,
     [
@@ -238,6 +294,10 @@ export function useMainPersisters(
       humanPersister,
       eventPersister,
       chatPersister,
+      promptPersister,
+      templatePersister,
+      sessionPersister,
+      calendarPersister,
     ],
   );
 
@@ -251,6 +311,10 @@ export function useMainPersisters(
     humanPersister,
     eventPersister,
     chatPersister,
+    promptPersister,
+    templatePersister,
+    sessionPersister,
+    calendarPersister,
   };
 }
 

@@ -6,13 +6,7 @@ import {
   SettingsIcon,
   SmartphoneIcon,
 } from "lucide-react";
-import {
-  type RefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useResizeObserver } from "usehooks-ts";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -293,7 +287,7 @@ function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
     });
   }, []);
 
-  useResizeObserver({ ref, onResize: update });
+  useResizeObserver({ ref: ref as React.RefObject<T>, onResize: update });
 
   useEffect(() => {
     const el = ref.current;

@@ -281,7 +281,7 @@ function Container({
   const [isNarrow, setIsNarrow] = useState(false);
 
   useResizeObserver({
-    ref: containerRef,
+    ref: containerRef as React.RefObject<HTMLElement>,
     onResize: ({ width }) => {
       if (width !== undefined) {
         setIsNarrow(width < 400);

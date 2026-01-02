@@ -4,7 +4,6 @@ import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { General, GeneralStorage } from "@hypr/store";
-import { cn } from "@hypr/utils";
 
 import { useConfigValues } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/store/settings";
@@ -27,12 +26,11 @@ export function SettingsGeneral({
   languageRef,
   notificationsRef,
   permissionsRef,
-  activeSection,
 }: {
-  appRef?: React.RefObject<HTMLDivElement>;
-  languageRef?: React.RefObject<HTMLDivElement>;
-  notificationsRef?: React.RefObject<HTMLDivElement>;
-  permissionsRef?: React.RefObject<HTMLDivElement>;
+  appRef?: React.RefObject<HTMLDivElement | null>;
+  languageRef?: React.RefObject<HTMLDivElement | null>;
+  notificationsRef?: React.RefObject<HTMLDivElement | null>;
+  permissionsRef?: React.RefObject<HTMLDivElement | null>;
   activeSection?: SettingsSection;
 } = {}) {
   const value = useConfigValues([

@@ -159,7 +159,7 @@ function SettingsView() {
           size="sm"
           onClick={() => scrollToSection("app")}
           className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent",
+            "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
             activeSection === "app" && "bg-neutral-100 border-neutral-200",
           ])}
         >
@@ -171,7 +171,7 @@ function SettingsView() {
           size="sm"
           onClick={() => scrollToSection("language")}
           className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent",
+            "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
             activeSection === "language" && "bg-neutral-100 border-neutral-200",
           ])}
         >
@@ -183,7 +183,7 @@ function SettingsView() {
           size="sm"
           onClick={() => scrollToSection("notifications")}
           className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent",
+            "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
             activeSection === "notifications" &&
               "bg-neutral-100 border-neutral-200",
           ])}
@@ -196,7 +196,7 @@ function SettingsView() {
           size="sm"
           onClick={() => scrollToSection("permissions")}
           className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent",
+            "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
             activeSection === "permissions" &&
               "bg-neutral-100 border-neutral-200",
           ])}
@@ -209,7 +209,7 @@ function SettingsView() {
           size="sm"
           onClick={() => scrollToSection("lab")}
           className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent",
+            "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
             activeSection === "lab" && "bg-neutral-100 border-neutral-200",
           ])}
         >

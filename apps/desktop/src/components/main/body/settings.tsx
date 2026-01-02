@@ -78,6 +78,7 @@ function SettingsView() {
   const permissionsRef = useRef<HTMLDivElement>(null);
   const labRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<SettingsSection>("app");
+  const isProgrammaticScroll = useRef(false);
   const {
     ref: scrollFadeRef,
     atStart,
@@ -86,6 +87,7 @@ function SettingsView() {
 
   const scrollToSection = useCallback((section: SettingsSection) => {
     setActiveSection(section);
+    isProgrammaticScroll.current = true;
 
     const container = scrollContainerRef.current;
 
@@ -96,6 +98,9 @@ function SettingsView() {
         top: container.scrollHeight,
         behavior: "smooth",
       });
+      setTimeout(() => {
+        isProgrammaticScroll.current = false;
+      }, 1000);
       return;
     }
 
@@ -118,6 +123,9 @@ function SettingsView() {
         top: offset,
         behavior: "smooth",
       });
+      setTimeout(() => {
+        isProgrammaticScroll.current = false;
+      }, 1000);
     }
   }, []);
 
@@ -126,6 +134,8 @@ function SettingsView() {
     if (!container) return;
 
     const handleScroll = () => {
+      if (isProgrammaticScroll.current) return;
+
       const refs = [
         { section: "app" as const, ref: appRef },
         { section: "language" as const, ref: languageRef },

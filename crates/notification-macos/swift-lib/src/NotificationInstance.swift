@@ -6,10 +6,54 @@ class NotificationInstance {
   let clickableView: ClickableView
   private var dismissTimer: DispatchWorkItem?
 
+  var isExpanded: Bool = false
+  var compactContentView: NSView?
+  var expandedContentView: NSView?
+
+  var countdownTimer: Timer?
+  var meetingStartTime: Date?
+  weak var timerLabel: NSTextField?
+
   init(key: String, panel: NSPanel, clickableView: ClickableView) {
     self.key = key
     self.panel = panel
     self.clickableView = clickableView
+  }
+
+  func toggleExpansion() {
+    isExpanded.toggle()
+    NotificationManager.shared.animateExpansion(notification: self, isExpanded: isExpanded)
+  }
+
+  func startCountdown(label: NSTextField) {
+    timerLabel = label
+    updateCountdown()
+
+    countdownTimer?.invalidate()
+    countdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+      self?.updateCountdown()
+    }
+  }
+
+  func stopCountdown() {
+    countdownTimer?.invalidate()
+    countdownTimer = nil
+    timerLabel = nil
+  }
+
+  private func updateCountdown() {
+    guard let startTime = meetingStartTime, let label = timerLabel else { return }
+    let remaining = startTime.timeIntervalSinceNow
+
+    if remaining <= 0 {
+      label.stringValue = "Started"
+      countdownTimer?.invalidate()
+      countdownTimer = nil
+    } else {
+      let minutes = Int(remaining) / 60
+      let seconds = Int(remaining) % 60
+      label.stringValue = "Begins in \(minutes):\(String(format: "%02d", seconds))"
+    }
   }
 
   func startDismissTimer(timeoutSeconds: Double) {
@@ -24,6 +68,7 @@ class NotificationInstance {
   func dismiss() {
     dismissTimer?.cancel()
     dismissTimer = nil
+    stopCountdown()
 
     NSAnimationContext.runAnimationGroup({ context in
       context.duration = 0.2
@@ -51,5 +96,6 @@ class NotificationInstance {
 
   deinit {
     dismissTimer?.cancel()
+    countdownTimer?.invalidate()
   }
 }

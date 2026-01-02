@@ -18,19 +18,22 @@ extension NotificationManager {
   func repositionAllNotifications() {
     guard let screen = getTargetScreen() else { return }
     let screenRect = screen.visibleFrame
-    let topPosition = screenRect.maxY - Config.notificationHeight - Config.topMargin
-    let rightPosition = screenRect.maxX - Config.notificationWidth - Config.rightMargin
+    let rightPosition = screenRect.maxX - panelWidth() - Config.rightMargin + Config.buttonOverhang
 
     let sorted = activeNotifications.values.sorted { $0.panel.frame.minY > $1.panel.frame.minY }
 
-    for (index, notification) in sorted.enumerated() {
-      let newY = topPosition - CGFloat(index) * (Config.notificationHeight + notificationSpacing)
+    var currentY = screenRect.maxY - Config.topMargin + Config.buttonOverhang
+
+    for notification in sorted {
+      let height = notification.panel.frame.height
+      currentY -= height
       let newFrame = NSRect(
         x: rightPosition,
-        y: newY,
-        width: Config.notificationWidth,
-        height: Config.notificationHeight
+        y: currentY,
+        width: panelWidth(),
+        height: height
       )
+      currentY -= notificationSpacing
 
       notification.panel.setFrame(newFrame, display: true)
       notification.clickableView.updateTrackingAreas()
@@ -51,18 +54,23 @@ extension NotificationManager {
   func repositionNotifications() {
     guard let screen = getTargetScreen() else { return }
     let screenRect = screen.visibleFrame
-    let topPosition = screenRect.maxY - Config.notificationHeight - Config.topMargin
-    let rightPosition = screenRect.maxX - Config.notificationWidth - Config.rightMargin
+    let rightPosition = screenRect.maxX - panelWidth() - Config.rightMargin + Config.buttonOverhang
 
     let sorted = activeNotifications.values.sorted { $0.panel.frame.minY > $1.panel.frame.minY }
-    for (index, notification) in sorted.enumerated() {
-      let newY = topPosition - CGFloat(index) * (Config.notificationHeight + notificationSpacing)
+
+    var currentY = screenRect.maxY - Config.topMargin + Config.buttonOverhang
+
+    for notification in sorted {
+      let height = notification.panel.frame.height
+      currentY -= height
       let newFrame = NSRect(
         x: rightPosition,
-        y: newY,
-        width: Config.notificationWidth,
-        height: Config.notificationHeight
+        y: currentY,
+        width: panelWidth(),
+        height: height
       )
+      currentY -= notificationSpacing
+
       NSAnimationContext.runAnimationGroup { context in
         context.duration = 0.2
         context.timingFunction = CAMediaTimingFunction(name: .easeOut)
@@ -74,14 +82,18 @@ extension NotificationManager {
   func calculateYPosition(screen: NSScreen? = nil) -> CGFloat {
     let targetScreen = screen ?? getTargetScreen() ?? NSScreen.main!
     let screenRect = targetScreen.visibleFrame
-    let baseY = screenRect.maxY - Config.notificationHeight - Config.topMargin
-    let occupiedHeight =
-      activeNotifications.count * Int(Config.notificationHeight + notificationSpacing)
-    return baseY - CGFloat(occupiedHeight)
+
+    var occupiedHeight: CGFloat = 0
+    for notification in activeNotifications.values {
+      occupiedHeight += notification.panel.frame.height + notificationSpacing
+    }
+
+    let baseY = screenRect.maxY - panelHeight() - Config.topMargin + Config.buttonOverhang
+    return baseY - occupiedHeight
   }
 
   func createAndShowNotification(
-    key: String, title: String, message: String, timeoutSeconds: Double
+    key: String, title: String, message: String, timeoutSeconds: Double, startTime: Date?
   ) {
     guard let screen = getTargetScreen() else { return }
 
@@ -94,19 +106,29 @@ extension NotificationManager {
     let effectView = createEffectView(container: container)
 
     let notification = NotificationInstance(key: key, panel: panel, clickableView: clickableView)
+    notification.meetingStartTime = startTime
     clickableView.notification = notification
-
-    setupContent(
-      effectView: effectView, title: title, message: message, notification: notification)
 
     clickableView.addSubview(container)
     panel.contentView = clickableView
+
+    setupContent(
+      effectView: effectView, container: container, title: title, message: message, notification: notification)
 
     activeNotifications[notification.key] = notification
     hoverStates[notification.key] = false
 
     showWithAnimation(notification: notification, screen: screen, timeoutSeconds: timeoutSeconds)
     ensureGlobalMouseMonitor()
+  }
+
+  func panelWidth() -> CGFloat {
+    Config.notificationWidth + Config.buttonOverhang
+  }
+
+  func panelHeight(expanded: Bool = false) -> CGFloat {
+    let contentHeight = expanded ? Config.expandedNotificationHeight : Config.notificationHeight
+    return contentHeight + Config.buttonOverhang
   }
 
   func createPanel(screen: NSScreen? = nil, yPosition: CGFloat) -> NSPanel {
@@ -116,8 +138,8 @@ extension NotificationManager {
 
     let panel = NSPanel(
       contentRect: NSRect(
-        x: startXPos, y: yPosition, width: Config.notificationWidth,
-        height: Config.notificationHeight),
+        x: startXPos, y: yPosition, width: panelWidth(),
+        height: panelHeight()),
       styleMask: [.borderless, .nonactivatingPanel],
       backing: .buffered,
       defer: false,
@@ -141,14 +163,23 @@ extension NotificationManager {
 
   func createClickableView() -> ClickableView {
     let v = ClickableView(
-      frame: NSRect(x: 0, y: 0, width: Config.notificationWidth, height: Config.notificationHeight))
+      frame: NSRect(x: 0, y: 0, width: panelWidth(), height: panelHeight()))
     v.wantsLayer = true
     v.layer?.backgroundColor = NSColor.clear.cgColor
+    v.autoresizingMask = [.width, .height]
     return v
   }
 
   func createContainer(clickableView: ClickableView) -> NSView {
-    let container = NSView(frame: clickableView.bounds)
+    let overhang = Config.buttonOverhang
+    let container = NSView(
+      frame: NSRect(
+        x: overhang,
+        y: 0,
+        width: clickableView.bounds.width - overhang,
+        height: clickableView.bounds.height - overhang
+      )
+    )
     container.wantsLayer = true
     container.layer?.cornerRadius = 11
     container.layer?.masksToBounds = false
@@ -183,6 +214,7 @@ extension NotificationManager {
 
   func setupContent(
     effectView: NSVisualEffectView,
+    container: NSView,
     title: String,
     message: String,
     notification: NotificationInstance
@@ -202,7 +234,10 @@ extension NotificationManager {
       contentView.bottomAnchor.constraint(equalTo: effectView.bottomAnchor, constant: -9),
     ])
 
-    let closeButton = createCloseButton(effectView: effectView, notification: notification)
+    notification.compactContentView = contentView
+
+    let closeButton = createCloseButton(
+      clickableView: notification.clickableView, container: container, notification: notification)
     setupCloseButtonHover(clickableView: notification.clickableView, closeButton: closeButton)
   }
 
@@ -266,16 +301,176 @@ extension NotificationManager {
     textStack.addArrangedSubview(titleLabel)
     textStack.addArrangedSubview(bodyLabel)
 
-    let actionButton = ActionButton()
-    actionButton.title = "Take notes"
-    actionButton.notification = notification
-    actionButton.setContentHuggingPriority(.required, for: .horizontal)
+    let detailsButton = DetailsButton()
+    detailsButton.title = "Details"
+    detailsButton.notification = notification
+    detailsButton.setContentHuggingPriority(.required, for: .horizontal)
 
     container.addArrangedSubview(iconContainer)
     container.addArrangedSubview(textStack)
-    container.addArrangedSubview(actionButton)
+    container.addArrangedSubview(detailsButton)
 
     return container
+  }
+
+  func createExpandedNotificationView(
+    title: String,
+    notification: NotificationInstance
+  ) -> NSView {
+    let container = NSStackView()
+    container.orientation = .vertical
+    container.alignment = .leading
+    container.distribution = .fill
+    container.spacing = 12
+
+    let titleLabel = NSTextField(labelWithString: title)
+    titleLabel.font = NSFont.systemFont(ofSize: 15, weight: .semibold)
+    titleLabel.textColor = NSColor.labelColor
+    titleLabel.lineBreakMode = .byTruncatingTail
+    titleLabel.maximumNumberOfLines = 1
+    container.addArrangedSubview(titleLabel)
+
+    let participantsStack = createParticipantsSection()
+    container.addArrangedSubview(participantsStack)
+
+    let separator = NSBox()
+    separator.boxType = .separator
+    separator.translatesAutoresizingMaskIntoConstraints = false
+    container.addArrangedSubview(separator)
+    separator.widthAnchor.constraint(equalTo: container.widthAnchor).isActive = true
+
+    let detailsStack = createDetailsSection()
+    container.addArrangedSubview(detailsStack)
+
+    let (actionStack, timerLabel) = createActionSection(notification: notification)
+    container.addArrangedSubview(actionStack)
+    actionStack.widthAnchor.constraint(equalTo: container.widthAnchor).isActive = true
+
+    notification.startCountdown(label: timerLabel)
+
+    return container
+  }
+
+  private func createParticipantsSection() -> NSStackView {
+    let stack = NSStackView()
+    stack.orientation = .vertical
+    stack.alignment = .leading
+    stack.spacing = 4
+
+    let participants: [(name: String, email: String, status: ParticipantStatus)] = [
+      ("", "sjobs@apple.com", .accepted),
+      ("John Jeong", "john@hyprnote.com", .accepted),
+      ("Yujong Lee", "yujonglee@hyprnote.com", .maybe),
+      ("Tony Stark", "tony@hyprnote.com", .declined),
+    ]
+
+    for participant in participants {
+      let row = createParticipantRow(
+        name: participant.name,
+        email: participant.email,
+        status: participant.status
+      )
+      stack.addArrangedSubview(row)
+    }
+
+    return stack
+  }
+
+  private func createParticipantRow(name: String, email: String, status: ParticipantStatus)
+    -> NSView
+  {
+    let row = NSStackView()
+    row.orientation = .horizontal
+    row.alignment = .centerY
+    row.spacing = 6
+
+    let displayText = name.isEmpty ? email : "\(name) (\(email))"
+    let label = NSTextField(labelWithString: displayText)
+    label.font = NSFont.systemFont(ofSize: 12, weight: .regular)
+    label.textColor = NSColor.labelColor
+
+    let statusIcon = NSTextField(labelWithString: status.icon)
+    statusIcon.font = NSFont.systemFont(ofSize: 12)
+    statusIcon.textColor = status.color
+
+    row.addArrangedSubview(label)
+    row.addArrangedSubview(statusIcon)
+
+    return row
+  }
+
+  private func createDetailsSection() -> NSStackView {
+    let stack = NSStackView()
+    stack.orientation = .vertical
+    stack.alignment = .leading
+    stack.spacing = 8
+
+    let details: [(label: String, value: String)] = [
+      ("What:", "Discovery call - Apple <> Hyprnote"),
+      ("Invitee Time Zone:", "America/Cupertino"),
+      ("Who:", "John Jeong - Organizer\njohn@hyprnote.com\nSteve\nsjobs@apple.com"),
+      ("Where:", "... See more"),
+    ]
+
+    for detail in details {
+      let row = createDetailRow(label: detail.label, value: detail.value)
+      stack.addArrangedSubview(row)
+    }
+
+    return stack
+  }
+
+  private func createDetailRow(label: String, value: String) -> NSView {
+    let container = NSStackView()
+    container.orientation = .vertical
+    container.alignment = .leading
+    container.spacing = 2
+
+    let labelField = NSTextField(labelWithString: label)
+    labelField.font = NSFont.systemFont(ofSize: 11, weight: .medium)
+    labelField.textColor = NSColor.secondaryLabelColor
+
+    let valueField = NSTextField(labelWithString: value)
+    valueField.font = NSFont.systemFont(ofSize: 12, weight: .regular)
+    valueField.textColor = NSColor.labelColor
+    valueField.maximumNumberOfLines = 0
+    valueField.lineBreakMode = .byWordWrapping
+
+    container.addArrangedSubview(labelField)
+    container.addArrangedSubview(valueField)
+
+    return container
+  }
+
+  private func createActionSection(notification: NotificationInstance) -> (
+    NSStackView, NSTextField
+  ) {
+    let stack = NSStackView()
+    stack.orientation = .vertical
+    stack.alignment = .centerX
+    stack.spacing = 8
+
+    let actionButton = ActionButton()
+    actionButton.title = "  Join Zoom & Start listening"
+    actionButton.notification = notification
+    actionButton.font = NSFont.systemFont(ofSize: 13, weight: .medium)
+    actionButton.layer?.cornerRadius = 10
+    actionButton.layer?.backgroundColor = NSColor(calibratedWhite: 0.35, alpha: 0.95).cgColor
+    actionButton.contentTintColor = NSColor.white
+    actionButton.translatesAutoresizingMaskIntoConstraints = false
+    actionButton.heightAnchor.constraint(equalToConstant: 36).isActive = true
+
+    let timerLabel = NSTextField(labelWithString: "")
+    timerLabel.font = NSFont.systemFont(ofSize: 11, weight: .regular)
+    timerLabel.textColor = NSColor.secondaryLabelColor
+    timerLabel.alignment = .center
+
+    stack.addArrangedSubview(actionButton)
+    stack.addArrangedSubview(timerLabel)
+
+    actionButton.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -24).isActive = true
+
+    return (stack, timerLabel)
   }
 
   func createAppIconView() -> NSImageView {
@@ -295,17 +490,18 @@ extension NotificationManager {
     return imageView
   }
 
-  func createCloseButton(effectView: NSVisualEffectView, notification: NotificationInstance)
+  func createCloseButton(clickableView: ClickableView, container: NSView, notification: NotificationInstance)
     -> CloseButton
   {
     let closeButton = CloseButton()
     closeButton.notification = notification
     closeButton.translatesAutoresizingMaskIntoConstraints = false
-    effectView.addSubview(closeButton)
+    clickableView.addSubview(closeButton, positioned: .above, relativeTo: nil)
 
+    let buttonOffset = (CloseButton.buttonSize / 2) - 2
     NSLayoutConstraint.activate([
-      closeButton.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 5),
-      closeButton.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 4),
+      closeButton.centerYAnchor.constraint(equalTo: container.topAnchor, constant: buttonOffset),
+      closeButton.centerXAnchor.constraint(equalTo: container.leadingAnchor, constant: buttonOffset),
       closeButton.widthAnchor.constraint(equalToConstant: CloseButton.buttonSize),
       closeButton.heightAnchor.constraint(equalToConstant: CloseButton.buttonSize),
     ])
@@ -335,15 +531,15 @@ extension NotificationManager {
     notification: NotificationInstance, screen: NSScreen, timeoutSeconds: Double
   ) {
     let screenRect = screen.visibleFrame
-    let finalXPos = screenRect.maxX - Config.notificationWidth - Config.rightMargin
+    let finalXPos = screenRect.maxX - panelWidth() - Config.rightMargin + Config.buttonOverhang
     let currentFrame = notification.panel.frame
 
     notification.panel.setFrame(
       NSRect(
         x: screenRect.maxX + Config.slideInOffset,
         y: currentFrame.minY,
-        width: Config.notificationWidth,
-        height: Config.notificationHeight
+        width: panelWidth(),
+        height: panelHeight()
       ),
       display: false
     )
@@ -356,8 +552,8 @@ extension NotificationManager {
       context.timingFunction = CAMediaTimingFunction(name: .easeOut)
       notification.panel.animator().setFrame(
         NSRect(
-          x: finalXPos, y: currentFrame.minY, width: Config.notificationWidth,
-          height: Config.notificationHeight),
+          x: finalXPos, y: currentFrame.minY, width: panelWidth(),
+          height: panelHeight()),
         display: true
       )
       notification.panel.animator().alphaValue = 1.0
@@ -405,6 +601,73 @@ extension NotificationManager {
       if inside != prev {
         hoverStates[key] = inside
         notif.clickableView.onHover?(inside)
+      }
+    }
+  }
+
+  func animateExpansion(notification: NotificationInstance, isExpanded: Bool) {
+    let targetHeight = panelHeight(expanded: isExpanded)
+    let currentFrame = notification.panel.frame
+
+    let heightDiff = targetHeight - currentFrame.height
+    let newFrame = NSRect(
+      x: currentFrame.minX,
+      y: currentFrame.minY - heightDiff,
+      width: currentFrame.width,
+      height: targetHeight
+    )
+
+    guard let effectView = notification.clickableView.subviews.first?.subviews.first
+      as? NSVisualEffectView
+    else { return }
+
+    if isExpanded {
+      notification.compactContentView?.alphaValue = 1.0
+
+      let expandedView = createExpandedNotificationView(
+        title: "Discovery call - Apple <> Hyprnote",
+        notification: notification
+      )
+      expandedView.translatesAutoresizingMaskIntoConstraints = false
+      expandedView.alphaValue = 0
+      effectView.addSubview(expandedView)
+
+      NSLayoutConstraint.activate([
+        expandedView.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 16),
+        expandedView.trailingAnchor.constraint(equalTo: effectView.trailingAnchor, constant: -16),
+        expandedView.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 14),
+        expandedView.bottomAnchor.constraint(equalTo: effectView.bottomAnchor, constant: -14),
+      ])
+
+      notification.expandedContentView = expandedView
+
+      NSAnimationContext.runAnimationGroup({ context in
+        context.duration = 0.25
+        context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        notification.panel.animator().setFrame(newFrame, display: true)
+        notification.compactContentView?.animator().alphaValue = 0
+        expandedView.animator().alphaValue = 1.0
+      }) {
+        notification.compactContentView?.isHidden = true
+        notification.clickableView.updateTrackingAreas()
+        self.repositionNotifications()
+      }
+    } else {
+      notification.stopCountdown()
+      notification.expandedContentView?.alphaValue = 1.0
+      notification.compactContentView?.isHidden = false
+
+      NSAnimationContext.runAnimationGroup({ context in
+        context.duration = 0.25
+        context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        notification.panel.animator().setFrame(newFrame, display: true)
+        notification.expandedContentView?.animator().alphaValue = 0
+        notification.compactContentView?.animator().alphaValue = 1.0
+      }) {
+        notification.expandedContentView?.removeFromSuperview()
+        notification.expandedContentView = nil
+        notification.clickableView.updateTrackingAreas()
+        self.repositionNotifications()
       }
     }
   }

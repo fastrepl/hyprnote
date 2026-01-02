@@ -10,7 +10,8 @@ swift!(fn _show_notification(
     key: &SRString,
     title: &SRString,
     message: &SRString,
-    timeout_seconds: f64
+    timeout_seconds: f64,
+    start_time: i64
 ) -> Bool);
 
 swift!(fn _dismiss_all_notifications() -> Bool);
@@ -103,8 +104,9 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
         let title = SRString::from(notification.title.as_str());
         let message = SRString::from(notification.message.as_str());
         let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
+        let start_time = notification.start_time.unwrap_or(0);
 
-        _show_notification(&key, &title, &message, timeout_seconds);
+        _show_notification(&key, &title, &message, timeout_seconds, start_time);
     }
 }
 

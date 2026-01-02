@@ -18,7 +18,8 @@ public func _showNotification(
   key: SRString,
   title: SRString,
   message: SRString,
-  timeoutSeconds: Double
+  timeoutSeconds: Double,
+  startTime: Int64
 ) -> Bool {
   let keyStr = key.toString()
   let titleStr = title.toString()
@@ -28,7 +29,8 @@ public func _showNotification(
     key: keyStr,
     title: titleStr,
     message: messageStr,
-    timeoutSeconds: timeoutSeconds
+    timeoutSeconds: timeoutSeconds,
+    startTime: startTime > 0 ? Date(timeIntervalSince1970: TimeInterval(startTime)) : nil
   )
 
   Thread.sleep(forTimeInterval: 0.1)

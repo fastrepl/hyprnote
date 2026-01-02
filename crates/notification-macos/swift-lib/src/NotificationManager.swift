@@ -18,12 +18,14 @@ class NotificationManager {
   struct Config {
     static let notificationWidth: CGFloat = 360
     static let notificationHeight: CGFloat = 64
+    static let expandedNotificationHeight: CGFloat = 380
     static let rightMargin: CGFloat = 15
     static let topMargin: CGFloat = 15
     static let slideInOffset: CGFloat = 10
+    static let buttonOverhang: CGFloat = 8
   }
 
-  func show(key: String, title: String, message: String, timeoutSeconds: Double) {
+  func show(key: String, title: String, message: String, timeoutSeconds: Double, startTime: Date?) {
     DispatchQueue.main.async { [weak self] in
       guard let self else { return }
       self.setupApplicationIfNeeded()
@@ -31,7 +33,8 @@ class NotificationManager {
         key: key,
         title: title,
         message: message,
-        timeoutSeconds: timeoutSeconds
+        timeoutSeconds: timeoutSeconds,
+        startTime: startTime
       )
     }
   }

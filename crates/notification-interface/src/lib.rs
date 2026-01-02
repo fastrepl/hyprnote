@@ -19,6 +19,7 @@ pub struct Notification {
     pub message: String,
     pub timeout: Option<std::time::Duration>,
     pub event_id: Option<String>,
+    pub start_time: Option<i64>,
 }
 
 impl Notification {
@@ -34,6 +35,7 @@ pub struct NotificationBuilder {
     message: Option<String>,
     timeout: Option<std::time::Duration>,
     event_id: Option<String>,
+    start_time: Option<i64>,
 }
 
 impl NotificationBuilder {
@@ -62,6 +64,11 @@ impl NotificationBuilder {
         self
     }
 
+    pub fn start_time(mut self, start_time: i64) -> Self {
+        self.start_time = Some(start_time);
+        self
+    }
+
     pub fn build(self) -> Notification {
         Notification {
             key: self.key,
@@ -69,6 +76,7 @@ impl NotificationBuilder {
             message: self.message.unwrap(),
             timeout: self.timeout,
             event_id: self.event_id,
+            start_time: self.start_time,
         }
     }
 }

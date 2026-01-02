@@ -88,6 +88,17 @@ function SettingsView() {
     setActiveSection(section);
 
     const container = scrollContainerRef.current;
+
+    if (!container) return;
+
+    if (section === "lab") {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth",
+      });
+      return;
+    }
+
     const refMap = {
       app: appRef,
       language: languageRef,
@@ -98,7 +109,7 @@ function SettingsView() {
     const targetRef = refMap[section];
     const target = targetRef.current;
 
-    if (container && target) {
+    if (target) {
       const containerTop = container.getBoundingClientRect().top;
       const targetTop = target.getBoundingClientRect().top;
       const offset = targetTop - containerTop + container.scrollTop - 24;
@@ -123,19 +134,27 @@ function SettingsView() {
         { section: "lab" as const, ref: labRef },
       ];
 
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
+
+      if (isAtBottom) {
+        setActiveSection("lab");
+        return;
+      }
+
       const containerRect = container.getBoundingClientRect();
       const containerCenter = containerRect.top + containerRect.height / 2;
 
       let activeSection: SettingsSection | null = null;
 
       for (const { section, ref } of refs) {
+        if (section === "lab") continue;
+
         const el = ref.current;
         if (!el) continue;
 
         const rect = el.getBoundingClientRect();
-        const sectionTop = rect.top;
-        const sectionBottom = rect.bottom;
-        const sectionCenter = sectionTop + rect.height / 2;
+        const sectionCenter = rect.top + rect.height / 2;
 
         if (sectionCenter <= containerCenter) {
           activeSection = section;

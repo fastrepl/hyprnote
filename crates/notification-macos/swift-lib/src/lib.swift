@@ -1,29 +1,6 @@
 import Foundation
 import SwiftRs
 
-struct Participant: Codable {
-  let name: String?
-  let email: String
-  let status: String
-}
-
-struct EventDetails: Codable {
-  let what: String
-  let timezone: String?
-  let location: String?
-}
-
-struct NotificationPayload: Codable {
-  let key: String
-  let title: String
-  let message: String
-  let timeoutSeconds: Double
-  let startTime: Int64?
-  let participants: [Participant]?
-  let eventDetails: EventDetails?
-  let actionLabel: String?
-}
-
 @_silgen_name("rust_on_notification_confirm")
 func rustOnNotificationConfirm(_ keyPtr: UnsafePointer<CChar>)
 
@@ -38,22 +15,22 @@ func rustOnNotificationTimeout(_ keyPtr: UnsafePointer<CChar>)
 
 @_cdecl("_show_notification")
 public func _showNotification(jsonPayload: SRString) -> Bool {
-  let jsonString = jsonPayload.toString()
+    let jsonString = jsonPayload.toString()
 
-  guard let data = jsonString.data(using: .utf8),
-    let payload = try? JSONDecoder().decode(NotificationPayload.self, from: data)
-  else {
-    return false
-  }
+    guard let data = jsonString.data(using: .utf8),
+        let payload = try? JSONDecoder().decode(NotificationPayload.self, from: data)
+    else {
+        return false
+    }
 
-  NotificationManager.shared.show(payload: payload)
+    NotificationManager.shared.show(payload: payload)
 
-  Thread.sleep(forTimeInterval: 0.1)
-  return true
+    Thread.sleep(forTimeInterval: 0.1)
+    return true
 }
 
 @_cdecl("_dismiss_all_notifications")
 public func _dismissAllNotifications() -> Bool {
-  NotificationManager.shared.dismissAll()
-  return true
+    NotificationManager.shared.dismissAll()
+    return true
 }

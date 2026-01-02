@@ -61,9 +61,7 @@ class NotificationInstance {
       countdownTimer = nil
 
       if isExpanded {
-        key.withCString { keyPtr in
-          rustOnExpandedStartTimeReached(keyPtr)
-        }
+        RustBridge.onExpandedStartTimeReached(key: key)
         dismiss()
       }
     } else {
@@ -109,16 +107,12 @@ class NotificationInstance {
   }
 
   func dismissWithUserAction() {
-    self.key.withCString { keyPtr in
-      rustOnDismiss(keyPtr)
-    }
+    RustBridge.onDismiss(key: key)
     dismiss()
   }
 
   func dismissWithTimeout() {
-    self.key.withCString { keyPtr in
-      rustOnCollapsedTimeout(keyPtr)
-    }
+    RustBridge.onCollapsedTimeout(key: key)
     dismiss()
   }
 

@@ -157,9 +157,7 @@ class NotificationButton: NSButton {
 class ActionButton: NotificationButton {
   override func performAction() {
     guard let notification = notification else { return }
-    notification.key.withCString { keyPtr in
-      rustOnExpandedAccept(keyPtr)
-    }
+    RustBridge.onExpandedAccept(key: notification.key)
     notification.dismiss()
   }
 }

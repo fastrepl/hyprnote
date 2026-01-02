@@ -114,9 +114,7 @@ class ClickableView: NSView {
     alphaValue = 0.95
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { self.alphaValue = 1.0 }
     if let notification = notification {
-      notification.key.withCString { keyPtr in
-        rustOnCollapsedConfirm(keyPtr)
-      }
+      RustBridge.onCollapsedConfirm(key: notification.key)
       notification.dismiss()
     }
   }

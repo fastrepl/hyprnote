@@ -1,21 +1,6 @@
 import Foundation
 import SwiftRs
 
-@_silgen_name("rust_on_collapsed_confirm")
-func rustOnCollapsedConfirm(_ keyPtr: UnsafePointer<CChar>)
-
-@_silgen_name("rust_on_expanded_accept")
-func rustOnExpandedAccept(_ keyPtr: UnsafePointer<CChar>)
-
-@_silgen_name("rust_on_dismiss")
-func rustOnDismiss(_ keyPtr: UnsafePointer<CChar>)
-
-@_silgen_name("rust_on_collapsed_timeout")
-func rustOnCollapsedTimeout(_ keyPtr: UnsafePointer<CChar>)
-
-@_silgen_name("rust_on_expanded_start_time_reached")
-func rustOnExpandedStartTimeReached(_ keyPtr: UnsafePointer<CChar>)
-
 @_cdecl("_show_notification")
 public func _showNotification(jsonPayload: SRString) -> Bool {
   let jsonString = jsonPayload.toString()

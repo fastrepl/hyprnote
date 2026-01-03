@@ -266,6 +266,7 @@
     "path2:default",
     "pdf:default",
     "autostart:default",
+    "js:default",
     {
       "identifier": "http:default",
       "deny": [],

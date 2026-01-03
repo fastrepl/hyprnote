@@ -275,6 +275,9 @@ importers:
       '@hypr/plugin-importer':
         specifier: workspace:*
         version: link:../../plugins/importer
+      '@hypr/plugin-js':
+        specifier: workspace:*
+        version: link:../../plugins/js
       '@hypr/plugin-listener':
         specifier: workspace:*
         version: link:../../plugins/listener
@@ -1518,6 +1521,12 @@ importers:
         version: 2.9.1
 
   plugins/importer:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/js:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

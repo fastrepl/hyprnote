@@ -42,6 +42,7 @@ tauri-plugin-hooks = { workspace = true }
 tauri-plugin-http = { workspace = true }
 tauri-plugin-icon = { workspace = true }
 tauri-plugin-importer = { workspace = true }
+tauri-plugin-js = { workspace = true }
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-listener2 = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }

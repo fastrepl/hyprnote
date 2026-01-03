@@ -10,7 +10,6 @@ import {
   getDataDir,
   isUUID,
   iterateTableRows,
-  type PersisterMode,
   type TablesContent,
   writeJsonFiles,
 } from "./utils";
@@ -133,11 +132,9 @@ async function cleanupOrphanChatDirs(
 
 export function createChatPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
-  config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
   return createModeAwarePersister(store, {
     label: "ChatPersister",
-    mode: config.mode,
     load: async () => undefined,
     save: async () => {
       const tables = store.getTables() as TablesContent | undefined;

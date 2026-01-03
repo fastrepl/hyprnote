@@ -28,8 +28,6 @@ import { StoreOrMergeableStore } from "../store/shared";
 
 export type { ExportJsonValue as JsonValue };
 
-export type PersisterMode = "load-only" | "save-only" | "load-and-save";
-
 // https://github.com/tinyplex/tinybase/blob/aa5cb9014f6def18266414174e0fd31ccfae0828/src/persisters/common/create.ts#L185
 // When content[2] === 1, TinyBase uses applyChanges() instead of setContent(),
 // allowing us to merge into a specific table without wiping other tables.
@@ -211,22 +209,14 @@ export function createModeAwarePersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   options: {
     label: string;
-    mode: PersisterMode;
     load: () => Promise<Content<Schemas> | undefined>;
     save: () => Promise<void>;
   },
 ) {
-  const loadFn =
-    options.mode === "save-only"
-      ? async (): Promise<Content<Schemas> | undefined> => undefined
-      : options.load;
-
-  const saveFn = options.mode === "load-only" ? async () => {} : options.save;
-
   return createCustomPersister(
     store,
-    loadFn,
-    saveFn,
+    options.load,
+    options.save,
     () => null,
     () => {},
     (error) => console.error(`[${options.label}]:`, error),
@@ -247,7 +237,6 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   options: {
     label: string;
-    mode: PersisterMode;
     collect: (
       store: MergeableStore<Schemas>,
       tables: TablesContent,
@@ -257,70 +246,63 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
     postSave?: (dataDir: string) => Promise<void>;
   },
 ) {
-  const loadFn =
-    options.mode === "save-only"
-      ? async (): Promise<Content<Schemas> | undefined> => undefined
-      : (options.load ?? (async () => undefined));
+  const loadFn = options.load ?? (async () => undefined);
 
-  const saveFn =
-    options.mode === "load-only"
-      ? async () => {}
-      : async () => {
-          try {
-            const dataDir = await getDataDir();
-            const tables = store.getTables() as TablesContent | undefined;
-            const { dirs, operations } = options.collect(
-              store,
-              tables ?? {},
-              dataDir,
-            );
+  const saveFn = async () => {
+    try {
+      const dataDir = await getDataDir();
+      const tables = store.getTables() as TablesContent | undefined;
+      const { dirs, operations } = options.collect(
+        store,
+        tables ?? {},
+        dataDir,
+      );
 
-            if (operations.length === 0) {
-              return;
-            }
+      if (operations.length === 0) {
+        return;
+      }
 
-            await ensureDirsExist(dirs);
+      await ensureDirsExist(dirs);
 
-            const jsonBatchItems: Array<[ExportJsonValue, string]> = [];
-            let mdBatchItems: Array<[ExportJsonValue, string]> = [];
+      const jsonBatchItems: Array<[ExportJsonValue, string]> = [];
+      let mdBatchItems: Array<[ExportJsonValue, string]> = [];
 
-            for (const op of operations) {
-              if (op.type === "json") {
-                jsonBatchItems.push([op.content as ExportJsonValue, op.path]);
-              } else if (op.type === "md-batch") {
-                mdBatchItems = mdBatchItems.concat(op.items);
-              }
-            }
+      for (const op of operations) {
+        if (op.type === "json") {
+          jsonBatchItems.push([op.content as ExportJsonValue, op.path]);
+        } else if (op.type === "md-batch") {
+          mdBatchItems = mdBatchItems.concat(op.items);
+        }
+      }
 
-            if (jsonBatchItems.length > 0) {
-              const result =
-                await exportCommands.exportJsonBatch(jsonBatchItems);
-              if (result.status === "error") {
-                console.error(
-                  `[${options.label}] Failed to export json batch:`,
-                  result.error,
-                );
-              }
-            }
+      if (jsonBatchItems.length > 0) {
+        const result = await exportCommands.exportJsonBatch(jsonBatchItems);
+        if (result.status === "error") {
+          console.error(
+            `[${options.label}] Failed to export json batch:`,
+            result.error,
+          );
+        }
+      }
 
-            if (mdBatchItems.length > 0) {
-              const result =
-                await exportCommands.exportTiptapJsonToMdBatch(mdBatchItems);
-              if (result.status === "error") {
-                console.error(
-                  `[${options.label}] Failed to export md batch:`,
-                  result.error,
-                );
-              }
-            }
+      if (mdBatchItems.length > 0) {
+        const result =
+          await exportCommands.exportTiptapJsonToMdBatch(mdBatchItems);
+        if (result.status === "error") {
+          console.error(
+            `[${options.label}] Failed to export md batch:`,
+            result.error,
+          );
+        }
+      }
 
-            if (options.postSave) {
-              await options.postSave(dataDir);
-            }
-          } catch (error) {
-            console.error(`[${options.label}] save error:`, error);
-          }
-        };
+      if (options.postSave) {
+        await options.postSave(dataDir);
+      }
+    } catch (error) {
+      console.error(`[${options.label}] save error:`, error);
+    }
+  };
 
   return createCustomPersister(
     store,

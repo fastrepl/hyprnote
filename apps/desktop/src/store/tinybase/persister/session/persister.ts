@@ -4,23 +4,17 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
-import {
-  createSessionDirPersister,
-  getDataDir,
-  type PersisterMode,
-} from "../utils";
+import { createSessionDirPersister, getDataDir } from "../utils";
 import { collectSessionWriteOps, type SessionCollectorResult } from "./collect";
 import { cleanupOrphanSessionDirs, loadAllSessionMeta } from "./load";
 
 export function createSessionPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
-  config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
   let lastValidSessionIds: Set<string> = new Set();
 
   return createSessionDirPersister(store, {
     label: "SessionPersister",
-    mode: config.mode,
     collect: (store, tables, dataDir) => {
       const result: SessionCollectorResult = collectSessionWriteOps(
         store,

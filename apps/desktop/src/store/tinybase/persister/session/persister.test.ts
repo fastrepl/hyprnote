@@ -231,9 +231,7 @@ describe("createSessionPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockMeta));
 
-      const persister = createSessionPersister<Schemas>(store, {
-        mode: "load-and-save",
-      });
+      const persister = createSessionPersister<Schemas>(store);
       await persister.load();
 
       expect(store.getTable("sessions")).toEqual({
@@ -282,9 +280,7 @@ describe("createSessionPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockMeta));
 
-      const persister = createSessionPersister<Schemas>(store, {
-        mode: "load-and-save",
-      });
+      const persister = createSessionPersister<Schemas>(store);
       await persister.load();
 
       expect(store.getTable("tags")).toEqual({});
@@ -331,9 +327,7 @@ describe("createSessionPersister", () => {
           }),
         );
 
-      const persister = createSessionPersister<Schemas>(store, {
-        mode: "load-and-save",
-      });
+      const persister = createSessionPersister<Schemas>(store);
       await persister.load();
 
       const tags = store.getTable("tags");

@@ -43,7 +43,7 @@ async reindex() : Promise<Result<null, string>> {
 /** user-defined types **/
 
 export type CreatedAtFilter = { gte: number | null; lte: number | null; gt: number | null; lt: number | null; eq: number | null }
-export type SearchDocument = { id: string; doc_type: string; title: string; content: string; created_at: number }
+export type SearchDocument = { id: string; doc_type: string; language: string | null; title: string; content: string; created_at: number }
 export type SearchFilters = { created_at: CreatedAtFilter | null }
 export type SearchHit = { score: number; document: SearchDocument }
 export type SearchResult = { hits: SearchHit[] }

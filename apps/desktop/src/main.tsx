@@ -10,10 +10,7 @@ import {
   useCreateManager,
 } from "tinytick/ui-react";
 
-import {
-  getCurrentWebviewWindowLabel,
-  init as initWindowsPlugin,
-} from "@hypr/plugin-windows";
+import { init as initWindowsPlugin } from "@hypr/plugin-windows";
 import "@hypr/ui/globals.css";
 
 import { ErrorComponent, NotFoundComponent } from "./components/control";
@@ -100,19 +97,13 @@ function AppWithTiny() {
     return createManager().start();
   });
 
-  // In iframe context, we're not the main window and shouldn't persist the store
-  // (the parent window handles persistence, iframe syncs via postMessage)
-  const isMainWindow = isIframeContext
-    ? false
-    : getCurrentWebviewWindowLabel() === "main";
-
   return (
     <QueryClientProvider client={queryClient}>
       <TinyTickProvider manager={manager}>
         <TinyBaseProvider>
           <App />
-          <StoreComponent persist={isMainWindow} />
-          <SettingsStoreComponent persist={isMainWindow} />
+          <StoreComponent />
+          <SettingsStoreComponent />
           {!isIframeContext && <TaskManager />}
           {!isIframeContext && <EventListeners />}
         </TinyBaseProvider>

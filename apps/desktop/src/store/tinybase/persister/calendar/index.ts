@@ -7,18 +7,14 @@ import { createCalendarPersister } from "./persister";
 
 const { useCreatePersister } = _UI as _UI.WithSchemas<Schemas>;
 
-export function useCalendarPersister(store: Store, persist: boolean) {
+export function useCalendarPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       const persister = createCalendarPersister<Schemas>(store as Store);
       await persister.startAutoSave();
       return persister;
     },
-    [persist],
+    [],
   );
 }

@@ -1,12 +1,5 @@
 import { sep } from "@tauri-apps/api/path";
-import {
-  exists,
-  readDir,
-  readTextFile,
-  remove,
-  writeTextFile,
-} from "@tauri-apps/plugin-fs";
-import { createCustomPersister } from "tinybase/persisters/with-schemas";
+import { exists, readDir, readTextFile, remove } from "@tauri-apps/plugin-fs";
 import type {
   Content,
   MergeableStore,
@@ -20,13 +13,13 @@ import type {
   Tag,
 } from "@hypr/store";
 
-import { StoreOrMergeableStore } from "../store/shared";
 import {
-  ensureDirsExist,
+  createModeAwarePersister,
   getDataDir,
   getSessionDir,
   isUUID,
   type PersisterMode,
+  writeJsonFiles,
 } from "./utils";
 
 type ParticipantData = MappingSessionParticipantStorage & { id: string };
@@ -272,78 +265,69 @@ export function collectSessionMeta<Schemas extends OptionalSchemas>(
   return result;
 }
 
+function collectSessionWriteOps<Schemas extends OptionalSchemas>(
+  store: MergeableStore<Schemas>,
+  dataDir: string,
+): {
+  dirs: Set<string>;
+  operations: Array<{ path: string; content: SessionMetaJson }>;
+  validSessionIds: Set<string>;
+} {
+  const dirs = new Set<string>();
+  const operations: Array<{ path: string; content: SessionMetaJson }> = [];
+
+  const sessionMetas = collectSessionMeta(store);
+
+  for (const [sessionId, { meta, folderPath }] of sessionMetas) {
+    const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
+    dirs.add(sessionDir);
+
+    operations.push({
+      path: [sessionDir, "_meta.json"].join(sep()),
+      content: meta,
+    });
+  }
+
+  return { dirs, operations, validSessionIds: new Set(sessionMetas.keys()) };
+}
+
 export function createSessionPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
-  const loadFn =
-    config.mode === "save-only"
-      ? async (): Promise<Content<Schemas> | undefined> => undefined
-      : async (): Promise<Content<Schemas> | undefined> => {
-          try {
-            const dataDir = await getDataDir();
-            const data = await loadAllSessionMeta(dataDir);
-            return [
-              {
-                sessions: data.sessions,
-                mapping_session_participant: data.mapping_session_participant,
-                tags: data.tags,
-                mapping_tag_session: data.mapping_tag_session,
-              },
-              {},
-            ] as unknown as Content<Schemas>;
-          } catch (error) {
-            console.error("[SessionPersister] load error:", error);
-            return undefined;
-          }
-        };
-
-  const saveFn =
-    config.mode === "load-only"
-      ? async () => {}
-      : async () => {
-          try {
-            const dataDir = await getDataDir();
-            const sessionMetas = collectSessionMeta(store);
-
-            const dirs = new Set<string>();
-            const writeOperations: Array<{ path: string; content: string }> =
-              [];
-
-            for (const [sessionId, { meta, folderPath }] of sessionMetas) {
-              const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
-              dirs.add(sessionDir);
-
-              writeOperations.push({
-                path: [sessionDir, "_meta.json"].join(sep()),
-                content: JSON.stringify(meta, null, 2),
-              });
-            }
-
-            if (writeOperations.length > 0) {
-              await ensureDirsExist(dirs);
-
-              for (const op of writeOperations) {
-                await writeTextFile(op.path, op.content);
-              }
-            }
-
-            await cleanupOrphanSessionDirs(
-              dataDir,
-              new Set(sessionMetas.keys()),
-            );
-          } catch (error) {
-            console.error("[SessionPersister] save error:", error);
-          }
-        };
-
-  return createCustomPersister(
-    store,
-    loadFn,
-    saveFn,
-    () => null,
-    () => {},
-    (error) => console.error("[SessionPersister]:", error),
-    StoreOrMergeableStore,
-  );
+  return createModeAwarePersister(store, {
+    label: "SessionPersister",
+    mode: config.mode,
+    load: async (): Promise<Content<Schemas> | undefined> => {
+      try {
+        const dataDir = await getDataDir();
+        const data = await loadAllSessionMeta(dataDir);
+        return [
+          {
+            sessions: data.sessions,
+            mapping_session_participant: data.mapping_session_participant,
+            tags: data.tags,
+            mapping_tag_session: data.mapping_tag_session,
+          },
+          {},
+        ] as unknown as Content<Schemas>;
+      } catch (error) {
+        console.error("[SessionPersister] load error:", error);
+        return undefined;
+      }
+    },
+    save: async () => {
+      try {
+        const dataDir = await getDataDir();
+        const { dirs, operations, validSessionIds } = collectSessionWriteOps(
+          store,
+          dataDir,
+        );
+        await writeJsonFiles(operations, dirs);
+        await cleanupOrphanSessionDirs(dataDir, validSessionIds);
+      } catch (error) {
+        console.error("[SessionPersister] save error:", error);
+      }
+    },
+  });
 }

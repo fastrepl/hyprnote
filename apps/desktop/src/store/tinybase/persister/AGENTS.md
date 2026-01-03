@@ -1,0 +1,3 @@
+- `local.ts` and `settings.ts` do both save/load.
+- `folder.ts` is load-only (syncs filesystem → store for folders and session folder_id).
+- Other persisters are save-only for now.

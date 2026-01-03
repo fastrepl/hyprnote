@@ -51,6 +51,20 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
                   store.setCell("sessions", sessionId, "folder_id", folderPath);
                 }
               }
+
+              // @ts-ignore
+              const sessionsInStore = store.getRowIds("sessions") as string[];
+              for (const sessionId of sessionsInStore) {
+                if (
+                  !Object.prototype.hasOwnProperty.call(
+                    session_folder_map,
+                    sessionId,
+                  )
+                ) {
+                  // @ts-ignore
+                  store.delRow("sessions", sessionId);
+                }
+              }
             });
 
             return undefined;

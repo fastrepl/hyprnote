@@ -1,6 +1,4 @@
 import { sep } from "@tauri-apps/api/path";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
-import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import type {
@@ -9,14 +7,14 @@ import type {
   WordStorage,
 } from "@hypr/store";
 
-import { StoreOrMergeableStore } from "../store/shared";
 import {
-  ensureDirsExist,
+  createModeAwarePersister,
   getDataDir,
   getSessionDir,
   iterateTableRows,
   type PersisterMode,
   type TablesContent,
+  writeJsonFiles,
 } from "./utils";
 
 type TranscriptWithData = TranscriptStorage & {
@@ -29,10 +27,15 @@ type TranscriptJson = {
   transcripts: TranscriptWithData[];
 };
 
-function collectTranscriptsBySession(
+function collectTranscriptWriteOps(
   tables: TablesContent | undefined,
-): Map<string, TranscriptWithData[]> {
-  const transcriptsBySession = new Map<string, TranscriptWithData[]>();
+  dataDir: string,
+): {
+  dirs: Set<string>;
+  operations: Array<{ path: string; content: TranscriptJson }>;
+} {
+  const dirs = new Set<string>();
+  const operations: Array<{ path: string; content: TranscriptJson }> = [];
 
   const transcripts = iterateTableRows(tables, "transcripts");
   const words = iterateTableRows(tables, "words");
@@ -60,6 +63,7 @@ function collectTranscriptsBySession(
     hintsByTranscript.set(hint.transcript_id, list);
   }
 
+  const transcriptsBySession = new Map<string, TranscriptWithData[]>();
   for (const transcript of transcripts) {
     const sessionId = transcript.session_id;
     if (!sessionId) continue;
@@ -74,67 +78,34 @@ function collectTranscriptsBySession(
     transcriptsBySession.set(sessionId, list);
   }
 
-  return transcriptsBySession;
+  for (const [sessionId, sessionTranscripts] of transcriptsBySession) {
+    const session = tables?.sessions?.[sessionId];
+    const folderPath = session?.folder_id ?? "";
+    const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
+    dirs.add(sessionDir);
+
+    operations.push({
+      path: [sessionDir, "_transcript.json"].join(sep()),
+      content: { transcripts: sessionTranscripts },
+    });
+  }
+
+  return { dirs, operations };
 }
 
 export function createTranscriptPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
-  const loadFn =
-    config.mode === "save-only" ? async () => undefined : async () => undefined;
-
-  const saveFn =
-    config.mode === "load-only"
-      ? async () => {}
-      : async () => {
-          const tables = store.getTables() as TablesContent | undefined;
-          const dataDir = await getDataDir();
-
-          const transcriptsBySession = collectTranscriptsBySession(tables);
-          if (transcriptsBySession.size === 0) {
-            return;
-          }
-
-          const dirs = new Set<string>();
-          const writeOperations: Array<{ path: string; content: string }> = [];
-
-          for (const [sessionId, transcripts] of transcriptsBySession) {
-            const session = tables?.sessions?.[sessionId];
-            const folderPath = session?.folder_id ?? "";
-            const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
-            dirs.add(sessionDir);
-
-            const json: TranscriptJson = { transcripts };
-            writeOperations.push({
-              path: [sessionDir, "_transcript.json"].join(sep()),
-              content: JSON.stringify(json, null, 2),
-            });
-          }
-
-          try {
-            await ensureDirsExist(dirs);
-          } catch (e) {
-            console.error("Failed to ensure dirs exist:", e);
-            return;
-          }
-
-          for (const op of writeOperations) {
-            try {
-              await writeTextFile(op.path, op.content);
-            } catch (e) {
-              console.error(`Failed to write ${op.path}:`, e);
-            }
-          }
-        };
-
-  return createCustomPersister(
-    store,
-    loadFn,
-    saveFn,
-    () => null,
-    () => {},
-    (error) => console.error("[TranscriptPersister]:", error),
-    StoreOrMergeableStore,
-  );
+  return createModeAwarePersister(store, {
+    label: "TranscriptPersister",
+    mode: config.mode,
+    load: async () => undefined,
+    save: async () => {
+      const tables = store.getTables() as TablesContent | undefined;
+      const dataDir = await getDataDir();
+      const { dirs, operations } = collectTranscriptWriteOps(tables, dataDir);
+      await writeJsonFiles(operations, dirs);
+    },
+  });
 }

@@ -132,8 +132,14 @@ function useMoveSessionToFolder(sessionId: string) {
 
   return useCallback(
     async (targetFolderId: string) => {
-      await folderCommands.moveSession(sessionId, targetFolderId);
       setFolderId(targetFolderId);
+      const result = await folderCommands.moveSession(
+        sessionId,
+        targetFolderId,
+      );
+      if (result.status === "error") {
+        console.error("[MoveSession] Failed:", result.error);
+      }
     },
     [sessionId, setFolderId],
   );

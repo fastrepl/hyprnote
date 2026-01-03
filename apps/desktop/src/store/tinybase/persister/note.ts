@@ -1,15 +1,14 @@
 import { sep } from "@tauri-apps/api/path";
-import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import { commands, type JsonValue } from "@hypr/plugin-export";
 import type { EnhancedNoteStorage } from "@hypr/store";
 import { isValidTiptapContent } from "@hypr/tiptap/shared";
 
-import { StoreOrMergeableStore } from "../store/shared";
 import {
   type BatchCollectorResult,
   type BatchItem,
+  createModeAwarePersister,
   ensureDirsExist,
   getDataDir,
   getSessionDir,
@@ -24,54 +23,40 @@ export function createNotePersister<Schemas extends OptionalSchemas>(
   handleSyncToSession: (sessionId: string, content: string) => void,
   config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
-  const loadFn =
-    config.mode === "save-only" ? async () => undefined : async () => undefined;
+  return createModeAwarePersister(store, {
+    label: "NotePersister",
+    mode: config.mode,
+    load: async () => undefined,
+    save: async () => {
+      const tables = store.getTables() as TablesContent | undefined;
+      const dataDir = await getDataDir();
 
-  const saveFn =
-    config.mode === "load-only"
-      ? async () => {}
-      : async () => {
-          const tables = store.getTables() as TablesContent | undefined;
-          const dataDir = await getDataDir();
+      const enhancedNotes = collectEnhancedNoteBatchItems(
+        store,
+        tables,
+        dataDir,
+        handleSyncToSession,
+      );
+      const sessions = collectSessionBatchItems(tables, dataDir);
+      const batchItems = [...enhancedNotes.items, ...sessions.items];
+      const dirsToCreate = new Set([...enhancedNotes.dirs, ...sessions.dirs]);
+      if (batchItems.length === 0) {
+        return;
+      }
 
-          const enhancedNotes = collectEnhancedNoteBatchItems(
-            store,
-            tables,
-            dataDir,
-            handleSyncToSession,
-          );
-          const sessions = collectSessionBatchItems(tables, dataDir);
-          const batchItems = [...enhancedNotes.items, ...sessions.items];
-          const dirsToCreate = new Set([
-            ...enhancedNotes.dirs,
-            ...sessions.dirs,
-          ]);
-          if (batchItems.length === 0) {
-            return;
-          }
+      try {
+        await ensureDirsExist(dirsToCreate);
+      } catch (e) {
+        console.error("Failed to ensure dirs exist:", e);
+        return;
+      }
 
-          try {
-            await ensureDirsExist(dirsToCreate);
-          } catch (e) {
-            console.error("Failed to ensure dirs exist:", e);
-            return;
-          }
-
-          const result = await commands.exportTiptapJsonToMdBatch(batchItems);
-          if (result.status === "error") {
-            console.error("Failed to export batch:", result.error);
-          }
-        };
-
-  return createCustomPersister(
-    store,
-    loadFn,
-    saveFn,
-    () => null,
-    () => {},
-    (error) => console.error("[NotePersister]:", error),
-    StoreOrMergeableStore,
-  );
+      const result = await commands.exportTiptapJsonToMdBatch(batchItems);
+      if (result.status === "error") {
+        console.error("Failed to export batch:", result.error);
+      }
+    },
+  });
 }
 
 function parseTiptapContent(content: string): JsonValue | undefined {

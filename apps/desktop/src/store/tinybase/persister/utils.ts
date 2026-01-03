@@ -175,6 +175,49 @@ export function createNotifyListener(
   };
 }
 
+export async function writeJsonFiles(
+  operations: Array<{ path: string; content: unknown }>,
+  dirs: Set<string>,
+): Promise<void> {
+  if (operations.length === 0) return;
+
+  await ensureDirsExist(dirs);
+  for (const op of operations) {
+    try {
+      await writeTextFile(op.path, JSON.stringify(op.content, null, 2));
+    } catch (e) {
+      console.error(`Failed to write ${op.path}:`, e);
+    }
+  }
+}
+
+export function createModeAwarePersister<Schemas extends OptionalSchemas>(
+  store: MergeableStore<Schemas>,
+  options: {
+    label: string;
+    mode: PersisterMode;
+    load: () => Promise<Content<Schemas> | undefined>;
+    save: () => Promise<void>;
+  },
+) {
+  const loadFn =
+    options.mode === "save-only"
+      ? async (): Promise<Content<Schemas> | undefined> => undefined
+      : options.load;
+
+  const saveFn = options.mode === "load-only" ? async () => {} : options.save;
+
+  return createCustomPersister(
+    store,
+    loadFn,
+    saveFn,
+    () => null,
+    () => {},
+    (error) => console.error(`[${options.label}]:`, error),
+    StoreOrMergeableStore,
+  );
+}
+
 export function createSimpleJsonPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   options: {

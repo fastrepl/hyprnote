@@ -1,19 +1,18 @@
 import { sep } from "@tauri-apps/api/path";
-import { exists, readDir, remove, writeTextFile } from "@tauri-apps/plugin-fs";
-import { createCustomPersister } from "tinybase/persisters/with-schemas";
+import { exists, readDir, remove } from "@tauri-apps/plugin-fs";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import type { ChatMessageStorage } from "@hypr/store";
 
-import { StoreOrMergeableStore } from "../store/shared";
 import {
-  ensureDirsExist,
+  createModeAwarePersister,
   getChatDir,
   getDataDir,
   isUUID,
   iterateTableRows,
   type PersisterMode,
   type TablesContent,
+  writeJsonFiles,
 } from "./utils";
 
 type ChatGroupData = {
@@ -30,13 +29,16 @@ type ChatJson = {
   messages: ChatMessageWithId[];
 };
 
-function collectMessagesByChatGroup(
+function collectChatWriteOps(
   tables: TablesContent | undefined,
-): Map<string, { chatGroup: ChatGroupData; messages: ChatMessageWithId[] }> {
-  const messagesByChatGroup = new Map<
-    string,
-    { chatGroup: ChatGroupData; messages: ChatMessageWithId[] }
-  >();
+  dataDir: string,
+): {
+  dirs: Set<string>;
+  operations: Array<{ path: string; content: ChatJson }>;
+  validChatGroupIds: Set<string>;
+} {
+  const dirs = new Set<string>();
+  const operations: Array<{ path: string; content: ChatJson }> = [];
 
   const chatGroups = iterateTableRows(tables, "chat_groups");
   const chatMessages = iterateTableRows(tables, "chat_messages");
@@ -45,6 +47,11 @@ function collectMessagesByChatGroup(
   for (const group of chatGroups) {
     chatGroupMap.set(group.id, group);
   }
+
+  const messagesByChatGroup = new Map<
+    string,
+    { chatGroup: ChatGroupData; messages: ChatMessageWithId[] }
+  >();
 
   for (const message of chatMessages) {
     const chatGroupId = message.chat_group_id;
@@ -64,7 +71,28 @@ function collectMessagesByChatGroup(
     }
   }
 
-  return messagesByChatGroup;
+  for (const [chatGroupId, { chatGroup, messages }] of messagesByChatGroup) {
+    const chatDir = getChatDir(dataDir, chatGroupId);
+    dirs.add(chatDir);
+
+    operations.push({
+      path: [chatDir, "_messages.json"].join(sep()),
+      content: {
+        chat_group: chatGroup,
+        messages: messages.sort(
+          (a, b) =>
+            new Date(a.created_at || 0).getTime() -
+            new Date(b.created_at || 0).getTime(),
+        ),
+      },
+    });
+  }
+
+  return {
+    dirs,
+    operations,
+    validChatGroupIds: new Set(messagesByChatGroup.keys()),
+  };
 }
 
 async function cleanupOrphanChatDirs(
@@ -107,70 +135,19 @@ export function createChatPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   config: { mode: PersisterMode } = { mode: "save-only" },
 ) {
-  const loadFn =
-    config.mode === "save-only" ? async () => undefined : async () => undefined;
-
-  const saveFn =
-    config.mode === "load-only"
-      ? async () => {}
-      : async () => {
-          const tables = store.getTables() as TablesContent | undefined;
-          const dataDir = await getDataDir();
-
-          const messagesByChatGroup = collectMessagesByChatGroup(tables);
-          const validChatGroupIds = new Set(messagesByChatGroup.keys());
-
-          const dirs = new Set<string>();
-          const writeOperations: Array<{ path: string; content: string }> = [];
-
-          for (const [
-            chatGroupId,
-            { chatGroup, messages },
-          ] of messagesByChatGroup) {
-            const chatDir = getChatDir(dataDir, chatGroupId);
-            dirs.add(chatDir);
-
-            const json: ChatJson = {
-              chat_group: chatGroup,
-              messages: messages.sort(
-                (a, b) =>
-                  new Date(a.created_at || 0).getTime() -
-                  new Date(b.created_at || 0).getTime(),
-              ),
-            };
-            writeOperations.push({
-              path: [chatDir, "_messages.json"].join(sep()),
-              content: JSON.stringify(json, null, 2),
-            });
-          }
-
-          if (writeOperations.length > 0) {
-            try {
-              await ensureDirsExist(dirs);
-            } catch (e) {
-              console.error("Failed to ensure dirs exist:", e);
-              return;
-            }
-
-            for (const op of writeOperations) {
-              try {
-                await writeTextFile(op.path, op.content);
-              } catch (e) {
-                console.error(`Failed to write ${op.path}:`, e);
-              }
-            }
-          }
-
-          await cleanupOrphanChatDirs(dataDir, validChatGroupIds);
-        };
-
-  return createCustomPersister(
-    store,
-    loadFn,
-    saveFn,
-    () => null,
-    () => {},
-    (error) => console.error("[ChatPersister]:", error),
-    StoreOrMergeableStore,
-  );
+  return createModeAwarePersister(store, {
+    label: "ChatPersister",
+    mode: config.mode,
+    load: async () => undefined,
+    save: async () => {
+      const tables = store.getTables() as TablesContent | undefined;
+      const dataDir = await getDataDir();
+      const { dirs, operations, validChatGroupIds } = collectChatWriteOps(
+        tables,
+        dataDir,
+      );
+      await writeJsonFiles(operations, dirs);
+      await cleanupOrphanChatDirs(dataDir, validChatGroupIds);
+    },
+  });
 }

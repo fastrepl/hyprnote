@@ -25,6 +25,7 @@ import type {
 } from "@hypr/store";
 
 import { StoreOrMergeableStore } from "../store/shared";
+import { shouldWriteFile } from "./hash-cache";
 
 export type { ExportJsonValue as JsonValue };
 
@@ -198,7 +199,11 @@ export async function writeJsonFiles(
   await ensureDirsExist(dirs);
   for (const op of operations) {
     try {
-      await writeTextFile(op.path, JSON.stringify(op.content, null, 2));
+      const jsonString = JSON.stringify(op.content, null, 2);
+      if (!shouldWriteFile(op.path, jsonString)) {
+        continue;
+      }
+      await writeTextFile(op.path, jsonString);
     } catch (e) {
       console.error(`Failed to write ${op.path}:`, e);
     }
@@ -269,9 +274,17 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
 
       for (const op of operations) {
         if (op.type === "json") {
-          jsonBatchItems.push([op.content as ExportJsonValue, op.path]);
+          const jsonString = JSON.stringify(op.content, null, 2);
+          if (shouldWriteFile(op.path, jsonString)) {
+            jsonBatchItems.push([op.content as ExportJsonValue, op.path]);
+          }
         } else if (op.type === "md-batch") {
-          mdBatchItems = mdBatchItems.concat(op.items);
+          for (const [content, path] of op.items) {
+            const jsonString = JSON.stringify(content);
+            if (shouldWriteFile(path, jsonString)) {
+              mdBatchItems.push([content, path]);
+            }
+          }
         }
       }
 
@@ -360,10 +373,12 @@ export function createSingleTablePersister<Schemas extends OptionalSchemas>(
           string,
           unknown
         >;
-        await writeTextFile(
-          [base, filename].join(sep()),
-          JSON.stringify(data, null, 2),
-        );
+        const path = [base, filename].join(sep());
+        const jsonString = JSON.stringify(data, null, 2);
+        if (!shouldWriteFile(path, jsonString)) {
+          return;
+        }
+        await writeTextFile(path, jsonString);
       } catch (error) {
         console.error(`[${label}] save error:`, error);
       }

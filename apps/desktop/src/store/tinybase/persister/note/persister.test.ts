@@ -24,6 +24,10 @@ vi.mock("@hypr/plugin-export", () => ({
   },
 }));
 
+vi.mock("../hash-cache", () => ({
+  shouldWriteFile: vi.fn().mockReturnValue(true),
+}));
+
 function createTestStore() {
   return createMergeableStore()
     .setTablesSchema(SCHEMA.table)

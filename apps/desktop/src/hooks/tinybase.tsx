@@ -15,12 +15,6 @@ import * as main from "../store/tinybase/store/main";
 export function useSession(sessionId: string) {
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
   const rawMd = main.UI.useCell("sessions", sessionId, "raw_md", main.STORE_ID);
-  const enhancedMd = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "enhanced_md",
-    main.STORE_ID,
-  );
   const createdAt = main.UI.useCell(
     "sessions",
     sessionId,
@@ -41,8 +35,8 @@ export function useSession(sessionId: string) {
   );
 
   return useMemo(
-    () => ({ title, rawMd, enhancedMd, createdAt, eventId, folderId }),
-    [title, rawMd, enhancedMd, createdAt, eventId, folderId],
+    () => ({ title, rawMd, createdAt, eventId, folderId }),
+    [title, rawMd, createdAt, eventId, folderId],
   );
 }
 

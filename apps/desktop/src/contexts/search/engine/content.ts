@@ -5,7 +5,7 @@ export function createSessionSearchableContent(
 ): string {
   return mergeContent([
     extractPlainText(row.raw_md),
-    extractPlainText(row.enhanced_md),
+    extractPlainText(row.enhanced_notes_content),
     flattenTranscript(row.transcript),
   ]);
 }

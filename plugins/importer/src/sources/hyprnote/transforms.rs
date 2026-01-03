@@ -9,7 +9,7 @@ pub(super) fn session_to_imported_note(session: Session, tags: Vec<Tag>) -> Impo
         None
     };
 
-    let enhanced_md = if let Some(ref enhanced) = session.enhanced_memo_html {
+    let enhanced_content = if let Some(ref enhanced) = session.enhanced_memo_html {
         if !enhanced.is_empty() {
             Some(strip_html_tags(enhanced))
         } else {
@@ -24,7 +24,7 @@ pub(super) fn session_to_imported_note(session: Session, tags: Vec<Tag>) -> Impo
         title: session.title,
         content,
         raw_md,
-        enhanced_md,
+        enhanced_content,
         created_at: session.created_at.to_rfc3339(),
         updated_at: session.visited_at.to_rfc3339(),
         folder_id: None,

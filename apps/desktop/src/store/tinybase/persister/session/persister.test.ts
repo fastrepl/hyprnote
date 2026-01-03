@@ -41,7 +41,6 @@ describe("collectSessionMeta", () => {
       created_at: "2024-01-01T00:00:00Z",
       title: "Test Session",
       raw_md: "",
-      enhanced_md: "",
     });
 
     const result = collectSessionMeta(store);
@@ -68,7 +67,6 @@ describe("collectSessionMeta", () => {
       created_at: "2024-01-01T00:00:00Z",
       title: "Test Session",
       raw_md: "",
-      enhanced_md: "",
     });
 
     store.setRow("tags", "Important", {
@@ -115,7 +113,6 @@ describe("collectSessionMeta", () => {
       created_at: "2024-01-01T00:00:00Z",
       title: "Session With Tags",
       raw_md: "",
-      enhanced_md: "",
     });
 
     store.setRow("sessions", "session-2", {
@@ -123,7 +120,6 @@ describe("collectSessionMeta", () => {
       created_at: "2024-01-02T00:00:00Z",
       title: "Session Without Tags",
       raw_md: "",
-      enhanced_md: "",
     });
 
     store.setRow("tags", "Important", {
@@ -158,7 +154,6 @@ describe("collectSessionMeta", () => {
       created_at: "2024-01-01T00:00:00Z",
       title: "Test Session",
       raw_md: "",
-      enhanced_md: "",
     });
 
     store.setRow("mapping_session_participant", "mapping-1", {
@@ -242,7 +237,6 @@ describe("createSessionPersister", () => {
           folder_id: "",
           event_id: undefined,
           raw_md: "",
-          enhanced_md: "",
         },
       });
 
@@ -350,7 +344,6 @@ describe("createSessionPersister", () => {
         created_at: "2024-01-01T00:00:00Z",
         title: "Test Session",
         raw_md: "",
-        enhanced_md: "",
       });
 
       store.setRow("tags", "Important", {

@@ -6,7 +6,12 @@ import {
   createSessionSearchableContent,
 } from "./content";
 import type { Index } from "./types";
-import { collectCells, toEpochMs, toTrimmedString } from "./utils";
+import {
+  collectCells,
+  collectEnhancedNotesContent,
+  toEpochMs,
+  toTrimmedString,
+} from "./utils";
 
 export function indexSessions(db: Index, store: MainStore): void {
   const fields = [
@@ -16,12 +21,12 @@ export function indexSessions(db: Index, store: MainStore): void {
     "event_id",
     "title",
     "raw_md",
-    "enhanced_md",
     "transcript",
   ];
 
   store.forEachRow("sessions", (rowId: string, _forEachCell) => {
     const row = collectCells(store, "sessions", rowId, fields);
+    row.enhanced_notes_content = collectEnhancedNotesContent(store, rowId);
     const title = toTrimmedString(row.title) || "Untitled";
 
     void insert(db, {

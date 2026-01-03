@@ -51,7 +51,7 @@ fn document_to_imported_note(doc: Document) -> ImportedNote {
         title: doc.title,
         content: content.clone(),
         raw_md: Some(content),
-        enhanced_md: None,
+        enhanced_content: None,
         created_at: doc.created_at,
         updated_at: doc.updated_at,
         folder_id: None,

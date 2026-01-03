@@ -66,7 +66,6 @@ describe("timeline utils", () => {
         event_started_at: "2024-01-18T12:00:00.000Z",
         user_id: "user-1",
         raw_md: "",
-        enhanced_md: "",
         transcript: { words: [] },
       },
       "session-2": {
@@ -74,7 +73,6 @@ describe("timeline utils", () => {
         created_at: "2024-01-14T12:00:00.000Z",
         user_id: "user-1",
         raw_md: "",
-        enhanced_md: "",
         transcript: { words: [] },
       },
     };
@@ -123,7 +121,6 @@ describe("timeline utils", () => {
         event_started_at: "2024-01-10T10:00:00.000Z",
         user_id: "user-1",
         raw_md: "",
-        enhanced_md: "",
         transcript: { words: [] },
       },
     };
@@ -158,7 +155,6 @@ describe("timeline utils", () => {
         event_started_at: "2024-01-16T09:00:00.000Z",
         user_id: "user-1",
         raw_md: "",
-        enhanced_md: "",
         transcript: { words: [] },
       },
       "session-past": {
@@ -166,7 +162,6 @@ describe("timeline utils", () => {
         created_at: "2024-01-14T09:00:00.000Z",
         user_id: "user-1",
         raw_md: "",
-        enhanced_md: "",
         transcript: { words: [] },
       },
     };

@@ -14,7 +14,6 @@ import { SCHEMA, type Schemas } from "@hypr/store";
 import { format } from "@hypr/utils";
 
 import { useMainPersisters } from "./persisters";
-import * as settings from "./settings";
 
 export const STORE_ID = "main";
 
@@ -61,8 +60,6 @@ export const testUtils = {
 };
 
 export const StoreComponent = () => {
-  const settingsStore = settings.UI.useStore(settings.STORE_ID);
-
   const store = useCreateMergeableStore(() =>
     createMergeableStore()
       .setTablesSchema(SCHEMA.table)
@@ -74,7 +71,7 @@ export const StoreComponent = () => {
     markdownPersister,
     transcriptPersister,
     humanPersister,
-  } = useMainPersisters(store as Store, settingsStore);
+  } = useMainPersisters(store as Store);
 
   const synchronizer = useCreateSynchronizer(store, async (store) =>
     createBroadcastChannelSynchronizer(

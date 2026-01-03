@@ -139,12 +139,6 @@ export function useEnsureDefaultSummary(sessionId: string) {
     sessionId,
     main.STORE_ID,
   );
-  const existingEnhancedMd = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "enhanced_md",
-    main.STORE_ID,
-  );
   const createEnhancedNote = useCreateEnhancedNote();
 
   useEffect(() => {
@@ -158,17 +152,12 @@ export function useEnsureDefaultSummary(sessionId: string) {
       return;
     }
 
-    createEnhancedNote(
-      sessionId,
-      undefined,
-      existingEnhancedMd ? String(existingEnhancedMd) : undefined,
-    );
+    createEnhancedNote(sessionId);
   }, [
     hasTranscript,
     sessionMode,
     sessionId,
     enhancedNoteIds?.length,
-    existingEnhancedMd,
     createEnhancedNote,
   ]);
 }

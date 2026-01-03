@@ -6,6 +6,22 @@
 
 
 export const commands = {
+async exportJson(json: JsonValue, path: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:export|export_json", { json, path }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async exportJsonBatch(items: ([JsonValue, string])[]) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:export|export_json_batch", { items }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async exportTiptapJsonToMd(json: JsonValue, path: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:export|export_tiptap_json_to_md", { json, path }) };

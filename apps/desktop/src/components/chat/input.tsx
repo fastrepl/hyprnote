@@ -1,5 +1,5 @@
 import { FullscreenIcon, MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { SlashCommandConfig, TiptapEditor } from "@hypr/tiptap/chat";
@@ -24,6 +24,8 @@ export function ChatMessageInput({
   attachedSession?: { id: string; title?: string };
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const [hasContent, setHasContent] = useState(false);
+  const { chat } = useShell();
   const chatShortcuts = main.UI.useResultTable(
     main.QUERIES.visibleChatShortcuts,
     main.STORE_ID,
@@ -47,7 +49,8 @@ export function ChatMessageInput({
     void analyticsCommands.event({ event: "message_sent" });
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
-  }, [disabled, onSendMessage]);
+    chat.setDraftMessage(undefined);
+  }, [disabled, onSendMessage, chat]);
 
   useEffect(() => {
     const editor = editorRef.current?.editor;
@@ -59,6 +62,30 @@ export function ChatMessageInput({
       editor.commands.focus();
     }
   }, [disabled]);
+
+  useEffect(() => {
+    const checkEditor = setInterval(() => {
+      const editor = editorRef.current?.editor;
+      if (editor && !editor.isDestroyed && editor.isInitialized) {
+        clearInterval(checkEditor);
+
+        if (chat.draftMessage) {
+          editor.commands.setContent(chat.draftMessage);
+        }
+
+        const updateHandler = () => {
+          const json = editor.getJSON();
+          const text = tiptapJsonToText(json).trim();
+          setHasContent(text.length > 0);
+          chat.setDraftMessage(json);
+        };
+
+        editor.on("update", updateHandler);
+      }
+    }, 100);
+
+    return () => clearInterval(checkEditor);
+  }, [chat]);
 
   const handleAttachFile = useCallback(() => {
     console.log("Attach file clicked");
@@ -176,6 +203,11 @@ export function ChatMessageInput({
           </div>
         </div>
       </div>
+      {hasContent && (
+        <span className="absolute bottom-1.5 right-5 text-[8px] text-neutral-400">
+          Shift + Enter to add a new line
+        </span>
+      )}
     </Container>
   );
 }
@@ -184,7 +216,7 @@ function Container({ children }: { children: React.ReactNode }) {
   const { chat } = useShell();
 
   return (
-    <div className={cn([chat.mode !== "RightPanelOpen" && "p-1"])}>
+    <div className={cn(["relative", chat.mode !== "RightPanelOpen" && "p-1"])}>
       <div
         className={cn([
           "flex flex-col border border-neutral-200 rounded-xl",

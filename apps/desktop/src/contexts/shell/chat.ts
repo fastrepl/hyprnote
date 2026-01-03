@@ -43,6 +43,7 @@ const chatModeLogic = fromTransition(
 export function useChatMode() {
   const [mode, setMode] = useState<ChatMode>("FloatingClosed");
   const [groupId, setGroupId] = useState<string | undefined>(undefined);
+  const [draftMessage, setDraftMessage] = useState<any>(undefined);
 
   const actorRef = useMemo(() => createActor(chatModeLogic), []);
 
@@ -72,5 +73,7 @@ export function useChatMode() {
     sendEvent,
     groupId,
     setGroupId,
+    draftMessage,
+    setDraftMessage,
   };
 }

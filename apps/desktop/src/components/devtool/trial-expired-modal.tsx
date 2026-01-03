@@ -38,7 +38,7 @@ export function TrialExpiredModal() {
           <X className="h-4 w-4" />
         </button>
 
-        <div className="flex flex-col items-center gap-8 p-12 text-center">
+        <div className="flex flex-col items-center gap-8 p-6 text-center">
           <div className="flex flex-col gap-3">
             <h2 className="font-serif text-3xl font-semibold">
               Your free trial is over
@@ -50,7 +50,7 @@ export function TrialExpiredModal() {
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-3 max-w-md">
             {[
               { label: "Pro AI models", icon: Sparkle },
               { label: "Cloud sync", icon: Cloud },
@@ -61,7 +61,7 @@ export function TrialExpiredModal() {
               <div
                 key={label}
                 className={cn([
-                  "rounded-full border border-border bg-secondary/50 px-4 py-2 text-sm text-secondary-foreground",
+                  "rounded-full border border-border bg-secondary/50 px-4 py-2 text-[12px] text-secondary-foreground",
                   "flex items-center gap-2",
                 ])}
               >

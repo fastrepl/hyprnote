@@ -75,12 +75,19 @@ function usePersisterSaveEvents(persister: Saveable | null) {
 
     let unlistenClose: UnlistenFn | undefined;
     let unlistenBlur: UnlistenFn | undefined;
+    let saving = false;
 
     const save = async () => {
+      if (saving) {
+        return;
+      }
+      saving = true;
       try {
         await persister.save();
       } catch (error) {
         console.error(error);
+      } finally {
+        saving = false;
       }
     };
 
@@ -111,8 +118,18 @@ function usePersisterSaveEvents(persister: Saveable | null) {
       return;
     }
 
+    let saving = false;
+
     return registerSaveHandler(async () => {
-      await persister.save();
+      if (saving) {
+        return;
+      }
+      saving = true;
+      try {
+        await persister.save();
+      } finally {
+        saving = false;
+      }
     });
   }, [persister]);
 }

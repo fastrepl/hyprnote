@@ -1,0 +1,6 @@
+﻿{
+    "Rect" : { "position": {"x": -44, "y": 3.4} , "color": [0, 255, 255] },
+    "Point": { "position": {"y": 22, "z": 3}                             },
+    "Oval" : { "position": {"x": 140, "y": 0.04}, "color": "#7f3e96"     },
+    "Plane": { "position": null, "color":  [0, 64, 64] }
+}

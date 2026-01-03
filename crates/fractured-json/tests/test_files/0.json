@@ -1,0 +1,204 @@
+{
+    "BannerText": [
+        "Sometimes you'll have to protect multiple enemy goals."
+    ],
+    "Terrain": {
+        "TileTypes": [
+            {
+                "BlocksMovement": false,
+                "BlocksVision": false,
+                "Appearance": " ",
+                "Name": "Open"
+            },
+            {
+                "BlocksMovement": true,
+                "BlocksVision": true,
+                "Appearance": "*",
+                "Name": "Stone"
+            },
+            {
+                "BlocksMovement": true,
+                "BlocksVision": false,
+                "Appearance": "~",
+                "Name": "Water"
+            },
+            {
+                "BlocksMovement": false,
+                "BlocksVision": true,
+                "Appearance": "@",
+                "Name": "Fog"
+            }
+        ],
+        "Width": 45,
+        "Height": 20,
+        "Tiles": [
+            "     ***               ***        ********   ",
+            "    *******                          ****    ",
+            "***********                           ****   ",
+            "***********                           *******",
+            "*********                 ***********        ",
+            "  ******                     ********        ",
+            "                            ***          ****",
+            "                                             ",
+            "                                             ",
+            "                                             ",
+            "          *                              ****",
+            " *       *****                **             ",
+            "****    ******         ****                  ",
+            "*****    ****           **                   ",
+            "******         ***                     **    ",
+            "******          *                            ",
+            " **                             ******   ****",
+            "         *                           *       ",
+            "        ****                                 ",
+            "         **                                  "
+        ],
+        "SpawnPointsMap": {
+            "1": [
+                [
+                    1,
+                    8
+                ]
+            ]
+        },
+        "GoalPointsMap": {
+            "1": [
+                [
+                    43,
+                    8
+                ],
+                [
+                    43,
+                    18
+                ]
+            ]
+        }
+    },
+    "AttackPlans": [
+        {
+            "TeamId": 1,
+            "Spawns": [
+                {
+                    "Time": 0.0,
+                    "UnitType": "Grunt",
+                    "SpawnPointIndex": 0
+                },
+                {
+                    "Time": 0.0,
+                    "UnitType": "Grunt",
+                    "SpawnPointIndex": 0
+                },
+                {
+                    "Time": 0.0,
+                    "UnitType": "Grunt",
+                    "SpawnPointIndex": 0
+                },
+                {
+                    "Time": 0.0,
+                    "UnitType": "Grunt",
+                    "SpawnPointIndex": 0
+                },
+                {
+                    "Time": 0.0,
+                    "UnitType": "Grunt",
+                    "SpawnPointIndex": 0
+                }
+            ]
+        },
+        {
+            "TeamId": 2,
+            "Spawns": []
+        }
+    ],
+    "DefensePlans": [
+        {
+            "TeamId": 2,
+            "Placements": [
+                {
+                    "UnitType": "Archer",
+                    "Position": [
+                        41,
+                        7
+                    ]
+                },
+                {
+                    "UnitType": "Archer",
+                    "Position": [
+                        41,
+                        8
+                    ]
+                },
+                {
+                    "UnitType": "Archer",
+                    "Position": [
+                        41,
+                        9
+                    ]
+                },
+                {
+                    "UnitType": "Pikeman",
+                    "Position": [
+                        40,
+                        9
+                    ]
+                },
+                {
+                    "UnitType": "Pikeman",
+                    "Position": [
+                        40,
+                        8
+                    ]
+                },
+                {
+                    "UnitType": "Pikeman",
+                    "Position": [
+                        40,
+                        7
+                    ]
+                },
+                {
+                    "UnitType": "Barricade",
+                    "Position": [
+                        39,
+                        7
+                    ]
+                },
+                {
+                    "UnitType": "Barricade",
+                    "Position": [
+                        39,
+                        8
+                    ]
+                },
+                {
+                    "UnitType": "Barricade",
+                    "Position": [
+                        39,
+                        9
+                    ]
+                },
+                {
+                    "UnitType": "Archer",
+                    "Position": [
+                        41,
+                        18
+                    ]
+                }
+            ]
+        }
+    ],
+    "Challenges": [
+        {
+            "Name": "*",
+            "PlayerTeamId": 2,
+            "AttackersMustNotReachGoal": false,
+            "MaximumUnitTypeCount": {}
+        },
+        {
+            "Name": "**",
+            "PlayerTeamId": 2,
+            "AttackersMustNotReachGoal": true,
+            "MaximumUnitTypeCount": {}
+        }
+    ]
+}

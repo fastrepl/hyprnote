@@ -1,0 +1,17 @@
+[
+    {
+        "Name": "李小龍",
+        "Job": "Actor",
+        "Born": 1940
+    },
+    {
+        "Name": "Mark Twain",
+        "Job": "Writer",
+        "Born": 1835
+    },
+    {
+        "Name": "孫子",
+        "Job": "General",
+        "Born": -544
+    }
+]

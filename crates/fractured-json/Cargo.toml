@@ -1,0 +1,12 @@
+[package]
+name = "fractured_json"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "A JSON formatter that produces human-readable output with smart line breaks and table alignment"
+
+[dependencies]
+serde_json = "1.0"
+
+[dev-dependencies]
+pretty_assertions = "1.4"

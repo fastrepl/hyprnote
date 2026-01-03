@@ -1,0 +1,98 @@
+{
+    "ObjectColumnsObjectRows": {
+        "Vera": {
+            "street": "12 Madeup St.",
+            "city": "Boston",
+            "state": "MA",
+            "zip": "02127"
+        },
+        "Chuck": {
+            "street": "994 Fake Place",
+            "unit": "102",
+            "city": "Las Vegas",
+            "state": "NV",
+            "zip": "89102"
+        },
+        "Dave": {
+            "street": "1967 Void Rd.",
+            "unit": "B",
+            "city": "Athens",
+            "state": "GA"
+        }
+    },
+    "ObjectColumnsArrayRows": {
+        "Katherine": ["blue", "lightblue", "black"],
+        "Logan": ["yellow", "blue", "black", "red"],
+        "Erik": ["red", "purple"],
+        "Jean": ["lightgreen", "yellow", "black"]
+    },
+    "ArrayColumnsObjectRows": [
+        {
+            "type": "turret",
+            "hp": 400,
+            "loc": {
+                "x": 47,
+                "y": -4
+            },
+            "flags": ["stationary"]
+        },
+        {
+            "type": "assassin",
+            "hp": 80,
+            "loc": {
+                "x": 102,
+                "y": 6
+            },
+            "flags": ["stealth"]
+        },
+        {
+            "type": "berserker",
+            "hp": 150,
+            "loc": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        {
+            "type": "pittrap",
+            "loc": {
+                "x": 10,
+                "y": -14
+            },
+            "flags": ["invulnerable", "stationary"]
+        }
+    ],
+    "ArrayColumnsArrayRows": [
+        [0.0, 3.5, 10.5, 6.5, 2.5, 0.6],
+        [0.0, 0.0, 1.2, 2.1, 6.7, 4.4],
+        [0.4, 1.9, 4.4, 5.4, 2.35, 2.0],
+        [7.4, 1.2, 0.01, 0.0, 2.91, 0.2]
+    ],
+    "DissimilarObjectRows": {
+        "lamp": {
+            "x": 4,
+            "y": 1002,
+            "r": 75,
+            "g": 0,
+            "b": 130,
+            "state": 1
+        },
+        "address": {
+            "city": "San Diego",
+            "state": "CA"
+        },
+        "font": {
+            "r": 0,
+            "g": 12,
+            "b": 40,
+            "size": 18,
+            "style": "italic"
+        }
+    },
+    "DissimilarArrayRows": {
+        "primes": [2, 3, 5, 7, 11],
+        "powersOf2": [1, 2, 4, 8, 16, 32, 64, 128, 256],
+        "factorsOf12": [2, 2, 3],
+        "someZeros": [0, 0, 0, 0]
+    }
+}

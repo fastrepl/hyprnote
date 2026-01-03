@@ -74,3 +74,25 @@ pub fn show_devtool() -> bool {
         return false;
     }
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn resize_window_for_chat<R: tauri::Runtime>(
+    window: tauri::Window<R>,
+    add_width: bool,
+) -> Result<(), String> {
+    let size = window.inner_size().map_err(|e| e.to_string())?;
+    let current_width = size.width;
+
+    if add_width && current_width < 600 {
+        let new_size = tauri::LogicalSize {
+            width: current_width + 400,
+            height: size.height,
+        };
+        window
+            .set_size(tauri::Size::Logical(new_size))
+            .map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
+}

@@ -1,10 +1,8 @@
-import { LogicalSize } from "@tauri-apps/api/dpi";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { createActor, fromTransition } from "xstate";
 
-const appWindow = getCurrentWebviewWindow();
+import { commands } from "../../types/tauri.gen";
 
 export type ChatMode = "RightPanelOpen" | "FloatingClosed" | "FloatingOpen";
 export type ChatEvent =
@@ -60,23 +58,9 @@ export function useChatMode() {
     const handleWindowResize = async () => {
       const isOpeningRightPanel =
         mode === "RightPanelOpen" && previousMode !== "RightPanelOpen";
-      const isClosingRightPanel =
-        mode !== "RightPanelOpen" && previousMode === "RightPanelOpen";
 
       if (isOpeningRightPanel) {
-        const currentSize = await appWindow.innerSize();
-        const currentWidth = currentSize.width;
-
-        if (currentWidth < 600) {
-          await appWindow.setSize(
-            new LogicalSize(currentWidth + 400, currentSize.height),
-          );
-        }
-      } else if (isClosingRightPanel) {
-        const currentSize = await appWindow.innerSize();
-        await appWindow.setSize(
-          new LogicalSize(currentSize.width - 400, currentSize.height),
-        );
+        await commands.resizeWindowForChat(true);
       }
 
       setPreviousMode(mode);

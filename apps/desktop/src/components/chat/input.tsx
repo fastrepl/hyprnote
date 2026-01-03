@@ -1,5 +1,11 @@
-import { FullscreenIcon, MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  FullscreenIcon,
+  MicIcon,
+  PaperclipIcon,
+  SendIcon,
+  SquareIcon,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { SlashCommandConfig, TiptapEditor } from "@hypr/tiptap/chat";
@@ -18,12 +24,18 @@ export function ChatMessageInput({
   onSendMessage,
   disabled: disabledProp,
   attachedSession,
+  isStreaming,
+  onStop,
 }: {
   onSendMessage: (content: string, parts: any[]) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
   attachedSession?: { id: string; title?: string };
+  isStreaming?: boolean;
+  onStop?: () => void;
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const [hasContent, setHasContent] = useState(false);
+  const { chat } = useShell();
   const chatShortcuts = main.UI.useResultTable(
     main.QUERIES.visibleChatShortcuts,
     main.STORE_ID,
@@ -47,7 +59,8 @@ export function ChatMessageInput({
     void analyticsCommands.event({ event: "message_sent" });
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
-  }, [disabled, onSendMessage]);
+    chat.setDraftMessage(undefined);
+  }, [disabled, onSendMessage, chat]);
 
   useEffect(() => {
     const editor = editorRef.current?.editor;
@@ -59,6 +72,37 @@ export function ChatMessageInput({
       editor.commands.focus();
     }
   }, [disabled]);
+
+  useEffect(() => {
+    let updateHandler: (() => void) | null = null;
+    const checkEditor = setInterval(() => {
+      const editor = editorRef.current?.editor;
+      if (editor && !editor.isDestroyed && editor.isInitialized) {
+        clearInterval(checkEditor);
+
+        if (chat.draftMessage) {
+          editor.commands.setContent(chat.draftMessage);
+        }
+
+        updateHandler = () => {
+          const json = editor.getJSON();
+          const text = tiptapJsonToText(json).trim();
+          setHasContent(text.length > 0);
+          chat.setDraftMessage(json);
+        };
+
+        editor.on("update", updateHandler);
+      }
+    }, 100);
+
+    return () => {
+      clearInterval(checkEditor);
+      const editor = editorRef.current?.editor;
+      if (editor && updateHandler) {
+        editor.off("update", updateHandler);
+      }
+    };
+  }, [chat]);
 
   const handleAttachFile = useCallback(() => {
     console.log("Attach file clicked");
@@ -133,7 +177,7 @@ export function ChatMessageInput({
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center">
             <Button
               onClick={handleAttachFile}
               disabled={disabled}
@@ -154,7 +198,7 @@ export function ChatMessageInput({
             </Button>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center">
             <Button
               onClick={handleVoiceInput}
               disabled={disabled}
@@ -164,18 +208,34 @@ export function ChatMessageInput({
             >
               <MicIcon size={16} />
             </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={disabled}
-              size="icon"
-              variant="ghost"
-              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-            >
-              <SendIcon size={16} />
-            </Button>
+            {isStreaming ? (
+              <Button
+                onClick={onStop}
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+              >
+                <SquareIcon size={16} className="fill-current" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSubmit}
+                disabled={disabled}
+                size="icon"
+                variant="ghost"
+                className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
+              >
+                <SendIcon size={16} />
+              </Button>
+            )}
           </div>
         </div>
       </div>
+      {hasContent && (
+        <span className="absolute bottom-1.5 right-5 text-[8px] text-neutral-400">
+          Shift + Enter to add a new line
+        </span>
+      )}
     </Container>
   );
 }
@@ -184,7 +244,7 @@ function Container({ children }: { children: React.ReactNode }) {
   const { chat } = useShell();
 
   return (
-    <div className={cn([chat.mode !== "RightPanelOpen" && "p-1"])}>
+    <div className={cn(["relative", chat.mode !== "RightPanelOpen" && "p-1"])}>
       <div
         className={cn([
           "flex flex-col border border-neutral-200 rounded-xl",

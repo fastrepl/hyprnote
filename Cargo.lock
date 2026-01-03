@@ -10067,7 +10067,9 @@ dependencies = [
  "schemars 0.8.22",
  "serde",
  "specta",
+ "tantivy",
  "thiserror 2.0.17",
+ "whichlang",
  "whisper",
 ]
 
@@ -18708,6 +18710,7 @@ dependencies = [
 name = "tauri-plugin-tantivy"
 version = "0.1.0"
 dependencies = [
+ "language",
  "serde",
  "serde_json",
  "specta",
@@ -18715,6 +18718,7 @@ dependencies = [
  "tantivy",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-notify",
  "tauri-plugin-path2",
  "tauri-specta",
  "tempfile",
@@ -21916,6 +21920,12 @@ dependencies = [
  "rustix 0.38.44",
  "winsafe",
 ]
+
+[[package]]
+name = "whichlang"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b9aa3ad29c3d08283ac6b769e3ec15ad1ddb88af7d2e9bc402c574973b937e7"
 
 [[package]]
 name = "whisper"

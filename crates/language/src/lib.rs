@@ -5,6 +5,40 @@ use std::str::FromStr;
 
 pub use codes_iso_639::part_1::LanguageCode as ISO639;
 
+#[cfg(feature = "detect")]
+pub fn detect(text: &str) -> Language {
+    let lang = whichlang::detect_language(text);
+    lang.into()
+}
+
+#[cfg(feature = "detect")]
+impl From<whichlang::Lang> for Language {
+    fn from(lang: whichlang::Lang) -> Self {
+        use whichlang::Lang;
+
+        let iso639 = match lang {
+            Lang::Ara => ISO639::Ar,
+            Lang::Cmn => ISO639::Zh,
+            Lang::Deu => ISO639::De,
+            Lang::Eng => ISO639::En,
+            Lang::Fra => ISO639::Fr,
+            Lang::Hin => ISO639::Hi,
+            Lang::Ita => ISO639::It,
+            Lang::Jpn => ISO639::Ja,
+            Lang::Kor => ISO639::Ko,
+            Lang::Nld => ISO639::Nl,
+            Lang::Por => ISO639::Pt,
+            Lang::Rus => ISO639::Ru,
+            Lang::Spa => ISO639::Es,
+            Lang::Swe => ISO639::Sv,
+            Lang::Tur => ISO639::Tr,
+            Lang::Vie => ISO639::Vi,
+        };
+
+        Self { iso639 }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, schemars::JsonSchema)]
 pub struct Language {
     #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
@@ -304,6 +338,33 @@ impl Language {
             ISO639::Vi => Ok(DG::vi),
             ISO639::Zh => Ok(DG::zh),
             _ => Err(Error::NotSupportedLanguage(self.to_string())),
+        }
+    }
+
+    #[cfg(feature = "tantivy")]
+    pub fn for_tantivy_stemmer(&self) -> Option<tantivy::tokenizer::Language> {
+        use tantivy::tokenizer::Language as TL;
+
+        match self.iso639 {
+            ISO639::Ar => Some(TL::Arabic),
+            ISO639::Da => Some(TL::Danish),
+            ISO639::Nl => Some(TL::Dutch),
+            ISO639::En => Some(TL::English),
+            ISO639::Fi => Some(TL::Finnish),
+            ISO639::Fr => Some(TL::French),
+            ISO639::De => Some(TL::German),
+            ISO639::El => Some(TL::Greek),
+            ISO639::Hu => Some(TL::Hungarian),
+            ISO639::It => Some(TL::Italian),
+            ISO639::No => Some(TL::Norwegian),
+            ISO639::Pt => Some(TL::Portuguese),
+            ISO639::Ro => Some(TL::Romanian),
+            ISO639::Ru => Some(TL::Russian),
+            ISO639::Es => Some(TL::Spanish),
+            ISO639::Sv => Some(TL::Swedish),
+            ISO639::Ta => Some(TL::Tamil),
+            ISO639::Tr => Some(TL::Turkish),
+            _ => None,
         }
     }
 }

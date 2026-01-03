@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
+import type { ComponentRef } from "react";
 
 import {
   ResizableHandle,
@@ -22,6 +23,7 @@ const CHAT_MIN_WIDTH_PX = 280;
 function Component() {
   const { leftsidebar, chat } = useShell();
   const previousModeRef = useRef(chat.mode);
+  const bodyPanelRef = useRef<ComponentRef<typeof ResizablePanel>>(null);
 
   const isChatOpen = chat.mode === "RightPanelOpen";
 
@@ -30,7 +32,9 @@ function Component() {
       chat.mode === "RightPanelOpen" &&
       previousModeRef.current !== "RightPanelOpen";
 
-    if (isOpeningRightPanel) {
+    if (isOpeningRightPanel && bodyPanelRef.current) {
+      const currentSize = bodyPanelRef.current.getSize();
+      bodyPanelRef.current.resize(currentSize);
       commands.resizeWindowForChat();
     }
 
@@ -49,7 +53,7 @@ function Component() {
         className="flex-1 overflow-hidden flex"
         autoSaveId="main-chat"
       >
-        <ResizablePanel className="flex-1 overflow-hidden">
+        <ResizablePanel ref={bodyPanelRef} className="flex-1 overflow-hidden">
           <Body />
         </ResizablePanel>
         {isChatOpen && (

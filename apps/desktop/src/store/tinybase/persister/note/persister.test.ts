@@ -32,16 +32,14 @@ function createTestStore() {
 
 describe("createNotePersister", () => {
   let store: ReturnType<typeof createTestStore>;
-  let handleSyncToSession: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     store = createTestStore();
-    handleSyncToSession = vi.fn();
     vi.clearAllMocks();
   });
 
   test("returns a persister object with expected methods", () => {
-    const persister = createNotePersister<Schemas>(store, handleSyncToSession);
+    const persister = createNotePersister<Schemas>(store);
 
     expect(persister).toBeDefined();
     expect(persister.save).toBeTypeOf("function");
@@ -50,11 +48,10 @@ describe("createNotePersister", () => {
   });
 
   test("load returns undefined (no-op)", async () => {
-    const persister = createNotePersister<Schemas>(store, handleSyncToSession);
+    const persister = createNotePersister<Schemas>(store);
 
     const result = await persister.load();
     expect(result).toBe(persister);
-    expect(handleSyncToSession).not.toHaveBeenCalled();
   });
 
   describe("save", () => {
@@ -78,10 +75,7 @@ describe("createNotePersister", () => {
         sections: "[]",
       });
 
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
+      const persister = createNotePersister<Schemas>(store);
 
       await persister.save();
 
@@ -105,10 +99,7 @@ describe("createNotePersister", () => {
         position: 0,
       });
 
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
+      const persister = createNotePersister<Schemas>(store);
 
       await persister.save();
 
@@ -118,56 +109,6 @@ describe("createNotePersister", () => {
           "/mock/data/dir/hyprnote/sessions/session-1/_summary.md",
         ],
       ]);
-    });
-
-    test("calls handleSyncToSession when no template_id but has session_id", async () => {
-      store.setRow("enhanced_notes", "note-1", {
-        user_id: "user-1",
-        created_at: new Date().toISOString(),
-        session_id: "session-1",
-        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
-        position: 0,
-      });
-
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
-
-      await persister.save();
-
-      expect(handleSyncToSession).toHaveBeenCalledTimes(1);
-      expect(handleSyncToSession).toHaveBeenCalledWith(
-        "session-1",
-        '{"type":"doc","content":[{"type":"paragraph"}]}',
-      );
-    });
-
-    test("does not call handleSyncToSession when has template_id", async () => {
-      store.setRow("enhanced_notes", "note-1", {
-        user_id: "user-1",
-        created_at: new Date().toISOString(),
-        session_id: "session-1",
-        content: '{"type":"doc","content":[{"type":"paragraph"}]}',
-        template_id: "template-1",
-        position: 0,
-      });
-      store.setRow("templates", "template-1", {
-        user_id: "user-1",
-        created_at: new Date().toISOString(),
-        title: "Template",
-        description: "",
-        sections: "[]",
-      });
-
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
-
-      await persister.save();
-
-      expect(handleSyncToSession).not.toHaveBeenCalled();
     });
 
     test("sanitizes template title for filename", async () => {
@@ -189,10 +130,7 @@ describe("createNotePersister", () => {
         sections: "[]",
       });
 
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
+      const persister = createNotePersister<Schemas>(store);
 
       await persister.save();
 
@@ -216,10 +154,7 @@ describe("createNotePersister", () => {
         position: 0,
       });
 
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
+      const persister = createNotePersister<Schemas>(store);
 
       await persister.save();
 
@@ -257,10 +192,7 @@ describe("createNotePersister", () => {
         sections: "[]",
       });
 
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
+      const persister = createNotePersister<Schemas>(store);
 
       await persister.save();
 
@@ -268,7 +200,6 @@ describe("createNotePersister", () => {
       const callArgs = vi.mocked(commands.exportTiptapJsonToMdBatch).mock
         .calls[0][0];
       expect(callArgs).toHaveLength(2);
-      expect(handleSyncToSession).toHaveBeenCalledTimes(1);
     });
 
     test("exports raw_md for sessions", async () => {
@@ -279,13 +210,9 @@ describe("createNotePersister", () => {
         created_at: new Date().toISOString(),
         title: "Test Session",
         raw_md: '{"type":"doc","content":[{"type":"paragraph"}]}',
-        enhanced_md: "",
       });
 
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
+      const persister = createNotePersister<Schemas>(store);
 
       await persister.save();
 
@@ -305,13 +232,9 @@ describe("createNotePersister", () => {
         created_at: new Date().toISOString(),
         title: "Test Session",
         raw_md: "",
-        enhanced_md: "",
       });
 
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
+      const persister = createNotePersister<Schemas>(store);
 
       await persister.save();
 
@@ -330,10 +253,7 @@ describe("createNotePersister", () => {
         position: 0,
       });
 
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
+      const persister = createNotePersister<Schemas>(store);
 
       await persister.save();
 
@@ -354,10 +274,7 @@ describe("createNotePersister", () => {
         position: 0,
       });
 
-      const persister = createNotePersister<Schemas>(
-        store,
-        handleSyncToSession,
-      );
+      const persister = createNotePersister<Schemas>(store);
 
       await persister.save();
 

@@ -51,7 +51,6 @@ export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   tables: TablesContent,
   dataDir: string,
-  handleSyncToSession?: (sessionId: string, content: string) => void,
 ): CollectorResult {
   const dirs = new Set<string>();
   const mdBatchItems: Array<[JsonValue, string]> = [];
@@ -67,9 +66,6 @@ export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
     }
 
     const filename = getEnhancedNoteFilename(store, enhancedNote);
-    if (!enhancedNote.template_id && handleSyncToSession) {
-      handleSyncToSession(enhancedNote.session_id, enhancedNote.content);
-    }
 
     const session = tables.sessions?.[enhancedNote.session_id];
     const folderPath = session?.folder_id ?? "";

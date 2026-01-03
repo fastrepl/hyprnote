@@ -1,5 +1,6 @@
 import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
 import type { Store as MainStore } from "../../../tinybase/store/main";
+import { collectEnhancedNotesContent } from "../../../tinybase/store/utils";
 
 export const titleTransform: Pick<TaskConfig<"title">, "transformArgs"> = {
   transformArgs,
@@ -9,14 +10,9 @@ async function transformArgs(
   args: TaskArgsMap["title"],
   store: MainStore,
 ): Promise<TaskArgsMapTransformed["title"]> {
-  const enhancedNote = readEnhancedMarkdown(store, args.sessionId);
+  const enhancedNote = collectEnhancedNotesContent(store, args.sessionId);
   const language = getLanguage(store);
   return { language, enhancedNote };
-}
-
-function readEnhancedMarkdown(store: MainStore, sessionId: string): string {
-  const value = store.getCell("sessions", sessionId, "enhanced_md");
-  return typeof value === "string" ? value : "";
 }
 
 function getLanguage(store: MainStore): string | null {

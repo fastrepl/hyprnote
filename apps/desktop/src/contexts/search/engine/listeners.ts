@@ -8,7 +8,12 @@ import {
   createSessionSearchableContent,
 } from "./content";
 import type { Index } from "./types";
-import { collectCells, toEpochMs, toTrimmedString } from "./utils";
+import {
+  collectCells,
+  collectEnhancedNotesContent,
+  toEpochMs,
+  toTrimmedString,
+} from "./utils";
 
 export function createSessionListener(
   index: Index,
@@ -25,10 +30,10 @@ export function createSessionListener(
           "created_at",
           "title",
           "raw_md",
-          "enhanced_md",
           "transcript",
         ];
         const row = collectCells(store, "sessions", rowId, fields);
+        row.enhanced_notes_content = collectEnhancedNotesContent(store, rowId);
         const title = toTrimmedString(row.title) || "Untitled";
 
         const data: TypedDocument<Index> = {

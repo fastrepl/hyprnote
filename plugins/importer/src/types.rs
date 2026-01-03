@@ -51,7 +51,7 @@ pub struct ImportedNote {
     pub title: String,
     pub content: String,
     pub raw_md: Option<String>,
-    pub enhanced_md: Option<String>,
+    pub enhanced_content: Option<String>,
     pub created_at: String,
     pub updated_at: String,
     pub folder_id: Option<String>,

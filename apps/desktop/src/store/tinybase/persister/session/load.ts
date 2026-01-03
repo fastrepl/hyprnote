@@ -59,7 +59,6 @@ async function loadSessionMetaRecursively(
           folder_id: folderPath,
           event_id: meta.event_id,
           raw_md: "",
-          enhanced_md: "",
         };
 
         for (const participant of meta.participants) {

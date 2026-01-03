@@ -1,3 +1,4 @@
+import { BaseDirectory, exists, mkdir } from "@tauri-apps/plugin-fs";
 import * as _UI from "tinybase/ui-react/with-schemas";
 
 import { type Schemas } from "@hypr/store";
@@ -9,17 +10,26 @@ export { createNotePersister } from "./persister";
 
 const { useCreatePersister } = _UI as _UI.WithSchemas<Schemas>;
 
-export function useNotePersister(
-  store: Store,
-  handleSyncToSession: (sessionId: string, content: string) => void,
-) {
+export function useNotePersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createNotePersister<Schemas>(
-        store as Store,
-        handleSyncToSession,
-      );
+      try {
+        const dirExists = await exists("hyprnote/sessions", {
+          baseDir: BaseDirectory.Data,
+        });
+        if (!dirExists) {
+          await mkdir("hyprnote/sessions", {
+            baseDir: BaseDirectory.Data,
+            recursive: true,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to create sessions directory:", error);
+        throw error;
+      }
+
+      const persister = createNotePersister<Schemas>(store as Store);
       await persister.startAutoSave();
       return persister;
     },

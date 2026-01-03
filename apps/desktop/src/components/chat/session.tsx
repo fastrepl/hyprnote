@@ -186,8 +186,19 @@ function useTransport(attachedSessionId?: string) {
   const language = main.UI.useValue("ai_language", main.STORE_ID) ?? "en";
   const [systemPrompt, setSystemPrompt] = useState<string | undefined>();
 
-  const { title, rawMd, enhancedMd, createdAt } = useSession(
+  const { title, rawMd, createdAt } = useSession(attachedSessionId ?? "");
+
+  const enhancedNoteIds = main.UI.useSliceRowIds(
+    main.INDEXES.enhancedNotesBySession,
     attachedSessionId ?? "",
+    main.STORE_ID,
+  );
+  const firstEnhancedNoteId = enhancedNoteIds?.[0];
+  const enhancedContent = main.UI.useCell(
+    "enhanced_notes",
+    firstEnhancedNoteId ?? "",
+    "content",
+    main.STORE_ID,
   );
 
   const transcriptIds = main.UI.useSliceRowIds(
@@ -253,10 +264,10 @@ function useTransport(attachedSessionId?: string) {
       title: (title as string) || null,
       date: (createdAt as string) || null,
       rawContent: (rawMd as string) || null,
-      enhancedContent: (enhancedMd as string) || null,
+      enhancedContent: (enhancedContent as string) || null,
       transcript,
     };
-  }, [attachedSessionId, title, rawMd, enhancedMd, createdAt, transcript]);
+  }, [attachedSessionId, title, rawMd, enhancedContent, createdAt, transcript]);
 
   useEffect(() => {
     templateCommands

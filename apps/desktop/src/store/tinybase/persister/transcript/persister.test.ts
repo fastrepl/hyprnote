@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { SCHEMA, type Schemas } from "@hypr/store";
 
-import { createTranscriptPersister } from "./transcript";
+import { createTranscriptPersister } from "./persister";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {
@@ -14,7 +14,12 @@ vi.mock("@hypr/plugin-path2", () => ({
 vi.mock("@tauri-apps/plugin-fs", () => ({
   exists: vi.fn().mockResolvedValue(true),
   mkdir: vi.fn().mockResolvedValue(undefined),
-  writeTextFile: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@hypr/plugin-export", () => ({
+  commands: {
+    exportJsonBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
+  },
 }));
 
 function createTestStore() {
@@ -49,7 +54,7 @@ describe("createTranscriptPersister", () => {
 
   describe("save", () => {
     test("exports transcript with words and speaker_hints to json file", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+      const { commands } = await import("@hypr/plugin-export");
 
       const transcriptId = "transcript-1";
       const sessionId = "session-1";
@@ -98,33 +103,38 @@ describe("createTranscriptPersister", () => {
       const persister = createTranscriptPersister<Schemas>(store);
       await persister.save();
 
-      expect(writeTextFile).toHaveBeenCalledTimes(1);
-      expect(writeTextFile).toHaveBeenCalledWith(
+      expect(commands.exportJsonBatch).toHaveBeenCalledTimes(1);
+      const batchItems = vi.mocked(commands.exportJsonBatch).mock.calls[0][0];
+      expect(batchItems).toHaveLength(1);
+      expect(batchItems[0][1]).toBe(
         "/mock/data/dir/hyprnote/sessions/session-1/_transcript.json",
-        expect.any(String),
       );
 
-      const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent);
-
-      expect(parsed.transcripts).toHaveLength(1);
-      expect(parsed.transcripts[0].id).toBe(transcriptId);
-      expect(parsed.transcripts[0].session_id).toBe(sessionId);
-      expect(parsed.transcripts[0].words).toHaveLength(2);
-      expect(parsed.transcripts[0].speaker_hints).toHaveLength(1);
+      const content = batchItems[0][0] as { transcripts: unknown[] };
+      expect(content.transcripts).toHaveLength(1);
+      expect((content.transcripts[0] as { id: string }).id).toBe(transcriptId);
+      expect(
+        (content.transcripts[0] as { session_id: string }).session_id,
+      ).toBe(sessionId);
+      expect(
+        (content.transcripts[0] as { words: unknown[] }).words,
+      ).toHaveLength(2);
+      expect(
+        (content.transcripts[0] as { speaker_hints: unknown[] }).speaker_hints,
+      ).toHaveLength(1);
     });
 
     test("does not write when no transcripts exist", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+      const { commands } = await import("@hypr/plugin-export");
 
       const persister = createTranscriptPersister<Schemas>(store);
       await persister.save();
 
-      expect(writeTextFile).not.toHaveBeenCalled();
+      expect(commands.exportJsonBatch).not.toHaveBeenCalled();
     });
 
     test("groups multiple transcripts by session", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+      const { commands } = await import("@hypr/plugin-export");
 
       store.setRow("transcripts", "transcript-1", {
         user_id: "user-1",
@@ -145,16 +155,16 @@ describe("createTranscriptPersister", () => {
       const persister = createTranscriptPersister<Schemas>(store);
       await persister.save();
 
-      expect(writeTextFile).toHaveBeenCalledTimes(1);
+      expect(commands.exportJsonBatch).toHaveBeenCalledTimes(1);
+      const batchItems = vi.mocked(commands.exportJsonBatch).mock.calls[0][0];
+      expect(batchItems).toHaveLength(1);
 
-      const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent);
-
-      expect(parsed.transcripts).toHaveLength(2);
+      const content = batchItems[0][0] as { transcripts: unknown[] };
+      expect(content.transcripts).toHaveLength(2);
     });
 
     test("writes separate files for different sessions", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+      const { commands } = await import("@hypr/plugin-export");
 
       store.setRow("transcripts", "transcript-1", {
         user_id: "user-1",
@@ -175,9 +185,11 @@ describe("createTranscriptPersister", () => {
       const persister = createTranscriptPersister<Schemas>(store);
       await persister.save();
 
-      expect(writeTextFile).toHaveBeenCalledTimes(2);
+      expect(commands.exportJsonBatch).toHaveBeenCalledTimes(1);
+      const batchItems = vi.mocked(commands.exportJsonBatch).mock.calls[0][0];
+      expect(batchItems).toHaveLength(2);
 
-      const paths = vi.mocked(writeTextFile).mock.calls.map((call) => call[0]);
+      const paths = batchItems.map((item) => item[1]);
       expect(paths).toContain(
         "/mock/data/dir/hyprnote/sessions/session-1/_transcript.json",
       );
@@ -208,7 +220,7 @@ describe("createTranscriptPersister", () => {
     });
 
     test("handles transcript with no words or hints", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+      const { commands } = await import("@hypr/plugin-export");
 
       store.setRow("transcripts", "transcript-1", {
         user_id: "user-1",
@@ -221,11 +233,13 @@ describe("createTranscriptPersister", () => {
       const persister = createTranscriptPersister<Schemas>(store);
       await persister.save();
 
-      const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent);
+      const batchItems = vi.mocked(commands.exportJsonBatch).mock.calls[0][0];
+      const content = batchItems[0][0] as {
+        transcripts: Array<{ words: unknown[]; speaker_hints: unknown[] }>;
+      };
 
-      expect(parsed.transcripts[0].words).toEqual([]);
-      expect(parsed.transcripts[0].speaker_hints).toEqual([]);
+      expect(content.transcripts[0].words).toEqual([]);
+      expect(content.transcripts[0].speaker_hints).toEqual([]);
     });
   });
 });

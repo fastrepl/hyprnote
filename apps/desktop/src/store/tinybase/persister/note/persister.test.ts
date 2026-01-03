@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { SCHEMA, type Schemas } from "@hypr/store";
 
-import { createNotePersister } from "./note";
+import { createNotePersister } from "./persister";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {

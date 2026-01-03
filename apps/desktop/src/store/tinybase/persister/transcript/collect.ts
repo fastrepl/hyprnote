@@ -1,5 +1,4 @@
 import { sep } from "@tauri-apps/api/path";
-import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import type {
   SpeakerHintStorage,
@@ -8,14 +7,11 @@ import type {
 } from "@hypr/store";
 
 import {
-  createModeAwarePersister,
-  getDataDir,
+  type CollectorResult,
   getSessionDir,
   iterateTableRows,
-  type PersisterMode,
   type TablesContent,
-  writeJsonFiles,
-} from "./utils";
+} from "../utils";
 
 type TranscriptWithData = TranscriptStorage & {
   id: string;
@@ -27,15 +23,13 @@ type TranscriptJson = {
   transcripts: TranscriptWithData[];
 };
 
-function collectTranscriptWriteOps(
-  tables: TablesContent | undefined,
+export function collectTranscriptWriteOps(
+  _store: unknown,
+  tables: TablesContent,
   dataDir: string,
-): {
-  dirs: Set<string>;
-  operations: Array<{ path: string; content: TranscriptJson }>;
-} {
+): CollectorResult {
   const dirs = new Set<string>();
-  const operations: Array<{ path: string; content: TranscriptJson }> = [];
+  const operations: CollectorResult["operations"] = [];
 
   const transcripts = iterateTableRows(tables, "transcripts");
   const words = iterateTableRows(tables, "words");
@@ -79,33 +73,18 @@ function collectTranscriptWriteOps(
   }
 
   for (const [sessionId, sessionTranscripts] of transcriptsBySession) {
-    const session = tables?.sessions?.[sessionId];
+    const session = tables.sessions?.[sessionId];
     const folderPath = session?.folder_id ?? "";
     const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
     dirs.add(sessionDir);
 
+    const content: TranscriptJson = { transcripts: sessionTranscripts };
     operations.push({
+      type: "json",
       path: [sessionDir, "_transcript.json"].join(sep()),
-      content: { transcripts: sessionTranscripts },
+      content,
     });
   }
 
   return { dirs, operations };
-}
-
-export function createTranscriptPersister<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
-  config: { mode: PersisterMode } = { mode: "save-only" },
-) {
-  return createModeAwarePersister(store, {
-    label: "TranscriptPersister",
-    mode: config.mode,
-    load: async () => undefined,
-    save: async () => {
-      const tables = store.getTables() as TablesContent | undefined;
-      const dataDir = await getDataDir();
-      const { dirs, operations } = collectTranscriptWriteOps(tables, dataDir);
-      await writeJsonFiles(operations, dirs);
-    },
-  });
 }

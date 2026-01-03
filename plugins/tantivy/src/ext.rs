@@ -1,10 +1,44 @@
 use tantivy::collector::TopDocs;
 use tantivy::query::{BooleanQuery, FuzzyTermQuery, Occur, Query, QueryParser, RangeQuery};
-use tantivy::schema::{FAST, Field, STORED, STRING, Schema, TEXT, Value};
+use tantivy::schema::{FAST, Field, STORED, STRING, Schema, TextFieldIndexing, TextOptions, Value};
+use tantivy::tokenizer::{
+    Language, LowerCaser, RemoveLongFilter, SimpleTokenizer, Stemmer, TextAnalyzer,
+};
 use tantivy::{Index, ReloadPolicy, TantivyDocument, Term};
 use tauri_plugin_path2::Path2PluginExt;
 
 use crate::{IndexState, SearchDocument, SearchFilters, SearchHit, SearchResult};
+
+pub fn detect_language(text: &str) -> hypr_language::Language {
+    hypr_language::detect(text)
+}
+
+pub fn get_tokenizer_name_for_language(lang: &hypr_language::Language) -> &'static str {
+    if let Some(tantivy_lang) = lang.for_tantivy_stemmer() {
+        match tantivy_lang {
+            Language::Arabic => "lang_ar",
+            Language::Danish => "lang_da",
+            Language::Dutch => "lang_nl",
+            Language::English => "lang_en",
+            Language::Finnish => "lang_fi",
+            Language::French => "lang_fr",
+            Language::German => "lang_de",
+            Language::Greek => "lang_el",
+            Language::Hungarian => "lang_hu",
+            Language::Italian => "lang_it",
+            Language::Norwegian => "lang_no",
+            Language::Portuguese => "lang_pt",
+            Language::Romanian => "lang_ro",
+            Language::Russian => "lang_ru",
+            Language::Spanish => "lang_es",
+            Language::Swedish => "lang_sv",
+            Language::Tamil => "lang_ta",
+            Language::Turkish => "lang_tr",
+        }
+    } else {
+        "multilang"
+    }
+}
 
 pub struct Tantivy<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -35,6 +69,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         } else {
             Index::create_in_dir(&index_path, schema.clone())?
         };
+
+        register_tokenizers(&index);
 
         let reader = index
             .reader_builder()
@@ -234,15 +270,65 @@ fn build_schema() -> Schema {
     let mut schema_builder = Schema::builder();
     schema_builder.add_text_field("id", STRING | STORED);
     schema_builder.add_text_field("doc_type", STRING | STORED);
-    schema_builder.add_text_field("title", TEXT | STORED);
-    schema_builder.add_text_field("content", TEXT | STORED);
+    schema_builder.add_text_field("language", STRING | STORED);
+
+    let text_indexing = TextFieldIndexing::default()
+        .set_tokenizer("multilang")
+        .set_index_option(tantivy::schema::IndexRecordOption::WithFreqsAndPositions);
+    let text_options = TextOptions::default()
+        .set_indexing_options(text_indexing)
+        .set_stored();
+
+    schema_builder.add_text_field("title", text_options.clone());
+    schema_builder.add_text_field("content", text_options);
     schema_builder.add_i64_field("created_at", FAST | STORED);
     schema_builder.build()
+}
+
+fn register_tokenizers(index: &Index) {
+    let tokenizer_manager = index.tokenizers();
+
+    let multilang_tokenizer = TextAnalyzer::builder(SimpleTokenizer::default())
+        .filter(RemoveLongFilter::limit(40))
+        .filter(LowerCaser)
+        .build();
+    tokenizer_manager.register("multilang", multilang_tokenizer);
+
+    let languages = [
+        ("lang_ar", Language::Arabic),
+        ("lang_da", Language::Danish),
+        ("lang_nl", Language::Dutch),
+        ("lang_en", Language::English),
+        ("lang_fi", Language::Finnish),
+        ("lang_fr", Language::French),
+        ("lang_de", Language::German),
+        ("lang_el", Language::Greek),
+        ("lang_hu", Language::Hungarian),
+        ("lang_it", Language::Italian),
+        ("lang_no", Language::Norwegian),
+        ("lang_pt", Language::Portuguese),
+        ("lang_ro", Language::Romanian),
+        ("lang_ru", Language::Russian),
+        ("lang_es", Language::Spanish),
+        ("lang_sv", Language::Swedish),
+        ("lang_ta", Language::Tamil),
+        ("lang_tr", Language::Turkish),
+    ];
+
+    for (name, lang) in languages {
+        let tokenizer = TextAnalyzer::builder(SimpleTokenizer::default())
+            .filter(RemoveLongFilter::limit(40))
+            .filter(LowerCaser)
+            .filter(Stemmer::new(lang))
+            .build();
+        tokenizer_manager.register(name, tokenizer);
+    }
 }
 
 struct SchemaFields {
     id: Field,
     doc_type: Field,
+    language: Field,
     title: Field,
     content: Field,
     created_at: Field,
@@ -252,6 +338,7 @@ fn get_fields(schema: &Schema) -> SchemaFields {
     SchemaFields {
         id: schema.get_field("id").unwrap(),
         doc_type: schema.get_field("doc_type").unwrap(),
+        language: schema.get_field("language").unwrap(),
         title: schema.get_field("title").unwrap(),
         content: schema.get_field("content").unwrap(),
         created_at: schema.get_field("created_at").unwrap(),
@@ -265,6 +352,10 @@ fn extract_search_document(
 ) -> Option<SearchDocument> {
     let id = doc.get_first(fields.id)?.as_str()?.to_string();
     let doc_type = doc.get_first(fields.doc_type)?.as_str()?.to_string();
+    let language = doc
+        .get_first(fields.language)
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
     let title = doc.get_first(fields.title)?.as_str()?.to_string();
     let content = doc.get_first(fields.content)?.as_str()?.to_string();
     let created_at = doc.get_first(fields.created_at)?.as_i64()?;
@@ -272,6 +363,7 @@ fn extract_search_document(
     Some(SearchDocument {
         id,
         doc_type,
+        language,
         title,
         content,
         created_at,

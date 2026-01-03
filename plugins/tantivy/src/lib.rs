@@ -19,6 +19,7 @@ const PLUGIN_NAME: &str = "tantivy";
 pub struct SearchDocument {
     pub id: String,
     pub doc_type: String,
+    pub language: Option<String>,
     pub title: String,
     pub content: String,
     pub created_at: i64,

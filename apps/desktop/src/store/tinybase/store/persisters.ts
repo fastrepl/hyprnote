@@ -11,6 +11,7 @@ import { createCalendarPersister } from "../persister/calendar";
 import { createChatPersister } from "../persister/chat";
 import { createEventPersister } from "../persister/events";
 import { createFolderPersister, startFolderWatcher } from "../persister/folder";
+import { initFolderOps } from "../persister/folder-ops";
 import { createHumanPersister } from "../persister/human";
 import { createLocalPersister } from "../persister/local";
 import { createNotePersister } from "../persister/note";
@@ -109,6 +110,13 @@ export function useMainPersisters(
       });
       await persister.load();
       await persister.startAutoLoad();
+
+      initFolderOps({
+        store: store as Store,
+        reloadFolders: async () => {
+          await persister.load();
+        },
+      });
 
       if (getCurrentWebviewWindowLabel() === "main") {
         void startFolderWatcher(persister);

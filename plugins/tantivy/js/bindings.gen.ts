@@ -6,25 +6,25 @@
 
 
 export const commands = {
-async search(query: string, filters: SearchFilters | null, limit: number | null) : Promise<Result<SearchResult, string>> {
+async search(query: string, filters: SearchFilters | null, limit: number | null, collection: string | null) : Promise<Result<SearchResult, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|search", { query, filters, limit }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|search", { query, filters, limit, collection }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async searchFuzzy(query: string, filters: SearchFilters | null, limit: number | null, distance: number | null) : Promise<Result<SearchResult, string>> {
+async searchFuzzy(query: string, filters: SearchFilters | null, limit: number | null, distance: number | null, collection: string | null) : Promise<Result<SearchResult, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|search_fuzzy", { query, filters, limit, distance }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|search_fuzzy", { query, filters, limit, distance, collection }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async reindex() : Promise<Result<null, string>> {
+async reindex(collection: string | null) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|reindex") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|reindex", { collection }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

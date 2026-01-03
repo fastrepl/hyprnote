@@ -10,8 +10,11 @@ import { DEFAULT_USER_ID } from "../../../utils";
 import { useCalendarPersister } from "../persister/calendar";
 import { useChatPersister } from "../persister/chat";
 import { useEventsPersister } from "../persister/events";
-import { createFolderPersister, startFolderWatcher } from "../persister/folder";
-import { initFolderOps } from "../persister/folder-ops";
+import {
+  createFolderPersister,
+  initFolderOps,
+  startFolderWatcher,
+} from "../persister/folder";
 import { useHumanPersister } from "../persister/human";
 import { createLocalPersister } from "../persister/local";
 import { createNotePersister } from "../persister/note";

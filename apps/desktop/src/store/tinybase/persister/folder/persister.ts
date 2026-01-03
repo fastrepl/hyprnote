@@ -7,8 +7,9 @@ import {
   events as notifyEvents,
 } from "@hypr/plugin-notify";
 
-import { DEFAULT_USER_ID } from "../../../utils";
-import { StoreOrMergeableStore } from "../store/shared";
+import { DEFAULT_USER_ID } from "../../../../utils";
+import { StoreOrMergeableStore } from "../../store/shared";
+import { asTableChanges } from "../utils";
 
 export function createFolderPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
@@ -24,19 +25,28 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
       const { folders, session_folder_map } = result.data;
       const now = new Date().toISOString();
 
-      // @ts-ignore - directly update store to avoid wiping other tables
-      store.transaction(() => {
-        for (const [folderId, folder] of Object.entries(folders)) {
-          if (!folder) continue;
-          // @ts-ignore
-          store.setRow("folders", folderId, {
-            user_id: DEFAULT_USER_ID,
-            created_at: now,
-            name: folder.name,
-            parent_folder_id: folder.parent_folder_id ?? "",
-          } as any);
+      const foldersData: Record<
+        string,
+        {
+          user_id: string;
+          created_at: string;
+          name: string;
+          parent_folder_id: string;
         }
+      > = {};
 
+      for (const [folderId, folder] of Object.entries(folders)) {
+        if (!folder) continue;
+        foldersData[folderId] = {
+          user_id: DEFAULT_USER_ID,
+          created_at: now,
+          name: folder.name,
+          parent_folder_id: folder.parent_folder_id ?? "",
+        };
+      }
+
+      // @ts-ignore - update session folder_id and cleanup orphans
+      store.transaction(() => {
         for (const [sessionId, folderPath] of Object.entries(
           session_folder_map,
         )) {
@@ -59,7 +69,7 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
         }
       });
 
-      return undefined;
+      return asTableChanges("folders", foldersData) as any;
     } catch (error) {
       console.error("[FolderPersister] load error:", error);
       return undefined;

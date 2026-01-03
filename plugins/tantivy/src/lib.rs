@@ -3,6 +3,7 @@ mod error;
 mod ext;
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use tantivy::schema::Schema;
 use tantivy::{Index, IndexReader, IndexWriter};
 use tauri::Manager;
@@ -50,12 +51,30 @@ pub struct SearchFilters {
     pub created_at: Option<CreatedAtFilter>,
 }
 
-#[derive(Default)]
+pub struct CollectionConfig {
+    pub name: String,
+    pub path: String,
+    pub schema_builder: fn() -> Schema,
+    pub auto_commit: bool,
+}
+
+pub struct CollectionIndex {
+    pub schema: Schema,
+    pub index: Index,
+    pub reader: IndexReader,
+    pub writer: IndexWriter,
+}
+
 pub struct IndexStateInner {
-    pub schema: Option<Schema>,
-    pub index: Option<Index>,
-    pub reader: Option<IndexReader>,
-    pub writer: Option<IndexWriter>,
+    pub collections: HashMap<String, CollectionIndex>,
+}
+
+impl Default for IndexStateInner {
+    fn default() -> Self {
+        Self {
+            collections: HashMap::new(),
+        }
+    }
 }
 
 pub struct IndexState {
@@ -92,7 +111,7 @@ fn setup_file_change_listener(app: &tauri::AppHandle) {
 
             let handle = handle.clone();
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = handle.tantivy().reindex().await {
+                if let Err(e) = handle.tantivy().reindex(None).await {
                     tracing::error!("Failed to reindex after file change: {}", e);
                 }
             });
@@ -110,8 +129,15 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             let handle = app.clone();
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = handle.tantivy().init().await {
-                    tracing::error!("Failed to initialize tantivy index: {}", e);
+                let config = CollectionConfig {
+                    name: "default".to_string(),
+                    path: "search_index".to_string(),
+                    schema_builder: ext::build_schema,
+                    auto_commit: true,
+                };
+
+                if let Err(e) = handle.tantivy().register_collection(config).await {
+                    tracing::error!("Failed to register default collection: {}", e);
                 }
             });
 

@@ -16,6 +16,8 @@ pub enum Error {
     Path2(#[from] tauri_plugin_path2::Error),
     #[error("Index not initialized")]
     IndexNotInitialized,
+    #[error("Collection not found: {0}")]
+    CollectionNotFound(String),
     #[error("Document not found: {0}")]
     DocumentNotFound(String),
     #[error("Invalid document type: {0}")]

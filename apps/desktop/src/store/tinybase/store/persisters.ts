@@ -12,13 +12,13 @@ import { createChatPersister } from "../persister/chat";
 import { useEventsPersister } from "../persister/events";
 import { createFolderPersister, startFolderWatcher } from "../persister/folder";
 import { initFolderOps } from "../persister/folder-ops";
-import { createHumanPersister } from "../persister/human";
+import { useHumanPersister } from "../persister/human";
 import { createLocalPersister } from "../persister/local";
 import { createNotePersister } from "../persister/note";
-import { createOrganizationPersister } from "../persister/organization";
-import { createPromptPersister } from "../persister/prompts";
+import { useOrganizationPersister } from "../persister/organization";
+import { usePromptPersister } from "../persister/prompts";
 import { createSessionPersister } from "../persister/session";
-import { createTemplatePersister } from "../persister/templates";
+import { useTemplatePersister } from "../persister/templates";
 import { createTranscriptPersister } from "../persister/transcript";
 import { maybeImportFromJson } from "./importer";
 import { type Store, STORE_ID } from "./main";
@@ -154,21 +154,9 @@ export function useMainPersisters(store: Store, settingsStore: unknown) {
     [],
   );
 
-  const organizationPersister = useCreatePersister(
-    store,
-    async (store) => {
-      return createOrganizationPersister<Schemas>(store as Store);
-    },
-    [],
-  );
+  const organizationPersister = useOrganizationPersister(store as Store);
 
-  const humanPersister = useCreatePersister(
-    store,
-    async (store) => {
-      return createHumanPersister<Schemas>(store as Store);
-    },
-    [],
-  );
+  const humanPersister = useHumanPersister(store as Store);
 
   const eventPersister = useEventsPersister(store as Store);
 
@@ -195,21 +183,9 @@ export function useMainPersisters(store: Store, settingsStore: unknown) {
     [],
   );
 
-  const promptPersister = useCreatePersister(
-    store,
-    async (store) => {
-      return createPromptPersister<Schemas>(store as Store);
-    },
-    [],
-  );
+  const promptPersister = usePromptPersister(store as Store);
 
-  const templatePersister = useCreatePersister(
-    store,
-    async (store) => {
-      return createTemplatePersister<Schemas>(store as Store);
-    },
-    [],
-  );
+  const templatePersister = useTemplatePersister(store as Store);
 
   const sessionPersister = useCreatePersister(
     store,

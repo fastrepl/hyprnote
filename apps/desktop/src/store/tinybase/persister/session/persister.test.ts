@@ -3,11 +3,8 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { SCHEMA, type Schemas } from "@hypr/store";
 
-import {
-  collectSessionMeta,
-  createSessionPersister,
-  type SessionMetaJson,
-} from "./session";
+import { collectSessionMeta, type SessionMetaJson } from "./collect";
+import { createSessionPersister } from "./persister";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {
@@ -18,9 +15,15 @@ vi.mock("@hypr/plugin-path2", () => ({
 vi.mock("@tauri-apps/plugin-fs", () => ({
   readDir: vi.fn(),
   readTextFile: vi.fn(),
-  writeTextFile: vi.fn().mockResolvedValue(undefined),
   mkdir: vi.fn().mockResolvedValue(undefined),
   exists: vi.fn().mockResolvedValue(true),
+  remove: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@hypr/plugin-export", () => ({
+  commands: {
+    exportJsonBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
+  },
 }));
 
 function createTestStore() {
@@ -346,7 +349,7 @@ describe("createSessionPersister", () => {
 
   describe("save", () => {
     test("saves session metadata with tags to files", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+      const { commands } = await import("@hypr/plugin-export");
 
       store.setRow("sessions", "session-1", {
         user_id: "user-1",
@@ -372,11 +375,11 @@ describe("createSessionPersister", () => {
       const persister = createSessionPersister<Schemas>(store);
       await persister.save();
 
-      expect(writeTextFile).toHaveBeenCalled();
-      const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent) as SessionMetaJson;
+      expect(commands.exportJsonBatch).toHaveBeenCalled();
+      const batchItems = vi.mocked(commands.exportJsonBatch).mock.calls[0][0];
+      const content = batchItems[0][0] as SessionMetaJson;
 
-      expect(parsed.tags).toEqual(["Important"]);
+      expect(content.tags).toEqual(["Important"]);
     });
   });
 });

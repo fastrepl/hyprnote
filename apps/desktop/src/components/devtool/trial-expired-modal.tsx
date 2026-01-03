@@ -71,12 +71,7 @@ export function TrialExpiredModal() {
 
           <button
             onClick={handleUpgrade}
-            className={cn([
-              "inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-8 text-sm font-medium",
-              "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow",
-              "transition-all hover:opacity-90",
-              "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-            ])}
+            className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
           >
             I'd like to keep using <span className="font-serif">Pro</span>
           </button>

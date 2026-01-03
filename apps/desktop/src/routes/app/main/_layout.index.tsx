@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 
 import {
   ResizableHandle,
@@ -10,15 +11,32 @@ import { ChatView } from "../../../components/chat/view";
 import { Body } from "../../../components/main/body";
 import { LeftSidebar } from "../../../components/main/sidebar";
 import { useShell } from "../../../contexts/shell";
+import { commands } from "../../../types/tauri.gen";
 
 export const Route = createFileRoute("/app/main/_layout/")({
   component: Component,
 });
 
+const SIDEBAR_WIDTH = 280;
+
 function Component() {
   const { leftsidebar, chat } = useShell();
+  const previousModeRef = useRef(chat.mode);
 
   const isChatOpen = chat.mode === "RightPanelOpen";
+
+  useEffect(() => {
+    const isOpeningRightPanel =
+      chat.mode === "RightPanelOpen" &&
+      previousModeRef.current !== "RightPanelOpen";
+
+    if (isOpeningRightPanel) {
+      const sidebarWidth = leftsidebar.expanded ? SIDEBAR_WIDTH : 0;
+      commands.resizeWindowForChat(sidebarWidth);
+    }
+
+    previousModeRef.current = chat.mode;
+  }, [chat.mode, leftsidebar.expanded]);
 
   return (
     <div
@@ -43,6 +61,7 @@ function Component() {
               minSize={20}
               maxSize={50}
               className="pl-1"
+              style={{ minWidth: CHAT_MIN_WIDTH_PX }}
             >
               <ChatView />
             </ResizablePanel>

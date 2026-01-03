@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { createActor, fromTransition } from "xstate";
 
-import { commands } from "../../types/tauri.gen";
-
 export type ChatMode = "RightPanelOpen" | "FloatingClosed" | "FloatingOpen";
 export type ChatEvent =
   | { type: "OPEN" }
@@ -45,7 +43,6 @@ const chatModeLogic = fromTransition(
 export function useChatMode() {
   const [mode, setMode] = useState<ChatMode>("FloatingClosed");
   const [groupId, setGroupId] = useState<string | undefined>(undefined);
-  const [previousMode, setPreviousMode] = useState<ChatMode>("FloatingClosed");
 
   const actorRef = useMemo(() => createActor(chatModeLogic), []);
 
@@ -53,21 +50,6 @@ export function useChatMode() {
     actorRef.subscribe((snapshot) => setMode(snapshot.context));
     actorRef.start();
   }, [actorRef]);
-
-  useEffect(() => {
-    const handleWindowResize = async () => {
-      const isOpeningRightPanel =
-        mode === "RightPanelOpen" && previousMode !== "RightPanelOpen";
-
-      if (isOpeningRightPanel) {
-        await commands.resizeWindowForChat(true);
-      }
-
-      setPreviousMode(mode);
-    };
-
-    handleWindowResize();
-  }, [mode, previousMode]);
 
   const sendEvent = useCallback(
     (event: ChatEvent) => actorRef.send(event),

@@ -7,18 +7,14 @@ import { createEventPersister } from "./persister";
 
 const { useCreatePersister } = _UI as _UI.WithSchemas<Schemas>;
 
-export function useEventsPersister(store: Store, persist: boolean) {
+export function useEventsPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       const persister = createEventPersister<Schemas>(store as Store);
       await persister.startAutoSave();
       return persister;
     },
-    [persist],
+    [],
   );
 }

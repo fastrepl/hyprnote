@@ -1,7 +1,7 @@
 import { createMergeableStore } from "tinybase/with-schemas";
 import { describe, expect, test } from "vitest";
 
-import { settingsToContent, storeToSettings } from "./settings";
+import { settingsToContent, storeToSettings } from "./transform";
 
 describe("settingsPersister roundtrip", () => {
   test("settings -> store -> settings preserves all data", () => {

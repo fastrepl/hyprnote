@@ -28,11 +28,7 @@ type Saveable = { save(): Promise<unknown> };
 
 const { useCreatePersister } = _UI as _UI.WithSchemas<Schemas>;
 
-export function useMainPersisters(
-  store: Store,
-  persist: boolean,
-  settingsStore: unknown,
-) {
+export function useMainPersisters(store: Store, settingsStore: unknown) {
   const localPersister = useCreatePersister(
     store,
     async (store) => {
@@ -42,10 +38,6 @@ export function useMainPersisters(
       });
 
       await persister.load();
-
-      if (!persist) {
-        return undefined;
-      }
 
       const importResult = await maybeImportFromJson(
         store as Store,
@@ -95,16 +87,12 @@ export function useMainPersisters(
       await persister.startAutoLoad();
       return persister;
     },
-    [persist],
+    [],
   );
 
   const folderPersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       const persister = createFolderPersister<Schemas>(store as Store, {
         mode: "load-only",
       });
@@ -124,16 +112,12 @@ export function useMainPersisters(
 
       return persister;
     },
-    [persist],
+    [],
   );
 
   const markdownPersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       try {
         const dirExists = await exists("hyprnote/sessions", {
           baseDir: BaseDirectory.Data,
@@ -159,54 +143,38 @@ export function useMainPersisters(
 
       return persister;
     },
-    [persist, settingsStore],
+    [settingsStore],
   );
 
   const transcriptPersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       return createTranscriptPersister<Schemas>(store as Store);
     },
-    [persist],
+    [],
   );
 
   const organizationPersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       return createOrganizationPersister<Schemas>(store as Store);
     },
-    [persist],
+    [],
   );
 
   const humanPersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       return createHumanPersister<Schemas>(store as Store);
     },
-    [persist],
+    [],
   );
 
-  const eventPersister = useEventsPersister(store as Store, persist);
+  const eventPersister = useEventsPersister(store as Store);
 
   const chatPersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       try {
         const dirExists = await exists("hyprnote/chats", {
           baseDir: BaseDirectory.Data,
@@ -224,46 +192,34 @@ export function useMainPersisters(
 
       return createChatPersister<Schemas>(store as Store);
     },
-    [persist],
+    [],
   );
 
   const promptPersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       return createPromptPersister<Schemas>(store as Store);
     },
-    [persist],
+    [],
   );
 
   const templatePersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       return createTemplatePersister<Schemas>(store as Store);
     },
-    [persist],
+    [],
   );
 
   const sessionPersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       return createSessionPersister<Schemas>(store as Store);
     },
-    [persist],
+    [],
   );
 
-  const calendarPersister = useCalendarPersister(store as Store, persist);
+  const calendarPersister = useCalendarPersister(store as Store);
 
   const saveablePersistors = useMemo(
     () =>
@@ -308,7 +264,7 @@ export function useMainPersisters(
     ],
   );
 
-  usePersisterSaveEvents(saveablePersistors, persist);
+  usePersisterSaveEvents(saveablePersistors);
 
   return {
     localPersister,
@@ -326,12 +282,9 @@ export function useMainPersisters(
   };
 }
 
-function usePersisterSaveEvents(
-  persisters: Saveable[] | null,
-  persist: boolean,
-) {
+function usePersisterSaveEvents(persisters: Saveable[] | null) {
   useEffect(() => {
-    if (!persist || !persisters) {
+    if (!persisters) {
       return;
     }
 
@@ -366,10 +319,10 @@ function usePersisterSaveEvents(
       unlistenBlur?.();
       unlistenClose?.();
     };
-  }, [persisters, persist]);
+  }, [persisters]);
 
   useEffect(() => {
-    if (!persist || !persisters) {
+    if (!persisters) {
       return;
     }
 
@@ -380,5 +333,5 @@ function usePersisterSaveEvents(
     return registerSaveHandler(async () => {
       await Promise.all(persisters.map((p) => p.save()));
     });
-  }, [persisters, persist]);
+  }, [persisters]);
 }

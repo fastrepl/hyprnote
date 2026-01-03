@@ -1,17 +1,10 @@
-import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type {
   Content,
   MergeableStore,
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
-import { events } from "@hypr/plugin-notify";
-import { commands } from "@hypr/plugin-settings";
-
-import { SETTINGS_MAPPING } from "../store/settings";
-import { StoreOrMergeableStore } from "../store/shared";
-
-const FALLBACK_POLL_INTERVAL = 60000;
+import { SETTINGS_MAPPING } from "../../store/settings";
 
 type ProviderData = { base_url: string; api_key: string };
 type ProviderRow = { type: "llm" | "stt"; base_url: string; api_key: string };
@@ -131,62 +124,4 @@ export function storeToSettings<Schemas extends OptionalSchemas>(
   };
 
   return settings;
-}
-
-type ListenerHandle = {
-  unlisten: (() => void) | null;
-  interval: ReturnType<typeof setInterval>;
-};
-
-export function createSettingsPersister<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
-) {
-  return createCustomPersister(
-    store,
-    async (): Promise<Content<Schemas> | undefined> => {
-      const result = await commands.load();
-      if (result.status === "error") {
-        console.error("[SettingsPersister] load error:", result.error);
-        return undefined;
-      }
-      return settingsToContent<Schemas>(result.data);
-    },
-    async () => {
-      const settings = storeToSettings(store);
-      const result = await commands.save(
-        settings as Parameters<typeof commands.save>[0],
-      );
-      if (result.status === "error") {
-        console.error("[SettingsPersister] save error:", result.error);
-      }
-    },
-    (listener) => {
-      const handle: ListenerHandle = {
-        unlisten: null,
-        interval: setInterval(listener, FALLBACK_POLL_INTERVAL),
-      };
-
-      (async () => {
-        const settingsPath = await commands.path();
-        const unlisten = await events.fileChanged.listen((event) => {
-          if (event.payload.path === settingsPath) {
-            listener();
-          }
-        });
-        handle.unlisten = unlisten;
-      })().catch((error) => {
-        console.error("[SettingsPersister] event listen error:", error);
-      });
-
-      return handle;
-    },
-    (handle: ListenerHandle) => {
-      if (handle.unlisten) {
-        handle.unlisten();
-      }
-      clearInterval(handle.interval);
-    },
-    (error) => console.error("[SettingsPersister]:", error),
-    StoreOrMergeableStore,
-  );
 }

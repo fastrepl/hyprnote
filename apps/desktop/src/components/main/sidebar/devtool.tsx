@@ -10,6 +10,7 @@ import {
   STORE_ID as STORE_ID_PERSISTED,
 } from "../../../store/tinybase/store/main";
 import { type SeedDefinition, seeds } from "../../devtool/seed/index";
+import { useTrialExpiredModal } from "../../devtool/trial-expired-modal";
 
 declare global {
   interface Window {
@@ -77,6 +78,7 @@ export function DevtoolView() {
         <NavigationCard />
         <SeedCard onSeed={handleSeed} />
         <CalendarMockCard key={fixtureKey} />
+        <ModalsCard />
       </div>
     </div>
   );
@@ -269,6 +271,30 @@ function NavigationCard() {
           ])}
         >
           Control
+        </button>
+      </div>
+    </DevtoolCard>
+  );
+}
+
+function ModalsCard() {
+  const { open: openTrialExpiredModal } = useTrialExpiredModal();
+
+  return (
+    <DevtoolCard title="Modals">
+      <div className="flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={openTrialExpiredModal}
+          className={cn([
+            "w-full px-2.5 py-1.5 rounded-md",
+            "text-xs font-medium text-left",
+            "border border-neutral-200 text-neutral-700",
+            "cursor-pointer transition-colors",
+            "hover:bg-neutral-50 hover:border-neutral-300",
+          ])}
+        >
+          Trial Expired
         </button>
       </div>
     </DevtoolCard>

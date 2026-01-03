@@ -42,7 +42,7 @@ export function ChatTrigger({
       ref={buttonRef}
       onClick={onClick}
       className={cn([
-        "fixed right-4 z-[100]",
+        "fixed right-4 z-40",
         "w-14 h-14 rounded-full",
         "bg-white shadow-lg hover:shadow-xl",
         "border border-neutral-200",

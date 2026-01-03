@@ -30,12 +30,12 @@ async function cleanupOrphanChatDirs(
       !validChatGroupIds.has(entry.name)
     ) {
       try {
-        await remove([chatsDir, entry.name].join(sep()), { recursive: true });
-      } catch (e) {
-        console.error(
-          `[ChatPersister] Failed to remove orphan dir ${entry.name}:`,
-          e,
-        );
+        const dirPath = [chatsDir, entry.name].join(sep());
+        if (await exists(dirPath)) {
+          await remove(dirPath, { recursive: true });
+        }
+      } catch {
+        // Ignore errors - directory may have been removed by another process
       }
     }
   }

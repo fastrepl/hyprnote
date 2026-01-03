@@ -165,12 +165,11 @@ export async function cleanupOrphanSessionDirs(
   for (const dir of existingDirs) {
     if (isUUID(dir.name) && !validSessionIds.has(dir.name)) {
       try {
-        await remove(dir.path, { recursive: true });
-      } catch (e) {
-        console.error(
-          `[SessionPersister] Failed to remove orphan dir ${dir.path}:`,
-          e,
-        );
+        if (await exists(dir.path)) {
+          await remove(dir.path, { recursive: true });
+        }
+      } catch {
+        // Ignore errors - directory may have been removed by another process
       }
     }
   }

@@ -28,6 +28,7 @@ export async function syncCalendarEvents(
 
 async function run(store: Store, queries: Queries<Schemas>) {
   const ctx = createCtx(store, queries);
+  console.log("ctx", ctx);
   if (!ctx) {
     return null;
   }
@@ -39,6 +40,8 @@ async function run(store: Store, queries: Queries<Schemas>) {
     const result = await fetchIncomingEvents(ctx);
     incoming = result.events;
     incomingParticipants = result.participants;
+    console.log("incoming", incoming);
+    console.log("incomingParticipants", incomingParticipants);
   } catch (error) {
     if (error instanceof CalendarFetchError) {
       console.error(

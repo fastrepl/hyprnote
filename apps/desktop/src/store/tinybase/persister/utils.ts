@@ -33,8 +33,11 @@ export function getSessionDir(
   sessionId: string,
   folderPath: string = "",
 ): string {
-  const folder = folderPath || "_default";
-  return [dataDir, "sessions", folder, sessionId].join(sep());
+  if (folderPath) {
+    const folderParts = folderPath.split("/");
+    return [dataDir, "sessions", ...folderParts, sessionId].join(sep());
+  }
+  return [dataDir, "sessions", sessionId].join(sep());
 }
 
 export function getChatDir(dataDir: string, chatGroupId: string): string {
@@ -61,10 +64,9 @@ export function getParentFolderPath(folderPath: string): string {
   if (!folderPath) {
     return "";
   }
-  const s = sep();
-  const parts = folderPath.split(s);
+  const parts = folderPath.split("/");
   parts.pop();
-  return parts.join(s);
+  return parts.join("/");
 }
 
 export function safeParseJson(

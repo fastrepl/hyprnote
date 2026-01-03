@@ -89,7 +89,7 @@ describe("createNotePersister", () => {
       expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
         [
           { type: "doc", content: [{ type: "paragraph" }] },
-          "/mock/data/dir/hyprnote/sessions/_default/session-1/My Template.md",
+          "/mock/data/dir/hyprnote/sessions/session-1/My Template.md",
         ],
       ]);
     });
@@ -115,7 +115,7 @@ describe("createNotePersister", () => {
       expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
         [
           { type: "doc", content: [{ type: "paragraph" }] },
-          "/mock/data/dir/hyprnote/sessions/_default/session-1/_summary.md",
+          "/mock/data/dir/hyprnote/sessions/session-1/_summary.md",
         ],
       ]);
     });
@@ -199,7 +199,7 @@ describe("createNotePersister", () => {
       expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
         [
           expect.any(Object),
-          "/mock/data/dir/hyprnote/sessions/_default/session-1/My_________Template.md",
+          "/mock/data/dir/hyprnote/sessions/session-1/My_________Template.md",
         ],
       ]);
     });
@@ -226,7 +226,7 @@ describe("createNotePersister", () => {
       expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
         [
           expect.any(Object),
-          "/mock/data/dir/hyprnote/sessions/_default/session-1/unknown-template-id.md",
+          "/mock/data/dir/hyprnote/sessions/session-1/unknown-template-id.md",
         ],
       ]);
     });
@@ -292,7 +292,7 @@ describe("createNotePersister", () => {
       expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
         [
           { type: "doc", content: [{ type: "paragraph" }] },
-          "/mock/data/dir/hyprnote/sessions/_default/session-1/_memo.md",
+          "/mock/data/dir/hyprnote/sessions/session-1/_memo.md",
         ],
       ]);
     });
@@ -338,7 +338,7 @@ describe("createNotePersister", () => {
       await persister.save();
 
       expect(mkdir).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/sessions/_default/session-1",
+        "/mock/data/dir/hyprnote/sessions/session-1",
         { recursive: true },
       );
     });

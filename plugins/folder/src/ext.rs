@@ -1,207 +1,17 @@
-use std::{
-    collections::HashMap,
-    path::{Path, PathBuf},
-};
+use std::collections::HashMap;
+use std::path::PathBuf;
 
-use serde::{Deserialize, Serialize};
-use specta::Type;
 use tauri_plugin_path2::Path2PluginExt;
-use uuid::Uuid;
 
-pub fn is_uuid(name: &str) -> bool {
-    Uuid::try_parse(name).is_ok()
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
-pub struct FolderInfo {
-    pub name: String,
-    pub parent_folder_id: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
-pub struct ListFoldersResult {
-    pub folders: HashMap<String, FolderInfo>,
-    pub session_folder_map: HashMap<String, String>,
-}
-
-pub fn find_session_dir(sessions_base: &Path, session_id: &str) -> PathBuf {
-    if let Some(found) = find_session_dir_recursive(sessions_base, session_id) {
-        return found;
-    }
-    sessions_base.join("_default").join(session_id)
-}
-
-fn find_session_dir_recursive(dir: &Path, session_id: &str) -> Option<PathBuf> {
-    let entries = std::fs::read_dir(dir).ok()?;
-
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if !path.is_dir() {
-            continue;
-        }
-
-        let name = path.file_name()?.to_str()?;
-
-        if name == session_id {
-            return Some(path);
-        }
-
-        if !is_uuid(name) {
-            if let Some(found) = find_session_dir_recursive(&path, session_id) {
-                return Some(found);
-            }
-        }
-    }
-
-    None
-}
-
-pub fn migrate_session_to_default(sessions_base: &Path, session_id: &str) {
-    let source = sessions_base.join(session_id);
-    if !source.is_dir() {
-        return;
-    }
-
-    let default_dir = sessions_base.join("_default");
-    if !default_dir.exists() {
-        if let Err(e) = std::fs::create_dir_all(&default_dir) {
-            tracing::warn!("Failed to create _default directory: {}", e);
-            return;
-        }
-    }
-
-    let target = default_dir.join(session_id);
-    if target.exists() {
-        return;
-    }
-
-    if let Err(e) = std::fs::rename(&source, &target) {
-        tracing::warn!("Failed to migrate {}: {}", session_id, e);
-    } else {
-        tracing::info!("Migrated session {} to _default", session_id);
-    }
-}
-
-pub fn migrate_all_uuid_folders(sessions_base: &Path) {
-    let entries = match std::fs::read_dir(sessions_base) {
-        Ok(entries) => entries,
-        Err(_) => return,
-    };
-
-    let default_dir = sessions_base.join("_default");
-
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if !path.is_dir() {
-            continue;
-        }
-
-        let name = match path.file_name().and_then(|n| n.to_str()) {
-            Some(name) => name,
-            None => continue,
-        };
-
-        if !is_uuid(name) {
-            continue;
-        }
-
-        if !default_dir.exists() {
-            if let Err(e) = std::fs::create_dir_all(&default_dir) {
-                tracing::warn!("Failed to create _default directory: {}", e);
-                return;
-            }
-        }
-
-        let new_path = default_dir.join(name);
-        if new_path.exists() {
-            tracing::warn!("Skipping migration of {}: already exists in _default", name);
-            continue;
-        }
-
-        if let Err(e) = std::fs::rename(&path, &new_path) {
-            tracing::warn!("Failed to migrate {}: {}", name, e);
-        } else {
-            tracing::info!("Migrated session {} to _default", name);
-        }
-    }
-}
+use crate::types::ListFoldersResult;
+use crate::utils::{find_session_dir, scan_directory_recursive};
 
 pub struct Folder<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-fn get_parent_folder_path(path: &str) -> Option<String> {
-    let parts: Vec<&str> = path.split('/').collect();
-    if parts.len() <= 1 {
-        return None;
-    }
-    Some(parts[..parts.len() - 1].join("/"))
-}
-
-fn scan_directory_recursive(
-    sessions_dir: &Path,
-    current_path: &str,
-    result: &mut ListFoldersResult,
-) {
-    let full_path = if current_path.is_empty() {
-        sessions_dir.to_path_buf()
-    } else {
-        sessions_dir.join(current_path)
-    };
-
-    let entries = match std::fs::read_dir(&full_path) {
-        Ok(entries) => entries,
-        Err(_) => return,
-    };
-
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if !path.is_dir() {
-            continue;
-        }
-
-        let name = match path.file_name().and_then(|n| n.to_str()) {
-            Some(name) => name.to_string(),
-            None => continue,
-        };
-
-        let entry_path = if current_path.is_empty() {
-            name.clone()
-        } else {
-            format!("{}/{}", current_path, name)
-        };
-
-        let has_memo_md = sessions_dir.join(&entry_path).join("_memo.md").exists();
-
-        if has_memo_md {
-            let folder_path = if current_path == "_default" {
-                String::new()
-            } else {
-                current_path.to_string()
-            };
-            result.session_folder_map.insert(name, folder_path);
-        } else {
-            if name != "_default" && !is_uuid(&name) {
-                result.folders.insert(
-                    entry_path.clone(),
-                    FolderInfo {
-                        name,
-                        parent_folder_id: get_parent_folder_path(&entry_path),
-                    },
-                );
-            }
-
-            scan_directory_recursive(sessions_dir, &entry_path, result);
-        }
-    }
-}
-
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Folder<'a, R, M> {
-    pub fn ping(&self) -> Result<String, crate::Error> {
-        Ok("pong".to_string())
-    }
-
     fn sessions_dir(&self) -> Result<PathBuf, crate::Error> {
         let base = self
             .manager
@@ -242,7 +52,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Folder<'a, R, M> {
         }
 
         let target_folder = if target_folder_path.is_empty() {
-            sessions_dir.join("_default")
+            sessions_dir.clone()
         } else {
             sessions_dir.join(target_folder_path)
         };
@@ -335,55 +145,5 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> FolderPluginExt<R> for T {
             manager: self,
             _runtime: std::marker::PhantomData,
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::fs;
-
-    #[test]
-    fn test_is_uuid() {
-        assert!(is_uuid("550e8400-e29b-41d4-a716-446655440000"));
-        assert!(is_uuid("550E8400-E29B-41D4-A716-446655440000"));
-        assert!(!is_uuid("_default"));
-        assert!(!is_uuid("work"));
-        assert!(!is_uuid("not-a-uuid"));
-    }
-
-    #[test]
-    fn test_find_session_dir_in_default() {
-        let temp = tempfile::tempdir().unwrap();
-        let sessions = temp.path().join("sessions");
-        let session_id = "550e8400-e29b-41d4-a716-446655440000";
-        let expected = sessions.join("_default").join(session_id);
-        fs::create_dir_all(&expected).unwrap();
-
-        let result = find_session_dir(&sessions, session_id);
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_find_session_dir_in_subfolder() {
-        let temp = tempfile::tempdir().unwrap();
-        let sessions = temp.path().join("sessions");
-        let session_id = "550e8400-e29b-41d4-a716-446655440000";
-        let expected = sessions.join("work").join("project").join(session_id);
-        fs::create_dir_all(&expected).unwrap();
-
-        let result = find_session_dir(&sessions, session_id);
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_find_session_dir_fallback() {
-        let temp = tempfile::tempdir().unwrap();
-        let sessions = temp.path().join("sessions");
-        fs::create_dir_all(&sessions).unwrap();
-
-        let session_id = "550e8400-e29b-41d4-a716-446655440000";
-        let result = find_session_dir(&sessions, session_id);
-        assert_eq!(result, sessions.join("_default").join(session_id));
     }
 }

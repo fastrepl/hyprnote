@@ -44,17 +44,17 @@ describe("collectSessionMeta", () => {
     const result = collectSessionMeta(store);
 
     expect(result.size).toBe(1);
-    const meta = result.get("session-1");
-    expect(meta).toEqual({
+    const entry = result.get("session-1");
+    expect(entry?.meta).toEqual({
       id: "session-1",
       user_id: "user-1",
       created_at: "2024-01-01T00:00:00Z",
       title: "Test Session",
-      folder_id: undefined,
       event_id: undefined,
       participants: [],
       tags: undefined,
     });
+    expect(entry?.folderPath).toBe("");
   });
 
   test("collects session metadata with tags", () => {
@@ -97,11 +97,11 @@ describe("collectSessionMeta", () => {
     const result = collectSessionMeta(store);
 
     expect(result.size).toBe(1);
-    const meta = result.get("session-1");
-    expect(meta?.tags).toBeDefined();
-    expect(meta?.tags).toHaveLength(2);
-    expect(meta?.tags).toContain("Important");
-    expect(meta?.tags).toContain("Meeting");
+    const entry = result.get("session-1");
+    expect(entry?.meta.tags).toBeDefined();
+    expect(entry?.meta.tags).toHaveLength(2);
+    expect(entry?.meta.tags).toContain("Important");
+    expect(entry?.meta.tags).toContain("Meeting");
   });
 
   test("handles sessions with and without tags", () => {
@@ -140,11 +140,11 @@ describe("collectSessionMeta", () => {
 
     expect(result.size).toBe(2);
 
-    const meta1 = result.get("session-1");
-    expect(meta1?.tags).toEqual(["Important"]);
+    const entry1 = result.get("session-1");
+    expect(entry1?.meta.tags).toEqual(["Important"]);
 
-    const meta2 = result.get("session-2");
-    expect(meta2?.tags).toBeUndefined();
+    const entry2 = result.get("session-2");
+    expect(entry2?.meta.tags).toBeUndefined();
   });
 
   test("includes participants with tags", () => {
@@ -180,11 +180,11 @@ describe("collectSessionMeta", () => {
     });
 
     const result = collectSessionMeta(store);
-    const meta = result.get("session-1");
+    const entry = result.get("session-1");
 
-    expect(meta?.participants).toHaveLength(1);
-    expect(meta?.participants[0].id).toBe("mapping-1");
-    expect(meta?.tags).toEqual(["Important"]);
+    expect(entry?.meta.participants).toHaveLength(1);
+    expect(entry?.meta.participants[0].id).toBe("mapping-1");
+    expect(entry?.meta.tags).toEqual(["Important"]);
   });
 });
 
@@ -238,7 +238,7 @@ describe("createSessionPersister", () => {
           user_id: "user-1",
           created_at: "2024-01-01T00:00:00Z",
           title: "Test Session",
-          folder_id: undefined,
+          folder_id: "",
           event_id: undefined,
           raw_md: "",
           enhanced_md: "",

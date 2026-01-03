@@ -36,7 +36,6 @@ export type SessionMetaJson = {
   user_id: string;
   created_at: string;
   title: string;
-  folder_id?: string;
   event_id?: string;
   participants: ParticipantData[];
   tags?: string[];
@@ -81,12 +80,13 @@ async function loadSessionMetaRecursively(
         const content = await readTextFile(metaPath);
         const meta = JSON.parse(content) as SessionMetaJson;
         const sessionId = entry.name;
+        const folderPath = currentPath ? currentPath.split(s).join("/") : "";
 
         result.sessions[sessionId] = {
           user_id: meta.user_id,
           created_at: meta.created_at,
           title: meta.title,
-          folder_id: meta.folder_id,
+          folder_id: folderPath,
           event_id: meta.event_id,
           raw_md: "",
           enhanced_md: "",
@@ -207,10 +207,15 @@ async function cleanupOrphanSessionDirs(
   }
 }
 
+type SessionMetaWithFolder = {
+  meta: SessionMetaJson;
+  folderPath: string;
+};
+
 export function collectSessionMeta<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
-): Map<string, SessionMetaJson> {
-  const result = new Map<string, SessionMetaJson>();
+): Map<string, SessionMetaWithFolder> {
+  const result = new Map<string, SessionMetaWithFolder>();
 
   const sessions = (store.getTable("sessions") ?? {}) as Record<
     string,
@@ -251,14 +256,16 @@ export function collectSessionMeta<Schemas extends OptionalSchemas>(
   for (const [sessionId, session] of Object.entries(sessions)) {
     const sessionTags = tagsBySession.get(sessionId);
     result.set(sessionId, {
-      id: sessionId,
-      user_id: session.user_id ?? "",
-      created_at: session.created_at ?? "",
-      title: session.title ?? "",
-      folder_id: session.folder_id || undefined,
-      event_id: session.event_id || undefined,
-      participants: participantsBySession.get(sessionId) ?? [],
-      tags: sessionTags && sessionTags.length > 0 ? sessionTags : undefined,
+      meta: {
+        id: sessionId,
+        user_id: session.user_id ?? "",
+        created_at: session.created_at ?? "",
+        title: session.title ?? "",
+        event_id: session.event_id || undefined,
+        participants: participantsBySession.get(sessionId) ?? [],
+        tags: sessionTags && sessionTags.length > 0 ? sessionTags : undefined,
+      },
+      folderPath: session.folder_id ?? "",
     });
   }
 
@@ -303,12 +310,8 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
             const writeOperations: Array<{ path: string; content: string }> =
               [];
 
-            for (const [sessionId, meta] of sessionMetas) {
-              const sessionDir = getSessionDir(
-                dataDir,
-                sessionId,
-                meta.folder_id,
-              );
+            for (const [sessionId, { meta, folderPath }] of sessionMetas) {
+              const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
               dirs.add(sessionDir);
 
               writeOperations.push({

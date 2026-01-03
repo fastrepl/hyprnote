@@ -1,9 +1,14 @@
 mod commands;
 mod error;
 mod ext;
+mod migration;
+mod types;
+mod utils;
 
 pub use error::{Error, Result};
 pub use ext::*;
+pub use types::*;
+pub use utils::{find_session_dir, is_uuid};
 
 const PLUGIN_NAME: &str = "folder";
 
@@ -25,6 +30,10 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
+        .setup(|app, _api| {
+            migration::run(app);
+            Ok(())
+        })
         .build()
 }
 

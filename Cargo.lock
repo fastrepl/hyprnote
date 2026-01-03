@@ -18614,7 +18614,6 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "tauri-plugin",
- "tauri-plugin-folder",
  "tauri-plugin-path2",
  "tauri-specta",
  "tempfile",

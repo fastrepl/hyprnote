@@ -59,6 +59,7 @@
     "@hypr/plugin-template": "workspace:*",
     "@hypr/plugin-updater2": "workspace:*",
     "@hypr/plugin-windows": "workspace:*",
+    "@hypr/plugin-js": "workspace:*",
     "@hypr/store": "workspace:*",
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",

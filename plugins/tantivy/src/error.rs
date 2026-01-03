@@ -6,6 +6,20 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Tantivy(#[from] tantivy::TantivyError),
+    #[error(transparent)]
+    QueryParser(#[from] tantivy::query::QueryParserError),
+    #[error(transparent)]
+    Tauri(#[from] tauri::Error),
+    #[error(transparent)]
+    Path2(#[from] tauri_plugin_path2::Error),
+    #[error("Index not initialized")]
+    IndexNotInitialized,
+    #[error("Document not found: {0}")]
+    DocumentNotFound(String),
+    #[error("Invalid document type: {0}")]
+    InvalidDocumentType(String),
 }
 
 impl Serialize for Error {

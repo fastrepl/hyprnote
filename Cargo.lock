@@ -18709,14 +18709,18 @@ name = "tauri-plugin-tantivy"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tantivy",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-path2",
  "tauri-specta",
+ "tempfile",
  "thiserror 2.0.17",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

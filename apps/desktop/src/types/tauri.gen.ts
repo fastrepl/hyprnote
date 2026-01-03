@@ -60,9 +60,9 @@ async getEnv(key: string) : Promise<string> {
 async showDevtool() : Promise<boolean> {
     return await TAURI_INVOKE("show_devtool");
 },
-async resizeWindowForChat(sidebarWidth: number) : Promise<Result<null, string>> {
+async resizeWindowForChat() : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("resize_window_for_chat", { sidebarWidth }) };
+    return { status: "ok", data: await TAURI_INVOKE("resize_window_for_chat") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

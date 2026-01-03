@@ -17,7 +17,7 @@ export const Route = createFileRoute("/app/main/_layout/")({
   component: Component,
 });
 
-const SIDEBAR_WIDTH = 280;
+const CHAT_MIN_WIDTH_PX = 280;
 
 function Component() {
   const { leftsidebar, chat } = useShell();
@@ -31,12 +31,11 @@ function Component() {
       previousModeRef.current !== "RightPanelOpen";
 
     if (isOpeningRightPanel) {
-      const sidebarWidth = leftsidebar.expanded ? SIDEBAR_WIDTH : 0;
-      commands.resizeWindowForChat(sidebarWidth);
+      commands.resizeWindowForChat();
     }
 
     previousModeRef.current = chat.mode;
-  }, [chat.mode, leftsidebar.expanded]);
+  }, [chat.mode]);
 
   return (
     <div

@@ -1634,6 +1634,12 @@ importers:
         specifier: ^2.9.1
         version: 2.9.1
 
+  plugins/tantivy:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
   plugins/template:
     dependencies:
       '@tauri-apps/api':

@@ -1,4 +1,10 @@
-import { FullscreenIcon, MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
+import {
+  FullscreenIcon,
+  MicIcon,
+  PaperclipIcon,
+  SendIcon,
+  SquareIcon,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -18,10 +24,14 @@ export function ChatMessageInput({
   onSendMessage,
   disabled: disabledProp,
   attachedSession,
+  isStreaming,
+  onStop,
 }: {
   onSendMessage: (content: string, parts: any[]) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
   attachedSession?: { id: string; title?: string };
+  isStreaming?: boolean;
+  onStop?: () => void;
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const [hasContent, setHasContent] = useState(false);
@@ -191,15 +201,26 @@ export function ChatMessageInput({
             >
               <MicIcon size={16} />
             </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={disabled}
-              size="icon"
-              variant="ghost"
-              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-            >
-              <SendIcon size={16} />
-            </Button>
+            {isStreaming ? (
+              <Button
+                onClick={onStop}
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+              >
+                <SquareIcon size={16} className="fill-current" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSubmit}
+                disabled={disabled}
+                size="icon"
+                variant="ghost"
+                className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
+              >
+                <SendIcon size={16} />
+              </Button>
+            )}
           </div>
         </div>
       </div>

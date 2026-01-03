@@ -11,7 +11,9 @@ import type { Part } from "./types";
 
 function getMessageText(message: HyprUIMessage): string {
   return message.parts
-    .filter((part): part is Extract<Part, { type: "text" }> => part.type === "text")
+    .filter(
+      (part): part is Extract<Part, { type: "text" }> => part.type === "text",
+    )
     .map((part) => part.text)
     .join("\n");
 }

@@ -13,14 +13,12 @@ export function ChatBody({
   status,
   error,
   onReload,
-  onStop,
   isModelConfigured = true,
 }: {
   messages: HyprUIMessage[];
   status: ChatStatus;
   error?: Error;
   onReload?: () => void;
-  onStop?: () => void;
   isModelConfigured?: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -50,7 +48,6 @@ export function ChatBody({
           status={status}
           error={error}
           onReload={onReload}
-          onStop={onStop}
         />
       )}
     </div>

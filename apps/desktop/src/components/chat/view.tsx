@@ -186,7 +186,6 @@ function ChatViewContent({
         status={status}
         error={error}
         onReload={regenerate}
-        onStop={stop}
         isModelConfigured={!!model}
       />
       <ChatMessageInput

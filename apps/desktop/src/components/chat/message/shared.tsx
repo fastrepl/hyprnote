@@ -35,10 +35,12 @@ export function MessageBubble({
     <div
       className={cn([
         "text-sm",
-        variant === "user" && "rounded-2xl px-3 py-1 bg-blue-100 text-neutral-800",
+        variant === "user" &&
+          "rounded-2xl px-3 py-1 bg-blue-100 text-neutral-800",
         variant === "assistant" && "text-neutral-800",
         variant === "loading" && "text-neutral-800",
-        variant === "error" && "rounded-2xl px-3 py-1 bg-red-50 text-red-600 border border-red-200",
+        variant === "error" &&
+          "rounded-2xl px-3 py-1 bg-red-50 text-red-600 border border-red-200",
         withActionButton && "relative group",
       ])}
     >

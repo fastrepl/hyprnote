@@ -93,9 +93,7 @@ export function useMainPersisters(store: Store, settingsStore: unknown) {
   const folderPersister = useCreatePersister(
     store,
     async (store) => {
-      const persister = createFolderPersister<Schemas>(store as Store, {
-        mode: "load-only",
-      });
+      const persister = createFolderPersister<Schemas>(store as Store);
       await persister.load();
       await persister.startAutoLoad();
 

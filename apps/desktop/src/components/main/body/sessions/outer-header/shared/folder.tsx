@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 
-import { folderOps } from "../../../../../../store/tinybase/persister/folder-ops";
+import { folderOps } from "../../../../../../store/tinybase/persister/folder";
 import * as main from "../../../../../../store/tinybase/store/main";
 
 export function SearchableFolderDropdown({

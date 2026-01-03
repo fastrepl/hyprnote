@@ -1,6 +1,6 @@
 import { commands as folderCommands } from "@hypr/plugin-folder";
 
-import type { Store } from "../store/main";
+import type { Store } from "../../store/main";
 
 export interface FolderOpsConfig {
   store: Store;

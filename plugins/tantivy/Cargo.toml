@@ -5,22 +5,27 @@ authors = ["You"]
 edition = "2024"
 exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-tantivy"
-description = ""
+description = "Full-text search plugin using Tantivy"
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }
+tempfile = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
 tantivy = "0.22"
 
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-path2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
+serde_json = { workspace = true }
 specta = { workspace = true }
 
 thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }

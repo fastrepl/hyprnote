@@ -160,7 +160,7 @@ export function ChatMessageInput({
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center">
             <Button
               onClick={handleAttachFile}
               disabled={disabled}
@@ -181,7 +181,7 @@ export function ChatMessageInput({
             </Button>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center">
             <Button
               onClick={handleVoiceInput}
               disabled={disabled}

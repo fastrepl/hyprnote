@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 use tantivy::schema::Schema;
 use tantivy::{Index, IndexReader, IndexWriter};
 use tauri::Manager;
+use tauri_plugin_notify::FileChanged;
+use tauri_specta::Event;
 use tokio::sync::Mutex;
 
 pub use error::{Error, Result};
@@ -71,27 +73,49 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::ping::<tauri::Wry>,
-            commands::init::<tauri::Wry>,
-            commands::add_document::<tauri::Wry>,
-            commands::update_document::<tauri::Wry>,
-            commands::delete_document::<tauri::Wry>,
-            commands::commit::<tauri::Wry>,
             commands::search::<tauri::Wry>,
             commands::search_fuzzy::<tauri::Wry>,
-            commands::clear::<tauri::Wry>,
-            commands::count::<tauri::Wry>,
+            commands::reindex::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
-pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+fn setup_file_change_listener(app: &tauri::AppHandle) {
+    let handle = app.clone();
+
+    FileChanged::listen_any(app, move |event| {
+        let path = &event.payload.path;
+
+        if path.ends_with("db.sqlite") || path.ends_with("db.sqlite-wal") {
+            tracing::debug!("Database file changed: {}, triggering reindex", path);
+
+            let handle = handle.clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = handle.tantivy().reindex().await {
+                    tracing::error!("Failed to reindex after file change: {}", e);
+                }
+            });
+        }
+    });
+}
+
+pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             app.manage(IndexState::default());
+
+            let handle = app.clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = handle.tantivy().init().await {
+                    tracing::error!("Failed to initialize tantivy index: {}", e);
+                }
+            });
+
+            setup_file_change_listener(app);
+
             Ok(())
         })
         .build()
@@ -116,20 +140,5 @@ mod test {
 
         let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
-    }
-
-    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
-        let mut ctx = tauri::test::mock_context(tauri::test::noop_assets());
-        ctx.config_mut().identifier = "com.hyprnote.dev".to_string();
-        ctx.config_mut().version = Some("0.0.1".to_string());
-
-        builder.plugin(init()).build(ctx).unwrap()
-    }
-
-    #[tokio::test]
-    async fn test_ping() {
-        let app = create_app(tauri::test::mock_builder());
-        let result = app.tantivy().ping();
-        assert!(result.is_ok());
     }
 }

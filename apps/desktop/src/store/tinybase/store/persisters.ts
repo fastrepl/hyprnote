@@ -8,7 +8,7 @@ import { type Schemas } from "@hypr/store";
 
 import { DEFAULT_USER_ID } from "../../../utils";
 import { useCalendarPersister } from "../persister/calendar";
-import { createChatPersister } from "../persister/chat";
+import { useChatPersister } from "../persister/chat";
 import { useEventsPersister } from "../persister/events";
 import { createFolderPersister, startFolderWatcher } from "../persister/folder";
 import { initFolderOps } from "../persister/folder-ops";
@@ -158,28 +158,7 @@ export function useMainPersisters(store: Store, settingsStore: unknown) {
 
   const eventPersister = useEventsPersister(store as Store);
 
-  const chatPersister = useCreatePersister(
-    store,
-    async (store) => {
-      try {
-        const dirExists = await exists("hyprnote/chats", {
-          baseDir: BaseDirectory.Data,
-        });
-        if (!dirExists) {
-          await mkdir("hyprnote/chats", {
-            baseDir: BaseDirectory.Data,
-            recursive: true,
-          });
-        }
-      } catch (error) {
-        console.error("Failed to create chats directory:", error);
-        throw error;
-      }
-
-      return createChatPersister<Schemas>(store as Store);
-    },
-    [],
-  );
+  const chatPersister = useChatPersister(store as Store);
 
   const promptPersister = usePromptPersister(store as Store);
 

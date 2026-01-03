@@ -24,6 +24,16 @@ import { StoreOrMergeableStore } from "../store/shared";
 
 export type PersisterMode = "load-only" | "save-only" | "load-and-save";
 
+// https://github.com/tinyplex/tinybase/blob/aa5cb9014f6def18266414174e0fd31ccfae0828/src/persisters/common/create.ts#L185
+// When content[2] === 1, TinyBase uses applyChanges() instead of setContent(),
+// allowing us to merge into a specific table without wiping other tables.
+export function asTableChanges(
+  tableName: string,
+  data: Record<string, Record<string, unknown>>,
+): [Record<string, unknown>, Record<string, unknown>, 1] {
+  return [{ [tableName]: data }, {}, 1];
+}
+
 export async function getDataDir(): Promise<string> {
   return path2Commands.base();
 }
@@ -120,7 +130,7 @@ export function iterateTableRows<K extends keyof TablesContent>(
   return result;
 }
 
-function isFileNotFoundError(error: unknown): boolean {
+export function isFileNotFoundError(error: unknown): boolean {
   const errorStr = String(error);
   return (
     errorStr.includes("No such file or directory") ||

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { SCHEMA, type Schemas } from "@hypr/store";
 
-import { createEventPersister } from "./events";
+import { createEventPersister } from "./events/persister";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {
@@ -15,6 +15,14 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
   readTextFile: vi.fn(),
   writeTextFile: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@hypr/plugin-notify", () => ({
+  events: {
+    fileChanged: {
+      listen: vi.fn().mockResolvedValue(() => {}),
+    },
+  },
 }));
 
 function createTestStore() {
@@ -63,9 +71,7 @@ describe("createEventPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
 
-      const persister = createEventPersister<Schemas>(store, {
-        mode: "load-and-save",
-      });
+      const persister = createEventPersister<Schemas>(store);
       await persister.load();
 
       expect(readTextFile).toHaveBeenCalledWith(
@@ -81,9 +87,7 @@ describe("createEventPersister", () => {
         new Error("No such file or directory"),
       );
 
-      const persister = createEventPersister<Schemas>(store, {
-        mode: "load-and-save",
-      });
+      const persister = createEventPersister<Schemas>(store);
       await persister.load();
 
       expect(store.getTable("events")).toEqual({});

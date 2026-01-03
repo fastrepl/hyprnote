@@ -9,7 +9,7 @@ import { type Schemas } from "@hypr/store";
 import { DEFAULT_USER_ID } from "../../../utils";
 import { createCalendarPersister } from "../persister/calendar";
 import { createChatPersister } from "../persister/chat";
-import { createEventPersister } from "../persister/events";
+import { useEventsPersister } from "../persister/events";
 import { createFolderPersister, startFolderWatcher } from "../persister/folder";
 import { initFolderOps } from "../persister/folder-ops";
 import { createHumanPersister } from "../persister/human";
@@ -198,22 +198,7 @@ export function useMainPersisters(
     [persist],
   );
 
-  const eventPersister = useCreatePersister(
-    store,
-    async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
-      const persister = createEventPersister<Schemas>(store as Store, {
-        mode: "load-only",
-      });
-      await persister.load();
-      await persister.startAutoLoad();
-      return persister;
-    },
-    [persist],
-  );
+  const eventPersister = useEventsPersister(store as Store, persist);
 
   const chatPersister = useCreatePersister(
     store,
@@ -290,7 +275,7 @@ export function useMainPersisters(
     [persist],
   );
 
-  const persisters = useMemo(
+  const saveablePersistors = useMemo(
     () =>
       localPersister &&
       folderPersister &&
@@ -306,12 +291,10 @@ export function useMainPersisters(
       calendarPersister
         ? [
             localPersister,
-            folderPersister,
             markdownPersister,
             transcriptPersister,
             organizationPersister,
             humanPersister,
-            eventPersister,
             chatPersister,
             promptPersister,
             templatePersister,
@@ -335,7 +318,7 @@ export function useMainPersisters(
     ],
   );
 
-  usePersisterSaveEvents(persisters, persist);
+  usePersisterSaveEvents(saveablePersistors, persist);
 
   return {
     localPersister,

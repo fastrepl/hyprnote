@@ -35,7 +35,7 @@ export function TaskManager() {
       store as main.Store,
       queries as Queries<main.Schemas>,
     );
-  });
+  }, [store, queries]);
 
   useScheduleTaskRun(CALENDAR_SYNC_TASK_ID, undefined, 0, {
     repeatDelay: CALENDAR_SYNC_INTERVAL,
@@ -64,7 +64,7 @@ export function TaskManager() {
       settingsStore as settings.Store,
       notifiedEventsRef.current,
     );
-  });
+  }, [store, settingsStore]);
 
   useScheduleTaskRun(EVENT_NOTIFICATION_TASK_ID, undefined, 0, {
     repeatDelay: EVENT_NOTIFICATION_INTERVAL,

@@ -195,6 +195,8 @@ function ChatViewContent({
           handleSendMessage(content, parts, sendMessage)
         }
         attachedSession={attachedSession}
+        isStreaming={status === "streaming" || status === "submitted"}
+        onStop={stop}
       />
     </>
   );

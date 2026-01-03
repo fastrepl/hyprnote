@@ -1,19 +1,20 @@
-import { BrainIcon, RotateCcw } from "lucide-react";
+import { BrainIcon, CheckIcon, CopyIcon, RotateCcwIcon } from "lucide-react";
+import { useCallback, useState } from "react";
 import { Streamdown } from "streamdown";
-
-import { formatDistanceToNow } from "@hypr/utils";
 
 import type { ToolPartType } from "../../../chat/tools";
 import type { HyprUIMessage } from "../../../chat/types";
 import { hasRenderableContent } from "../shared";
-import {
-  ActionButton,
-  Disclosure,
-  MessageBubble,
-  MessageContainer,
-} from "./shared";
+import { Disclosure, MessageBubble, MessageContainer } from "./shared";
 import { Tool } from "./tool";
 import type { Part } from "./types";
+
+function getMessageText(message: HyprUIMessage): string {
+  return message.parts
+    .filter((part): part is Extract<Part, { type: "text" }> => part.type === "text")
+    .map((part) => part.text)
+    .join("\n");
+}
 
 export function NormalMessage({
   message,
@@ -23,10 +24,18 @@ export function NormalMessage({
   handleReload?: () => void;
 }) {
   const isUser = message.role === "user";
+  const [copied, setCopied] = useState(false);
 
-  const shouldShowTimestamp = message.metadata?.createdAt
-    ? Date.now() - message.metadata.createdAt >= 60000
-    : false;
+  const handleCopy = useCallback(async () => {
+    const text = getMessageText(message);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  }, [message]);
 
   if (!hasRenderableContent(message)) {
     return null;
@@ -34,28 +43,30 @@ export function NormalMessage({
 
   return (
     <MessageContainer align={isUser ? "end" : "start"}>
-      <div className="flex flex-col max-w-[80%]">
-        <MessageBubble
-          variant={isUser ? "user" : "assistant"}
-          withActionButton={!isUser && !!handleReload}
-        >
+      <div className="flex flex-col max-w-[80%] group">
+        <MessageBubble variant={isUser ? "user" : "assistant"}>
           {message.parts.map((part, i) => (
             <Part key={i} part={part as Part} />
           ))}
-          {!isUser && handleReload && (
-            <ActionButton
-              onClick={handleReload}
-              variant="default"
-              icon={RotateCcw}
-              label="Reload message"
-            />
-          )}
         </MessageBubble>
-        {shouldShowTimestamp && message.metadata?.createdAt && (
-          <div className="text-xs text-neutral-400 mt-1 px-2">
-            {formatDistanceToNow(message.metadata.createdAt, {
-              addSuffix: true,
-            })}
+        {!isUser && (
+          <div className="flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={handleCopy}
+              className={`p-1 transition-colors ${copied ? "text-green-500" : "text-neutral-400 hover:text-neutral-600"}`}
+              aria-label="Copy message"
+            >
+              {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
+            </button>
+            {handleReload && (
+              <button
+                onClick={handleReload}
+                className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors"
+                aria-label="Regenerate message"
+              >
+                <RotateCcwIcon size={14} />
+              </button>
+            )}
           </div>
         )}
       </div>

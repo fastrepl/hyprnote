@@ -320,6 +320,9 @@ importers:
       '@hypr/plugin-sfx':
         specifier: workspace:*
         version: link:../../plugins/sfx
+      '@hypr/plugin-tantivy':
+        specifier: workspace:*
+        version: link:../../plugins/tantivy
       '@hypr/plugin-template':
         specifier: workspace:*
         version: link:../../plugins/template
@@ -1629,6 +1632,12 @@ importers:
         version: 2.9.1
 
   plugins/store2:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/tantivy:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

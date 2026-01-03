@@ -86,8 +86,8 @@ pub async fn resize_window_for_chat<R: tauri::Runtime>(
 
     if add_width && current_width < 600 {
         let new_size = tauri::LogicalSize {
-            width: current_width + 400,
-            height: size.height,
+            width: (current_width + 400) as f64,
+            height: size.height as f64,
         };
         window
             .set_size(tauri::Size::Logical(new_size))

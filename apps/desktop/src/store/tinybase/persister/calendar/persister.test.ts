@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { SCHEMA, type Schemas } from "@hypr/store";
 
-import { createCalendarPersister } from "./calendar";
+import { createCalendarPersister } from "./persister";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {
@@ -58,9 +58,7 @@ describe("createCalendarPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
 
-      const persister = createCalendarPersister<Schemas>(store, {
-        mode: "load-and-save",
-      });
+      const persister = createCalendarPersister<Schemas>(store);
       await persister.load();
 
       expect(readTextFile).toHaveBeenCalledWith(
@@ -76,9 +74,7 @@ describe("createCalendarPersister", () => {
         new Error("No such file or directory"),
       );
 
-      const persister = createCalendarPersister<Schemas>(store, {
-        mode: "load-and-save",
-      });
+      const persister = createCalendarPersister<Schemas>(store);
       await persister.load();
 
       expect(store.getTable("calendars")).toEqual({});

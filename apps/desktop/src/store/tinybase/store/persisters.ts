@@ -7,7 +7,7 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { type Schemas } from "@hypr/store";
 
 import { DEFAULT_USER_ID } from "../../../utils";
-import { createCalendarPersister } from "../persister/calendar";
+import { useCalendarPersister } from "../persister/calendar";
 import { createChatPersister } from "../persister/chat";
 import { useEventsPersister } from "../persister/events";
 import { createFolderPersister, startFolderWatcher } from "../persister/folder";
@@ -263,17 +263,7 @@ export function useMainPersisters(
     [persist],
   );
 
-  const calendarPersister = useCreatePersister(
-    store,
-    async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
-      return createCalendarPersister<Schemas>(store as Store);
-    },
-    [persist],
-  );
+  const calendarPersister = useCalendarPersister(store as Store, persist);
 
   const saveablePersistors = useMemo(
     () =>

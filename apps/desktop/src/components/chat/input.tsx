@@ -74,6 +74,7 @@ export function ChatMessageInput({
   }, [disabled]);
 
   useEffect(() => {
+    let updateHandler: (() => void) | null = null;
     const checkEditor = setInterval(() => {
       const editor = editorRef.current?.editor;
       if (editor && !editor.isDestroyed && editor.isInitialized) {
@@ -83,7 +84,7 @@ export function ChatMessageInput({
           editor.commands.setContent(chat.draftMessage);
         }
 
-        const updateHandler = () => {
+        updateHandler = () => {
           const json = editor.getJSON();
           const text = tiptapJsonToText(json).trim();
           setHasContent(text.length > 0);
@@ -94,7 +95,13 @@ export function ChatMessageInput({
       }
     }, 100);
 
-    return () => clearInterval(checkEditor);
+    return () => {
+      clearInterval(checkEditor);
+      const editor = editorRef.current?.editor;
+      if (editor && updateHandler) {
+        editor.off("update", updateHandler);
+      }
+    };
   }, [chat]);
 
   const handleAttachFile = useCallback(() => {

@@ -105,7 +105,7 @@ function FloatingButtonContainer({ children }: { children: ReactNode }) {
       ref={containerRef}
       style={{ left: `calc(50% + ${totalOffset}px)` }}
       className={cn([
-        "fixed -translate-x-1/2 z-[100] flex items-center gap-3",
+        "fixed -translate-x-1/2 z-40 flex items-center gap-3",
         "transition-all duration-200 ease-out",
         shouldHide ? "bottom-0 translate-y-[85%]" : "bottom-4",
       ])}

@@ -238,7 +238,6 @@
     "notification:default",
     "overlay:default",
     "notify:default",
-    "pagefind:default",
     "tantivy:default",
     "shell:allow-open",
     {

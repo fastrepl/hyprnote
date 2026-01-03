@@ -52,81 +52,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         Ok(())
     }
 
-    pub async fn add_document(&self, doc: SearchDocument) -> Result<(), crate::Error> {
-        let state = self.manager.state::<IndexState>();
-        let mut guard = state.inner.lock().await;
-
-        let schema = guard
-            .schema
-            .clone()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-        let writer = guard
-            .writer
-            .as_mut()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-
-        let fields = get_fields(&schema);
-        let tantivy_doc = create_tantivy_document(&schema, &fields, &doc)?;
-
-        writer.add_document(tantivy_doc)?;
-        Ok(())
-    }
-
-    pub async fn update_document(&self, doc: SearchDocument) -> Result<(), crate::Error> {
-        let state = self.manager.state::<IndexState>();
-        let mut guard = state.inner.lock().await;
-
-        let schema = guard
-            .schema
-            .clone()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-        let writer = guard
-            .writer
-            .as_mut()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-
-        let fields = get_fields(&schema);
-        let id_term = Term::from_field_text(fields.id, &doc.id);
-
-        writer.delete_term(id_term);
-
-        let tantivy_doc = create_tantivy_document(&schema, &fields, &doc)?;
-        writer.add_document(tantivy_doc)?;
-        Ok(())
-    }
-
-    pub async fn delete_document(&self, id: String) -> Result<(), crate::Error> {
-        let state = self.manager.state::<IndexState>();
-        let mut guard = state.inner.lock().await;
-
-        let schema = guard
-            .schema
-            .clone()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-        let writer = guard
-            .writer
-            .as_mut()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-
-        let fields = get_fields(&schema);
-        let id_term = Term::from_field_text(fields.id, &id);
-
-        writer.delete_term(id_term);
-        Ok(())
-    }
-
-    pub async fn commit(&self) -> Result<(), crate::Error> {
-        let state = self.manager.state::<IndexState>();
-        let mut guard = state.inner.lock().await;
-
-        let writer = guard
-            .writer
-            .as_mut()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-        writer.commit()?;
-        Ok(())
-    }
-
     pub async fn search(
         &self,
         query: String,
@@ -252,30 +177,38 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         Ok(SearchResult { hits })
     }
 
-    pub async fn clear(&self) -> Result<(), crate::Error> {
+    pub async fn reindex(&self) -> Result<(), crate::Error> {
+        self.init().await?;
+
         let state = self.manager.state::<IndexState>();
         let mut guard = state.inner.lock().await;
 
+        let schema = guard
+            .schema
+            .clone()
+            .ok_or(crate::Error::IndexNotInitialized)?;
         let writer = guard
             .writer
             .as_mut()
             .ok_or(crate::Error::IndexNotInitialized)?;
+
         writer.delete_all_documents()?;
+
+        let fields = get_fields(&schema);
+
+        // TODO: Fetch documents from database and index them
+        // For now, this just clears and commits the index
+        // The actual implementation should query sessions from the database
+        // and add them as SearchDocuments
+
         writer.commit()?;
+
+        tracing::info!(
+            "Reindex completed. Index cleared and ready for new documents. Fields: {:?}",
+            fields.id
+        );
+
         Ok(())
-    }
-
-    pub async fn count(&self) -> Result<u64, crate::Error> {
-        let state = self.manager.state::<IndexState>();
-        let guard = state.inner.lock().await;
-
-        let reader = guard
-            .reader
-            .as_ref()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-        let searcher = reader.searcher();
-
-        Ok(searcher.num_docs())
     }
 }
 
@@ -325,20 +258,6 @@ fn get_fields(schema: &Schema) -> SchemaFields {
     }
 }
 
-fn create_tantivy_document(
-    _schema: &Schema,
-    fields: &SchemaFields,
-    doc: &SearchDocument,
-) -> Result<TantivyDocument, crate::Error> {
-    let mut tantivy_doc = TantivyDocument::new();
-    tantivy_doc.add_text(fields.id, &doc.id);
-    tantivy_doc.add_text(fields.doc_type, &doc.doc_type);
-    tantivy_doc.add_text(fields.title, &doc.title);
-    tantivy_doc.add_text(fields.content, &doc.content);
-    tantivy_doc.add_i64(fields.created_at, doc.created_at);
-    Ok(tantivy_doc)
-}
-
 fn extract_search_document(
     _schema: &Schema,
     fields: &SchemaFields,
@@ -363,8 +282,14 @@ fn build_created_at_range_query(
     _field: Field,
     filter: &crate::CreatedAtFilter,
 ) -> Option<Box<dyn Query>> {
-    let lower = filter.gte.or(filter.gt.map(|v| v.saturating_add(1))).unwrap_or(i64::MIN);
-    let upper = filter.lte.or(filter.lt.map(|v| v.saturating_sub(1))).unwrap_or(i64::MAX);
+    let lower = filter
+        .gte
+        .or(filter.gt.map(|v| v.saturating_add(1)))
+        .unwrap_or(i64::MIN);
+    let upper = filter
+        .lte
+        .or(filter.lt.map(|v| v.saturating_sub(1)))
+        .unwrap_or(i64::MAX);
 
     if let Some(eq) = filter.eq {
         Some(Box::new(RangeQuery::new_i64(

@@ -6,54 +6,6 @@
 
 
 export const commands = {
-async ping() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|ping") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async init() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|init") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async addDocument(doc: SearchDocument) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|add_document", { doc }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async updateDocument(doc: SearchDocument) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|update_document", { doc }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async deleteDocument(id: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|delete_document", { id }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async commit() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|commit") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async search(query: string, filters: SearchFilters | null, limit: number | null) : Promise<Result<SearchResult, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|search", { query, filters, limit }) };
@@ -70,17 +22,9 @@ async searchFuzzy(query: string, filters: SearchFilters | null, limit: number | 
     else return { status: "error", error: e  as any };
 }
 },
-async clear() : Promise<Result<null, string>> {
+async reindex() : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|clear") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async count() : Promise<Result<number, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|count") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|reindex") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

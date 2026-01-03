@@ -19,6 +19,7 @@ tokio = { workspace = true, features = ["macros"] }
 tantivy = "0.22"
 
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-notify = { workspace = true }
 tauri-plugin-path2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 

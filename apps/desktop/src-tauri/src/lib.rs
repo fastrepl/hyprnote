@@ -1,3 +1,4 @@
+mod agents;
 mod commands;
 mod control;
 mod ext;
@@ -175,6 +176,15 @@ pub async fn main() {
                 use tauri_plugin_tray::TrayPluginExt;
                 app_handle.tray().create_tray_menu().unwrap();
                 app_handle.tray().create_app_menu().unwrap();
+            }
+
+            {
+                use tauri_plugin_path2::Path2PluginExt;
+                if let Ok(base) = app_handle.path2().base() {
+                    if let Err(e) = agents::write_agents_file(&base) {
+                        tracing::error!("failed to write AGENTS.md: {}", e);
+                    }
+                }
             }
 
             tokio::spawn(async move {

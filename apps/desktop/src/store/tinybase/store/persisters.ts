@@ -113,7 +113,9 @@ export function useMainPersisters(
 
       initFolderOps({
         store: store as Store,
-        reloadFolders: () => persister.load(),
+        reloadFolders: async () => {
+          await persister.load();
+        },
       });
 
       if (getCurrentWebviewWindowLabel() === "main") {

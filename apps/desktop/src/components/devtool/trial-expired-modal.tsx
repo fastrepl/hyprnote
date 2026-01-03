@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Brain, Cloud, ExternalLink, Puzzle, Sparkle, X } from "lucide-react";
 import { create } from "zustand";
 
 import { Modal } from "@hypr/ui/components/ui/modal";
@@ -52,19 +52,21 @@ export function TrialExpiredModal() {
 
           <div className="flex flex-wrap justify-center gap-3">
             {[
-              "Pro AI models",
-              "Cloud sync",
-              "Memory",
-              "Integrations",
-              "Shareable links",
-            ].map((feature) => (
+              { label: "Pro AI models", icon: Sparkle },
+              { label: "Cloud sync", icon: Cloud },
+              { label: "Memory", icon: Brain },
+              { label: "Integrations", icon: Puzzle },
+              { label: "Shareable links", icon: ExternalLink },
+            ].map(({ label, icon: Icon }) => (
               <div
-                key={feature}
+                key={label}
                 className={cn([
                   "rounded-full border border-border bg-secondary/50 px-4 py-2 text-sm text-secondary-foreground",
+                  "flex items-center gap-2",
                 ])}
               >
-                {feature}
+                <Icon className="h-4 w-4" />
+                {label}
               </div>
             ))}
           </div>

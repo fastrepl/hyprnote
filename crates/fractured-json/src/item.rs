@@ -113,10 +113,8 @@ impl JsonItem {
                 (JsonItemType::String, 0, Vec::new(), escaped)
             }
             Value::Array(arr) => {
-                let children: Vec<JsonItem> = arr
-                    .iter()
-                    .map(|v| JsonItem::from_value(v, None))
-                    .collect();
+                let children: Vec<JsonItem> =
+                    arr.iter().map(|v| JsonItem::from_value(v, None)).collect();
                 let complexity = if children.is_empty() {
                     0
                 } else {

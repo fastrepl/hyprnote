@@ -105,7 +105,12 @@ impl TableTemplate {
     }
 
     /// Analyzes an object/array for formatting as a table.
-    pub fn measure_table_root(&mut self, table_root: &JsonItem, pads: &PaddedFormattingTokens, recursive: bool) {
+    pub fn measure_table_root(
+        &mut self,
+        table_root: &JsonItem,
+        pads: &PaddedFormattingTokens,
+        recursive: bool,
+    ) {
         for child in &table_root.children {
             self.measure_row_segment(child, pads, recursive);
         }
@@ -132,14 +137,27 @@ impl TableTemplate {
         self.name_length
             + self.pads_colon_len
             + self.middle_comment_length
-            + if self.middle_comment_length > 0 { self.pads_comment_len } else { 0 }
+            + if self.middle_comment_length > 0 {
+                self.pads_comment_len
+            } else {
+                0
+            }
             + self.max_atomic_value_length
             + self.postfix_comment_length
-            + if self.postfix_comment_length > 0 { self.pads_comment_len } else { 0 }
+            + if self.postfix_comment_length > 0 {
+                self.pads_comment_len
+            } else {
+                0
+            }
             + self.pads_comma_len
     }
 
-    fn measure_row_segment(&mut self, row_segment: &JsonItem, pads: &PaddedFormattingTokens, recursive: bool) {
+    fn measure_row_segment(
+        &mut self,
+        row_segment: &JsonItem,
+        pads: &PaddedFormattingTokens,
+        recursive: bool,
+    ) {
         // Standalone comments and blank lines don't figure into template measurements
         if matches!(
             row_segment.item_type,
@@ -177,14 +195,24 @@ impl TableTemplate {
         self.name_length = self.name_length.max(row_segment.name_length);
         self.name_minimum = self.name_minimum.min(row_segment.name_length);
         self.max_value_length = self.max_value_length.max(row_segment.value_length);
-        self.middle_comment_length = self.middle_comment_length.max(row_segment.middle_comment_length);
-        self.prefix_comment_length = self.prefix_comment_length.max(row_segment.prefix_comment_length);
-        self.postfix_comment_length = self.postfix_comment_length.max(row_segment.postfix_comment_length);
+        self.middle_comment_length = self
+            .middle_comment_length
+            .max(row_segment.middle_comment_length);
+        self.prefix_comment_length = self
+            .prefix_comment_length
+            .max(row_segment.prefix_comment_length);
+        self.postfix_comment_length = self
+            .postfix_comment_length
+            .max(row_segment.postfix_comment_length);
         self.is_any_post_comment_line_style |= row_segment.is_post_comment_line_style;
         self.any_middle_comment_has_newline |= row_segment.middle_comment_has_newline;
 
-        if !matches!(row_segment.item_type, JsonItemType::Array | JsonItemType::Object) {
-            self.max_atomic_value_length = self.max_atomic_value_length.max(row_segment.value_length);
+        if !matches!(
+            row_segment.item_type,
+            JsonItemType::Array | JsonItemType::Object
+        ) {
+            self.max_atomic_value_length =
+                self.max_atomic_value_length.max(row_segment.value_length);
         }
 
         if row_segment.complexity >= 2 {
@@ -198,7 +226,8 @@ impl TableTemplate {
         if self.column_type == TableColumnType::Array && recursive {
             for (i, child) in row_segment.children.iter().enumerate() {
                 if self.children.len() <= i {
-                    self.children.push(TableTemplate::new(pads, self.number_list_alignment));
+                    self.children
+                        .push(TableTemplate::new(pads, self.number_list_alignment));
                 }
                 self.children[i].measure_row_segment(child, pads, true);
             }
@@ -212,9 +241,10 @@ impl TableTemplate {
             }
 
             for child in &row_segment.children {
-                let sub_template = self.children.iter_mut().find(|t| {
-                    t.location_in_parent.as_ref() == Some(&child.name)
-                });
+                let sub_template = self
+                    .children
+                    .iter_mut()
+                    .find(|t| t.location_in_parent.as_ref() == Some(&child.name));
 
                 if let Some(template) = sub_template {
                     template.measure_row_segment(child, pads, true);
@@ -229,7 +259,10 @@ impl TableTemplate {
 
         // Number alignment handling
         if self.column_type == TableColumnType::Number
-            && !matches!(self.number_list_alignment, NumberListAlignment::Left | NumberListAlignment::Right)
+            && !matches!(
+                self.number_list_alignment,
+                NumberListAlignment::Left | NumberListAlignment::Right
+            )
         {
             let normalized_str = if self.number_list_alignment == NumberListAlignment::Normalize {
                 if let Ok(parsed) = row_segment.value.parse::<f64>() {
@@ -268,7 +301,10 @@ impl TableTemplate {
 
     fn prune_and_recompute(&mut self, pads: &PaddedFormattingTokens, max_allowed_complexity: i32) {
         if max_allowed_complexity <= 0
-            || !matches!(self.column_type, TableColumnType::Array | TableColumnType::Object)
+            || !matches!(
+                self.column_type,
+                TableColumnType::Array | TableColumnType::Object
+            )
             || self.row_count < 2
         {
             self.children.clear();
@@ -293,7 +329,8 @@ impl TableTemplate {
                 + pads.arr_end_len(self.pad_type);
 
             if self.contains_null && self.composite_value_length < pads.literal_null_len {
-                self.shorter_than_null_adjustment = pads.literal_null_len - self.composite_value_length;
+                self.shorter_than_null_adjustment =
+                    pads.literal_null_len - self.composite_value_length;
                 self.composite_value_length = pads.literal_null_len;
             }
         } else {
@@ -324,7 +361,12 @@ impl TableTemplate {
         if self.children.is_empty() {
             0
         } else {
-            1 + self.children.iter().map(|c| c.get_template_complexity()).max().unwrap_or(0)
+            1 + self
+                .children
+                .iter()
+                .map(|c| c.get_template_complexity())
+                .max()
+                .unwrap_or(0)
         }
     }
 
@@ -345,7 +387,9 @@ impl TableTemplate {
     pub fn format_number(&self, value: &str, item_type: JsonItemType) -> (String, usize, usize) {
         if item_type == JsonItemType::Null {
             let left_pad = self.max_dig_before_dec.saturating_sub(4); // "null".len()
-            let right_pad = self.composite_value_length.saturating_sub(self.max_dig_before_dec);
+            let right_pad = self
+                .composite_value_length
+                .saturating_sub(self.max_dig_before_dec);
             return (value.to_string(), left_pad, right_pad);
         }
 
@@ -371,11 +415,15 @@ impl TableTemplate {
                 let index_of_dot = value.find(|c| c == '.' || c == 'e' || c == 'E');
                 let (left_pad, right_pad) = if let Some(idx) = index_of_dot {
                     let left = self.max_dig_before_dec.saturating_sub(idx);
-                    let right = self.composite_value_length.saturating_sub(left + value.len());
+                    let right = self
+                        .composite_value_length
+                        .saturating_sub(left + value.len());
                     (left, right)
                 } else {
                     let left = self.max_dig_before_dec.saturating_sub(value.len());
-                    let right = self.composite_value_length.saturating_sub(self.max_dig_before_dec);
+                    let right = self
+                        .composite_value_length
+                        .saturating_sub(self.max_dig_before_dec);
                     (left, right)
                 };
                 (value.to_string(), left_pad, right_pad)

@@ -30,8 +30,8 @@ impl Formatter {
 
     /// Reads in JSON text and returns a nicely-formatted string of the same content.
     pub fn reformat(&self, json_text: &str, starting_depth: usize) -> Result<String, String> {
-        let value: Value = serde_json::from_str(json_text)
-            .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+        let value: Value =
+            serde_json::from_str(json_text).map_err(|e| format!("Failed to parse JSON: {}", e))?;
         Ok(self.format_value(&value, starting_depth))
     }
 
@@ -50,8 +50,8 @@ impl Formatter {
 
     /// Minifies JSON text by removing all unnecessary whitespace.
     pub fn minify(&self, json_text: &str) -> Result<String, String> {
-        let value: Value = serde_json::from_str(json_text)
-            .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+        let value: Value =
+            serde_json::from_str(json_text).map_err(|e| format!("Failed to parse JSON: {}", e))?;
         Ok(self.minify_value(&value))
     }
 
@@ -81,7 +81,10 @@ impl Formatter {
         item.requires_multiple_lines = matches!(
             item.item_type,
             JsonItemType::BlankLine | JsonItemType::BlockComment | JsonItemType::LineComment
-        ) || item.children.iter().any(|ch| ch.requires_multiple_lines || ch.is_post_comment_line_style)
+        ) || item
+            .children
+            .iter()
+            .any(|ch| ch.requires_multiple_lines || ch.is_post_comment_line_style)
             || item.prefix_comment.contains('\n')
             || item.middle_comment.contains('\n')
             || item.postfix_comment.contains('\n')
@@ -133,7 +136,14 @@ impl Formatter {
     ) {
         match item.item_type {
             JsonItemType::Array | JsonItemType::Object => {
-                self.format_container(buffer, item, depth, include_trailing_comma, parent_template, pads);
+                self.format_container(
+                    buffer,
+                    item,
+                    depth,
+                    include_trailing_comma,
+                    parent_template,
+                    pads,
+                );
             }
             JsonItemType::BlankLine => {
                 self.format_blank_line(buffer, pads);
@@ -143,9 +153,23 @@ impl Formatter {
             }
             _ => {
                 if item.requires_multiple_lines {
-                    self.format_split_key_value(buffer, item, depth, include_trailing_comma, parent_template, pads);
+                    self.format_split_key_value(
+                        buffer,
+                        item,
+                        depth,
+                        include_trailing_comma,
+                        parent_template,
+                        pads,
+                    );
                 } else {
-                    self.format_inline_element(buffer, item, depth, include_trailing_comma, parent_template, pads);
+                    self.format_inline_element(
+                        buffer,
+                        item,
+                        depth,
+                        include_trailing_comma,
+                        parent_template,
+                        pads,
+                    );
                 }
             }
         }
@@ -163,31 +187,63 @@ impl Formatter {
     ) {
         // Try to inline or compact-multiline format, as long as we're deeper than always_expand_depth
         if depth as i32 > self.options.always_expand_depth {
-            if self.format_container_inline(buffer, item, depth, include_trailing_comma, parent_template, pads) {
+            if self.format_container_inline(
+                buffer,
+                item,
+                depth,
+                include_trailing_comma,
+                parent_template,
+                pads,
+            ) {
                 return;
             }
         }
 
         // Create a helper object to measure how much space we'll need
-        let recursive_template = item.complexity as i32 <= self.options.max_compact_array_complexity
+        let recursive_template = item.complexity as i32
+            <= self.options.max_compact_array_complexity
             || item.complexity as i32 <= self.options.max_table_row_complexity + 1;
         let mut template = TableTemplate::new(pads, self.options.number_list_alignment);
         template.measure_table_root(item, pads, recursive_template);
 
         if depth as i32 > self.options.always_expand_depth {
-            if self.format_container_compact_multiline(buffer, item, depth, include_trailing_comma, &template, parent_template, pads) {
+            if self.format_container_compact_multiline(
+                buffer,
+                item,
+                depth,
+                include_trailing_comma,
+                &template,
+                parent_template,
+                pads,
+            ) {
                 return;
             }
         }
 
         // Allow table formatting at the specified depth too
         if depth as i32 >= self.options.always_expand_depth {
-            if self.format_container_table(buffer, item, depth, include_trailing_comma, &mut template.clone(), parent_template, pads) {
+            if self.format_container_table(
+                buffer,
+                item,
+                depth,
+                include_trailing_comma,
+                &mut template.clone(),
+                parent_template,
+                pads,
+            ) {
                 return;
             }
         }
 
-        self.format_container_expanded(buffer, item, depth, include_trailing_comma, &template, parent_template, pads);
+        self.format_container_expanded(
+            buffer,
+            item,
+            depth,
+            include_trailing_comma,
+            &template,
+            parent_template,
+            pads,
+        );
     }
 
     /// Tries to format a container inline (single line).
@@ -240,9 +296,14 @@ impl Formatter {
         } else {
             0
         };
-        let comma_len = if include_trailing_comma { pads.comma_len } else { 0 };
+        let comma_len = if include_trailing_comma {
+            pads.comma_len
+        } else {
+            0
+        };
 
-        let length_to_consider = prefix_length + name_length + middle_len + item.value_length + postfix_len + comma_len;
+        let length_to_consider =
+            prefix_length + name_length + middle_len + item.value_length + postfix_len + comma_len;
 
         if item.complexity as i32 > self.options.max_inline_complexity
             || length_to_consider > self.available_line_space(depth, pads)
@@ -252,7 +313,14 @@ impl Formatter {
 
         buffer.push_str(&self.options.prefix_string);
         buffer.push_str(&pads.indent(depth));
-        self.inline_element_with_eol(buffer, item, include_trailing_comma, true, parent_template, pads);
+        self.inline_element_with_eol(
+            buffer,
+            item,
+            include_trailing_comma,
+            true,
+            parent_template,
+            pads,
+        );
         buffer.push_str(&pads.eol);
 
         true
@@ -272,7 +340,9 @@ impl Formatter {
         if item.item_type != JsonItemType::Array {
             return false;
         }
-        if item.children.is_empty() || item.children.len() < self.options.min_compact_array_row_items {
+        if item.children.is_empty()
+            || item.children.len() < self.options.min_compact_array_row_items
+        {
             return false;
         }
         if item.complexity as i32 > self.options.max_compact_array_complexity {
@@ -282,7 +352,10 @@ impl Formatter {
             return false;
         }
 
-        let use_table_formatting = !matches!(template.column_type, TableColumnType::Unknown | TableColumnType::Mixed);
+        let use_table_formatting = !matches!(
+            template.column_type,
+            TableColumnType::Unknown | TableColumnType::Mixed
+        );
 
         // If we can't fit lots of them on a line, compact multiline isn't a good choice
         let likely_available_line_space = self.available_line_space(depth + 1, pads);
@@ -290,14 +363,19 @@ impl Formatter {
             + if use_table_formatting {
                 template.total_length
             } else {
-                item.children.iter().map(|ch| ch.minimum_total_length).sum::<usize>() / item.children.len()
+                item.children
+                    .iter()
+                    .map(|ch| ch.minimum_total_length)
+                    .sum::<usize>()
+                    / item.children.len()
             };
         if avg_item_width * self.options.min_compact_array_row_items > likely_available_line_space {
             return false;
         }
 
         // Add prefix_string, indent, prefix comment, starting bracket
-        let depth_after_colon = self.standard_format_start(buffer, item, depth, parent_template, pads);
+        let depth_after_colon =
+            self.standard_format_start(buffer, item, depth, parent_template, pads);
         buffer.push_str(pads.start(item.item_type, BracketPaddingType::Empty));
 
         let available_line_space = self.available_line_space(depth_after_colon + 1, pads);
@@ -310,7 +388,8 @@ impl Formatter {
             } else {
                 child.minimum_total_length
             };
-            let space_needed_for_current = current_item_width + if needs_comma { pads.comma_len } else { 0 };
+            let space_needed_for_current =
+                current_item_width + if needs_comma { pads.comma_len } else { 0 };
 
             // Check if we need to start a new line
             if remaining_line_space < space_needed_for_current as i32 {
@@ -331,12 +410,27 @@ impl Formatter {
                 0
             };
             let space_after_current = remaining_line_space - space_needed_for_current as i32;
-            let is_end_of_line = !needs_comma || space_after_current < (next_item_width + pads.comma_len) as i32;
+            let is_end_of_line =
+                !needs_comma || space_after_current < (next_item_width + pads.comma_len) as i32;
 
             if use_table_formatting {
-                self.inline_table_row_segment(buffer, template, child, needs_comma, is_end_of_line, pads);
+                self.inline_table_row_segment(
+                    buffer,
+                    template,
+                    child,
+                    needs_comma,
+                    is_end_of_line,
+                    pads,
+                );
             } else {
-                self.inline_element_with_eol(buffer, child, needs_comma, is_end_of_line, None, pads);
+                self.inline_element_with_eol(
+                    buffer,
+                    child,
+                    needs_comma,
+                    is_end_of_line,
+                    None,
+                    pads,
+                );
             }
             remaining_line_space -= space_needed_for_current as i32;
         }
@@ -377,7 +471,9 @@ impl Formatter {
         } else {
             depth + 1
         };
-        let available_space = self.available_line_space(available_space_depth, pads).saturating_sub(pads.comma_len);
+        let available_space = self
+            .available_line_space(available_space_depth, pads)
+            .saturating_sub(pads.comma_len);
 
         // If any child element is too long even without formatting, don't bother
         let is_child_too_long = item.children.iter().any(|ch| {
@@ -391,11 +487,14 @@ impl Formatter {
         }
 
         // Try to fit the template
-        if !template.try_to_fit(pads, available_space) || template.column_type == TableColumnType::Mixed {
+        if !template.try_to_fit(pads, available_space)
+            || template.column_type == TableColumnType::Mixed
+        {
             return false;
         }
 
-        let depth_after_colon = self.standard_format_start(buffer, item, depth, parent_template, pads);
+        let depth_after_colon =
+            self.standard_format_start(buffer, item, depth, parent_template, pads);
         buffer.push_str(pads.start(item.item_type, BracketPaddingType::Empty));
         buffer.push_str(&pads.eol);
 
@@ -405,14 +504,24 @@ impl Formatter {
                 self.format_blank_line(buffer, pads);
                 continue;
             }
-            if matches!(row_item.item_type, JsonItemType::LineComment | JsonItemType::BlockComment) {
+            if matches!(
+                row_item.item_type,
+                JsonItemType::LineComment | JsonItemType::BlockComment
+            ) {
                 self.format_standalone_comment(buffer, row_item, depth_after_colon + 1, pads);
                 continue;
             }
 
             buffer.push_str(&self.options.prefix_string);
             buffer.push_str(&pads.indent(depth_after_colon + 1));
-            self.inline_table_row_segment(buffer, template, row_item, i < last_element_index, true, pads);
+            self.inline_table_row_segment(
+                buffer,
+                template,
+                row_item,
+                i < last_element_index,
+                true,
+                pads,
+            );
             buffer.push_str(&pads.eol);
         }
 
@@ -435,20 +544,29 @@ impl Formatter {
         parent_template: Option<&TableTemplate>,
         pads: &PaddedFormattingTokens,
     ) {
-        let depth_after_colon = self.standard_format_start(buffer, item, depth, parent_template, pads);
+        let depth_after_colon =
+            self.standard_format_start(buffer, item, depth, parent_template, pads);
         buffer.push_str(pads.start(item.item_type, BracketPaddingType::Empty));
         buffer.push_str(&pads.eol);
 
         // Decide whether to align this container's property values
         let align_props = item.item_type == JsonItemType::Object
-            && template.name_length.saturating_sub(template.name_minimum) <= self.options.max_prop_name_padding
+            && template.name_length.saturating_sub(template.name_minimum)
+                <= self.options.max_prop_name_padding
             && !template.any_middle_comment_has_newline
             && self.available_line_space(depth + 1, pads) >= template.atomic_item_size();
         let template_to_pass = if align_props { Some(template) } else { None };
 
         let last_element_index = self.index_of_last_element(&item.children);
         for (i, child) in item.children.iter().enumerate() {
-            self.format_item(buffer, child, depth_after_colon + 1, i < last_element_index, template_to_pass, pads);
+            self.format_item(
+                buffer,
+                child,
+                depth_after_colon + 1,
+                i < last_element_index,
+                template_to_pass,
+                pads,
+            );
         }
 
         buffer.push_str(&self.options.prefix_string);
@@ -521,10 +639,29 @@ impl Formatter {
         buffer.push_str(&pads.indent(depth));
 
         if let Some(pt) = parent_template {
-            self.add_to_buffer_fixed(buffer, &item.prefix_comment, item.prefix_comment_length, pt.prefix_comment_length, &pads.comment, false);
-            self.add_to_buffer_fixed(buffer, &item.name, item.name_length, pt.name_length, &pads.colon, self.options.colon_before_prop_name_padding);
+            self.add_to_buffer_fixed(
+                buffer,
+                &item.prefix_comment,
+                item.prefix_comment_length,
+                pt.prefix_comment_length,
+                &pads.comment,
+                false,
+            );
+            self.add_to_buffer_fixed(
+                buffer,
+                &item.name,
+                item.name_length,
+                pt.name_length,
+                &pads.colon,
+                self.options.colon_before_prop_name_padding,
+            );
         } else {
-            self.add_to_buffer(buffer, &item.prefix_comment, item.prefix_comment_length, &pads.comment);
+            self.add_to_buffer(
+                buffer,
+                &item.prefix_comment,
+                item.prefix_comment_length,
+                &pads.comment,
+            );
             self.add_to_buffer(buffer, &item.name, item.name_length, &pads.colon);
         }
 
@@ -534,7 +671,8 @@ impl Formatter {
 
         if !item.middle_comment_has_newline {
             let middle_pad = if let Some(pt) = parent_template {
-                pt.middle_comment_length.saturating_sub(item.middle_comment_length)
+                pt.middle_comment_length
+                    .saturating_sub(item.middle_comment_length)
             } else {
                 0
             };
@@ -587,7 +725,14 @@ impl Formatter {
         parent_template: Option<&TableTemplate>,
         pads: &PaddedFormattingTokens,
     ) {
-        self.inline_element_with_eol(buffer, item, include_trailing_comma, false, parent_template, pads);
+        self.inline_element_with_eol(
+            buffer,
+            item,
+            include_trailing_comma,
+            false,
+            parent_template,
+            pads,
+        );
     }
 
     /// Writes an element inline with control over end-of-line comma handling.
@@ -601,19 +746,54 @@ impl Formatter {
         pads: &PaddedFormattingTokens,
     ) {
         if let Some(pt) = parent_template {
-            self.add_to_buffer_fixed(buffer, &item.prefix_comment, item.prefix_comment_length, pt.prefix_comment_length, &pads.comment, false);
-            self.add_to_buffer_fixed(buffer, &item.name, item.name_length, pt.name_length, &pads.colon, self.options.colon_before_prop_name_padding);
-            self.add_to_buffer_fixed(buffer, &item.middle_comment, item.middle_comment_length, pt.middle_comment_length, &pads.comment, false);
+            self.add_to_buffer_fixed(
+                buffer,
+                &item.prefix_comment,
+                item.prefix_comment_length,
+                pt.prefix_comment_length,
+                &pads.comment,
+                false,
+            );
+            self.add_to_buffer_fixed(
+                buffer,
+                &item.name,
+                item.name_length,
+                pt.name_length,
+                &pads.colon,
+                self.options.colon_before_prop_name_padding,
+            );
+            self.add_to_buffer_fixed(
+                buffer,
+                &item.middle_comment,
+                item.middle_comment_length,
+                pt.middle_comment_length,
+                &pads.comment,
+                false,
+            );
         } else {
-            self.add_to_buffer(buffer, &item.prefix_comment, item.prefix_comment_length, &pads.comment);
+            self.add_to_buffer(
+                buffer,
+                &item.prefix_comment,
+                item.prefix_comment_length,
+                &pads.comment,
+            );
             self.add_to_buffer(buffer, &item.name, item.name_length, &pads.colon);
-            self.add_to_buffer(buffer, &item.middle_comment, item.middle_comment_length, &pads.comment);
+            self.add_to_buffer(
+                buffer,
+                &item.middle_comment,
+                item.middle_comment_length,
+                &pads.comment,
+            );
         }
 
         self.inline_element_raw(buffer, item, pads);
 
         // Use comma without trailing space at end of line to avoid trailing whitespace
-        let comma = if is_end_of_line { &pads.comma_no_pad } else { &pads.comma };
+        let comma = if is_end_of_line {
+            &pads.comma_no_pad
+        } else {
+            &pads.comma
+        };
 
         if include_trailing_comma && item.is_post_comment_line_style {
             buffer.push_str(comma);
@@ -628,7 +808,12 @@ impl Formatter {
     }
 
     /// Writes just the value of an element inline.
-    fn inline_element_raw(&self, buffer: &mut String, item: &JsonItem, pads: &PaddedFormattingTokens) {
+    fn inline_element_raw(
+        &self,
+        buffer: &mut String,
+        item: &JsonItem,
+        pads: &PaddedFormattingTokens,
+    ) {
         match item.item_type {
             JsonItemType::Array => {
                 let pad_type = self.get_padding_type(item);
@@ -662,13 +847,36 @@ impl Formatter {
         is_whole_row: bool,
         pads: &PaddedFormattingTokens,
     ) {
-        self.add_to_buffer_fixed(buffer, &item.prefix_comment, item.prefix_comment_length, template.prefix_comment_length, &pads.comment, false);
-        self.add_to_buffer_fixed(buffer, &item.name, item.name_length, template.name_length, &pads.colon, self.options.colon_before_prop_name_padding);
-        self.add_to_buffer_fixed(buffer, &item.middle_comment, item.middle_comment_length, template.middle_comment_length, &pads.comment, false);
+        self.add_to_buffer_fixed(
+            buffer,
+            &item.prefix_comment,
+            item.prefix_comment_length,
+            template.prefix_comment_length,
+            &pads.comment,
+            false,
+        );
+        self.add_to_buffer_fixed(
+            buffer,
+            &item.name,
+            item.name_length,
+            template.name_length,
+            &pads.colon,
+            self.options.colon_before_prop_name_padding,
+        );
+        self.add_to_buffer_fixed(
+            buffer,
+            &item.middle_comment,
+            item.middle_comment_length,
+            template.middle_comment_length,
+            &pads.comment,
+            false,
+        );
 
         // Determine comma placement
-        let comma_before_pad = self.options.table_comma_placement == TableCommaPlacement::BeforePadding
-            || (self.options.table_comma_placement == TableCommaPlacement::BeforePaddingExceptNumbers
+        let comma_before_pad = self.options.table_comma_placement
+            == TableCommaPlacement::BeforePadding
+            || (self.options.table_comma_placement
+                == TableCommaPlacement::BeforePaddingExceptNumbers
                 && template.column_type != TableColumnType::Number);
 
         // Use comma without trailing space at end of rows to avoid trailing whitespace
@@ -679,7 +887,7 @@ impl Formatter {
                 &pads.comma
             }
         } else if is_whole_row {
-            ""  // No dummy comma at end of row
+            "" // No dummy comma at end of row
         } else {
             &pads.dummy_comma
         };
@@ -697,7 +905,8 @@ impl Formatter {
                 self.add_spaces(buffer, template.shorter_than_null_adjustment);
             }
         } else if template.column_type == TableColumnType::Number {
-            let (formatted, left_pad, right_pad) = template.format_number(&item.value, item.item_type);
+            let (formatted, left_pad, right_pad) =
+                template.format_number(&item.value, item.item_type);
             self.add_spaces(buffer, left_pad);
             buffer.push_str(&formatted);
             if comma_before_pad {
@@ -709,7 +918,12 @@ impl Formatter {
             if comma_before_pad {
                 buffer.push_str(comma_type);
             }
-            self.add_spaces(buffer, template.composite_value_length.saturating_sub(item.value_length));
+            self.add_spaces(
+                buffer,
+                template
+                    .composite_value_length
+                    .saturating_sub(item.value_length),
+            );
         }
 
         if !comma_before_pad {
@@ -721,7 +935,12 @@ impl Formatter {
             buffer.push_str(&item.postfix_comment);
             // Only add padding for postfix comments if we're not at the end of a row
             if !is_whole_row {
-                self.add_spaces(buffer, template.postfix_comment_length.saturating_sub(item.postfix_comment_length));
+                self.add_spaces(
+                    buffer,
+                    template
+                        .postfix_comment_length
+                        .saturating_sub(item.postfix_comment_length),
+                );
             }
         }
     }
@@ -746,7 +965,14 @@ impl Formatter {
                     buffer.push_str(&pads.dummy_comma);
                 }
             } else {
-                self.inline_table_row_segment(buffer, sub_template, &item.children[i], !is_last_in_array, false, pads);
+                self.inline_table_row_segment(
+                    buffer,
+                    sub_template,
+                    &item.children[i],
+                    !is_last_in_array,
+                    false,
+                    pads,
+                );
                 if is_last_in_array && !is_last_in_template {
                     buffer.push_str(&pads.dummy_comma);
                 }
@@ -767,9 +993,10 @@ impl Formatter {
             .children
             .iter()
             .map(|sub| {
-                let matching_child = item.children.iter().find(|ch| {
-                    sub.location_in_parent.as_ref() == Some(&ch.name)
-                });
+                let matching_child = item
+                    .children
+                    .iter()
+                    .find(|ch| sub.location_in_parent.as_ref() == Some(&ch.name));
                 (sub, matching_child)
             })
             .collect();
@@ -788,7 +1015,14 @@ impl Formatter {
             let is_last_in_template = i == matches.len() - 1;
 
             if let Some(item) = sub_item {
-                self.inline_table_row_segment(buffer, sub_template, item, !is_last_in_object, false, pads);
+                self.inline_table_row_segment(
+                    buffer,
+                    sub_template,
+                    item,
+                    !is_last_in_object,
+                    false,
+                    pads,
+                );
                 if is_last_in_object && !is_last_in_template {
                     buffer.push_str(&pads.dummy_comma);
                 }
@@ -827,7 +1061,9 @@ impl Formatter {
             .find(|(_, ch)| {
                 !matches!(
                     ch.item_type,
-                    JsonItemType::BlankLine | JsonItemType::LineComment | JsonItemType::BlockComment
+                    JsonItemType::BlankLine
+                        | JsonItemType::LineComment
+                        | JsonItemType::BlockComment
                 )
             })
             .map(|(i, _)| i)

@@ -7,7 +7,10 @@ use tantivy::tokenizer::{
 use tantivy::{Index, ReloadPolicy, TantivyDocument, Term};
 use tauri_plugin_path2::Path2PluginExt;
 
-use crate::{IndexState, SearchDocument, SearchFilters, SearchHit, SearchResult};
+use crate::{
+    CollectionConfig, CollectionIndex, IndexState, SearchDocument, SearchFilters, SearchHit,
+    SearchResult,
+};
 
 pub fn detect_language(text: &str) -> hypr_language::Language {
     hypr_language::detect(text)
@@ -50,20 +53,21 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         Ok(())
     }
 
-    pub async fn init(&self) -> Result<(), crate::Error> {
+    pub async fn register_collection(&self, config: CollectionConfig) -> Result<(), crate::Error> {
         let base = self.manager.app_handle().path2().base()?;
-        let index_path = base.join("search_index");
+        let index_path = base.join(&config.path);
 
         std::fs::create_dir_all(&index_path)?;
 
         let state = self.manager.state::<IndexState>();
         let mut guard = state.inner.lock().await;
 
-        if guard.index.is_some() {
+        if guard.collections.contains_key(&config.name) {
+            tracing::debug!("Collection '{}' already registered", config.name);
             return Ok(());
         }
 
-        let schema = build_schema();
+        let schema = (config.schema_builder)();
         let index = if index_path.join("meta.json").exists() {
             Index::open_in_dir(&index_path)?
         } else {
@@ -79,36 +83,48 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
 
         let writer = index.writer(50_000_000)?;
 
-        guard.schema = Some(schema);
-        guard.index = Some(index);
-        guard.reader = Some(reader);
-        guard.writer = Some(writer);
+        let collection_index = CollectionIndex {
+            schema,
+            index,
+            reader,
+            writer,
+        };
 
-        tracing::info!("Tantivy search index initialized at {:?}", index_path);
+        guard
+            .collections
+            .insert(config.name.clone(), collection_index);
+
+        tracing::info!(
+            "Tantivy collection '{}' registered at {:?}",
+            config.name,
+            index_path
+        );
         Ok(())
+    }
+
+    fn get_collection_name(collection: Option<String>) -> String {
+        collection.unwrap_or_else(|| "default".to_string())
     }
 
     pub async fn search(
         &self,
+        collection: Option<String>,
         query: String,
         filters: Option<SearchFilters>,
         limit: usize,
     ) -> Result<SearchResult, crate::Error> {
+        let collection_name = Self::get_collection_name(collection);
         let state = self.manager.state::<IndexState>();
         let guard = state.inner.lock().await;
 
-        let schema = guard
-            .schema
-            .as_ref()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-        let index = guard
-            .index
-            .as_ref()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-        let reader = guard
-            .reader
-            .as_ref()
-            .ok_or(crate::Error::IndexNotInitialized)?;
+        let collection_index = guard
+            .collections
+            .get(&collection_name)
+            .ok_or_else(|| crate::Error::CollectionNotFound(collection_name.clone()))?;
+
+        let schema = &collection_index.schema;
+        let index = &collection_index.index;
+        let reader = &collection_index.reader;
 
         let fields = get_fields(schema);
         let searcher = reader.searcher();
@@ -148,22 +164,23 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
 
     pub async fn search_fuzzy(
         &self,
+        collection: Option<String>,
         query: String,
         filters: Option<SearchFilters>,
         limit: usize,
         distance: u8,
     ) -> Result<SearchResult, crate::Error> {
+        let collection_name = Self::get_collection_name(collection);
         let state = self.manager.state::<IndexState>();
         let guard = state.inner.lock().await;
 
-        let schema = guard
-            .schema
-            .as_ref()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-        let reader = guard
-            .reader
-            .as_ref()
-            .ok_or(crate::Error::IndexNotInitialized)?;
+        let collection_index = guard
+            .collections
+            .get(&collection_name)
+            .ok_or_else(|| crate::Error::CollectionNotFound(collection_name.clone()))?;
+
+        let schema = &collection_index.schema;
+        let reader = &collection_index.reader;
 
         let fields = get_fields(schema);
         let searcher = reader.searcher();
@@ -213,34 +230,28 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         Ok(SearchResult { hits })
     }
 
-    pub async fn reindex(&self) -> Result<(), crate::Error> {
-        self.init().await?;
-
+    pub async fn reindex(&self, collection: Option<String>) -> Result<(), crate::Error> {
+        let collection_name = Self::get_collection_name(collection);
         let state = self.manager.state::<IndexState>();
         let mut guard = state.inner.lock().await;
 
-        let schema = guard
-            .schema
-            .clone()
-            .ok_or(crate::Error::IndexNotInitialized)?;
-        let writer = guard
-            .writer
-            .as_mut()
-            .ok_or(crate::Error::IndexNotInitialized)?;
+        let collection_index = guard
+            .collections
+            .get_mut(&collection_name)
+            .ok_or_else(|| crate::Error::CollectionNotFound(collection_name.clone()))?;
+
+        let schema = &collection_index.schema;
+        let writer = &mut collection_index.writer;
 
         writer.delete_all_documents()?;
 
-        let fields = get_fields(&schema);
-
-        // TODO: Fetch documents from database and index them
-        // For now, this just clears and commits the index
-        // The actual implementation should query sessions from the database
-        // and add them as SearchDocuments
+        let fields = get_fields(schema);
 
         writer.commit()?;
 
         tracing::info!(
-            "Reindex completed. Index cleared and ready for new documents. Fields: {:?}",
+            "Reindex completed for collection '{}'. Index cleared and ready for new documents. Fields: {:?}",
+            collection_name,
             fields.id
         );
 
@@ -266,7 +277,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> TantivyPluginExt<R> for T {
     }
 }
 
-fn build_schema() -> Schema {
+pub fn build_schema() -> Schema {
     let mut schema_builder = Schema::builder();
     schema_builder.add_text_field("id", STRING | STORED);
     schema_builder.add_text_field("doc_type", STRING | STORED);

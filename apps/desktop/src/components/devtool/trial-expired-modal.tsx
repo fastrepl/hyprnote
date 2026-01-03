@@ -1,13 +1,7 @@
+import { X } from "lucide-react";
 import { create } from "zustand";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@hypr/ui/components/ui/dialog";
+import { Modal } from "@hypr/ui/components/ui/modal";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../billing";
@@ -34,58 +28,60 @@ export function TrialExpiredModal() {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && close()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Your Pro Trial Has Ended</DialogTitle>
-          <DialogDescription>
-            Your 14-day free trial of Hyprnote Pro has expired. Upgrade now to
-            continue using premium features.
-          </DialogDescription>
-        </DialogHeader>
+    <Modal open={isOpen} onClose={close} preventClose size="lg">
+      <div className="relative flex flex-col">
+        <button
+          onClick={close}
+          className="absolute right-4 top-4 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
 
-        <div className="flex flex-col gap-3 py-4">
-          <div className="flex items-center gap-2 text-sm text-neutral-600">
-            <span className="text-green-500">✓</span>
-            <span>Unlimited AI-powered transcriptions</span>
+        <div className="flex flex-col items-center gap-8 p-12 text-center">
+          <div className="flex flex-col gap-3">
+            <h2 className="font-serif text-3xl font-semibold">
+              Your free trial is over
+            </h2>
+            <p className="text-muted-foreground">
+              You can keep using Hyprnote for free,
+              <br />
+              but here's what you'll be losing
+            </p>
           </div>
-          <div className="flex items-center gap-2 text-sm text-neutral-600">
-            <span className="text-green-500">✓</span>
-            <span>Advanced note enhancement</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-neutral-600">
-            <span className="text-green-500">✓</span>
-            <span>Priority support</span>
-          </div>
-        </div>
 
-        <DialogFooter className="flex-col gap-2 sm:flex-col">
+          <div className="flex flex-wrap justify-center gap-3">
+            {[
+              "Pro AI models",
+              "Cloud sync",
+              "Memory",
+              "Integrations",
+              "Shareable links",
+            ].map((feature) => (
+              <div
+                key={feature}
+                className={cn([
+                  "rounded-full border border-border bg-secondary/50 px-4 py-2 text-sm text-secondary-foreground",
+                ])}
+              >
+                {feature}
+              </div>
+            ))}
+          </div>
+
           <button
-            type="button"
             onClick={handleUpgrade}
             className={cn([
-              "w-full px-4 py-2 rounded-md",
-              "text-sm font-medium text-white",
-              "bg-blue-600 hover:bg-blue-700",
-              "transition-colors cursor-pointer",
+              "inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-8 text-sm font-medium",
+              "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow",
+              "transition-all hover:opacity-90",
+              "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
             ])}
           >
-            Upgrade to Pro
+            I'd like to keep using <span className="font-serif">Pro</span>
           </button>
-          <button
-            type="button"
-            onClick={close}
-            className={cn([
-              "w-full px-4 py-2 rounded-md",
-              "text-sm font-medium text-neutral-600",
-              "hover:bg-neutral-100",
-              "transition-colors cursor-pointer",
-            ])}
-          >
-            Continue with Free
-          </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </Modal>
   );
 }

@@ -21,24 +21,27 @@ type ChatGroupData = {
 
 type NormalizedChatMessage = {
   id: string;
-  user_id: string;
-  created_at: string;
-  chat_group_id: string;
-  role: string;
-  content: string;
+  user_id: string | null;
+  created_at: string | null;
+  chat_group_id: string | null;
+  role: string | null;
+  content: string | null;
   metadata: Record<string, unknown> | null;
   parts: unknown[] | null;
 };
 
 type ChatMetadataJson = {
   schemaVersion: number;
+  exportId: string;
   exportedAt: string;
   chatGroup: ChatGroupData;
 };
 
 type MessagesJson = {
   schemaVersion: number;
-  messages: NormalizedChatMessage[];
+  exportId: string;
+  messageOrder: string[];
+  messages: Record<string, NormalizedChatMessage>;
 };
 
 export type ChatCollectorResult = CollectorResult & {
@@ -51,11 +54,11 @@ function normalizeMessage(
   const parsedParts = safeParseJson(message.parts);
   return {
     id: message.id,
-    user_id: message.user_id ?? "",
-    created_at: message.created_at ?? "",
-    chat_group_id: message.chat_group_id ?? "",
-    role: message.role ?? "",
-    content: message.content ?? "",
+    user_id: message.user_id ?? null,
+    created_at: message.created_at ?? null,
+    chat_group_id: message.chat_group_id ?? null,
+    role: message.role ?? null,
+    content: message.content ?? null,
     metadata: safeParseJson(message.metadata) ?? null,
     parts: Array.isArray(parsedParts) ? parsedParts : null,
   };
@@ -119,15 +122,26 @@ export function collectChatWriteOps(
     const chatDir = getChatDir(dataDir, chatGroupId);
     dirs.add(chatDir);
 
+    const exportId = crypto.randomUUID();
+    const sortedMessages = messages.sort(compareMessages);
+    const messageOrder = sortedMessages.map((m) => m.id);
+    const messagesMap: Record<string, NormalizedChatMessage> = {};
+    for (const message of sortedMessages) {
+      messagesMap[message.id] = normalizeMessage(message);
+    }
+
     const chatMetadata: ChatMetadataJson = {
       schemaVersion: SCHEMA_VERSION,
+      exportId,
       exportedAt,
       chatGroup,
     };
 
     const messagesContent: MessagesJson = {
       schemaVersion: SCHEMA_VERSION,
-      messages: messages.sort(compareMessages).map(normalizeMessage),
+      exportId,
+      messageOrder,
+      messages: messagesMap,
     };
 
     operations.push({

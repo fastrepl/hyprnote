@@ -5,7 +5,7 @@ use notify_debouncer_full::{DebouncedEvent, new_debouncer};
 use tauri_plugin_path2::Path2PluginExt;
 use tauri_specta::Event;
 
-use crate::{FileChanged, WatcherState};
+use crate::{ChangeKind, FileChanged, WatcherState};
 
 const DEBOUNCE_DELAY_MS: u64 = 500;
 
@@ -33,6 +33,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
             move |events: Result<Vec<DebouncedEvent>, Vec<notify::Error>>| {
                 if let Ok(events) = events {
                     for event in events {
+                        let change_kind = ChangeKind::from(&event.kind);
+
                         for path in &event.paths {
                             let relative_path = path
                                 .strip_prefix(&base_for_closure)
@@ -42,6 +44,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
 
                             let _ = FileChanged {
                                 path: relative_path,
+                                kind: change_kind.clone(),
                             }
                             .emit(&app_handle);
                         }

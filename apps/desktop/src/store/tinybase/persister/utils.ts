@@ -329,6 +329,47 @@ async function loadTableData(
   }
 }
 
+function escapeYamlString(value: string): string {
+  if (value === "") {
+    return '""';
+  }
+  if (value.includes("\n")) {
+    const lines = value.split("\n");
+    const indented = lines.map((line) => `  ${line}`).join("\n");
+    return `|-\n${indented}`;
+  }
+  const escaped = value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\t/g, "\\t");
+  return `"${escaped}"`;
+}
+
+export function toFrontmatterMarkdown(
+  metadata: Record<string, unknown>,
+  content: string = "",
+): string {
+  const lines: string[] = ["---"];
+  const sortedKeys = Object.keys(metadata).sort();
+  for (const key of sortedKeys) {
+    const value = metadata[key];
+    if (value === undefined || value === null) {
+      continue;
+    }
+    if (typeof value === "string") {
+      lines.push(`${key}: ${escapeYamlString(value)}`);
+    } else if (typeof value === "boolean" || typeof value === "number") {
+      lines.push(`${key}: ${value}`);
+    }
+  }
+  lines.push("---");
+  lines.push("");
+  if (content) {
+    lines.push(content);
+  }
+  return lines.join("\n") + "\n";
+}
+
 export function createSingleTablePersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   options: {

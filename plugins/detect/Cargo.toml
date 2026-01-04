@@ -7,6 +7,10 @@ exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-detect"
 description = ""
 
+[features]
+default = ["zoom"]
+zoom = ["hypr-detect/zoom"]
+
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 

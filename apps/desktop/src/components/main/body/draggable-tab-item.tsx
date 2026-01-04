@@ -51,7 +51,6 @@ export function useDraggableTab(
           const windowLabel = `popout-${tab.type}-${Date.now()}`;
 
           const searchParams = new URLSearchParams();
-          searchParams.set("popout", "true");
           searchParams.set("tab", JSON.stringify(tabInput));
 
           const newWindow = new WebviewWindow(windowLabel, {
@@ -60,7 +59,7 @@ export function useDraggableTab(
             width: 800,
             height: 600,
             title: `Hyprnote`,
-            url: `/app/main?${searchParams.toString()}`,
+            url: `/app/popout?${searchParams.toString()}`,
             decorations: true,
             resizable: true,
             center: false,
@@ -139,7 +138,6 @@ export function useDraggableTab(
           const windowLabel = `popout-${tab.type}-${Date.now()}`;
 
           const searchParams = new URLSearchParams();
-          searchParams.set("popout", "true");
           searchParams.set("tab", JSON.stringify(tabInput));
 
           const newWindow = new WebviewWindow(windowLabel, {
@@ -148,7 +146,7 @@ export function useDraggableTab(
             width: 800,
             height: 600,
             title: `Hyprnote`,
-            url: `/app/main?${searchParams.toString()}`,
+            url: `/app/popout?${searchParams.toString()}`,
             decorations: true,
             resizable: true,
             center: false,

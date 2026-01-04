@@ -1,6 +1,7 @@
 use tantivy::Index;
 use tantivy::tokenizer::{
-    Language, LowerCaser, RemoveLongFilter, SimpleTokenizer, Stemmer, TextAnalyzer,
+    AsciiFoldingFilter, Language, LowerCaser, RemoveLongFilter, SimpleTokenizer, Stemmer,
+    TextAnalyzer,
 };
 
 pub fn get_tokenizer_name_for_language(lang: &hypr_language::Language) -> &'static str {
@@ -36,6 +37,7 @@ pub fn register_tokenizers(index: &Index) {
     let multilang_tokenizer = TextAnalyzer::builder(SimpleTokenizer::default())
         .filter(RemoveLongFilter::limit(40))
         .filter(LowerCaser)
+        .filter(AsciiFoldingFilter)
         .build();
     tokenizer_manager.register("multilang", multilang_tokenizer);
 
@@ -64,6 +66,7 @@ pub fn register_tokenizers(index: &Index) {
         let tokenizer = TextAnalyzer::builder(SimpleTokenizer::default())
             .filter(RemoveLongFilter::limit(40))
             .filter(LowerCaser)
+            .filter(AsciiFoldingFilter)
             .filter(Stemmer::new(lang))
             .build();
         tokenizer_manager.register(name, tokenizer);

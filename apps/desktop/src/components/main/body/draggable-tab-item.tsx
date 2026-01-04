@@ -14,8 +14,8 @@ interface UseDraggableTabResult {
   containerRef: React.MutableRefObject<HTMLDivElement | null>;
   handlePointerDown: (e: React.PointerEvent) => void;
   handlePointerMove: (e: React.PointerEvent) => void;
-  handlePointerUp: () => void;
-  handlePointerCancel: () => void;
+  handlePointerUp: (e: React.PointerEvent) => void;
+  handlePointerCancel: (e: React.PointerEvent) => void;
 }
 
 export function useDraggableTab(
@@ -27,10 +27,17 @@ export function useDraggableTab(
   const isDraggingRef = useRef(false);
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
   const hasStartedReorderRef = useRef(false);
+  const pointerDownEventRef = useRef<PointerEvent | null>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     dragStartPosRef.current = { x: e.clientX, y: e.clientY };
     hasStartedReorderRef.current = false;
+    pointerDownEventRef.current = e.nativeEvent;
+
+    // Capture pointer to ensure we receive move events even when pointer leaves element
+    if (containerRef.current) {
+      containerRef.current.setPointerCapture(e.pointerId);
+    }
   }, []);
 
   const handlePointerMove = useCallback(
@@ -51,13 +58,24 @@ export function useDraggableTab(
       // If horizontal movement is dominant, start reorder drag
       if (dx > threshold && dx > dy) {
         hasStartedReorderRef.current = true;
-        dragControls.start(e);
+        // Release pointer capture before starting Framer Motion drag
+        if (containerRef.current) {
+          containerRef.current.releasePointerCapture(e.pointerId);
+        }
+        // Use the original pointerdown event for dragControls.start
+        if (pointerDownEventRef.current) {
+          dragControls.start(pointerDownEventRef.current);
+        }
         return;
       }
 
       // If vertical movement is dominant, start pop-out drag
       if (dy > threshold && dy > dx) {
         isDraggingRef.current = true;
+        // Release pointer capture before starting native drag
+        if (containerRef.current) {
+          containerRef.current.releasePointerCapture(e.pointerId);
+        }
 
         dragAsWindow(containerRef.current, async (payload) => {
           const tabInput = tabToInput(tab);
@@ -93,21 +111,38 @@ export function useDraggableTab(
           .finally(() => {
             isDraggingRef.current = false;
             dragStartPosRef.current = null;
+            pointerDownEventRef.current = null;
           });
       }
     },
     [tab, onPopOut, dragControls],
   );
 
-  const handlePointerUp = useCallback(() => {
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    // Release pointer capture on pointer up
+    if (
+      containerRef.current &&
+      containerRef.current.hasPointerCapture(e.pointerId)
+    ) {
+      containerRef.current.releasePointerCapture(e.pointerId);
+    }
     dragStartPosRef.current = null;
     hasStartedReorderRef.current = false;
+    pointerDownEventRef.current = null;
   }, []);
 
-  const handlePointerCancel = useCallback(() => {
+  const handlePointerCancel = useCallback((e: React.PointerEvent) => {
+    // Release pointer capture on cancel
+    if (
+      containerRef.current &&
+      containerRef.current.hasPointerCapture(e.pointerId)
+    ) {
+      containerRef.current.releasePointerCapture(e.pointerId);
+    }
     isDraggingRef.current = false;
     dragStartPosRef.current = null;
     hasStartedReorderRef.current = false;
+    pointerDownEventRef.current = null;
   }, []);
 
   return {
@@ -156,7 +191,12 @@ export function DraggableReorderItem({
       value={tab}
       as="div"
       ref={setRefs}
-      style={{ position: "relative" }}
+      style={{
+        position: "relative",
+        // Prevent Tauri's drag region from blocking pointer events on macOS
+        // @ts-expect-error - WebKit-specific CSS property
+        WebkitAppRegion: "no-drag",
+      }}
       className="h-full z-10"
       layoutScroll
       dragListener={false}

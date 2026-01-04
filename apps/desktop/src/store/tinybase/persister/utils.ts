@@ -9,8 +9,8 @@ import type {
 
 import {
   commands as exportCommands,
-  type FrontmatterInput,
   type JsonValue as ExportJsonValue,
+  type FrontmatterInput,
 } from "@hypr/plugin-export";
 import { events as notifyEvents } from "@hypr/plugin-notify";
 import { commands as path2Commands } from "@hypr/plugin-path2";
@@ -304,8 +304,9 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
       }
 
       if (frontmatterBatchItems.length > 0) {
-        const exportResult =
-          await exportCommands.exportFrontmatterBatch(frontmatterBatchItems);
+        const exportResult = await exportCommands.exportFrontmatterBatch(
+          frontmatterBatchItems,
+        );
         if (exportResult.status === "error") {
           console.error(
             `[${options.label}] Failed to export frontmatter batch:`,

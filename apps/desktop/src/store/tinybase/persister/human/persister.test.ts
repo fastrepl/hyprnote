@@ -15,7 +15,9 @@ vi.mock("@hypr/plugin-path2", () => ({
 vi.mock("@hypr/plugin-export", () => ({
   commands: {
     parseFrontmatter: vi.fn(),
-    exportFrontmatterBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
+    exportFrontmatterBatch: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: null }),
   },
 }));
 

@@ -1,4 +1,5 @@
 import { sep } from "@tauri-apps/api/path";
+
 import { commands } from "@hypr/plugin-export";
 
 export interface ParsedMarkdown {
@@ -11,7 +12,10 @@ export async function parseMarkdownWithFrontmatter(
 ): Promise<ParsedMarkdown> {
   const result = await commands.parseFrontmatter(content);
   if (result.status === "error") {
-    console.error("[HumanPersister] Failed to parse frontmatter:", result.error);
+    console.error(
+      "[HumanPersister] Failed to parse frontmatter:",
+      result.error,
+    );
     return { frontmatter: {}, body: content };
   }
   return {

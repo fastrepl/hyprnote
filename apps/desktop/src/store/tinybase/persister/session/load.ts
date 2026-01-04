@@ -8,7 +8,7 @@ import type {
   Tag,
 } from "@hypr/store";
 
-import { isUUID } from "../utils";
+import { isFileNotFoundError, isUUID } from "../utils";
 import type { SessionMetaJson } from "./collect";
 
 export type LoadedData = {
@@ -167,10 +167,12 @@ export async function cleanupOrphanSessionDirs(
       try {
         await remove(dir.path, { recursive: true });
       } catch (e) {
-        console.error(
-          `[SessionPersister] Failed to remove orphan dir ${dir.path}:`,
-          e,
-        );
+        if (!isFileNotFoundError(e)) {
+          console.error(
+            `[SessionPersister] Failed to remove orphan dir ${dir.path}:`,
+            e,
+          );
+        }
       }
     }
   }

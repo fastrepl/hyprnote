@@ -20,6 +20,26 @@ import { registerSaveHandler } from "./save";
 
 type Saveable = { save(): Promise<unknown> };
 
+function createGuardedSave(
+  saveFn: () => Promise<unknown>,
+  onError?: (error: unknown) => void,
+): () => Promise<void> {
+  let saving = false;
+  return async () => {
+    if (saving) {
+      return;
+    }
+    saving = true;
+    try {
+      await saveFn();
+    } catch (error) {
+      onError?.(error);
+    } finally {
+      saving = false;
+    }
+  };
+}
+
 export function useMainPersisters(store: Store) {
   const localPersister = useLocalPersister(store);
 
@@ -76,13 +96,10 @@ function usePersisterSaveEvents(persister: Saveable | null) {
     let unlistenClose: UnlistenFn | undefined;
     let unlistenBlur: UnlistenFn | undefined;
 
-    const save = async () => {
-      try {
-        await persister.save();
-      } catch (error) {
-        console.error(error);
-      }
-    };
+    const save = createGuardedSave(
+      () => persister.save(),
+      (error) => console.error(error),
+    );
 
     const register = async () => {
       unlistenClose = await listen(TauriEvent.WINDOW_CLOSE_REQUESTED, save, {
@@ -111,8 +128,6 @@ function usePersisterSaveEvents(persister: Saveable | null) {
       return;
     }
 
-    return registerSaveHandler(async () => {
-      await persister.save();
-    });
+    return registerSaveHandler(createGuardedSave(() => persister.save()));
   }, [persister]);
 }

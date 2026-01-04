@@ -8,12 +8,12 @@ import {
 } from "@tauri-apps/plugin-fs";
 
 import {
-  commands as exportCommands,
-  type FrontmatterInput,
-  type JsonValue,
-} from "@hypr/plugin-export";
+  commands as frontmatterCommands,
+  type ParsedDocument,
+} from "@hypr/plugin-frontmatter";
 
 import { isFileNotFoundError, isUUID } from "./utils";
+import type { JsonValue } from "./utils";
 
 export interface ParsedMarkdown {
   frontmatter: Record<string, unknown>;
@@ -24,7 +24,7 @@ export async function parseMarkdownWithFrontmatter(
   content: string,
   label: string,
 ): Promise<ParsedMarkdown> {
-  const result = await exportCommands.parseFrontmatter(content);
+  const result = await frontmatterCommands.deserialize(content);
   if (result.status === "error") {
     console.error(`[${label}] Failed to parse frontmatter:`, result.error);
     return { frontmatter: {}, body: content };
@@ -165,8 +165,7 @@ export async function migrateJsonToMarkdown<T>(
 
     await mkdir(entityDir, { recursive: true });
 
-    const batchItems: [FrontmatterInput, string][] = [];
-
+    const batchItems: [ParsedDocument, string][] = [];
     for (const [entityId, entity] of Object.entries(entities)) {
       const { frontmatter, body } = mapToFrontmatter(entityId, entity);
       const filePath = paths.getFilePath(dataDir, entityId);
@@ -174,9 +173,11 @@ export async function migrateJsonToMarkdown<T>(
     }
 
     if (batchItems.length > 0) {
-      const result = await exportCommands.exportFrontmatterBatch(batchItems);
+      const result = await frontmatterCommands.serializeBatch(batchItems);
       if (result.status === "error") {
-        throw new Error(`Failed to export migrated entities: ${result.error}`);
+        throw new Error(
+          `Failed to serialize frontmatter batch: ${result.error}`,
+        );
       }
     }
 

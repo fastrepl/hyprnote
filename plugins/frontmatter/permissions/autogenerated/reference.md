@@ -6,6 +6,7 @@ Default permissions for the plugin
 
 - `allow-deserialize`
 - `allow-serialize`
+- `allow-serialize-batch`
 
 ## Permission Table
 

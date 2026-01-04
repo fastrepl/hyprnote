@@ -12,12 +12,11 @@ vi.mock("@hypr/plugin-path2", () => ({
   },
 }));
 
-vi.mock("@hypr/plugin-export", () => ({
+vi.mock("@hypr/plugin-frontmatter", () => ({
   commands: {
-    parseFrontmatter: vi.fn(),
-    exportFrontmatterBatch: vi
-      .fn()
-      .mockResolvedValue({ status: "ok", data: null }),
+    deserialize: vi.fn(),
+    serialize: vi.fn().mockResolvedValue({ status: "ok", data: "" }),
+    serializeBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
   },
 }));
 
@@ -68,7 +67,8 @@ describe("createOrganizationPersister", () => {
     test("loads organizations from markdown files", async () => {
       const { readDir, readTextFile, exists } =
         await import("@tauri-apps/plugin-fs");
-      const { commands: exportCommands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       vi.mocked(exists).mockResolvedValue(false);
       vi.mocked(readDir).mockResolvedValue([
@@ -89,7 +89,7 @@ describe("createOrganizationPersister", () => {
         "",
       );
       vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
-      vi.mocked(exportCommands.parseFrontmatter).mockResolvedValue({
+      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
         status: "ok",
         data: {
           frontmatter: {
@@ -133,7 +133,8 @@ describe("createOrganizationPersister", () => {
     test("skips non-UUID files", async () => {
       const { readDir, readTextFile, exists } =
         await import("@tauri-apps/plugin-fs");
-      const { commands: exportCommands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       vi.mocked(exists).mockResolvedValue(false);
       vi.mocked(readDir).mockResolvedValue([
@@ -160,7 +161,7 @@ describe("createOrganizationPersister", () => {
         "",
       );
       vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
-      vi.mocked(exportCommands.parseFrontmatter).mockResolvedValue({
+      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
         status: "ok",
         data: {
           frontmatter: {
@@ -182,9 +183,10 @@ describe("createOrganizationPersister", () => {
   });
 
   describe("save", () => {
-    test("saves organizations to markdown files via export plugin", async () => {
+    test("saves organizations to markdown files via frontmatter plugin", async () => {
       const { mkdir } = await import("@tauri-apps/plugin-fs");
-      const { commands: exportCommands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       store.setRow("organizations", ORG_UUID_1, {
         user_id: "user-1",
@@ -202,7 +204,7 @@ describe("createOrganizationPersister", () => {
         },
       );
 
-      expect(exportCommands.exportFrontmatterBatch).toHaveBeenCalledWith([
+      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -218,16 +220,18 @@ describe("createOrganizationPersister", () => {
     });
 
     test("does not write when no organizations exist", async () => {
-      const { commands: exportCommands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       const persister = createOrganizationPersister<Schemas>(store);
       await persister.save();
 
-      expect(exportCommands.exportFrontmatterBatch).not.toHaveBeenCalled();
+      expect(frontmatterCommands.serializeBatch).not.toHaveBeenCalled();
     });
 
     test("saves multiple organizations in single batch call", async () => {
-      const { commands: exportCommands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       store.setRow("organizations", ORG_UUID_1, {
         user_id: "user-1",
@@ -244,9 +248,9 @@ describe("createOrganizationPersister", () => {
       const persister = createOrganizationPersister<Schemas>(store);
       await persister.save();
 
-      expect(exportCommands.exportFrontmatterBatch).toHaveBeenCalledTimes(1);
+      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledTimes(1);
 
-      const batchItems = vi.mocked(exportCommands.exportFrontmatterBatch).mock
+      const batchItems = vi.mocked(frontmatterCommands.serializeBatch).mock
         .calls[0][0];
       expect(batchItems).toHaveLength(2);
 
@@ -264,7 +268,8 @@ describe("createOrganizationPersister", () => {
     test("migrates from organizations.json when it exists and organizations dir does not", async () => {
       const { exists, readTextFile, mkdir, remove } =
         await import("@tauri-apps/plugin-fs");
-      const { commands: exportCommands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       vi.mocked(exists).mockImplementation(async (path: string | URL) => {
         const p = typeof path === "string" ? path : path.toString();
@@ -291,7 +296,7 @@ describe("createOrganizationPersister", () => {
           recursive: true,
         },
       );
-      expect(exportCommands.exportFrontmatterBatch).toHaveBeenCalledWith([
+      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -314,9 +319,10 @@ describe("createOrganizationPersister", () => {
 describe("utils", () => {
   describe("parseMarkdownWithFrontmatter", () => {
     test("parses markdown with frontmatter via plugin", async () => {
-      const { commands: exportCommands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
-      vi.mocked(exportCommands.parseFrontmatter).mockResolvedValue({
+      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
         status: "ok",
         data: {
           frontmatter: {
@@ -344,9 +350,10 @@ user_id: user-1
     });
 
     test("returns empty frontmatter when plugin returns error", async () => {
-      const { commands: exportCommands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
-      vi.mocked(exportCommands.parseFrontmatter).mockResolvedValue({
+      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
         status: "error",
         error: "Parse error",
       });

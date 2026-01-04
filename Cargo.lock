@@ -18021,7 +18021,6 @@ name = "tauri-plugin-export"
 version = "0.1.0"
 dependencies = [
  "criterion",
- "frontmatter",
  "insta",
  "markdown",
  "mdast_util_to_markdown",
@@ -18077,6 +18076,7 @@ name = "tauri-plugin-frontmatter"
 version = "0.1.0"
 dependencies = [
  "frontmatter",
+ "rayon",
  "serde",
  "serde_json",
  "serde_yaml",

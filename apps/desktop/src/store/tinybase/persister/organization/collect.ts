@@ -1,6 +1,6 @@
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import type { FrontmatterInput } from "@hypr/plugin-export";
+import type { ParsedDocument } from "@hypr/plugin-frontmatter";
 import type { OrganizationStorage } from "@hypr/store";
 
 import type { CollectorResult, TablesContent } from "../utils";
@@ -31,7 +31,7 @@ export function collectOrganizationWriteOps<Schemas extends OptionalSchemas>(
   const organizations =
     (tables as { organizations?: OrganizationsTable }).organizations ?? {};
 
-  const frontmatterItems: [FrontmatterInput, string][] = [];
+  const frontmatterItems: [ParsedDocument, string][] = [];
 
   for (const [orgId, org] of Object.entries(organizations)) {
     validOrgIds.add(orgId);

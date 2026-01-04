@@ -18,10 +18,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::export_json_batch,
             commands::export_tiptap_json_to_md,
             commands::export_tiptap_json_to_md_batch,
-            commands::parse_frontmatter,
-            commands::serialize_frontmatter,
-            commands::export_frontmatter,
-            commands::export_frontmatter_batch,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

@@ -36,7 +36,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Frontmatter<'a, R, M> {
             .collect();
 
         let doc = hypr_frontmatter::Document::new(frontmatter_yaml, doc.content);
-        doc.to_string().map_err(crate::Error::from)
+        doc.render().map_err(crate::Error::from)
     }
 }
 

@@ -37,52 +37,6 @@ async exportTiptapJsonToMdBatch(items: ([JsonValue, string])[]) : Promise<Result
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
-},
-/**
- * Parse markdown with YAML frontmatter into structured data.
- * Returns frontmatter as a HashMap and the content body.
- * If the markdown has no frontmatter, returns empty frontmatter and the full content as body.
- */
-async parseFrontmatter(markdown: string) : Promise<Result<ParsedFrontmatter, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:export|parse_frontmatter", { markdown }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-/**
- * Serialize frontmatter and content into markdown with YAML frontmatter.
- */
-async serializeFrontmatter(input: FrontmatterInput) : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:export|serialize_frontmatter", { input }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-/**
- * Write markdown with frontmatter to a file.
- */
-async exportFrontmatter(input: FrontmatterInput, path: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:export|export_frontmatter", { input, path }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-/**
- * Batch write multiple markdown files with frontmatter.
- */
-async exportFrontmatterBatch(items: ([FrontmatterInput, string])[]) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:export|export_frontmatter_batch", { items }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
 }
 }
 
@@ -96,9 +50,7 @@ async exportFrontmatterBatch(items: ([FrontmatterInput, string])[]) : Promise<Re
 
 /** user-defined types **/
 
-export type FrontmatterInput = { frontmatter: Partial<{ [key in string]: JsonValue }>; content: string }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type ParsedFrontmatter = { frontmatter: Partial<{ [key in string]: JsonValue }>; content: string }
 
 /** tauri-specta globals **/
 

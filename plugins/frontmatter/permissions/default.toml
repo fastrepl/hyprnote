@@ -1,3 +1,3 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-deserialize", "allow-serialize"]
+permissions = ["allow-deserialize", "allow-serialize", "allow-serialize-batch"]

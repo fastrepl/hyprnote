@@ -13,6 +13,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::deserialize::<tauri::Wry>,
             commands::serialize::<tauri::Wry>,
+            commands::serialize_batch,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

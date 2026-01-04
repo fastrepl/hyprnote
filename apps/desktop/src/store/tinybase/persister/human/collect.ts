@@ -1,6 +1,6 @@
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import type { FrontmatterInput } from "@hypr/plugin-export";
+import type { ParsedDocument } from "@hypr/plugin-frontmatter";
 import type { HumanStorage } from "@hypr/store";
 
 import type { CollectorResult, TablesContent } from "../utils";
@@ -26,7 +26,7 @@ export function collectHumanWriteOps<Schemas extends OptionalSchemas>(
 
   const humans = (tables as { humans?: HumansTable }).humans ?? {};
 
-  const frontmatterItems: [FrontmatterInput, string][] = [];
+  const frontmatterItems: [ParsedDocument, string][] = [];
 
   for (const [humanId, human] of Object.entries(humans)) {
     validHumanIds.add(humanId);

@@ -307,10 +307,10 @@
           "markdownDescription": "Denies the ping command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-serialize`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-serialize`\n- `allow-serialize-batch`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-serialize`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-serialize`\n- `allow-serialize-batch`"
         }
       ]
     }

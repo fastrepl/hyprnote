@@ -10,8 +10,11 @@ import type {
 import {
   commands as exportCommands,
   type JsonValue as ExportJsonValue,
-  type FrontmatterInput,
 } from "@hypr/plugin-export";
+import {
+  commands as frontmatterCommands,
+  type ParsedDocument,
+} from "@hypr/plugin-frontmatter";
 import { events as notifyEvents } from "@hypr/plugin-notify";
 import { commands as path2Commands } from "@hypr/plugin-path2";
 import type {
@@ -229,7 +232,7 @@ export type WriteOperation =
   | { type: "json"; path: string; content: unknown }
   | { type: "md-batch"; items: Array<[ExportJsonValue, string]> }
   | { type: "text"; path: string; content: string }
-  | { type: "frontmatter-batch"; items: Array<[FrontmatterInput, string]> };
+  | { type: "frontmatter-batch"; items: Array<[ParsedDocument, string]> };
 
 export type CollectorResult = {
   dirs: Set<string>;
@@ -266,7 +269,7 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
 
       const jsonBatchItems: Array<[ExportJsonValue, string]> = [];
       let mdBatchItems: Array<[ExportJsonValue, string]> = [];
-      let frontmatterBatchItems: Array<[FrontmatterInput, string]> = [];
+      let frontmatterBatchItems: Array<[ParsedDocument, string]> = [];
       const textItems: Array<{ path: string; content: string }> = [];
 
       for (const op of operations) {
@@ -304,13 +307,13 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
       }
 
       if (frontmatterBatchItems.length > 0) {
-        const exportResult = await exportCommands.exportFrontmatterBatch(
+        const result = await frontmatterCommands.serializeBatch(
           frontmatterBatchItems,
         );
-        if (exportResult.status === "error") {
+        if (result.status === "error") {
           console.error(
-            `[${options.label}] Failed to export frontmatter batch:`,
-            exportResult.error,
+            `[${options.label}] Failed to serialize frontmatter batch:`,
+            result.error,
           );
         }
       }

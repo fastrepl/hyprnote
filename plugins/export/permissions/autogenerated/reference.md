@@ -8,10 +8,6 @@ Default permissions for the plugin
 - `allow-export-json-batch`
 - `allow-export-tiptap-json-to-md`
 - `allow-export-tiptap-json-to-md-batch`
-- `allow-parse-frontmatter`
-- `allow-serialize-frontmatter`
-- `allow-export-frontmatter`
-- `allow-export-frontmatter-batch`
 
 ## Permission Table
 

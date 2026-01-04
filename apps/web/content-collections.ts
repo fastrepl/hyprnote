@@ -143,9 +143,7 @@ const changelog = defineCollection({
   directory: "content/changelog",
   include: "*.mdx",
   exclude: "AGENTS.md",
-  schema: z.object({
-    created: z.coerce.date(),
-  }),
+  schema: z.object({}),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
       remarkPlugins: [remarkGfm, mdxMermaid],

@@ -5,6 +5,7 @@ interface CtaCardProps {
   description?: string;
   buttonText?: string;
   buttonUrl?: string;
+  source?: string;
 }
 
 export function CtaCard({
@@ -12,7 +13,12 @@ export function CtaCard({
   description = "Drowning in back-to-back meetings? In 20 minutes, we'll show you how to take control of your notes and reclaim hours each week.",
   buttonText = "Book a call",
   buttonUrl = "/founders",
+  source = "blog",
 }: CtaCardProps) {
+  const finalUrl =
+    buttonUrl === "/founders" && source
+      ? `${buttonUrl}?source=${source}`
+      : buttonUrl;
   return (
     <div className="my-12 border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <div className="p-8 text-center">
@@ -23,7 +29,7 @@ export function CtaCard({
           </p>
         )}
         <a
-          href={buttonUrl}
+          href={finalUrl}
           target="_blank"
           rel="noopener noreferrer"
           className={cn([

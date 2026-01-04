@@ -21,10 +21,6 @@ pub struct Tantivy<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
-    pub fn ping(&self) -> Result<(), crate::Error> {
-        Ok(())
-    }
-
     pub async fn register_collection(&self, config: CollectionConfig) -> Result<(), crate::Error> {
         let base = self.manager.app_handle().path2().base()?;
         let index_path = base.join(&config.path);

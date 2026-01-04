@@ -80,6 +80,7 @@ function Component() {
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <Link
                 to="/founders"
+                search={{ source: "enterprise" }}
                 className={cn([
                   "inline-flex items-center gap-2 px-8 py-3 text-base font-medium rounded-full",
                   "bg-linear-to-t from-stone-600 to-stone-500 text-white",

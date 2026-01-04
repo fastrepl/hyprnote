@@ -17,7 +17,7 @@ tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
 hypr-language = { workspace = true, features = ["detect", "tantivy"] }
-tantivy = "0.22"
+tantivy = "0.25"
 
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-notify = { workspace = true }

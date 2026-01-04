@@ -18020,6 +18020,7 @@ name = "tauri-plugin-export"
 version = "0.1.0"
 dependencies = [
  "criterion",
+ "frontmatter",
  "insta",
  "markdown",
  "mdast_util_to_markdown",

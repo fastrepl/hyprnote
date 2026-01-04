@@ -21,6 +21,7 @@ specta-typescript = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
+frontmatter = { path = "../../crates/frontmatter" }
 markdown = { workspace = true }
 mdast_util_to_markdown = { workspace = true }
 

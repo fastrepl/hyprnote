@@ -39,6 +39,7 @@
     "@hypr/plugin-export": "workspace:*",
     "@hypr/plugin-extensions": "workspace:*",
     "@hypr/plugin-folder": "workspace:*",
+    "@hypr/plugin-frontmatter": "workspace:*",
     "@hypr/plugin-hooks": "workspace:*",
     "@hypr/plugin-icon": "workspace:*",
     "@hypr/plugin-importer": "workspace:*",

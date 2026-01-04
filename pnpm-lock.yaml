@@ -266,6 +266,9 @@ importers:
       '@hypr/plugin-folder':
         specifier: workspace:*
         version: link:../../plugins/folder
+      '@hypr/plugin-frontmatter':
+        specifier: workspace:*
+        version: link:../../plugins/frontmatter
       '@hypr/plugin-hooks':
         specifier: workspace:*
         version: link:../../plugins/hooks
@@ -1503,6 +1506,12 @@ importers:
         version: 2.9.1
 
   plugins/folder:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/frontmatter:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

@@ -19,32 +19,6 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`tantivy:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`tantivy:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `tantivy:allow-reindex`
 
 </td>

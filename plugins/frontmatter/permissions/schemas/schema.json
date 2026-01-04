@@ -295,34 +295,22 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the reindex command without any pre-configured scope.",
+          "description": "Enables the ping command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-reindex",
-          "markdownDescription": "Enables the reindex command without any pre-configured scope."
+          "const": "allow-ping",
+          "markdownDescription": "Enables the ping command without any pre-configured scope."
         },
         {
-          "description": "Denies the reindex command without any pre-configured scope.",
+          "description": "Denies the ping command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-reindex",
-          "markdownDescription": "Denies the reindex command without any pre-configured scope."
+          "const": "deny-ping",
+          "markdownDescription": "Denies the ping command without any pre-configured scope."
         },
         {
-          "description": "Enables the search command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-search",
-          "markdownDescription": "Enables the search command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the search command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-search",
-          "markdownDescription": "Denies the search command without any pre-configured scope."
-        },
-        {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-search`\n- `allow-reindex`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-serialize`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-search`\n- `allow-reindex`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-serialize`"
         }
       ]
     }

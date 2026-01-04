@@ -4706,6 +4706,7 @@ dependencies = [
  "tauri-plugin-export",
  "tauri-plugin-extensions",
  "tauri-plugin-folder",
+ "tauri-plugin-frontmatter",
  "tauri-plugin-fs",
  "tauri-plugin-hooks",
  "tauri-plugin-http",
@@ -18069,6 +18070,23 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "tauri-plugin-frontmatter"
+version = "0.1.0"
+dependencies = [
+ "frontmatter",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
 ]
 
 [[package]]

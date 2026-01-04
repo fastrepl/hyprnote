@@ -260,6 +260,7 @@
     "detect:default",
     "export:default",
     "folder:default",
+    "frontmatter:default",
     "permissions:default",
     "settings:default",
     "sfx:default",

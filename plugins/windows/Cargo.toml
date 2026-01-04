@@ -17,6 +17,7 @@ specta-typescript = { workspace = true }
 objc2 = { workspace = true }
 objc2-app-kit = { workspace = true }
 objc2-foundation = { workspace = true }
+share-picker = { workspace = true }
 
 [dependencies]
 serde = { workspace = true }

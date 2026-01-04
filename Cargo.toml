@@ -289,6 +289,8 @@ objc2-event-kit = "0.3"
 objc2-foundation = "0.3"
 objc2-user-notifications = "0.3"
 
+share-picker = { git = "https://github.com/ahkohd/tauri-toolkit", branch = "v2" }
+
 tokenizers = "0.21.4"
 whichlang = "0.1"
 

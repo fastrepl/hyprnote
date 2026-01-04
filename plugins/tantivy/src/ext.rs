@@ -1,7 +1,6 @@
 use tantivy::collector::{Count, TopDocs};
 use tantivy::query::{
-    BooleanQuery, BoostQuery, FuzzyTermQuery, MoreLikeThisQuery, Occur, PhraseQuery, Query,
-    QueryParser, TermQuery,
+    BooleanQuery, BoostQuery, FuzzyTermQuery, Occur, PhraseQuery, Query, QueryParser, TermQuery,
 };
 use tantivy::schema::{Facet, IndexRecordOption};
 use tantivy::snippet::SnippetGenerator;
@@ -12,8 +11,8 @@ use crate::query::build_created_at_range_query;
 use crate::schema::{extract_search_document, get_fields};
 use crate::tokenizer::register_tokenizers;
 use crate::{
-    CollectionConfig, CollectionIndex, HighlightRange, IndexState, MoreLikeThisRequest,
-    SearchDocument, SearchHit, SearchRequest, SearchResult, Snippet,
+    CollectionConfig, CollectionIndex, HighlightRange, IndexState, SearchDocument, SearchHit,
+    SearchRequest, SearchResult, Snippet,
 };
 
 pub fn detect_language(text: &str) -> hypr_language::Language {
@@ -501,93 +500,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         );
 
         Ok(())
-    }
-
-    pub async fn more_like_this(
-        &self,
-        request: MoreLikeThisRequest,
-    ) -> Result<SearchResult, crate::Error> {
-        let collection_name = Self::get_collection_name(request.collection);
-        let state = self.manager.state::<IndexState>();
-        let guard = state.inner.lock().await;
-
-        let collection_index = guard
-            .collections
-            .get(&collection_name)
-            .ok_or_else(|| crate::Error::CollectionNotFound(collection_name.clone()))?;
-
-        let schema = &collection_index.schema;
-        let reader = &collection_index.reader;
-
-        let fields = get_fields(schema);
-        let searcher = reader.searcher();
-
-        let id_term = Term::from_field_text(fields.id, &request.document_id);
-        let id_query = TermQuery::new(id_term, IndexRecordOption::Basic);
-
-        let (top_docs, _) = searcher.search(&id_query, &(TopDocs::with_limit(1), Count))?;
-
-        let (_, doc_address) = top_docs
-            .first()
-            .ok_or_else(|| crate::Error::DocumentNotFound(request.document_id.clone()))?;
-
-        let mut mlt_builder = MoreLikeThisQuery::builder();
-
-        if let Some(min_doc_freq) = request.options.min_doc_frequency {
-            mlt_builder = mlt_builder.with_min_doc_frequency(min_doc_freq);
-        }
-        if let Some(max_doc_freq) = request.options.max_doc_frequency {
-            mlt_builder = mlt_builder.with_max_doc_frequency(max_doc_freq);
-        }
-        if let Some(min_term_freq) = request.options.min_term_frequency {
-            mlt_builder = mlt_builder.with_min_term_frequency(min_term_freq);
-        }
-        if let Some(min_word_len) = request.options.min_word_length {
-            mlt_builder = mlt_builder.with_min_word_length(min_word_len);
-        }
-        if let Some(max_word_len) = request.options.max_word_length {
-            mlt_builder = mlt_builder.with_max_word_length(max_word_len);
-        }
-        if let Some(boost) = request.options.boost_factor {
-            mlt_builder = mlt_builder.with_boost_factor(boost);
-        }
-        if let Some(ref stop_words) = request.options.stop_words {
-            mlt_builder = mlt_builder.with_stop_words(stop_words.clone());
-        }
-
-        let mlt_query = mlt_builder.with_document(*doc_address);
-
-        let (similar_docs, count) =
-            searcher.search(&mlt_query, &(TopDocs::with_limit(request.limit + 1), Count))?;
-
-        let mut hits = Vec::new();
-        for (score, similar_doc_address) in similar_docs {
-            if similar_doc_address == *doc_address {
-                continue;
-            }
-
-            let retrieved_doc: TantivyDocument = searcher.doc(similar_doc_address)?;
-
-            if let Some(search_doc) = extract_search_document(schema, &fields, &retrieved_doc) {
-                hits.push(SearchHit {
-                    score,
-                    document: search_doc,
-                    title_snippet: None,
-                    content_snippet: None,
-                });
-            }
-
-            if hits.len() >= request.limit {
-                break;
-            }
-        }
-
-        let actual_count = if count > 0 { count - 1 } else { 0 };
-
-        Ok(SearchResult {
-            hits,
-            count: actual_count,
-        })
     }
 }
 

@@ -58,28 +58,6 @@ pub struct SearchResult {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
-pub struct MoreLikeThisOptions {
-    pub min_doc_frequency: Option<u64>,
-    pub max_doc_frequency: Option<u64>,
-    pub min_term_frequency: Option<usize>,
-    pub min_word_length: Option<usize>,
-    pub max_word_length: Option<usize>,
-    pub boost_factor: Option<f32>,
-    pub stop_words: Option<Vec<String>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct MoreLikeThisRequest {
-    pub document_id: String,
-    #[serde(default)]
-    pub collection: Option<String>,
-    #[serde(default = "default_limit")]
-    pub limit: usize,
-    #[serde(default)]
-    pub options: MoreLikeThisOptions,
-}
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
 pub struct CreatedAtFilter {
     pub gte: Option<i64>,
     pub lte: Option<i64>,
@@ -168,7 +146,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::add_document::<tauri::Wry>,
             commands::update_document::<tauri::Wry>,
             commands::remove_document::<tauri::Wry>,
-            commands::more_like_this::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

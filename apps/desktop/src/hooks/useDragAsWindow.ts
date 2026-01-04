@@ -40,9 +40,9 @@ export function useDragAsWindow({ tab, onPopOut }: UseDragAsWindowOptions) {
           const searchParams = new URLSearchParams();
           searchParams.set("tab", JSON.stringify(tabInput));
 
-          const newWindow = new WebviewWindow(windowLabel, {
-            x: payload.cursorPos.x,
-            y: payload.cursorPos.y,
+                    const newWindow = new WebviewWindow(windowLabel, {
+                      x: Number(payload.cursorPos.x),
+                      y: Number(payload.cursorPos.y),
             width: 800,
             height: 600,
             title: `Hyprnote - ${tab.type}`,

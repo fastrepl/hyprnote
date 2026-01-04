@@ -329,6 +329,36 @@ async function loadTableData(
   }
 }
 
+export function toFrontmatterMarkdown(
+  metadata: Record<string, unknown>,
+  content: string = "",
+): string {
+  const lines: string[] = ["---"];
+  for (const [key, value] of Object.entries(metadata)) {
+    if (value === undefined || value === null || value === "") {
+      continue;
+    }
+    if (typeof value === "string") {
+      if (value.includes("\n") || value.includes(":") || value.includes('"')) {
+        lines.push(`${key}: |`);
+        for (const line of value.split("\n")) {
+          lines.push(`  ${line}`);
+        }
+      } else {
+        lines.push(`${key}: "${value}"`);
+      }
+    } else if (typeof value === "boolean" || typeof value === "number") {
+      lines.push(`${key}: ${value}`);
+    }
+  }
+  lines.push("---");
+  if (content) {
+    lines.push("");
+    lines.push(content);
+  }
+  return lines.join("\n") + "\n";
+}
+
 export function createSingleTablePersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   options: {

@@ -1,18 +1,21 @@
 mod commands;
 mod error;
 mod ext;
+mod query;
+mod schema;
+mod tokenizer;
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tantivy::schema::Schema;
 use tantivy::{Index, IndexReader, IndexWriter};
 use tauri::Manager;
-use tauri_plugin_notify::FileChanged;
-use tauri_specta::Event;
 use tokio::sync::Mutex;
 
 pub use error::{Error, Result};
 pub use ext::*;
+pub use schema::build_schema;
+pub use tokenizer::get_tokenizer_name_for_language;
 
 const PLUGIN_NAME: &str = "tantivy";
 
@@ -105,25 +108,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
-fn setup_file_change_listener(app: &tauri::AppHandle) {
-    let handle = app.clone();
-
-    FileChanged::listen_any(app, move |event| {
-        let path = &event.payload.path;
-
-        if path.ends_with("db.sqlite") || path.ends_with("db.sqlite-wal") {
-            tracing::debug!("Database file changed: {}, triggering reindex", path);
-
-            let handle = handle.clone();
-            tauri::async_runtime::spawn(async move {
-                if let Err(e) = handle.tantivy().reindex(None).await {
-                    tracing::error!("Failed to reindex after file change: {}", e);
-                }
-            });
-        }
-    });
-}
-
 pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     let specta_builder = make_specta_builder();
 
@@ -137,7 +121,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 let config = CollectionConfig {
                     name: "default".to_string(),
                     path: "search_index".to_string(),
-                    schema_builder: ext::build_schema,
+                    schema_builder: schema::build_schema,
                     auto_commit: true,
                 };
 
@@ -145,8 +129,6 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                     tracing::error!("Failed to register default collection: {}", e);
                 }
             });
-
-            setup_file_change_listener(app);
 
             Ok(())
         })

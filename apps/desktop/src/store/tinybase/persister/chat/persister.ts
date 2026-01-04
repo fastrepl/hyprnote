@@ -2,7 +2,11 @@ import { sep } from "@tauri-apps/api/path";
 import { exists, readDir, remove } from "@tauri-apps/plugin-fs";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import { createSessionDirPersister, isUUID } from "../utils";
+import {
+  createSessionDirPersister,
+  isFileNotFoundError,
+  isUUID,
+} from "../utils";
 import { type ChatCollectorResult, collectChatWriteOps } from "./collect";
 
 async function cleanupOrphanChatDirs(
@@ -30,12 +34,14 @@ async function cleanupOrphanChatDirs(
       !validChatGroupIds.has(entry.name)
     ) {
       try {
-        const dirPath = [chatsDir, entry.name].join(sep());
-        if (await exists(dirPath)) {
-          await remove(dirPath, { recursive: true });
+        await remove([chatsDir, entry.name].join(sep()), { recursive: true });
+      } catch (e) {
+        if (!isFileNotFoundError(e)) {
+          console.error(
+            `[ChatPersister] Failed to remove orphan dir ${entry.name}:`,
+            e,
+          );
         }
-      } catch {
-        // Ignore errors - directory may have been removed by another process
       }
     }
   }

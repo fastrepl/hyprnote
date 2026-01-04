@@ -57,7 +57,12 @@ describe("createHumanPersister", () => {
 
       vi.mocked(exists).mockResolvedValue(false);
       vi.mocked(readDir).mockResolvedValue([
-        { name: `${HUMAN_UUID_1}.md`, isDirectory: false },
+        {
+          name: `${HUMAN_UUID_1}.md`,
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+        },
       ]);
 
       const mockMdContent = serializeMarkdownWithFrontmatter(
@@ -112,8 +117,18 @@ describe("createHumanPersister", () => {
 
       vi.mocked(exists).mockResolvedValue(false);
       vi.mocked(readDir).mockResolvedValue([
-        { name: "not-a-uuid.md", isDirectory: false },
-        { name: `${HUMAN_UUID_1}.md`, isDirectory: false },
+        {
+          name: "not-a-uuid.md",
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+        },
+        {
+          name: `${HUMAN_UUID_1}.md`,
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+        },
       ]);
 
       const mockMdContent = serializeMarkdownWithFrontmatter(
@@ -238,9 +253,10 @@ describe("createHumanPersister", () => {
       const { exists, readTextFile, writeTextFile, mkdir, remove } =
         await import("@tauri-apps/plugin-fs");
 
-      vi.mocked(exists).mockImplementation(async (path: string) => {
-        if (path.endsWith("humans.json")) return true;
-        if (path.endsWith("humans")) return false;
+      vi.mocked(exists).mockImplementation(async (path: string | URL) => {
+        const p = typeof path === "string" ? path : path.toString();
+        if (p.endsWith("humans.json")) return true;
+        if (p.endsWith("humans")) return false;
         return false;
       });
 

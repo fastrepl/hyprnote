@@ -4,11 +4,7 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
-import {
-  asTableChanges,
-  createSessionDirPersister,
-  getDataDir,
-} from "../utils";
+import { createSessionDirPersister, getDataDir } from "../utils";
 import { collectHumanWriteOps, type HumanCollectorResult } from "./collect";
 import { cleanupOrphanHumanFiles, loadAllHumans } from "./load";
 import { migrateHumansJsonIfNeeded } from "./migrate";
@@ -26,7 +22,7 @@ export function createHumanPersister<Schemas extends OptionalSchemas>(
       if (Object.keys(humans).length === 0) {
         return undefined;
       }
-      return asTableChanges("humans", humans) as Content<Schemas>;
+      return [{ humans }, {}] as unknown as Content<Schemas>;
     },
     postSave: async (dataDir, result) => {
       const { validHumanIds } = result as HumanCollectorResult;

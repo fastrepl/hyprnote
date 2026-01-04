@@ -7,12 +7,16 @@ edition = "2024"
 default = ["whisper"]
 whisper = ["dep:hypr-whisper"]
 deepgram = ["dep:deepgram"]
+tantivy = ["dep:tantivy"]
+detect = ["dep:whichlang"]
 
 [dependencies]
 codes-iso-639 = { workspace = true }
 
 deepgram = { workspace = true, optional = true, default-features = false, features = ["listen"] }
 hypr-whisper = { workspace = true, optional = true }
+tantivy = { version = "0.22", optional = true }
+whichlang = { workspace = true, optional = true }
 
 schemars = { workspace = true }
 serde = { workspace = true }

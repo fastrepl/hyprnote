@@ -50,7 +50,6 @@ export const createSession = (
     faker.number.int({ min: 2, max: 5 }),
     "\n\n",
   );
-  const enhanced_md = generateEnhancedMarkdown();
 
   return {
     id: id(),
@@ -58,7 +57,6 @@ export const createSession = (
       user_id: DEFAULT_USER_ID,
       title,
       raw_md: JSON.stringify(md2json(raw_md)),
-      enhanced_md: JSON.stringify(md2json(enhanced_md)),
       created_at: faker.date.recent({ days: 30 }).toISOString(),
       event_id: eventId,
       folder_id: folderId,

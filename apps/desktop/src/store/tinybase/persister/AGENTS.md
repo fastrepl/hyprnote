@@ -1,0 +1,4 @@
+- Persisters define both load/save. The call site decides what to use (e.g., startAutoSave vs startAutoLoad).
+- `local.ts` and `settings.ts` do both save/load.
+- `folder.ts` is used as load-only (syncs filesystem → store for folders and session folder_id).
+- Other persisters are used as save-only for now.

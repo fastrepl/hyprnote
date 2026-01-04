@@ -33,7 +33,16 @@ struct Session {
     event_id: String,
     title: String,
     raw_md: String,
-    enhanced_md: String,
+}
+
+#[derive(Serialize)]
+struct EnhancedNote {
+    user_id: String,
+    created_at: String,
+    session_id: String,
+    content: String,
+    position: i32,
+    title: String,
 }
 
 #[derive(Serialize)]
@@ -149,23 +158,50 @@ fn insert_sessions(tables: &mut Map<String, Value>, notes: &[ImportedNote], user
         return;
     }
 
-    let entries: Map<String, Value> = notes
-        .iter()
-        .map(|note| {
-            let value = Session {
-                user_id: user_id.to_string(),
-                created_at: normalize_datetime(&note.created_at),
-                folder_id: note.folder_id.clone().unwrap_or_default(),
-                event_id: note.event_id.clone().unwrap_or_default(),
-                title: note.title.clone(),
-                raw_md: note.raw_md.clone().unwrap_or_else(|| note.content.clone()),
-                enhanced_md: note.enhanced_md.clone().unwrap_or_default(),
-            };
-            (note.id.clone(), serde_json::to_value(value).unwrap())
-        })
-        .collect();
+    let mut session_entries: Map<String, Value> = Map::new();
+    let mut enhanced_note_entries: Map<String, Value> = Map::new();
 
-    tables.insert("sessions".to_string(), Value::Object(entries));
+    for note in notes {
+        let session_value = Session {
+            user_id: user_id.to_string(),
+            created_at: normalize_datetime(&note.created_at),
+            folder_id: note.folder_id.clone().unwrap_or_default(),
+            event_id: note.event_id.clone().unwrap_or_default(),
+            title: note.title.clone(),
+            raw_md: note.raw_md.clone().unwrap_or_else(|| note.content.clone()),
+        };
+        session_entries.insert(
+            note.id.clone(),
+            serde_json::to_value(session_value).unwrap(),
+        );
+
+        if let Some(enhanced_content) = &note.enhanced_content {
+            if !enhanced_content.is_empty() {
+                let enhanced_note_id = uuid::Uuid::new_v4().to_string();
+                let enhanced_note_value = EnhancedNote {
+                    user_id: user_id.to_string(),
+                    created_at: normalize_datetime(&note.created_at),
+                    session_id: note.id.clone(),
+                    content: enhanced_content.clone(),
+                    position: 1,
+                    title: "Summary".to_string(),
+                };
+                enhanced_note_entries.insert(
+                    enhanced_note_id,
+                    serde_json::to_value(enhanced_note_value).unwrap(),
+                );
+            }
+        }
+    }
+
+    tables.insert("sessions".to_string(), Value::Object(session_entries));
+
+    if !enhanced_note_entries.is_empty() {
+        tables.insert(
+            "enhanced_notes".to_string(),
+            Value::Object(enhanced_note_entries),
+        );
+    }
 }
 
 fn insert_transcripts_and_words(

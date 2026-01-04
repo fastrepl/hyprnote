@@ -1,4 +1,4 @@
-use crate::{FolderPluginExt, ext::ListFoldersResult};
+use crate::{FolderPluginExt, ListFoldersResult};
 
 #[tauri::command]
 #[specta::specta]

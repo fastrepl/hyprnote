@@ -295,6 +295,54 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the export_frontmatter command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-export-frontmatter",
+          "markdownDescription": "Enables the export_frontmatter command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the export_frontmatter command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-export-frontmatter",
+          "markdownDescription": "Denies the export_frontmatter command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the export_frontmatter_batch command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-export-frontmatter-batch",
+          "markdownDescription": "Enables the export_frontmatter_batch command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the export_frontmatter_batch command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-export-frontmatter-batch",
+          "markdownDescription": "Denies the export_frontmatter_batch command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the export_json command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-export-json",
+          "markdownDescription": "Enables the export_json command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the export_json command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-export-json",
+          "markdownDescription": "Denies the export_json command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the export_json_batch command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-export-json-batch",
+          "markdownDescription": "Enables the export_json_batch command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the export_json_batch command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-export-json-batch",
+          "markdownDescription": "Denies the export_json_batch command without any pre-configured scope."
+        },
+        {
           "description": "Enables the export_tiptap_json_to_md command without any pre-configured scope.",
           "type": "string",
           "const": "allow-export-tiptap-json-to-md",
@@ -319,10 +367,34 @@
           "markdownDescription": "Denies the export_tiptap_json_to_md_batch command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-export-tiptap-json-to-md`\n- `allow-export-tiptap-json-to-md-batch`",
+          "description": "Enables the parse_frontmatter command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-parse-frontmatter",
+          "markdownDescription": "Enables the parse_frontmatter command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the parse_frontmatter command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-parse-frontmatter",
+          "markdownDescription": "Denies the parse_frontmatter command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the serialize_frontmatter command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-serialize-frontmatter",
+          "markdownDescription": "Enables the serialize_frontmatter command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the serialize_frontmatter command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-serialize-frontmatter",
+          "markdownDescription": "Denies the serialize_frontmatter command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-export-json`\n- `allow-export-json-batch`\n- `allow-export-tiptap-json-to-md`\n- `allow-export-tiptap-json-to-md-batch`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-export-tiptap-json-to-md`\n- `allow-export-tiptap-json-to-md-batch`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-export-json`\n- `allow-export-json-batch`\n- `allow-export-tiptap-json-to-md`\n- `allow-export-tiptap-json-to-md-batch`"
         }
       ]
     }

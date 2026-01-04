@@ -186,7 +186,6 @@ function ChatViewContent({
         status={status}
         error={error}
         onReload={regenerate}
-        onStop={stop}
         isModelConfigured={!!model}
       />
       <ChatMessageInput
@@ -195,6 +194,8 @@ function ChatViewContent({
           handleSendMessage(content, parts, sendMessage)
         }
         attachedSession={attachedSession}
+        isStreaming={status === "streaming" || status === "submitted"}
+        onStop={stop}
       />
     </>
   );

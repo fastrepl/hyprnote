@@ -73,7 +73,6 @@ export const sessionSchema = z.object({
   event_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
   title: z.string(),
   raw_md: z.string(),
-  enhanced_md: z.string(),
 });
 
 export const transcriptSchema = z.object({
@@ -303,7 +302,6 @@ export const tableSchemaForTinybase = {
     event_id: { type: "string" },
     title: { type: "string" },
     raw_md: { type: "string" },
-    enhanced_md: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof sessionSchema>,
   transcripts: {
     user_id: { type: "string" },

@@ -1,9 +1,16 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/founders")({
-  beforeLoad: () => {
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      source: (search.source as string) || undefined,
+    };
+  },
+  beforeLoad: ({ search }) => {
+    const baseUrl = "https://cal.com/team/hyprnote/welcome?duration=20";
+    const url = search.source ? `${baseUrl}&source=${search.source}` : baseUrl;
     throw redirect({
-      href: "https://cal.com/team/hyprnote/welcome?duration=20",
+      href: url,
     });
   },
 });

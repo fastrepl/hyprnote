@@ -9,6 +9,7 @@ const COMMANDS: &[&str] = &[
     "audio_delete",
     "audio_path",
     "audio_import",
+    "reveal_session_in_finder",
 ];
 
 fn main() {

@@ -1,7 +1,6 @@
 import { FolderIcon } from "lucide-react";
 import { type ReactNode, useCallback, useState } from "react";
 
-import { commands as folderCommands } from "@hypr/plugin-folder";
 import {
   Command,
   CommandEmpty,
@@ -17,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 
+import { folderOps } from "../../../../../../store/tinybase/persister/folder";
 import * as main from "../../../../../../store/tinybase/store/main";
 
 export function SearchableFolderDropdown({
@@ -122,19 +122,16 @@ function SearchableFolderContent({
 }
 
 function useMoveSessionToFolder(sessionId: string) {
-  const setFolderId = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (folderId: string) => ({ folder_id: folderId }),
-    [],
-    main.STORE_ID,
-  );
-
   return useCallback(
     async (targetFolderId: string) => {
-      await folderCommands.moveSession(sessionId, targetFolderId);
-      setFolderId(targetFolderId);
+      const result = await folderOps.moveSessionToFolder(
+        sessionId,
+        targetFolderId,
+      );
+      if (result.status === "error") {
+        console.error("[MoveSession] Failed:", result.error);
+      }
     },
-    [sessionId, setFolderId],
+    [sessionId],
   );
 }

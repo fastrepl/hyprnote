@@ -238,7 +238,7 @@
     "notification:default",
     "overlay:default",
     "notify:default",
-    "pagefind:default",
+    "tantivy:default",
     "shell:allow-open",
     {
       "identifier": "shell:allow-execute",
@@ -260,12 +260,14 @@
     "detect:default",
     "export:default",
     "folder:default",
+    "frontmatter:default",
     "permissions:default",
     "settings:default",
     "sfx:default",
     "path2:default",
     "pdf:default",
     "autostart:default",
+    "js:default",
     {
       "identifier": "http:default",
       "deny": [],

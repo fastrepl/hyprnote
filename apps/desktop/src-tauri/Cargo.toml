@@ -37,11 +37,13 @@ tauri-plugin-dialog = { workspace = true }
 tauri-plugin-export = { workspace = true }
 tauri-plugin-extensions = { workspace = true }
 tauri-plugin-folder = { workspace = true }
+tauri-plugin-frontmatter = { workspace = true }
 tauri-plugin-fs = { workspace = true }
 tauri-plugin-hooks = { workspace = true }
 tauri-plugin-http = { workspace = true }
 tauri-plugin-icon = { workspace = true }
 tauri-plugin-importer = { workspace = true }
+tauri-plugin-js = { workspace = true }
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-listener2 = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
@@ -52,7 +54,6 @@ tauri-plugin-notify = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-os = { workspace = true }
 tauri-plugin-overlay = { workspace = true }
-tauri-plugin-pagefind = { workspace = true }
 tauri-plugin-path2 = { workspace = true }
 tauri-plugin-pdf = { workspace = true }
 tauri-plugin-permissions = { workspace = true }
@@ -66,6 +67,7 @@ tauri-plugin-sidecar2 = { workspace = true }
 tauri-plugin-single-instance = { workspace = true }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
+tauri-plugin-tantivy = { workspace = true }
 tauri-plugin-template = { workspace = true }
 tauri-plugin-tracing = { workspace = true }
 tauri-plugin-tray = { workspace = true }

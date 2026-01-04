@@ -1,5 +1,6 @@
 import { memo, useCallback, useMemo } from "react";
 
+import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import {
   Tooltip,
@@ -12,6 +13,7 @@ import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { deleteSessionCascade } from "../../../../store/tinybase/store/deleteSession";
 import * as main from "../../../../store/tinybase/store/main";
+import { save } from "../../../../store/tinybase/store/save";
 import { getOrCreateSessionForEventId } from "../../../../store/tinybase/store/sessions";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import {
@@ -245,9 +247,21 @@ const SessionItem = memo(
       void deleteSessionCascade(store, indexes, sessionId);
     }, [store, indexes, sessionId, invalidateResource]);
 
+    const handleRevealInFinder = useCallback(async () => {
+      await save();
+      await miscCommands.revealSessionInFinder(sessionId);
+    }, [sessionId]);
+
     const contextMenu = useMemo(
-      () => [{ id: "delete", text: "Delete Completely", action: handleDelete }],
-      [handleCmdClick, handleDelete],
+      () => [
+        {
+          id: "reveal",
+          text: "Reveal in Finder",
+          action: handleRevealInFinder,
+        },
+        { id: "delete", text: "Delete Completely", action: handleDelete },
+      ],
+      [handleRevealInFinder, handleDelete],
     );
 
     return (

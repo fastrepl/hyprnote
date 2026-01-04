@@ -12,7 +12,6 @@ export function createSession(store: Store, title?: string): string {
     title: title ?? "",
     created_at: new Date().toISOString(),
     raw_md: "",
-    enhanced_md: "",
     user_id: DEFAULT_USER_ID,
   });
   void analyticsCommands.event({
@@ -46,7 +45,6 @@ export function getOrCreateSessionForEventId(
     title: title ?? "",
     created_at: new Date().toISOString(),
     raw_md: "",
-    enhanced_md: "",
     user_id: DEFAULT_USER_ID,
   });
   void analyticsCommands.event({

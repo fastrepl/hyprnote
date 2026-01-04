@@ -23,7 +23,6 @@ describe("TinyBase hooks", () => {
 
       expect(result.current).toHaveProperty("title");
       expect(result.current).toHaveProperty("rawMd");
-      expect(result.current).toHaveProperty("enhancedMd");
       expect(result.current).toHaveProperty("createdAt");
       expect(result.current).toHaveProperty("eventId");
       expect(result.current).toHaveProperty("folderId");

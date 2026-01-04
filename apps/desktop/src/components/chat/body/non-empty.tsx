@@ -11,13 +11,11 @@ export function ChatBodyNonEmpty({
   status,
   error,
   onReload,
-  onStop,
 }: {
   messages: HyprUIMessage[];
   status: ChatStatus;
   error?: Error;
   onReload?: () => void;
-  onStop?: () => void;
 }) {
   const showErrorState = status === "error" && error;
   const lastMessage = messages[messages.length - 1];
@@ -32,17 +30,6 @@ export function ChatBodyNonEmpty({
       break;
     }
   }
-
-  const handleCancelAndRetry = () => {
-    if (onStop) {
-      onStop();
-    }
-    if (onReload) {
-      setTimeout(() => {
-        onReload();
-      }, 100);
-    }
-  };
 
   return (
     <div className="flex flex-col">
@@ -59,13 +46,7 @@ export function ChatBodyNonEmpty({
           }
         />
       ))}
-      {showLoadingState && (
-        <LoadingMessage
-          onCancelAndRetry={
-            onStop && onReload ? handleCancelAndRetry : undefined
-          }
-        />
-      )}
+      {showLoadingState && <LoadingMessage />}
       {showErrorState && <ErrorMessage error={error} onRetry={onReload} />}
     </div>
   );

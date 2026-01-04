@@ -140,7 +140,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       user_id: DEFAULT_USER_ID,
       title: session.title,
       raw_md: JSON.stringify(md2json(session.raw_md)),
-      enhanced_md: JSON.stringify(md2json(session.enhanced_md)),
       created_at: new Date().toISOString(),
       event_id: eventId,
       folder_id: folderId,

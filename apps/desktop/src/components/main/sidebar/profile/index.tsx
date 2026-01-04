@@ -177,7 +177,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       icon: FolderOpenIcon,
       label: "Folders",
       onClick: handleClickFolders,
-      badge: <Kbd className={kbdClass}>⌘ ⇧ D</Kbd>,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ L</Kbd>,
     },
     {
       icon: UsersIcon,
@@ -195,19 +195,16 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       icon: FileTextIcon,
       label: "Templates",
       onClick: handleClickTemplates,
-      badge: <Kbd className={kbdClass}>⌘ ⇧ T</Kbd>,
     },
     {
       icon: ZapIcon,
       label: "Shortcuts",
       onClick: handleClickShortcuts,
-      badge: <Kbd className={kbdClass}>⌘ ⇧ S</Kbd>,
     },
     {
       icon: MessageSquareIcon,
       label: "Prompts",
       onClick: handleClickPrompts,
-      badge: <Kbd className={kbdClass}>⌘ ⇧ P</Kbd>,
     },
     {
       icon: SparklesIcon,

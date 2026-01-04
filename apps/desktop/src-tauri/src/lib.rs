@@ -1,3 +1,4 @@
+mod agents;
 mod commands;
 mod control;
 mod ext;
@@ -96,6 +97,7 @@ pub async fn main() {
         .plugin(tauri_plugin_deeplink2::init())
         .plugin(tauri_plugin_export::init())
         .plugin(tauri_plugin_folder::init())
+        .plugin(tauri_plugin_frontmatter::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_path2::init())
@@ -109,7 +111,6 @@ pub async fn main() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_notify::init())
         .plugin(tauri_plugin_overlay::init())
-        .plugin(tauri_plugin_pagefind::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())
@@ -118,6 +119,7 @@ pub async fn main() {
         .plugin(tauri_plugin_settings::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_windows::init())
+        .plugin(tauri_plugin_js::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_listener2::init())
@@ -175,6 +177,15 @@ pub async fn main() {
                 use tauri_plugin_tray::TrayPluginExt;
                 app_handle.tray().create_tray_menu().unwrap();
                 app_handle.tray().create_app_menu().unwrap();
+            }
+
+            {
+                use tauri_plugin_path2::Path2PluginExt;
+                if let Ok(base) = app_handle.path2().base() {
+                    if let Err(e) = agents::write_agents_file(&base) {
+                        tracing::error!("failed to write AGENTS.md: {}", e);
+                    }
+                }
             }
 
             tokio::spawn(async move {
@@ -302,6 +313,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_onboarding_local::<tauri::Wry>,
             commands::get_env::<tauri::Wry>,
             commands::show_devtool,
+            commands::resize_window_for_chat::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

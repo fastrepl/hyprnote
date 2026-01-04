@@ -6,20 +6,36 @@ import { useMemo } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as pdfCommands, type TranscriptItem } from "@hypr/plugin-pdf";
+import { json2md } from "@hypr/tiptap/shared";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 
 import * as main from "../../../../../../store/tinybase/store/main";
+import type { EditorView } from "../../../../../../store/zustand/tabs/schema";
 
-export function ExportPDF({ sessionId }: { sessionId: string }) {
+export function ExportPDF({
+  sessionId,
+  currentView,
+}: {
+  sessionId: string;
+  currentView: EditorView;
+}) {
   const store = main.UI.useStore(main.STORE_ID);
   const indexes = main.UI.useIndexes(main.STORE_ID);
 
-  const enhancedMd = main.UI.useCell(
+  const rawMd = main.UI.useCell(
     "sessions",
     sessionId,
-    "enhanced_md",
+    "raw_md",
     main.STORE_ID,
-  ) as string;
+  ) as string | undefined;
+
+  const enhancedNoteId = currentView.type === "enhanced" ? currentView.id : "";
+  const enhancedNoteContent = main.UI.useCell(
+    "enhanced_notes",
+    enhancedNoteId,
+    "content",
+    main.STORE_ID,
+  ) as string | undefined;
 
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -78,10 +94,75 @@ export function ExportPDF({ sessionId }: { sessionId: string }) {
     return items;
   }, [store, indexes, transcriptIds]);
 
+  const getExportContent = useMemo(() => {
+    return (): {
+      enhancedMd: string;
+      transcript: { items: TranscriptItem[] } | null;
+    } => {
+      switch (currentView.type) {
+        case "raw": {
+          let memoMd = "";
+          if (rawMd) {
+            try {
+              const parsed = JSON.parse(rawMd);
+              memoMd = json2md(parsed);
+            } catch {
+              memoMd = "";
+            }
+          }
+          return {
+            enhancedMd: memoMd,
+            transcript: null,
+          };
+        }
+        case "enhanced": {
+          let enhancedMd = "";
+          if (enhancedNoteContent) {
+            try {
+              const parsed = JSON.parse(enhancedNoteContent);
+              enhancedMd = json2md(parsed);
+            } catch {
+              enhancedMd = "";
+            }
+          }
+          return {
+            enhancedMd,
+            transcript: null,
+          };
+        }
+        case "transcript": {
+          return {
+            enhancedMd: "",
+            transcript:
+              transcriptItems.length > 0 ? { items: transcriptItems } : null,
+          };
+        }
+        default:
+          return {
+            enhancedMd: "",
+            transcript: null,
+          };
+      }
+    };
+  }, [currentView, rawMd, enhancedNoteContent, transcriptItems]);
+
+  const getExportLabel = () => {
+    switch (currentView.type) {
+      case "raw":
+        return "Export Memo to PDF";
+      case "enhanced":
+        return "Export Summary to PDF";
+      case "transcript":
+        return "Export Transcript to PDF";
+      default:
+        return "Export to PDF";
+    }
+  };
+
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
       const path = await save({
-        title: "Export to PDF",
+        title: getExportLabel(),
         filters: [{ name: "PDF", extensions: ["pdf"] }],
       });
 
@@ -89,11 +170,8 @@ export function ExportPDF({ sessionId }: { sessionId: string }) {
         return null;
       }
 
-      const result = await pdfCommands.export(path, {
-        enhancedMd: enhancedMd ?? "",
-        transcript:
-          transcriptItems.length > 0 ? { items: transcriptItems } : null,
-      });
+      const exportContent = getExportContent();
+      const result = await pdfCommands.export(path, exportContent);
 
       if (result.status === "error") {
         throw new Error(result.error);
@@ -106,8 +184,12 @@ export function ExportPDF({ sessionId }: { sessionId: string }) {
         void analyticsCommands.event({
           event: "session_exported",
           format: "pdf",
-          has_transcript: transcriptItems.length > 0,
-          has_enhanced: !!enhancedMd,
+          view_type: currentView.type,
+          has_transcript:
+            currentView.type === "transcript" && transcriptItems.length > 0,
+          has_enhanced:
+            currentView.type === "enhanced" && !!enhancedNoteContent,
+          has_memo: currentView.type === "raw" && !!rawMd,
         });
         void openPath(path);
       }
@@ -125,7 +207,7 @@ export function ExportPDF({ sessionId }: { sessionId: string }) {
       className="cursor-pointer"
     >
       {isPending ? <Loader2Icon className="animate-spin" /> : <FileTextIcon />}
-      <span>{isPending ? "Exporting..." : "Export to PDF"}</span>
+      <span>{isPending ? "Exporting..." : getExportLabel()}</span>
     </DropdownMenuItem>
   );
 }

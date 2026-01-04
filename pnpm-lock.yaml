@@ -266,6 +266,9 @@ importers:
       '@hypr/plugin-folder':
         specifier: workspace:*
         version: link:../../plugins/folder
+      '@hypr/plugin-frontmatter':
+        specifier: workspace:*
+        version: link:../../plugins/frontmatter
       '@hypr/plugin-hooks':
         specifier: workspace:*
         version: link:../../plugins/hooks
@@ -275,6 +278,9 @@ importers:
       '@hypr/plugin-importer':
         specifier: workspace:*
         version: link:../../plugins/importer
+      '@hypr/plugin-js':
+        specifier: workspace:*
+        version: link:../../plugins/js
       '@hypr/plugin-listener':
         specifier: workspace:*
         version: link:../../plugins/listener
@@ -299,9 +305,6 @@ importers:
       '@hypr/plugin-overlay':
         specifier: workspace:*
         version: link:../../plugins/overlay
-      '@hypr/plugin-pagefind':
-        specifier: workspace:*
-        version: link:../../plugins/pagefind
       '@hypr/plugin-path2':
         specifier: workspace:*
         version: link:../../plugins/path2
@@ -317,6 +320,9 @@ importers:
       '@hypr/plugin-sfx':
         specifier: workspace:*
         version: link:../../plugins/sfx
+      '@hypr/plugin-tantivy':
+        specifier: workspace:*
+        version: link:../../plugins/tantivy
       '@hypr/plugin-template':
         specifier: workspace:*
         version: link:../../plugins/template
@@ -1505,6 +1511,12 @@ importers:
         specifier: ^2.9.1
         version: 2.9.1
 
+  plugins/frontmatter:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
   plugins/hooks:
     dependencies:
       '@tauri-apps/api':
@@ -1518,6 +1530,12 @@ importers:
         version: 2.9.1
 
   plugins/importer:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/js:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1
@@ -1577,12 +1595,6 @@ importers:
         specifier: ^2.9.1
         version: 2.9.1
 
-  plugins/pagefind:
-    dependencies:
-      '@tauri-apps/api':
-        specifier: ^2.9.1
-        version: 2.9.1
-
   plugins/path2:
     dependencies:
       '@tauri-apps/api':
@@ -1620,6 +1632,12 @@ importers:
         version: 2.9.1
 
   plugins/store2:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/tantivy:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

@@ -11,11 +11,7 @@ import {
 
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
-import {
-  createSettingsPersister,
-  migrateKeysJsonToSettings,
-} from "../persister/settings";
-import * as main from "./main";
+import { useSettingsPersister } from "../persister/settings";
 import { registerSaveHandler } from "./save";
 
 export const STORE_ID = "settings";
@@ -107,11 +103,10 @@ const SCHEMA = {
   } satisfies TablesSchema,
 } as const;
 
-type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
+export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
 
 const {
   useCreateMergeableStore,
-  useCreatePersister,
   useCreateSynchronizer,
   useCreateQueries,
   useProvideStore,
@@ -128,45 +123,17 @@ export const QUERIES = {
   sttProviders: "sttProviders",
 } as const;
 
-export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
-  const mainStore = main.UI.useStore(main.STORE_ID);
-
+export const StoreComponent = () => {
   const store = useCreateMergeableStore(() =>
     createMergeableStore()
       .setTablesSchema(SCHEMA.table)
       .setValuesSchema(SCHEMA.value),
   );
 
-  const persister = useCreatePersister(
-    store,
-    async (store) => {
-      if (persist) {
-        await migrateKeysJsonToSettings();
-      }
-
-      const settingsPersister = createSettingsPersister<Schemas>(
-        store as Store,
-      );
-
-      await settingsPersister.load();
-
-      if (!persist) {
-        return undefined;
-      }
-
-      if (mainStore) {
-        migrateFromMainStore(mainStore as main.Store, store as Store);
-        await settingsPersister.save();
-      }
-
-      await settingsPersister.startAutoPersisting();
-      return settingsPersister;
-    },
-    [persist, mainStore],
-  );
+  const persister = useSettingsPersister(store as Store);
 
   useEffect(() => {
-    if (!persist || !persister) {
+    if (!persister) {
       return;
     }
 
@@ -177,7 +144,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     return registerSaveHandler(async () => {
       await persister.save();
     });
-  }, [persister, persist]);
+  }, [persister]);
 
   const synchronizer = useCreateSynchronizer(store, async (store) =>
     createBroadcastChannelSynchronizer(store, "hypr-sync-settings").startSync(),
@@ -209,7 +176,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 
   useProvideStore(STORE_ID, store);
   useProvideQueries(STORE_ID, queries!);
-  useProvidePersister(STORE_ID, persist ? persister : undefined);
+  useProvidePersister(STORE_ID, persister);
   useProvideSynchronizer(STORE_ID, synchronizer);
 
   return null;
@@ -218,34 +185,3 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 export const SETTINGS_VALUE_KEYS = Object.keys(
   SETTINGS_MAPPING.values,
 ) as (keyof typeof SETTINGS_MAPPING.values)[];
-
-function migrateFromMainStore(mainStore: main.Store, settingsStore: Store) {
-  const mainProviders = mainStore.getTable("ai_providers");
-
-  if (mainProviders && Object.keys(mainProviders).length > 0) {
-    for (const [rowId, row] of Object.entries(mainProviders)) {
-      if (row.api_key || row.base_url) {
-        settingsStore.setRow("ai_providers", rowId, {
-          type: row.type ?? "",
-          base_url: row.base_url ?? "",
-          api_key: row.api_key ?? "",
-        });
-      }
-      mainStore.delRow("ai_providers", rowId);
-    }
-  }
-
-  const mainValues = mainStore.getValues();
-  for (const key of SETTINGS_VALUE_KEYS) {
-    if (!(key in mainValues)) {
-      continue;
-    }
-    const value = mainValues[key as keyof typeof mainValues];
-    if (value !== undefined && !settingsStore.hasValue(key)) {
-      settingsStore.setValue(key, value as any);
-    }
-    if (value !== undefined) {
-      mainStore.delValue(key as keyof typeof mainValues);
-    }
-  }
-}

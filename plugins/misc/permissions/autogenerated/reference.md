@@ -14,6 +14,7 @@ Default permissions for the plugin
 - `allow-audio-exist`
 - `allow-audio-delete`
 - `allow-audio-import`
+- `allow-reveal-session-in-finder`
 
 ## Permission Table
 
@@ -280,6 +281,32 @@ Enables the parse_meeting_link command without any pre-configured scope.
 <td>
 
 Denies the parse_meeting_link command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:allow-reveal-session-in-finder`
+
+</td>
+<td>
+
+Enables the reveal_session_in_finder command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-reveal-session-in-finder`
+
+</td>
+<td>
+
+Denies the reveal_session_in_finder command without any pre-configured scope.
 
 </td>
 </tr>

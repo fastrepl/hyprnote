@@ -14,7 +14,6 @@ import { SCHEMA, type Schemas } from "@hypr/store";
 import { format } from "@hypr/utils";
 
 import { useMainPersisters } from "./persisters";
-import * as settings from "./settings";
 
 export const STORE_ID = "main";
 
@@ -60,9 +59,7 @@ export const testUtils = {
   SCHEMA,
 };
 
-export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
-  const settingsStore = settings.UI.useStore(settings.STORE_ID);
-
+export const StoreComponent = () => {
   const store = useCreateMergeableStore(() =>
     createMergeableStore()
       .setTablesSchema(SCHEMA.table)
@@ -74,7 +71,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     markdownPersister,
     transcriptPersister,
     humanPersister,
-  } = useMainPersisters(store as Store, persist, settingsStore);
+  } = useMainPersisters(store as Store);
 
   const synchronizer = useCreateSynchronizer(store, async (store) =>
     createBroadcastChannelSynchronizer(
@@ -397,10 +394,10 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   useProvideQueries(STORE_ID, queries!);
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
-  useProvidePersister(STORE_ID, persist ? localPersister : undefined);
-  useProvidePersister("markdown", persist ? markdownPersister : undefined);
-  useProvidePersister("transcript", persist ? transcriptPersister : undefined);
-  useProvidePersister("human", persist ? humanPersister : undefined);
+  useProvidePersister(STORE_ID, localPersister);
+  useProvidePersister("markdown", markdownPersister);
+  useProvidePersister("transcript", transcriptPersister);
+  useProvidePersister("human", humanPersister);
   useProvideSynchronizer(STORE_ID, synchronizer);
   useProvideCheckpoints(STORE_ID, checkpoints!);
 

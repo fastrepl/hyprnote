@@ -31,7 +31,7 @@ impl From<hypr_detect::DetectEvent> for DetectEvent {
                 apps,
             },
             hypr_detect::DetectEvent::MicStopped(apps) => Self::MicStopped { apps },
-            #[cfg(target_os = "macos")]
+            #[cfg(all(target_os = "macos", feature = "zoom"))]
             hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {
                 Self::MicMuteStateChanged { value }
             }

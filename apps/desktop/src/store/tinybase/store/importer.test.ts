@@ -79,7 +79,7 @@ describe("maybeImportFromJson", () => {
 
     expect(result).toEqual({
       status: "success",
-      tablesImported: 1,
+      rowsImported: 1,
       valuesImported: 1,
     });
     expect(rename).toHaveBeenCalledWith(
@@ -175,7 +175,7 @@ describe("maybeImportFromJson", () => {
 
     expect(result).toEqual({
       status: "success",
-      tablesImported: 0,
+      rowsImported: 0,
       valuesImported: 0,
     });
   });
@@ -234,7 +234,7 @@ describe("importFromFile", () => {
 
     expect(result).toEqual({
       status: "success",
-      tablesImported: 1,
+      rowsImported: 1,
       valuesImported: 1,
     });
     expect(readTextFile).toHaveBeenCalledWith("/path/to/import.json");

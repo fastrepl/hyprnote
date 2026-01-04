@@ -197,9 +197,6 @@
           "raw_md": {
             "type": "string"
           },
-          "enhanced_md": {
-            "type": "string"
-          },
           "folder": {
             "anyOf": [
               {
@@ -296,7 +293,6 @@
         "required": [
           "title",
           "raw_md",
-          "enhanced_md",
           "folder",
           "event",
           "participants",

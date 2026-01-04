@@ -11,4 +11,5 @@ permissions = [
     "allow-audio-exist",
     "allow-audio-delete",
     "allow-audio-import",
+    "allow-reveal-session-in-finder",
 ]

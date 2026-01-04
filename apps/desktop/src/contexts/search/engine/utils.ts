@@ -171,3 +171,5 @@ export function collectCells(
     return acc;
   }, {});
 }
+
+export { collectEnhancedNotesContent } from "../../../store/tinybase/store/utils";

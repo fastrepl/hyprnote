@@ -39,7 +39,8 @@ fileChanged: "plugin:notify:file-changed"
 
 /** user-defined types **/
 
-export type FileChanged = { path: string }
+export type ChangeKind = "created" | "modified" | "removed" | "renamed" | "access" | "any" | "other"
+export type FileChanged = { path: string; kind: ChangeKind }
 
 /** tauri-specta globals **/
 

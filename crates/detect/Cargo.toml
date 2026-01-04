@@ -3,6 +3,13 @@ name = "detect"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["mic", "locale"]
+mic = []
+locale = []
+app = []
+zoom = []
+
 [dependencies]
 lazy_static = { workspace = true }
 regex = { workspace = true }

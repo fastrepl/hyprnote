@@ -51,6 +51,12 @@ pub struct SearchFilters {
     pub created_at: Option<CreatedAtFilter>,
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
+pub struct SearchOptions {
+    pub fuzzy: Option<bool>,
+    pub distance: Option<u8>,
+}
+
 pub struct CollectionConfig {
     pub name: String,
     pub path: String,
@@ -94,7 +100,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::search::<tauri::Wry>,
-            commands::search_fuzzy::<tauri::Wry>,
             commands::reindex::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)

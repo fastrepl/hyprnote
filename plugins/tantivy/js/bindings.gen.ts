@@ -45,6 +45,14 @@ async removeDocument(id: string, collection: string | null) : Promise<Result<nul
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async moreLikeThis(request: MoreLikeThisRequest) : Promise<Result<SearchResult, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|more_like_this", { request }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -59,12 +67,16 @@ async removeDocument(id: string, collection: string | null) : Promise<Result<nul
 /** user-defined types **/
 
 export type CreatedAtFilter = { gte: number | null; lte: number | null; gt: number | null; lt: number | null; eq: number | null }
-export type SearchDocument = { id: string; doc_type: string; language: string | null; title: string; content: string; created_at: number }
-export type SearchFilters = { created_at: CreatedAtFilter | null; doc_type: string | null }
-export type SearchHit = { score: number; document: SearchDocument }
-export type SearchOptions = { fuzzy: boolean | null; distance: number | null }
+export type HighlightRange = { start: number; end: number }
+export type MoreLikeThisOptions = { min_doc_frequency: number | null; max_doc_frequency: number | null; min_term_frequency: number | null; min_word_length: number | null; max_word_length: number | null; boost_factor: number | null; stop_words: string[] | null }
+export type MoreLikeThisRequest = { document_id: string; collection?: string | null; limit?: number; options?: MoreLikeThisOptions }
+export type SearchDocument = { id: string; doc_type: string; language: string | null; title: string; content: string; created_at: number; facets?: string[] }
+export type SearchFilters = { created_at: CreatedAtFilter | null; doc_type: string | null; facet: string | null }
+export type SearchHit = { score: number; document: SearchDocument; title_snippet: Snippet | null; content_snippet: Snippet | null }
+export type SearchOptions = { fuzzy: boolean | null; distance: number | null; snippets: boolean | null; snippet_max_chars: number | null; phrase_slop: number | null }
 export type SearchRequest = { query: string; collection?: string | null; filters?: SearchFilters; limit?: number; options?: SearchOptions }
 export type SearchResult = { hits: SearchHit[]; count: number }
+export type Snippet = { fragment: string; highlights: HighlightRange[] }
 
 /** tauri-specta globals **/
 

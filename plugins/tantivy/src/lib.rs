@@ -27,18 +27,56 @@ pub struct SearchDocument {
     pub title: String,
     pub content: String,
     pub created_at: i64,
+    #[serde(default)]
+    pub facets: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Snippet {
+    pub fragment: String,
+    pub highlights: Vec<HighlightRange>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct HighlightRange {
+    pub start: usize,
+    pub end: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct SearchHit {
     pub score: f32,
     pub document: SearchDocument,
+    pub title_snippet: Option<Snippet>,
+    pub content_snippet: Option<Snippet>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct SearchResult {
     pub hits: Vec<SearchHit>,
     pub count: usize,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
+pub struct MoreLikeThisOptions {
+    pub min_doc_frequency: Option<u64>,
+    pub max_doc_frequency: Option<u64>,
+    pub min_term_frequency: Option<usize>,
+    pub min_word_length: Option<usize>,
+    pub max_word_length: Option<usize>,
+    pub boost_factor: Option<f32>,
+    pub stop_words: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct MoreLikeThisRequest {
+    pub document_id: String,
+    #[serde(default)]
+    pub collection: Option<String>,
+    #[serde(default = "default_limit")]
+    pub limit: usize,
+    #[serde(default)]
+    pub options: MoreLikeThisOptions,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
@@ -54,12 +92,16 @@ pub struct CreatedAtFilter {
 pub struct SearchFilters {
     pub created_at: Option<CreatedAtFilter>,
     pub doc_type: Option<String>,
+    pub facet: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
 pub struct SearchOptions {
     pub fuzzy: Option<bool>,
     pub distance: Option<u8>,
+    pub snippets: Option<bool>,
+    pub snippet_max_chars: Option<usize>,
+    pub phrase_slop: Option<u32>,
 }
 
 fn default_limit() -> usize {
@@ -126,6 +168,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::add_document::<tauri::Wry>,
             commands::update_document::<tauri::Wry>,
             commands::remove_document::<tauri::Wry>,
+            commands::more_like_this::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

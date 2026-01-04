@@ -1,4 +1,4 @@
-use crate::{SearchDocument, SearchRequest, SearchResult, TantivyPluginExt};
+use crate::{MoreLikeThisRequest, SearchDocument, SearchRequest, SearchResult, TantivyPluginExt};
 
 #[tauri::command]
 #[specta::specta]
@@ -59,6 +59,18 @@ pub(crate) async fn remove_document<R: tauri::Runtime>(
 ) -> Result<(), String> {
     app.tantivy()
         .remove_document(collection, id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn more_like_this<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    request: MoreLikeThisRequest,
+) -> Result<SearchResult, String> {
+    app.tantivy()
+        .more_like_this(request)
         .await
         .map_err(|e| e.to_string())
 }

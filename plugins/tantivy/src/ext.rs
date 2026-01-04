@@ -1,8 +1,10 @@
 use tantivy::collector::{Count, TopDocs};
 use tantivy::query::{
-    BooleanQuery, BoostQuery, FuzzyTermQuery, Occur, Query, QueryParser, TermQuery,
+    BooleanQuery, BoostQuery, FuzzyTermQuery, MoreLikeThisQuery, Occur, PhraseQuery, Query,
+    QueryParser, TermQuery,
 };
-use tantivy::schema::IndexRecordOption;
+use tantivy::schema::{Facet, IndexRecordOption};
+use tantivy::snippet::SnippetGenerator;
 use tantivy::{Index, ReloadPolicy, TantivyDocument, Term};
 use tauri_plugin_path2::Path2PluginExt;
 
@@ -10,12 +12,62 @@ use crate::query::build_created_at_range_query;
 use crate::schema::{extract_search_document, get_fields};
 use crate::tokenizer::register_tokenizers;
 use crate::{
-    CollectionConfig, CollectionIndex, IndexState, SearchDocument, SearchHit, SearchRequest,
-    SearchResult,
+    CollectionConfig, CollectionIndex, HighlightRange, IndexState, MoreLikeThisRequest,
+    SearchDocument, SearchHit, SearchRequest, SearchResult, Snippet,
 };
 
 pub fn detect_language(text: &str) -> hypr_language::Language {
     hypr_language::detect(text)
+}
+
+fn parse_query_parts(query: &str) -> (Vec<&str>, Vec<&str>) {
+    let mut phrases = Vec::new();
+    let mut regular_terms = Vec::new();
+    let mut in_quote = false;
+    let mut quote_start = 0;
+    let mut current_start = 0;
+
+    let chars: Vec<char> = query.chars().collect();
+    let mut i = 0;
+
+    while i < chars.len() {
+        if chars[i] == '"' {
+            if in_quote {
+                let phrase = &query[quote_start..i];
+                if !phrase.trim().is_empty() {
+                    phrases.push(phrase.trim());
+                }
+                in_quote = false;
+                current_start = i + 1;
+            } else {
+                let before = &query[current_start..i];
+                for term in before.split_whitespace() {
+                    if !term.is_empty() {
+                        regular_terms.push(term);
+                    }
+                }
+                in_quote = true;
+                quote_start = i + 1;
+            }
+        }
+        i += 1;
+    }
+
+    if in_quote {
+        let phrase = &query[quote_start..];
+        if !phrase.trim().is_empty() {
+            phrases.push(phrase.trim());
+        }
+    } else {
+        let remaining = &query[current_start..];
+        for term in remaining.split_whitespace() {
+            if !term.is_empty() {
+                regular_terms.push(term);
+            }
+        }
+    }
+
+    (phrases, regular_terms)
 }
 
 pub struct Tantivy<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
@@ -95,18 +147,80 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         let searcher = reader.searcher();
 
         let use_fuzzy = request.options.fuzzy.unwrap_or(false);
+        let phrase_slop = request.options.phrase_slop.unwrap_or(0);
 
         // Title boost factor (3x) to match Orama's title:3, content:1 behavior
         const TITLE_BOOST: f32 = 3.0;
 
         let mut combined_query: Box<dyn Query> = if use_fuzzy {
             let distance = request.options.distance.unwrap_or(1);
-            let terms: Vec<&str> = request.query.split_whitespace().collect();
+
+            // Parse query to extract phrases (quoted) and regular terms
+            let (phrases, regular_terms) = parse_query_parts(&request.query);
+
             let mut term_queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
 
-            // For each term, create a Must clause that requires the term to match
-            // in either title OR content (with title boosted)
-            for term in terms {
+            // Handle quoted phrases with PhraseQuery
+            for phrase in phrases {
+                let words: Vec<&str> = phrase.split_whitespace().collect();
+                if words.len() > 1 {
+                    // Create phrase query for title field
+                    let title_terms: Vec<Term> = words
+                        .iter()
+                        .map(|w| Term::from_field_text(fields.title, w))
+                        .collect();
+                    let mut title_phrase = PhraseQuery::new(title_terms);
+                    title_phrase.set_slop(phrase_slop);
+
+                    // Create phrase query for content field
+                    let content_terms: Vec<Term> = words
+                        .iter()
+                        .map(|w| Term::from_field_text(fields.content, w))
+                        .collect();
+                    let mut content_phrase = PhraseQuery::new(content_terms);
+                    content_phrase.set_slop(phrase_slop);
+
+                    // Boost title matches by 3x
+                    let boosted_title: Box<dyn Query> =
+                        Box::new(BoostQuery::new(Box::new(title_phrase), TITLE_BOOST));
+                    let content_query: Box<dyn Query> = Box::new(content_phrase);
+
+                    // Phrase must match in at least one field (title OR content)
+                    let phrase_field_query = BooleanQuery::new(vec![
+                        (Occur::Should, boosted_title),
+                        (Occur::Should, content_query),
+                    ]);
+
+                    term_queries.push((Occur::Must, Box::new(phrase_field_query)));
+                } else if !words.is_empty() {
+                    // Single word "phrase" - treat as regular term
+                    let word = words[0];
+                    let title_fuzzy = FuzzyTermQuery::new(
+                        Term::from_field_text(fields.title, word),
+                        distance,
+                        true,
+                    );
+                    let content_fuzzy = FuzzyTermQuery::new(
+                        Term::from_field_text(fields.content, word),
+                        distance,
+                        true,
+                    );
+
+                    let boosted_title: Box<dyn Query> =
+                        Box::new(BoostQuery::new(Box::new(title_fuzzy), TITLE_BOOST));
+                    let content_query: Box<dyn Query> = Box::new(content_fuzzy);
+
+                    let term_field_query = BooleanQuery::new(vec![
+                        (Occur::Should, boosted_title),
+                        (Occur::Should, content_query),
+                    ]);
+
+                    term_queries.push((Occur::Must, Box::new(term_field_query)));
+                }
+            }
+
+            // Handle regular (unquoted) terms with fuzzy matching
+            for term in regular_terms {
                 let title_fuzzy =
                     FuzzyTermQuery::new(Term::from_field_text(fields.title, term), distance, true);
                 let content_fuzzy = FuzzyTermQuery::new(
@@ -157,20 +271,81 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
             ]));
         }
 
+        // Apply facet filter
+        if let Some(ref facet_path) = request.filters.facet {
+            if let Ok(facet) = Facet::from_text(facet_path) {
+                let facet_term = Term::from_facet(fields.facets, &facet);
+                let facet_query = TermQuery::new(facet_term, IndexRecordOption::Basic);
+                combined_query = Box::new(BooleanQuery::new(vec![
+                    (Occur::Must, combined_query),
+                    (Occur::Must, Box::new(facet_query)),
+                ]));
+            }
+        }
+
         // Use tuple collector to get both top docs and total count
         let (top_docs, count) = searcher.search(
             &combined_query,
             &(TopDocs::with_limit(request.limit), Count),
         )?;
 
+        let generate_snippets = request.options.snippets.unwrap_or(false);
+        let snippet_max_chars = request.options.snippet_max_chars.unwrap_or(150);
+
+        let (title_snippet_gen, content_snippet_gen) = if generate_snippets {
+            let mut title_gen =
+                SnippetGenerator::create(&searcher, &*combined_query, fields.title)?;
+            title_gen.set_max_num_chars(snippet_max_chars);
+
+            let mut content_gen =
+                SnippetGenerator::create(&searcher, &*combined_query, fields.content)?;
+            content_gen.set_max_num_chars(snippet_max_chars);
+
+            (Some(title_gen), Some(content_gen))
+        } else {
+            (None, None)
+        };
+
         let mut hits = Vec::new();
         for (score, doc_address) in top_docs {
             let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
 
             if let Some(search_doc) = extract_search_document(schema, &fields, &retrieved_doc) {
+                let title_snippet = title_snippet_gen.as_ref().map(|generator| {
+                    let snippet = generator.snippet_from_doc(&retrieved_doc);
+                    Snippet {
+                        fragment: snippet.fragment().to_string(),
+                        highlights: snippet
+                            .highlighted()
+                            .iter()
+                            .map(|range| HighlightRange {
+                                start: range.start,
+                                end: range.end,
+                            })
+                            .collect(),
+                    }
+                });
+
+                let content_snippet = content_snippet_gen.as_ref().map(|generator| {
+                    let snippet = generator.snippet_from_doc(&retrieved_doc);
+                    Snippet {
+                        fragment: snippet.fragment().to_string(),
+                        highlights: snippet
+                            .highlighted()
+                            .iter()
+                            .map(|range| HighlightRange {
+                                start: range.start,
+                                end: range.end,
+                            })
+                            .collect(),
+                    }
+                });
+
                 hits.push(SearchHit {
                     score,
                     document: search_doc,
+                    title_snippet,
+                    content_snippet,
                 });
             }
         }
@@ -232,6 +407,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         doc.add_text(fields.content, &document.content);
         doc.add_i64(fields.created_at, document.created_at);
 
+        for facet_path in &document.facets {
+            if let Ok(facet) = Facet::from_text(facet_path) {
+                doc.add_facet(fields.facets, facet);
+            }
+        }
+
         writer.add_document(doc)?;
         writer.commit()?;
 
@@ -272,6 +453,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         doc.add_text(fields.title, &document.title);
         doc.add_text(fields.content, &document.content);
         doc.add_i64(fields.created_at, document.created_at);
+
+        for facet_path in &document.facets {
+            if let Ok(facet) = Facet::from_text(facet_path) {
+                doc.add_facet(fields.facets, facet);
+            }
+        }
 
         writer.add_document(doc)?;
         writer.commit()?;
@@ -314,6 +501,93 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         );
 
         Ok(())
+    }
+
+    pub async fn more_like_this(
+        &self,
+        request: MoreLikeThisRequest,
+    ) -> Result<SearchResult, crate::Error> {
+        let collection_name = Self::get_collection_name(request.collection);
+        let state = self.manager.state::<IndexState>();
+        let guard = state.inner.lock().await;
+
+        let collection_index = guard
+            .collections
+            .get(&collection_name)
+            .ok_or_else(|| crate::Error::CollectionNotFound(collection_name.clone()))?;
+
+        let schema = &collection_index.schema;
+        let reader = &collection_index.reader;
+
+        let fields = get_fields(schema);
+        let searcher = reader.searcher();
+
+        let id_term = Term::from_field_text(fields.id, &request.document_id);
+        let id_query = TermQuery::new(id_term, IndexRecordOption::Basic);
+
+        let (top_docs, _) = searcher.search(&id_query, &(TopDocs::with_limit(1), Count))?;
+
+        let (_, doc_address) = top_docs
+            .first()
+            .ok_or_else(|| crate::Error::DocumentNotFound(request.document_id.clone()))?;
+
+        let mut mlt_builder = MoreLikeThisQuery::builder();
+
+        if let Some(min_doc_freq) = request.options.min_doc_frequency {
+            mlt_builder = mlt_builder.with_min_doc_frequency(min_doc_freq);
+        }
+        if let Some(max_doc_freq) = request.options.max_doc_frequency {
+            mlt_builder = mlt_builder.with_max_doc_frequency(max_doc_freq);
+        }
+        if let Some(min_term_freq) = request.options.min_term_frequency {
+            mlt_builder = mlt_builder.with_min_term_frequency(min_term_freq);
+        }
+        if let Some(min_word_len) = request.options.min_word_length {
+            mlt_builder = mlt_builder.with_min_word_length(min_word_len);
+        }
+        if let Some(max_word_len) = request.options.max_word_length {
+            mlt_builder = mlt_builder.with_max_word_length(max_word_len);
+        }
+        if let Some(boost) = request.options.boost_factor {
+            mlt_builder = mlt_builder.with_boost_factor(boost);
+        }
+        if let Some(ref stop_words) = request.options.stop_words {
+            mlt_builder = mlt_builder.with_stop_words(stop_words.clone());
+        }
+
+        let mlt_query = mlt_builder.with_document(*doc_address);
+
+        let (similar_docs, count) =
+            searcher.search(&mlt_query, &(TopDocs::with_limit(request.limit + 1), Count))?;
+
+        let mut hits = Vec::new();
+        for (score, similar_doc_address) in similar_docs {
+            if similar_doc_address == *doc_address {
+                continue;
+            }
+
+            let retrieved_doc: TantivyDocument = searcher.doc(similar_doc_address)?;
+
+            if let Some(search_doc) = extract_search_document(schema, &fields, &retrieved_doc) {
+                hits.push(SearchHit {
+                    score,
+                    document: search_doc,
+                    title_snippet: None,
+                    content_snippet: None,
+                });
+            }
+
+            if hits.len() >= request.limit {
+                break;
+            }
+        }
+
+        let actual_count = if count > 0 { count - 1 } else { 0 };
+
+        Ok(SearchResult {
+            hits,
+            count: actual_count,
+        })
     }
 }
 

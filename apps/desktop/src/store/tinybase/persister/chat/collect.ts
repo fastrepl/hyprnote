@@ -6,8 +6,11 @@ import {
   type CollectorResult,
   getChatDir,
   iterateTableRows,
+  safeParseJson,
   type TablesContent,
 } from "../utils";
+
+const SCHEMA_VERSION = 1;
 
 type ChatGroupData = {
   id: string;
@@ -16,16 +19,58 @@ type ChatGroupData = {
   title: string;
 };
 
-type ChatMessageWithId = ChatMessageStorage & { id: string };
+type NormalizedChatMessage = {
+  id: string;
+  user_id: string;
+  created_at: string;
+  chat_group_id: string;
+  role: string;
+  content: string;
+  metadata: Record<string, unknown> | null;
+  parts: unknown[] | null;
+};
 
-type ChatJson = {
-  chat_group: ChatGroupData;
-  messages: ChatMessageWithId[];
+type ChatMetadataJson = {
+  schemaVersion: number;
+  exportedAt: string;
+  chatGroup: ChatGroupData;
+};
+
+type MessagesJson = {
+  schemaVersion: number;
+  messages: NormalizedChatMessage[];
 };
 
 export type ChatCollectorResult = CollectorResult & {
   validChatGroupIds: Set<string>;
 };
+
+function normalizeMessage(
+  message: ChatMessageStorage & { id: string },
+): NormalizedChatMessage {
+  return {
+    id: message.id,
+    user_id: message.user_id,
+    created_at: message.created_at,
+    chat_group_id: message.chat_group_id,
+    role: message.role,
+    content: message.content,
+    metadata: safeParseJson(message.metadata) ?? null,
+    parts: (safeParseJson(message.parts) as unknown[]) ?? null,
+  };
+}
+
+function compareMessages(
+  a: ChatMessageStorage & { id: string },
+  b: ChatMessageStorage & { id: string },
+): number {
+  const timeA = new Date(a.created_at || 0).getTime();
+  const timeB = new Date(b.created_at || 0).getTime();
+  if (timeA !== timeB) {
+    return timeA - timeB;
+  }
+  return a.id.localeCompare(b.id);
+}
 
 export function collectChatWriteOps(
   tables: TablesContent,
@@ -33,6 +78,7 @@ export function collectChatWriteOps(
 ): ChatCollectorResult {
   const dirs = new Set<string>();
   const operations: CollectorResult["operations"] = [];
+  const exportedAt = new Date().toISOString();
 
   const chatGroups = iterateTableRows(tables, "chat_groups");
   const chatMessages = iterateTableRows(tables, "chat_messages");
@@ -44,7 +90,10 @@ export function collectChatWriteOps(
 
   const messagesByChatGroup = new Map<
     string,
-    { chatGroup: ChatGroupData; messages: ChatMessageWithId[] }
+    {
+      chatGroup: ChatGroupData;
+      messages: (ChatMessageStorage & { id: string })[];
+    }
   >();
 
   for (const message of chatMessages) {
@@ -69,19 +118,27 @@ export function collectChatWriteOps(
     const chatDir = getChatDir(dataDir, chatGroupId);
     dirs.add(chatDir);
 
-    const content: ChatJson = {
-      chat_group: chatGroup,
-      messages: messages.sort(
-        (a, b) =>
-          new Date(a.created_at || 0).getTime() -
-          new Date(b.created_at || 0).getTime(),
-      ),
+    const chatMetadata: ChatMetadataJson = {
+      schemaVersion: SCHEMA_VERSION,
+      exportedAt,
+      chatGroup,
+    };
+
+    const messagesContent: MessagesJson = {
+      schemaVersion: SCHEMA_VERSION,
+      messages: messages.sort(compareMessages).map(normalizeMessage),
     };
 
     operations.push({
       type: "json",
-      path: [chatDir, "_messages.json"].join(sep()),
-      content,
+      path: [chatDir, "chat.json"].join(sep()),
+      content: chatMetadata,
+    });
+
+    operations.push({
+      type: "json",
+      path: [chatDir, "messages.json"].join(sep()),
+      content: messagesContent,
     });
   }
 

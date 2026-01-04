@@ -38,6 +38,7 @@ pub struct SearchHit {
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct SearchResult {
     pub hits: Vec<SearchHit>,
+    pub count: usize,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
@@ -52,6 +53,7 @@ pub struct CreatedAtFilter {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
 pub struct SearchFilters {
     pub created_at: Option<CreatedAtFilter>,
+    pub doc_type: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]

@@ -1,5 +1,8 @@
-use tantivy::collector::TopDocs;
-use tantivy::query::{BooleanQuery, FuzzyTermQuery, Occur, Query, QueryParser};
+use tantivy::collector::{Count, TopDocs};
+use tantivy::query::{
+    BooleanQuery, BoostQuery, FuzzyTermQuery, Occur, Query, QueryParser, TermQuery,
+};
+use tantivy::schema::IndexRecordOption;
 use tantivy::{Index, ReloadPolicy, TantivyDocument, Term};
 use tauri_plugin_path2::Path2PluginExt;
 
@@ -93,11 +96,16 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
 
         let use_fuzzy = request.options.fuzzy.unwrap_or(false);
 
+        // Title boost factor (3x) to match Orama's title:3, content:1 behavior
+        const TITLE_BOOST: f32 = 3.0;
+
         let mut combined_query: Box<dyn Query> = if use_fuzzy {
             let distance = request.options.distance.unwrap_or(1);
             let terms: Vec<&str> = request.query.split_whitespace().collect();
-            let mut subqueries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
+            let mut term_queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
 
+            // For each term, create a Must clause that requires the term to match
+            // in either title OR content (with title boosted)
             for term in terms {
                 let title_fuzzy =
                     FuzzyTermQuery::new(Term::from_field_text(fields.title, term), distance, true);
@@ -107,16 +115,28 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
                     true,
                 );
 
-                subqueries.push((Occur::Should, Box::new(title_fuzzy)));
-                subqueries.push((Occur::Should, Box::new(content_fuzzy)));
+                // Boost title matches by 3x
+                let boosted_title: Box<dyn Query> =
+                    Box::new(BoostQuery::new(Box::new(title_fuzzy), TITLE_BOOST));
+                let content_query: Box<dyn Query> = Box::new(content_fuzzy);
+
+                // Each term must match in at least one field (title OR content)
+                let term_field_query = BooleanQuery::new(vec![
+                    (Occur::Should, boosted_title),
+                    (Occur::Should, content_query),
+                ]);
+
+                // All terms must be present (Must for each term)
+                term_queries.push((Occur::Must, Box::new(term_field_query)));
             }
 
-            Box::new(BooleanQuery::new(subqueries))
+            Box::new(BooleanQuery::new(term_queries))
         } else {
             let query_parser = QueryParser::for_index(index, vec![fields.title, fields.content]);
             query_parser.parse_query(&request.query)?
         };
 
+        // Apply created_at filter
         if let Some(ref created_at_filter) = request.filters.created_at {
             let range_query = build_created_at_range_query(fields.created_at, created_at_filter);
             if let Some(rq) = range_query {
@@ -127,7 +147,21 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
             }
         }
 
-        let top_docs = searcher.search(&combined_query, &TopDocs::with_limit(request.limit))?;
+        // Apply doc_type filter
+        if let Some(ref doc_type) = request.filters.doc_type {
+            let doc_type_term = Term::from_field_text(fields.doc_type, doc_type);
+            let doc_type_query = TermQuery::new(doc_type_term, IndexRecordOption::Basic);
+            combined_query = Box::new(BooleanQuery::new(vec![
+                (Occur::Must, combined_query),
+                (Occur::Must, Box::new(doc_type_query)),
+            ]));
+        }
+
+        // Use tuple collector to get both top docs and total count
+        let (top_docs, count) = searcher.search(
+            &combined_query,
+            &(TopDocs::with_limit(request.limit), Count),
+        )?;
 
         let mut hits = Vec::new();
         for (score, doc_address) in top_docs {
@@ -141,7 +175,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
             }
         }
 
-        Ok(SearchResult { hits })
+        Ok(SearchResult { hits, count })
     }
 
     pub async fn reindex(&self, collection: Option<String>) -> Result<(), crate::Error> {

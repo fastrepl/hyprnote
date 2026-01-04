@@ -11,17 +11,30 @@ vi.mock("@hypr/plugin-path2", () => ({
   },
 }));
 
+vi.mock("@tauri-apps/api/path", () => ({
+  sep: vi.fn().mockReturnValue("/"),
+}));
+
 vi.mock("@tauri-apps/plugin-fs", () => ({
   exists: vi.fn().mockResolvedValue(true),
   mkdir: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@hypr/plugin-export", () => ({
+vi.mock("@hypr/plugin-frontmatter", () => ({
   commands: {
-    exportTiptapJsonToMdBatch: vi
-      .fn()
-      .mockResolvedValue({ status: "ok", data: null }),
+    serializeBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
   },
+}));
+
+vi.mock("@hypr/tiptap/shared", () => ({
+  isValidTiptapContent: vi.fn((content: unknown) => {
+    if (!content || typeof content !== "object") {
+      return false;
+    }
+    const obj = content as Record<string, unknown>;
+    return obj.type === "doc" && Array.isArray(obj.content);
+  }),
+  json2md: vi.fn().mockReturnValue("mock markdown content"),
 }));
 
 function createTestStore() {
@@ -56,7 +69,8 @@ describe("createNotePersister", () => {
 
   describe("save", () => {
     test("exports enhanced_note to markdown file", async () => {
-      const { commands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       const noteId = "note-1";
       store.setRow("enhanced_notes", noteId, {
@@ -79,17 +93,28 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledTimes(1);
-      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledTimes(1);
+      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
         [
-          { type: "doc", content: [{ type: "paragraph" }] },
+          {
+            frontmatter: {
+              id: noteId,
+              session_id: "session-1",
+              type: "enhanced_note",
+              template_id: "template-1",
+              position: 0,
+              title: undefined,
+            },
+            content: "mock markdown content",
+          },
           "/mock/data/dir/hyprnote/sessions/session-1/My Template.md",
         ],
       ]);
     });
 
     test("uses _summary.md when no template_id", async () => {
-      const { commands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
@@ -103,16 +128,27 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
         [
-          { type: "doc", content: [{ type: "paragraph" }] },
+          {
+            frontmatter: {
+              id: "note-1",
+              session_id: "session-1",
+              type: "enhanced_note",
+              template_id: undefined,
+              position: 0,
+              title: undefined,
+            },
+            content: "mock markdown content",
+          },
           "/mock/data/dir/hyprnote/sessions/session-1/_summary.md",
         ],
       ]);
     });
 
     test("sanitizes template title for filename", async () => {
-      const { commands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
@@ -134,7 +170,7 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
         [
           expect.any(Object),
           "/mock/data/dir/hyprnote/sessions/session-1/My_________Template.md",
@@ -143,7 +179,8 @@ describe("createNotePersister", () => {
     });
 
     test("falls back to template_id when template title is not found", async () => {
-      const { commands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
@@ -158,7 +195,7 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
         [
           expect.any(Object),
           "/mock/data/dir/hyprnote/sessions/session-1/unknown-template-id.md",
@@ -167,7 +204,8 @@ describe("createNotePersister", () => {
     });
 
     test("handles multiple enhanced_notes", async () => {
-      const { commands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
@@ -196,14 +234,15 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledTimes(1);
-      const callArgs = vi.mocked(commands.exportTiptapJsonToMdBatch).mock
+      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledTimes(1);
+      const callArgs = vi.mocked(frontmatterCommands.serializeBatch).mock
         .calls[0][0];
       expect(callArgs).toHaveLength(2);
     });
 
     test("exports raw_md for sessions", async () => {
-      const { commands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       store.setRow("sessions", "session-1", {
         user_id: "user-1",
@@ -216,16 +255,24 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMdBatch).toHaveBeenCalledWith([
+      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
         [
-          { type: "doc", content: [{ type: "paragraph" }] },
+          {
+            frontmatter: {
+              id: "session-1",
+              session_id: "session-1",
+              type: "memo",
+            },
+            content: "mock markdown content",
+          },
           "/mock/data/dir/hyprnote/sessions/session-1/_memo.md",
         ],
       ]);
     });
 
     test("does not export raw_md when raw_md is empty", async () => {
-      const { commands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       store.setRow("sessions", "session-1", {
         user_id: "user-1",
@@ -238,7 +285,7 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMdBatch).not.toHaveBeenCalled();
+      expect(frontmatterCommands.serializeBatch).not.toHaveBeenCalled();
     });
 
     test("creates directory if it does not exist", async () => {
@@ -264,7 +311,8 @@ describe("createNotePersister", () => {
     });
 
     test("skips when content is not valid tiptap json", async () => {
-      const { commands } = await import("@hypr/plugin-export");
+      const { commands: frontmatterCommands } =
+        await import("@hypr/plugin-frontmatter");
 
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
@@ -278,7 +326,7 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(commands.exportTiptapJsonToMdBatch).not.toHaveBeenCalled();
+      expect(frontmatterCommands.serializeBatch).not.toHaveBeenCalled();
     });
   });
 });

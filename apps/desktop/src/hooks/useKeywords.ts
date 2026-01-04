@@ -101,9 +101,7 @@ const extractKeyphraseMatches = (phrase: Keyphrase): string[] =>
   });
 
 const combineKeywords = (markdownWords: string[]): string[] =>
-  Array.from(new Set(markdownWords)).filter(
-    (keyword) => keyword.length >= 2,
-  );
+  Array.from(new Set(markdownWords)).filter((keyword) => keyword.length >= 2);
 
 const removeCodeBlocks = (text: string): string =>
   text.replace(/```[\s\S]*?```/g, "").replace(/`[^`]+`/g, "");

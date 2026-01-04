@@ -144,13 +144,6 @@ export const chatMessageSchema = z.object({
   parts: jsonObject(z.any()),
 });
 
-export const memorySchema = z.object({
-  user_id: z.string(),
-  created_at: z.string(),
-  type: z.string(),
-  text: z.string(),
-});
-
 export const chatShortcutSchema = z.object({
   user_id: z.string(),
   created_at: z.string(),
@@ -261,7 +254,6 @@ export type Template = z.infer<typeof templateSchema>;
 export type TemplateSection = z.infer<typeof templateSectionSchema>;
 export type ChatGroup = z.infer<typeof chatGroupSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
-export type Memory = z.infer<typeof memorySchema>;
 export type ChatShortcut = z.infer<typeof chatShortcutSchema>;
 export type EnhancedNote = z.infer<typeof enhancedNoteSchema>;
 export type Prompt = z.infer<typeof promptSchema>;
@@ -274,7 +266,6 @@ export type WordStorage = ToStorageType<typeof wordSchema>;
 export type SpeakerHintStorage = ToStorageType<typeof speakerHintSchema>;
 export type TemplateStorage = ToStorageType<typeof templateSchema>;
 export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
-export type MemoryStorage = ToStorageType<typeof memorySchema>;
 export type EnhancedNoteStorage = ToStorageType<typeof enhancedNoteSchema>;
 export type HumanStorage = ToStorageType<typeof humanSchema>;
 export type OrganizationStorage = ToStorageType<typeof organizationSchema>;
@@ -410,12 +401,6 @@ export const tableSchemaForTinybase = {
     metadata: { type: "string" },
     parts: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof chatMessageSchema>,
-  memories: {
-    user_id: { type: "string" },
-    created_at: { type: "string" },
-    type: { type: "string" },
-    text: { type: "string" },
-  } as const satisfies InferTinyBaseSchema<typeof memorySchema>,
   enhanced_notes: {
     user_id: { type: "string" },
     created_at: { type: "string" },

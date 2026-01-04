@@ -43,7 +43,6 @@ declare module "@hypr/store" {
     visibleHumans: string;
     visibleTemplates: string;
     visibleFolders: string;
-    visibleVocabs: string;
     llmProviders: string;
     sttProviders: string;
     sessionParticipantsWithDetails: string;
@@ -52,7 +51,6 @@ declare module "@hypr/store" {
   export const METRICS: {
     totalHumans: string;
     totalOrganizations: string;
-    totalCustomVocabs: string;
   };
   export const RELATIONSHIPS: {
     sessionToFolder: string;
@@ -500,7 +498,6 @@ declare module "hyprnote" {
       visibleHumans: string;
       visibleTemplates: string;
       visibleFolders: string;
-      visibleVocabs: string;
       llmProviders: string;
       sttProviders: string;
       sessionParticipantsWithDetails: string;
@@ -509,7 +506,6 @@ declare module "hyprnote" {
     METRICS: {
       totalHumans: string;
       totalOrganizations: string;
-      totalCustomVocabs: string;
     };
     RELATIONSHIPS: {
       sessionToFolder: string;

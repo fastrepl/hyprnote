@@ -4,7 +4,6 @@ import type {
   EnhancedNoteStorage,
   FolderStorage,
   HumanStorage,
-  MemoryStorage,
   OrganizationStorage,
   SessionStorage,
   TemplateStorage,
@@ -160,7 +159,6 @@ interface TinyBaseTestWrapperProps {
     organizations?: Record<string, Partial<OrganizationStorage>>;
     folders?: Record<string, Partial<FolderStorage>>;
     templates?: Record<string, Partial<TemplateStorage>>;
-    memories?: Record<string, Partial<MemoryStorage>>;
     enhanced_notes?: Record<string, Partial<EnhancedNoteStorage>>;
   };
   initialValues?: {
@@ -221,11 +219,6 @@ export function TinyBaseTestWrapper({
     if (initialData?.templates) {
       Object.entries(initialData.templates).forEach(([id, data]) => {
         s.setRow("templates", id, data as Record<string, unknown>);
-      });
-    }
-    if (initialData?.memories) {
-      Object.entries(initialData.memories).forEach(([id, data]) => {
-        s.setRow("memories", id, data as Record<string, unknown>);
       });
     }
     if (initialData?.enhanced_notes) {
@@ -337,15 +330,6 @@ export function TinyBaseTestWrapper({
           select("name");
           select("parent_folder_id");
           select("created_at");
-        },
-      )
-      .setQueryDefinition(
-        main.QUERIES.visibleVocabs,
-        "memories",
-        ({ select, where }) => {
-          select("text");
-          select("created_at");
-          where((getCell) => getCell("type") === "vocab");
         },
       ),
   );

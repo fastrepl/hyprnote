@@ -197,15 +197,6 @@ export const StoreComponent = () => {
           select("created_at");
         })
         .setQueryDefinition(
-          QUERIES.visibleVocabs,
-          "memories",
-          ({ select, where }) => {
-            select("text");
-            select("created_at");
-            where((getCell) => getCell("type") === "vocab");
-          },
-        )
-        .setQueryDefinition(
           QUERIES.sessionParticipantsWithDetails,
           "mapping_session_participant",
           ({ select, join }) => {
@@ -376,12 +367,6 @@ export const StoreComponent = () => {
         "organizations",
         "sum",
         () => 1,
-      )
-      .setMetricDefinition(
-        METRICS.totalCustomVocabs,
-        "memories",
-        "sum",
-        (getCell) => (getCell("type") === "vocab" ? 1 : 0),
       ),
   );
 
@@ -414,7 +399,6 @@ export const QUERIES = {
   visibleTemplates: "visibleTemplates",
   visibleChatShortcuts: "visibleChatShortcuts",
   visibleFolders: "visibleFolders",
-  visibleVocabs: "visibleVocabs",
   sessionParticipantsWithDetails: "sessionParticipantsWithDetails",
   sessionRecordingTimes: "sessionRecordingTimes",
   enabledAppleCalendars: "enabledAppleCalendars",
@@ -423,7 +407,6 @@ export const QUERIES = {
 export const METRICS = {
   totalHumans: "totalHumans",
   totalOrganizations: "totalOrganizations",
-  totalCustomVocabs: "totalCustomVocabs",
 };
 
 export const INDEXES = {

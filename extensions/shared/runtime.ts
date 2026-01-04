@@ -96,7 +96,6 @@ export const HYPR_MODULES = {
     visibleHumans: string;
     visibleTemplates: string;
     visibleFolders: string;
-    visibleVocabs: string;
     llmProviders: string;
     sttProviders: string;
     sessionParticipantsWithDetails: string;
@@ -108,7 +107,6 @@ export const HYPR_MODULES = {
         type: `{
     totalHumans: string;
     totalOrganizations: string;
-    totalCustomVocabs: string;
   }`,
         description: "Available TinyBase metrics",
       },

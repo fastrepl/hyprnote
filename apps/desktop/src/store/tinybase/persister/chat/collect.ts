@@ -48,15 +48,16 @@ export type ChatCollectorResult = CollectorResult & {
 function normalizeMessage(
   message: ChatMessageStorage & { id: string },
 ): NormalizedChatMessage {
+  const parsedParts = safeParseJson(message.parts);
   return {
     id: message.id,
-    user_id: message.user_id,
-    created_at: message.created_at,
-    chat_group_id: message.chat_group_id,
-    role: message.role,
-    content: message.content,
+    user_id: message.user_id ?? "",
+    created_at: message.created_at ?? "",
+    chat_group_id: message.chat_group_id ?? "",
+    role: message.role ?? "",
+    content: message.content ?? "",
     metadata: safeParseJson(message.metadata) ?? null,
-    parts: (safeParseJson(message.parts) as unknown[]) ?? null,
+    parts: Array.isArray(parsedParts) ? parsedParts : null,
   };
 }
 

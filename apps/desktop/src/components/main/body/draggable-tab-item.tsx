@@ -1,26 +1,36 @@
-import { useCallback, useRef } from "react";
 import { dragAsWindow } from "@crabnebula/tauri-plugin-drag-as-window";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { type DragControls, Reorder, useDragControls } from "motion/react";
+import { useCallback, useRef } from "react";
 
-import { tabToInput, type Tab } from "../../../store/zustand/tabs";
+import {
+  type Tab,
+  tabToInput,
+  uniqueIdfromTab,
+} from "../../../store/zustand/tabs";
 
-interface DraggableTabItemProps {
-  tab: Tab;
-  onPopOut: () => void;
-  children: React.ReactNode;
+interface UseDraggableTabResult {
+  dragControls: DragControls;
+  containerRef: React.MutableRefObject<HTMLDivElement | null>;
+  handlePointerDown: (e: React.PointerEvent) => void;
+  handlePointerMove: (e: React.PointerEvent) => void;
+  handlePointerUp: () => void;
+  handlePointerCancel: () => void;
 }
 
-export function DraggableTabItem({
-  tab,
-  onPopOut,
-  children,
-}: DraggableTabItemProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+export function useDraggableTab(
+  tab: Tab,
+  onPopOut: () => void,
+): UseDraggableTabResult {
+  const dragControls = useDragControls();
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const isDraggingRef = useRef(false);
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
+  const hasStartedReorderRef = useRef(false);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     dragStartPosRef.current = { x: e.clientX, y: e.clientY };
+    hasStartedReorderRef.current = false;
   }, []);
 
   const handlePointerMove = useCallback(
@@ -28,22 +38,28 @@ export function DraggableTabItem({
       if (
         !dragStartPosRef.current ||
         !containerRef.current ||
-        isDraggingRef.current
+        isDraggingRef.current ||
+        hasStartedReorderRef.current
       ) {
         return;
       }
 
       const dx = Math.abs(e.clientX - dragStartPosRef.current.x);
       const dy = Math.abs(e.clientY - dragStartPosRef.current.y);
-      const threshold = 30;
+      const threshold = 15;
 
-      if (dy > threshold && dy > dx * 1.5) {
+      // If horizontal movement is dominant, start reorder drag
+      if (dx > threshold && dx > dy) {
+        hasStartedReorderRef.current = true;
+        dragControls.start(e);
+        return;
+      }
+
+      // If vertical movement is dominant, start pop-out drag
+      if (dy > threshold && dy > dx) {
         isDraggingRef.current = true;
 
         dragAsWindow(containerRef.current, async (payload) => {
-          isDraggingRef.current = false;
-          dragStartPosRef.current = null;
-
           const tabInput = tabToInput(tab);
           const windowLabel = `popout-${tab.type}-${Date.now()}`;
 
@@ -51,9 +67,9 @@ export function DraggableTabItem({
           searchParams.set("popout", "true");
           searchParams.set("tab", JSON.stringify(tabInput));
 
-                    const newWindow = new WebviewWindow(windowLabel, {
-                      x: Number(payload.cursorPos.x),
-                      y: Number(payload.cursorPos.y),
+          const newWindow = new WebviewWindow(windowLabel, {
+            x: Number(payload.cursorPos.x),
+            y: Number(payload.cursorPos.y),
             width: 800,
             height: 600,
             title: `Hyprnote`,
@@ -67,36 +83,90 @@ export function DraggableTabItem({
             onPopOut();
           });
 
-          newWindow.once("tauri://error", (e) => {
-            console.error("Failed to create pop-out window:", e);
+          newWindow.once("tauri://error", (err) => {
+            console.error("Failed to create pop-out window:", err);
           });
-        });
+        })
+          .catch((err) => {
+            console.error("dragAsWindow failed:", err);
+          })
+          .finally(() => {
+            isDraggingRef.current = false;
+            dragStartPosRef.current = null;
+          });
       }
     },
-    [tab, onPopOut],
+    [tab, onPopOut, dragControls],
   );
 
   const handlePointerUp = useCallback(() => {
-    if (!isDraggingRef.current) {
-      dragStartPosRef.current = null;
-    }
+    dragStartPosRef.current = null;
+    hasStartedReorderRef.current = false;
   }, []);
 
   const handlePointerCancel = useCallback(() => {
     isDraggingRef.current = false;
     dragStartPosRef.current = null;
+    hasStartedReorderRef.current = false;
   }, []);
 
+  return {
+    dragControls,
+    containerRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handlePointerCancel,
+  };
+}
+
+interface DraggableReorderItemProps {
+  tab: Tab;
+  onPopOut: () => void;
+  setTabRef: (tab: Tab, el: HTMLDivElement | null) => void;
+  children: React.ReactNode;
+}
+
+export function DraggableReorderItem({
+  tab,
+  onPopOut,
+  setTabRef,
+  children,
+}: DraggableReorderItemProps) {
+  const {
+    dragControls,
+    containerRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handlePointerCancel,
+  } = useDraggableTab(tab, onPopOut);
+
+  const setRefs = useCallback(
+    (el: HTMLDivElement | null) => {
+      containerRef.current = el;
+      setTabRef(tab, el);
+    },
+    [containerRef, setTabRef, tab],
+  );
+
   return (
-    <div
-      ref={containerRef}
+    <Reorder.Item
+      key={uniqueIdfromTab(tab)}
+      value={tab}
+      as="div"
+      ref={setRefs}
+      style={{ position: "relative" }}
+      className="h-full z-10"
+      layoutScroll
+      dragListener={false}
+      dragControls={dragControls}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
-      className="h-full"
     >
       {children}
-    </div>
+    </Reorder.Item>
   );
 }

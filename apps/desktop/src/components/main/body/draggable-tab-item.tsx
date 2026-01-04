@@ -29,15 +29,59 @@ export function useDraggableTab(
   const hasStartedReorderRef = useRef(false);
   const pointerDownEventRef = useRef<PointerEvent | null>(null);
 
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    dragStartPosRef.current = { x: e.clientX, y: e.clientY };
-    hasStartedReorderRef.current = false;
-    pointerDownEventRef.current = e.nativeEvent;
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      dragStartPosRef.current = { x: e.clientX, y: e.clientY };
+      hasStartedReorderRef.current = false;
+      pointerDownEventRef.current = e.nativeEvent;
 
-    if (containerRef.current) {
-      containerRef.current.setPointerCapture(e.pointerId);
-    }
-  }, []);
+      if (e.altKey && containerRef.current) {
+        isDraggingRef.current = true;
+        dragAsWindow(containerRef.current, async (payload) => {
+          const tabInput = tabToInput(tab);
+          const windowLabel = `popout-${tab.type}-${Date.now()}`;
+
+          const searchParams = new URLSearchParams();
+          searchParams.set("popout", "true");
+          searchParams.set("tab", JSON.stringify(tabInput));
+
+          const newWindow = new WebviewWindow(windowLabel, {
+            x: Number(payload.cursorPos.x),
+            y: Number(payload.cursorPos.y),
+            width: 800,
+            height: 600,
+            title: `Hyprnote`,
+            url: `/?${searchParams.toString()}`,
+            decorations: true,
+            resizable: true,
+            center: false,
+          });
+
+          newWindow.once("tauri://created", () => {
+            onPopOut();
+          });
+
+          newWindow.once("tauri://error", (err) => {
+            console.error("Failed to create pop-out window:", err);
+          });
+        })
+          .catch((err) => {
+            console.error("dragAsWindow failed:", err);
+          })
+          .finally(() => {
+            isDraggingRef.current = false;
+            dragStartPosRef.current = null;
+            pointerDownEventRef.current = null;
+          });
+        return;
+      }
+
+      if (containerRef.current) {
+        containerRef.current.setPointerCapture(e.pointerId);
+      }
+    },
+    [tab, onPopOut],
+  );
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {

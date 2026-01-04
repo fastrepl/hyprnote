@@ -104,6 +104,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::search::<tauri::Wry>,
             commands::reindex::<tauri::Wry>,
+            commands::add_document::<tauri::Wry>,
+            commands::update_document::<tauri::Wry>,
+            commands::remove_document::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

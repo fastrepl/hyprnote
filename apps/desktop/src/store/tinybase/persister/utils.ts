@@ -243,7 +243,7 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
       dataDir: string,
     ) => CollectorResult;
     load?: () => Promise<Content<Schemas> | undefined>;
-    postSave?: (dataDir: string) => Promise<void>;
+    postSave?: (dataDir: string, result: CollectorResult) => Promise<void>;
   },
 ) {
   const loadFn = options.load ?? (async () => undefined);
@@ -252,11 +252,8 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
     try {
       const dataDir = await getDataDir();
       const tables = store.getTables() as TablesContent | undefined;
-      const { dirs, operations } = options.collect(
-        store,
-        tables ?? {},
-        dataDir,
-      );
+      const result = options.collect(store, tables ?? {}, dataDir);
+      const { dirs, operations } = result;
 
       if (operations.length === 0) {
         return;
@@ -276,28 +273,29 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
       }
 
       if (jsonBatchItems.length > 0) {
-        const result = await exportCommands.exportJsonBatch(jsonBatchItems);
-        if (result.status === "error") {
+        const exportResult =
+          await exportCommands.exportJsonBatch(jsonBatchItems);
+        if (exportResult.status === "error") {
           console.error(
             `[${options.label}] Failed to export json batch:`,
-            result.error,
+            exportResult.error,
           );
         }
       }
 
       if (mdBatchItems.length > 0) {
-        const result =
+        const exportResult =
           await exportCommands.exportTiptapJsonToMdBatch(mdBatchItems);
-        if (result.status === "error") {
+        if (exportResult.status === "error") {
           console.error(
             `[${options.label}] Failed to export md batch:`,
-            result.error,
+            exportResult.error,
           );
         }
       }
 
       if (options.postSave) {
-        await options.postSave(dataDir);
+        await options.postSave(dataDir, result);
       }
     } catch (error) {
       console.error(`[${options.label}] save error:`, error);

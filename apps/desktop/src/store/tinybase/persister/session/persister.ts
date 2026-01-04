@@ -11,19 +11,10 @@ import { cleanupOrphanSessionDirs, loadAllSessionMeta } from "./load";
 export function createSessionPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ) {
-  let lastValidSessionIds: Set<string> = new Set();
-
   return createSessionDirPersister(store, {
     label: "SessionPersister",
-    collect: (store, tables, dataDir) => {
-      const result: SessionCollectorResult = collectSessionWriteOps(
-        store,
-        tables,
-        dataDir,
-      );
-      lastValidSessionIds = result.validSessionIds;
-      return result;
-    },
+    collect: (store, tables, dataDir) =>
+      collectSessionWriteOps(store, tables, dataDir),
     load: async (): Promise<Content<Schemas> | undefined> => {
       try {
         const dataDir = await getDataDir();
@@ -42,8 +33,9 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
         return undefined;
       }
     },
-    postSave: async (dataDir) => {
-      await cleanupOrphanSessionDirs(dataDir, lastValidSessionIds);
+    postSave: async (dataDir, result) => {
+      const { validSessionIds } = result as SessionCollectorResult;
+      await cleanupOrphanSessionDirs(dataDir, validSessionIds);
     },
   });
 }

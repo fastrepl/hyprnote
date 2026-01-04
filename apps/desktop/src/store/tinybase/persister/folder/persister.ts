@@ -45,7 +45,7 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
         };
       }
 
-      // @ts-ignore - update session folder_id and cleanup orphans
+      // @ts-ignore - update session folder_id only (do not delete sessions here)
       store.transaction(() => {
         for (const [sessionId, folderPath] of Object.entries(
           session_folder_map,
@@ -54,17 +54,6 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
           if (store.hasRow("sessions", sessionId)) {
             // @ts-ignore
             store.setCell("sessions", sessionId, "folder_id", folderPath);
-          }
-        }
-
-        // @ts-ignore
-        const sessionsInStore = store.getRowIds("sessions") as string[];
-        for (const sessionId of sessionsInStore) {
-          if (
-            !Object.prototype.hasOwnProperty.call(session_folder_map, sessionId)
-          ) {
-            // @ts-ignore
-            store.delRow("sessions", sessionId);
           }
         }
       });

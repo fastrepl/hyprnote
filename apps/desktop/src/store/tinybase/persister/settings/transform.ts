@@ -67,6 +67,7 @@ export function storeValuesToSettings(
     ai: { llm: {}, stt: {} },
     notification: {},
     general: {},
+    language: {},
   };
 
   for (const [key, config] of Object.entries(SETTINGS_MAPPING.values)) {

@@ -39,6 +39,8 @@ describe("settingsPersister roundtrip", () => {
         save_recordings: false,
         quit_intercept: true,
         telemetry_consent: false,
+      },
+      language: {
         ai_language: "en",
         spoken_languages: "en,ko",
       },
@@ -116,6 +118,7 @@ describe("settingsPersister roundtrip", () => {
       ai: { llm: {}, stt: {} },
       notification: {},
       general: {},
+      language: {},
     });
   });
 
@@ -168,7 +171,6 @@ describe("settingsPersister roundtrip", () => {
     const original = {
       general: {
         autostart: true,
-        ai_language: "ko",
       },
     };
 
@@ -179,5 +181,22 @@ describe("settingsPersister roundtrip", () => {
     const result = storeToSettings(store);
 
     expect(result.general).toEqual(original.general);
+  });
+
+  test("handles partial data - only language settings", () => {
+    const original = {
+      language: {
+        ai_language: "ko",
+        spoken_languages: "ko,en",
+      },
+    };
+
+    const [tables, values] = settingsToContent(original);
+    const store = createMergeableStore();
+    store.setTables(tables);
+    store.setValues(values);
+    const result = storeToSettings(store);
+
+    expect(result.language).toEqual(original.language);
   });
 });

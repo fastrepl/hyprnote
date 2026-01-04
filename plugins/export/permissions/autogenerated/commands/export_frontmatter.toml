@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-export-frontmatter"
+description = "Enables the export_frontmatter command without any pre-configured scope."
+commands.allow = ["export_frontmatter"]
+
+[[permission]]
+identifier = "deny-export-frontmatter"
+description = "Denies the export_frontmatter command without any pre-configured scope."
+commands.deny = ["export_frontmatter"]

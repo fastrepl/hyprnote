@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-parse-frontmatter"
+description = "Enables the parse_frontmatter command without any pre-configured scope."
+commands.allow = ["parse_frontmatter"]
+
+[[permission]]
+identifier = "deny-parse-frontmatter"
+description = "Denies the parse_frontmatter command without any pre-configured scope."
+commands.deny = ["parse_frontmatter"]

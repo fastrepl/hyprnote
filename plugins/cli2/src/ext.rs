@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 pub struct Cli2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
-    manager: &'a M,
+    _manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
@@ -165,7 +165,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Cli2PluginExt<R> for T {
         Self: Sized,
     {
         Cli2 {
-            manager: self,
+            _manager: self,
             _runtime: std::marker::PhantomData,
         }
     }

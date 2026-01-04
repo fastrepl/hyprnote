@@ -88,7 +88,7 @@ fn is_symlink_launch() -> bool {
 }
 
 #[cfg(not(debug_assertions))]
-fn resolve_sidecar_for_symlink_launch(name: &str) -> Result<PathBuf, crate::Error> {
+fn resolve_sidecar_for_symlink_launch(name: &str) -> Result<std::path::PathBuf, crate::Error> {
     let exe_path = std::env::current_exe().map_err(|e| {
         crate::Error::SidecarCreationFailed(format!("failed to get current exe: {}", e))
     })?;

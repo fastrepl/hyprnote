@@ -1,5 +1,6 @@
 mod app;
 mod list;
+mod locale;
 mod mic;
 mod utils;
 
@@ -8,6 +9,7 @@ mod zoom;
 
 pub use app::*;
 pub use list::*;
+pub use locale::*;
 pub use mic::*;
 
 #[cfg(target_os = "macos")]

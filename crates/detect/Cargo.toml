@@ -20,7 +20,7 @@ specta = { workspace = true, features = ["derive"] }
 hypr-bundle = { workspace = true }
 cidre = { workspace = true }
 
-objc2-foundation = { workspace = true }
+objc2-foundation = { workspace = true, features = ["NSLocale", "NSArray", "NSString"] }
 objc2-app-kit = { workspace = true }
 objc2 = { workspace = true }
 objc2-core-foundation = { workspace = true }

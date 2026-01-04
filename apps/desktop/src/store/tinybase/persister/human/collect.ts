@@ -1,13 +1,10 @@
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
+import type { FrontmatterInput, JsonValue } from "@hypr/plugin-export";
 import type { HumanStorage } from "@hypr/store";
 
 import type { CollectorResult, TablesContent } from "../utils";
-import {
-  getHumanDir,
-  getHumanFilePath,
-  serializeMarkdownWithFrontmatter,
-} from "./utils";
+import { getHumanDir, getHumanFilePath } from "./utils";
 
 export interface HumanCollectorResult extends CollectorResult {
   validHumanIds: Set<string>;
@@ -29,12 +26,14 @@ export function collectHumanWriteOps<Schemas extends OptionalSchemas>(
 
   const humans = (tables as { humans?: HumansTable }).humans ?? {};
 
+  const frontmatterItems: [FrontmatterInput, string][] = [];
+
   for (const [humanId, human] of Object.entries(humans)) {
     validHumanIds.add(humanId);
 
     const { memo, ...frontmatterFields } = human;
 
-    const frontmatter: Record<string, unknown> = {
+    const frontmatter: Record<string, JsonValue> = {
       user_id: frontmatterFields.user_id ?? "",
       created_at: frontmatterFields.created_at ?? "",
       name: frontmatterFields.name ?? "",
@@ -45,13 +44,15 @@ export function collectHumanWriteOps<Schemas extends OptionalSchemas>(
     };
 
     const body = memo ?? "";
-    const content = serializeMarkdownWithFrontmatter(frontmatter, body);
     const filePath = getHumanFilePath(dataDir, humanId);
 
+    frontmatterItems.push([{ frontmatter, content: body }, filePath]);
+  }
+
+  if (frontmatterItems.length > 0) {
     operations.push({
-      type: "text",
-      path: filePath,
-      content,
+      type: "frontmatter-batch",
+      items: frontmatterItems,
     });
   }
 

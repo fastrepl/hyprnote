@@ -1,20 +1,15 @@
 import { sep } from "@tauri-apps/api/path";
-import {
-  exists,
-  mkdir,
-  readTextFile,
-  remove,
-  writeTextFile,
-} from "@tauri-apps/plugin-fs";
+import { exists, mkdir, readTextFile, remove } from "@tauri-apps/plugin-fs";
 
+import {
+  commands as exportCommands,
+  type FrontmatterInput,
+  type JsonValue,
+} from "@hypr/plugin-export";
 import type { HumanStorage } from "@hypr/store";
 
 import { isFileNotFoundError } from "../utils";
-import {
-  getHumanDir,
-  getHumanFilePath,
-  serializeMarkdownWithFrontmatter,
-} from "./utils";
+import { getHumanDir, getHumanFilePath } from "./utils";
 
 export async function migrateHumansJsonIfNeeded(
   dataDir: string,
@@ -40,10 +35,12 @@ export async function migrateHumansJsonIfNeeded(
 
     await mkdir(humansDir, { recursive: true });
 
+    const batchItems: [FrontmatterInput, string][] = [];
+
     for (const [humanId, human] of Object.entries(humans)) {
       const { memo, ...frontmatterFields } = human;
 
-      const frontmatter: Record<string, unknown> = {
+      const frontmatter: Record<string, JsonValue> = {
         user_id: frontmatterFields.user_id ?? "",
         created_at: frontmatterFields.created_at ?? "",
         name: frontmatterFields.name ?? "",
@@ -54,10 +51,16 @@ export async function migrateHumansJsonIfNeeded(
       };
 
       const body = memo ?? "";
-      const mdContent = serializeMarkdownWithFrontmatter(frontmatter, body);
       const filePath = getHumanFilePath(dataDir, humanId);
 
-      await writeTextFile(filePath, mdContent);
+      batchItems.push([{ frontmatter, content: body }, filePath]);
+    }
+
+    if (batchItems.length > 0) {
+      const result = await exportCommands.exportFrontmatterBatch(batchItems);
+      if (result.status === "error") {
+        throw new Error(`Failed to export migrated humans: ${result.error}`);
+      }
     }
 
     await remove(humansJsonPath);

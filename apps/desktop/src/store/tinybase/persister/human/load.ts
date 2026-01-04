@@ -38,7 +38,7 @@ export async function loadAllHumans(
     try {
       const filePath = getHumanFilePath(dataDir, humanId);
       const content = await readTextFile(filePath);
-      const { frontmatter, body } = parseMarkdownWithFrontmatter(content);
+      const { frontmatter, body } = await parseMarkdownWithFrontmatter(content);
 
       result[humanId] = {
         user_id: String(frontmatter.user_id ?? ""),

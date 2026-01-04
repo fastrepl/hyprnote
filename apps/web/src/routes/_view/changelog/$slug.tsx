@@ -1,12 +1,20 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
+import { Download } from "lucide-react";
+import { useState } from "react";
 import semver from "semver";
 
-import { getChangelogBySlug, getChangelogList } from "@/changelog";
+import { cn } from "@hypr/utils";
+
+import {
+  type ChangelogWithMeta,
+  getChangelogBySlug,
+  getChangelogList,
+} from "@/changelog";
 import { defaultMDXComponents } from "@/components/mdx";
 import { NotFoundContent } from "@/components/not-found";
+import { getDownloadLinks, groupDownloadLinks } from "@/utils/download";
 
 export const Route = createFileRoute("/_view/changelog/$slug")({
   component: Component,
@@ -67,20 +75,12 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
 });
 
 function Component() {
-  const { changelog, diffUrl } = Route.useLoaderData();
+  const { changelog, allChangelogs, diffUrl } = Route.useLoaderData();
 
   const currentVersion = semver.parse(changelog.version);
   const isPrerelease = !!(
     currentVersion && currentVersion.prerelease.length > 0
   );
-  const isLatest = changelog.newerSlug === null;
-
-  let prereleaseType = "";
-  let buildNumber = "";
-  if (isPrerelease && currentVersion && currentVersion.prerelease.length > 0) {
-    prereleaseType = currentVersion.prerelease[0]?.toString() || "";
-    buildNumber = currentVersion.prerelease[1]?.toString() || "";
-  }
 
   return (
     <main
@@ -88,50 +88,43 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        <div className="max-w-3xl mx-auto px-6 py-16 lg:py-24">
-          <div className="text-center">
-            <Link
-              to="/changelog"
-              className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-700 mb-8 transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              All versions
-            </Link>
-
-            <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-              <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-600">
+        <div className="max-w-3xl mx-auto px-6 pt-16 lg:pt-24 pb-8">
+          <div className="hidden md:flex md:flex-col md:items-center gap-12">
+            <div className="flex flex-col items-center gap-6">
+              <img
+                src={
+                  isPrerelease
+                    ? "/api/images/icons/nightly-icon.png"
+                    : "/api/images/icons/stable-icon.png"
+                }
+                alt="Hyprnote"
+                className="size-32 rounded-2xl"
+              />
+              <h1 className="text-3xl sm:text-4xl font-mono font-medium text-stone-600">
                 {changelog.version}
               </h1>
-              {isLatest && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-linear-to-t from-amber-200 to-amber-100 text-amber-900 rounded-full">
-                  <Icon icon="ri:rocket-fill" className="text-xs" />
-                  Latest
-                </span>
-              )}
-              {prereleaseType && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-linear-to-b from-[#03BCF1] to-[#127FE5] text-white rounded-full">
-                  <Icon icon="ri:moon-fill" className="text-xs" />
-                  {prereleaseType}
-                </span>
-              )}
-              {buildNumber && (
-                <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full">
-                  #{buildNumber}
-                </span>
-              )}
             </div>
 
-            {diffUrl && (
-              <a
-                href={diffUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
-              >
-                <Icon icon="mdi:github" className="text-base" />
-                View Diff
-              </a>
-            )}
+            <DownloadLinksHero version={changelog.version} />
+          </div>
+
+          <div className="md:hidden text-center">
+            <div className="flex flex-col items-center gap-3 mb-8">
+              <img
+                src={
+                  isPrerelease
+                    ? "/api/images/icons/nightly-icon.png"
+                    : "/api/images/icons/stable-icon.png"
+                }
+                alt="Hyprnote"
+                className="size-16 rounded-2xl"
+              />
+              <h1 className="text-3xl font-mono font-medium text-stone-600">
+                {changelog.version}
+              </h1>
+            </div>
+
+            <DownloadLinksHeroMobile version={changelog.version} />
           </div>
 
           <article className="mt-12 prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-lg prose-img:border prose-img:border-neutral-200 prose-img:my-6 max-w-none">
@@ -141,7 +134,268 @@ function Component() {
             />
           </article>
         </div>
+
+        {diffUrl && (
+          <>
+            <div className="border-t border-neutral-100" />
+            <div className="max-w-3xl mx-auto px-6 py-16 flex flex-col items-center text-center">
+              <h2 className="text-3xl font-serif text-stone-600 mb-2">
+                View the Code
+              </h2>
+              <p className="text-neutral-600 mb-6">
+                Curious about what changed? See the full diff on GitHub.
+              </p>
+              <a
+                href={diffUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 h-12 text-base font-medium bg-linear-to-t from-neutral-800 to-neutral-700 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+              >
+                <Icon icon="mdi:github" className="text-xl" />
+                View Diff on GitHub
+              </a>
+            </div>
+          </>
+        )}
+
+        <div className="border-t border-neutral-100" />
+
+        <div className="max-w-3xl mx-auto px-6 py-16">
+          <RelatedReleases
+            currentSlug={changelog.slug}
+            allChangelogs={allChangelogs}
+          />
+        </div>
       </div>
     </main>
+  );
+}
+
+function DownloadLinksHero({ version }: { version: string }) {
+  const links = getDownloadLinks(version);
+  const grouped = groupDownloadLinks(links);
+
+  return (
+    <div className="flex items-start gap-8">
+      <div className="flex flex-col items-center gap-2">
+        <h3 className="flex items-center gap-1.5 text-xs font-medium text-stone-500 uppercase tracking-wider">
+          <Icon icon="simple-icons:apple" className="text-sm" />
+          macOS
+        </h3>
+        <div className="flex flex-col gap-1.5">
+          {grouped.macos.map((link) => (
+            <a
+              key={link.url}
+              href={link.url}
+              className={cn([
+                "flex items-center justify-center gap-2 px-4 h-8 text-sm rounded-full transition-all",
+                "bg-linear-to-b from-white to-stone-50 text-neutral-700",
+                "border border-neutral-300",
+                "hover:shadow-sm hover:scale-[102%] active:scale-[98%]",
+              ])}
+            >
+              <Download className="size-3.5 shrink-0" />
+              <span>{link.label}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-2">
+        <h3 className="flex items-center gap-1.5 text-xs font-medium text-stone-500 uppercase tracking-wider">
+          <Icon icon="simple-icons:linux" className="text-sm" />
+          Linux
+        </h3>
+        <div className="flex flex-col gap-1.5">
+          {grouped.linux.map((link) => (
+            <a
+              key={link.url}
+              href={link.url}
+              className={cn([
+                "flex items-center justify-center gap-2 px-4 h-8 text-sm rounded-full transition-all",
+                "bg-linear-to-b from-white to-stone-50 text-neutral-700",
+                "border border-neutral-300",
+                "hover:shadow-sm hover:scale-[102%] active:scale-[98%]",
+              ])}
+            >
+              <Download className="size-3.5 shrink-0" />
+              <span>{link.label}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DownloadLinksHeroMobile({ version }: { version: string }) {
+  const links = getDownloadLinks(version);
+  const grouped = groupDownloadLinks(links);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const allLinks = [...grouped.macos, ...grouped.linux];
+
+  return (
+    <div className="w-full max-w-sm">
+      <div className="relative">
+        <div className="overflow-hidden">
+          <div
+            className="flex transition-transform duration-300 ease-in-out"
+            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+          >
+            {allLinks.map((link) => (
+              <div key={link.url} className="w-full flex-shrink-0 px-2">
+                <a
+                  href={link.url}
+                  className={cn([
+                    "flex flex-col items-center gap-2 px-6 py-4 rounded-2xl transition-all",
+                    "bg-linear-to-b from-white to-stone-50 text-neutral-700",
+                    "border border-neutral-300",
+                    "hover:shadow-sm active:scale-[98%]",
+                  ])}
+                >
+                  <Download className="size-5 shrink-0" />
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1">
+                      {link.platform}
+                    </div>
+                    <div className="text-sm font-medium">{link.label}</div>
+                  </div>
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex justify-center gap-2 mt-3">
+          {allLinks.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveIndex(index)}
+              className={cn([
+                "h-1.5 rounded-full transition-all",
+                activeIndex === index
+                  ? "w-6 bg-stone-600"
+                  : "w-1.5 bg-stone-300 hover:bg-stone-400",
+              ])}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RelatedReleases({
+  currentSlug,
+  allChangelogs,
+}: {
+  currentSlug: string;
+  allChangelogs: ChangelogWithMeta[];
+}) {
+  const currentIndex = allChangelogs.findIndex((c) => c.slug === currentSlug);
+  if (currentIndex === -1) return null;
+
+  const total = allChangelogs.length;
+  let startIndex: number;
+  let endIndex: number;
+
+  if (total <= 5) {
+    startIndex = 0;
+    endIndex = total;
+  } else if (currentIndex <= 2) {
+    startIndex = 0;
+    endIndex = 5;
+  } else if (currentIndex >= total - 2) {
+    startIndex = total - 5;
+    endIndex = total;
+  } else {
+    startIndex = currentIndex - 2;
+    endIndex = currentIndex + 3;
+  }
+
+  const relatedChangelogs = allChangelogs.slice(startIndex, endIndex);
+
+  return (
+    <section>
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-serif text-stone-600 mb-2">
+          Other Releases
+        </h2>
+        <p className="text-neutral-600">Explore more versions of Hyprnote</p>
+      </div>
+
+      <div className="grid gap-4 grid-cols-5">
+        {relatedChangelogs.map((release) => {
+          const version = semver.parse(release.version);
+          const isPrerelease = version && version.prerelease.length > 0;
+          const nightlyNumber =
+            isPrerelease && version?.prerelease[0] === "nightly"
+              ? version.prerelease[1]
+              : null;
+          const isCurrent = release.slug === currentSlug;
+
+          return (
+            <Link
+              key={release.slug}
+              to="/changelog/$slug"
+              params={{ slug: release.slug }}
+              className={cn([
+                "group block",
+                isCurrent && "pointer-events-none",
+              ])}
+            >
+              <article
+                className={cn([
+                  "flex flex-col items-center gap-2 p-4 rounded-lg transition-all duration-300",
+                  isCurrent ? "bg-stone-100" : "hover:bg-stone-50",
+                ])}
+              >
+                <img
+                  src={
+                    isPrerelease
+                      ? "/api/images/icons/nightly-icon.png"
+                      : "/api/images/icons/stable-icon.png"
+                  }
+                  alt="Hyprnote"
+                  className={cn([
+                    "size-12 rounded-xl transition-all duration-300",
+                    !isCurrent && "group-hover:scale-110",
+                  ])}
+                />
+
+                <div className="flex items-center gap-1.5">
+                  <h3
+                    className={cn([
+                      "text-sm font-mono font-medium text-stone-600 transition-colors",
+                      !isCurrent && "group-hover:text-stone-800",
+                    ])}
+                  >
+                    {version
+                      ? `${version.major}.${version.minor}.${version.patch}`
+                      : release.version}
+                  </h3>
+                  {nightlyNumber !== null && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-stone-200 text-stone-600 rounded-full">
+                      #{nightlyNumber}
+                    </span>
+                  )}
+                </div>
+              </article>
+            </Link>
+          );
+        })}
+      </div>
+
+      <div className="text-center mt-8">
+        <Link
+          to="/changelog"
+          className="inline-flex items-center gap-2 px-6 h-12 text-base font-medium bg-linear-to-b from-white to-stone-50 text-neutral-700 border border-neutral-300 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+        >
+          View all releases
+          <Icon icon="mdi:arrow-right" className="text-base" />
+        </Link>
+      </div>
+    </section>
   );
 }

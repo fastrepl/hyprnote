@@ -1,4 +1,4 @@
-use crate::{SearchFilters, SearchOptions, SearchResult, TantivyPluginExt};
+use crate::{SearchDocument, SearchFilters, SearchOptions, SearchResult, TantivyPluginExt};
 
 #[tauri::command]
 #[specta::specta]
@@ -24,6 +24,45 @@ pub(crate) async fn reindex<R: tauri::Runtime>(
 ) -> Result<(), String> {
     app.tantivy()
         .reindex(collection)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn add_document<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    document: SearchDocument,
+    collection: Option<String>,
+) -> Result<(), String> {
+    app.tantivy()
+        .add_document(collection, document)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn update_document<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    document: SearchDocument,
+    collection: Option<String>,
+) -> Result<(), String> {
+    app.tantivy()
+        .update_document(collection, document)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn remove_document<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    id: String,
+    collection: Option<String>,
+) -> Result<(), String> {
+    app.tantivy()
+        .remove_document(collection, id)
         .await
         .map_err(|e| e.to_string())
 }

@@ -1,5 +1,7 @@
 use tantivy::TantivyDocument;
-use tantivy::schema::{FAST, Field, STORED, STRING, Schema, TextFieldIndexing, TextOptions, Value};
+use tantivy::schema::{
+    FAST, FacetOptions, Field, STORED, STRING, Schema, TextFieldIndexing, TextOptions, Value,
+};
 
 use crate::SearchDocument;
 
@@ -10,6 +12,7 @@ pub struct SchemaFields {
     pub title: Field,
     pub content: Field,
     pub created_at: Field,
+    pub facets: Field,
 }
 
 pub fn build_schema() -> Schema {
@@ -28,6 +31,7 @@ pub fn build_schema() -> Schema {
     schema_builder.add_text_field("title", text_options.clone());
     schema_builder.add_text_field("content", text_options);
     schema_builder.add_i64_field("created_at", FAST | STORED);
+    schema_builder.add_facet_field("facets", FacetOptions::default());
     schema_builder.build()
 }
 
@@ -39,6 +43,7 @@ pub fn get_fields(schema: &Schema) -> SchemaFields {
         title: schema.get_field("title").unwrap(),
         content: schema.get_field("content").unwrap(),
         created_at: schema.get_field("created_at").unwrap(),
+        facets: schema.get_field("facets").unwrap(),
     }
 }
 
@@ -57,6 +62,11 @@ pub fn extract_search_document(
     let content = doc.get_first(fields.content)?.as_str()?.to_string();
     let created_at = doc.get_first(fields.created_at)?.as_i64()?;
 
+    let facets: Vec<String> = doc
+        .get_all(fields.facets)
+        .filter_map(|v| v.as_facet().map(|f| f.to_string()))
+        .collect();
+
     Some(SearchDocument {
         id,
         doc_type,
@@ -64,6 +74,7 @@ pub fn extract_search_document(
         title,
         content,
         created_at,
+        facets,
     })
 }
 

@@ -60,11 +60,11 @@ async removeDocument(id: string, collection: string | null) : Promise<Result<nul
 
 export type CreatedAtFilter = { gte: number | null; lte: number | null; gt: number | null; lt: number | null; eq: number | null }
 export type SearchDocument = { id: string; doc_type: string; language: string | null; title: string; content: string; created_at: number }
-export type SearchFilters = { created_at: CreatedAtFilter | null }
+export type SearchFilters = { created_at: CreatedAtFilter | null; doc_type: string | null }
 export type SearchHit = { score: number; document: SearchDocument }
 export type SearchOptions = { fuzzy: boolean | null; distance: number | null }
 export type SearchRequest = { query: string; collection?: string | null; filters?: SearchFilters; limit?: number; options?: SearchOptions }
-export type SearchResult = { hits: SearchHit[] }
+export type SearchResult = { hits: SearchHit[]; count: number }
 
 /** tauri-specta globals **/
 

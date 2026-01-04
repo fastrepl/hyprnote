@@ -48,6 +48,7 @@ import { useCaretPosition } from "./sessions/caret-position-context";
 import { TabContentSettings, TabItemSettings } from "./settings";
 import { TabContentTemplate, TabItemTemplate } from "./templates";
 import { Update } from "./update";
+import { DraggableTabItem } from "./draggable-tab-item";
 
 export function Body() {
   const { tabs, currentTab } = useTabs(
@@ -181,28 +182,30 @@ function Header({ tabs }: { tabs: Tab[] }) {
               const shortcutIndex =
                 index < 8 ? index + 1 : isLastTab ? 9 : undefined;
 
-              return (
-                <Reorder.Item
-                  key={uniqueIdfromTab(tab)}
-                  value={tab}
-                  as="div"
-                  ref={(el) => setTabRef(tab, el)}
-                  style={{ position: "relative" }}
-                  className="h-full z-10"
-                  layoutScroll
-                >
-                  <TabItem
-                    tab={tab}
-                    handleClose={close}
-                    handleSelect={select}
-                    handleCloseOthersCallback={closeOthers}
-                    handleCloseAll={closeAll}
-                    handlePin={pin}
-                    handleUnpin={unpin}
-                    tabIndex={shortcutIndex}
-                  />
-                </Reorder.Item>
-              );
+                            return (
+                              <Reorder.Item
+                                key={uniqueIdfromTab(tab)}
+                                value={tab}
+                                as="div"
+                                ref={(el) => setTabRef(tab, el)}
+                                style={{ position: "relative" }}
+                                className="h-full z-10"
+                                layoutScroll
+                              >
+                                <DraggableTabItem tab={tab} onPopOut={() => close(tab)}>
+                                  <TabItem
+                                    tab={tab}
+                                    handleClose={close}
+                                    handleSelect={select}
+                                    handleCloseOthersCallback={closeOthers}
+                                    handleCloseAll={closeAll}
+                                    handlePin={pin}
+                                    handleUnpin={unpin}
+                                    tabIndex={shortcutIndex}
+                                  />
+                                </DraggableTabItem>
+                              </Reorder.Item>
+                            );
             })}
           </Reorder.Group>
         </div>

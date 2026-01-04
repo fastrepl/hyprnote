@@ -4703,6 +4703,7 @@ dependencies = [
  "tauri-plugin-deeplink2",
  "tauri-plugin-detect",
  "tauri-plugin-dialog",
+ "tauri-plugin-drag-as-window",
  "tauri-plugin-export",
  "tauri-plugin-extensions",
  "tauri-plugin-folder",
@@ -5002,6 +5003,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "drag"
+version = "2.1.0"
+source = "git+https://github.com/crabnebula-dev/drag-rs?tag=tauri-plugin-drag-as-window-v2.1.0#8a0be885a087c076b8127743b217b795e8b4fe9d"
+dependencies = [
+ "cocoa 0.26.0",
+ "core-graphics 0.24.0",
+ "dunce",
+ "gdk",
+ "gdkx11",
+ "gtk",
+ "log",
+ "objc",
+ "raw-window-handle",
+ "serde",
+ "thiserror 1.0.69",
+ "windows 0.52.0",
+ "windows-core 0.58.0",
 ]
 
 [[package]]
@@ -18017,6 +18038,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-drag-as-window"
+version = "2.1.0"
+source = "git+https://github.com/crabnebula-dev/drag-rs?tag=tauri-plugin-drag-as-window-v2.1.0#8a0be885a087c076b8127743b217b795e8b4fe9d"
+dependencies = [
+ "base64 0.21.7",
+ "drag",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "tempfile",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "tauri-plugin-export"
 version = "0.1.0"
 dependencies = [
@@ -22084,6 +22120,18 @@ dependencies = [
 
 [[package]]
 name = "windows"
+version = "0.52.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e48a53791691ab099e5e2ad123536d0fff50652600abaf43bbf952894110d0be"
+dependencies = [
+ "windows-core 0.52.0",
+ "windows-implement 0.52.0",
+ "windows-interface 0.52.0",
+ "windows-targets 0.52.6",
+]
+
+[[package]]
+name = "windows"
 version = "0.54.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9252e5725dbed82865af151df558e754e4a3c2c30818359eb17465f1346a1b49"
@@ -22145,6 +22193,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3beeceb5e5cfd9eb1d76b381630e82c4241ccd0d27f1a39ed41b2760b255c5e8"
 dependencies = [
  "windows-core 0.61.2",
+]
+
+[[package]]
+name = "windows-core"
+version = "0.52.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33ab640c8d7e35bf8ba19b884ba838ceb4fba93a4e8c65a9059d08afcfc683d9"
+dependencies = [
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -22221,6 +22278,17 @@ dependencies = [
 
 [[package]]
 name = "windows-implement"
+version = "0.52.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12168c33176773b86799be25e2a2ba07c7aab9968b37541f1094dbd7a60c8946"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.111",
+]
+
+[[package]]
+name = "windows-implement"
 version = "0.57.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9107ddc059d5b6fbfbffdfa7a7fe3e22a226def0b2608f72e9d552763d3e1ad7"
@@ -22246,6 +22314,17 @@ name = "windows-implement"
 version = "0.60.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "053e2e040ab57b9dc951b72c264860db7eb3b0200ba345b4e4c3b14f67855ddf"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.111",
+]
+
+[[package]]
+name = "windows-interface"
+version = "0.52.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d8dc32e0095a7eeccebd0e3f09e9509365ecb3fc6ac4d6f5f14a3f6392942d1"
 dependencies = [
  "proc-macro2",
  "quote",

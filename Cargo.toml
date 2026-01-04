@@ -117,6 +117,7 @@ tauri-plugin-autostart = "2.5"
 tauri-plugin-clipboard-manager = "2.3"
 tauri-plugin-deep-link = "2.4"
 tauri-plugin-dialog = "2.3"
+tauri-plugin-drag-as-window = { git = "https://github.com/crabnebula-dev/drag-rs", tag = "tauri-plugin-drag-as-window-v2.1.0" }
 tauri-plugin-fs = "2.4"
 tauri-plugin-http = "2.5"
 tauri-plugin-opener = "2.5"

@@ -264,3 +264,12 @@ export const uniqueIdfromTab = (tab: Tab): string => {
 export const isSameTab = (a: Tab, b: Tab) => {
   return uniqueIdfromTab(a) === uniqueIdfromTab(b);
 };
+
+export const tabToInput = (tab: Tab): TabInput => {
+  const { active, slotId, pinned, ...rest } = tab as Tab & {
+    active: boolean;
+    slotId: string;
+    pinned: boolean;
+  };
+  return rest as TabInput;
+};

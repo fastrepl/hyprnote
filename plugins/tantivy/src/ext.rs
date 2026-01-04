@@ -9,7 +9,7 @@ use tauri_plugin_path2::Path2PluginExt;
 
 use crate::{
     CollectionConfig, CollectionIndex, IndexState, SearchDocument, SearchFilters, SearchHit,
-    SearchResult,
+    SearchOptions, SearchResult,
 };
 
 pub fn detect_language(text: &str) -> hypr_language::Language {
@@ -112,6 +112,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         query: String,
         filters: Option<SearchFilters>,
         limit: usize,
+        options: Option<SearchOptions>,
     ) -> Result<SearchResult, crate::Error> {
         let collection_name = Self::get_collection_name(collection);
         let state = self.manager.state::<IndexState>();
@@ -129,76 +130,32 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         let fields = get_fields(schema);
         let searcher = reader.searcher();
 
-        let query_parser = QueryParser::for_index(index, vec![fields.title, fields.content]);
-        let mut parsed_query = query_parser.parse_query(&query)?;
+        let options = options.unwrap_or_default();
+        let use_fuzzy = options.fuzzy.unwrap_or(false);
 
-        if let Some(ref filter) = filters {
-            if let Some(ref created_at_filter) = filter.created_at {
-                let range_query =
-                    build_created_at_range_query(fields.created_at, created_at_filter);
-                if let Some(rq) = range_query {
-                    parsed_query = Box::new(BooleanQuery::new(vec![
-                        (Occur::Must, parsed_query),
-                        (Occur::Must, rq),
-                    ]));
-                }
+        let mut combined_query: Box<dyn Query> = if use_fuzzy {
+            let distance = options.distance.unwrap_or(1);
+            let terms: Vec<&str> = query.split_whitespace().collect();
+            let mut subqueries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
+
+            for term in terms {
+                let title_fuzzy =
+                    FuzzyTermQuery::new(Term::from_field_text(fields.title, term), distance, true);
+                let content_fuzzy = FuzzyTermQuery::new(
+                    Term::from_field_text(fields.content, term),
+                    distance,
+                    true,
+                );
+
+                subqueries.push((Occur::Should, Box::new(title_fuzzy)));
+                subqueries.push((Occur::Should, Box::new(content_fuzzy)));
             }
-        }
 
-        let top_docs = searcher.search(&parsed_query, &TopDocs::with_limit(limit))?;
-
-        let mut hits = Vec::new();
-        for (score, doc_address) in top_docs {
-            let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
-
-            if let Some(search_doc) = extract_search_document(schema, &fields, &retrieved_doc) {
-                hits.push(SearchHit {
-                    score,
-                    document: search_doc,
-                });
-            }
-        }
-
-        Ok(SearchResult { hits })
-    }
-
-    pub async fn search_fuzzy(
-        &self,
-        collection: Option<String>,
-        query: String,
-        filters: Option<SearchFilters>,
-        limit: usize,
-        distance: u8,
-    ) -> Result<SearchResult, crate::Error> {
-        let collection_name = Self::get_collection_name(collection);
-        let state = self.manager.state::<IndexState>();
-        let guard = state.inner.lock().await;
-
-        let collection_index = guard
-            .collections
-            .get(&collection_name)
-            .ok_or_else(|| crate::Error::CollectionNotFound(collection_name.clone()))?;
-
-        let schema = &collection_index.schema;
-        let reader = &collection_index.reader;
-
-        let fields = get_fields(schema);
-        let searcher = reader.searcher();
-
-        let terms: Vec<&str> = query.split_whitespace().collect();
-        let mut subqueries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
-
-        for term in terms {
-            let title_fuzzy =
-                FuzzyTermQuery::new(Term::from_field_text(fields.title, term), distance, true);
-            let content_fuzzy =
-                FuzzyTermQuery::new(Term::from_field_text(fields.content, term), distance, true);
-
-            subqueries.push((Occur::Should, Box::new(title_fuzzy)));
-            subqueries.push((Occur::Should, Box::new(content_fuzzy)));
-        }
-
-        let mut combined_query: Box<dyn Query> = Box::new(BooleanQuery::new(subqueries));
+            Box::new(BooleanQuery::new(subqueries))
+        } else {
+            let query_parser = QueryParser::for_index(index, vec![fields.title, fields.content]);
+            query_parser.parse_query(&query)?
+        };
 
         if let Some(ref filter) = filters {
             if let Some(ref created_at_filter) = filter.created_at {

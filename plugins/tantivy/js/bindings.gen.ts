@@ -6,17 +6,9 @@
 
 
 export const commands = {
-async search(query: string, filters: SearchFilters | null, limit: number | null, collection: string | null) : Promise<Result<SearchResult, string>> {
+async search(query: string, filters: SearchFilters | null, limit: number | null, collection: string | null, options: SearchOptions | null) : Promise<Result<SearchResult, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|search", { query, filters, limit, collection }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async searchFuzzy(query: string, filters: SearchFilters | null, limit: number | null, distance: number | null, collection: string | null) : Promise<Result<SearchResult, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|search_fuzzy", { query, filters, limit, distance, collection }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|search", { query, filters, limit, collection, options }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -46,6 +38,7 @@ export type CreatedAtFilter = { gte: number | null; lte: number | null; gt: numb
 export type SearchDocument = { id: string; doc_type: string; language: string | null; title: string; content: string; created_at: number }
 export type SearchFilters = { created_at: CreatedAtFilter | null }
 export type SearchHit = { score: number; document: SearchDocument }
+export type SearchOptions = { fuzzy: boolean | null; distance: number | null }
 export type SearchResult = { hits: SearchHit[] }
 
 /** tauri-specta globals **/

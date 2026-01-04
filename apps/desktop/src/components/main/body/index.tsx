@@ -822,7 +822,7 @@ function useTabsShortcuts() {
   );
 
   useHotkeys(
-    "mod+shift+d",
+    "mod+shift+l",
     () => openNew({ type: "folders", id: null }),
     {
       preventDefault: true,

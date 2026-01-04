@@ -177,7 +177,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       icon: FolderOpenIcon,
       label: "Folders",
       onClick: handleClickFolders,
-      badge: <Kbd className={kbdClass}>⌘ ⇧ D</Kbd>,
+      badge: <Kbd className={kbdClass}>⌘ ⇧ L</Kbd>,
     },
     {
       icon: UsersIcon,

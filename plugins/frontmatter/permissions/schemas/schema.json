@@ -295,16 +295,40 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the deserialize command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
+          "const": "allow-deserialize",
+          "markdownDescription": "Enables the deserialize command without any pre-configured scope."
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the deserialize command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
+          "const": "deny-deserialize",
+          "markdownDescription": "Denies the deserialize command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the serialize command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-serialize",
+          "markdownDescription": "Enables the serialize command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the serialize command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-serialize",
+          "markdownDescription": "Denies the serialize command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the serialize_batch command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-serialize-batch",
+          "markdownDescription": "Enables the serialize_batch command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the serialize_batch command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-serialize-batch",
+          "markdownDescription": "Denies the serialize_batch command without any pre-configured scope."
         },
         {
           "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-serialize`\n- `allow-serialize-batch`",

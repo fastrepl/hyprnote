@@ -20,12 +20,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`frontmatter:allow-ping`
+`frontmatter:allow-deserialize`
 
 </td>
 <td>
 
-Enables the ping command without any pre-configured scope.
+Enables the deserialize command without any pre-configured scope.
 
 </td>
 </tr>
@@ -33,12 +33,64 @@ Enables the ping command without any pre-configured scope.
 <tr>
 <td>
 
-`frontmatter:deny-ping`
+`frontmatter:deny-deserialize`
 
 </td>
 <td>
 
-Denies the ping command without any pre-configured scope.
+Denies the deserialize command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`frontmatter:allow-serialize`
+
+</td>
+<td>
+
+Enables the serialize command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`frontmatter:deny-serialize`
+
+</td>
+<td>
+
+Denies the serialize command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`frontmatter:allow-serialize-batch`
+
+</td>
+<td>
+
+Enables the serialize_batch command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`frontmatter:deny-serialize-batch`
+
+</td>
+<td>
+
+Denies the serialize_batch command without any pre-configured scope.
 
 </td>
 </tr>

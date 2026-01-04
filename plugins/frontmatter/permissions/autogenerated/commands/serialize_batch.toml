@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-serialize-batch"
+description = "Enables the serialize_batch command without any pre-configured scope."
+commands.allow = ["serialize_batch"]
+
+[[permission]]
+identifier = "deny-serialize-batch"
+description = "Denies the serialize_batch command without any pre-configured scope."
+commands.deny = ["serialize_batch"]

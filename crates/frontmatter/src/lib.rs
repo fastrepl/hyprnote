@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde_yaml::Value;
 use thiserror::Error;
 
 const DELIMITER: &str = "---";
@@ -11,6 +12,36 @@ pub enum Error {
     MissingClosingDelimiter,
     #[error("failed to parse YAML frontmatter: {0}")]
     YamlParse(#[from] serde_yaml::Error),
+}
+
+fn sort_value(value: Value) -> Value {
+    match value {
+        Value::Mapping(mapping) => {
+            let mut entries: Vec<_> = mapping.into_iter().collect();
+            entries.sort_by(|(a, _), (b, _)| {
+                let a_str = value_to_sort_key(a);
+                let b_str = value_to_sort_key(b);
+                a_str.cmp(&b_str)
+            });
+            let mut sorted = serde_yaml::Mapping::new();
+            for (k, v) in entries {
+                sorted.insert(k, sort_value(v));
+            }
+            Value::Mapping(sorted)
+        }
+        Value::Sequence(seq) => Value::Sequence(seq.into_iter().map(sort_value).collect()),
+        other => other,
+    }
+}
+
+fn value_to_sort_key(value: &Value) -> String {
+    match value {
+        Value::String(s) => s.clone(),
+        Value::Number(n) => n.to_string(),
+        Value::Bool(b) => b.to_string(),
+        Value::Null => String::new(),
+        _ => serde_yaml::to_string(value).unwrap_or_default(),
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -80,7 +111,9 @@ impl<T: DeserializeOwned> Document<T> {
 
 impl<T: Serialize> Document<T> {
     pub fn to_string(&self) -> Result<String, Error> {
-        let yaml = serde_yaml::to_string(&self.frontmatter)?;
+        let value = serde_yaml::to_value(&self.frontmatter)?;
+        let sorted = sort_value(value);
+        let yaml = serde_yaml::to_string(&sorted)?;
         let mut output = String::new();
         output.push_str(DELIMITER);
         output.push('\n');
@@ -257,5 +290,58 @@ No closing delimiter"#;
         let input = "   ---\ntitle: Whitespace\n---\n\nContent";
         let doc: Document<TestFrontmatter> = Document::from_str(input).unwrap();
         assert_eq!(doc.frontmatter.title, "Whitespace");
+    }
+
+    #[test]
+    fn test_sorted_keys() {
+        let mut fm1 = HashMap::new();
+        fm1.insert("zebra".to_string(), "last".to_string());
+        fm1.insert("apple".to_string(), "first".to_string());
+        fm1.insert("mango".to_string(), "middle".to_string());
+
+        let mut fm2 = HashMap::new();
+        fm2.insert("apple".to_string(), "first".to_string());
+        fm2.insert("mango".to_string(), "middle".to_string());
+        fm2.insert("zebra".to_string(), "last".to_string());
+
+        let doc1 = Document::new(fm1, "Content");
+        let doc2 = Document::new(fm2, "Content");
+
+        let output1 = doc1.to_string().unwrap();
+        let output2 = doc2.to_string().unwrap();
+
+        assert_eq!(
+            output1, output2,
+            "Keys should be sorted alphabetically regardless of insertion order"
+        );
+
+        assert!(output1.find("apple").unwrap() < output1.find("mango").unwrap());
+        assert!(output1.find("mango").unwrap() < output1.find("zebra").unwrap());
+    }
+
+    #[test]
+    fn test_nested_sorted_keys() {
+        #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+        struct Nested {
+            inner: HashMap<String, String>,
+            name: String,
+        }
+
+        let mut inner = HashMap::new();
+        inner.insert("z_key".to_string(), "z_value".to_string());
+        inner.insert("a_key".to_string(), "a_value".to_string());
+
+        let doc = Document::new(
+            Nested {
+                inner,
+                name: "test".to_string(),
+            },
+            "Content",
+        );
+
+        let output = doc.to_string().unwrap();
+
+        assert!(output.find("a_key").unwrap() < output.find("z_key").unwrap());
+        assert!(output.find("inner").unwrap() < output.find("name").unwrap());
     }
 }

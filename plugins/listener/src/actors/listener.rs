@@ -7,6 +7,7 @@ use tokio::time::error::Elapsed;
 use owhisper_client::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FinalizeHandle,
     FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+    TraceHeaders,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -306,6 +307,46 @@ fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
     (session_offset_secs, extra)
 }
 
+fn build_trace_headers(args: &ListenerArgs, provider_name: &str) -> TraceHeaders {
+    let mut trace_headers = TraceHeaders::default();
+
+    sentry::with_scope(
+        |scope| {
+            scope.set_tag("session_id", &args.session_id);
+            scope.set_tag("stt_provider", provider_name);
+            scope.set_tag("channel_mode", format!("{:?}", args.mode));
+            scope.set_tag("model", &args.model);
+            scope.set_tag(
+                "languages",
+                args.languages
+                    .iter()
+                    .map(|l| l.iso639().code())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
+            scope.set_tag("onboarding", args.onboarding.to_string());
+        },
+        || {
+            sentry::configure_scope(|scope| {
+                if let Some(span) = scope.get_span() {
+                    trace_headers.sentry_trace = span
+                        .iter_headers()
+                        .find(|(k, _)| *k == "sentry-trace")
+                        .map(|(_, v)| v.to_string())
+                        .filter(|s| !s.is_empty());
+                    trace_headers.baggage = span
+                        .iter_headers()
+                        .find(|(k, _)| *k == "baggage")
+                        .map(|(_, v)| v.to_string())
+                        .filter(|s| !s.is_empty());
+                }
+            });
+        },
+    );
+
+    trace_headers
+}
+
 async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
     args: ListenerArgs,
     myself: ActorRef<ListenerMsg>,
@@ -322,11 +363,23 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
 
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
 
+    let adapter = A::default();
+    let trace_headers = build_trace_headers(&args, adapter.provider_name());
+
+    tracing::info!(
+        session_id = %args.session_id,
+        channel_mode = ?args.mode,
+        model = %args.model,
+        provider = adapter.provider_name(),
+        "listener_actor_starting(single)"
+    );
+
     let client = owhisper_client::ListenClient::builder()
         .adapter::<A>()
         .api_base(args.base_url.clone())
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
+        .trace_headers(trace_headers)
         .build_single()
         .await;
 
@@ -339,6 +392,7 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
         Err(_elapsed) => {
             tracing::error!(
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
+                session_id = %args.session_id,
                 "listen_ws_connect_timeout(single)"
             );
             let _ = (SessionErrorEvent::ConnectionError {
@@ -349,7 +403,7 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
-            tracing::error!(error = ?e, "listen_ws_connect_failed(single)");
+            tracing::error!(error = ?e, session_id = %args.session_id, "listen_ws_connect_failed(single)");
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),
@@ -392,11 +446,23 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
 
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
 
+    let adapter = A::default();
+    let trace_headers = build_trace_headers(&args, adapter.provider_name());
+
+    tracing::info!(
+        session_id = %args.session_id,
+        channel_mode = ?args.mode,
+        model = %args.model,
+        provider = adapter.provider_name(),
+        "listener_actor_starting(dual)"
+    );
+
     let client = owhisper_client::ListenClient::builder()
         .adapter::<A>()
         .api_base(args.base_url.clone())
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
+        .trace_headers(trace_headers)
         .build_dual()
         .await;
 
@@ -409,6 +475,7 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
         Err(_elapsed) => {
             tracing::error!(
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
+                session_id = %args.session_id,
                 "listen_ws_connect_timeout(dual)"
             );
             let _ = (SessionErrorEvent::ConnectionError {
@@ -419,7 +486,7 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
-            tracing::error!(error = ?e, "listen_ws_connect_failed(dual)");
+            tracing::error!(error = ?e, session_id = %args.session_id, "listen_ws_connect_failed(dual)");
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),

@@ -1,10 +1,14 @@
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import type { FrontmatterInput, JsonValue } from "@hypr/plugin-export";
+import type { FrontmatterInput } from "@hypr/plugin-export";
 import type { OrganizationStorage } from "@hypr/store";
 
 import type { CollectorResult, TablesContent } from "../utils";
-import { getOrganizationDir, getOrganizationFilePath } from "./utils";
+import {
+  getOrganizationDir,
+  getOrganizationFilePath,
+  organizationToFrontmatter,
+} from "./utils";
 
 export interface OrganizationCollectorResult extends CollectorResult {
   validOrgIds: Set<string>;
@@ -32,13 +36,7 @@ export function collectOrganizationWriteOps<Schemas extends OptionalSchemas>(
   for (const [orgId, org] of Object.entries(organizations)) {
     validOrgIds.add(orgId);
 
-    const frontmatter: Record<string, JsonValue> = {
-      created_at: org.created_at ?? "",
-      name: org.name ?? "",
-      user_id: org.user_id ?? "",
-    };
-
-    const body = "";
+    const { frontmatter, body } = organizationToFrontmatter(org);
     const filePath = getOrganizationFilePath(dataDir, orgId);
 
     frontmatterItems.push([{ frontmatter, content: body }, filePath]);

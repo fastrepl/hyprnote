@@ -1,36 +1,49 @@
-import { sep } from "@tauri-apps/api/path";
+import type { JsonValue } from "@hypr/plugin-export";
+import type { OrganizationStorage } from "@hypr/store";
 
-import { commands } from "@hypr/plugin-export";
+import {
+  createEntityPaths,
+  type ParsedMarkdown,
+  parseMarkdownWithFrontmatter as parseMarkdownWithFrontmatterBase,
+} from "../markdown-utils";
 
-export interface ParsedMarkdown {
-  frontmatter: Record<string, unknown>;
-  body: string;
-}
+export type { ParsedMarkdown };
 
-export async function parseMarkdownWithFrontmatter(
+const LABEL = "OrganizationPersister";
+const DIR_NAME = "organizations";
+
+export const {
+  getDir: getOrganizationDir,
+  getFilePath: getOrganizationFilePath,
+} = createEntityPaths(DIR_NAME);
+
+export function parseMarkdownWithFrontmatter(
   content: string,
 ): Promise<ParsedMarkdown> {
-  const result = await commands.parseFrontmatter(content);
-  if (result.status === "error") {
-    console.error(
-      "[OrganizationPersister] Failed to parse frontmatter:",
-      result.error,
-    );
-    return { frontmatter: {}, body: content };
-  }
+  return parseMarkdownWithFrontmatterBase(content, LABEL);
+}
+
+export function frontmatterToOrganization(
+  frontmatter: Record<string, unknown>,
+  _body: string,
+): OrganizationStorage {
   return {
-    frontmatter: result.data.frontmatter as Record<string, unknown>,
-    body: result.data.content.trim(),
+    user_id: String(frontmatter.user_id ?? ""),
+    created_at: String(frontmatter.created_at ?? ""),
+    name: String(frontmatter.name ?? ""),
   };
 }
 
-export function getOrganizationDir(dataDir: string): string {
-  return [dataDir, "organizations"].join(sep());
-}
-
-export function getOrganizationFilePath(
-  dataDir: string,
-  orgId: string,
-): string {
-  return [dataDir, "organizations", `${orgId}.md`].join(sep());
+export function organizationToFrontmatter(org: OrganizationStorage): {
+  frontmatter: Record<string, JsonValue>;
+  body: string;
+} {
+  return {
+    frontmatter: {
+      created_at: org.created_at ?? "",
+      name: org.name ?? "",
+      user_id: org.user_id ?? "",
+    },
+    body: "",
+  };
 }

@@ -20,8 +20,8 @@ pub enum ChangeKind {
     Other,
 }
 
-impl ChangeKind {
-    pub fn from_event_kind(kind: &notify::EventKind) -> Self {
+impl From<&notify::EventKind> for ChangeKind {
+    fn from(kind: &notify::EventKind) -> Self {
         use notify::EventKind as NK;
 
         match kind {

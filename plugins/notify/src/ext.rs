@@ -33,7 +33,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
             move |events: Result<Vec<DebouncedEvent>, Vec<notify::Error>>| {
                 if let Ok(events) = events {
                     for event in events {
-                        let change_kind = ChangeKind::from_event_kind(&event.kind);
+                        let change_kind = ChangeKind::from(&event.kind);
 
                         for path in &event.paths {
                             let relative_path = path

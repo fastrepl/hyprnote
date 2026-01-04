@@ -7,8 +7,8 @@ use crate::query::build_created_at_range_query;
 use crate::schema::{extract_search_document, get_fields};
 use crate::tokenizer::register_tokenizers;
 use crate::{
-    CollectionConfig, CollectionIndex, IndexState, SearchDocument, SearchFilters, SearchHit,
-    SearchOptions, SearchResult,
+    CollectionConfig, CollectionIndex, IndexState, SearchDocument, SearchHit, SearchRequest,
+    SearchResult,
 };
 
 pub fn detect_language(text: &str) -> hypr_language::Language {
@@ -74,15 +74,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         collection.unwrap_or_else(|| "default".to_string())
     }
 
-    pub async fn search(
-        &self,
-        collection: Option<String>,
-        query: String,
-        filters: Option<SearchFilters>,
-        limit: usize,
-        options: Option<SearchOptions>,
-    ) -> Result<SearchResult, crate::Error> {
-        let collection_name = Self::get_collection_name(collection);
+    pub async fn search(&self, request: SearchRequest) -> Result<SearchResult, crate::Error> {
+        let collection_name = Self::get_collection_name(request.collection);
         let state = self.manager.state::<IndexState>();
         let guard = state.inner.lock().await;
 
@@ -98,12 +91,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         let fields = get_fields(schema);
         let searcher = reader.searcher();
 
-        let options = options.unwrap_or_default();
-        let use_fuzzy = options.fuzzy.unwrap_or(false);
+        let use_fuzzy = request.options.fuzzy.unwrap_or(false);
 
         let mut combined_query: Box<dyn Query> = if use_fuzzy {
-            let distance = options.distance.unwrap_or(1);
-            let terms: Vec<&str> = query.split_whitespace().collect();
+            let distance = request.options.distance.unwrap_or(1);
+            let terms: Vec<&str> = request.query.split_whitespace().collect();
             let mut subqueries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
 
             for term in terms {
@@ -122,23 +114,20 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
             Box::new(BooleanQuery::new(subqueries))
         } else {
             let query_parser = QueryParser::for_index(index, vec![fields.title, fields.content]);
-            query_parser.parse_query(&query)?
+            query_parser.parse_query(&request.query)?
         };
 
-        if let Some(ref filter) = filters {
-            if let Some(ref created_at_filter) = filter.created_at {
-                let range_query =
-                    build_created_at_range_query(fields.created_at, created_at_filter);
-                if let Some(rq) = range_query {
-                    combined_query = Box::new(BooleanQuery::new(vec![
-                        (Occur::Must, combined_query),
-                        (Occur::Must, rq),
-                    ]));
-                }
+        if let Some(ref created_at_filter) = request.filters.created_at {
+            let range_query = build_created_at_range_query(fields.created_at, created_at_filter);
+            if let Some(rq) = range_query {
+                combined_query = Box::new(BooleanQuery::new(vec![
+                    (Occur::Must, combined_query),
+                    (Occur::Must, rq),
+                ]));
             }
         }
 
-        let top_docs = searcher.search(&combined_query, &TopDocs::with_limit(limit))?;
+        let top_docs = searcher.search(&combined_query, &TopDocs::with_limit(request.limit))?;
 
         let mut hits = Vec::new();
         for (score, doc_address) in top_docs {

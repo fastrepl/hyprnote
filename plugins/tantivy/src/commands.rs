@@ -1,17 +1,13 @@
-use crate::{SearchDocument, SearchFilters, SearchOptions, SearchResult, TantivyPluginExt};
+use crate::{SearchDocument, SearchRequest, SearchResult, TantivyPluginExt};
 
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn search<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    query: String,
-    filters: Option<SearchFilters>,
-    limit: Option<usize>,
-    collection: Option<String>,
-    options: Option<SearchOptions>,
+    request: SearchRequest,
 ) -> Result<SearchResult, String> {
     app.tantivy()
-        .search(collection, query, filters, limit.unwrap_or(100), options)
+        .search(request)
         .await
         .map_err(|e| e.to_string())
 }

@@ -6,9 +6,9 @@
 
 
 export const commands = {
-async search(query: string, filters: SearchFilters | null, limit: number | null, collection: string | null, options: SearchOptions | null) : Promise<Result<SearchResult, string>> {
+async search(request: SearchRequest) : Promise<Result<SearchResult, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|search", { query, filters, limit, collection, options }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:tantivy|search", { request }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -63,6 +63,7 @@ export type SearchDocument = { id: string; doc_type: string; language: string | 
 export type SearchFilters = { created_at: CreatedAtFilter | null }
 export type SearchHit = { score: number; document: SearchDocument }
 export type SearchOptions = { fuzzy: boolean | null; distance: number | null }
+export type SearchRequest = { query: string; collection?: string | null; filters?: SearchFilters; limit?: number; options?: SearchOptions }
 export type SearchResult = { hits: SearchHit[] }
 
 /** tauri-specta globals **/

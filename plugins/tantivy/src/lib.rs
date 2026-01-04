@@ -60,6 +60,23 @@ pub struct SearchOptions {
     pub distance: Option<u8>,
 }
 
+fn default_limit() -> usize {
+    100
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct SearchRequest {
+    pub query: String,
+    #[serde(default)]
+    pub collection: Option<String>,
+    #[serde(default)]
+    pub filters: SearchFilters,
+    #[serde(default = "default_limit")]
+    pub limit: usize,
+    #[serde(default)]
+    pub options: SearchOptions,
+}
+
 pub struct CollectionConfig {
     pub name: String,
     pub path: String,

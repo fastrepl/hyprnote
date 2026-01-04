@@ -7,10 +7,10 @@ pub struct Cli2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Cli2<'a, R, M> {
     pub fn get_cli_binary_name(&self) -> String {
-        if let Ok(exe_path) = std::env::current_exe() {
-            if let Some(file_name) = exe_path.file_stem() {
-                return file_name.to_string_lossy().to_string();
-            }
+        if let Ok(exe_path) = std::env::current_exe()
+            && let Some(file_name) = exe_path.file_stem()
+        {
+            return file_name.to_string_lossy().to_string();
         }
         "hyprnote".to_string()
     }
@@ -49,11 +49,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Cli2<'a, R, M> {
 
     pub fn is_cli_path_in_env_path(&self) -> bool {
         let symlink_path = self.get_cli_symlink_path();
-        if let Some(parent) = symlink_path.parent() {
-            if let Some(env_path) = std::env::var_os("PATH") {
-                let paths: Vec<PathBuf> = std::env::split_paths(&env_path).collect();
-                return paths.iter().any(|p| p == parent);
-            }
+        if let Some(parent) = symlink_path.parent()
+            && let Some(env_path) = std::env::var_os("PATH")
+        {
+            let paths: Vec<PathBuf> = std::env::split_paths(&env_path).collect();
+            return paths.iter().any(|p| p == parent);
         }
         false
     }

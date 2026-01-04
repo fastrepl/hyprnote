@@ -186,10 +186,9 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
             if let Some(model) = crate::model::SUPPORTED_MODELS
                 .iter()
                 .find(|model| model.file_name() == file_name_str)
+                && entry.path().is_file()
             {
-                if entry.path().is_file() {
-                    models.push(model.clone());
-                }
+                models.push(model.clone());
             }
         }
 

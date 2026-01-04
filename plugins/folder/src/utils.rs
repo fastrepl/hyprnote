@@ -30,10 +30,10 @@ fn find_session_dir_recursive(dir: &Path, session_id: &str) -> Option<PathBuf> {
             return Some(path);
         }
 
-        if !is_uuid(name) {
-            if let Some(found) = find_session_dir_recursive(&path, session_id) {
-                return Some(found);
-            }
+        if !is_uuid(name)
+            && let Some(found) = find_session_dir_recursive(&path, session_id)
+        {
+            return Some(found);
         }
     }
 

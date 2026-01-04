@@ -226,7 +226,8 @@ export function createModeAwarePersister<Schemas extends OptionalSchemas>(
 
 export type WriteOperation =
   | { type: "json"; path: string; content: unknown }
-  | { type: "md-batch"; items: Array<[ExportJsonValue, string]> };
+  | { type: "md-batch"; items: Array<[ExportJsonValue, string]> }
+  | { type: "text"; path: string; content: string };
 
 export type CollectorResult = {
   dirs: Set<string>;
@@ -263,12 +264,15 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
 
       const jsonBatchItems: Array<[ExportJsonValue, string]> = [];
       let mdBatchItems: Array<[ExportJsonValue, string]> = [];
+      const textItems: Array<{ path: string; content: string }> = [];
 
       for (const op of operations) {
         if (op.type === "json") {
           jsonBatchItems.push([op.content as ExportJsonValue, op.path]);
         } else if (op.type === "md-batch") {
           mdBatchItems = mdBatchItems.concat(op.items);
+        } else if (op.type === "text") {
+          textItems.push({ path: op.path, content: op.content });
         }
       }
 
@@ -290,6 +294,17 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
           console.error(
             `[${options.label}] Failed to export md batch:`,
             exportResult.error,
+          );
+        }
+      }
+
+      for (const item of textItems) {
+        try {
+          await writeTextFile(item.path, item.content);
+        } catch (e) {
+          console.error(
+            `[${options.label}] Failed to write text file ${item.path}:`,
+            e,
           );
         }
       }

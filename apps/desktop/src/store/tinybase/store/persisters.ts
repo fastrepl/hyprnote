@@ -5,6 +5,7 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
 import { useCalendarPersister } from "../persister/calendar";
 import { useChatPersister } from "../persister/chat";
+import { useChatShortcutPersister } from "../persister/chat-shortcuts";
 import { useEventsPersister } from "../persister/events";
 import { useFolderPersister } from "../persister/folder";
 import { useHumanPersister } from "../persister/human";
@@ -57,6 +58,8 @@ export function useMainPersisters(store: Store) {
 
   const chatPersister = useChatPersister(store);
 
+  const chatShortcutPersister = useChatShortcutPersister(store);
+
   const promptPersister = usePromptPersister(store);
 
   const templatePersister = useTemplatePersister(store);
@@ -76,6 +79,7 @@ export function useMainPersisters(store: Store) {
     humanPersister,
     eventPersister,
     chatPersister,
+    chatShortcutPersister,
     promptPersister,
     templatePersister,
     sessionPersister,

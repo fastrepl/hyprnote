@@ -55,9 +55,7 @@ export function TabContentChangelog({
 
         <div className="flex flex-col gap-2">
           <button
-            onClick={() =>
-              openUrl(`https://hyprnote.com/changelog/v${current}`)
-            }
+            onClick={() => openUrl(`https://hyprnote.com/changelog/${current}`)}
             className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             <ExternalLinkIcon className="w-4 h-4" />
@@ -67,7 +65,7 @@ export function TabContentChangelog({
             <button
               onClick={() =>
                 openUrl(
-                  `https://github.com/fastrepl/hyprnote/compare/v${previous}...v${current}`,
+                  `https://github.com/fastrepl/hyprnote/compare/desktop_${previous}...desktop_v${current}`,
                 )
               }
               className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"

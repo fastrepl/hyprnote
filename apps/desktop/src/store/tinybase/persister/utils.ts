@@ -329,31 +329,42 @@ async function loadTableData(
   }
 }
 
+function escapeYamlString(value: string): string {
+  if (value === "") {
+    return '""';
+  }
+  if (value.includes("\n")) {
+    const lines = value.split("\n");
+    const indented = lines.map((line) => `  ${line}`).join("\n");
+    return `|-\n${indented}`;
+  }
+  const escaped = value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\t/g, "\\t");
+  return `"${escaped}"`;
+}
+
 export function toFrontmatterMarkdown(
   metadata: Record<string, unknown>,
   content: string = "",
 ): string {
   const lines: string[] = ["---"];
-  for (const [key, value] of Object.entries(metadata)) {
-    if (value === undefined || value === null || value === "") {
+  const sortedKeys = Object.keys(metadata).sort();
+  for (const key of sortedKeys) {
+    const value = metadata[key];
+    if (value === undefined || value === null) {
       continue;
     }
     if (typeof value === "string") {
-      if (value.includes("\n") || value.includes(":") || value.includes('"')) {
-        lines.push(`${key}: |`);
-        for (const line of value.split("\n")) {
-          lines.push(`  ${line}`);
-        }
-      } else {
-        lines.push(`${key}: "${value}"`);
-      }
+      lines.push(`${key}: ${escapeYamlString(value)}`);
     } else if (typeof value === "boolean" || typeof value === "number") {
       lines.push(`${key}: ${value}`);
     }
   }
   lines.push("---");
+  lines.push("");
   if (content) {
-    lines.push("");
     lines.push(content);
   }
   return lines.join("\n") + "\n";

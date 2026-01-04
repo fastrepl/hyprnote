@@ -286,7 +286,7 @@ function useTransport(attachedSessionId?: string) {
   }, [language, chatContext]);
 
   const transport = useMemo(() => {
-    if (!model) {
+    if (!model || !systemPrompt) {
       return null;
     }
 

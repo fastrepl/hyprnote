@@ -41,49 +41,49 @@ describe("createCalendarPersister", () => {
   });
 
   describe("load", () => {
-    test("loads calendars from json file", async () => {
+    test("load is a no-op and does not read files", async () => {
       const { readTextFile } = await import("@tauri-apps/plugin-fs");
 
-      const mockData = {
-        "cal-1": {
+      const persister = createCalendarPersister<Schemas>(store);
+      await persister.load();
+
+      expect(readTextFile).not.toHaveBeenCalled();
+      expect(store.getTable("calendars")).toEqual({});
+    });
+
+    test("load does not modify existing store data", async () => {
+      store.setRow("calendars", "existing-cal", {
+        user_id: "user-1",
+        created_at: "2024-01-01T00:00:00Z",
+        tracking_id_calendar: "tracking-1",
+        name: "Existing Calendar",
+        enabled: true,
+        provider: "apple",
+        source: "",
+        color: "",
+      });
+
+      const persister = createCalendarPersister<Schemas>(store);
+      await persister.load();
+
+      expect(store.getTable("calendars")).toEqual({
+        "existing-cal": {
           user_id: "user-1",
           created_at: "2024-01-01T00:00:00Z",
           tracking_id_calendar: "tracking-1",
-          name: "Work Calendar",
+          name: "Existing Calendar",
           enabled: true,
           provider: "apple",
-          source: "iCloud",
-          color: "#FF0000",
+          source: "",
+          color: "",
         },
-      };
-      vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
-
-      const persister = createCalendarPersister<Schemas>(store);
-      await persister.load();
-
-      expect(readTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/calendars.json",
-      );
-      expect(store.getTable("calendars")).toEqual(mockData);
-    });
-
-    test("returns empty calendars when file does not exist", async () => {
-      const { readTextFile } = await import("@tauri-apps/plugin-fs");
-
-      vi.mocked(readTextFile).mockRejectedValue(
-        new Error("No such file or directory"),
-      );
-
-      const persister = createCalendarPersister<Schemas>(store);
-      await persister.load();
-
-      expect(store.getTable("calendars")).toEqual({});
+      });
     });
   });
 
   describe("save", () => {
-    test("saves calendars to json file", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+    test("saves calendar to markdown file with frontmatter", async () => {
+      const { mkdir, writeTextFile } = await import("@tauri-apps/plugin-fs");
 
       store.setRow("calendars", "cal-1", {
         user_id: "user-1",
@@ -99,41 +99,36 @@ describe("createCalendarPersister", () => {
       const persister = createCalendarPersister<Schemas>(store);
       await persister.save();
 
+      expect(mkdir).toHaveBeenCalledWith("/mock/data/dir/hyprnote/calendars", {
+        recursive: true,
+      });
       expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/calendars.json",
+        "/mock/data/dir/hyprnote/calendars/cal-1.md",
         expect.any(String),
       );
 
       const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent);
-
-      expect(parsed).toEqual({
-        "cal-1": {
-          user_id: "user-1",
-          created_at: "2024-01-01T00:00:00Z",
-          tracking_id_calendar: "tracking-1",
-          name: "Work Calendar",
-          enabled: true,
-          provider: "apple",
-          source: "iCloud",
-          color: "#FF0000",
-        },
-      });
+      expect(writtenContent).toContain("---");
+      expect(writtenContent).toContain('id: "cal-1"');
+      expect(writtenContent).toContain('name: "Work Calendar"');
+      expect(writtenContent).toContain("enabled: true");
+      expect(writtenContent).toContain('provider: "apple"');
+      expect(writtenContent).toContain('color: "#FF0000"');
     });
 
-    test("writes empty object when no calendars exist", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+    test("does not write files when no calendars exist", async () => {
+      const { mkdir, writeTextFile } = await import("@tauri-apps/plugin-fs");
 
       const persister = createCalendarPersister<Schemas>(store);
       await persister.save();
 
-      expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/calendars.json",
-        "{}",
-      );
+      expect(mkdir).toHaveBeenCalledWith("/mock/data/dir/hyprnote/calendars", {
+        recursive: true,
+      });
+      expect(writeTextFile).not.toHaveBeenCalled();
     });
 
-    test("saves multiple calendars", async () => {
+    test("saves multiple calendars to separate markdown files", async () => {
       const { writeTextFile } = await import("@tauri-apps/plugin-fs");
 
       store.setRow("calendars", "cal-1", {
@@ -161,12 +156,12 @@ describe("createCalendarPersister", () => {
       const persister = createCalendarPersister<Schemas>(store);
       await persister.save();
 
-      const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent);
+      expect(writeTextFile).toHaveBeenCalledTimes(2);
 
-      expect(Object.keys(parsed)).toHaveLength(2);
-      expect(parsed["cal-1"].name).toBe("Work Calendar");
-      expect(parsed["cal-2"].name).toBe("Personal Calendar");
+      const calls = vi.mocked(writeTextFile).mock.calls;
+      const paths = calls.map((call) => call[0]);
+      expect(paths).toContain("/mock/data/dir/hyprnote/calendars/cal-1.md");
+      expect(paths).toContain("/mock/data/dir/hyprnote/calendars/cal-2.md");
     });
   });
 });

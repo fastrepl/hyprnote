@@ -49,54 +49,59 @@ describe("createEventPersister", () => {
   });
 
   describe("load", () => {
-    test("loads events from json file", async () => {
+    test("load is a no-op and does not read files", async () => {
       const { readTextFile } = await import("@tauri-apps/plugin-fs");
 
-      const mockData = {
-        "event-1": {
+      const persister = createEventPersister<Schemas>(store);
+      await persister.load();
+
+      expect(readTextFile).not.toHaveBeenCalled();
+      expect(store.getTable("events")).toEqual({});
+    });
+
+    test("load does not modify existing store data", async () => {
+      store.setRow("events", "existing-event", {
+        user_id: "user-1",
+        created_at: "2024-01-01T00:00:00Z",
+        tracking_id_event: "tracking-1",
+        calendar_id: "cal-1",
+        title: "Existing Event",
+        started_at: "2024-01-01T10:00:00Z",
+        ended_at: "2024-01-01T11:00:00Z",
+        location: "",
+        meeting_link: "",
+        description: "",
+        note: "",
+        ignored: false,
+        recurrence_series_id: "",
+      });
+
+      const persister = createEventPersister<Schemas>(store);
+      await persister.load();
+
+      expect(store.getTable("events")).toEqual({
+        "existing-event": {
           user_id: "user-1",
           created_at: "2024-01-01T00:00:00Z",
           tracking_id_event: "tracking-1",
           calendar_id: "cal-1",
-          title: "Team Meeting",
+          title: "Existing Event",
           started_at: "2024-01-01T10:00:00Z",
           ended_at: "2024-01-01T11:00:00Z",
-          location: "Conference Room A",
-          meeting_link: "https://meet.example.com/abc",
-          description: "Weekly team sync",
+          location: "",
+          meeting_link: "",
+          description: "",
           note: "",
           ignored: false,
           recurrence_series_id: "",
         },
-      };
-      vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
-
-      const persister = createEventPersister<Schemas>(store);
-      await persister.load();
-
-      expect(readTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/events.json",
-      );
-      expect(store.getTable("events")).toEqual(mockData);
-    });
-
-    test("returns empty events when file does not exist", async () => {
-      const { readTextFile } = await import("@tauri-apps/plugin-fs");
-
-      vi.mocked(readTextFile).mockRejectedValue(
-        new Error("No such file or directory"),
-      );
-
-      const persister = createEventPersister<Schemas>(store);
-      await persister.load();
-
-      expect(store.getTable("events")).toEqual({});
+      });
     });
   });
 
   describe("save", () => {
-    test("saves events to json file", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+    test("saves event to markdown file with frontmatter", async () => {
+      const { mkdir, writeTextFile } = await import("@tauri-apps/plugin-fs");
 
       store.setRow("events", "event-1", {
         user_id: "user-1",
@@ -117,30 +122,35 @@ describe("createEventPersister", () => {
       const persister = createEventPersister<Schemas>(store);
       await persister.save();
 
+      expect(mkdir).toHaveBeenCalledWith("/mock/data/dir/hyprnote/events", {
+        recursive: true,
+      });
       expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/events.json",
+        "/mock/data/dir/hyprnote/events/event-1.md",
         expect.any(String),
       );
 
       const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent);
-
-      expect(parsed["event-1"].title).toBe("Team Meeting");
+      expect(writtenContent).toContain("---");
+      expect(writtenContent).toContain('id: "event-1"');
+      expect(writtenContent).toContain('title: "Team Meeting"');
+      expect(writtenContent).toContain('calendar_id: "cal-1"');
+      expect(writtenContent).toContain("ignored: false");
     });
 
-    test("writes empty object when no events exist", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+    test("does not write files when no events exist", async () => {
+      const { mkdir, writeTextFile } = await import("@tauri-apps/plugin-fs");
 
       const persister = createEventPersister<Schemas>(store);
       await persister.save();
 
-      expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/events.json",
-        "{}",
-      );
+      expect(mkdir).toHaveBeenCalledWith("/mock/data/dir/hyprnote/events", {
+        recursive: true,
+      });
+      expect(writeTextFile).not.toHaveBeenCalled();
     });
 
-    test("saves multiple events", async () => {
+    test("saves multiple events to separate markdown files", async () => {
       const { writeTextFile } = await import("@tauri-apps/plugin-fs");
 
       store.setRow("events", "event-1", {
@@ -178,12 +188,38 @@ describe("createEventPersister", () => {
       const persister = createEventPersister<Schemas>(store);
       await persister.save();
 
-      const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent);
+      expect(writeTextFile).toHaveBeenCalledTimes(2);
 
-      expect(Object.keys(parsed)).toHaveLength(2);
-      expect(parsed["event-1"].title).toBe("Team Meeting");
-      expect(parsed["event-2"].title).toBe("1:1 with Manager");
+      const calls = vi.mocked(writeTextFile).mock.calls;
+      const paths = calls.map((call) => call[0]);
+      expect(paths).toContain("/mock/data/dir/hyprnote/events/event-1.md");
+      expect(paths).toContain("/mock/data/dir/hyprnote/events/event-2.md");
+    });
+
+    test("saves note content in markdown body", async () => {
+      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+
+      store.setRow("events", "event-1", {
+        user_id: "user-1",
+        created_at: "2024-01-01T00:00:00Z",
+        tracking_id_event: "tracking-1",
+        calendar_id: "cal-1",
+        title: "Team Meeting",
+        started_at: "2024-01-01T10:00:00Z",
+        ended_at: "2024-01-01T11:00:00Z",
+        location: "",
+        meeting_link: "",
+        description: "",
+        note: "This is my meeting note",
+        ignored: false,
+        recurrence_series_id: "",
+      });
+
+      const persister = createEventPersister<Schemas>(store);
+      await persister.save();
+
+      const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
+      expect(writtenContent).toContain("This is my meeting note");
     });
   });
 });

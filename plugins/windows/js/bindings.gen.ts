@@ -71,7 +71,7 @@ windowDestroyed: "plugin:windows:window-destroyed"
 
 export type AiState = { tab: AiTab | null }
 export type AiTab = "transcription" | "intelligence"
-export type AppWindow = { type: "onboarding" } | { type: "main" } | { type: "control" }
+export type AppWindow = { type: "onboarding" } | { type: "main" } | { type: "control" } | { type: "popout"; value: string }
 export type ChangelogState = { previous: string | null; current: string }
 export type ChatShortcutsState = { isWebMode: boolean | null; selectedMineId: string | null; selectedWebIndex: number | null }
 export type ContactsState = { selectedOrganization: string | null; selectedPerson: string | null }

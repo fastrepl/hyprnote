@@ -121,6 +121,7 @@ export function TabItemBase({
         contextMenu={contextMenu}
         onClick={handleSelectThis}
         onMouseDown={handleMouseDown}
+        data-tab-pill
         className={cn([
           "flex items-center gap-1 relative",
           "w-48 h-full px-2",

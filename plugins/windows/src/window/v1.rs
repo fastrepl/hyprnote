@@ -9,6 +9,8 @@ pub enum AppWindow {
     Main,
     #[serde(rename = "control")]
     Control,
+    #[serde(rename = "popout")]
+    Popout(String),
 }
 
 impl std::fmt::Display for AppWindow {
@@ -17,6 +19,7 @@ impl std::fmt::Display for AppWindow {
             Self::Onboarding => write!(f, "onboarding"),
             Self::Main => write!(f, "main"),
             Self::Control => write!(f, "control"),
+            Self::Popout(id) => write!(f, "popout-{}", id),
         }
     }
 }
@@ -30,6 +33,10 @@ impl std::str::FromStr for AppWindow {
             "main" => return Ok(Self::Main),
             "control" => return Ok(Self::Control),
             _ => {}
+        }
+
+        if let Some(id) = s.strip_prefix("popout-") {
+            return Ok(Self::Popout(id.to_string()));
         }
 
         Err(strum::ParseError::VariantNotFound)
@@ -99,6 +106,7 @@ impl WindowImpl for AppWindow {
             Self::Onboarding => "Onboarding".into(),
             Self::Main => "Main".into(),
             Self::Control => "Control".into(),
+            Self::Popout(_) => "Hyprnote".into(),
         }
     }
 
@@ -144,6 +152,16 @@ impl WindowImpl for AppWindow {
                 window.set_size(LogicalSize::new(1.0, 1.0))?;
                 std::thread::sleep(std::time::Duration::from_millis(10));
                 window.set_size(collapsed_size)?;
+                window
+            }
+            Self::Popout(_) => {
+                let builder = self
+                    .window_builder(app, "/app/popout")
+                    .maximizable(true)
+                    .minimizable(true)
+                    .min_inner_size(400.0, 300.0);
+                let window = builder.build()?;
+                window.set_size(LogicalSize::new(800.0, 600.0))?;
                 window
             }
         };

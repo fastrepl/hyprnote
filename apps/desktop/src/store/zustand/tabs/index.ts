@@ -23,7 +23,7 @@ import {
 import { createStateUpdaterSlice, type StateBasicActions } from "./state";
 
 export type { Tab, TabInput } from "./schema";
-export { isSameTab, rowIdfromTab, uniqueIdfromTab } from "./schema";
+export { isSameTab, rowIdfromTab, tabToInput, uniqueIdfromTab } from "./schema";
 
 type State = BasicState & NavigationState & LifecycleState & RestoreState;
 type Actions = BasicActions &

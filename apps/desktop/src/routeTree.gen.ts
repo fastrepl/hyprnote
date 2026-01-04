@@ -13,8 +13,10 @@ import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AppExtHostRouteImport } from './routes/app/ext-host'
 import { Route as AppControlRouteImport } from './routes/app/control'
+import { Route as AppPopoutLayoutRouteImport } from './routes/app/popout/_layout'
 import { Route as AppOnboardingLayoutRouteImport } from './routes/app/onboarding/_layout'
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
+import { Route as AppPopoutLayoutIndexRouteImport } from './routes/app/popout/_layout.index'
 import { Route as AppOnboardingLayoutIndexRouteImport } from './routes/app/onboarding/_layout.index'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layout.index'
 
@@ -38,6 +40,11 @@ const AppControlRoute = AppControlRouteImport.update({
   path: '/control',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppPopoutLayoutRoute = AppPopoutLayoutRouteImport.update({
+  id: '/popout/_layout',
+  path: '/popout',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppOnboardingLayoutRoute = AppOnboardingLayoutRouteImport.update({
   id: '/onboarding/_layout',
   path: '/onboarding',
@@ -47,6 +54,11 @@ const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
   id: '/main/_layout',
   path: '/main',
   getParentRoute: () => AppRouteRoute,
+} as any)
+const AppPopoutLayoutIndexRoute = AppPopoutLayoutIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppPopoutLayoutRoute,
 } as any)
 const AppOnboardingLayoutIndexRoute =
   AppOnboardingLayoutIndexRouteImport.update({
@@ -67,8 +79,10 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
   '/app/onboarding': typeof AppOnboardingLayoutRouteWithChildren
+  '/app/popout': typeof AppPopoutLayoutRouteWithChildren
   '/app/main/': typeof AppMainLayoutIndexRoute
   '/app/onboarding/': typeof AppOnboardingLayoutIndexRoute
+  '/app/popout/': typeof AppPopoutLayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/app': typeof AppRouteRouteWithChildren
@@ -77,6 +91,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/app/main': typeof AppMainLayoutIndexRoute
   '/app/onboarding': typeof AppOnboardingLayoutIndexRoute
+  '/app/popout': typeof AppPopoutLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,8 +101,10 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
   '/app/onboarding/_layout': typeof AppOnboardingLayoutRouteWithChildren
+  '/app/popout/_layout': typeof AppPopoutLayoutRouteWithChildren
   '/app/main/_layout/': typeof AppMainLayoutIndexRoute
   '/app/onboarding/_layout/': typeof AppOnboardingLayoutIndexRoute
+  '/app/popout/_layout/': typeof AppPopoutLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,8 +115,10 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/app/main'
     | '/app/onboarding'
+    | '/app/popout'
     | '/app/main/'
     | '/app/onboarding/'
+    | '/app/popout/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/app'
@@ -108,6 +127,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/app/main'
     | '/app/onboarding'
+    | '/app/popout'
   id:
     | '__root__'
     | '/app'
@@ -116,8 +136,10 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/app/main/_layout'
     | '/app/onboarding/_layout'
+    | '/app/popout/_layout'
     | '/app/main/_layout/'
     | '/app/onboarding/_layout/'
+    | '/app/popout/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppControlRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/popout/_layout': {
+      id: '/app/popout/_layout'
+      path: '/popout'
+      fullPath: '/app/popout'
+      preLoaderRoute: typeof AppPopoutLayoutRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/onboarding/_layout': {
       id: '/app/onboarding/_layout'
       path: '/onboarding'
@@ -168,6 +197,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/main'
       preLoaderRoute: typeof AppMainLayoutRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/app/popout/_layout/': {
+      id: '/app/popout/_layout/'
+      path: '/'
+      fullPath: '/app/popout/'
+      preLoaderRoute: typeof AppPopoutLayoutIndexRouteImport
+      parentRoute: typeof AppPopoutLayoutRoute
     }
     '/app/onboarding/_layout/': {
       id: '/app/onboarding/_layout/'
@@ -209,11 +245,24 @@ const AppOnboardingLayoutRouteChildren: AppOnboardingLayoutRouteChildren = {
 const AppOnboardingLayoutRouteWithChildren =
   AppOnboardingLayoutRoute._addFileChildren(AppOnboardingLayoutRouteChildren)
 
+interface AppPopoutLayoutRouteChildren {
+  AppPopoutLayoutIndexRoute: typeof AppPopoutLayoutIndexRoute
+}
+
+const AppPopoutLayoutRouteChildren: AppPopoutLayoutRouteChildren = {
+  AppPopoutLayoutIndexRoute: AppPopoutLayoutIndexRoute,
+}
+
+const AppPopoutLayoutRouteWithChildren = AppPopoutLayoutRoute._addFileChildren(
+  AppPopoutLayoutRouteChildren,
+)
+
 interface AppRouteRouteChildren {
   AppControlRoute: typeof AppControlRoute
   AppExtHostRoute: typeof AppExtHostRoute
   AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
   AppOnboardingLayoutRoute: typeof AppOnboardingLayoutRouteWithChildren
+  AppPopoutLayoutRoute: typeof AppPopoutLayoutRouteWithChildren
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -221,6 +270,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExtHostRoute: AppExtHostRoute,
   AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
   AppOnboardingLayoutRoute: AppOnboardingLayoutRouteWithChildren,
+  AppPopoutLayoutRoute: AppPopoutLayoutRouteWithChildren,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

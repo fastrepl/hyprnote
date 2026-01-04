@@ -23,6 +23,7 @@
     "@ai-sdk/openai": "^2.0.88",
     "@ai-sdk/openai-compatible": "^1.0.29",
     "@ai-sdk/react": "^2.0.118",
+    "@crabnebula/tauri-plugin-drag-as-window": "^2.1.0",
     "@effect/schema": "^0.75.5",
     "@floating-ui/react": "^0.27.16",
     "@huggingface/languages": "^1.0.0",

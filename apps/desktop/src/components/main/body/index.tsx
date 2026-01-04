@@ -31,6 +31,7 @@ import { TabContentChangelog, TabItemChangelog } from "./changelog";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentData, TabItemData } from "./data";
+import { DraggableReorderItem } from "./draggable-tab-item";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
 import {
   TabContentExtension,
@@ -182,14 +183,11 @@ function Header({ tabs }: { tabs: Tab[] }) {
                 index < 8 ? index + 1 : isLastTab ? 9 : undefined;
 
               return (
-                <Reorder.Item
+                <DraggableReorderItem
                   key={uniqueIdfromTab(tab)}
-                  value={tab}
-                  as="div"
-                  ref={(el) => setTabRef(tab, el)}
-                  style={{ position: "relative" }}
-                  className="h-full z-10"
-                  layoutScroll
+                  tab={tab}
+                  onPopOut={() => close(tab)}
+                  setTabRef={setTabRef}
                 >
                   <TabItem
                     tab={tab}
@@ -201,7 +199,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
                     handleUnpin={unpin}
                     tabIndex={shortcutIndex}
                   />
-                </Reorder.Item>
+                </DraggableReorderItem>
               );
             })}
           </Reorder.Group>

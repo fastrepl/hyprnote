@@ -3,6 +3,13 @@ name = "detect"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["mic", "locale"]
+mic = []
+locale = []
+app = []
+zoom = []
+
 [dependencies]
 lazy_static = { workspace = true }
 regex = { workspace = true }
@@ -20,7 +27,7 @@ specta = { workspace = true, features = ["derive"] }
 hypr-bundle = { workspace = true }
 cidre = { workspace = true }
 
-objc2-foundation = { workspace = true }
+objc2-foundation = { workspace = true, features = ["NSLocale", "NSArray", "NSString"] }
 objc2-app-kit = { workspace = true }
 objc2 = { workspace = true }
 objc2-core-foundation = { workspace = true }

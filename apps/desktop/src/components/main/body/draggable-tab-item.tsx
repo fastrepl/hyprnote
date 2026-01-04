@@ -18,6 +18,13 @@ interface UseDraggableTabResult {
   handlePointerCancel: (e: React.PointerEvent) => void;
 }
 
+function getTabPillElement(
+  container: HTMLDivElement | null,
+): HTMLElement | null {
+  if (!container) return null;
+  return container.querySelector("[data-tab-pill]") as HTMLElement | null;
+}
+
 export function useDraggableTab(
   tab: Tab,
   onPopOut: () => void,
@@ -35,9 +42,11 @@ export function useDraggableTab(
       hasStartedReorderRef.current = false;
       pointerDownEventRef.current = e.nativeEvent;
 
-      if (e.altKey && containerRef.current) {
+      const dragElement =
+        getTabPillElement(containerRef.current) || containerRef.current;
+      if (e.altKey && dragElement) {
         isDraggingRef.current = true;
-        dragAsWindow(containerRef.current, async (payload) => {
+        dragAsWindow(dragElement, async (payload) => {
           const tabInput = tabToInput(tab);
           const windowLabel = `popout-${tab.type}-${Date.now()}`;
 
@@ -51,7 +60,7 @@ export function useDraggableTab(
             width: 800,
             height: 600,
             title: `Hyprnote`,
-            url: `/?${searchParams.toString()}`,
+            url: `/app/main?${searchParams.toString()}`,
             decorations: true,
             resizable: true,
             center: false,
@@ -121,7 +130,11 @@ export function useDraggableTab(
           containerRef.current.releasePointerCapture(e.pointerId);
         }
 
-        dragAsWindow(containerRef.current, async (payload) => {
+        const dragElement =
+          getTabPillElement(containerRef.current) || containerRef.current;
+        if (!dragElement) return;
+
+        dragAsWindow(dragElement, async (payload) => {
           const tabInput = tabToInput(tab);
           const windowLabel = `popout-${tab.type}-${Date.now()}`;
 
@@ -135,7 +148,7 @@ export function useDraggableTab(
             width: 800,
             height: 600,
             title: `Hyprnote`,
-            url: `/?${searchParams.toString()}`,
+            url: `/app/main?${searchParams.toString()}`,
             decorations: true,
             resizable: true,
             center: false,

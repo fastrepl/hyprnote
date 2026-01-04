@@ -1,13 +1,35 @@
-import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
+import type {
+  Content,
+  MergeableStore,
+  OptionalSchemas,
+} from "tinybase/with-schemas";
 
-import { createSingleTablePersister } from "../utils";
+import { createSessionDirPersister, getDataDir } from "../utils";
+import {
+  collectOrganizationWriteOps,
+  type OrganizationCollectorResult,
+} from "./collect";
+import { cleanupOrphanOrganizationFiles, loadAllOrganizations } from "./load";
+import { migrateOrganizationsJsonIfNeeded } from "./migrate";
 
 export function createOrganizationPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ) {
-  return createSingleTablePersister(store, {
-    tableName: "organizations",
-    filename: "organizations.json",
+  return createSessionDirPersister(store, {
     label: "OrganizationPersister",
+    collect: collectOrganizationWriteOps,
+    load: async (): Promise<Content<Schemas> | undefined> => {
+      const dataDir = await getDataDir();
+      await migrateOrganizationsJsonIfNeeded(dataDir);
+      const organizations = await loadAllOrganizations(dataDir);
+      if (Object.keys(organizations).length === 0) {
+        return undefined;
+      }
+      return [{ organizations }, {}] as unknown as Content<Schemas>;
+    },
+    postSave: async (dataDir, result) => {
+      const { validOrgIds } = result as OrganizationCollectorResult;
+      await cleanupOrphanOrganizationFiles(dataDir, validOrgIds);
+    },
   });
 }

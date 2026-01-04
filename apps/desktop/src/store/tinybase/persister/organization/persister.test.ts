@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { SCHEMA, type Schemas } from "@hypr/store";
 
 import { createOrganizationPersister } from "./persister";
+import { parseMarkdownWithFrontmatter } from "./utils";
 
 vi.mock("@hypr/plugin-path2", () => ({
   commands: {
@@ -11,17 +12,40 @@ vi.mock("@hypr/plugin-path2", () => ({
   },
 }));
 
+vi.mock("@hypr/plugin-export", () => ({
+  commands: {
+    parseFrontmatter: vi.fn(),
+    exportFrontmatterBatch: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: null }),
+  },
+}));
+
 vi.mock("@tauri-apps/plugin-fs", () => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
+  readDir: vi.fn(),
   readTextFile: vi.fn(),
   writeTextFile: vi.fn().mockResolvedValue(undefined),
+  exists: vi.fn(),
+  remove: vi.fn().mockResolvedValue(undefined),
 }));
+
+function serializeFrontmatterSync(
+  frontmatter: Record<string, unknown>,
+  body: string,
+): string {
+  const lines = Object.entries(frontmatter).map(([k, v]) => `${k}: ${v}`);
+  return `---\n${lines.join("\n")}\n---\n\n${body}`;
+}
 
 function createTestStore() {
   return createMergeableStore()
     .setTablesSchema(SCHEMA.table)
     .setValuesSchema(SCHEMA.value);
 }
+
+const ORG_UUID_1 = "550e8400-e29b-41d4-a716-446655440000";
+const ORG_UUID_2 = "550e8400-e29b-41d4-a716-446655440001";
 
 describe("createOrganizationPersister", () => {
   let store: ReturnType<typeof createTestStore>;
@@ -41,31 +65,62 @@ describe("createOrganizationPersister", () => {
   });
 
   describe("load", () => {
-    test("loads organizations from json file", async () => {
-      const { readTextFile } = await import("@tauri-apps/plugin-fs");
+    test("loads organizations from markdown files", async () => {
+      const { readDir, readTextFile, exists } =
+        await import("@tauri-apps/plugin-fs");
+      const { commands: exportCommands } = await import("@hypr/plugin-export");
 
-      const mockData = {
-        "org-1": {
-          user_id: "user-1",
+      vi.mocked(exists).mockResolvedValue(false);
+      vi.mocked(readDir).mockResolvedValue([
+        {
+          name: `${ORG_UUID_1}.md`,
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+        },
+      ]);
+
+      const mockMdContent = serializeFrontmatterSync(
+        {
           created_at: "2024-01-01T00:00:00Z",
           name: "Acme Corp",
+          user_id: "user-1",
         },
-      };
-      vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
+        "",
+      );
+      vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
+      vi.mocked(exportCommands.parseFrontmatter).mockResolvedValue({
+        status: "ok",
+        data: {
+          frontmatter: {
+            created_at: "2024-01-01T00:00:00Z",
+            name: "Acme Corp",
+            user_id: "user-1",
+          },
+          content: "",
+        },
+      });
 
       const persister = createOrganizationPersister<Schemas>(store);
       await persister.load();
 
-      expect(readTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/organizations.json",
+      expect(readDir).toHaveBeenCalledWith(
+        "/mock/data/dir/hyprnote/organizations",
       );
-      expect(store.getTable("organizations")).toEqual(mockData);
+
+      const organizations = store.getTable("organizations");
+      expect(organizations[ORG_UUID_1]).toEqual({
+        user_id: "user-1",
+        created_at: "2024-01-01T00:00:00Z",
+        name: "Acme Corp",
+      });
     });
 
-    test("returns empty organizations when file does not exist", async () => {
-      const { readTextFile } = await import("@tauri-apps/plugin-fs");
+    test("returns empty organizations when directory does not exist", async () => {
+      const { readDir, exists } = await import("@tauri-apps/plugin-fs");
 
-      vi.mocked(readTextFile).mockRejectedValue(
+      vi.mocked(exists).mockResolvedValue(false);
+      vi.mocked(readDir).mockRejectedValue(
         new Error("No such file or directory"),
       );
 
@@ -74,13 +129,64 @@ describe("createOrganizationPersister", () => {
 
       expect(store.getTable("organizations")).toEqual({});
     });
+
+    test("skips non-UUID files", async () => {
+      const { readDir, readTextFile, exists } =
+        await import("@tauri-apps/plugin-fs");
+      const { commands: exportCommands } = await import("@hypr/plugin-export");
+
+      vi.mocked(exists).mockResolvedValue(false);
+      vi.mocked(readDir).mockResolvedValue([
+        {
+          name: "not-a-uuid.md",
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+        },
+        {
+          name: `${ORG_UUID_1}.md`,
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+        },
+      ]);
+
+      const mockMdContent = serializeFrontmatterSync(
+        {
+          created_at: "2024-01-01T00:00:00Z",
+          name: "Acme Corp",
+          user_id: "user-1",
+        },
+        "",
+      );
+      vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
+      vi.mocked(exportCommands.parseFrontmatter).mockResolvedValue({
+        status: "ok",
+        data: {
+          frontmatter: {
+            created_at: "2024-01-01T00:00:00Z",
+            name: "Acme Corp",
+            user_id: "user-1",
+          },
+          content: "",
+        },
+      });
+
+      const persister = createOrganizationPersister<Schemas>(store);
+      await persister.load();
+
+      const organizations = store.getTable("organizations");
+      expect(Object.keys(organizations)).toHaveLength(1);
+      expect(organizations[ORG_UUID_1]).toBeDefined();
+    });
   });
 
   describe("save", () => {
-    test("saves organizations to json file", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+    test("saves organizations to markdown files via export plugin", async () => {
+      const { mkdir } = await import("@tauri-apps/plugin-fs");
+      const { commands: exportCommands } = await import("@hypr/plugin-export");
 
-      store.setRow("organizations", "org-1", {
+      store.setRow("organizations", ORG_UUID_1, {
         user_id: "user-1",
         created_at: "2024-01-01T00:00:00Z",
         name: "Acme Corp",
@@ -89,45 +195,47 @@ describe("createOrganizationPersister", () => {
       const persister = createOrganizationPersister<Schemas>(store);
       await persister.save();
 
-      expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/organizations.json",
-        expect.any(String),
-      );
-
-      const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent);
-
-      expect(parsed).toEqual({
-        "org-1": {
-          user_id: "user-1",
-          created_at: "2024-01-01T00:00:00Z",
-          name: "Acme Corp",
+      expect(mkdir).toHaveBeenCalledWith(
+        "/mock/data/dir/hyprnote/organizations",
+        {
+          recursive: true,
         },
-      });
+      );
+
+      expect(exportCommands.exportFrontmatterBatch).toHaveBeenCalledWith([
+        [
+          {
+            frontmatter: {
+              created_at: "2024-01-01T00:00:00Z",
+              name: "Acme Corp",
+              user_id: "user-1",
+            },
+            content: "",
+          },
+          `/mock/data/dir/hyprnote/organizations/${ORG_UUID_1}.md`,
+        ],
+      ]);
     });
 
-    test("writes empty object when no organizations exist", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+    test("does not write when no organizations exist", async () => {
+      const { commands: exportCommands } = await import("@hypr/plugin-export");
 
       const persister = createOrganizationPersister<Schemas>(store);
       await persister.save();
 
-      expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/organizations.json",
-        "{}",
-      );
+      expect(exportCommands.exportFrontmatterBatch).not.toHaveBeenCalled();
     });
 
-    test("saves multiple organizations", async () => {
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+    test("saves multiple organizations in single batch call", async () => {
+      const { commands: exportCommands } = await import("@hypr/plugin-export");
 
-      store.setRow("organizations", "org-1", {
+      store.setRow("organizations", ORG_UUID_1, {
         user_id: "user-1",
         created_at: "2024-01-01T00:00:00Z",
         name: "Acme Corp",
       });
 
-      store.setRow("organizations", "org-2", {
+      store.setRow("organizations", ORG_UUID_2, {
         user_id: "user-1",
         created_at: "2024-01-02T00:00:00Z",
         name: "Beta Inc",
@@ -136,12 +244,119 @@ describe("createOrganizationPersister", () => {
       const persister = createOrganizationPersister<Schemas>(store);
       await persister.save();
 
-      const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent);
+      expect(exportCommands.exportFrontmatterBatch).toHaveBeenCalledTimes(1);
 
-      expect(Object.keys(parsed)).toHaveLength(2);
-      expect(parsed["org-1"].name).toBe("Acme Corp");
-      expect(parsed["org-2"].name).toBe("Beta Inc");
+      const batchItems = vi.mocked(exportCommands.exportFrontmatterBatch).mock
+        .calls[0][0];
+      expect(batchItems).toHaveLength(2);
+
+      const paths = batchItems.map((item: [unknown, string]) => item[1]);
+      expect(paths).toContain(
+        `/mock/data/dir/hyprnote/organizations/${ORG_UUID_1}.md`,
+      );
+      expect(paths).toContain(
+        `/mock/data/dir/hyprnote/organizations/${ORG_UUID_2}.md`,
+      );
+    });
+  });
+
+  describe("migration", () => {
+    test("migrates from organizations.json when it exists and organizations dir does not", async () => {
+      const { exists, readTextFile, mkdir, remove } =
+        await import("@tauri-apps/plugin-fs");
+      const { commands: exportCommands } = await import("@hypr/plugin-export");
+
+      vi.mocked(exists).mockImplementation(async (path: string | URL) => {
+        const p = typeof path === "string" ? path : path.toString();
+        if (p.endsWith("organizations.json")) return true;
+        if (p.endsWith("organizations")) return false;
+        return false;
+      });
+
+      const mockJsonData = {
+        [ORG_UUID_1]: {
+          user_id: "user-1",
+          created_at: "2024-01-01T00:00:00Z",
+          name: "Acme Corp",
+        },
+      };
+      vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockJsonData));
+
+      const persister = createOrganizationPersister<Schemas>(store);
+      await persister.load();
+
+      expect(mkdir).toHaveBeenCalledWith(
+        "/mock/data/dir/hyprnote/organizations",
+        {
+          recursive: true,
+        },
+      );
+      expect(exportCommands.exportFrontmatterBatch).toHaveBeenCalledWith([
+        [
+          {
+            frontmatter: {
+              created_at: "2024-01-01T00:00:00Z",
+              name: "Acme Corp",
+              user_id: "user-1",
+            },
+            content: "",
+          },
+          `/mock/data/dir/hyprnote/organizations/${ORG_UUID_1}.md`,
+        ],
+      ]);
+      expect(remove).toHaveBeenCalledWith(
+        "/mock/data/dir/hyprnote/organizations.json",
+      );
+    });
+  });
+});
+
+describe("utils", () => {
+  describe("parseMarkdownWithFrontmatter", () => {
+    test("parses markdown with frontmatter via plugin", async () => {
+      const { commands: exportCommands } = await import("@hypr/plugin-export");
+
+      vi.mocked(exportCommands.parseFrontmatter).mockResolvedValue({
+        status: "ok",
+        data: {
+          frontmatter: {
+            name: "Acme Corp",
+            user_id: "user-1",
+          },
+          content: "",
+        },
+      });
+
+      const content = `---
+name: Acme Corp
+user_id: user-1
+---
+
+`;
+
+      const { frontmatter, body } = await parseMarkdownWithFrontmatter(content);
+
+      expect(frontmatter).toEqual({
+        name: "Acme Corp",
+        user_id: "user-1",
+      });
+      expect(body).toBe("");
+    });
+
+    test("returns empty frontmatter when plugin returns error", async () => {
+      const { commands: exportCommands } = await import("@hypr/plugin-export");
+
+      vi.mocked(exportCommands.parseFrontmatter).mockResolvedValue({
+        status: "error",
+        error: "Parse error",
+      });
+
+      const content = "Just some text without frontmatter";
+
+      const { frontmatter, body } = await parseMarkdownWithFrontmatter(content);
+
+      expect(frontmatter).toEqual({});
+      expect(body).toBe("Just some text without frontmatter");
     });
   });
 });

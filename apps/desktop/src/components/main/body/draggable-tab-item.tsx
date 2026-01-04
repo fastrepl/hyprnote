@@ -34,7 +34,6 @@ export function useDraggableTab(
     hasStartedReorderRef.current = false;
     pointerDownEventRef.current = e.nativeEvent;
 
-    // Capture pointer to ensure we receive move events even when pointer leaves element
     if (containerRef.current) {
       containerRef.current.setPointerCapture(e.pointerId);
     }
@@ -55,25 +54,26 @@ export function useDraggableTab(
       const dy = Math.abs(e.clientY - dragStartPosRef.current.y);
       const threshold = 15;
 
-      // If horizontal movement is dominant, start reorder drag
       if (dx > threshold && dx > dy) {
         hasStartedReorderRef.current = true;
-        // Release pointer capture before starting Framer Motion drag
-        if (containerRef.current) {
+        if (
+          containerRef.current &&
+          containerRef.current.hasPointerCapture(e.pointerId)
+        ) {
           containerRef.current.releasePointerCapture(e.pointerId);
         }
-        // Use the original pointerdown event for dragControls.start
         if (pointerDownEventRef.current) {
           dragControls.start(pointerDownEventRef.current);
         }
         return;
       }
 
-      // If vertical movement is dominant, start pop-out drag
       if (dy > threshold && dy > dx) {
         isDraggingRef.current = true;
-        // Release pointer capture before starting native drag
-        if (containerRef.current) {
+        if (
+          containerRef.current &&
+          containerRef.current.hasPointerCapture(e.pointerId)
+        ) {
           containerRef.current.releasePointerCapture(e.pointerId);
         }
 
@@ -119,7 +119,6 @@ export function useDraggableTab(
   );
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    // Release pointer capture on pointer up
     if (
       containerRef.current &&
       containerRef.current.hasPointerCapture(e.pointerId)
@@ -132,7 +131,6 @@ export function useDraggableTab(
   }, []);
 
   const handlePointerCancel = useCallback((e: React.PointerEvent) => {
-    // Release pointer capture on cancel
     if (
       containerRef.current &&
       containerRef.current.hasPointerCapture(e.pointerId)
@@ -191,9 +189,9 @@ export function DraggableReorderItem({
       value={tab}
       as="div"
       ref={setRefs}
+      data-tauri-drag-region="false"
       style={{
         position: "relative",
-        // Prevent Tauri's drag region from blocking pointer events on macOS
         // @ts-expect-error - WebKit-specific CSS property
         WebkitAppRegion: "no-drag",
       }}

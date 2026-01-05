@@ -13,6 +13,10 @@ tasks:
   stripe: stripe listen --skip-verify --forward-to http://localhost:5000/webhook/stripe
   bacon: bacon {{.CLI_ARGS}}
 
+  clean-plugins:
+    cmds:
+      - find plugins -type d -empty -delete
+
   diff:
     vars:
       DIFF_FROM: "desktop_v0.0.79"

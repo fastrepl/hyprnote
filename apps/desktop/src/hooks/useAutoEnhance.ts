@@ -28,6 +28,14 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     main.STORE_ID,
   );
   const hasTranscript = !!transcriptIds && transcriptIds.length > 0;
+  const firstTranscriptId = transcriptIds?.[0];
+
+  const wordIds = main.UI.useSliceRowIds(
+    main.INDEXES.wordsByTranscript,
+    firstTranscriptId ?? "",
+    main.STORE_ID,
+  );
+  const hasWords = !!wordIds && wordIds.length > 0;
 
   const [autoEnhancedNoteId, setAutoEnhancedNoteId] = useState<string | null>(
     null,
@@ -57,7 +65,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   });
 
   const createAndStartEnhance = useCallback(() => {
-    if (!hasTranscript) {
+    if (!hasTranscript || !hasWords) {
       return;
     }
 
@@ -70,7 +78,13 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       ...tabRef.current.state,
       view: { type: "enhanced", id: enhancedNoteId },
     });
-  }, [hasTranscript, sessionId, updateSessionTabState, createEnhancedNote]);
+  }, [
+    hasTranscript,
+    hasWords,
+    sessionId,
+    updateSessionTabState,
+    createEnhancedNote,
+  ]);
 
   useEffect(() => {
     if (

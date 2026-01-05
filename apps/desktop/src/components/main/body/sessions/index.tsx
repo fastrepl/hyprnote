@@ -287,9 +287,8 @@ function StatusBanner({
           transition={{ duration: 0.3 }}
           style={{ left: `calc(50% + ${totalOffset}px)` }}
           className={cn([
-            "fixed -translate-x-1/2 bottom-16 z-50",
-            "whitespace-nowrap px-3 py-2 text-center text-xs",
-            "text-stone-100 bg-stone-800/95 rounded-md shadow-lg",
+            "fixed -translate-x-1/2 bottom-6 z-50",
+            "whitespace-nowrap text-center text-xs text-stone-300",
             "transition-all duration-200 ease-out",
           ])}
         >

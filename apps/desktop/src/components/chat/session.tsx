@@ -3,6 +3,7 @@ import type { ChatStatus } from "ai";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  type ChatContext,
   commands as templateCommands,
   type Transcript,
 } from "@hypr/plugin-template";
@@ -10,8 +11,8 @@ import type { ChatMessage, ChatMessageStorage } from "@hypr/store";
 
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
+import type { ContextRef } from "../../contexts/shell/chat";
 import { useToolRegistry } from "../../contexts/tool";
-import { useSession } from "../../hooks/tinybase";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
 import * as main from "../../store/tinybase/store/main";
 import { id } from "../../utils";
@@ -24,7 +25,7 @@ import {
 interface ChatSessionProps {
   sessionId: string;
   chatGroupId?: string;
-  attachedSessionId?: string;
+  contextRefs: ContextRef[];
   children: (props: {
     messages: HyprUIMessage[];
     sendMessage: (message: HyprUIMessage) => void;
@@ -38,10 +39,10 @@ interface ChatSessionProps {
 export function ChatSession({
   sessionId,
   chatGroupId,
-  attachedSessionId,
+  contextRefs,
   children,
 }: ChatSessionProps) {
-  const transport = useTransport(attachedSessionId);
+  const transport = useTransport(contextRefs);
   const store = main.UI.useStore(main.STORE_ID);
 
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -179,95 +180,91 @@ export function ChatSession({
   );
 }
 
-function useTransport(attachedSessionId?: string) {
+function useTransport(contextRefs: ContextRef[]) {
   const registry = useToolRegistry();
   const model = useLanguageModel();
   const store = main.UI.useStore(main.STORE_ID);
   const language = main.UI.useValue("ai_language", main.STORE_ID) ?? "en";
   const [systemPrompt, setSystemPrompt] = useState<string | undefined>();
 
-  const { title, rawMd, createdAt } = useSession(attachedSessionId ?? "");
-
-  const enhancedNoteIds = main.UI.useSliceRowIds(
-    main.INDEXES.enhancedNotesBySession,
-    attachedSessionId ?? "",
-    main.STORE_ID,
-  );
-  const firstEnhancedNoteId = enhancedNoteIds?.[0];
-  const enhancedContent = main.UI.useCell(
-    "enhanced_notes",
-    firstEnhancedNoteId ?? "",
-    "content",
-    main.STORE_ID,
+  const sessionRefs = useMemo(
+    () => contextRefs.filter((ref) => ref.type === "session"),
+    [contextRefs],
   );
 
-  const transcriptIds = main.UI.useSliceRowIds(
-    main.INDEXES.transcriptBySession,
-    attachedSessionId ?? "",
-    main.STORE_ID,
-  );
-  const firstTranscriptId = transcriptIds?.[0];
-
-  const wordIds = main.UI.useSliceRowIds(
-    main.INDEXES.wordsByTranscript,
-    firstTranscriptId ?? "",
-    main.STORE_ID,
-  );
-
-  const words = useMemo((): WordLike[] => {
-    if (!store || !wordIds || wordIds.length === 0) {
-      return [];
+  const chatContext = useMemo((): ChatContext | null => {
+    if (sessionRefs.length === 0 || !store) {
+      return null;
     }
 
-    const result: WordLike[] = [];
+    const firstSessionRef = sessionRefs[0];
+    const session = store.getRow("sessions", firstSessionRef.id);
+    if (!session) {
+      return null;
+    }
 
-    for (const wordId of wordIds) {
-      const row = store.getRow("words", wordId);
-      if (row) {
-        result.push({
-          text: row.text as string,
-          start_ms: row.start_ms as number,
-          end_ms: row.end_ms as number,
-          channel: row.channel as WordLike["channel"],
-        });
+    const enhancedNoteIds = store.getSliceRowIds(
+      main.INDEXES.enhancedNotesBySession,
+      firstSessionRef.id,
+    );
+    const firstEnhancedNoteId = enhancedNoteIds?.[0];
+    const enhancedNote = firstEnhancedNoteId
+      ? store.getRow("enhanced_notes", firstEnhancedNoteId)
+      : null;
+
+    const transcriptIds = store.getSliceRowIds(
+      main.INDEXES.transcriptBySession,
+      firstSessionRef.id,
+    );
+    const firstTranscriptId = transcriptIds?.[0];
+
+    let transcript: Transcript | null = null;
+    if (firstTranscriptId) {
+      const wordIds = store.getSliceRowIds(
+        main.INDEXES.wordsByTranscript,
+        firstTranscriptId,
+      );
+
+      if (wordIds && wordIds.length > 0) {
+        const words: WordLike[] = [];
+        for (const wordId of wordIds) {
+          const row = store.getRow("words", wordId);
+          if (row) {
+            words.push({
+              text: row.text as string,
+              start_ms: row.start_ms as number,
+              end_ms: row.end_ms as number,
+              channel: row.channel as WordLike["channel"],
+            });
+          }
+        }
+
+        if (words.length > 0) {
+          words.sort((a, b) => a.start_ms - b.start_ms);
+          const segments = buildSegments(words, [], []);
+          const ctx = defaultRenderLabelContext(store);
+          const manager = SpeakerLabelManager.fromSegments(segments, ctx);
+
+          transcript = {
+            segments: segments.map((seg) => ({
+              speaker: SegmentKey.renderLabel(seg.key, ctx, manager),
+              text: seg.words.map((w) => w.text).join(" "),
+            })),
+            startedAt: null,
+            endedAt: null,
+          };
+        }
       }
     }
 
-    return result.sort((a, b) => a.start_ms - b.start_ms);
-  }, [store, wordIds]);
-
-  const transcript = useMemo((): Transcript | null => {
-    if (words.length === 0 || !store) {
-      return null;
-    }
-
-    const segments = buildSegments(words, [], []);
-    const ctx = defaultRenderLabelContext(store);
-    const manager = SpeakerLabelManager.fromSegments(segments, ctx);
-
     return {
-      segments: segments.map((seg) => ({
-        speaker: SegmentKey.renderLabel(seg.key, ctx, manager),
-        text: seg.words.map((w) => w.text).join(" "),
-      })),
-      startedAt: null,
-      endedAt: null,
-    };
-  }, [words, store]);
-
-  const chatContext = useMemo(() => {
-    if (!attachedSessionId) {
-      return null;
-    }
-
-    return {
-      title: (title as string) || null,
-      date: (createdAt as string) || null,
-      rawContent: (rawMd as string) || null,
-      enhancedContent: (enhancedContent as string) || null,
+      title: (session.title as string) || null,
+      date: (session.created_at as string) || null,
+      rawContent: (session.raw_md as string) || null,
+      enhancedContent: (enhancedNote?.content as string) || null,
       transcript,
     };
-  }, [attachedSessionId, title, rawMd, enhancedContent, createdAt, transcript]);
+  }, [sessionRefs, store]);
 
   useEffect(() => {
     templateCommands

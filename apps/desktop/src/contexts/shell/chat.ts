@@ -2,6 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { createActor, fromTransition } from "xstate";
 
+export type ContextRefType = "session" | "human" | "organization";
+export type ContextRefSource = "auto" | "manual";
+
+export type ContextRef = {
+  type: ContextRefType;
+  id: string;
+  source: ContextRefSource;
+};
+
 export type ChatMode = "RightPanelOpen" | "FloatingClosed" | "FloatingOpen";
 export type ChatEvent =
   | { type: "OPEN" }
@@ -44,6 +53,22 @@ export function useChatMode() {
   const [mode, setMode] = useState<ChatMode>("FloatingClosed");
   const [groupId, setGroupId] = useState<string | undefined>(undefined);
   const [draftMessage, setDraftMessage] = useState<any>(undefined);
+  const [refs, setRefs] = useState<ContextRef[]>([]);
+
+  const addRef = useCallback((ref: ContextRef) => {
+    setRefs((prev) => {
+      if (prev.some((r) => r.type === ref.type && r.id === ref.id)) {
+        return prev;
+      }
+      return [...prev, ref];
+    });
+  }, []);
+
+  const removeRef = useCallback((id: string) => {
+    setRefs((prev) => prev.filter((r) => r.id !== id));
+  }, []);
+
+  const clearRefs = useCallback(() => setRefs([]), []);
 
   const actorRef = useMemo(() => createActor(chatModeLogic), []);
 
@@ -75,5 +100,9 @@ export function useChatMode() {
     setGroupId,
     draftMessage,
     setDraftMessage,
+    refs,
+    addRef,
+    removeRef,
+    clearRefs,
   };
 }

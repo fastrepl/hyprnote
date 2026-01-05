@@ -1,27 +1,38 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import type { HyprUIMessage } from "../../chat/types";
 import { useShell } from "../../contexts/shell";
-import { useSession } from "../../hooks/tinybase";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
 import * as main from "../../store/tinybase/store/main";
 import { useTabs } from "../../store/zustand/tabs";
 import { id } from "../../utils";
 import { ChatBody } from "./body";
+import { ContextBar } from "./context-bar";
 import { ChatHeader } from "./header";
 import { ChatMessageInput } from "./input";
 import { ChatSession } from "./session";
 
 export function ChatView() {
   const { chat } = useShell();
-  const { groupId, setGroupId } = chat;
-  const { currentTab } = useTabs();
-
-  const attachedSessionId =
-    currentTab?.type === "sessions" ? currentTab.id : undefined;
+  const { groupId, setGroupId, refs, addRef, removeRef } = chat;
+  const { currentTab, tabs } = useTabs();
 
   const stableSessionId = useStableSessionId(groupId);
   const model = useLanguageModel();
+
+  useEffect(() => {
+    if (currentTab?.type === "sessions") {
+      addRef({ type: "session", id: currentTab.id, source: "auto" });
+    }
+
+    const sessionTabIds = new Set(
+      tabs.filter((t) => t.type === "sessions").map((t) => t.id),
+    );
+
+    refs
+      .filter((r) => r.source === "auto" && !sessionTabIds.has(r.id))
+      .forEach((r) => removeRef(r.id));
+  }, [currentTab, tabs, refs, addRef, removeRef]);
 
   const { user_id } = main.UI.useValues(main.STORE_ID);
 
@@ -127,7 +138,7 @@ export function ChatView() {
         key={stableSessionId}
         sessionId={stableSessionId}
         chatGroupId={groupId}
-        attachedSessionId={attachedSessionId}
+        contextRefs={refs}
       >
         {({ messages, sendMessage, regenerate, stop, status, error }) => (
           <ChatViewContent
@@ -139,7 +150,6 @@ export function ChatView() {
             error={error}
             model={model}
             handleSendMessage={handleSendMessage}
-            attachedSessionId={attachedSessionId}
           />
         )}
       </ChatSession>
@@ -156,7 +166,6 @@ function ChatViewContent({
   error,
   model,
   handleSendMessage,
-  attachedSessionId,
 }: {
   messages: HyprUIMessage[];
   sendMessage: (message: HyprUIMessage) => void;
@@ -170,15 +179,7 @@ function ChatViewContent({
     parts: any[],
     sendMessage: (message: HyprUIMessage) => void,
   ) => void;
-  attachedSessionId?: string;
 }) {
-  const { title } = useSession(attachedSessionId ?? "");
-
-  const attachedSession = useMemo(() => {
-    if (!attachedSessionId) return undefined;
-    return { id: attachedSessionId, title: (title as string) || undefined };
-  }, [attachedSessionId, title]);
-
   return (
     <>
       <ChatBody
@@ -188,12 +189,12 @@ function ChatViewContent({
         onReload={regenerate}
         isModelConfigured={!!model}
       />
+      <ContextBar />
       <ChatMessageInput
         disabled={!model || status !== "ready"}
         onSendMessage={(content, parts) =>
           handleSendMessage(content, parts, sendMessage)
         }
-        attachedSession={attachedSession}
         isStreaming={status === "streaming" || status === "submitted"}
         onStop={stop}
       />

@@ -9,7 +9,6 @@ import type {
   SessionStorage,
   SpeakerHintStorage,
   Tag,
-  TranscriptStorage,
   WordStorage,
 } from "@hypr/store";
 import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
@@ -21,18 +20,15 @@ import {
   sanitizeFilename,
   type TablesContent,
 } from "../utils";
+import type {
+  NoteFrontmatter,
+  ParticipantData,
+  SessionMetaJson,
+  TranscriptJson,
+  TranscriptWithData,
+} from "./transform";
 
-type ParticipantData = MappingSessionParticipantStorage & { id: string };
-
-export type SessionMetaJson = {
-  id: string;
-  user_id: string;
-  created_at: string;
-  title: string;
-  event_id?: string;
-  participants: ParticipantData[];
-  tags?: string[];
-};
+export type { NoteFrontmatter, SessionMetaJson };
 
 type SessionMetaWithFolder = {
   meta: SessionMetaJson;
@@ -127,16 +123,6 @@ export function collectSessionWriteOps<Schemas extends OptionalSchemas>(
   return { dirs, operations, validSessionIds: new Set(sessionMetas.keys()) };
 }
 
-type TranscriptWithData = TranscriptStorage & {
-  id: string;
-  words: Array<WordStorage & { id: string }>;
-  speaker_hints: Array<SpeakerHintStorage & { id: string }>;
-};
-
-type TranscriptJson = {
-  transcripts: TranscriptWithData[];
-};
-
 export function collectTranscriptWriteOps(
   _store: unknown,
   tables: TablesContent,
@@ -202,15 +188,6 @@ export function collectTranscriptWriteOps(
 
   return { dirs, operations };
 }
-
-export type NoteFrontmatter = {
-  id: string;
-  session_id: string;
-  type: "enhanced_note" | "memo";
-  template_id?: string;
-  position?: number;
-  title?: string;
-};
 
 function tryParseAndConvertToMarkdown(content: string): string | undefined {
   let parsed: unknown;

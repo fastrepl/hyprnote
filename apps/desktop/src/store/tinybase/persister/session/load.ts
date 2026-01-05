@@ -13,17 +13,11 @@ import type {
 } from "@hypr/store";
 import { md2json } from "@hypr/tiptap/shared";
 
-import type { NoteFrontmatter, SessionMetaJson } from "./collect";
-
-type TranscriptWithData = TranscriptStorage & {
-  id: string;
-  words: Array<WordStorage & { id: string }>;
-  speaker_hints: Array<SpeakerHintStorage & { id: string }>;
-};
-
-type TranscriptJson = {
-  transcripts: TranscriptWithData[];
-};
+import type {
+  NoteFrontmatter,
+  SessionMetaJson,
+  TranscriptJson,
+} from "./transform";
 
 export type SessionDataLoad = {
   sessions: Record<string, SessionStorage>;

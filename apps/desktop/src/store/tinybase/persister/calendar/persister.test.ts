@@ -1,27 +1,15 @@
-import { createMergeableStore } from "tinybase/with-schemas";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { SCHEMA, type Schemas } from "@hypr/store";
+import type { Schemas } from "@hypr/store";
 
+import {
+  createTestStore,
+  MOCK_DATA_DIR,
+  setupJsonFilePersisterMocks,
+} from "../testing/mocks";
 import { createCalendarPersister } from "./persister";
 
-vi.mock("@hypr/plugin-path2", () => ({
-  commands: {
-    base: vi.fn().mockResolvedValue("/mock/data/dir/hyprnote"),
-  },
-}));
-
-vi.mock("@tauri-apps/plugin-fs", () => ({
-  mkdir: vi.fn().mockResolvedValue(undefined),
-  readTextFile: vi.fn(),
-  writeTextFile: vi.fn().mockResolvedValue(undefined),
-}));
-
-function createTestStore() {
-  return createMergeableStore()
-    .setTablesSchema(SCHEMA.table)
-    .setValuesSchema(SCHEMA.value);
-}
+setupJsonFilePersisterMocks();
 
 describe("createCalendarPersister", () => {
   let store: ReturnType<typeof createTestStore>;
@@ -62,7 +50,7 @@ describe("createCalendarPersister", () => {
       await persister.load();
 
       expect(readTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/calendars.json",
+        `${MOCK_DATA_DIR}/calendars.json`,
       );
       expect(store.getTable("calendars")).toEqual(mockData);
     });
@@ -100,7 +88,7 @@ describe("createCalendarPersister", () => {
       await persister.save();
 
       expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/calendars.json",
+        `${MOCK_DATA_DIR}/calendars.json`,
         expect.any(String),
       );
 
@@ -128,7 +116,7 @@ describe("createCalendarPersister", () => {
       await persister.save();
 
       expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/calendars.json",
+        `${MOCK_DATA_DIR}/calendars.json`,
         "{}",
       );
     });

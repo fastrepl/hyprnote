@@ -1,71 +1,52 @@
 import type { JsonValue } from "@hypr/plugin-fs-sync";
 import type { HumanStorage } from "@hypr/store";
 
-type FieldConfig = {
-  storeKey: string;
-  frontmatterKey: string;
-  toStore: (frontmatter: Record<string, unknown>) => unknown;
-  toFrontmatter: (storeValue: unknown) => unknown;
-};
+function emailsToStore(frontmatter: Record<string, unknown>): string {
+  const emails = frontmatter.emails;
+  if (Array.isArray(emails)) {
+    return emails
+      .map((e) => String(e).trim())
+      .filter(Boolean)
+      .join(",");
+  }
+  return typeof frontmatter.email === "string" ? frontmatter.email : "";
+}
 
-const stringField = (key: string): FieldConfig => ({
-  storeKey: key,
-  frontmatterKey: key,
-  toStore: (fm) => String(fm[key] ?? ""),
-  toFrontmatter: (v) => v ?? "",
-});
-
-const emailField: FieldConfig = {
-  storeKey: "email",
-  frontmatterKey: "emails",
-  toStore: (fm) => {
-    const emails = fm.emails;
-    if (Array.isArray(emails)) {
-      return emails
-        .map((e) => String(e).trim())
-        .filter(Boolean)
-        .join(",");
-    }
-    return typeof fm.email === "string" ? fm.email : "";
-  },
-  toFrontmatter: (v) => {
-    const email = v as string;
-    if (!email) return [];
-    return email
-      .split(",")
-      .map((e) => e.trim())
-      .filter(Boolean);
-  },
-};
-
-export const HUMAN_FIELDS: FieldConfig[] = [
-  stringField("user_id"),
-  stringField("created_at"),
-  stringField("name"),
-  emailField,
-  stringField("org_id"),
-  stringField("job_title"),
-  stringField("linkedin_username"),
-];
+function emailToFrontmatter(email: unknown): string[] {
+  const str = email as string;
+  if (!str) return [];
+  return str
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
+}
 
 export function frontmatterToStore(
   frontmatter: Record<string, unknown>,
 ): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  for (const field of HUMAN_FIELDS) {
-    result[field.storeKey] = field.toStore(frontmatter);
-  }
-  return result;
+  return {
+    user_id: String(frontmatter.user_id ?? ""),
+    created_at: String(frontmatter.created_at ?? ""),
+    name: String(frontmatter.name ?? ""),
+    email: emailsToStore(frontmatter),
+    org_id: String(frontmatter.org_id ?? ""),
+    job_title: String(frontmatter.job_title ?? ""),
+    linkedin_username: String(frontmatter.linkedin_username ?? ""),
+  };
 }
 
 export function storeToFrontmatter(
   store: Record<string, unknown>,
 ): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  for (const field of HUMAN_FIELDS) {
-    result[field.frontmatterKey] = field.toFrontmatter(store[field.storeKey]);
-  }
-  return result;
+  return {
+    user_id: store.user_id ?? "",
+    created_at: store.created_at ?? "",
+    name: store.name ?? "",
+    emails: emailToFrontmatter(store.email),
+    org_id: store.org_id ?? "",
+    job_title: store.job_title ?? "",
+    linkedin_username: store.linkedin_username ?? "",
+  };
 }
 
 export function frontmatterToHuman(

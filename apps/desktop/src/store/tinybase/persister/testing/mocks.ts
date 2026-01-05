@@ -14,6 +14,20 @@ export function createTestStore() {
     .setValuesSchema(SCHEMA.value);
 }
 
+export function setupJsonFilePersisterMocks() {
+  vi.mock("@hypr/plugin-path2", () => ({
+    commands: {
+      base: vi.fn().mockResolvedValue(MOCK_DATA_DIR),
+    },
+  }));
+
+  vi.mock("@tauri-apps/plugin-fs", () => ({
+    mkdir: vi.fn().mockResolvedValue(undefined),
+    readTextFile: vi.fn(),
+    writeTextFile: vi.fn().mockResolvedValue(undefined),
+  }));
+}
+
 export function setupMarkdownDirPersisterMocks() {
   vi.mock("@hypr/plugin-path2", () => ({
     commands: {

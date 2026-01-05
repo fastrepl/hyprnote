@@ -1,21 +1,15 @@
-import { createMergeableStore } from "tinybase/with-schemas";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { SCHEMA, type Schemas } from "@hypr/store";
+import type { Schemas } from "@hypr/store";
 
+import {
+  createTestStore,
+  MOCK_DATA_DIR,
+  setupJsonFilePersisterMocks,
+} from "../testing/mocks";
 import { createEventPersister } from "./persister";
 
-vi.mock("@hypr/plugin-path2", () => ({
-  commands: {
-    base: vi.fn().mockResolvedValue("/mock/data/dir/hyprnote"),
-  },
-}));
-
-vi.mock("@tauri-apps/plugin-fs", () => ({
-  mkdir: vi.fn().mockResolvedValue(undefined),
-  readTextFile: vi.fn(),
-  writeTextFile: vi.fn().mockResolvedValue(undefined),
-}));
+setupJsonFilePersisterMocks();
 
 vi.mock("@hypr/plugin-notify", () => ({
   events: {
@@ -24,12 +18,6 @@ vi.mock("@hypr/plugin-notify", () => ({
     },
   },
 }));
-
-function createTestStore() {
-  return createMergeableStore()
-    .setTablesSchema(SCHEMA.table)
-    .setValuesSchema(SCHEMA.value);
-}
 
 describe("createEventPersister", () => {
   let store: ReturnType<typeof createTestStore>;
@@ -74,9 +62,7 @@ describe("createEventPersister", () => {
       const persister = createEventPersister<Schemas>(store);
       await persister.load();
 
-      expect(readTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/events.json",
-      );
+      expect(readTextFile).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/events.json`);
       expect(store.getTable("events")).toEqual(mockData);
     });
 
@@ -118,7 +104,7 @@ describe("createEventPersister", () => {
       await persister.save();
 
       expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/events.json",
+        `${MOCK_DATA_DIR}/events.json`,
         expect.any(String),
       );
 
@@ -135,7 +121,7 @@ describe("createEventPersister", () => {
       await persister.save();
 
       expect(writeTextFile).toHaveBeenCalledWith(
-        "/mock/data/dir/hyprnote/events.json",
+        `${MOCK_DATA_DIR}/events.json`,
         "{}",
       );
     });

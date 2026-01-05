@@ -21,9 +21,7 @@ vi.mock("@hypr/plugin-fs-sync", () => ({
       .fn()
       .mockResolvedValue({ status: "ok", data: null }),
     readFrontmatterBatch: vi.fn(),
-    cleanupOrphanFiles: vi
-      .fn()
-      .mockResolvedValue({ status: "ok", data: 0 }),
+    cleanupOrphanFiles: vi.fn().mockResolvedValue({ status: "ok", data: 0 }),
   },
 }));
 

@@ -21,7 +21,6 @@ on:
         type: number
 
 permissions:
-  id-token: write
   contents: write
   pull-requests: write
 
@@ -75,3 +74,5 @@ jobs:
 
             2.
             Create a PR with title "Publish Changelog for ${{ steps.version.outputs.version }}"
+
+            3. Do not run `typecheck`, `dprint` or `pnpm` things.

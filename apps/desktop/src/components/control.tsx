@@ -3,13 +3,20 @@ import {
   NotFoundRouteComponent,
   useNavigate,
 } from "@tanstack/react-router";
-import { AlertTriangle, Home, RefreshCw, Search } from "lucide-react";
+import { relaunch } from "@tauri-apps/plugin-process";
+import { AlertTriangle, Home, RotateCw, Search } from "lucide-react";
 import { motion } from "motion/react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 
-export const ErrorComponent: ErrorRouteComponent = ({ error, reset }) => {
-  const navigate = useNavigate();
+export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
+  const handleRestart = async () => {
+    try {
+      await relaunch();
+    } catch (err) {
+      console.error("Failed to restart app:", err);
+    }
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -49,14 +56,10 @@ export const ErrorComponent: ErrorRouteComponent = ({ error, reset }) => {
                 </p>
               </div>
 
-              <div className="flex gap-2 pt-2">
-                <Button size="sm" variant="outline" onClick={() => reset()}>
-                  <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                  Try again
-                </Button>
-                <Button size="sm" onClick={() => navigate({ to: "/app/main" })}>
-                  <Home className="mr-1.5 h-3.5 w-3.5" />
-                  Go to Home
+              <div className="pt-2">
+                <Button size="sm" onClick={handleRestart}>
+                  <RotateCw className="mr-1.5 h-3.5 w-3.5" />
+                  Restart App
                 </Button>
               </div>
             </div>

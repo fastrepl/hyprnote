@@ -53,3 +53,29 @@ pub(crate) async fn delete_folder<R: tauri::Runtime>(
         .delete_folder(&folder_path)
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn cleanup_orphan_files<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    subdir: String,
+    extension: String,
+    valid_ids: Vec<String>,
+) -> Result<u32, String> {
+    app.folder()
+        .cleanup_orphan_files(&subdir, &extension, valid_ids)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn cleanup_orphan_dirs<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    subdir: String,
+    marker_file: String,
+    valid_ids: Vec<String>,
+) -> Result<u32, String> {
+    app.folder()
+        .cleanup_orphan_dirs(&subdir, &marker_file, valid_ids)
+        .map_err(|e| e.to_string())
+}

@@ -1,5 +1,5 @@
 import { sep } from "@tauri-apps/api/path";
-import { exists, readDir, readTextFile, remove } from "@tauri-apps/plugin-fs";
+import { exists, readDir, readTextFile } from "@tauri-apps/plugin-fs";
 
 import type {
   MappingSessionParticipantStorage,
@@ -8,7 +8,6 @@ import type {
   Tag,
 } from "@hypr/store";
 
-import { isFileNotFoundError, isUUID } from "../utils";
 import type { SessionMetaJson } from "./collect";
 
 export type LoadedData = {
@@ -113,67 +112,4 @@ export async function loadAllSessionMeta(dataDir: string): Promise<LoadedData> {
   await loadSessionMetaRecursively(sessionsDir, "", result, now);
 
   return result;
-}
-
-async function collectSessionDirsRecursively(
-  sessionsDir: string,
-  currentPath: string,
-  result: Array<{ path: string; name: string }>,
-): Promise<void> {
-  const s = sep();
-  const fullPath = currentPath
-    ? [sessionsDir, currentPath].join(s)
-    : sessionsDir;
-
-  let entries: { name: string; isDirectory: boolean }[];
-  try {
-    entries = await readDir(fullPath);
-  } catch {
-    return;
-  }
-
-  for (const entry of entries) {
-    if (!entry.isDirectory) continue;
-
-    const entryPath = currentPath
-      ? [currentPath, entry.name].join(s)
-      : entry.name;
-    const metaPath = [sessionsDir, entryPath, "_meta.json"].join(s);
-    const hasMetaJson = await exists(metaPath);
-
-    if (hasMetaJson) {
-      result.push({ path: [sessionsDir, entryPath].join(s), name: entry.name });
-    } else {
-      await collectSessionDirsRecursively(sessionsDir, entryPath, result);
-    }
-  }
-}
-
-export async function cleanupOrphanSessionDirs(
-  dataDir: string,
-  validSessionIds: Set<string>,
-): Promise<void> {
-  const sessionsDir = [dataDir, "sessions"].join(sep());
-  const existingDirs: Array<{ path: string; name: string }> = [];
-
-  try {
-    await collectSessionDirsRecursively(sessionsDir, "", existingDirs);
-  } catch {
-    return;
-  }
-
-  for (const dir of existingDirs) {
-    if (isUUID(dir.name) && !validSessionIds.has(dir.name)) {
-      try {
-        await remove(dir.path, { recursive: true });
-      } catch (e) {
-        if (!isFileNotFoundError(e)) {
-          console.error(
-            `[SessionPersister] Failed to remove orphan dir ${dir.path}:`,
-            e,
-          );
-        }
-      }
-    }
-  }
 }

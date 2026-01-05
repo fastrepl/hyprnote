@@ -4,9 +4,11 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
+import { commands as folderCommands } from "@hypr/plugin-folder";
+
 import { createSessionDirPersister, getDataDir } from "../utils";
 import { collectSessionWriteOps, type SessionCollectorResult } from "./collect";
-import { cleanupOrphanSessionDirs, loadAllSessionMeta } from "./load";
+import { loadAllSessionMeta } from "./load";
 
 export function createSessionPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
@@ -33,9 +35,13 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
         return undefined;
       }
     },
-    postSave: async (dataDir, result) => {
+    postSave: async (_dataDir, result) => {
       const { validSessionIds } = result as SessionCollectorResult;
-      await cleanupOrphanSessionDirs(dataDir, validSessionIds);
+      await folderCommands.cleanupOrphanDirs(
+        "sessions",
+        "_meta.json",
+        Array.from(validSessionIds),
+      );
     },
   });
 }

@@ -21,6 +21,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::create_folder::<tauri::Wry>,
             commands::rename_folder::<tauri::Wry>,
             commands::delete_folder::<tauri::Wry>,
+            commands::cleanup_orphan_files::<tauri::Wry>,
+            commands::cleanup_orphan_dirs::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

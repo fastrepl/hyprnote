@@ -6,4 +6,6 @@ permissions = [
     "allow-create-folder",
     "allow-rename-folder",
     "allow-delete-folder",
+    "allow-cleanup-orphan-files",
+    "allow-cleanup-orphan-dirs",
 ]

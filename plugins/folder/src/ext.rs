@@ -1,10 +1,12 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
 use tauri_plugin_path2::Path2PluginExt;
 
 use crate::types::ListFoldersResult;
-use crate::utils::{find_session_dir, scan_directory_recursive};
+use crate::utils::{
+    cleanup_dirs_recursive, cleanup_files_in_dir, find_session_dir, scan_directory_recursive,
+};
 
 pub struct Folder<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -12,14 +14,16 @@ pub struct Folder<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Folder<'a, R, M> {
-    fn sessions_dir(&self) -> Result<PathBuf, crate::Error> {
-        let base = self
-            .manager
+    fn base_dir(&self) -> Result<PathBuf, crate::Error> {
+        self.manager
             .app_handle()
             .path2()
             .base()
-            .map_err(|e| crate::Error::Path(e.to_string()))?;
-        Ok(base.join("sessions"))
+            .map_err(|e| crate::Error::Path(e.to_string()))
+    }
+
+    fn sessions_dir(&self) -> Result<PathBuf, crate::Error> {
+        Ok(self.base_dir()?.join("sessions"))
     }
 
     pub fn list_folders(&self) -> Result<ListFoldersResult, crate::Error> {
@@ -127,6 +131,28 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Folder<'a, R, M> {
         std::fs::remove_dir_all(&folder)?;
         tracing::info!("Deleted folder: {:?}", folder);
         Ok(())
+    }
+
+    pub fn cleanup_orphan_files(
+        &self,
+        subdir: &str,
+        extension: &str,
+        valid_ids: Vec<String>,
+    ) -> Result<u32, crate::Error> {
+        let dir = self.base_dir()?.join(subdir);
+        let valid_set: HashSet<String> = valid_ids.into_iter().collect();
+        Ok(cleanup_files_in_dir(&dir, extension, &valid_set)?)
+    }
+
+    pub fn cleanup_orphan_dirs(
+        &self,
+        subdir: &str,
+        marker_file: &str,
+        valid_ids: Vec<String>,
+    ) -> Result<u32, crate::Error> {
+        let dir = self.base_dir()?.join(subdir);
+        let valid_set: HashSet<String> = valid_ids.into_iter().collect();
+        Ok(cleanup_dirs_recursive(&dir, marker_file, &valid_set)?)
     }
 }
 

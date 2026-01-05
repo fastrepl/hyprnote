@@ -4,6 +4,8 @@ const COMMANDS: &[&str] = &[
     "create_folder",
     "rename_folder",
     "delete_folder",
+    "cleanup_orphan_files",
+    "cleanup_orphan_dirs",
 ];
 
 fn main() {

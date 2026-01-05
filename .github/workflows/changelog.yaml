@@ -21,6 +21,7 @@ on:
         type: number
 
 permissions:
+  id-token: write
   contents: write
   pull-requests: write
 

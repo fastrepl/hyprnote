@@ -20,6 +20,10 @@ vi.mock("@hypr/plugin-fs-sync", () => ({
     writeFrontmatterBatch: vi
       .fn()
       .mockResolvedValue({ status: "ok", data: null }),
+    readFrontmatterBatch: vi.fn(),
+    cleanupOrphanFiles: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: 0 }),
   },
 }));
 
@@ -68,53 +72,32 @@ describe("createHumanPersister", () => {
 
   describe("load", () => {
     test("loads humans from markdown files", async () => {
-      const { readDir, readTextFile, exists } =
-        await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(exists).mockResolvedValue(false);
-      vi.mocked(readDir).mockResolvedValue([
-        {
-          name: `${HUMAN_UUID_1}.md`,
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-        },
-      ]);
-
-      const mockMdContent = serializeFrontmatterSync(
-        {
-          user_id: "user-1",
-          created_at: "2024-01-01T00:00:00Z",
-          name: "John Doe",
-          email: "john@example.com",
-          org_id: "org-1",
-          job_title: "Engineer",
-          linkedin_username: "johndoe",
-        },
-        "Some notes",
-      );
-      vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
-      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
         status: "ok",
         data: {
-          frontmatter: {
-            user_id: "user-1",
-            created_at: "2024-01-01T00:00:00Z",
-            name: "John Doe",
-            email: "john@example.com",
-            org_id: "org-1",
-            job_title: "Engineer",
-            linkedin_username: "johndoe",
+          [HUMAN_UUID_1]: {
+            frontmatter: {
+              user_id: "user-1",
+              created_at: "2024-01-01T00:00:00Z",
+              name: "John Doe",
+              email: "john@example.com",
+              org_id: "org-1",
+              job_title: "Engineer",
+              linkedin_username: "johndoe",
+            },
+            content: "Some notes",
           },
-          content: "Some notes",
         },
       });
 
       const persister = createHumanPersister<Schemas>(store);
       await persister.load();
 
-      expect(readDir).toHaveBeenCalledWith("/mock/data/dir/hyprnote/humans");
+      expect(fsSyncCommands.readFrontmatterBatch).toHaveBeenCalledWith(
+        "/mock/data/dir/hyprnote/humans",
+      );
 
       const humans = store.getTable("humans");
       expect(humans[HUMAN_UUID_1]).toEqual({
@@ -130,12 +113,12 @@ describe("createHumanPersister", () => {
     });
 
     test("returns empty humans when directory does not exist", async () => {
-      const { readDir, exists } = await import("@tauri-apps/plugin-fs");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(exists).mockResolvedValue(false);
-      vi.mocked(readDir).mockRejectedValue(
-        new Error("No such file or directory"),
-      );
+      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
+        status: "error",
+        error: "No such file or directory",
+      });
 
       const persister = createHumanPersister<Schemas>(store);
       await persister.load();
@@ -144,52 +127,23 @@ describe("createHumanPersister", () => {
     });
 
     test("skips non-UUID files", async () => {
-      const { readDir, readTextFile, exists } =
-        await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(exists).mockResolvedValue(false);
-      vi.mocked(readDir).mockResolvedValue([
-        {
-          name: "not-a-uuid.md",
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-        },
-        {
-          name: `${HUMAN_UUID_1}.md`,
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-        },
-      ]);
-
-      const mockMdContent = serializeFrontmatterSync(
-        {
-          user_id: "user-1",
-          created_at: "2024-01-01T00:00:00Z",
-          name: "John Doe",
-          email: "john@example.com",
-          org_id: "",
-          job_title: "",
-          linkedin_username: "",
-        },
-        "",
-      );
-      vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
-      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
         status: "ok",
         data: {
-          frontmatter: {
-            user_id: "user-1",
-            created_at: "2024-01-01T00:00:00Z",
-            name: "John Doe",
-            email: "john@example.com",
-            org_id: "",
-            job_title: "",
-            linkedin_username: "",
+          [HUMAN_UUID_1]: {
+            frontmatter: {
+              user_id: "user-1",
+              created_at: "2024-01-01T00:00:00Z",
+              name: "John Doe",
+              email: "john@example.com",
+              org_id: "",
+              job_title: "",
+              linkedin_username: "",
+            },
+            content: "",
           },
-          content: "",
         },
       });
 
@@ -355,34 +309,23 @@ describe("createHumanPersister", () => {
 
   describe("email transform", () => {
     test("loads with emails array (new format)", async () => {
-      const { readDir, readTextFile, exists } =
-        await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(exists).mockResolvedValue(false);
-      vi.mocked(readDir).mockResolvedValue([
-        {
-          name: `${HUMAN_UUID_1}.md`,
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-        },
-      ]);
-
-      vi.mocked(readTextFile).mockResolvedValue("");
-      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
         status: "ok",
         data: {
-          frontmatter: {
-            user_id: "user-1",
-            created_at: "2024-01-01T00:00:00Z",
-            name: "John Doe",
-            emails: ["john@example.com", "john.doe@work.com"],
-            org_id: "org-1",
-            job_title: "Engineer",
-            linkedin_username: "johndoe",
+          [HUMAN_UUID_1]: {
+            frontmatter: {
+              user_id: "user-1",
+              created_at: "2024-01-01T00:00:00Z",
+              name: "John Doe",
+              emails: ["john@example.com", "john.doe@work.com"],
+              org_id: "org-1",
+              job_title: "Engineer",
+              linkedin_username: "johndoe",
+            },
+            content: "",
           },
-          content: "",
         },
       });
 
@@ -396,34 +339,23 @@ describe("createHumanPersister", () => {
     });
 
     test("loads with legacy email string (backward compat)", async () => {
-      const { readDir, readTextFile, exists } =
-        await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(exists).mockResolvedValue(false);
-      vi.mocked(readDir).mockResolvedValue([
-        {
-          name: `${HUMAN_UUID_1}.md`,
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-        },
-      ]);
-
-      vi.mocked(readTextFile).mockResolvedValue("");
-      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
         status: "ok",
         data: {
-          frontmatter: {
-            user_id: "user-1",
-            created_at: "2024-01-01T00:00:00Z",
-            name: "John Doe",
-            email: "john@example.com",
-            org_id: "org-1",
-            job_title: "Engineer",
-            linkedin_username: "johndoe",
+          [HUMAN_UUID_1]: {
+            frontmatter: {
+              user_id: "user-1",
+              created_at: "2024-01-01T00:00:00Z",
+              name: "John Doe",
+              email: "john@example.com",
+              org_id: "org-1",
+              job_title: "Engineer",
+              linkedin_username: "johndoe",
+            },
+            content: "",
           },
-          content: "",
         },
       });
 

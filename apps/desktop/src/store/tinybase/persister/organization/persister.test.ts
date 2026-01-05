@@ -19,6 +19,10 @@ vi.mock("@hypr/plugin-fs-sync", () => ({
     writeFrontmatterBatch: vi
       .fn()
       .mockResolvedValue({ status: "ok", data: null }),
+    readFrontmatterBatch: vi.fn(),
+    cleanupOrphanFiles: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: 0 }),
   },
 }));
 
@@ -67,45 +71,26 @@ describe("createOrganizationPersister", () => {
 
   describe("load", () => {
     test("loads organizations from markdown files", async () => {
-      const { readDir, readTextFile, exists } =
-        await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(exists).mockResolvedValue(false);
-      vi.mocked(readDir).mockResolvedValue([
-        {
-          name: `${ORG_UUID_1}.md`,
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-        },
-      ]);
-
-      const mockMdContent = serializeFrontmatterSync(
-        {
-          created_at: "2024-01-01T00:00:00Z",
-          name: "Acme Corp",
-          user_id: "user-1",
-        },
-        "",
-      );
-      vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
-      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
         status: "ok",
         data: {
-          frontmatter: {
-            created_at: "2024-01-01T00:00:00Z",
-            name: "Acme Corp",
-            user_id: "user-1",
+          [ORG_UUID_1]: {
+            frontmatter: {
+              created_at: "2024-01-01T00:00:00Z",
+              name: "Acme Corp",
+              user_id: "user-1",
+            },
+            content: "",
           },
-          content: "",
         },
       });
 
       const persister = createOrganizationPersister<Schemas>(store);
       await persister.load();
 
-      expect(readDir).toHaveBeenCalledWith(
+      expect(fsSyncCommands.readFrontmatterBatch).toHaveBeenCalledWith(
         "/mock/data/dir/hyprnote/organizations",
       );
 
@@ -118,12 +103,12 @@ describe("createOrganizationPersister", () => {
     });
 
     test("returns empty organizations when directory does not exist", async () => {
-      const { readDir, exists } = await import("@tauri-apps/plugin-fs");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(exists).mockResolvedValue(false);
-      vi.mocked(readDir).mockRejectedValue(
-        new Error("No such file or directory"),
-      );
+      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
+        status: "error",
+        error: "No such file or directory",
+      });
 
       const persister = createOrganizationPersister<Schemas>(store);
       await persister.load();
@@ -132,44 +117,19 @@ describe("createOrganizationPersister", () => {
     });
 
     test("skips non-UUID files", async () => {
-      const { readDir, readTextFile, exists } =
-        await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(exists).mockResolvedValue(false);
-      vi.mocked(readDir).mockResolvedValue([
-        {
-          name: "not-a-uuid.md",
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-        },
-        {
-          name: `${ORG_UUID_1}.md`,
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-        },
-      ]);
-
-      const mockMdContent = serializeFrontmatterSync(
-        {
-          created_at: "2024-01-01T00:00:00Z",
-          name: "Acme Corp",
-          user_id: "user-1",
-        },
-        "",
-      );
-      vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
-      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
         status: "ok",
         data: {
-          frontmatter: {
-            created_at: "2024-01-01T00:00:00Z",
-            name: "Acme Corp",
-            user_id: "user-1",
+          [ORG_UUID_1]: {
+            frontmatter: {
+              created_at: "2024-01-01T00:00:00Z",
+              name: "Acme Corp",
+              user_id: "user-1",
+            },
+            content: "",
           },
-          content: "",
         },
       });
 

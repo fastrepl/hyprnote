@@ -23,6 +23,9 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
 vi.mock("@hypr/plugin-fs-sync", () => ({
   commands: {
     writeJsonBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
+    cleanupOrphanDirs: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: 0 }),
   },
 }));
 

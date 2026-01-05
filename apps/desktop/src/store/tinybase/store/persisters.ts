@@ -79,6 +79,8 @@ export function useMainPersisters(store: Store) {
   };
 }
 
+const SAVE_INTERVAL_MS = 30_000;
+
 function usePersisterSaveEvents(persister: Saveable | null) {
   useEffect(() => {
     if (!persister) {
@@ -89,8 +91,11 @@ function usePersisterSaveEvents(persister: Saveable | null) {
       return;
     }
 
+    let active = true;
     let unlistenClose: UnlistenFn | undefined;
     let unlistenBlur: UnlistenFn | undefined;
+    let unlistenFocus: UnlistenFn | undefined;
+    let intervalId: ReturnType<typeof setInterval> | undefined;
 
     const save = createGuardedSave(
       () => persister.save(),
@@ -101,17 +106,43 @@ function usePersisterSaveEvents(persister: Saveable | null) {
       unlistenClose = await listen(TauriEvent.WINDOW_CLOSE_REQUESTED, save, {
         target: { kind: "WebviewWindow", label: "main" },
       });
+      if (!active) {
+        unlistenClose?.();
+        return;
+      }
 
       unlistenBlur = await listen(TauriEvent.WINDOW_BLUR, save, {
         target: { kind: "WebviewWindow", label: "main" },
       });
+      if (!active) {
+        unlistenClose?.();
+        unlistenBlur?.();
+        return;
+      }
+
+      unlistenFocus = await listen(TauriEvent.WINDOW_FOCUS, save, {
+        target: { kind: "WebviewWindow", label: "main" },
+      });
+      if (!active) {
+        unlistenClose?.();
+        unlistenBlur?.();
+        unlistenFocus?.();
+        return;
+      }
+
+      intervalId = setInterval(save, SAVE_INTERVAL_MS);
     };
 
     void register();
 
     return () => {
+      active = false;
       unlistenBlur?.();
       unlistenClose?.();
+      unlistenFocus?.();
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
   }, [persister]);
 

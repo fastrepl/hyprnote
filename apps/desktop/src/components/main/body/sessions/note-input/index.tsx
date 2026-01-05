@@ -40,7 +40,7 @@ export const NoteInput = forwardRef<
   const [isEditing, setIsEditing] = useState(false);
 
   const sessionId = tab.id;
-  useAutoEnhance(tab);
+  const { skipReason } = useAutoEnhance(tab);
 
   const tabRef = useRef(tab);
   tabRef.current = tab;
@@ -209,7 +209,7 @@ export const NoteInput = forwardRef<
 
   return (
     <div className="flex flex-col h-full -mx-2">
-      <div className="px-2">
+      <div className="px-2 relative">
         <Header
           sessionId={sessionId}
           editorTabs={editorTabs}
@@ -218,6 +218,11 @@ export const NoteInput = forwardRef<
           isEditing={isEditing}
           setIsEditing={setIsEditing}
         />
+        {skipReason && (
+          <div className="absolute left-0 right-0 top-full z-10 px-2 py-1.5 bg-yellow-50/80 border-b border-yellow-200/50 backdrop-blur-sm">
+            <p className="text-xs text-yellow-800/90">{skipReason}</p>
+          </div>
+        )}
       </div>
 
       <div className="relative flex-1 overflow-hidden">

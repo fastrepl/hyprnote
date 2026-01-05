@@ -97,10 +97,23 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     onSuccess: handleEnhanceSuccess,
   });
 
+  const [skipReason, setSkipReason] = useState<string | null>(null);
+
   const createAndStartEnhance = useCallback(() => {
-    if (!hasTranscript || !hasWords) {
+    if (!hasTranscript) {
+      setSkipReason("No transcript recorded");
       return;
     }
+
+    if (!hasWords) {
+      const wordCount = wordIds?.length ?? 0;
+      setSkipReason(
+        `Not enough words recorded (${wordCount}/${MIN_WORDS_FOR_ENHANCEMENT} minimum)`,
+      );
+      return;
+    }
+
+    setSkipReason(null);
 
     const enhancedNoteId = createEnhancedNote(sessionId);
     if (!enhancedNoteId) return;
@@ -114,6 +127,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   }, [
     hasTranscript,
     hasWords,
+    wordIds,
     sessionId,
     updateSessionTabState,
     createEnhancedNote,
@@ -145,4 +159,15 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       createAndStartEnhance();
     }
   }, [listenerStatus, prevListenerStatus, createAndStartEnhance]);
+
+  useEffect(() => {
+    if (skipReason) {
+      const timer = setTimeout(() => {
+        setSkipReason(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [skipReason]);
+
+  return { skipReason };
 }

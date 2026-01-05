@@ -9,7 +9,7 @@ import {
 
 import { DEFAULT_USER_ID } from "../../../../utils";
 import { StoreOrMergeableStore } from "../../store/shared";
-import { asTableChanges } from "../utils";
+import { asTablesChanges } from "../utils";
 
 export function createFolderPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
@@ -58,7 +58,7 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
         }
       });
 
-      return asTableChanges("folders", foldersData) as any;
+      return asTablesChanges({ folders: foldersData }) as any;
     } catch (error) {
       console.error("[FolderPersister] load error:", error);
       return undefined;

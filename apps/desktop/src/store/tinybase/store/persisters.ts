@@ -10,12 +10,10 @@ import { useEventsPersister } from "../persister/events";
 import { useFolderPersister } from "../persister/folder";
 import { useHumanPersister } from "../persister/human";
 import { useLocalPersister } from "../persister/local";
-import { useNotePersister } from "../persister/note";
 import { useOrganizationPersister } from "../persister/organization";
 import { usePromptPersister } from "../persister/prompts";
 import { useSessionPersister } from "../persister/session";
 import { useTemplatePersister } from "../persister/templates";
-import { useTranscriptPersister } from "../persister/transcript";
 import { type Store } from "./main";
 import { registerSaveHandler } from "./save";
 
@@ -46,9 +44,7 @@ export function useMainPersisters(store: Store) {
 
   const folderPersister = useFolderPersister(store);
 
-  const markdownPersister = useNotePersister(store);
-
-  const transcriptPersister = useTranscriptPersister(store);
+  const sessionPersister = useSessionPersister(store);
 
   const organizationPersister = useOrganizationPersister(store);
 
@@ -64,8 +60,6 @@ export function useMainPersisters(store: Store) {
 
   const templatePersister = useTemplatePersister(store);
 
-  const sessionPersister = useSessionPersister(store);
-
   const calendarPersister = useCalendarPersister(store);
 
   usePersisterSaveEvents(localPersister);
@@ -73,8 +67,7 @@ export function useMainPersisters(store: Store) {
   return {
     localPersister,
     folderPersister,
-    markdownPersister,
-    transcriptPersister,
+    sessionPersister,
     organizationPersister,
     humanPersister,
     eventPersister,
@@ -82,7 +75,6 @@ export function useMainPersisters(store: Store) {
     chatShortcutPersister,
     promptPersister,
     templatePersister,
-    sessionPersister,
     calendarPersister,
   };
 }

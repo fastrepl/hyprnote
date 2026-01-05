@@ -38,11 +38,10 @@ export type { FsSyncJsonValue as JsonValue };
 // https://github.com/tinyplex/tinybase/blob/aa5cb9014f6def18266414174e0fd31ccfae0828/src/persisters/common/create.ts#L185
 // When content[2] === 1, TinyBase uses applyChanges() instead of setContent(),
 // allowing us to merge into a specific table without wiping other tables.
-export function asTableChanges(
-  tableName: string,
-  data: Record<string, Record<string, unknown>>,
+export function asTablesChanges(
+  tables: Record<string, Record<string, Record<string, unknown>>>,
 ): [Record<string, unknown>, Record<string, unknown>, 1] {
-  return [{ [tableName]: data }, {}, 1];
+  return [tables, {}, 1];
 }
 
 export async function getDataDir(): Promise<string> {
@@ -386,7 +385,7 @@ export function createJsonFilePersister<Schemas extends OptionalSchemas>(
     async () => {
       const data = await loadTableData(filename, label);
       if (!data) return undefined;
-      return asTableChanges(tableName, data) as any;
+      return asTablesChanges({ [tableName]: data }) as any;
     },
     async () => {
       try {
@@ -408,7 +407,7 @@ export function createJsonFilePersister<Schemas extends OptionalSchemas>(
       return notifyListener.addListener(async () => {
         const data = await loadTableData(filename, label);
         if (data) {
-          listener(undefined, asTableChanges(tableName, data) as any);
+          listener(undefined, asTablesChanges({ [tableName]: data }) as any);
         }
       });
     },

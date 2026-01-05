@@ -1,12 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
-import React, { useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import { cn } from "@hypr/utils";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
+import { useShell } from "../../../../contexts/shell";
+import { useAutoEnhance } from "../../../../hooks/useAutoEnhance";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useStartListening } from "../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
@@ -30,6 +35,9 @@ import {
 import { OuterHeader } from "./outer-header";
 import { useCurrentNoteTab } from "./shared";
 import { TitleInput } from "./title-input";
+
+const SIDEBAR_WIDTH = 280;
+const LAYOUT_PADDING = 4;
 
 export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   tab,
@@ -151,6 +159,30 @@ function TabContentNoteInner({
   const currentView = useCurrentNoteTab(tab);
   const { generateTitle } = useTitleGeneration(tab);
 
+  const sessionId = tab.id;
+  const { skipReason } = useAutoEnhance(tab);
+  const [showConsentBanner, setShowConsentBanner] = useState(false);
+
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const prevSessionMode = useRef<string | null>(null);
+
+  useEffect(() => {
+    const justStartedListening =
+      prevSessionMode.current !== "active" && sessionMode === "active";
+
+    if (justStartedListening) {
+      setShowConsentBanner(true);
+      const timer = setTimeout(() => {
+        setShowConsentBanner(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [sessionMode]);
+
+  useEffect(() => {
+    prevSessionMode.current = sessionMode;
+  });
+
   const focusTitle = React.useCallback(() => {
     titleInputRef.current?.focus();
   }, []);
@@ -160,34 +192,111 @@ function TabContentNoteInner({
   }, []);
 
   return (
-    <StandardTabWrapper
-      afterBorder={showTimeline && <AudioPlayer.Timeline />}
-      floatingButton={<FloatingActionButton tab={tab} />}
-    >
-      <div className="flex flex-col h-full">
-        <div className="pl-2 pr-1">
-          {showSearchBar ? (
-            <SearchBar />
-          ) : (
-            <OuterHeader sessionId={tab.id} currentView={currentView} />
-          )}
+    <>
+      <StandardTabWrapper
+        afterBorder={showTimeline && <AudioPlayer.Timeline />}
+        floatingButton={<FloatingActionButton tab={tab} />}
+      >
+        <div className="flex flex-col h-full">
+          <div className="pl-2 pr-1">
+            {showSearchBar ? (
+              <SearchBar />
+            ) : (
+              <OuterHeader sessionId={tab.id} currentView={currentView} />
+            )}
+          </div>
+          <div className="mt-2 px-3 shrink-0">
+            <TitleInput
+              ref={titleInputRef}
+              tab={tab}
+              onNavigateToEditor={focusEditor}
+              onGenerateTitle={generateTitle}
+            />
+          </div>
+          <div className="mt-2 px-2 flex-1 min-h-0">
+            <NoteInput
+              ref={noteInputRef}
+              tab={tab}
+              onNavigateToTitle={focusTitle}
+            />
+          </div>
         </div>
-        <div className="mt-2 px-3 shrink-0">
-          <TitleInput
-            ref={titleInputRef}
-            tab={tab}
-            onNavigateToEditor={focusEditor}
-            onGenerateTitle={generateTitle}
-          />
-        </div>
-        <div className="mt-2 px-2 flex-1 min-h-0">
-          <NoteInput
-            ref={noteInputRef}
-            tab={tab}
-            onNavigateToTitle={focusTitle}
-          />
-        </div>
-      </div>
-    </StandardTabWrapper>
+      </StandardTabWrapper>
+      <StatusBanner
+        skipReason={skipReason}
+        showConsentBanner={showConsentBanner}
+      />
+    </>
+  );
+}
+
+function StatusBanner({
+  skipReason,
+  showConsentBanner,
+}: {
+  skipReason: string | null;
+  showConsentBanner: boolean;
+}) {
+  const { leftsidebar, chat } = useShell();
+  const [chatPanelWidth, setChatPanelWidth] = useState(0);
+
+  const isChatPanelOpen = chat.mode === "RightPanelOpen";
+
+  useEffect(() => {
+    if (!isChatPanelOpen) {
+      setChatPanelWidth(0);
+      return;
+    }
+
+    const updateChatWidth = () => {
+      const chatPanel = document.querySelector("[data-panel-id]");
+      if (chatPanel) {
+        const panels = document.querySelectorAll("[data-panel-id]");
+        const lastPanel = panels[panels.length - 1];
+        if (lastPanel) {
+          setChatPanelWidth(lastPanel.getBoundingClientRect().width);
+        }
+      }
+    };
+
+    updateChatWidth();
+    window.addEventListener("resize", updateChatWidth);
+
+    const observer = new MutationObserver(updateChatWidth);
+    observer.observe(document.body, { subtree: true, attributes: true });
+
+    return () => {
+      window.removeEventListener("resize", updateChatWidth);
+      observer.disconnect();
+    };
+  }, [isChatPanelOpen]);
+
+  const leftOffset = leftsidebar.expanded
+    ? (SIDEBAR_WIDTH + LAYOUT_PADDING) / 2
+    : 0;
+  const rightOffset = chatPanelWidth / 2;
+  const totalOffset = leftOffset - rightOffset;
+
+  return createPortal(
+    <AnimatePresence>
+      {(skipReason || showConsentBanner) && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          style={{ left: `calc(50% + ${totalOffset}px)` }}
+          className={cn([
+            "fixed -translate-x-1/2 bottom-16 z-50",
+            "whitespace-nowrap px-3 py-2 text-center text-xs",
+            "text-stone-100 bg-stone-800/95 rounded-md shadow-lg",
+            "transition-all duration-200 ease-out",
+          ])}
+        >
+          {skipReason || "Ask for consent when using Hyprnote"}
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
   );
 }

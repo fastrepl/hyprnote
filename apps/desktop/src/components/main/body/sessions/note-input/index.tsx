@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "motion/react";
 import {
   forwardRef,
   type RefObject,
@@ -40,8 +39,6 @@ export const NoteInput = forwardRef<
   const [isEditing, setIsEditing] = useState(false);
 
   const sessionId = tab.id;
-  const { skipReason } = useAutoEnhance(tab);
-  const [showConsentBanner, setShowConsentBanner] = useState(false);
 
   const tabRef = useRef(tab);
   tabRef.current = tab;
@@ -58,25 +55,6 @@ export const NoteInput = forwardRef<
     sessionMode === "active" ||
     sessionMode === "finalizing" ||
     sessionMode === "running_batch";
-
-  const prevSessionMode = useRef<string | null>(null);
-
-  useEffect(() => {
-    const justStartedListening =
-      prevSessionMode.current !== "active" && sessionMode === "active";
-
-    if (justStartedListening) {
-      setShowConsentBanner(true);
-      const timer = setTimeout(() => {
-        setShowConsentBanner(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [sessionMode]);
-
-  useEffect(() => {
-    prevSessionMode.current = sessionMode;
-  });
 
   const { scrollRef, onBeforeTabChange } = useScrollPreservation(
     currentTab.type === "enhanced"
@@ -238,19 +216,6 @@ export const NoteInput = forwardRef<
           isEditing={isEditing}
           setIsEditing={setIsEditing}
         />
-        <AnimatePresence>
-          {(skipReason || showConsentBanner) && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="absolute left-0 right-0 top-8 z-10 px-2 py-1.5 text-center text-xs text-stone-300"
-            >
-              {skipReason || "Ask for consent when using Hyprnote"}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       <div className="relative flex-1 overflow-hidden">

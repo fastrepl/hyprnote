@@ -219,8 +219,8 @@ export const NoteInput = forwardRef<
           setIsEditing={setIsEditing}
         />
         {skipReason && (
-          <div className="absolute left-0 right-0 top-full z-10 px-2 py-1.5 bg-yellow-50/80 border-b border-yellow-200/50 backdrop-blur-sm">
-            <p className="text-xs text-yellow-800/90">{skipReason}</p>
+          <div className="absolute left-0 right-0 top-8 z-10 px-2 py-1.5 text-center text-xs text-stone-300">
+            {skipReason}
           </div>
         )}
       </div>
@@ -419,9 +419,9 @@ function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
       className={cn([
         "absolute left-0 w-full h-8 z-20 pointer-events-none",
         position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
+        "top-0 bg-gradient-to-b from-white to-transparent",
         position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
+        "bottom-0 bg-gradient-to-t from-white to-transparent",
       ])}
     />
   );

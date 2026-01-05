@@ -7,7 +7,7 @@ import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
-import { useAutoTitle } from "../../../../hooks/useAutoTitle";
+import { useTitleGeneration } from "../../../../hooks/useTitleGeneration";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useStartListening } from "../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
@@ -149,7 +149,7 @@ function TabContentNoteInner({
   }>(null);
 
   const currentView = useCurrentNoteTab(tab);
-  const { generateTitle } = useAutoTitle(tab);
+  const { generateTitle } = useTitleGeneration(tab);
 
   const focusTitle = React.useCallback(() => {
     titleInputRef.current?.focus();

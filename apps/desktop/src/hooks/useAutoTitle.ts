@@ -1,5 +1,4 @@
-import { usePrevious } from "@uidotdev/usehooks";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
 
 import * as main from "../store/tinybase/store/main";
 import { createTaskId } from "../store/zustand/ai-task/task-configs";
@@ -10,23 +9,6 @@ import { useLanguageModel } from "./useLLMConnection";
 export function useAutoTitle(tab: Extract<Tab, { type: "sessions" }>) {
   const sessionId = tab.id;
   const model = useLanguageModel();
-
-  const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
-
-  const enhancedNoteIds = main.UI.useSliceRowIds(
-    main.INDEXES.enhancedNotesBySession,
-    sessionId,
-    main.STORE_ID,
-  );
-  const firstEnhancedNoteId = enhancedNoteIds?.[0];
-
-  const enhancedNoteContent = main.UI.useCell(
-    "enhanced_notes",
-    firstEnhancedNoteId ?? "",
-    "content",
-    main.STORE_ID,
-  );
-  const prevEnhancedNoteContent = usePrevious(enhancedNoteContent);
 
   const titleTaskId = createTaskId(sessionId, "title");
 
@@ -56,48 +38,6 @@ export function useAutoTitle(tab: Extract<Tab, { type: "sessions" }>) {
       args: { sessionId },
     });
   }, [model, titleTask.start, sessionId]);
-
-  const hasGeneratedForContentRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    const hasContent =
-      enhancedNoteContent &&
-      typeof enhancedNoteContent === "string" &&
-      enhancedNoteContent.length > 0;
-
-    const contentChanged =
-      prevEnhancedNoteContent !== undefined &&
-      enhancedNoteContent !== prevEnhancedNoteContent;
-
-    if (
-      hasContent &&
-      contentChanged &&
-      hasGeneratedForContentRef.current !== enhancedNoteContent
-    ) {
-      hasGeneratedForContentRef.current = enhancedNoteContent as string;
-
-      const trimmedTitle = title?.trim();
-      if (trimmedTitle) {
-        return;
-      }
-
-      if (!model) {
-        return;
-      }
-
-      void titleTask.start({
-        model,
-        args: { sessionId },
-      });
-    }
-  }, [
-    enhancedNoteContent,
-    prevEnhancedNoteContent,
-    title,
-    model,
-    titleTask.start,
-    sessionId,
-  ]);
 
   return {
     isGenerating: titleTask.isGenerating,

@@ -1,1 +1,47 @@
-- Initial release.
+## New Features
+- Apple Contacts Plugin
+  - Add new Apple Contacts integration plugin for macOS
+  - Import contacts command with proper permission handling
+- Chat Shortcuts Persister
+  - Add dedicated persister for chat shortcuts functionality
+
+## Plugin Architecture
+- Unified fs-sync Plugin
+  - Consolidate export, frontmatter, and folder plugins into single fs-sync plugin
+  - Move scan utilities to fs-sync plugin for better file system operations
+  - Move frontmatter loading to fs-sync plugin
+  - Move orphan handling to folder plugin (now part of fs-sync)
+
+## Search Enhancements
+- Advanced Search Features
+  - Add advanced search capabilities to Tantivy plugin
+  - Achieve feature parity with Orama search (Phase 2)
+  - Foundation fixes and improvements (Phase 1)
+  - Consolidate search arguments into SearchRequest struct
+
+## Audio & Speech
+- Error Propagation
+  - Add proper error propagation from STT (Speech-to-Text) adapters
+  - Improve error handling across multiple STT providers (Argmax, AssemblyAI, Fireworks, Gladia, OpenAI, Soniox)
+
+## Bug Fixes
+- Display Detection
+  - Fix edge-case for built-in display inactivity detection on macOS
+
+## UI Improvements
+- Changelog Display
+  - Enhance changelog version display with improved navigation
+  - Add changelog navigation button in devtools
+  - Improve markdown parsing and changelog rendering
+  - Optimize scrolling experience
+
+## Refactoring
+- Persister Architecture
+  - Large-scale refactoring of persisters for better data management
+  - Merge note and transcript persisters into session persister
+  - Add missing load implementations for persisters
+  - Refactor persister utilities for better code organization
+
+## Removed Features
+- Memories
+  - Remove memories feature from data structure

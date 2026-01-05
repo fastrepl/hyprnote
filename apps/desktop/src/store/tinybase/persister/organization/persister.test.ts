@@ -5,13 +5,13 @@ import type { Schemas } from "@hypr/store";
 import {
   createTestStore,
   MOCK_DATA_DIR,
-  setupEntityPersisterMocks,
+  setupMarkdownDirPersisterMocks,
   TEST_UUID_1,
   TEST_UUID_2,
 } from "../testing/mocks";
 import { createOrganizationPersister } from "./persister";
 
-setupEntityPersisterMocks();
+setupMarkdownDirPersisterMocks();
 
 describe("createOrganizationPersister", () => {
   let store: ReturnType<typeof createTestStore>;

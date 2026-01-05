@@ -1,11 +1,11 @@
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import { createSingleTablePersister } from "../utils";
+import { createJsonFilePersister } from "../utils";
 
 export function createEventPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ) {
-  return createSingleTablePersister(store, {
+  return createJsonFilePersister(store, {
     tableName: "events",
     filename: "events.json",
     label: "EventPersister",

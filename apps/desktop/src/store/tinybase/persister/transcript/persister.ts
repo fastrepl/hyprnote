@@ -4,14 +4,14 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
-import { createSessionDirPersister, getDataDir } from "../utils";
+import { createCollectorPersister, getDataDir } from "../utils";
 import { collectTranscriptWriteOps } from "./collect";
 import { loadAllTranscriptData } from "./load";
 
 export function createTranscriptPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ) {
-  return createSessionDirPersister(store, {
+  return createCollectorPersister(store, {
     label: "TranscriptPersister",
     collect: collectTranscriptWriteOps,
     load: async (): Promise<Content<Schemas> | undefined> => {

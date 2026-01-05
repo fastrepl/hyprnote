@@ -6,14 +6,14 @@ import type {
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
-import { createSessionDirPersister, getDataDir } from "../utils";
+import { createCollectorPersister, getDataDir } from "../utils";
 import { collectSessionWriteOps, type SessionCollectorResult } from "./collect";
 import { loadAllSessionMeta } from "./load";
 
 export function createSessionPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ) {
-  return createSessionDirPersister(store, {
+  return createCollectorPersister(store, {
     label: "SessionPersister",
     collect: (store, tables, dataDir) =>
       collectSessionWriteOps(store, tables, dataDir),

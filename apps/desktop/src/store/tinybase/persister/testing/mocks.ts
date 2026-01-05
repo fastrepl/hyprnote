@@ -14,7 +14,7 @@ export function createTestStore() {
     .setValuesSchema(SCHEMA.value);
 }
 
-export function setupEntityPersisterMocks() {
+export function setupMarkdownDirPersisterMocks() {
   vi.mock("@hypr/plugin-path2", () => ({
     commands: {
       base: vi.fn().mockResolvedValue(MOCK_DATA_DIR),

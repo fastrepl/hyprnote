@@ -242,7 +242,7 @@ export type CollectorResult = {
   operations: WriteOperation[];
 };
 
-export function createSessionDirPersister<Schemas extends OptionalSchemas>(
+export function createCollectorPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   options: {
     label: string;
@@ -367,7 +367,7 @@ async function loadTableData(
   }
 }
 
-export function createSingleTablePersister<Schemas extends OptionalSchemas>(
+export function createJsonFilePersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   options: {
     tableName: string;
@@ -418,11 +418,11 @@ export function createSingleTablePersister<Schemas extends OptionalSchemas>(
   );
 }
 
-export interface EntityPersisterConfig<TStorage> {
+export interface MarkdownDirPersisterConfig<TStorage> {
   tableName: string;
   dirName: string;
   label: string;
-  jsonFilename: string;
+  legacyJsonPath: string;
   toFrontmatter: (entity: TStorage) => {
     frontmatter: Record<string, FsSyncJsonValue>;
     body: string;
@@ -433,11 +433,11 @@ export interface EntityPersisterConfig<TStorage> {
   ) => TStorage;
 }
 
-export function getEntityDir(dataDir: string, dirName: string): string {
+export function getMarkdownDir(dataDir: string, dirName: string): string {
   return [dataDir, dirName].join(sep());
 }
 
-export function getEntityFilePath(
+export function getMarkdownFilePath(
   dataDir: string,
   dirName: string,
   id: string,
@@ -445,13 +445,13 @@ export function getEntityFilePath(
   return [dataDir, dirName, `${id}.md`].join(sep());
 }
 
-async function migrateEntityJsonIfNeeded<TStorage>(
+async function migrateFromLegacyJson<TStorage>(
   dataDir: string,
-  config: EntityPersisterConfig<TStorage>,
+  config: MarkdownDirPersisterConfig<TStorage>,
 ): Promise<void> {
-  const { dirName, jsonFilename, toFrontmatter } = config;
-  const jsonPath = [dataDir, jsonFilename].join(sep());
-  const entityDir = getEntityDir(dataDir, dirName);
+  const { dirName, legacyJsonPath, toFrontmatter } = config;
+  const jsonPath = [dataDir, legacyJsonPath].join(sep());
+  const entityDir = getMarkdownDir(dataDir, dirName);
 
   const jsonExists = await exists(jsonPath);
   if (!jsonExists) {
@@ -472,7 +472,7 @@ async function migrateEntityJsonIfNeeded<TStorage>(
     const batchItems: [ParsedDocument, string][] = [];
     for (const [entityId, entity] of Object.entries(entities)) {
       const { frontmatter, body } = toFrontmatter(entity);
-      const filePath = getEntityFilePath(dataDir, dirName, entityId);
+      const filePath = getMarkdownFilePath(dataDir, dirName, entityId);
       batchItems.push([{ frontmatter, content: body }, filePath]);
     }
 
@@ -491,12 +491,12 @@ async function migrateEntityJsonIfNeeded<TStorage>(
   }
 }
 
-async function loadAllEntities<TStorage>(
+async function loadMarkdownDir<TStorage>(
   dataDir: string,
-  config: EntityPersisterConfig<TStorage>,
+  config: MarkdownDirPersisterConfig<TStorage>,
 ): Promise<Record<string, TStorage>> {
   const { dirName, fromFrontmatter } = config;
-  const dir = getEntityDir(dataDir, dirName);
+  const dir = getMarkdownDir(dataDir, dirName);
   const result = await fsSyncCommands.readFrontmatterBatch(dir);
 
   if (result.status === "error") {
@@ -515,17 +515,17 @@ async function loadAllEntities<TStorage>(
   return entities;
 }
 
-function collectEntityWriteOps<TStorage>(
+function collectMarkdownWriteOps<TStorage>(
   tableData: Record<string, TStorage>,
   dataDir: string,
-  config: EntityPersisterConfig<TStorage>,
+  config: MarkdownDirPersisterConfig<TStorage>,
 ): { result: CollectorResult; validIds: Set<string> } {
   const { dirName, toFrontmatter } = config;
   const dirs = new Set<string>();
   const operations: CollectorResult["operations"] = [];
   const validIds = new Set<string>();
 
-  const entityDir = getEntityDir(dataDir, dirName);
+  const entityDir = getMarkdownDir(dataDir, dirName);
   dirs.add(entityDir);
 
   const frontmatterItems: [ParsedDocument, string][] = [];
@@ -534,7 +534,7 @@ function collectEntityWriteOps<TStorage>(
     validIds.add(entityId);
 
     const { frontmatter, body } = toFrontmatter(entity);
-    const filePath = getEntityFilePath(dataDir, dirName, entityId);
+    const filePath = getMarkdownFilePath(dataDir, dirName, entityId);
 
     frontmatterItems.push([{ frontmatter, content: body }, filePath]);
   }
@@ -549,21 +549,21 @@ function collectEntityWriteOps<TStorage>(
   return { result: { dirs, operations }, validIds };
 }
 
-export function createEntityPersister<
+export function createMarkdownDirPersister<
   Schemas extends OptionalSchemas,
   TStorage,
 >(
   store: MergeableStore<Schemas>,
-  config: EntityPersisterConfig<TStorage>,
-): ReturnType<typeof createSessionDirPersister<Schemas>> {
+  config: MarkdownDirPersisterConfig<TStorage>,
+): ReturnType<typeof createCollectorPersister<Schemas>> {
   const { tableName, dirName, label } = config;
 
-  return createSessionDirPersister(store, {
+  return createCollectorPersister(store, {
     label,
     collect: (_store, tables, dataDir) => {
       const tableData =
         (tables as Record<string, Record<string, TStorage>>)[tableName] ?? {};
-      const { result, validIds } = collectEntityWriteOps(
+      const { result, validIds } = collectMarkdownWriteOps(
         tableData,
         dataDir,
         config,
@@ -572,8 +572,8 @@ export function createEntityPersister<
     },
     load: async (): Promise<Content<Schemas> | undefined> => {
       const dataDir = await getDataDir();
-      await migrateEntityJsonIfNeeded(dataDir, config);
-      const entities = await loadAllEntities(dataDir, config);
+      await migrateFromLegacyJson(dataDir, config);
+      const entities = await loadMarkdownDir(dataDir, config);
       if (Object.keys(entities).length === 0) {
         return undefined;
       }

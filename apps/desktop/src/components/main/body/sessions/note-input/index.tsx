@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "motion/react";
 import {
   forwardRef,
   type RefObject,
@@ -232,27 +233,13 @@ export const NoteInput = forwardRef<
         <AnimatePresence>
           {(skipReason || showConsentBanner) && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className={cn([
-                "absolute left-0 right-0 top-full z-10 px-3 py-1.5 border-b backdrop-blur-sm",
-                skipReason && [
-                  "bg-yellow-50/80",
-                  "border-yellow-200/50",
-                  "text-yellow-800/90",
-                ],
-                showConsentBanner && [
-                  "bg-blue-50/80",
-                  "border-blue-200/50",
-                  "text-blue-800/90",
-                ],
-              ])}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute left-0 right-0 top-8 z-10 px-2 py-1.5 text-center text-xs text-stone-300"
             >
-              <p className="text-xs">
-                {skipReason || "Ask for consent when using Hyprnote"}
-              </p>
+              {skipReason || "Ask for consent when using Hyprnote"}
             </motion.div>
           )}
         </AnimatePresence>

@@ -244,7 +244,7 @@ function DownloadLinksHeroMobile({ version }: { version: string }) {
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
             {allLinks.map((link) => (
-              <div key={link.url} className="w-full flex-shrink-0 px-2">
+              <div key={link.url} className="w-full shrink-0 px-2">
                 <a
                   href={link.url}
                   className={cn([

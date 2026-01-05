@@ -7,16 +7,6 @@ import type { Store } from "../../store/main";
 import { initFolderOps } from "./ops";
 import { createFolderPersister, startFolderWatcher } from "./persister";
 
-export { createFolderPersister, startFolderWatcher } from "./persister";
-export {
-  createFolder,
-  deleteFolder,
-  folderOps,
-  initFolderOps,
-  moveSessionToFolder,
-  renameFolder,
-} from "./ops";
-
 const { useCreatePersister } = _UI as _UI.WithSchemas<Schemas>;
 
 export function useFolderPersister(store: Store) {

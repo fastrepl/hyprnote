@@ -1,41 +1,22 @@
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import type { OrganizationStorage } from "@hypr/store";
 
-import { createSessionDirPersister, getDataDir } from "../utils";
+import { createEntityPersister } from "../utils";
 import {
-  collectOrganizationWriteOps,
-  type OrganizationCollectorResult,
-} from "./collect";
-import { loadAllOrganizations } from "./load";
-import { migrateOrganizationsJsonIfNeeded } from "./migrate";
+  frontmatterToOrganization,
+  organizationToFrontmatter,
+} from "./transform";
 
 export function createOrganizationPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ) {
-  return createSessionDirPersister(store, {
+  return createEntityPersister<Schemas, OrganizationStorage>(store, {
+    tableName: "organizations",
+    dirName: "organizations",
     label: "OrganizationPersister",
-    collect: collectOrganizationWriteOps,
-    load: async (): Promise<Content<Schemas> | undefined> => {
-      const dataDir = await getDataDir();
-      await migrateOrganizationsJsonIfNeeded(dataDir);
-      const organizations = await loadAllOrganizations(dataDir);
-      if (Object.keys(organizations).length === 0) {
-        return undefined;
-      }
-      return [{ organizations }, {}] as unknown as Content<Schemas>;
-    },
-    postSave: async (_dataDir, result) => {
-      const { validOrgIds } = result as OrganizationCollectorResult;
-      await fsSyncCommands.cleanupOrphanFiles(
-        "organizations",
-        "md",
-        Array.from(validOrgIds),
-      );
-    },
+    jsonFilename: "organizations.json",
+    toFrontmatter: organizationToFrontmatter,
+    fromFrontmatter: frontmatterToOrganization,
   });
 }

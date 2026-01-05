@@ -1,28 +1,6 @@
 import type { JsonValue } from "@hypr/plugin-fs-sync";
 import type { OrganizationStorage } from "@hypr/store";
 
-import {
-  createEntityPaths,
-  type ParsedMarkdown,
-  parseMarkdownWithFrontmatter as parseMarkdownWithFrontmatterBase,
-} from "../markdown-utils";
-
-export type { ParsedMarkdown };
-
-const LABEL = "OrganizationPersister";
-const DIR_NAME = "organizations";
-
-export const {
-  getDir: getOrganizationDir,
-  getFilePath: getOrganizationFilePath,
-} = createEntityPaths(DIR_NAME);
-
-export function parseMarkdownWithFrontmatter(
-  content: string,
-): Promise<ParsedMarkdown> {
-  return parseMarkdownWithFrontmatterBase(content, LABEL);
-}
-
 export function frontmatterToOrganization(
   frontmatter: Record<string, unknown>,
   _body: string,

@@ -9,11 +9,11 @@ import {
   TEST_UUID_1,
   TEST_UUID_2,
 } from "../testing/mocks";
-import { createOrganizationPersister } from "./persister";
+import { createPromptPersister } from "./persister";
 
 setupEntityPersisterMocks();
 
-describe("createOrganizationPersister", () => {
+describe("createPromptPersister", () => {
   let store: ReturnType<typeof createTestStore>;
 
   beforeEach(() => {
@@ -22,7 +22,7 @@ describe("createOrganizationPersister", () => {
   });
 
   test("returns a persister object with expected methods", () => {
-    const persister = createOrganizationPersister<Schemas>(store);
+    const persister = createPromptPersister<Schemas>(store);
 
     expect(persister).toBeDefined();
     expect(persister.save).toBeTypeOf("function");
@@ -31,7 +31,7 @@ describe("createOrganizationPersister", () => {
   });
 
   describe("load", () => {
-    test("loads organizations from markdown files", async () => {
+    test("loads prompts from markdown files", async () => {
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
@@ -39,31 +39,32 @@ describe("createOrganizationPersister", () => {
         data: {
           [TEST_UUID_1]: {
             frontmatter: {
-              created_at: "2024-01-01T00:00:00Z",
-              name: "Acme Corp",
               user_id: "user-1",
+              created_at: "2024-01-01T00:00:00Z",
+              task_type: "summary",
             },
-            content: "",
+            content: "Generate a summary of the meeting",
           },
         },
       });
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createPromptPersister<Schemas>(store);
       await persister.load();
 
       expect(fsSyncCommands.readFrontmatterBatch).toHaveBeenCalledWith(
-        `${MOCK_DATA_DIR}/organizations`,
+        `${MOCK_DATA_DIR}/prompts`,
       );
 
-      const organizations = store.getTable("organizations");
-      expect(organizations[TEST_UUID_1]).toEqual({
+      const prompts = store.getTable("prompts");
+      expect(prompts[TEST_UUID_1]).toEqual({
         user_id: "user-1",
         created_at: "2024-01-01T00:00:00Z",
-        name: "Acme Corp",
+        task_type: "summary",
+        content: "Generate a summary of the meeting",
       });
     });
 
-    test("returns empty organizations when directory does not exist", async () => {
+    test("returns empty prompts when directory does not exist", async () => {
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
@@ -71,53 +72,29 @@ describe("createOrganizationPersister", () => {
         error: "No such file or directory",
       });
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createPromptPersister<Schemas>(store);
       await persister.load();
 
-      expect(store.getTable("organizations")).toEqual({});
-    });
-
-    test("skips non-UUID files", async () => {
-      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
-
-      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
-        status: "ok",
-        data: {
-          [TEST_UUID_1]: {
-            frontmatter: {
-              created_at: "2024-01-01T00:00:00Z",
-              name: "Acme Corp",
-              user_id: "user-1",
-            },
-            content: "",
-          },
-        },
-      });
-
-      const persister = createOrganizationPersister<Schemas>(store);
-      await persister.load();
-
-      const organizations = store.getTable("organizations");
-      expect(Object.keys(organizations)).toHaveLength(1);
-      expect(organizations[TEST_UUID_1]).toBeDefined();
+      expect(store.getTable("prompts")).toEqual({});
     });
   });
 
   describe("save", () => {
-    test("saves organizations to markdown files via frontmatter plugin", async () => {
+    test("saves prompts to markdown files via frontmatter plugin", async () => {
       const { mkdir } = await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      store.setRow("organizations", TEST_UUID_1, {
+      store.setRow("prompts", TEST_UUID_1, {
         user_id: "user-1",
         created_at: "2024-01-01T00:00:00Z",
-        name: "Acme Corp",
+        task_type: "summary",
+        content: "Generate a summary of the meeting",
       });
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createPromptPersister<Schemas>(store);
       await persister.save();
 
-      expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/organizations`, {
+      expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/prompts`, {
         recursive: true,
       });
 
@@ -125,42 +102,44 @@ describe("createOrganizationPersister", () => {
         [
           {
             frontmatter: {
-              created_at: "2024-01-01T00:00:00Z",
-              name: "Acme Corp",
               user_id: "user-1",
+              created_at: "2024-01-01T00:00:00Z",
+              task_type: "summary",
             },
-            content: "",
+            content: "Generate a summary of the meeting",
           },
-          `${MOCK_DATA_DIR}/organizations/${TEST_UUID_1}.md`,
+          `${MOCK_DATA_DIR}/prompts/${TEST_UUID_1}.md`,
         ],
       ]);
     });
 
-    test("does not write when no organizations exist", async () => {
+    test("does not write when no prompts exist", async () => {
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createPromptPersister<Schemas>(store);
       await persister.save();
 
       expect(fsSyncCommands.writeFrontmatterBatch).not.toHaveBeenCalled();
     });
 
-    test("saves multiple organizations in single batch call", async () => {
+    test("saves multiple prompts in single batch call", async () => {
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      store.setRow("organizations", TEST_UUID_1, {
+      store.setRow("prompts", TEST_UUID_1, {
         user_id: "user-1",
         created_at: "2024-01-01T00:00:00Z",
-        name: "Acme Corp",
+        task_type: "summary",
+        content: "Summary prompt",
       });
 
-      store.setRow("organizations", TEST_UUID_2, {
+      store.setRow("prompts", TEST_UUID_2, {
         user_id: "user-1",
         created_at: "2024-01-02T00:00:00Z",
-        name: "Beta Inc",
+        task_type: "action_items",
+        content: "Action items prompt",
       });
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createPromptPersister<Schemas>(store);
       await persister.save();
 
       expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledTimes(1);
@@ -170,25 +149,21 @@ describe("createOrganizationPersister", () => {
       expect(batchItems).toHaveLength(2);
 
       const paths = batchItems.map((item: [unknown, string]) => item[1]);
-      expect(paths).toContain(
-        `${MOCK_DATA_DIR}/organizations/${TEST_UUID_1}.md`,
-      );
-      expect(paths).toContain(
-        `${MOCK_DATA_DIR}/organizations/${TEST_UUID_2}.md`,
-      );
+      expect(paths).toContain(`${MOCK_DATA_DIR}/prompts/${TEST_UUID_1}.md`);
+      expect(paths).toContain(`${MOCK_DATA_DIR}/prompts/${TEST_UUID_2}.md`);
     });
   });
 
   describe("migration", () => {
-    test("migrates from organizations.json when it exists and organizations dir does not", async () => {
+    test("migrates from prompts.json when it exists and prompts dir does not", async () => {
       const { exists, readTextFile, mkdir, remove } =
         await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       vi.mocked(exists).mockImplementation(async (path: string | URL) => {
         const p = typeof path === "string" ? path : path.toString();
-        if (p.endsWith("organizations.json")) return true;
-        if (p.endsWith("organizations")) return false;
+        if (p.endsWith("prompts.json")) return true;
+        if (p.endsWith("prompts")) return false;
         return false;
       });
 
@@ -196,33 +171,32 @@ describe("createOrganizationPersister", () => {
         [TEST_UUID_1]: {
           user_id: "user-1",
           created_at: "2024-01-01T00:00:00Z",
-          name: "Acme Corp",
+          task_type: "summary",
+          content: "Generate a summary",
         },
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockJsonData));
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createPromptPersister<Schemas>(store);
       await persister.load();
 
-      expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/organizations`, {
+      expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/prompts`, {
         recursive: true,
       });
       expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
-              created_at: "2024-01-01T00:00:00Z",
-              name: "Acme Corp",
               user_id: "user-1",
+              created_at: "2024-01-01T00:00:00Z",
+              task_type: "summary",
             },
-            content: "",
+            content: "Generate a summary",
           },
-          `${MOCK_DATA_DIR}/organizations/${TEST_UUID_1}.md`,
+          `${MOCK_DATA_DIR}/prompts/${TEST_UUID_1}.md`,
         ],
       ]);
-      expect(remove).toHaveBeenCalledWith(
-        `${MOCK_DATA_DIR}/organizations.json`,
-      );
+      expect(remove).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/prompts.json`);
     });
   });
 });

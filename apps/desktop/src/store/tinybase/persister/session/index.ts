@@ -5,9 +5,6 @@ import { type Schemas } from "@hypr/store";
 import type { Store } from "../../store/main";
 import { createSessionPersister } from "./persister";
 
-export { createSessionPersister } from "./persister";
-export { collectSessionMeta, type SessionMetaJson } from "./collect";
-
 const { useCreatePersister } = _UI as _UI.WithSchemas<Schemas>;
 
 export function useSessionPersister(store: Store) {

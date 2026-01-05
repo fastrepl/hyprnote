@@ -1,38 +1,19 @@
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import type { PromptStorage } from "@hypr/store";
 
-import { createSessionDirPersister, getDataDir } from "../utils";
-import { collectPromptWriteOps, type PromptCollectorResult } from "./collect";
-import { loadAllPrompts } from "./load";
-import { migratePromptsJsonIfNeeded } from "./migrate";
+import { createEntityPersister } from "../utils";
+import { frontmatterToPrompt, promptToFrontmatter } from "./transform";
 
 export function createPromptPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ) {
-  return createSessionDirPersister(store, {
+  return createEntityPersister<Schemas, PromptStorage>(store, {
+    tableName: "prompts",
+    dirName: "prompts",
     label: "PromptPersister",
-    collect: collectPromptWriteOps,
-    load: async (): Promise<Content<Schemas> | undefined> => {
-      const dataDir = await getDataDir();
-      await migratePromptsJsonIfNeeded(dataDir);
-      const prompts = await loadAllPrompts(dataDir);
-      if (Object.keys(prompts).length === 0) {
-        return undefined;
-      }
-      return [{ prompts }, {}] as unknown as Content<Schemas>;
-    },
-    postSave: async (_dataDir, result) => {
-      const { validPromptIds } = result as PromptCollectorResult;
-      await fsSyncCommands.cleanupOrphanFiles(
-        "prompts",
-        "md",
-        Array.from(validPromptIds),
-      );
-    },
+    jsonFilename: "prompts.json",
+    toFrontmatter: promptToFrontmatter,
+    fromFrontmatter: frontmatterToPrompt,
   });
 }

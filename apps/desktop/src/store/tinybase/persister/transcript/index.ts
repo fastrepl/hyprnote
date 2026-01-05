@@ -5,8 +5,6 @@ import { type Schemas } from "@hypr/store";
 import type { Store } from "../../store/main";
 import { createTranscriptPersister } from "./persister";
 
-export { createTranscriptPersister } from "./persister";
-
 const { useCreatePersister } = _UI as _UI.WithSchemas<Schemas>;
 
 export function useTranscriptPersister(store: Store) {

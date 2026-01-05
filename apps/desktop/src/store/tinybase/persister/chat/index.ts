@@ -5,8 +5,6 @@ import { type Schemas } from "@hypr/store";
 import type { Store } from "../../store/main";
 import { createChatPersister } from "./persister";
 
-export { createChatPersister } from "./persister";
-
 const { useCreatePersister } = _UI as _UI.WithSchemas<Schemas>;
 
 export function useChatPersister(store: Store) {

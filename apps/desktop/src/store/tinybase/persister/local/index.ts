@@ -8,8 +8,6 @@ import type { Store } from "../../store/main";
 import { STORE_ID } from "../../store/main";
 import { createLocalPersister } from "./persister";
 
-export { createLocalPersister } from "./persister";
-
 const { useCreatePersister } = _UI as _UI.WithSchemas<Schemas>;
 
 export function useLocalPersister(store: Store) {

@@ -1,3 +1,6 @@
+import type { JsonValue } from "@hypr/plugin-fs-sync";
+import type { HumanStorage } from "@hypr/store";
+
 type FieldConfig = {
   storeKey: string;
   frontmatterKey: string;
@@ -63,4 +66,25 @@ export function storeToFrontmatter(
     result[field.frontmatterKey] = field.toFrontmatter(store[field.storeKey]);
   }
   return result;
+}
+
+export function frontmatterToHuman(
+  frontmatter: Record<string, unknown>,
+  body: string,
+): HumanStorage {
+  return {
+    ...frontmatterToStore(frontmatter),
+    memo: body,
+  } as HumanStorage;
+}
+
+export function humanToFrontmatter(human: HumanStorage): {
+  frontmatter: Record<string, JsonValue>;
+  body: string;
+} {
+  const { memo, ...storeFields } = human;
+  return {
+    frontmatter: storeToFrontmatter(storeFields) as Record<string, JsonValue>,
+    body: memo ?? "",
+  };
 }

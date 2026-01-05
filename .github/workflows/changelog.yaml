@@ -67,6 +67,7 @@ jobs:
           ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
         with:
           model: zai/glm-4.7
+          token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
             Create apps/web/content/changelog/${{ steps.version.outputs.version }}.mdx
             for commits between ${{ steps.version.outputs.prev }} and ${{ steps.version.outputs.current }}.

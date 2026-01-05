@@ -6,7 +6,7 @@ import type { Tab } from "../store/zustand/tabs";
 import { useAITaskTask } from "./useAITaskTask";
 import { useLanguageModel } from "./useLLMConnection";
 
-export function useAutoTitle(tab: Extract<Tab, { type: "sessions" }>) {
+export function useTitleGeneration(tab: Extract<Tab, { type: "sessions" }>) {
   const sessionId = tab.id;
   const model = useLanguageModel();
 
@@ -20,12 +20,17 @@ export function useAutoTitle(tab: Extract<Tab, { type: "sessions" }>) {
     main.STORE_ID,
   );
 
-  const titleTask = useAITaskTask(titleTaskId, "title", {
-    onSuccess: ({ text }) => {
+  const handleTitleSuccess = useCallback(
+    ({ text }: { text: string }) => {
       if (text) {
         updateTitle(text);
       }
     },
+    [updateTitle],
+  );
+
+  const titleTask = useAITaskTask(titleTaskId, "title", {
+    onSuccess: handleTitleSuccess,
   });
 
   const generateTitle = useCallback(() => {

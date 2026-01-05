@@ -1,0 +1,85 @@
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Release channel"
+        required: true
+        type: choice
+        options:
+          - nightly
+          - stable
+  workflow_call:
+    inputs:
+      channel:
+        required: true
+        type: string
+      issue_number:
+        required: false
+        type: number
+      comment_id:
+        required: false
+        type: number
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - if: inputs.comment_id
+        uses: ./.github/actions/add-reaction
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          comment: ${{ inputs.comment_id }}
+          reaction: eyes
+      - id: version
+        run: |
+          CHANNEL="${{ inputs.channel }}"
+          if [ "$CHANNEL" = "nightly" ]; then
+            LATEST_TAG=$(git tag -l 'desktop_v*-nightly.*' --sort=-v:refname | head -n1)
+            PREV_REF="main"
+          else
+            LATEST_TAG=$(git tag -l 'desktop_v*' --sort=-v:refname | grep -v 'nightly' | head -n1)
+            PREV_REF=$(git tag -l 'desktop_v*-nightly.*' --sort=-v:refname | head -n1)
+          fi
+          VERSION="${LATEST_TAG#desktop_v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "prev_ref=$PREV_REF" >> $GITHUB_OUTPUT
+      - run: |
+          curl -fsSL https://opencode.ai/install | bash
+          echo "$HOME/.opencode/bin" >> $GITHUB_PATH
+      - run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          CHANGELOG_FILE="apps/web/content/changelog/${VERSION}.mdx"
+
+          opencode -p "Create ${CHANGELOG_FILE} for commits between ${{ steps.version.outputs.prev_ref }} and ${{ steps.version.outputs.latest_tag }}. Follow apps/web/content/changelog/AGENTS.md."
+      - uses: peter-evans/create-pull-request@v8
+        id: cpr
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: changelog/${{ steps.version.outputs.version }}
+          title: "docs: changelog for ${{ steps.version.outputs.version }}"
+          body: |
+            Auto-generated changelog for version ${{ steps.version.outputs.version }}.
+
+            Generated using `opencode` CLI based on commits from ${{ steps.version.outputs.prev_ref }} to ${{ steps.version.outputs.latest_tag }}.
+          commit-message: "docs: add changelog for ${{ steps.version.outputs.version }}"
+          delete-branch: true
+      - if: inputs.issue_number
+        uses: ./.github/actions/comment-result
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          issue_number: ${{ inputs.issue_number }}
+          data: |
+            [{"header": "Version", "value": "`${{ steps.version.outputs.version }}`"}, {"header": "PR", "value": "${{ steps.cpr.outputs.pull-request-url || 'No changes' }}"}]

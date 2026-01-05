@@ -25,6 +25,10 @@ jobs:
       REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - run: git fetch --tags --force
       - uses: ./.github/actions/add-reaction
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -33,28 +37,48 @@ jobs:
           reaction: eyes
       - id: resolve
         run: |
-          PR_DATA=$(gh api repos/$REPO/pulls/${{ inputs.issue_number }} 2>/dev/null) || {
-            echo "merged=false" >> $GITHUB_OUTPUT
-            echo "error=Not a pull request or PR not found" >> $GITHUB_OUTPUT
-            exit 0
-          }
+          if [ "${{ inputs.channel }}" == "stable" ]; then
+            NIGHTLY_TAG=$(git tag -l 'desktop_v*-nightly.*' --sort=-v:refname | head -n1)
+            if [ -z "$NIGHTLY_TAG" ]; then
+              echo "resolved=false" >> $GITHUB_OUTPUT
+              echo "error=No nightly release tag found" >> $GITHUB_OUTPUT
+              exit 0
+            fi
 
-          MERGED=$(echo "$PR_DATA" | jq -r '.merged')
-          if [ "$MERGED" != "true" ]; then
-            echo "merged=false" >> $GITHUB_OUTPUT
-            echo "error=PR must be merged first" >> $GITHUB_OUTPUT
-            exit 0
+            TAG_SHA=$(git rev-list -n 1 "$NIGHTLY_TAG")
+            TEMP_BRANCH="release-temp-${TAG_SHA:0:8}"
+
+            GH_TOKEN=${{ secrets.PAT_TOKEN }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$TAG_SHA"
+
+            echo "resolved=true" >> $GITHUB_OUTPUT
+            echo "target_sha=$TAG_SHA" >> $GITHUB_OUTPUT
+            echo "target_ref=$NIGHTLY_TAG" >> $GITHUB_OUTPUT
+            echo "branch=$TEMP_BRANCH" >> $GITHUB_OUTPUT
+          else
+            PR_DATA=$(gh api repos/$REPO/pulls/${{ inputs.issue_number }} 2>/dev/null) || {
+              echo "resolved=false" >> $GITHUB_OUTPUT
+              echo "error=Not a pull request or PR not found" >> $GITHUB_OUTPUT
+              exit 0
+            }
+
+            MERGED=$(echo "$PR_DATA" | jq -r '.merged')
+            if [ "$MERGED" != "true" ]; then
+              echo "resolved=false" >> $GITHUB_OUTPUT
+              echo "error=PR must be merged first" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            MERGE_SHA=$(echo "$PR_DATA" | jq -r '.merge_commit_sha')
+            TEMP_BRANCH="release-temp-${MERGE_SHA:0:8}"
+
+            GH_TOKEN=${{ secrets.PAT_TOKEN }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$MERGE_SHA"
+
+            echo "resolved=true" >> $GITHUB_OUTPUT
+            echo "target_sha=$MERGE_SHA" >> $GITHUB_OUTPUT
+            echo "target_ref=$MERGE_SHA" >> $GITHUB_OUTPUT
+            echo "branch=$TEMP_BRANCH" >> $GITHUB_OUTPUT
           fi
-
-          MERGE_SHA=$(echo "$PR_DATA" | jq -r '.merge_commit_sha')
-          TEMP_BRANCH="release-temp-${MERGE_SHA:0:8}"
-
-          GH_TOKEN=${{ secrets.PAT_TOKEN }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$MERGE_SHA"
-
-          echo "merged=true" >> $GITHUB_OUTPUT
-          echo "merge_sha=$MERGE_SHA" >> $GITHUB_OUTPUT
-          echo "branch=$TEMP_BRANCH" >> $GITHUB_OUTPUT
-      - if: steps.resolve.outputs.merged == 'true'
+      - if: steps.resolve.outputs.resolved == 'true'
         id: trigger
         uses: ./.github/actions/trigger-workflow
         with:
@@ -67,26 +91,28 @@ jobs:
       - id: result
         run: |
           CHANNEL="${{ inputs.channel }}"
-          MERGED="${{ steps.resolve.outputs.merged }}"
-          MERGE_SHA="${{ steps.resolve.outputs.merge_sha }}"
+          RESOLVED="${{ steps.resolve.outputs.resolved }}"
+          TARGET_SHA="${{ steps.resolve.outputs.target_sha }}"
+          TARGET_REF="${{ steps.resolve.outputs.target_ref }}"
+          ERROR="${{ steps.resolve.outputs.error }}"
           RUN_ID="${{ steps.trigger.outputs.run_id }}"
 
-          if [ "$MERGED" != "true" ]; then
+          if [ "$RESOLVED" != "true" ]; then
             DATA=$(jq -cn \
               --arg channel "\`$CHANNEL\`" \
               --arg sha "-" \
-              --arg status "PR must be merged first" \
+              --arg status "$ERROR" \
               '[{header: "Channel", value: $channel}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
           elif [ -n "$RUN_ID" ]; then
             DATA=$(jq -cn \
               --arg channel "\`$CHANNEL\`" \
-              --arg sha "[\`${MERGE_SHA:0:8}\`](https://github.com/$REPO/commit/$MERGE_SHA)" \
+              --arg sha "[\`${TARGET_SHA:0:8}\`](https://github.com/$REPO/commit/$TARGET_SHA) ($TARGET_REF)" \
               --arg status "[View](https://github.com/$REPO/actions/runs/$RUN_ID)" \
               '[{header: "Channel", value: $channel}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
           else
             DATA=$(jq -cn \
               --arg channel "\`$CHANNEL\`" \
-              --arg sha "[\`${MERGE_SHA:0:8}\`](https://github.com/$REPO/commit/$MERGE_SHA)" \
+              --arg sha "[\`${TARGET_SHA:0:8}\`](https://github.com/$REPO/commit/$TARGET_SHA) ($TARGET_REF)" \
               --arg status "[Logs](https://github.com/$REPO/actions/runs/${{ github.run_id }})" \
               '[{header: "Channel", value: $channel}, {header: "Commit", value: $sha}, {header: "Status", value: $status}]')
           fi
@@ -97,7 +123,7 @@ jobs:
           repo: ${{ github.repository }}
           issue_number: ${{ inputs.issue_number }}
           data: ${{ steps.result.outputs.data }}
-      - if: steps.resolve.outputs.merged == 'true'
+      - if: steps.resolve.outputs.resolved == 'true'
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: gh api repos/${{ github.repository }}/git/refs/heads/${{ steps.resolve.outputs.branch }} -X DELETE || true

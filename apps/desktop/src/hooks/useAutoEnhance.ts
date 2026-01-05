@@ -35,7 +35,8 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     firstTranscriptId ?? "",
     main.STORE_ID,
   );
-  const hasWords = !!wordIds && wordIds.length > 0;
+  const MIN_WORDS_FOR_ENHANCEMENT = 5;
+  const hasWords = !!wordIds && wordIds.length >= MIN_WORDS_FOR_ENHANCEMENT;
 
   const [autoEnhancedNoteId, setAutoEnhancedNoteId] = useState<string | null>(
     null,

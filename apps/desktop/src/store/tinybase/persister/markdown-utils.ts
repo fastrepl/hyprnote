@@ -91,48 +91,6 @@ export async function loadAllEntities<T>(
   return result;
 }
 
-export async function cleanupOrphanFiles(
-  dataDir: string,
-  dirName: string,
-  validIds: Set<string>,
-  label: string,
-): Promise<void> {
-  const paths = createEntityPaths(dirName);
-  const entityDir = paths.getDir(dataDir);
-
-  let entries: { name: string; isDirectory: boolean }[];
-  try {
-    entries = await readDir(entityDir);
-  } catch (error) {
-    if (isFileNotFoundError(error)) {
-      return;
-    }
-    throw error;
-  }
-
-  for (const entry of entries) {
-    if (entry.isDirectory) continue;
-    if (!entry.name.endsWith(".md")) continue;
-
-    const entityId = entry.name.replace(/\.md$/, "");
-    if (!isUUID(entityId)) continue;
-
-    if (!validIds.has(entityId)) {
-      try {
-        const filePath = paths.getFilePath(dataDir, entityId);
-        await remove(filePath);
-      } catch (error) {
-        if (!isFileNotFoundError(error)) {
-          console.error(
-            `[${label}] Failed to remove orphan file ${entry.name}:`,
-            error,
-          );
-        }
-      }
-    }
-  }
-}
-
 export async function migrateJsonToMarkdown<T>(
   dataDir: string,
   jsonFilename: string,

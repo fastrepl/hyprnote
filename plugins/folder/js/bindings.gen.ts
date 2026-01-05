@@ -45,6 +45,22 @@ async deleteFolder(folderPath: string) : Promise<Result<null, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async cleanupOrphanFiles(subdir: string, extension: string, validIds: string[]) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:folder|cleanup_orphan_files", { subdir, extension, validIds }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async cleanupOrphanDirs(subdir: string, markerFile: string, validIds: string[]) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:folder|cleanup_orphan_dirs", { subdir, markerFile, validIds }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

@@ -295,6 +295,30 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the cleanup_orphan_dirs command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-cleanup-orphan-dirs",
+          "markdownDescription": "Enables the cleanup_orphan_dirs command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the cleanup_orphan_dirs command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-cleanup-orphan-dirs",
+          "markdownDescription": "Denies the cleanup_orphan_dirs command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the cleanup_orphan_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-cleanup-orphan-files",
+          "markdownDescription": "Enables the cleanup_orphan_files command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the cleanup_orphan_files command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-cleanup-orphan-files",
+          "markdownDescription": "Denies the cleanup_orphan_files command without any pre-configured scope."
+        },
+        {
           "description": "Enables the create_folder command without any pre-configured scope.",
           "type": "string",
           "const": "allow-create-folder",
@@ -355,10 +379,10 @@
           "markdownDescription": "Denies the rename_folder command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`"
         }
       ]
     }

@@ -4,9 +4,11 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
+import { commands as folderCommands } from "@hypr/plugin-folder";
+
 import { createSessionDirPersister, getDataDir } from "../utils";
 import { collectHumanWriteOps, type HumanCollectorResult } from "./collect";
-import { cleanupOrphanHumanFiles, loadAllHumans } from "./load";
+import { loadAllHumans } from "./load";
 import { migrateHumansJsonIfNeeded } from "./migrate";
 
 export function createHumanPersister<Schemas extends OptionalSchemas>(
@@ -24,9 +26,13 @@ export function createHumanPersister<Schemas extends OptionalSchemas>(
       }
       return [{ humans }, {}] as unknown as Content<Schemas>;
     },
-    postSave: async (dataDir, result) => {
+    postSave: async (_dataDir, result) => {
       const { validHumanIds } = result as HumanCollectorResult;
-      await cleanupOrphanHumanFiles(dataDir, validHumanIds);
+      await folderCommands.cleanupOrphanFiles(
+        "humans",
+        "md",
+        Array.from(validHumanIds),
+      );
     },
   });
 }

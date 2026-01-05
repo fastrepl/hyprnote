@@ -9,6 +9,8 @@ Default permissions for the plugin
 - `allow-create-folder`
 - `allow-rename-folder`
 - `allow-delete-folder`
+- `allow-cleanup-orphan-files`
+- `allow-cleanup-orphan-dirs`
 
 ## Permission Table
 
@@ -18,6 +20,58 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`folder:allow-cleanup-orphan-dirs`
+
+</td>
+<td>
+
+Enables the cleanup_orphan_dirs command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`folder:deny-cleanup-orphan-dirs`
+
+</td>
+<td>
+
+Denies the cleanup_orphan_dirs command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`folder:allow-cleanup-orphan-files`
+
+</td>
+<td>
+
+Enables the cleanup_orphan_files command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`folder:deny-cleanup-orphan-files`
+
+</td>
+<td>
+
+Denies the cleanup_orphan_files command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>

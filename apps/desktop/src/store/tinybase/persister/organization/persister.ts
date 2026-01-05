@@ -4,12 +4,14 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
+import { commands as folderCommands } from "@hypr/plugin-folder";
+
 import { createSessionDirPersister, getDataDir } from "../utils";
 import {
   collectOrganizationWriteOps,
   type OrganizationCollectorResult,
 } from "./collect";
-import { cleanupOrphanOrganizationFiles, loadAllOrganizations } from "./load";
+import { loadAllOrganizations } from "./load";
 import { migrateOrganizationsJsonIfNeeded } from "./migrate";
 
 export function createOrganizationPersister<Schemas extends OptionalSchemas>(
@@ -27,9 +29,13 @@ export function createOrganizationPersister<Schemas extends OptionalSchemas>(
       }
       return [{ organizations }, {}] as unknown as Content<Schemas>;
     },
-    postSave: async (dataDir, result) => {
+    postSave: async (_dataDir, result) => {
       const { validOrgIds } = result as OrganizationCollectorResult;
-      await cleanupOrphanOrganizationFiles(dataDir, validOrgIds);
+      await folderCommands.cleanupOrphanFiles(
+        "organizations",
+        "md",
+        Array.from(validOrgIds),
+      );
     },
   });
 }

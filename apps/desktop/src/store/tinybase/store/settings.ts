@@ -40,10 +40,10 @@ export const SETTINGS_MAPPING = {
       type: "boolean",
       path: ["general", "telemetry_consent"],
     },
-    ai_language: { type: "string", path: ["general", "ai_language"] },
+    ai_language: { type: "string", path: ["language", "ai_language"] },
     spoken_languages: {
       type: "string",
-      path: ["general", "spoken_languages"],
+      path: ["language", "spoken_languages"],
     },
     ignored_platforms: {
       type: "string",

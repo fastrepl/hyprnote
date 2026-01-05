@@ -26,7 +26,16 @@ function setByPath(
 function settingsToStoreValues(settings: unknown): Record<string, unknown> {
   const values: Record<string, unknown> = {};
   for (const [key, config] of Object.entries(SETTINGS_MAPPING.values)) {
-    const value = getByPath(settings, config.path);
+    let value = getByPath(settings, config.path);
+
+    if (value === undefined) {
+      if (key === "ai_language") {
+        value = getByPath(settings, ["general", "ai_language"]);
+      } else if (key === "spoken_languages") {
+        value = getByPath(settings, ["general", "spoken_languages"]);
+      }
+    }
+
     if (value !== undefined) {
       values[key] = value;
     }
@@ -67,6 +76,7 @@ export function storeValuesToSettings(
     ai: { llm: {}, stt: {} },
     notification: {},
     general: {},
+    language: {},
   };
 
   for (const [key, config] of Object.entries(SETTINGS_MAPPING.values)) {

@@ -186,12 +186,17 @@ function useChangelogContent(version: string) {
       return;
     }
 
-    changelogFiles[key]().then((raw) => {
-      const markdown = stripImageLine(stripFrontmatter(raw as string));
-      const json = md2json(markdown);
-      setContent(addEmptyParagraphsBeforeHeaders(json));
-      setLoading(false);
-    });
+    changelogFiles[key]()
+      .then((raw) => {
+        const markdown = stripImageLine(stripFrontmatter(raw as string));
+        const json = md2json(markdown);
+        setContent(addEmptyParagraphsBeforeHeaders(json));
+        setLoading(false);
+      })
+      .catch(() => {
+        setContent(null);
+        setLoading(false);
+      });
   }, [version]);
 
   return { content, loading };

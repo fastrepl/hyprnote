@@ -1,6 +1,4 @@
-mod audio;
 mod commands;
-mod error;
 
 mod ext;
 pub use ext::*;
@@ -14,14 +12,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::get_git_hash::<tauri::Wry>,
             commands::get_fingerprint::<tauri::Wry>,
             commands::opinionated_md_to_html::<tauri::Wry>,
-            commands::delete_session_folder::<tauri::Wry>,
             commands::parse_meeting_link::<tauri::Wry>,
-            commands::reveal_session_in_finder::<tauri::Wry>,
-            commands::audio_exist::<tauri::Wry>,
-            commands::audio_path::<tauri::Wry>,
-            commands::audio_open::<tauri::Wry>,
-            commands::audio_delete::<tauri::Wry>,
-            commands::audio_import::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

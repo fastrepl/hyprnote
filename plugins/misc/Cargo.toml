@@ -12,26 +12,16 @@ tauri-plugin = { workspace = true, features = ["build"] }
 vergen-gix = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
-hypr-data = { workspace = true }
 indoc = { workspace = true }
 specta-typescript = { workspace = true }
 
 [dependencies]
-tauri-plugin-opener = { workspace = true }
-tauri-plugin-path2 = { workspace = true }
-
-hypr-audio-utils = { workspace = true }
 hypr-buffer = { workspace = true }
 hypr-host = { workspace = true }
-tauri-plugin-fs-sync = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
-dirs = { workspace = true }
 lazy_static = { workspace = true }
 regex = { workspace = true }
-rodio = { workspace = true, features = ["symphonia-all"] }
 specta = { workspace = true }
-sysinfo = { workspace = true }
-thiserror = { workspace = true }

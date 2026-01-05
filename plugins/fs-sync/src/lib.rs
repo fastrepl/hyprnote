@@ -1,3 +1,4 @@
+mod audio;
 mod commands;
 mod error;
 mod ext;
@@ -30,6 +31,12 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::delete_folder::<tauri::Wry>,
             commands::cleanup_orphan_files::<tauri::Wry>,
             commands::cleanup_orphan_dirs::<tauri::Wry>,
+            commands::audio_exist::<tauri::Wry>,
+            commands::audio_delete::<tauri::Wry>,
+            commands::audio_import::<tauri::Wry>,
+            commands::audio_path::<tauri::Wry>,
+            commands::session_dir::<tauri::Wry>,
+            commands::delete_session_folder::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

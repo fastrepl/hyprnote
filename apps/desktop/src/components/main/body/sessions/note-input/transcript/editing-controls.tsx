@@ -1,7 +1,7 @@
 import { ChevronDownIcon, RefreshCcwIcon } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Popover,
@@ -43,7 +43,7 @@ export function EditingControls({
     try {
       clearTranscriptData();
 
-      const result = await miscCommands.audioPath(sessionId);
+      const result = await fsSyncCommands.audioPath(sessionId);
       if (result.status === "error") {
         console.error(
           "[redo_transcript] failed to retrieve audio path",

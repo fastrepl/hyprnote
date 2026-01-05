@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MoreHorizontalIcon } from "lucide-react";
 import { useState } from "react";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -29,7 +29,7 @@ export function OverflowButton({
   const [open, setOpen] = useState(false);
   const audioExists = useQuery({
     queryKey: ["audio", sessionId, "exist"],
-    queryFn: () => miscCommands.audioExist(sessionId),
+    queryFn: () => fsSyncCommands.audioExist(sessionId),
     select: (result) => {
       if (result.status === "error") {
         throw new Error(result.error);

@@ -9,7 +9,7 @@ import {
 } from "react";
 import WaveSurfer from "wavesurfer.js";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 type AudioPlayerState = "playing" | "paused" | "stopped";
 
@@ -53,7 +53,7 @@ export function AudioPlayerProvider({
 
   const audioExists = useQuery({
     queryKey: ["audio", sessionId, "exist"],
-    queryFn: () => miscCommands.audioExist(sessionId),
+    queryFn: () => fsSyncCommands.audioExist(sessionId),
     select: (result) => {
       if (result.status === "error") {
         throw new Error(result.error);

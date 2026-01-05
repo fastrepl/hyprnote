@@ -427,10 +427,10 @@
           "markdownDescription": "Denies the reveal_session_in_finder command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`\n- `allow-audio-open`\n- `allow-audio-path`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-reveal-session-in-finder`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-parse-meeting-link`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`\n- `allow-audio-open`\n- `allow-audio-path`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-reveal-session-in-finder`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-parse-meeting-link`"
         }
       ]
     }

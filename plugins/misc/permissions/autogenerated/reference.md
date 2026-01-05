@@ -7,14 +7,7 @@ Default permissions for the plugin
 - `allow-get-git-hash`
 - `allow-get-fingerprint`
 - `allow-opinionated-md-to-html`
-- `allow-delete-session-folder`
 - `allow-parse-meeting-link`
-- `allow-audio-open`
-- `allow-audio-path`
-- `allow-audio-exist`
-- `allow-audio-delete`
-- `allow-audio-import`
-- `allow-reveal-session-in-finder`
 
 ## Permission Table
 

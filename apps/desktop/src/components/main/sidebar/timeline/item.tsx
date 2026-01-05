@@ -1,6 +1,7 @@
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { memo, useCallback, useMemo } from "react";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import {
   Tooltip,
@@ -249,7 +250,10 @@ const SessionItem = memo(
 
     const handleRevealInFinder = useCallback(async () => {
       await save();
-      await miscCommands.revealSessionInFinder(sessionId);
+      const result = await fsSyncCommands.sessionDir(sessionId);
+      if (result.status === "ok") {
+        await revealItemInDir(result.data);
+      }
     }, [sessionId]);
 
     const contextMenu = useMemo(

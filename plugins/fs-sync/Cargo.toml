@@ -11,16 +11,19 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+hypr-data = { workspace = true }
 specta-typescript = { workspace = true }
 tempfile = "3"
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
+hypr-audio-utils = { workspace = true }
 hypr-frontmatter = { workspace = true }
 hypr-tiptap = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-path2 = { path = "../path2" }
+tauri-plugin-opener = { workspace = true }
+tauri-plugin-path2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
@@ -29,6 +32,8 @@ serde_yaml = { workspace = true }
 specta = { workspace = true, features = ["serde_json"] }
 
 rayon = { workspace = true }
+rodio = { workspace = true, features = ["symphonia-all"] }
+
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }

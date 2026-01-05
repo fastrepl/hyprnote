@@ -10,8 +10,8 @@ import {
 import { useCallback, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { commands as listener2Commands } from "@hypr/plugin-listener2";
-import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Popover,
@@ -143,7 +143,7 @@ export function OptionsMenu({
       }
 
       return pipe(
-        fromResult(miscCommands.audioImport(sessionId, path)),
+        fromResult(fsSyncCommands.audioImport(sessionId, path)),
         Effect.tap(() =>
           Effect.sync(() => {
             void analyticsCommands.event({

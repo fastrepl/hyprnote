@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import * as main from "./main";
 
@@ -25,7 +25,7 @@ export async function deleteSessionCascade(
   indexes: ReturnType<typeof main.UI.useIndexes>,
   sessionId: string,
 ): Promise<void> {
-  await miscCommands.audioDelete(sessionId);
+  await fsSyncCommands.audioDelete(sessionId);
 
   if (!indexes) {
     store.delRow("sessions", sessionId);

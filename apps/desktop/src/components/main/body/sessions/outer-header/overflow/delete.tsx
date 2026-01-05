@@ -3,7 +3,7 @@ import { Loader2Icon, TrashIcon } from "lucide-react";
 import { useCallback } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
@@ -48,7 +48,7 @@ export function DeleteRecording({ sessionId }: { sessionId: string }) {
     mutationFn: async () => {
       await Promise.all([
         new Promise((resolve) => setTimeout(resolve, 300)),
-        miscCommands.audioDelete(sessionId).then((result) => {
+        fsSyncCommands.audioDelete(sessionId).then((result) => {
           if (result.status === "error") {
             throw new Error(result.error);
           }

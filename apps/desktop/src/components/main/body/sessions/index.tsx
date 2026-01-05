@@ -3,7 +3,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
 import React, { useEffect, useRef } from "react";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
@@ -109,7 +109,7 @@ export function TabContentNote({
   const { data: audioUrl } = useQuery({
     enabled: listenerStatus === "inactive",
     queryKey: ["audio", tab.id, "url"],
-    queryFn: () => miscCommands.audioPath(tab.id),
+    queryFn: () => fsSyncCommands.audioPath(tab.id),
     select: (result) => {
       if (result.status === "error") {
         return null;

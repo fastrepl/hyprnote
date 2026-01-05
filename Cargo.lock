@@ -18076,8 +18076,11 @@ dependencies = [
 name = "tauri-plugin-fs-sync"
 version = "0.1.0"
 dependencies = [
+ "audio-utils",
+ "data",
  "frontmatter",
  "rayon",
+ "rodio",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -18085,6 +18088,7 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-opener",
  "tauri-plugin-path2",
  "tauri-specta",
  "tempfile",
@@ -18362,25 +18366,16 @@ dependencies = [
 name = "tauri-plugin-misc"
 version = "0.1.0"
 dependencies = [
- "audio-utils",
  "buffer",
- "data",
- "dirs 6.0.0",
  "host",
  "indoc",
  "lazy_static",
  "regex",
- "rodio",
  "specta",
  "specta-typescript",
- "sysinfo 0.37.2",
  "tauri",
  "tauri-plugin",
- "tauri-plugin-fs-sync",
- "tauri-plugin-opener",
- "tauri-plugin-path2",
  "tauri-specta",
- "thiserror 2.0.17",
  "vergen-gix",
 ]
 

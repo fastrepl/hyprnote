@@ -60,6 +60,19 @@ impl RealtimeSttAdapter for FireworksAdapter {
             }
         };
 
+        if let Some(error) = msg.error {
+            tracing::error!(
+                error_message = %error.message,
+                error_code = ?error.code,
+                "fireworks_error"
+            );
+            return vec![StreamResponse::ErrorResponse {
+                error_code: None,
+                error_message: error.message,
+                provider: "fireworks".to_string(),
+            }];
+        }
+
         if msg.checkpoint_id.is_some() {
             return vec![];
         }
@@ -178,6 +191,16 @@ struct FireworksMessage {
     segments: Vec<Segment>,
     #[serde(default)]
     checkpoint_id: Option<String>,
+    #[serde(default)]
+    error: Option<FireworksError>,
+}
+
+#[derive(Debug, Deserialize)]
+struct FireworksError {
+    #[serde(default)]
+    message: String,
+    #[serde(default)]
+    code: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

@@ -47,8 +47,34 @@ impl RealtimeSttAdapter for ArgmaxAdapter {
     }
 
     fn parse_response(&self, raw: &str) -> Vec<StreamResponse> {
-        serde_json::from_str(raw).into_iter().collect()
+        match serde_json::from_str::<StreamResponse>(raw) {
+            Ok(response) => vec![response],
+            Err(_) => {
+                if let Ok(error) = serde_json::from_str::<ArgmaxError>(raw) {
+                    tracing::error!(
+                        error_type = %error.error_type,
+                        error_message = %error.message,
+                        "argmax_error"
+                    );
+                    vec![StreamResponse::ErrorResponse {
+                        error_code: None,
+                        error_message: format!("{}: {}", error.error_type, error.message),
+                        provider: "argmax".to_string(),
+                    }]
+                } else {
+                    tracing::warn!(raw = raw, "argmax_unknown_message");
+                    vec![]
+                }
+            }
+        }
     }
+}
+
+#[derive(serde::Deserialize)]
+struct ArgmaxError {
+    #[serde(rename = "type")]
+    error_type: String,
+    message: String,
 }
 
 #[cfg(test)]

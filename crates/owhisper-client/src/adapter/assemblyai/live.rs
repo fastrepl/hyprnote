@@ -108,7 +108,11 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
             }
             AssemblyAIMessage::Error { error } => {
                 tracing::error!(error = %error, "assemblyai_error");
-                vec![]
+                vec![StreamResponse::ErrorResponse {
+                    error_code: None,
+                    error_message: error,
+                    provider: "assemblyai".to_string(),
+                }]
             }
             AssemblyAIMessage::Unknown => {
                 tracing::debug!(raw = raw, "assemblyai_unknown_message");

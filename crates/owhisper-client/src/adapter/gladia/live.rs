@@ -240,7 +240,11 @@ impl RealtimeSttAdapter for GladiaAdapter {
             GladiaMessage::EndRecording { .. } => vec![],
             GladiaMessage::Error { message, code } => {
                 tracing::error!(error = %message, code = ?code, "gladia_error");
-                vec![]
+                vec![StreamResponse::ErrorResponse {
+                    error_code: code,
+                    error_message: message,
+                    provider: "gladia".to_string(),
+                }]
             }
             GladiaMessage::Unknown => {
                 tracing::debug!(raw = raw, "gladia_unknown_message");

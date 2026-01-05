@@ -149,6 +149,34 @@ impl Actor for ListenerActor {
             }
 
             ListenerMsg::StreamResponse(mut response) => {
+                if let StreamResponse::ErrorResponse {
+                    error_code,
+                    error_message,
+                    provider,
+                } = &response
+                {
+                    tracing::error!(
+                        ?error_code,
+                        %error_message,
+                        %provider,
+                        "stream_provider_error"
+                    );
+                    let _ = (SessionErrorEvent::ConnectionError {
+                        session_id: state.args.session_id.clone(),
+                        error: format!(
+                            "[{}] {} (code: {})",
+                            provider,
+                            error_message,
+                            error_code
+                                .map(|c| c.to_string())
+                                .unwrap_or_else(|| "none".to_string())
+                        ),
+                    })
+                    .emit(&state.args.app);
+                    myself.stop(Some(format!("{}: {}", provider, error_message)));
+                    return Ok(());
+                }
+
                 match state.args.mode {
                     crate::actors::ChannelMode::MicOnly => {
                         response.remap_channel_index(0, 2);

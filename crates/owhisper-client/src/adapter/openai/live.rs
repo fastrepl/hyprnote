@@ -177,7 +177,11 @@ impl RealtimeSttAdapter for OpenAIAdapter {
                     error_message = %error.message,
                     "openai_transcription_failed"
                 );
-                vec![]
+                vec![StreamResponse::ErrorResponse {
+                    error_code: None,
+                    error_message: format!("{}: {}", error.error_type, error.message),
+                    provider: "openai".to_string(),
+                }]
             }
             OpenAIEvent::Error { error } => {
                 tracing::error!(
@@ -185,7 +189,11 @@ impl RealtimeSttAdapter for OpenAIAdapter {
                     error_message = %error.message,
                     "openai_error"
                 );
-                vec![]
+                vec![StreamResponse::ErrorResponse {
+                    error_code: None,
+                    error_message: format!("{}: {}", error.error_type, error.message),
+                    provider: "openai".to_string(),
+                }]
             }
             OpenAIEvent::Unknown => {
                 tracing::debug!(raw = raw, "openai_unknown_event");

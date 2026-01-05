@@ -97,7 +97,11 @@ impl RealtimeSttAdapter for SonioxAdapter {
 
         if let Some(error_msg) = &msg.error_message {
             tracing::error!(error_code = ?msg.error_code, error_message = %error_msg, "soniox_error");
-            return vec![];
+            return vec![StreamResponse::ErrorResponse {
+                error_code: msg.error_code,
+                error_message: error_msg.clone(),
+                provider: "soniox".to_string(),
+            }];
         }
 
         let has_fin_token = msg.tokens.iter().any(Token::is_fin_marker);

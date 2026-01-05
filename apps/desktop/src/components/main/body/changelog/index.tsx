@@ -51,8 +51,21 @@ function stripImageLine(content: string): string {
   return content.replace(/^!\[.*?\]\(.*?\)\s*\n*/m, "");
 }
 
-function addSpacingBeforeHeaders(content: string): string {
-  return content.replace(/\n(#{1,6}\s)/g, "\n\n$1");
+function addEmptyParagraphsBeforeHeaders(
+  json: ReturnType<typeof md2json>,
+): ReturnType<typeof md2json> {
+  if (!json.content) return json;
+
+  const newContent: typeof json.content = [];
+  for (let i = 0; i < json.content.length; i++) {
+    const node = json.content[i];
+    if (node.type === "heading" && i > 0) {
+      newContent.push({ type: "paragraph" });
+    }
+    newContent.push(node);
+  }
+
+  return { ...json, content: newContent };
 }
 
 export const TabItemChangelog: TabItem<Extract<Tab, { type: "changelog" }>> = ({
@@ -85,7 +98,7 @@ export function TabContentChangelog({
 }: {
   tab: Extract<Tab, { type: "changelog" }>;
 }) {
-  const { previous, current } = tab.state;
+  const { current } = tab.state;
 
   const { content, loading } = useChangelogContent(current);
   const { scrollRef, atStart, atEnd } = useScrollFade<HTMLDivElement>();
@@ -98,24 +111,21 @@ export function TabContentChangelog({
         </div>
 
         <div className="mt-2 px-3 shrink-0">
-          <h1 className="text-2xl font-semibold text-neutral-900">
-            v{current}
+          <h1 className="text-xl font-semibold text-neutral-900">
+            What's new in {current}?
           </h1>
-          {previous && (
-            <p className="mt-1 text-sm text-neutral-500">from v{previous}</p>
-          )}
         </div>
 
-        <div className="mt-2 px-2 flex-1 min-h-0 relative">
+        <div className="mt-4 flex-1 min-h-0 relative overflow-hidden">
           {!atStart && <ScrollFadeOverlay position="top" />}
           {!atEnd && <ScrollFadeOverlay position="bottom" />}
-          <div ref={scrollRef} className="h-full overflow-y-auto">
+          <div ref={scrollRef} className="h-full overflow-y-auto px-3">
             {loading ? (
-              <p className="text-neutral-500 px-1">Loading...</p>
+              <p className="text-neutral-500">Loading...</p>
             ) : content ? (
               <NoteEditor initialContent={content} editable={false} />
             ) : (
-              <p className="text-neutral-500 px-1">
+              <p className="text-neutral-500">
                 No changelog available for this version.
               </p>
             )}
@@ -151,7 +161,7 @@ function ChangelogHeader({ version }: { version: string }) {
             className="gap-1.5"
             onClick={() => openUrl("https://hyprnote.com/changelog")}
           >
-            <ExternalLinkIcon className="size-4" />
+            <ExternalLinkIcon size={14} className="-mt-0.5" />
             <span>See all</span>
           </Button>
         </div>
@@ -177,9 +187,9 @@ function useChangelogContent(version: string) {
     }
 
     changelogFiles[key]().then((raw) => {
-      const stripped = stripImageLine(stripFrontmatter(raw as string));
-      const markdown = addSpacingBeforeHeaders(stripped);
-      setContent(md2json(markdown));
+      const markdown = stripImageLine(stripFrontmatter(raw as string));
+      const json = md2json(markdown);
+      setContent(addEmptyParagraphsBeforeHeaders(json));
       setLoading(false);
     });
   }, [version]);

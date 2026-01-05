@@ -6,6 +6,7 @@ import {
   type ParsedMarkdown,
   parseMarkdownWithFrontmatter as parseMarkdownWithFrontmatterBase,
 } from "../markdown-utils";
+import { frontmatterToStore, storeToFrontmatter } from "./transform";
 
 export type { ParsedMarkdown };
 
@@ -26,32 +27,18 @@ export function frontmatterToHuman(
   body: string,
 ): HumanStorage {
   return {
-    user_id: String(frontmatter.user_id ?? ""),
-    created_at: String(frontmatter.created_at ?? ""),
-    name: String(frontmatter.name ?? ""),
-    email: String(frontmatter.email ?? ""),
-    org_id: String(frontmatter.org_id ?? ""),
-    job_title: String(frontmatter.job_title ?? ""),
-    linkedin_username: String(frontmatter.linkedin_username ?? ""),
+    ...frontmatterToStore(frontmatter),
     memo: body,
-  };
+  } as HumanStorage;
 }
 
 export function humanToFrontmatter(human: HumanStorage): {
   frontmatter: Record<string, JsonValue>;
   body: string;
 } {
-  const { memo, ...frontmatterFields } = human;
+  const { memo, ...storeFields } = human;
   return {
-    frontmatter: {
-      user_id: frontmatterFields.user_id ?? "",
-      created_at: frontmatterFields.created_at ?? "",
-      name: frontmatterFields.name ?? "",
-      email: frontmatterFields.email ?? "",
-      org_id: frontmatterFields.org_id ?? "",
-      job_title: frontmatterFields.job_title ?? "",
-      linkedin_username: frontmatterFields.linkedin_username ?? "",
-    },
+    frontmatter: storeToFrontmatter(storeFields) as Record<string, JsonValue>,
     body: memo ?? "",
   };
 }

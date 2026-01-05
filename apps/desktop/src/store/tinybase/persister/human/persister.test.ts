@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { SCHEMA, type Schemas } from "@hypr/store";
 
 import { createHumanPersister } from "./persister";
+import { frontmatterToStore, storeToFrontmatter } from "./transform";
 import { parseMarkdownWithFrontmatter } from "./utils";
 
 vi.mock("@hypr/plugin-path2", () => ({
@@ -231,7 +232,7 @@ describe("createHumanPersister", () => {
               user_id: "user-1",
               created_at: "2024-01-01T00:00:00Z",
               name: "John Doe",
-              email: "john@example.com",
+              emails: ["john@example.com"],
               org_id: "org-1",
               job_title: "Engineer",
               linkedin_username: "johndoe",
@@ -336,7 +337,7 @@ describe("createHumanPersister", () => {
               user_id: "user-1",
               created_at: "2024-01-01T00:00:00Z",
               name: "John Doe",
-              email: "john@example.com",
+              emails: ["john@example.com"],
               org_id: "org-1",
               job_title: "Engineer",
               linkedin_username: "johndoe",
@@ -349,6 +350,116 @@ describe("createHumanPersister", () => {
       expect(remove).toHaveBeenCalledWith(
         "/mock/data/dir/hyprnote/humans.json",
       );
+    });
+  });
+
+  describe("email transform", () => {
+    test("loads with emails array (new format)", async () => {
+      const { readDir, readTextFile, exists } =
+        await import("@tauri-apps/plugin-fs");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
+
+      vi.mocked(exists).mockResolvedValue(false);
+      vi.mocked(readDir).mockResolvedValue([
+        {
+          name: `${HUMAN_UUID_1}.md`,
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+        },
+      ]);
+
+      vi.mocked(readTextFile).mockResolvedValue("");
+      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
+        status: "ok",
+        data: {
+          frontmatter: {
+            user_id: "user-1",
+            created_at: "2024-01-01T00:00:00Z",
+            name: "John Doe",
+            emails: ["john@example.com", "john.doe@work.com"],
+            org_id: "org-1",
+            job_title: "Engineer",
+            linkedin_username: "johndoe",
+          },
+          content: "",
+        },
+      });
+
+      const persister = createHumanPersister<Schemas>(store);
+      await persister.load();
+
+      const humans = store.getTable("humans");
+      expect(humans[HUMAN_UUID_1]?.email).toBe(
+        "john@example.com,john.doe@work.com",
+      );
+    });
+
+    test("loads with legacy email string (backward compat)", async () => {
+      const { readDir, readTextFile, exists } =
+        await import("@tauri-apps/plugin-fs");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
+
+      vi.mocked(exists).mockResolvedValue(false);
+      vi.mocked(readDir).mockResolvedValue([
+        {
+          name: `${HUMAN_UUID_1}.md`,
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+        },
+      ]);
+
+      vi.mocked(readTextFile).mockResolvedValue("");
+      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
+        status: "ok",
+        data: {
+          frontmatter: {
+            user_id: "user-1",
+            created_at: "2024-01-01T00:00:00Z",
+            name: "John Doe",
+            email: "john@example.com",
+            org_id: "org-1",
+            job_title: "Engineer",
+            linkedin_username: "johndoe",
+          },
+          content: "",
+        },
+      });
+
+      const persister = createHumanPersister<Schemas>(store);
+      await persister.load();
+
+      const humans = store.getTable("humans");
+      expect(humans[HUMAN_UUID_1]?.email).toBe("john@example.com");
+    });
+
+    test("saves multiple emails as array", async () => {
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
+
+      store.setRow("humans", HUMAN_UUID_1, {
+        user_id: "user-1",
+        created_at: "2024-01-01T00:00:00Z",
+        name: "John Doe",
+        email: "john@example.com,john.doe@work.com",
+        org_id: "org-1",
+        job_title: "Engineer",
+        linkedin_username: "johndoe",
+        memo: "",
+      });
+
+      const persister = createHumanPersister<Schemas>(store);
+      await persister.save();
+
+      const batchItems = vi.mocked(fsSyncCommands.writeFrontmatterBatch).mock
+        .calls[0][0];
+      const frontmatter = batchItems[0][0].frontmatter;
+
+      expect(frontmatter.emails).toEqual([
+        "john@example.com",
+        "john.doe@work.com",
+      ]);
+      expect(frontmatter.email).toBeUndefined();
     });
   });
 });
@@ -399,6 +510,68 @@ Some notes about John`;
 
       expect(frontmatter).toEqual({});
       expect(body).toBe("Just some text without frontmatter");
+    });
+  });
+});
+
+describe("transform", () => {
+  describe("frontmatterToStore", () => {
+    test("converts emails array to comma-separated string", () => {
+      const result = frontmatterToStore({
+        emails: ["a@example.com", "b@example.com"],
+      });
+      expect(result.email).toBe("a@example.com,b@example.com");
+    });
+
+    test("falls back to email string for backward compat", () => {
+      const result = frontmatterToStore({ email: "a@example.com" });
+      expect(result.email).toBe("a@example.com");
+    });
+
+    test("prefers emails array over email string", () => {
+      const result = frontmatterToStore({
+        emails: ["new@example.com"],
+        email: "old@example.com",
+      });
+      expect(result.email).toBe("new@example.com");
+    });
+
+    test("returns empty string when neither exists", () => {
+      const result = frontmatterToStore({});
+      expect(result.email).toBe("");
+    });
+
+    test("trims whitespace and filters empty values", () => {
+      const result = frontmatterToStore({
+        emails: ["  a@example.com  ", "", "  b@example.com"],
+      });
+      expect(result.email).toBe("a@example.com,b@example.com");
+    });
+  });
+
+  describe("storeToFrontmatter", () => {
+    test("splits comma-separated string into array", () => {
+      const result = storeToFrontmatter({
+        email: "a@example.com,b@example.com",
+      });
+      expect(result.emails).toEqual(["a@example.com", "b@example.com"]);
+    });
+
+    test("returns empty array for empty string", () => {
+      const result = storeToFrontmatter({ email: "" });
+      expect(result.emails).toEqual([]);
+    });
+
+    test("trims whitespace and filters empty values", () => {
+      const result = storeToFrontmatter({
+        email: "  a@example.com  , , b@example.com  ",
+      });
+      expect(result.emails).toEqual(["a@example.com", "b@example.com"]);
+    });
+
+    test("handles single email", () => {
+      const result = storeToFrontmatter({ email: "a@example.com" });
+      expect(result.emails).toEqual(["a@example.com"]);
     });
   });
 });

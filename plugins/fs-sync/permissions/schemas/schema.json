@@ -415,10 +415,10 @@
           "markdownDescription": "Denies the write_markdown_batch command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`",
+          "description": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`"
+          "markdownDescription": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`"
         }
       ]
     }

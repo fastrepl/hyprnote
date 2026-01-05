@@ -14,12 +14,6 @@ Default permissions for the fs-sync plugin
 - `allow-delete-folder`
 - `allow-cleanup-orphan-files`
 - `allow-cleanup-orphan-dirs`
-- `allow-audio-exist`
-- `allow-audio-delete`
-- `allow-audio-import`
-- `allow-audio-path`
-- `allow-session-dir`
-- `allow-delete-session-folder`
 
 ## Permission Table
 

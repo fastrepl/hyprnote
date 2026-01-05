@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import type { TablesContent } from "../utils";
+import type { TablesContent } from "../shared";
 import {
   type ChatJson,
   chatJsonToData,

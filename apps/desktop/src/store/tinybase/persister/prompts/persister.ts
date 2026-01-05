@@ -2,7 +2,7 @@ import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import type { PromptStorage } from "@hypr/store";
 
-import { createMarkdownDirPersister } from "../utils";
+import { createMarkdownDirPersister } from "../factories";
 import { frontmatterToPrompt, promptToFrontmatter } from "./transform";
 
 export function createPromptPersister<Schemas extends OptionalSchemas>(

@@ -2,7 +2,7 @@ import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import type { OrganizationStorage } from "@hypr/store";
 
-import { createMarkdownDirPersister } from "../utils";
+import { createMarkdownDirPersister } from "../factories";
 import {
   frontmatterToOrganization,
   organizationToFrontmatter,

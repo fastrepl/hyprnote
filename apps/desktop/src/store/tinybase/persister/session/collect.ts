@@ -19,7 +19,7 @@ import {
   iterateTableRows,
   sanitizeFilename,
   type TablesContent,
-} from "../utils";
+} from "../shared";
 import type {
   NoteFrontmatter,
   ParticipantData,

@@ -1,6 +1,10 @@
 import { sep } from "@tauri-apps/api/path";
 
-import { type CollectorResult, getChatDir, type TablesContent } from "../utils";
+import {
+  type CollectorResult,
+  getChatDir,
+  type TablesContent,
+} from "../shared";
 import { tablesToChatJsonList } from "./transform";
 
 export type ChatCollectorResult = CollectorResult & {

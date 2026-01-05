@@ -1,6 +1,6 @@
 import type { ChatGroup, ChatMessageStorage } from "@hypr/store";
 
-import { iterateTableRows, type TablesContent } from "../utils";
+import { iterateTableRows, type TablesContent } from "../shared";
 
 export type ChatGroupData = {
   id: string;

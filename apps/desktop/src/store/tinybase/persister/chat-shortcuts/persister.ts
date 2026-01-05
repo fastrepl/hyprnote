@@ -1,6 +1,6 @@
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import { createJsonFilePersister } from "../utils";
+import { createJsonFilePersister } from "../factories";
 
 export function createChatShortcutPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,

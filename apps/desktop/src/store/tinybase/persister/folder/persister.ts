@@ -9,7 +9,7 @@ import {
 
 import { DEFAULT_USER_ID } from "../../../../utils";
 import { StoreOrMergeableStore } from "../../store/shared";
-import { asTablesChanges } from "../utils";
+import { asTablesChanges } from "../shared";
 
 export function createFolderPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,

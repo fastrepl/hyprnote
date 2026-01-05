@@ -4,7 +4,8 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
-import { createCollectorPersister, getDataDir } from "../utils";
+import { createCollectorPersister } from "../factories";
+import { getDataDir } from "../shared";
 import { collectChatWriteOps } from "./collect";
 import { loadAllChatData } from "./load";
 

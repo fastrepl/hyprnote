@@ -4,7 +4,7 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
-import { commands as folderCommands } from "@hypr/plugin-folder";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import { createSessionDirPersister, getDataDir } from "../utils";
 import { collectPromptWriteOps, type PromptCollectorResult } from "./collect";
@@ -28,7 +28,7 @@ export function createPromptPersister<Schemas extends OptionalSchemas>(
     },
     postSave: async (_dataDir, result) => {
       const { validPromptIds } = result as PromptCollectorResult;
-      await folderCommands.cleanupOrphanFiles(
+      await fsSyncCommands.cleanupOrphanFiles(
         "prompts",
         "md",
         Array.from(validPromptIds),

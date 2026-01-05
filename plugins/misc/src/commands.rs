@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use tauri_plugin_folder::find_session_dir;
+use tauri_plugin_fs_sync::find_session_dir;
 use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_path2::Path2PluginExt;
 

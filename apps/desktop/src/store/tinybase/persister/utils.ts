@@ -8,13 +8,10 @@ import type {
 } from "tinybase/with-schemas";
 
 import {
-  commands as exportCommands,
-  type JsonValue as ExportJsonValue,
-} from "@hypr/plugin-export";
-import {
-  commands as frontmatterCommands,
+  commands as fsSyncCommands,
+  type JsonValue as FsSyncJsonValue,
   type ParsedDocument,
-} from "@hypr/plugin-frontmatter";
+} from "@hypr/plugin-fs-sync";
 import { events as notifyEvents } from "@hypr/plugin-notify";
 import { commands as path2Commands } from "@hypr/plugin-path2";
 import type {
@@ -30,7 +27,7 @@ import type {
 
 import { StoreOrMergeableStore } from "../store/shared";
 
-export type { ExportJsonValue as JsonValue };
+export type { FsSyncJsonValue as JsonValue };
 
 // https://github.com/tinyplex/tinybase/blob/aa5cb9014f6def18266414174e0fd31ccfae0828/src/persisters/common/create.ts#L185
 // When content[2] === 1, TinyBase uses applyChanges() instead of setContent(),
@@ -230,7 +227,7 @@ export function createModeAwarePersister<Schemas extends OptionalSchemas>(
 
 export type WriteOperation =
   | { type: "json"; path: string; content: unknown }
-  | { type: "md-batch"; items: Array<[ExportJsonValue, string]> }
+  | { type: "md-batch"; items: Array<[FsSyncJsonValue, string]> }
   | { type: "text"; path: string; content: string }
   | { type: "frontmatter-batch"; items: Array<[ParsedDocument, string]> };
 
@@ -267,14 +264,14 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
 
       await ensureDirsExist(dirs);
 
-      const jsonBatchItems: Array<[ExportJsonValue, string]> = [];
-      let mdBatchItems: Array<[ExportJsonValue, string]> = [];
+      const jsonBatchItems: Array<[FsSyncJsonValue, string]> = [];
+      let mdBatchItems: Array<[FsSyncJsonValue, string]> = [];
       let frontmatterBatchItems: Array<[ParsedDocument, string]> = [];
       const textItems: Array<{ path: string; content: string }> = [];
 
       for (const op of operations) {
         if (op.type === "json") {
-          jsonBatchItems.push([op.content as ExportJsonValue, op.path]);
+          jsonBatchItems.push([op.content as FsSyncJsonValue, op.path]);
         } else if (op.type === "md-batch") {
           mdBatchItems = mdBatchItems.concat(op.items);
         } else if (op.type === "frontmatter-batch") {
@@ -286,7 +283,7 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
 
       if (jsonBatchItems.length > 0) {
         const exportResult =
-          await exportCommands.exportJsonBatch(jsonBatchItems);
+          await fsSyncCommands.writeJsonBatch(jsonBatchItems);
         if (exportResult.status === "error") {
           console.error(
             `[${options.label}] Failed to export json batch:`,
@@ -297,7 +294,7 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
 
       if (mdBatchItems.length > 0) {
         const exportResult =
-          await exportCommands.exportTiptapJsonToMdBatch(mdBatchItems);
+          await fsSyncCommands.writeMarkdownBatch(mdBatchItems);
         if (exportResult.status === "error") {
           console.error(
             `[${options.label}] Failed to export md batch:`,
@@ -307,7 +304,7 @@ export function createSessionDirPersister<Schemas extends OptionalSchemas>(
       }
 
       if (frontmatterBatchItems.length > 0) {
-        const result = await frontmatterCommands.serializeBatch(
+        const result = await fsSyncCommands.writeFrontmatterBatch(
           frontmatterBatchItems,
         );
         if (result.status === "error") {

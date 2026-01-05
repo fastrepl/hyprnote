@@ -20,9 +20,9 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
   remove: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@hypr/plugin-export", () => ({
+vi.mock("@hypr/plugin-fs-sync", () => ({
   commands: {
-    exportJsonBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
+    writeJsonBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
   },
 }));
 
@@ -337,7 +337,7 @@ describe("createSessionPersister", () => {
 
   describe("save", () => {
     test("saves session metadata with tags to files", async () => {
-      const { commands } = await import("@hypr/plugin-export");
+      const { commands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("sessions", "session-1", {
         user_id: "user-1",
@@ -362,8 +362,8 @@ describe("createSessionPersister", () => {
       const persister = createSessionPersister<Schemas>(store);
       await persister.save();
 
-      expect(commands.exportJsonBatch).toHaveBeenCalled();
-      const batchItems = vi.mocked(commands.exportJsonBatch).mock.calls[0][0];
+      expect(commands.writeJsonBatch).toHaveBeenCalled();
+      const batchItems = vi.mocked(commands.writeJsonBatch).mock.calls[0][0];
       const content = batchItems[0][0] as SessionMetaJson;
 
       expect(content.tags).toEqual(["Important"]);

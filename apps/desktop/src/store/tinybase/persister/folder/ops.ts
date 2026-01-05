@@ -1,4 +1,4 @@
-import { commands as folderCommands } from "@hypr/plugin-folder";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import type { Store } from "../../store/main";
 
@@ -28,7 +28,7 @@ export async function moveSessionToFolder(
 
   store.setCell("sessions", sessionId, "folder_id", targetFolderId);
 
-  const result = await folderCommands.moveSession(sessionId, targetFolderId);
+  const result = await fsSyncCommands.moveSession(sessionId, targetFolderId);
 
   if (result.status === "error") {
     console.error("[FolderOps] moveSession failed:", result.error);
@@ -44,7 +44,7 @@ export async function createFolder(
 ): Promise<{ status: "ok" } | { status: "error"; error: string }> {
   const { reloadFolders } = getConfig();
 
-  const result = await folderCommands.createFolder(folderPath);
+  const result = await fsSyncCommands.createFolder(folderPath);
 
   if (result.status === "error") {
     console.error("[FolderOps] createFolder failed:", result.error);
@@ -61,7 +61,7 @@ export async function renameFolder(
 ): Promise<{ status: "ok" } | { status: "error"; error: string }> {
   const { reloadFolders } = getConfig();
 
-  const result = await folderCommands.renameFolder(oldPath, newPath);
+  const result = await fsSyncCommands.renameFolder(oldPath, newPath);
 
   if (result.status === "error") {
     console.error("[FolderOps] renameFolder failed:", result.error);
@@ -77,7 +77,7 @@ export async function deleteFolder(
 ): Promise<{ status: "ok" } | { status: "error"; error: string }> {
   const { reloadFolders } = getConfig();
 
-  const result = await folderCommands.deleteFolder(folderPath);
+  const result = await fsSyncCommands.deleteFolder(folderPath);
 
   if (result.status === "error") {
     console.error("[FolderOps] deleteFolder failed:", result.error);

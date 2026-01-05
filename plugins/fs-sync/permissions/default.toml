@@ -1,0 +1,14 @@
+[default]
+description = "Default permissions for the fs-sync plugin"
+permissions = [
+    "allow-write-json-batch",
+    "allow-write-markdown-batch",
+    "allow-write-frontmatter-batch",
+    "allow-list-folders",
+    "allow-move-session",
+    "allow-create-folder",
+    "allow-rename-folder",
+    "allow-delete-folder",
+    "allow-cleanup-orphan-files",
+    "allow-cleanup-orphan-dirs",
+]

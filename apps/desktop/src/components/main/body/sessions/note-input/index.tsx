@@ -15,7 +15,6 @@ import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
-import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
 import { useScrollPreservation } from "../../../../../hooks/useScrollPreservation";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
@@ -71,12 +70,13 @@ export const NoteInput = forwardRef<
       const timer = setTimeout(() => {
         setShowConsentBanner(false);
       }, 5000);
-      prevSessionMode.current = sessionMode;
       return () => clearTimeout(timer);
     }
-
-    prevSessionMode.current = sessionMode;
   }, [sessionMode]);
+
+  useEffect(() => {
+    prevSessionMode.current = sessionMode;
+  });
 
   const { scrollRef, onBeforeTabChange } = useScrollPreservation(
     currentTab.type === "enhanced"

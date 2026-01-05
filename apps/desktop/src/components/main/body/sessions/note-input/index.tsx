@@ -41,6 +41,7 @@ export const NoteInput = forwardRef<
 
   const sessionId = tab.id;
   const { skipReason } = useAutoEnhance(tab);
+  const [showConsentBanner, setShowConsentBanner] = useState(false);
 
   const tabRef = useRef(tab);
   tabRef.current = tab;
@@ -57,6 +58,16 @@ export const NoteInput = forwardRef<
     sessionMode === "active" ||
     sessionMode === "finalizing" ||
     sessionMode === "running_batch";
+
+  useEffect(() => {
+    if (sessionMode === "active") {
+      setShowConsentBanner(true);
+      const timer = setTimeout(() => {
+        setShowConsentBanner(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [sessionMode]);
 
   const { scrollRef, onBeforeTabChange } = useScrollPreservation(
     currentTab.type === "enhanced"
@@ -218,11 +229,33 @@ export const NoteInput = forwardRef<
           isEditing={isEditing}
           setIsEditing={setIsEditing}
         />
-        {skipReason && (
-          <div className="absolute left-0 right-0 top-8 z-10 px-2 py-1.5 text-center text-xs text-stone-300">
-            {skipReason}
-          </div>
-        )}
+        <AnimatePresence>
+          {(skipReason || showConsentBanner) && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className={cn([
+                "absolute left-0 right-0 top-full z-10 px-3 py-1.5 border-b backdrop-blur-sm",
+                skipReason && [
+                  "bg-yellow-50/80",
+                  "border-yellow-200/50",
+                  "text-yellow-800/90",
+                ],
+                showConsentBanner && [
+                  "bg-blue-50/80",
+                  "border-blue-200/50",
+                  "text-blue-800/90",
+                ],
+              ])}
+            >
+              <p className="text-xs">
+                {skipReason || "Ask for consent when using Hyprnote"}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="relative flex-1 overflow-hidden">
@@ -419,9 +452,9 @@ function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
       className={cn([
         "absolute left-0 w-full h-8 z-20 pointer-events-none",
         position === "top" &&
-        "top-0 bg-gradient-to-b from-white to-transparent",
+          "top-0 bg-gradient-to-b from-white to-transparent",
         position === "bottom" &&
-        "bottom-0 bg-gradient-to-t from-white to-transparent",
+          "bottom-0 bg-gradient-to-t from-white to-transparent",
       ])}
     />
   );

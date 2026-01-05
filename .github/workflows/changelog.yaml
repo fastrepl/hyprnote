@@ -29,7 +29,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,16 +61,15 @@ jobs:
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
           echo "prev=$PREV" >> $GITHUB_OUTPUT
 
-      - run: |
-          curl -fsSL https://opencode.ai/install | bash
-          echo "$HOME/.opencode/bin" >> $GITHUB_PATH
-
-      - run: |
-          opencode -m anthropic/claude-sonnet-4-20250514 -p "
+      - uses: anomalyco/opencode/github@latest
+        env:
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+        with:
+          model: zai/glm-4.7
+          prompt: |
             Create apps/web/content/changelog/${{ steps.version.outputs.version }}.mdx
             for commits between ${{ steps.version.outputs.prev }} and ${{ steps.version.outputs.current }}.
             Follow apps/web/content/changelog/AGENTS.md.
-          "
 
       - uses: peter-evans/create-pull-request@v8
         id: cpr
@@ -82,7 +80,7 @@ jobs:
           body: |
             Auto-generated changelog for version ${{ steps.version.outputs.version }}.
 
-            Generated using `opencode` CLI based on commits from ${{ steps.version.outputs.prev }} to ${{ steps.version.outputs.current }}.
+            Generated using OpenCode based on commits from ${{ steps.version.outputs.prev }} to ${{ steps.version.outputs.current }}.
           commit-message: "docs: add changelog for ${{ steps.version.outputs.version }}"
           delete-branch: true
 

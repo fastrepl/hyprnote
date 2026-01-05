@@ -50,7 +50,7 @@ function Component() {
           {changelogs.map((changelog, index) => (
             <div key={changelog.slug}>
               <div className="max-w-4xl mx-auto px-6">
-                <ChangelogSection changelog={changelog} isFirst={index === 0} />
+                <ChangelogSection changelog={changelog} />
               </div>
               {index < changelogs.length - 1 && (
                 <div className="border-b border-neutral-100 my-12" />
@@ -77,13 +77,7 @@ function HeroSection() {
   );
 }
 
-function ChangelogSection({
-  changelog,
-  isFirst,
-}: {
-  changelog: ChangelogWithMeta;
-  isFirst: boolean;
-}) {
+function ChangelogSection({ changelog }: { changelog: ChangelogWithMeta }) {
   const currentVersion = semver.parse(changelog.version);
   const isPrerelease = currentVersion && currentVersion.prerelease.length > 0;
   const nightlyNumber =
@@ -95,8 +89,8 @@ function ChangelogSection({
     <section className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-6 md:gap-12">
       <div className="md:sticky md:top-24 md:self-start space-y-6">
         <div className="flex flex-col gap-1">
-          {isFirst && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-linear-to-t from-amber-200 to-amber-100 text-amber-900 rounded-full w-fit">
+          {!isPrerelease && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-linear-to-t from-stone-200 to-stone-100 text-stone-700 rounded-full w-fit">
               <Icon icon="ri:rocket-fill" className="text-xs" />
               Stable
             </span>

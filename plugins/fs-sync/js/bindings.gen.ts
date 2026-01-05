@@ -38,6 +38,14 @@ async writeFrontmatterBatch(items: ([ParsedDocument, string])[]) : Promise<Resul
     else return { status: "error", error: e  as any };
 }
 },
+async readFrontmatterBatch(dirPath: string) : Promise<Result<Partial<{ [key in string]: ParsedDocument }>, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|read_frontmatter_batch", { dirPath }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async listFolders() : Promise<Result<ListFoldersResult, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|list_folders") };

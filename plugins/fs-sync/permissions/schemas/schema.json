@@ -295,6 +295,54 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the audio_delete command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-audio-delete",
+          "markdownDescription": "Enables the audio_delete command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the audio_delete command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-audio-delete",
+          "markdownDescription": "Denies the audio_delete command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the audio_exist command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-audio-exist",
+          "markdownDescription": "Enables the audio_exist command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the audio_exist command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-audio-exist",
+          "markdownDescription": "Denies the audio_exist command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the audio_import command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-audio-import",
+          "markdownDescription": "Enables the audio_import command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the audio_import command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-audio-import",
+          "markdownDescription": "Denies the audio_import command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the audio_path command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-audio-path",
+          "markdownDescription": "Enables the audio_path command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the audio_path command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-audio-path",
+          "markdownDescription": "Denies the audio_path command without any pre-configured scope."
+        },
+        {
           "description": "Enables the cleanup_orphan_dirs command without any pre-configured scope.",
           "type": "string",
           "const": "allow-cleanup-orphan-dirs",
@@ -343,6 +391,30 @@
           "markdownDescription": "Denies the delete_folder command without any pre-configured scope."
         },
         {
+          "description": "Enables the delete_session_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-delete-session-folder",
+          "markdownDescription": "Enables the delete_session_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_session_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-delete-session-folder",
+          "markdownDescription": "Denies the delete_session_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the deserialize command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-deserialize",
+          "markdownDescription": "Enables the deserialize command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the deserialize command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-deserialize",
+          "markdownDescription": "Denies the deserialize command without any pre-configured scope."
+        },
+        {
           "description": "Enables the list_folders command without any pre-configured scope.",
           "type": "string",
           "const": "allow-list-folders",
@@ -367,6 +439,18 @@
           "markdownDescription": "Denies the move_session command without any pre-configured scope."
         },
         {
+          "description": "Enables the read_frontmatter_batch command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-read-frontmatter-batch",
+          "markdownDescription": "Enables the read_frontmatter_batch command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the read_frontmatter_batch command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-read-frontmatter-batch",
+          "markdownDescription": "Denies the read_frontmatter_batch command without any pre-configured scope."
+        },
+        {
           "description": "Enables the rename_folder command without any pre-configured scope.",
           "type": "string",
           "const": "allow-rename-folder",
@@ -377,6 +461,18 @@
           "type": "string",
           "const": "deny-rename-folder",
           "markdownDescription": "Denies the rename_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the session_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-session-dir",
+          "markdownDescription": "Enables the session_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the session_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-session-dir",
+          "markdownDescription": "Denies the session_dir command without any pre-configured scope."
         },
         {
           "description": "Enables the write_frontmatter_batch command without any pre-configured scope.",
@@ -415,10 +511,10 @@
           "markdownDescription": "Denies the write_markdown_batch command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`",
+          "description": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-read-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`"
+          "markdownDescription": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-read-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`"
         }
       ]
     }

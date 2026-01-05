@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use rayon::prelude::*;
@@ -11,18 +12,21 @@ use crate::folder::find_session_dir;
 use crate::frontmatter::ParsedDocument;
 use crate::types::ListFoldersResult;
 
-#[tauri::command]
-#[specta::specta]
-pub(crate) async fn deserialize(input: String) -> Result<ParsedDocument, String> {
-    crate::frontmatter::deserialize(&input).map_err(|e| e.to_string())
-}
-
+/// For batch I/O on many small files, sync I/O with rayon parallelism
+/// is more efficient than async I/O (avoids per-file async task overhead).
+/// This macro wraps sync work to prevent blocking Tauri's invoke handler.
 macro_rules! spawn_blocking {
     ($body:expr) => {
         tokio::task::spawn_blocking(move || $body)
             .await
             .map_err(|e| e.to_string())?
     };
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn deserialize(input: String) -> Result<ParsedDocument, String> {
+    crate::frontmatter::deserialize(&input).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -59,6 +63,16 @@ pub(crate) async fn write_frontmatter_batch(
             let content = crate::frontmatter::serialize(doc).map_err(|e| e.to_string())?;
             std::fs::write(path, content).map_err(|e| e.to_string())
         })
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn read_frontmatter_batch(
+    dir_path: String,
+) -> Result<HashMap<String, ParsedDocument>, String> {
+    spawn_blocking!({
+        crate::frontmatter::read_frontmatter_from_dir(&dir_path).map_err(|e| e.to_string())
     })
 }
 

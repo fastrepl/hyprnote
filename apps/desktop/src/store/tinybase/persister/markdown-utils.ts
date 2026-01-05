@@ -1,18 +1,12 @@
 import { sep } from "@tauri-apps/api/path";
-import {
-  exists,
-  mkdir,
-  readDir,
-  readTextFile,
-  remove,
-} from "@tauri-apps/plugin-fs";
+import { exists, mkdir, readTextFile, remove } from "@tauri-apps/plugin-fs";
 
 import {
   commands as fsSyncCommands,
   type ParsedDocument,
 } from "@hypr/plugin-fs-sync";
 
-import { isFileNotFoundError, isUUID } from "./utils";
+import { isFileNotFoundError } from "./utils";
 import type { JsonValue } from "./utils";
 
 export interface ParsedMarkdown {
@@ -49,46 +43,25 @@ export async function loadAllEntities<T>(
   label: string,
   mapFrontmatter: (frontmatter: Record<string, unknown>, body: string) => T,
 ): Promise<Record<string, T>> {
-  const result: Record<string, T> = {};
   const paths = createEntityPaths(dirName);
   const entityDir = paths.getDir(dataDir);
 
-  let entries: { name: string; isDirectory: boolean }[];
-  try {
-    entries = await readDir(entityDir);
-  } catch (error) {
-    if (isFileNotFoundError(error)) {
-      return result;
-    }
-    throw error;
+  const result = await fsSyncCommands.readFrontmatterBatch(entityDir);
+  if (result.status === "error") {
+    console.error(`[${label}] Failed to load:`, result.error);
+    return {};
   }
 
-  for (const entry of entries) {
-    if (entry.isDirectory) continue;
-    if (!entry.name.endsWith(".md")) continue;
-
-    const entityId = entry.name.replace(/\.md$/, "");
-    if (!isUUID(entityId)) {
-      console.warn(`[${label}] Skipping non-UUID file: ${entry.name}`);
-      continue;
-    }
-
-    try {
-      const filePath = paths.getFilePath(dataDir, entityId);
-      const content = await readTextFile(filePath);
-      const { frontmatter, body } = await parseMarkdownWithFrontmatter(
-        content,
-        label,
+  const entities: Record<string, T> = {};
+  for (const [id, doc] of Object.entries(result.data)) {
+    if (doc) {
+      entities[id] = mapFrontmatter(
+        doc.frontmatter as Record<string, unknown>,
+        doc.content.trim(),
       );
-
-      result[entityId] = mapFrontmatter(frontmatter, body);
-    } catch (error) {
-      console.error(`[${label}] Failed to load entity ${entityId}:`, error);
-      continue;
     }
   }
-
-  return result;
+  return entities;
 }
 
 export async function migrateJsonToMarkdown<T>(

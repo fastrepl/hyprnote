@@ -14,8 +14,6 @@ import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
-import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
-import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
 import { useScrollPreservation } from "../../../../../hooks/useScrollPreservation";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
@@ -41,8 +39,6 @@ export const NoteInput = forwardRef<
   const [isEditing, setIsEditing] = useState(false);
 
   const sessionId = tab.id;
-  useAutoEnhance(tab);
-  useAutoTitle(tab);
 
   const tabRef = useRef(tab);
   tabRef.current = tab;
@@ -211,7 +207,7 @@ export const NoteInput = forwardRef<
 
   return (
     <div className="flex flex-col h-full -mx-2">
-      <div className="px-2">
+      <div className="px-2 relative">
         <Header
           sessionId={sessionId}
           editorTabs={editorTabs}

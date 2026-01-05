@@ -28,38 +28,96 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     main.STORE_ID,
   );
   const hasTranscript = !!transcriptIds && transcriptIds.length > 0;
+  const firstTranscriptId = transcriptIds?.[0];
+
+  const wordIds = main.UI.useSliceRowIds(
+    main.INDEXES.wordsByTranscript,
+    firstTranscriptId ?? "",
+    main.STORE_ID,
+  );
+  const MIN_WORDS_FOR_ENHANCEMENT = 5;
+  const hasWords = !!wordIds && wordIds.length >= MIN_WORDS_FOR_ENHANCEMENT;
 
   const [autoEnhancedNoteId, setAutoEnhancedNoteId] = useState<string | null>(
     null,
   );
+  const [skipReason, setSkipReason] = useState<string | null>(null);
 
   const startedTasksRef = useRef<Set<string>>(new Set());
   const tabRef = useRef(tab);
   tabRef.current = tab;
 
+  const store = main.UI.useStore(main.STORE_ID);
+
+  const titleTaskId = createTaskId(sessionId, "title");
+  const handleTitleSuccess = useCallback(
+    ({ text }: { text: string }) => {
+      if (text && store) {
+        const trimmedTitle = text.trim();
+        if (!trimmedTitle || trimmedTitle === "<EMPTY>") {
+          setSkipReason("Could not generate a meaningful title");
+          return;
+        }
+        store.setPartialRow("sessions", sessionId, {
+          title: trimmedTitle,
+        });
+      }
+    },
+    [store, sessionId],
+  );
+  const titleTask = useAITaskTask(titleTaskId, "title", {
+    onSuccess: handleTitleSuccess,
+  });
+
   const enhanceTaskId = autoEnhancedNoteId
     ? createTaskId(autoEnhancedNoteId, "enhance")
     : createTaskId("placeholder", "enhance");
-  const store = main.UI.useStore(main.STORE_ID);
-  const enhanceTask = useAITaskTask(enhanceTaskId, "enhance", {
-    onSuccess: ({ text }) => {
+
+  const handleEnhanceSuccess = useCallback(
+    ({ text }: { text: string }) => {
       if (text && autoEnhancedNoteId && store) {
         try {
           const jsonContent = md2json(text);
           store.setPartialRow("enhanced_notes", autoEnhancedNoteId, {
             content: JSON.stringify(jsonContent),
           });
+
+          const currentTitle = store.getCell("sessions", sessionId, "title");
+          const trimmedTitle =
+            typeof currentTitle === "string" ? currentTitle.trim() : "";
+          if (!trimmedTitle && model) {
+            void titleTask.start({
+              model,
+              args: { sessionId },
+            });
+          }
         } catch (error) {
           console.error("Failed to convert markdown to JSON:", error);
         }
       }
     },
+    [autoEnhancedNoteId, store, sessionId, model, titleTask.start],
+  );
+
+  const enhanceTask = useAITaskTask(enhanceTaskId, "enhance", {
+    onSuccess: handleEnhanceSuccess,
   });
 
   const createAndStartEnhance = useCallback(() => {
     if (!hasTranscript) {
+      setSkipReason("No transcript recorded");
       return;
     }
+
+    if (!hasWords) {
+      const wordCount = wordIds?.length ?? 0;
+      setSkipReason(
+        `Not enough words recorded (${wordCount}/${MIN_WORDS_FOR_ENHANCEMENT} minimum)`,
+      );
+      return;
+    }
+
+    setSkipReason(null);
 
     const enhancedNoteId = createEnhancedNote(sessionId);
     if (!enhancedNoteId) return;
@@ -70,7 +128,14 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       ...tabRef.current.state,
       view: { type: "enhanced", id: enhancedNoteId },
     });
-  }, [hasTranscript, sessionId, updateSessionTabState, createEnhancedNote]);
+  }, [
+    hasTranscript,
+    hasWords,
+    wordIds,
+    sessionId,
+    updateSessionTabState,
+    createEnhancedNote,
+  ]);
 
   useEffect(() => {
     if (
@@ -98,4 +163,15 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       createAndStartEnhance();
     }
   }, [listenerStatus, prevListenerStatus, createAndStartEnhance]);
+
+  useEffect(() => {
+    if (skipReason) {
+      const timer = setTimeout(() => {
+        setSkipReason(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [skipReason]);
+
+  return { skipReason };
 }

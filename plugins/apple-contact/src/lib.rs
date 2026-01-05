@@ -18,7 +18,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::ping::<tauri::Wry>,
+            commands::import::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
@@ -61,9 +61,9 @@ mod test {
     }
 
     #[tokio::test]
-    async fn test_ping() {
+    async fn test_import() {
         let app = create_app(tauri::test::mock_builder());
-        let result = app.apple_contact().ping();
-        assert!(result.is_ok());
+        let result = app.apple_contact().import();
+        assert!(result.is_err());
     }
 }

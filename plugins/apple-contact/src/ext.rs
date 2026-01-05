@@ -4,8 +4,14 @@ pub struct AppleContact<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AppleContact<'a, R, M> {
-    pub fn ping(&self) -> Result<String, crate::Error> {
-        Ok("pong".to_string())
+    #[cfg(target_os = "macos")]
+    pub fn import(&self) -> Result<crate::ImportResult, crate::Error> {
+        crate::import_contacts().ok_or(crate::Error::NoContactsAccess)
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    pub fn import(&self) -> Result<crate::ImportResult, crate::Error> {
+        Err(crate::Error::NotSupported)
     }
 }
 

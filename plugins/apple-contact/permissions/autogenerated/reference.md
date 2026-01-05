@@ -4,7 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-ping`
+- `allow-import`
 
 ## Permission Table
 
@@ -18,12 +18,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`apple-contact:allow-ping`
+`apple-contact:allow-import`
 
 </td>
 <td>
 
-Enables the ping command without any pre-configured scope.
+Enables the import command without any pre-configured scope.
 
 </td>
 </tr>
@@ -31,12 +31,12 @@ Enables the ping command without any pre-configured scope.
 <tr>
 <td>
 
-`apple-contact:deny-ping`
+`apple-contact:deny-import`
 
 </td>
 <td>
 
-Denies the ping command without any pre-configured scope.
+Denies the import command without any pre-configured scope.
 
 </td>
 </tr>

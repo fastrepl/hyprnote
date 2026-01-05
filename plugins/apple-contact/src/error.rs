@@ -6,6 +6,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("Unknown error")]
     Unknown,
+    #[error("No contacts access")]
+    NoContactsAccess,
+    #[error("Not supported on this platform")]
+    NotSupported,
 }
 
 impl Serialize for Error {

@@ -49,7 +49,7 @@ jobs:
       - id: version
         run: |
           if [ "${{ inputs.channel }}" = "nightly" ]; then
-            VERSION=$(doxxer --config doxxer.desktop.toml next prerelease)
+            VERSION=$(doxxer --config doxxer.desktop.toml next pre-patch)
             PREV=$(git tag -l 'desktop_v*-nightly.*' --sort=-v:refname | head -n1)
             CURRENT="HEAD"
           else
@@ -68,8 +68,10 @@ jobs:
         with:
           model: zai-coding-plan/glm-4.7
           prompt: |
-            Create apps/web/content/changelog/${{ steps.version.outputs.version }}.mdx
-            for commits between ${{ steps.version.outputs.prev }} and ${{ steps.version.outputs.current }}.
-            Follow apps/web/content/changelog/AGENTS.md.
+            1.
+            Create apps/web/content/changelog/${{ steps.version.outputs.version }}.mdx.
+            Changelog should be generated from commits between ${{ steps.version.outputs.prev }} ~ ${{ steps.version.outputs.current }}.
+            Follow guidelines in apps/web/content/changelog/AGENTS.md.
 
-            Create a PR with title "docs: changelog for ${{ steps.version.outputs.version }}".
+            2.
+            Create a PR with title "Publish Changelog for ${{ steps.version.outputs.version }}"

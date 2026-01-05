@@ -38,7 +38,7 @@ jobs:
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
             VERSION=$(doxxer --config doxxer.desktop.toml next dev)
           elif [[ "${{ inputs.channel }}" == "nightly" ]]; then
-            VERSION=$(doxxer --config doxxer.desktop.toml next prerelease)
+            VERSION=$(doxxer --config doxxer.desktop.toml next pre-patch)
           elif [[ "${{ inputs.channel }}" == "stable" ]]; then
             VERSION=$(doxxer --config doxxer.desktop.toml next patch)
           fi

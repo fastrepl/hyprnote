@@ -60,14 +60,22 @@ export const NoteInput = forwardRef<
     sessionMode === "finalizing" ||
     sessionMode === "running_batch";
 
+  const prevSessionMode = useRef<string | null>(null);
+
   useEffect(() => {
-    if (sessionMode === "active") {
+    const justStartedListening =
+      prevSessionMode.current !== "active" && sessionMode === "active";
+
+    if (justStartedListening) {
       setShowConsentBanner(true);
       const timer = setTimeout(() => {
         setShowConsentBanner(false);
       }, 5000);
+      prevSessionMode.current = sessionMode;
       return () => clearTimeout(timer);
     }
+
+    prevSessionMode.current = sessionMode;
   }, [sessionMode]);
 
   const { scrollRef, onBeforeTabChange } = useScrollPreservation(

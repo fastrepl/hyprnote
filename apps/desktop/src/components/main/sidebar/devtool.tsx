@@ -9,8 +9,10 @@ import {
   type Store as MainStore,
   STORE_ID as STORE_ID_PERSISTED,
 } from "../../../store/tinybase/store/main";
+import { useTabs } from "../../../store/zustand/tabs";
 import { type SeedDefinition, seeds } from "../../devtool/seed/index";
 import { useTrialExpiredModal } from "../../devtool/trial-expired-modal";
+import { getLatestVersion } from "../body/changelog";
 
 declare global {
   interface Window {
@@ -87,9 +89,11 @@ export function DevtoolView() {
 function DevtoolCard({
   title,
   children,
+  maxHeight,
 }: {
   title: string;
   children: React.ReactNode;
+  maxHeight?: string;
 }) {
   return (
     <div
@@ -97,6 +101,7 @@ function DevtoolCard({
         "rounded-lg border border-neutral-200 bg-white",
         "shadow-sm",
         "overflow-hidden",
+        "shrink-0",
       ])}
     >
       <div className="px-2 py-1.5 border-b border-neutral-100 bg-neutral-50">
@@ -104,7 +109,12 @@ function DevtoolCard({
           {title}
         </h2>
       </div>
-      <div className="p-2">{children}</div>
+      <div
+        className="p-2 overflow-y-auto"
+        style={maxHeight ? { maxHeight } : undefined}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -189,7 +199,7 @@ function CalendarMockCard() {
 
 function SeedCard({ onSeed }: { onSeed: (seed: SeedDefinition) => void }) {
   return (
-    <DevtoolCard title="Seeds">
+    <DevtoolCard title="Seeds" maxHeight="200px">
       <div className="flex flex-col gap-1.5">
         {seeds.map((seed) => (
           <button
@@ -213,6 +223,8 @@ function SeedCard({ onSeed }: { onSeed: (seed: SeedDefinition) => void }) {
 }
 
 function NavigationCard() {
+  const openNew = useTabs((s) => s.openNew);
+
   const handleShowMain = useCallback(() => {
     void windowsCommands.windowShow({ type: "main" });
   }, []);
@@ -229,6 +241,16 @@ function NavigationCard() {
   const handleShowControl = useCallback(() => {
     void windowsCommands.windowShow({ type: "control" });
   }, []);
+
+  const handleShowChangelog = useCallback(() => {
+    const latestVersion = getLatestVersion();
+    if (latestVersion) {
+      openNew({
+        type: "changelog",
+        state: { current: latestVersion, previous: null },
+      });
+    }
+  }, [openNew]);
 
   return (
     <DevtoolCard title="Navigation">
@@ -271,6 +293,19 @@ function NavigationCard() {
           ])}
         >
           Control
+        </button>
+        <button
+          type="button"
+          onClick={handleShowChangelog}
+          className={cn([
+            "w-full px-2.5 py-1.5 rounded-md",
+            "text-xs font-medium text-left",
+            "border border-neutral-200 text-neutral-700",
+            "cursor-pointer transition-colors",
+            "hover:bg-neutral-50 hover:border-neutral-300",
+          ])}
+        >
+          Changelog
         </button>
       </div>
     </DevtoolCard>

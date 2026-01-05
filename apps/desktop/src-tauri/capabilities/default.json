@@ -212,6 +212,7 @@
       ]
     },
     "apple-calendar:default",
+    "apple-contact:default",
     "audio-priority:default",
     "auth:default",
     "extensions:default",

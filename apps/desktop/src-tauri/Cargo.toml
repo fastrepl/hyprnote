@@ -24,6 +24,7 @@ tauri = { workspace = true, features = ["specta", "macos-private-api", "protocol
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-apple-calendar = { workspace = true }
+tauri-plugin-apple-contact = { workspace = true }
 tauri-plugin-audio-priority = { workspace = true }
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-autostart = { workspace = true }

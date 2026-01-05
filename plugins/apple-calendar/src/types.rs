@@ -208,6 +208,10 @@ common_derives! {
     }
 }
 
+#[cfg(target_os = "macos")]
+pub type ParticipantContact = tauri_plugin_apple_contact::Contact;
+
+#[cfg(not(target_os = "macos"))]
 common_derives! {
     pub struct ParticipantContact {
         pub identifier: String,

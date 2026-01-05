@@ -30,6 +30,7 @@
     "@hypr/codemirror": "workspace:^",
     "@hypr/plugin-analytics": "workspace:*",
     "@hypr/plugin-apple-calendar": "workspace:*",
+    "@hypr/plugin-apple-contact": "workspace:*",
     "@hypr/plugin-audio-priority": "workspace:*",
     "@hypr/plugin-auth": "workspace:*",
     "@hypr/plugin-cli2": "workspace:*",

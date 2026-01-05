@@ -1,68 +1,73 @@
 use std::path::Path;
 
-use tauri_plugin_path2::Path2PluginExt;
+const BASE_DIRECTORIES: &[&str] = &["sessions", "chats"];
+const LEGACY_SESSIONS_SUBDIRECTORY: &str = "_default";
 
-pub fn run<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
-    let base = match app.path2().base() {
-        Ok(base) => base,
-        Err(e) => {
-            tracing::warn!("Failed to get base path for migration: {}", e);
-            return;
-        }
-    };
-
-    let sessions_dir = base.join("sessions");
-    if !sessions_dir.exists() {
-        return;
-    }
-
-    migrate_from_default(&sessions_dir);
+pub fn run(base: &Path) {
+    create_base_directories(base);
+    migrate_sessions_from_legacy_default_subdirectory(&base.join("sessions"));
 }
 
-fn migrate_from_default(sessions_base: &Path) {
-    let default_dir = sessions_base.join("_default");
-    if !default_dir.exists() {
+fn create_base_directories(base: &Path) {
+    for dir in BASE_DIRECTORIES {
+        let path = base.join(dir);
+        if let Err(e) = std::fs::create_dir_all(&path) {
+            tracing::warn!("Failed to create directory {:?}: {}", path, e);
+        }
+    }
+}
+
+/// Migrates sessions from the old directory structure to the new one.
+///
+/// Old: `sessions/_default/<session-id>/`
+/// New: `sessions/<session-id>/`
+fn migrate_sessions_from_legacy_default_subdirectory(sessions_dir: &Path) {
+    let legacy_dir = sessions_dir.join(LEGACY_SESSIONS_SUBDIRECTORY);
+    if !legacy_dir.exists() {
         return;
     }
 
-    let entries = match std::fs::read_dir(&default_dir) {
+    let entries = match std::fs::read_dir(&legacy_dir) {
         Ok(entries) => entries,
         Err(_) => return,
     };
 
     for entry in entries.flatten() {
-        let path = entry.path();
-        if !path.is_dir() {
+        let source = entry.path();
+        if !source.is_dir() {
             continue;
         }
 
-        let name = match path.file_name().and_then(|n| n.to_str()) {
-            Some(name) => name,
-            None => continue,
+        let Some(session_id) = source.file_name().and_then(|n| n.to_str()) else {
+            continue;
         };
 
-        let target = sessions_base.join(name);
-        if target.exists() {
+        let destination = sessions_dir.join(session_id);
+        if destination.exists() {
             tracing::warn!(
                 "Skipping migration of {}: already exists at root level",
-                name
+                session_id
             );
             continue;
         }
 
-        if let Err(e) = std::fs::rename(&path, &target) {
-            tracing::warn!("Failed to migrate {} from _default: {}", name, e);
-        } else {
-            tracing::info!("Migrated session {} from _default to root", name);
+        match std::fs::rename(&source, &destination) {
+            Ok(()) => tracing::info!("Migrated session {} from legacy location", session_id),
+            Err(e) => tracing::warn!("Failed to migrate session {}: {}", session_id, e),
         }
     }
 
-    if std::fs::read_dir(&default_dir)
-        .map(|mut d| d.next().is_none())
-        .unwrap_or(false)
-    {
-        let _ = std::fs::remove_dir(&default_dir);
-        tracing::info!("Removed empty _default directory");
+    remove_directory_if_empty(&legacy_dir);
+}
+
+fn remove_directory_if_empty(path: &Path) {
+    let is_empty = std::fs::read_dir(path)
+        .map(|mut entries| entries.next().is_none())
+        .unwrap_or(false);
+
+    if is_empty {
+        let _ = std::fs::remove_dir(path);
+        tracing::info!("Removed empty legacy directory: {:?}", path);
     }
 }
 
@@ -72,18 +77,19 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn test_migrate_from_default() {
+    fn test_migrate_sessions_from_legacy_default_subdirectory() {
         let temp = tempfile::tempdir().unwrap();
-        let sessions = temp.path().join("sessions");
+        let sessions_dir = temp.path().join("sessions");
         let session_id = "550e8400-e29b-41d4-a716-446655440000";
-        let default_dir = sessions.join("_default");
-        let source = default_dir.join(session_id);
+
+        let legacy_dir = sessions_dir.join(LEGACY_SESSIONS_SUBDIRECTORY);
+        let source = legacy_dir.join(session_id);
         fs::create_dir_all(&source).unwrap();
 
-        migrate_from_default(&sessions);
+        migrate_sessions_from_legacy_default_subdirectory(&sessions_dir);
 
         assert!(!source.exists());
-        assert!(sessions.join(session_id).exists());
-        assert!(!default_dir.exists());
+        assert!(sessions_dir.join(session_id).exists());
+        assert!(!legacy_dir.exists());
     }
 }

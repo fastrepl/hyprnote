@@ -1,5 +1,4 @@
 import { sep } from "@tauri-apps/api/path";
-import { exists, readDir, readTextFile } from "@tauri-apps/plugin-fs";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import type {
@@ -15,7 +14,6 @@ import type {
 import { md2json } from "@hypr/tiptap/shared";
 
 import type { NoteFrontmatter } from "../note/collect";
-import { isFileNotFoundError } from "../utils";
 import type { SessionMetaJson } from "./collect";
 
 type TranscriptWithData = TranscriptStorage & {
@@ -41,185 +39,141 @@ export type SessionDataLoad = {
 
 const LABEL = "SessionPersister";
 
-async function loadSessionDir(
-  sessionsDir: string,
-  sessionPath: string,
-  sessionId: string,
+function extractSessionIdAndFolder(path: string): {
+  sessionId: string;
+  folderPath: string;
+} {
+  const parts = path.split("/");
+  const sessionId = parts[parts.length - 2] || "";
+  const folderPath = parts.slice(0, -2).join("/");
+  return { sessionId, folderPath };
+}
+
+function processMetaFile(
+  path: string,
+  content: string,
   result: SessionDataLoad,
   now: string,
-): Promise<void> {
-  const s = sep();
-  const sessionDir = [sessionsDir, sessionPath].join(s);
+): void {
+  const { sessionId, folderPath } = extractSessionIdAndFolder(path);
+  if (!sessionId) return;
 
-  const metaPath = [sessionDir, "_meta.json"].join(s);
-  const transcriptPath = [sessionDir, "_transcript.json"].join(s);
-  const folderPath = sessionPath.includes(s)
-    ? sessionPath.slice(0, sessionPath.lastIndexOf(s)).split(s).join("/")
-    : "";
+  try {
+    const meta = JSON.parse(content) as SessionMetaJson;
 
-  const [metaContent, transcriptExists, entries] = await Promise.all([
-    readTextFile(metaPath).catch(() => null),
-    exists(transcriptPath),
-    readDir(sessionDir).catch(
-      () => [] as { name: string; isDirectory: boolean }[],
-    ),
-  ]);
+    result.sessions[sessionId] = {
+      user_id: meta.user_id,
+      created_at: meta.created_at,
+      title: meta.title,
+      folder_id: folderPath,
+      event_id: meta.event_id,
+      raw_md: "",
+    };
 
-  if (metaContent) {
-    try {
-      const meta = JSON.parse(metaContent) as SessionMetaJson;
-
-      result.sessions[sessionId] = {
-        user_id: meta.user_id,
-        created_at: meta.created_at,
-        title: meta.title,
-        folder_id: folderPath,
-        event_id: meta.event_id,
-        raw_md: "",
+    for (const participant of meta.participants) {
+      result.mapping_session_participant[participant.id] = {
+        user_id: participant.user_id,
+        created_at: participant.created_at,
+        session_id: sessionId,
+        human_id: participant.human_id,
+        source: participant.source,
       };
+    }
 
-      for (const participant of meta.participants) {
-        result.mapping_session_participant[participant.id] = {
-          user_id: participant.user_id,
-          created_at: participant.created_at,
-          session_id: sessionId,
-          human_id: participant.human_id,
-          source: participant.source,
-        };
-      }
-
-      if (meta.tags) {
-        for (const tagName of meta.tags) {
-          if (!result.tags[tagName]) {
-            result.tags[tagName] = {
-              user_id: meta.user_id,
-              created_at: now,
-              name: tagName,
-            };
-          }
-
-          const mappingId = `${sessionId}:${tagName}`;
-          result.mapping_tag_session[mappingId] = {
+    if (meta.tags) {
+      for (const tagName of meta.tags) {
+        if (!result.tags[tagName]) {
+          result.tags[tagName] = {
             user_id: meta.user_id,
             created_at: now,
-            tag_id: tagName,
-            session_id: sessionId,
+            name: tagName,
           };
         }
-      }
-    } catch (error) {
-      console.error(`[${LABEL}] Failed to parse meta from ${metaPath}:`, error);
-    }
-  }
 
-  if (transcriptExists) {
-    try {
-      const content = await readTextFile(transcriptPath);
-      const data = JSON.parse(content) as TranscriptJson;
-
-      for (const transcript of data.transcripts) {
-        const { id, words, speaker_hints, ...transcriptData } = transcript;
-        result.transcripts[id] = transcriptData;
-
-        for (const word of words) {
-          const { id: wordId, ...wordData } = word;
-          result.words[wordId] = wordData;
-        }
-
-        for (const hint of speaker_hints) {
-          const { id: hintId, ...hintData } = hint;
-          result.speaker_hints[hintId] = hintData;
-        }
-      }
-    } catch (error) {
-      console.error(
-        `[${LABEL}] Failed to load transcript from ${transcriptPath}:`,
-        error,
-      );
-    }
-  }
-
-  for (const entry of entries) {
-    if (entry.isDirectory) continue;
-    if (!entry.name.endsWith(".md")) continue;
-
-    const filePath = [sessionDir, entry.name].join(s);
-
-    try {
-      const content = await readTextFile(filePath);
-      const parseResult = await fsSyncCommands.deserialize(content);
-
-      if (parseResult.status === "error") {
-        console.error(
-          `[${LABEL}] Failed to parse frontmatter from ${filePath}:`,
-          parseResult.error,
-        );
-        continue;
-      }
-
-      const { frontmatter, content: markdownBody } = parseResult.data;
-      const fm = frontmatter as NoteFrontmatter;
-
-      if (!fm.id || !fm.session_id || !fm.type) {
-        continue;
-      }
-
-      const tiptapJson = md2json(markdownBody);
-      const tiptapContent = JSON.stringify(tiptapJson);
-
-      if (fm.type === "memo") {
-        if (result.sessions[fm.session_id]) {
-          result.sessions[fm.session_id].raw_md = tiptapContent;
-        }
-      } else if (fm.type === "enhanced_note") {
-        result.enhanced_notes[fm.id] = {
-          user_id: "",
-          created_at: new Date().toISOString(),
-          session_id: fm.session_id,
-          content: tiptapContent,
-          template_id: fm.template_id ?? "",
-          position: fm.position ?? 0,
-          title: fm.title ?? "",
+        const mappingId = `${sessionId}:${tagName}`;
+        result.mapping_tag_session[mappingId] = {
+          user_id: meta.user_id,
+          created_at: now,
+          tag_id: tagName,
+          session_id: sessionId,
         };
       }
-    } catch (error) {
-      console.error(`[${LABEL}] Failed to load note from ${filePath}:`, error);
     }
+  } catch (error) {
+    console.error(`[${LABEL}] Failed to parse meta from ${path}:`, error);
   }
 }
 
-async function loadSessionsRecursively(
-  sessionsDir: string,
-  currentPath: string,
+function processTranscriptFile(
+  path: string,
+  content: string,
   result: SessionDataLoad,
-  now: string,
-): Promise<void> {
-  const s = sep();
-  const fullPath = currentPath
-    ? [sessionsDir, currentPath].join(s)
-    : sessionsDir;
-
-  let entries: { name: string; isDirectory: boolean }[];
+): void {
   try {
-    entries = await readDir(fullPath);
-  } catch {
-    return;
-  }
+    const data = JSON.parse(content) as TranscriptJson;
 
-  for (const entry of entries) {
-    if (!entry.isDirectory) continue;
+    for (const transcript of data.transcripts) {
+      const { id, words, speaker_hints, ...transcriptData } = transcript;
+      result.transcripts[id] = transcriptData;
 
-    const entryPath = currentPath
-      ? [currentPath, entry.name].join(s)
-      : entry.name;
-    const metaPath = [sessionsDir, entryPath, "_meta.json"].join(s);
-    const hasMetaJson = await exists(metaPath);
+      for (const word of words) {
+        const { id: wordId, ...wordData } = word;
+        result.words[wordId] = wordData;
+      }
 
-    if (hasMetaJson) {
-      await loadSessionDir(sessionsDir, entryPath, entry.name, result, now);
-    } else {
-      await loadSessionsRecursively(sessionsDir, entryPath, result, now);
+      for (const hint of speaker_hints) {
+        const { id: hintId, ...hintData } = hint;
+        result.speaker_hints[hintId] = hintData;
+      }
     }
+  } catch (error) {
+    console.error(`[${LABEL}] Failed to load transcript from ${path}:`, error);
+  }
+}
+
+async function processMdFile(
+  path: string,
+  content: string,
+  result: SessionDataLoad,
+): Promise<void> {
+  try {
+    const parseResult = await fsSyncCommands.deserialize(content);
+
+    if (parseResult.status === "error") {
+      console.error(
+        `[${LABEL}] Failed to parse frontmatter from ${path}:`,
+        parseResult.error,
+      );
+      return;
+    }
+
+    const { frontmatter, content: markdownBody } = parseResult.data;
+    const fm = frontmatter as NoteFrontmatter;
+
+    if (!fm.id || !fm.session_id || !fm.type) {
+      return;
+    }
+
+    const tiptapJson = md2json(markdownBody);
+    const tiptapContent = JSON.stringify(tiptapJson);
+
+    if (fm.type === "memo") {
+      if (result.sessions[fm.session_id]) {
+        result.sessions[fm.session_id].raw_md = tiptapContent;
+      }
+    } else if (fm.type === "enhanced_note") {
+      result.enhanced_notes[fm.id] = {
+        user_id: "",
+        created_at: new Date().toISOString(),
+        session_id: fm.session_id,
+        content: tiptapContent,
+        template_id: fm.template_id ?? "",
+        position: fm.position ?? 0,
+        title: fm.title ?? "",
+      };
+    }
+  } catch (error) {
+    console.error(`[${LABEL}] Failed to load note from ${path}:`, error);
   }
 }
 
@@ -240,14 +194,41 @@ export async function loadAllSessionData(
   const sessionsDir = [dataDir, "sessions"].join(sep());
   const now = new Date().toISOString();
 
-  try {
-    await loadSessionsRecursively(sessionsDir, "", result, now);
-  } catch (error) {
-    if (!isFileNotFoundError(error)) {
-      console.error(`[${LABEL}] load error:`, error);
+  const scanResult = await fsSyncCommands.scanAndRead(
+    sessionsDir,
+    ["_meta.json", "_transcript.json", "*.md"],
+    true,
+  );
+
+  if (scanResult.status === "error") {
+    console.error(`[${LABEL}] scan error:`, scanResult.error);
+    return result;
+  }
+
+  const { files } = scanResult.data;
+
+  for (const [path, content] of Object.entries(files)) {
+    if (!content) continue;
+    if (path.endsWith("_meta.json")) {
+      processMetaFile(path, content, result, now);
     }
   }
 
+  for (const [path, content] of Object.entries(files)) {
+    if (!content) continue;
+    if (path.endsWith("_transcript.json")) {
+      processTranscriptFile(path, content, result);
+    }
+  }
+
+  const mdPromises: Promise<void>[] = [];
+  for (const [path, content] of Object.entries(files)) {
+    if (!content) continue;
+    if (path.endsWith(".md")) {
+      mdPromises.push(processMdFile(path, content, result));
+    }
+  }
+  await Promise.all(mdPromises);
+
   return result;
 }
-

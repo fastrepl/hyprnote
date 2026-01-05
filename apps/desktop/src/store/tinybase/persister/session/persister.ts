@@ -7,14 +7,17 @@ import type {
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import { collectNoteWriteOps } from "../note/collect";
-import { collectTranscriptWriteOps } from "../transcript/collect";
 import {
   asTablesChanges,
   type CollectorResult,
   createCollectorPersister,
   getDataDir,
 } from "../utils";
-import { collectSessionWriteOps, type SessionCollectorResult } from "./collect";
+import {
+  collectSessionWriteOps,
+  collectTranscriptWriteOps,
+  type SessionCollectorResult,
+} from "./collect";
 import { loadAllSessionData } from "./load";
 
 export function createSessionPersister<Schemas extends OptionalSchemas>(

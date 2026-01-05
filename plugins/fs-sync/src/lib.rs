@@ -6,6 +6,7 @@ mod folder;
 mod frontmatter;
 mod json;
 mod migration;
+mod scan;
 mod types;
 
 pub use types::*;
@@ -38,6 +39,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::audio_path::<tauri::Wry>,
             commands::session_dir::<tauri::Wry>,
             commands::delete_session_folder::<tauri::Wry>,
+            commands::scan_and_read,
+            commands::chat_dir::<tauri::Wry>,
+            commands::entity_dir::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
@@ -48,7 +52,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            migration::run(app);
+            use tauri_plugin_path2::Path2PluginExt;
+            let base = app.path2().base().unwrap();
+            migration::run(&base);
             Ok(())
         })
         .build()

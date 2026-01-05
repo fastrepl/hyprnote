@@ -168,6 +168,13 @@ pub fn cleanup_dirs_recursive(
     Ok(removed)
 }
 
+pub fn delete_session_dir(session_dir: &Path) -> std::io::Result<()> {
+    if session_dir.exists() {
+        std::fs::remove_dir_all(session_dir)?;
+    }
+    Ok(())
+}
+
 fn collect_orphan_dirs(
     base_dir: &Path,
     marker_file: &str,

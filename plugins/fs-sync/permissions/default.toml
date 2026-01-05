@@ -19,4 +19,7 @@ permissions = [
     "allow-audio-path",
     "allow-session-dir",
     "allow-delete-session-folder",
+    "allow-scan-and-read",
+    "allow-chat-dir",
+    "allow-entity-dir",
 ]

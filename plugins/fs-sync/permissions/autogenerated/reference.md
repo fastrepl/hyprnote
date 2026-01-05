@@ -22,6 +22,9 @@ Default permissions for the fs-sync plugin
 - `allow-audio-path`
 - `allow-session-dir`
 - `allow-delete-session-folder`
+- `allow-scan-and-read`
+- `allow-chat-dir`
+- `allow-entity-dir`
 
 ## Permission Table
 
@@ -132,6 +135,32 @@ Enables the audio_path command without any pre-configured scope.
 <td>
 
 Denies the audio_path command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:allow-chat-dir`
+
+</td>
+<td>
+
+Enables the chat_dir command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:deny-chat-dir`
+
+</td>
+<td>
+
+Denies the chat_dir command without any pre-configured scope.
 
 </td>
 </tr>
@@ -295,6 +324,32 @@ Denies the deserialize command without any pre-configured scope.
 <tr>
 <td>
 
+`fs-sync:allow-entity-dir`
+
+</td>
+<td>
+
+Enables the entity_dir command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:deny-entity-dir`
+
+</td>
+<td>
+
+Denies the entity_dir command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `fs-sync:allow-list-folders`
 
 </td>
@@ -392,6 +447,32 @@ Enables the rename_folder command without any pre-configured scope.
 <td>
 
 Denies the rename_folder command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:allow-scan-and-read`
+
+</td>
+<td>
+
+Enables the scan_and_read command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:deny-scan-and-read`
+
+</td>
+<td>
+
+Denies the scan_and_read command without any pre-configured scope.
 
 </td>
 </tr>

@@ -7,9 +7,60 @@ use hypr_audio_utils::{
     Source, VorbisEncodeSettings, encode_vorbis_mono, mix_down_to_mono, resample_audio,
 };
 
-use crate::error::AudioProcessingError;
+use crate::error::{AudioImportError, AudioProcessingError};
 
 const TARGET_SAMPLE_RATE_HZ: u32 = 16_000;
+const AUDIO_FORMATS: [&str; 2] = ["audio.ogg", "audio.wav"];
+
+pub fn exists(session_dir: &Path) -> std::io::Result<bool> {
+    AUDIO_FORMATS
+        .iter()
+        .map(|format| session_dir.join(format))
+        .try_fold(false, |acc, path| {
+            std::fs::exists(&path).map(|exists| acc || exists)
+        })
+}
+
+pub fn delete(session_dir: &Path) -> std::io::Result<()> {
+    for format in AUDIO_FORMATS {
+        let path = session_dir.join(format);
+        if std::fs::exists(&path).unwrap_or(false) {
+            std::fs::remove_file(&path)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn path(session_dir: &Path) -> Option<PathBuf> {
+    AUDIO_FORMATS
+        .iter()
+        .map(|format| session_dir.join(format))
+        .find(|path| path.exists())
+}
+
+pub fn import_to_session(
+    session_dir: &Path,
+    source_path: &Path,
+) -> Result<PathBuf, AudioImportError> {
+    std::fs::create_dir_all(session_dir)?;
+
+    let target_path = session_dir.join("audio.ogg");
+    let tmp_path = session_dir.join("audio.ogg.tmp");
+
+    if tmp_path.exists() {
+        std::fs::remove_file(&tmp_path)?;
+    }
+
+    match import_audio(source_path, &tmp_path, &target_path) {
+        Ok(final_path) => Ok(final_path),
+        Err(error) => {
+            if tmp_path.exists() {
+                let _ = std::fs::remove_file(&tmp_path);
+            }
+            Err(error.into())
+        }
+    }
+}
 
 pub fn import_audio(
     source_path: &Path,

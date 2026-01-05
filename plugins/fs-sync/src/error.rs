@@ -45,8 +45,6 @@ pub enum AudioProcessingError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum AudioImportError {
-    #[error("{0}")]
-    PathResolver(String),
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]

@@ -149,6 +149,30 @@ async deleteSessionFolder(sessionId: string) : Promise<Result<null, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async scanAndRead(baseDir: string, filePatterns: string[], recursive: boolean) : Promise<Result<ScanResult, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|scan_and_read", { baseDir, filePatterns, recursive }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async chatDir(chatGroupId: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|chat_dir", { chatGroupId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async entityDir(dirName: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|entity_dir", { dirName }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -166,6 +190,7 @@ export type FolderInfo = { name: string; parent_folder_id: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type ListFoldersResult = { folders: Partial<{ [key in string]: FolderInfo }>; session_folder_map: Partial<{ [key in string]: string }> }
 export type ParsedDocument = { frontmatter: Partial<{ [key in string]: JsonValue }>; content: string }
+export type ScanResult = { files: Partial<{ [key in string]: string }>; dirs: string[] }
 
 /** tauri-specta globals **/
 

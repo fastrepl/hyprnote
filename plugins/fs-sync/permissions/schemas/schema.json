@@ -343,6 +343,18 @@
           "markdownDescription": "Denies the audio_path command without any pre-configured scope."
         },
         {
+          "description": "Enables the chat_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-chat-dir",
+          "markdownDescription": "Enables the chat_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the chat_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-chat-dir",
+          "markdownDescription": "Denies the chat_dir command without any pre-configured scope."
+        },
+        {
           "description": "Enables the cleanup_orphan_dirs command without any pre-configured scope.",
           "type": "string",
           "const": "allow-cleanup-orphan-dirs",
@@ -415,6 +427,18 @@
           "markdownDescription": "Denies the deserialize command without any pre-configured scope."
         },
         {
+          "description": "Enables the entity_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-entity-dir",
+          "markdownDescription": "Enables the entity_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the entity_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-entity-dir",
+          "markdownDescription": "Denies the entity_dir command without any pre-configured scope."
+        },
+        {
           "description": "Enables the list_folders command without any pre-configured scope.",
           "type": "string",
           "const": "allow-list-folders",
@@ -461,6 +485,18 @@
           "type": "string",
           "const": "deny-rename-folder",
           "markdownDescription": "Denies the rename_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the scan_and_read command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-scan-and-read",
+          "markdownDescription": "Enables the scan_and_read command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the scan_and_read command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-scan-and-read",
+          "markdownDescription": "Denies the scan_and_read command without any pre-configured scope."
         },
         {
           "description": "Enables the session_dir command without any pre-configured scope.",
@@ -511,10 +547,10 @@
           "markdownDescription": "Denies the write_markdown_batch command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-read-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`",
+          "description": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-read-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`\n- `allow-scan-and-read`\n- `allow-chat-dir`\n- `allow-entity-dir`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-read-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`"
+          "markdownDescription": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-read-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`\n- `allow-scan-and-read`\n- `allow-chat-dir`\n- `allow-entity-dir`"
         }
       ]
     }

@@ -1,7 +1,7 @@
 import { sep } from "@tauri-apps/api/path";
-import { readDir, readTextFile } from "@tauri-apps/plugin-fs";
 
-import { isFileNotFoundError, isUUID } from "../utils";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+
 import {
   type ChatJson,
   chatJsonToData,
@@ -19,37 +19,27 @@ export async function loadAllChatData(
 ): Promise<LoadedChatData> {
   const chatsDir = [dataDir, "chats"].join(sep());
 
-  let entries: { name: string; isDirectory: boolean }[];
-  try {
-    entries = await readDir(chatsDir);
-  } catch (error) {
-    if (!isFileNotFoundError(error)) {
-      console.error(`[${LABEL}] load error:`, error);
-    }
+  const scanResult = await fsSyncCommands.scanAndRead(
+    chatsDir,
+    ["_messages.json"],
+    false,
+  );
+
+  if (scanResult.status === "error") {
+    console.error(`[${LABEL}] scan error:`, scanResult.error);
     return createEmptyLoadedData();
   }
 
+  const { files } = scanResult.data;
   const items: LoadedChatData[] = [];
 
-  for (const entry of entries) {
-    if (!entry.isDirectory) continue;
-    if (!isUUID(entry.name)) continue;
-
-    const chatGroupId = entry.name;
-    const messagesPath = [chatsDir, chatGroupId, "_messages.json"].join(sep());
-
+  for (const [, content] of Object.entries(files)) {
+    if (!content) continue;
     try {
-      const content = await readTextFile(messagesPath);
       const json = JSON.parse(content) as ChatJson;
       items.push(chatJsonToData(json));
     } catch (error) {
-      if (!isFileNotFoundError(error)) {
-        console.error(
-          `[${LABEL}] Failed to load chat from ${messagesPath}:`,
-          error,
-        );
-      }
-      continue;
+      console.error(`[${LABEL}] Failed to parse chat JSON:`, error);
     }
   }
 

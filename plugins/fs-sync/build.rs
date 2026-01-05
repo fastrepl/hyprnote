@@ -17,6 +17,9 @@ const COMMANDS: &[&str] = &[
     "audio_path",
     "session_dir",
     "delete_session_folder",
+    "scan_and_read",
+    "chat_dir",
+    "entity_dir",
 ];
 
 fn main() {

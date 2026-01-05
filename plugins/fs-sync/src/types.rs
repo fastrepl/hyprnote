@@ -14,3 +14,9 @@ pub struct ListFoldersResult {
     pub folders: HashMap<String, FolderInfo>,
     pub session_folder_map: HashMap<String, String>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct ScanResult {
+    pub files: HashMap<String, String>,
+    pub dirs: Vec<String>,
+}

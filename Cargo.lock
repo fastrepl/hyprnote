@@ -18079,6 +18079,7 @@ dependencies = [
  "audio-utils",
  "data",
  "frontmatter",
+ "glob",
  "rayon",
  "rodio",
  "serde",

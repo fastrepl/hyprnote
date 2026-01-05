@@ -6,11 +6,9 @@ use serde_json::Value;
 use tauri_plugin_path2::Path2PluginExt;
 
 use crate::FsSyncPluginExt;
-use crate::audio::import_audio;
-use crate::error::AudioImportError;
 use crate::folder::find_session_dir;
 use crate::frontmatter::ParsedDocument;
-use crate::types::ListFoldersResult;
+use crate::types::{ListFoldersResult, ScanResult};
 
 /// For batch I/O on many small files, sync I/O with rayon parallelism
 /// is more efficient than async I/O (avoids per-file async task overhead).
@@ -21,6 +19,14 @@ macro_rules! spawn_blocking {
             .await
             .map_err(|e| e.to_string())?
     };
+}
+
+fn resolve_session_dir<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    session_id: &str,
+) -> Result<PathBuf, String> {
+    let base = app.path2().base().map_err(|e| e.to_string())?;
+    Ok(find_session_dir(&base.join("sessions"), session_id))
 }
 
 #[tauri::command]
@@ -162,17 +168,8 @@ pub(crate) async fn audio_exist<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<bool, String> {
-    let base = app.path2().base().map_err(|e| e.to_string())?;
-    let session_dir = find_session_dir(&base.join("sessions"), &session_id);
-
-    ["audio.wav", "audio.ogg"]
-        .iter()
-        .map(|format| session_dir.join(format))
-        .try_fold(false, |acc, path| {
-            std::fs::exists(path)
-                .map(|exists| acc || exists)
-                .map_err(|e| e.to_string())
-        })
+    let session_dir = resolve_session_dir(&app, &session_id)?;
+    crate::audio::exists(&session_dir).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -181,20 +178,8 @@ pub(crate) async fn audio_delete<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<(), String> {
-    let base = app.path2().base().map_err(|e| e.to_string())?;
-    let session_dir = find_session_dir(&base.join("sessions"), &session_id);
-
-    ["audio.wav", "audio.ogg"]
-        .iter()
-        .map(|format| session_dir.join(format))
-        .try_for_each(|path| {
-            if std::fs::exists(&path).unwrap_or(false) {
-                std::fs::remove_file(path).map_err(|e| e.to_string())
-            } else {
-                Ok(())
-            }
-        })?;
-    Ok(())
+    let session_dir = resolve_session_dir(&app, &session_id)?;
+    crate::audio::delete(&session_dir).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -204,41 +189,10 @@ pub(crate) async fn audio_import<R: tauri::Runtime>(
     session_id: String,
     source_path: String,
 ) -> Result<String, String> {
-    audio_import_internal(&app, &session_id, &source_path)
-        .map(|final_path| final_path.to_string_lossy().to_string())
-        .map_err(|err| err.to_string())
-}
-
-fn audio_import_internal<R: tauri::Runtime>(
-    app: &tauri::AppHandle<R>,
-    session_id: &str,
-    source_path: &str,
-) -> Result<PathBuf, AudioImportError> {
-    let base = app
-        .path2()
-        .base()
-        .map_err(|e| AudioImportError::PathResolver(e.to_string()))?;
-    let session_dir = find_session_dir(&base.join("sessions"), session_id);
-
-    std::fs::create_dir_all(&session_dir)?;
-
-    let target_path = session_dir.join("audio.ogg");
-    let tmp_path = session_dir.join("audio.ogg.tmp");
-
-    if tmp_path.exists() {
-        std::fs::remove_file(&tmp_path)?;
-    }
-
-    let source = PathBuf::from(source_path);
-    match import_audio(&source, &tmp_path, &target_path) {
-        Ok(final_path) => Ok(final_path),
-        Err(error) => {
-            if tmp_path.exists() {
-                let _ = std::fs::remove_file(&tmp_path);
-            }
-            Err(error.into())
-        }
-    }
+    let session_dir = resolve_session_dir(&app, &session_id)?;
+    crate::audio::import_to_session(&session_dir, &PathBuf::from(&source_path))
+        .map(|path| path.to_string_lossy().to_string())
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -247,16 +201,10 @@ pub(crate) async fn audio_path<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<String, String> {
-    let base = app.path2().base().map_err(|e| e.to_string())?;
-    let session_dir = find_session_dir(&base.join("sessions"), &session_id);
-
-    let path = ["audio.ogg", "audio.wav"]
-        .iter()
-        .map(|format| session_dir.join(format))
-        .find(|path| path.exists())
-        .ok_or("audio_path_not_found")?;
-
-    Ok(path.to_string_lossy().to_string())
+    let session_dir = resolve_session_dir(&app, &session_id)?;
+    crate::audio::path(&session_dir)
+        .map(|p| p.to_string_lossy().to_string())
+        .ok_or_else(|| "audio_path_not_found".to_string())
 }
 
 #[tauri::command]
@@ -265,9 +213,7 @@ pub(crate) async fn session_dir<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<String, String> {
-    let base = app.path2().base().map_err(|e| e.to_string())?;
-    let session_dir = find_session_dir(&base.join("sessions"), &session_id);
-    Ok(session_dir.to_string_lossy().to_string())
+    resolve_session_dir(&app, &session_id).map(|p| p.to_string_lossy().to_string())
 }
 
 #[tauri::command]
@@ -276,12 +222,46 @@ pub(crate) async fn delete_session_folder<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<(), String> {
+    let session_dir = resolve_session_dir(&app, &session_id)?;
+    crate::folder::delete_session_dir(&session_dir).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn scan_and_read(
+    base_dir: String,
+    file_patterns: Vec<String>,
+    recursive: bool,
+) -> Result<ScanResult, String> {
+    spawn_blocking!({
+        Ok(crate::scan::scan_and_read(
+            &PathBuf::from(&base_dir),
+            &file_patterns,
+            recursive,
+        ))
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn chat_dir<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    chat_group_id: String,
+) -> Result<String, String> {
     let base = app.path2().base().map_err(|e| e.to_string())?;
-    let session_dir = find_session_dir(&base.join("sessions"), &session_id);
+    Ok(base
+        .join("chats")
+        .join(&chat_group_id)
+        .to_string_lossy()
+        .to_string())
+}
 
-    if session_dir.exists() {
-        std::fs::remove_dir_all(session_dir).map_err(|e| e.to_string())?;
-    }
-
-    Ok(())
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn entity_dir<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    dir_name: String,
+) -> Result<String, String> {
+    let base = app.path2().base().map_err(|e| e.to_string())?;
+    Ok(base.join(&dir_name).to_string_lossy().to_string())
 }

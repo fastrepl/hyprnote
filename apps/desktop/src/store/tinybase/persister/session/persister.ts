@@ -6,7 +6,6 @@ import type {
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
-import { collectNoteWriteOps } from "../note/collect";
 import {
   asTablesChanges,
   type CollectorResult,
@@ -14,6 +13,7 @@ import {
   getDataDir,
 } from "../utils";
 import {
+  collectNoteWriteOps,
   collectSessionWriteOps,
   collectTranscriptWriteOps,
   type SessionCollectorResult,

@@ -13,8 +13,7 @@ import type {
 } from "@hypr/store";
 import { md2json } from "@hypr/tiptap/shared";
 
-import type { NoteFrontmatter } from "../note/collect";
-import type { SessionMetaJson } from "./collect";
+import type { NoteFrontmatter, SessionMetaJson } from "./collect";
 
 type TranscriptWithData = TranscriptStorage & {
   id: string;

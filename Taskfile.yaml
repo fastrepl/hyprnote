@@ -15,7 +15,7 @@ tasks:
 
   clean-plugins:
     cmds:
-      - find plugins -type d -empty -delete
+      - find plugins -mindepth 1 -maxdepth 1 -type d ! -exec test -f {}/Cargo.toml \; -exec rm -rf {} \;
 
   diff:
     vars:

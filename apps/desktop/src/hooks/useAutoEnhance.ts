@@ -41,6 +41,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const [autoEnhancedNoteId, setAutoEnhancedNoteId] = useState<string | null>(
     null,
   );
+  const [skipReason, setSkipReason] = useState<string | null>(null);
 
   const startedTasksRef = useRef<Set<string>>(new Set());
   const tabRef = useRef(tab);
@@ -52,8 +53,13 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const handleTitleSuccess = useCallback(
     ({ text }: { text: string }) => {
       if (text && store) {
+        const trimmedTitle = text.trim();
+        if (!trimmedTitle || trimmedTitle === "<EMPTY>") {
+          setSkipReason("Could not generate a meaningful title");
+          return;
+        }
         store.setPartialRow("sessions", sessionId, {
-          title: text,
+          title: trimmedTitle,
         });
       }
     },
@@ -96,8 +102,6 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const enhanceTask = useAITaskTask(enhanceTaskId, "enhance", {
     onSuccess: handleEnhanceSuccess,
   });
-
-  const [skipReason, setSkipReason] = useState<string | null>(null);
 
   const createAndStartEnhance = useCallback(() => {
     if (!hasTranscript) {

@@ -23,7 +23,10 @@ export function useTitleGeneration(tab: Extract<Tab, { type: "sessions" }>) {
   const handleTitleSuccess = useCallback(
     ({ text }: { text: string }) => {
       if (text) {
-        updateTitle(text);
+        const trimmedTitle = text.trim();
+        if (trimmedTitle && trimmedTitle !== "<EMPTY>") {
+          updateTitle(trimmedTitle);
+        }
       }
     },
     [updateTitle],

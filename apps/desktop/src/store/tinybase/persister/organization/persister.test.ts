@@ -33,14 +33,6 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
   remove: vi.fn().mockResolvedValue(undefined),
 }));
 
-function serializeFrontmatterSync(
-  frontmatter: Record<string, unknown>,
-  body: string,
-): string {
-  const lines = Object.entries(frontmatter).map(([k, v]) => `${k}: ${v}`);
-  return `---\n${lines.join("\n")}\n---\n\n${body}`;
-}
-
 function createTestStore() {
   return createMergeableStore()
     .setTablesSchema(SCHEMA.table)

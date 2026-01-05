@@ -184,6 +184,7 @@ function useTransport(contextRefs: ContextRef[]) {
   const registry = useToolRegistry();
   const model = useLanguageModel();
   const store = main.UI.useStore(main.STORE_ID);
+  const indexes = main.UI.useIndexes(main.STORE_ID);
   const language = main.UI.useValue("ai_language", main.STORE_ID) ?? "en";
   const [systemPrompt, setSystemPrompt] = useState<string | undefined>();
 
@@ -193,7 +194,7 @@ function useTransport(contextRefs: ContextRef[]) {
   );
 
   const chatContext = useMemo((): ChatContext | null => {
-    if (sessionRefs.length === 0 || !store) {
+    if (sessionRefs.length === 0 || !store || !indexes) {
       return null;
     }
 
@@ -203,7 +204,7 @@ function useTransport(contextRefs: ContextRef[]) {
       return null;
     }
 
-    const enhancedNoteIds = store.getSliceRowIds(
+    const enhancedNoteIds = indexes.getSliceRowIds(
       main.INDEXES.enhancedNotesBySession,
       firstSessionRef.id,
     );
@@ -212,7 +213,7 @@ function useTransport(contextRefs: ContextRef[]) {
       ? store.getRow("enhanced_notes", firstEnhancedNoteId)
       : null;
 
-    const transcriptIds = store.getSliceRowIds(
+    const transcriptIds = indexes.getSliceRowIds(
       main.INDEXES.transcriptBySession,
       firstSessionRef.id,
     );
@@ -220,7 +221,7 @@ function useTransport(contextRefs: ContextRef[]) {
 
     let transcript: Transcript | null = null;
     if (firstTranscriptId) {
-      const wordIds = store.getSliceRowIds(
+      const wordIds = indexes.getSliceRowIds(
         main.INDEXES.wordsByTranscript,
         firstTranscriptId,
       );
@@ -264,7 +265,7 @@ function useTransport(contextRefs: ContextRef[]) {
       enhancedContent: (enhancedNote?.content as string) || null,
       transcript,
     };
-  }, [sessionRefs, store]);
+  }, [sessionRefs, store, indexes]);
 
   useEffect(() => {
     templateCommands

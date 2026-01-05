@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import type { HyprUIMessage } from "../../chat/types";
 import { useShell } from "../../contexts/shell";

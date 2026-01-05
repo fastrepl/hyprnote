@@ -47,8 +47,11 @@ function stripFrontmatter(content: string): string {
   return content.trim();
 }
 
-function stripImageLine(content: string): string {
-  return content.replace(/^!\[.*?\]\(.*?\)\s*\n*/m, "");
+function fixImageUrls(content: string): string {
+  return content.replace(
+    /!\[([^\]]*)\]\(\/api\/images\/([^)]+)\)/g,
+    "![$1](https://auth.hyprnote.com/storage/v1/object/public/public_images/$2)",
+  );
 }
 
 function addEmptyParagraphsBeforeHeaders(
@@ -188,7 +191,7 @@ function useChangelogContent(version: string) {
 
     changelogFiles[key]()
       .then((raw) => {
-        const markdown = stripImageLine(stripFrontmatter(raw as string));
+        const markdown = fixImageUrls(stripFrontmatter(raw as string));
         const json = md2json(markdown);
         setContent(addEmptyParagraphsBeforeHeaders(json));
         setLoading(false);

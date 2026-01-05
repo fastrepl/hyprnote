@@ -32,8 +32,21 @@
     margin-bottom: 0.25rem;
   }
 
+  .tiptap-image-wrapper {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  > .tiptap-image-wrapper:first-child {
+    padding-top: 0;
+  }
+
+  > .tiptap-image-wrapper:last-child {
+    padding-bottom: 0;
+  }
+
   .tiptap-image {
-    max-width: 240px;
+    max-width: 100%;
     height: auto;
     display: block;
   }

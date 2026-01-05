@@ -6,15 +6,21 @@ export const Image = ({
   layout = "constrained",
   background,
   objectFit,
+  src,
   ...props
 }: Partial<ImageProps> &
   Pick<ImageProps, "src" | "alt"> & {
     objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down";
   }) => {
+  const isExternalUrl =
+    typeof src === "string" &&
+    (src.startsWith("http://") || src.startsWith("https://"));
+
   return (
     <UnpicImage
       {...(props as any)}
-      transformer={transform}
+      src={src}
+      {...(isExternalUrl ? {} : { transformer: transform })}
       layout={layout}
       background={background}
       style={{

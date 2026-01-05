@@ -48,21 +48,26 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const store = main.UI.useStore(main.STORE_ID);
 
   const titleTaskId = createTaskId(sessionId, "title");
-  const titleTask = useAITaskTask(titleTaskId, "title", {
-    onSuccess: ({ text }) => {
+  const handleTitleSuccess = useCallback(
+    ({ text }: { text: string }) => {
       if (text && store) {
         store.setPartialRow("sessions", sessionId, {
           title: text,
         });
       }
     },
+    [store, sessionId],
+  );
+  const titleTask = useAITaskTask(titleTaskId, "title", {
+    onSuccess: handleTitleSuccess,
   });
 
   const enhanceTaskId = autoEnhancedNoteId
     ? createTaskId(autoEnhancedNoteId, "enhance")
     : createTaskId("placeholder", "enhance");
-  const enhanceTask = useAITaskTask(enhanceTaskId, "enhance", {
-    onSuccess: ({ text }) => {
+
+  const handleEnhanceSuccess = useCallback(
+    ({ text }: { text: string }) => {
       if (text && autoEnhancedNoteId && store) {
         try {
           const jsonContent = md2json(text);
@@ -84,6 +89,11 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
         }
       }
     },
+    [autoEnhancedNoteId, store, sessionId, model, titleTask.start],
+  );
+
+  const enhanceTask = useAITaskTask(enhanceTaskId, "enhance", {
+    onSuccess: handleEnhanceSuccess,
   });
 
   const createAndStartEnhance = useCallback(() => {

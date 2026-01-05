@@ -7,10 +7,10 @@ import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
-import { useTitleGeneration } from "../../../../hooks/useTitleGeneration";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useStartListening } from "../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
+import { useTitleGeneration } from "../../../../hooks/useTitleGeneration";
 import * as main from "../../../../store/tinybase/store/main";
 import {
   rowIdfromTab,

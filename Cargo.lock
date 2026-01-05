@@ -18034,26 +18034,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-export"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "insta",
- "markdown",
- "mdast_util_to_markdown",
- "rayon",
- "serde",
- "serde_json",
- "specta",
- "specta-typescript",
- "tauri",
- "tauri-plugin",
- "tauri-specta",
- "thiserror 2.0.17",
- "tokio",
-]
-
-[[package]]
 name = "tauri-plugin-extensions"
 version = "0.1.0"
 dependencies = [
@@ -18068,42 +18048,6 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
-]
-
-[[package]]
-name = "tauri-plugin-folder"
-version = "0.1.0"
-dependencies = [
- "serde",
- "specta",
- "specta-typescript",
- "tauri",
- "tauri-plugin",
- "tauri-plugin-path2",
- "tauri-specta",
- "tempfile",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "tauri-plugin-frontmatter"
-version = "0.1.0"
-dependencies = [
- "frontmatter",
- "rayon",
- "serde",
- "serde_json",
- "serde_yaml",
- "specta",
- "specta-typescript",
- "tauri",
- "tauri-plugin",
- "tauri-specta",
- "thiserror 2.0.17",
- "tokio",
 ]
 
 [[package]]
@@ -18432,7 +18376,7 @@ dependencies = [
  "sysinfo 0.37.2",
  "tauri",
  "tauri-plugin",
- "tauri-plugin-folder",
+ "tauri-plugin-fs-sync",
  "tauri-plugin-opener",
  "tauri-plugin-path2",
  "tauri-specta",

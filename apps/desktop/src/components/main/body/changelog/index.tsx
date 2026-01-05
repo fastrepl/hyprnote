@@ -1,9 +1,25 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLinkIcon, SparklesIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useResizeObserver } from "usehooks-ts";
 
 import NoteEditor from "@hypr/tiptap/editor";
 import { md2json } from "@hypr/tiptap/shared";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@hypr/ui/components/ui/breadcrumb";
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
 
 import { type Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -28,15 +44,15 @@ export function getLatestVersion(): string | null {
 }
 
 function stripFrontmatter(content: string): string {
-  const match = content.match(/^---\s*\n[\s\S]*?\n---\s*\n/);
-  if (match) {
-    return content.slice(match[0].length).trim();
-  }
   return content.trim();
 }
 
 function stripImageLine(content: string): string {
   return content.replace(/^!\[.*?\]\(.*?\)\s*\n*/m, "");
+}
+
+function addSpacingBeforeHeaders(content: string): string {
+  return content.replace(/\n(#{1,6}\s)/g, "\n\n$1");
 }
 
 export const TabItemChangelog: TabItem<Extract<Tab, { type: "changelog" }>> = ({
@@ -72,10 +88,15 @@ export function TabContentChangelog({
   const { previous, current } = tab.state;
 
   const { content, loading } = useChangelogContent(current);
+  const { scrollRef, atStart, atEnd } = useScrollFade<HTMLDivElement>();
 
   return (
     <StandardTabWrapper>
       <div className="flex flex-col h-full">
+        <div className="pl-2 pr-1 shrink-0">
+          <ChangelogHeader version={current} />
+        </div>
+
         <div className="mt-2 px-3 shrink-0">
           <h1 className="text-2xl font-semibold text-neutral-900">
             v{current}
@@ -85,29 +106,57 @@ export function TabContentChangelog({
           )}
         </div>
 
-        <div className="mt-2 px-2 flex-1 min-h-0">
-          {loading ? (
-            <p className="text-neutral-500 px-1">Loading...</p>
-          ) : content ? (
-            <NoteEditor initialContent={content} editable={false} />
-          ) : (
-            <p className="text-neutral-500 px-1">
-              No changelog available for this version.
-            </p>
-          )}
-        </div>
-
-        <div className="px-3 py-4 border-t border-neutral-200">
-          <button
-            onClick={() => openUrl("https://hyprnote.com/changelog")}
-            className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-          >
-            <ExternalLinkIcon className="w-4 h-4" />
-            See all changelogs
-          </button>
+        <div className="mt-2 px-2 flex-1 min-h-0 relative">
+          {!atStart && <ScrollFadeOverlay position="top" />}
+          {!atEnd && <ScrollFadeOverlay position="bottom" />}
+          <div ref={scrollRef} className="h-full overflow-y-auto">
+            {loading ? (
+              <p className="text-neutral-500 px-1">Loading...</p>
+            ) : content ? (
+              <NoteEditor initialContent={content} editable={false} />
+            ) : (
+              <p className="text-neutral-500 px-1">
+                No changelog available for this version.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </StandardTabWrapper>
+  );
+}
+
+function ChangelogHeader({ version }: { version: string }) {
+  return (
+    <div className="w-full pt-1">
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <Breadcrumb className="ml-1.5 min-w-0">
+            <BreadcrumbList className="text-neutral-700 text-xs flex-nowrap overflow-hidden gap-0.5">
+              <BreadcrumbItem className="shrink-0">
+                <span className="text-neutral-500">Changelog</span>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="shrink-0" />
+              <BreadcrumbItem className="overflow-hidden">
+                <BreadcrumbPage className="truncate">{version}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
+        <div className="flex items-center shrink-0">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5"
+            onClick={() => openUrl("https://hyprnote.com/changelog")}
+          >
+            <ExternalLinkIcon className="size-4" />
+            <span>See all</span>
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -128,11 +177,55 @@ function useChangelogContent(version: string) {
     }
 
     changelogFiles[key]().then((raw) => {
-      const markdown = stripImageLine(stripFrontmatter(raw as string));
+      const stripped = stripImageLine(stripFrontmatter(raw as string));
+      const markdown = addSpacingBeforeHeaders(stripped);
       setContent(md2json(markdown));
       setLoading(false);
     });
   }, [version]);
 
   return { content, loading };
+}
+
+function useScrollFade<T extends HTMLElement>() {
+  const scrollRef = useRef<T>(null);
+  const [state, setState] = useState({ atStart: true, atEnd: true });
+
+  const update = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    setState({
+      atStart: scrollTop <= 1,
+      atEnd: scrollTop + clientHeight >= scrollHeight - 1,
+    });
+  }, []);
+
+  useResizeObserver({ ref: scrollRef as RefObject<T>, onResize: update });
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    update();
+    el.addEventListener("scroll", update);
+    return () => el.removeEventListener("scroll", update);
+  }, [update]);
+
+  return { scrollRef, ...state };
+}
+
+function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
+  return (
+    <div
+      className={cn([
+        "absolute left-0 w-full h-8 z-20 pointer-events-none",
+        position === "top" &&
+          "top-0 bg-gradient-to-b from-white to-transparent",
+        position === "bottom" &&
+          "bottom-0 bg-gradient-to-t from-white to-transparent",
+      ])}
+    />
+  );
 }

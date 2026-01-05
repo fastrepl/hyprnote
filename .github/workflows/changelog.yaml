@@ -34,6 +34,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true
+      - run: git fetch --tags --force
+
       - if: inputs.comment_id
         uses: ./.github/actions/add-reaction
         with:
@@ -41,28 +44,35 @@ jobs:
           repo: ${{ github.repository }}
           comment: ${{ inputs.comment_id }}
           reaction: eyes
+
+      - uses: ./.github/actions/doxxer_install
       - id: version
         run: |
-          CHANNEL="${{ inputs.channel }}"
-          if [ "$CHANNEL" = "nightly" ]; then
-            LATEST_TAG=$(git tag -l 'desktop_v*-nightly.*' --sort=-v:refname | head -n1)
-            PREV_REF="main"
+          if [ "${{ inputs.channel }}" = "nightly" ]; then
+            VERSION=$(doxxer --config doxxer.desktop.toml next prerelease)
+            PREV=$(git tag -l 'desktop_v*-nightly.*' --sort=-v:refname | head -n1)
+            CURRENT="HEAD"
           else
-            LATEST_TAG=$(git tag -l 'desktop_v*' --sort=-v:refname | grep -v 'nightly' | head -n1)
-            PREV_REF=$(git tag -l 'desktop_v*-nightly.*' --sort=-v:refname | head -n1)
+            VERSION=$(doxxer --config doxxer.desktop.toml next patch)
+            PREV=$(git tag -l 'desktop_v*' --sort=-v:refname | grep -v 'nightly' | head -n1)
+            CURRENT=$(git tag -l 'desktop_v*-nightly.*' --sort=-v:refname | head -n1)
           fi
-          VERSION="${LATEST_TAG#desktop_v}"
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "prev_ref=$PREV_REF" >> $GITHUB_OUTPUT
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "prev=$PREV" >> $GITHUB_OUTPUT
+
       - run: |
           curl -fsSL https://opencode.ai/install | bash
           echo "$HOME/.opencode/bin" >> $GITHUB_PATH
-      - run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          CHANGELOG_FILE="apps/web/content/changelog/${VERSION}.mdx"
 
-          opencode -p "Create ${CHANGELOG_FILE} for commits between ${{ steps.version.outputs.prev_ref }} and ${{ steps.version.outputs.latest_tag }}. Follow apps/web/content/changelog/AGENTS.md."
+      - run: |
+          opencode -m anthropic/claude-sonnet-4-20250514 -p "
+            Create apps/web/content/changelog/${{ steps.version.outputs.version }}.mdx
+            for commits between ${{ steps.version.outputs.prev }} and ${{ steps.version.outputs.current }}.
+            Follow apps/web/content/changelog/AGENTS.md.
+          "
+
       - uses: peter-evans/create-pull-request@v8
         id: cpr
         with:
@@ -72,9 +82,10 @@ jobs:
           body: |
             Auto-generated changelog for version ${{ steps.version.outputs.version }}.
 
-            Generated using `opencode` CLI based on commits from ${{ steps.version.outputs.prev_ref }} to ${{ steps.version.outputs.latest_tag }}.
+            Generated using `opencode` CLI based on commits from ${{ steps.version.outputs.prev }} to ${{ steps.version.outputs.current }}.
           commit-message: "docs: add changelog for ${{ steps.version.outputs.version }}"
           delete-branch: true
+
       - if: inputs.issue_number
         uses: ./.github/actions/comment-result
         with:

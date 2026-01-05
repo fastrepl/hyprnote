@@ -1,6 +1,6 @@
 # Instruction
 
-- Read through the commits, and optionally diffs, but only keep the desktop-related thing to the changelog.
+- Read through the commits, and most of the diffs, but only keep the desktop-related thing to the changelog.
 
 # Scripts
 

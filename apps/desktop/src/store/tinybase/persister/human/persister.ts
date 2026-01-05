@@ -4,7 +4,7 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
-import { commands as folderCommands } from "@hypr/plugin-folder";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import { createSessionDirPersister, getDataDir } from "../utils";
 import { collectHumanWriteOps, type HumanCollectorResult } from "./collect";
@@ -28,7 +28,7 @@ export function createHumanPersister<Schemas extends OptionalSchemas>(
     },
     postSave: async (_dataDir, result) => {
       const { validHumanIds } = result as HumanCollectorResult;
-      await folderCommands.cleanupOrphanFiles(
+      await fsSyncCommands.cleanupOrphanFiles(
         "humans",
         "md",
         Array.from(validHumanIds),

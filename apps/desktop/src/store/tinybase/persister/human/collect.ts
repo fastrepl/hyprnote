@@ -1,6 +1,6 @@
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import type { ParsedDocument } from "@hypr/plugin-frontmatter";
+import type { ParsedDocument } from "@hypr/plugin-fs-sync";
 import type { HumanStorage } from "@hypr/store";
 
 import type { CollectorResult, TablesContent } from "../utils";

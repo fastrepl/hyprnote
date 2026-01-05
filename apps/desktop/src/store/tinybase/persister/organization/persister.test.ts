@@ -12,11 +12,13 @@ vi.mock("@hypr/plugin-path2", () => ({
   },
 }));
 
-vi.mock("@hypr/plugin-frontmatter", () => ({
+vi.mock("@hypr/plugin-fs-sync", () => ({
   commands: {
     deserialize: vi.fn(),
     serialize: vi.fn().mockResolvedValue({ status: "ok", data: "" }),
-    serializeBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
+    writeFrontmatterBatch: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: null }),
   },
 }));
 
@@ -67,8 +69,7 @@ describe("createOrganizationPersister", () => {
     test("loads organizations from markdown files", async () => {
       const { readDir, readTextFile, exists } =
         await import("@tauri-apps/plugin-fs");
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       vi.mocked(exists).mockResolvedValue(false);
       vi.mocked(readDir).mockResolvedValue([
@@ -89,7 +90,7 @@ describe("createOrganizationPersister", () => {
         "",
       );
       vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
-      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
         status: "ok",
         data: {
           frontmatter: {
@@ -133,8 +134,7 @@ describe("createOrganizationPersister", () => {
     test("skips non-UUID files", async () => {
       const { readDir, readTextFile, exists } =
         await import("@tauri-apps/plugin-fs");
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       vi.mocked(exists).mockResolvedValue(false);
       vi.mocked(readDir).mockResolvedValue([
@@ -161,7 +161,7 @@ describe("createOrganizationPersister", () => {
         "",
       );
       vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
-      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
         status: "ok",
         data: {
           frontmatter: {
@@ -185,8 +185,7 @@ describe("createOrganizationPersister", () => {
   describe("save", () => {
     test("saves organizations to markdown files via frontmatter plugin", async () => {
       const { mkdir } = await import("@tauri-apps/plugin-fs");
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("organizations", ORG_UUID_1, {
         user_id: "user-1",
@@ -204,7 +203,7 @@ describe("createOrganizationPersister", () => {
         },
       );
 
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -220,18 +219,16 @@ describe("createOrganizationPersister", () => {
     });
 
     test("does not write when no organizations exist", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       const persister = createOrganizationPersister<Schemas>(store);
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).not.toHaveBeenCalled();
+      expect(fsSyncCommands.writeFrontmatterBatch).not.toHaveBeenCalled();
     });
 
     test("saves multiple organizations in single batch call", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("organizations", ORG_UUID_1, {
         user_id: "user-1",
@@ -248,9 +245,9 @@ describe("createOrganizationPersister", () => {
       const persister = createOrganizationPersister<Schemas>(store);
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledTimes(1);
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledTimes(1);
 
-      const batchItems = vi.mocked(frontmatterCommands.serializeBatch).mock
+      const batchItems = vi.mocked(fsSyncCommands.writeFrontmatterBatch).mock
         .calls[0][0];
       expect(batchItems).toHaveLength(2);
 
@@ -268,8 +265,7 @@ describe("createOrganizationPersister", () => {
     test("migrates from organizations.json when it exists and organizations dir does not", async () => {
       const { exists, readTextFile, mkdir, remove } =
         await import("@tauri-apps/plugin-fs");
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       vi.mocked(exists).mockImplementation(async (path: string | URL) => {
         const p = typeof path === "string" ? path : path.toString();
@@ -296,7 +292,7 @@ describe("createOrganizationPersister", () => {
           recursive: true,
         },
       );
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -319,10 +315,9 @@ describe("createOrganizationPersister", () => {
 describe("utils", () => {
   describe("parseMarkdownWithFrontmatter", () => {
     test("parses markdown with frontmatter via plugin", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
         status: "ok",
         data: {
           frontmatter: {
@@ -350,10 +345,9 @@ user_id: user-1
     });
 
     test("returns empty frontmatter when plugin returns error", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
         status: "error",
         error: "Parse error",
       });

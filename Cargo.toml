@@ -86,6 +86,7 @@ hypr-tcc = { path = "crates/tcc", package = "tcc" }
 hypr-template-app = { path = "crates/template-app", package = "template-app" }
 hypr-template-app-legacy = { path = "crates/template-app-legacy", package = "template-app-legacy" }
 hypr-template-eval = { path = "crates/template-eval", package = "template-eval" }
+hypr-tiptap = { path = "crates/tiptap", package = "tiptap" }
 hypr-transcribe-aws = { path = "crates/transcribe-aws", package = "transcribe-aws" }
 hypr-transcribe-azure = { path = "crates/transcribe-azure", package = "transcribe-azure" }
 hypr-transcribe-deepgram = { path = "crates/transcribe-deepgram", package = "transcribe-deepgram" }
@@ -138,10 +139,8 @@ tauri-plugin-cli2 = { path = "plugins/cli2" }
 tauri-plugin-db2 = { path = "plugins/db2" }
 tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }
 tauri-plugin-detect = { path = "plugins/detect" }
-tauri-plugin-export = { path = "plugins/export" }
 tauri-plugin-extensions = { path = "plugins/extensions" }
-tauri-plugin-folder = { path = "plugins/folder" }
-tauri-plugin-frontmatter = { path = "plugins/frontmatter" }
+tauri-plugin-fs-sync = { path = "plugins/fs-sync" }
 tauri-plugin-hooks = { path = "plugins/hooks" }
 tauri-plugin-icon = { path = "plugins/icon" }
 tauri-plugin-importer = { path = "plugins/importer" }

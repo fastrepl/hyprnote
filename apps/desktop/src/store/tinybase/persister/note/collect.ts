@@ -1,7 +1,7 @@
 import { sep } from "@tauri-apps/api/path";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import type { ParsedDocument } from "@hypr/plugin-frontmatter";
+import type { ParsedDocument } from "@hypr/plugin-fs-sync";
 import type { EnhancedNoteStorage } from "@hypr/store";
 import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 

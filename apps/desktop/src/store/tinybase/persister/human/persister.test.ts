@@ -12,11 +12,13 @@ vi.mock("@hypr/plugin-path2", () => ({
   },
 }));
 
-vi.mock("@hypr/plugin-frontmatter", () => ({
+vi.mock("@hypr/plugin-fs-sync", () => ({
   commands: {
     deserialize: vi.fn(),
     serialize: vi.fn().mockResolvedValue({ status: "ok", data: "" }),
-    serializeBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
+    writeFrontmatterBatch: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: null }),
   },
 }));
 
@@ -67,8 +69,7 @@ describe("createHumanPersister", () => {
     test("loads humans from markdown files", async () => {
       const { readDir, readTextFile, exists } =
         await import("@tauri-apps/plugin-fs");
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       vi.mocked(exists).mockResolvedValue(false);
       vi.mocked(readDir).mockResolvedValue([
@@ -93,7 +94,7 @@ describe("createHumanPersister", () => {
         "Some notes",
       );
       vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
-      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
         status: "ok",
         data: {
           frontmatter: {
@@ -144,8 +145,7 @@ describe("createHumanPersister", () => {
     test("skips non-UUID files", async () => {
       const { readDir, readTextFile, exists } =
         await import("@tauri-apps/plugin-fs");
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       vi.mocked(exists).mockResolvedValue(false);
       vi.mocked(readDir).mockResolvedValue([
@@ -176,7 +176,7 @@ describe("createHumanPersister", () => {
         "",
       );
       vi.mocked(readTextFile).mockResolvedValue(mockMdContent);
-      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
         status: "ok",
         data: {
           frontmatter: {
@@ -204,8 +204,7 @@ describe("createHumanPersister", () => {
   describe("save", () => {
     test("saves humans to markdown files via frontmatter plugin", async () => {
       const { mkdir } = await import("@tauri-apps/plugin-fs");
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("humans", HUMAN_UUID_1, {
         user_id: "user-1",
@@ -225,7 +224,7 @@ describe("createHumanPersister", () => {
         recursive: true,
       });
 
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -245,18 +244,16 @@ describe("createHumanPersister", () => {
     });
 
     test("does not write when no humans exist", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       const persister = createHumanPersister<Schemas>(store);
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).not.toHaveBeenCalled();
+      expect(fsSyncCommands.writeFrontmatterBatch).not.toHaveBeenCalled();
     });
 
     test("saves multiple humans in single batch call", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("humans", HUMAN_UUID_1, {
         user_id: "user-1",
@@ -283,9 +280,9 @@ describe("createHumanPersister", () => {
       const persister = createHumanPersister<Schemas>(store);
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledTimes(1);
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledTimes(1);
 
-      const batchItems = vi.mocked(frontmatterCommands.serializeBatch).mock
+      const batchItems = vi.mocked(fsSyncCommands.writeFrontmatterBatch).mock
         .calls[0][0];
       expect(batchItems).toHaveLength(2);
 
@@ -303,8 +300,7 @@ describe("createHumanPersister", () => {
     test("migrates from humans.json when it exists and humans dir does not", async () => {
       const { exists, readTextFile, mkdir, remove } =
         await import("@tauri-apps/plugin-fs");
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       vi.mocked(exists).mockImplementation(async (path: string | URL) => {
         const p = typeof path === "string" ? path : path.toString();
@@ -333,7 +329,7 @@ describe("createHumanPersister", () => {
       expect(mkdir).toHaveBeenCalledWith("/mock/data/dir/hyprnote/humans", {
         recursive: true,
       });
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -360,10 +356,9 @@ describe("createHumanPersister", () => {
 describe("utils", () => {
   describe("parseMarkdownWithFrontmatter", () => {
     test("parses markdown with frontmatter via plugin", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
         status: "ok",
         data: {
           frontmatter: {
@@ -391,10 +386,9 @@ Some notes about John`;
     });
 
     test("returns empty frontmatter when plugin returns error", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(frontmatterCommands.deserialize).mockResolvedValue({
+      vi.mocked(fsSyncCommands.deserialize).mockResolvedValue({
         status: "error",
         error: "Parse error",
       });

@@ -8,9 +8,9 @@ import {
 } from "@tauri-apps/plugin-fs";
 
 import {
-  commands as frontmatterCommands,
+  commands as fsSyncCommands,
   type ParsedDocument,
-} from "@hypr/plugin-frontmatter";
+} from "@hypr/plugin-fs-sync";
 
 import { isFileNotFoundError, isUUID } from "./utils";
 import type { JsonValue } from "./utils";
@@ -24,7 +24,7 @@ export async function parseMarkdownWithFrontmatter(
   content: string,
   label: string,
 ): Promise<ParsedMarkdown> {
-  const result = await frontmatterCommands.deserialize(content);
+  const result = await fsSyncCommands.deserialize(content);
   if (result.status === "error") {
     console.error(`[${label}] Failed to parse frontmatter:`, result.error);
     return { frontmatter: {}, body: content };
@@ -131,7 +131,7 @@ export async function migrateJsonToMarkdown<T>(
     }
 
     if (batchItems.length > 0) {
-      const result = await frontmatterCommands.serializeBatch(batchItems);
+      const result = await fsSyncCommands.writeFrontmatterBatch(batchItems);
       if (result.status === "error") {
         throw new Error(
           `Failed to serialize frontmatter batch: ${result.error}`,

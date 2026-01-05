@@ -1,7 +1,7 @@
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import { commands as folderCommands } from "@hypr/plugin-folder";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import {
   commands as notifyCommands,
   events as notifyEvents,
@@ -16,7 +16,7 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
 ) {
   const loadFn = async () => {
     try {
-      const result = await folderCommands.listFolders();
+      const result = await fsSyncCommands.listFolders();
       if (result.status === "error") {
         console.error("[FolderPersister] list error:", result.error);
         return undefined;

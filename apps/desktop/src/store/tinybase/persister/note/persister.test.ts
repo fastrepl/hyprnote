@@ -20,9 +20,11 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@hypr/plugin-frontmatter", () => ({
+vi.mock("@hypr/plugin-fs-sync", () => ({
   commands: {
-    serializeBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
+    writeFrontmatterBatch: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: null }),
   },
 }));
 
@@ -69,8 +71,7 @@ describe("createNotePersister", () => {
 
   describe("save", () => {
     test("exports enhanced_note to markdown file", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       const noteId = "note-1";
       store.setRow("enhanced_notes", noteId, {
@@ -93,8 +94,8 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledTimes(1);
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledTimes(1);
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -113,8 +114,7 @@ describe("createNotePersister", () => {
     });
 
     test("uses _summary.md when no template_id", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
@@ -128,7 +128,7 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -147,8 +147,7 @@ describe("createNotePersister", () => {
     });
 
     test("sanitizes template title for filename", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
@@ -170,7 +169,7 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
         [
           expect.any(Object),
           "/mock/data/dir/hyprnote/sessions/session-1/My_________Template.md",
@@ -179,8 +178,7 @@ describe("createNotePersister", () => {
     });
 
     test("falls back to template_id when template title is not found", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
@@ -195,7 +193,7 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
         [
           expect.any(Object),
           "/mock/data/dir/hyprnote/sessions/session-1/unknown-template-id.md",
@@ -204,8 +202,7 @@ describe("createNotePersister", () => {
     });
 
     test("handles multiple enhanced_notes", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
@@ -234,15 +231,14 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledTimes(1);
-      const callArgs = vi.mocked(frontmatterCommands.serializeBatch).mock
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledTimes(1);
+      const callArgs = vi.mocked(fsSyncCommands.writeFrontmatterBatch).mock
         .calls[0][0];
       expect(callArgs).toHaveLength(2);
     });
 
     test("exports raw_md for sessions", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("sessions", "session-1", {
         user_id: "user-1",
@@ -255,7 +251,7 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -271,8 +267,7 @@ describe("createNotePersister", () => {
     });
 
     test("does not export raw_md when raw_md is empty", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("sessions", "session-1", {
         user_id: "user-1",
@@ -285,7 +280,7 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).not.toHaveBeenCalled();
+      expect(fsSyncCommands.writeFrontmatterBatch).not.toHaveBeenCalled();
     });
 
     test("creates directory if it does not exist", async () => {
@@ -311,8 +306,7 @@ describe("createNotePersister", () => {
     });
 
     test("skips when content is not valid tiptap json", async () => {
-      const { commands: frontmatterCommands } =
-        await import("@hypr/plugin-frontmatter");
+      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("enhanced_notes", "note-1", {
         user_id: "user-1",
@@ -326,7 +320,7 @@ describe("createNotePersister", () => {
 
       await persister.save();
 
-      expect(frontmatterCommands.serializeBatch).not.toHaveBeenCalled();
+      expect(fsSyncCommands.writeFrontmatterBatch).not.toHaveBeenCalled();
     });
   });
 });

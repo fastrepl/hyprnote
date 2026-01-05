@@ -4,7 +4,7 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
-import { commands as folderCommands } from "@hypr/plugin-folder";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import { createSessionDirPersister, getDataDir } from "../utils";
 import { collectSessionWriteOps, type SessionCollectorResult } from "./collect";
@@ -37,7 +37,7 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
     },
     postSave: async (_dataDir, result) => {
       const { validSessionIds } = result as SessionCollectorResult;
-      await folderCommands.cleanupOrphanDirs(
+      await fsSyncCommands.cleanupOrphanDirs(
         "sessions",
         "_meta.json",
         Array.from(validSessionIds),

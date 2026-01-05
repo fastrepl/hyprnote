@@ -1,8 +1,0 @@
-[default]
-description = "Default permissions for the plugin"
-permissions = [
-    "allow-export-json",
-    "allow-export-json-batch",
-    "allow-export-tiptap-json-to-md",
-    "allow-export-tiptap-json-to-md-batch",
-]

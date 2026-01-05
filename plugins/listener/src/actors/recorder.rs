@@ -8,7 +8,7 @@ use hypr_audio_utils::{
     VorbisEncodeSettings, decode_vorbis_to_wav_file, encode_wav_to_vorbis_file, mix_audio_f32,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
-use tauri_plugin_folder::find_session_dir;
+use tauri_plugin_fs_sync::find_session_dir;
 
 const FLUSH_INTERVAL: std::time::Duration = std::time::Duration::from_millis(1000);
 

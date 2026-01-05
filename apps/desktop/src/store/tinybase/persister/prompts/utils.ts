@@ -1,4 +1,4 @@
-import type { JsonValue } from "@hypr/plugin-export";
+import type { JsonValue } from "@hypr/plugin-fs-sync";
 import type { PromptStorage } from "@hypr/store";
 
 import {

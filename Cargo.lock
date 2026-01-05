@@ -4703,11 +4703,9 @@ dependencies = [
  "tauri-plugin-deeplink2",
  "tauri-plugin-detect",
  "tauri-plugin-dialog",
- "tauri-plugin-export",
  "tauri-plugin-extensions",
- "tauri-plugin-folder",
- "tauri-plugin-frontmatter",
  "tauri-plugin-fs",
+ "tauri-plugin-fs-sync",
  "tauri-plugin-hooks",
  "tauri-plugin-http",
  "tauri-plugin-icon",
@@ -18131,6 +18129,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-fs-sync"
+version = "0.1.0"
+dependencies = [
+ "frontmatter",
+ "rayon",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-path2",
+ "tauri-specta",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tiptap",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "tauri-plugin-hooks"
 version = "0.1.0"
 dependencies = [
@@ -18265,7 +18286,7 @@ dependencies = [
  "strum 0.26.3",
  "tauri",
  "tauri-plugin",
- "tauri-plugin-folder",
+ "tauri-plugin-fs-sync",
  "tauri-plugin-hooks",
  "tauri-plugin-local-stt",
  "tauri-plugin-tray",
@@ -19427,6 +19448,16 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "tiptap"
+version = "0.1.0"
+dependencies = [
+ "insta",
+ "markdown",
+ "mdast_util_to_markdown",
+ "serde_json",
+]
 
 [[package]]
 name = "tl"

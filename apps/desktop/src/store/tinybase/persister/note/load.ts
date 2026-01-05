@@ -1,7 +1,7 @@
 import { sep } from "@tauri-apps/api/path";
 import { exists, readDir, readTextFile } from "@tauri-apps/plugin-fs";
 
-import { commands as frontmatterCommands } from "@hypr/plugin-frontmatter";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import type { EnhancedNoteStorage } from "@hypr/store";
 import { md2json } from "@hypr/tiptap/shared";
 
@@ -72,7 +72,7 @@ async function loadNotesFromSessionDir(
 
     try {
       const content = await readTextFile(filePath);
-      const parseResult = await frontmatterCommands.deserialize(content);
+      const parseResult = await fsSyncCommands.deserialize(content);
 
       if (parseResult.status === "error") {
         console.error(

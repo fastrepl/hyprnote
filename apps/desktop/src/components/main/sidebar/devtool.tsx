@@ -89,9 +89,11 @@ export function DevtoolView() {
 function DevtoolCard({
   title,
   children,
+  maxHeight,
 }: {
   title: string;
   children: React.ReactNode;
+  maxHeight?: string;
 }) {
   return (
     <div
@@ -99,6 +101,7 @@ function DevtoolCard({
         "rounded-lg border border-neutral-200 bg-white",
         "shadow-sm",
         "overflow-hidden",
+        "shrink-0",
       ])}
     >
       <div className="px-2 py-1.5 border-b border-neutral-100 bg-neutral-50">
@@ -106,7 +109,12 @@ function DevtoolCard({
           {title}
         </h2>
       </div>
-      <div className="p-2">{children}</div>
+      <div
+        className="p-2 overflow-y-auto"
+        style={maxHeight ? { maxHeight } : undefined}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -191,7 +199,7 @@ function CalendarMockCard() {
 
 function SeedCard({ onSeed }: { onSeed: (seed: SeedDefinition) => void }) {
   return (
-    <DevtoolCard title="Seeds">
+    <DevtoolCard title="Seeds" maxHeight="200px">
       <div className="flex flex-col gap-1.5">
         {seeds.map((seed) => (
           <button

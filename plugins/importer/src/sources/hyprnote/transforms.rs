@@ -19,12 +19,6 @@ pub(super) fn session_to_imported_note(session: Session, tags: Vec<Tag>) -> Impo
         None
     };
 
-    let pre_meeting_memo = session
-        .pre_meeting_memo_html
-        .as_ref()
-        .filter(|s| !s.is_empty())
-        .map(|html| strip_html_tags(html));
-
     ImportedNote {
         id: session.id,
         title: session.title,
@@ -36,7 +30,6 @@ pub(super) fn session_to_imported_note(session: Session, tags: Vec<Tag>) -> Impo
         folder_id: None,
         event_id: session.calendar_event_id,
         tags: tags.into_iter().map(|t| t.name).collect(),
-        pre_meeting_memo,
     }
 }
 

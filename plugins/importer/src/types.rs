@@ -60,7 +60,6 @@ pub struct ImportedNote {
     pub folder_id: Option<String>,
     pub event_id: Option<String>,
     pub tags: Vec<String>,
-    pub pre_meeting_memo: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]

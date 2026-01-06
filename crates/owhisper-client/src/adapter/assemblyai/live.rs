@@ -192,7 +192,7 @@ impl AssemblyAIAdapter {
             || params
                 .languages
                 .first()
-                .map(|l| l.iso639().code() != "en")
+                .map(|l| l.iso639_code() != "en")
                 .unwrap_or(false);
 
         if needs_multilingual {

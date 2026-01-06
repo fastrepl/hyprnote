@@ -1,4 +1,3 @@
-import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -6,17 +5,12 @@ import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
+import { getLanguageName, type LanguageOption } from "../../../lib/languages";
 
 interface SpokenLanguagesViewProps {
   value: string[];
   onChange: (value: string[]) => void;
-  supportedLanguages: ISO_639_1_CODE[];
-}
-
-function getLanguageName(code: string): string {
-  const lang = LANGUAGES_ISO_639_1[code as ISO_639_1_CODE];
-  return lang?.name ?? code;
+  supportedLanguages: LanguageOption[];
 }
 
 export function SpokenLanguagesView({
@@ -33,10 +27,9 @@ export function SpokenLanguagesView({
       return [];
     }
     const query = languageSearchQuery.toLowerCase();
-    return supportedLanguages.filter((langCode) => {
-      const langName = LANGUAGES_ISO_639_1[langCode].name;
+    return supportedLanguages.filter((lang) => {
       return (
-        !value.includes(langCode) && langName.toLowerCase().includes(query)
+        !value.includes(lang.code) && lang.name.toLowerCase().includes(query)
       );
     });
   }, [languageSearchQuery, value, supportedLanguages]);
@@ -66,8 +59,8 @@ export function SpokenLanguagesView({
         languageSelectedIndex >= 0 &&
         languageSelectedIndex < filteredLanguages.length
       ) {
-        const selectedCode = filteredLanguages[languageSelectedIndex];
-        onChange([...value, selectedCode]);
+        const selectedLang = filteredLanguages[languageSelectedIndex];
+        onChange([...value, selectedLang.code]);
         setLanguageSearchQuery("");
         setLanguageSelectedIndex(-1);
       }
@@ -151,15 +144,15 @@ export function SpokenLanguagesView({
             className="absolute top-full left-0 right-0 mt-1 flex flex-col w-full rounded border border-neutral-200 overflow-hidden bg-white shadow-md z-10 max-h-60 overflow-y-auto"
           >
             {filteredLanguages.length > 0 ? (
-              filteredLanguages.map((langCode, index) => (
+              filteredLanguages.map((lang, index) => (
                 <button
-                  key={langCode}
+                  key={lang.code}
                   id={`language-option-${index}`}
                   type="button"
                   role="option"
                   aria-selected={languageSelectedIndex === index}
                   onClick={() => {
-                    onChange([...value, langCode]);
+                    onChange([...value, lang.code]);
                     setLanguageSearchQuery("");
                     setLanguageSelectedIndex(-1);
                   }}
@@ -172,9 +165,7 @@ export function SpokenLanguagesView({
                       : "hover:bg-neutral-100",
                   ])}
                 >
-                  <span className="font-medium truncate">
-                    {getLanguageName(langCode)}
-                  </span>
+                  <span className="font-medium truncate">{lang.name}</span>
                 </button>
               ))
             ) : (

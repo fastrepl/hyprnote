@@ -1,4 +1,3 @@
-import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
@@ -6,6 +5,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
+import { SUPPORTED_LANGUAGES } from "../../../lib/languages";
 import * as settings from "../../../store/tinybase/store/settings";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
@@ -193,51 +193,3 @@ export function SettingsGeneral({
     </div>
   );
 }
-
-type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
-const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
-  "es",
-  "it",
-  "ko",
-  "pt",
-  "en",
-  "pl",
-  "ca",
-  "ja",
-  "de",
-  "ru",
-  "nl",
-  "fr",
-  "id",
-  "uk",
-  "tr",
-  "ms",
-  "sv",
-  "zh",
-  "fi",
-  "no",
-  "ro",
-  "th",
-  "vi",
-  "sk",
-  "ar",
-  "cs",
-  "hr",
-  "el",
-  "sr",
-  "da",
-  "bg",
-  "hu",
-  "tl",
-  "bs",
-  "gl",
-  "mk",
-  "hi",
-  "et",
-  "sl",
-  "ta",
-  "lv",
-  "lt",
-  "az",
-  "he",
-];

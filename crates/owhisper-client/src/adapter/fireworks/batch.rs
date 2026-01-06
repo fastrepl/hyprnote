@@ -62,7 +62,7 @@ impl FireworksAdapter {
         form = form.text("model", model.to_string());
 
         if let Some(lang) = params.languages.first() {
-            form = form.text("language", lang.iso639().code().to_string());
+            form = form.text("language", lang.iso639_code().to_string());
         }
 
         form = form.text("response_format", "verbose_json");

@@ -105,7 +105,7 @@ async fn do_transcribe_file(
     }
 
     if let Some(lang) = params.languages.first() {
-        form = form.text("language", lang.iso639().code().to_string());
+        form = form.text("language", lang.iso639_code().to_string());
     }
 
     let base = if api_base.is_empty() {

@@ -67,7 +67,7 @@ impl RealtimeSttAdapter for SonioxAdapter {
         let language_hints = params
             .languages
             .iter()
-            .map(|lang| lang.iso639().code().to_string())
+            .map(|lang| lang.iso639_code().to_string())
             .collect();
 
         let cfg = SonioxConfig {

@@ -32,7 +32,7 @@ impl RealtimeSttAdapter for FireworksAdapter {
             query_pairs.append_pair("timestamp_granularities", "word,segment");
 
             if let Some(lang) = params.languages.first() {
-                query_pairs.append_pair("language", lang.iso639().code());
+                query_pairs.append_pair("language", lang.iso639_code());
             }
         }
 

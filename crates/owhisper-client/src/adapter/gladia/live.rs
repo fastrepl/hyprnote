@@ -96,7 +96,7 @@ impl RealtimeSttAdapter for GladiaAdapter {
             let languages: Vec<String> = params
                 .languages
                 .iter()
-                .map(|l| l.iso639().code().to_string())
+                .map(|l| l.iso639_code().to_string())
                 .collect();
 
             let language_config = if languages.is_empty() {

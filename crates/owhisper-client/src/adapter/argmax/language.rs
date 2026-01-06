@@ -16,7 +16,7 @@ impl LanguageQueryStrategy for ArgmaxLanguageStrategy {
         params: &ListenParams,
     ) {
         let lang = pick_single_language(params);
-        query_pairs.append_pair("language", lang.iso639().code());
+        query_pairs.append_pair("language", lang.iso639_code());
     }
 }
 
@@ -29,7 +29,7 @@ fn pick_single_language(params: &ListenParams) -> hypr_language::Language {
         params
             .languages
             .iter()
-            .find(|lang| PARAKEET_V3_LANGS.contains(&lang.iso639().code()))
+            .find(|lang| PARAKEET_V3_LANGS.contains(&lang.iso639_code()))
             .cloned()
             .unwrap_or_else(|| hypr_language::ISO639::En.into())
     } else {

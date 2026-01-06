@@ -1,5 +1,3 @@
-import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
-
 import {
   Select,
   SelectContent,
@@ -8,7 +6,7 @@ import {
   SelectValue,
 } from "@hypr/ui/components/ui/select";
 
-type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
+import { getLanguageName, type LanguageOption } from "../../../lib/languages";
 
 export function MainLanguageView({
   value,
@@ -17,7 +15,7 @@ export function MainLanguageView({
 }: {
   value: string;
   onChange: (value: string) => void;
-  supportedLanguages: ISO_639_1_CODE[];
+  supportedLanguages: LanguageOption[];
 }) {
   return (
     <div className="flex flex-row items-center justify-between">
@@ -29,12 +27,12 @@ export function MainLanguageView({
       </div>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-40 shadow-none focus:ring-0 focus:ring-offset-0">
-          <SelectValue />
+          <SelectValue>{getLanguageName(value)}</SelectValue>
         </SelectTrigger>
         <SelectContent className="max-h-[250px] overflow-auto">
-          {supportedLanguages.map((code) => (
-            <SelectItem key={code} value={code}>
-              {LANGUAGES_ISO_639_1[code].name}
+          {supportedLanguages.map((lang) => (
+            <SelectItem key={lang.code} value={lang.code}>
+              {lang.name}
             </SelectItem>
           ))}
         </SelectContent>

@@ -20,7 +20,7 @@ fn can_use_multi(model: &str, languages: &[hypr_language::Language]) -> bool {
 
     languages
         .iter()
-        .all(|lang| multi_langs.contains(&lang.iso639().code()))
+        .all(|lang| multi_langs.contains(&lang.iso639_code()))
 }
 
 pub struct DeepgramLanguageStrategy;
@@ -39,22 +39,22 @@ impl LanguageQueryStrategy for DeepgramLanguageStrategy {
             }
             1 => {
                 if let Some(language) = params.languages.first() {
-                    let code = language.iso639().code();
-                    query_pairs.append_pair("language", code);
+                    let code = language.bcp47();
+                    query_pairs.append_pair("language", &code);
                 }
             }
             _ => {
                 if can_use_multi(model, &params.languages) {
                     query_pairs.append_pair("language", "multi");
                     for language in &params.languages {
-                        let code = language.iso639().code();
-                        query_pairs.append_pair("languages", code);
+                        let code = language.bcp47();
+                        query_pairs.append_pair("languages", &code);
                     }
                 } else {
                     query_pairs.append_pair("detect_language", "true");
                     for language in &params.languages {
-                        let code = language.iso639().code();
-                        query_pairs.append_pair("languages", code);
+                        let code = language.bcp47();
+                        query_pairs.append_pair("languages", &code);
                     }
                 }
             }

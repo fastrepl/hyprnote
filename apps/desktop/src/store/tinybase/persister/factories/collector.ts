@@ -15,10 +15,11 @@ import {
 import { StoreOrMergeableStore } from "../../store/shared";
 import { ensureDirsExist } from "../shared/fs";
 import { getDataDir } from "../shared/paths";
-import type {
-  CollectorResult,
-  PersistedChanges,
-  TablesContent,
+import {
+  type ChangedTables,
+  type CollectorResult,
+  extractChangedTables,
+  type TablesContent,
 } from "../shared/types";
 
 export function createModeAwarePersister<Schemas extends OptionalSchemas>(
@@ -48,7 +49,7 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
       store: MergeableStore<Schemas>,
       tables: TablesContent,
       dataDir: string,
-      changes?: PersistedChanges,
+      changedTables?: ChangedTables,
     ) => CollectorResult;
     load?: () => Promise<Content<Schemas> | undefined>;
     postSave?: (dataDir: string, result: CollectorResult) => Promise<void>;
@@ -56,16 +57,19 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
 ) {
   const loadFn = options.load ?? (async () => undefined);
 
-  const saveFn = async (
-    _getContent: () => unknown,
-    changes?: PersistedChanges,
-  ) => {
-    const isIncrementalSave = changes !== undefined;
+  const saveFn = async (_getContent: () => unknown, changes?: unknown) => {
+    const changedTables = extractChangedTables(changes);
+    const isIncrementalSave = changedTables !== null;
 
     try {
       const dataDir = await getDataDir();
       const tables = store.getTables() as TablesContent | undefined;
-      const result = options.collect(store, tables ?? {}, dataDir, changes);
+      const result = options.collect(
+        store,
+        tables ?? {},
+        dataDir,
+        changedTables ?? undefined,
+      );
       const { dirs, operations } = result;
 
       if (operations.length === 0) {

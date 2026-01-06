@@ -18,7 +18,6 @@ import {
 import type {
   CollectorResult,
   MarkdownDirPersisterConfig,
-  PersistedChanges,
 } from "../shared/types";
 import { createCollectorPersister } from "./collector";
 
@@ -137,15 +136,14 @@ export function createMarkdownDirPersister<
 
   return createCollectorPersister(store, {
     label,
-    collect: (_store, tables, dataDir, changes) => {
+    collect: (_store, tables, dataDir, changedTables) => {
       const fullTableData =
         (tables as Record<string, Record<string, TStorage>>)[tableName] ?? {};
 
-      if (changes) {
-        const [changedTables] = changes;
-        const changedRows = changedTables[
-          tableName as keyof typeof changedTables
-        ] as Record<string, unknown> | undefined;
+      if (changedTables) {
+        const changedRows = changedTables[tableName] as
+          | Record<string, unknown>
+          | undefined;
         if (!changedRows) {
           return { dirs: new Set(), operations: [], validIds: new Set() };
         }

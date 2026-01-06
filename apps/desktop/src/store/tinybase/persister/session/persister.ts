@@ -9,9 +9,9 @@ import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { createCollectorPersister } from "../factories";
 import {
   asTablesChanges,
+  type ChangedTables,
   type CollectorResult,
   getDataDir,
-  type PersistedChanges,
   type TablesContent,
 } from "../shared";
 import {
@@ -24,9 +24,8 @@ import { loadAllSessionData } from "./load";
 
 function getChangedSessionIds(
   tables: TablesContent,
-  changes: PersistedChanges,
+  changedTables: ChangedTables,
 ): Set<string> | undefined {
-  const [changedTables] = changes;
   const changedSessionIds = new Set<string>();
 
   const changedSessions = changedTables.sessions;
@@ -109,11 +108,11 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
 ) {
   return createCollectorPersister(store, {
     label: "SessionPersister",
-    collect: (store, tables, dataDir, changes) => {
+    collect: (store, tables, dataDir, changedTables) => {
       let changedSessionIds: Set<string> | undefined;
 
-      if (changes) {
-        changedSessionIds = getChangedSessionIds(tables, changes);
+      if (changedTables) {
+        changedSessionIds = getChangedSessionIds(tables, changedTables);
         if (!changedSessionIds) {
           return {
             dirs: new Set(),

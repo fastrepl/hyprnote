@@ -47,7 +47,86 @@ export type CollectorResult = {
   operations: WriteOperation[];
 };
 
-export type PersistedChanges = [TablesContent, Record<string, unknown>];
+// Simplified type for changed tables extracted from TinyBase's Changes or MergeableChanges
+// Maps table name -> row id -> changed cells (or undefined for deletion)
+export type ChangedTables = Record<string, Record<string, unknown> | undefined>;
+
+// Extract changed tables from TinyBase's Changes or MergeableChanges
+// Changes format: [changedTables, changedValues, 1]
+// MergeableChanges format: [[changedTables, hlc?], [changedValues, hlc?], 1]
+export function extractChangedTables(changes: unknown): ChangedTables | null {
+  if (!changes || !Array.isArray(changes) || changes.length < 1) {
+    return null;
+  }
+
+  const tablesOrStamp = changes[0];
+
+  // Check if it's MergeableChanges (wrapped in [thing, hlc?] tuple)
+  if (Array.isArray(tablesOrStamp) && tablesOrStamp.length >= 1) {
+    const tables = tablesOrStamp[0];
+    if (tables && typeof tables === "object") {
+      return unwrapMergeableTables(tables as Record<string, unknown>);
+    }
+    return null;
+  }
+
+  // Regular Changes format
+  if (tablesOrStamp && typeof tablesOrStamp === "object") {
+    return tablesOrStamp as ChangedTables;
+  }
+
+  return null;
+}
+
+// Unwrap MergeableChanges table structure where each value is [thing, hlc?]
+function unwrapMergeableTables(tables: Record<string, unknown>): ChangedTables {
+  const result: ChangedTables = {};
+
+  for (const [tableName, tableValue] of Object.entries(tables)) {
+    if (!tableValue) {
+      result[tableName] = undefined;
+      continue;
+    }
+
+    // MergeableChanges wraps each table in [rows, hlc?]
+    if (Array.isArray(tableValue) && tableValue.length >= 1) {
+      const rows = tableValue[0];
+      if (rows && typeof rows === "object") {
+        result[tableName] = unwrapMergeableRows(
+          rows as Record<string, unknown>,
+        );
+      }
+    } else if (typeof tableValue === "object") {
+      // Fallback: treat as regular rows
+      result[tableName] = tableValue as Record<string, unknown>;
+    }
+  }
+
+  return result;
+}
+
+// Unwrap MergeableChanges row structure where each row is [cells, hlc?]
+function unwrapMergeableRows(
+  rows: Record<string, unknown>,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+
+  for (const [rowId, rowValue] of Object.entries(rows)) {
+    if (!rowValue) {
+      result[rowId] = undefined;
+      continue;
+    }
+
+    // MergeableChanges wraps each row in [cells, hlc?]
+    if (Array.isArray(rowValue) && rowValue.length >= 1) {
+      result[rowId] = rowValue[0];
+    } else {
+      result[rowId] = rowValue;
+    }
+  }
+
+  return result;
+}
 
 export interface MarkdownDirPersisterConfig<TStorage> {
   tableName: string;

@@ -55,6 +55,19 @@ function BountiesPage() {
     fetchIssues();
   }, []);
 
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      #launcher, [data-product="web_widget"], iframe[title*="Zendesk"] {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   const sortedBounties = [...allBounties].sort((a, b) => b.amount - a.amount);
   const openBounties = sortedBounties.filter((b) => b.status === "open");
   const claimedBounties = sortedBounties.filter((b) => b.status === "claimed");
@@ -63,46 +76,46 @@ function BountiesPage() {
   const totalOpen = openBounties.reduce((sum, b) => sum + b.amount, 0);
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 font-mono">
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold mb-2">hyprnote bounties</h1>
+    <div className="min-h-screen bg-white text-stone-900 font-mono text-sm">
+      <div className="max-w-[1024px] mx-auto px-5 py-5">
+        <h1 className="text-2xl font-bold mb-1">hyprnote bounties</h1>
 
-        <nav className="flex gap-2 text-sm mb-8">
+        <nav className="flex gap-2 text-sm mb-6">
           <a
             href="https://hyprnote.com"
-            className="text-neutral-500 hover:text-neutral-900"
+            className="text-stone-500 hover:text-stone-900 underline"
           >
             home
           </a>
-          <span className="text-neutral-300">-</span>
+          <span className="text-stone-400">·</span>
           <a
             href="https://github.com/fastrepl/hyprnote"
-            className="text-neutral-500 hover:text-neutral-900"
+            className="text-stone-500 hover:text-stone-900 underline"
           >
             github
           </a>
-          <span className="text-neutral-300">-</span>
+          <span className="text-stone-400">·</span>
           <a
             href="https://discord.gg/hyprnote"
-            className="text-neutral-500 hover:text-neutral-900"
+            className="text-stone-500 hover:text-stone-900 underline"
           >
             discord
           </a>
         </nav>
 
-        <p className="mb-6 text-neutral-600">
+        <p className="mb-4 text-stone-700">
           We offer cash bounties for contributions to Hyprnote. Pick an issue,
           submit a PR, and get paid.
         </p>
 
-        <ul className="text-sm text-neutral-600 mb-8 space-y-1">
-          <li>* Submit your solution as a PR referencing the issue</li>
-          <li>* Multiple submissions are allowed</li>
-          <li>* Payment is made after PR is merged</li>
-        </ul>
+        <div className="text-stone-700 mb-6">
+          <p>* Submit your solution as a PR referencing the issue</p>
+          <p>* Multiple submissions are allowed</p>
+          <p>* Payment is made after PR is merged</p>
+        </div>
 
-        <p className="text-lg mb-12">
-          <span className="text-green-600 font-bold">${totalOpen}</span> in open
+        <p className="mb-8">
+          <span className="text-stone-900 font-bold">${totalOpen}</span> in open
           bounties
         </p>
 
@@ -140,6 +153,12 @@ function BountiesPage() {
   );
 }
 
+function Skeleton({ className }: { className?: string }) {
+  return (
+    <div className={`animate-pulse bg-stone-200 rounded ${className || ""}`} />
+  );
+}
+
 function BountySection({
   title,
   bounties,
@@ -154,15 +173,15 @@ function BountySection({
   status: "open" | "claimed" | "paid";
 }) {
   const statusColors = {
-    open: "bg-green-500",
-    claimed: "bg-yellow-500",
-    paid: "bg-neutral-400",
+    open: "bg-stone-800",
+    claimed: "bg-stone-500",
+    paid: "bg-stone-400",
   };
 
   return (
-    <section className="mb-12">
-      <div className="flex items-center gap-3 mb-4">
-        <h2 className="text-xl font-bold">{title}</h2>
+    <section className="mb-10">
+      <div className="flex items-center gap-3 mb-3">
+        <h2 className="text-lg font-bold">{title}</h2>
         <span
           className={`px-2 py-0.5 text-xs text-white rounded ${statusColors[status]}`}
         >
@@ -170,12 +189,12 @@ function BountySection({
         </span>
       </div>
 
-      <div className="border border-neutral-200 rounded">
+      <div className="border border-stone-300 rounded overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-neutral-200 bg-neutral-50">
-              <th className="text-left px-4 py-2 font-medium">$</th>
-              <th className="text-left px-4 py-2 font-medium">issue</th>
+            <tr className="border-b border-stone-300 bg-stone-100">
+              <th className="text-left px-4 py-2 font-medium w-20">$</th>
+              <th className="text-left px-4 py-2 font-medium w-24">issue</th>
               <th className="text-left px-4 py-2 font-medium">title</th>
             </tr>
           </thead>
@@ -185,9 +204,9 @@ function BountySection({
               return (
                 <tr
                   key={bounty.slug}
-                  className="border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50"
+                  className="border-b border-stone-200 last:border-b-0 hover:bg-stone-50"
                 >
-                  <td className="px-4 py-3 text-green-600 font-bold">
+                  <td className="px-4 py-3 text-stone-900 font-bold">
                     ${bounty.amount}
                   </td>
                   <td className="px-4 py-3">
@@ -195,14 +214,14 @@ function BountySection({
                       href={`https://github.com/fastrepl/hyprnote/issues/${bounty.issue}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-stone-600 hover:text-stone-900 underline"
                     >
                       #{bounty.issue}
                     </a>
                   </td>
                   <td className="px-4 py-3">
                     {loading ? (
-                      <span className="text-neutral-400">loading...</span>
+                      <Skeleton className="h-4 w-64" />
                     ) : issue ? (
                       <a
                         href={issue.html_url}
@@ -213,7 +232,7 @@ function BountySection({
                         {issue.title}
                       </a>
                     ) : (
-                      <span className="text-neutral-500">{bounty.title}</span>
+                      <span className="text-stone-500">{bounty.title}</span>
                     )}
                   </td>
                 </tr>
@@ -223,28 +242,33 @@ function BountySection({
         </table>
       </div>
 
-      {bounties.map((bounty) => {
-        const issue = issues[bounty.issue];
-        if (!issue || loading) return null;
+      <div className="mt-4 space-y-3">
+        {bounties.map((bounty) => {
+          const issue = issues[bounty.issue];
 
-        return (
-          <div
-            key={bounty.slug}
-            className="mt-4 pl-4 border-l-2 border-neutral-200"
-          >
-            <p className="text-xs text-neutral-500 mb-1">
-              #{bounty.issue} - {bounty.title}
-            </p>
-            <p className="text-sm text-neutral-600 whitespace-pre-wrap line-clamp-3">
-              {bounty.content || issue.body?.slice(0, 200)}
-              {(bounty.content?.length || 0) > 200 ||
-              (issue.body?.length || 0) > 200
-                ? "..."
-                : ""}
-            </p>
-          </div>
-        );
-      })}
+          return (
+            <div key={bounty.slug} className="pl-4 border-l-2 border-stone-300">
+              <p className="text-xs text-stone-500 mb-1">
+                #{bounty.issue} - {bounty.title}
+              </p>
+              {loading ? (
+                <div className="space-y-1">
+                  <Skeleton className="h-3 w-full max-w-lg" />
+                  <Skeleton className="h-3 w-3/4 max-w-md" />
+                </div>
+              ) : (
+                <p className="text-sm text-stone-600 whitespace-pre-wrap line-clamp-3">
+                  {bounty.content || issue?.body?.slice(0, 200)}
+                  {(bounty.content?.length || 0) > 200 ||
+                  (issue?.body?.length || 0) > 200
+                    ? "..."
+                    : ""}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }

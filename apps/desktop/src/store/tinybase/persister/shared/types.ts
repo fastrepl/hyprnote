@@ -51,9 +51,29 @@ export type CollectorResult = {
 // Maps table name -> row id -> changed cells (or undefined for deletion)
 export type ChangedTables = Record<string, Record<string, unknown> | undefined>;
 
-// Extract changed tables from TinyBase's Changes or MergeableChanges
-// Changes format: [changedTables, changedValues, 1]
-// MergeableChanges format: [[changedTables, hlc?], [changedValues, hlc?], 1]
+/**
+ * Extract changed tables from TinyBase's Changes or MergeableChanges.
+ *
+ * TinyBase Data Formats (from create.ts):
+ * https://github.com/tinyplex/tinybase/blob/main/src/persisters/common/create.ts
+ *
+ * | Type              | Format                                           | Example                                          |
+ * |-------------------|--------------------------------------------------|--------------------------------------------------|
+ * | Content           | [tables, values]                                 | [{users: {...}}, {}]                             |
+ * | Changes           | [changedTables, changedValues, 1]                | [{users: {row1: {...}}}, {}, 1]                  |
+ * | MergeableContent  | [[tables, hlc?], [values, hlc?]]                 | [[{users: {...}}, "hlc123"], [{}, "hlc456"]]     |
+ * | MergeableChanges  | [[changedTables, hlc?], [changedValues, hlc?], 1]| [[{users: {...}}, "hlc"], [{}, "hlc"], 1]        |
+ *
+ * The [2] === 1 flag distinguishes changes from content:
+ * - When present, TinyBase uses applyChanges() / applyMergeableChanges()
+ * - When absent, TinyBase uses setContent() / setMergeableContent()
+ *
+ * TinyBase's hasChanges destructuring patterns:
+ * - Regular Changes:   ([changedTables, changedValues]: Changes) => ...
+ * - MergeableChanges:  ([[changedTables], [changedValues]]: MergeableChanges) => ...
+ *
+ * Note the double brackets for MergeableChanges - each element is [data, hlc?].
+ */
 export function extractChangedTables(changes: unknown): ChangedTables | null {
   if (!changes || !Array.isArray(changes) || changes.length < 1) {
     return null;

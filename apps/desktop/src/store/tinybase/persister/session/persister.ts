@@ -114,13 +114,23 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
 
       let sessionsToMove: Map<string, { folderPath: string }>;
       if (changedTables?.sessions) {
-        const changedSessionIds = new Set(Object.keys(changedTables.sessions));
+        // Only move sessions where folder_id specifically changed
+        // changedTables.sessions[id] contains the changed cells as an object
         sessionsToMove = new Map(
           [...sessionMetas]
-            .filter(([id]) => changedSessionIds.has(id))
+            .filter(([id]) => {
+              const changedCells = changedTables.sessions?.[id];
+              // Check if folder_id is in the changed cells
+              return (
+                changedCells &&
+                typeof changedCells === "object" &&
+                "folder_id" in changedCells
+              );
+            })
             .map(([id, { folderPath }]) => [id, { folderPath }]),
         );
       } else {
+        // Full save: move all sessions to ensure consistency
         sessionsToMove = new Map(
           [...sessionMetas].map(([id, { folderPath }]) => [id, { folderPath }]),
         );
@@ -129,9 +139,9 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
       for (const [sessionId, { folderPath }] of sessionsToMove) {
         const result = await fsSyncCommands.moveSession(sessionId, folderPath);
         if (result.status === "error") {
-          console.error(
-            `[SessionPersister] moveSession failed for ${sessionId}:`,
-            result.error,
+          // Abort the save to prevent directory duplication
+          throw new Error(
+            `[SessionPersister] moveSession failed for ${sessionId}: ${result.error}`,
           );
         }
       }

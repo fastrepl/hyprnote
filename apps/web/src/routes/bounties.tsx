@@ -56,15 +56,30 @@ function BountiesPage() {
   }, []);
 
   useEffect(() => {
-    const style = document.createElement("style");
-    style.textContent = `
-      #launcher, [data-product="web_widget"], iframe[title*="Zendesk"] {
-        display: none !important;
+    const hideZendesk = () => {
+      if (typeof window !== "undefined" && (window as any).zE) {
+        try {
+          (window as any).zE("messenger", "hide");
+        } catch {
+          // Ignore errors
+        }
       }
-    `;
-    document.head.appendChild(style);
+    };
+
+    hideZendesk();
+    const interval = setInterval(hideZendesk, 100);
+    const timeout = setTimeout(() => clearInterval(interval), 5000);
+
     return () => {
-      document.head.removeChild(style);
+      clearInterval(interval);
+      clearTimeout(timeout);
+      if (typeof window !== "undefined" && (window as any).zE) {
+        try {
+          (window as any).zE("messenger", "show");
+        } catch {
+          // Ignore errors
+        }
+      }
     };
   }, []);
 

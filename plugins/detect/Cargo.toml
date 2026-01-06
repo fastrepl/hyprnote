@@ -10,6 +10,7 @@ description = ""
 [features]
 default = ["zoom"]
 zoom = ["hypr-detect/zoom"]
+language = ["hypr-detect/language"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }

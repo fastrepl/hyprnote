@@ -13,7 +13,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const organizations: Tables<Schemas[0]>["organizations"] = {};
   const humans: Tables<Schemas[0]>["humans"] = {};
   const calendars: Tables<Schemas[0]>["calendars"] = {};
-  const folders: Tables<Schemas[0]>["folders"] = {};
   const tags: Tables<Schemas[0]>["tags"] = {};
   const templates: Tables<Schemas[0]>["templates"] = {};
   const events: Tables<Schemas[0]>["events"] = {};
@@ -30,7 +29,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const chat_shortcuts: Tables<Schemas[0]>["chat_shortcuts"] = {};
 
   const orgNameToId = new Map<string, string>();
-  const folderNameToId = new Map<string, string>();
   const tagNameToId = new Map<string, string>();
   const personNameToId = new Map<string, string>();
   const calendarNameToId = new Map<string, string>();
@@ -69,19 +67,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     calendars[calId] = {
       user_id: DEFAULT_USER_ID,
       name: cal.name,
-      created_at: new Date().toISOString(),
-    };
-  });
-
-  data.folders.forEach((folder) => {
-    const folderId = id();
-    folderNameToId.set(folder.name, folderId);
-    folders[folderId] = {
-      user_id: DEFAULT_USER_ID,
-      name: folder.name,
-      parent_folder_id: folder.parent
-        ? folderNameToId.get(folder.parent)
-        : undefined,
       created_at: new Date().toISOString(),
     };
   });
@@ -129,9 +114,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   data.sessions.forEach((session) => {
     const sessionId = id();
     sessionTitleToId.set(session.title, sessionId);
-    const folderId = session.folder
-      ? folderNameToId.get(session.folder)
-      : undefined;
     const eventId = session.event
       ? eventNameToId.get(session.event)
       : undefined;
@@ -142,7 +124,7 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       raw_md: JSON.stringify(md2json(session.raw_md)),
       created_at: new Date().toISOString(),
       event_id: eventId,
-      folder_id: folderId,
+      folder_id: session.folder,
     };
 
     session.participants.forEach((participantName) => {
@@ -264,7 +246,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     organizations,
     humans,
     calendars,
-    folders,
     sessions,
     transcripts,
     words,

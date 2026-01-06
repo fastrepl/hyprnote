@@ -52,6 +52,11 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
       changedTables?: ChangedTables,
     ) => CollectorResult;
     load?: () => Promise<Content<Schemas> | undefined>;
+    preSave?: (
+      store: MergeableStore<Schemas>,
+      tables: TablesContent,
+      changedTables?: ChangedTables,
+    ) => Promise<void>;
     postSave?: (dataDir: string, result: CollectorResult) => Promise<void>;
   },
 ) {
@@ -64,6 +69,11 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
     try {
       const dataDir = await getDataDir();
       const tables = store.getTables() as TablesContent | undefined;
+
+      if (options.preSave) {
+        await options.preSave(store, tables ?? {}, changedTables ?? undefined);
+      }
+
       const result = options.collect(
         store,
         tables ?? {},

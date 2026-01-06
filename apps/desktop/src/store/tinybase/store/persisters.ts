@@ -7,7 +7,6 @@ import { useCalendarPersister } from "../persister/calendar";
 import { useChatPersister } from "../persister/chat";
 import { useChatShortcutPersister } from "../persister/chat-shortcuts";
 import { useEventsPersister } from "../persister/events";
-import { useFolderPersister } from "../persister/folder";
 import { useHumanPersister } from "../persister/human";
 import { useLocalPersister } from "../persister/local";
 import { useOrganizationPersister } from "../persister/organization";
@@ -45,8 +44,6 @@ export function useMainPersisters(store: Store) {
 
   const valuesPersister = useValuesPersister(store);
 
-  const folderPersister = useFolderPersister(store);
-
   const sessionPersister = useSessionPersister(store);
 
   const organizationPersister = useOrganizationPersister(store);
@@ -70,7 +67,6 @@ export function useMainPersisters(store: Store) {
   return {
     localPersister,
     valuesPersister,
-    folderPersister,
     sessionPersister,
     organizationPersister,
     humanPersister,

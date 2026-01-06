@@ -33,11 +33,11 @@ describe("importFromJson", () => {
     vi.mocked(readTextFile).mockResolvedValue(
       JSON.stringify([
         {
-          folders: {
-            "folder-1": {
+          sessions: {
+            "session-1": {
               user_id: "user",
               created_at: "2024-01-01",
-              name: "Test",
+              title: "Test Session",
             },
           },
         },

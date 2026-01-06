@@ -5,6 +5,7 @@ import type {
 } from "tinybase/with-schemas";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import type { SessionStorage } from "@hypr/store";
 
 import { createCollectorPersister } from "../factories";
 import {
@@ -16,6 +17,7 @@ import {
 } from "../shared";
 import {
   collectNoteWriteOps,
+  collectSessionMeta,
   collectSessionWriteOps,
   collectTranscriptWriteOps,
   type SessionCollectorResult,
@@ -108,6 +110,33 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
 ) {
   return createCollectorPersister(store, {
     label: "SessionPersister",
+    preSave: async (store, _tables, changedTables) => {
+      const sessionMetas = collectSessionMeta(store);
+
+      let sessionsToMove: Map<string, { folderPath: string }>;
+      if (changedTables?.sessions) {
+        const changedSessionIds = new Set(Object.keys(changedTables.sessions));
+        sessionsToMove = new Map(
+          [...sessionMetas]
+            .filter(([id]) => changedSessionIds.has(id))
+            .map(([id, { folderPath }]) => [id, { folderPath }]),
+        );
+      } else {
+        sessionsToMove = new Map(
+          [...sessionMetas].map(([id, { folderPath }]) => [id, { folderPath }]),
+        );
+      }
+
+      for (const [sessionId, { folderPath }] of sessionsToMove) {
+        const result = await fsSyncCommands.moveSession(sessionId, folderPath);
+        if (result.status === "error") {
+          console.error(
+            `[SessionPersister] moveSession failed for ${sessionId}:`,
+            result.error,
+          );
+        }
+      }
+    },
     collect: (store, tables, dataDir, changedTables) => {
       let changedSessionIds: Set<string> | undefined;
 

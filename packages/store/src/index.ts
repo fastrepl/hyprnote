@@ -4,6 +4,7 @@ import { tableSchemaForTinybase, valueSchemaForTinybase } from "./schema";
 
 export * from "./schema";
 export * from "./shared";
+export * from "./derived/folders";
 
 export const SCHEMA = {
   value: {

@@ -81,22 +81,10 @@ export const StoreComponent = () => {
     (store) =>
       createRelationships(store)
         .setRelationshipDefinition(
-          RELATIONSHIPS.sessionToFolder,
-          "sessions",
-          "folders",
-          "folder_id",
-        )
-        .setRelationshipDefinition(
           RELATIONSHIPS.sessionToEvent,
           "sessions",
           "events",
           "event_id",
-        )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.folderToParentFolder,
-          "folders",
-          "folders",
-          "parent_folder_id",
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.enhancedNoteToSession,
@@ -187,11 +175,6 @@ export const StoreComponent = () => {
             select("created_at");
           },
         )
-        .setQueryDefinition(QUERIES.visibleFolders, "folders", ({ select }) => {
-          select("name");
-          select("parent_folder_id");
-          select("created_at");
-        })
         .setQueryDefinition(
           QUERIES.sessionParticipantsWithDetails,
           "mapping_session_participant",
@@ -249,12 +232,6 @@ export const StoreComponent = () => {
         INDEXES.sessionsByHuman,
         "mapping_session_participant",
         "human_id",
-      )
-      .setIndexDefinition(
-        INDEXES.foldersByParent,
-        "folders",
-        "parent_folder_id",
-        "name",
       )
       .setIndexDefinition(
         INDEXES.sessionsByFolder,
@@ -393,7 +370,6 @@ export const QUERIES = {
   visibleHumans: "visibleHumans",
   visibleTemplates: "visibleTemplates",
   visibleChatShortcuts: "visibleChatShortcuts",
-  visibleFolders: "visibleFolders",
   sessionParticipantsWithDetails: "sessionParticipantsWithDetails",
   sessionRecordingTimes: "sessionRecordingTimes",
   enabledAppleCalendars: "enabledAppleCalendars",
@@ -407,7 +383,6 @@ export const METRICS = {
 export const INDEXES = {
   humansByOrg: "humansByOrg",
   sessionParticipantsBySession: "sessionParticipantsBySession",
-  foldersByParent: "foldersByParent",
   sessionsByFolder: "sessionsByFolder",
   transcriptBySession: "transcriptBySession",
   wordsByTranscript: "wordsByTranscript",
@@ -424,8 +399,6 @@ export const INDEXES = {
 };
 
 export const RELATIONSHIPS = {
-  sessionToFolder: "sessionToFolder",
   sessionToEvent: "sessionToEvent",
-  folderToParentFolder: "folderToParentFolder",
   enhancedNoteToSession: "enhancedNoteToSession",
 };

@@ -1,5 +1,5 @@
 import { FolderIcon } from "lucide-react";
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import {
   Command,
@@ -16,7 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 
-import { folderOps } from "../../../../../../store/tinybase/persister/folder/ops";
+import { getAllFolderIds, getFolderName } from "@hypr/store";
+
 import * as main from "../../../../../../store/tinybase/store/main";
 
 export function SearchableFolderDropdown({
@@ -27,10 +28,11 @@ export function SearchableFolderDropdown({
   trigger: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const folders = main.UI.useResultTable(
-    main.QUERIES.visibleFolders,
-    main.STORE_ID,
-  );
+  const sessions = main.UI.useTable("sessions", main.STORE_ID);
+
+  const folderIds = useMemo(() => {
+    return getAllFolderIds(sessions);
+  }, [sessions]);
 
   const handleSelectFolder = useMoveSessionToFolder(sessionId);
 
@@ -38,9 +40,9 @@ export function SearchableFolderDropdown({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[200px] p-0">
-        {Object.keys(folders).length ? (
+        {folderIds.length ? (
           <SearchableFolderContent
-            folders={folders}
+            folderIds={folderIds}
             onSelectFolder={handleSelectFolder}
             setOpen={setOpen}
           />
@@ -61,18 +63,19 @@ export function SearchableFolderSubmenuContent({
   sessionId: string;
   setOpen?: (open: boolean) => void;
 }) {
-  const folders = main.UI.useResultTable(
-    main.QUERIES.visibleFolders,
-    main.STORE_ID,
-  );
+  const sessions = main.UI.useTable("sessions", main.STORE_ID);
+
+  const folderIds = useMemo(() => {
+    return getAllFolderIds(sessions);
+  }, [sessions]);
 
   const handleSelectFolder = useMoveSessionToFolder(sessionId);
 
   return (
     <DropdownMenuSubContent className="w-[200px] p-0">
-      {Object.keys(folders).length ? (
+      {folderIds.length ? (
         <SearchableFolderContent
-          folders={folders}
+          folderIds={folderIds}
           onSelectFolder={handleSelectFolder}
           setOpen={setOpen}
         />
@@ -86,16 +89,16 @@ export function SearchableFolderSubmenuContent({
 }
 
 function SearchableFolderContent({
-  folders,
+  folderIds,
   onSelectFolder,
   setOpen,
 }: {
-  folders: Record<string, any>;
-  onSelectFolder: (folderId: string) => Promise<void>;
+  folderIds: string[];
+  onSelectFolder: (folderId: string) => void;
   setOpen?: (open: boolean) => void;
 }) {
-  const handleSelect = async (folderId: string) => {
-    await onSelectFolder(folderId);
+  const handleSelect = (folderId: string) => {
+    onSelectFolder(folderId);
     setOpen?.(false);
   };
 
@@ -105,16 +108,19 @@ function SearchableFolderContent({
       <CommandList>
         <CommandEmpty>No folders found.</CommandEmpty>
         <CommandGroup>
-          {Object.entries(folders).map(([folderId, folder]) => (
-            <CommandItem
-              key={folderId}
-              value={folder.name}
-              onSelect={() => handleSelect(folderId)}
-            >
-              <FolderIcon />
-              {folder.name}
-            </CommandItem>
-          ))}
+          {folderIds.map((folderId) => {
+            const name = getFolderName(folderId);
+            return (
+              <CommandItem
+                key={folderId}
+                value={name}
+                onSelect={() => handleSelect(folderId)}
+              >
+                <FolderIcon />
+                {name}
+              </CommandItem>
+            );
+          })}
         </CommandGroup>
       </CommandList>
     </Command>
@@ -122,16 +128,12 @@ function SearchableFolderContent({
 }
 
 function useMoveSessionToFolder(sessionId: string) {
+  const store = main.UI.useStore(main.STORE_ID);
+
   return useCallback(
-    async (targetFolderId: string) => {
-      const result = await folderOps.moveSessionToFolder(
-        sessionId,
-        targetFolderId,
-      );
-      if (result.status === "error") {
-        console.error("[MoveSession] Failed:", result.error);
-      }
+    (targetFolderId: string) => {
+      store?.setCell("sessions", sessionId, "folder_id", targetFolderId);
     },
-    [sessionId],
+    [sessionId, store],
   );
 }

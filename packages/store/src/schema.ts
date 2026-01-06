@@ -56,16 +56,6 @@ export const organizationSchema = z.object({
   name: z.string(),
 });
 
-export const folderSchema = z.object({
-  user_id: z.string(),
-  created_at: z.string(),
-  name: z.string(),
-  parent_folder_id: z.preprocess(
-    (val) => val ?? undefined,
-    z.string().optional(),
-  ),
-});
-
 export const sessionSchema = z.object({
   user_id: z.string(),
   created_at: z.string(),
@@ -240,7 +230,6 @@ export type Event = z.infer<typeof eventSchema>;
 export type Calendar = z.infer<typeof calendarSchema>;
 export type CalendarStorage = ToStorageType<typeof calendarSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
-export type Folder = z.infer<typeof folderSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type Transcript = z.infer<typeof transcriptSchema>;
 export type Word = z.infer<typeof wordSchema>;
@@ -269,7 +258,6 @@ export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
 export type EnhancedNoteStorage = ToStorageType<typeof enhancedNoteSchema>;
 export type HumanStorage = ToStorageType<typeof humanSchema>;
 export type OrganizationStorage = ToStorageType<typeof organizationSchema>;
-export type FolderStorage = ToStorageType<typeof folderSchema>;
 export type PromptStorage = ToStorageType<typeof promptSchema>;
 export type ChatShortcutStorage = ToStorageType<typeof chatShortcutSchema>;
 export type EventStorage = ToStorageType<typeof eventSchema>;
@@ -280,12 +268,6 @@ export type AIProviderStorage = ToStorageType<typeof aiProviderSchema>;
 export type GeneralStorage = ToStorageType<typeof generalSchema>;
 
 export const tableSchemaForTinybase = {
-  folders: {
-    user_id: { type: "string" },
-    created_at: { type: "string" },
-    name: { type: "string" },
-    parent_folder_id: { type: "string" },
-  } as const satisfies InferTinyBaseSchema<typeof folderSchema>,
   sessions: {
     user_id: { type: "string" },
     created_at: { type: "string" },

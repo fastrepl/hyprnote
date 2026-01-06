@@ -2,7 +2,6 @@ import { type ReactNode, useCallback, useMemo } from "react";
 
 import type {
   EnhancedNoteStorage,
-  FolderStorage,
   HumanStorage,
   OrganizationStorage,
   SessionStorage,
@@ -98,27 +97,6 @@ export function useOrganization(orgId: string) {
   return useMemo(() => ({ name, createdAt }), [name, createdAt]);
 }
 
-export function useFolder(folderId: string) {
-  const name = main.UI.useCell("folders", folderId, "name", main.STORE_ID);
-  const parentFolderId = main.UI.useCell(
-    "folders",
-    folderId,
-    "parent_folder_id",
-    main.STORE_ID,
-  );
-  const createdAt = main.UI.useCell(
-    "folders",
-    folderId,
-    "created_at",
-    main.STORE_ID,
-  );
-
-  return useMemo(
-    () => ({ name, parentFolderId, createdAt }),
-    [name, parentFolderId, createdAt],
-  );
-}
-
 export function useTemplate(templateId: string) {
   const title = main.UI.useCell(
     "templates",
@@ -157,7 +135,6 @@ interface TinyBaseTestWrapperProps {
     sessions?: Record<string, Partial<SessionStorage>>;
     humans?: Record<string, Partial<HumanStorage>>;
     organizations?: Record<string, Partial<OrganizationStorage>>;
-    folders?: Record<string, Partial<FolderStorage>>;
     templates?: Record<string, Partial<TemplateStorage>>;
     enhanced_notes?: Record<string, Partial<EnhancedNoteStorage>>;
   };
@@ -211,11 +188,6 @@ export function TinyBaseTestWrapper({
         s.setRow("organizations", id, data as Record<string, unknown>);
       });
     }
-    if (initialData?.folders) {
-      Object.entries(initialData.folders).forEach(([id, data]) => {
-        s.setRow("folders", id, data as Record<string, unknown>);
-      });
-    }
     if (initialData?.templates) {
       Object.entries(initialData.templates).forEach(([id, data]) => {
         s.setRow("templates", id, data as Record<string, unknown>);
@@ -244,12 +216,6 @@ export function TinyBaseTestWrapper({
         "created_at",
       )
       .setIndexDefinition(
-        main.INDEXES.foldersByParent,
-        "folders",
-        "parent_folder_id",
-        "name",
-      )
-      .setIndexDefinition(
         main.INDEXES.transcriptBySession,
         "transcripts",
         "session_id",
@@ -271,12 +237,6 @@ export function TinyBaseTestWrapper({
 
   const relationships = useCreateRelationships(store, (store) =>
     createRelationships(store)
-      .setRelationshipDefinition(
-        main.RELATIONSHIPS.sessionToFolder,
-        "sessions",
-        "folders",
-        "folder_id",
-      )
       .setRelationshipDefinition(
         main.RELATIONSHIPS.sessionToEvent,
         "sessions",
@@ -320,15 +280,6 @@ export function TinyBaseTestWrapper({
           select("title");
           select("description");
           select("sections");
-          select("created_at");
-        },
-      )
-      .setQueryDefinition(
-        main.QUERIES.visibleFolders,
-        "folders",
-        ({ select }) => {
-          select("name");
-          select("parent_folder_id");
           select("created_at");
         },
       ),

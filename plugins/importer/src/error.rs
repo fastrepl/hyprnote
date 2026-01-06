@@ -15,8 +15,11 @@ pub enum Error {
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
 
-    #[error("import source not available: {0:?}")]
+    #[error("import source not found: {0:?}")]
     SourceNotFound(ImportSourceKind),
+
+    #[error("import source not available: {0}")]
+    SourceNotAvailable(String),
 
     #[error("tauri error: {0}")]
     Tauri(#[from] tauri::Error),

@@ -1,6 +1,5 @@
 use crate::output::to_tinybase_json;
-use crate::sources::AnyImportSource;
-use crate::types::{ImportSourceInfo, ImportSourceKind, ImportStats};
+use crate::types::{ImportSource, ImportSourceInfo, ImportSourceKind, ImportStats};
 use tauri::path::BaseDirectory;
 
 pub struct Importer<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
@@ -18,13 +17,20 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
         source_kind: ImportSourceKind,
         user_id: String,
     ) -> Result<ImportStats, crate::Error> {
-        let source = AnyImportSource::from(source_kind.clone());
+        let source = ImportSource::from(source_kind.clone());
+        self.run_import_from_source(&source, user_id).await
+    }
 
+    pub async fn run_import_from_source(
+        &self,
+        source: &ImportSource,
+        user_id: String,
+    ) -> Result<ImportStats, crate::Error> {
         if !source.is_available() {
-            return Err(crate::Error::SourceNotFound(source_kind));
+            return Err(crate::Error::SourceNotAvailable(source.name.clone()));
         }
 
-        let data = source.import_all().await?;
+        let data = crate::sources::import_all(source).await?;
         let stats = data.stats();
 
         let tinybase_json = to_tinybase_json(&data, &user_id);
@@ -46,13 +52,19 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
         &self,
         source_kind: ImportSourceKind,
     ) -> Result<ImportStats, crate::Error> {
-        let source = AnyImportSource::from(source_kind.clone());
+        let source = ImportSource::from(source_kind.clone());
+        self.run_import_dry_from_source(&source).await
+    }
 
+    pub async fn run_import_dry_from_source(
+        &self,
+        source: &ImportSource,
+    ) -> Result<ImportStats, crate::Error> {
         if !source.is_available() {
-            return Err(crate::Error::SourceNotFound(source_kind));
+            return Err(crate::Error::SourceNotAvailable(source.name.clone()));
         }
 
-        let data = source.import_all().await?;
+        let data = crate::sources::import_all(source).await?;
         Ok(data.stats())
     }
 }

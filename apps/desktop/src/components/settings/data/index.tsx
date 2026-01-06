@@ -114,22 +114,29 @@ export function Data() {
             isPending={importMutation.isPending}
           />
         ) : (
-          sources?.map((source: ImportSourceInfo) => (
-            <SourceItem
-              key={source.kind}
-              source={source}
-              onScan={() => {
-                setSuccessfulSource(null);
-                dryImportMutation.mutate(source.kind);
-              }}
-              disabled={isPending}
-              isScanning={
-                dryImportMutation.isPending &&
-                dryImportMutation.variables === source.kind
-              }
-              isSuccess={successfulSource === source.kind}
-            />
-          ))
+          sources
+            ?.filter(
+              (
+                source,
+              ): source is ImportSourceInfo & { kind: ImportSourceKind } =>
+                source.kind !== null,
+            )
+            .map((source) => (
+              <SourceItem
+                key={source.kind}
+                source={source}
+                onScan={() => {
+                  setSuccessfulSource(null);
+                  dryImportMutation.mutate(source.kind);
+                }}
+                disabled={isPending}
+                isScanning={
+                  dryImportMutation.isPending &&
+                  dryImportMutation.variables === source.kind
+                }
+                isSuccess={successfulSource === source.kind}
+              />
+            ))
         )}
 
         {(importMutation.isError || dryImportMutation.isError) && (

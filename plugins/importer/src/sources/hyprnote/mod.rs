@@ -1,19 +1,14 @@
-mod nightly;
-mod stable;
 mod transforms;
-
-pub use nightly::HyprnoteV0NightlySource;
-pub use stable::HyprnoteV0StableSource;
 
 use crate::types::{
     ImportResult, ImportedHuman, ImportedOrganization, ImportedSessionParticipant,
     ImportedTemplate, ImportedTemplateSection,
 };
 use hypr_db_user::UserDatabase;
-use std::path::PathBuf;
+use std::path::Path;
 use transforms::{session_to_imported_note, session_to_imported_transcript};
 
-pub(super) async fn import_all_from_path(path: &PathBuf) -> Result<ImportResult, crate::Error> {
+pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Error> {
     let db = hypr_db_core::DatabaseBuilder::default()
         .local(path)
         .build()

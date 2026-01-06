@@ -39,6 +39,14 @@ pub(super) fn session_to_imported_transcript(session: Session) -> ImportedTransc
         .map(|dt| dt.timestamp_millis() as u64)
         .or_else(|| session.words.first().and_then(|w| w.start_ms));
 
+    let texts_with_spacing = fix_spacing_for_words(
+        session
+            .words
+            .iter()
+            .map(|w| w.text.as_str())
+            .collect::<Vec<_>>(),
+    );
+
     let words: Vec<ImportedWord> = session
         .words
         .iter()
@@ -52,7 +60,7 @@ pub(super) fn session_to_imported_transcript(session: Session) -> ImportedTransc
                 id: format!("{}-{}", session.id, idx),
                 start_ms: relative_start_ms,
                 end_ms: relative_end_ms,
-                text: word.text.clone(),
+                text: texts_with_spacing[idx].clone(),
                 speaker,
             }
         })
@@ -75,7 +83,7 @@ pub(super) fn session_to_imported_transcript(session: Session) -> ImportedTransc
                 end_timestamp: relative_end_ms
                     .map(|ms| format_timestamp(ms as u64))
                     .unwrap_or_default(),
-                text: word.text.clone(),
+                text: texts_with_spacing[idx].clone(),
                 speaker,
             }
         })
@@ -164,4 +172,49 @@ fn format_timestamp(ms: u64) -> String {
     let millis = ms % 1000;
 
     format!("{:02}:{:02}:{:02}.{:03}", hours, minutes, seconds, millis)
+}
+
+fn fix_spacing_for_words(words: Vec<&str>) -> Vec<String> {
+    words
+        .iter()
+        .map(|word| {
+            let trimmed = word.trim();
+            if trimmed.is_empty() {
+                return word.to_string();
+            }
+
+            if word.starts_with(' ') {
+                return word.to_string();
+            }
+
+            if should_skip_leading_space(trimmed) {
+                return trimmed.to_string();
+            }
+
+            format!(" {}", trimmed)
+        })
+        .collect()
+}
+
+fn should_skip_leading_space(word: &str) -> bool {
+    match word.chars().next() {
+        None => true,
+        Some(c) => {
+            matches!(
+                c,
+                '\'' | '\u{2019}'
+                    | ','
+                    | '.'
+                    | '!'
+                    | '?'
+                    | ':'
+                    | ';'
+                    | ')'
+                    | ']'
+                    | '}'
+                    | '"'
+                    | '\u{201D}'
+            )
+        }
+    }
 }

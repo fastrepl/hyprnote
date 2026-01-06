@@ -1,50 +1,40 @@
-use crate::types::{
-    ImportSourceInfo, ImportSourceKind, ImportedNote, ImportedTranscript, ImportedTranscriptSegment,
-};
+use crate::types::{ImportResult, ImportedNote, ImportedTranscript, ImportedTranscriptSegment};
 use hypr_granola::api::Document;
 use hypr_granola::cache::{CacheData, CacheDocument, TranscriptSegment};
 use hypr_granola::prosemirror::convert_to_plain_text;
+use std::path::Path;
 use std::time::Duration;
 
-#[derive(Default)]
-pub struct GranolaSource;
+pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Error> {
+    let supabase_content = std::fs::read(path)?;
 
-impl GranolaSource {
-    pub fn info(&self) -> ImportSourceInfo {
-        let path = hypr_granola::default_supabase_path()
-            .parent()
-            .map(|p| p.to_string_lossy().to_string())
-            .unwrap_or_else(|| "~/Library/Application Support/Granola".to_string());
-        ImportSourceInfo {
-            kind: ImportSourceKind::Granola,
-            name: "Granola".to_string(),
-            path,
-        }
-    }
+    let client = hypr_granola::api::GranolaClient::new(&supabase_content, Duration::from_secs(30))?;
+    let documents = client.get_documents().await?;
 
-    pub fn is_available(&self) -> bool {
-        hypr_granola::default_supabase_path().exists()
-    }
+    let notes = documents
+        .into_iter()
+        .map(document_to_imported_note)
+        .collect();
 
-    pub async fn import_notes(&self) -> Result<Vec<ImportedNote>, crate::Error> {
-        let supabase_path = hypr_granola::default_supabase_path();
-        let supabase_content = std::fs::read(&supabase_path)?;
-
-        let client =
-            hypr_granola::api::GranolaClient::new(&supabase_content, Duration::from_secs(30))?;
-        let documents = client.get_documents().await?;
-
-        Ok(documents
-            .into_iter()
-            .map(document_to_imported_note)
-            .collect())
-    }
-
-    pub async fn import_transcripts(&self) -> Result<Vec<ImportedTranscript>, crate::Error> {
-        let cache_path = hypr_granola::cache::default_cache_path();
+    let cache_path = path
+        .parent()
+        .map(|p| p.join("cache"))
+        .unwrap_or_else(|| hypr_granola::cache::default_cache_path());
+    let transcripts = if cache_path.exists() {
         let cache_data = hypr_granola::cache::read_cache(&cache_path)?;
-        Ok(cache_data_to_imported_transcripts(&cache_data))
-    }
+        cache_data_to_imported_transcripts(&cache_data)
+    } else {
+        vec![]
+    };
+
+    Ok(ImportResult {
+        notes,
+        transcripts,
+        humans: vec![],
+        organizations: vec![],
+        participants: vec![],
+        templates: vec![],
+    })
 }
 
 fn document_to_imported_note(doc: Document) -> ImportedNote {

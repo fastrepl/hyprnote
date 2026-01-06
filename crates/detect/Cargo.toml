@@ -4,9 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-default = ["mic", "locale"]
+default = []
 mic = []
-locale = []
+language = []
+list = []
 app = []
 zoom = []
 

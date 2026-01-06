@@ -87,7 +87,7 @@ pub(crate) async fn get_preferred_languages<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
 ) -> Result<Vec<String>, String> {
     Ok(hypr_detect::get_preferred_languages()
-        .iter()
+        .into_iter()
         .map(|l| l.bcp47())
         .collect())
 }

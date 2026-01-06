@@ -1,4 +1,3 @@
-#[cfg(target_os = "macos")]
 pub fn get_preferred_languages() -> Vec<hypr_language::Language> {
     use objc2_foundation::NSLocale;
 
@@ -13,22 +12,11 @@ fn locale_to_language(locale: &str) -> Option<hypr_language::Language> {
     locale.parse().ok()
 }
 
-#[cfg(target_os = "macos")]
 pub fn get_current_locale_identifier() -> String {
     use objc2_foundation::NSLocale;
 
     let locale = NSLocale::currentLocale();
     locale.localeIdentifier().to_string()
-}
-
-#[cfg(not(target_os = "macos"))]
-pub fn get_preferred_languages() -> Vec<hypr_language::Language> {
-    Vec::new()
-}
-
-#[cfg(not(target_os = "macos"))]
-pub fn get_current_locale_identifier() -> String {
-    String::new()
 }
 
 #[cfg(test)]
@@ -63,7 +51,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(target_os = "macos"), ignore)]
     fn test_get_preferred_languages() {
         let languages = get_preferred_languages();
         println!("Preferred languages: {:?}", languages);
@@ -71,7 +58,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(not(target_os = "macos"), ignore)]
     fn test_get_current_locale_identifier() {
         let locale = get_current_locale_identifier();
         println!("Current locale: {}", locale);

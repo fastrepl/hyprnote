@@ -1,27 +1,40 @@
 #[cfg(feature = "app")]
 mod app;
+#[cfg(all(target_os = "macos", feature = "language"))]
+mod language;
+#[cfg(feature = "list")]
 mod list;
-#[cfg(feature = "locale")]
-mod locale;
 #[cfg(feature = "mic")]
 mod mic;
+
 mod utils;
 
-#[cfg(all(target_os = "macos", feature = "zoom"))]
+pub use utils::BackgroundTask;
+
+#[cfg(all(
+    target_os = "macos",
+    feature = "zoom",
+    feature = "mic",
+    feature = "list"
+))]
 mod zoom;
 
 #[cfg(feature = "app")]
 pub use app::*;
+#[cfg(all(target_os = "macos", feature = "language"))]
+pub use language::*;
+#[cfg(feature = "list")]
 pub use list::*;
-#[cfg(feature = "locale")]
-pub use locale::*;
 #[cfg(feature = "mic")]
 pub use mic::*;
 
-#[cfg(all(target_os = "macos", feature = "zoom"))]
+#[cfg(all(
+    target_os = "macos",
+    feature = "zoom",
+    feature = "mic",
+    feature = "list"
+))]
 pub use zoom::*;
-
-use utils::*;
 
 #[cfg(feature = "mic")]
 #[derive(Debug, Clone)]
@@ -46,7 +59,7 @@ where
 }
 
 #[cfg(feature = "mic")]
-trait Observer: Send + Sync {
+pub(crate) trait Observer: Send + Sync {
     fn start(&mut self, f: DetectCallback);
     fn stop(&mut self);
 }
@@ -55,7 +68,7 @@ trait Observer: Send + Sync {
 #[derive(Default)]
 pub struct Detector {
     mic_detector: MicDetector,
-    #[cfg(all(target_os = "macos", feature = "zoom"))]
+    #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
     zoom_watcher: ZoomMuteWatcher,
 }
 
@@ -64,14 +77,14 @@ impl Detector {
     pub fn start(&mut self, f: DetectCallback) {
         self.mic_detector.start(f.clone());
 
-        #[cfg(all(target_os = "macos", feature = "zoom"))]
+        #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
         self.zoom_watcher.start(f);
     }
 
     pub fn stop(&mut self) {
         self.mic_detector.stop();
 
-        #[cfg(all(target_os = "macos", feature = "zoom"))]
+        #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
         self.zoom_watcher.stop();
     }
 }

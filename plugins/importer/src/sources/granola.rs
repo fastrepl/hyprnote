@@ -61,6 +61,7 @@ fn document_to_imported_note(doc: Document) -> ImportedNote {
         folder_id: None,
         event_id: None,
         tags: doc.tags,
+        pre_meeting_memo: None,
     }
 }
 

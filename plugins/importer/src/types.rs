@@ -23,6 +23,7 @@ pub struct ImportStats {
     pub humans_count: usize,
     pub organizations_count: usize,
     pub participants_count: usize,
+    pub templates_count: usize,
 }
 
 pub struct ImportResult {
@@ -31,6 +32,7 @@ pub struct ImportResult {
     pub humans: Vec<ImportedHuman>,
     pub organizations: Vec<ImportedOrganization>,
     pub participants: Vec<ImportedSessionParticipant>,
+    pub templates: Vec<ImportedTemplate>,
 }
 
 impl ImportResult {
@@ -41,6 +43,7 @@ impl ImportResult {
             notes_count: self.notes.len(),
             transcripts_count: self.transcripts.len(),
             participants_count: self.participants.len(),
+            templates_count: self.templates.len(),
         }
     }
 }
@@ -57,6 +60,7 @@ pub struct ImportedNote {
     pub folder_id: Option<String>,
     pub event_id: Option<String>,
     pub tags: Vec<String>,
+    pub pre_meeting_memo: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -114,4 +118,20 @@ pub struct ImportedSessionParticipant {
     pub session_id: String,
     pub human_id: String,
     pub source: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct ImportedTemplate {
+    pub id: String,
+    pub title: String,
+    pub description: String,
+    pub sections: Vec<ImportedTemplateSection>,
+    pub tags: Vec<String>,
+    pub context_option: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct ImportedTemplateSection {
+    pub title: String,
+    pub description: String,
 }

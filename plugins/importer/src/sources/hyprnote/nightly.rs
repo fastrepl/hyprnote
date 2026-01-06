@@ -9,8 +9,8 @@ impl HyprnoteV0NightlySource {
     pub fn info(&self) -> ImportSourceInfo {
         ImportSourceInfo {
             kind: ImportSourceKind::HyprnoteV0Nightly,
-            name: "Hyprnote (Nightly)".to_string(),
-            description: "Import notes and transcripts from Hyprnote nightly version".to_string(),
+            name: "Hyprnote v0 - Nightly".to_string(),
+            path: Self::data_dir().to_string_lossy().to_string(),
         }
     }
 
@@ -22,9 +22,13 @@ impl HyprnoteV0NightlySource {
         import_all_from_path(&Self::db_path()).await
     }
 
-    fn db_path() -> PathBuf {
+    fn data_dir() -> PathBuf {
         dirs::data_dir()
-            .map(|data| data.join("com.hyprnote.nightly").join("db.sqlite"))
+            .map(|data| data.join("com.hyprnote.nightly"))
             .unwrap()
+    }
+
+    fn db_path() -> PathBuf {
+        Self::data_dir().join("db.sqlite")
     }
 }

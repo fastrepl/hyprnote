@@ -29,7 +29,11 @@ impl AsIsSource {
         ImportSourceInfo {
             kind: ImportSourceKind::AsIs,
             name: "JSON Import".to_string(),
-            description: "Import data from a JSON file as-is".to_string(),
+            path: self
+                .json_path
+                .as_ref()
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_default(),
         }
     }
 

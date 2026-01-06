@@ -13,7 +13,7 @@ pub enum ImportSourceKind {
 pub struct ImportSourceInfo {
     pub kind: ImportSourceKind,
     pub name: String,
-    pub description: String,
+    pub path: String,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]

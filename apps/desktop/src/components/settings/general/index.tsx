@@ -19,6 +19,7 @@ type SettingsSection =
   | "language"
   | "notifications"
   | "permissions"
+  | "data"
   | "lab";
 
 export function SettingsGeneral({
@@ -27,10 +28,10 @@ export function SettingsGeneral({
   notificationsRef,
   permissionsRef,
 }: {
-  appRef?: React.RefObject<HTMLDivElement | null>;
-  languageRef?: React.RefObject<HTMLDivElement | null>;
-  notificationsRef?: React.RefObject<HTMLDivElement | null>;
-  permissionsRef?: React.RefObject<HTMLDivElement | null>;
+  appRef?: React.Ref<HTMLDivElement>;
+  languageRef?: React.Ref<HTMLDivElement>;
+  notificationsRef?: React.Ref<HTMLDivElement>;
+  permissionsRef?: React.Ref<HTMLDivElement>;
   activeSection?: SettingsSection;
 } = {}) {
   const value = useConfigValues([

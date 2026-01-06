@@ -11,10 +11,14 @@ pub struct GranolaSource;
 
 impl GranolaSource {
     pub fn info(&self) -> ImportSourceInfo {
+        let path = hypr_granola::default_supabase_path()
+            .parent()
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_else(|| "~/Library/Application Support/Granola".to_string());
         ImportSourceInfo {
             kind: ImportSourceKind::Granola,
             name: "Granola".to_string(),
-            description: "Import notes and transcripts from Granola app".to_string(),
+            path,
         }
     }
 

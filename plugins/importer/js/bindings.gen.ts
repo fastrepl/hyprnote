@@ -42,7 +42,7 @@ async runImportDry(source: ImportSourceKind) : Promise<Result<ImportStats, strin
 
 /** user-defined types **/
 
-export type ImportSourceInfo = { kind: ImportSourceKind; name: string; description: string }
+export type ImportSourceInfo = { kind: ImportSourceKind; name: string; path: string }
 export type ImportSourceKind = "granola" | "hyprnote_v0_stable" | "hyprnote_v0_nightly" | "as_is"
 export type ImportStats = { notes_count: number; transcripts_count: number; humans_count: number; organizations_count: number; participants_count: number }
 

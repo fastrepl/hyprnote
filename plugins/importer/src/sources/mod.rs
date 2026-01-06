@@ -72,7 +72,6 @@ impl From<ImportSourceKind> for AnyImportSource {
 
 pub fn all_sources() -> Vec<AnyImportSource> {
     vec![
-        AnyImportSource::Granola(GranolaSource::default()),
         AnyImportSource::HyprnoteV0Stable(HyprnoteV0StableSource),
         AnyImportSource::HyprnoteV0Nightly(HyprnoteV0NightlySource),
         AnyImportSource::AsIs(AsIsSource::default()),

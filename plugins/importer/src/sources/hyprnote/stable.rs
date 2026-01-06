@@ -9,8 +9,8 @@ impl HyprnoteV0StableSource {
     pub fn info(&self) -> ImportSourceInfo {
         ImportSourceInfo {
             kind: ImportSourceKind::HyprnoteV0Stable,
-            name: "Hyprnote (Stable)".to_string(),
-            description: "Import notes and transcripts from Hyprnote stable version".to_string(),
+            name: "Hyprnote v0 - Stable".to_string(),
+            path: Self::data_dir().to_string_lossy().to_string(),
         }
     }
 
@@ -22,9 +22,13 @@ impl HyprnoteV0StableSource {
         import_all_from_path(&Self::db_path()).await
     }
 
-    fn db_path() -> PathBuf {
+    fn data_dir() -> PathBuf {
         dirs::data_dir()
-            .map(|data| data.join("com.hyprnote.stable").join("db.sqlite"))
+            .map(|data| data.join("com.hyprnote.stable"))
             .unwrap()
+    }
+
+    fn db_path() -> PathBuf {
+        Self::data_dir().join("db.sqlite")
     }
 }

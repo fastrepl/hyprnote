@@ -1,6 +1,7 @@
 import {
   BellIcon,
   FlaskConical,
+  HardDriveIcon,
   LanguagesIcon,
   LockIcon,
   SettingsIcon,
@@ -10,6 +11,7 @@ import {
   type RefObject,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -19,6 +21,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { type Tab } from "../../../store/zustand/tabs";
+import { Data } from "../../settings/data";
 import { SettingsGeneral } from "../../settings/general";
 import { SettingsLab } from "../../settings/lab";
 import { StandardTabWrapper } from "./index";
@@ -68,61 +71,75 @@ type SettingsSection =
   | "language"
   | "notifications"
   | "permissions"
+  | "data"
   | "lab";
+
+const SECTIONS: {
+  id: SettingsSection;
+  label: string;
+  icon: typeof SmartphoneIcon;
+}[] = [
+  { id: "app", label: "App", icon: SmartphoneIcon },
+  { id: "language", label: "Language", icon: LanguagesIcon },
+  { id: "notifications", label: "Notifications", icon: BellIcon },
+  { id: "permissions", label: "Permissions", icon: LockIcon },
+  { id: "data", label: "Data", icon: HardDriveIcon },
+  { id: "lab", label: "Lab", icon: FlaskConical },
+];
 
 function SettingsView() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const appRef = useRef<HTMLDivElement>(null);
-  const languageRef = useRef<HTMLDivElement>(null);
-  const notificationsRef = useRef<HTMLDivElement>(null);
-  const permissionsRef = useRef<HTMLDivElement>(null);
-  const labRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef(new Map<SettingsSection, HTMLDivElement | null>());
   const [activeSection, setActiveSection] = useState<SettingsSection>("app");
   const isProgrammaticScroll = useRef(false);
   const { atStart, atEnd } = useScrollFade(scrollContainerRef, [activeSection]);
+
+  const refCallbacks = useMemo(
+    () => ({
+      app: (el: HTMLDivElement | null) => {
+        sectionRefs.current.set("app", el);
+      },
+      language: (el: HTMLDivElement | null) => {
+        sectionRefs.current.set("language", el);
+      },
+      notifications: (el: HTMLDivElement | null) => {
+        sectionRefs.current.set("notifications", el);
+      },
+      permissions: (el: HTMLDivElement | null) => {
+        sectionRefs.current.set("permissions", el);
+      },
+      data: (el: HTMLDivElement | null) => {
+        sectionRefs.current.set("data", el);
+      },
+      lab: (el: HTMLDivElement | null) => {
+        sectionRefs.current.set("lab", el);
+      },
+    }),
+    [],
+  );
 
   const scrollToSection = useCallback((section: SettingsSection) => {
     setActiveSection(section);
     isProgrammaticScroll.current = true;
 
     const container = scrollContainerRef.current;
-
     if (!container) return;
 
     if (section === "lab") {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: "smooth",
-      });
-      setTimeout(() => {
-        isProgrammaticScroll.current = false;
-      }, 1000);
-      return;
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    } else {
+      const target = sectionRefs.current.get(section);
+      if (target) {
+        const containerTop = container.getBoundingClientRect().top;
+        const targetTop = target.getBoundingClientRect().top;
+        const offset = targetTop - containerTop + container.scrollTop - 24;
+        container.scrollTo({ top: offset, behavior: "smooth" });
+      }
     }
 
-    const refMap = {
-      app: appRef,
-      language: languageRef,
-      notifications: notificationsRef,
-      permissions: permissionsRef,
-      lab: labRef,
-    };
-    const targetRef = refMap[section];
-    const target = targetRef.current;
-
-    if (target) {
-      const containerTop = container.getBoundingClientRect().top;
-      const targetTop = target.getBoundingClientRect().top;
-      const offset = targetTop - containerTop + container.scrollTop - 24;
-
-      container.scrollTo({
-        top: offset,
-        behavior: "smooth",
-      });
-      setTimeout(() => {
-        isProgrammaticScroll.current = false;
-      }, 1000);
-    }
+    setTimeout(() => {
+      isProgrammaticScroll.current = false;
+    }, 1000);
   }, []);
 
   useEffect(() => {
@@ -132,14 +149,6 @@ function SettingsView() {
     const handleScroll = () => {
       if (isProgrammaticScroll.current) return;
 
-      const refs = [
-        { section: "app" as const, ref: appRef },
-        { section: "language" as const, ref: languageRef },
-        { section: "notifications" as const, ref: notificationsRef },
-        { section: "permissions" as const, ref: permissionsRef },
-        { section: "lab" as const, ref: labRef },
-      ];
-
       const containerRect = container.getBoundingClientRect();
       const containerTop = containerRect.top;
       const containerBottom = containerRect.bottom;
@@ -147,21 +156,18 @@ function SettingsView() {
       let maxVisibleArea = 0;
       let mostVisibleSection: SettingsSection | null = null;
 
-      for (const { section, ref } of refs) {
-        const el = ref.current;
+      for (const { id } of SECTIONS) {
+        const el = sectionRefs.current.get(id);
         if (!el) continue;
 
         const rect = el.getBoundingClientRect();
-        const sectionTop = rect.top;
-        const sectionBottom = rect.bottom;
-
-        const visibleTop = Math.max(sectionTop, containerTop);
-        const visibleBottom = Math.min(sectionBottom, containerBottom);
+        const visibleTop = Math.max(rect.top, containerTop);
+        const visibleBottom = Math.min(rect.bottom, containerBottom);
         const visibleArea = Math.max(0, visibleBottom - visibleTop);
 
         if (visibleArea > maxVisibleArea) {
           maxVisibleArea = visibleArea;
-          mostVisibleSection = section;
+          mostVisibleSection = id;
         }
       }
 
@@ -179,68 +185,25 @@ function SettingsView() {
   return (
     <div className="flex flex-col flex-1 w-full overflow-hidden">
       <div className="flex gap-1 px-6 pt-6 pb-2 overflow-x-auto scrollbar-hide">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => scrollToSection("app")}
-          className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
-            activeSection === "app" && "bg-neutral-100 border-neutral-200",
-          ])}
-        >
-          <SmartphoneIcon size={14} />
-          <span className="text-xs">App</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => scrollToSection("language")}
-          className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
-            activeSection === "language" && "bg-neutral-100 border-neutral-200",
-          ])}
-        >
-          <LanguagesIcon size={14} />
-          <span className="text-xs">Language</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => scrollToSection("notifications")}
-          className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
-            activeSection === "notifications" &&
-              "bg-neutral-100 border-neutral-200",
-          ])}
-        >
-          <BellIcon size={14} />
-          <span className="text-xs">Notifications</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => scrollToSection("permissions")}
-          className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
-            activeSection === "permissions" &&
-              "bg-neutral-100 border-neutral-200",
-          ])}
-        >
-          <LockIcon size={14} />
-          <span className="text-xs">Permissions</span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => scrollToSection("lab")}
-          className={cn([
-            "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
-            activeSection === "lab" && "bg-neutral-100 border-neutral-200",
-          ])}
-        >
-          <FlaskConical size={14} />
-          <span className="text-xs">Lab</span>
-        </Button>
+        {SECTIONS.map(({ id, label, icon: Icon }) => (
+          <Button
+            key={id}
+            variant="ghost"
+            size="sm"
+            onClick={() => scrollToSection(id)}
+            className={cn([
+              "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
+              id === "lab" && "ml-2 text-neutral-500",
+              activeSection === id &&
+                (id === "lab"
+                  ? "bg-amber-50 border-amber-200 text-amber-700"
+                  : "bg-neutral-100 border-neutral-200"),
+            ])}
+          >
+            <Icon size={14} />
+            <span className="text-xs">{label}</span>
+          </Button>
+        ))}
       </div>
       <div className="relative flex-1 w-full overflow-hidden">
         <div
@@ -248,16 +211,23 @@ function SettingsView() {
           className="flex-1 w-full h-full overflow-y-auto scrollbar-hide px-6 pb-6"
         >
           <SettingsGeneral
-            appRef={appRef}
-            languageRef={languageRef}
-            notificationsRef={notificationsRef}
-            permissionsRef={permissionsRef}
+            appRef={refCallbacks.app}
+            languageRef={refCallbacks.language}
+            notificationsRef={refCallbacks.notifications}
+            permissionsRef={refCallbacks.permissions}
             activeSection={activeSection}
           />
 
-          <div ref={labRef} className="mt-8">
-            <h2 className="font-semibold mb-4">Lab</h2>
-            <SettingsLab />
+          <div ref={refCallbacks.data} className="mt-8">
+            <h2 className="font-semibold mb-2">Data</h2>
+            <Data />
+          </div>
+
+          <div className="border-t border-dashed border-neutral-200 mt-10 pt-8">
+            <div ref={refCallbacks.lab}>
+              <h2 className="font-semibold mb-4 text-neutral-600">Lab</h2>
+              <SettingsLab />
+            </div>
           </div>
         </div>
         {!atStart && <ScrollFadeOverlay position="top" />}

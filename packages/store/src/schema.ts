@@ -422,11 +422,6 @@ export const tableSchemaForTinybase = {
     title: { type: "string" },
     content: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof chatShortcutSchema>,
-  ai_providers: {
-    type: { type: "string" },
-    base_url: { type: "string" },
-    api_key: { type: "string" },
-  } as const satisfies InferTinyBaseSchema<typeof aiProviderSchema>,
   extension_state: {
     counter: { type: "number" },
     last_updated: { type: "string" },

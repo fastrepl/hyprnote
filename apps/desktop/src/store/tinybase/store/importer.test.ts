@@ -33,11 +33,15 @@ describe("importFromJson", () => {
     vi.mocked(readTextFile).mockResolvedValue(
       JSON.stringify([
         {
-          ai_providers: {
-            test: { type: "llm", base_url: "url", api_key: "key" },
+          folders: {
+            "folder-1": {
+              user_id: "user",
+              created_at: "2024-01-01",
+              name: "Test",
+            },
           },
         },
-        { current_llm_provider: "test" },
+        {},
       ]),
     );
     vi.mocked(remove).mockResolvedValue(undefined);
@@ -47,7 +51,7 @@ describe("importFromJson", () => {
     expect(result).toEqual({
       status: "success",
       rowsImported: 1,
-      valuesImported: 1,
+      valuesImported: 0,
     });
     expect(readTextFile).toHaveBeenCalledWith("hyprnote/import.json", {
       baseDir: 0,

@@ -14,6 +14,7 @@ import { useOrganizationPersister } from "../persister/organization";
 import { usePromptPersister } from "../persister/prompts";
 import { useSessionPersister } from "../persister/session";
 import { useTemplatePersister } from "../persister/templates";
+import { useValuesPersister } from "../persister/values";
 import { type Store } from "./main";
 import { registerSaveHandler } from "./save";
 
@@ -42,6 +43,8 @@ function createGuardedSave(
 export function useMainPersisters(store: Store) {
   const localPersister = useLocalPersister(store);
 
+  const valuesPersister = useValuesPersister(store);
+
   const folderPersister = useFolderPersister(store);
 
   const sessionPersister = useSessionPersister(store);
@@ -66,6 +69,7 @@ export function useMainPersisters(store: Store) {
 
   return {
     localPersister,
+    valuesPersister,
     folderPersister,
     sessionPersister,
     organizationPersister,

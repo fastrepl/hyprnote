@@ -92,3 +92,20 @@ pub async fn resize_window_for_chat<R: tauri::Runtime>(
 
     Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_tinybase_values<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<String>, String> {
+    app.get_tinybase_values()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_tinybase_values<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    v: String,
+) -> Result<(), String> {
+    app.set_tinybase_values(v)
+}

@@ -4,6 +4,8 @@ use serde::{Serialize, ser::Serializer};
 pub enum Error {
     #[error("Not supported language: {0}")]
     NotSupportedLanguage(String),
+    #[error("Invalid language code: {0}")]
+    InvalidLanguageCode(String),
 }
 
 impl Serialize for Error {

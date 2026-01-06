@@ -34,10 +34,6 @@ export type StateBasicActions = {
     tab: Tab,
     state: Extract<Tab, { type: "ai" }>["state"],
   ) => void;
-  updateDataTabState: (
-    tab: Tab,
-    state: Extract<Tab, { type: "data" }>["state"],
-  ) => void;
 };
 
 export const createStateUpdaterSlice = <T extends BasicState & NavigationState>(
@@ -57,8 +53,6 @@ export const createStateUpdaterSlice = <T extends BasicState & NavigationState>(
   updateExtensionsTabState: (tab, state) =>
     updateTabState(tab, "extensions", state, get, set),
   updateAiTabState: (tab, state) => updateTabState(tab, "ai", state, get, set),
-  updateDataTabState: (tab, state) =>
-    updateTabState(tab, "data", state, get, set),
 });
 
 const updateTabState = <T extends BasicState & NavigationState>(

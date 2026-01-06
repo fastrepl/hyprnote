@@ -30,7 +30,6 @@ import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
-import { TabContentData, TabItemData } from "./data";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
 import {
   TabContentExtension,
@@ -461,21 +460,6 @@ function TabItem({
       />
     );
   }
-  if (tab.type === "data") {
-    return (
-      <TabItemData
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-        handlePinThis={handlePinThis}
-        handleUnpinThis={handleUnpinThis}
-      />
-    );
-  }
-
   return null;
 }
 
@@ -522,10 +506,6 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "ai") {
     return <TabContentAI tab={tab} />;
   }
-  if (tab.type === "data") {
-    return <TabContentData tab={tab} />;
-  }
-
   return null;
 }
 
@@ -541,11 +521,7 @@ function TabChatButton({
     return null;
   }
 
-  if (
-    currentTab?.type === "ai" ||
-    currentTab?.type === "settings" ||
-    currentTab?.type === "data"
-  ) {
+  if (currentTab?.type === "ai" || currentTab?.type === "settings") {
     return null;
   }
 
@@ -824,17 +800,6 @@ function useTabsShortcuts() {
   useHotkeys(
     "mod+shift+l",
     () => openNew({ type: "folders", id: null }),
-    {
-      preventDefault: true,
-      enableOnFormTags: true,
-      enableOnContentEditable: true,
-    },
-    [openNew],
-  );
-
-  useHotkeys(
-    "mod+shift+f",
-    () => openNew({ type: "data", state: { tab: null } }),
     {
       preventDefault: true,
       enableOnFormTags: true,

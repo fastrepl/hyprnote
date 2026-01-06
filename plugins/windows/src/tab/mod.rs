@@ -70,10 +70,5 @@ common_derives! {
             #[serde(skip_serializing_if = "Option::is_none")]
             state: Option<AiState>,
         },
-        #[serde(rename = "data")]
-        Data {
-            #[serde(skip_serializing_if = "Option::is_none")]
-            state: Option<DataState>,
-        },
     }
 }

@@ -4,8 +4,6 @@ import type {
   ChangelogState,
   ChatShortcutsState,
   ContactsState,
-  DataState,
-  DataTab,
   EditorView,
   ExtensionsState,
   PromptsState,
@@ -20,8 +18,6 @@ export type {
   ChangelogState,
   ChatShortcutsState,
   ContactsState,
-  DataState,
-  DataTab,
   EditorView,
   ExtensionsState,
   PromptsState,
@@ -89,10 +85,6 @@ export type Tab =
   | (BaseTab & {
       type: "ai";
       state: AiState;
-    })
-  | (BaseTab & {
-      type: "data";
-      state: DataState;
     });
 
 export const getDefaultState = (tab: TabInput): Tab => {
@@ -183,12 +175,6 @@ export const getDefaultState = (tab: TabInput): Tab => {
         type: "ai",
         state: tab.state ?? { tab: null },
       };
-    case "data":
-      return {
-        ...base,
-        type: "data",
-        state: tab.state ?? { tab: null },
-      };
     default:
       const _exhaustive: never = tab;
       return _exhaustive;
@@ -214,7 +200,6 @@ export const rowIdfromTab = (tab: Tab): string => {
     case "changelog":
     case "settings":
     case "ai":
-    case "data":
       throw new Error("invalid_resource");
     case "folders":
       if (!tab.id) {
@@ -256,8 +241,6 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `settings`;
     case "ai":
       return `ai`;
-    case "data":
-      return `data`;
   }
 };
 

@@ -14,7 +14,7 @@ pub use app_new::AppNew;
 pub use tray_check_update::{TrayCheckUpdate, UpdateMenuState};
 pub use tray_open::TrayOpen;
 pub use tray_quit::TrayQuit;
-pub use tray_settings::{TraySettings, TraySettingsAI, TraySettingsData, TraySettingsGeneral};
+pub use tray_settings::{TraySettings, TraySettingsAI, TraySettingsGeneral};
 pub use tray_start::TrayStart;
 pub use tray_version::TrayVersion;
 
@@ -70,7 +70,6 @@ menu_items! {
     TraySettings => TraySettings,
     TraySettingsGeneral => TraySettingsGeneral,
     TraySettingsAI => TraySettingsAI,
-    TraySettingsData => TraySettingsData,
     TrayCheckUpdate => TrayCheckUpdate,
     TrayQuit => TrayQuit,
     TrayVersion => TrayVersion,

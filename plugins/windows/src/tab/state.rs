@@ -77,19 +77,3 @@ crate::common_derives! {
         pub tab: Option<AiTab>,
     }
 }
-
-crate::common_derives! {
-    #[derive(Default)]
-    pub enum DataTab {
-        #[default]
-        #[serde(rename = "import")]
-        Import,
-    }
-}
-
-crate::common_derives! {
-    #[derive(Default)]
-    pub struct DataState {
-        pub tab: Option<DataTab>,
-    }
-}

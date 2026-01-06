@@ -38,6 +38,17 @@ const AttachmentResizableImage = ResizableImage.extend({
       },
     };
   },
+
+  parseMarkdown: (token: { href?: string; text?: string; title?: string }) => {
+    return {
+      type: "image",
+      attrs: {
+        src: token.href || "",
+        alt: token.text || "",
+        title: token.title || null,
+      },
+    };
+  },
 });
 
 export const getExtensions = (

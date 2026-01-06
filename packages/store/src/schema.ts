@@ -422,10 +422,6 @@ export const tableSchemaForTinybase = {
     title: { type: "string" },
     content: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof chatShortcutSchema>,
-  extension_state: {
-    counter: { type: "number" },
-    last_updated: { type: "string" },
-  } as const,
 } as const satisfies TablesSchema;
 
 export const valueSchemaForTinybase = {

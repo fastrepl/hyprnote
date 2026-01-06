@@ -103,13 +103,18 @@ export function collectSessionWriteOps<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   _tables: TablesContent,
   dataDir: string,
+  changedSessionIds?: Set<string>,
 ): SessionCollectorResult {
   const dirs = new Set<string>();
   const operations: CollectorResult["operations"] = [];
 
   const sessionMetas = collectSessionMeta(store);
 
-  for (const [sessionId, { meta, folderPath }] of sessionMetas) {
+  const sessionsToProcess = changedSessionIds
+    ? new Map([...sessionMetas].filter(([id]) => changedSessionIds.has(id)))
+    : sessionMetas;
+
+  for (const [sessionId, { meta, folderPath }] of sessionsToProcess) {
     const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
     dirs.add(sessionDir);
 
@@ -120,13 +125,20 @@ export function collectSessionWriteOps<Schemas extends OptionalSchemas>(
     });
   }
 
-  return { dirs, operations, validSessionIds: new Set(sessionMetas.keys()) };
+  return {
+    dirs,
+    operations,
+    validSessionIds: changedSessionIds
+      ? new Set<string>()
+      : new Set(sessionMetas.keys()),
+  };
 }
 
 export function collectTranscriptWriteOps(
   _store: unknown,
   tables: TablesContent,
   dataDir: string,
+  changedSessionIds?: Set<string>,
 ): CollectorResult {
   const dirs = new Set<string>();
   const operations: CollectorResult["operations"] = [];
@@ -172,7 +184,11 @@ export function collectTranscriptWriteOps(
     transcriptsBySession.set(sessionId, list);
   }
 
-  for (const [sessionId, sessionTranscripts] of transcriptsBySession) {
+  const sessionsToProcess = changedSessionIds
+    ? [...transcriptsBySession].filter(([id]) => changedSessionIds.has(id))
+    : [...transcriptsBySession];
+
+  for (const [sessionId, sessionTranscripts] of sessionsToProcess) {
     const session = tables.sessions?.[sessionId];
     const folderPath = session?.folder_id ?? "";
     const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
@@ -227,12 +243,17 @@ export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   tables: TablesContent,
   dataDir: string,
+  changedSessionIds?: Set<string>,
 ): CollectorResult {
   const dirs = new Set<string>();
   const frontmatterBatchItems: Array<[ParsedDocument, string]> = [];
 
   for (const enhancedNote of iterateTableRows(tables, "enhanced_notes")) {
     if (!enhancedNote.content || !enhancedNote.session_id) {
+      continue;
+    }
+
+    if (changedSessionIds && !changedSessionIds.has(enhancedNote.session_id)) {
       continue;
     }
 
@@ -268,6 +289,10 @@ export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
 
   for (const session of iterateTableRows(tables, "sessions")) {
     if (!session.raw_md) {
+      continue;
+    }
+
+    if (changedSessionIds && !changedSessionIds.has(session.id)) {
       continue;
     }
 

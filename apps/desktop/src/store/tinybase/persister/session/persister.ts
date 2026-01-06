@@ -7,7 +7,13 @@ import type {
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import { createCollectorPersister } from "../factories";
-import { asTablesChanges, type CollectorResult, getDataDir } from "../shared";
+import {
+  asTablesChanges,
+  type CollectorResult,
+  getDataDir,
+  type PersistedChanges,
+  type TablesContent,
+} from "../shared";
 import {
   collectNoteWriteOps,
   collectSessionWriteOps,
@@ -16,23 +22,125 @@ import {
 } from "./collect";
 import { loadAllSessionData } from "./load";
 
+function getChangedSessionIds(
+  tables: TablesContent,
+  changes: PersistedChanges,
+): Set<string> | undefined {
+  const [changedTables] = changes;
+  const changedSessionIds = new Set<string>();
+
+  const changedSessions = changedTables.sessions;
+  if (changedSessions) {
+    for (const id of Object.keys(changedSessions)) {
+      changedSessionIds.add(id);
+    }
+  }
+
+  const changedParticipants = changedTables[
+    "mapping_session_participant" as keyof typeof changedTables
+  ] as Record<string, { session_id?: string }> | undefined;
+  if (changedParticipants) {
+    for (const id of Object.keys(changedParticipants)) {
+      const participant = tables[
+        "mapping_session_participant" as keyof typeof tables
+      ] as Record<string, { session_id?: string }> | undefined;
+      const sessionId = participant?.[id]?.session_id;
+      if (sessionId) {
+        changedSessionIds.add(sessionId);
+      }
+    }
+  }
+
+  const changedTranscripts = changedTables.transcripts;
+  if (changedTranscripts) {
+    for (const id of Object.keys(changedTranscripts)) {
+      const transcript = tables.transcripts?.[id];
+      if (transcript?.session_id) {
+        changedSessionIds.add(transcript.session_id);
+      }
+    }
+  }
+
+  const changedWords = changedTables.words;
+  if (changedWords) {
+    for (const id of Object.keys(changedWords)) {
+      const word = tables.words?.[id];
+      if (word?.transcript_id) {
+        const transcript = tables.transcripts?.[word.transcript_id];
+        if (transcript?.session_id) {
+          changedSessionIds.add(transcript.session_id);
+        }
+      }
+    }
+  }
+
+  const changedSpeakerHints = changedTables.speaker_hints;
+  if (changedSpeakerHints) {
+    for (const id of Object.keys(changedSpeakerHints)) {
+      const hint = tables.speaker_hints?.[id];
+      if (hint?.transcript_id) {
+        const transcript = tables.transcripts?.[hint.transcript_id];
+        if (transcript?.session_id) {
+          changedSessionIds.add(transcript.session_id);
+        }
+      }
+    }
+  }
+
+  const changedEnhancedNotes = changedTables.enhanced_notes;
+  if (changedEnhancedNotes) {
+    for (const id of Object.keys(changedEnhancedNotes)) {
+      const note = tables.enhanced_notes?.[id];
+      if (note?.session_id) {
+        changedSessionIds.add(note.session_id);
+      }
+    }
+  }
+
+  if (changedSessionIds.size === 0) {
+    return undefined;
+  }
+
+  return changedSessionIds;
+}
+
 export function createSessionPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ) {
   return createCollectorPersister(store, {
     label: "SessionPersister",
-    collect: (store, tables, dataDir) => {
+    collect: (store, tables, dataDir, changes) => {
+      let changedSessionIds: Set<string> | undefined;
+
+      if (changes) {
+        changedSessionIds = getChangedSessionIds(tables, changes);
+        if (!changedSessionIds) {
+          return {
+            dirs: new Set(),
+            operations: [],
+            validSessionIds: new Set(),
+          };
+        }
+      }
+
       const sessionResult = collectSessionWriteOps(
         store,
         tables,
         dataDir,
+        changedSessionIds,
       ) as SessionCollectorResult;
       const transcriptResult = collectTranscriptWriteOps(
         store,
         tables,
         dataDir,
+        changedSessionIds,
       );
-      const noteResult = collectNoteWriteOps(store, tables, dataDir);
+      const noteResult = collectNoteWriteOps(
+        store,
+        tables,
+        dataDir,
+        changedSessionIds,
+      );
 
       const dirs = new Set([
         ...sessionResult.dirs,
@@ -48,7 +156,9 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
       return {
         dirs,
         operations,
-        validSessionIds: sessionResult.validSessionIds,
+        validSessionIds: changedSessionIds
+          ? new Set<string>()
+          : sessionResult.validSessionIds,
       };
     },
     load: async (): Promise<Content<Schemas> | undefined> => {

@@ -7,7 +7,7 @@ import { commands as path2Commands } from "@hypr/plugin-path2";
 
 import { StoreOrMergeableStore } from "../../store/shared";
 import { createNotifyListener, isFileNotFoundError } from "../shared/fs";
-import { asTablesChanges } from "../shared/types";
+import { asTablesChanges, type PersistedChanges } from "../shared/types";
 
 async function loadTableData(
   filename: string,
@@ -46,7 +46,14 @@ export function createJsonFilePersister<Schemas extends OptionalSchemas>(
       if (!data) return undefined;
       return asTablesChanges({ [tableName]: data }) as any;
     },
-    async () => {
+    async (_getContent: () => unknown, changes?: PersistedChanges) => {
+      if (changes) {
+        const [changedTables] = changes;
+        if (!changedTables[tableName as keyof typeof changedTables]) {
+          return;
+        }
+      }
+
       try {
         const base = await path2Commands.base();
         await mkdir(base, { recursive: true });

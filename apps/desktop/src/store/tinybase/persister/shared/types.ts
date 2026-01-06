@@ -47,6 +47,8 @@ export type CollectorResult = {
   operations: WriteOperation[];
 };
 
+export type PersistedChanges = [TablesContent, Record<string, unknown>];
+
 export interface MarkdownDirPersisterConfig<TStorage> {
   tableName: string;
   dirName: string;

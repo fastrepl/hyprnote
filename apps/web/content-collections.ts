@@ -670,6 +670,27 @@ const handbook = defineCollection({
   },
 });
 
+const bounties = defineCollection({
+  name: "bounties",
+  directory: "content/bounties",
+  include: "*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    title: z.string(),
+    amount: z.number(),
+    issue: z.number(),
+    status: z.enum(["open", "claimed", "paid"]).default("open"),
+  }),
+  transform: async (document) => {
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    return {
+      ...document,
+      slug,
+    };
+  },
+});
+
 export default defineConfig({
   collections: [
     articles,
@@ -685,5 +706,6 @@ export default defineConfig({
     handbook,
     roadmap,
     ossFriends,
+    bounties,
   ],
 });

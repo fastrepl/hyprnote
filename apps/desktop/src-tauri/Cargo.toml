@@ -39,7 +39,7 @@ tauri-plugin-extensions = { workspace = true }
 tauri-plugin-fs = { workspace = true }
 tauri-plugin-fs-sync = { workspace = true }
 tauri-plugin-hooks = { workspace = true }
-tauri-plugin-http = { workspace = true, features = ["unsafe-headers"] }
+tauri-plugin-http = { workspace = true }
 tauri-plugin-icon = { workspace = true }
 tauri-plugin-importer = { workspace = true }
 tauri-plugin-js = { workspace = true }

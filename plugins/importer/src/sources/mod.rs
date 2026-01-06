@@ -42,6 +42,7 @@ impl AnyImportSource {
                 humans: vec![],
                 organizations: vec![],
                 participants: vec![],
+                templates: vec![],
             }),
             Self::HyprnoteV0Stable(s) => s.import_all().await,
             Self::HyprnoteV0Nightly(s) => s.import_all().await,
@@ -53,6 +54,7 @@ impl AnyImportSource {
                     humans: data.humans,
                     organizations: data.organizations,
                     participants: data.session_participants,
+                    templates: vec![],
                 })
             }
         }

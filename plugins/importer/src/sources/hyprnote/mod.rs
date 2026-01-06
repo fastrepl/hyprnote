@@ -5,7 +5,10 @@ mod transforms;
 pub use nightly::HyprnoteV0NightlySource;
 pub use stable::HyprnoteV0StableSource;
 
-use crate::types::{ImportResult, ImportedHuman, ImportedOrganization, ImportedSessionParticipant};
+use crate::types::{
+    ImportResult, ImportedHuman, ImportedOrganization, ImportedSessionParticipant,
+    ImportedTemplate, ImportedTemplateSection,
+};
 use hypr_db_user::UserDatabase;
 use std::path::PathBuf;
 use transforms::{session_to_imported_note, session_to_imported_transcript};
@@ -70,11 +73,33 @@ pub(super) async fn import_all_from_path(path: &PathBuf) -> Result<ImportResult,
         })
         .collect();
 
+    let templates = db
+        .list_templates("")
+        .await?
+        .into_iter()
+        .map(|t| ImportedTemplate {
+            id: t.id,
+            title: t.title,
+            description: t.description,
+            sections: t
+                .sections
+                .into_iter()
+                .map(|s| ImportedTemplateSection {
+                    title: s.title,
+                    description: s.description,
+                })
+                .collect(),
+            tags: t.tags,
+            context_option: t.context_option,
+        })
+        .collect();
+
     Ok(ImportResult {
         notes,
         transcripts,
         humans,
         organizations,
         participants,
+        templates,
     })
 }

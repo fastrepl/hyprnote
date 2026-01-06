@@ -8,17 +8,13 @@ description: "How to set up LM Studio or Ollama for local AI in Hyprnote."
 
 [LM Studio](https://lmstudio.ai) is a desktop application that lets you run large language models locally on your computer.
 
-### Installation
-
-1. Download LM Studio from [lmstudio.ai](https://lmstudio.ai)
-2. Install and launch the application
-3. Download a model from the Discover tab (we recommend models with 7B-14B parameters for most machines)
-
 ### Configuration
 
 1. Go to the **Developer** tab in LM Studio
 2. Click **Start Server** to start the local server (default port is 1234)
 3. Enable **CORS** in the server settings - this is required for Hyprnote to connect
+
+![Enable CORS in LM Studio](/api/images/docs/faq/lmstudio-setup-1.jpg)
 
 ### Connecting to Hyprnote
 
@@ -40,35 +36,6 @@ If Hyprnote cannot connect to LM Studio:
 
 [Ollama](https://ollama.ai) is a command-line tool for running large language models locally.
 
-### Installation
-
-**macOS:**
-```bash
-brew install ollama
-```
-
-**Linux:**
-```bash
-curl -fsSL https://ollama.ai/install.sh | sh
-```
-
-**Windows:**
-Download from [ollama.ai](https://ollama.ai)
-
-### Running Ollama
-
-1. Start the Ollama service:
-```bash
-ollama serve
-```
-
-2. Pull a model (in a separate terminal):
-```bash
-ollama pull llama3.2
-```
-
-Other recommended models: `mistral`, `gemma2`, `qwen2.5`
-
 ### Connecting to Hyprnote
 
 1. Open Hyprnote and go to **Settings** > **Intelligence**
@@ -85,15 +52,4 @@ If Hyprnote cannot connect to Ollama:
 - Verify the port is correct (default is 11434)
 - On macOS, Ollama may already be running as a background service
 
-## Recommended Models
-
-For meeting transcription and summarization, we recommend:
-
-| Model | Size | Best For |
-|-------|------|----------|
-| llama3.2 | 3B | Fast responses, lower memory usage |
-| mistral | 7B | Good balance of speed and quality |
-| gemma2 | 9B | High quality summaries |
-| qwen2.5 | 7B | Multilingual support |
-
-Choose a model size based on your available RAM. Generally, you need about 2x the model size in available RAM (e.g., a 7B model needs ~14GB RAM).
+![Expose Ollama to the network](/api/images/docs/faq/ollama-setup-1.jpg)

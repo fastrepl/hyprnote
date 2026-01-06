@@ -17,6 +17,7 @@ pub struct ImportSourceInfo {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
 pub struct ImportStats {
     pub notes_count: usize,
     pub transcripts_count: usize,

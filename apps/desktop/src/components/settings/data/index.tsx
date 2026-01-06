@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CheckCircleIcon, XCircleIcon } from "lucide-react";
+import { XCircleIcon } from "lucide-react";
 import { useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -24,6 +24,8 @@ type DryRunResult = {
 
 export function Data() {
   const [dryRunResult, setDryRunResult] = useState<DryRunResult | null>(null);
+  const [successfulSource, setSuccessfulSource] =
+    useState<ImportSourceKind | null>(null);
   const store = main.UI.useStore(main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
 
@@ -57,10 +59,14 @@ export function Data() {
       return result.data;
     },
     onSuccess: () => {
+      const source = dryRunResult?.source;
       void analyticsCommands.event({
         event: "data_imported",
-        source: dryRunResult?.source,
+        source,
       });
+      if (source) {
+        setSuccessfulSource(source);
+      }
       setDryRunResult(null);
     },
   });
@@ -82,6 +88,7 @@ export function Data() {
     setDryRunResult(null);
     dryImportMutation.reset();
     importMutation.reset();
+    setSuccessfulSource(null);
   };
 
   const isPending = importMutation.isPending || dryImportMutation.isPending;
@@ -111,21 +118,18 @@ export function Data() {
             <SourceItem
               key={source.kind}
               source={source}
-              onScan={() => dryImportMutation.mutate(source.kind)}
+              onScan={() => {
+                setSuccessfulSource(null);
+                dryImportMutation.mutate(source.kind);
+              }}
               disabled={isPending}
               isScanning={
                 dryImportMutation.isPending &&
                 dryImportMutation.variables === source.kind
               }
+              isSuccess={successfulSource === source.kind}
             />
           ))
-        )}
-
-        {importMutation.isSuccess && (
-          <div className="flex items-center gap-2 text-xs text-green-600">
-            <CheckCircleIcon size={14} />
-            <span>Import completed successfully.</span>
-          </div>
         )}
 
         {(importMutation.isError || dryImportMutation.isError) && (

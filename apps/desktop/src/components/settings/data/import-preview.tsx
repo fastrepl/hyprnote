@@ -1,6 +1,7 @@
 import {
   Building2Icon,
   FileTextIcon,
+  LayoutTemplateIcon,
   Loader2Icon,
   MicIcon,
   UserIcon,
@@ -9,6 +10,12 @@ import {
 
 import { type ImportStats } from "@hypr/plugin-importer";
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 
 export function ImportPreview({
   stats,
@@ -24,40 +31,53 @@ export function ImportPreview({
   isPending: boolean;
 }) {
   const totalItems =
-    stats.notes_count +
-    stats.transcripts_count +
-    stats.humans_count +
-    stats.organizations_count;
+    stats.notesCount +
+    stats.transcriptsCount +
+    stats.humansCount +
+    stats.organizationsCount +
+    stats.templatesCount;
 
   const hasData = totalItems > 0;
 
   const statItems = [
-    { icon: FileTextIcon, label: "Notes", count: stats.notes_count },
-    { icon: MicIcon, label: "Transcripts", count: stats.transcripts_count },
-    { icon: UserIcon, label: "People", count: stats.humans_count },
+    { icon: FileTextIcon, label: "Notes", count: stats.notesCount },
+    { icon: MicIcon, label: "Transcripts", count: stats.transcriptsCount },
+    { icon: UserIcon, label: "People", count: stats.humansCount },
     {
       icon: Building2Icon,
       label: "Organizations",
-      count: stats.organizations_count,
+      count: stats.organizationsCount,
     },
-    { icon: UsersIcon, label: "Participants", count: stats.participants_count },
-  ].filter((item) => item.count > 0);
+    { icon: UsersIcon, label: "Participants", count: stats.participantsCount },
+    {
+      icon: LayoutTemplateIcon,
+      label: "Templates",
+      count: stats.templatesCount,
+    },
+  ];
 
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <h4 className="text-sm font-medium">Import from {sourceName}</h4>
+          <h4 className="text-sm font-medium">{sourceName}</h4>
         </div>
         {hasData ? (
-          <div className="flex items-center gap-3 text-xs text-neutral-600 flex-wrap">
-            {statItems.map(({ icon: Icon, label, count }) => (
-              <span key={label} className="flex items-center gap-1">
-                <Icon size={12} />
-                {count} {label}
-              </span>
-            ))}
-          </div>
+          <TooltipProvider delayDuration={100}>
+            <div className="flex items-center gap-3 text-xs text-neutral-600 flex-wrap">
+              {statItems.map(({ icon: Icon, label, count }) => (
+                <Tooltip key={label}>
+                  <TooltipTrigger asChild>
+                    <span className="flex items-center gap-1">
+                      <Icon size={12} />
+                      {count}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>{label}</TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </TooltipProvider>
         ) : (
           <p className="text-xs text-neutral-500">No data found to import.</p>
         )}
@@ -79,7 +99,7 @@ export function ImportPreview({
                 Importing...
               </>
             ) : (
-              `Import ${totalItems}`
+              `Import ${totalItems} items`
             )}
           </Button>
         )}

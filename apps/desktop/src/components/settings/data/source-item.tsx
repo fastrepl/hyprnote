@@ -1,5 +1,5 @@
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { Loader2Icon } from "lucide-react";
+import { CheckIcon, Loader2Icon } from "lucide-react";
 
 import { type ImportSourceInfo } from "@hypr/plugin-importer";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -9,11 +9,13 @@ export function SourceItem({
   onScan,
   disabled,
   isScanning,
+  isSuccess,
 }: {
   source: ImportSourceInfo;
   onScan: () => void;
   disabled: boolean;
   isScanning: boolean;
+  isSuccess?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -36,12 +38,16 @@ export function SourceItem({
           size="sm"
           variant="outline"
           onClick={onScan}
-          disabled={disabled}
+          disabled={disabled || isSuccess}
         >
           {isScanning ? (
             <>
               <Loader2Icon size={14} className="animate-spin mr-1" />
               Scanning...
+            </>
+          ) : isSuccess ? (
+            <>
+              <CheckIcon size={14} className="text-green-600 mr-1" />
             </>
           ) : (
             "Scan"

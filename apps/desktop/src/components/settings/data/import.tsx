@@ -21,7 +21,7 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import { maybeImportFromJson } from "../../../store/tinybase/store/importer";
+import { importFromJson } from "../../../store/tinybase/store/importer";
 import * as main from "../../../store/tinybase/store/main";
 import { save } from "../../../store/tinybase/store/save";
 
@@ -57,7 +57,7 @@ export function Import() {
         throw new Error("Store not available");
       }
 
-      const importResult = await maybeImportFromJson(store as main.Store, save);
+      const importResult = await importFromJson(store as main.Store, save);
       if (importResult.status === "error") {
         throw new Error(importResult.error);
       }

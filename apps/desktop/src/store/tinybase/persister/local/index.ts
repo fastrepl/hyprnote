@@ -3,7 +3,6 @@ import * as _UI from "tinybase/ui-react/with-schemas";
 import { type Schemas } from "@hypr/store";
 
 import { DEFAULT_USER_ID } from "../../../../utils";
-import { maybeImportFromJson } from "../../store/importer";
 import type { Store } from "../../store/main";
 import { STORE_ID } from "../../store/main";
 import { createLocalPersister } from "./persister";
@@ -20,16 +19,6 @@ export function useLocalPersister(store: Store) {
       });
 
       await persister.load();
-
-      const importResult = await maybeImportFromJson(
-        store as Store,
-        async () => {
-          await persister.save();
-        },
-      );
-      if (importResult.status === "error") {
-        console.error("[Store] Import failed:", importResult.error);
-      }
 
       const initializer = async (cb: () => void) => {
         store.transaction(() => cb());

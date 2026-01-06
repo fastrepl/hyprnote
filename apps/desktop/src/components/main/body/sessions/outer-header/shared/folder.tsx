@@ -1,6 +1,7 @@
 import { FolderIcon } from "lucide-react";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 
+import { getAllFolderIds, getFolderName } from "@hypr/store";
 import {
   Command,
   CommandEmpty,
@@ -15,8 +16,6 @@ import {
   DropdownMenuSubContent,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
-
-import { getAllFolderIds, getFolderName } from "@hypr/store";
 
 import * as main from "../../../../../../store/tinybase/store/main";
 

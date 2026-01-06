@@ -5,11 +5,20 @@ import type { SessionStorage, Transcript, WordStorage } from "@hypr/store";
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 import { createSession } from "../shared";
 
+const SAMPLE_FOLDER_PATHS = [
+  "work",
+  "work/projects",
+  "work/meetings",
+  "personal",
+  "personal/notes",
+  "archive",
+];
+
 export const buildSessionsForBigWorkspace = (
   count: number,
   options: {
     eventIds?: string[];
-    folderIds?: string[];
+    folderPaths?: string[];
     eventLinkProbability?: number;
     folderProbability?: number;
   } = {},
@@ -17,7 +26,7 @@ export const buildSessionsForBigWorkspace = (
   const sessions: Record<string, SessionStorage> = {};
   const {
     eventIds = [],
-    folderIds = [],
+    folderPaths = SAMPLE_FOLDER_PATHS,
     eventLinkProbability = 0.6,
     folderProbability = 0.6,
   } = options;
@@ -27,14 +36,14 @@ export const buildSessionsForBigWorkspace = (
       eventIds.length > 0 &&
       faker.datatype.boolean({ probability: eventLinkProbability });
     const shouldAddToFolder =
-      folderIds.length > 0 &&
+      folderPaths.length > 0 &&
       faker.datatype.boolean({ probability: folderProbability });
 
     const eventId = shouldLinkToEvent
       ? faker.helpers.arrayElement(eventIds)
       : undefined;
     const folderId = shouldAddToFolder
-      ? faker.helpers.arrayElement(folderIds)
+      ? faker.helpers.arrayElement(folderPaths)
       : undefined;
 
     const session = createSession(eventId, folderId);

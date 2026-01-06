@@ -5,7 +5,6 @@ import type {
 } from "tinybase/with-schemas";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
-import type { SessionStorage } from "@hypr/store";
 
 import { createCollectorPersister } from "../factories";
 import {

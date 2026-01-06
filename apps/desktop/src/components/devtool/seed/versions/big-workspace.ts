@@ -9,7 +9,6 @@ import {
   buildChatShortcuts,
   buildEnhancedNotesForSessions,
   buildEventsByHuman,
-  buildFolders,
   buildHumans,
   buildOrganizations,
   buildSessionParticipants,
@@ -42,9 +41,6 @@ const buildBigWorkspaceData = () => {
     max: 6,
   });
 
-  const folders = buildFolders(10, { min: 2, max: 5 });
-  const folderIds = Object.keys(folders);
-
   const tags = buildTags(15);
   const tagIds = Object.keys(tags);
 
@@ -53,7 +49,6 @@ const buildBigWorkspaceData = () => {
 
   const sessions = buildSessionsForBigWorkspace(150, {
     eventIds: Object.keys(events),
-    folderIds,
     eventLinkProbability: 0.7,
     folderProbability: 0.8,
   });
@@ -98,7 +93,6 @@ const buildBigWorkspaceData = () => {
     organizations,
     humans,
     calendars,
-    folders,
     sessions,
     transcripts,
     words,

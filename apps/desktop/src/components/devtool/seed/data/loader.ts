@@ -124,7 +124,7 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       raw_md: JSON.stringify(md2json(session.raw_md)),
       created_at: new Date().toISOString(),
       event_id: eventId,
-      folder_id: session.folder,
+      folder_id: session.folder ?? undefined,
     };
 
     session.participants.forEach((participantName) => {

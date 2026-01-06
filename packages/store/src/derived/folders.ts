@@ -1,5 +1,3 @@
-import type { SessionStorage } from "../schema";
-
 export interface FolderNode {
   id: string;
   name: string;
@@ -7,8 +5,10 @@ export interface FolderNode {
   children: FolderNode[];
 }
 
+type SessionLike = { folder_id?: string | null };
+
 export function deriveFoldersFromSessions(
-  sessions: Record<string, SessionStorage>,
+  sessions: Record<string, SessionLike>,
 ): FolderNode[] {
   const paths = new Set<string>();
 
@@ -87,7 +87,7 @@ export function getParentFolderId(folderId: string): string | null {
 }
 
 export function getAllFolderIds(
-  sessions: Record<string, SessionStorage>,
+  sessions: Record<string, SessionLike>,
 ): string[] {
   const paths = new Set<string>();
 

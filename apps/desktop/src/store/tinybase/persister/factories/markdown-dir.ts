@@ -136,11 +136,37 @@ export function createMarkdownDirPersister<
 
   return createCollectorPersister(store, {
     label,
-    collect: (_store, tables, dataDir) => {
-      const tableData =
+    collect: (_store, tables, dataDir, changedTables) => {
+      const fullTableData =
         (tables as Record<string, Record<string, TStorage>>)[tableName] ?? {};
+
+      if (changedTables) {
+        const changedRows = changedTables[tableName] as
+          | Record<string, unknown>
+          | undefined;
+        if (!changedRows) {
+          return { dirs: new Set(), operations: [], validIds: new Set() };
+        }
+
+        const changedIds = Object.keys(changedRows);
+        const filteredTableData: Record<string, TStorage> = {};
+        for (const id of changedIds) {
+          const row = fullTableData[id];
+          if (row) {
+            filteredTableData[id] = row;
+          }
+        }
+
+        const { result } = collectMarkdownWriteOps(
+          filteredTableData,
+          dataDir,
+          config,
+        );
+        return { ...result, validIds: new Set<string>() };
+      }
+
       const { result, validIds } = collectMarkdownWriteOps(
-        tableData,
+        fullTableData,
         dataDir,
         config,
       );

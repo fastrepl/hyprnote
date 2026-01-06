@@ -15,7 +15,12 @@ import {
 import { StoreOrMergeableStore } from "../../store/shared";
 import { ensureDirsExist } from "../shared/fs";
 import { getDataDir } from "../shared/paths";
-import type { CollectorResult, TablesContent } from "../shared/types";
+import {
+  type ChangedTables,
+  type CollectorResult,
+  extractChangedTables,
+  type TablesContent,
+} from "../shared/types";
 
 export function createModeAwarePersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
@@ -44,6 +49,7 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
       store: MergeableStore<Schemas>,
       tables: TablesContent,
       dataDir: string,
+      changedTables?: ChangedTables,
     ) => CollectorResult;
     load?: () => Promise<Content<Schemas> | undefined>;
     postSave?: (dataDir: string, result: CollectorResult) => Promise<void>;
@@ -51,11 +57,19 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
 ) {
   const loadFn = options.load ?? (async () => undefined);
 
-  const saveFn = async () => {
+  const saveFn = async (_getContent: () => unknown, changes?: unknown) => {
+    const changedTables = extractChangedTables(changes);
+    const isIncrementalSave = changedTables !== null;
+
     try {
       const dataDir = await getDataDir();
       const tables = store.getTables() as TablesContent | undefined;
-      const result = options.collect(store, tables ?? {}, dataDir);
+      const result = options.collect(
+        store,
+        tables ?? {},
+        dataDir,
+        changedTables ?? undefined,
+      );
       const { dirs, operations } = result;
 
       if (operations.length === 0) {
@@ -126,7 +140,7 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
         }
       }
 
-      if (options.postSave) {
+      if (options.postSave && !isIncrementalSave) {
         await options.postSave(dataDir, result);
       }
     } catch (error) {

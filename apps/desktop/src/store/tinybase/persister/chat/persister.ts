@@ -5,16 +5,61 @@ import type {
 } from "tinybase/with-schemas";
 
 import { createCollectorPersister } from "../factories";
-import { getDataDir } from "../shared";
+import { type ChangedTables, getDataDir, type TablesContent } from "../shared";
 import { collectChatWriteOps } from "./collect";
 import { loadAllChatData } from "./load";
+
+function getChangedChatGroupIds(
+  tables: TablesContent,
+  changedTables: ChangedTables,
+): Set<string> | undefined {
+  const changedGroupIds = new Set<string>();
+
+  const changedGroups = changedTables.chat_groups;
+  if (changedGroups) {
+    for (const id of Object.keys(changedGroups)) {
+      changedGroupIds.add(id);
+    }
+  }
+
+  const changedMessages = changedTables.chat_messages;
+  if (changedMessages) {
+    for (const id of Object.keys(changedMessages)) {
+      const message = tables.chat_messages?.[id];
+      if (message?.chat_group_id) {
+        changedGroupIds.add(message.chat_group_id);
+      }
+    }
+  }
+
+  if (changedGroupIds.size === 0) {
+    return undefined;
+  }
+
+  return changedGroupIds;
+}
 
 export function createChatPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ) {
   return createCollectorPersister(store, {
     label: "ChatPersister",
-    collect: (_store, tables, dataDir) => collectChatWriteOps(tables, dataDir),
+    collect: (_store, tables, dataDir, changedTables) => {
+      let changedGroupIds: Set<string> | undefined;
+
+      if (changedTables) {
+        changedGroupIds = getChangedChatGroupIds(tables, changedTables);
+        if (!changedGroupIds) {
+          return {
+            dirs: new Set(),
+            operations: [],
+            validChatGroupIds: new Set(),
+          };
+        }
+      }
+
+      return collectChatWriteOps(tables, dataDir, changedGroupIds);
+    },
     load: async (): Promise<Content<Schemas> | undefined> => {
       try {
         const dataDir = await getDataDir();

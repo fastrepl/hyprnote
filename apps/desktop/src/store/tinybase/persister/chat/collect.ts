@@ -14,13 +14,18 @@ export type ChatCollectorResult = CollectorResult & {
 export function collectChatWriteOps(
   tables: TablesContent,
   dataDir: string,
+  changedGroupIds?: Set<string>,
 ): ChatCollectorResult {
   const dirs = new Set<string>();
   const operations: CollectorResult["operations"] = [];
 
   const chatJsonList = tablesToChatJsonList(tables);
 
-  for (const chatJson of chatJsonList) {
+  const groupsToProcess = changedGroupIds
+    ? chatJsonList.filter((c) => changedGroupIds.has(c.chat_group.id))
+    : chatJsonList;
+
+  for (const chatJson of groupsToProcess) {
     const chatGroupId = chatJson.chat_group.id;
     const chatDir = getChatDir(dataDir, chatGroupId);
     dirs.add(chatDir);
@@ -35,6 +40,8 @@ export function collectChatWriteOps(
   return {
     dirs,
     operations,
-    validChatGroupIds: new Set(chatJsonList.map((c) => c.chat_group.id)),
+    validChatGroupIds: changedGroupIds
+      ? new Set<string>()
+      : new Set(chatJsonList.map((c) => c.chat_group.id)),
   };
 }

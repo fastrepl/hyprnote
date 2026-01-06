@@ -47,6 +47,107 @@ export type CollectorResult = {
   operations: WriteOperation[];
 };
 
+// Simplified type for changed tables extracted from TinyBase's Changes or MergeableChanges
+// Maps table name -> row id -> changed cells (or undefined for deletion)
+export type ChangedTables = Record<string, Record<string, unknown> | undefined>;
+
+/**
+ * Extract changed tables from TinyBase's Changes or MergeableChanges.
+ *
+ * TinyBase Data Formats (from create.ts):
+ * https://github.com/tinyplex/tinybase/blob/main/src/persisters/common/create.ts
+ *
+ * | Type              | Format                                           | Example                                          |
+ * |-------------------|--------------------------------------------------|--------------------------------------------------|
+ * | Content           | [tables, values]                                 | [{users: {...}}, {}]                             |
+ * | Changes           | [changedTables, changedValues, 1]                | [{users: {row1: {...}}}, {}, 1]                  |
+ * | MergeableContent  | [[tables, hlc?], [values, hlc?]]                 | [[{users: {...}}, "hlc123"], [{}, "hlc456"]]     |
+ * | MergeableChanges  | [[changedTables, hlc?], [changedValues, hlc?], 1]| [[{users: {...}}, "hlc"], [{}, "hlc"], 1]        |
+ *
+ * The [2] === 1 flag distinguishes changes from content:
+ * - When present, TinyBase uses applyChanges() / applyMergeableChanges()
+ * - When absent, TinyBase uses setContent() / setMergeableContent()
+ *
+ * TinyBase's hasChanges destructuring patterns:
+ * - Regular Changes:   ([changedTables, changedValues]: Changes) => ...
+ * - MergeableChanges:  ([[changedTables], [changedValues]]: MergeableChanges) => ...
+ *
+ * Note the double brackets for MergeableChanges - each element is [data, hlc?].
+ */
+export function extractChangedTables(changes: unknown): ChangedTables | null {
+  if (!changes || !Array.isArray(changes) || changes.length < 1) {
+    return null;
+  }
+
+  const tablesOrStamp = changes[0];
+
+  // Check if it's MergeableChanges (wrapped in [thing, hlc?] tuple)
+  if (Array.isArray(tablesOrStamp) && tablesOrStamp.length >= 1) {
+    const tables = tablesOrStamp[0];
+    if (tables && typeof tables === "object") {
+      return unwrapMergeableTables(tables as Record<string, unknown>);
+    }
+    return null;
+  }
+
+  // Regular Changes format
+  if (tablesOrStamp && typeof tablesOrStamp === "object") {
+    return tablesOrStamp as ChangedTables;
+  }
+
+  return null;
+}
+
+// Unwrap MergeableChanges table structure where each value is [thing, hlc?]
+function unwrapMergeableTables(tables: Record<string, unknown>): ChangedTables {
+  const result: ChangedTables = {};
+
+  for (const [tableName, tableValue] of Object.entries(tables)) {
+    if (!tableValue) {
+      result[tableName] = undefined;
+      continue;
+    }
+
+    // MergeableChanges wraps each table in [rows, hlc?]
+    if (Array.isArray(tableValue) && tableValue.length >= 1) {
+      const rows = tableValue[0];
+      if (rows && typeof rows === "object") {
+        result[tableName] = unwrapMergeableRows(
+          rows as Record<string, unknown>,
+        );
+      }
+    } else if (typeof tableValue === "object") {
+      // Fallback: treat as regular rows
+      result[tableName] = tableValue as Record<string, unknown>;
+    }
+  }
+
+  return result;
+}
+
+// Unwrap MergeableChanges row structure where each row is [cells, hlc?]
+function unwrapMergeableRows(
+  rows: Record<string, unknown>,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+
+  for (const [rowId, rowValue] of Object.entries(rows)) {
+    if (!rowValue) {
+      result[rowId] = undefined;
+      continue;
+    }
+
+    // MergeableChanges wraps each row in [cells, hlc?]
+    if (Array.isArray(rowValue) && rowValue.length >= 1) {
+      result[rowId] = rowValue[0];
+    } else {
+      result[rowId] = rowValue;
+    }
+  }
+
+  return result;
+}
+
 export interface MarkdownDirPersisterConfig<TStorage> {
   tableName: string;
   dirName: string;

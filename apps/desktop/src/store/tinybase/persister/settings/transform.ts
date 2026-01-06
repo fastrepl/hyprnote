@@ -9,6 +9,12 @@ import { SETTINGS_MAPPING } from "../../store/settings";
 type ProviderData = { base_url: string; api_key: string };
 type ProviderRow = { type: "llm" | "stt"; base_url: string; api_key: string };
 
+const JSON_ARRAY_FIELDS = new Set([
+  "spoken_languages",
+  "ignored_platforms",
+  "ignored_recurring_series",
+]);
+
 function getByPath(obj: unknown, path: readonly [string, string]): unknown {
   const section = (obj as Record<string, unknown>)?.[path[0]];
   return (section as Record<string, unknown>)?.[path[1]];
@@ -21,6 +27,47 @@ function setByPath(
 ): void {
   obj[path[0]] ??= {};
   obj[path[0]][path[1]] = value;
+}
+
+function toStoreValue(key: string, value: unknown): unknown {
+  if (!JSON_ARRAY_FIELDS.has(key)) {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return JSON.stringify(value);
+  }
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return value;
+      }
+    } catch {}
+  }
+  return value;
+}
+
+function fromStoreValue(key: string, value: unknown): unknown {
+  if (!JSON_ARRAY_FIELDS.has(key)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch {}
+
+    if (value.includes(",")) {
+      return value
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+  }
+  return value;
 }
 
 function settingsToStoreValues(settings: unknown): Record<string, unknown> {
@@ -37,7 +84,7 @@ function settingsToStoreValues(settings: unknown): Record<string, unknown> {
     }
 
     if (value !== undefined) {
-      values[key] = value;
+      values[key] = toStoreValue(key, value);
     }
   }
   return values;
@@ -82,7 +129,7 @@ export function storeValuesToSettings(
   for (const [key, config] of Object.entries(SETTINGS_MAPPING.values)) {
     const value = values[key];
     if (value !== undefined) {
-      setByPath(result, config.path, value);
+      setByPath(result, config.path, fromStoreValue(key, value));
     }
   }
 

@@ -1,0 +1,99 @@
+---
+title: "Local LLM Setup"
+section: "FAQ"
+description: "How to set up LM Studio or Ollama for local AI in Hyprnote."
+---
+
+## LM Studio Setup
+
+[LM Studio](https://lmstudio.ai) is a desktop application that lets you run large language models locally on your computer.
+
+### Installation
+
+1. Download LM Studio from [lmstudio.ai](https://lmstudio.ai)
+2. Install and launch the application
+3. Download a model from the Discover tab (we recommend models with 7B-14B parameters for most machines)
+
+### Configuration
+
+1. Go to the **Developer** tab in LM Studio
+2. Click **Start Server** to start the local server (default port is 1234)
+3. Enable **CORS** in the server settings - this is required for Hyprnote to connect
+
+### Connecting to Hyprnote
+
+1. Open Hyprnote and go to **Settings** > **Intelligence**
+2. Expand the **LM Studio** provider card
+3. The default base URL `http://127.0.0.1:1234/v1` should work if you haven't changed the port
+4. Select LM Studio as your provider and choose a model from the dropdown
+
+### Troubleshooting
+
+If Hyprnote cannot connect to LM Studio:
+
+- Ensure the LM Studio server is running (check the Developer tab)
+- Verify CORS is enabled in LM Studio settings
+- Check that the port matches (default is 1234)
+- Make sure no firewall is blocking the connection
+
+## Ollama Setup
+
+[Ollama](https://ollama.ai) is a command-line tool for running large language models locally.
+
+### Installation
+
+**macOS:**
+```bash
+brew install ollama
+```
+
+**Linux:**
+```bash
+curl -fsSL https://ollama.ai/install.sh | sh
+```
+
+**Windows:**
+Download from [ollama.ai](https://ollama.ai)
+
+### Running Ollama
+
+1. Start the Ollama service:
+```bash
+ollama serve
+```
+
+2. Pull a model (in a separate terminal):
+```bash
+ollama pull llama3.2
+```
+
+Other recommended models: `mistral`, `gemma2`, `qwen2.5`
+
+### Connecting to Hyprnote
+
+1. Open Hyprnote and go to **Settings** > **Intelligence**
+2. Expand the **Ollama** provider card
+3. The default base URL `http://127.0.0.1:11434/v1` should work
+4. Select Ollama as your provider and choose a model from the dropdown
+
+### Troubleshooting
+
+If Hyprnote cannot connect to Ollama:
+
+- Ensure Ollama is running (`ollama serve`)
+- Check that you have at least one model pulled (`ollama list`)
+- Verify the port is correct (default is 11434)
+- On macOS, Ollama may already be running as a background service
+
+## Recommended Models
+
+For meeting transcription and summarization, we recommend:
+
+| Model | Size | Best For |
+|-------|------|----------|
+| llama3.2 | 3B | Fast responses, lower memory usage |
+| mistral | 7B | Good balance of speed and quality |
+| gemma2 | 9B | High quality summaries |
+| qwen2.5 | 7B | Multilingual support |
+
+Choose a model size based on your available RAM. Generally, you need about 2x the model size in available RAM (e.g., a 7B model needs ~14GB RAM).

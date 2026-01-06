@@ -96,14 +96,16 @@ function ProviderContext({
     providerId === "hyprnote"
       ? "A curated set of models we continuously test to provide the **best performance & reliability**."
       : providerId === "lmstudio"
-        ? "- Ensure LM Studio server is **running.** (Default port is 1234)\n- Enable **CORS** in LM Studio config."
-        : providerId === "custom"
-          ? "We only support **OpenAI-compatible** endpoints for now."
-          : providerId === "openrouter"
-            ? "We filter out models from the combobox based on heuristics like **input modalities** and **tool support**."
-            : providerId === "google_generative_ai"
-              ? "Visit [AI Studio](https://aistudio.google.com/api-keys) to create an API key."
-              : "";
+        ? "- Ensure LM Studio server is **running.** (Default port is 1234)\n- Enable **CORS** in LM Studio config.\n\nSee our [setup guide](https://hyprnote.com/docs/faq/local-llm-setup#lm-studio-setup) for detailed instructions."
+        : providerId === "ollama"
+          ? "- Ensure Ollama is **running** (`ollama serve`)\n- Pull a model first (`ollama pull llama3.2`)\n\nSee our [setup guide](https://hyprnote.com/docs/faq/local-llm-setup#ollama-setup) for detailed instructions."
+          : providerId === "custom"
+            ? "We only support **OpenAI-compatible** endpoints for now."
+            : providerId === "openrouter"
+              ? "We filter out models from the combobox based on heuristics like **input modalities** and **tool support**."
+              : providerId === "google_generative_ai"
+                ? "Visit [AI Studio](https://aistudio.google.com/api-keys) to create an API key."
+                : "";
 
   if (providerId === "hyprnote" && !isPro) {
     return (

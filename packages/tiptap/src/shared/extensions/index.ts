@@ -1,11 +1,11 @@
 import FileHandler from "@tiptap/extension-file-handler";
 import Highlight from "@tiptap/extension-highlight";
-import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
+import { ResizableImage } from "tiptap-extension-resizable-image";
 
 import { AIHighlight } from "../ai-highlight";
 import { StreamingAnimation } from "../animation";
@@ -22,7 +22,7 @@ export type FileHandlerConfig = {
   onPaste?: (files: File[], editor: any) => boolean | void;
 };
 
-const AttachmentImage = Image.extend({
+const AttachmentResizableImage = ResizableImage.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -35,6 +35,17 @@ const AttachmentImage = Image.extend({
           }
           return { "data-attachment-id": attributes.attachmentId };
         },
+      },
+    };
+  },
+
+  parseMarkdown: (token: { href?: string; text?: string; title?: string }) => {
+    return {
+      type: "image",
+      attrs: {
+        src: token.href || "",
+        alt: token.text || "",
+        title: token.title || null,
       },
     };
   },
@@ -51,8 +62,7 @@ export const getExtensions = (
     link: false,
     listKeymap: false,
   }),
-  AttachmentImage.configure({
-    inline: false,
+  AttachmentResizableImage.configure({
     allowBase64: true,
     HTMLAttributes: { class: "tiptap-image" },
   }),

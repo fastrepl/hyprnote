@@ -4754,6 +4754,8 @@ version = "0.1.0"
 dependencies = [
  "bundle",
  "cidre",
+ "isolang",
+ "language",
  "lazy_static",
  "libpulse-binding",
  "objc2",
@@ -10089,11 +10091,10 @@ name = "language"
 version = "0.1.0"
 dependencies = [
  "codes-iso-639",
- "deepgram",
  "schemars 0.8.22",
  "serde",
+ "serde_json",
  "specta",
- "tantivy",
  "thiserror 2.0.17",
  "whichlang",
  "whisper",

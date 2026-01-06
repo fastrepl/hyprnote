@@ -36,6 +36,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_respect_do_not_disturb::<tauri::Wry>,
             commands::set_ignored_bundle_ids::<tauri::Wry>,
             commands::list_default_ignored_bundle_ids::<tauri::Wry>,
+            commands::get_preferred_languages::<tauri::Wry>,
+            commands::get_current_locale_identifier::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![DetectEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
@@ -93,6 +95,5 @@ mod test {
     #[test]
     fn test_detect() {
         let _app = create_app(tauri::test::mock_builder());
-        std::thread::sleep(std::time::Duration::from_secs(10));
     }
 }

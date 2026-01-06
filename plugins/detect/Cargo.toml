@@ -10,6 +10,7 @@ description = ""
 [features]
 default = ["zoom"]
 zoom = ["hypr-detect/zoom"]
+language = ["hypr-detect/language"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
@@ -18,7 +19,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-hypr-detect = { workspace = true }
+hypr-detect = { workspace = true, features = ["mic", "list", "language"] }
 hypr-host = { workspace = true }
 hypr-intercept = { workspace = true }
 

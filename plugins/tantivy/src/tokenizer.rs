@@ -1,33 +1,55 @@
+use hypr_language::ISO639;
 use tantivy::Index;
 use tantivy::tokenizer::{
     AsciiFoldingFilter, Language, LowerCaser, RemoveLongFilter, SimpleTokenizer, Stemmer,
     TextAnalyzer,
 };
 
+fn to_tantivy_language(lang: &hypr_language::Language) -> Option<Language> {
+    match lang.iso639() {
+        ISO639::Ar => Some(Language::Arabic),
+        ISO639::Da => Some(Language::Danish),
+        ISO639::Nl => Some(Language::Dutch),
+        ISO639::En => Some(Language::English),
+        ISO639::Fi => Some(Language::Finnish),
+        ISO639::Fr => Some(Language::French),
+        ISO639::De => Some(Language::German),
+        ISO639::El => Some(Language::Greek),
+        ISO639::Hu => Some(Language::Hungarian),
+        ISO639::It => Some(Language::Italian),
+        ISO639::No => Some(Language::Norwegian),
+        ISO639::Pt => Some(Language::Portuguese),
+        ISO639::Ro => Some(Language::Romanian),
+        ISO639::Ru => Some(Language::Russian),
+        ISO639::Es => Some(Language::Spanish),
+        ISO639::Sv => Some(Language::Swedish),
+        ISO639::Ta => Some(Language::Tamil),
+        ISO639::Tr => Some(Language::Turkish),
+        _ => None,
+    }
+}
+
 pub fn get_tokenizer_name_for_language(lang: &hypr_language::Language) -> &'static str {
-    if let Some(tantivy_lang) = lang.for_tantivy_stemmer() {
-        match tantivy_lang {
-            Language::Arabic => "lang_ar",
-            Language::Danish => "lang_da",
-            Language::Dutch => "lang_nl",
-            Language::English => "lang_en",
-            Language::Finnish => "lang_fi",
-            Language::French => "lang_fr",
-            Language::German => "lang_de",
-            Language::Greek => "lang_el",
-            Language::Hungarian => "lang_hu",
-            Language::Italian => "lang_it",
-            Language::Norwegian => "lang_no",
-            Language::Portuguese => "lang_pt",
-            Language::Romanian => "lang_ro",
-            Language::Russian => "lang_ru",
-            Language::Spanish => "lang_es",
-            Language::Swedish => "lang_sv",
-            Language::Tamil => "lang_ta",
-            Language::Turkish => "lang_tr",
-        }
-    } else {
-        "multilang"
+    match to_tantivy_language(lang) {
+        Some(Language::Arabic) => "lang_ar",
+        Some(Language::Danish) => "lang_da",
+        Some(Language::Dutch) => "lang_nl",
+        Some(Language::English) => "lang_en",
+        Some(Language::Finnish) => "lang_fi",
+        Some(Language::French) => "lang_fr",
+        Some(Language::German) => "lang_de",
+        Some(Language::Greek) => "lang_el",
+        Some(Language::Hungarian) => "lang_hu",
+        Some(Language::Italian) => "lang_it",
+        Some(Language::Norwegian) => "lang_no",
+        Some(Language::Portuguese) => "lang_pt",
+        Some(Language::Romanian) => "lang_ro",
+        Some(Language::Russian) => "lang_ru",
+        Some(Language::Spanish) => "lang_es",
+        Some(Language::Swedish) => "lang_sv",
+        Some(Language::Tamil) => "lang_ta",
+        Some(Language::Turkish) => "lang_tr",
+        None => "multilang",
     }
 }
 
@@ -77,7 +99,6 @@ pub fn register_tokenizers(index: &Index) {
 mod tests {
     use super::*;
     use crate::schema::build_schema;
-    use hypr_language::ISO639;
 
     #[test]
     fn test_get_tokenizer_name_for_supported_languages() {

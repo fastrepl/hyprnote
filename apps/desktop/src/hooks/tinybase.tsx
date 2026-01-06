@@ -119,6 +119,76 @@ export function useFolder(folderId: string) {
   );
 }
 
+export function useEvent(eventId: string | undefined) {
+  const title = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "title",
+    main.STORE_ID,
+  );
+  const startedAt = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "started_at",
+    main.STORE_ID,
+  );
+  const endedAt = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "ended_at",
+    main.STORE_ID,
+  );
+  const location = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "location",
+    main.STORE_ID,
+  );
+  const meetingLink = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "meeting_link",
+    main.STORE_ID,
+  );
+  const description = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "description",
+    main.STORE_ID,
+  );
+  const calendarId = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "calendar_id",
+    main.STORE_ID,
+  );
+
+  return useMemo(
+    () =>
+      eventId
+        ? {
+            title,
+            startedAt,
+            endedAt,
+            location,
+            meetingLink,
+            description,
+            calendarId,
+          }
+        : null,
+    [
+      eventId,
+      title,
+      startedAt,
+      endedAt,
+      location,
+      meetingLink,
+      description,
+      calendarId,
+    ],
+  );
+}
+
 export function useTemplate(templateId: string) {
   const title = main.UI.useCell(
     "templates",

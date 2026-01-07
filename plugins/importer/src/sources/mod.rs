@@ -28,7 +28,6 @@ pub fn all_sources() -> Vec<ImportSource> {
     [
         ImportSource::hyprnote_stable(),
         ImportSource::hyprnote_nightly(),
-        ImportSource::granola(),
     ]
     .into_iter()
     .flatten()

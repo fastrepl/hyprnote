@@ -25,10 +25,10 @@ export function SourceItem({
           Import data from `
           <button
             type="button"
-            onClick={() => revealItemInDir(source.path)}
+            onClick={() => revealItemInDir(source.revealPath)}
             className="underline hover:text-neutral-900 cursor-pointer"
           >
-            {source.path.split("/").pop()}
+            {source.path}
           </button>
           `
         </p>

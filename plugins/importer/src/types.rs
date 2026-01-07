@@ -75,11 +75,29 @@ impl ImportSource {
     }
 
     pub fn info(&self) -> ImportSourceInfo {
+        let (display_path, reveal_path) = match self.kind {
+            Some(ImportSourceKind::HyprnoteV0Stable)
+            | Some(ImportSourceKind::HyprnoteV0Nightly) => {
+                let parent = self.path.parent().unwrap_or(&self.path);
+                let display = parent
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_else(|| self.path.to_string_lossy().to_string());
+                let reveal = parent.to_string_lossy().to_string();
+                (display, reveal)
+            }
+            _ => {
+                let path_str = self.path.to_string_lossy().to_string();
+                (path_str.clone(), path_str)
+            }
+        };
+
         ImportSourceInfo {
             kind: self.kind.clone(),
             transform: self.transform,
             name: self.name.clone(),
-            path: self.path.to_string_lossy().to_string(),
+            path: display_path,
+            reveal_path,
         }
     }
 }
@@ -101,11 +119,13 @@ impl From<ImportSourceKind> for ImportSource {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
 pub struct ImportSourceInfo {
     pub kind: Option<ImportSourceKind>,
     pub transform: TransformKind,
     pub name: String,
     pub path: String,
+    pub reveal_path: String,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]

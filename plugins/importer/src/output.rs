@@ -1,6 +1,6 @@
 use crate::types::{
     ImportResult, ImportedHuman, ImportedNote, ImportedOrganization, ImportedSessionParticipant,
-    ImportedTranscript, ImportedWord,
+    ImportedTranscript,
 };
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -52,19 +52,20 @@ struct Transcript {
     session_id: String,
     started_at: i64,
     ended_at: i64,
+    words: String,
+    speaker_hints: String,
 }
 
 #[derive(Serialize)]
-struct Word {
+struct WordInTranscript {
+    id: String,
     user_id: String,
-    created_at: String,
-    text: String,
     transcript_id: String,
+    text: String,
     start_ms: i64,
     end_ms: i64,
     channel: i32,
-    speaker: String,
-    metadata: String,
+    created_at: String,
 }
 
 #[derive(Serialize)]
@@ -214,43 +215,36 @@ fn insert_transcripts_and_words(
     }
 
     let mut transcript_entries: Map<String, Value> = Map::new();
-    let mut word_entries: Map<String, Value> = Map::new();
 
     for transcript in transcripts {
+        let words_json: Vec<WordInTranscript> = transcript
+            .words
+            .iter()
+            .map(|word| WordInTranscript {
+                id: word.id.clone(),
+                user_id: user_id.to_string(),
+                transcript_id: transcript.id.clone(),
+                text: word.text.clone(),
+                start_ms: word.start_ms.unwrap_or(0.0) as i64,
+                end_ms: word.end_ms.unwrap_or(0.0) as i64,
+                channel: 0,
+                created_at: chrono::Utc::now().to_rfc3339(),
+            })
+            .collect();
+
         let value = Transcript {
             user_id: user_id.to_string(),
             created_at: normalize_datetime(&transcript.created_at),
             session_id: transcript.session_id.clone(),
             started_at: transcript.start_ms.unwrap_or(0.0) as i64,
             ended_at: transcript.end_ms.map(|ms| ms as i64).unwrap_or(0),
+            words: serde_json::to_string(&words_json).unwrap_or_else(|_| "[]".to_string()),
+            speaker_hints: "[]".to_string(),
         };
         transcript_entries.insert(transcript.id.clone(), serde_json::to_value(value).unwrap());
-
-        for word in &transcript.words {
-            let value = convert_word(word, &transcript.id, user_id);
-            word_entries.insert(word.id.clone(), serde_json::to_value(value).unwrap());
-        }
     }
 
     tables.insert("transcripts".to_string(), Value::Object(transcript_entries));
-
-    if !word_entries.is_empty() {
-        tables.insert("words".to_string(), Value::Object(word_entries));
-    }
-}
-
-fn convert_word(word: &ImportedWord, transcript_id: &str, user_id: &str) -> Word {
-    Word {
-        user_id: user_id.to_string(),
-        created_at: chrono::Utc::now().to_rfc3339(),
-        text: word.text.clone(),
-        transcript_id: transcript_id.to_string(),
-        start_ms: word.start_ms.unwrap_or(0.0) as i64,
-        end_ms: word.end_ms.unwrap_or(0.0) as i64,
-        channel: 0,
-        speaker: word.speaker.clone(),
-        metadata: "{}".to_string(),
-    }
 }
 
 fn insert_participants(

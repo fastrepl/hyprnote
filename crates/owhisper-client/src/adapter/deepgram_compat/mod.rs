@@ -52,6 +52,59 @@ mod tests {
         assert_eq!(url.as_str(), "https://api.hyprnote.com/listen/");
         assert!(params.is_empty());
     }
+
+    struct NoopLanguageStrategy;
+    impl LanguageQueryStrategy for NoopLanguageStrategy {
+        fn append_language_query<'a>(
+            &self,
+            _query_pairs: &mut Serializer<'a, UrlQuery>,
+            _params: &ListenParams,
+        ) {
+        }
+    }
+
+    struct NoopKeywordStrategy;
+    impl KeywordQueryStrategy for NoopKeywordStrategy {
+        fn append_keyword_query<'a>(
+            &self,
+            _query_pairs: &mut Serializer<'a, UrlQuery>,
+            _params: &ListenParams,
+        ) {
+        }
+    }
+
+    #[test]
+    fn test_build_listen_ws_url_filters_provider_for_direct_deepgram() {
+        let api_base = "wss://api.deepgram.com/v1?provider=deepgram";
+        let params = ListenParams::default();
+        let url = build_listen_ws_url(
+            api_base,
+            &params,
+            1,
+            &NoopLanguageStrategy,
+            &NoopKeywordStrategy,
+        );
+
+        assert!(!url.query_pairs().any(|(k, _)| k == "provider"));
+    }
+
+    #[test]
+    fn test_build_listen_ws_url_keeps_provider_for_proxy() {
+        let api_base = "wss://api.hyprnote.com/listen?provider=deepgram";
+        let params = ListenParams::default();
+        let url = build_listen_ws_url(
+            api_base,
+            &params,
+            1,
+            &NoopLanguageStrategy,
+            &NoopKeywordStrategy,
+        );
+
+        assert!(
+            url.query_pairs()
+                .any(|(k, v)| k == "provider" && v == "deepgram")
+        );
+    }
 }
 
 pub fn build_listen_ws_url<L, K>(
@@ -66,9 +119,13 @@ where
     K: KeywordQueryStrategy,
 {
     let (mut url, existing_params) = listen_endpoint_url(api_base);
+    let is_proxy = super::is_hyprnote_proxy(api_base);
 
     let mut builder = QueryParamBuilder::new();
     for (key, value) in &existing_params {
+        if key == "provider" && !is_proxy {
+            continue;
+        }
         builder.add(key, value);
     }
 
@@ -106,9 +163,13 @@ where
     K: KeywordQueryStrategy,
 {
     let (mut url, existing_params) = listen_endpoint_url(api_base);
+    let is_proxy = super::is_hyprnote_proxy(api_base);
 
     let mut builder = QueryParamBuilder::new();
     for (key, value) in &existing_params {
+        if key == "provider" && !is_proxy {
+            continue;
+        }
         builder.add(key, value);
     }
 

@@ -136,13 +136,24 @@ function EventDisplay({
 
   const meetingDomain = getMeetingLinkDomain();
 
+  const isLocationURL = (location: string) => {
+    try {
+      new URL(location);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const shouldShowLocation = event.location && !isLocationURL(event.location);
+
   return (
     <div className="flex flex-col gap-3">
       <div className="text-base font-medium text-neutral-900">
         {event.title || "Untitled Event"}
       </div>
 
-      {event.location && (
+      {shouldShowLocation && (
         <>
           <div className="h-px bg-neutral-200" />
           <div className="flex items-center gap-2 text-sm text-neutral-700">

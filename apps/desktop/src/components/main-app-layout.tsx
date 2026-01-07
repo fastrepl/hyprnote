@@ -10,6 +10,7 @@ import { NetworkProvider } from "../contexts/network";
 import { useTabs } from "../store/zustand/tabs";
 import { TrialExpiredModal } from "./devtool/trial-expired-modal";
 import { useNewNote } from "./main/shared";
+import { MigrationModal } from "./migration-modal";
 
 export default function MainAppLayout() {
   useNavigationEvents();
@@ -20,6 +21,7 @@ export default function MainAppLayout() {
         <NetworkProvider>
           <Outlet />
           <TrialExpiredModal />
+          <MigrationModal />
         </NetworkProvider>
       </BillingProvider>
     </AuthProvider>

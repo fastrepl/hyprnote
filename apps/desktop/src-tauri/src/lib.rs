@@ -315,6 +315,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::resize_window_for_chat::<tauri::Wry>,
             commands::get_tinybase_values::<tauri::Wry>,
             commands::set_tinybase_values::<tauri::Wry>,
+            commands::get_migration_dismissed::<tauri::Wry>,
+            commands::set_migration_dismissed::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

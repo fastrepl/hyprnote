@@ -22,6 +22,8 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const listenerStatus = useListener((state) => state.live.status);
   const prevListenerStatus = usePrevious(listenerStatus);
 
+  const indexes = main.UI.useIndexes(main.STORE_ID);
+
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
     sessionId,
@@ -123,12 +125,12 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     const enhancedNoteId = createEnhancedNote(sessionId);
     if (!enhancedNoteId) return;
 
-    setAutoEnhancedNoteId(enhancedNoteId);
-
     updateSessionTabState(tabRef.current, {
       ...tabRef.current.state,
       view: { type: "enhanced", id: enhancedNoteId },
     });
+
+    setAutoEnhancedNoteId(enhancedNoteId);
   }, [
     hasTranscript,
     hasWords,
@@ -139,16 +141,14 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   ]);
 
   useEffect(() => {
-    if (
-      autoEnhancedNoteId &&
-      model &&
-      !startedTasksRef.current.has(autoEnhancedNoteId)
-    ) {
-      startedTasksRef.current.add(autoEnhancedNoteId);
-      void analyticsCommands.event({
-        event: "note_enhanced",
-        is_auto: true,
-      });
+    if (autoEnhancedNoteId && model) {
+      if (!startedTasksRef.current.has(autoEnhancedNoteId)) {
+        startedTasksRef.current.add(autoEnhancedNoteId);
+        void analyticsCommands.event({
+          event: "note_enhanced",
+          is_auto: true,
+        });
+      }
       void enhanceTask.start({
         model,
         args: { sessionId, enhancedNoteId: autoEnhancedNoteId },
@@ -164,6 +164,23 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       createAndStartEnhance();
     }
   }, [listenerStatus, prevListenerStatus, createAndStartEnhance]);
+
+  useEffect(() => {
+    if (listenerStatus === "finalizing" && indexes) {
+      const enhancedNoteIds = indexes.getSliceRowIds(
+        main.INDEXES.enhancedNotesBySession,
+        sessionId,
+      );
+      const firstEnhancedNoteId = enhancedNoteIds?.[0];
+
+      if (firstEnhancedNoteId) {
+        updateSessionTabState(tabRef.current, {
+          ...tabRef.current.state,
+          view: { type: "enhanced", id: firstEnhancedNoteId },
+        });
+      }
+    }
+  }, [listenerStatus, sessionId, indexes, updateSessionTabState]);
 
   useEffect(() => {
     if (skipReason) {

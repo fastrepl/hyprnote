@@ -1,0 +1,54 @@
+## Plugins
+
+- Refactor importer plugin
+  - Consolidate import source handling and transform logic
+  - Improve error handling and source availability checking
+  - Simplify import flow and data structure
+
+- Add Templates import to hyprnote importer
+  - Support importing templates from Hyprnote v0 stable and nightly installations
+
+## Persistence & Storage
+
+- Implement incremental persister save optimization
+  - Add content hashing to reduce unnecessary file writes
+  - Optimize chat and session persister save operations
+  - Improve performance for large datasets
+
+- Store array fields as JSON instead of comma-separated strings
+  - Improve settings persistence for array-based fields
+  - Better handling of complex data structures
+
+- Add values persister for storing key-value pairs
+
+## UI & UX Improvements
+
+- Simplified error UI with single "Restart App" button
+  - Streamline error recovery flow
+  - Integrate Tauri relaunch API for app restart
+
+- Fix title generation and add banner in notes
+  - Prevent unnecessary title regeneration
+  - Add skip reason banner when auto-enhance is skipped
+  - Show consent banner when session becomes active
+  - Require minimum words before auto-enhancement
+
+- Update data import UI in settings
+  - Improve import preview and source selection
+  - Better visual feedback during import process
+
+- Remove data tab from main navigation
+  - Consolidate data import into settings
+
+## Editor
+
+- Add resizable image extension to tiptap
+  - Replace standard image extension with resizable image extension
+  - Add resize handles with hover effects
+  - Preserve custom attachmentId attribute
+
+## Other Improvements
+
+- Remove auto import on app startup
+- Remove extension_state from store
+- Remove ai_providers from main store

@@ -170,6 +170,8 @@ function TabContentNoteInner({
     const justStartedListening =
       prevSessionMode.current !== "active" && sessionMode === "active";
 
+    prevSessionMode.current = sessionMode;
+
     if (justStartedListening) {
       setShowConsentBanner(true);
       const timer = setTimeout(() => {
@@ -178,10 +180,6 @@ function TabContentNoteInner({
       return () => clearTimeout(timer);
     }
   }, [sessionMode]);
-
-  useEffect(() => {
-    prevSessionMode.current = sessionMode;
-  });
 
   const focusTitle = React.useCallback(() => {
     titleInputRef.current?.focus();

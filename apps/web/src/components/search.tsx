@@ -136,13 +136,13 @@ export function SearchTrigger({
         type="button"
         onClick={() => setOpen(true)}
         className={cn([
-          "w-full flex items-center gap-2 px-3 py-2.5",
+          "w-full flex items-center gap-3 px-3 py-2",
           "text-sm text-neutral-500",
-          "bg-white border border-neutral-200 rounded-md shadow-sm",
+          "bg-transparent",
           className,
         ])}
       >
-        <SearchIcon size={16} className="text-neutral-400" />
+        <SearchIcon size={16} className="text-neutral-500" />
         <span className="flex-1 text-left">Search docs...</span>
       </button>
     );

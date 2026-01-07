@@ -28,14 +28,28 @@ const buildLongData = (): Tables<Schemas[0]> => {
     throw new Error("Expected transcript metadata");
   }
 
-  const { transcriptId, transcript, words } = result;
+  const { transcriptId, transcript } = result;
+
+  const transcripts: Tables<Schemas[0]>["transcripts"] = {
+    [transcriptId]: {
+      user_id: transcript.user_id ?? "",
+      created_at: transcript.created_at ?? "",
+      session_id: transcript.session_id ?? "",
+      started_at: transcript.started_at ?? 0,
+      ended_at:
+        typeof transcript.ended_at === "number"
+          ? transcript.ended_at
+          : undefined,
+      words: transcript.words ?? "[]",
+      speaker_hints: transcript.speaker_hints ?? "[]",
+    },
+  };
 
   return {
     organizations: { [organization.id]: organization.data },
     humans: { [human.id]: human.data },
     sessions: { [session.id]: session.data },
-    transcripts: { [transcriptId]: transcript },
-    words,
+    transcripts,
   };
 };
 

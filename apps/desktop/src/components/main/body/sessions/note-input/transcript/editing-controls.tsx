@@ -326,43 +326,7 @@ function useClearTranscript(sessionId: string) {
       return;
     }
 
-    const transcriptIdSet = new Set(transcriptIds);
-    const wordIds: string[] = [];
-    const hintIds: string[] = [];
-
-    store.forEachRow("words", (wordId, _forEachCell) => {
-      const transcriptId = store.getCell("words", wordId, "transcript_id");
-      if (
-        typeof transcriptId === "string" &&
-        transcriptIdSet.has(transcriptId)
-      ) {
-        wordIds.push(wordId);
-      }
-    });
-
-    store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
-      const transcriptId = store.getCell(
-        "speaker_hints",
-        hintId,
-        "transcript_id",
-      );
-      if (
-        typeof transcriptId === "string" &&
-        transcriptIdSet.has(transcriptId)
-      ) {
-        hintIds.push(hintId);
-      }
-    });
-
     store.transaction(() => {
-      hintIds.forEach((hintId) => {
-        store.delRow("speaker_hints", hintId);
-      });
-
-      wordIds.forEach((wordId) => {
-        store.delRow("words", wordId);
-      });
-
       transcriptIds.forEach((transcriptId) => {
         store.delRow("transcripts", transcriptId);
       });

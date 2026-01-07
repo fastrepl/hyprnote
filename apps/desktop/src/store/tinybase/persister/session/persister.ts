@@ -180,8 +180,6 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
           tags: data.tags,
           mapping_tag_session: data.mapping_tag_session,
           transcripts: data.transcripts,
-          words: data.words,
-          speaker_hints: data.speaker_hints,
           enhanced_notes: data.enhanced_notes,
         }) as unknown as Content<Schemas>;
       } catch (error) {

@@ -15,8 +15,7 @@ import type {
   SessionStorage,
   Tag,
   TemplateStorage,
-  Transcript,
-  WordStorage,
+  TranscriptStorage,
 } from "@hypr/store";
 
 import { createCalendar } from "./calendar";
@@ -269,11 +268,9 @@ export const buildTranscriptsForSessions = (
     turnCount?: { min: number; max: number };
   } = {},
 ): {
-  transcripts: Record<string, Transcript>;
-  words: Record<string, WordStorage>;
+  transcripts: Record<string, TranscriptStorage>;
 } => {
-  const transcripts: Record<string, Transcript> = {};
-  const words: Record<string, WordStorage> = {};
+  const transcripts: Record<string, TranscriptStorage> = {};
 
   sessionIds.forEach((sessionId) => {
     const result = generateTranscript({
@@ -285,16 +282,11 @@ export const buildTranscriptsForSessions = (
       throw new Error("Expected transcript metadata");
     }
 
-    const { transcriptId, transcript, words: transcriptWords } = result;
-
-    Object.entries(transcriptWords).forEach(([wordId, word]) => {
-      words[wordId] = word;
-    });
-
+    const { transcriptId, transcript } = result;
     transcripts[transcriptId] = transcript;
   });
 
-  return { transcripts, words };
+  return { transcripts };
 };
 
 export const buildSessionParticipants = (

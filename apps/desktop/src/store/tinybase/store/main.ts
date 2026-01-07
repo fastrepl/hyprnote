@@ -268,18 +268,6 @@ export const StoreComponent = () => {
         "session_id",
         "created_at",
       )
-      .setIndexDefinition(INDEXES.wordsByTranscript, "words", "transcript_id")
-      .setIndexDefinition(
-        INDEXES.speakerHintsByTranscript,
-        "speaker_hints",
-        "transcript_id",
-        "created_at",
-      )
-      .setIndexDefinition(
-        INDEXES.speakerHintsByWord,
-        "speaker_hints",
-        "word_id",
-      )
       .setIndexDefinition(
         INDEXES.eventsByDate,
         "events",
@@ -410,9 +398,6 @@ export const INDEXES = {
   foldersByParent: "foldersByParent",
   sessionsByFolder: "sessionsByFolder",
   transcriptBySession: "transcriptBySession",
-  wordsByTranscript: "wordsByTranscript",
-  speakerHintsByTranscript: "speakerHintsByTranscript",
-  speakerHintsByWord: "speakerHintsByWord",
   eventsByDate: "eventsByDate",
   sessionByDateWithoutEvent: "sessionByDateWithoutEvent",
   sessionsByEvent: "sessionsByEvent",

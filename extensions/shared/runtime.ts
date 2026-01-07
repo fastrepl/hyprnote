@@ -78,9 +78,6 @@ export const HYPR_MODULES = {
     foldersByParent: string;
     sessionsByFolder: string;
     transcriptBySession: string;
-    wordsByTranscript: string;
-    speakerHintsByTranscript: string;
-    speakerHintsByWord: string;
     tagSessionsBySession: string;
     chatMessagesByGroup: string;
     sessionsByHuman: string;

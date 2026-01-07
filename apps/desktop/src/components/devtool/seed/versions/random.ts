@@ -61,7 +61,7 @@ const buildRandomData = () => {
   );
   const sessionIds = Object.keys(sessions);
 
-  const { transcripts, words } = buildTranscriptsForSessions(sessionIds, {
+  const { transcripts } = buildTranscriptsForSessions(sessionIds, {
     turnCount: { min: 20, max: 50 },
   });
 
@@ -102,7 +102,6 @@ const buildRandomData = () => {
     folders,
     sessions,
     transcripts,
-    words,
     events,
     mapping_session_participant,
     tags,

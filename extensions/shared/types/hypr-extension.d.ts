@@ -28,9 +28,6 @@ declare module "@hypr/store" {
     foldersByParent: string;
     sessionsByFolder: string;
     transcriptBySession: string;
-    wordsByTranscript: string;
-    speakerHintsByTranscript: string;
-    speakerHintsByWord: string;
     tagSessionsBySession: string;
     chatMessagesByGroup: string;
     sessionsByHuman: string;
@@ -483,9 +480,6 @@ declare module "hyprnote" {
       foldersByParent: string;
       sessionsByFolder: string;
       transcriptBySession: string;
-      wordsByTranscript: string;
-      speakerHintsByTranscript: string;
-      speakerHintsByWord: string;
       tagSessionsBySession: string;
       chatMessagesByGroup: string;
       sessionsByHuman: string;

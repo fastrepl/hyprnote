@@ -1,13 +1,13 @@
 import { faker } from "@faker-js/faker/locale/en";
 
-import type { Transcript, WordStorage } from "@hypr/store";
+import type { TranscriptStorage, WordStorage } from "@hypr/store";
 
+import type { WordWithId } from "../../../../store/transcript/types";
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 type TranscriptWithMetadata = {
   transcriptId: string;
-  transcript: Transcript;
-  words: Record<string, WordStorage>;
+  transcript: TranscriptStorage;
 };
 
 type TranscriptWordsOnly = {
@@ -192,22 +192,24 @@ export function generateTranscript(options?: {
   }
 
   if (sessionId) {
-    const wordsRecord: Record<string, WordStorage> = {};
-    words.forEach((word) => {
-      const wordId = id();
-      wordsRecord[wordId] = word;
-    });
+    const wordsWithIds: WordWithId[] = words.map((word) => ({
+      ...word,
+      id: id(),
+    }));
+
+    const transcript: TranscriptStorage = {
+      user_id: DEFAULT_USER_ID,
+      session_id: sessionId,
+      created_at: createdAtStr,
+      started_at: startedAt,
+      ended_at: startedAt + currentTimeMs,
+      words: JSON.stringify(wordsWithIds),
+      speaker_hints: "[]",
+    };
 
     return {
       transcriptId,
-      transcript: {
-        user_id: DEFAULT_USER_ID,
-        session_id: sessionId,
-        created_at: createdAtStr,
-        started_at: startedAt,
-        ended_at: startedAt + currentTimeMs,
-      },
-      words: wordsRecord,
+      transcript,
     };
   }
 

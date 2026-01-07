@@ -10,6 +10,7 @@ import { json2md } from "@hypr/tiptap/shared";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 
 import * as main from "../../../../../../store/tinybase/store/main";
+import { parseTranscriptWords } from "../../../../../../store/transcript/utils";
 import type { EditorView } from "../../../../../../store/zustand/tabs/schema";
 
 export function ExportPDF({
@@ -20,7 +21,6 @@ export function ExportPDF({
   currentView: EditorView;
 }) {
   const store = main.UI.useStore(main.STORE_ID);
-  const indexes = main.UI.useIndexes(main.STORE_ID);
 
   const rawMd = main.UI.useCell(
     "sessions",
@@ -44,7 +44,7 @@ export function ExportPDF({
   );
 
   const transcriptItems = useMemo((): TranscriptItem[] => {
-    if (!store || !indexes || !transcriptIds || transcriptIds.length === 0) {
+    if (!store || !transcriptIds || transcriptIds.length === 0) {
       return [];
     }
 
@@ -55,20 +55,14 @@ export function ExportPDF({
     }[] = [];
 
     for (const transcriptId of transcriptIds) {
-      const wordIds = indexes.getSliceRowIds(
-        main.INDEXES.wordsByTranscript,
-        transcriptId,
-      );
-
-      for (const wordId of wordIds ?? []) {
-        const row = store.getRow("words", wordId);
-        if (row) {
-          allWords.push({
-            speaker: (row.speaker as string | undefined) ?? null,
-            text: row.text as string,
-            start_ms: row.start_ms as number,
-          });
-        }
+      const words = parseTranscriptWords(store, transcriptId);
+      for (const word of words) {
+        if (word.text === undefined || word.start_ms === undefined) continue;
+        allWords.push({
+          speaker: word.speaker ?? null,
+          text: word.text,
+          start_ms: word.start_ms,
+        });
       }
     }
 
@@ -92,7 +86,7 @@ export function ExportPDF({
     }
 
     return items;
-  }, [store, indexes, transcriptIds]);
+  }, [store, transcriptIds]);
 
   const getExportContent = useMemo(() => {
     return (): {

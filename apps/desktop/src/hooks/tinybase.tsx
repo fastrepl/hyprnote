@@ -256,12 +256,6 @@ export function TinyBaseTestWrapper({
         "created_at",
       )
       .setIndexDefinition(
-        main.INDEXES.wordsByTranscript,
-        "words",
-        "transcript_id",
-        "start_ms",
-      )
-      .setIndexDefinition(
         main.INDEXES.enhancedNotesBySession,
         "enhanced_notes",
         "session_id",

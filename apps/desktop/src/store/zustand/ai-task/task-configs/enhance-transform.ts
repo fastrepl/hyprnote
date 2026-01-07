@@ -275,7 +275,7 @@ function getTranscriptSegmentsFromMeta(
     return [];
   }
 
-  const speakerHints = collectSpeakerHints(store, wordIdToIndex);
+  const speakerHints = collectSpeakerHints(store, transcripts, wordIdToIndex);
   const segments = buildSegments(words, [], speakerHints);
 
   const ctx = defaultRenderLabelContext(store);
@@ -340,30 +340,30 @@ function collectWordsForTranscripts(
   transcripts: readonly TranscriptMeta[],
   wordIdToIndex: Map<string, number>,
 ): WordWithTranscript[] {
-  const transcriptStartById = new Map(
-    transcripts.map((transcript) => [transcript.id, transcript.startedAt]),
-  );
   const words: Array<{ id: string; word: WordWithTranscript }> = [];
 
-  store.forEachRow("words", (wordId, _forEachCell) => {
-    const row = store.getRow("words", wordId);
-    if (!isWordRow(row)) {
-      return;
+  for (const transcript of transcripts) {
+    const wordsJson = store.getCell("transcripts", transcript.id, "words");
+    if (typeof wordsJson !== "string") continue;
+
+    let parsedWords: Array<WordRow & { id: string }>;
+    try {
+      parsedWords = JSON.parse(wordsJson);
+    } catch {
+      continue;
     }
 
-    const transcriptStartedAt = transcriptStartById.get(row.transcript_id);
-    if (transcriptStartedAt === undefined) {
-      return;
+    for (const word of parsedWords) {
+      words.push({
+        id: word.id,
+        word: {
+          ...word,
+          transcript_id: transcript.id,
+          transcriptStartedAt: transcript.startedAt,
+        },
+      });
     }
-
-    words.push({
-      id: wordId,
-      word: {
-        ...row,
-        transcriptStartedAt,
-      },
-    });
-  });
+  }
 
   words.sort((a, b) => {
     const startA = a.word.transcriptStartedAt + a.word.start_ms;
@@ -379,16 +379,26 @@ function collectWordsForTranscripts(
 
 function collectSpeakerHints(
   store: MainStore,
+  transcripts: readonly TranscriptMeta[],
   wordIdToIndex: Map<string, number>,
 ): RuntimeSpeakerHint[] {
   const storageHints: any[] = [];
 
-  store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
-    const hint = store.getRow("speaker_hints", hintId);
-    if (hint) {
-      storageHints.push(hint);
+  for (const transcript of transcripts) {
+    const hintsJson = store.getCell(
+      "transcripts",
+      transcript.id,
+      "speaker_hints",
+    );
+    if (typeof hintsJson !== "string") continue;
+
+    try {
+      const parsedHints = JSON.parse(hintsJson);
+      storageHints.push(...parsedHints);
+    } catch {
+      continue;
     }
-  });
+  }
 
   return convertStorageHintsToRuntime(storageHints, wordIdToIndex);
 }
@@ -419,21 +429,6 @@ function toSegmentPayload(
       end_ms: word.transcriptStartedAt + word.end_ms - sessionStartMs,
     })),
   };
-}
-
-function isWordRow(row: unknown): row is WordRow {
-  if (!row || typeof row !== "object") {
-    return false;
-  }
-
-  const candidate = row as Record<string, unknown>;
-  return (
-    typeof candidate.text === "string" &&
-    typeof candidate.start_ms === "number" &&
-    typeof candidate.end_ms === "number" &&
-    typeof candidate.channel === "number" &&
-    typeof candidate.transcript_id === "string"
-  );
 }
 
 function getStringCell(

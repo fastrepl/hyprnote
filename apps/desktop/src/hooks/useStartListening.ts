@@ -5,6 +5,13 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/store/main";
+import type { SpeakerHintWithId, WordWithId } from "../store/transcript/types";
+import {
+  parseTranscriptHints,
+  parseTranscriptWords,
+  updateTranscriptHints,
+  updateTranscriptWords,
+} from "../store/transcript/utils";
 import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
 import { id } from "../utils";
 import { useKeywords } from "./useKeywords";
@@ -36,6 +43,8 @@ export function useStartListening(sessionId: string) {
       user_id: user_id ?? "",
       created_at: new Date().toISOString(),
       started_at: startedAt,
+      words: "[]",
+      speaker_hints: "[]",
     });
 
     const eventId = store.getCell("sessions", sessionId, "event_id");
@@ -50,13 +59,18 @@ export function useStartListening(sessionId: string) {
       }
 
       store.transaction(() => {
-        const wordIds: string[] = [];
+        const existingWords = parseTranscriptWords(store, transcriptId);
+        const existingHints = parseTranscriptHints(store, transcriptId);
+
+        const newWords: WordWithId[] = [];
+        const newWordIds: string[] = [];
 
         words.forEach((word) => {
           const wordId = id();
           const createdAt = new Date().toISOString();
 
-          store.setRow("words", wordId, {
+          newWords.push({
+            id: wordId,
             transcript_id: transcriptId,
             text: word.text,
             start_ms: word.start_ms,
@@ -66,8 +80,10 @@ export function useStartListening(sessionId: string) {
             created_at: createdAt,
           });
 
-          wordIds.push(wordId);
+          newWordIds.push(wordId);
         });
+
+        const newHints: SpeakerHintWithId[] = [];
 
         if (conn.provider === "deepgram") {
           hints.forEach((hint) => {
@@ -75,13 +91,14 @@ export function useStartListening(sessionId: string) {
               return;
             }
 
-            const wordId = wordIds[hint.wordIndex];
+            const wordId = newWordIds[hint.wordIndex];
             const word = words[hint.wordIndex];
             if (!wordId || !word) {
               return;
             }
 
-            store.setRow("speaker_hints", id(), {
+            newHints.push({
+              id: id(),
               transcript_id: transcriptId,
               word_id: wordId,
               type: "provider_speaker_index",
@@ -95,6 +112,15 @@ export function useStartListening(sessionId: string) {
             });
           });
         }
+
+        updateTranscriptWords(store, transcriptId, [
+          ...existingWords,
+          ...newWords,
+        ]);
+        updateTranscriptHints(store, transcriptId, [
+          ...existingHints,
+          ...newHints,
+        ]);
       });
     };
 

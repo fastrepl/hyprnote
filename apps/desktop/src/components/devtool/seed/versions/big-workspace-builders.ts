@@ -1,7 +1,8 @@
 import { faker } from "@faker-js/faker/locale/en";
 
-import type { SessionStorage, Transcript, WordStorage } from "@hypr/store";
+import type { SessionStorage, TranscriptStorage } from "@hypr/store";
 
+import type { WordWithId } from "../../../../store/transcript/types";
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 import { createSession } from "../shared";
 
@@ -170,13 +171,11 @@ export const buildLongTranscriptsForSessions = (
     days?: number;
   } = {},
 ): {
-  transcripts: Record<string, Transcript>;
-  words: Record<string, WordStorage>;
+  transcripts: Record<string, TranscriptStorage>;
 } => {
   const { turnCount: turnCountRange = { min: 1500, max: 2000 }, days = 90 } =
     options;
-  const transcripts: Record<string, Transcript> = {};
-  const words: Record<string, WordStorage> = {};
+  const transcripts: Record<string, TranscriptStorage> = {};
 
   const turnPool = generatePrecomputedTurnPool(200);
 
@@ -190,12 +189,14 @@ export const buildLongTranscriptsForSessions = (
     let currentTimeMs = 0;
     let currentChannel = 0;
 
+    const wordsList: WordWithId[] = [];
+
     for (let turnIndex = 0; turnIndex < turnCount; turnIndex++) {
       const turn = turnPool[turnIndex % turnPool.length];
 
       for (const wordData of turn.words) {
-        const wordId = id();
-        words[wordId] = {
+        wordsList.push({
+          id: id(),
           user_id: DEFAULT_USER_ID,
           created_at: createdAtStr,
           transcript_id: transcriptId,
@@ -203,7 +204,7 @@ export const buildLongTranscriptsForSessions = (
           text: wordData.text,
           start_ms: currentTimeMs,
           end_ms: currentTimeMs + wordData.duration,
-        };
+        });
         currentTimeMs += wordData.duration + wordData.gap;
       }
 
@@ -217,8 +218,10 @@ export const buildLongTranscriptsForSessions = (
       created_at: createdAtStr,
       started_at: startedAt,
       ended_at: startedAt + currentTimeMs,
+      words: JSON.stringify(wordsList),
+      speaker_hints: "[]",
     };
   });
 
-  return { transcripts, words };
+  return { transcripts };
 };

@@ -59,7 +59,7 @@ const buildBigWorkspaceData = () => {
   });
   const sessionIds = Object.keys(sessions);
 
-  const { transcripts, words } = buildLongTranscriptsForSessions(sessionIds, {
+  const { transcripts } = buildLongTranscriptsForSessions(sessionIds, {
     turnCount: { min: 1500, max: 2000 },
     days: 90,
   });
@@ -101,7 +101,6 @@ const buildBigWorkspaceData = () => {
     folders,
     sessions,
     transcripts,
-    words,
     events,
     mapping_session_participant,
     tags,

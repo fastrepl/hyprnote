@@ -1,8 +1,42 @@
 import { type RefObject, useCallback } from "react";
 
 import * as main from "../../../../../../store/tinybase/store/main";
+import type { SpeakerHintWithId } from "../../../../../../store/transcript/types";
+import {
+  parseTranscriptHints,
+  parseTranscriptWords,
+  updateTranscriptHints,
+  updateTranscriptWords,
+} from "../../../../../../store/transcript/utils";
 import { id } from "../../../../../../utils";
 import { TranscriptContainer } from "./shared";
+
+type Store = NonNullable<ReturnType<typeof main.UI.useStore>>;
+
+function findTranscriptContainingWord(
+  store: Store,
+  indexes: ReturnType<typeof main.UI.useIndexes>,
+  sessionId: string,
+  wordId: string,
+) {
+  const transcriptIds = indexes?.getSliceRowIds(
+    main.INDEXES.transcriptBySession,
+    sessionId,
+  );
+  if (!transcriptIds) return null;
+
+  for (const transcriptId of transcriptIds) {
+    const words = parseTranscriptWords(store, transcriptId);
+    if (words.length === 0) continue;
+
+    if (words.some((w) => w.id === wordId)) {
+      const hints = parseTranscriptHints(store, transcriptId);
+      return { transcriptId, words, hints };
+    }
+  }
+
+  return null;
+}
 
 export function Transcript({
   sessionId,
@@ -23,47 +57,58 @@ export function Transcript({
         return;
       }
 
-      const speakerHintIds = indexes.getSliceRowIds(
-        main.INDEXES.speakerHintsByWord,
+      const found = findTranscriptContainingWord(
+        store,
+        indexes,
+        sessionId,
         wordId,
       );
+      if (!found) return;
 
-      speakerHintIds?.forEach((hintId) => {
-        store.delRow("speaker_hints", hintId);
-      });
+      const { transcriptId, words, hints } = found;
 
-      store.delRow("words", wordId);
+      const updatedWords = words.filter((w) => w.id !== wordId);
+      const updatedHints = hints.filter((h) => h.word_id !== wordId);
+
+      updateTranscriptWords(store, transcriptId, updatedWords);
+      updateTranscriptHints(store, transcriptId, updatedHints);
 
       checkpoints.addCheckpoint("delete_word");
     },
-    [store, indexes, checkpoints],
+    [store, indexes, checkpoints, sessionId],
   );
 
   const handleAssignSpeaker = useCallback(
     (wordIds: string[], humanId: string) => {
-      if (!store || !checkpoints) {
+      if (!store || !indexes || !checkpoints || wordIds.length === 0) {
         return;
       }
 
-      wordIds.forEach((wordId) => {
-        const word = store.getRow("words", wordId);
-        if (!word || typeof word.transcript_id !== "string") {
-          return;
-        }
+      const found = findTranscriptContainingWord(
+        store,
+        indexes,
+        sessionId,
+        wordIds[0],
+      );
+      if (!found) return;
 
-        const hintId = id();
-        store.setRow("speaker_hints", hintId, {
-          transcript_id: word.transcript_id,
-          word_id: wordId,
-          type: "user_speaker_assignment",
-          value: JSON.stringify({ human_id: humanId }),
-          created_at: new Date().toISOString(),
-        });
-      });
+      const { transcriptId, hints } = found;
+
+      const newHints: SpeakerHintWithId[] = wordIds.map((wordId) => ({
+        id: id(),
+        user_id: "",
+        created_at: new Date().toISOString(),
+        transcript_id: transcriptId,
+        word_id: wordId,
+        type: "user_speaker_assignment",
+        value: JSON.stringify({ human_id: humanId }),
+      }));
+
+      updateTranscriptHints(store, transcriptId, [...hints, ...newHints]);
 
       checkpoints.addCheckpoint("assign_speaker");
     },
-    [store, checkpoints],
+    [store, indexes, checkpoints, sessionId],
   );
 
   const operations = isEditing

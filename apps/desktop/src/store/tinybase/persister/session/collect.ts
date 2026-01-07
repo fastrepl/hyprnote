@@ -25,7 +25,6 @@ import type {
   ParticipantData,
   SessionMetaJson,
   TranscriptJson,
-  TranscriptWithData,
 } from "./transform";
 
 export type { NoteFrontmatter, SessionMetaJson };
@@ -144,39 +143,51 @@ export function collectTranscriptWriteOps(
   const operations: CollectorResult["operations"] = [];
 
   const transcripts = iterateTableRows(tables, "transcripts");
-  const words = iterateTableRows(tables, "words");
-  const speakerHints = iterateTableRows(tables, "speaker_hints");
 
-  const wordsByTranscript = new Map<
+  type TranscriptRow = {
+    id: string;
+    session_id?: string;
+    user_id?: string;
+    created_at?: string;
+    started_at?: number;
+    ended_at?: number;
+    words?: string;
+    speaker_hints?: string;
+  };
+
+  const transcriptsBySession = new Map<
     string,
-    Array<WordStorage & { id: string }>
+    Array<{
+      id: string;
+      user_id: string;
+      created_at: string;
+      session_id: string;
+      started_at: number;
+      ended_at?: number;
+      words: Array<WordStorage & { id: string }>;
+      speaker_hints: Array<SpeakerHintStorage & { id: string }>;
+    }>
   >();
-  for (const word of words) {
-    if (!word.transcript_id) continue;
-    const list = wordsByTranscript.get(word.transcript_id) ?? [];
-    list.push(word);
-    wordsByTranscript.set(word.transcript_id, list);
-  }
 
-  const hintsByTranscript = new Map<
-    string,
-    Array<SpeakerHintStorage & { id: string }>
-  >();
-  for (const hint of speakerHints) {
-    if (!hint.transcript_id) continue;
-    const list = hintsByTranscript.get(hint.transcript_id) ?? [];
-    list.push(hint);
-    hintsByTranscript.set(hint.transcript_id, list);
-  }
-
-  const transcriptsBySession = new Map<string, TranscriptWithData[]>();
-  for (const transcript of transcripts) {
+  for (const transcript of transcripts as TranscriptRow[]) {
     const sessionId = transcript.session_id;
     if (!sessionId) continue;
-    const transcriptData: TranscriptWithData = {
-      ...transcript,
-      words: wordsByTranscript.get(transcript.id) ?? [],
-      speaker_hints: hintsByTranscript.get(transcript.id) ?? [],
+
+    const words: Array<WordStorage & { id: string }> = transcript.words
+      ? JSON.parse(transcript.words)
+      : [];
+    const speakerHints: Array<SpeakerHintStorage & { id: string }> =
+      transcript.speaker_hints ? JSON.parse(transcript.speaker_hints) : [];
+
+    const transcriptData = {
+      id: transcript.id,
+      user_id: transcript.user_id ?? "",
+      created_at: transcript.created_at ?? "",
+      session_id: sessionId,
+      started_at: transcript.started_at ?? 0,
+      ended_at: transcript.ended_at,
+      words,
+      speaker_hints: speakerHints,
     };
 
     const list = transcriptsBySession.get(sessionId) ?? [];

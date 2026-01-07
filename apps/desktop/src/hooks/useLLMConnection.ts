@@ -266,9 +266,10 @@ const createLanguageModel = (
     }
 
     case "ollama": {
+      const ollamaOrigin = new URL(conn.baseUrl.replace(/\/v1\/?$/, "")).origin;
       const ollamaFetch: typeof fetch = async (input, init) => {
         const headers = new Headers(init?.headers);
-        headers.set("Origin", "http://localhost");
+        headers.set("Origin", ollamaOrigin);
         return tauriFetch(input as RequestInfo | URL, {
           ...init,
           headers,

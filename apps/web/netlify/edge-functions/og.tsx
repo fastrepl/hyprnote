@@ -43,6 +43,13 @@ const docsSchema = z.object({
   description: z.string().optional(),
 });
 
+const handbookSchema = z.object({
+  type: z.literal("handbook"),
+  title: z.string(),
+  section: z.string(),
+  description: z.string().optional(),
+});
+
 const OGSchema = z.discriminatedUnion("type", [
   meetingSchema,
   templatesSchema,
@@ -50,6 +57,7 @@ const OGSchema = z.discriminatedUnion("type", [
   changelogSchema,
   blogSchema,
   docsSchema,
+  handbookSchema,
 ]);
 
 function preventWidow(text: string): string {
@@ -87,6 +95,15 @@ function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
   }
 
   if (type === "docs") {
+    const title = url.searchParams.get("title");
+    const section = url.searchParams.get("section");
+    const description = url.searchParams.get("description") || undefined;
+
+    const result = OGSchema.safeParse({ type, title, section, description });
+    return result.success ? result.data : null;
+  }
+
+  if (type === "handbook") {
     const title = url.searchParams.get("title");
     const section = url.searchParams.get("section");
     const description = url.searchParams.get("description") || undefined;
@@ -576,6 +593,15 @@ function renderDocsTemplate(params: z.infer<typeof docsSchema>) {
   });
 }
 
+function renderHandbookTemplate(params: z.infer<typeof handbookSchema>) {
+  return renderGenericTemplate({
+    headerText: "Hyprnote / Company Handbook",
+    category: params.section,
+    title: params.title,
+    description: params.description,
+  });
+}
+
 function renderTemplatesTemplate(params: z.infer<typeof templatesSchema>) {
   return renderGenericTemplate({
     headerText: "Hyprnote / Meeting Templates",
@@ -618,6 +644,8 @@ export default async function handler(req: Request) {
       response = renderBlogTemplate(params);
     } else if (params.type === "docs") {
       response = renderDocsTemplate(params);
+    } else if (params.type === "handbook") {
+      response = renderHandbookTemplate(params);
     } else if (params.type === "templates") {
       response = renderTemplatesTemplate(params);
     } else if (params.type === "shortcuts") {
@@ -630,6 +658,7 @@ export default async function handler(req: Request) {
       params.type === "changelog" ||
       params.type === "blog" ||
       params.type === "docs" ||
+      params.type === "handbook" ||
       params.type === "templates" ||
       params.type === "shortcuts";
     const fonts = needsCustomFonts

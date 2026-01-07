@@ -41,12 +41,12 @@ export function useCurrentNoteTab(
       return { type: "raw" };
     }
 
-    if (tab.state.view) {
-      return tab.state.view;
-    }
-
     if (firstEnhancedNoteId) {
       return { type: "enhanced", id: firstEnhancedNoteId };
+    }
+
+    if (tab.state.view) {
+      return tab.state.view;
     }
 
     return { type: "raw" };

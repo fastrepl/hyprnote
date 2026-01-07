@@ -1,3 +1,4 @@
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { differenceInDays, format, startOfDay } from "date-fns";
 import { CalendarIcon, MapPinIcon, VideoIcon } from "lucide-react";
 import { forwardRef, useState } from "react";
@@ -97,7 +98,7 @@ function EventDisplay({
 }) {
   const handleJoinMeeting = () => {
     if (event.meetingLink) {
-      window.open(event.meetingLink, "_blank");
+      void openUrl(event.meetingLink);
     }
   };
 

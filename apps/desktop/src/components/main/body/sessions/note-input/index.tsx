@@ -90,8 +90,12 @@ export const NoteInput = forwardRef<
     if (currentTab.type === "transcript") {
       internalEditorRef.current = { editor: null };
       setEditor(null);
+    } else if (currentTab.type === "raw" && isMeetingInProgress) {
+      requestAnimationFrame(() => {
+        internalEditorRef.current?.editor?.commands.focus();
+      });
     }
-  }, [currentTab]);
+  }, [currentTab, isMeetingInProgress]);
 
   useEffect(() => {
     const editorInstance = internalEditorRef.current?.editor ?? null;

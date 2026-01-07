@@ -58,7 +58,7 @@ const tauri: UserConfig = {
       ignored: ["**/src-tauri/**"],
     },
   },
-  envPrefix: ["VITE_", "TAURI_ENV_*"],
+  envPrefix: ["VITE_", "TAURI_ENV_*", "REACT_SCAN"],
   build: {
     outDir: "./dist",
     chunkSizeWarningLimit: 500 * 10,

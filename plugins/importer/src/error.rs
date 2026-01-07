@@ -12,6 +12,9 @@ pub enum Error {
     #[error("database error: {0}")]
     Database(#[from] hypr_db_core::Error),
 
+    #[error("libsql error: {0}")]
+    Libsql(#[from] hypr_db_core::libsql::Error),
+
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
 

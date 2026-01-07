@@ -5,6 +5,7 @@ import { Effect, pipe } from "effect";
 import {
   EllipsisVerticalIcon,
   FileTextIcon,
+  LoaderIcon,
   UploadCloudIcon,
 } from "lucide-react";
 import { useCallback, useState } from "react";
@@ -25,6 +26,7 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
+import { useListener } from "../../../../../contexts/listener";
 import { fromResult } from "../../../../../effect";
 import { useRunBatch } from "../../../../../hooks/useRunBatch";
 import * as main from "../../../../../store/tinybase/store/main";
@@ -46,8 +48,11 @@ export function OptionsMenu({
   onConfigure?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const runBatch = useRunBatch(sessionId);
   const queryClient = useQueryClient();
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const isBatchProcessing = sessionMode === "running_batch";
 
   const store = main.UI.useStore(main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -197,12 +202,23 @@ export function OptionsMenu({
             }),
           ),
         ),
+        Effect.tap((selection) =>
+          Effect.sync(() => {
+            if (selection && kind === "audio") {
+              setIsUploading(true);
+            }
+          }),
+        ),
         Effect.flatMap((selection) => handleFilePath(selection, kind)),
       );
 
-      Effect.runPromise(program).catch((error) => {
-        console.error("[batch] failed:", error);
-      });
+      Effect.runPromise(program)
+        .catch((error) => {
+          console.error("[batch] failed:", error);
+        })
+        .finally(() => {
+          setIsUploading(false);
+        });
     },
     [disabled, handleFilePath, setOpen],
   );
@@ -240,6 +256,8 @@ export function OptionsMenu({
     );
   }, [disabled, selectAndHandleFile]);
 
+  const isProcessing = isUploading || isBatchProcessing;
+
   const triggerButton = (
     <Button
       variant="ghost"
@@ -250,12 +268,33 @@ export function OptionsMenu({
         "text-white/70 hover:text-white",
         open ? "bg-white/20 text-white" : null,
       ])}
-      disabled={disabled}
+      disabled={disabled || isProcessing}
     >
-      <EllipsisVerticalIcon className="w-5 h-5" />
-      <span className="sr-only">More options</span>
+      {isProcessing ? (
+        <LoaderIcon className="w-5 h-5 animate-spin" />
+      ) : (
+        <EllipsisVerticalIcon className="w-5 h-5" />
+      )}
+      <span className="sr-only">
+        {isProcessing ? "Processing audio" : "More options"}
+      </span>
     </Button>
   );
+
+  if (isProcessing) {
+    return (
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <span className="inline-block">{triggerButton}</span>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="end">
+          <p className="text-xs">
+            {isUploading ? "Uploading audio..." : "Processing audio..."}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
 
   if (disabled && warningMessage) {
     return (

@@ -8,6 +8,7 @@ import type {
 } from "@hypr/plugin-template";
 
 import type { Store as MainStore } from "../../../tinybase/store/main";
+import type { Store as SettingsStore } from "../../../tinybase/store/settings";
 import { StreamTransform } from "../shared/transform_infra";
 import type { TaskStepInfo } from "../tasks";
 import { enhanceTransform } from "./enhance-transform";
@@ -40,6 +41,7 @@ export interface TaskConfig<T extends TaskType = TaskType> {
   transformArgs: (
     args: TaskArgsMap[T],
     store: MainStore,
+    settingsStore: SettingsStore,
   ) => Promise<TaskArgsMapTransformed[T]>;
   executeWorkflow: (params: {
     model: LanguageModel;

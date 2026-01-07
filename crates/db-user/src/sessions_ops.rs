@@ -225,11 +225,8 @@ impl UserDatabase {
                 conn.query(&query, params).await?
             }
             None => {
-                conn.query(
-                    "SELECT * FROM sessions ORDER BY created_at DESC LIMIT 100",
-                    (),
-                )
-                .await?
+                conn.query("SELECT * FROM sessions ORDER BY created_at DESC", ())
+                    .await?
             }
         };
 

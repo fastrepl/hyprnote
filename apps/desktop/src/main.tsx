@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { getIdentifier } from "@tauri-apps/api/app";
 import { StrictMode, useMemo } from "react";
 import ReactDOM from "react-dom/client";
 import { scan } from "react-scan";
@@ -35,6 +36,15 @@ if (import.meta.env.DEV) {
   scan({
     enabled: true,
     log: false,
+  });
+} else {
+  getIdentifier().then((id) => {
+    if (id === "com.hyprnote.staging") {
+      scan({
+        enabled: true,
+        log: false,
+      });
+    }
   });
 }
 

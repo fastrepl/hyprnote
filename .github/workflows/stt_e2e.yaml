@@ -24,27 +24,113 @@ on:
       openai:
         type: boolean
         default: false
+  push:
+    branches:
+      - main
+    paths:
+      - crates/transcribe-proxy/**
+      - crates/owhisper-client/src/adapter/**
+  pull_request:
+    branches-ignore:
+      - "**/graphite-base/**"
+    paths:
+      - crates/transcribe-proxy/**
+      - crates/owhisper-client/src/adapter/**
 
 jobs:
-  setup:
+  detect-changes:
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
+      proxy: ${{ steps.changes.outputs.proxy }}
+      adapter: ${{ steps.changes.outputs.adapter }}
+      deepgram: ${{ steps.changes.outputs.deepgram }}
+      assemblyai: ${{ steps.changes.outputs.assemblyai }}
+      soniox: ${{ steps.changes.outputs.soniox }}
+      gladia: ${{ steps.changes.outputs.gladia }}
+      fireworks: ${{ steps.changes.outputs.fireworks }}
+      openai: ${{ steps.changes.outputs.openai }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: changes
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE=${{ github.event.pull_request.base.sha }}
+            HEAD=${{ github.event.pull_request.head.sha }}
+          else
+            BASE=${{ github.event.before }}
+            HEAD=${{ github.sha }}
+          fi
+
+          CHANGED_FILES=$(git diff --name-only $BASE $HEAD)
+
+          if echo "$CHANGED_FILES" | grep -q "^crates/transcribe-proxy/"; then
+            echo "proxy=true" >> $GITHUB_OUTPUT
+          else
+            echo "proxy=false" >> $GITHUB_OUTPUT
+          fi
+
+          if echo "$CHANGED_FILES" | grep -q "^crates/owhisper-client/src/adapter/"; then
+            echo "adapter=true" >> $GITHUB_OUTPUT
+          else
+            echo "adapter=false" >> $GITHUB_OUTPUT
+          fi
+
+          for provider in deepgram assemblyai soniox gladia fireworks openai; do
+            if echo "$CHANGED_FILES" | grep -q "^crates/owhisper-client/src/adapter/$provider/"; then
+              echo "$provider=true" >> $GITHUB_OUTPUT
+            else
+              echo "$provider=false" >> $GITHUB_OUTPUT
+            fi
+          done
+
+  setup:
+    runs-on: ubuntu-latest
+    needs: [detect-changes]
+    if: always()
+    outputs:
       providers: ${{ steps.set-matrix.outputs.providers }}
+      run-proxy: ${{ steps.set-matrix.outputs.run-proxy }}
+      run-adapter: ${{ steps.set-matrix.outputs.run-adapter }}
     steps:
       - id: set-matrix
         run: |
           providers=()
-          if [ "${{ inputs.deepgram }}" == "true" ]; then providers+=("deepgram"); fi
-          if [ "${{ inputs.assemblyai }}" == "true" ]; then providers+=("assemblyai"); fi
-          if [ "${{ inputs.soniox }}" == "true" ]; then providers+=("soniox"); fi
-          if [ "${{ inputs.gladia }}" == "true" ]; then providers+=("gladia"); fi
-          if [ "${{ inputs.fireworks }}" == "true" ]; then providers+=("fireworks"); fi
-          if [ "${{ inputs.openai }}" == "true" ]; then providers+=("openai"); fi
+
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            if [ "${{ inputs.deepgram }}" == "true" ]; then providers+=("deepgram"); fi
+            if [ "${{ inputs.assemblyai }}" == "true" ]; then providers+=("assemblyai"); fi
+            if [ "${{ inputs.soniox }}" == "true" ]; then providers+=("soniox"); fi
+            if [ "${{ inputs.gladia }}" == "true" ]; then providers+=("gladia"); fi
+            if [ "${{ inputs.fireworks }}" == "true" ]; then providers+=("fireworks"); fi
+            if [ "${{ inputs.openai }}" == "true" ]; then providers+=("openai"); fi
+
+            if [ "${{ inputs.adapter-or-proxy }}" == "proxy" ]; then
+              echo "run-proxy=true" >> $GITHUB_OUTPUT
+              echo "run-adapter=false" >> $GITHUB_OUTPUT
+            else
+              echo "run-proxy=false" >> $GITHUB_OUTPUT
+              echo "run-adapter=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            if [ "${{ needs.detect-changes.outputs.deepgram }}" == "true" ]; then providers+=("deepgram"); fi
+            if [ "${{ needs.detect-changes.outputs.assemblyai }}" == "true" ]; then providers+=("assemblyai"); fi
+            if [ "${{ needs.detect-changes.outputs.soniox }}" == "true" ]; then providers+=("soniox"); fi
+            if [ "${{ needs.detect-changes.outputs.gladia }}" == "true" ]; then providers+=("gladia"); fi
+            if [ "${{ needs.detect-changes.outputs.fireworks }}" == "true" ]; then providers+=("fireworks"); fi
+            if [ "${{ needs.detect-changes.outputs.openai }}" == "true" ]; then providers+=("openai"); fi
+
+            echo "run-proxy=${{ needs.detect-changes.outputs.proxy }}" >> $GITHUB_OUTPUT
+            echo "run-adapter=${{ needs.detect-changes.outputs.adapter }}" >> $GITHUB_OUTPUT
+          fi
+
           echo "providers=$(jq -c -n '$ARGS.positional' --args "${providers[@]}")" >> $GITHUB_OUTPUT
 
   adapter-batch:
     needs: setup
-    if: ${{ needs.setup.outputs.providers != '[]' && inputs.adapter-or-proxy == 'adapter' }}
+    if: ${{ needs.setup.outputs.providers != '[]' && needs.setup.outputs.run-adapter == 'true' }}
     runs-on: depot-ubuntu-24.04-8
     strategy:
       fail-fast: false
@@ -63,7 +149,7 @@ jobs:
 
   adapter-live:
     needs: setup
-    if: ${{ needs.setup.outputs.providers != '[]' && inputs.adapter-or-proxy == 'adapter' }}
+    if: ${{ needs.setup.outputs.providers != '[]' && needs.setup.outputs.run-adapter == 'true' }}
     runs-on: depot-ubuntu-24.04-8
     strategy:
       fail-fast: false
@@ -82,7 +168,7 @@ jobs:
 
   proxy-live:
     needs: setup
-    if: ${{ needs.setup.outputs.providers != '[]' && inputs.adapter-or-proxy == 'proxy' }}
+    if: ${{ needs.setup.outputs.providers != '[]' && needs.setup.outputs.run-proxy == 'true' }}
     runs-on: depot-ubuntu-24.04-8
     strategy:
       fail-fast: false

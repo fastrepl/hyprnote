@@ -10,7 +10,7 @@ import { createTaskId } from "../store/zustand/ai-task/task-configs";
 import { useTabs } from "../store/zustand/tabs";
 import type { Tab } from "../store/zustand/tabs/schema";
 import { useAITaskTask } from "./useAITaskTask";
-import { useCreateEnhancedNote } from "./useEnhancedNotes";
+import { useCreateEnhancedNote, useEnhancedNotes } from "./useEnhancedNotes";
 import { useLanguageModel } from "./useLLMConnection";
 
 export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
@@ -40,12 +40,15 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const MIN_WORDS_FOR_ENHANCEMENT = 5;
   const hasWords = wordCount >= MIN_WORDS_FOR_ENHANCEMENT;
 
+  const existingEnhancedNoteIds = useEnhancedNotes(sessionId);
+  const firstExistingEnhancedNoteId = existingEnhancedNoteIds?.[0];
+
   const [autoEnhancedNoteId, setAutoEnhancedNoteId] = useState<string | null>(
     null,
   );
   const [skipReason, setSkipReason] = useState<string | null>(null);
 
-  const startedTasksRef = useRef<Set<string>>(new Set());
+  const autoEnhanceTriggeredRef = useRef(false);
   const tabRef = useRef(tab);
   tabRef.current = tab;
 
@@ -106,6 +109,10 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   });
 
   const createAndStartEnhance = useCallback(() => {
+    if (autoEnhanceTriggeredRef.current) {
+      return;
+    }
+
     if (!hasTranscript) {
       setSkipReason("No transcript recorded");
       return;
@@ -119,6 +126,16 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     }
 
     setSkipReason(null);
+    autoEnhanceTriggeredRef.current = true;
+
+    if (firstExistingEnhancedNoteId) {
+      setAutoEnhancedNoteId(firstExistingEnhancedNoteId);
+      updateSessionTabState(tabRef.current, {
+        ...tabRef.current.state,
+        view: { type: "enhanced", id: firstExistingEnhancedNoteId },
+      });
+      return;
+    }
 
     const enhancedNoteId = createEnhancedNote(sessionId);
     if (!enhancedNoteId) return;
@@ -136,15 +153,11 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     sessionId,
     updateSessionTabState,
     createEnhancedNote,
+    firstExistingEnhancedNoteId,
   ]);
 
   useEffect(() => {
-    if (
-      autoEnhancedNoteId &&
-      model &&
-      !startedTasksRef.current.has(autoEnhancedNoteId)
-    ) {
-      startedTasksRef.current.add(autoEnhancedNoteId);
+    if (autoEnhancedNoteId && model) {
       void analyticsCommands.event({
         event: "note_enhanced",
         is_auto: true,
@@ -157,8 +170,15 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   }, [autoEnhancedNoteId, model, sessionId, enhanceTask.start]);
 
   useEffect(() => {
+    const listenerJustStarted =
+      prevListenerStatus !== "active" && listenerStatus === "active";
     const listenerJustStopped =
       prevListenerStatus === "active" && listenerStatus !== "active";
+
+    if (listenerJustStarted) {
+      autoEnhanceTriggeredRef.current = false;
+      setAutoEnhancedNoteId(null);
+    }
 
     if (listenerJustStopped) {
       createAndStartEnhance();

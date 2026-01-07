@@ -4,14 +4,14 @@ use hypr_db_user::{Session, Tag};
 pub(super) fn session_to_imported_note(session: Session, tags: Vec<Tag>) -> ImportedNote {
     let content = get_session_content(&session);
     let raw_md = if !session.raw_memo_html.is_empty() {
-        Some(strip_html_tags(&session.raw_memo_html))
+        Some(html_to_tiptap_json(&session.raw_memo_html))
     } else {
         None
     };
 
     let enhanced_content = if let Some(ref enhanced) = session.enhanced_memo_html {
         if !enhanced.is_empty() {
-            Some(strip_html_tags(enhanced))
+            Some(html_to_tiptap_json(enhanced))
         } else {
             None
         }
@@ -217,4 +217,77 @@ fn should_skip_leading_space(word: &str) -> bool {
             )
         }
     }
+}
+
+fn html_to_tiptap_json(html: &str) -> String {
+    let text = strip_html_tags(html);
+
+    if text.is_empty() {
+        return r#"{"type":"doc","content":[{"type":"paragraph"}]}"#.to_string();
+    }
+
+    let paragraphs: Vec<&str> = text
+        .split("\n\n")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    if paragraphs.is_empty() {
+        let single_line = text.replace('\n', " ").trim().to_string();
+        if single_line.is_empty() {
+            return r#"{"type":"doc","content":[{"type":"paragraph"}]}"#.to_string();
+        }
+        let escaped = escape_json_string(&single_line);
+        return format!(
+            r#"{{"type":"doc","content":[{{"type":"paragraph","content":[{{"type":"text","text":"{}"}}]}}]}}"#,
+            escaped
+        );
+    }
+
+    let content_parts: Vec<String> = paragraphs
+        .iter()
+        .map(|p| {
+            let lines: Vec<&str> = p.split('\n').collect();
+            if lines.len() == 1 {
+                let escaped = escape_json_string(p);
+                format!(
+                    r#"{{"type":"paragraph","content":[{{"type":"text","text":"{}"}}]}}"#,
+                    escaped
+                )
+            } else {
+                let text_parts: Vec<String> = lines
+                    .iter()
+                    .enumerate()
+                    .flat_map(|(i, line)| {
+                        let escaped = escape_json_string(line);
+                        if i < lines.len() - 1 {
+                            vec![
+                                format!(r#"{{"type":"text","text":"{}"}}"#, escaped),
+                                r#"{"type":"hardBreak"}"#.to_string(),
+                            ]
+                        } else {
+                            vec![format!(r#"{{"type":"text","text":"{}"}}"#, escaped)]
+                        }
+                    })
+                    .collect();
+                format!(
+                    r#"{{"type":"paragraph","content":[{}]}}"#,
+                    text_parts.join(",")
+                )
+            }
+        })
+        .collect();
+
+    format!(
+        r#"{{"type":"doc","content":[{}]}}"#,
+        content_parts.join(",")
+    )
+}
+
+fn escape_json_string(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
+        .replace('\r', "\\r")
+        .replace('\t', "\\t")
 }

@@ -36,6 +36,147 @@ function SearchKbd({ children }: { children: React.ReactNode }) {
   );
 }
 
+function MobileSearchBar({ className }: { className?: string }) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [pagefind, setPagefind] = useState<PagefindInstance | null>(null);
+  const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const loadPagefind = async () => {
+      try {
+        const pagefindPath = "/pagefind/pagefind.js";
+        const pf = await import(/* @vite-ignore */ pagefindPath);
+        setPagefind(pf);
+      } catch {
+        console.error("Failed to load pagefind");
+      }
+    };
+
+    loadPagefind();
+  }, []);
+
+  const search = useCallback(
+    async (searchQuery: string) => {
+      if (!pagefind || !searchQuery.trim()) {
+        setResults([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const searchResults = await pagefind.search(searchQuery);
+        const data = await Promise.all(
+          searchResults.results.slice(0, 10).map(async (result) => {
+            const resultData = await result.data();
+            return {
+              url: resultData.url,
+              meta: resultData.meta,
+              excerpt: resultData.excerpt,
+            };
+          }),
+        );
+        setResults(data);
+      } catch {
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [pagefind],
+  );
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      search(query);
+    }, 200);
+
+    return () => clearTimeout(debounceTimer);
+  }, [query, search]);
+
+  const handleSelect = (url: string) => {
+    setQuery("");
+    setResults([]);
+    setIsFocused(false);
+    navigate({ to: url });
+  };
+
+  const showResults = isFocused && query;
+
+  return (
+    <div className={className}>
+      <div
+        className={cn(["flex items-center gap-3 px-3 py-2", "bg-transparent"])}
+      >
+        <SearchIcon size={16} className="text-neutral-500 shrink-0" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            setTimeout(() => setIsFocused(false), 200);
+          }}
+          placeholder="Search docs..."
+          className={cn([
+            "flex-1 text-sm text-neutral-900",
+            "bg-transparent border-none",
+            "focus:outline-none placeholder:text-neutral-500",
+          ])}
+        />
+      </div>
+
+      {showResults && (
+        <div className="border-t border-neutral-200 bg-white">
+          {isLoading && (
+            <div className="px-3 py-4 text-sm text-neutral-500">
+              Searching...
+            </div>
+          )}
+          {!isLoading && results.length === 0 && (
+            <div className="px-3 py-4 text-sm text-neutral-500">
+              No results found
+            </div>
+          )}
+          {!isLoading && results.length > 0 && (
+            <div className="max-h-80 overflow-y-auto">
+              {results.map((result, index) => (
+                <button
+                  key={`${result.url}-${index}`}
+                  onClick={() => handleSelect(result.url)}
+                  className="w-full flex items-start gap-3 px-3 py-3 text-left hover:bg-neutral-50 transition-colors border-b border-neutral-100 last:border-b-0"
+                >
+                  <FileText
+                    size={16}
+                    className="mt-0.5 text-neutral-400 shrink-0"
+                  />
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <span className="font-medium text-neutral-900 text-sm">
+                      {result.meta?.title || result.url}
+                    </span>
+                    {result.excerpt && (
+                      <span
+                        className="text-xs text-neutral-500 line-clamp-2"
+                        dangerouslySetInnerHTML={{
+                          __html: result.excerpt,
+                        }}
+                      />
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface SearchResult {
   url: string;
   meta: {
@@ -131,21 +272,7 @@ export function SearchTrigger({
   }
 
   if (variant === "mobile") {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={cn([
-          "w-full flex items-center gap-2 px-3 py-2.5",
-          "text-sm text-neutral-500",
-          "bg-white border border-neutral-200 rounded-md shadow-sm",
-          className,
-        ])}
-      >
-        <SearchIcon size={16} className="text-neutral-400" />
-        <span className="flex-1 text-left">Search docs...</span>
-      </button>
-    );
+    return <MobileSearchBar className={className} />;
   }
 
   if (variant === "header") {

@@ -6,7 +6,7 @@ import {
   PanelLeft,
   PanelLeftClose,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { SearchTrigger } from "@/components/search";
 import { useDocsDrawer } from "@/hooks/use-docs-drawer";
@@ -49,6 +49,7 @@ const featuresList = [
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProductOpen, setIsProductOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(true);
   const platform = usePlatform();
   const platformCTA = getPlatformCTA(platform);
   const router = useRouterState();
@@ -58,6 +59,30 @@ export function Header() {
     router.location.pathname.startsWith("/company-handbook");
   const docsDrawer = useDocsDrawer();
   const handbookDrawer = useHandbookDrawer();
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    if (!isDocsPage && !isHandbookPage) {
+      return;
+    }
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY < 10) {
+        setShowMobileSearch(true);
+      } else if (currentScrollY > lastScrollY.current) {
+        setShowMobileSearch(false);
+      } else if (lastScrollY.current - currentScrollY > 5) {
+        setShowMobileSearch(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isDocsPage, isHandbookPage]);
 
   return (
     <>
@@ -89,6 +114,20 @@ export function Header() {
           </div>
         </div>
       </header>
+
+      {(isDocsPage || isHandbookPage) && (
+        <div
+          className={`sticky top-17.25 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-40 md:hidden transition-transform duration-300 ${
+            showMobileSearch ? "translate-y-0" : "-translate-y-full"
+          }`}
+        >
+          <div
+            className={`${maxWidthClass} mx-auto px-4 border-x border-neutral-100 py-2`}
+          >
+            <SearchTrigger variant="mobile" />
+          </div>
+        </div>
+      )}
 
       <MobileMenu
         isMenuOpen={isMenuOpen}

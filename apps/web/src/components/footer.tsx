@@ -123,15 +123,6 @@ function BrandSection({ currentYear }: { currentYear: number }) {
         />
       </Link>
       <p className="text-sm text-neutral-500 mb-4">Fastrepl © {currentYear}</p>
-      <p className="text-sm text-neutral-600 mb-3">
-        Are you in back-to-back meetings?{" "}
-        <Link
-          to="/auth"
-          className="text-neutral-600 hover:text-stone-600 transition-colors underline decoration-solid"
-        >
-          Get started
-        </Link>
-      </p>
 
       <div className="mb-4">
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -141,40 +132,39 @@ function BrandSection({ currentYear }: { currentYear: number }) {
                 e.preventDefault();
                 form.handleSubmit();
               }}
-              className="flex items-center gap-2"
+              className="flex items-center"
             >
               <form.Field name="email">
                 {(field) => (
-                  <div className="relative flex-1 max-w-[220px]">
-                    <MailIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-neutral-400" />
+                  <div className={cn([
+                    "relative flex items-center max-w-64 border border-neutral-100 laptop:border-l-0 bg-white overflow-hidden transition-all",
+                    "focus-within:ring-1 focus-within:ring-stone-400 focus-within:border-stone-400",
+                  ])}>
+                    <MailIcon className="absolute left-2.5 size-3.5 text-neutral-400" />
                     <input
                       type="email"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder="Subscribe to updates"
                       className={cn([
-                        "w-full pl-8 pr-3 py-1.5 text-sm",
-                        "border border-neutral-200 rounded-md",
-                        "bg-white placeholder:text-neutral-400",
-                        "focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400",
-                        "transition-all",
+                        "min-w-0 flex-1 pl-8 pr-2 py-1.5 text-sm",
+                        "bg-transparent placeholder:text-neutral-400",
+                        "focus:outline-none",
                       ])}
                       required
                     />
+                    <button
+                      type="submit"
+                      className={cn([
+                        "shrink-0 px-2 transition-colors focus:outline-none",
+                        field.state.value ? "text-stone-600" : "text-neutral-300",
+                      ])}
+                    >
+                      <ArrowRightIcon className="size-4" />
+                    </button>
                   </div>
                 )}
               </form.Field>
-              <button
-                type="submit"
-                className={cn([
-                  "p-1.5 rounded-md",
-                  "bg-stone-600 text-white",
-                  "hover:bg-stone-700 transition-colors",
-                  "focus:outline-none focus:ring-1 focus:ring-stone-400",
-                ])}
-              >
-                <ArrowRightIcon className="size-3.5" />
-              </button>
             </form>
           </PopoverTrigger>
           <PopoverContent

@@ -3,6 +3,7 @@ import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
 import type { Store as MainStore } from "../../tinybase/store/main";
+import type { Store as SettingsStore } from "../../tinybase/store/settings";
 import { applyTransforms } from "./shared/transform_infra";
 import {
   TASK_CONFIGS,
@@ -68,7 +69,7 @@ const initialState: TasksState = {
 export const createTasksSlice = <T extends TasksState>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
-  deps: { persistedStore: MainStore },
+  deps: { persistedStore: MainStore; settingsStore: SettingsStore },
 ): TasksState & TasksActions => ({
   ...initialState,
   getState: <Task extends TaskType>(
@@ -131,6 +132,7 @@ export const createTasksSlice = <T extends TasksState>(
       const enrichedArgs = await taskConfig.transformArgs(
         config.args,
         deps.persistedStore,
+        deps.settingsStore,
       );
 
       set((state) =>

@@ -52,10 +52,6 @@ impl LanguageQueryStrategy for DeepgramLanguageStrategy {
                     }
                 } else {
                     query_pairs.append_pair("detect_language", "true");
-                    for language in &params.languages {
-                        let code = language.iso639().code();
-                        query_pairs.append_pair("languages", code);
-                    }
                 }
             }
         }

@@ -75,7 +75,7 @@ jobs:
         with:
           platform: linux
       - uses: ./.github/actions/infisical_install
-      - run: infisical run --token="$INFISICAL_TOKEN" --env=dev --projectId="$INFISICAL_PROJECT_ID" --path="/stt" -- cargo test -p owhisper-client adapter::${{ matrix.provider }}::live -- --ignored --nocapture
+      - run: infisical run --token="$INFISICAL_TOKEN" --env=dev --projectId="$INFISICAL_PROJECT_ID" --path="/stt" -- cargo test -p owhisper-client adapter::${{ matrix.provider }}::live -- --ignored --nocapture --test-threads=1
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
           INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}

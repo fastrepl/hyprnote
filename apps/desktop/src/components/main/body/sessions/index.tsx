@@ -170,6 +170,8 @@ function TabContentNoteInner({
     const justStartedListening =
       prevSessionMode.current !== "active" && sessionMode === "active";
 
+    prevSessionMode.current = sessionMode;
+
     if (justStartedListening) {
       setShowConsentBanner(true);
       const timer = setTimeout(() => {
@@ -178,10 +180,6 @@ function TabContentNoteInner({
       return () => clearTimeout(timer);
     }
   }, [sessionMode]);
-
-  useEffect(() => {
-    prevSessionMode.current = sessionMode;
-  });
 
   const focusTitle = React.useCallback(() => {
     titleInputRef.current?.focus();
@@ -284,12 +282,11 @@ function StatusBanner({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           style={{ left: `calc(50% + ${totalOffset}px)` }}
           className={cn([
             "fixed -translate-x-1/2 bottom-6 z-50",
             "whitespace-nowrap text-center text-xs text-stone-300",
-            "transition-all duration-200 ease-out",
           ])}
         >
           {skipReason || "Ask for consent when using Hyprnote"}

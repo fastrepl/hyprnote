@@ -3,6 +3,27 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
+use crate::frontmatter::ParsedDocument;
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct TiptapWithFrontmatter {
+    pub frontmatter: HashMap<String, serde_json::Value>,
+    pub tiptap: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[serde(tag = "type", content = "value")]
+pub enum MdContent {
+    #[serde(rename = "md")]
+    Md(String),
+    #[serde(rename = "tiptap")]
+    Tiptap(serde_json::Value),
+    #[serde(rename = "frontmatter")]
+    Frontmatter(ParsedDocument),
+    #[serde(rename = "tiptap_frontmatter")]
+    TiptapFrontmatter(TiptapWithFrontmatter),
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct FolderInfo {
     pub name: String,

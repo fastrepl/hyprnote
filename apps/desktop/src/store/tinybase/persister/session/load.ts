@@ -9,7 +9,6 @@ import type {
   Tag,
   TranscriptStorage,
 } from "@hypr/store";
-import { md2json } from "@hypr/tiptap/shared";
 
 import type {
   NoteFrontmatter,
@@ -137,8 +136,16 @@ async function processMdFile(
       return;
     }
 
-    const tiptapJson = md2json(markdownBody);
-    const tiptapContent = JSON.stringify(tiptapJson);
+    const tiptapResult = await fsSyncCommands.parseMdToTiptap(markdownBody);
+    if (tiptapResult.status === "error") {
+      console.error(
+        `[${LABEL}] Failed to parse markdown from ${path}:`,
+        tiptapResult.error,
+      );
+      return;
+    }
+
+    const tiptapContent = JSON.stringify(tiptapResult.data);
 
     if (fm.type === "memo") {
       if (result.sessions[fm.session_id]) {

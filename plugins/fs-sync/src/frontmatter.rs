@@ -5,7 +5,7 @@ use rayon::prelude::*;
 
 use crate::folder::is_uuid;
 
-#[derive(serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct ParsedDocument {
     pub frontmatter: HashMap<String, serde_json::Value>,
     pub content: String,

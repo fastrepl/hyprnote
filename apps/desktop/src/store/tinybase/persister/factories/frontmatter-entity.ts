@@ -1,3 +1,14 @@
+/**
+ * Frontmatter entity persister factory.
+ *
+ * Persists entity data as individual markdown files with YAML frontmatter.
+ * Each entity becomes one file: metadata in frontmatter, content in body.
+ * Files are stored in a directory named after the entity type.
+ *
+ * @example Human persister (humans/ directory, one .md file per person)
+ * @example Organization persister (organizations/ directory)
+ * @example Prompts persister (prompts/ directory)
+ */
 import { exists, mkdir, readTextFile, remove } from "@tauri-apps/plugin-fs";
 import type {
   Content,
@@ -7,7 +18,7 @@ import type {
 
 import {
   commands as fsSyncCommands,
-  type ParsedDocument,
+  type MdContent,
 } from "@hypr/plugin-fs-sync";
 
 import {
@@ -19,7 +30,7 @@ import type {
   CollectorResult,
   MarkdownDirPersisterConfig,
 } from "../shared/types";
-import { createCollectorPersister } from "./collector";
+import { createCollectorPersister } from "./batch-writer";
 
 async function migrateFromLegacyJson<TStorage>(
   dataDir: string,
@@ -45,15 +56,18 @@ async function migrateFromLegacyJson<TStorage>(
 
     await mkdir(entityDir, { recursive: true });
 
-    const batchItems: [ParsedDocument, string][] = [];
+    const batchItems: [MdContent, string][] = [];
     for (const [entityId, entity] of Object.entries(entities)) {
       const { frontmatter, body } = toFrontmatter(entity);
       const filePath = getMarkdownFilePath(dataDir, dirName, entityId);
-      batchItems.push([{ frontmatter, content: body }, filePath]);
+      batchItems.push([
+        { type: "frontmatter", value: { frontmatter, content: body } },
+        filePath,
+      ]);
     }
 
     if (batchItems.length > 0) {
-      const result = await fsSyncCommands.writeFrontmatterBatch(batchItems);
+      const result = await fsSyncCommands.writeMdBatch(batchItems);
       if (result.status === "error") {
         throw new Error(
           `Failed to serialize frontmatter batch: ${result.error}`,
@@ -104,7 +118,7 @@ function collectMarkdownWriteOps<TStorage>(
   const entityDir = getMarkdownDir(dataDir, dirName);
   dirs.add(entityDir);
 
-  const frontmatterItems: [ParsedDocument, string][] = [];
+  const mdItems: [MdContent, string][] = [];
 
   for (const [entityId, entity] of Object.entries(tableData)) {
     validIds.add(entityId);
@@ -112,19 +126,30 @@ function collectMarkdownWriteOps<TStorage>(
     const { frontmatter, body } = toFrontmatter(entity);
     const filePath = getMarkdownFilePath(dataDir, dirName, entityId);
 
-    frontmatterItems.push([{ frontmatter, content: body }, filePath]);
+    mdItems.push([
+      { type: "frontmatter", value: { frontmatter, content: body } },
+      filePath,
+    ]);
   }
 
-  if (frontmatterItems.length > 0) {
+  if (mdItems.length > 0) {
     operations.push({
-      type: "frontmatter-batch",
-      items: frontmatterItems,
+      type: "md-batch",
+      items: mdItems,
     });
   }
 
   return { result: { dirs, operations }, validIds };
 }
 
+/**
+ * Creates a persister for entity data stored as markdown files with frontmatter.
+ *
+ * Each entity in the table becomes a separate .md file:
+ * - Filename: `{entityId}.md`
+ * - Directory: `{dataDir}/{dirName}/`
+ * - Format: YAML frontmatter + markdown body
+ */
 export function createMarkdownDirPersister<
   Schemas extends OptionalSchemas,
   TStorage,

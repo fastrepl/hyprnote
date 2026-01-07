@@ -39,9 +39,7 @@ export function setupMarkdownDirPersisterMocks() {
     commands: {
       deserialize: vi.fn(),
       serialize: vi.fn().mockResolvedValue({ status: "ok", data: "" }),
-      writeFrontmatterBatch: vi
-        .fn()
-        .mockResolvedValue({ status: "ok", data: null }),
+      writeMdBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
       readFrontmatterBatch: vi.fn(),
       cleanupOrphanFiles: vi.fn().mockResolvedValue({ status: "ok", data: 0 }),
     },

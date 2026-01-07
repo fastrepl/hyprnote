@@ -2,9 +2,9 @@
 
 Three main patterns are used depending on data complexity:
 
-- **JSON File** (`createJsonFilePersister`): Single-table data (calendar, events, templates, chat-shortcuts)
-- **Markdown Dir** (`createMarkdownDirPersister`): Entity data with frontmatter (human, organization, prompts)
-- **Collector** (`createCollectorPersister`): Multi-table data with complex relationships (session, chat)
+- **JSON File** (`createJsonFilePersister` in `json-file.ts`): Single-table data (calendar, events, templates, chat-shortcuts)
+- **Frontmatter Entity** (`createMarkdownDirPersister` in `frontmatter-entity.ts`): Entity data with frontmatter (human, organization, prompts)
+- **Batch Writer** (`createCollectorPersister` in `batch-writer.ts`): Multi-table data with complex relationships (session, chat)
 
 ## File Naming Conventions
 

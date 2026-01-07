@@ -22,9 +22,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::deserialize,
+            commands::parse_md_to_tiptap,
             commands::write_json_batch,
-            commands::write_markdown_batch,
-            commands::write_frontmatter_batch,
+            commands::write_md_batch,
             commands::read_frontmatter_batch,
             commands::list_folders::<tauri::Wry>,
             commands::move_session::<tauri::Wry>,

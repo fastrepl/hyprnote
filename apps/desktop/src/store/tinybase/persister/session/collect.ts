@@ -1,7 +1,7 @@
 import { sep } from "@tauri-apps/api/path";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import type { ParsedDocument } from "@hypr/plugin-fs-sync";
+import type { MdContent } from "@hypr/plugin-fs-sync";
 import type {
   EnhancedNoteStorage,
   MappingSessionParticipantStorage,
@@ -11,7 +11,7 @@ import type {
   Tag,
   WordStorage,
 } from "@hypr/store";
-import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
+import { isValidTiptapContent } from "@hypr/tiptap/shared";
 
 import {
   type CollectorResult,
@@ -216,7 +216,7 @@ export function collectTranscriptWriteOps(
   return { dirs, operations };
 }
 
-function tryParseAndConvertToMarkdown(content: string): string | undefined {
+function tryParseTiptapJson(content: string): unknown | undefined {
   let parsed: unknown;
   try {
     parsed = JSON.parse(content);
@@ -228,7 +228,7 @@ function tryParseAndConvertToMarkdown(content: string): string | undefined {
     return undefined;
   }
 
-  return json2md(parsed);
+  return parsed;
 }
 
 function getEnhancedNoteFilename<Schemas extends OptionalSchemas>(
@@ -257,7 +257,7 @@ export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
   changedSessionIds?: Set<string>,
 ): CollectorResult {
   const dirs = new Set<string>();
-  const frontmatterBatchItems: Array<[ParsedDocument, string]> = [];
+  const mdBatchItems: Array<[MdContent, string]> = [];
 
   for (const enhancedNote of iterateTableRows(tables, "enhanced_notes")) {
     if (!enhancedNote.content || !enhancedNote.session_id) {
@@ -268,8 +268,8 @@ export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
       continue;
     }
 
-    const markdown = tryParseAndConvertToMarkdown(enhancedNote.content);
-    if (!markdown) {
+    const tiptapJson = tryParseTiptapJson(enhancedNote.content);
+    if (!tiptapJson) {
       continue;
     }
 
@@ -292,8 +292,11 @@ export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
       folderPath,
     );
     dirs.add(sessionDir);
-    frontmatterBatchItems.push([
-      { frontmatter, content: markdown },
+    mdBatchItems.push([
+      {
+        type: "tiptap_frontmatter",
+        value: { frontmatter, tiptap: tiptapJson },
+      },
       [sessionDir, filename].join(sep()),
     ]);
   }
@@ -307,8 +310,8 @@ export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
       continue;
     }
 
-    const markdown = tryParseAndConvertToMarkdown(session.raw_md);
-    if (!markdown) {
+    const tiptapJson = tryParseTiptapJson(session.raw_md);
+    if (!tiptapJson) {
       continue;
     }
 
@@ -321,17 +324,20 @@ export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
     const folderPath = session.folder_id ?? "";
     const sessionDir = getSessionDir(dataDir, session.id, folderPath);
     dirs.add(sessionDir);
-    frontmatterBatchItems.push([
-      { frontmatter, content: markdown },
+    mdBatchItems.push([
+      {
+        type: "tiptap_frontmatter",
+        value: { frontmatter, tiptap: tiptapJson },
+      },
       [sessionDir, "_memo.md"].join(sep()),
     ]);
   }
 
   const operations: CollectorResult["operations"] = [];
-  if (frontmatterBatchItems.length > 0) {
+  if (mdBatchItems.length > 0) {
     operations.push({
-      type: "frontmatter-batch",
-      items: frontmatterBatchItems,
+      type: "md-batch",
+      items: mdBatchItems,
     });
   }
 

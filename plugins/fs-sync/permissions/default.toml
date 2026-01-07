@@ -2,6 +2,7 @@
 description = "Default permissions for the fs-sync plugin"
 permissions = [
     "allow-deserialize",
+    "allow-parse-md-to-tiptap",
     "allow-write-json-batch",
     "allow-write-markdown-batch",
     "allow-write-frontmatter-batch",

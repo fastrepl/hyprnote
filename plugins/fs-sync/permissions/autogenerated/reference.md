@@ -5,6 +5,7 @@ Default permissions for the fs-sync plugin
 #### This default permission set includes the following:
 
 - `allow-deserialize`
+- `allow-parse-md-to-tiptap`
 - `allow-write-json-batch`
 - `allow-write-markdown-batch`
 - `allow-write-frontmatter-batch`

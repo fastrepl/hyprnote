@@ -98,7 +98,7 @@ describe("createPromptPersister", () => {
         recursive: true,
       });
 
-      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeMdBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -119,7 +119,7 @@ describe("createPromptPersister", () => {
       const persister = createPromptPersister<Schemas>(store);
       await persister.save();
 
-      expect(fsSyncCommands.writeFrontmatterBatch).not.toHaveBeenCalled();
+      expect(fsSyncCommands.writeMdBatch).not.toHaveBeenCalled();
     });
 
     test("saves multiple prompts in single batch call", async () => {
@@ -142,9 +142,9 @@ describe("createPromptPersister", () => {
       const persister = createPromptPersister<Schemas>(store);
       await persister.save();
 
-      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledTimes(1);
+      expect(fsSyncCommands.writeMdBatch).toHaveBeenCalledTimes(1);
 
-      const batchItems = vi.mocked(fsSyncCommands.writeFrontmatterBatch).mock
+      const batchItems = vi.mocked(fsSyncCommands.writeMdBatch).mock
         .calls[0][0];
       expect(batchItems).toHaveLength(2);
 
@@ -183,7 +183,7 @@ describe("createPromptPersister", () => {
       expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/prompts`, {
         recursive: true,
       });
-      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeMdBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {

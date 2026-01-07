@@ -37,6 +37,12 @@ pub(crate) async fn deserialize(input: String) -> Result<ParsedDocument, String>
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn parse_md_to_tiptap(md: String) -> Result<Value, String> {
+    hypr_tiptap::md_to_tiptap_json(&md)
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn write_json_batch(items: Vec<(Value, String)>) -> Result<(), String> {
     spawn_blocking!({
         items.into_par_iter().try_for_each(|(json, path)| {
@@ -48,26 +54,30 @@ pub(crate) async fn write_json_batch(items: Vec<(Value, String)>) -> Result<(), 
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn write_markdown_batch(
-    items: Vec<(serde_json::Value, String)>,
+pub(crate) async fn write_md_batch(
+    items: Vec<(crate::types::MdContent, String)>,
 ) -> Result<(), String> {
     spawn_blocking!({
-        items.into_par_iter().try_for_each(|(json, path)| {
-            let md = hypr_tiptap::tiptap_json_to_md(&json).map_err(|e| e.to_string())?;
+        items.into_par_iter().try_for_each(|(content, path)| {
+            let md = match content {
+                crate::types::MdContent::Md(s) => s,
+                crate::types::MdContent::Tiptap(json) => {
+                    hypr_tiptap::tiptap_json_to_md(&json).map_err(|e| e.to_string())?
+                }
+                crate::types::MdContent::Frontmatter(doc) => {
+                    crate::frontmatter::serialize(doc).map_err(|e| e.to_string())?
+                }
+                crate::types::MdContent::TiptapFrontmatter(twf) => {
+                    let md_content =
+                        hypr_tiptap::tiptap_json_to_md(&twf.tiptap).map_err(|e| e.to_string())?;
+                    let doc = crate::frontmatter::ParsedDocument {
+                        frontmatter: twf.frontmatter,
+                        content: md_content,
+                    };
+                    crate::frontmatter::serialize(doc).map_err(|e| e.to_string())?
+                }
+            };
             std::fs::write(path, md).map_err(|e| e.to_string())
-        })
-    })
-}
-
-#[tauri::command]
-#[specta::specta]
-pub(crate) async fn write_frontmatter_batch(
-    items: Vec<(ParsedDocument, String)>,
-) -> Result<(), String> {
-    spawn_blocking!({
-        items.into_par_iter().try_for_each(|(doc, path)| {
-            let content = crate::frontmatter::serialize(doc).map_err(|e| e.to_string())?;
-            std::fs::write(path, content).map_err(|e| e.to_string())
         })
     })
 }

@@ -14,6 +14,14 @@ async deserialize(input: string) : Promise<Result<ParsedDocument, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async parseMdToTiptap(md: string) : Promise<Result<JsonValue, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|parse_md_to_tiptap", { md }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async writeJsonBatch(items: ([JsonValue, string])[]) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|write_json_batch", { items }) };
@@ -22,17 +30,9 @@ async writeJsonBatch(items: ([JsonValue, string])[]) : Promise<Result<null, stri
     else return { status: "error", error: e  as any };
 }
 },
-async writeMarkdownBatch(items: ([JsonValue, string])[]) : Promise<Result<null, string>> {
+async writeMdBatch(items: ([MdContent, string])[]) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|write_markdown_batch", { items }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async writeFrontmatterBatch(items: ([ParsedDocument, string])[]) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|write_frontmatter_batch", { items }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|write_md_batch", { items }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -189,8 +189,10 @@ async entityDir(dirName: string) : Promise<Result<string, string>> {
 export type FolderInfo = { name: string; parent_folder_id: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type ListFoldersResult = { folders: Partial<{ [key in string]: FolderInfo }>; session_folder_map: Partial<{ [key in string]: string }> }
+export type MdContent = { type: "md"; value: string } | { type: "tiptap"; value: JsonValue } | { type: "frontmatter"; value: ParsedDocument } | { type: "tiptap_frontmatter"; value: TiptapWithFrontmatter }
 export type ParsedDocument = { frontmatter: Partial<{ [key in string]: JsonValue }>; content: string }
 export type ScanResult = { files: Partial<{ [key in string]: string }>; dirs: string[] }
+export type TiptapWithFrontmatter = { frontmatter: Partial<{ [key in string]: JsonValue }>; tiptap: JsonValue }
 
 /** tauri-specta globals **/
 

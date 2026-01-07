@@ -1,3 +1,3 @@
-export * from "./collector";
+export * from "./batch-writer";
 export * from "./json-file";
-export * from "./markdown-dir";
+export * from "./frontmatter-entity";

@@ -18,15 +18,7 @@
       "persistent": true,
       "cache": false
     },
-    "tauri:dev:scan": {
-      "dependsOn": ["^build"],
-      "persistent": true,
-      "cache": false
-    },
     "tauri:build": {
-      "dependsOn": ["^build"]
-    },
-    "tauri:build:scan": {
       "dependsOn": ["^build"]
     }
   }

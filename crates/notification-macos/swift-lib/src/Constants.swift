@@ -14,7 +14,7 @@ enum Layout {
   static let expandedPaddingHorizontal: CGFloat = 16
   static let expandedPaddingVertical: CGFloat = 14
   static let progressBarHeight: CGFloat = 2.5
-  static let progressBarTopOffset: CGFloat = 4.0
+  static let progressBarBottomOffset: CGFloat = 4.0
   static let progressBarInset: CGFloat = 12.0
 }
 

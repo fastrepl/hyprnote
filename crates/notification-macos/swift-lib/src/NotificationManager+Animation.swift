@@ -92,7 +92,9 @@ extension NotificationManager {
       notification.panel.animator().setFrame(frame, display: true)
       notification.compactContentView?.animator().alphaValue = 1.0
     } completion: {
-      notification.restartDismissTimer()
+      if !notification.clickableView.isHovering {
+        notification.resumeDismissTimer()
+      }
       self.finishExpansionAnimation(notification)
     }
   }

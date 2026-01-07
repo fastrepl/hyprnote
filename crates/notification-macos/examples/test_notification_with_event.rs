@@ -1,11 +1,14 @@
 mod common;
 
 use notification_macos::*;
+
+use std::ops::Add;
 use std::time::Duration;
 
 fn main() {
     common::run_app(|| {
         std::thread::sleep(Duration::from_millis(200));
+        let timeout = Duration::from_secs(5);
 
         setup_expanded_accept_handler(|id| {
             println!("expanded_accept: {}", id);
@@ -59,7 +62,7 @@ fn main() {
             .key("test_notification")
             .title("Test Notification")
             .message("Meeting starting soon")
-            .timeout(Duration::from_secs(30))
+            .timeout(timeout)
             .participants(participants)
             .event_details(event_details)
             .action_label("Join Zoom & Start listening")
@@ -67,7 +70,7 @@ fn main() {
             .build();
 
         show(&notification);
-        std::thread::sleep(Duration::from_secs(60));
+        std::thread::sleep(timeout.add(Duration::from_secs(5)));
         std::process::exit(0);
     });
 }

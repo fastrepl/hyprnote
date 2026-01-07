@@ -2,14 +2,9 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ArrowRightIcon, ExternalLinkIcon, MailIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Checkbox } from "@hypr/ui/components/ui/checkbox";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
@@ -68,13 +63,30 @@ export function Footer() {
 }
 
 function BrandSection({ currentYear }: { currentYear: number }) {
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [email, setEmail] = useState("");
   const [subscriptions, setSubscriptions] = useState({
     releaseNotesStable: false,
     releaseNotesBeta: false,
     newsletter: false,
   });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!expanded) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setExpanded(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [expanded]);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -90,7 +102,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
       });
     },
     onSuccess: () => {
-      setPopoverOpen(false);
+      setExpanded(false);
       setEmail("");
       setSubscriptions({
         releaseNotesStable: false,
@@ -104,7 +116,6 @@ function BrandSection({ currentYear }: { currentYear: number }) {
     defaultValues: { email: "" },
     onSubmit: async ({ value }) => {
       setEmail(value.email);
-      setPopoverOpen(true);
     },
   });
 
@@ -124,151 +135,132 @@ function BrandSection({ currentYear }: { currentYear: number }) {
       </Link>
       <p className="text-sm text-neutral-500 mb-4">Fastrepl © {currentYear}</p>
 
-      <div className="mb-4">
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger asChild>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                form.handleSubmit();
-              }}
-              className="flex items-center"
-            >
-              <form.Field name="email">
-                {(field) => (
-                  <div className={cn([
-                    "relative flex items-center max-w-64 border border-neutral-100 laptop:border-l-0 bg-white overflow-hidden transition-all",
-                    "focus-within:ring-1 focus-within:ring-stone-400 focus-within:border-stone-400",
-                  ])}>
-                    <MailIcon className="absolute left-2.5 size-3.5 text-neutral-400" />
-                    <input
-                      type="email"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Subscribe to updates"
-                      className={cn([
-                        "min-w-0 flex-1 pl-8 pr-2 py-1.5 text-sm",
-                        "bg-transparent placeholder:text-neutral-400",
-                        "focus:outline-none",
-                      ])}
-                      required
-                    />
-                    <button
-                      type="submit"
-                      className={cn([
-                        "shrink-0 px-2 transition-colors focus:outline-none",
-                        field.state.value ? "text-stone-600" : "text-neutral-300",
-                      ])}
-                    >
-                      <ArrowRightIcon className="size-4" />
-                    </button>
+      <div className="mb-4 relative" ref={containerRef}>
+        {expanded && (
+          <div className="absolute bottom-full left-0 w-72 bg-white border border-b-0 laptop:border-l-0 border-stone-100 p-4 space-y-4">
+            <p className="text-sm font-medium text-neutral-900">
+              What would you like to receive?
+            </p>
+
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-neutral-700 uppercase tracking-wide">
+                  Release Notes
+                </p>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={subscriptions.releaseNotesStable}
+                    onCheckedChange={(checked) =>
+                      setSubscriptions((prev) => ({
+                        ...prev,
+                        releaseNotesStable: checked === true,
+                      }))
+                    }
+                    className="data-[state=checked]:bg-black data-[state=checked]:border-black data-[state=checked]:text-white"
+                  />
+                  <span className="text-sm text-neutral-600">Stable</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={subscriptions.releaseNotesBeta}
+                    onCheckedChange={(checked) =>
+                      setSubscriptions((prev) => ({
+                        ...prev,
+                        releaseNotesBeta: checked === true,
+                      }))
+                    }
+                    className="data-[state=checked]:bg-black data-[state=checked]:border-black data-[state=checked]:text-white"
+                  />
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm text-neutral-600">Beta</span>
+                    <span className="text-xs text-neutral-400">
+                      - includes beta download link
+                    </span>
                   </div>
-                )}
-              </form.Field>
-            </form>
-          </PopoverTrigger>
-          <PopoverContent
-            align="start"
-            className="w-72 p-4 bg-white border border-neutral-200 shadow-lg"
-          >
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-neutral-900 mb-1">
-                  What would you like to receive?
-                </p>
-                <p className="text-xs text-neutral-500">
-                  Select your preferences for {email}
-                </p>
+                </label>
               </div>
 
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-neutral-700 uppercase tracking-wide">
-                    Release Notes
-                  </p>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={subscriptions.releaseNotesStable}
-                      onCheckedChange={(checked) =>
-                        setSubscriptions((prev) => ({
-                          ...prev,
-                          releaseNotesStable: checked === true,
-                        }))
-                      }
-                    />
-                    <span className="text-sm text-neutral-600">Stable</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={subscriptions.releaseNotesBeta}
-                      onCheckedChange={(checked) =>
-                        setSubscriptions((prev) => ({
-                          ...prev,
-                          releaseNotesBeta: checked === true,
-                        }))
-                      }
-                    />
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm text-neutral-600">Beta</span>
-                      <span className="text-xs text-neutral-400">
-                        - includes beta download link
-                      </span>
-                    </div>
-                  </label>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-neutral-700 uppercase tracking-wide">
-                    Newsletter
-                  </p>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={subscriptions.newsletter}
-                      onCheckedChange={(checked) =>
-                        setSubscriptions((prev) => ({
-                          ...prev,
-                          newsletter: checked === true,
-                        }))
-                      }
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-sm text-neutral-600">
-                        Subscribe to newsletter
-                      </span>
-                      <span className="text-xs text-neutral-400">
-                        About notetaking, opensource, and AI
-                      </span>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              <button
-                onClick={() => mutation.mutate()}
-                disabled={!hasSelection || mutation.isPending}
-                className={cn([
-                  "w-full py-2 px-4 text-sm font-medium rounded-md transition-all",
-                  hasSelection
-                    ? "bg-stone-600 text-white hover:bg-stone-700"
-                    : "bg-neutral-100 text-neutral-400 cursor-not-allowed",
-                  mutation.isPending && "opacity-50 cursor-wait",
-                ])}
-              >
-                {mutation.isPending
-                  ? "Subscribing..."
-                  : mutation.isSuccess
-                    ? "Subscribed!"
-                    : "Subscribe"}
-              </button>
-
-              {mutation.isError && (
-                <p className="text-xs text-red-500">
-                  Something went wrong. Please try again.
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-neutral-700 uppercase tracking-wide">
+                  Newsletter
                 </p>
-              )}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={subscriptions.newsletter}
+                    onCheckedChange={(checked) =>
+                      setSubscriptions((prev) => ({
+                        ...prev,
+                        newsletter: checked === true,
+                      }))
+                    }
+                    className="data-[state=checked]:bg-black data-[state=checked]:border-black data-[state=checked]:text-white"
+                  />
+                  <span className="text-sm text-neutral-600">Blog</span>
+                </label>
+              </div>
             </div>
-          </PopoverContent>
-        </Popover>
+
+            {mutation.isError && (
+              <p className="text-xs text-red-500">
+                Something went wrong. Please try again.
+              </p>
+            )}
+          </div>
+        )}
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (expanded && hasSelection && email) {
+              mutation.mutate();
+            }
+          }}
+          className={cn([
+            "max-w-72 border border-neutral-100 bg-white transition-all laptop:border-l-0",
+            expanded && "shadow-lg",
+          ])}
+        >
+          <form.Field name="email">
+            {(field) => (
+              <div className="relative flex items-center">
+                <MailIcon className="absolute left-2.5 size-3.5 text-neutral-400" />
+                <input
+                  type="email"
+                  value={field.state.value}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value);
+                    setEmail(e.target.value);
+                  }}
+                  onFocus={() => setExpanded(true)}
+                  placeholder={
+                    expanded ? "Enter your email" : "Subscribe to updates"
+                  }
+                  className={cn([
+                    "min-w-0 flex-1 pl-8 pr-2 py-1.5 text-sm",
+                    "bg-transparent placeholder:text-neutral-400",
+                    "focus:outline-none",
+                  ])}
+                />
+                <button
+                  type={expanded ? "submit" : "button"}
+                  onClick={() => !expanded && setExpanded(true)}
+                  disabled={
+                    expanded && (!hasSelection || !email || mutation.isPending)
+                  }
+                  className={cn([
+                    "shrink-0 px-2 transition-colors focus:outline-none",
+                    expanded && hasSelection && email
+                      ? "text-stone-600"
+                      : "text-neutral-300",
+                    mutation.isPending && "opacity-50",
+                  ])}
+                >
+                  <ArrowRightIcon className="size-4" />
+                </button>
+              </div>
+            )}
+          </form.Field>
+        </form>
       </div>
 
       <p className="text-sm text-neutral-500">

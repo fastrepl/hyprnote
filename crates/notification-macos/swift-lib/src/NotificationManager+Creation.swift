@@ -61,7 +61,7 @@ extension NotificationManager {
     return container
   }
 
-  func createEffectView(container: NSView) -> NSVisualEffectView {
+  func createEffectView(container: NSView) -> (NSVisualEffectView, NotificationBackgroundView) {
     let effectView = NSVisualEffectView(frame: container.bounds)
     effectView.material = .popover
     effectView.state = .active
@@ -76,7 +76,7 @@ extension NotificationManager {
     effectView.addSubview(backgroundView, positioned: .below, relativeTo: nil)
 
     container.addSubview(effectView)
-    return effectView
+    return (effectView, backgroundView)
   }
 
   func createAppIconView() -> NSImageView {
@@ -121,7 +121,7 @@ extension NotificationManager {
     closeButton.alphaValue = 0
     closeButton.isHidden = true
 
-    clickableView.onHover = { isHovering in
+    clickableView.onHover = { [weak clickableView] isHovering in
       if isHovering { closeButton.isHidden = false }
       NSAnimationContext.runAnimationGroup(
         { context in
@@ -133,6 +133,14 @@ extension NotificationManager {
           if !isHovering { closeButton.isHidden = true }
         }
       )
+
+      if let notification = clickableView?.notification, !notification.isExpanded {
+        if isHovering {
+          notification.pauseDismissTimer()
+        } else {
+          notification.resumeDismissTimer()
+        }
+      }
     }
   }
 }

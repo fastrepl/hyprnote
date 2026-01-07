@@ -18,62 +18,64 @@ import {
 import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
 
 export function useFinalWords(transcriptId: string): (Word & { id: string })[] {
-  const store = main.UI.useStore(main.STORE_ID);
-  const wordIds = main.UI.useSliceRowIds(
-    main.INDEXES.wordsByTranscript,
+  const wordsJson = main.UI.useCell(
+    "transcripts",
     transcriptId,
+    "words",
     main.STORE_ID,
-  );
+  ) as string | undefined;
 
   return useMemo(() => {
-    if (!store || !wordIds) {
+    if (!wordsJson) {
       return [];
     }
 
-    return wordIds.map((wordId) => ({
-      ...(store.getRow("words", wordId) as unknown as Word),
-      id: wordId,
-    }));
-  }, [store, wordIds]);
+    try {
+      return JSON.parse(wordsJson) as (Word & { id: string })[];
+    } catch {
+      return [];
+    }
+  }, [wordsJson]);
 }
 
 export function useFinalSpeakerHints(
   transcriptId: string,
 ): RuntimeSpeakerHint[] {
-  const store = main.UI.useStore(main.STORE_ID);
-  const wordIds = main.UI.useSliceRowIds(
-    main.INDEXES.wordsByTranscript,
+  const wordsJson = main.UI.useCell(
+    "transcripts",
     transcriptId,
+    "words",
     main.STORE_ID,
-  );
-  const speakerHintIds = main.UI.useSliceRowIds(
-    main.INDEXES.speakerHintsByTranscript,
+  ) as string | undefined;
+
+  const speakerHintsJson = main.UI.useCell(
+    "transcripts",
     transcriptId,
+    "speaker_hints",
     main.STORE_ID,
-  );
+  ) as string | undefined;
 
   return useMemo(() => {
-    if (!store || !wordIds) {
+    if (!wordsJson || !speakerHintsJson) {
+      return [];
+    }
+
+    let words: Array<{ id: string }>;
+    let storageHints: Array<SpeakerHintStorage & { id: string }>;
+    try {
+      words = JSON.parse(wordsJson);
+      storageHints = JSON.parse(speakerHintsJson);
+    } catch {
       return [];
     }
 
     const wordIdToIndex = new Map<string, number>();
-    wordIds.forEach((wordId, index) => {
-      wordIdToIndex.set(wordId, index);
-    });
-
-    const storageHints: SpeakerHintStorage[] = [];
-    speakerHintIds?.forEach((hintId) => {
-      const hint = store.getRow("speaker_hints", hintId) as
-        | SpeakerHintStorage
-        | undefined;
-      if (hint) {
-        storageHints.push(hint);
-      }
+    words.forEach((word, index) => {
+      wordIdToIndex.set(word.id, index);
     });
 
     return convertStorageHintsToRuntime(storageHints, wordIdToIndex);
-  }, [store, wordIds, speakerHintIds]);
+  }, [wordsJson, speakerHintsJson]);
 }
 
 export function useTranscriptOffset(transcriptId: string): number {

@@ -19,7 +19,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const events: Tables<Schemas[0]>["events"] = {};
   const sessions: Tables<Schemas[0]>["sessions"] = {};
   const transcripts: Tables<Schemas[0]>["transcripts"] = {};
-  const words: Tables<Schemas[0]>["words"] = {};
   const mapping_session_participant: Tables<
     Schemas[0]
   >["mapping_session_participant"] = {};
@@ -176,11 +175,33 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       const baseTimestamp = Date.now() - 3 * 60 * 60 * 1000;
 
       let maxEndMs = 0;
+      const wordsList: Array<{
+        id: string;
+        user_id: string;
+        transcript_id: string;
+        text: string;
+        start_ms: number;
+        end_ms: number;
+        channel: number;
+        created_at: string;
+      }> = [];
+
       session.transcript.segments.forEach((segment) => {
         segment.words.forEach((word) => {
           if (word.end_ms > maxEndMs) {
             maxEndMs = word.end_ms;
           }
+
+          wordsList.push({
+            id: id(),
+            user_id: DEFAULT_USER_ID,
+            transcript_id: transcriptId,
+            text: word.text,
+            start_ms: word.start_ms,
+            end_ms: word.end_ms,
+            channel: segment.channel,
+            created_at: new Date().toISOString(),
+          });
         });
       });
 
@@ -190,22 +211,9 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
         created_at: new Date().toISOString(),
         started_at: baseTimestamp,
         ended_at: maxEndMs > 0 ? baseTimestamp + maxEndMs : undefined,
+        words: JSON.stringify(wordsList),
+        speaker_hints: "[]",
       };
-
-      session.transcript.segments.forEach((segment) => {
-        segment.words.forEach((word) => {
-          const wordId = id();
-          words[wordId] = {
-            user_id: DEFAULT_USER_ID,
-            transcript_id: transcriptId,
-            text: word.text,
-            start_ms: word.start_ms,
-            end_ms: word.end_ms,
-            channel: segment.channel,
-            created_at: new Date().toISOString(),
-          };
-        });
-      });
     }
   });
 
@@ -267,7 +275,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     folders,
     sessions,
     transcripts,
-    words,
     events,
     mapping_session_participant,
     tags,

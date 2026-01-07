@@ -39,28 +39,6 @@ export async function deleteSessionCascade(
     );
 
     for (const transcriptId of transcriptIds) {
-      deleteByIndex(
-        store,
-        indexes,
-        main.INDEXES.speakerHintsByTranscript,
-        transcriptId,
-        "speaker_hints",
-      );
-
-      const wordIds = indexes.getSliceRowIds(
-        main.INDEXES.wordsByTranscript,
-        transcriptId,
-      );
-      for (const wordId of wordIds) {
-        deleteByIndex(
-          store,
-          indexes,
-          main.INDEXES.speakerHintsByWord,
-          wordId,
-          "speaker_hints",
-        );
-        store.delRow("words", wordId);
-      }
       store.delRow("transcripts", transcriptId);
     }
 

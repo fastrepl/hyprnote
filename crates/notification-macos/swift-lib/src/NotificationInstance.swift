@@ -4,7 +4,6 @@ class NotificationInstance {
   let payload: NotificationPayload
   let panel: NSPanel
   let clickableView: ClickableView
-  private var dismissTimer: DispatchWorkItem?
   private var timeoutSeconds: Double = 0
 
   var key: String { payload.key }
@@ -17,6 +16,13 @@ class NotificationInstance {
   var countdownTimer: Timer?
   var meetingStartTime: Date?
   weak var timerLabel: NSTextField?
+  weak var progressBar: NotificationBackgroundView? {
+    didSet {
+      progressBar?.onProgressComplete = { [weak self] in
+        self?.dismissWithTimeout()
+      }
+    }
+  }
 
   init(payload: NotificationPayload, panel: NSPanel, clickableView: ClickableView) {
     self.payload = payload
@@ -73,27 +79,25 @@ class NotificationInstance {
 
   func startDismissTimer(timeoutSeconds: Double) {
     self.timeoutSeconds = timeoutSeconds
-    dismissTimer?.cancel()
-    let timer = DispatchWorkItem { [weak self] in
-      self?.dismissWithTimeout()
-    }
-    dismissTimer = timer
-    DispatchQueue.main.asyncAfter(deadline: .now() + timeoutSeconds, execute: timer)
+    progressBar?.startProgress(duration: timeoutSeconds)
   }
 
-  func cancelDismissTimer() {
-    dismissTimer?.cancel()
-    dismissTimer = nil
+  func pauseDismissTimer() {
+    progressBar?.pauseProgress()
+  }
+
+  func resumeDismissTimer() {
+    progressBar?.resumeProgress()
   }
 
   func restartDismissTimer() {
     guard timeoutSeconds > 0 else { return }
-    startDismissTimer(timeoutSeconds: timeoutSeconds)
+    progressBar?.startProgress(duration: timeoutSeconds)
   }
 
   func dismiss() {
-    dismissTimer?.cancel()
-    dismissTimer = nil
+    progressBar?.onProgressComplete = nil
+    progressBar?.resetProgress()
     stopCountdown()
 
     NSAnimationContext.runAnimationGroup({ context in
@@ -117,7 +121,7 @@ class NotificationInstance {
   }
 
   deinit {
-    dismissTimer?.cancel()
+    progressBar?.onProgressComplete = nil
     countdownTimer?.invalidate()
   }
 }

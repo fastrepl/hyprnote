@@ -13,6 +13,9 @@ enum Layout {
   static let contentPaddingVertical: CGFloat = 9
   static let expandedPaddingHorizontal: CGFloat = 16
   static let expandedPaddingVertical: CGFloat = 14
+  static let progressBarHeight: CGFloat = 2.5
+  static let progressBarTopOffset: CGFloat = 4.0
+  static let progressBarInset: CGFloat = 12.0
 }
 
 enum Timing {
@@ -44,6 +47,7 @@ enum Colors {
   static let actionButtonBg = NSColor(calibratedWhite: 0.35, alpha: 0.95).cgColor
   static let closeButtonHoverBg = NSColor(calibratedWhite: 0.95, alpha: 1.0).cgColor
   static let closeButtonPressedBg = NSColor(calibratedWhite: 0.9, alpha: 1.0).cgColor
+  static let progressBarBg = NSColor(calibratedRed: 0.4, green: 0.6, blue: 0.9, alpha: 0.7).cgColor
 }
 
 enum CloseButtonConfig {

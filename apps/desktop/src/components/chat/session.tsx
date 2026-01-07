@@ -208,33 +208,38 @@ function useTransport(attachedSessionId?: string) {
   );
   const firstTranscriptId = transcriptIds?.[0];
 
-  const wordIds = main.UI.useSliceRowIds(
-    main.INDEXES.wordsByTranscript,
+  const wordsJson = main.UI.useCell(
+    "transcripts",
     firstTranscriptId ?? "",
+    "words",
     main.STORE_ID,
-  );
+  ) as string | undefined;
 
   const words = useMemo((): WordLike[] => {
-    if (!store || !wordIds || wordIds.length === 0) {
+    if (!wordsJson) {
       return [];
     }
 
-    const result: WordLike[] = [];
+    try {
+      const parsedWords = JSON.parse(wordsJson) as Array<{
+        text: string;
+        start_ms: number;
+        end_ms: number;
+        channel: number;
+      }>;
 
-    for (const wordId of wordIds) {
-      const row = store.getRow("words", wordId);
-      if (row) {
-        result.push({
-          text: row.text as string,
-          start_ms: row.start_ms as number,
-          end_ms: row.end_ms as number,
-          channel: row.channel as WordLike["channel"],
-        });
-      }
+      return parsedWords
+        .map((w) => ({
+          text: w.text,
+          start_ms: w.start_ms,
+          end_ms: w.end_ms,
+          channel: w.channel as WordLike["channel"],
+        }))
+        .sort((a, b) => a.start_ms - b.start_ms);
+    } catch {
+      return [];
     }
-
-    return result.sort((a, b) => a.start_ms - b.start_ms);
-  }, [store, wordIds]);
+  }, [wordsJson]);
 
   const transcript = useMemo((): Transcript | null => {
     if (words.length === 0 || !store) {

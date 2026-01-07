@@ -30,13 +30,15 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const hasTranscript = !!transcriptIds && transcriptIds.length > 0;
   const firstTranscriptId = transcriptIds?.[0];
 
-  const wordIds = main.UI.useSliceRowIds(
-    main.INDEXES.wordsByTranscript,
+  const wordsJson = main.UI.useCell(
+    "transcripts",
     firstTranscriptId ?? "",
+    "words",
     main.STORE_ID,
-  );
+  ) as string | undefined;
+  const wordCount = wordsJson ? (JSON.parse(wordsJson) as unknown[]).length : 0;
   const MIN_WORDS_FOR_ENHANCEMENT = 5;
-  const hasWords = !!wordIds && wordIds.length >= MIN_WORDS_FOR_ENHANCEMENT;
+  const hasWords = wordCount >= MIN_WORDS_FOR_ENHANCEMENT;
 
   const [autoEnhancedNoteId, setAutoEnhancedNoteId] = useState<string | null>(
     null,
@@ -110,7 +112,6 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     }
 
     if (!hasWords) {
-      const wordCount = wordIds?.length ?? 0;
       setSkipReason(
         `Not enough words recorded (${wordCount}/${MIN_WORDS_FOR_ENHANCEMENT} minimum)`,
       );
@@ -131,7 +132,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   }, [
     hasTranscript,
     hasWords,
-    wordIds,
+    wordCount,
     sessionId,
     updateSessionTabState,
     createEnhancedNote,

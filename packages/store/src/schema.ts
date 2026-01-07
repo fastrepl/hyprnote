@@ -81,6 +81,8 @@ export const transcriptSchema = z.object({
   session_id: z.string(),
   started_at: z.number(),
   ended_at: z.preprocess((val) => val ?? undefined, z.number().optional()),
+  words: z.preprocess((val) => val ?? "[]", z.string()),
+  speaker_hints: z.preprocess((val) => val ?? "[]", z.string()),
 });
 
 export const participantSourceSchema = z.enum(["manual", "auto", "excluded"]);
@@ -300,6 +302,8 @@ export const tableSchemaForTinybase = {
     session_id: { type: "string" },
     started_at: { type: "number" },
     ended_at: { type: "number" },
+    words: { type: "string" },
+    speaker_hints: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof transcriptSchema>,
   words: {
     user_id: { type: "string" },

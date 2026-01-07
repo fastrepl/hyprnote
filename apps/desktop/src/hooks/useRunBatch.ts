@@ -5,6 +5,13 @@ import type { BatchParams } from "@hypr/plugin-listener2";
 import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/store/main";
+import type { SpeakerHintWithId, WordWithId } from "../store/transcript/types";
+import {
+  parseTranscriptHints,
+  parseTranscriptWords,
+  updateTranscriptHints,
+  updateTranscriptWords,
+} from "../store/transcript/utils";
 import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
 import { type Tab, useTabs } from "../store/zustand/tabs";
 import { id } from "../utils";
@@ -89,6 +96,8 @@ export const useRunBatch = (sessionId: string) => {
         user_id: user_id ?? "",
         created_at: createdAt,
         started_at: Date.now(),
+        words: "[]",
+        speaker_hints: "[]",
       });
 
       const handlePersist: HandlePersistCallback | undefined =
@@ -101,12 +110,17 @@ export const useRunBatch = (sessionId: string) => {
             return;
           }
 
-          const wordIds: string[] = [];
+          const existingWords = parseTranscriptWords(store, transcriptId);
+          const existingHints = parseTranscriptHints(store, transcriptId);
+
+          const newWords: WordWithId[] = [];
+          const newWordIds: string[] = [];
 
           words.forEach((word) => {
             const wordId = id();
 
-            store.setRow("words", wordId, {
+            newWords.push({
+              id: wordId,
               transcript_id: transcriptId,
               text: word.text,
               start_ms: word.start_ms,
@@ -116,22 +130,25 @@ export const useRunBatch = (sessionId: string) => {
               created_at: new Date().toISOString(),
             });
 
-            wordIds.push(wordId);
+            newWordIds.push(wordId);
           });
+
+          const newHints: SpeakerHintWithId[] = [];
 
           hints.forEach((hint) => {
             if (hint.data.type !== "provider_speaker_index") {
               return;
             }
 
-            const wordId = wordIds[hint.wordIndex];
+            const wordId = newWordIds[hint.wordIndex];
             const word = words[hint.wordIndex];
 
             if (!wordId || !word) {
               return;
             }
 
-            store.setRow("speaker_hints", id(), {
+            newHints.push({
+              id: id(),
               transcript_id: transcriptId,
               word_id: wordId,
               type: "provider_speaker_index",
@@ -144,6 +161,15 @@ export const useRunBatch = (sessionId: string) => {
               created_at: new Date().toISOString(),
             });
           });
+
+          updateTranscriptWords(store, transcriptId, [
+            ...existingWords,
+            ...newWords,
+          ]);
+          updateTranscriptHints(store, transcriptId, [
+            ...existingHints,
+            ...newHints,
+          ]);
         });
 
       const params: BatchParams = {

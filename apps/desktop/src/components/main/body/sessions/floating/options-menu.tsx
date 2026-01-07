@@ -100,26 +100,24 @@ export function OptionsMenu({
               const transcriptId = crypto.randomUUID();
               const createdAt = new Date().toISOString();
 
-              store.transaction(() => {
-                store.setRow("transcripts", transcriptId, {
-                  session_id: sessionId,
-                  user_id: user_id ?? "",
-                  created_at: createdAt,
-                  started_at: Date.now(),
-                });
+              const words = subtitle.tokens.map((token) => ({
+                id: crypto.randomUUID(),
+                transcript_id: transcriptId,
+                text: token.text,
+                start_ms: token.start_time,
+                end_ms: token.end_time,
+                channel: ChannelProfile.MixedCapture,
+                user_id: user_id ?? "",
+                created_at: new Date().toISOString(),
+              }));
 
-                subtitle.tokens.forEach((token) => {
-                  const wordId = crypto.randomUUID();
-                  store.setRow("words", wordId, {
-                    transcript_id: transcriptId,
-                    text: token.text,
-                    start_ms: token.start_time,
-                    end_ms: token.end_time,
-                    channel: ChannelProfile.MixedCapture,
-                    user_id: user_id ?? "",
-                    created_at: new Date().toISOString(),
-                  });
-                });
+              store.setRow("transcripts", transcriptId, {
+                session_id: sessionId,
+                user_id: user_id ?? "",
+                created_at: createdAt,
+                started_at: Date.now(),
+                words: JSON.stringify(words),
+                speaker_hints: "[]",
               });
 
               void analyticsCommands.event({

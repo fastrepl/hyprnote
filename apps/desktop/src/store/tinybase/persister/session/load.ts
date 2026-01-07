@@ -6,10 +6,8 @@ import type {
   MappingSessionParticipantStorage,
   MappingTagSession,
   SessionStorage,
-  SpeakerHintStorage,
   Tag,
   TranscriptStorage,
-  WordStorage,
 } from "@hypr/store";
 import { md2json } from "@hypr/tiptap/shared";
 
@@ -25,8 +23,6 @@ export type SessionDataLoad = {
   tags: Record<string, Tag>;
   mapping_tag_session: Record<string, MappingTagSession>;
   transcripts: Record<string, TranscriptStorage>;
-  words: Record<string, WordStorage>;
-  speaker_hints: Record<string, SpeakerHintStorage>;
   enhanced_notes: Record<string, EnhancedNoteStorage>;
 };
 
@@ -107,17 +103,11 @@ function processTranscriptFile(
 
     for (const transcript of data.transcripts) {
       const { id, words, speaker_hints, ...transcriptData } = transcript;
-      result.transcripts[id] = transcriptData;
-
-      for (const word of words) {
-        const { id: wordId, ...wordData } = word;
-        result.words[wordId] = wordData;
-      }
-
-      for (const hint of speaker_hints) {
-        const { id: hintId, ...hintData } = hint;
-        result.speaker_hints[hintId] = hintData;
-      }
+      result.transcripts[id] = {
+        ...transcriptData,
+        words: JSON.stringify(words),
+        speaker_hints: JSON.stringify(speaker_hints),
+      };
     }
   } catch (error) {
     console.error(`[${LABEL}] Failed to load transcript from ${path}:`, error);
@@ -179,8 +169,6 @@ export async function loadAllSessionData(
     tags: {},
     mapping_tag_session: {},
     transcripts: {},
-    words: {},
-    speaker_hints: {},
     enhanced_notes: {},
   };
 

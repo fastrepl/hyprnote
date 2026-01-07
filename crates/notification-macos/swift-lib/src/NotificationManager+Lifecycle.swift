@@ -10,11 +10,12 @@ extension NotificationManager {
     let panel = createPanel(screen: screen, yPosition: yPosition)
     let clickableView = createClickableView()
     let container = createContainer(clickableView: clickableView)
-    let effectView = createEffectView(container: container)
+    let (effectView, backgroundView) = createEffectView(container: container)
 
     let notification = NotificationInstance(
       payload: payload, panel: panel, clickableView: clickableView)
     clickableView.notification = notification
+    notification.progressBar = backgroundView
 
     clickableView.addSubview(container)
     panel.contentView = clickableView

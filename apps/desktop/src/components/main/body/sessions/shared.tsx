@@ -37,16 +37,16 @@ export function useCurrentNoteTab(
   const firstEnhancedNoteId = enhancedNoteIds?.[0];
 
   return useMemo(() => {
+    if (tab.state.view) {
+      return tab.state.view;
+    }
+
     if (isListenerActive) {
       return { type: "raw" };
     }
 
     if (firstEnhancedNoteId) {
       return { type: "enhanced", id: firstEnhancedNoteId };
-    }
-
-    if (tab.state.view) {
-      return tab.state.view;
     }
 
     return { type: "raw" };

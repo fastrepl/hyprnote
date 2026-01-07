@@ -109,10 +109,18 @@ function HeaderTabEnhanced({
     };
 
     return (
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
         className={cn([
-          "group/tab relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
+          "group/tab relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 cursor-pointer",
           isActive
             ? ["text-neutral-900", "border-neutral-900"]
             : [
@@ -145,7 +153,7 @@ function HeaderTabEnhanced({
             <XIcon className="hidden group-hover/tab:flex items-center justify-center size-4" />
           </button>
         </span>
-      </button>
+      </div>
     );
   }
 

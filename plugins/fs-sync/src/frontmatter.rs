@@ -12,7 +12,17 @@ pub struct ParsedDocument {
 }
 
 pub fn deserialize(input: &str) -> std::result::Result<ParsedDocument, crate::Error> {
-    let doc = hypr_frontmatter::Document::<HashMap<String, serde_yaml::Value>>::from_str(input)?;
+    let doc =
+        match hypr_frontmatter::Document::<HashMap<String, serde_yaml::Value>>::from_str(input) {
+            Ok(d) => d,
+            Err(e) => {
+                tracing::warn!("failed_to_parse_frontmatter: {}", e);
+                return Ok(ParsedDocument {
+                    frontmatter: HashMap::new(),
+                    content: input.to_string(),
+                });
+            }
+        };
 
     let frontmatter_json: HashMap<String, serde_json::Value> = doc
         .frontmatter
@@ -198,5 +208,24 @@ mod tests {
 
         assert_eq!(result.len(), 1);
         assert!(result.contains_key(uuid));
+    }
+
+    #[test]
+    fn test_deserialize_without_frontmatter() {
+        let input = "# Meeting Summary\n\nThis is plain markdown without frontmatter.";
+        let result = super::deserialize(input).unwrap();
+
+        assert!(result.frontmatter.is_empty());
+        assert_eq!(result.content, input);
+    }
+
+    #[test]
+    fn test_deserialize_with_frontmatter() {
+        let input = "---\nid: test-id\ntype: memo\n---\n\nContent here.";
+        let result = super::deserialize(input).unwrap();
+
+        assert_eq!(result.frontmatter["id"], "test-id");
+        assert_eq!(result.frontmatter["type"], "memo");
+        assert_eq!(result.content, "Content here.");
     }
 }

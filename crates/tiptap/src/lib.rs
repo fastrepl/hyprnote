@@ -1,7 +1,9 @@
 mod from_ast;
+mod from_md;
 mod to_ast;
 
 pub use from_ast::mdast_to_markdown;
+pub use from_md::md_to_tiptap_json;
 pub use to_ast::tiptap_json_to_mdast;
 
 pub fn tiptap_json_to_md(json: &serde_json::Value) -> Result<String, String> {
@@ -16,6 +18,87 @@ mod tests {
     fn to_md(json: serde_json::Value) -> String {
         let mdast = tiptap_json_to_mdast(&json);
         mdast_to_markdown(&mdast).unwrap()
+    }
+
+    #[test]
+    fn test_task_list() {
+        let json = serde_json::json!({
+            "type": "doc",
+            "content": [
+                {
+                    "type": "taskList",
+                    "content": [
+                        {
+                            "type": "taskItem",
+                            "attrs": { "checked": false },
+                            "content": [{
+                                "type": "paragraph",
+                                "content": [{ "type": "text", "text": "unchecked task" }]
+                            }]
+                        },
+                        {
+                            "type": "taskItem",
+                            "attrs": { "checked": true },
+                            "content": [{
+                                "type": "paragraph",
+                                "content": [{ "type": "text", "text": "checked task" }]
+                            }]
+                        }
+                    ]
+                }
+            ]
+        });
+
+        insta::assert_snapshot!(to_md(json), @r"
+        - [ ] unchecked task
+        - [x] checked task
+        ");
+    }
+
+    #[test]
+    fn test_image() {
+        let json = serde_json::json!({
+            "type": "doc",
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "image",
+                            "attrs": {
+                                "src": "https://example.com/image.png",
+                                "alt": "example image",
+                                "title": "Example"
+                            }
+                        }
+                    ]
+                }
+            ]
+        });
+
+        insta::assert_snapshot!(to_md(json), @r#"![example image](https://example.com/image.png "Example")"#);
+    }
+
+    #[test]
+    fn test_md_to_tiptap_basic() {
+        let md = "# Hello\n\nWorld";
+        let json = md_to_tiptap_json(md).unwrap();
+
+        assert_eq!(json["type"], "doc");
+        assert_eq!(json["content"][0]["type"], "heading");
+        assert_eq!(json["content"][0]["attrs"]["level"], 1);
+        assert_eq!(json["content"][1]["type"], "paragraph");
+    }
+
+    #[test]
+    fn test_md_to_tiptap_task_list() {
+        let md = "- [ ] unchecked\n- [x] checked";
+        let json = md_to_tiptap_json(md).unwrap();
+
+        assert_eq!(json["content"][0]["type"], "taskList");
+        assert_eq!(json["content"][0]["content"][0]["type"], "taskItem");
+        assert_eq!(json["content"][0]["content"][0]["attrs"]["checked"], false);
+        assert_eq!(json["content"][0]["content"][1]["attrs"]["checked"], true);
     }
 
     #[test]

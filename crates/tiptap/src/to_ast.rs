@@ -24,11 +24,14 @@ fn convert_node(node: &serde_json::Value) -> Option<mdast::Node> {
         "heading" => Some(convert_heading(node)),
         "bulletList" => Some(convert_bullet_list(node)),
         "orderedList" => Some(convert_ordered_list(node)),
-        "listItem" => Some(convert_list_item(node)),
+        "taskList" => Some(convert_task_list(node)),
+        "listItem" => Some(convert_list_item(node, None)),
+        "taskItem" => Some(convert_task_item(node)),
         "codeBlock" => Some(convert_code_block(node)),
         "blockquote" => Some(convert_blockquote(node)),
         "horizontalRule" => Some(convert_horizontal_rule()),
         "hardBreak" => Some(convert_hard_break()),
+        "image" => Some(convert_image(node)),
         "text" => convert_text(node),
         _ => None,
     }
@@ -95,7 +98,7 @@ fn convert_list_items(node: &serde_json::Value) -> Vec<mdast::Node> {
         .filter_map(|item| {
             let item_type = item.get("type")?.as_str()?;
             if item_type == "listItem" {
-                Some(convert_list_item(item))
+                Some(convert_list_item(item, None))
             } else {
                 None
             }
@@ -103,10 +106,47 @@ fn convert_list_items(node: &serde_json::Value) -> Vec<mdast::Node> {
         .collect()
 }
 
-fn convert_list_item(node: &serde_json::Value) -> mdast::Node {
+fn convert_task_list(node: &serde_json::Value) -> mdast::Node {
+    let children = convert_task_items(node);
+    mdast::Node::List(mdast::List {
+        ordered: false,
+        start: None,
+        spread: false,
+        children,
+        position: None,
+    })
+}
+
+fn convert_task_items(node: &serde_json::Value) -> Vec<mdast::Node> {
+    let Some(content) = node.get("content").and_then(|c| c.as_array()) else {
+        return vec![];
+    };
+
+    content
+        .iter()
+        .filter_map(|item| {
+            let item_type = item.get("type")?.as_str()?;
+            if item_type == "taskItem" {
+                Some(convert_task_item(item))
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+fn convert_task_item(node: &serde_json::Value) -> mdast::Node {
+    let checked = node
+        .get("attrs")
+        .and_then(|a| a.get("checked"))
+        .and_then(|c| c.as_bool());
+    convert_list_item(node, checked)
+}
+
+fn convert_list_item(node: &serde_json::Value, checked: Option<bool>) -> mdast::Node {
     let children = convert_content(node);
     mdast::Node::ListItem(mdast::ListItem {
-        checked: None,
+        checked,
         spread: false,
         children,
         position: None,
@@ -155,6 +195,31 @@ fn convert_hard_break() -> mdast::Node {
     mdast::Node::Break(mdast::Break { position: None })
 }
 
+fn convert_image(node: &serde_json::Value) -> mdast::Node {
+    let attrs = node.get("attrs");
+    let url = attrs
+        .and_then(|a| a.get("src"))
+        .and_then(|s| s.as_str())
+        .unwrap_or("")
+        .to_string();
+    let alt = attrs
+        .and_then(|a| a.get("alt"))
+        .and_then(|a| a.as_str())
+        .unwrap_or("")
+        .to_string();
+    let title = attrs
+        .and_then(|a| a.get("title"))
+        .and_then(|t| t.as_str())
+        .map(|s| s.to_string());
+
+    mdast::Node::Image(mdast::Image {
+        url,
+        alt,
+        title,
+        position: None,
+    })
+}
+
 fn convert_text(node: &serde_json::Value) -> Option<mdast::Node> {
     let text = node.get("text")?.as_str()?;
     Some(mdast::Node::Text(mdast::Text {
@@ -177,6 +242,7 @@ fn convert_inline_node(node: &serde_json::Value) -> Option<mdast::Node> {
     match node_type {
         "text" => convert_text_with_marks(node),
         "hardBreak" => Some(convert_hard_break()),
+        "image" => Some(convert_image(node)),
         _ => None,
     }
 }

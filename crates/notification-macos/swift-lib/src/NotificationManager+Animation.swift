@@ -59,7 +59,7 @@ extension NotificationManager {
   private func animateToExpanded(
     notification: NotificationInstance, effectView: NSVisualEffectView, frame: NSRect
   ) {
-    notification.cancelDismissTimer()
+    notification.pauseDismissTimer()
     notification.compactContentView?.isHidden = true
 
     let expandedView = createExpandedNotificationView(notification: notification)

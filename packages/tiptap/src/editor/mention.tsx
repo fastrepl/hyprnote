@@ -151,13 +151,22 @@ const suggestion = (
     pluginKey: new PluginKey(`mention-${config.trigger}`),
     command: ({ editor, range, props }) => {
       const item = props as MentionItem;
-      if (item.content) {
-        editor
-          .chain()
-          .focus()
-          .deleteRange(range)
-          .insertContent(item.content)
-          .run();
+
+      if (config.onSelect) {
+        config.onSelect(item);
+      }
+
+      if (item.content !== undefined) {
+        if (item.content === "") {
+          editor.chain().focus().deleteRange(range).run();
+        } else {
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent(item.content)
+            .run();
+        }
       } else {
         editor
           .chain()
@@ -307,6 +316,7 @@ const suggestion = (
 export type MentionConfig = {
   trigger: string;
   handleSearch: (query: string) => Promise<MentionItem[]>;
+  onSelect?: (item: MentionItem) => void;
 };
 
 export const mention = (config: MentionConfig) => {

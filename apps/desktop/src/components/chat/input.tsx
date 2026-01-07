@@ -23,13 +23,11 @@ import * as main from "../../store/tinybase/store/main";
 export function ChatMessageInput({
   onSendMessage,
   disabled: disabledProp,
-  attachedSession,
   isStreaming,
   onStop,
 }: {
   onSendMessage: (content: string, parts: any[]) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
-  attachedSession?: { id: string; title?: string };
   isStreaming?: boolean;
   onStop?: () => void;
 }) {
@@ -148,23 +146,24 @@ export function ChatMessageInput({
               id: rowId,
               type: "session",
               label: title,
+              content: "",
             });
           }
         });
 
         return results.slice(0, 5);
       },
+      onSelect: (item) => {
+        if (item.type === "session") {
+          chat.addRef({ type: "session", id: item.id, source: "manual" });
+        }
+      },
     }),
-    [chatShortcuts, sessions],
+    [chatShortcuts, sessions, chat],
   );
 
   return (
     <Container>
-      {attachedSession && (
-        <div className="px-3 pt-2 text-xs text-neutral-500 truncate">
-          Attached: {attachedSession.title || "Untitled"}
-        </div>
-      )}
       <div className="flex flex-col p-2">
         <div className="flex-1 mb-2">
           <ChatEditor

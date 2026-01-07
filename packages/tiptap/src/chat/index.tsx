@@ -14,10 +14,16 @@ import type { PlaceholderFunction } from "../shared/extensions/placeholder";
 export type { JSONContent, TiptapEditor };
 export type { MentionConfig };
 
+export interface SlashCommandItem {
+  id: string;
+  type: string;
+  label: string;
+  content?: string;
+}
+
 export interface SlashCommandConfig {
-  handleSearch: (
-    query: string,
-  ) => Promise<{ id: string; type: string; label: string; content?: string }[]>;
+  handleSearch: (query: string) => Promise<SlashCommandItem[]>;
+  onSelect?: (item: SlashCommandItem) => void;
 }
 
 interface ChatEditorProps {
@@ -46,6 +52,7 @@ const ChatEditor = forwardRef<{ editor: TiptapEditor | null }, ChatEditorProps>(
         configs.push({
           trigger: "/",
           handleSearch: slashCommandConfig.handleSearch,
+          onSelect: slashCommandConfig.onSelect,
         });
       }
 

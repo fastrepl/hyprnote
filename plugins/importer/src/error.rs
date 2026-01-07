@@ -29,4 +29,9 @@ pub enum Error {
 
     #[error("chrono parse error: {0}")]
     ChronoParse(#[from] chrono::ParseError),
+
+    #[error(
+        "incompatible database schema: the database does not contain the expected tables. This may be an older or different version of Hyprnote."
+    )]
+    IncompatibleSchema,
 }

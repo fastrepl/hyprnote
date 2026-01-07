@@ -8,11 +8,27 @@ use hypr_db_user::UserDatabase;
 use std::path::Path;
 use transforms::{session_to_imported_note, session_to_imported_transcript};
 
+async fn has_sessions_table(db: &hypr_db_core::Database) -> Result<bool, crate::Error> {
+    let conn = db.conn()?;
+    let mut rows = conn
+        .query(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'",
+            (),
+        )
+        .await?;
+    Ok(rows.next().await?.is_some())
+}
+
 pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Error> {
     let db = hypr_db_core::DatabaseBuilder::default()
         .local(path)
         .build()
         .await?;
+
+    if !has_sessions_table(&db).await? {
+        return Err(crate::Error::IncompatibleSchema);
+    }
+
     let db = UserDatabase::from(db);
 
     let sessions = db.list_sessions(None).await?;

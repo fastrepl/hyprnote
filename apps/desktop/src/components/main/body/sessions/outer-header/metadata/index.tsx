@@ -1,5 +1,6 @@
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { differenceInDays, format, startOfDay } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, MapPinIcon, VideoIcon } from "lucide-react";
 import { forwardRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -10,6 +11,7 @@ import {
 } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
 
+import { useEvent, useSession } from "../../../../../../hooks/tinybase";
 import * as main from "../../../../../../store/tinybase/store/main";
 import { DateDisplay } from "./date";
 import { ParticipantsDisplay } from "./participants";
@@ -42,6 +44,13 @@ const TriggerInner = forwardRef<
     "created_at",
     main.STORE_ID,
   );
+  const { eventId } = useSession(sessionId);
+  const event = useEvent(eventId);
+
+  const hasEvent = !!event;
+  const displayText = hasEvent
+    ? event.title || "Untitled Event"
+    : formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date());
 
   return (
     <Button
@@ -49,19 +58,137 @@ const TriggerInner = forwardRef<
       {...props}
       variant="ghost"
       size="sm"
-      className={cn([open && "bg-neutral-100"])}
+      className={cn([open && "bg-neutral-100", hasEvent && "max-w-[200px]"])}
     >
-      <CalendarIcon size={14} className="-mt-0.5" />
-      {formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date())}
+      {hasEvent ? (
+        <VideoIcon size={14} className="shrink-0" />
+      ) : (
+        <CalendarIcon size={14} className="-mt-0.5" />
+      )}
+      <span className={cn([hasEvent && "truncate"])}>{displayText}</span>
     </Button>
   );
 });
 
 function ContentInner({ sessionId }: { sessionId: string }) {
+  const { eventId } = useSession(sessionId);
+  const event = useEvent(eventId);
+
   return (
     <div className="flex flex-col gap-4 p-4">
-      <DateDisplay sessionId={sessionId} />
+      {event && <EventDisplay event={event} />}
+      {!event && <DateDisplay sessionId={sessionId} />}
       <ParticipantsDisplay sessionId={sessionId} />
+    </div>
+  );
+}
+
+function EventDisplay({
+  event,
+}: {
+  event: {
+    title: string | undefined;
+    startedAt: string | undefined;
+    endedAt: string | undefined;
+    location: string | undefined;
+    meetingLink: string | undefined;
+    description: string | undefined;
+    calendarId: string | undefined;
+  };
+}) {
+  const handleJoinMeeting = () => {
+    if (event.meetingLink) {
+      void openUrl(event.meetingLink);
+    }
+  };
+
+  const formatEventDateTime = () => {
+    if (!event.startedAt) {
+      return "";
+    }
+
+    const startDate = new Date(event.startedAt);
+    const endDate = event.endedAt ? new Date(event.endedAt) : null;
+
+    const startStr = format(startDate, "MMM d, yyyy h:mm a");
+    if (!endDate) {
+      return startStr;
+    }
+
+    const sameDay = startDate.toDateString() === endDate.toDateString();
+    const endStr = sameDay
+      ? format(endDate, "h:mm a")
+      : format(endDate, "MMM d, yyyy h:mm a");
+
+    return `${startStr} to ${endStr}`;
+  };
+
+  const getMeetingLinkDomain = () => {
+    if (!event.meetingLink) {
+      return null;
+    }
+    try {
+      const url = new URL(event.meetingLink);
+      return url.hostname.replace("www.", "");
+    } catch {
+      return null;
+    }
+  };
+
+  const meetingDomain = getMeetingLinkDomain();
+
+  const isLocationURL = (location: string) => {
+    try {
+      new URL(location);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const shouldShowLocation = event.location && !isLocationURL(event.location);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="text-base font-medium text-neutral-900">
+        {event.title || "Untitled Event"}
+      </div>
+
+      {shouldShowLocation && (
+        <>
+          <div className="h-px bg-neutral-200" />
+          <div className="flex items-center gap-2 text-sm text-neutral-700">
+            <MapPinIcon size={16} className="shrink-0 text-neutral-500" />
+            <span>{event.location}</span>
+          </div>
+        </>
+      )}
+
+      {event.meetingLink && (
+        <>
+          <div className="h-px bg-neutral-200" />
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm text-neutral-700 min-w-0">
+              <VideoIcon size={16} className="shrink-0 text-neutral-500" />
+              <span className="truncate">
+                {meetingDomain || "Meeting link"}
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="default"
+              className="shrink-0"
+              onClick={handleJoinMeeting}
+            >
+              Join
+            </Button>
+          </div>
+        </>
+      )}
+
+      {event.startedAt && (
+        <div className="text-sm text-neutral-700">{formatEventDateTime()}</div>
+      )}
     </div>
   );
 }

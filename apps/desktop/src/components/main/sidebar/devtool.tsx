@@ -11,6 +11,7 @@ import {
 } from "../../../store/tinybase/store/main";
 import { useTabs } from "../../../store/zustand/tabs";
 import { type SeedDefinition, seeds } from "../../devtool/seed/index";
+import { useTrialBeginModal } from "../../devtool/trial-begin-modal";
 import { useTrialExpiredModal } from "../../devtool/trial-expired-modal";
 import { getLatestVersion } from "../body/changelog";
 
@@ -313,11 +314,25 @@ function NavigationCard() {
 }
 
 function ModalsCard() {
+  const { open: openTrialBeginModal } = useTrialBeginModal();
   const { open: openTrialExpiredModal } = useTrialExpiredModal();
 
   return (
     <DevtoolCard title="Modals">
       <div className="flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={openTrialBeginModal}
+          className={cn([
+            "w-full px-2.5 py-1.5 rounded-md",
+            "text-xs font-medium text-left",
+            "border border-neutral-200 text-neutral-700",
+            "cursor-pointer transition-colors",
+            "hover:bg-neutral-50 hover:border-neutral-300",
+          ])}
+        >
+          Trial Begin
+        </button>
         <button
           type="button"
           onClick={openTrialExpiredModal}

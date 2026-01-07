@@ -9,6 +9,7 @@ import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
 import { Route } from "../../routes/app/onboarding/_layout.index";
 import * as settings from "../../store/tinybase/store/settings";
+import { useTrialBeginModal } from "../devtool/trial-begin-modal";
 import { getBack, getNext, type StepProps } from "./config";
 import { STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
 import { Divider, OnboardingContainer } from "./shared";
@@ -19,6 +20,7 @@ export function Login({ onNavigate }: StepProps) {
   const search = Route.useSearch();
   const auth = useAuth();
   const [callbackUrl, setCallbackUrl] = useState("");
+  const { open: openTrialBeginModal } = useTrialBeginModal();
 
   const setLlmProvider = settings.UI.useSetValueCallback(
     "current_llm_provider",
@@ -78,6 +80,7 @@ export function Login({ onNavigate }: StepProps) {
     onSuccess: (isPro) => {
       if (isPro) {
         setTrialDefaults();
+        openTrialBeginModal();
       }
       const nextSearch = { ...search, pro: isPro };
       onNavigate({ ...nextSearch, step: getNext(nextSearch)! });

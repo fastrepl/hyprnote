@@ -60,7 +60,12 @@ jobs:
             BASE=${{ github.event.pull_request.base.sha }}
             HEAD=${{ github.event.pull_request.head.sha }}
           else
-            BASE=${{ github.event.before }}
+            BEFORE="${{ github.event.before }}"
+            if [ "$BEFORE" == "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ]; then
+              BASE=$(git rev-parse HEAD^)
+            else
+              BASE="$BEFORE"
+            fi
             HEAD=${{ github.sha }}
           fi
 

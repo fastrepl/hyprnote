@@ -90,6 +90,16 @@ export function Header() {
         </div>
       </header>
 
+      {(isDocsPage || isHandbookPage) && (
+        <div className="sticky top-17.25 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-40 md:hidden">
+          <div
+            className={`${maxWidthClass} mx-auto px-4 border-x border-neutral-100 py-2`}
+          >
+            <SearchTrigger variant="mobile" />
+          </div>
+        </div>
+      )}
+
       <MobileMenu
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}

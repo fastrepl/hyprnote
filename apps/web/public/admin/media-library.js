@@ -16,19 +16,9 @@ const createGitHubMediaLibrary = () => {
     { value: "apps/web/public/images/handbook", label: "/images/handbook" },
   ];
 
-  function getGitHubToken() {
-    return localStorage.getItem("github_media_token");
-  }
-
-  function setGitHubToken(token) {
-    localStorage.setItem("github_media_token", token);
-  }
-
   async function fetchImagesFromGitHub(path = IMAGES_PATH) {
-    const token = getGitHubToken();
-    const headers = token ? { Authorization: `token ${token}` } : {};
     const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`;
-    const response = await fetch(url, { headers });
+    const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`GitHub API error: ${response.status}`);
     }
@@ -67,49 +57,31 @@ const createGitHubMediaLibrary = () => {
     return images;
   }
 
-  async function uploadToGitHub(file, folder) {
-    const token = getGitHubToken();
-    if (!token) {
-      throw new Error("GitHub token required for uploads. Click the gear icon to set it.");
-    }
-
-    const filename = file.name.replace(/[^a-zA-Z0-9.-]/g, "-").toLowerCase();
-    const path = `${folder}/${filename}`;
-
+  async function uploadViaAPI(file, folder) {
     const base64Content = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result.split(",")[1]);
       reader.readAsDataURL(file);
     });
 
-    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `token ${token}`,
-        "Content-Type": "application/json",
-      },
+    const response = await fetch("/api/media-upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        message: `Upload ${filename} via Decap CMS`,
+        filename: file.name,
         content: base64Content,
-        branch: GITHUB_BRANCH,
+        folder: folder,
       }),
     });
 
+    const result = await response.json();
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || `Upload failed: ${response.status}`);
+      throw new Error(result.error || `Upload failed: ${response.status}`);
     }
 
-    const result = await response.json();
     cachedImages = null;
-
-    return {
-      name: filename,
-      path: path.replace("apps/web/public", ""),
-      fullPath: path,
-      folder: folder.replace("apps/web/public/images", "") || "/",
-      url: result.content.download_url,
-    };
+    return result;
   }
 
   function isImageFile(filename) {
@@ -156,21 +128,16 @@ const createGitHubMediaLibrary = () => {
           font-size: 18px;
           font-weight: 600;
         }
-        .gml-header-actions {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-        }
-        .gml-close, .gml-settings {
+        .gml-close {
           background: none;
           border: none;
-          font-size: 20px;
+          font-size: 24px;
           cursor: pointer;
           color: #666;
-          padding: 4px;
+          padding: 0;
           line-height: 1;
         }
-        .gml-close:hover, .gml-settings:hover {
+        .gml-close:hover {
           color: #333;
         }
         .gml-tabs {
@@ -377,44 +344,6 @@ const createGitHubMediaLibrary = () => {
         .gml-panel.active {
           display: block;
         }
-        .gml-settings-panel {
-          padding: 20px;
-        }
-        .gml-settings-field {
-          margin-bottom: 16px;
-        }
-        .gml-settings-label {
-          display: block;
-          font-size: 14px;
-          font-weight: 500;
-          margin-bottom: 6px;
-        }
-        .gml-settings-input {
-          width: 100%;
-          padding: 8px 12px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 14px;
-        }
-        .gml-settings-hint {
-          font-size: 12px;
-          color: #666;
-          margin-top: 4px;
-        }
-        .gml-token-status {
-          padding: 8px 12px;
-          border-radius: 4px;
-          font-size: 13px;
-          margin-bottom: 16px;
-        }
-        .gml-token-status.set {
-          background: #d4edda;
-          color: #155724;
-        }
-        .gml-token-status.not-set {
-          background: #fff3cd;
-          color: #856404;
-        }
         .gml-uploaded-preview {
           display: flex;
           align-items: center;
@@ -445,15 +374,11 @@ const createGitHubMediaLibrary = () => {
       <div class="gml-modal">
         <div class="gml-header">
           <h2>Media Library</h2>
-          <div class="gml-header-actions">
-            <button class="gml-settings" aria-label="Settings" title="Settings">&#9881;</button>
-            <button class="gml-close" aria-label="Close">&times;</button>
-          </div>
+          <button class="gml-close" aria-label="Close">&times;</button>
         </div>
         <div class="gml-tabs">
           <button class="gml-tab active" data-tab="browse">Browse</button>
           <button class="gml-tab" data-tab="upload">Upload</button>
-          <button class="gml-tab" data-tab="settings" style="display:none;">Settings</button>
         </div>
         <div class="gml-panel active" data-panel="browse">
           <div class="gml-toolbar">
@@ -481,22 +406,6 @@ const createGitHubMediaLibrary = () => {
               <div class="gml-upload-hint">Supports JPG, PNG, GIF, SVG, WebP</div>
             </div>
             <div class="gml-upload-result"></div>
-          </div>
-        </div>
-        <div class="gml-panel" data-panel="settings">
-          <div class="gml-settings-panel">
-            <div class="gml-token-status not-set">
-              GitHub token not set. Uploads will not work.
-            </div>
-            <div class="gml-settings-field">
-              <label class="gml-settings-label">GitHub Personal Access Token</label>
-              <input type="password" class="gml-settings-input gml-token-input" placeholder="ghp_...">
-              <div class="gml-settings-hint">
-                Required for uploading images. Create a token with "repo" scope at
-                <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a>
-              </div>
-            </div>
-            <button class="gml-btn gml-btn-primary gml-save-token">Save Token</button>
           </div>
         </div>
         <div class="gml-footer">
@@ -581,18 +490,6 @@ const createGitHubMediaLibrary = () => {
     modal.querySelector(`.gml-panel[data-panel="${tabName}"]`).classList.add("active");
   }
 
-  function updateTokenStatus() {
-    const token = getGitHubToken();
-    const status = modal.querySelector(".gml-token-status");
-    if (token) {
-      status.className = "gml-token-status set";
-      status.textContent = "GitHub token is set. Uploads are enabled.";
-    } else {
-      status.className = "gml-token-status not-set";
-      status.textContent = "GitHub token not set. Uploads will not work.";
-    }
-  }
-
   async function show(config = {}) {
     allowMultiple = config.allowMultiple || false;
     selectedImages.clear();
@@ -606,33 +503,19 @@ const createGitHubMediaLibrary = () => {
     const closeBtn = modal.querySelector(".gml-close");
     const cancelBtn = modal.querySelector(".gml-cancel");
     const insertBtn = modal.querySelector(".gml-insert");
-    const settingsBtn = modal.querySelector(".gml-settings");
     const uploadZone = modal.querySelector(".gml-upload-zone");
     const uploadInput = modal.querySelector('.gml-upload-zone input[type="file"]');
     const uploadFolder = modal.querySelector(".gml-upload-folder");
     const uploadResult = modal.querySelector(".gml-upload-result");
-    const tokenInput = modal.querySelector(".gml-token-input");
-    const saveTokenBtn = modal.querySelector(".gml-save-token");
 
     modal.querySelectorAll(".gml-tab").forEach((tab) => {
       tab.addEventListener("click", () => switchTab(tab.dataset.tab));
     });
 
-    settingsBtn.addEventListener("click", () => switchTab("settings"));
-
     closeBtn.addEventListener("click", hide);
     cancelBtn.addEventListener("click", hide);
     modal.addEventListener("click", (e) => {
       if (e.target === modal) hide();
-    });
-
-    updateTokenStatus();
-    tokenInput.value = getGitHubToken() || "";
-
-    saveTokenBtn.addEventListener("click", () => {
-      setGitHubToken(tokenInput.value.trim());
-      updateTokenStatus();
-      switchTab("browse");
     });
 
     uploadZone.addEventListener("click", () => uploadInput.click());
@@ -675,7 +558,7 @@ const createGitHubMediaLibrary = () => {
       for (let i = 0; i < files.length; i++) {
         try {
           progressText.textContent = `Uploading ${files[i].name}... (${i + 1}/${files.length})`;
-          const result = await uploadToGitHub(files[i], folder);
+          const result = await uploadViaAPI(files[i], folder);
           uploaded.push(result);
           progressFill.style.width = `${((i + 1) / files.length) * 100}%`;
         } catch (error) {

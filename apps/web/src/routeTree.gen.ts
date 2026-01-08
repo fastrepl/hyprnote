@@ -23,6 +23,7 @@ import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
+import { Route as ApiMediaUploadRouteImport } from './routes/api/media-upload'
 import { Route as ApiK6ReportsRouteImport } from './routes/api/k6-reports'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewPrivacyRouteImport } from './routes/_view/privacy'
@@ -170,6 +171,11 @@ const ApiTemplatesRoute = ApiTemplatesRouteImport.update({
 const ApiShortcutsRoute = ApiShortcutsRouteImport.update({
   id: '/api/shortcuts',
   path: '/api/shortcuts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMediaUploadRoute = ApiMediaUploadRouteImport.update({
+  id: '/api/media-upload',
+  path: '/api/media-upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiK6ReportsRoute = ApiK6ReportsRouteImport.update({
@@ -602,6 +608,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
+  '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -693,6 +700,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
+  '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -789,6 +797,7 @@ export interface FileRoutesById {
   '/_view/privacy': typeof ViewPrivacyRoute
   '/_view/security': typeof ViewSecurityRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
+  '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -885,6 +894,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/security'
     | '/api/k6-reports'
+    | '/api/media-upload'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
@@ -976,6 +986,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/security'
     | '/api/k6-reports'
+    | '/api/media-upload'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
@@ -1071,6 +1082,7 @@ export interface FileRouteTypes {
     | '/_view/privacy'
     | '/_view/security'
     | '/api/k6-reports'
+    | '/api/media-upload'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
@@ -1154,6 +1166,7 @@ export interface RootRouteChildren {
   XRoute: typeof XRoute
   YoutubeRoute: typeof YoutubeRoute
   ApiK6ReportsRoute: typeof ApiK6ReportsRoute
+  ApiMediaUploadRoute: typeof ApiMediaUploadRoute
   ApiShortcutsRoute: typeof ApiShortcutsRoute
   ApiTemplatesRoute: typeof ApiTemplatesRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
@@ -1259,6 +1272,13 @@ declare module '@tanstack/react-router' {
       path: '/api/shortcuts'
       fullPath: '/api/shortcuts'
       preLoaderRoute: typeof ApiShortcutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/media-upload': {
+      id: '/api/media-upload'
+      path: '/api/media-upload'
+      fullPath: '/api/media-upload'
+      preLoaderRoute: typeof ApiMediaUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/k6-reports': {
@@ -2025,6 +2045,7 @@ const rootRouteChildren: RootRouteChildren = {
   XRoute: XRoute,
   YoutubeRoute: YoutubeRoute,
   ApiK6ReportsRoute: ApiK6ReportsRoute,
+  ApiMediaUploadRoute: ApiMediaUploadRoute,
   ApiShortcutsRoute: ApiShortcutsRoute,
   ApiTemplatesRoute: ApiTemplatesRoute,
   WebhookNangoRoute: WebhookNangoRoute,

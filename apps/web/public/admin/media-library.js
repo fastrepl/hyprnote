@@ -9,6 +9,8 @@ const createGitHubMediaLibrary = () => {
   let uploadingFiles = [];
   let isUploading = false;
   let isEditorMode = false;
+  let navigationStack = [];
+  let navigationIndex = -1;
 
   const GITHUB_REPO = "fastrepl/hyprnote";
   const GITHUB_BRANCH = "main";
@@ -184,6 +186,36 @@ const createGitHubMediaLibrary = () => {
           font-size: 13px;
           color: #666;
           background: #fafafa;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .gml-breadcrumb-nav {
+          display: flex;
+          gap: 2px;
+          margin-right: 8px;
+        }
+        .gml-breadcrumb-nav-btn {
+          background: none;
+          border: 1px solid #ddd;
+          width: 24px;
+          height: 24px;
+          border-radius: 4px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #666;
+          font-size: 12px;
+        }
+        .gml-breadcrumb-nav-btn:hover:not(:disabled) {
+          background: #e8e8e8;
+        }
+        .gml-breadcrumb-nav-btn:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+        .gml-breadcrumb-path {
           display: flex;
           align-items: center;
           gap: 4px;
@@ -402,7 +434,13 @@ const createGitHubMediaLibrary = () => {
         </div>
 
         <div class="gml-breadcrumb">
-          <span class="gml-breadcrumb-item" data-path="">images</span>
+          <div class="gml-breadcrumb-nav">
+            <button class="gml-breadcrumb-nav-btn gml-nav-back" title="Go back" disabled>←</button>
+            <button class="gml-breadcrumb-nav-btn gml-nav-forward" title="Go forward" disabled>→</button>
+          </div>
+          <div class="gml-breadcrumb-path">
+            <span class="gml-breadcrumb-item" data-path="">images</span>
+          </div>
         </div>
 
         <div class="gml-content">
@@ -424,8 +462,38 @@ const createGitHubMediaLibrary = () => {
     return overlay;
   }
 
+  function navigateToPath(path, addToHistory = true) {
+    if (addToHistory) {
+      if (navigationIndex < navigationStack.length - 1) {
+        navigationStack = navigationStack.slice(0, navigationIndex + 1);
+      }
+      navigationStack.push(path);
+      navigationIndex = navigationStack.length - 1;
+    }
+    currentPath = path;
+    loadFolder();
+  }
+
+  function navigateBack() {
+    if (navigationIndex > 0) {
+      navigationIndex--;
+      currentPath = navigationStack[navigationIndex];
+      loadFolder();
+    }
+  }
+
+  function navigateForward() {
+    if (navigationIndex < navigationStack.length - 1) {
+      navigationIndex++;
+      currentPath = navigationStack[navigationIndex];
+      loadFolder();
+    }
+  }
+
   function renderBreadcrumb() {
-    const breadcrumb = modal.querySelector(".gml-breadcrumb");
+    const breadcrumbPath = modal.querySelector(".gml-breadcrumb-path");
+    const backBtn = modal.querySelector(".gml-nav-back");
+    const forwardBtn = modal.querySelector(".gml-nav-forward");
     const parts = currentPath ? currentPath.split("/") : [];
 
     let html = `<span class="gml-breadcrumb-item" data-path="">images</span>`;
@@ -441,14 +509,16 @@ const createGitHubMediaLibrary = () => {
       }
     }
 
-    breadcrumb.innerHTML = html;
+    breadcrumbPath.innerHTML = html;
 
-    breadcrumb.querySelectorAll(".gml-breadcrumb-item").forEach((item) => {
+    breadcrumbPath.querySelectorAll(".gml-breadcrumb-item").forEach((item) => {
       item.addEventListener("click", () => {
-        currentPath = item.dataset.path;
-        loadFolder();
+        navigateToPath(item.dataset.path);
       });
     });
+
+    backBtn.disabled = navigationIndex <= 0;
+    forwardBtn.disabled = navigationIndex >= navigationStack.length - 1;
   }
 
   function renderItems(items, searchQuery = "") {
@@ -513,8 +583,8 @@ const createGitHubMediaLibrary = () => {
         const publicPath = item.dataset.public;
 
         if (type === "dir") {
-          currentPath = path.replace(IMAGES_PATH + "/", "").replace(IMAGES_PATH, "");
-          loadFolder();
+          const newPath = path.replace(IMAGES_PATH + "/", "").replace(IMAGES_PATH, "");
+          navigateToPath(newPath);
         } else {
           if (e.metaKey || e.ctrlKey || allowMultiple) {
             if (selectedItems.has(publicPath)) {
@@ -642,6 +712,8 @@ const createGitHubMediaLibrary = () => {
     selectedItems.clear();
     currentPath = "";
     viewMode = "grid";
+    navigationStack = [""];
+    navigationIndex = 0;
 
     modal = createModal();
     document.body.appendChild(modal);
@@ -651,11 +723,16 @@ const createGitHubMediaLibrary = () => {
     const viewListBtn = modal.querySelector(".gml-view-list");
     const viewGridBtn = modal.querySelector(".gml-view-grid");
     const content = modal.querySelector(".gml-content");
+    const backBtn = modal.querySelector(".gml-nav-back");
+    const forwardBtn = modal.querySelector(".gml-nav-forward");
 
     closeBtn.addEventListener("click", hide);
     modal.addEventListener("click", (e) => {
       if (e.target === modal) hide();
     });
+
+    backBtn.addEventListener("click", navigateBack);
+    forwardBtn.addEventListener("click", navigateForward);
 
     viewListBtn.addEventListener("click", () => {
       viewMode = "list";

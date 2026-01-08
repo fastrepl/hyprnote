@@ -63,6 +63,25 @@ const createGitHubMediaLibrary = () => {
     return result;
   }
 
+  async function createFolderViaAPI(folderName, parentFolder) {
+    const response = await fetch("/api/media-create-folder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        folderName: folderName,
+        parentFolder: parentFolder || IMAGES_PATH,
+      }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || `Folder creation failed: ${response.status}`);
+    }
+
+    delete cachedData[parentFolder || IMAGES_PATH];
+    return result;
+  }
+
   function isImageFile(filename) {
     const ext = filename.toLowerCase().split(".").pop();
     return ["jpg", "jpeg", "png", "gif", "svg", "webp", "avif"].includes(ext);
@@ -652,6 +671,7 @@ const createGitHubMediaLibrary = () => {
     } else {
       toolbarLeft.textContent = "";
       toolbarRight.innerHTML = `
+        <button class="gml-btn gml-new-folder-btn">New Folder</button>
         <label class="gml-btn gml-btn-primary gml-upload-btn">
           Upload asset
           <input type="file" accept="image/*" multiple style="display:none;">
@@ -664,6 +684,8 @@ const createGitHubMediaLibrary = () => {
           await handleUpload(files);
         }
       });
+
+      toolbarRight.querySelector(".gml-new-folder-btn").addEventListener("click", handleNewFolder);
     }
   }
 
@@ -687,6 +709,28 @@ const createGitHubMediaLibrary = () => {
     uploadingFiles = [];
     await loadFolder();
     updateToolbar();
+  }
+
+  async function handleNewFolder() {
+    const folderName = prompt("Enter folder name:");
+    if (!folderName || !folderName.trim()) {
+      return;
+    }
+
+    const sanitizedName = folderName.trim().replace(/[^a-zA-Z0-9-_]/g, "-");
+    if (sanitizedName !== folderName.trim()) {
+      alert("Folder name was sanitized to: " + sanitizedName);
+    }
+
+    const parentFolder = currentPath ? `${IMAGES_PATH}/${currentPath}` : IMAGES_PATH;
+
+    try {
+      await createFolderViaAPI(sanitizedName, parentFolder);
+      await loadFolder();
+    } catch (error) {
+      console.error("Folder creation failed:", error);
+      alert(`Failed to create folder: ${error.message}`);
+    }
   }
 
   async function loadFolder() {

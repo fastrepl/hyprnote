@@ -1,0 +1,11 @@
+---
+source: crates/tiptap/src/lib.rs
+expression: to_md(json)
+---
+[Link with query params](https://example.com/path?foo=bar\&baz=qux)
+
+[Link with fragment](https://example.com/page#section-1)
+
+[Link with encoded spaces](https://example.com/path%20with%20spaces)
+
+[Link with title](https://example.com "Example Site")

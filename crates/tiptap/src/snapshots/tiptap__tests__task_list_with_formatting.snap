@@ -1,0 +1,8 @@
+---
+source: crates/tiptap/src/lib.rs
+expression: to_md(json)
+---
+- [ ] Task with **bold** text
+- [x] Task with *italic* and `code`
+- [ ] Task with [link](https://example.com)
+- [x] ***Bold and italic task***

@@ -1,0 +1,10 @@
+---
+source: crates/tiptap/src/lib.rs
+expression: to_md(json)
+---
+- Regular bullet item
+- Another bullet
+  - [ ] Nested task item
+  - [x] Completed nested task
+
+* [ ] Top-level task

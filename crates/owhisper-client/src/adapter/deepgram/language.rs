@@ -1,6 +1,8 @@
 use owhisper_interface::ListenParams;
 
-use crate::adapter::deepgram_compat::{LanguageQueryStrategy, Serializer, UrlQuery};
+use crate::adapter::deepgram_compat::{
+    LanguageQueryStrategy, Serializer, TranscriptionMode, UrlQuery,
+};
 
 const NOVA2_MULTI_LANGS: &[&str] = &["en", "es"];
 const NOVA3_MULTI_LANGS: &[&str] = &["en", "es", "fr", "de", "hi", "ru", "pt", "ja", "it", "nl"];
@@ -30,12 +32,17 @@ impl LanguageQueryStrategy for DeepgramLanguageStrategy {
         &self,
         query_pairs: &mut Serializer<'a, UrlQuery>,
         params: &ListenParams,
+        mode: TranscriptionMode,
     ) {
         let model = params.model.as_deref().unwrap_or("");
 
         match params.languages.len() {
             0 => {
-                query_pairs.append_pair("detect_language", "true");
+                if mode == TranscriptionMode::Batch {
+                    query_pairs.append_pair("detect_language", "true");
+                } else {
+                    query_pairs.append_pair("language", "en");
+                }
             }
             1 => {
                 if let Some(language) = params.languages.first() {
@@ -50,8 +57,11 @@ impl LanguageQueryStrategy for DeepgramLanguageStrategy {
                         let code = language.iso639().code();
                         query_pairs.append_pair("languages", code);
                     }
-                } else {
+                } else if mode == TranscriptionMode::Batch {
                     query_pairs.append_pair("detect_language", "true");
+                } else if let Some(language) = params.languages.first() {
+                    let code = language.iso639().code();
+                    query_pairs.append_pair("language", code);
                 }
             }
         }

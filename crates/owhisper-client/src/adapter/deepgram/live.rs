@@ -117,7 +117,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build_ws_url_unsupported_multi_lang_uses_detect_language() {
+    fn test_build_ws_url_unsupported_multi_lang_falls_back_to_first_language() {
         let adapter = DeepgramAdapter::default();
         let params = owhisper_interface::ListenParams {
             model: Some("nova-3-general".to_string()),
@@ -132,16 +132,20 @@ mod tests {
         let url_str = url.as_str();
 
         assert!(
-            url_str.contains("detect_language=true"),
-            "URL should contain detect_language=true for unsupported multi-lang"
+            url_str.contains("language=en"),
+            "URL should fall back to first language (en) for unsupported multi-lang"
         );
         assert!(
             !url_str.contains("languages="),
-            "URL should NOT contain languages= when using detect_language (causes 400 error)"
+            "URL should NOT contain languages= when falling back to single language"
         );
         assert!(
             !url_str.contains("language=multi"),
             "URL should NOT contain language=multi for unsupported multi-lang"
+        );
+        assert!(
+            !url_str.contains("detect_language"),
+            "URL should NOT contain detect_language (not supported with nova-3 streaming)"
         );
     }
 

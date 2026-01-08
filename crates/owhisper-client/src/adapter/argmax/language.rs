@@ -1,6 +1,8 @@
 use owhisper_interface::ListenParams;
 
-use crate::adapter::deepgram_compat::{LanguageQueryStrategy, Serializer, UrlQuery};
+use crate::adapter::deepgram_compat::{
+    LanguageQueryStrategy, Serializer, TranscriptionMode, UrlQuery,
+};
 
 const PARAKEET_V3_LANGS: &[&str] = &[
     "bg", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr", "hr", "hu", "it", "lt", "lv", "mt",
@@ -14,6 +16,7 @@ impl LanguageQueryStrategy for ArgmaxLanguageStrategy {
         &self,
         query_pairs: &mut Serializer<'a, UrlQuery>,
         params: &ListenParams,
+        _mode: TranscriptionMode,
     ) {
         let lang = pick_single_language(params);
         query_pairs.append_pair("language", lang.iso639().code());

@@ -2,7 +2,7 @@ mod keywords;
 mod language;
 
 pub use keywords::KeywordQueryStrategy;
-pub use language::LanguageQueryStrategy;
+pub use language::{LanguageQueryStrategy, TranscriptionMode};
 
 pub use url::UrlQuery;
 pub use url::form_urlencoded::Serializer;
@@ -88,7 +88,7 @@ where
 
     {
         let mut query_pairs = url.query_pairs_mut();
-        lang_strategy.append_language_query(&mut query_pairs, params);
+        lang_strategy.append_language_query(&mut query_pairs, params, TranscriptionMode::Live);
         keyword_strategy.append_keyword_query(&mut query_pairs, params);
     }
 
@@ -144,7 +144,7 @@ where
 
     {
         let mut query_pairs = url.query_pairs_mut();
-        lang_strategy.append_language_query(&mut query_pairs, params);
+        lang_strategy.append_language_query(&mut query_pairs, params, TranscriptionMode::Batch);
         keyword_strategy.append_keyword_query(&mut query_pairs, params);
     }
 

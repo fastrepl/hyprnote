@@ -1,0 +1,5 @@
+# Redirect all URLs with trailing slashes to non-trailing slash versions
+# This prevents duplicate content issues for SEO
+/*/  /:splat  301!
+
+# Note: The ! flag ensures this rule takes precedence over other redirects

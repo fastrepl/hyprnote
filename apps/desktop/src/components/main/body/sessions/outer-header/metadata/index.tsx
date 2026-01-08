@@ -58,12 +58,16 @@ const TriggerInner = forwardRef<
       {...props}
       variant="ghost"
       size="sm"
-      className={cn([open && "bg-neutral-100", hasEvent && "max-w-[200px]"])}
+      className={cn([
+        "text-neutral-600 hover:text-black",
+        open && "bg-neutral-100",
+        hasEvent && "max-w-[200px]",
+      ])}
     >
       {hasEvent ? (
         <VideoIcon size={14} className="shrink-0" />
       ) : (
-        <CalendarIcon size={14} className="-mt-0.5" />
+        <CalendarIcon size={14} className="shrink-0 -mt-0.5" />
       )}
       <span className={cn([hasEvent && "truncate"])}>{displayText}</span>
     </Button>

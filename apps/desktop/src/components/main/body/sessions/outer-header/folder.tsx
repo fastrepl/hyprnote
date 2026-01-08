@@ -81,7 +81,7 @@ function RenderIfRootExist({
                 size="sm"
                 variant="ghost"
                 onClick={() => openNew({ type: "folders", id })}
-                className="truncate px-0"
+                className="truncate px-0 text-neutral-600 hover:text-black"
               >
                 {name}
               </Button>

@@ -108,6 +108,7 @@ async fn run_stream_loop(ctx: StreamContext, mode: ChannelMode) {
         None
     };
 
+    // I believe this is not needed anymore since we do dynamic resampling with latest sample rate of device, but keep it just in case.
     if mode == ChannelMode::MicAndSpeaker {
         tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
     }

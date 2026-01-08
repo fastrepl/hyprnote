@@ -2,8 +2,6 @@ import { ARTICLE_FIELD_ORDER, createMdxFormatter } from "./mdx-format-core.js";
 
 const { parse, stringify } = createMdxFormatter(window.jsyaml);
 
-CMS.registerMediaLibrary(window.GitHubMediaLibrary);
-
 CMS.registerCustomFormat("mdx-custom", "mdx", {
   fromFile: (content) => {
     const { frontmatter, body } = parse(content);

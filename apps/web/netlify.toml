@@ -28,6 +28,12 @@ to = "/changelog/:splat"
 status = 301
 force = true
 
+[[redirects]]
+from = "/legal/*/"
+to = "/legal/:splat"
+status = 301
+force = true
+
 [images]
 # https://docs.netlify.com/build/image-cdn/overview/#remote-path
 remote_images = [

@@ -42,54 +42,36 @@ jobs:
     if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
-      proxy: ${{ steps.changes.outputs.proxy }}
-      adapter: ${{ steps.changes.outputs.adapter }}
-      deepgram: ${{ steps.changes.outputs.deepgram }}
-      assemblyai: ${{ steps.changes.outputs.assemblyai }}
-      soniox: ${{ steps.changes.outputs.soniox }}
-      gladia: ${{ steps.changes.outputs.gladia }}
-      fireworks: ${{ steps.changes.outputs.fireworks }}
-      openai: ${{ steps.changes.outputs.openai }}
+      proxy: ${{ steps.filter.outputs.proxy }}
+      adapter: ${{ steps.filter.outputs.adapter }}
+      deepgram: ${{ steps.filter.outputs.deepgram }}
+      assemblyai: ${{ steps.filter.outputs.assemblyai }}
+      soniox: ${{ steps.filter.outputs.soniox }}
+      gladia: ${{ steps.filter.outputs.gladia }}
+      fireworks: ${{ steps.filter.outputs.fireworks }}
+      openai: ${{ steps.filter.outputs.openai }}
     steps:
       - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          fetch-depth: 0
-      - id: changes
-        run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            BASE=${{ github.event.pull_request.base.sha }}
-            HEAD=${{ github.event.pull_request.head.sha }}
-          else
-            BEFORE="${{ github.event.before }}"
-            if [ "$BEFORE" == "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ]; then
-              BASE=$(git rev-parse HEAD^)
-            else
-              BASE="$BEFORE"
-            fi
-            HEAD=${{ github.sha }}
-          fi
-
-          CHANGED_FILES=$(git diff --name-only $BASE $HEAD)
-
-          if echo "$CHANGED_FILES" | grep -q "^crates/transcribe-proxy/"; then
-            echo "proxy=true" >> $GITHUB_OUTPUT
-          else
-            echo "proxy=false" >> $GITHUB_OUTPUT
-          fi
-
-          if echo "$CHANGED_FILES" | grep -q "^crates/owhisper-client/src/adapter/"; then
-            echo "adapter=true" >> $GITHUB_OUTPUT
-          else
-            echo "adapter=false" >> $GITHUB_OUTPUT
-          fi
-
-          for provider in deepgram assemblyai soniox gladia fireworks openai; do
-            if echo "$CHANGED_FILES" | grep -q "^crates/owhisper-client/src/adapter/$provider/"; then
-              echo "$provider=true" >> $GITHUB_OUTPUT
-            else
-              echo "$provider=false" >> $GITHUB_OUTPUT
-            fi
-          done
+          filters: |
+            proxy:
+              - 'crates/transcribe-proxy/**'
+            adapter:
+              - 'crates/owhisper-client/src/adapter/**'
+            deepgram:
+              - 'crates/owhisper-client/src/adapter/deepgram/**'
+            assemblyai:
+              - 'crates/owhisper-client/src/adapter/assemblyai/**'
+            soniox:
+              - 'crates/owhisper-client/src/adapter/soniox/**'
+            gladia:
+              - 'crates/owhisper-client/src/adapter/gladia/**'
+            fireworks:
+              - 'crates/owhisper-client/src/adapter/fireworks/**'
+            openai:
+              - 'crates/owhisper-client/src/adapter/openai/**'
 
   setup:
     runs-on: ubuntu-latest

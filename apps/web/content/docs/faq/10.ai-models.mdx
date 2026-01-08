@@ -1,0 +1,39 @@
+---
+title: "AI Models"
+section: "FAQ"
+description: "Questions about which AI models Hyprnote uses and data privacy practices."
+---
+
+## Which AI models does Hyprnote use?
+
+When you select the Hyprnote provider with the "Pro" model in the Intelligence settings, Hyprnote uses a combination of state-of-the-art AI models to provide the best experience. The specific models may change over time as we continuously improve our service, but we typically use models from leading providers like OpenAI and Anthropic for text generation and summarization tasks.
+
+For speech-to-text transcription, Hyprnote uses high-quality cloud-based transcription services when you select the Hyprnote cloud option, or local on-device models when you choose local transcription.
+
+## What data is sent to AI providers?
+
+When using the Hyprnote Pro model, your transcript text and any context needed for summarization is sent to our backend servers, which then communicate with AI providers to generate summaries and responses. We do not store your audio recordings on our servers.
+
+When using local AI models (Ollama, LM Studio, or downloaded local models), all processing happens entirely on your device and no data is sent to external servers.
+
+## How is my data protected when using cloud AI?
+
+We take data privacy seriously. When using cloud-based AI features:
+
+Your data is transmitted using industry-standard TLS encryption. We do not use your data to train AI models. Your transcripts and summaries are processed in real-time and are not retained on our servers after processing. We have data processing agreements with our AI providers that prohibit them from using your data for training purposes.
+
+## Can I use Hyprnote without sending data to the cloud?
+
+Yes. Hyprnote supports fully local AI processing. You can configure local LLM providers like Ollama or LM Studio for text generation, and use local speech-to-text models for transcription. When configured this way, all your data stays on your device and nothing is sent to external servers.
+
+## Which AI provider should I choose?
+
+If you want the easiest setup with high-quality results, use the Hyprnote provider with the Pro model. This gives you access to premium AI models without any configuration.
+
+If you prefer complete data privacy and offline capability, configure a local provider like Ollama or LM Studio. This requires more setup but ensures all processing happens on your device.
+
+If you have your own API keys from providers like OpenAI, Anthropic, or Google, you can use those directly for more control over your AI usage and billing.
+
+## Does Hyprnote comply with data protection regulations?
+
+Yes. Hyprnote is designed with privacy in mind and supports compliance with regulations like GDPR. Our local-first architecture means you can use Hyprnote in ways that keep all sensitive data on your device. For more details, please review our Privacy Policy and Data Processing Agreement.

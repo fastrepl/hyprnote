@@ -96,7 +96,7 @@ export function SelectProviderAndModel() {
             listeners={{
               onChange: ({ value }) => {
                 if (value === "hyprnote") {
-                  form.setFieldValue("model", "Auto");
+                  form.setFieldValue("model", "Pro");
                 } else {
                   form.setFieldValue("model", "");
                 }
@@ -219,10 +219,10 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
 
         if (provider.id === "hyprnote") {
           const result: ListModelsResult = {
-            models: ["Auto"],
+            models: ["Pro"],
             ignored: [],
             metadata: {
-              Auto: {
+              Pro: {
                 input_modalities: ["text", "image"] as InputModality[],
               },
             },

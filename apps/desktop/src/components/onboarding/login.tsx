@@ -28,7 +28,7 @@ export function Login({ onNavigate }: StepProps) {
   );
   const setLlmModel = settings.UI.useSetValueCallback(
     "current_llm_model",
-    () => "Auto",
+    () => "Pro",
     [],
     settings.STORE_ID,
   );

@@ -77,6 +77,22 @@ function HeroSection() {
   );
 }
 
+function formatChangelogDate(dateString: string): string {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  return sameYear
+    ? date.toLocaleDateString([], { month: "short", day: "numeric" })
+    : date.toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+}
+
 function ChangelogSection({ changelog }: { changelog: ChangelogWithMeta }) {
   const currentVersion = semver.parse(changelog.version);
   const isPrerelease = currentVersion && currentVersion.prerelease.length > 0;
@@ -84,6 +100,8 @@ function ChangelogSection({ changelog }: { changelog: ChangelogWithMeta }) {
     isPrerelease && currentVersion?.prerelease[0] === "nightly"
       ? currentVersion.prerelease[1]
       : null;
+
+  const formattedDate = formatChangelogDate(changelog.date);
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-6 md:gap-12">
@@ -113,6 +131,9 @@ function ChangelogSection({ changelog }: { changelog: ChangelogWithMeta }) {
               ? `${currentVersion.major}.${currentVersion.minor}.${currentVersion.patch}`
               : changelog.version}
           </h2>
+          {formattedDate && (
+            <div className="text-xs text-neutral-500 mt-1">{formattedDate}</div>
+          )}
         </div>
 
         <DownloadLinks version={changelog.version} />

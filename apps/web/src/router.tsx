@@ -15,6 +15,7 @@ export function getRouter() {
     context: { queryClient },
     defaultPreload: "intent",
     scrollRestoration: true,
+    trailingSlash: "always",
     Wrap: (props: { children: React.ReactNode }) => {
       return (
         <PostHogProvider>

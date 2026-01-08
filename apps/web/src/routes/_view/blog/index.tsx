@@ -373,7 +373,7 @@ function MostRecentFeaturedCard({ article }: { article: Article }) {
 
   return (
     <Link
-      to="/blog/$slug"
+      to="/blog/$slug/"
       params={{ slug: article.slug }}
       className="group block"
     >
@@ -453,7 +453,7 @@ function OtherFeaturedCard({
 
   return (
     <Link
-      to="/blog/$slug"
+      to="/blog/$slug/"
       params={{ slug: article.slug }}
       className={cn([
         "group block md:flex-1 md:min-w-0 lg:flex-auto",
@@ -540,7 +540,7 @@ function ArticleListItem({ article }: { article: Article }) {
 
   return (
     <Link
-      to="/blog/$slug"
+      to="/blog/$slug/"
       params={{ slug: article.slug }}
       className="group block"
     >

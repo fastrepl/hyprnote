@@ -65,7 +65,7 @@ function Component() {
           {reports.map((report) => (
             <Link
               key={report.id}
-              to="/k6-reports/$id"
+              to="/k6-reports/$id/"
               params={{ id: String(report.id) }}
               className="block p-4 bg-white border border-neutral-200 rounded-lg hover:border-neutral-300 hover:shadow-sm transition-all"
             >

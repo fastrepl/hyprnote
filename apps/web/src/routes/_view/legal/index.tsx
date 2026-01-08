@@ -59,7 +59,11 @@ function Component() {
 
 function LegalCard({ doc }: { doc: (typeof allLegals)[number] }) {
   return (
-    <Link to="/legal/$slug" params={{ slug: doc.slug }} className="group block">
+    <Link
+      to="/legal/$slug/"
+      params={{ slug: doc.slug }}
+      className="group block"
+    >
       <article className="h-full border border-neutral-100 rounded-sm bg-white hover:shadow-md hover:border-neutral-200 transition-all duration-300 p-6">
         <div className="flex items-start gap-3 mb-3">
           <Icon

@@ -435,7 +435,7 @@ function Component() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                to="/download"
+                to="/download/"
                 className={cn([
                   "px-8 py-3 text-base font-medium rounded-full",
                   "bg-linear-to-t from-stone-600 to-stone-500 text-white",
@@ -445,7 +445,7 @@ function Component() {
                 Download for free
               </Link>
               <Link
-                to="/product/notepad"
+                to="/product/notepad/"
                 className={cn([
                   "px-6 py-3 text-base font-medium rounded-full",
                   "border border-neutral-300 text-stone-600",

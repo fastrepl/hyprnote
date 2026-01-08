@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_view/company-handbook/$")({
 
     if (handbookStructure.defaultPages[normalizedSplat]) {
       throw redirect({
-        to: "/company-handbook/$",
+        to: "/company-handbook/$/",
         params: {
           _splat: handbookStructure.defaultPages[normalizedSplat],
         },
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_view/company-handbook/$")({
         return;
       }
       throw redirect({
-        to: "/company-handbook/$",
+        to: "/company-handbook/$/",
         params: { _splat: "about/what-hyprnote-is" },
       });
     }

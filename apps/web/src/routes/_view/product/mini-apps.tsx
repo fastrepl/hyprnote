@@ -59,7 +59,7 @@ function HeroSection() {
         </p>
         <div className="mt-8">
           <Link
-            to="/download"
+            to="/download/"
             className={cn([
               "inline-block px-8 py-3 text-base font-medium rounded-full",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white",
@@ -606,7 +606,7 @@ function CTASection() {
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link
-            to="/download"
+            to="/download/"
             className={cn([
               "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",

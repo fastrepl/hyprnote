@@ -430,7 +430,7 @@ function EnterpriseSecuritySection() {
 
         <div className="mt-8 text-center">
           <Link
-            to="/enterprise"
+            to="/enterprise/"
             className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 font-medium"
           >
             Learn more about enterprise features
@@ -459,7 +459,7 @@ function CTASection() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            to="/download"
+            to="/download/"
             className={cn([
               "inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-medium rounded-full",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white",
@@ -470,7 +470,7 @@ function CTASection() {
             Download Hyprnote
           </Link>
           <Link
-            to="/privacy"
+            to="/privacy/"
             className={cn([
               "inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-full",
               "border border-neutral-300 text-stone-600",

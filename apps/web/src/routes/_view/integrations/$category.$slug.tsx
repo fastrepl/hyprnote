@@ -177,7 +177,7 @@ function HeroSection({
 
         <div className="mt-8">
           <Link
-            to="/download"
+            to="/download/"
             className={cn([
               "inline-block px-8 py-3 text-base font-medium rounded-full",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white",

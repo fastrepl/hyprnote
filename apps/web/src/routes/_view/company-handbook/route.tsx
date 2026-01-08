@@ -60,8 +60,7 @@ function LeftSidebar() {
 
     const sections = handbookStructure.sections
       .map((sectionId) => {
-        const sectionName =
-          sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+        const sectionName = handbookStructure.sectionTitles[sectionId];
         return sectionGroups[sectionName];
       })
       .filter(Boolean);

@@ -109,6 +109,11 @@ jobs:
             if [ "${{ needs.detect-changes.outputs.fireworks }}" == "true" ]; then providers+=("fireworks"); fi
             if [ "${{ needs.detect-changes.outputs.openai }}" == "true" ]; then providers+=("openai"); fi
 
+            # Run all providers when proxy changes but no specific provider changed
+            if [ "${{ needs.detect-changes.outputs.proxy }}" == "true" ] && [ ${#providers[@]} -eq 0 ]; then
+              providers+=("deepgram" "assemblyai" "soniox" "gladia" "fireworks" "openai")
+            fi
+
             echo "run-proxy=${{ needs.detect-changes.outputs.proxy }}" >> $GITHUB_OUTPUT
             echo "run-adapter=${{ needs.detect-changes.outputs.adapter }}" >> $GITHUB_OUTPUT
           fi

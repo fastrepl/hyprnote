@@ -17864,13 +17864,16 @@ version = "0.1.0"
 dependencies = [
  "audio-priority",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-path2",
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -18051,6 +18054,26 @@ dependencies = [
  "tauri-plugin-fs",
  "thiserror 2.0.17",
  "url",
+]
+
+[[package]]
+name = "tauri-plugin-export"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "insta",
+ "markdown",
+ "mdast_util_to_markdown",
+ "rayon",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
 ]
 
 [[package]]

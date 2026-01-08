@@ -1,9 +1,14 @@
+use tauri::Manager;
+use tauri_plugin_path2::Path2PluginExt;
+
 mod commands;
 mod error;
 mod ext;
+mod state;
 
 pub use error::{Error, Result};
 pub use ext::*;
+pub use state::*;
 
 pub use hypr_audio_priority::*;
 
@@ -22,6 +27,27 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_default_input_device::<tauri::Wry>,
             commands::set_default_output_device::<tauri::Wry>,
             commands::is_headphone::<tauri::Wry>,
+            commands::load_state::<tauri::Wry>,
+            commands::save_state::<tauri::Wry>,
+            commands::get_input_priorities::<tauri::Wry>,
+            commands::get_speaker_priorities::<tauri::Wry>,
+            commands::get_headphone_priorities::<tauri::Wry>,
+            commands::save_input_priorities::<tauri::Wry>,
+            commands::save_speaker_priorities::<tauri::Wry>,
+            commands::save_headphone_priorities::<tauri::Wry>,
+            commands::move_device_to_top::<tauri::Wry>,
+            commands::get_device_category::<tauri::Wry>,
+            commands::set_device_category::<tauri::Wry>,
+            commands::get_current_mode::<tauri::Wry>,
+            commands::set_current_mode::<tauri::Wry>,
+            commands::is_custom_mode::<tauri::Wry>,
+            commands::set_custom_mode::<tauri::Wry>,
+            commands::get_known_devices::<tauri::Wry>,
+            commands::remember_device::<tauri::Wry>,
+            commands::forget_device::<tauri::Wry>,
+            commands::is_device_hidden::<tauri::Wry>,
+            commands::hide_device::<tauri::Wry>,
+            commands::unhide_device::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
@@ -31,6 +57,12 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
+        .setup(|app, _api| {
+            let base = app.path2().base().unwrap();
+            let state = AudioPriorityState::new(base);
+            assert!(app.manage(state));
+            Ok(())
+        })
         .build()
 }
 
@@ -60,7 +92,11 @@ mod test {
         ctx.config_mut().identifier = "com.hyprnote.dev".to_string();
         ctx.config_mut().version = Some("0.0.1".to_string());
 
-        builder.plugin(init()).build(ctx).unwrap()
+        builder
+            .plugin(tauri_plugin_path2::init())
+            .plugin(init())
+            .build(ctx)
+            .unwrap()
     }
 
     #[tokio::test]

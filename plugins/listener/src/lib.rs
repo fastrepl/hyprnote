@@ -21,6 +21,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::list_microphone_devices::<tauri::Wry>,
+            commands::get_default_microphone_device::<tauri::Wry>,
             commands::get_current_microphone_device::<tauri::Wry>,
             commands::get_mic_muted::<tauri::Wry>,
             commands::set_mic_muted::<tauri::Wry>,

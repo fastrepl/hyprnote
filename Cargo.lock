@@ -18057,26 +18057,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-export"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "insta",
- "markdown",
- "mdast_util_to_markdown",
- "rayon",
- "serde",
- "serde_json",
- "specta",
- "specta-typescript",
- "tauri",
- "tauri-plugin",
- "tauri-specta",
- "thiserror 2.0.17",
- "tokio",
-]
-
-[[package]]
 name = "tauri-plugin-extensions"
 version = "0.1.0"
 dependencies = [

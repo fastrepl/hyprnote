@@ -13,6 +13,14 @@ pub async fn list_microphone_devices<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_default_microphone_device<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    Ok(hypr_audio::AudioInput::get_default_device_name())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn get_current_microphone_device<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Option<String>, String> {

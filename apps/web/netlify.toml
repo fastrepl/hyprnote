@@ -10,6 +10,24 @@ VITE_APP_URL = "https://hyprnote.com"
 VITE_APP_VERSION = "${COMMIT_REF}"
 NODE_VERSION = "22"
 
+[[redirects]]
+from = "/blog/*/"
+to = "/blog/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "/docs/*/"
+to = "/docs/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "/changelog/*/"
+to = "/changelog/:splat"
+status = 301
+force = true
+
 [images]
 # https://docs.netlify.com/build/image-cdn/overview/#remote-path
 remote_images = [

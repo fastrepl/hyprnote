@@ -5,76 +5,102 @@ use futures_util::{Stream, StreamExt};
 mod macos;
 #[cfg(target_os = "macos")]
 type PlatformSpeakerInput = macos::SpeakerInput;
-#[cfg(target_os = "macos")]
+#[cfg(all(target_os = "macos", not(test)))]
 type PlatformSpeakerStream = macos::SpeakerStream;
 
 #[cfg(target_os = "windows")]
 mod windows;
 #[cfg(target_os = "windows")]
 type PlatformSpeakerInput = windows::SpeakerInput;
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", not(test)))]
 type PlatformSpeakerStream = windows::SpeakerStream;
 
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(target_os = "linux")]
 type PlatformSpeakerInput = linux::SpeakerInput;
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", not(test)))]
 type PlatformSpeakerStream = linux::SpeakerStream;
+
+#[cfg(test)]
+mod mock;
+
+#[cfg(all(
+    any(target_os = "macos", target_os = "windows", target_os = "linux"),
+    not(test)
+))]
+type InnerStream = PlatformSpeakerStream;
+
+#[cfg(test)]
+type InnerStream = mock::MockInnerStream;
 
 // https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mic.rs#L41
 pub struct SpeakerInput {
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     inner: PlatformSpeakerInput,
 }
 
 impl SpeakerInput {
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     pub fn new() -> Result<Self> {
         let inner = PlatformSpeakerInput::new()?;
         Ok(Self { inner })
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
-    pub fn new() -> Result<Self> {
-        Err(anyhow::anyhow!(
-            "'SpeakerInput::new' is not supported on this platform"
-        ))
-    }
-
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     pub fn sample_rate(&self) -> u32 {
         self.inner.sample_rate()
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
-    pub fn sample_rate(&self) -> u32 {
-        0
-    }
-
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+    #[cfg(not(test))]
     pub fn stream(self) -> Result<SpeakerStream> {
         let inner = self.inner.stream();
+        let initial_rate = inner.sample_rate();
         Ok(SpeakerStream {
             inner,
             buffer: Vec::new(),
             buffer_idx: 0,
+            buffer_rate: initial_rate,
         })
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    #[cfg(test)]
     pub fn stream(self) -> Result<SpeakerStream> {
-        Err(anyhow::anyhow!(
-            "'SpeakerInput::stream' is not supported on this platform"
-        ))
+        let platform_inner = self.inner.stream();
+        let initial_rate = platform_inner.sample_rate();
+        Ok(SpeakerStream {
+            inner: mock::MockInnerStream::new(vec![], initial_rate),
+            buffer: Vec::new(),
+            buffer_idx: 0,
+            buffer_rate: initial_rate,
+        })
     }
 }
 
 // https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mic.rs#L140
 pub struct SpeakerStream {
-    inner: PlatformSpeakerStream,
+    inner: InnerStream,
     buffer: Vec<f32>,
     buffer_idx: usize,
+    buffer_rate: u32,
+}
+
+#[cfg(test)]
+impl SpeakerStream {
+    pub fn new_mock(
+        chunks: Vec<Vec<f32>>,
+        initial_rate: u32,
+    ) -> (Self, std::sync::Arc<std::sync::atomic::AtomicU32>) {
+        let mock = mock::MockInnerStream::new(chunks, initial_rate);
+        let handle = mock.rate_handle();
+        let rate = mock.sample_rate();
+        (
+            Self {
+                inner: mock,
+                buffer: Vec::new(),
+                buffer_idx: 0,
+                buffer_rate: rate,
+            },
+            handle,
+        )
+    }
 }
 
 impl Stream for SpeakerStream {
@@ -84,34 +110,27 @@ impl Stream for SpeakerStream {
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
-        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
-        {
-            if self.buffer_idx < self.buffer.len() {
-                let sample = self.buffer[self.buffer_idx];
-                self.buffer_idx += 1;
-                return std::task::Poll::Ready(Some(sample));
-            }
-
-            match self.inner.poll_next_unpin(cx) {
-                std::task::Poll::Ready(Some(chunk)) => {
-                    self.buffer = chunk;
-                    self.buffer_idx = 0;
-                    if !self.buffer.is_empty() {
-                        let sample = self.buffer[0];
-                        self.buffer_idx = 1;
-                        std::task::Poll::Ready(Some(sample))
-                    } else {
-                        std::task::Poll::Pending
-                    }
-                }
-                std::task::Poll::Ready(None) => std::task::Poll::Ready(None),
-                std::task::Poll::Pending => std::task::Poll::Pending,
-            }
+        if self.buffer_idx < self.buffer.len() {
+            let sample = self.buffer[self.buffer_idx];
+            self.buffer_idx += 1;
+            return std::task::Poll::Ready(Some(sample));
         }
 
-        #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
-        {
-            std::task::Poll::Pending
+        match self.inner.poll_next_unpin(cx) {
+            std::task::Poll::Ready(Some(chunk)) => {
+                self.buffer = chunk;
+                self.buffer_idx = 0;
+                self.buffer_rate = self.inner.sample_rate();
+                if !self.buffer.is_empty() {
+                    let sample = self.buffer[0];
+                    self.buffer_idx = 1;
+                    std::task::Poll::Ready(Some(sample))
+                } else {
+                    std::task::Poll::Pending
+                }
+            }
+            std::task::Poll::Ready(None) => std::task::Poll::Ready(None),
+            std::task::Poll::Pending => std::task::Poll::Pending,
         }
     }
 }
@@ -121,21 +140,61 @@ impl hypr_audio_interface::AsyncSource for SpeakerStream {
         self
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     fn sample_rate(&self) -> u32 {
-        self.inner.sample_rate()
-    }
-
-    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
-    fn sample_rate(&self) -> u32 {
-        0
+        self.buffer_rate
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use hypr_audio_interface::AsyncSource;
     use serial_test::serial;
+    use std::sync::atomic::Ordering;
+
+    #[tokio::test]
+    async fn test_buffer_rate_preserved_after_rate_change() {
+        let (mut stream, rate_handle) = SpeakerStream::new_mock(
+            vec![vec![1.0, 2.0, 3.0, 4.0], vec![5.0, 6.0, 7.0, 8.0]],
+            48000,
+        );
+
+        assert_eq!(stream.sample_rate(), 48000);
+
+        let s1 = stream.next().await.unwrap();
+        assert_eq!(s1, 1.0);
+        assert_eq!(stream.sample_rate(), 48000);
+
+        rate_handle.store(44100, Ordering::Release);
+
+        let s2 = stream.next().await.unwrap();
+        assert_eq!(s2, 2.0);
+        assert_eq!(
+            stream.sample_rate(),
+            48000,
+            "Rate should stay 48000 for buffered samples"
+        );
+
+        let s3 = stream.next().await.unwrap();
+        assert_eq!(s3, 3.0);
+        assert_eq!(stream.sample_rate(), 48000);
+
+        let s4 = stream.next().await.unwrap();
+        assert_eq!(s4, 4.0);
+        assert_eq!(stream.sample_rate(), 48000);
+
+        let s5 = stream.next().await.unwrap();
+        assert_eq!(s5, 5.0);
+        assert_eq!(
+            stream.sample_rate(),
+            44100,
+            "Rate should update to 44100 after new chunk is fetched"
+        );
+
+        let s6 = stream.next().await.unwrap();
+        assert_eq!(s6, 6.0);
+        assert_eq!(stream.sample_rate(), 44100);
+    }
 
     #[cfg(target_os = "macos")]
     #[tokio::test]
@@ -166,18 +225,14 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_windows() {
-        use hypr_audio_interface::AsyncSource;
-
-        // Test that we can create a SpeakerInput
         let input = match SpeakerInput::new() {
             Ok(input) => input,
             Err(e) => {
                 println!("Failed to create SpeakerInput: {}", e);
-                return; // Skip test if WASAPI is not available
+                return;
             }
         };
 
-        // Test that we can create a stream
         let mut stream = match input.stream() {
             Ok(stream) => stream,
             Err(e) => {
@@ -186,12 +241,10 @@ mod tests {
             }
         };
 
-        // Check that we get a reasonable sample rate
         let sample_rate = stream.sample_rate();
         assert!(sample_rate > 0);
         println!("Windows speaker sample rate: {}", sample_rate);
 
-        // Try to get some samples
         let mut sample_count = 0;
         while let Some(_sample) = stream.next().await {
             sample_count += 1;
@@ -208,8 +261,6 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_linux() {
-        use hypr_audio_interface::AsyncSource;
-
         let input = match SpeakerInput::new() {
             Ok(input) => input,
             Err(e) => {

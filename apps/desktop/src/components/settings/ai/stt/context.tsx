@@ -50,12 +50,6 @@ export function SttSettingsProvider({
   const clearToastActionTarget = useToastAction((state) => state.clearTarget);
 
   useEffect(() => {
-    if (!hasSttConfigured && accordionValue !== "hyprnote") {
-      setAccordionValue("hyprnote");
-    }
-  }, [hasSttConfigured, accordionValue]);
-
-  useEffect(() => {
     if (toastActionTarget === "stt") {
       setAccordionValue("hyprnote");
       setShouldHighlight(true);

@@ -14,11 +14,15 @@ export const Route = createFileRoute("/api/media-upload")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!env.GITHUB_TOKEN) {
-          return new Response(JSON.stringify({ error: "GitHub token not configured" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
+        const githubToken = env.YUJONGLEE_GITHUB_TOKEN_REPO;
+        if (!githubToken) {
+          return new Response(
+            JSON.stringify({ error: "GitHub token not configured" }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         }
 
         let body: { filename: string; content: string; folder: string };
@@ -34,10 +38,15 @@ export const Route = createFileRoute("/api/media-upload")({
         const { filename, content, folder } = body;
 
         if (!filename || !content || !folder) {
-          return new Response(JSON.stringify({ error: "Missing required fields: filename, content, folder" }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          });
+          return new Response(
+            JSON.stringify({
+              error: "Missing required fields: filename, content, folder",
+            }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         }
 
         if (!ALLOWED_FOLDERS.includes(folder)) {
@@ -47,30 +56,40 @@ export const Route = createFileRoute("/api/media-upload")({
           });
         }
 
-        const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "-").toLowerCase();
+        const sanitizedFilename = filename
+          .replace(/[^a-zA-Z0-9.-]/g, "-")
+          .toLowerCase();
         const path = `${folder}/${sanitizedFilename}`;
 
         try {
-          const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`, {
-            method: "PUT",
-            headers: {
-              Authorization: `token ${env.GITHUB_TOKEN}`,
-              "Content-Type": "application/json",
-              Accept: "application/vnd.github.v3+json",
+          const response = await fetch(
+            `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
+            {
+              method: "PUT",
+              headers: {
+                Authorization: `token ${githubToken}`,
+                "Content-Type": "application/json",
+                Accept: "application/vnd.github.v3+json",
+              },
+              body: JSON.stringify({
+                message: `Upload ${sanitizedFilename} via Decap CMS`,
+                content,
+                branch: GITHUB_BRANCH,
+              }),
             },
-            body: JSON.stringify({
-              message: `Upload ${sanitizedFilename} via Decap CMS`,
-              content,
-              branch: GITHUB_BRANCH,
-            }),
-          });
+          );
 
           if (!response.ok) {
             const error = await response.json();
-            return new Response(JSON.stringify({ error: error.message || `GitHub API error: ${response.status}` }), {
-              status: response.status,
-              headers: { "Content-Type": "application/json" },
-            });
+            return new Response(
+              JSON.stringify({
+                error: error.message || `GitHub API error: ${response.status}`,
+              }),
+              {
+                status: response.status,
+                headers: { "Content-Type": "application/json" },
+              },
+            );
           }
 
           const result = await response.json();
@@ -89,10 +108,15 @@ export const Route = createFileRoute("/api/media-upload")({
             },
           );
         } catch (error) {
-          return new Response(JSON.stringify({ error: `Upload failed: ${(error as Error).message}` }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
+          return new Response(
+            JSON.stringify({
+              error: `Upload failed: ${(error as Error).message}`,
+            }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         }
       },
     },

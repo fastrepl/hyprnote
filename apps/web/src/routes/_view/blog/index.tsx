@@ -227,7 +227,7 @@ function DesktopSidebar({
 }) {
   return (
     <aside className="hidden lg:block w-56 shrink-0">
-      <div className="sticky top-21.25">
+      <div className="sticky top-[85px]">
         <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">
           Categories
         </h3>

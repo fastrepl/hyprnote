@@ -2,66 +2,42 @@ const createGitHubMediaLibrary = () => {
   let modal = null;
   let handleInsert = null;
   let allowMultiple = false;
-  let selectedImages = new Set();
-  let cachedImages = null;
-  let cacheTimestamp = null;
-  const CACHE_DURATION = 5 * 60 * 1000;
+  let selectedItems = new Set();
+  let currentPath = "";
+  let viewMode = "grid";
+  let allItems = [];
+  let uploadingFiles = [];
+  let isUploading = false;
 
   const GITHUB_REPO = "fastrepl/hyprnote";
   const GITHUB_BRANCH = "main";
   const IMAGES_PATH = "apps/web/public/images";
-  const FOLDERS = [
-    { value: "apps/web/public/images", label: "/images (root)" },
-    { value: "apps/web/public/images/blog", label: "/images/blog" },
-    { value: "apps/web/public/images/handbook", label: "/images/handbook" },
-  ];
 
-  async function fetchImagesFromGitHub(path = IMAGES_PATH) {
+  let cachedData = {};
+  let cacheTimestamp = {};
+  const CACHE_DURATION = 5 * 60 * 1000;
+
+  async function fetchFolder(path = IMAGES_PATH) {
+    const cacheKey = path;
+    if (cachedData[cacheKey] && cacheTimestamp[cacheKey] && Date.now() - cacheTimestamp[cacheKey] < CACHE_DURATION) {
+      return cachedData[cacheKey];
+    }
+
     const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`GitHub API error: ${response.status}`);
     }
-    return response.json();
-  }
-
-  async function fetchAllImages(path = IMAGES_PATH, forceRefresh = false) {
-    if (!forceRefresh && cachedImages && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_DURATION) {
-      return cachedImages;
-    }
-
-    const contents = await fetchImagesFromGitHub(path);
-    const images = [];
-
-    for (const item of contents) {
-      if (item.type === "dir") {
-        const subImages = await fetchAllImages(item.path, true);
-        images.push(...subImages);
-      } else if (item.type === "file" && isImageFile(item.name)) {
-        const publicPath = item.path.replace("apps/web/public", "");
-        images.push({
-          name: item.name,
-          path: publicPath,
-          fullPath: item.path,
-          folder: item.path.replace(`/${item.name}`, "").replace("apps/web/public/images", "") || "/",
-          url: item.download_url,
-        });
-      }
-    }
-
-    if (path === IMAGES_PATH) {
-      cachedImages = images;
-      cacheTimestamp = Date.now();
-    }
-
-    return images;
+    const data = await response.json();
+    cachedData[cacheKey] = data;
+    cacheTimestamp[cacheKey] = Date.now();
+    return data;
   }
 
   async function uploadViaAPI(file, folder) {
-    const base64Content = await new Promise((resolve, reject) => {
+    const base64Content = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.onerror = () => reject(new Error("Failed to read file"));
       reader.readAsDataURL(file);
     });
 
@@ -71,17 +47,16 @@ const createGitHubMediaLibrary = () => {
       body: JSON.stringify({
         filename: file.name,
         content: base64Content,
-        folder: folder,
+        folder: folder || IMAGES_PATH,
       }),
     });
 
     const result = await response.json();
-
     if (!response.ok) {
       throw new Error(result.error || `Upload failed: ${response.status}`);
     }
 
-    cachedImages = null;
+    delete cachedData[folder || IMAGES_PATH];
     return result;
   }
 
@@ -90,18 +65,22 @@ const createGitHubMediaLibrary = () => {
     return ["jpg", "jpeg", "png", "gif", "svg", "webp", "avif"].includes(ext);
   }
 
+  function getPublicPath(fullPath) {
+    return fullPath.replace("apps/web/public", "");
+  }
+
   function createModal() {
     const overlay = document.createElement("div");
-    overlay.id = "github-media-library-overlay";
+    overlay.id = "gml-overlay";
     overlay.innerHTML = `
       <style>
-        #github-media-library-overlay {
+        #gml-overlay {
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.7);
+          background: rgba(0, 0, 0, 0.6);
           z-index: 10000;
           display: flex;
           align-items: center;
@@ -111,181 +90,260 @@ const createGitHubMediaLibrary = () => {
           background: white;
           border-radius: 8px;
           width: 90%;
-          max-width: 900px;
-          max-height: 85vh;
+          max-width: 960px;
+          height: 80vh;
           display: flex;
           flex-direction: column;
           overflow: hidden;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.2);
         }
+
+        /* Header */
         .gml-header {
-          padding: 16px 20px;
-          border-bottom: 1px solid #e5e5e5;
+          padding: 12px 16px;
+          border-bottom: 1px solid #e0e0e0;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          background: #fafafa;
         }
-        .gml-header h2 {
-          margin: 0;
-          font-size: 18px;
+        .gml-title {
+          font-size: 15px;
           font-weight: 600;
+          color: #333;
         }
         .gml-header-actions {
           display: flex;
-          gap: 12px;
+          gap: 4px;
           align-items: center;
         }
-        .gml-fullscreen {
-          font-size: 18px;
+        .gml-icon-btn {
+          background: none;
+          border: 1px solid transparent;
+          width: 32px;
+          height: 32px;
+          border-radius: 6px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           color: #666;
+          font-size: 16px;
           text-decoration: none;
-          padding: 4px;
-          position: relative;
-          top: 4px;
         }
-        .gml-fullscreen:hover {
-          color: #333;
+        .gml-icon-btn:hover {
+          background: #e8e8e8;
         }
-        .gml-close {
-          background: none;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          color: #666;
-          padding: 0;
-          line-height: 1;
+        .gml-icon-btn.active {
+          background: #e0e0e0;
+          border-color: #ccc;
         }
-        .gml-close:hover {
-          color: #333;
-        }
-        .gml-tabs {
+        .gml-view-toggle {
           display: flex;
-          border-bottom: 1px solid #e5e5e5;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          overflow: hidden;
         }
-        .gml-tab {
-          padding: 12px 20px;
+        .gml-view-toggle .gml-icon-btn {
           border: none;
-          background: none;
-          font-size: 14px;
-          cursor: pointer;
-          color: #666;
-          border-bottom: 2px solid transparent;
-          margin-bottom: -1px;
+          border-radius: 0;
         }
-        .gml-tab:hover {
-          color: #333;
+        .gml-view-toggle .gml-icon-btn:first-child {
+          border-right: 1px solid #ddd;
         }
-        .gml-tab.active {
-          color: #0066cc;
-          border-bottom-color: #0066cc;
-        }
-        .gml-toolbar {
-          padding: 12px 20px;
-          border-bottom: 1px solid #e5e5e5;
+
+        /* Search */
+        .gml-search-bar {
+          padding: 12px 16px;
+          border-bottom: 1px solid #e0e0e0;
           display: flex;
-          gap: 12px;
           align-items: center;
+          gap: 8px;
+          background: white;
         }
-        .gml-folder-filter, .gml-upload-folder {
-          padding: 6px 12px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
+        .gml-search-icon {
+          color: #999;
           font-size: 14px;
-          min-width: 150px;
         }
-        .gml-search {
-          padding: 6px 12px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 14px;
+        .gml-search-input {
           flex: 1;
+          border: none;
+          outline: none;
+          font-size: 14px;
+          background: transparent;
         }
+        .gml-search-input::placeholder {
+          color: #999;
+        }
+
+        /* Breadcrumb */
+        .gml-breadcrumb {
+          padding: 8px 16px;
+          border-bottom: 1px solid #e0e0e0;
+          font-size: 13px;
+          color: #666;
+          background: #fafafa;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .gml-breadcrumb-item {
+          color: #0066cc;
+          cursor: pointer;
+          text-decoration: none;
+        }
+        .gml-breadcrumb-item:hover {
+          text-decoration: underline;
+        }
+        .gml-breadcrumb-sep {
+          color: #999;
+        }
+        .gml-breadcrumb-current {
+          color: #333;
+        }
+
+        /* Content / Finder View */
         .gml-content {
           flex: 1;
           overflow-y: auto;
-          padding: 20px;
+          background: white;
         }
-        .gml-loading {
+        .gml-loading, .gml-empty, .gml-error {
+          padding: 60px;
           text-align: center;
-          padding: 40px;
           color: #666;
         }
         .gml-error {
-          text-align: center;
-          padding: 40px;
           color: #dc3545;
         }
+
+        /* Grid View */
         .gml-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-          gap: 16px;
+          grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+          gap: 12px;
+          padding: 16px;
         }
-        .gml-image-item {
+        .gml-grid-item {
           border: 2px solid transparent;
           border-radius: 8px;
           overflow: hidden;
           cursor: pointer;
-          transition: all 0.15s ease;
-          background: #f5f5f5;
+          transition: all 0.1s ease;
+          background: #f8f8f8;
         }
-        .gml-image-item:hover {
+        .gml-grid-item:hover {
           border-color: #0066cc;
         }
-        .gml-image-item.selected {
+        .gml-grid-item.selected {
           border-color: #0066cc;
-          box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.3);
+          background: #e8f0fe;
         }
-        .gml-image-wrapper {
+        .gml-grid-thumb {
           aspect-ratio: 1;
           display: flex;
           align-items: center;
           justify-content: center;
           overflow: hidden;
-          background: #fafafa;
+          background: #f0f0f0;
         }
-        .gml-image-wrapper img {
+        .gml-grid-thumb img {
           max-width: 100%;
           max-height: 100%;
           object-fit: contain;
         }
-        .gml-image-info {
+        .gml-grid-thumb.folder {
+          font-size: 48px;
+        }
+        .gml-grid-name {
           padding: 8px;
           font-size: 11px;
-          color: #666;
+          color: #333;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          border-top: 1px solid #eee;
+          text-align: center;
         }
-        .gml-image-folder {
-          font-size: 10px;
+
+        /* List View */
+        .gml-list {
+          display: flex;
+          flex-direction: column;
+        }
+        .gml-list-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 16px;
+          border-bottom: 1px solid #f0f0f0;
+          cursor: pointer;
+          transition: background 0.1s ease;
+        }
+        .gml-list-item:hover {
+          background: #f5f5f5;
+        }
+        .gml-list-item.selected {
+          background: #e8f0fe;
+        }
+        .gml-list-icon {
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          flex-shrink: 0;
+        }
+        .gml-list-icon img {
+          width: 32px;
+          height: 32px;
+          object-fit: cover;
+          border-radius: 4px;
+        }
+        .gml-list-info {
+          flex: 1;
+          min-width: 0;
+        }
+        .gml-list-name {
+          font-size: 14px;
+          color: #333;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .gml-list-path {
+          font-size: 12px;
           color: #999;
-          margin-top: 2px;
         }
-        .gml-footer {
-          padding: 16px 20px;
-          border-top: 1px solid #e5e5e5;
+
+        /* Toolbar */
+        .gml-toolbar {
+          padding: 12px 16px;
+          border-top: 1px solid #e0e0e0;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          background: #fafafa;
+          min-height: 56px;
         }
-        .gml-selected-count {
+        .gml-toolbar-left {
           font-size: 14px;
           color: #666;
         }
-        .gml-actions {
+        .gml-toolbar-right {
           display: flex;
           gap: 8px;
         }
         .gml-btn {
           padding: 8px 16px;
-          border-radius: 4px;
+          border-radius: 6px;
           font-size: 14px;
           cursor: pointer;
           border: 1px solid #ddd;
           background: white;
         }
         .gml-btn:hover {
-          background: #f5f5f5;
+          background: #f0f0f0;
         }
         .gml-btn-primary {
           background: #0066cc;
@@ -293,146 +351,70 @@ const createGitHubMediaLibrary = () => {
           border-color: #0066cc;
         }
         .gml-btn-primary:hover {
-          background: #0052a3;
+          background: #0055aa;
         }
-        .gml-btn-primary:disabled {
-          background: #ccc;
-          border-color: #ccc;
+        .gml-btn-danger {
+          color: #dc3545;
+          border-color: #dc3545;
+        }
+        .gml-btn-danger:hover {
+          background: #dc3545;
+          color: white;
+        }
+        .gml-btn:disabled {
+          opacity: 0.5;
           cursor: not-allowed;
         }
-        .gml-empty {
-          text-align: center;
-          padding: 40px;
-          color: #666;
+
+        /* Drop zone */
+        .gml-content.dragover {
+          background: #e8f4ff;
         }
-        .gml-upload-zone {
-          border: 2px dashed #ddd;
-          border-radius: 8px;
-          padding: 40px;
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .gml-upload-zone:hover, .gml-upload-zone.dragover {
-          border-color: #0066cc;
-          background: #f0f7ff;
-        }
-        .gml-upload-zone input {
-          display: none;
-        }
-        .gml-upload-icon {
-          font-size: 48px;
-          margin-bottom: 16px;
-        }
-        .gml-upload-text {
-          font-size: 16px;
-          color: #333;
-          margin-bottom: 8px;
-        }
-        .gml-upload-hint {
-          font-size: 14px;
-          color: #666;
-        }
-        .gml-upload-progress {
-          margin-top: 20px;
-          padding: 16px;
-          background: #f5f5f5;
-          border-radius: 8px;
-        }
-        .gml-upload-progress-text {
-          font-size: 14px;
-          color: #333;
-          margin-bottom: 8px;
-        }
-        .gml-upload-progress-bar {
-          height: 4px;
-          background: #ddd;
-          border-radius: 2px;
-          overflow: hidden;
-        }
-        .gml-upload-progress-fill {
-          height: 100%;
-          background: #0066cc;
-          transition: width 0.3s ease;
-        }
-        .gml-panel {
-          display: none;
-        }
-        .gml-panel.active {
-          display: block;
-        }
-        .gml-uploaded-preview {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px;
-          background: #d4edda;
-          border-radius: 8px;
-          margin-top: 16px;
-        }
-        .gml-uploaded-preview img {
-          width: 60px;
-          height: 60px;
-          object-fit: cover;
-          border-radius: 4px;
-        }
-        .gml-uploaded-info {
-          flex: 1;
-        }
-        .gml-uploaded-name {
-          font-weight: 500;
-          margin-bottom: 4px;
-        }
-        .gml-uploaded-path {
-          font-size: 12px;
-          color: #666;
+        .gml-content.dragover::after {
+          content: "Drop files here to upload";
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-size: 18px;
+          color: #0066cc;
+          pointer-events: none;
         }
       </style>
+
       <div class="gml-modal">
         <div class="gml-header">
-          <h2>Media Library</h2>
+          <span class="gml-title">Media Library</span>
           <div class="gml-header-actions">
-            <a href="/admin/media.html" target="_blank" class="gml-fullscreen" title="Open in full screen">⛶</a>
-            <button class="gml-close" aria-label="Close">&times;</button>
-          </div>
-        </div>
-        <div class="gml-tabs">
-          <button class="gml-tab active" data-tab="browse">Browse</button>
-          <button class="gml-tab" data-tab="upload">Upload</button>
-        </div>
-        <div class="gml-panel active" data-panel="browse">
-          <div class="gml-toolbar">
-            <select class="gml-folder-filter">
-              <option value="">All folders</option>
-            </select>
-            <input type="text" class="gml-search" placeholder="Search images...">
-          </div>
-          <div class="gml-content">
-            <div class="gml-loading">Loading images...</div>
-          </div>
-        </div>
-        <div class="gml-panel" data-panel="upload">
-          <div class="gml-toolbar">
-            <label style="font-size:14px;color:#666;">Upload to:</label>
-            <select class="gml-upload-folder">
-              ${FOLDERS.map((f) => `<option value="${f.value}">${f.label}</option>`).join("")}
-            </select>
-          </div>
-          <div class="gml-content">
-            <div class="gml-upload-zone">
-              <input type="file" accept="image/*" multiple>
-              <div class="gml-upload-icon">📁</div>
-              <div class="gml-upload-text">Drop images here or click to browse</div>
-              <div class="gml-upload-hint">Supports JPG, PNG, GIF, SVG, WebP</div>
+            <div class="gml-view-toggle">
+              <button class="gml-icon-btn gml-view-list" title="List view">☰</button>
+              <button class="gml-icon-btn gml-view-grid active" title="Grid view">⊞</button>
             </div>
-            <div class="gml-upload-result"></div>
+            <a href="/admin/media.html" target="_blank" class="gml-icon-btn" title="Open full screen">⛶</a>
+            <button class="gml-icon-btn gml-close" title="Close">✕</button>
           </div>
         </div>
-        <div class="gml-footer">
-          <span class="gml-selected-count">0 selected</span>
-          <div class="gml-actions">
-            <button class="gml-btn gml-cancel">Cancel</button>
-            <button class="gml-btn gml-btn-primary gml-insert" disabled>Insert</button>
+
+        <div class="gml-search-bar">
+          <span class="gml-search-icon">🔍</span>
+          <input type="text" class="gml-search-input" placeholder="Search files...">
+        </div>
+
+        <div class="gml-breadcrumb">
+          <span class="gml-breadcrumb-item" data-path="">images</span>
+        </div>
+
+        <div class="gml-content">
+          <div class="gml-loading">Loading...</div>
+        </div>
+
+        <div class="gml-toolbar">
+          <div class="gml-toolbar-left"></div>
+          <div class="gml-toolbar-right">
+            <label class="gml-btn gml-btn-primary gml-upload-btn">
+              Upload asset
+              <input type="file" accept="image/*" multiple style="display:none;">
+            </label>
           </div>
         </div>
       </div>
@@ -441,212 +423,264 @@ const createGitHubMediaLibrary = () => {
     return overlay;
   }
 
-  function renderImages(images, container, filterFolder = "", searchQuery = "") {
-    let filtered = images;
+  function renderBreadcrumb() {
+    const breadcrumb = modal.querySelector(".gml-breadcrumb");
+    const parts = currentPath ? currentPath.split("/") : [];
 
-    if (filterFolder) {
-      filtered = filtered.filter((img) => img.folder === filterFolder);
+    let html = `<span class="gml-breadcrumb-item" data-path="">images</span>`;
+    let path = "";
+
+    for (let i = 0; i < parts.length; i++) {
+      path += (path ? "/" : "") + parts[i];
+      html += `<span class="gml-breadcrumb-sep">/</span>`;
+      if (i === parts.length - 1) {
+        html += `<span class="gml-breadcrumb-current">${parts[i]}</span>`;
+      } else {
+        html += `<span class="gml-breadcrumb-item" data-path="${path}">${parts[i]}</span>`;
+      }
     }
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((img) => img.name.toLowerCase().includes(query));
-    }
+    breadcrumb.innerHTML = html;
 
-    if (filtered.length === 0) {
-      container.innerHTML = '<div class="gml-empty">No images found</div>';
-      return;
-    }
-
-    container.innerHTML = `<div class="gml-grid">${filtered
-      .map(
-        (img) => `
-        <div class="gml-image-item ${selectedImages.has(img.path) ? "selected" : ""}" data-path="${img.path}">
-          <div class="gml-image-wrapper">
-            <img src="${img.url}" alt="${img.name}" loading="lazy">
-          </div>
-          <div class="gml-image-info">
-            ${img.name}
-            <div class="gml-image-folder">${img.folder}</div>
-          </div>
-        </div>
-      `,
-      )
-      .join("")}</div>`;
-
-    container.querySelectorAll(".gml-image-item").forEach((item) => {
+    breadcrumb.querySelectorAll(".gml-breadcrumb-item").forEach((item) => {
       item.addEventListener("click", () => {
-        const path = item.dataset.path;
-
-        if (!allowMultiple) {
-          selectedImages.clear();
-          container.querySelectorAll(".gml-image-item").forEach((el) => el.classList.remove("selected"));
-        }
-
-        if (selectedImages.has(path)) {
-          selectedImages.delete(path);
-          item.classList.remove("selected");
-        } else {
-          selectedImages.add(path);
-          item.classList.add("selected");
-        }
-
-        updateSelectedCount();
+        currentPath = item.dataset.path;
+        loadFolder();
       });
     });
   }
 
-  function updateSelectedCount() {
-    const countEl = modal.querySelector(".gml-selected-count");
-    const insertBtn = modal.querySelector(".gml-insert");
-    countEl.textContent = `${selectedImages.size} selected`;
-    insertBtn.disabled = selectedImages.size === 0;
+  function renderItems(items, searchQuery = "") {
+    const content = modal.querySelector(".gml-content");
+
+    let filtered = items;
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = items.filter((item) => item.name.toLowerCase().includes(query));
+    }
+
+    const folders = filtered.filter((item) => item.type === "dir");
+    const files = filtered.filter((item) => item.type === "file" && isImageFile(item.name));
+    const sorted = [...folders, ...files];
+
+    if (sorted.length === 0) {
+      content.innerHTML = '<div class="gml-empty">No files found</div>';
+      return;
+    }
+
+    if (viewMode === "grid") {
+      content.innerHTML = `<div class="gml-grid">${sorted
+        .map((item) => {
+          const isFolder = item.type === "dir";
+          const publicPath = isFolder ? "" : getPublicPath(item.path);
+          const isSelected = selectedItems.has(publicPath);
+          return `
+            <div class="gml-grid-item ${isSelected ? "selected" : ""}" data-path="${item.path}" data-type="${item.type}" data-public="${publicPath}">
+              <div class="gml-grid-thumb ${isFolder ? "folder" : ""}">
+                ${isFolder ? "📁" : `<img src="${item.download_url}" loading="lazy">`}
+              </div>
+              <div class="gml-grid-name">${item.name}</div>
+            </div>
+          `;
+        })
+        .join("")}</div>`;
+    } else {
+      content.innerHTML = `<div class="gml-list">${sorted
+        .map((item) => {
+          const isFolder = item.type === "dir";
+          const publicPath = isFolder ? "" : getPublicPath(item.path);
+          const isSelected = selectedItems.has(publicPath);
+          return `
+            <div class="gml-list-item ${isSelected ? "selected" : ""}" data-path="${item.path}" data-type="${item.type}" data-public="${publicPath}">
+              <div class="gml-list-icon">
+                ${isFolder ? "📁" : `<img src="${item.download_url}" loading="lazy">`}
+              </div>
+              <div class="gml-list-info">
+                <div class="gml-list-name">${item.name}</div>
+                ${!isFolder ? `<div class="gml-list-path">${publicPath}</div>` : ""}
+              </div>
+            </div>
+          `;
+        })
+        .join("")}</div>`;
+    }
+
+    content.querySelectorAll(".gml-grid-item, .gml-list-item").forEach((item) => {
+      item.addEventListener("click", (e) => {
+        const type = item.dataset.type;
+        const path = item.dataset.path;
+        const publicPath = item.dataset.public;
+
+        if (type === "dir") {
+          currentPath = path.replace(IMAGES_PATH + "/", "").replace(IMAGES_PATH, "");
+          loadFolder();
+        } else {
+          if (e.metaKey || e.ctrlKey || allowMultiple) {
+            if (selectedItems.has(publicPath)) {
+              selectedItems.delete(publicPath);
+              item.classList.remove("selected");
+            } else {
+              selectedItems.add(publicPath);
+              item.classList.add("selected");
+            }
+          } else {
+            selectedItems.clear();
+            content.querySelectorAll(".selected").forEach((el) => el.classList.remove("selected"));
+            selectedItems.add(publicPath);
+            item.classList.add("selected");
+          }
+          updateToolbar();
+        }
+      });
+
+      item.addEventListener("dblclick", () => {
+        const type = item.dataset.type;
+        const publicPath = item.dataset.public;
+        if (type === "file" && publicPath) {
+          handleInsert({ path: publicPath, url: publicPath });
+          hide();
+        }
+      });
+    });
   }
 
-  function switchTab(tabName) {
-    modal.querySelectorAll(".gml-tab").forEach((t) => t.classList.remove("active"));
-    modal.querySelectorAll(".gml-panel").forEach((p) => p.classList.remove("active"));
-    modal.querySelector(`.gml-tab[data-tab="${tabName}"]`).classList.add("active");
-    modal.querySelector(`.gml-panel[data-panel="${tabName}"]`).classList.add("active");
+  function updateToolbar() {
+    const toolbarLeft = modal.querySelector(".gml-toolbar-left");
+    const toolbarRight = modal.querySelector(".gml-toolbar-right");
+
+    if (isUploading) {
+      toolbarLeft.textContent = `${uploadingFiles.length} file${uploadingFiles.length > 1 ? "s" : ""}`;
+      toolbarRight.innerHTML = `<button class="gml-btn" disabled>Uploading...</button>`;
+    } else if (selectedItems.size > 0) {
+      toolbarLeft.textContent = `${selectedItems.size} selected`;
+      toolbarRight.innerHTML = `
+        <button class="gml-btn gml-btn-primary gml-insert-btn">Insert</button>
+        <button class="gml-btn gml-cancel-select">Cancel</button>
+      `;
+
+      toolbarRight.querySelector(".gml-insert-btn").addEventListener("click", () => {
+        const assets = Array.from(selectedItems).map((path) => ({ path, url: path }));
+        handleInsert(assets.length === 1 ? assets[0] : assets);
+        hide();
+      });
+
+      toolbarRight.querySelector(".gml-cancel-select").addEventListener("click", () => {
+        selectedItems.clear();
+        modal.querySelectorAll(".selected").forEach((el) => el.classList.remove("selected"));
+        updateToolbar();
+      });
+    } else {
+      toolbarLeft.textContent = "";
+      toolbarRight.innerHTML = `
+        <label class="gml-btn gml-btn-primary gml-upload-btn">
+          Upload asset
+          <input type="file" accept="image/*" multiple style="display:none;">
+        </label>
+      `;
+
+      toolbarRight.querySelector('input[type="file"]').addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+          await handleUpload(files);
+        }
+      });
+    }
+  }
+
+  async function handleUpload(files) {
+    isUploading = true;
+    uploadingFiles = files;
+    updateToolbar();
+
+    const folder = currentPath ? `${IMAGES_PATH}/${currentPath}` : IMAGES_PATH;
+
+    for (const file of files) {
+      try {
+        await uploadViaAPI(file, folder);
+      } catch (error) {
+        console.error("Upload failed:", error);
+        alert(`Failed to upload ${file.name}: ${error.message}`);
+      }
+    }
+
+    isUploading = false;
+    uploadingFiles = [];
+    await loadFolder();
+    updateToolbar();
+  }
+
+  async function loadFolder() {
+    const content = modal.querySelector(".gml-content");
+    content.innerHTML = '<div class="gml-loading">Loading...</div>';
+
+    renderBreadcrumb();
+
+    try {
+      const path = currentPath ? `${IMAGES_PATH}/${currentPath}` : IMAGES_PATH;
+      allItems = await fetchFolder(path);
+      renderItems(allItems);
+      updateToolbar();
+    } catch (error) {
+      console.error("Failed to load folder:", error);
+      content.innerHTML = `<div class="gml-error">Failed to load: ${error.message}</div>`;
+    }
   }
 
   async function show(config = {}) {
     allowMultiple = config.allowMultiple || false;
-    selectedImages.clear();
+    selectedItems.clear();
+    currentPath = "";
+    viewMode = "grid";
 
     modal = createModal();
     document.body.appendChild(modal);
 
-    const browseContent = modal.querySelector('[data-panel="browse"] .gml-content');
-    const folderFilter = modal.querySelector(".gml-folder-filter");
-    const searchInput = modal.querySelector(".gml-search");
     const closeBtn = modal.querySelector(".gml-close");
-    const cancelBtn = modal.querySelector(".gml-cancel");
-    const insertBtn = modal.querySelector(".gml-insert");
-    const uploadZone = modal.querySelector(".gml-upload-zone");
-    const uploadInput = modal.querySelector('.gml-upload-zone input[type="file"]');
-    const uploadFolder = modal.querySelector(".gml-upload-folder");
-    const uploadResult = modal.querySelector(".gml-upload-result");
-
-    modal.querySelectorAll(".gml-tab").forEach((tab) => {
-      tab.addEventListener("click", () => switchTab(tab.dataset.tab));
-    });
+    const searchInput = modal.querySelector(".gml-search-input");
+    const viewListBtn = modal.querySelector(".gml-view-list");
+    const viewGridBtn = modal.querySelector(".gml-view-grid");
+    const content = modal.querySelector(".gml-content");
 
     closeBtn.addEventListener("click", hide);
-    cancelBtn.addEventListener("click", hide);
     modal.addEventListener("click", (e) => {
       if (e.target === modal) hide();
     });
 
-    uploadZone.addEventListener("click", () => uploadInput.click());
-    uploadZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      uploadZone.classList.add("dragover");
+    viewListBtn.addEventListener("click", () => {
+      viewMode = "list";
+      viewListBtn.classList.add("active");
+      viewGridBtn.classList.remove("active");
+      renderItems(allItems, searchInput.value);
     });
-    uploadZone.addEventListener("dragleave", () => {
-      uploadZone.classList.remove("dragover");
+
+    viewGridBtn.addEventListener("click", () => {
+      viewMode = "grid";
+      viewGridBtn.classList.add("active");
+      viewListBtn.classList.remove("active");
+      renderItems(allItems, searchInput.value);
     });
-    uploadZone.addEventListener("drop", async (e) => {
+
+    searchInput.addEventListener("input", () => {
+      renderItems(allItems, searchInput.value);
+    });
+
+    content.addEventListener("dragover", (e) => {
       e.preventDefault();
-      uploadZone.classList.remove("dragover");
+      content.classList.add("dragover");
+    });
+    content.addEventListener("dragleave", () => {
+      content.classList.remove("dragover");
+    });
+    content.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      content.classList.remove("dragover");
       const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
       if (files.length > 0) {
-        await handleUpload(files, uploadFolder.value, uploadResult);
-      }
-    });
-    uploadInput.addEventListener("change", async (e) => {
-      const files = Array.from(e.target.files);
-      if (files.length > 0) {
-        await handleUpload(files, uploadFolder.value, uploadResult);
+        await handleUpload(files);
       }
     });
 
-    async function handleUpload(files, folder, resultContainer) {
-      resultContainer.innerHTML = `
-        <div class="gml-upload-progress">
-          <div class="gml-upload-progress-text">Uploading ${files.length} file(s)...</div>
-          <div class="gml-upload-progress-bar">
-            <div class="gml-upload-progress-fill" style="width: 0%"></div>
-          </div>
-        </div>
-      `;
-
-      const progressFill = resultContainer.querySelector(".gml-upload-progress-fill");
-      const progressText = resultContainer.querySelector(".gml-upload-progress-text");
-      const uploaded = [];
-
-      for (let i = 0; i < files.length; i++) {
-        try {
-          progressText.textContent = `Uploading ${files[i].name}... (${i + 1}/${files.length})`;
-          const result = await uploadViaAPI(files[i], folder);
-          uploaded.push(result);
-          progressFill.style.width = `${((i + 1) / files.length) * 100}%`;
-        } catch (error) {
-          resultContainer.innerHTML = `<div class="gml-error">${error.message}</div>`;
-          return;
-        }
-      }
-
-      resultContainer.innerHTML = uploaded
-        .map(
-          (img) => `
-        <div class="gml-uploaded-preview">
-          <img src="${img.url}" alt="${img.name}">
-          <div class="gml-uploaded-info">
-            <div class="gml-uploaded-name">${img.name}</div>
-            <div class="gml-uploaded-path">${img.path}</div>
-          </div>
-          <button class="gml-btn gml-btn-primary gml-insert-uploaded" data-path="${img.path}">Insert</button>
-        </div>
-      `,
-        )
-        .join("");
-
-      resultContainer.querySelectorAll(".gml-insert-uploaded").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          handleInsert({ path: btn.dataset.path, url: btn.dataset.path });
-          hide();
-        });
-      });
-
-      cachedImages = null;
-    }
-
-    try {
-      const images = await fetchAllImages();
-
-      const folders = [...new Set(images.map((img) => img.folder))].sort();
-      folders.forEach((folder) => {
-        const option = document.createElement("option");
-        option.value = folder;
-        option.textContent = folder || "/";
-        folderFilter.appendChild(option);
-      });
-
-      renderImages(images, browseContent);
-
-      folderFilter.addEventListener("change", () => {
-        renderImages(images, browseContent, folderFilter.value, searchInput.value);
-      });
-
-      searchInput.addEventListener("input", () => {
-        renderImages(images, browseContent, folderFilter.value, searchInput.value);
-      });
-
-      insertBtn.addEventListener("click", () => {
-        if (selectedImages.size > 0) {
-          const assets = Array.from(selectedImages).map((path) => ({
-            path,
-            url: path,
-          }));
-          handleInsert(assets.length === 1 ? assets[0] : assets);
-          hide();
-        }
-      });
-    } catch (error) {
-      console.error("Failed to fetch images:", error);
-      browseContent.innerHTML = `<div class="gml-error">Failed to load images: ${error.message}</div>`;
-    }
+    await loadFolder();
   }
 
   function hide() {
@@ -654,7 +688,7 @@ const createGitHubMediaLibrary = () => {
       modal.parentNode.removeChild(modal);
       modal = null;
     }
-    selectedImages.clear();
+    selectedItems.clear();
   }
 
   return {

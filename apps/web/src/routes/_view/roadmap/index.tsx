@@ -34,11 +34,9 @@ type RoadmapItem = {
   status: RoadmapStatus;
   labels: string[];
   githubIssues: string[];
-  created: string;
-  updated?: string;
   mdx: string;
   priority: RoadmapPriority;
-  date?: string;
+  date: string;
   description: string;
 };
 
@@ -61,8 +59,6 @@ function getRoadmapItems(): RoadmapItem[] {
     status: item.status,
     labels: item.labels || [],
     githubIssues: item.githubIssues || [],
-    created: item.created,
-    updated: item.updated,
     mdx: item.mdx,
     priority: item.priority,
     date: item.date,

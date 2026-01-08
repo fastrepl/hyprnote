@@ -52,7 +52,7 @@ function Component() {
 
           <p className="text-xl text-neutral-600 mb-8">
             Last updated:{" "}
-            {new Date(doc.updated).toLocaleDateString("en-US", {
+            {new Date(doc.date).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
               day: "numeric",

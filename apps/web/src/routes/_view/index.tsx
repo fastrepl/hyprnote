@@ -1915,8 +1915,8 @@ function BlogSection() {
   const sortedArticles = allArticles
     .filter((a) => import.meta.env.DEV || a.published !== false)
     .sort((a, b) => {
-      const aDate = a.updated || a.created;
-      const bDate = b.updated || b.created;
+      const aDate = a.date;
+      const bDate = b.date;
       return new Date(bDate).getTime() - new Date(aDate).getTime();
     })
     .slice(0, 3);
@@ -1940,7 +1940,7 @@ function BlogSection() {
         {sortedArticles.map((article) => {
           const ogImage =
             article.coverImage ||
-            `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.created ? `&date=${encodeURIComponent(new Date(article.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
+            `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
 
           return (
             <Link
@@ -1969,10 +1969,10 @@ function BlogSection() {
 
                   <div className="flex items-center justify-between gap-4 pt-4 border-t border-neutral-100">
                     <time
-                      dateTime={article.updated}
+                      dateTime={article.date}
                       className="text-xs text-neutral-500"
                     >
-                      {new Date(article.updated).toLocaleDateString("en-US", {
+                      {new Date(article.date).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",

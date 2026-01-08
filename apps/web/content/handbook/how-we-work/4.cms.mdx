@@ -4,23 +4,25 @@ section: "How-we-work"
 summary: "We use GitHub as our CMS, keeping us open-source friendly and transparent."
 ---
 
-## GitHub
+## Why MDX + GitHub
+
+Files endure, interfaces change. The same philosophy that shapes Hyprnote shapes how we run the company.
+
+Content lives as MDX files in Git — not locked in a proprietary database.
+
+- **Ownership** — Plain text we control, not opaque blobs behind an API
+- **Durability** — Markdown outlasts any CMS platform
+- **Transparency** — Version-controlled and inspectable
+- **Friction-free** — Edit, push, done
+
+We eat our own cooking. If users' notes should be files they own, our company content should be too.
 
 ## Decap
 
-* We use [Decap CMS](https://github.com/decaporg/decap-cms) for non-technical editors.
+[Decap CMS](https://github.com/decaporg/decap-cms) for non-technical editors.
 
-### Developer
+**Developer** — Config in `apps/web/public/admin`, accessible at `https://hyprnote.com/admin` (not in dev mode). [GitHub backend](https://decapcms.org/docs/github-backend) with [Netlify Git Gateway](https://docs.netlify.com/manage/security/secure-access-to-sites/git-gateway). Invite users at [Netlify Identity](https://app.netlify.com/projects/hyprnote/configuration/identity#users).
 
-* All config stored in `apps/web/public/admin`, and accessible at `https://hyprnote.com/admin`. (this is not accessible in `dev` mode)
-* We use [GitHub](https://decapcms.org/docs/github-backend) as storage backend, with [Netlify Git Gateway](https://docs.netlify.com/manage/security/secure-access-to-sites/git-gateway) to authenticate users.
-* New users should be invited at `https://app.netlify.com/projects/hyprnote/configuration/identity#users`.
-
-### Non-Developer
-
-* When uploading Images, rename file first, and then upload.
-* Workflow
-
-#### Workflow
+**Non-Developer** — Rename images before uploading.
 
 ![](/images/handbook/decap-workflow.png)

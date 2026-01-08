@@ -39,7 +39,11 @@ pub(crate) fn default_ignored_bundle_ids() -> Vec<String> {
 
     let ai_assistants = ["com.openai.chat", "com.anthropic.claudefordesktop"];
 
-    let other = ["com.raycast.macos", "com.apple.garageband10"];
+    let other = [
+        "com.raycast.macos",
+        "com.apple.garageband10",
+        "com.apple.Sound-Settings.extension",
+    ];
 
     dictation_apps
         .into_iter()

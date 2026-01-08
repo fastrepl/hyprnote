@@ -57,10 +57,16 @@ export function SelectProviderAndModel() {
     settings.STORE_ID,
   );
 
+  // Normalize legacy "Auto" model name to "Pro" for Hyprnote provider
+  const normalizedModel =
+    current_llm_provider === "hyprnote" && current_llm_model === "Auto"
+      ? "Pro"
+      : current_llm_model || "";
+
   const form = useForm({
     defaultValues: {
       provider: current_llm_provider || "",
-      model: current_llm_model || "",
+      model: normalizedModel,
     },
     listeners: {
       onChange: ({ formApi }) => {

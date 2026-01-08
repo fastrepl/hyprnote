@@ -101,12 +101,15 @@ describe("createPromptPersister", () => {
       expect(fsSyncCommands.writeMdBatch).toHaveBeenCalledWith([
         [
           {
-            frontmatter: {
-              user_id: "user-1",
-              created_at: "2024-01-01T00:00:00Z",
-              task_type: "summary",
+            type: "frontmatter",
+            value: {
+              frontmatter: {
+                user_id: "user-1",
+                created_at: "2024-01-01T00:00:00Z",
+                task_type: "summary",
+              },
+              content: "Generate a summary of the meeting",
             },
-            content: "Generate a summary of the meeting",
           },
           `${MOCK_DATA_DIR}/prompts/${TEST_UUID_1}.md`,
         ],
@@ -186,12 +189,15 @@ describe("createPromptPersister", () => {
       expect(fsSyncCommands.writeMdBatch).toHaveBeenCalledWith([
         [
           {
-            frontmatter: {
-              user_id: "user-1",
-              created_at: "2024-01-01T00:00:00Z",
-              task_type: "summary",
+            type: "frontmatter",
+            value: {
+              frontmatter: {
+                user_id: "user-1",
+                created_at: "2024-01-01T00:00:00Z",
+                task_type: "summary",
+              },
+              content: "Generate a summary",
             },
-            content: "Generate a summary",
           },
           `${MOCK_DATA_DIR}/prompts/${TEST_UUID_1}.md`,
         ],

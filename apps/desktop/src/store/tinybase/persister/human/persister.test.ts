@@ -142,16 +142,19 @@ describe("createHumanPersister", () => {
       expect(fsSyncCommands.writeMdBatch).toHaveBeenCalledWith([
         [
           {
-            frontmatter: {
-              user_id: "user-1",
-              created_at: "2024-01-01T00:00:00Z",
-              name: "John Doe",
-              emails: ["john@example.com"],
-              org_id: "org-1",
-              job_title: "Engineer",
-              linkedin_username: "johndoe",
+            type: "frontmatter",
+            value: {
+              frontmatter: {
+                user_id: "user-1",
+                created_at: "2024-01-01T00:00:00Z",
+                name: "John Doe",
+                emails: ["john@example.com"],
+                org_id: "org-1",
+                job_title: "Engineer",
+                linkedin_username: "johndoe",
+              },
+              content: "Some notes",
             },
-            content: "Some notes",
           },
           `${MOCK_DATA_DIR}/humans/${TEST_UUID_1}.md`,
         ],
@@ -243,16 +246,19 @@ describe("createHumanPersister", () => {
       expect(fsSyncCommands.writeMdBatch).toHaveBeenCalledWith([
         [
           {
-            frontmatter: {
-              user_id: "user-1",
-              created_at: "2024-01-01T00:00:00Z",
-              name: "John Doe",
-              emails: ["john@example.com"],
-              org_id: "org-1",
-              job_title: "Engineer",
-              linkedin_username: "johndoe",
+            type: "frontmatter",
+            value: {
+              frontmatter: {
+                user_id: "user-1",
+                created_at: "2024-01-01T00:00:00Z",
+                name: "John Doe",
+                emails: ["john@example.com"],
+                org_id: "org-1",
+                job_title: "Engineer",
+                linkedin_username: "johndoe",
+              },
+              content: "Some notes",
             },
-            content: "Some notes",
           },
           `${MOCK_DATA_DIR}/humans/${TEST_UUID_1}.md`,
         ],

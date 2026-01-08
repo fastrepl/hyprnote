@@ -124,12 +124,15 @@ describe("createOrganizationPersister", () => {
       expect(fsSyncCommands.writeMdBatch).toHaveBeenCalledWith([
         [
           {
-            frontmatter: {
-              created_at: "2024-01-01T00:00:00Z",
-              name: "Acme Corp",
-              user_id: "user-1",
+            type: "frontmatter",
+            value: {
+              frontmatter: {
+                created_at: "2024-01-01T00:00:00Z",
+                name: "Acme Corp",
+                user_id: "user-1",
+              },
+              content: "",
             },
-            content: "",
           },
           `${MOCK_DATA_DIR}/organizations/${TEST_UUID_1}.md`,
         ],
@@ -210,12 +213,15 @@ describe("createOrganizationPersister", () => {
       expect(fsSyncCommands.writeMdBatch).toHaveBeenCalledWith([
         [
           {
-            frontmatter: {
-              created_at: "2024-01-01T00:00:00Z",
-              name: "Acme Corp",
-              user_id: "user-1",
+            type: "frontmatter",
+            value: {
+              frontmatter: {
+                created_at: "2024-01-01T00:00:00Z",
+                name: "Acme Corp",
+                user_id: "user-1",
+              },
+              content: "",
             },
-            content: "",
           },
           `${MOCK_DATA_DIR}/organizations/${TEST_UUID_1}.md`,
         ],

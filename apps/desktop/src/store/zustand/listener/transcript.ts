@@ -1,10 +1,10 @@
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
-import type { StreamAlternatives, StreamResponse } from "@hypr/plugin-listener";
+import type { StreamResponse } from "@hypr/plugin-listener";
 
 import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
-import { fixSpacingForWords } from "./utils";
+import { transformWordEntries } from "./utils";
 
 type WordsByChannel = Record<number, WordLike[]>;
 
@@ -164,7 +164,11 @@ export const createTranscriptSlice = <
         return;
       }
 
-      const [words, hints] = transformWords(alternative, channelIndex);
+      const [words, hints] = transformWordEntries(
+        alternative.words,
+        alternative.transcript,
+        channelIndex,
+      );
       if (!words.length) {
         return;
       }
@@ -223,40 +227,3 @@ export const createTranscriptSlice = <
 const getLastEndMs = (words: WordLike[]): number =>
   words[words.length - 1]?.end_ms ?? 0;
 const getFirstStartMs = (words: WordLike[]): number => words[0]?.start_ms ?? 0;
-
-function transformWords(
-  alternative: StreamAlternatives,
-  channelIndex: number,
-): [WordLike[], RuntimeSpeakerHint[]] {
-  const words: WordLike[] = [];
-  const hints: RuntimeSpeakerHint[] = [];
-
-  const textsWithSpacing = fixSpacingForWords(
-    alternative.words.map((w) => w.punctuated_word ?? w.word),
-    alternative.transcript,
-  );
-
-  for (let i = 0; i < alternative.words.length; i++) {
-    const word = alternative.words[i];
-    const text = textsWithSpacing[i];
-
-    words.push({
-      text,
-      start_ms: Math.round(word.start * 1000),
-      end_ms: Math.round(word.end * 1000),
-      channel: channelIndex,
-    });
-
-    if (typeof word.speaker === "number") {
-      hints.push({
-        wordIndex: i,
-        data: {
-          type: "provider_speaker_index",
-          speaker_index: word.speaker,
-        },
-      });
-    }
-  }
-
-  return [words, hints];
-}

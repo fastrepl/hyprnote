@@ -27,6 +27,22 @@ type RunOptions = {
   languages?: string[];
 };
 
+const BATCH_PROVIDER_MAP: Record<string, BatchParams["provider"]> = {
+  deepgram: "deepgram",
+  soniox: "soniox",
+  assemblyai: "assemblyai",
+};
+
+function getBatchProvider(
+  provider: string,
+  model: string,
+): BatchParams["provider"] | null {
+  if (provider === "hyprnote" && model.startsWith("am-")) {
+    return "am";
+  }
+  return BATCH_PROVIDER_MAP[provider] ?? null;
+}
+
 export const useRunBatch = (sessionId: string) => {
   const store = main.UI.useStore(main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -55,25 +71,7 @@ export const useRunBatch = (sessionId: string) => {
         return;
       }
 
-      const provider: BatchParams["provider"] | null = (() => {
-        if (conn.provider === "deepgram") {
-          return "deepgram";
-        }
-
-        if (conn.provider === "soniox") {
-          return "soniox";
-        }
-
-        if (conn.provider === "assemblyai") {
-          return "assemblyai";
-        }
-
-        if (conn.provider === "hyprnote" && conn.model.startsWith("am-")) {
-          return "am";
-        }
-
-        return null;
-      })();
+      const provider = getBatchProvider(conn.provider, conn.model);
 
       if (!provider) {
         throw new Error(

@@ -8,6 +8,7 @@ const createGitHubMediaLibrary = () => {
   let allItems = [];
   let uploadingFiles = [];
   let isUploading = false;
+  let isEditorMode = false;
 
   const GITHUB_REPO = "fastrepl/hyprnote";
   const GITHUB_BRANCH = "main";
@@ -551,18 +552,27 @@ const createGitHubMediaLibrary = () => {
     if (isUploading) {
       toolbarLeft.textContent = `${uploadingFiles.length} file${uploadingFiles.length > 1 ? "s" : ""}`;
       toolbarRight.innerHTML = `<button class="gml-btn" disabled>Uploading...</button>`;
-    } else if (selectedItems.size > 0) {
-      toolbarLeft.textContent = `${selectedItems.size} selected`;
+    } else if (isEditorMode) {
+      toolbarLeft.textContent = selectedItems.size > 0 ? `${selectedItems.size} selected` : "";
       toolbarRight.innerHTML = `
-        <button class="gml-btn gml-btn-primary gml-insert-btn">Insert</button>
-        <button class="gml-btn gml-cancel-select">Cancel</button>
+        <button class="gml-btn gml-cancel-btn">Cancel</button>
+        <button class="gml-btn gml-btn-primary gml-insert-btn" ${selectedItems.size === 0 ? "disabled" : ""}>Insert</button>
       `;
 
       toolbarRight.querySelector(".gml-insert-btn").addEventListener("click", () => {
-        const assets = Array.from(selectedItems).map((path) => ({ path, url: path }));
-        handleInsert(assets.length === 1 ? assets[0] : assets);
-        hide();
+        if (selectedItems.size > 0) {
+          const assets = Array.from(selectedItems).map((path) => ({ path, url: path }));
+          handleInsert(assets.length === 1 ? assets[0] : assets);
+          hide();
+        }
       });
+
+      toolbarRight.querySelector(".gml-cancel-btn").addEventListener("click", hide);
+    } else if (selectedItems.size > 0) {
+      toolbarLeft.textContent = `${selectedItems.size} selected`;
+      toolbarRight.innerHTML = `
+        <button class="gml-btn gml-cancel-select">Cancel</button>
+      `;
 
       toolbarRight.querySelector(".gml-cancel-select").addEventListener("click", () => {
         selectedItems.clear();
@@ -628,6 +638,7 @@ const createGitHubMediaLibrary = () => {
 
   async function show(config = {}) {
     allowMultiple = config.allowMultiple || false;
+    isEditorMode = !!handleInsert;
     selectedItems.clear();
     currentPath = "";
     viewMode = "grid";

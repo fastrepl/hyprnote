@@ -210,7 +210,7 @@ export function getSitemap(): Sitemap<TRoutes> {
               path: `/blog/${article.slug}`,
               priority: 0.7,
               changeFrequency: "weekly" as const,
-              lastModified: article.updated || article.created,
+              lastModified: article.date,
             }));
         } catch (error) {
           console.warn("Failed to load blog articles for sitemap:", error);
@@ -235,7 +235,7 @@ export function getSitemap(): Sitemap<TRoutes> {
             path: `/changelog/${changelog.slug}`,
             priority: 0.6,
             changeFrequency: "monthly" as const,
-            lastModified: changelog.updated || changelog.created,
+            lastModified: changelog.date,
           }));
         } catch (error) {
           console.warn("Failed to load changelogs for sitemap:", error);
@@ -259,7 +259,7 @@ export function getSitemap(): Sitemap<TRoutes> {
             path: `/legal/${legal.slug}`,
             priority: 0.5,
             changeFrequency: "yearly" as const,
-            lastModified: legal.updated || legal.created,
+            lastModified: legal.date,
           }));
         } catch (error) {
           console.warn("Failed to load legal docs for sitemap:", error);
@@ -283,7 +283,7 @@ export function getSitemap(): Sitemap<TRoutes> {
             path: `/docs/${doc.slug}`,
             priority: 0.8,
             changeFrequency: "weekly" as const,
-            lastModified: doc.updated || doc.created,
+            lastModified: doc.date,
           }));
         } catch (error) {
           console.warn("Failed to load docs for sitemap:", error);
@@ -353,7 +353,7 @@ export function getSitemap(): Sitemap<TRoutes> {
             path: `/roadmap/${roadmap.slug}`,
             priority: 0.6,
             changeFrequency: "weekly" as const,
-            lastModified: roadmap.updated || roadmap.created,
+            lastModified: roadmap.date,
           }));
         } catch (error) {
           console.warn("Failed to load roadmap items for sitemap:", error);
@@ -400,7 +400,7 @@ export function getSitemap(): Sitemap<TRoutes> {
             path: `/company-handbook/${handbook.slug}`,
             priority: 0.6,
             changeFrequency: "weekly" as const,
-            lastModified: handbook.updated || handbook.created,
+            lastModified: handbook.date,
           }));
         } catch (error) {
           console.warn("Failed to load handbook pages for sitemap:", error);

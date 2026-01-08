@@ -118,31 +118,13 @@ function Component() {
             </div>
 
             <div className="text-xs text-neutral-500 font-mono">
-              {item.updated && item.updated !== item.created ? (
-                <span>
-                  Updated{" "}
-                  {new Date(item.updated).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}{" "}
-                  / Created{" "}
-                  {new Date(item.created).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-              ) : (
-                <time dateTime={item.created}>
-                  Created{" "}
-                  {new Date(item.created).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </time>
-              )}
+              <time dateTime={item.date}>
+                {new Date(item.date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </time>
             </div>
           </header>
 

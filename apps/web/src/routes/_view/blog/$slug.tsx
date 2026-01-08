@@ -38,7 +38,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
           return bScore - aScore;
         }
 
-        return new Date(b.updated).getTime() - new Date(a.updated).getTime();
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
       })
       .slice(0, 3);
 
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
 
     const ogImage =
       article.coverImage ||
-      `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.created ? `&date=${encodeURIComponent(new Date(article.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
+      `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
 
     return {
       meta: [
@@ -86,16 +86,8 @@ export const Route = createFileRoute("/_view/blog/$slug")({
           : []),
         {
           property: "article:published_time",
-          content: article.created,
+          content: article.date,
         },
-        ...(article.updated
-          ? [
-              {
-                property: "article:modified_time",
-                content: article.updated,
-              },
-            ]
-          : []),
       ],
     };
   },
@@ -161,10 +153,10 @@ function HeroSection({ article }: { article: any }) {
       )}
 
       <time
-        dateTime={article.created}
+        dateTime={article.date}
         className="text-xs font-mono text-neutral-500"
       >
-        {new Date(article.created).toLocaleDateString("en-US", {
+        {new Date(article.date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
           day: "numeric",
@@ -322,7 +314,7 @@ function MobileCTA() {
 function RelatedArticleCard({ article }: { article: any }) {
   const ogImage =
     article.coverImage ||
-    `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.created ? `&date=${encodeURIComponent(new Date(article.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
+    `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
 
   return (
     <Link
@@ -344,17 +336,11 @@ function RelatedArticleCard({ article }: { article: any }) {
         <p className="text-xs text-neutral-500 line-clamp-2 mb-2">
           {article.summary}
         </p>
-        <time
-          dateTime={article.updated || article.created}
-          className="text-xs text-neutral-400"
-        >
-          {new Date(article.updated || article.created).toLocaleDateString(
-            "en-US",
-            {
-              month: "short",
-              day: "numeric",
-            },
-          )}
+        <time dateTime={article.date} className="text-xs text-neutral-400">
+          {new Date(article.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}
         </time>
       </div>
     </Link>

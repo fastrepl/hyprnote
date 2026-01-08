@@ -87,8 +87,7 @@ const articles = defineCollection({
     meta_title: z.string(),
     meta_description: z.string(),
     author: z.enum(["Harshika", "John Jeong", "Yujong Lee"]),
-    created: z.string(),
-    updated: z.string().optional(),
+    date: z.string(),
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),
     published: z.boolean().default(false),
@@ -124,14 +123,12 @@ const articles = defineCollection({
 
     const author = document.author || "Hyprnote Team";
     const title = document.display_title || document.meta_title;
-    const updated = document.updated || document.created;
 
     return {
       ...document,
       mdx,
       slug,
       author,
-      updated,
       title,
       toc,
     };
@@ -143,7 +140,9 @@ const changelog = defineCollection({
   directory: "content/changelog",
   include: "*.mdx",
   exclude: "AGENTS.md",
-  schema: z.object({}),
+  schema: z.object({
+    date: z.string(),
+  }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
       remarkPlugins: [remarkGfm, mdxMermaid],
@@ -190,8 +189,7 @@ const docs = defineCollection({
     summary: z.string().optional(),
     category: z.string().optional(),
     author: z.string().optional(),
-    created: z.string().optional(),
-    updated: z.string().optional(),
+    date: z.string().optional(),
   }),
   transform: async (document, context) => {
     const processedContent = await embedGithubCode(document.content);
@@ -253,7 +251,7 @@ const legal = defineCollection({
   schema: z.object({
     title: z.string(),
     summary: z.string(),
-    updated: z.string(),
+    date: z.string(),
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
@@ -549,11 +547,9 @@ const roadmap = defineCollection({
   schema: z.object({
     title: z.string(),
     status: z.enum(["todo", "in-progress", "done"]),
-    created: z.string(),
-    updated: z.string().optional(),
+    date: z.string(),
     labels: z.array(z.string()).optional(),
     priority: z.enum(["high", "mid", "low"]),
-    date: z.string().optional(),
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
@@ -619,8 +615,7 @@ const handbook = defineCollection({
     section: z.string(),
     summary: z.string().optional(),
     author: z.string().optional(),
-    created: z.string().optional(),
-    updated: z.string().optional(),
+    date: z.string().optional(),
   }),
   transform: async (document, context) => {
     const toc = extractToc(document.content);

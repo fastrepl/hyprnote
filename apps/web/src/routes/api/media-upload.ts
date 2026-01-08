@@ -59,6 +59,20 @@ export const Route = createFileRoute("/api/media-upload")({
         const sanitizedFilename = filename
           .replace(/[^a-zA-Z0-9.-]/g, "-")
           .toLowerCase();
+          
+        const allowedExtensions = ["jpg", "jpeg", "png", "gif", "svg", "webp", "avif"];
+        const ext = sanitizedFilename.toLowerCase().split(".").pop();
+
+        if (!ext || !allowedExtensions.includes(ext)) {
+          return new Response(
+            JSON.stringify({ error: "Invalid file type. Only images are allowed." }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
+        
         const path = `${folder}/${sanitizedFilename}`;
 
         try {

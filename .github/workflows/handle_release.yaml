@@ -48,7 +48,7 @@ jobs:
             TAG_SHA=$(git rev-list -n 1 "$NIGHTLY_TAG")
             TEMP_BRANCH="release-temp-${TAG_SHA:0:8}"
 
-            GH_TOKEN=${{ secrets.PAT_TOKEN }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$TAG_SHA"
+            GH_TOKEN=${{ secrets.YUJONGLEE_GITHUB_TOKEN_REPO }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$TAG_SHA"
 
             echo "resolved=true" >> $GITHUB_OUTPUT
             echo "target_sha=$TAG_SHA" >> $GITHUB_OUTPUT
@@ -71,7 +71,7 @@ jobs:
             MERGE_SHA=$(echo "$PR_DATA" | jq -r '.merge_commit_sha')
             TEMP_BRANCH="release-temp-${MERGE_SHA:0:8}"
 
-            GH_TOKEN=${{ secrets.PAT_TOKEN }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$MERGE_SHA"
+            GH_TOKEN=${{ secrets.YUJONGLEE_GITHUB_TOKEN_REPO }} gh api repos/$REPO/git/refs -f ref="refs/heads/$TEMP_BRANCH" -f sha="$MERGE_SHA"
 
             echo "resolved=true" >> $GITHUB_OUTPUT
             echo "target_sha=$MERGE_SHA" >> $GITHUB_OUTPUT
@@ -125,5 +125,5 @@ jobs:
           data: ${{ steps.result.outputs.data }}
       - if: steps.resolve.outputs.resolved == 'true'
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GH_TOKEN: ${{ secrets.YUJONGLEE_GITHUB_TOKEN_REPO }}
         run: gh api repos/${{ github.repository }}/git/refs/heads/${{ steps.resolve.outputs.branch }} -X DELETE || true

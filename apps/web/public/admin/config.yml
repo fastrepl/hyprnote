@@ -117,10 +117,11 @@ collections:
         widget: select
         options:
           - About
-          - Communication
-          - Go to Market
           - How We Work
           - Who We Want
+          - Go To Market
+          - Communication
+          - Beliefs
       - label: Summary
         name: summary
         widget: text

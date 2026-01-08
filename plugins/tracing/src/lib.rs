@@ -10,12 +10,21 @@ use std::{fs, io};
 use tauri::Manager;
 
 use file_rotate::{ContentLimit, FileRotate, compression::Compression, suffix::AppendCount};
+use sentry::integrations::tracing::EventFilter;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
     EnvFilter, fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
 };
 
 const PLUGIN_NAME: &str = "tracing";
+
+fn sentry_event_filter(metadata: &tracing::Metadata<'_>) -> EventFilter {
+    match *metadata.level() {
+        tracing::Level::ERROR | tracing::Level::WARN => EventFilter::Event,
+        tracing::Level::INFO => EventFilter::Breadcrumb,
+        tracing::Level::DEBUG | tracing::Level::TRACE => EventFilter::Ignore,
+    }
+}
 
 fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::<tauri::Wry>::new()
@@ -40,12 +49,15 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 .unwrap_or_else(|_| EnvFilter::new("info"))
                 .add_directive("ort=warn".parse().unwrap());
 
+            let sentry_layer =
+                sentry::integrations::tracing::layer().event_filter(sentry_event_filter);
+
             if let Some((file_writer, guard)) =
                 make_file_writer_if_enabled(true, &app.tracing().logs_dir().unwrap())
             {
                 tracing_subscriber::Registry::default()
                     .with(env_filter)
-                    .with(sentry::integrations::tracing::layer())
+                    .with(sentry_layer)
                     .with(fmt::layer())
                     .with(fmt::layer().with_ansi(false).with_writer(file_writer))
                     .init();
@@ -53,7 +65,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             } else {
                 tracing_subscriber::Registry::default()
                     .with(env_filter)
-                    .with(sentry::integrations::tracing::layer())
+                    .with(sentry_layer)
                     .with(fmt::layer())
                     .init();
             }

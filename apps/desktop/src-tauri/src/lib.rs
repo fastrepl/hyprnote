@@ -44,10 +44,17 @@ pub async fn main() {
                 sentry::ClientOptions {
                     release,
                     traces_sample_rate: 1.0,
-                    auto_session_tracking: true,
+                    auto_session_tracking: false,
                     ..Default::default()
                 },
             ));
+
+            sentry::configure_scope(|scope| {
+                scope.set_user(Some(sentry::User {
+                    id: Some(hypr_host::fingerprint()),
+                    ..Default::default()
+                }));
+            });
 
             Some(client)
         } else {

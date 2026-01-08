@@ -82,6 +82,24 @@ const createGitHubMediaLibrary = () => {
     return result;
   }
 
+  async function deleteViaAPI(paths) {
+    const response = await fetch("/api/media-delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        paths: Array.isArray(paths) ? paths : [paths],
+      }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || `Delete failed: ${response.status}`);
+    }
+
+    cachedData = {};
+    return result;
+  }
+
   function isImageFile(filename) {
     const ext = filename.toLowerCase().split(".").pop();
     return ["jpg", "jpeg", "png", "gif", "svg", "webp", "avif"].includes(ext);
@@ -563,7 +581,7 @@ const createGitHubMediaLibrary = () => {
         .map((item) => {
           const isFolder = item.type === "dir";
           const publicPath = isFolder ? "" : getPublicPath(item.path);
-          const isSelected = selectedItems.has(publicPath);
+          const isSelected = selectedItems.has(item.path);
           return `
             <div class="gml-grid-item ${isSelected ? "selected" : ""}" data-path="${item.path}" data-type="${item.type}" data-public="${publicPath}">
               <div class="gml-grid-thumb ${isFolder ? "folder" : ""}">
@@ -579,7 +597,7 @@ const createGitHubMediaLibrary = () => {
         .map((item) => {
           const isFolder = item.type === "dir";
           const publicPath = isFolder ? "" : getPublicPath(item.path);
-          const isSelected = selectedItems.has(publicPath);
+          const isSelected = selectedItems.has(item.path);
           return `
             <div class="gml-list-item ${isSelected ? "selected" : ""}" data-path="${item.path}" data-type="${item.type}" data-public="${publicPath}">
               <div class="gml-list-icon">
@@ -599,24 +617,24 @@ const createGitHubMediaLibrary = () => {
       item.addEventListener("click", (e) => {
         const type = item.dataset.type;
         const path = item.dataset.path;
-        const publicPath = item.dataset.public;
+        const publicPath = item.dataset.public || path;
 
-        if (type === "dir") {
+        if (type === "dir" && !(e.metaKey || e.ctrlKey || allowMultiple)) {
           const newPath = path.replace(IMAGES_PATH + "/", "").replace(IMAGES_PATH, "");
           navigateToPath(newPath);
         } else {
           if (e.metaKey || e.ctrlKey || allowMultiple) {
-            if (selectedItems.has(publicPath)) {
-              selectedItems.delete(publicPath);
+            if (selectedItems.has(path)) {
+              selectedItems.delete(path);
               item.classList.remove("selected");
             } else {
-              selectedItems.add(publicPath);
+              selectedItems.add(path);
               item.classList.add("selected");
             }
           } else {
             selectedItems.clear();
             content.querySelectorAll(".selected").forEach((el) => el.classList.remove("selected"));
-            selectedItems.add(publicPath);
+            selectedItems.add(path);
             item.classList.add("selected");
           }
           updateToolbar();
@@ -660,14 +678,17 @@ const createGitHubMediaLibrary = () => {
     } else if (selectedItems.size > 0) {
       toolbarLeft.textContent = `${selectedItems.size} selected`;
       toolbarRight.innerHTML = `
-        <button class="gml-btn gml-cancel-select">Cancel</button>
+        <button class="gml-btn gml-unselect-btn">Unselect All</button>
+        <button class="gml-btn gml-btn-danger gml-delete-btn">Delete</button>
       `;
 
-      toolbarRight.querySelector(".gml-cancel-select").addEventListener("click", () => {
+      toolbarRight.querySelector(".gml-unselect-btn").addEventListener("click", () => {
         selectedItems.clear();
         modal.querySelectorAll(".selected").forEach((el) => el.classList.remove("selected"));
         updateToolbar();
       });
+
+      toolbarRight.querySelector(".gml-delete-btn").addEventListener("click", handleDelete);
     } else {
       toolbarLeft.textContent = "";
       toolbarRight.innerHTML = `
@@ -730,6 +751,31 @@ const createGitHubMediaLibrary = () => {
     } catch (error) {
       console.error("Folder creation failed:", error);
       alert(`Failed to create folder: ${error.message}`);
+    }
+  }
+
+  async function handleDelete() {
+    if (selectedItems.size === 0) {
+      return;
+    }
+
+    const itemCount = selectedItems.size;
+    const itemWord = itemCount === 1 ? "item" : "items";
+    const confirmed = confirm(`Are you sure you want to delete ${itemCount} ${itemWord}? This cannot be undone.`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const pathsToDelete = Array.from(selectedItems);
+      await deleteViaAPI(pathsToDelete);
+      selectedItems.clear();
+      await loadFolder();
+      updateToolbar();
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert(`Failed to delete items: ${error.message}`);
     }
   }
 

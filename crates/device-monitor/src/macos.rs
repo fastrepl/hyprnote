@@ -6,9 +6,10 @@ use hypr_device_heuristic::macos::is_headphone_from_default_output_device;
 
 type ListenerFn = extern "C-unwind" fn(ca::Obj, u32, *const ca::PropAddr, *mut ()) -> os::Status;
 
-const SELECTORS: [ca::PropSelector; 2] = [
+const SELECTORS: [ca::PropSelector; 3] = [
     ca::PropSelector::HW_DEFAULT_INPUT_DEVICE,
     ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE,
+    ca::PropSelector::HW_DEVICES,
 ];
 
 trait EventSender: Clone {
@@ -312,6 +313,15 @@ extern "C-unwind" fn system_listener<S: EventSender>(
                 }
                 if ctx.listen_volume_mute {
                     let _ = ctx.update_output_tx.send(());
+                }
+            }
+            ca::PropSelector::HW_DEVICES => {
+                if ctx.listen_switch {
+                    ctx.event_tx.send_switch(DeviceSwitch::DeviceListChanged);
+                }
+                if ctx.listen_volume_mute {
+                    let _ = ctx.update_output_tx.send(());
+                    let _ = ctx.update_input_tx.send(());
                 }
             }
             _ => {}

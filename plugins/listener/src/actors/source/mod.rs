@@ -26,7 +26,6 @@ pub enum SourceMsg {
     SetMicMute(bool),
     GetMicMute(RpcReplyPort<bool>),
     GetMicDevice(RpcReplyPort<Option<String>>),
-    GetSessionId(RpcReplyPort<String>),
     MicChunk(AudioChunk),
     SpeakerChunk(AudioChunk),
     StreamFailed(String),
@@ -75,10 +74,11 @@ impl DeviceChangeWatcher {
     fn event_loop(event_rx: Receiver<DeviceSwitch>, actor: ActorRef<SourceMsg>) {
         loop {
             match event_rx.recv() {
-                Ok(switch) => {
-                    tracing::info!(?switch, "device_switch_event_restarting_source");
+                Ok(DeviceSwitch::DefaultInputChanged) => {
+                    tracing::info!("default_input_changed_restarting_source");
                     actor.stop(Some("device_change".to_string()));
                 }
+                Ok(_) => {}
                 Err(_) => break,
             }
         }
@@ -156,11 +156,6 @@ impl Actor for SourceActor {
             SourceMsg::GetMicDevice(reply) => {
                 if !reply.is_closed() {
                     let _ = reply.send(st.mic_device.clone());
-                }
-            }
-            SourceMsg::GetSessionId(reply) => {
-                if !reply.is_closed() {
-                    let _ = reply.send(st.session_id.clone());
                 }
             }
             SourceMsg::MicChunk(chunk) => {

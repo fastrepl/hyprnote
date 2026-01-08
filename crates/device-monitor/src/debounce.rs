@@ -100,13 +100,6 @@ pub fn spawn_debounced_by_key<T, K, F>(
     });
 }
 
-pub fn spawn_debounced<T>(delay: Duration, raw_rx: mpsc::Receiver<T>, debounced_tx: mpsc::Sender<T>)
-where
-    T: PartialEq + Clone + Send + 'static,
-{
-    spawn_debounced_by_key(delay, raw_rx, debounced_tx, |t: &T| t.clone())
-}
-
 use crate::{DeviceEvent, DeviceSwitch};
 
 pub fn spawn_device_event_debouncer(
@@ -119,6 +112,7 @@ pub fn spawn_device_event_debouncer(
             EventBuffer::new(delay, |switch: &DeviceSwitch| match switch {
                 DeviceSwitch::DefaultInputChanged => 0u8,
                 DeviceSwitch::DefaultOutputChanged { .. } => 1u8,
+                DeviceSwitch::DeviceListChanged => 2u8,
             });
 
         loop {
@@ -282,7 +276,12 @@ mod tests {
         let (raw_tx, raw_rx) = mpsc::channel();
         let (debounced_tx, debounced_rx) = mpsc::channel();
 
-        spawn_debounced(Duration::from_millis(50), raw_rx, debounced_tx);
+        spawn_debounced_by_key(
+            Duration::from_millis(50),
+            raw_rx,
+            debounced_tx,
+            |e: &TestEvent| e.clone(),
+        );
 
         raw_tx.send(TestEvent::Simple).unwrap();
         raw_tx.send(TestEvent::Simple).unwrap();
@@ -300,7 +299,12 @@ mod tests {
         let (raw_tx, raw_rx) = mpsc::channel();
         let (debounced_tx, debounced_rx) = mpsc::channel();
 
-        spawn_debounced(Duration::from_millis(50), raw_rx, debounced_tx);
+        spawn_debounced_by_key(
+            Duration::from_millis(50),
+            raw_rx,
+            debounced_tx,
+            |e: &TestEvent| e.clone(),
+        );
 
         raw_tx.send(TestEvent::WithPayload { value: 1 }).unwrap();
         raw_tx.send(TestEvent::WithPayload { value: 2 }).unwrap();

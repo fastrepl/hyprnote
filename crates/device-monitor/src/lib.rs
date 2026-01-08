@@ -15,6 +15,7 @@ mod windows;
 pub enum DeviceSwitch {
     DefaultInputChanged,
     DefaultOutputChanged { headphone: bool },
+    DeviceListChanged,
 }
 
 #[derive(Debug, Clone)]
@@ -81,6 +82,7 @@ impl DeviceSwitchMonitor {
                 debounce::spawn_debounced_by_key(delay, raw_rx, event_tx, |switch| match switch {
                     DeviceSwitch::DefaultInputChanged => 0u8,
                     DeviceSwitch::DefaultOutputChanged { .. } => 1u8,
+                    DeviceSwitch::DeviceListChanged => 2u8,
                 });
                 raw_tx
             }

@@ -56,44 +56,37 @@ export const Route = createFileRoute("/api/media-upload")({
           });
         }
 
-        const sanitizedFilename = filename
+        const timestamp = Date.now();
+        const sanitizedFilename = `${timestamp}-${filename
           .replace(/[^a-zA-Z0-9.-]/g, "-")
-          .toLowerCase();
-          
-        const allowedExtensions = ["jpg", "jpeg", "png", "gif", "svg", "webp", "avif"];
+          .toLowerCase()}`;
+
+        const allowedExtensions = [
+          "jpg",
+          "jpeg",
+          "png",
+          "gif",
+          "svg",
+          "webp",
+          "avif",
+        ];
         const ext = sanitizedFilename.toLowerCase().split(".").pop();
 
         if (!ext || !allowedExtensions.includes(ext)) {
           return new Response(
-            JSON.stringify({ error: "Invalid file type. Only images are allowed." }),
+            JSON.stringify({
+              error: "Invalid file type. Only images are allowed.",
+            }),
             {
               status: 400,
               headers: { "Content-Type": "application/json" },
             },
           );
         }
-        
+
         const path = `${folder}/${sanitizedFilename}`;
 
         try {
-          // Check if file already exists
-          const checkResponse = await fetch(
-            `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `token ${githubToken}`,
-                Accept: "application/vnd.github.v3+json",
-              },
-            },
-          );
-
-          let sha: string | undefined;
-          if (checkResponse.ok) {
-            const existing = await checkResponse.json();
-            sha = existing.sha;
-          }
-
           const response = await fetch(
             `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
             {
@@ -107,7 +100,6 @@ export const Route = createFileRoute("/api/media-upload")({
                 message: `Upload ${sanitizedFilename} via Decap CMS`,
                 content,
                 branch: GITHUB_BRANCH,
-                ...(sha && { sha }), // Include sha if file exists
               }),
             },
           );

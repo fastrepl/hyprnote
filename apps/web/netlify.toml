@@ -5,6 +5,12 @@ command = "pnpm -F @hypr/web build"
 publish = "apps/web/dist/client"
 ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF apps/web packages/api-client packages/tiptap packages/ui packages/utils package.json pnpm-lock.yaml"
 
+# SPA fallback - serve index.html for all routes that don't match files
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
 [build.environment]
 VITE_APP_URL = "https://hyprnote.com"
 VITE_APP_VERSION = "${COMMIT_REF}"

@@ -236,7 +236,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
         self.save_state(state).await
     }
 
-    pub async fn is_device_hidden(&self, device_id: &str, direction: AudioDirection) -> crate::Result<bool> {
+    pub async fn is_device_hidden(
+        &self,
+        device_id: &str,
+        direction: AudioDirection,
+    ) -> crate::Result<bool> {
         let state = self.load_state().await?;
         let uid = device_id.to_string();
 
@@ -256,7 +260,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
         }
     }
 
-    pub async fn hide_device(&self, device_id: &str, direction: AudioDirection) -> crate::Result<()> {
+    pub async fn hide_device(
+        &self,
+        device_id: &str,
+        direction: AudioDirection,
+    ) -> crate::Result<()> {
         let mut state = self.load_state().await?;
         let uid = device_id.to_string();
 
@@ -290,7 +298,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
         self.save_state(state).await
     }
 
-    pub async fn unhide_device(&self, device_id: &str, direction: AudioDirection) -> crate::Result<()> {
+    pub async fn unhide_device(
+        &self,
+        device_id: &str,
+        direction: AudioDirection,
+    ) -> crate::Result<()> {
         let mut state = self.load_state().await?;
         let uid = device_id;
 

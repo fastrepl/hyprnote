@@ -132,13 +132,19 @@ pub(crate) fn monitor_device_change(
                     headphone: is_headphone_from_default_output_device(),
                 });
             }
-            (Some(Facility::Sink), Some(Operation::Changed | Operation::New)) => {
+            (Some(Facility::Sink), Some(Operation::Changed)) => {
                 let _ = event_tx_for_callback.send(DeviceSwitch::DefaultOutputChanged {
                     headphone: is_headphone_from_default_output_device(),
                 });
             }
-            (Some(Facility::Source), Some(Operation::Changed | Operation::New)) => {
+            (Some(Facility::Sink), Some(Operation::New | Operation::Removed)) => {
+                let _ = event_tx_for_callback.send(DeviceSwitch::DeviceListChanged);
+            }
+            (Some(Facility::Source), Some(Operation::Changed)) => {
                 let _ = event_tx_for_callback.send(DeviceSwitch::DefaultInputChanged);
+            }
+            (Some(Facility::Source), Some(Operation::New | Operation::Removed)) => {
+                let _ = event_tx_for_callback.send(DeviceSwitch::DeviceListChanged);
             }
             _ => {}
         },
@@ -189,16 +195,24 @@ pub(crate) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiv
                     },
                 ));
             }
-            (Some(Facility::Sink), Some(Operation::Changed | Operation::New)) => {
+            (Some(Facility::Sink), Some(Operation::Changed)) => {
                 let _ = event_tx_for_callback.send(DeviceEvent::Switch(
                     DeviceSwitch::DefaultOutputChanged {
                         headphone: is_headphone_from_default_output_device(),
                     },
                 ));
             }
-            (Some(Facility::Source), Some(Operation::Changed | Operation::New)) => {
+            (Some(Facility::Sink), Some(Operation::New | Operation::Removed)) => {
+                let _ = event_tx_for_callback
+                    .send(DeviceEvent::Switch(DeviceSwitch::DeviceListChanged));
+            }
+            (Some(Facility::Source), Some(Operation::Changed)) => {
                 let _ = event_tx_for_callback
                     .send(DeviceEvent::Switch(DeviceSwitch::DefaultInputChanged));
+            }
+            (Some(Facility::Source), Some(Operation::New | Operation::Removed)) => {
+                let _ = event_tx_for_callback
+                    .send(DeviceEvent::Switch(DeviceSwitch::DeviceListChanged));
             }
             _ => {}
         },

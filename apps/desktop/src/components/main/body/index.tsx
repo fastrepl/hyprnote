@@ -113,7 +113,12 @@ function Header({ tabs }: { tabs: Tab[] }) {
     useHasSpaceForSearch();
   const scrollState = useScrollState(tabsScrollContainerRef, [tabs]);
 
-  const setTabRef = useScrollActiveTabIntoView(tabs);
+  const { setTabRef, tabRefsMap } = useScrollActiveTabIntoView(tabs);
+  const activeTabPosition = useActiveTabPosition(
+    tabsScrollContainerRef,
+    tabRefsMap,
+    tabs,
+  );
   useTabsShortcuts();
 
   return (
@@ -210,6 +215,12 @@ function Header({ tabs }: { tabs: Tab[] }) {
         )}
         {!scrollState.atEnd && (
           <div className="absolute right-0 top-0 h-full w-8 z-20 pointer-events-none bg-gradient-to-l from-white to-transparent" />
+        )}
+        {activeTabPosition === "left" && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-3 z-30 pointer-events-none rounded-full bg-red-500 blur-sm" />
+        )}
+        {activeTabPosition === "right" && (
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 z-30 pointer-events-none rounded-full bg-red-500 blur-sm" />
         )}
       </div>
 
@@ -604,6 +615,64 @@ function useScrollState(
   return scrollState;
 }
 
+function useActiveTabPosition(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  tabRefsMap: React.RefObject<Map<string, HTMLDivElement>>,
+  tabs: Tab[],
+) {
+  const [activeTabPosition, setActiveTabPosition] = useState<
+    "left" | "right" | "visible" | null
+  >(null);
+
+  const updateActiveTabPosition = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const activeTab = tabs.find((tab) => tab.active);
+    if (!activeTab) {
+      setActiveTabPosition(null);
+      return;
+    }
+
+    const tabKey = uniqueIdfromTab(activeTab);
+    const tabElement = tabRefsMap.current.get(tabKey);
+    if (!tabElement) {
+      setActiveTabPosition(null);
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const tabRect = tabElement.getBoundingClientRect();
+
+    if (tabRect.right < containerRect.left) {
+      setActiveTabPosition("left");
+    } else if (tabRect.left > containerRect.right) {
+      setActiveTabPosition("right");
+    } else {
+      setActiveTabPosition("visible");
+    }
+  }, [containerRef, tabRefsMap, tabs]);
+
+  useResizeObserver({
+    ref: containerRef as React.RefObject<HTMLDivElement>,
+    onResize: updateActiveTabPosition,
+  });
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    updateActiveTabPosition();
+    container.addEventListener("scroll", updateActiveTabPosition);
+
+    return () => {
+      container.removeEventListener("scroll", updateActiveTabPosition);
+    };
+  }, [updateActiveTabPosition]);
+
+  return activeTabPosition;
+}
+
 function useScrollActiveTabIntoView(tabs: Tab[]) {
   const tabRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -630,7 +699,7 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
     }
   }, []);
 
-  return setTabRef;
+  return { setTabRef, tabRefsMap };
 }
 
 function useTabsShortcuts() {

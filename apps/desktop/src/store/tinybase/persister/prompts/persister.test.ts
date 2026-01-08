@@ -34,7 +34,7 @@ describe("createPromptPersister", () => {
     test("loads prompts from markdown files", async () => {
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
+      vi.mocked(fsSyncCommands.readDocumentBatch).mockResolvedValue({
         status: "ok",
         data: {
           [TEST_UUID_1]: {
@@ -51,7 +51,7 @@ describe("createPromptPersister", () => {
       const persister = createPromptPersister<Schemas>(store);
       await persister.load();
 
-      expect(fsSyncCommands.readFrontmatterBatch).toHaveBeenCalledWith(
+      expect(fsSyncCommands.readDocumentBatch).toHaveBeenCalledWith(
         `${MOCK_DATA_DIR}/prompts`,
       );
 
@@ -67,7 +67,7 @@ describe("createPromptPersister", () => {
     test("returns empty prompts when directory does not exist", async () => {
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      vi.mocked(fsSyncCommands.readFrontmatterBatch).mockResolvedValue({
+      vi.mocked(fsSyncCommands.readDocumentBatch).mockResolvedValue({
         status: "error",
         error: "No such file or directory",
       });
@@ -98,7 +98,7 @@ describe("createPromptPersister", () => {
         recursive: true,
       });
 
-      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeDocumentBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {
@@ -119,7 +119,7 @@ describe("createPromptPersister", () => {
       const persister = createPromptPersister<Schemas>(store);
       await persister.save();
 
-      expect(fsSyncCommands.writeFrontmatterBatch).not.toHaveBeenCalled();
+      expect(fsSyncCommands.writeDocumentBatch).not.toHaveBeenCalled();
     });
 
     test("saves multiple prompts in single batch call", async () => {
@@ -142,9 +142,9 @@ describe("createPromptPersister", () => {
       const persister = createPromptPersister<Schemas>(store);
       await persister.save();
 
-      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledTimes(1);
+      expect(fsSyncCommands.writeDocumentBatch).toHaveBeenCalledTimes(1);
 
-      const batchItems = vi.mocked(fsSyncCommands.writeFrontmatterBatch).mock
+      const batchItems = vi.mocked(fsSyncCommands.writeDocumentBatch).mock
         .calls[0][0];
       expect(batchItems).toHaveLength(2);
 
@@ -183,7 +183,7 @@ describe("createPromptPersister", () => {
       expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/prompts`, {
         recursive: true,
       });
-      expect(fsSyncCommands.writeFrontmatterBatch).toHaveBeenCalledWith([
+      expect(fsSyncCommands.writeDocumentBatch).toHaveBeenCalledWith([
         [
           {
             frontmatter: {

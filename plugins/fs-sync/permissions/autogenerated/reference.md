@@ -6,9 +6,8 @@ Default permissions for the fs-sync plugin
 
 - `allow-deserialize`
 - `allow-write-json-batch`
-- `allow-write-markdown-batch`
-- `allow-write-frontmatter-batch`
-- `allow-read-frontmatter-batch`
+- `allow-write-document-batch`
+- `allow-read-document-batch`
 - `allow-list-folders`
 - `allow-move-session`
 - `allow-create-folder`
@@ -402,12 +401,12 @@ Denies the move_session command without any pre-configured scope.
 <tr>
 <td>
 
-`fs-sync:allow-read-frontmatter-batch`
+`fs-sync:allow-read-document-batch`
 
 </td>
 <td>
 
-Enables the read_frontmatter_batch command without any pre-configured scope.
+Enables the read_document_batch command without any pre-configured scope.
 
 </td>
 </tr>
@@ -415,12 +414,12 @@ Enables the read_frontmatter_batch command without any pre-configured scope.
 <tr>
 <td>
 
-`fs-sync:deny-read-frontmatter-batch`
+`fs-sync:deny-read-document-batch`
 
 </td>
 <td>
 
-Denies the read_frontmatter_batch command without any pre-configured scope.
+Denies the read_document_batch command without any pre-configured scope.
 
 </td>
 </tr>
@@ -506,12 +505,12 @@ Denies the session_dir command without any pre-configured scope.
 <tr>
 <td>
 
-`fs-sync:allow-write-frontmatter-batch`
+`fs-sync:allow-write-document-batch`
 
 </td>
 <td>
 
-Enables the write_frontmatter_batch command without any pre-configured scope.
+Enables the write_document_batch command without any pre-configured scope.
 
 </td>
 </tr>
@@ -519,12 +518,12 @@ Enables the write_frontmatter_batch command without any pre-configured scope.
 <tr>
 <td>
 
-`fs-sync:deny-write-frontmatter-batch`
+`fs-sync:deny-write-document-batch`
 
 </td>
 <td>
 
-Denies the write_frontmatter_batch command without any pre-configured scope.
+Denies the write_document_batch command without any pre-configured scope.
 
 </td>
 </tr>
@@ -551,32 +550,6 @@ Enables the write_json_batch command without any pre-configured scope.
 <td>
 
 Denies the write_json_batch command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`fs-sync:allow-write-markdown-batch`
-
-</td>
-<td>
-
-Enables the write_markdown_batch command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`fs-sync:deny-write-markdown-batch`
-
-</td>
-<td>
-
-Denies the write_markdown_batch command without any pre-configured scope.
 
 </td>
 </tr>

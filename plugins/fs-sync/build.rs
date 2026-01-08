@@ -1,9 +1,8 @@
 const COMMANDS: &[&str] = &[
     "deserialize",
     "write_json_batch",
-    "write_markdown_batch",
-    "write_frontmatter_batch",
-    "read_frontmatter_batch",
+    "write_document_batch",
+    "read_document_batch",
     "list_folders",
     "move_session",
     "create_folder",

@@ -22,25 +22,17 @@ async writeJsonBatch(items: ([JsonValue, string])[]) : Promise<Result<null, stri
     else return { status: "error", error: e  as any };
 }
 },
-async writeMarkdownBatch(items: ([JsonValue, string])[]) : Promise<Result<null, string>> {
+async writeDocumentBatch(items: ([ParsedDocument, string])[]) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|write_markdown_batch", { items }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|write_document_batch", { items }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async writeFrontmatterBatch(items: ([ParsedDocument, string])[]) : Promise<Result<null, string>> {
+async readDocumentBatch(dirPath: string) : Promise<Result<Partial<{ [key in string]: ParsedDocument }>, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|write_frontmatter_batch", { items }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async readFrontmatterBatch(dirPath: string) : Promise<Result<Partial<{ [key in string]: ParsedDocument }>, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|read_frontmatter_batch", { dirPath }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|read_document_batch", { dirPath }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

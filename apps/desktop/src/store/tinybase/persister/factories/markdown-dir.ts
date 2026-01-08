@@ -53,11 +53,9 @@ async function migrateFromLegacyJson<TStorage>(
     }
 
     if (batchItems.length > 0) {
-      const result = await fsSyncCommands.writeFrontmatterBatch(batchItems);
+      const result = await fsSyncCommands.writeDocumentBatch(batchItems);
       if (result.status === "error") {
-        throw new Error(
-          `Failed to serialize frontmatter batch: ${result.error}`,
-        );
+        throw new Error(`Failed to write document batch: ${result.error}`);
       }
     }
 
@@ -73,7 +71,7 @@ async function loadMarkdownDir<TStorage>(
 ): Promise<Record<string, TStorage>> {
   const { dirName, fromFrontmatter } = config;
   const dir = getMarkdownDir(dataDir, dirName);
-  const result = await fsSyncCommands.readFrontmatterBatch(dir);
+  const result = await fsSyncCommands.readDocumentBatch(dir);
 
   if (result.status === "error") {
     return {};
@@ -104,7 +102,7 @@ function collectMarkdownWriteOps<TStorage>(
   const entityDir = getMarkdownDir(dataDir, dirName);
   dirs.add(entityDir);
 
-  const frontmatterItems: [ParsedDocument, string][] = [];
+  const documentItems: [ParsedDocument, string][] = [];
 
   for (const [entityId, entity] of Object.entries(tableData)) {
     validIds.add(entityId);
@@ -112,13 +110,13 @@ function collectMarkdownWriteOps<TStorage>(
     const { frontmatter, body } = toFrontmatter(entity);
     const filePath = getMarkdownFilePath(dataDir, dirName, entityId);
 
-    frontmatterItems.push([{ frontmatter, content: body }, filePath]);
+    documentItems.push([{ frontmatter, content: body }, filePath]);
   }
 
-  if (frontmatterItems.length > 0) {
+  if (documentItems.length > 0) {
     operations.push({
-      type: "frontmatter-batch",
-      items: frontmatterItems,
+      type: "document-batch",
+      items: documentItems,
     });
   }
 

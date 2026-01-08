@@ -79,17 +79,14 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
       await ensureDirsExist(dirs);
 
       const jsonBatchItems: Array<[FsSyncJsonValue, string]> = [];
-      let mdBatchItems: Array<[FsSyncJsonValue, string]> = [];
-      let frontmatterBatchItems: Array<[ParsedDocument, string]> = [];
+      let documentBatchItems: Array<[ParsedDocument, string]> = [];
       const textItems: Array<{ path: string; content: string }> = [];
 
       for (const op of operations) {
         if (op.type === "json") {
           jsonBatchItems.push([op.content as FsSyncJsonValue, op.path]);
-        } else if (op.type === "md-batch") {
-          mdBatchItems = mdBatchItems.concat(op.items);
-        } else if (op.type === "frontmatter-batch") {
-          frontmatterBatchItems = frontmatterBatchItems.concat(op.items);
+        } else if (op.type === "document-batch") {
+          documentBatchItems = documentBatchItems.concat(op.items);
         } else if (op.type === "text") {
           textItems.push({ path: op.path, content: op.content });
         }
@@ -106,24 +103,12 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
         }
       }
 
-      if (mdBatchItems.length > 0) {
-        const exportResult =
-          await fsSyncCommands.writeMarkdownBatch(mdBatchItems);
-        if (exportResult.status === "error") {
-          console.error(
-            `[${options.label}] Failed to export md batch:`,
-            exportResult.error,
-          );
-        }
-      }
-
-      if (frontmatterBatchItems.length > 0) {
-        const result = await fsSyncCommands.writeFrontmatterBatch(
-          frontmatterBatchItems,
-        );
+      if (documentBatchItems.length > 0) {
+        const result =
+          await fsSyncCommands.writeDocumentBatch(documentBatchItems);
         if (result.status === "error") {
           console.error(
-            `[${options.label}] Failed to serialize frontmatter batch:`,
+            `[${options.label}] Failed to write document batch:`,
             result.error,
           );
         }

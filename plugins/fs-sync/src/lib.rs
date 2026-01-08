@@ -23,9 +23,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::deserialize,
             commands::write_json_batch,
-            commands::write_markdown_batch,
-            commands::write_frontmatter_batch,
-            commands::read_frontmatter_batch,
+            commands::write_document_batch,
+            commands::read_document_batch,
             commands::list_folders::<tauri::Wry>,
             commands::move_session::<tauri::Wry>,
             commands::create_folder::<tauri::Wry>,

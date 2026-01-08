@@ -3,9 +3,8 @@ description = "Default permissions for the fs-sync plugin"
 permissions = [
     "allow-deserialize",
     "allow-write-json-batch",
-    "allow-write-markdown-batch",
-    "allow-write-frontmatter-batch",
-    "allow-read-frontmatter-batch",
+    "allow-write-document-batch",
+    "allow-read-document-batch",
     "allow-list-folders",
     "allow-move-session",
     "allow-create-folder",

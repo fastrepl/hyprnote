@@ -38,9 +38,8 @@ type TableRowType<K extends keyof TablesContent> =
 
 export type WriteOperation =
   | { type: "json"; path: string; content: unknown }
-  | { type: "md-batch"; items: Array<[FsSyncJsonValue, string]> }
   | { type: "text"; path: string; content: string }
-  | { type: "frontmatter-batch"; items: Array<[ParsedDocument, string]> };
+  | { type: "document-batch"; items: Array<[ParsedDocument, string]> };
 
 export type CollectorResult = {
   dirs: Set<string>;

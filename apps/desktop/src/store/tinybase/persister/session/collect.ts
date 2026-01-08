@@ -330,7 +330,7 @@ export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
   const operations: CollectorResult["operations"] = [];
   if (frontmatterBatchItems.length > 0) {
     operations.push({
-      type: "frontmatter-batch",
+      type: "document-batch",
       items: frontmatterBatchItems,
     });
   }

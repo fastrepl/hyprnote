@@ -40,20 +40,39 @@ pub fn deserialize(input: &str) -> std::result::Result<ParsedDocument, crate::Er
 }
 
 pub fn serialize(doc: ParsedDocument) -> std::result::Result<String, crate::Error> {
-    let frontmatter_yaml: HashMap<String, serde_yaml::Value> = doc
-        .frontmatter
-        .into_iter()
-        .map(|(k, v)| {
-            let yaml_value = serde_yaml::to_value(&v).unwrap_or(serde_yaml::Value::Null);
-            (k, yaml_value)
-        })
-        .collect();
+    let has_frontmatter = !doc.frontmatter.is_empty();
+    let has_content = !doc.content.is_empty();
 
-    let doc = hypr_frontmatter::Document::new(frontmatter_yaml, doc.content);
-    doc.render().map_err(crate::Error::from)
+    match (has_frontmatter, has_content) {
+        (false, _) => Ok(doc.content),
+        (true, false) => {
+            let frontmatter_yaml: HashMap<String, serde_yaml::Value> = doc
+                .frontmatter
+                .into_iter()
+                .map(|(k, v)| {
+                    let yaml_value = serde_yaml::to_value(&v).unwrap_or(serde_yaml::Value::Null);
+                    (k, yaml_value)
+                })
+                .collect();
+            let doc = hypr_frontmatter::Document::new(frontmatter_yaml, String::new());
+            doc.render().map_err(crate::Error::from)
+        }
+        (true, true) => {
+            let frontmatter_yaml: HashMap<String, serde_yaml::Value> = doc
+                .frontmatter
+                .into_iter()
+                .map(|(k, v)| {
+                    let yaml_value = serde_yaml::to_value(&v).unwrap_or(serde_yaml::Value::Null);
+                    (k, yaml_value)
+                })
+                .collect();
+            let doc = hypr_frontmatter::Document::new(frontmatter_yaml, doc.content);
+            doc.render().map_err(crate::Error::from)
+        }
+    }
 }
 
-pub fn read_frontmatter_from_dir(
+pub fn read_document_from_dir(
     dir_path: &str,
 ) -> std::result::Result<HashMap<String, ParsedDocument>, crate::Error> {
     let path = Path::new(dir_path);
@@ -104,20 +123,20 @@ mod tests {
     }
 
     #[test]
-    fn test_read_frontmatter_from_dir_nonexistent() {
-        let result = read_frontmatter_from_dir("/nonexistent/path").unwrap();
+    fn test_read_document_from_dir_nonexistent() {
+        let result = read_document_from_dir("/nonexistent/path").unwrap();
         assert!(result.is_empty());
     }
 
     #[test]
-    fn test_read_frontmatter_from_dir_empty() {
+    fn test_read_document_from_dir_empty() {
         let temp = tempfile::tempdir().unwrap();
-        let result = read_frontmatter_from_dir(temp.path().to_str().unwrap()).unwrap();
+        let result = read_document_from_dir(temp.path().to_str().unwrap()).unwrap();
         assert!(result.is_empty());
     }
 
     #[test]
-    fn test_read_frontmatter_from_dir_with_files() {
+    fn test_read_document_from_dir_with_files() {
         let temp = tempfile::tempdir().unwrap();
         let uuid1 = "550e8400-e29b-41d4-a716-446655440000";
         let uuid2 = "550e8400-e29b-41d4-a716-446655440001";
@@ -135,7 +154,7 @@ mod tests {
             "Goodbye",
         );
 
-        let result = read_frontmatter_from_dir(temp.path().to_str().unwrap()).unwrap();
+        let result = read_document_from_dir(temp.path().to_str().unwrap()).unwrap();
 
         assert_eq!(result.len(), 2);
         assert!(result.contains_key(uuid1));
@@ -151,7 +170,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_frontmatter_from_dir_skips_non_uuid() {
+    fn test_read_document_from_dir_skips_non_uuid() {
         let temp = tempfile::tempdir().unwrap();
         let uuid = "550e8400-e29b-41d4-a716-446655440000";
 
@@ -164,14 +183,14 @@ mod tests {
         create_md_file(temp.path(), "not-a-uuid.md", "name: Invalid", "should skip");
         create_md_file(temp.path(), "readme.md", "title: Readme", "also skip");
 
-        let result = read_frontmatter_from_dir(temp.path().to_str().unwrap()).unwrap();
+        let result = read_document_from_dir(temp.path().to_str().unwrap()).unwrap();
 
         assert_eq!(result.len(), 1);
         assert!(result.contains_key(uuid));
     }
 
     #[test]
-    fn test_read_frontmatter_from_dir_skips_non_md() {
+    fn test_read_document_from_dir_skips_non_md() {
         let temp = tempfile::tempdir().unwrap();
         let uuid = "550e8400-e29b-41d4-a716-446655440000";
 
@@ -184,14 +203,14 @@ mod tests {
         fs::write(temp.path().join(format!("{}.txt", uuid)), "not markdown").unwrap();
         fs::write(temp.path().join(format!("{}.json", uuid)), "{}").unwrap();
 
-        let result = read_frontmatter_from_dir(temp.path().to_str().unwrap()).unwrap();
+        let result = read_document_from_dir(temp.path().to_str().unwrap()).unwrap();
 
         assert_eq!(result.len(), 1);
         assert!(result.contains_key(uuid));
     }
 
     #[test]
-    fn test_read_frontmatter_from_dir_skips_directories() {
+    fn test_read_document_from_dir_skips_directories() {
         let temp = tempfile::tempdir().unwrap();
         let uuid = "550e8400-e29b-41d4-a716-446655440000";
         let uuid_dir = "550e8400-e29b-41d4-a716-446655440001";
@@ -204,7 +223,7 @@ mod tests {
         );
         fs::create_dir(temp.path().join(uuid_dir)).unwrap();
 
-        let result = read_frontmatter_from_dir(temp.path().to_str().unwrap()).unwrap();
+        let result = read_document_from_dir(temp.path().to_str().unwrap()).unwrap();
 
         assert_eq!(result.len(), 1);
         assert!(result.contains_key(uuid));

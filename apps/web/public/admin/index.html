@@ -30,20 +30,7 @@
         });
       }
 
-      // Handle #/media route with custom media library page
-      function checkMediaRoute() {
-        if (window.location.hash === "#/media") {
-          fetch("/admin/media.html")
-            .then(res => res.text())
-            .then(html => {
-              document.open();
-              document.write(html);
-              document.close();
-            });
-        }
-      }
-      window.addEventListener("hashchange", checkMediaRoute);
-      checkMediaRoute();
+
     </script>
   </body>
 </html>

@@ -129,6 +129,20 @@ const createGitHubMediaLibrary = () => {
           font-size: 18px;
           font-weight: 600;
         }
+        .gml-header-actions {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+        .gml-fullscreen {
+          font-size: 18px;
+          color: #666;
+          text-decoration: none;
+          padding: 4px;
+        }
+        .gml-fullscreen:hover {
+          color: #333;
+        }
         .gml-close {
           background: none;
           border: none;
@@ -375,7 +389,10 @@ const createGitHubMediaLibrary = () => {
       <div class="gml-modal">
         <div class="gml-header">
           <h2>Media Library</h2>
-          <button class="gml-close" aria-label="Close">&times;</button>
+          <div class="gml-header-actions">
+            <a href="/admin/media.html" target="_blank" class="gml-fullscreen" title="Open in full screen">⛶</a>
+            <button class="gml-close" aria-label="Close">&times;</button>
+          </div>
         </div>
         <div class="gml-tabs">
           <button class="gml-tab active" data-tab="browse">Browse</button>

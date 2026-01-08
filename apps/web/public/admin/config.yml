@@ -116,12 +116,12 @@ collections:
         name: section
         widget: select
         options:
-          - About
-          - How We Work
-          - Who We Want
-          - Go To Market
-          - Communication
-          - Beliefs
+          - about
+          - how-we-work
+          - who-we-want
+          - go-to-market
+          - communication
+          - beliefs
       - label: Summary
         name: summary
         widget: text

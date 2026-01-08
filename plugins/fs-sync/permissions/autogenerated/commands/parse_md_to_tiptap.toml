@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-parse-md-to-tiptap"
+description = "Enables the parse_md_to_tiptap command without any pre-configured scope."
+commands.allow = ["parse_md_to_tiptap"]
+
+[[permission]]
+identifier = "deny-parse-md-to-tiptap"
+description = "Denies the parse_md_to_tiptap command without any pre-configured scope."
+commands.deny = ["parse_md_to_tiptap"]

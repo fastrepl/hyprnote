@@ -1,8 +1,8 @@
 const COMMANDS: &[&str] = &[
     "deserialize",
+    "parse_md_to_tiptap",
     "write_json_batch",
-    "write_markdown_batch",
-    "write_frontmatter_batch",
+    "write_md_batch",
     "read_frontmatter_batch",
     "list_folders",
     "move_session",

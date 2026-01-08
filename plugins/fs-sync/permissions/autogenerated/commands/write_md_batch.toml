@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-write-md-batch"
+description = "Enables the write_md_batch command without any pre-configured scope."
+commands.allow = ["write_md_batch"]
+
+[[permission]]
+identifier = "deny-write-md-batch"
+description = "Denies the write_md_batch command without any pre-configured scope."
+commands.deny = ["write_md_batch"]

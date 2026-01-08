@@ -463,6 +463,18 @@
           "markdownDescription": "Denies the move_session command without any pre-configured scope."
         },
         {
+          "description": "Enables the parse_md_to_tiptap command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-parse-md-to-tiptap",
+          "markdownDescription": "Enables the parse_md_to_tiptap command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the parse_md_to_tiptap command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-parse-md-to-tiptap",
+          "markdownDescription": "Denies the parse_md_to_tiptap command without any pre-configured scope."
+        },
+        {
           "description": "Enables the read_frontmatter_batch command without any pre-configured scope.",
           "type": "string",
           "const": "allow-read-frontmatter-batch",
@@ -511,18 +523,6 @@
           "markdownDescription": "Denies the session_dir command without any pre-configured scope."
         },
         {
-          "description": "Enables the write_frontmatter_batch command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-write-frontmatter-batch",
-          "markdownDescription": "Enables the write_frontmatter_batch command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the write_frontmatter_batch command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-write-frontmatter-batch",
-          "markdownDescription": "Denies the write_frontmatter_batch command without any pre-configured scope."
-        },
-        {
           "description": "Enables the write_json_batch command without any pre-configured scope.",
           "type": "string",
           "const": "allow-write-json-batch",
@@ -535,22 +535,22 @@
           "markdownDescription": "Denies the write_json_batch command without any pre-configured scope."
         },
         {
-          "description": "Enables the write_markdown_batch command without any pre-configured scope.",
+          "description": "Enables the write_md_batch command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-write-markdown-batch",
-          "markdownDescription": "Enables the write_markdown_batch command without any pre-configured scope."
+          "const": "allow-write-md-batch",
+          "markdownDescription": "Enables the write_md_batch command without any pre-configured scope."
         },
         {
-          "description": "Denies the write_markdown_batch command without any pre-configured scope.",
+          "description": "Denies the write_md_batch command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-write-markdown-batch",
-          "markdownDescription": "Denies the write_markdown_batch command without any pre-configured scope."
+          "const": "deny-write-md-batch",
+          "markdownDescription": "Denies the write_md_batch command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-parse-md-to-tiptap`\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-read-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`\n- `allow-scan-and-read`\n- `allow-chat-dir`\n- `allow-entity-dir`",
+          "description": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-parse-md-to-tiptap`\n- `allow-write-json-batch`\n- `allow-write-md-batch`\n- `allow-read-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`\n- `allow-scan-and-read`\n- `allow-chat-dir`\n- `allow-entity-dir`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-parse-md-to-tiptap`\n- `allow-write-json-batch`\n- `allow-write-markdown-batch`\n- `allow-write-frontmatter-batch`\n- `allow-read-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`\n- `allow-scan-and-read`\n- `allow-chat-dir`\n- `allow-entity-dir`"
+          "markdownDescription": "Default permissions for the fs-sync plugin\n#### This default permission set includes:\n\n- `allow-deserialize`\n- `allow-parse-md-to-tiptap`\n- `allow-write-json-batch`\n- `allow-write-md-batch`\n- `allow-read-frontmatter-batch`\n- `allow-list-folders`\n- `allow-move-session`\n- `allow-create-folder`\n- `allow-rename-folder`\n- `allow-delete-folder`\n- `allow-cleanup-orphan-files`\n- `allow-cleanup-orphan-dirs`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-audio-import`\n- `allow-audio-path`\n- `allow-session-dir`\n- `allow-delete-session-folder`\n- `allow-scan-and-read`\n- `allow-chat-dir`\n- `allow-entity-dir`"
         }
       ]
     }

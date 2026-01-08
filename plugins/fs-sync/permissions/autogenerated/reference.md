@@ -7,8 +7,7 @@ Default permissions for the fs-sync plugin
 - `allow-deserialize`
 - `allow-parse-md-to-tiptap`
 - `allow-write-json-batch`
-- `allow-write-markdown-batch`
-- `allow-write-frontmatter-batch`
+- `allow-write-md-batch`
 - `allow-read-frontmatter-batch`
 - `allow-list-folders`
 - `allow-move-session`
@@ -403,6 +402,32 @@ Denies the move_session command without any pre-configured scope.
 <tr>
 <td>
 
+`fs-sync:allow-parse-md-to-tiptap`
+
+</td>
+<td>
+
+Enables the parse_md_to_tiptap command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`fs-sync:deny-parse-md-to-tiptap`
+
+</td>
+<td>
+
+Denies the parse_md_to_tiptap command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `fs-sync:allow-read-frontmatter-batch`
 
 </td>
@@ -507,32 +532,6 @@ Denies the session_dir command without any pre-configured scope.
 <tr>
 <td>
 
-`fs-sync:allow-write-frontmatter-batch`
-
-</td>
-<td>
-
-Enables the write_frontmatter_batch command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`fs-sync:deny-write-frontmatter-batch`
-
-</td>
-<td>
-
-Denies the write_frontmatter_batch command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `fs-sync:allow-write-json-batch`
 
 </td>
@@ -559,12 +558,12 @@ Denies the write_json_batch command without any pre-configured scope.
 <tr>
 <td>
 
-`fs-sync:allow-write-markdown-batch`
+`fs-sync:allow-write-md-batch`
 
 </td>
 <td>
 
-Enables the write_markdown_batch command without any pre-configured scope.
+Enables the write_md_batch command without any pre-configured scope.
 
 </td>
 </tr>
@@ -572,12 +571,12 @@ Enables the write_markdown_batch command without any pre-configured scope.
 <tr>
 <td>
 
-`fs-sync:deny-write-markdown-batch`
+`fs-sync:deny-write-md-batch`
 
 </td>
 <td>
 
-Denies the write_markdown_batch command without any pre-configured scope.
+Denies the write_md_batch command without any pre-configured scope.
 
 </td>
 </tr>

@@ -107,7 +107,7 @@ collections:
     nested:
       depth: 10
       summary: "{{title}}"
-      subfolders: false
+      subfolders: true
     fields:
       - label: Title
         name: title

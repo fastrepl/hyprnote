@@ -14,10 +14,7 @@ mod windows;
 #[derive(Debug, Clone)]
 pub enum DeviceSwitch {
     DefaultInputChanged,
-    DefaultOutputChanged {
-        headphone: bool,
-    },
-    /// Fired when the list of available devices changes (device connected/disconnected).
+    DefaultOutputChanged { headphone: bool },
     DeviceListChanged,
 }
 

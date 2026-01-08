@@ -320,7 +320,6 @@ extern "C-unwind" fn system_listener<S: EventSender>(
                     ctx.event_tx.send_switch(DeviceSwitch::DeviceListChanged);
                 }
                 if ctx.listen_volume_mute {
-                    // Re-register volume/mute listeners when device list changes
                     let _ = ctx.update_output_tx.send(());
                     let _ = ctx.update_input_tx.send(());
                 }

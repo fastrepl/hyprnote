@@ -6,6 +6,14 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     AudioPriority(#[from] hypr_audio_priority::Error),
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
+    #[error(transparent)]
+    SerdeJsonError(#[from] serde_json::Error),
+    #[error("state: {0}")]
+    State(String),
+    #[error(transparent)]
+    Path2Error(#[from] tauri_plugin_path2::Error),
 }
 
 impl Serialize for Error {

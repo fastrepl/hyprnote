@@ -1,5 +1,6 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLinkIcon, SparklesIcon } from "lucide-react";
+import { format } from "date-fns";
+import { CalendarIcon, ExternalLinkIcon, SparklesIcon } from "lucide-react";
 import {
   type RefObject,
   useCallback,
@@ -43,8 +44,26 @@ export function getLatestVersion(): string | null {
   return versions[0] || null;
 }
 
-function stripFrontmatter(content: string): string {
-  return content.trim();
+function parseFrontmatter(content: string): {
+  date: string | null;
+  body: string;
+} {
+  const trimmed = content.trim();
+  const frontmatterMatch = trimmed.match(
+    /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/,
+  );
+
+  if (!frontmatterMatch) {
+    return { date: null, body: trimmed };
+  }
+
+  const frontmatterBlock = frontmatterMatch[1];
+  const body = frontmatterMatch[2];
+
+  const dateMatch = frontmatterBlock.match(/^date:\s*(.+)$/m);
+  const date = dateMatch ? dateMatch[1].trim() : null;
+
+  return { date, body };
 }
 
 function fixImageUrls(content: string): string {
@@ -103,14 +122,14 @@ export function TabContentChangelog({
 }) {
   const { current } = tab.state;
 
-  const { content, loading } = useChangelogContent(current);
+  const { content, date, loading } = useChangelogContent(current);
   const { scrollRef, atStart, atEnd } = useScrollFade<HTMLDivElement>();
 
   return (
     <StandardTabWrapper>
       <div className="flex flex-col h-full">
         <div className="pl-2 pr-1 shrink-0">
-          <ChangelogHeader version={current} />
+          <ChangelogHeader version={current} date={date} />
         </div>
 
         <div className="mt-2 px-3 shrink-0">
@@ -139,7 +158,15 @@ export function TabContentChangelog({
   );
 }
 
-function ChangelogHeader({ version }: { version: string }) {
+function ChangelogHeader({
+  version,
+  date,
+}: {
+  version: string;
+  date: string | null;
+}) {
+  const formattedDate = date ? format(new Date(date), "MMM d, yyyy") : null;
+
   return (
     <div className="w-full pt-1">
       <div className="flex items-center gap-2">
@@ -158,10 +185,20 @@ function ChangelogHeader({ version }: { version: string }) {
         </div>
 
         <div className="flex items-center shrink-0">
+          {formattedDate && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="pointer-events-none text-neutral-600"
+            >
+              <CalendarIcon size={14} className="shrink-0 -mt-0.5" />
+              <span>{formattedDate}</span>
+            </Button>
+          )}
           <Button
             size="sm"
             variant="ghost"
-            className="gap-1.5"
+            className="gap-1.5 text-neutral-600 hover:text-black"
             onClick={() => openUrl("https://hyprnote.com/changelog")}
           >
             <ExternalLinkIcon size={14} className="-mt-0.5" />
@@ -177,6 +214,7 @@ function useChangelogContent(version: string) {
   const [content, setContent] = useState<ReturnType<typeof md2json> | null>(
     null,
   );
+  const [date, setDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -191,18 +229,21 @@ function useChangelogContent(version: string) {
 
     changelogFiles[key]()
       .then((raw) => {
-        const markdown = fixImageUrls(stripFrontmatter(raw as string));
+        const { date: parsedDate, body } = parseFrontmatter(raw as string);
+        const markdown = fixImageUrls(body);
         const json = md2json(markdown);
         setContent(addEmptyParagraphsBeforeHeaders(json));
+        setDate(parsedDate);
         setLoading(false);
       })
       .catch(() => {
         setContent(null);
+        setDate(null);
         setLoading(false);
       });
   }, [version]);
 
-  return { content, loading };
+  return { content, date, loading };
 }
 
 function useScrollFade<T extends HTMLElement>() {

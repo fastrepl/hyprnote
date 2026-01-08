@@ -312,10 +312,16 @@ function ShortcutListColumn({
               }}
               size="icon"
               variant="ghost"
+              className="text-neutral-600 hover:text-black"
             >
               <Search size={16} />
             </Button>
-            <Button onClick={onAddNew} size="icon" variant="ghost">
+            <Button
+              onClick={onAddNew}
+              size="icon"
+              variant="ghost"
+              className="text-neutral-600 hover:text-black"
+            >
               <Plus size={16} />
             </Button>
           </div>

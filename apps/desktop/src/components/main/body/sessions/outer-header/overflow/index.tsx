@@ -42,7 +42,11 @@ export function OverflowButton({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-neutral-600 hover:text-black"
+        >
           <MoreHorizontalIcon size={16} />
         </Button>
       </DropdownMenuTrigger>

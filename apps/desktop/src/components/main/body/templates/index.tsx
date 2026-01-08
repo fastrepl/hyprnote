@@ -409,7 +409,7 @@ function TemplatesHomepage({
                 onClick={onExpandSidebar}
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8"
+                className="h-8 w-8 text-neutral-600 hover:text-black"
               >
                 <Star size={16} className="text-amber-500" />
               </Button>
@@ -648,7 +648,11 @@ function TemplateListColumn({
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-neutral-600 hover:text-black"
+                >
                   <ArrowDownUp size={16} />
                 </Button>
               </DropdownMenuTrigger>

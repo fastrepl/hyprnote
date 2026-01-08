@@ -109,7 +109,7 @@ export function ShareButton(_: { sessionId: string }) {
         <Button
           size="sm"
           variant="ghost"
-          className="gap-1.5"
+          className="gap-1.5 text-neutral-600 hover:text-black"
           aria-label="Share"
           title="Share"
         >

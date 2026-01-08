@@ -7,6 +7,9 @@ publish_mode: editorial_workflow
 media_folder: apps/web/public/images
 public_folder: /images
 
+media_library:
+  name: github-images
+
 collections:
   - name: articles
     label: Blog
@@ -22,7 +25,7 @@ collections:
         name: meta_title
         widget: string
         hint: Title for SEO/browser tab (50-60 chars ideal)
-        pattern: ['^.{1,70}$', "Keep under 70 characters for SEO"]
+        pattern: ["^.{1,70}$", "Keep under 70 characters for SEO"]
 
       - label: Display Title
         name: display_title
@@ -34,7 +37,7 @@ collections:
         name: meta_description
         widget: text
         hint: Description for SEO (150-160 chars ideal)
-        pattern: ['^.{50,200}$', "Aim for 150-160 characters"]
+        pattern: ["^.{50,200}$", "Aim for 150-160 characters"]
 
       - label: Author
         name: author

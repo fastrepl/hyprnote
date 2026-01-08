@@ -5,8 +5,6 @@ import {
 } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 
-import { html2md } from "./utils";
-
 export const ClipboardTextSerializer = Extension.create({
   name: "hyprnoteClipboardTextSerializer",
 
@@ -24,9 +22,7 @@ export const ClipboardTextSerializer = Extension.create({
             const to = Math.max(...ranges.map((range) => range.$to.pos));
 
             if (from === 0 && to === doc.content.size) {
-              const html = editor.getHTML();
-              const md = html2md(html);
-              return md;
+              return editor.getMarkdown();
             }
 
             const textSerializers = getTextSerializersFromSchema(schema);

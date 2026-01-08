@@ -49,6 +49,15 @@ const AttachmentResizableImage = ResizableImage.extend({
       },
     };
   },
+
+  renderMarkdown: (node: {
+    attrs?: { src?: string; alt?: string; title?: string };
+  }) => {
+    const src = node.attrs?.src || "";
+    const alt = node.attrs?.alt || "";
+    const title = node.attrs?.title;
+    return title ? `![${alt}](${src} "${title}")` : `![${alt}](${src})`;
+  },
 });
 
 export const getExtensions = (

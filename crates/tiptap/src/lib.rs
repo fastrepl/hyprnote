@@ -750,7 +750,8 @@ mod tests {
 
     #[test]
     fn test_roundtrip_complex_document() {
-        let md = "# Title\n\nParagraph with **bold** and *italic*.\n\n- Item 1\n- Item 2\n\n> A quote";
+        let md =
+            "# Title\n\nParagraph with **bold** and *italic*.\n\n- Item 1\n- Item 2\n\n> A quote";
         let json = md_to_tiptap_json(md).unwrap();
         let result = to_md(json);
         assert_eq!(result.trim(), md);

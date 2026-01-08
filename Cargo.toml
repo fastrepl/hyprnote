@@ -29,6 +29,7 @@ exclude = [
   "apps/bot",
   "apps/web",
   "plugins/db",
+  "plugins/export",
 ]
 
 [workspace.dependencies]

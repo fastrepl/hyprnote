@@ -62,6 +62,24 @@ export const Route = createFileRoute("/api/media-upload")({
         const path = `${folder}/${sanitizedFilename}`;
 
         try {
+          // Check if file already exists
+          const checkResponse = await fetch(
+            `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `token ${githubToken}`,
+                Accept: "application/vnd.github.v3+json",
+              },
+            },
+          );
+
+          let sha: string | undefined;
+          if (checkResponse.ok) {
+            const existing = await checkResponse.json();
+            sha = existing.sha;
+          }
+
           const response = await fetch(
             `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
             {
@@ -75,6 +93,7 @@ export const Route = createFileRoute("/api/media-upload")({
                 message: `Upload ${sanitizedFilename} via Decap CMS`,
                 content,
                 branch: GITHUB_BRANCH,
+                ...(sha && { sha }), // Include sha if file exists
               }),
             },
           );

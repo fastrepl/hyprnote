@@ -17,7 +17,7 @@ thiserror = { workspace = true }
 minijinja = { workspace = true, features = ["loader", "preserve_order", "json"] }
 minijinja-contrib = { workspace = true, features = ["pycompat"] }
 
-htmd = "0.3.2"
+htmd = { workspace = true }
 reqwest = { workspace = true, features = ["blocking"] }
 
 [dev-dependencies]

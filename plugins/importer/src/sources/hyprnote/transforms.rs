@@ -4,14 +4,14 @@ use hypr_db_user::{Session, Tag};
 pub(super) fn session_to_imported_note(session: Session, tags: Vec<Tag>) -> ImportedNote {
     let content = get_session_content(&session);
     let raw_md = if !session.raw_memo_html.is_empty() {
-        Some(strip_html_tags(&session.raw_memo_html))
+        Some(html_to_markdown(&session.raw_memo_html))
     } else {
         None
     };
 
     let enhanced_content = if let Some(ref enhanced) = session.enhanced_memo_html {
         if !enhanced.is_empty() {
-            Some(strip_html_tags(enhanced))
+            Some(html_to_markdown(enhanced))
         } else {
             None
         }
@@ -123,45 +123,18 @@ fn get_session_content(session: &Session) -> String {
     if let Some(ref enhanced) = session.enhanced_memo_html
         && !enhanced.is_empty()
     {
-        return strip_html_tags(enhanced);
+        return html_to_markdown(enhanced);
     }
 
     if !session.raw_memo_html.is_empty() {
-        return strip_html_tags(&session.raw_memo_html);
+        return html_to_markdown(&session.raw_memo_html);
     }
 
     String::new()
 }
 
-fn strip_html_tags(html: &str) -> String {
-    let pre_processed = html
-        .replace("</div>", "\n")
-        .replace("</p>", "\n\n")
-        .replace("<br>", "\n")
-        .replace("<br/>", "\n")
-        .replace("<br />", "\n");
-
-    let mut result = String::new();
-    let mut in_tag = false;
-
-    for c in pre_processed.chars() {
-        match c {
-            '<' => in_tag = true,
-            '>' => in_tag = false,
-            _ if !in_tag => result.push(c),
-            _ => {}
-        }
-    }
-
-    result
-        .replace("&nbsp;", " ")
-        .replace("&amp;", "&")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&quot;", "\"")
-        .replace("&#39;", "'")
-        .trim()
-        .to_string()
+fn html_to_markdown(html: &str) -> String {
+    htmd::convert(html).unwrap_or_else(|_| html.to_string())
 }
 
 fn format_timestamp(ms: u64) -> String {

@@ -8689,12 +8689,13 @@ dependencies = [
 
 [[package]]
 name = "htmd"
-version = "0.3.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4642ae72538a8d374109c5acf95c603732c736aace63c337ec2d3e42f7095854"
+checksum = "60ae59466542f2346e43d4a5e9b4432a1fc915b279c9fc0484e9ed7379121454"
 dependencies = [
  "html5ever 0.35.0",
  "markup5ever_rcdom",
+ "phf 0.13.1",
 ]
 
 [[package]]
@@ -18196,6 +18197,7 @@ dependencies = [
  "db-user",
  "dirs 6.0.0",
  "granola",
+ "htmd",
  "owhisper-interface",
  "serde",
  "serde_json",

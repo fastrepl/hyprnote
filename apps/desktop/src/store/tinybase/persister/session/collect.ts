@@ -221,7 +221,8 @@ function tryParseAndConvertToMarkdown(content: string): string | undefined {
   try {
     parsed = JSON.parse(content);
   } catch {
-    return undefined;
+    // Not JSON - treat as raw markdown (e.g., from importer)
+    return content.trim() || undefined;
   }
 
   if (!isValidTiptapContent(parsed)) {

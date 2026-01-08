@@ -2,6 +2,7 @@ import { BaseDirectory, readTextFile, remove } from "@tauri-apps/plugin-fs";
 import { createMergeableStore } from "tinybase/with-schemas";
 
 import { SCHEMA } from "@hypr/store";
+import { isValidTiptapContent, md2json } from "@hypr/tiptap/shared";
 
 import type { Store } from "./main";
 
@@ -46,6 +47,46 @@ const countRows = (tables: object | null): number => {
   return count;
 };
 
+const convertMarkdownToTiptapJson = (content: string): string => {
+  if (!content || !content.trim()) {
+    return content;
+  }
+
+  try {
+    const parsed = JSON.parse(content);
+    if (isValidTiptapContent(parsed)) {
+      return content;
+    }
+  } catch {
+    // Not JSON - treat as markdown
+  }
+
+  const tiptapJson = md2json(content);
+  return JSON.stringify(tiptapJson);
+};
+
+type Tables = Record<string, Record<string, Record<string, unknown>>>;
+
+const transformImportedTables = (tables: Tables): Tables => {
+  if (tables.sessions) {
+    for (const session of Object.values(tables.sessions)) {
+      if (typeof session.raw_md === "string") {
+        session.raw_md = convertMarkdownToTiptapJson(session.raw_md);
+      }
+    }
+  }
+
+  if (tables.enhanced_notes) {
+    for (const note of Object.values(tables.enhanced_notes)) {
+      if (typeof note.content === "string") {
+        note.content = convertMarkdownToTiptapJson(note.content);
+      }
+    }
+  }
+
+  return tables;
+};
+
 const mergeImportData = (
   store: Store,
   { tables, values }: ParsedImport,
@@ -55,7 +96,10 @@ const mergeImportData = (
     .setValuesSchema(SCHEMA.value) as Store;
 
   if (tables) {
-    importStore.setTables(tables as Parameters<Store["setTables"]>[0]);
+    const transformedTables = transformImportedTables(tables as Tables);
+    importStore.setTables(
+      transformedTables as Parameters<Store["setTables"]>[0],
+    );
   }
 
   if (values) {

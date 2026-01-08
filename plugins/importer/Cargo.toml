@@ -16,6 +16,7 @@ specta-typescript = { workspace = true }
 [dependencies]
 chrono = { workspace = true }
 dirs = { workspace = true }
+htmd = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-granola = { workspace = true }

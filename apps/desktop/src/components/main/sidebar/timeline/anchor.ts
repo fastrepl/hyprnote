@@ -84,19 +84,19 @@ export function useAutoScrollToAnchor({
   anchorNode: HTMLDivElement | null;
   deps?: DependencyList;
 }) {
-  const hasMountedRef = useRef(false);
+  const hasInitialScrolledRef = useRef(false);
   const prevAnchorNodeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (hasMountedRef.current) {
+    if (!anchorNode || hasInitialScrolledRef.current) {
       return;
     }
-    hasMountedRef.current = true;
 
+    hasInitialScrolledRef.current = true;
     requestAnimationFrame(() => {
       scrollFn();
     });
-  }, [scrollFn]);
+  }, [anchorNode, scrollFn]);
 
   useEffect(() => {
     if (!anchorNode || prevAnchorNodeRef.current === anchorNode) {

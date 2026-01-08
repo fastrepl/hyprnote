@@ -58,9 +58,10 @@ const createGitHubMediaLibrary = () => {
   }
 
   async function uploadViaAPI(file, folder) {
-    const base64Content = await new Promise((resolve) => {
+    const base64Content = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = () => reject(new Error("Failed to read file"));
       reader.readAsDataURL(file);
     });
 

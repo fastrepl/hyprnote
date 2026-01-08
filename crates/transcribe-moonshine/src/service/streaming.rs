@@ -150,8 +150,14 @@ async fn handle_websocket_connection(
 
     let (ws_sender, ws_receiver) = socket.split();
 
-    let redemption_time =
-        Duration::from_millis(params.redemption_time_ms.unwrap_or(500).clamp(300, 1200));
+    let redemption_time_ms = params
+        .custom_query
+        .as_ref()
+        .and_then(|q| q.get("redemption_time_ms"))
+        .and_then(|v| v.parse::<u64>().ok())
+        .unwrap_or(500)
+        .clamp(300, 1200);
+    let redemption_time = Duration::from_millis(redemption_time_ms);
 
     match params.channels {
         1 => {

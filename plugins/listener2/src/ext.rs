@@ -56,7 +56,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
             sample_rate: metadata.sample_rate,
             languages: params.languages.clone(),
             keywords: params.keywords.clone(),
-            redemption_time_ms: None,
+            custom_query: None,
         };
 
         let state = self.manager.state::<crate::SharedState>();

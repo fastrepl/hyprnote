@@ -83,23 +83,41 @@ mod tests {
     use crate::ListenClient;
     use crate::test_utils::{run_dual_test, run_single_test};
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_single() {
-        let client = ListenClient::builder()
-            .adapter::<ArgmaxAdapter>()
-            .api_base("ws://localhost:50060/v1")
-            .api_key("")
-            .params(owhisper_interface::ListenParams {
-                model: Some("large-v3-v20240930_626MB".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single()
-            .await;
-
-        run_single_test(client, "argmax").await;
+    macro_rules! single_test {
+        ($name:ident, $params:expr) => {
+            #[tokio::test]
+            #[ignore]
+            async fn $name() {
+                let client = ListenClient::builder()
+                    .adapter::<ArgmaxAdapter>()
+                    .api_base("ws://localhost:50060/v1")
+                    .api_key("")
+                    .params($params)
+                    .build_single()
+                    .await;
+                run_single_test(client, "argmax").await;
+            }
+        };
     }
+
+    single_test!(
+        test_build_single,
+        owhisper_interface::ListenParams {
+            model: Some("large-v3-v20240930_626MB".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_with_keywords,
+        owhisper_interface::ListenParams {
+            model: Some("large-v3-v20240930_626MB".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            keywords: vec!["Hyprnote".to_string(), "transcription".to_string()],
+            ..Default::default()
+        }
+    );
 
     #[tokio::test]
     #[ignore]

@@ -133,7 +133,10 @@ async fn handle_websocket_connection(
     let (ws_sender, ws_receiver) = socket.split();
 
     let redemption_time = params
-        .redemption_time_ms
+        .custom_query
+        .as_ref()
+        .and_then(|q| q.get("redemption_time_ms"))
+        .and_then(|v| v.parse::<u64>().ok())
         .map(Duration::from_millis)
         .unwrap_or(Duration::from_millis(400));
 

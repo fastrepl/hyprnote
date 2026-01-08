@@ -308,12 +308,16 @@ async fn spawn_rx_task(
 }
 
 fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams {
+    let redemption_time_ms = if args.onboarding { "60" } else { "400" };
     owhisper_interface::ListenParams {
         model: Some(args.model.clone()),
         languages: args.languages.clone(),
         sample_rate: super::SAMPLE_RATE,
-        redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
         keywords: args.keywords.clone(),
+        custom_query: Some(std::collections::HashMap::from([(
+            "redemption_time_ms".to_string(),
+            redemption_time_ms.to_string(),
+        )])),
         ..Default::default()
     }
 }

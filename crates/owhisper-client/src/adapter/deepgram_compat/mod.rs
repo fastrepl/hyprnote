@@ -76,11 +76,13 @@ where
         .add_common_listen_params(params, channels)
         .add_bool("interim_results", true)
         .add_bool("multichannel", channels > 1)
-        .add_bool("vad_events", false)
-        .add(
-            "redemption_time_ms",
-            params.redemption_time_ms.unwrap_or(400),
-        );
+        .add_bool("vad_events", false);
+
+    if let Some(custom) = &params.custom_query {
+        for (key, value) in custom {
+            builder.add(key, value);
+        }
+    }
 
     builder.apply_to(&mut url);
 

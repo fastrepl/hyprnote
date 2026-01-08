@@ -38,20 +38,21 @@ export type WordEntry = {
 };
 
 export function transformWordEntries(
-  wordEntries: WordEntry[],
+  wordEntries: WordEntry[] | null | undefined,
   transcript: string,
   channel: number,
 ): [WordLike[], RuntimeSpeakerHint[]] {
   const words: WordLike[] = [];
   const hints: RuntimeSpeakerHint[] = [];
 
+  const entries = wordEntries ?? [];
   const textsWithSpacing = fixSpacingForWords(
-    wordEntries.map((w) => w.punctuated_word ?? w.word),
+    entries.map((w) => w.punctuated_word ?? w.word),
     transcript,
   );
 
-  for (let i = 0; i < wordEntries.length; i++) {
-    const word = wordEntries[i];
+  for (let i = 0; i < entries.length; i++) {
+    const word = entries[i];
     const text = textsWithSpacing[i];
 
     words.push({

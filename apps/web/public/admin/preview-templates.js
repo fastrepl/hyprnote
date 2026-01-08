@@ -58,15 +58,15 @@ const HandbookPreview = createClass({
 
     return h(
       "div",
-      { className: "blog-preview" },
+      { className: "handbook-preview" },
       h(
         "header",
-        { className: "blog-preview-header" },
-        section && h("div", { className: "blog-preview-back" }, section),
-        h("h1", { className: "blog-preview-title" }, title),
-        summary && h("p", { style: { color: "#525252", fontSize: "18px", marginTop: "16px" } }, summary)
+        { className: "handbook-preview-header" },
+        section && h("div", { className: "handbook-preview-section" }, section),
+        h("h1", { className: "handbook-preview-title" }, title),
+        summary && h("p", { className: "handbook-preview-summary" }, summary)
       ),
-      h("article", { className: "blog-preview-content" }, this.props.widgetFor("body"))
+      h("article", { className: "handbook-preview-content" }, this.props.widgetFor("body"))
     );
   },
 });

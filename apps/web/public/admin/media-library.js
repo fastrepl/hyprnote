@@ -139,6 +139,8 @@ const createGitHubMediaLibrary = () => {
           color: #666;
           text-decoration: none;
           padding: 4px;
+          position: relative;
+          top: 4px;
         }
         .gml-fullscreen:hover {
           color: #333;

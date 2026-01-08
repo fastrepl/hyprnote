@@ -7,4 +7,3 @@
 /product/*/ /product/:splat 301!
 /pricing/ /pricing 301!
 /enterprise/ /enterprise 301!
-/download/ /download 301!

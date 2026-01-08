@@ -60,6 +60,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
       meta: [
         { title: `${article.title} - Hyprnote Blog` },
         { name: "description", content: article.meta_description },
+        { tag: "link", attrs: { rel: "canonical", href: url } },
         {
           property: "og:title",
           content: `${article.title} - Hyprnote Blog`,

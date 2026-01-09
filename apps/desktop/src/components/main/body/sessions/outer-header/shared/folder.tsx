@@ -1,5 +1,5 @@
 import { FolderIcon } from "lucide-react";
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import {
   Command,
@@ -16,8 +16,27 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 
-import { folderOps } from "../../../../../../store/tinybase/persister/folder/ops";
+import { sessionOps } from "../../../../../../store/tinybase/persister/session/ops";
 import * as main from "../../../../../../store/tinybase/store/main";
+
+function useFolders() {
+  const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
+
+  return useMemo(() => {
+    if (!store || !sessionIds) return {};
+
+    const folders: Record<string, { name: string }> = {};
+    for (const id of sessionIds) {
+      const folderId = store.getCell("sessions", id, "folder_id") as string;
+      if (folderId && !folders[folderId]) {
+        const parts = folderId.split("/");
+        folders[folderId] = { name: parts[parts.length - 1] };
+      }
+    }
+    return folders;
+  }, [sessionIds, store]);
+}
 
 export function SearchableFolderDropdown({
   sessionId,
@@ -27,10 +46,7 @@ export function SearchableFolderDropdown({
   trigger: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const folders = main.UI.useResultTable(
-    main.QUERIES.visibleFolders,
-    main.STORE_ID,
-  );
+  const folders = useFolders();
 
   const handleSelectFolder = useMoveSessionToFolder(sessionId);
 
@@ -61,10 +77,7 @@ export function SearchableFolderSubmenuContent({
   sessionId: string;
   setOpen?: (open: boolean) => void;
 }) {
-  const folders = main.UI.useResultTable(
-    main.QUERIES.visibleFolders,
-    main.STORE_ID,
-  );
+  const folders = useFolders();
 
   const handleSelectFolder = useMoveSessionToFolder(sessionId);
 
@@ -90,7 +103,7 @@ function SearchableFolderContent({
   onSelectFolder,
   setOpen,
 }: {
-  folders: Record<string, any>;
+  folders: Record<string, { name: string }>;
   onSelectFolder: (folderId: string) => Promise<void>;
   setOpen?: (open: boolean) => void;
 }) {
@@ -124,7 +137,7 @@ function SearchableFolderContent({
 function useMoveSessionToFolder(sessionId: string) {
   return useCallback(
     async (targetFolderId: string) => {
-      const result = await folderOps.moveSessionToFolder(
+      const result = await sessionOps.moveSessionToFolder(
         sessionId,
         targetFolderId,
       );

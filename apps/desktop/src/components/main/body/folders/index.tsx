@@ -4,16 +4,64 @@ import {
   PlusIcon,
   StickyNoteIcon,
 } from "lucide-react";
+import { useMemo } from "react";
 
 import { cn } from "@hypr/utils";
 
-import { useFolder, useSession } from "../../../../hooks/tinybase";
+import { useSession } from "../../../../hooks/tinybase";
 import * as main from "../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 import { FolderBreadcrumb, useFolderChain } from "../shared/folder-breadcrumb";
 import { Section } from "./shared";
+
+function useFolderTree() {
+  const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
+
+  return useMemo(() => {
+    if (!store || !sessionIds)
+      return {
+        topLevel: [] as string[],
+        byParent: {} as Record<string, string[]>,
+      };
+
+    const allFolders = new Set<string>();
+    for (const id of sessionIds) {
+      const folderId = store.getCell("sessions", id, "folder_id") as string;
+      if (folderId) {
+        const parts = folderId.split("/");
+        for (let i = 1; i <= parts.length; i++) {
+          allFolders.add(parts.slice(0, i).join("/"));
+        }
+      }
+    }
+
+    const topLevel: string[] = [];
+    const byParent: Record<string, string[]> = {};
+
+    for (const folder of allFolders) {
+      const parts = folder.split("/");
+      if (parts.length === 1) {
+        topLevel.push(folder);
+      } else {
+        const parent = parts.slice(0, -1).join("/");
+        byParent[parent] = byParent[parent] || [];
+        byParent[parent].push(folder);
+      }
+    }
+
+    return { topLevel: topLevel.sort(), byParent };
+  }, [sessionIds, store]);
+}
+
+function useFolderName(folderId: string) {
+  return useMemo(() => {
+    const parts = folderId.split("/");
+    return parts[parts.length - 1] || "Untitled";
+  }, [folderId]);
+}
 
 export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (
   props,
@@ -68,9 +116,8 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
 }) => {
   const folderId = tab.id!;
   const folders = useFolderChain(folderId);
-  const folder = useFolder(folderId);
+  const name = useFolderName(folderId);
   const repeatCount = Math.max(0, folders.length - 1);
-  const name = folder.name || "Untitled";
   const title = " .. / ".repeat(repeatCount) + name;
 
   return (
@@ -107,11 +154,7 @@ export function TabContentFolder({ tab }: { tab: Tab }) {
 }
 
 function TabContentFolderTopLevel() {
-  const topLevelFolderIds = main.UI.useSliceRowIds(
-    main.INDEXES.foldersByParent,
-    "",
-    main.STORE_ID,
-  );
+  const { topLevel: topLevelFolderIds } = useFolderTree();
 
   return (
     <div className="flex flex-col gap-6">
@@ -124,9 +167,9 @@ function TabContentFolderTopLevel() {
           </button>
         }
       >
-        {(topLevelFolderIds?.length ?? 0) > 0 && (
+        {topLevelFolderIds.length > 0 && (
           <div className="grid grid-cols-4 gap-4">
-            {topLevelFolderIds!.map((folderId) => (
+            {topLevelFolderIds.map((folderId) => (
               <FolderCard key={folderId} folderId={folderId} />
             ))}
           </div>
@@ -137,14 +180,11 @@ function TabContentFolderTopLevel() {
 }
 
 function FolderCard({ folderId }: { folderId: string }) {
-  const folder = useFolder(folderId);
+  const name = useFolderName(folderId);
   const openCurrent = useTabs((state) => state.openCurrent);
+  const { byParent } = useFolderTree();
 
-  const childFolderIds = main.UI.useSliceRowIds(
-    main.INDEXES.foldersByParent,
-    folderId,
-    main.STORE_ID,
-  );
+  const childFolderIds = byParent[folderId] || [];
 
   const sessionIds = main.UI.useSliceRowIds(
     main.INDEXES.sessionsByFolder,
@@ -152,7 +192,7 @@ function FolderCard({ folderId }: { folderId: string }) {
     main.STORE_ID,
   );
 
-  const childCount = (childFolderIds?.length ?? 0) + (sessionIds?.length ?? 0);
+  const childCount = childFolderIds.length + (sessionIds?.length ?? 0);
 
   return (
     <div
@@ -163,7 +203,7 @@ function FolderCard({ folderId }: { folderId: string }) {
       onClick={() => openCurrent({ type: "folders", id: folderId })}
     >
       <FolderIcon className="w-12 h-12 text-muted-foreground" />
-      <span className="text-sm font-medium text-center">{folder.name}</span>
+      <span className="text-sm font-medium text-center">{name}</span>
       {childCount > 0 && (
         <span className="text-xs text-muted-foreground">
           {childCount} items
@@ -174,11 +214,8 @@ function FolderCard({ folderId }: { folderId: string }) {
 }
 
 function TabContentFolderSpecific({ folderId }: { folderId: string }) {
-  const childFolderIds = main.UI.useSliceRowIds(
-    main.INDEXES.foldersByParent,
-    folderId,
-    main.STORE_ID,
-  );
+  const { byParent } = useFolderTree();
+  const childFolderIds = byParent[folderId] || [];
 
   const sessionIds = main.UI.useSliceRowIds(
     main.INDEXES.sessionsByFolder,
@@ -187,7 +224,7 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
   );
 
   const isEmpty =
-    (childFolderIds?.length ?? 0) === 0 && (sessionIds?.length ?? 0) === 0;
+    childFolderIds.length === 0 && (sessionIds?.length ?? 0) === 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -202,9 +239,9 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
           </button>
         }
       >
-        {(childFolderIds?.length ?? 0) > 0 && (
+        {childFolderIds.length > 0 && (
           <div className="grid grid-cols-4 gap-4">
-            {childFolderIds!.map((childId) => (
+            {childFolderIds.map((childId) => (
               <FolderCard key={childId} folderId={childId} />
             ))}
           </div>

@@ -9,7 +9,6 @@ import {
   buildChatShortcuts,
   buildEnhancedNotesForSessions,
   buildEventsByHuman,
-  buildFolders,
   buildHumans,
   buildOrganizations,
   buildSessionParticipants,
@@ -40,9 +39,6 @@ const buildRandomData = () => {
     max: 3,
   });
 
-  const folders = buildFolders(3, { min: 0, max: 3 });
-  const folderIds = Object.keys(folders);
-
   const tags = buildTags(8);
   const tagIds = Object.keys(tags);
 
@@ -54,9 +50,7 @@ const buildRandomData = () => {
     { min: 1, max: 3 },
     {
       eventsByHuman,
-      folderIds,
       eventLinkProbability: 0.6,
-      folderProbability: 0.6,
     },
   );
   const sessionIds = Object.keys(sessions);
@@ -99,7 +93,6 @@ const buildRandomData = () => {
     organizations,
     humans,
     calendars,
-    folders,
     sessions,
     transcripts,
     events,

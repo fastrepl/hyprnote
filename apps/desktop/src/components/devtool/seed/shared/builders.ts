@@ -7,7 +7,6 @@ import type {
   ChatShortcutStorage,
   EnhancedNoteStorage,
   EventStorage,
-  Folder,
   Human,
   MappingSessionParticipant,
   MappingTagSession,
@@ -23,7 +22,6 @@ import { createChatGroup, createChatMessage } from "./chat";
 import { createChatShortcut } from "./chat-shortcut";
 import { createEnhancedNote } from "./enhanced-note";
 import { createEvent } from "./event";
-import { createFolder } from "./folder";
 import { createHuman } from "./human";
 import {
   createMappingSessionParticipant,
@@ -130,30 +128,6 @@ export const buildEventsByHuman = (
   return { events, eventsByHuman };
 };
 
-export const buildFolders = (
-  rootCount: number,
-  subFoldersPerRoot: { min: number; max: number },
-): Record<string, Folder> => {
-  const folders: Record<string, Folder> = {};
-
-  const rootFolderIds: string[] = [];
-  for (let i = 0; i < rootCount; i++) {
-    const folder = createFolder();
-    folders[folder.id] = folder.data;
-    rootFolderIds.push(folder.id);
-  }
-
-  rootFolderIds.forEach((rootId) => {
-    const subFolderCount = faker.number.int(subFoldersPerRoot);
-    for (let i = 0; i < subFolderCount; i++) {
-      const subFolder = createFolder(rootId);
-      folders[subFolder.id] = subFolder.data;
-    }
-  });
-
-  return folders;
-};
-
 export const buildTags = (count: number): Record<string, Tag> => {
   const tags: Record<string, Tag> = {};
 
@@ -182,35 +156,22 @@ export const buildSessions = (
   count: number,
   options: {
     eventIds?: string[];
-    folderIds?: string[];
     eventLinkProbability?: number;
-    folderProbability?: number;
   } = {},
 ): Record<string, SessionStorage> => {
   const sessions: Record<string, SessionStorage> = {};
-  const {
-    eventIds = [],
-    folderIds = [],
-    eventLinkProbability = 0.6,
-    folderProbability = 0.6,
-  } = options;
+  const { eventIds = [], eventLinkProbability = 0.6 } = options;
 
   for (let i = 0; i < count; i++) {
     const shouldLinkToEvent =
       eventIds.length > 0 &&
       faker.datatype.boolean({ probability: eventLinkProbability });
-    const shouldAddToFolder =
-      folderIds.length > 0 &&
-      faker.datatype.boolean({ probability: folderProbability });
 
     const eventId = shouldLinkToEvent
       ? faker.helpers.arrayElement(eventIds)
       : undefined;
-    const folderId = shouldAddToFolder
-      ? faker.helpers.arrayElement(folderIds)
-      : undefined;
 
-    const session = createSession(eventId, folderId);
+    const session = createSession(eventId, undefined);
     sessions[session.id] = session.data;
   }
 
@@ -222,18 +183,11 @@ export const buildSessionsPerHuman = (
   sessionsPerHuman: { min: number; max: number },
   options: {
     eventsByHuman?: Record<string, string[]>;
-    folderIds?: string[];
     eventLinkProbability?: number;
-    folderProbability?: number;
   } = {},
 ): Record<string, SessionStorage> => {
   const sessions: Record<string, SessionStorage> = {};
-  const {
-    eventsByHuman = {},
-    folderIds = [],
-    eventLinkProbability = 0.6,
-    folderProbability = 0.6,
-  } = options;
+  const { eventsByHuman = {}, eventLinkProbability = 0.6 } = options;
 
   humanIds.forEach((humanId) => {
     const sessionCount = faker.number.int(sessionsPerHuman);
@@ -243,18 +197,12 @@ export const buildSessionsPerHuman = (
       const shouldLinkToEvent =
         humanEventIds.length > 0 &&
         faker.datatype.boolean({ probability: eventLinkProbability });
-      const shouldAddToFolder =
-        folderIds.length > 0 &&
-        faker.datatype.boolean({ probability: folderProbability });
 
       const eventId = shouldLinkToEvent
         ? faker.helpers.arrayElement(humanEventIds)
         : undefined;
-      const folderId = shouldAddToFolder
-        ? faker.helpers.arrayElement(folderIds)
-        : undefined;
 
-      const session = createSession(eventId, folderId);
+      const session = createSession(eventId, undefined);
       sessions[session.id] = session.data;
     }
   });

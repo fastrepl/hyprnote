@@ -10,35 +10,22 @@ export const buildSessionsForBigWorkspace = (
   count: number,
   options: {
     eventIds?: string[];
-    folderIds?: string[];
     eventLinkProbability?: number;
-    folderProbability?: number;
   } = {},
 ): Record<string, SessionStorage> => {
   const sessions: Record<string, SessionStorage> = {};
-  const {
-    eventIds = [],
-    folderIds = [],
-    eventLinkProbability = 0.6,
-    folderProbability = 0.6,
-  } = options;
+  const { eventIds = [], eventLinkProbability = 0.6 } = options;
 
   for (let i = 0; i < count; i++) {
     const shouldLinkToEvent =
       eventIds.length > 0 &&
       faker.datatype.boolean({ probability: eventLinkProbability });
-    const shouldAddToFolder =
-      folderIds.length > 0 &&
-      faker.datatype.boolean({ probability: folderProbability });
 
     const eventId = shouldLinkToEvent
       ? faker.helpers.arrayElement(eventIds)
       : undefined;
-    const folderId = shouldAddToFolder
-      ? faker.helpers.arrayElement(folderIds)
-      : undefined;
 
-    const session = createSession(eventId, folderId);
+    const session = createSession(eventId, undefined);
     sessions[session.id] = session.data;
   }
 

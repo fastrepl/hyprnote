@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   TinyBaseTestWrapper,
-  useFolder,
   useHuman,
   useOrganization,
   useSession,
@@ -89,20 +88,6 @@ describe("TinyBase hooks", () => {
       });
 
       expect(result.current).toHaveProperty("name");
-      expect(result.current).toHaveProperty("createdAt");
-    });
-  });
-
-  describe("useFolder", () => {
-    it("returns an object with folder fields", () => {
-      const { result } = renderHook(() => useFolder("test-folder"), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(result.current).toHaveProperty("name");
-      expect(result.current).toHaveProperty("parentFolderId");
       expect(result.current).toHaveProperty("createdAt");
     });
   });

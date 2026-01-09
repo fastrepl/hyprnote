@@ -6,7 +6,6 @@ export { createChatGroup, createChatMessage } from "./chat";
 export { createChatShortcut } from "./chat-shortcut";
 export { createEnhancedNote } from "./enhanced-note";
 export { createEvent } from "./event";
-export { createFolder } from "./folder";
 export { createHuman } from "./human";
 export * from "./loader";
 export {

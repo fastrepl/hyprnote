@@ -1,11 +1,7 @@
 import { sep } from "@tauri-apps/api/path";
 
 import type { ParsedDocument } from "@hypr/plugin-fs-sync";
-import type {
-  EnhancedNoteStorage,
-  SpeakerHintStorage,
-  WordStorage,
-} from "@hypr/store";
+import type { SpeakerHintStorage, WordStorage } from "@hypr/store";
 import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 
 import type { Store } from "../../store/main";
@@ -140,17 +136,6 @@ export function collectTranscriptWriteOps(
 
   const transcripts = iterateTableRows(tables, "transcripts");
 
-  type TranscriptRow = {
-    id: string;
-    session_id?: string;
-    user_id?: string;
-    created_at?: string;
-    started_at?: number;
-    ended_at?: number;
-    words?: string;
-    speaker_hints?: string;
-  };
-
   const transcriptsBySession = new Map<
     string,
     Array<{
@@ -165,7 +150,7 @@ export function collectTranscriptWriteOps(
     }>
   >();
 
-  for (const transcript of transcripts as TranscriptRow[]) {
+  for (const transcript of transcripts) {
     const sessionId = transcript.session_id;
     if (!sessionId) continue;
 
@@ -230,7 +215,7 @@ function tryParseAndConvertToMarkdown(content: string): string | undefined {
 
 function getEnhancedNoteFilename(
   store: Store,
-  enhancedNote: EnhancedNoteStorage & { id: string },
+  enhancedNote: ReturnType<typeof iterateTableRows<"enhanced_notes">>[number],
 ): string {
   if (enhancedNote.template_id) {
     const templateTitle = store.getCell(

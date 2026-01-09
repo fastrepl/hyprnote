@@ -1,27 +1,28 @@
 import type {
   MappingSessionParticipantStorage,
+  SessionStorage,
   SpeakerHintStorage,
+  TranscriptStorage,
   WordStorage,
 } from "@hypr/store";
 
 export type ParticipantData = MappingSessionParticipantStorage & { id: string };
 
-export type SessionMetaJson = {
+export type SessionMetaJson = Pick<
+  SessionStorage,
+  "user_id" | "created_at" | "title"
+> & {
   id: string;
-  user_id: string;
-  created_at: string;
-  title: string;
   event_id?: string;
   participants: ParticipantData[];
   tags?: string[];
 };
 
-export type TranscriptWithData = {
+export type TranscriptWithData = Pick<
+  TranscriptStorage,
+  "user_id" | "created_at" | "session_id" | "started_at"
+> & {
   id: string;
-  user_id: string;
-  created_at: string;
-  session_id: string;
-  started_at: number;
   ended_at?: number;
   words: Array<WordStorage & { id: string }>;
   speaker_hints: Array<SpeakerHintStorage & { id: string }>;

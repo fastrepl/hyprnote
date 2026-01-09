@@ -8,12 +8,6 @@ interface Loadable {
 
 const RECONCILE_INTERVAL_MS = 30000;
 
-let isInternalChange = false;
-
-export function markInternalChange() {
-  isInternalChange = true;
-}
-
 const sessionNotifyListener = createNotifyListener(
   (path) => path.startsWith("sessions/"),
   RECONCILE_INTERVAL_MS,
@@ -29,11 +23,6 @@ export async function startSessionWatcher(
   }
 
   const handle = sessionNotifyListener.addListener(async () => {
-    if (isInternalChange) {
-      isInternalChange = false;
-      return;
-    }
-
     try {
       await persister.load();
     } catch (error) {

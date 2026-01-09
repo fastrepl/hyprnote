@@ -1,6 +1,8 @@
 import type { JsonValue } from "@hypr/plugin-fs-sync";
 import type { HumanStorage } from "@hypr/store";
 
+type HumanFrontmatter = Omit<HumanStorage, "memo">;
+
 function emailsToStore(frontmatter: Record<string, unknown>): string {
   const emails = frontmatter.emails;
   if (Array.isArray(emails)) {
@@ -12,10 +14,9 @@ function emailsToStore(frontmatter: Record<string, unknown>): string {
   return typeof frontmatter.email === "string" ? frontmatter.email : "";
 }
 
-function emailToFrontmatter(email: unknown): string[] {
-  const str = email as string;
-  if (!str) return [];
-  return str
+function emailToFrontmatter(email: string | undefined): string[] {
+  if (!email) return [];
+  return email
     .split(",")
     .map((e) => e.trim())
     .filter(Boolean);
@@ -23,7 +24,7 @@ function emailToFrontmatter(email: unknown): string[] {
 
 export function frontmatterToStore(
   frontmatter: Record<string, unknown>,
-): Record<string, unknown> {
+): HumanFrontmatter {
   return {
     user_id: String(frontmatter.user_id ?? ""),
     created_at: String(frontmatter.created_at ?? ""),
@@ -36,8 +37,8 @@ export function frontmatterToStore(
 }
 
 export function storeToFrontmatter(
-  store: Record<string, unknown>,
-): Record<string, unknown> {
+  store: Partial<HumanFrontmatter>,
+): Record<string, JsonValue> {
   return {
     user_id: store.user_id ?? "",
     created_at: store.created_at ?? "",
@@ -56,7 +57,7 @@ export function frontmatterToHuman(
   return {
     ...frontmatterToStore(frontmatter),
     memo: body,
-  } as HumanStorage;
+  };
 }
 
 export function humanToFrontmatter(human: HumanStorage): {
@@ -65,7 +66,7 @@ export function humanToFrontmatter(human: HumanStorage): {
 } {
   const { memo, ...storeFields } = human;
   return {
-    frontmatter: storeToFrontmatter(storeFields) as Record<string, JsonValue>,
+    frontmatter: storeToFrontmatter(storeFields),
     body: memo ?? "",
   };
 }

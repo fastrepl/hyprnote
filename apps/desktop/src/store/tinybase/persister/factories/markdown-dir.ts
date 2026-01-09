@@ -16,6 +16,7 @@ import {
   getMarkdownFilePath,
 } from "../shared/paths";
 import type {
+  ChangedTables,
   CollectorResult,
   MarkdownDirPersisterConfig,
 } from "../shared/types";
@@ -139,9 +140,7 @@ export function createMarkdownDirPersister<
         (tables as Record<string, Record<string, TStorage>>)[tableName] ?? {};
 
       if (changedTables) {
-        const changedRows = changedTables[tableName] as
-          | Record<string, unknown>
-          | undefined;
+        const changedRows = changedTables[tableName as keyof ChangedTables];
         if (!changedRows) {
           return { dirs: new Set(), operations: [], validIds: new Set() };
         }

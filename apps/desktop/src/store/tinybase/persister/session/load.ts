@@ -1,30 +1,24 @@
 import { sep } from "@tauri-apps/api/path";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
-import type {
-  EnhancedNoteStorage,
-  MappingSessionParticipantStorage,
-  MappingTagSession,
-  SessionStorage,
-  Tag,
-  TranscriptStorage,
-} from "@hypr/store";
 import { md2json } from "@hypr/tiptap/shared";
 
+import type { TablesContent } from "../shared";
 import type {
   NoteFrontmatter,
   SessionMetaJson,
   TranscriptJson,
 } from "./transform";
 
-export type SessionDataLoad = {
-  sessions: Record<string, SessionStorage>;
-  mapping_session_participant: Record<string, MappingSessionParticipantStorage>;
-  tags: Record<string, Tag>;
-  mapping_tag_session: Record<string, MappingTagSession>;
-  transcripts: Record<string, TranscriptStorage>;
-  enhanced_notes: Record<string, EnhancedNoteStorage>;
-};
+type SessionTables =
+  | "sessions"
+  | "mapping_session_participant"
+  | "tags"
+  | "mapping_tag_session"
+  | "transcripts"
+  | "enhanced_notes";
+
+export type SessionDataLoad = Pick<Required<TablesContent>, SessionTables>;
 
 const LABEL = "SessionPersister";
 

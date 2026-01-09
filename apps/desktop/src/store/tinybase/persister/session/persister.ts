@@ -33,15 +33,10 @@ function getChangedSessionIds(
     }
   }
 
-  const changedParticipants = changedTables[
-    "mapping_session_participant" as keyof typeof changedTables
-  ] as Record<string, { session_id?: string }> | undefined;
+  const changedParticipants = changedTables.mapping_session_participant;
   if (changedParticipants) {
     for (const id of Object.keys(changedParticipants)) {
-      const participant = tables[
-        "mapping_session_participant" as keyof typeof tables
-      ] as Record<string, { session_id?: string }> | undefined;
-      const sessionId = participant?.[id]?.session_id;
+      const sessionId = tables.mapping_session_participant?.[id]?.session_id;
       if (sessionId) {
         changedSessionIds.add(sessionId);
       }

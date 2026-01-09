@@ -12,7 +12,11 @@ import { commands as path2Commands } from "@hypr/plugin-path2";
 
 import { StoreOrMergeableStore } from "../../store/shared";
 import { isFileNotFoundError } from "../shared/fs";
-import { asTablesChanges, extractChangedTables } from "../shared/types";
+import {
+  asTablesChanges,
+  type ChangedTables,
+  extractChangedTables,
+} from "../shared/types";
 
 export type ListenMode = "notify" | "poll" | "both";
 
@@ -76,7 +80,7 @@ async function saveContent<Schemas extends OptionalSchemas>(
 ) {
   if (changes) {
     const changedTables = extractChangedTables<Schemas>(changes);
-    if (changedTables && !changedTables[tableName]) {
+    if (changedTables && !changedTables[tableName as keyof ChangedTables]) {
       return;
     }
   }

@@ -1,7 +1,6 @@
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import type { Store } from "../../store/main";
-import { markInternalChange } from "./watcher";
 
 export interface SessionOpsConfig {
   store: Store;
@@ -29,8 +28,6 @@ export async function moveSessionToFolder(
 
   store.setCell("sessions", sessionId, "folder_id", targetFolderId);
 
-  markInternalChange();
-
   const result = await fsSyncCommands.moveSession(sessionId, targetFolderId);
 
   if (result.status === "error") {
@@ -47,8 +44,6 @@ export async function renameFolder(
   newPath: string,
 ): Promise<{ status: "ok" } | { status: "error"; error: string }> {
   const { store } = getConfig();
-
-  markInternalChange();
 
   const result = await fsSyncCommands.renameFolder(oldPath, newPath);
 

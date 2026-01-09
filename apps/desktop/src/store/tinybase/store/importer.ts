@@ -40,8 +40,13 @@ const countRows = (tables: object | null): number => {
   if (!tables) return 0;
   let count = 0;
   for (const tableData of Object.values(tables)) {
-    if (tableData && typeof tableData === "object") {
-      count += Object.keys(tableData).length;
+    if (
+      tableData &&
+      typeof tableData === "object" &&
+      !Array.isArray(tableData)
+    ) {
+      const keys = Object.keys(tableData);
+      count += keys.length;
     }
   }
   return count;
@@ -95,7 +100,9 @@ const mergeImportData = (
     .setTablesSchema(SCHEMA.table)
     .setValuesSchema(SCHEMA.value) as Store;
 
+  let rowsImported = 0;
   if (tables) {
+    rowsImported = countRows(tables);
     const transformedTables = transformImportedTables(tables as Tables);
     importStore.setTables(
       transformedTables as Parameters<Store["setTables"]>[0],
@@ -111,7 +118,7 @@ const mergeImportData = (
   });
 
   return {
-    rowsImported: countRows(tables),
+    rowsImported,
     valuesImported: values ? Object.keys(values).length : 0,
   };
 };

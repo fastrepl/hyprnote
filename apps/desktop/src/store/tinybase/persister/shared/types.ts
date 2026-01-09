@@ -8,16 +8,9 @@ import type {
   JsonValue as FsSyncJsonValue,
   ParsedDocument,
 } from "@hypr/plugin-fs-sync";
-import type {
-  ChatGroup,
-  ChatMessageStorage,
-  EnhancedNoteStorage,
-  SessionStorage,
-  SpeakerHintStorage,
-  TemplateStorage,
-  TranscriptStorage,
-  WordStorage,
-} from "@hypr/store";
+import { SCHEMA } from "@hypr/store";
+
+import type { Store } from "../../store/main";
 
 export type { FsSyncJsonValue as JsonValue };
 
@@ -28,16 +21,7 @@ export interface BatchCollectorResult<T> {
   dirs: Set<string>;
 }
 
-export type TablesContent = {
-  enhanced_notes?: Record<string, EnhancedNoteStorage>;
-  sessions?: Record<string, SessionStorage>;
-  templates?: Record<string, TemplateStorage>;
-  transcripts?: Record<string, TranscriptStorage>;
-  words?: Record<string, WordStorage>;
-  speaker_hints?: Record<string, SpeakerHintStorage>;
-  chat_groups?: Record<string, ChatGroup>;
-  chat_messages?: Record<string, ChatMessageStorage>;
-};
+export type TablesContent = Partial<ReturnType<Store["getTables"]>>;
 
 type TableRowType<K extends keyof TablesContent> =
   NonNullable<TablesContent[K]> extends Record<string, infer R> ? R : never;
@@ -51,9 +35,11 @@ export type CollectorResult = {
   operations: WriteOperation[];
 };
 
-// Simplified type for changed tables extracted from TinyBase's Changes or MergeableChanges
-// Maps table name -> row id -> changed cells (or undefined for deletion)
-export type ChangedTables = Record<string, Record<string, unknown> | undefined>;
+type TableNames = keyof typeof SCHEMA.table;
+
+export type ChangedTables = Partial<{
+  [K in TableNames]: Record<string, unknown> | undefined;
+}>;
 
 /**
  * Extract changed tables from TinyBase's Changes or MergeableChanges.
@@ -111,8 +97,9 @@ function unwrapMergeableTables(tables: Record<string, unknown>): ChangedTables {
   const result: ChangedTables = {};
 
   for (const [tableName, tableValue] of Object.entries(tables)) {
+    const key = tableName as TableNames;
     if (!tableValue) {
-      result[tableName] = undefined;
+      result[key] = undefined;
       continue;
     }
 
@@ -120,13 +107,11 @@ function unwrapMergeableTables(tables: Record<string, unknown>): ChangedTables {
     if (Array.isArray(tableValue) && tableValue.length >= 1) {
       const rows = tableValue[0];
       if (rows && typeof rows === "object") {
-        result[tableName] = unwrapMergeableRows(
-          rows as Record<string, unknown>,
-        );
+        result[key] = unwrapMergeableRows(rows as Record<string, unknown>);
       }
     } else if (typeof tableValue === "object") {
       // Fallback: treat as regular rows
-      result[tableName] = tableValue as Record<string, unknown>;
+      result[key] = tableValue as Record<string, unknown>;
     }
   }
 

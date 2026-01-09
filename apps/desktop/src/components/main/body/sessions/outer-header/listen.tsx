@@ -66,11 +66,32 @@ function ScrollingWaveform({
   }, [width, height]);
 
   useEffect(() => {
-    amplitudesRef.current = Array(maxBars).fill(0);
+    if (amplitudesRef.current.length !== maxBars) {
+      amplitudesRef.current = Array(maxBars).fill(0);
+    }
     const ctx = ctxRef.current;
     if (!ctx) return;
 
     const UPDATE_INTERVAL = 100;
+
+    const drawWaveform = () => {
+      const amplitudes = amplitudesRef.current;
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.fillStyle = color;
+
+      for (let i = 0; i < amplitudes.length; i++) {
+        const amp = amplitudes[i];
+        const barHeight =
+          minBarHeight + amp * (resolvedMaxBarHeight - minBarHeight);
+        const x = i * (barWidth + gap);
+        const y = (height - barHeight) / 2;
+
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, barHeight, barWidth / 2);
+        ctx.fill();
+      }
+    };
 
     const draw = (timestamp: number) => {
       if (timestamp - lastUpdateRef.current < UPDATE_INTERVAL) {
@@ -84,31 +105,15 @@ function ScrollingWaveform({
       const normalized = Math.pow(linear, 0.6);
 
       const amplitudes = amplitudesRef.current;
+      amplitudes.shift();
       amplitudes.push(normalized);
-      if (amplitudes.length > maxBars) {
-        amplitudes.shift();
-      }
 
-      ctx.clearRect(0, 0, width, height);
-
-      const startX = width - amplitudes.length * (barWidth + gap);
-      ctx.fillStyle = color;
-
-      for (let i = 0; i < amplitudes.length; i++) {
-        const amp = amplitudes[i];
-        const barHeight =
-          minBarHeight + amp * (resolvedMaxBarHeight - minBarHeight);
-        const x = startX + i * (barWidth + gap);
-        const y = (height - barHeight) / 2;
-
-        ctx.beginPath();
-        ctx.roundRect(x, y, barWidth, barHeight, barWidth / 2);
-        ctx.fill();
-      }
+      drawWaveform();
 
       animationFrameRef.current = requestAnimationFrame(draw);
     };
 
+    drawWaveform();
     animationFrameRef.current = requestAnimationFrame(draw);
 
     return () => {

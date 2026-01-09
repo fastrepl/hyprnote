@@ -1,3 +1,11 @@
+//! Embedded object tests
+//!
+//! These tests correspond to the embedded object and UTI tests in the apple_cloud_notes_parser Ruby implementation:
+//! - https://github.com/threeplanetssoftware/apple_cloud_notes_parser/blob/master/spec/utilities/apple_uniform_type_identifier.rb
+//! - https://github.com/threeplanetssoftware/apple_cloud_notes_parser/blob/master/spec/embedded_objects/embedded_objects.rb
+//!
+//! Tests cover UTI type detection, embedded object extraction, and type classification.
+
 use apple_note::{EmbeddedObjectType, extract_embedded_objects};
 
 #[test]

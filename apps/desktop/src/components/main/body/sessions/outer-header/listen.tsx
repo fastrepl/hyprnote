@@ -54,7 +54,7 @@ function ScrollingWaveform({
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       const amp = amplitudeRef.current;
-      const linear = amp < 30 ? 0 : Math.min((amp - 30) / 40, 1);
+      const linear = amp < 5 ? 0 : Math.min((amp - 5) / 45, 1);
       const normalized = Math.pow(linear, 0.6);
 
       setBars((prev) => [...prev.slice(1), normalized]);
@@ -222,7 +222,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
         finalizing
           ? ["text-neutral-500", "bg-neutral-100", "cursor-wait"]
           : ["text-red-500 hover:text-red-600", "bg-red-50 hover:bg-red-100"],
-        "w-[75px]",
+        "w-[110px]",
       ])}
       title={finalizing ? "Finalizing" : "Stop listening"}
       aria-label={finalizing ? "Finalizing" : "Stop listening"}
@@ -246,7 +246,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
               }
               color="#ef4444"
               height={16}
-              width={muted ? 50 : 75}
+              width={muted ? 75 : 95}
               barWidth={3}
               gap={1}
               minBarHeight={2}

@@ -1,4 +1,4 @@
-import { exists, mkdir, readTextFile, remove } from "@tauri-apps/plugin-fs";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 import type {
   PersistedChanges,
   Persists,
@@ -28,50 +28,6 @@ import {
   type WriteOperation,
 } from "../shared/types";
 import { createCollectorPersister } from "./collector";
-
-async function migrateFromLegacyJson<TStorage>(
-  dataDir: string,
-  config: MarkdownDirPersisterConfig<TStorage>,
-): Promise<void> {
-  const { dirName, legacyJsonPath, toFrontmatter } = config;
-  const jsonPath = [dataDir, legacyJsonPath].join("/");
-  const entityDir = buildEntityPath(dataDir, dirName);
-
-  const jsonExists = await exists(jsonPath);
-  if (!jsonExists) {
-    return;
-  }
-
-  const dirExists = await exists(entityDir);
-  if (dirExists) {
-    return;
-  }
-
-  try {
-    const content = await readTextFile(jsonPath);
-    const entities = JSON.parse(content) as Record<string, TStorage>;
-
-    await mkdir(entityDir, { recursive: true });
-
-    const batchItems: [ParsedDocument, string][] = [];
-    for (const [entityId, entity] of Object.entries(entities)) {
-      const { frontmatter, body } = toFrontmatter(entity);
-      const filePath = buildEntityFilePath(dataDir, dirName, entityId);
-      batchItems.push([{ frontmatter, content: body }, filePath]);
-    }
-
-    if (batchItems.length > 0) {
-      const result = await fsSyncCommands.writeDocumentBatch(batchItems);
-      if (result.status === "error") {
-        throw new Error(`Failed to write document batch: ${result.error}`);
-      }
-    }
-
-    await remove(jsonPath);
-  } catch {
-    // Ignore migration errors
-  }
-}
 
 async function loadMarkdownDir<TStorage>(
   dataDir: string,
@@ -254,7 +210,6 @@ export function createMarkdownDirPersister<
     },
     load: async (): Promise<Content<Schemas> | undefined> => {
       const dataDir = await getDataDir();
-      await migrateFromLegacyJson(dataDir, config);
       const entities = await loadMarkdownDir(dataDir, config);
 
       const existingTable = store.getTable(tableName as any) ?? {};

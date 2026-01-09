@@ -10,7 +10,6 @@ export function createHumanPersister(store: Store) {
     tableName: "humans",
     dirName: "humans",
     label: "HumanPersister",
-    legacyJsonPath: "humans.json",
     toFrontmatter: humanToFrontmatter,
     fromFrontmatter: frontmatterToHuman,
   });

@@ -13,7 +13,6 @@ export function createOrganizationPersister(store: Store) {
     tableName: "organizations",
     dirName: "organizations",
     label: "OrganizationPersister",
-    legacyJsonPath: "organizations.json",
     toFrontmatter: organizationToFrontmatter,
     fromFrontmatter: frontmatterToOrganization,
   });

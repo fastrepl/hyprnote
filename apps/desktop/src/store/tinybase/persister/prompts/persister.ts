@@ -10,7 +10,6 @@ export function createPromptPersister(store: Store) {
     tableName: "prompts",
     dirName: "prompts",
     label: "PromptPersister",
-    legacyJsonPath: "prompts.json",
     toFrontmatter: promptToFrontmatter,
     fromFrontmatter: frontmatterToPrompt,
   });

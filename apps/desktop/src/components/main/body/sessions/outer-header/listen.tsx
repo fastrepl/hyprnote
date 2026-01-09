@@ -58,7 +58,7 @@ function ScrollingWaveform({
     const animate = (timestamp: number) => {
       if (timestamp - lastUpdateRef.current >= UPDATE_INTERVAL) {
         const amp = amplitudeRef.current;
-        const linear = amp < 30 ? 0 : Math.min((amp - 30) / 40, 1);
+        const linear = Math.min(amp / 70, 1);
         const normalized = Math.pow(linear, 0.6);
 
         setBars((prev) => [...prev.slice(1), normalized]);
@@ -222,10 +222,6 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
       {finalizing ? (
         <div className="flex items-center gap-1.5">
           <span className="animate-pulse">...</span>
-        </div>
-      ) : initializing ? (
-        <div className="flex items-center gap-1.5">
-          <span className="animate-pulse text-red-500">Initializing...</span>
         </div>
       ) : (
         <>

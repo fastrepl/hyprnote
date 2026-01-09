@@ -6,8 +6,8 @@ import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 
 import type { Store } from "../../store/main";
 import {
+  buildSessionPath,
   type CollectorResult,
-  getSessionDir,
   iterateTableRows,
   sanitizeFilename,
   type TablesContent,
@@ -105,7 +105,7 @@ export function collectSessionWriteOps(
     : sessionMetas;
 
   for (const [sessionId, { meta, folderPath }] of sessionsToProcess) {
-    const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
+    const sessionDir = buildSessionPath(dataDir, sessionId, folderPath);
 
     operations.push({
       type: "json",
@@ -179,7 +179,7 @@ export function collectTranscriptWriteOps(
   for (const [sessionId, sessionTranscripts] of sessionsToProcess) {
     const session = tables.sessions?.[sessionId];
     const folderPath = session?.folder_id ?? "";
-    const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
+    const sessionDir = buildSessionPath(dataDir, sessionId, folderPath);
 
     const content: TranscriptJson = { transcripts: sessionTranscripts };
     operations.push({
@@ -261,7 +261,7 @@ export function collectNoteWriteOps(
 
     const session = tables.sessions?.[enhancedNote.session_id];
     const folderPath = session?.folder_id ?? "";
-    const sessionDir = getSessionDir(
+    const sessionDir = buildSessionPath(
       dataDir,
       enhancedNote.session_id,
       folderPath,
@@ -293,7 +293,7 @@ export function collectNoteWriteOps(
     };
 
     const folderPath = session.folder_id ?? "";
-    const sessionDir = getSessionDir(dataDir, session.id, folderPath);
+    const sessionDir = buildSessionPath(dataDir, session.id, folderPath);
     frontmatterBatchItems.push([
       { frontmatter, content: markdown },
       [sessionDir, "_memo.md"].join(sep()),

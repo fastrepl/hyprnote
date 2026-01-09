@@ -11,9 +11,9 @@ import {
 } from "@hypr/plugin-fs-sync";
 
 import {
+  buildEntityFilePath,
+  buildEntityPath,
   getDataDir,
-  getMarkdownDir,
-  getMarkdownFilePath,
 } from "../shared/paths";
 import type {
   ChangedTables,
@@ -28,7 +28,7 @@ async function migrateFromLegacyJson<TStorage>(
 ): Promise<void> {
   const { dirName, legacyJsonPath, toFrontmatter } = config;
   const jsonPath = [dataDir, legacyJsonPath].join("/");
-  const entityDir = getMarkdownDir(dataDir, dirName);
+  const entityDir = buildEntityPath(dataDir, dirName);
 
   const jsonExists = await exists(jsonPath);
   if (!jsonExists) {
@@ -49,7 +49,7 @@ async function migrateFromLegacyJson<TStorage>(
     const batchItems: [ParsedDocument, string][] = [];
     for (const [entityId, entity] of Object.entries(entities)) {
       const { frontmatter, body } = toFrontmatter(entity);
-      const filePath = getMarkdownFilePath(dataDir, dirName, entityId);
+      const filePath = buildEntityFilePath(dataDir, dirName, entityId);
       batchItems.push([{ frontmatter, content: body }, filePath]);
     }
 
@@ -71,7 +71,7 @@ async function loadMarkdownDir<TStorage>(
   config: MarkdownDirPersisterConfig<TStorage>,
 ): Promise<Record<string, TStorage>> {
   const { dirName, fromFrontmatter } = config;
-  const dir = getMarkdownDir(dataDir, dirName);
+  const dir = buildEntityPath(dataDir, dirName);
   const result = await fsSyncCommands.readDocumentBatch(dir);
 
   if (result.status === "error") {
@@ -105,7 +105,7 @@ function collectMarkdownWriteOps<TStorage>(
     validIds.add(entityId);
 
     const { frontmatter, body } = toFrontmatter(entity);
-    const filePath = getMarkdownFilePath(dataDir, dirName, entityId);
+    const filePath = buildEntityFilePath(dataDir, dirName, entityId);
 
     documentItems.push([{ frontmatter, content: body }, filePath]);
   }

@@ -6,7 +6,7 @@ export async function getDataDir(): Promise<string> {
   return path2Commands.base();
 }
 
-export function getSessionDir(
+export function buildSessionPath(
   dataDir: string,
   sessionId: string,
   folderPath: string = "",
@@ -18,15 +18,15 @@ export function getSessionDir(
   return [dataDir, "sessions", sessionId].join(sep());
 }
 
-export function getChatDir(dataDir: string, chatGroupId: string): string {
+export function buildChatPath(dataDir: string, chatGroupId: string): string {
   return [dataDir, "chats", chatGroupId].join(sep());
 }
 
-export function getMarkdownDir(dataDir: string, dirName: string): string {
+export function buildEntityPath(dataDir: string, dirName: string): string {
   return [dataDir, dirName].join(sep());
 }
 
-export function getMarkdownFilePath(
+export function buildEntityFilePath(
   dataDir: string,
   dirName: string,
   id: string,

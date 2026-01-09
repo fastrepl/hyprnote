@@ -1,8 +1,8 @@
 import { sep } from "@tauri-apps/api/path";
 
 import {
+  buildChatPath,
   type CollectorResult,
-  getChatDir,
   type TablesContent,
 } from "../shared";
 import { tablesToChatJsonList } from "./transform";
@@ -26,7 +26,7 @@ export function collectChatWriteOps(
 
   for (const chatJson of groupsToProcess) {
     const chatGroupId = chatJson.chat_group.id;
-    const chatDir = getChatDir(dataDir, chatGroupId);
+    const chatDir = buildChatPath(dataDir, chatGroupId);
 
     operations.push({
       type: "json",

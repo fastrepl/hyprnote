@@ -126,36 +126,52 @@ function ScrollingWaveform({
       }}
     >
       <canvas ref={canvasRef} style={{ width, height }} />
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 12,
-          height: "100%",
-          background:
-            "linear-gradient(to right, rgb(254 242 242), transparent)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          width: 12,
-          height: "100%",
-          background: "linear-gradient(to left, rgb(254 242 242), transparent)",
-          pointerEvents: "none",
-        }}
-      />
     </div>
+  );
+}
+
+function LoadingIndicator({ onCancel }: { onCancel: () => void }) {
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      onClick={onCancel}
+      className={cn([
+        "text-red-500 hover:text-red-600",
+        "bg-red-50 hover:bg-red-100",
+        "w-[75px]",
+      ])}
+      title="Cancel"
+      aria-label="Cancel"
+    >
+      <div className="flex items-center gap-0.5">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="w-[2px] bg-red-500 rounded-full animate-pulse"
+            style={{
+              height: `${6 + Math.sin(i * 0.8) * 4}px`,
+              animationDelay: `${i * 100}ms`,
+              animationDuration: "600ms",
+            }}
+          />
+        ))}
+      </div>
+    </Button>
   );
 }
 
 export function ListenButton({ sessionId }: { sessionId: string }) {
   const { shouldRender } = useListenButtonState(sessionId);
   const hasTranscript = useHasTranscript(sessionId);
+  const { loading, stop } = useListener((state) => ({
+    loading: state.live.loading,
+    stop: state.stop,
+  }));
+
+  if (loading) {
+    return <LoadingIndicator onCancel={stop} />;
+  }
 
   if (!shouldRender) {
     return <InMeetingIndicator sessionId={sessionId} />;

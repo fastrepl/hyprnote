@@ -96,7 +96,6 @@ function ScrollingWaveform({
                 height: barHeight,
                 backgroundColor: color,
                 borderRadius: barWidth / 2,
-                transition: "height 0.1s ease-out",
               }}
             />
           );

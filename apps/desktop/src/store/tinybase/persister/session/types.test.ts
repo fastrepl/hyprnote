@@ -6,7 +6,7 @@ import type {
   SessionMetaJson,
   TranscriptJson,
   TranscriptWithData,
-} from "./transform";
+} from "./types";
 
 describe("SessionMetaJson type", () => {
   test("creates valid session meta", () => {

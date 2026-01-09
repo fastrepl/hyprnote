@@ -1,14 +1,9 @@
 import { describe, expect, test } from "vitest";
 
 import type { TablesContent } from "../shared";
-import {
-  type ChatJson,
-  chatJsonToData,
-  createEmptyLoadedData,
-  type LoadedChatData,
-  mergeLoadedData,
-  tablesToChatJsonList,
-} from "./transform";
+import { tablesToChatJsonList } from "./collect";
+import { chatJsonToData, createEmptyLoadedData, mergeLoadedData } from "./load";
+import type { ChatJson, LoadedChatData } from "./types";
 
 describe("chatJsonToData", () => {
   test("converts ChatJson to LoadedChatData", () => {

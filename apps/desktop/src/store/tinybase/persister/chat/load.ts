@@ -4,17 +4,49 @@ import { readTextFile } from "@tauri-apps/plugin-fs";
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import { isFileNotFoundError } from "../shared/fs";
-import {
-  type ChatJson,
-  chatJsonToData,
-  createEmptyLoadedData,
-  type LoadedChatData,
-  mergeLoadedData,
-} from "./transform";
+import type { ChatJson, LoadedChatData } from "./types";
 
-export type { LoadedChatData } from "./transform";
+export type { LoadedChatData } from "./types";
 
 const LABEL = "ChatPersister";
+
+export function chatJsonToData(json: ChatJson): LoadedChatData {
+  const result: LoadedChatData = {
+    chat_groups: {},
+    chat_messages: {},
+  };
+
+  const { id: groupId, ...chatGroupData } = json.chat_group;
+  result.chat_groups[groupId] = chatGroupData;
+
+  for (const message of json.messages) {
+    const { id: messageId, ...messageData } = message;
+    result.chat_messages[messageId] = messageData;
+  }
+
+  return result;
+}
+
+export function mergeLoadedData(items: LoadedChatData[]): LoadedChatData {
+  const result: LoadedChatData = {
+    chat_groups: {},
+    chat_messages: {},
+  };
+
+  for (const item of items) {
+    Object.assign(result.chat_groups, item.chat_groups);
+    Object.assign(result.chat_messages, item.chat_messages);
+  }
+
+  return result;
+}
+
+export function createEmptyLoadedData(): LoadedChatData {
+  return {
+    chat_groups: {},
+    chat_messages: {},
+  };
+}
 
 export async function loadAllChatData(
   dataDir: string,

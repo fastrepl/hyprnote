@@ -3,14 +3,62 @@ import { sep } from "@tauri-apps/api/path";
 import {
   buildChatPath,
   type CollectorResult,
+  iterateTableRows,
   type TablesContent,
   type WriteOperation,
 } from "../shared";
-import { tablesToChatJsonList } from "./transform";
+import type { ChatGroupData, ChatJson, ChatMessageWithId } from "./types";
 
 export type ChatCollectorResult = CollectorResult & {
   validChatGroupIds: Set<string>;
 };
+
+export function tablesToChatJsonList(tables: TablesContent): ChatJson[] {
+  const chatGroups = iterateTableRows(tables, "chat_groups");
+  const chatMessages = iterateTableRows(tables, "chat_messages");
+
+  const chatGroupMap = new Map<string, ChatGroupData>();
+  for (const group of chatGroups) {
+    chatGroupMap.set(group.id, group as ChatGroupData);
+  }
+
+  const messagesByChatGroup = new Map<
+    string,
+    { chatGroup: ChatGroupData; messages: ChatMessageWithId[] }
+  >();
+
+  for (const message of chatMessages) {
+    const chatGroupId = message.chat_group_id;
+    if (!chatGroupId) continue;
+
+    const chatGroup = chatGroupMap.get(chatGroupId);
+    if (!chatGroup) continue;
+
+    const existing = messagesByChatGroup.get(chatGroupId);
+    if (existing) {
+      existing.messages.push(message as ChatMessageWithId);
+    } else {
+      messagesByChatGroup.set(chatGroupId, {
+        chatGroup,
+        messages: [message as ChatMessageWithId],
+      });
+    }
+  }
+
+  const result: ChatJson[] = [];
+  for (const { chatGroup, messages } of messagesByChatGroup.values()) {
+    result.push({
+      chat_group: chatGroup,
+      messages: messages.sort(
+        (a, b) =>
+          new Date(a.created_at || 0).getTime() -
+          new Date(b.created_at || 0).getTime(),
+      ),
+    });
+  }
+
+  return result;
+}
 
 export function collectChatWriteOps(
   tables: TablesContent,

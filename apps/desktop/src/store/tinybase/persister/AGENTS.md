@@ -28,6 +28,7 @@ Only needs `index.ts` + `persister.ts`. Configuration-only, no transform needed.
 
 ### Collector Pattern (session, chat)
 
+- `types.ts`: Type definitions for JSON file structures and loaded data types (type-only, no functions).
 - `load.ts`: Reads from filesystem and parses data (filesystem → store).
   - Export `loadAllXxxData(dataDir) → LoadedData`
   - Export `loadSingleXxx(dataDir, id) → LoadedData`
@@ -37,7 +38,6 @@ Only needs `index.ts` + `persister.ts`. Configuration-only, no transform needed.
   - Export `parseXxxIdFromPath(path) → string | null`
   - Export `getChangedXxxIds(tables, changedTables) → Set<string> | undefined` — needed for resolving child table changes to parent entity
   - Export `createXxxDeletionMarker(store) → DeletionMarker`
-- `transform.ts`: Type definitions for JSON file structures and loaded data types.
 - `ops.ts`: External mutation API (session-specific, for folder/session operations).
 
 ## Change Detection Location

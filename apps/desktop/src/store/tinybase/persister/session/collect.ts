@@ -17,7 +17,7 @@ import type {
   ParticipantData,
   SessionMetaJson,
   TranscriptJson,
-} from "./transform";
+} from "./types";
 
 export type { NoteFrontmatter, SessionMetaJson };
 

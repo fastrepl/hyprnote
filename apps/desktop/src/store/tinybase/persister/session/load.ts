@@ -4,11 +4,7 @@ import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { md2json } from "@hypr/tiptap/shared";
 
 import type { TablesContent } from "../shared";
-import type {
-  NoteFrontmatter,
-  SessionMetaJson,
-  TranscriptJson,
-} from "./transform";
+import type { NoteFrontmatter, SessionMetaJson, TranscriptJson } from "./types";
 
 type SessionTables =
   | "sessions"

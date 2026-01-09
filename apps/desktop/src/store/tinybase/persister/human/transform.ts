@@ -22,7 +22,7 @@ function emailToFrontmatter(email: string | undefined): string[] {
     .filter(Boolean);
 }
 
-export function frontmatterToStore(
+function frontmatterToStore(
   frontmatter: Record<string, unknown>,
 ): HumanFrontmatter {
   return {
@@ -36,7 +36,7 @@ export function frontmatterToStore(
   };
 }
 
-export function storeToFrontmatter(
+function storeToFrontmatter(
   store: Partial<HumanFrontmatter>,
 ): Record<string, JsonValue> {
   return {

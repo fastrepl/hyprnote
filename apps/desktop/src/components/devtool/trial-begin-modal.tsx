@@ -70,7 +70,7 @@ export function TrialBeginModal() {
           </button>
 
           <div className="flex flex-col items-center gap-10 p-10 text-center">
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 max-w-sm">
               <h2 className="font-serif text-3xl font-semibold">
                 Welcome to Pro!
               </h2>

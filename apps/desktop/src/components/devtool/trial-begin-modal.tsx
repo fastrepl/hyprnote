@@ -5,28 +5,20 @@ import { create } from "zustand";
 
 import { cn } from "@hypr/utils";
 
-import { useBillingAccess } from "../../billing";
-
-type TrialExpiredModalStore = {
+type TrialBeginModalStore = {
   isOpen: boolean;
   open: () => void;
   close: () => void;
 };
 
-export const useTrialExpiredModal = create<TrialExpiredModalStore>((set) => ({
+export const useTrialBeginModal = create<TrialBeginModalStore>((set) => ({
   isOpen: false,
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
 }));
 
-export function TrialExpiredModal() {
-  const { isOpen, close } = useTrialExpiredModal();
-  const { upgradeToPro } = useBillingAccess();
-
-  const handleUpgrade = () => {
-    upgradeToPro();
-    close();
-  };
+export function TrialBeginModal() {
+  const { isOpen, close } = useTrialBeginModal();
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -50,7 +42,10 @@ export function TrialExpiredModal() {
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm">
+      <div
+        className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
+        onClick={close}
+      >
         <div
           data-tauri-drag-region
           className="w-full min-h-11"
@@ -75,12 +70,12 @@ export function TrialExpiredModal() {
           </button>
 
           <div className="flex flex-col items-center gap-10 p-10 text-center">
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 max-w-sm">
               <h2 className="font-serif text-3xl font-semibold">
-                Your free trial is over
+                Welcome to Pro!
               </h2>
               <p className="text-muted-foreground">
-                Here's what you just lost access to
+                You just gained access to these features
               </p>
             </div>
 
@@ -109,10 +104,10 @@ export function TrialExpiredModal() {
             </div>
 
             <button
-              onClick={handleUpgrade}
+              onClick={close}
               className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
             >
-              I'd like to keep using <span className="font-serif">Pro</span>
+              Let's go!
             </button>
           </div>
         </div>

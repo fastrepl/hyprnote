@@ -8,6 +8,7 @@ import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
 import { useTabs } from "../store/zustand/tabs";
+import { TrialBeginModal } from "./devtool/trial-begin-modal";
 import { TrialExpiredModal } from "./devtool/trial-expired-modal";
 import { useNewNote } from "./main/shared";
 
@@ -19,6 +20,7 @@ export default function MainAppLayout() {
       <BillingProvider>
         <NetworkProvider>
           <Outlet />
+          <TrialBeginModal />
           <TrialExpiredModal />
         </NetworkProvider>
       </BillingProvider>

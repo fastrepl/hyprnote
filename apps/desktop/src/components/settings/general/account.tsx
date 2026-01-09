@@ -20,6 +20,7 @@ import { cn } from "@hypr/utils";
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
 import { env } from "../../../env";
+import { useTrialBeginModal } from "../../devtool/trial-begin-modal";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
@@ -176,6 +177,7 @@ export function AccountSettings() {
 function BillingButton() {
   const auth = useAuth();
   const { isPro } = useBillingAccess();
+  const { open: openTrialBeginModal } = useTrialBeginModal();
 
   const canTrialQuery = useQuery({
     enabled: !!auth?.session && !isPro,
@@ -218,6 +220,7 @@ function BillingButton() {
         plan: "pro",
       });
       await auth?.refreshSession();
+      openTrialBeginModal();
     },
   });
 

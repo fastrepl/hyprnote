@@ -89,15 +89,21 @@ pub fn scan_directory_recursive(
                 .session_folder_map
                 .insert(name, current_path.to_string());
         } else if !is_uuid(&name) {
-            result.folders.insert(
-                entry_path.clone(),
-                FolderInfo {
-                    name,
-                    parent_folder_id: get_parent_folder_path(&entry_path),
-                },
-            );
-
+            // Recursively scan children first to find sessions
+            let prev_session_count = result.session_folder_map.len();
             scan_directory_recursive(sessions_dir, &entry_path, result);
+            let has_sessions = result.session_folder_map.len() > prev_session_count;
+
+            // Only track folder if it contains sessions (directly or in subfolders)
+            if has_sessions {
+                result.folders.insert(
+                    entry_path.clone(),
+                    FolderInfo {
+                        name,
+                        parent_folder_id: get_parent_folder_path(&entry_path),
+                    },
+                );
+            }
         }
     }
 }

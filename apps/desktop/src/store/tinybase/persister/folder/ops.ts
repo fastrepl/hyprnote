@@ -1,6 +1,7 @@
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import type { Store } from "../../store/main";
+import { markInternalChange } from "./persister";
 
 export interface FolderOpsConfig {
   store: Store;
@@ -26,32 +27,21 @@ export async function moveSessionToFolder(
 ): Promise<{ status: "ok" } | { status: "error"; error: string }> {
   const { store, reloadFolders } = getConfig();
 
+  // Optimistically update TinyBase
   store.setCell("sessions", sessionId, "folder_id", targetFolderId);
+
+  // Mark as internal change to prevent watcher reload
+  markInternalChange();
 
   const result = await fsSyncCommands.moveSession(sessionId, targetFolderId);
 
   if (result.status === "error") {
     console.error("[FolderOps] moveSession failed:", result.error);
+    // Reload to restore correct state on error
     await reloadFolders();
     return { status: "error", error: result.error };
   }
 
-  return { status: "ok" };
-}
-
-export async function createFolder(
-  folderPath: string,
-): Promise<{ status: "ok" } | { status: "error"; error: string }> {
-  const { reloadFolders } = getConfig();
-
-  const result = await fsSyncCommands.createFolder(folderPath);
-
-  if (result.status === "error") {
-    console.error("[FolderOps] createFolder failed:", result.error);
-    return { status: "error", error: result.error };
-  }
-
-  await reloadFolders();
   return { status: "ok" };
 }
 
@@ -60,6 +50,9 @@ export async function renameFolder(
   newPath: string,
 ): Promise<{ status: "ok" } | { status: "error"; error: string }> {
   const { reloadFolders } = getConfig();
+
+  // Mark as internal change to prevent watcher reload
+  markInternalChange();
 
   const result = await fsSyncCommands.renameFolder(oldPath, newPath);
 
@@ -72,25 +65,7 @@ export async function renameFolder(
   return { status: "ok" };
 }
 
-export async function deleteFolder(
-  folderPath: string,
-): Promise<{ status: "ok" } | { status: "error"; error: string }> {
-  const { reloadFolders } = getConfig();
-
-  const result = await fsSyncCommands.deleteFolder(folderPath);
-
-  if (result.status === "error") {
-    console.error("[FolderOps] deleteFolder failed:", result.error);
-    return { status: "error", error: result.error };
-  }
-
-  await reloadFolders();
-  return { status: "ok" };
-}
-
 export const folderOps = {
   moveSessionToFolder,
-  createFolder,
   renameFolder,
-  deleteFolder,
 };

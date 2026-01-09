@@ -1,5 +1,9 @@
-import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
+import type {
+  PersistedChanges,
+  PersistedContent,
+  Persists,
+} from "tinybase/persisters/with-schemas";
 import type {
   Content,
   MergeableStore,
@@ -8,7 +12,6 @@ import type {
 
 import {
   commands as fsSyncCommands,
-  type JsonValue as FsSyncJsonValue,
   type ParsedDocument,
 } from "@hypr/plugin-fs-sync";
 
@@ -19,27 +22,15 @@ import {
   type ChangedTables,
   type CollectorResult,
   extractChangedTables,
+  type JsonValue,
   type TablesContent,
+  type WriteOperation,
 } from "../shared/types";
 
-export function createModeAwarePersister<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
-  options: {
-    label: string;
-    load: () => Promise<Content<Schemas> | undefined>;
-    save: () => Promise<void>;
-  },
-) {
-  return createCustomPersister(
-    store,
-    options.load,
-    options.save,
-    () => null,
-    () => {},
-    (error) => console.error(`[${options.label}]:`, error),
-    StoreOrMergeableStore,
-  );
-}
+type CategorizedOperations = {
+  json: Array<[JsonValue, string]>;
+  document: Array<[ParsedDocument, string]>;
+};
 
 export function createCollectorPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
@@ -57,8 +48,14 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
 ) {
   const loadFn = options.load ?? (async () => undefined);
 
-  const saveFn = async (_getContent: () => unknown, changes?: unknown) => {
-    const changedTables = extractChangedTables(changes);
+  const saveFn = async (
+    _getContent: () => PersistedContent<
+      Schemas,
+      Persists.StoreOrMergeableStore
+    >,
+    changes?: PersistedChanges<Schemas, Persists.StoreOrMergeableStore>,
+  ) => {
+    const changedTables = extractChangedTables<Schemas>(changes);
     const isIncrementalSave = changedTables !== null;
 
     try {
@@ -78,52 +75,10 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
 
       await ensureDirsExist(dirs);
 
-      const jsonBatchItems: Array<[FsSyncJsonValue, string]> = [];
-      let documentBatchItems: Array<[ParsedDocument, string]> = [];
-      const textItems: Array<{ path: string; content: string }> = [];
+      const categorized = categorizeOperations(operations);
 
-      for (const op of operations) {
-        if (op.type === "json") {
-          jsonBatchItems.push([op.content as FsSyncJsonValue, op.path]);
-        } else if (op.type === "document-batch") {
-          documentBatchItems = documentBatchItems.concat(op.items);
-        } else if (op.type === "text") {
-          textItems.push({ path: op.path, content: op.content });
-        }
-      }
-
-      if (jsonBatchItems.length > 0) {
-        const exportResult =
-          await fsSyncCommands.writeJsonBatch(jsonBatchItems);
-        if (exportResult.status === "error") {
-          console.error(
-            `[${options.label}] Failed to export json batch:`,
-            exportResult.error,
-          );
-        }
-      }
-
-      if (documentBatchItems.length > 0) {
-        const result =
-          await fsSyncCommands.writeDocumentBatch(documentBatchItems);
-        if (result.status === "error") {
-          console.error(
-            `[${options.label}] Failed to write document batch:`,
-            result.error,
-          );
-        }
-      }
-
-      for (const item of textItems) {
-        try {
-          await writeTextFile(item.path, item.content);
-        } catch (e) {
-          console.error(
-            `[${options.label}] Failed to write text file ${item.path}:`,
-            e,
-          );
-        }
-      }
+      await writeJsonBatch(categorized.json, options.label);
+      await writeDocumentBatch(categorized.document, options.label);
 
       if (options.postSave && !isIncrementalSave) {
         await options.postSave(dataDir, result);
@@ -142,4 +97,47 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
     (error) => console.error(`[${options.label}]:`, error),
     StoreOrMergeableStore,
   );
+}
+
+function categorizeOperations(
+  operations: WriteOperation[],
+): CategorizedOperations {
+  const result: CategorizedOperations = {
+    json: [],
+    document: [],
+  };
+
+  for (const op of operations) {
+    if (op.type === "json") {
+      result.json.push([op.content as JsonValue, op.path]);
+    } else if (op.type === "document-batch") {
+      result.document = result.document.concat(op.items);
+    }
+  }
+
+  return result;
+}
+
+async function writeJsonBatch(
+  items: Array<[JsonValue, string]>,
+  label: string,
+): Promise<void> {
+  if (items.length === 0) return;
+
+  const result = await fsSyncCommands.writeJsonBatch(items);
+  if (result.status === "error") {
+    console.error(`[${label}] Failed to export json batch:`, result.error);
+  }
+}
+
+async function writeDocumentBatch(
+  items: Array<[ParsedDocument, string]>,
+  label: string,
+): Promise<void> {
+  if (items.length === 0) return;
+
+  const result = await fsSyncCommands.writeDocumentBatch(items);
+  if (result.status === "error") {
+    console.error(`[${label}] Failed to write document batch:`, result.error);
+  }
 }

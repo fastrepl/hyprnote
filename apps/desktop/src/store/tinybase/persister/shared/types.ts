@@ -1,4 +1,10 @@
 import type {
+  PersistedChanges,
+  Persists,
+} from "tinybase/persisters/with-schemas";
+import type { OptionalSchemas } from "tinybase/with-schemas";
+
+import type {
   JsonValue as FsSyncJsonValue,
   ParsedDocument,
 } from "@hypr/plugin-fs-sync";
@@ -38,7 +44,6 @@ type TableRowType<K extends keyof TablesContent> =
 
 export type WriteOperation =
   | { type: "json"; path: string; content: unknown }
-  | { type: "text"; path: string; content: string }
   | { type: "document-batch"; items: Array<[ParsedDocument, string]> };
 
 export type CollectorResult = {
@@ -73,14 +78,18 @@ export type ChangedTables = Record<string, Record<string, unknown> | undefined>;
  *
  * Note the double brackets for MergeableChanges - each element is [data, hlc?].
  */
-export function extractChangedTables(changes: unknown): ChangedTables | null {
+export function extractChangedTables<Schemas extends OptionalSchemas>(
+  changes:
+    | PersistedChanges<Schemas, Persists.StoreOrMergeableStore>
+    | undefined,
+): ChangedTables | null {
   if (!changes || !Array.isArray(changes) || changes.length < 1) {
     return null;
   }
 
   const tablesOrStamp = changes[0];
 
-  // Check if it's MergeableChanges (wrapped in [thing, hlc?] tuple)
+  // MergeableChanges: [[changedTables, hlc?], [changedValues, hlc?], 1]
   if (Array.isArray(tablesOrStamp) && tablesOrStamp.length >= 1) {
     const tables = tablesOrStamp[0];
     if (tables && typeof tables === "object") {
@@ -89,7 +98,7 @@ export function extractChangedTables(changes: unknown): ChangedTables | null {
     return null;
   }
 
-  // Regular Changes format
+  // Regular Changes: [changedTables, changedValues, 1]
   if (tablesOrStamp && typeof tablesOrStamp === "object") {
     return tablesOrStamp as ChangedTables;
   }

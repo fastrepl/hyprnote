@@ -66,7 +66,7 @@ function ScrollingWaveform({
   }, [width, height]);
 
   useEffect(() => {
-    amplitudesRef.current = [];
+    amplitudesRef.current = Array(maxBars).fill(0);
     const ctx = ctxRef.current;
     if (!ctx) return;
 

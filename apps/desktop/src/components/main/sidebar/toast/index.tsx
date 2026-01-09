@@ -153,7 +153,7 @@ export function ToastArea({
 }
 
 function useShouldShowToast(isProfileExpanded: boolean) {
-  const TOAST_CHECK_DELAY_MS = 3000;
+  const TOAST_CHECK_DELAY_MS = 500;
 
   const [showToast, setShowToast] = useState(false);
 

@@ -121,7 +121,7 @@ export function createToastRegistry({
           label: "Add intelligence",
           onClick: onOpenLLMSettings,
         },
-        dismissible: false,
+        dismissible: true,
       },
       condition: () =>
         hasSttConfigured && !hasLLMConfigured && !isAiIntelligenceTabActive,

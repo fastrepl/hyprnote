@@ -259,13 +259,18 @@ const SessionItem = memo(
     const contextMenu = useMemo(
       () => [
         {
+          id: "open-new-tab",
+          text: "Open in new tab",
+          action: handleCmdClick,
+        },
+        {
           id: "reveal",
           text: "Reveal in Finder",
           action: handleRevealInFinder,
         },
-        { id: "delete", text: "Delete Completely", action: handleDelete },
+        { id: "delete", text: "Delete completely", action: handleDelete },
       ],
-      [handleRevealInFinder, handleDelete],
+      [handleCmdClick, handleRevealInFinder, handleDelete],
     );
 
     return (

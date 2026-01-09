@@ -184,15 +184,20 @@ function StartButton({ sessionId }: { sessionId: string }) {
 function InMeetingIndicator({ sessionId }: { sessionId: string }) {
   const [ref, hovered] = useHover();
 
-  const { mode, stop, amplitude, muted } = useListener((state) => ({
-    mode: state.getSessionMode(sessionId),
-    stop: state.stop,
-    amplitude: state.live.amplitude,
-    muted: state.live.muted,
-  }));
+  const { mode, stop, amplitude, muted, loadingPhase } = useListener(
+    (state) => ({
+      mode: state.getSessionMode(sessionId),
+      stop: state.stop,
+      amplitude: state.live.amplitude,
+      muted: state.live.muted,
+      loadingPhase: state.live.loadingPhase,
+    }),
+  );
 
   const active = mode === "active" || mode === "finalizing";
   const finalizing = mode === "finalizing";
+  const initializing =
+    loadingPhase === "audio_initializing" || loadingPhase === "connecting";
 
   if (!active) {
     return null;
@@ -217,6 +222,10 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
       {finalizing ? (
         <div className="flex items-center gap-1.5">
           <span className="animate-pulse">...</span>
+        </div>
+      ) : initializing ? (
+        <div className="flex items-center gap-1.5">
+          <span className="animate-pulse text-red-500">Initializing...</span>
         </div>
       ) : (
         <>

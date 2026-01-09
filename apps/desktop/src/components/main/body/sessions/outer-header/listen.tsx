@@ -58,7 +58,7 @@ function ScrollingWaveform({
     const animate = (timestamp: number) => {
       if (timestamp - lastUpdateRef.current >= UPDATE_INTERVAL) {
         const amp = amplitudeRef.current;
-        const linear = Math.min(amp / 70, 1);
+        const linear = amp < 30 ? 0 : Math.min((amp - 30) / 40, 1);
         const normalized = Math.pow(linear, 0.6);
 
         setBars((prev) => [...prev.slice(1), normalized]);

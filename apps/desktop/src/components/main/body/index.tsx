@@ -14,6 +14,7 @@ import { useShallow } from "zustand/shallow";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { useListener } from "../../../contexts/listener";
 import { useNotifications } from "../../../contexts/notifications";
 import { useShell } from "../../../contexts/shell";
 import {
@@ -105,15 +106,28 @@ function Header({ tabs }: { tabs: Tab[] }) {
       unpin: state.unpin,
     })),
   );
+
+  const liveSessionId = useListener((state) => state.live.sessionId);
+  const liveStatus = useListener((state) => state.live.status);
+  const isListening = liveStatus === "active" || liveStatus === "finalizing";
+
+  const listeningTab =
+    isListening && liveSessionId
+      ? tabs.find((t) => t.type === "sessions" && t.id === liveSessionId)
+      : null;
+  const regularTabs = listeningTab
+    ? tabs.filter((t) => !(t.type === "sessions" && t.id === liveSessionId))
+    : tabs;
+
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const handleNewEmptyTab = useNewEmptyTab();
   const [isSearchManuallyExpanded, setIsSearchManuallyExpanded] =
     useState(false);
   const { ref: rightContainerRef, hasSpace: hasSpaceForSearch } =
     useHasSpaceForSearch();
-  const scrollState = useScrollState(tabsScrollContainerRef, [tabs]);
+  const scrollState = useScrollState(tabsScrollContainerRef, [regularTabs]);
 
-  const setTabRef = useScrollActiveTabIntoView(tabs);
+  const setTabRef = useScrollActiveTabIntoView(regularTabs);
   useTabsShortcuts();
 
   return (
@@ -136,6 +150,21 @@ function Header({ tabs }: { tabs: Tab[] }) {
             <PanelLeftOpenIcon size={16} className="text-neutral-600" />
           </Button>
           <NotificationBadge show={notifications.shouldShowBadge} />
+        </div>
+      )}
+
+      {listeningTab && (
+        <div className="flex items-center h-full shrink-0 mr-1">
+          <TabItem
+            tab={listeningTab}
+            handleClose={close}
+            handleSelect={select}
+            handleCloseOthersCallback={closeOthers}
+            handleCloseAll={closeAll}
+            handlePin={pin}
+            handleUnpin={unpin}
+            tabIndex={1}
+          />
         </div>
       )}
 
@@ -171,14 +200,23 @@ function Header({ tabs }: { tabs: Tab[] }) {
             key={leftsidebar.expanded ? "expanded" : "collapsed"}
             as="div"
             axis="x"
-            values={tabs}
+            values={regularTabs}
             onReorder={reorder}
             className="flex w-max gap-1 h-full"
           >
-            {tabs.map((tab, index) => {
-              const isLastTab = index === tabs.length - 1;
-              const shortcutIndex =
-                index < 8 ? index + 1 : isLastTab ? 9 : undefined;
+            {regularTabs.map((tab, index) => {
+              const isLastTab = index === regularTabs.length - 1;
+              const shortcutIndex = listeningTab
+                ? index < 7
+                  ? index + 2
+                  : isLastTab
+                    ? 9
+                    : undefined
+                : index < 8
+                  ? index + 1
+                  : isLastTab
+                    ? 9
+                    : undefined;
 
               return (
                 <Reorder.Item

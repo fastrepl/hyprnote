@@ -21,7 +21,7 @@ export async function loadAllChatData(
 
   const scanResult = await fsSyncCommands.scanAndRead(
     chatsDir,
-    ["_messages.json"],
+    ["messages.json"],
     false,
   );
 

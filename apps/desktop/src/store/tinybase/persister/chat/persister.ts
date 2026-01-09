@@ -140,7 +140,7 @@ export function createChatPersister(store: Store) {
         return;
       }
       await fsSyncCommands.cleanupOrphan(
-        { type: "dirs", subdir: "chats", marker_file: "_messages.json" },
+        { type: "dirs", subdir: "chats", marker_file: "messages.json" },
         Array.from(validChatGroupIds),
       );
     },

@@ -182,7 +182,7 @@ export function collectTranscriptWriteOps(
     const content: TranscriptJson = { transcripts: sessionTranscripts };
     operations.push({
       type: "json",
-      path: [sessionDir, "_transcript.json"].join(sep()),
+      path: [sessionDir, "transcript.json"].join(sep()),
       content,
     });
   }

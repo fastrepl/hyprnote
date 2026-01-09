@@ -32,7 +32,7 @@ export function collectChatWriteOps(
         const chatDir = buildChatPath(dataDir, id);
         operations.push({
           type: "json",
-          path: [chatDir, "_messages.json"].join(sep()),
+          path: [chatDir, "messages.json"].join(sep()),
           content: chatJson,
         });
       } else if (allGroupIds.has(id)) {
@@ -40,7 +40,7 @@ export function collectChatWriteOps(
         const chatDir = buildChatPath(dataDir, id);
         operations.push({
           type: "json",
-          path: [chatDir, "_messages.json"].join(sep()),
+          path: [chatDir, "messages.json"].join(sep()),
           content: { chat_group: { id, ...chatGroup }, messages: [] },
         });
       } else {
@@ -52,7 +52,7 @@ export function collectChatWriteOps(
       const deleteOps: WriteOperation = {
         type: "delete-batch",
         paths: deletedIds.map((id) =>
-          [buildChatPath(dataDir, id), "_messages.json"].join(sep()),
+          [buildChatPath(dataDir, id), "messages.json"].join(sep()),
         ),
       };
       operations.push(deleteOps);
@@ -70,7 +70,7 @@ export function collectChatWriteOps(
 
     operations.push({
       type: "json",
-      path: [chatDir, "_messages.json"].join(sep()),
+      path: [chatDir, "messages.json"].join(sep()),
       content: chatJson,
     });
   }
@@ -81,7 +81,7 @@ export function collectChatWriteOps(
       const chatDir = buildChatPath(dataDir, id);
       operations.push({
         type: "json",
-        path: [chatDir, "_messages.json"].join(sep()),
+        path: [chatDir, "messages.json"].join(sep()),
         content: { chat_group: { id, ...chatGroup }, messages: [] },
       });
     }

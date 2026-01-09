@@ -171,7 +171,7 @@ export async function loadAllSessionData(
 
   const scanResult = await fsSyncCommands.scanAndRead(
     sessionsDir,
-    ["_meta.json", "_transcript.json", "*.md"],
+    ["_meta.json", "transcript.json", "*.md"],
     true,
   );
 
@@ -191,7 +191,7 @@ export async function loadAllSessionData(
 
   for (const [path, content] of Object.entries(files)) {
     if (!content) continue;
-    if (path.endsWith("_transcript.json")) {
+    if (path.endsWith("transcript.json")) {
       processTranscriptFile(path, content, result);
     }
   }

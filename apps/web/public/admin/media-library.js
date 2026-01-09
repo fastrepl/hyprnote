@@ -2,7 +2,7 @@ const createGitHubMediaLibrary = () => {
   let modal = null;
   let handleInsert = null;
   let allowMultiple = false;
-  let selectedItems = new Set();
+  let selectedItems = new Map();
   let currentPath = "";
   let viewMode = "grid";
   let allItems = [];
@@ -588,7 +588,7 @@ const createGitHubMediaLibrary = () => {
           const publicPath = isFolder ? "" : getPublicPath(item.path);
           const isSelected = selectedItems.has(item.path);
           return `
-            <div class="gml-grid-item ${isSelected ? "selected" : ""}" data-path="${item.path}" data-type="${item.type}" data-public="${publicPath}">
+            <div class="gml-grid-item ${isSelected ? "selected" : ""}" data-path="${item.path}" data-type="${item.type}" data-public="${publicPath}" data-download-url="${item.download_url || ""}">
               <div class="gml-grid-thumb ${isFolder ? "folder" : ""}">
                 ${isFolder ? "📁" : `<img src="${item.download_url}" loading="lazy">`}
               </div>
@@ -604,7 +604,7 @@ const createGitHubMediaLibrary = () => {
           const publicPath = isFolder ? "" : getPublicPath(item.path);
           const isSelected = selectedItems.has(item.path);
           return `
-            <div class="gml-list-item ${isSelected ? "selected" : ""}" data-path="${item.path}" data-type="${item.type}" data-public="${publicPath}">
+            <div class="gml-list-item ${isSelected ? "selected" : ""}" data-path="${item.path}" data-type="${item.type}" data-public="${publicPath}" data-download-url="${item.download_url || ""}">
               <div class="gml-list-icon">
                 ${isFolder ? "📁" : `<img src="${item.download_url}" loading="lazy">`}
               </div>
@@ -624,23 +624,31 @@ const createGitHubMediaLibrary = () => {
         const type = item.dataset.type;
         const path = item.dataset.path;
         const publicPath = item.dataset.public || path;
+        const downloadUrl = item.dataset.downloadUrl;
 
         if (type === "dir" && !(e.metaKey || e.ctrlKey || allowMultiple)) {
           const newPath = path.replace(IMAGES_PATH + "/", "").replace(IMAGES_PATH, "");
           navigateToPath(newPath);
         } else {
+          const itemData = {
+            path: path,
+            type: type,
+            publicPath: publicPath,
+            downloadUrl: downloadUrl,
+          };
+
           if (e.metaKey || e.ctrlKey || allowMultiple) {
             if (selectedItems.has(path)) {
               selectedItems.delete(path);
               item.classList.remove("selected");
             } else {
-              selectedItems.add(path);
+              selectedItems.set(path, itemData);
               item.classList.add("selected");
             }
           } else {
             selectedItems.clear();
             content.querySelectorAll(".selected").forEach((el) => el.classList.remove("selected"));
-            selectedItems.add(path);
+            selectedItems.set(path, itemData);
             item.classList.add("selected");
           }
           updateToolbar();
@@ -650,9 +658,11 @@ const createGitHubMediaLibrary = () => {
       item.addEventListener("dblclick", () => {
         const type = item.dataset.type;
         const publicPath = item.dataset.public;
+        const downloadUrl = item.dataset.downloadUrl;
         if (type === "file" && publicPath && handleInsert) {
-          console.log("Double-click inserting:", { path: publicPath, url: publicPath });
-          handleInsert({ path: publicPath, url: publicPath });
+          const asset = { path: publicPath, url: downloadUrl || publicPath };
+          console.log("Double-click inserting:", asset);
+          handleInsert(asset);
           hide();
         }
       });
@@ -693,13 +703,15 @@ const createGitHubMediaLibrary = () => {
 
       toolbarRight.querySelector(".gml-insert-btn").addEventListener("click", () => {
         if (selectedItems.size > 0) {
-          const assets = Array.from(selectedItems).map((path) => {
-            const publicPath = getPublicPath(path);
-            return { path: publicPath, url: publicPath };
-          });
+          const assets = Array.from(selectedItems.values())
+            .filter((item) => item.type === "file")
+            .map((item) => ({
+              path: item.publicPath,
+              url: item.downloadUrl || item.publicPath,
+            }));
           console.log("Insert button clicked, assets:", assets);
           console.log("handleInsert function:", handleInsert);
-          if (handleInsert) {
+          if (handleInsert && assets.length > 0) {
             handleInsert(assets.length === 1 ? assets[0] : assets);
           }
           hide();

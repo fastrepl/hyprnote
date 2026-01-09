@@ -50,10 +50,7 @@ export function TrialExpiredModal() {
 
   return createPortal(
     <>
-      <div
-        className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
-        onClick={close}
-      >
+      <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm">
         <div
           data-tauri-drag-region
           className="w-full min-h-11"

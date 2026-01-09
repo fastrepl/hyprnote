@@ -229,14 +229,14 @@ impl AmplitudeEmitter {
             session_id,
             last_mic: None,
             last_spk: None,
-            last_emit: Instant::now(),
+            last_emit: Instant::now() - AUDIO_AMPLITUDE_THROTTLE,
         }
     }
 
     fn reset(&mut self) {
         self.last_mic = None;
         self.last_spk = None;
-        self.last_emit = Instant::now();
+        self.last_emit = Instant::now() - AUDIO_AMPLITUDE_THROTTLE;
     }
 
     fn observe(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>) {

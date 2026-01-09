@@ -1,0 +1,78 @@
+---
+title: "AI Models & Data Privacy"
+section: "FAQ"
+description: "Information about the AI models used in Hyprnote and how your data is handled."
+---
+
+## What AI models does Hyprnote use?
+
+Hyprnote uses two types of AI models: speech-to-text (STT) models for transcription and large language models (LLMs) for generating summaries and notes.
+
+### Speech-to-Text Models
+
+For local transcription, Hyprnote supports:
+
+**Whisper Models** - OpenAI's open-source speech recognition models, available in multiple sizes (Tiny, Base, Small, Large Turbo) with both English-only and multilingual variants. These run entirely on your device.
+
+**Parakeet Models** - NVIDIA's high-accuracy speech recognition models (Parakeet v2 for English, Parakeet v3 for 25+ languages). These also run locally on your device.
+
+### Large Language Models
+
+For local AI features like summaries and note generation, Hyprnote supports:
+
+**HyprLLM** - A custom fine-tuned model optimized for meeting notes and summaries (~1GB).
+
+**Llama 3.2 3B** - Meta's open-source language model, quantized for efficient local inference (~2GB).
+
+**Gemma 3 4B** - Google's open-source language model, quantized for local use (~2.5GB).
+
+You can also connect external LLM providers like LM Studio or Ollama if you prefer to use different models.
+
+## Does my audio data leave my device?
+
+By default, no. When using local AI models, all audio processing happens entirely on your device. Your recordings, transcripts, and notes never leave your computer.
+
+If you choose to enable cloud-based transcription (for faster processing or better accuracy in certain languages), audio data is sent to the selected provider. See the cloud providers section below for details on each provider's data practices.
+
+## What cloud transcription providers does Hyprnote support?
+
+When cloud transcription is enabled, Hyprnote can use the following providers:
+
+**Deepgram** - Real-time speech recognition with support for 30+ languages. [Privacy Policy](https://deepgram.com/privacy)
+
+**AssemblyAI** - Speech-to-text with speaker diarization. [Privacy Policy](https://www.assemblyai.com/legal/privacy-policy)
+
+**Soniox** - High-accuracy transcription with support for 70+ languages. [Privacy Policy](https://soniox.com/privacy)
+
+**Fireworks AI** - Fast inference for Whisper models. [Privacy Policy](https://fireworks.ai/privacy-policy)
+
+**Gladia** - Real-time transcription service. [Privacy Policy](https://www.gladia.io/privacy-policy)
+
+**OpenAI** - Whisper API for transcription. [Privacy Policy](https://openai.com/policies/privacy-policy)
+
+## How is my data handled by cloud providers?
+
+When using cloud transcription, your audio is sent to the selected provider for processing. Each provider has different data retention and privacy policies:
+
+Most providers process audio in real-time and do not retain your data after transcription is complete. However, we recommend reviewing each provider's privacy policy for specific details about data handling, retention periods, and security measures.
+
+Hyprnote Pro users who use cloud transcription through our proxy benefit from our agreements with these providers, which include data processing terms designed to protect your privacy.
+
+## Can I use Hyprnote completely offline?
+
+Yes. When using local AI models, Hyprnote works entirely offline. You can record, transcribe, and generate summaries without any internet connection. This is the default configuration and provides maximum privacy.
+
+## Does Hyprnote train AI models on my data?
+
+No. Hyprnote does not use your recordings, transcripts, or notes to train AI models. When using local models, your data never leaves your device. When using cloud providers, your data is processed according to their respective privacy policies, but Hyprnote itself does not collect or use your data for training purposes.
+
+## How do I ensure maximum privacy?
+
+For maximum privacy:
+
+1. Use local STT models (Whisper or Parakeet) instead of cloud transcription
+2. Use local LLM models (HyprLLM, Llama, or Gemma) instead of cloud AI providers
+3. Keep your recordings stored locally on your device
+4. Review and disable any cloud features in Settings > Intelligence
+
+With these settings, all your data stays on your device and is never transmitted to external servers.

@@ -29,6 +29,7 @@ exclude = [
   "apps/bot",
   "apps/web",
   "plugins/db",
+  "plugins/export",
 ]
 
 [workspace.dependencies]
@@ -38,6 +39,7 @@ hypr-agc = { path = "crates/agc", package = "agc" }
 hypr-am = { path = "crates/am", package = "am" }
 hypr-am2 = { path = "crates/am2", package = "am2" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
+hypr-apple-note = { path = "crates/apple-note", package = "apple-note" }
 hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-interface = { path = "crates/audio-interface", package = "audio-interface" }
 hypr-audio-priority = { path = "crates/audio-priority", package = "audio-priority" }

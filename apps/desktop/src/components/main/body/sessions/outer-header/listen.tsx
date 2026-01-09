@@ -41,36 +41,38 @@ function ScrollingWaveform({
 }) {
   const resolvedMaxBarHeight = maxBarHeight ?? height;
   const maxBars = Math.floor(width / (barWidth + gap));
-  const [bars, setBars] = useState<number[]>(() =>
-    Array(maxBars)
-      .fill(0)
-      .map(() => Math.random() * 0.3),
-  );
+  const [bars, setBars] = useState<number[]>(() => Array(maxBars).fill(0));
   const amplitudeRef = useRef(amplitude);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const lastUpdateRef = useRef(0);
 
   amplitudeRef.current = amplitude;
 
   useEffect(() => {
-    setBars(
-      Array(maxBars)
-        .fill(0)
-        .map(() => Math.random() * 0.3),
-    );
+    setBars(Array(maxBars).fill(0));
   }, [maxBars]);
 
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      const amp = amplitudeRef.current;
-      const linear = amp < 5 ? 0 : Math.min((amp - 5) / 45, 1);
-      const normalized = Math.pow(linear, 0.6);
+    const UPDATE_INTERVAL = 30;
 
-      setBars((prev) => [...prev.slice(1), normalized]);
-    }, 100);
+    const animate = (timestamp: number) => {
+      if (timestamp - lastUpdateRef.current >= UPDATE_INTERVAL) {
+        const amp = amplitudeRef.current;
+        const linear = amp < 5 ? 0 : Math.min((amp - 5) / 45, 1);
+        const normalized = Math.pow(linear, 0.6);
+
+        setBars((prev) => [...prev.slice(1), normalized]);
+        lastUpdateRef.current = timestamp;
+      }
+
+      rafRef.current = requestAnimationFrame(animate);
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
       }
     };
   }, []);

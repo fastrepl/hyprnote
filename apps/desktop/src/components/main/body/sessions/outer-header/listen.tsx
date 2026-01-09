@@ -41,14 +41,22 @@ function ScrollingWaveform({
 }) {
   const resolvedMaxBarHeight = maxBarHeight ?? height;
   const maxBars = Math.floor(width / (barWidth + gap));
-  const [bars, setBars] = useState<number[]>(() => Array(maxBars).fill(0));
+  const [bars, setBars] = useState<number[]>(() =>
+    Array(maxBars)
+      .fill(0)
+      .map(() => Math.random() * 0.3),
+  );
   const amplitudeRef = useRef(amplitude);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   amplitudeRef.current = amplitude;
 
   useEffect(() => {
-    setBars(Array(maxBars).fill(0));
+    setBars(
+      Array(maxBars)
+        .fill(0)
+        .map(() => Math.random() * 0.3),
+    );
   }, [maxBars]);
 
   useEffect(() => {

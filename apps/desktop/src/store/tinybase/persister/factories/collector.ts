@@ -40,6 +40,31 @@ type LoadSingleFn<Schemas extends OptionalSchemas> = (
   PersistedChanges<Schemas, Persists.StoreOrMergeableStore> | undefined
 >;
 
+type OrphanCleanupDirs = {
+  type: "dirs";
+  subdir: string;
+  markerFile: string;
+  validIdsKey: string;
+};
+
+type OrphanCleanupFiles = {
+  type: "files";
+  subdir: string;
+  extension: string;
+  validIdsKey: string;
+};
+
+type OrphanCleanupSessionNotes = {
+  type: "sessionNotes";
+  validIdsKey: string;
+  sessionsWithMemoKey: string;
+};
+
+export type OrphanCleanupConfig =
+  | OrphanCleanupDirs
+  | OrphanCleanupFiles
+  | OrphanCleanupSessionNotes;
+
 type BaseCollectorOptions<Schemas extends OptionalSchemas> = {
   label: string;
   collect: (
@@ -49,8 +74,7 @@ type BaseCollectorOptions<Schemas extends OptionalSchemas> = {
     changedTables?: ChangedTables,
   ) => CollectorResult;
   load?: () => Promise<Content<Schemas> | undefined>;
-  postSave?: (dataDir: string, result: CollectorResult) => Promise<void>;
-  postSaveAlways?: boolean;
+  cleanup?: OrphanCleanupConfig[];
   watchPaths?: string[];
   watchIntervalMs?: number;
 };
@@ -105,7 +129,6 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
     changes?: PersistedChanges<Schemas, Persists.StoreOrMergeableStore>,
   ) => {
     const changedTables = extractChangedTables<Schemas>(changes);
-    const isIncrementalSave = changedTables !== null;
 
     try {
       const dataDir = await getDataDir();
@@ -128,9 +151,8 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
       await writeDocumentBatch(categorized.document, options.label);
       await deleteFiles(categorized.delete, options.label);
 
-      const shouldRunPostSave = options.postSaveAlways || !isIncrementalSave;
-      if (options.postSave && shouldRunPostSave) {
-        await options.postSave(dataDir, result);
+      if (options.cleanup) {
+        await runOrphanCleanup(options.cleanup, result, options.label);
       }
     } catch (error) {
       console.error(`[${options.label}] save error:`, error);
@@ -245,6 +267,50 @@ async function deleteFiles(paths: string[], label: string): Promise<void> {
       if (!errorStr.includes("No such file") && !errorStr.includes("ENOENT")) {
         console.error(`[${label}] Failed to delete file ${path}:`, error);
       }
+    }
+  }
+}
+
+async function runOrphanCleanup(
+  configs: OrphanCleanupConfig[],
+  result: CollectorResult,
+  label: string,
+): Promise<void> {
+  const resultWithIds = result as CollectorResult & Record<string, Set<string>>;
+
+  for (const config of configs) {
+    const validIds = resultWithIds[config.validIdsKey];
+    if (!validIds || validIds.size === 0) {
+      continue;
+    }
+
+    try {
+      if (config.type === "dirs") {
+        await fsSyncCommands.cleanupOrphan(
+          {
+            type: "dirs",
+            subdir: config.subdir,
+            marker_file: config.markerFile,
+          },
+          Array.from(validIds),
+        );
+      } else if (config.type === "files") {
+        await fsSyncCommands.cleanupOrphan(
+          { type: "files", subdir: config.subdir, extension: config.extension },
+          Array.from(validIds),
+        );
+      } else if (config.type === "sessionNotes") {
+        const sessionsWithMemo = resultWithIds[config.sessionsWithMemoKey];
+        await fsSyncCommands.cleanupOrphan(
+          {
+            type: "sessionNotes",
+            sessions_with_memo: Array.from(sessionsWithMemo ?? []),
+          },
+          Array.from(validIds),
+        );
+      }
+    } catch (error) {
+      console.error(`[${label}] Cleanup error for ${config.type}:`, error);
     }
   }
 }

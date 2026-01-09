@@ -8,19 +8,49 @@ Three main patterns are used depending on data complexity:
 
 ## File Naming Conventions
 
+### All Persisters
+
 - `index.ts`: Controls load/save behavior, exports single hook.
-- `persister.ts`: Defines both load and save regardless of actual usage.
-- `load.ts`: Reads from filesystem and parses data into store-compatible format (filesystem → store).
-- `collect.ts`: Extracts store data and prepares filesystem write operations (store → filesystem).
-- `transform.ts`: Shared types and bidirectional conversion between file format and store format.
-- `ops.ts`: External mutation API for folder/session operations (used in session/).
-- `watcher.ts`: Filesystem watcher for detecting external changes (used in session/).
+- `persister.ts`: Creates persister with factory configuration. Should be thin—delegate logic to other files.
+
+### JSON File Pattern (calendar, events, templates, chat-shortcuts, values)
+
+Only needs `index.ts` + `persister.ts`. Configuration-only, no transform needed.
+
+### Markdown Dir Pattern (human, organization, prompts)
+
+- `changes.ts`: Path parsing for file watcher and change detection helpers.
+  - Export `parseXxxIdFromPath(path) → string | null`
+  - Export `getChangedXxxIds(changedTables) → Set<string> | undefined`
+- `transform.ts`: Bidirectional conversion between frontmatter/body and store format.
+  - Export `xxxToFrontmatter(storage) → { frontmatter, body }`
+  - Export `frontmatterToXxx(frontmatter, body) → storage`
+
+### Collector Pattern (session, chat)
+
+- `load.ts`: Reads from filesystem and parses data (filesystem → store).
+  - Export `loadAllXxxData(dataDir) → LoadedData`
+  - Export `loadSingleXxx(dataDir, id) → LoadedData`
+- `collect.ts`: Extracts store data and prepares write operations (store → filesystem).
+  - Export `collectXxxWriteOps(store, tables, dataDir, changedIds?) → CollectorResult`
+- `changes.ts`: Change detection and deletion tracking for incremental saves.
+  - Export `getChangedXxxIds(tables, changedTables) → Set<string> | undefined`
+  - Export `createXxxDeletionMarker(store) → DeletionMarker`
+  - Export `parseXxxIdFromPath(path) → string | null`
+- `transform.ts`: Type definitions for JSON file structures and loaded data types.
+- `ops.ts`: External mutation API (session-specific, for folder/session operations).
+
+## Change Detection Location
+
+- **JSON File**: Handled entirely in factory (trivial single-table check via `extractChangedTables`).
+- **Markdown Dir**: `changes.ts` with path parser; factory handles generic row-level change detection.
+- **Collector**: `changes.ts` with full change detection logic including relationship traversal (e.g., finding session from participant change).
 
 ## Startup Modes
 
 - `startAutoSave()`: Save-only (most persisters). Store changes trigger filesystem writes.
 - `startAutoLoad()`: Load-only (local). Filesystem changes trigger store updates.
-- `startAutoPersisting()`: Both save/load. In practice, it loads first, and auto-save based on `addDidFinishTransactionListener`, and do auto-load based on `addPersisterListener`.
+- `startAutoPersisting()`: Both save/load. Loads first, then auto-save on store changes and auto-load on filesystem changes.
 
 ## Notes
 

@@ -141,6 +141,7 @@ export interface MarkdownDirPersisterConfig<TStorage> {
   tableName: string;
   dirName: string;
   label: string;
+  entityParser: (path: string) => string | null;
   toFrontmatter: (entity: TStorage) => {
     frontmatter: Record<string, FsSyncJsonValue>;
     body: string;

@@ -83,23 +83,6 @@ function collectMarkdownWriteOps<TStorage>(
   return { result: { operations }, validIds };
 }
 
-export function createEntityParser(
-  dirName: string,
-): (path: string) => string | null {
-  return (path: string): string | null => {
-    const parts = path.split("/");
-    const dirIndex = parts.indexOf(dirName);
-    if (dirIndex === -1 || dirIndex + 1 >= parts.length) {
-      return null;
-    }
-    const filename = parts[dirIndex + 1];
-    if (!filename?.endsWith(".md")) {
-      return null;
-    }
-    return filename.slice(0, -3);
-  };
-}
-
 async function loadSingleEntity<TStorage>(
   store: MergeableStore<any>,
   config: MarkdownDirPersisterConfig<TStorage>,
@@ -145,12 +128,20 @@ export function createMarkdownDirPersister<
   store: MergeableStore<Schemas>,
   config: MarkdownDirPersisterConfig<TStorage>,
 ): ReturnType<typeof createCollectorPersister<Schemas>> {
-  const { tableName, dirName, label } = config;
+  const { tableName, dirName, label, entityParser } = config;
 
   return createCollectorPersister(store, {
     label,
     watchPaths: [`${dirName}/`],
-    entityParser: createEntityParser(dirName),
+    cleanup: [
+      {
+        type: "files",
+        subdir: dirName,
+        extension: "md",
+        validIdsKey: "validIds",
+      },
+    ],
+    entityParser,
     loadSingle: (entityId: string) => loadSingleEntity(store, config, entityId),
     collect: (_store, tables, dataDir, changedTables) => {
       const fullTableData =
@@ -233,15 +224,6 @@ export function createMarkdownDirPersister<
           Record<string, unknown> | undefined
         >,
       }) as unknown as Content<Schemas>;
-    },
-    postSave: async (_dataDir, result) => {
-      const { validIds } = result as CollectorResult & {
-        validIds: Set<string>;
-      };
-      await fsSyncCommands.cleanupOrphan(
-        { type: "files", subdir: dirName, extension: "md" },
-        Array.from(validIds),
-      );
     },
   });
 }

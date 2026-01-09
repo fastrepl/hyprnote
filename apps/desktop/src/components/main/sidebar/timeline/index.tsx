@@ -1,6 +1,7 @@
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { startOfDay } from "date-fns";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import { type ReactNode, useMemo } from "react";
+import { useMemo, useRef } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -18,8 +19,22 @@ import { useAnchor, useAutoScrollToAnchor } from "./anchor";
 import { TimelineItemComponent } from "./item";
 import { CurrentTimeIndicator, useCurrentTimeMs } from "./realtime";
 
+type VirtualRow =
+  | { type: "bucket-header"; label: string; bucketIndex: number }
+  | {
+      type: "item";
+      item: TimelineItem;
+      precision: TimelinePrecision;
+      bucketLabel: string;
+      bucketIndex: number;
+    }
+  | { type: "indicator"; bucketLabel: string; position: "before" | "within" };
+
 export function TimelineView() {
   const buckets = useTimelineData();
+  const currentTimeMs = useCurrentTimeMs();
+  const parentRef = useRef<HTMLDivElement>(null);
+
   const hasToday = useMemo(
     () => buckets.some((bucket) => bucket.label === "Today"),
     [buckets],
@@ -61,13 +76,16 @@ export function TimelineView() {
     deps: [todayBucketLength],
   });
 
-  const todayTimestamp = useMemo(() => startOfDay(new Date()).getTime(), []);
-  const indicatorIndex = useMemo(() => {
-    if (hasToday) {
-      return -1;
-    }
-    return buckets.findIndex(
-      (bucket) =>
+  const virtualRows = useMemo(() => {
+    const rows: VirtualRow[] = [];
+    const todayTimestamp = startOfDay(new Date()).getTime();
+    let indicatorPlaced = false;
+
+    buckets.forEach((bucket, bucketIndex) => {
+      const isToday = bucket.label === "Today";
+      const shouldRenderIndicatorBefore =
+        !hasToday &&
+        !indicatorPlaced &&
         bucket.items.length > 0 &&
         (() => {
           const firstItem = bucket.items[0];
@@ -80,70 +98,160 @@ export function TimelineView() {
           }
           const itemDate = new Date(timestamp);
           return itemDate.getTime() < todayTimestamp;
-        })(),
-    );
-  }, [buckets, hasToday, todayTimestamp]);
+        })();
+
+      if (shouldRenderIndicatorBefore) {
+        rows.push({
+          type: "indicator",
+          bucketLabel: bucket.label,
+          position: "before",
+        });
+        indicatorPlaced = true;
+      }
+
+      rows.push({ type: "bucket-header", label: bucket.label, bucketIndex });
+
+      if (isToday) {
+        const entries = bucket.items.map((item) => ({
+          item,
+          timestamp: getItemTimestamp(item),
+        }));
+
+        const indicatorIndex = calculateIndicatorIndex(entries, new Date());
+
+        if (entries.length === 0) {
+          rows.push({
+            type: "indicator",
+            bucketLabel: bucket.label,
+            position: "within",
+          });
+        } else {
+          entries.forEach((entry, idx) => {
+            if (idx === indicatorIndex) {
+              rows.push({
+                type: "indicator",
+                bucketLabel: bucket.label,
+                position: "within",
+              });
+            }
+            rows.push({
+              type: "item",
+              item: entry.item,
+              precision: bucket.precision,
+              bucketLabel: bucket.label,
+              bucketIndex,
+            });
+          });
+
+          if (indicatorIndex === entries.length) {
+            rows.push({
+              type: "indicator",
+              bucketLabel: bucket.label,
+              position: "within",
+            });
+          }
+        }
+      } else {
+        bucket.items.forEach((item) => {
+          rows.push({
+            type: "item",
+            item,
+            precision: bucket.precision,
+            bucketLabel: bucket.label,
+            bucketIndex,
+          });
+        });
+      }
+    });
+
+    if (!hasToday && !indicatorPlaced) {
+      rows.push({
+        type: "indicator",
+        bucketLabel: "end",
+        position: "before",
+      });
+    }
+
+    return rows;
+  }, [buckets, hasToday, currentTimeMs]);
+
+  const virtualizer = useVirtualizer({
+    count: virtualRows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: (index) => {
+      const row = virtualRows[index];
+      if (row.type === "bucket-header") return 40;
+      if (row.type === "indicator") return 20;
+      return 48;
+    },
+    overscan: 5,
+  });
 
   return (
     <div className="relative h-full">
       <div
-        ref={containerRef}
+        ref={(node) => {
+          parentRef.current = node;
+          containerRef.current = node;
+        }}
         className={cn([
           "flex flex-col h-full overflow-y-auto scrollbar-hide",
           "bg-neutral-50 rounded-xl",
         ])}
       >
-        {buckets.map((bucket, index) => {
-          const isToday = bucket.label === "Today";
-          const shouldRenderIndicatorBefore =
-            !hasToday && indicatorIndex === index;
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: "100%",
+            position: "relative",
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualItem) => {
+            const row = virtualRows[virtualItem.index];
 
-          return (
-            <div key={bucket.label}>
-              {shouldRenderIndicatorBefore && (
-                <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
-              )}
+            return (
               <div
-                className={cn([
-                  "sticky top-0 z-10",
-                  "bg-neutral-50 pl-3 pr-1 py-1",
-                ])}
+                key={virtualItem.key}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  transform: `translateY(${virtualItem.start}px)`,
+                }}
               >
-                <div className="text-base font-bold text-neutral-900">
-                  {bucket.label}
-                </div>
+                {row.type === "bucket-header" && (
+                  <div
+                    className={cn([
+                      "sticky top-0 z-10",
+                      "bg-neutral-50 pl-3 pr-1 py-1",
+                    ])}
+                  >
+                    <div className="text-base font-bold text-neutral-900">
+                      {row.label}
+                    </div>
+                  </div>
+                )}
+
+                {row.type === "indicator" && (
+                  <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
+                )}
+
+                {row.type === "item" && (
+                  <TimelineItemComponent
+                    item={row.item}
+                    precision={row.precision}
+                    selected={
+                      row.item.type === "session"
+                        ? row.item.id === selectedSessionId
+                        : row.item.id === selectedEventId
+                    }
+                  />
+                )}
               </div>
-              {isToday ? (
-                <TodayBucket
-                  items={bucket.items}
-                  precision={bucket.precision}
-                  registerIndicator={setCurrentTimeIndicatorRef}
-                  selectedSessionId={selectedSessionId}
-                  selectedEventId={selectedEventId}
-                />
-              ) : (
-                bucket.items.map((item) => {
-                  const selected =
-                    item.type === "session"
-                      ? item.id === selectedSessionId
-                      : item.id === selectedEventId;
-                  return (
-                    <TimelineItemComponent
-                      key={`${item.type}-${item.id}`}
-                      item={item}
-                      precision={bucket.precision}
-                      selected={selected}
-                    />
-                  );
-                })
-              )}
-            </div>
-          );
-        })}
-        {!hasToday &&
-          (indicatorIndex === -1 || indicatorIndex === buckets.length) && (
-            <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
-          )}
+            );
+          })}
+        </div>
       </div>
 
       {!isTodayVisible && (
@@ -170,98 +278,6 @@ export function TimelineView() {
       )}
     </div>
   );
-}
-
-function TodayBucket({
-  items,
-  precision,
-  registerIndicator,
-  selectedSessionId,
-  selectedEventId,
-}: {
-  items: TimelineItem[];
-  precision: TimelinePrecision;
-  registerIndicator: (node: HTMLDivElement | null) => void;
-  selectedSessionId: string | undefined;
-  selectedEventId: string | undefined;
-}) {
-  const currentTimeMs = useCurrentTimeMs();
-
-  const entries = useMemo(
-    () =>
-      items.map((timelineItem) => ({
-        item: timelineItem,
-        timestamp: getItemTimestamp(timelineItem),
-      })),
-    [items],
-  );
-
-  const indicatorIndex = useMemo(
-    // currentTimeMs in deps triggers updates as time passes,
-    // but we use fresh Date() so indicator positions correctly when entries change immediately (new note).
-    () => calculateIndicatorIndex(entries, new Date()),
-    [entries, currentTimeMs],
-  );
-
-  const renderedEntries = useMemo(() => {
-    if (entries.length === 0) {
-      return (
-        <>
-          <CurrentTimeIndicator ref={registerIndicator} />
-          <div className="px-3 py-4 text-sm text-neutral-400 text-center">
-            No items today
-          </div>
-        </>
-      );
-    }
-
-    const nodes: ReactNode[] = [];
-
-    entries.forEach((entry, index) => {
-      if (index === indicatorIndex) {
-        nodes.push(
-          <CurrentTimeIndicator
-            ref={registerIndicator}
-            key="current-time-indicator"
-          />,
-        );
-      }
-
-      const selected =
-        entry.item.type === "session"
-          ? entry.item.id === selectedSessionId
-          : entry.item.id === selectedEventId;
-
-      nodes.push(
-        <TimelineItemComponent
-          key={`${entry.item.type}-${entry.item.id}`}
-          item={entry.item}
-          precision={precision}
-          selected={selected}
-        />,
-      );
-    });
-
-    if (indicatorIndex === entries.length) {
-      nodes.push(
-        <CurrentTimeIndicator
-          ref={registerIndicator}
-          key="current-time-indicator-end"
-        />,
-      );
-    }
-
-    return <>{nodes}</>;
-  }, [
-    entries,
-    indicatorIndex,
-    precision,
-    registerIndicator,
-    selectedSessionId,
-    selectedEventId,
-  ]);
-
-  return renderedEntries;
 }
 
 function useTimelineData(): TimelineBucket[] {

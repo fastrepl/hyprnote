@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { Schemas } from "@hypr/store";
-
 import {
   createTestStore,
   MOCK_DATA_DIR,
@@ -22,7 +20,7 @@ describe("createPromptPersister", () => {
   });
 
   test("returns a persister object with expected methods", () => {
-    const persister = createPromptPersister<Schemas>(store);
+    const persister = createPromptPersister(store);
 
     expect(persister).toBeDefined();
     expect(persister.save).toBeTypeOf("function");
@@ -48,7 +46,7 @@ describe("createPromptPersister", () => {
         },
       });
 
-      const persister = createPromptPersister<Schemas>(store);
+      const persister = createPromptPersister(store);
       await persister.load();
 
       expect(fsSyncCommands.readDocumentBatch).toHaveBeenCalledWith(
@@ -72,7 +70,7 @@ describe("createPromptPersister", () => {
         error: "No such file or directory",
       });
 
-      const persister = createPromptPersister<Schemas>(store);
+      const persister = createPromptPersister(store);
       await persister.load();
 
       expect(store.getTable("prompts")).toEqual({});
@@ -91,7 +89,7 @@ describe("createPromptPersister", () => {
         content: "Generate a summary of the meeting",
       });
 
-      const persister = createPromptPersister<Schemas>(store);
+      const persister = createPromptPersister(store);
       await persister.save();
 
       expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/prompts`, {
@@ -116,7 +114,7 @@ describe("createPromptPersister", () => {
     test("does not write when no prompts exist", async () => {
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      const persister = createPromptPersister<Schemas>(store);
+      const persister = createPromptPersister(store);
       await persister.save();
 
       expect(fsSyncCommands.writeDocumentBatch).not.toHaveBeenCalled();
@@ -139,7 +137,7 @@ describe("createPromptPersister", () => {
         content: "Action items prompt",
       });
 
-      const persister = createPromptPersister<Schemas>(store);
+      const persister = createPromptPersister(store);
       await persister.save();
 
       expect(fsSyncCommands.writeDocumentBatch).toHaveBeenCalledTimes(1);
@@ -177,7 +175,7 @@ describe("createPromptPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockJsonData));
 
-      const persister = createPromptPersister<Schemas>(store);
+      const persister = createPromptPersister(store);
       await persister.load();
 
       expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/prompts`, {

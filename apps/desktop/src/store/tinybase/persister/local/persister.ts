@@ -2,15 +2,15 @@ import {
   createCustomSqlitePersister,
   DpcJson,
 } from "tinybase/persisters/with-schemas";
-import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import { commands as db2Commands } from "@hypr/plugin-db2";
 
+import type { Store } from "../../store/main";
 import { MergeableStoreOnly } from "../../store/shared";
 
 // https://tinybase.org/api/persisters/functions/creation/createcustomsqlitepersister
-export function createLocalPersister<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
+export function createLocalPersister(
+  store: Store,
   config: Omit<DpcJson, "mode">,
 ) {
   return createCustomSqlitePersister(

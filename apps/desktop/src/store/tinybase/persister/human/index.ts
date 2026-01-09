@@ -11,7 +11,7 @@ export function useHumanPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createHumanPersister<Schemas>(store as Store);
+      const persister = createHumanPersister(store as Store);
       await persister.startAutoSave();
       return persister;
     },

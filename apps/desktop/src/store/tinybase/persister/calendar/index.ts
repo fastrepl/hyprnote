@@ -11,7 +11,7 @@ export function useCalendarPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createCalendarPersister<Schemas>(store as Store);
+      const persister = createCalendarPersister(store as Store);
       await persister.startAutoSave();
       return persister;
     },

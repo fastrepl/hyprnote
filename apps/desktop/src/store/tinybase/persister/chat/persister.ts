@@ -1,9 +1,8 @@
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { Content } from "tinybase/with-schemas";
 
+import type { Schemas } from "@hypr/store";
+
+import type { Store } from "../../store/main";
 import { createCollectorPersister } from "../factories";
 import { type ChangedTables, getDataDir, type TablesContent } from "../shared";
 import { collectChatWriteOps } from "./collect";
@@ -39,9 +38,7 @@ function getChangedChatGroupIds(
   return changedGroupIds;
 }
 
-export function createChatPersister<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
-) {
+export function createChatPersister(store: Store) {
   return createCollectorPersister(store, {
     label: "ChatPersister",
     collect: (_store, tables, dataDir, changedTables) => {
@@ -60,7 +57,7 @@ export function createChatPersister<Schemas extends OptionalSchemas>(
 
       return collectChatWriteOps(tables, dataDir, changedGroupIds);
     },
-    load: async (): Promise<Content<Schemas> | undefined> => {
+    load: async () => {
       try {
         const dataDir = await getDataDir();
         const data = await loadAllChatData(dataDir);
@@ -76,7 +73,7 @@ export function createChatPersister<Schemas extends OptionalSchemas>(
             chat_messages: data.chat_messages,
           },
           {},
-        ] as unknown as Content<Schemas>;
+        ] as Content<Schemas>;
       } catch (error) {
         console.error("[ChatPersister] load error:", error);
         return undefined;

@@ -1,13 +1,11 @@
-import {
-  commands as notifyCommands,
-  events as notifyEvents,
-} from "@hypr/plugin-notify";
+import { commands as notifyCommands } from "@hypr/plugin-notify";
+
+import { createNotifyListener } from "../shared/fs";
 
 interface Loadable {
   load(): Promise<unknown>;
 }
 
-const DEBOUNCE_MS = 500;
 const RECONCILE_INTERVAL_MS = 30000;
 
 let isInternalChange = false;
@@ -16,58 +14,35 @@ export function markInternalChange() {
   isInternalChange = true;
 }
 
+const sessionNotifyListener = createNotifyListener(
+  (path) => path.startsWith("sessions/"),
+  RECONCILE_INTERVAL_MS,
+);
+
 export async function startSessionWatcher(
   persister: Loadable,
 ): Promise<() => void> {
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
   const result = await notifyCommands.start();
   if (result.status === "error") {
     console.error("[SessionWatcher] Failed to start:", result.error);
     return () => {};
   }
 
-  const reloadDebounced = () => {
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
+  const handle = sessionNotifyListener.addListener(async () => {
+    if (isInternalChange) {
+      isInternalChange = false;
+      return;
     }
 
-    debounceTimer = setTimeout(async () => {
-      if (isInternalChange) {
-        isInternalChange = false;
-        return;
-      }
-
-      console.log("[SessionWatcher] External change detected, reloading...");
-      try {
-        await persister.load();
-      } catch (error) {
-        console.error("[SessionWatcher] Failed to reload:", error);
-      }
-    }, DEBOUNCE_MS);
-  };
-
-  const unlisten = await notifyEvents.fileChanged.listen((event) => {
-    const path = event.payload.path;
-    if (path.startsWith("sessions/")) {
-      reloadDebounced();
-    }
-  });
-
-  const reconcileInterval = setInterval(async () => {
     try {
       await persister.load();
     } catch (error) {
-      console.error("[SessionWatcher] Reconciliation failed:", error);
+      console.error("[SessionWatcher] Failed to reload:", error);
     }
-  }, RECONCILE_INTERVAL_MS);
+  });
 
   return () => {
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-    clearInterval(reconcileInterval);
-    unlisten();
+    sessionNotifyListener.delListener(handle);
     void notifyCommands.stop();
   };
 }

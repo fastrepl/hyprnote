@@ -1,7 +1,7 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
 
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { type Schemas } from "@hypr/store";
+import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { initSessionOps } from "./ops";
@@ -14,7 +14,7 @@ export function useSessionPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createSessionPersister<Schemas>(store as Store);
+      const persister = createSessionPersister(store as Store);
       await persister.startAutoPersisting();
 
       initSessionOps({

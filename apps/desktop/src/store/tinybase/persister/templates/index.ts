@@ -11,7 +11,7 @@ export function useTemplatePersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createTemplatePersister<Schemas>(store as Store);
+      const persister = createTemplatePersister(store as Store);
       await persister.startAutoSave();
       return persister;
     },

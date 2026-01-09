@@ -11,7 +11,7 @@ export function useChatShortcutPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createChatShortcutPersister<Schemas>(store as Store);
+      const persister = createChatShortcutPersister(store as Store);
       await persister.startAutoSave();
       return persister;
     },

@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { Schemas } from "@hypr/store";
-
 import {
   createTestStore,
   MOCK_DATA_DIR,
@@ -22,7 +20,7 @@ describe("createOrganizationPersister", () => {
   });
 
   test("returns a persister object with expected methods", () => {
-    const persister = createOrganizationPersister<Schemas>(store);
+    const persister = createOrganizationPersister(store);
 
     expect(persister).toBeDefined();
     expect(persister.save).toBeTypeOf("function");
@@ -48,7 +46,7 @@ describe("createOrganizationPersister", () => {
         },
       });
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createOrganizationPersister(store);
       await persister.load();
 
       expect(fsSyncCommands.readDocumentBatch).toHaveBeenCalledWith(
@@ -71,7 +69,7 @@ describe("createOrganizationPersister", () => {
         error: "No such file or directory",
       });
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createOrganizationPersister(store);
       await persister.load();
 
       expect(store.getTable("organizations")).toEqual({});
@@ -94,7 +92,7 @@ describe("createOrganizationPersister", () => {
         },
       });
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createOrganizationPersister(store);
       await persister.load();
 
       const organizations = store.getTable("organizations");
@@ -114,7 +112,7 @@ describe("createOrganizationPersister", () => {
         name: "Acme Corp",
       });
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createOrganizationPersister(store);
       await persister.save();
 
       expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/organizations`, {
@@ -139,7 +137,7 @@ describe("createOrganizationPersister", () => {
     test("does not write when no organizations exist", async () => {
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createOrganizationPersister(store);
       await persister.save();
 
       expect(fsSyncCommands.writeDocumentBatch).not.toHaveBeenCalled();
@@ -160,7 +158,7 @@ describe("createOrganizationPersister", () => {
         name: "Beta Inc",
       });
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createOrganizationPersister(store);
       await persister.save();
 
       expect(fsSyncCommands.writeDocumentBatch).toHaveBeenCalledTimes(1);
@@ -201,7 +199,7 @@ describe("createOrganizationPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockJsonData));
 
-      const persister = createOrganizationPersister<Schemas>(store);
+      const persister = createOrganizationPersister(store);
       await persister.load();
 
       expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/organizations`, {

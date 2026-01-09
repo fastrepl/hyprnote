@@ -1,18 +1,14 @@
 import { sep } from "@tauri-apps/api/path";
-import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import type { ParsedDocument } from "@hypr/plugin-fs-sync";
 import type {
   EnhancedNoteStorage,
-  MappingSessionParticipantStorage,
-  MappingTagSession,
-  SessionStorage,
   SpeakerHintStorage,
-  Tag,
   WordStorage,
 } from "@hypr/store";
 import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 
+import type { Store } from "../../store/main";
 import {
   type CollectorResult,
   getSessionDir,
@@ -34,22 +30,15 @@ type SessionMetaWithFolder = {
   folderPath: string;
 };
 
-export function collectSessionMeta<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
+export function collectSessionMeta(
+  store: Store,
 ): Map<string, SessionMetaWithFolder> {
   const result = new Map<string, SessionMetaWithFolder>();
 
-  const sessions = (store.getTable("sessions") ?? {}) as Record<
-    string,
-    SessionStorage
-  >;
-  const participants = (store.getTable("mapping_session_participant") ??
-    {}) as Record<string, MappingSessionParticipantStorage>;
-  const tags = (store.getTable("tags") ?? {}) as Record<string, Tag>;
-  const tagMappings = (store.getTable("mapping_tag_session") ?? {}) as Record<
-    string,
-    MappingTagSession
-  >;
+  const sessions = store.getTable("sessions") ?? {};
+  const participants = store.getTable("mapping_session_participant") ?? {};
+  const tags = store.getTable("tags") ?? {};
+  const tagMappings = store.getTable("mapping_tag_session") ?? {};
 
   const participantsBySession = new Map<string, ParticipantData[]>();
   for (const [id, participant] of Object.entries(participants)) {
@@ -57,7 +46,14 @@ export function collectSessionMeta<Schemas extends OptionalSchemas>(
     if (!sessionId) continue;
 
     const list = participantsBySession.get(sessionId) ?? [];
-    list.push({ ...participant, id });
+    list.push({
+      id,
+      user_id: participant.user_id,
+      created_at: participant.created_at,
+      session_id: participant.session_id,
+      human_id: participant.human_id,
+      source: participant.source,
+    });
     participantsBySession.set(sessionId, list);
   }
 
@@ -98,8 +94,8 @@ export type SessionCollectorResult = CollectorResult & {
   validSessionIds: Set<string>;
 };
 
-export function collectSessionWriteOps<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
+export function collectSessionWriteOps(
+  store: Store,
   _tables: TablesContent,
   dataDir: string,
   changedSessionIds?: Set<string>,
@@ -232,17 +228,16 @@ function tryParseAndConvertToMarkdown(content: string): string | undefined {
   return json2md(parsed);
 }
 
-function getEnhancedNoteFilename<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
+function getEnhancedNoteFilename(
+  store: Store,
   enhancedNote: EnhancedNoteStorage & { id: string },
 ): string {
   if (enhancedNote.template_id) {
-    // @ts-ignore
     const templateTitle = store.getCell(
       "templates",
       enhancedNote.template_id,
       "title",
-    ) as string | undefined;
+    );
     const safeName = sanitizeFilename(
       templateTitle || enhancedNote.template_id,
     );
@@ -251,8 +246,8 @@ function getEnhancedNoteFilename<Schemas extends OptionalSchemas>(
   return "_summary.md";
 }
 
-export function collectNoteWriteOps<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
+export function collectNoteWriteOps(
+  store: Store,
   tables: TablesContent,
   dataDir: string,
   changedSessionIds?: Set<string>,

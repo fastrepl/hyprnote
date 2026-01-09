@@ -11,7 +11,7 @@ export function useValuesPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createValuesPersister<Schemas>(store as Store);
+      const persister = createValuesPersister(store as Store);
       await persister.load();
       await persister.startAutoSave();
       return persister;

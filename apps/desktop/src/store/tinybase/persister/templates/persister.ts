@@ -1,10 +1,7 @@
-import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
-
+import type { Store } from "../../store/main";
 import { createJsonFilePersister } from "../factories";
 
-export function createTemplatePersister<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
-) {
+export function createTemplatePersister(store: Store) {
   return createJsonFilePersister(store, {
     tableName: "templates",
     filename: "templates.json",

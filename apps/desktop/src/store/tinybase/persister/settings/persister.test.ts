@@ -1,6 +1,7 @@
 import { createMergeableStore } from "tinybase/with-schemas";
 import { describe, expect, test } from "vitest";
 
+import { SCHEMA } from "../../store/settings";
 import { settingsToContent, storeToSettings } from "./transform";
 
 describe("settingsPersister roundtrip", () => {
@@ -47,7 +48,9 @@ describe("settingsPersister roundtrip", () => {
     };
 
     const [tables, values] = settingsToContent(original);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store);
@@ -56,7 +59,9 @@ describe("settingsPersister roundtrip", () => {
   });
 
   test("store -> settings -> store preserves all data", () => {
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
 
     const originalTables = {
       ai_providers: {
@@ -109,7 +114,9 @@ describe("settingsPersister roundtrip", () => {
     const original = {};
 
     const [tables, values] = settingsToContent(original);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store);
@@ -137,7 +144,9 @@ describe("settingsPersister roundtrip", () => {
     };
 
     const [tables, values] = settingsToContent(original);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store) as typeof original & {
@@ -159,7 +168,9 @@ describe("settingsPersister roundtrip", () => {
     };
 
     const [tables, values] = settingsToContent(original);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store);
@@ -175,7 +186,9 @@ describe("settingsPersister roundtrip", () => {
     };
 
     const [tables, values] = settingsToContent(original);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store);
@@ -192,7 +205,9 @@ describe("settingsPersister roundtrip", () => {
     };
 
     const [tables, values] = settingsToContent(original);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store);
@@ -211,7 +226,9 @@ describe("settingsPersister roundtrip", () => {
     };
 
     const [tables, values] = settingsToContent(doubleEncoded);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store);
@@ -235,7 +252,9 @@ describe("settingsPersister roundtrip", () => {
     };
 
     const [tables, values] = settingsToContent(oldFormat);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store);
@@ -258,7 +277,9 @@ describe("settingsPersister roundtrip", () => {
     };
 
     const [tables, values] = settingsToContent(oldSettings);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store);
@@ -281,7 +302,9 @@ describe("settingsPersister roundtrip", () => {
     };
 
     const [tables, values] = settingsToContent(oldSettings);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store);
@@ -305,7 +328,9 @@ describe("settingsPersister roundtrip", () => {
     };
 
     const [tables, values] = settingsToContent(mixedSettings);
-    const store = createMergeableStore();
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
     store.setTables(tables);
     store.setValues(values);
     const result = storeToSettings(store);

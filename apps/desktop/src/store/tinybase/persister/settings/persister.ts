@@ -1,12 +1,9 @@
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { Content } from "tinybase/with-schemas";
 
 import { commands } from "@hypr/plugin-settings";
 
+import type { Schemas, Store } from "../../store/settings";
 import { StoreOrMergeableStore } from "../../store/shared";
 import { createNotifyListener } from "../shared/fs";
 import { settingsToContent, storeToSettings } from "./transform";
@@ -22,18 +19,16 @@ export const createSettingsPersister = createPersisterBuilder({
   fromStore: storeToSettings,
 });
 
-interface TransformUtils<T, Schemas extends OptionalSchemas> {
+interface TransformUtils<T> {
   toStore: (data: T) => Content<Schemas>;
-  fromStore: (store: MergeableStore<Schemas>) => T;
+  fromStore: (store: Store) => T;
 }
 
-function createPersisterBuilder<T, Schemas extends OptionalSchemas>(
-  transform: TransformUtils<T, Schemas>,
-) {
-  return (store: MergeableStore<Schemas>) =>
+function createPersisterBuilder<T>(transform: TransformUtils<T>) {
+  return (store: Store) =>
     createCustomPersister(
       store,
-      async (): Promise<Content<Schemas> | undefined> => {
+      async () => {
         const result = await commands.load();
         if (result.status === "error") {
           console.error("[SettingsPersister] load error:", result.error);

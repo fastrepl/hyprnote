@@ -9,7 +9,7 @@ export function useSettingsPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createSettingsPersister<Schemas>(store as Store);
+      const persister = createSettingsPersister(store as Store);
 
       await persister.startAutoPersisting();
       return persister;

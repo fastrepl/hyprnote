@@ -1,11 +1,9 @@
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { Content } from "tinybase/with-schemas";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import type { Schemas } from "@hypr/store";
 
+import type { Store } from "../../store/main";
 import { createCollectorPersister } from "../factories";
 import {
   asTablesChanges,
@@ -103,9 +101,7 @@ function getChangedSessionIds(
   return changedSessionIds;
 }
 
-export function createSessionPersister<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
-) {
+export function createSessionPersister(store: Store) {
   return createCollectorPersister(store, {
     label: "SessionPersister",
     collect: (store, tables, dataDir, changedTables) => {
@@ -160,7 +156,7 @@ export function createSessionPersister<Schemas extends OptionalSchemas>(
           : sessionResult.validSessionIds,
       };
     },
-    load: async (): Promise<Content<Schemas> | undefined> => {
+    load: async () => {
       try {
         const dataDir = await getDataDir();
         const data = await loadAllSessionData(dataDir);

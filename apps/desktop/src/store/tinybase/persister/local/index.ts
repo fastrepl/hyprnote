@@ -119,7 +119,7 @@ export function useLocalPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createLocalPersister<Schemas>(store as Store, {
+      const persister = createLocalPersister(store as Store, {
         storeTableName: STORE_ID,
         storeIdColumnName: "id",
       });

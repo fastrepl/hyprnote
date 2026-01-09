@@ -11,7 +11,7 @@ export function usePromptPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createPromptPersister<Schemas>(store as Store);
+      const persister = createPromptPersister(store as Store);
       await persister.startAutoSave();
       return persister;
     },

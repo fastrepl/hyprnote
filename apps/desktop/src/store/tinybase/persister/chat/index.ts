@@ -11,7 +11,7 @@ export function useChatPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createChatPersister<Schemas>(store as Store);
+      const persister = createChatPersister(store as Store);
       await persister.startAutoSave();
       return persister;
     },

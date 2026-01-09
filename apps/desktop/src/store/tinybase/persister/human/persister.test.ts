@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { Schemas } from "@hypr/store";
-
 import {
   createTestStore,
   MOCK_DATA_DIR,
@@ -22,7 +20,7 @@ describe("createHumanPersister", () => {
   });
 
   test("returns a persister object with expected methods", () => {
-    const persister = createHumanPersister<Schemas>(store);
+    const persister = createHumanPersister(store);
 
     expect(persister).toBeDefined();
     expect(persister.save).toBeTypeOf("function");
@@ -52,7 +50,7 @@ describe("createHumanPersister", () => {
         },
       });
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister(store);
       await persister.load();
 
       expect(fsSyncCommands.readDocumentBatch).toHaveBeenCalledWith(
@@ -80,7 +78,7 @@ describe("createHumanPersister", () => {
         error: "No such file or directory",
       });
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister(store);
       await persister.load();
 
       expect(store.getTable("humans")).toEqual({});
@@ -107,7 +105,7 @@ describe("createHumanPersister", () => {
         },
       });
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister(store);
       await persister.load();
 
       const humans = store.getTable("humans");
@@ -132,7 +130,7 @@ describe("createHumanPersister", () => {
         memo: "Some notes",
       });
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister(store);
       await persister.save();
 
       expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/humans`, {
@@ -161,7 +159,7 @@ describe("createHumanPersister", () => {
     test("does not write when no humans exist", async () => {
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister(store);
       await persister.save();
 
       expect(fsSyncCommands.writeDocumentBatch).not.toHaveBeenCalled();
@@ -192,7 +190,7 @@ describe("createHumanPersister", () => {
         memo: "",
       });
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister(store);
       await persister.save();
 
       expect(fsSyncCommands.writeDocumentBatch).toHaveBeenCalledTimes(1);
@@ -234,7 +232,7 @@ describe("createHumanPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockJsonData));
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister(store);
       await persister.load();
 
       expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/humans`, {
@@ -283,7 +281,7 @@ describe("createHumanPersister", () => {
         },
       });
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister(store);
       await persister.load();
 
       const humans = store.getTable("humans");
@@ -313,7 +311,7 @@ describe("createHumanPersister", () => {
         },
       });
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister(store);
       await persister.load();
 
       const humans = store.getTable("humans");
@@ -334,7 +332,7 @@ describe("createHumanPersister", () => {
         memo: "",
       });
 
-      const persister = createHumanPersister<Schemas>(store);
+      const persister = createHumanPersister(store);
       await persister.save();
 
       const batchItems = vi.mocked(fsSyncCommands.writeDocumentBatch).mock

@@ -1,13 +1,11 @@
-import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
-
 import type { HumanStorage } from "@hypr/store";
+import type { Schemas } from "@hypr/store";
 
+import type { Store } from "../../store/main";
 import { createMarkdownDirPersister } from "../factories";
 import { frontmatterToHuman, humanToFrontmatter } from "./transform";
 
-export function createHumanPersister<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
-) {
+export function createHumanPersister(store: Store) {
   return createMarkdownDirPersister<Schemas, HumanStorage>(store, {
     tableName: "humans",
     dirName: "humans",

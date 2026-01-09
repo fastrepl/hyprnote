@@ -11,7 +11,7 @@ export function useOrganizationPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createOrganizationPersister<Schemas>(store as Store);
+      const persister = createOrganizationPersister(store as Store);
       await persister.startAutoSave();
       return persister;
     },

@@ -84,7 +84,7 @@ type DeriveValuesSchema<T extends Record<string, ValueMapping>> = {
   [K in keyof T]: { type: T[K]["type"] };
 };
 
-const SCHEMA = {
+export const SCHEMA = {
   value: Object.fromEntries(
     Object.entries(SETTINGS_MAPPING.values).map(([key, config]) => [
       key,

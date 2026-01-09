@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { Schemas } from "@hypr/store";
-
 import {
   createTestStore,
   MOCK_DATA_DIR,
@@ -20,7 +18,7 @@ describe("createCalendarPersister", () => {
   });
 
   test("returns a persister object with expected methods", () => {
-    const persister = createCalendarPersister<Schemas>(store);
+    const persister = createCalendarPersister(store);
 
     expect(persister).toBeDefined();
     expect(persister.save).toBeTypeOf("function");
@@ -46,7 +44,7 @@ describe("createCalendarPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
 
-      const persister = createCalendarPersister<Schemas>(store);
+      const persister = createCalendarPersister(store);
       await persister.load();
 
       expect(readTextFile).toHaveBeenCalledWith(
@@ -62,7 +60,7 @@ describe("createCalendarPersister", () => {
         new Error("No such file or directory"),
       );
 
-      const persister = createCalendarPersister<Schemas>(store);
+      const persister = createCalendarPersister(store);
       await persister.load();
 
       expect(store.getTable("calendars")).toEqual({});
@@ -84,7 +82,7 @@ describe("createCalendarPersister", () => {
         color: "#FF0000",
       });
 
-      const persister = createCalendarPersister<Schemas>(store);
+      const persister = createCalendarPersister(store);
       await persister.save();
 
       expect(writeTextFile).toHaveBeenCalledWith(
@@ -112,7 +110,7 @@ describe("createCalendarPersister", () => {
     test("writes empty object when no calendars exist", async () => {
       const { writeTextFile } = await import("@tauri-apps/plugin-fs");
 
-      const persister = createCalendarPersister<Schemas>(store);
+      const persister = createCalendarPersister(store);
       await persister.save();
 
       expect(writeTextFile).toHaveBeenCalledWith(
@@ -146,7 +144,7 @@ describe("createCalendarPersister", () => {
         color: "#00FF00",
       });
 
-      const persister = createCalendarPersister<Schemas>(store);
+      const persister = createCalendarPersister(store);
       await persister.save();
 
       const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];

@@ -1,19 +1,16 @@
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { Content } from "tinybase/with-schemas";
+
+import type { Schemas } from "@hypr/store";
 
 import { commands } from "../../../../types/tauri.gen";
+import type { Store } from "../../store/main";
 import { StoreOrMergeableStore } from "../../store/shared";
 
-export function createValuesPersister<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
-) {
+export function createValuesPersister(store: Store) {
   return createCustomPersister(
     store,
-    async (): Promise<Content<Schemas> | undefined> => {
+    async () => {
       const result = await commands.getTinybaseValues();
       if (result.status === "error") {
         console.error("[ValuesPersister] load error:", result.error);
@@ -26,7 +23,7 @@ export function createValuesPersister<Schemas extends OptionalSchemas>(
 
       try {
         const values = JSON.parse(result.data) as Record<string, unknown>;
-        return [{}, values] as unknown as Content<Schemas>;
+        return [{}, values] as Content<Schemas>;
       } catch (e) {
         console.error("[ValuesPersister] parse error:", e);
         return undefined;

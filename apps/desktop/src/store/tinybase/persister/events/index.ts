@@ -11,7 +11,7 @@ export function useEventsPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createEventPersister<Schemas>(store as Store);
+      const persister = createEventPersister(store as Store);
       await persister.startAutoSave();
       return persister;
     },

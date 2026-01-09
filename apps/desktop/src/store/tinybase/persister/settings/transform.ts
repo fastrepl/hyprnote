@@ -1,9 +1,6 @@
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { Content } from "tinybase/with-schemas";
 
+import type { Schemas, Store } from "../../store/settings";
 import { SETTINGS_MAPPING } from "../../store/settings";
 
 type ProviderData = { base_url: string; api_key: string };
@@ -155,25 +152,20 @@ function providerRowsToSettings(rows: Record<string, ProviderRow>): {
   return result;
 }
 
-export function settingsToContent<Schemas extends OptionalSchemas>(
-  data: unknown,
-): Content<Schemas> {
+export function settingsToContent(data: unknown): Content<Schemas> {
   const aiProviders = settingsToProviderRows(data);
   const values = settingsToStoreValues(data);
-  return [{ ai_providers: aiProviders }, values] as unknown as Content<Schemas>;
+  return [{ ai_providers: aiProviders }, values] as Content<Schemas>;
 }
 
-export function storeToSettings<Schemas extends OptionalSchemas>(
-  store: MergeableStore<Schemas>,
-): Record<string, unknown> {
-  const rows = (store.getTable("ai_providers") ?? {}) as unknown as Record<
-    string,
-    ProviderRow
-  >;
-  const providers = providerRowsToSettings(rows);
+export function storeToSettings(store: Store): Record<string, unknown> {
+  const rows = store.getTable("ai_providers") ?? {};
+  const providers = providerRowsToSettings(rows as Record<string, ProviderRow>);
 
-  const storeValues = store.getValues() as unknown as Record<string, unknown>;
-  const settings = storeValuesToSettings(storeValues);
+  const storeValues = store.getValues();
+  const settings = storeValuesToSettings(
+    storeValues as Record<string, unknown>,
+  );
 
   (settings as Record<string, Record<string, unknown>>).ai = {
     ...(settings.ai as Record<string, unknown>),

@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { Schemas } from "@hypr/store";
-
 import {
   createTestStore,
   MOCK_DATA_DIR,
@@ -28,7 +26,7 @@ describe("createEventPersister", () => {
   });
 
   test("returns a persister object with expected methods", () => {
-    const persister = createEventPersister<Schemas>(store);
+    const persister = createEventPersister(store);
 
     expect(persister).toBeDefined();
     expect(persister.save).toBeTypeOf("function");
@@ -59,7 +57,7 @@ describe("createEventPersister", () => {
       };
       vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockData));
 
-      const persister = createEventPersister<Schemas>(store);
+      const persister = createEventPersister(store);
       await persister.load();
 
       expect(readTextFile).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/events.json`);
@@ -73,7 +71,7 @@ describe("createEventPersister", () => {
         new Error("No such file or directory"),
       );
 
-      const persister = createEventPersister<Schemas>(store);
+      const persister = createEventPersister(store);
       await persister.load();
 
       expect(store.getTable("events")).toEqual({});
@@ -100,7 +98,7 @@ describe("createEventPersister", () => {
         recurrence_series_id: "",
       });
 
-      const persister = createEventPersister<Schemas>(store);
+      const persister = createEventPersister(store);
       await persister.save();
 
       expect(writeTextFile).toHaveBeenCalledWith(
@@ -117,7 +115,7 @@ describe("createEventPersister", () => {
     test("writes empty object when no events exist", async () => {
       const { writeTextFile } = await import("@tauri-apps/plugin-fs");
 
-      const persister = createEventPersister<Schemas>(store);
+      const persister = createEventPersister(store);
       await persister.save();
 
       expect(writeTextFile).toHaveBeenCalledWith(
@@ -161,7 +159,7 @@ describe("createEventPersister", () => {
         recurrence_series_id: "",
       });
 
-      const persister = createEventPersister<Schemas>(store);
+      const persister = createEventPersister(store);
       await persister.save();
 
       const writtenContent = vi.mocked(writeTextFile).mock.calls[0][1];

@@ -27,13 +27,12 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
 
       const foldersData: Record<
         string,
-        | {
-            user_id: string;
-            created_at: string;
-            name: string;
-            parent_folder_id: string;
-          }
-        | null
+        {
+          user_id: string;
+          created_at: string;
+          name: string;
+          parent_folder_id: string;
+        }
       > = {};
 
       for (const [folderId, folder] of Object.entries(folders)) {
@@ -46,17 +45,19 @@ export function createFolderPersister<Schemas extends OptionalSchemas>(
         };
       }
 
-      // Mark folders that exist in store but not on filesystem for deletion
-      // @ts-ignore
-      const currentFolderIds = store.getRowIds("folders") as string[];
-      for (const id of currentFolderIds) {
-        if (!foldersData[id]) {
-          foldersData[id] = null;
-        }
-      }
-
-      // @ts-ignore - update session folder_id only (do not delete sessions here)
+      // @ts-ignore - sync store with filesystem state
       store.transaction(() => {
+        // Delete folders that exist in store but not on filesystem
+        // @ts-ignore
+        const currentFolderIds = store.getRowIds("folders") as string[];
+        for (const id of currentFolderIds) {
+          if (!foldersData[id]) {
+            // @ts-ignore
+            store.delRow("folders", id);
+          }
+        }
+
+        // Update session folder_id
         for (const [sessionId, folderPath] of Object.entries(
           session_folder_map,
         )) {

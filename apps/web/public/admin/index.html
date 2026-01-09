@@ -10,6 +10,10 @@
   <body>
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script src="/admin/media-library.js"></script>
+    <script>
+      CMS.registerMediaLibrary(window.GitHubMediaLibrary);
+    </script>
     <script type="module" src="/admin/registration.js"></script>
     <script src="/admin/preview-templates.js"></script>
     <script>

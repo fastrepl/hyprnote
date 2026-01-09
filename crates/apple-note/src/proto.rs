@@ -13,6 +13,29 @@ pub struct Color {
     pub alpha: f32,
 }
 
+impl Color {
+    pub fn red_hex_string(&self) -> String {
+        format!("{:02X}", (self.red * 255.0) as u8)
+    }
+
+    pub fn green_hex_string(&self) -> String {
+        format!("{:02X}", (self.green * 255.0) as u8)
+    }
+
+    pub fn blue_hex_string(&self) -> String {
+        format!("{:02X}", (self.blue * 255.0) as u8)
+    }
+
+    pub fn full_hex_string(&self) -> String {
+        format!(
+            "#{}{}{}",
+            self.red_hex_string(),
+            self.green_hex_string(),
+            self.blue_hex_string()
+        )
+    }
+}
+
 #[derive(Clone, PartialEq, Message, Serialize, Deserialize)]
 pub struct AttachmentInfo {
     #[prost(string, optional, tag = "1")]
@@ -79,6 +102,20 @@ pub struct AttributeRun {
     pub unknown_identifier: Option<i32>,
     #[prost(int32, optional, tag = "14")]
     pub emphasis_style: Option<i32>,
+}
+
+impl AttributeRun {
+    /// Check if two AttributeRuns have the same style
+    pub fn same_style(&self, other: &AttributeRun) -> bool {
+        self.font_weight == other.font_weight
+            && self.underlined == other.underlined
+            && self.strikethrough == other.strikethrough
+            && self.superscript == other.superscript
+            && self.link == other.link
+            && self.paragraph_style == other.paragraph_style
+            && self.font == other.font
+            && self.color == other.color
+    }
 }
 
 #[derive(Clone, PartialEq, Message, Serialize, Deserialize)]

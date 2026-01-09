@@ -29,22 +29,24 @@ impl TextSpan {
 
 pub fn extract_text_spans(note: &Note) -> Vec<TextSpan> {
     let mut spans = Vec::new();
-    let mut current_index = 0;
+    let mut current_char_index = 0;
+
+    let chars: Vec<char> = note.note_text.chars().collect();
 
     for attr_run in &note.attribute_run {
         if attr_run.attachment_info.is_some() {
-            current_index += attr_run.length as usize;
+            current_char_index += attr_run.length as usize;
             continue;
         }
 
         let length = attr_run.length as usize;
-        let end_index = current_index + length;
+        let end_char_index = current_char_index + length;
 
-        if end_index > note.note_text.len() {
+        if end_char_index > chars.len() {
             break;
         }
 
-        let text_slice = &note.note_text[current_index..end_index];
+        let text_slice: String = chars[current_char_index..end_char_index].iter().collect();
 
         let mut span = TextSpan::new(text_slice.to_string());
 
@@ -80,7 +82,7 @@ pub fn extract_text_spans(note: &Note) -> Vec<TextSpan> {
         }
 
         spans.push(span);
-        current_index = end_index;
+        current_char_index = end_char_index;
     }
 
     spans

@@ -1,13 +1,13 @@
 import { Icon } from "@iconify-icon/react";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
-import { doAuth, doMagicLinkAuth } from "@/functions/auth";
+import { doAuth, doMagicLinkAuth, fetchUser } from "@/functions/auth";
 
 const validateSearch = z.object({
   flow: z.enum(["desktop", "web"]).default("web"),
@@ -17,6 +17,14 @@ const validateSearch = z.object({
 
 export const Route = createFileRoute("/auth")({
   validateSearch,
+  beforeLoad: async ({ search }) => {
+    const user = await fetchUser();
+    if (user && search.flow === "web") {
+      throw redirect({
+        to: search.redirect || "/app/account",
+      });
+    }
+  },
   component: Component,
 });
 

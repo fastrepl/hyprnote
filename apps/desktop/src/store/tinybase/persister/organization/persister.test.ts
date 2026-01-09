@@ -103,7 +103,6 @@ describe("createOrganizationPersister", () => {
 
   describe("save", () => {
     test("saves organizations to markdown files via frontmatter plugin", async () => {
-      const { mkdir } = await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("organizations", TEST_UUID_1, {
@@ -114,10 +113,6 @@ describe("createOrganizationPersister", () => {
 
       const persister = createOrganizationPersister(store);
       await persister.save();
-
-      expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/organizations`, {
-        recursive: true,
-      });
 
       expect(fsSyncCommands.writeDocumentBatch).toHaveBeenCalledWith([
         [

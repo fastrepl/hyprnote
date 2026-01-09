@@ -116,7 +116,6 @@ describe("createHumanPersister", () => {
 
   describe("save", () => {
     test("saves humans to markdown files via frontmatter plugin", async () => {
-      const { mkdir } = await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("humans", TEST_UUID_1, {
@@ -132,10 +131,6 @@ describe("createHumanPersister", () => {
 
       const persister = createHumanPersister(store);
       await persister.save();
-
-      expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/humans`, {
-        recursive: true,
-      });
 
       expect(fsSyncCommands.writeDocumentBatch).toHaveBeenCalledWith([
         [

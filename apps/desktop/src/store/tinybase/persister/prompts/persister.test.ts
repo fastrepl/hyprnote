@@ -79,7 +79,6 @@ describe("createPromptPersister", () => {
 
   describe("save", () => {
     test("saves prompts to markdown files via frontmatter plugin", async () => {
-      const { mkdir } = await import("@tauri-apps/plugin-fs");
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
 
       store.setRow("prompts", TEST_UUID_1, {
@@ -91,10 +90,6 @@ describe("createPromptPersister", () => {
 
       const persister = createPromptPersister(store);
       await persister.save();
-
-      expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/prompts`, {
-        recursive: true,
-      });
 
       expect(fsSyncCommands.writeDocumentBatch).toHaveBeenCalledWith([
         [

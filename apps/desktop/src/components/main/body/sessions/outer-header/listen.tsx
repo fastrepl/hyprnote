@@ -109,29 +109,6 @@ function ScrollingWaveform({
           );
         })}
       </div>
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 12,
-          height: "100%",
-          background:
-            "linear-gradient(to right, rgb(254 242 242), transparent)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          width: 12,
-          height: "100%",
-          background: "linear-gradient(to left, rgb(254 242 242), transparent)",
-          pointerEvents: "none",
-        }}
-      />
     </div>
   );
 }
@@ -167,7 +144,7 @@ function StartButton({ sessionId }: { sessionId: string }) {
       onClick={handleClick}
       disabled={isDisabled}
       className={cn([
-        "bg-white text-neutral-900 hover:bg-neutral-100",
+        "bg-white text-neutral-900 hover:bg-neutral-100 w-[110px]",
         "gap-1.5",
       ])}
       title={warningMessage || "Start listening"}
@@ -243,7 +220,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
         <>
           <div
             className={cn([
-              "flex items-center gap-1.5",
+              "relative flex items-center gap-1.5",
               hovered ? "hidden" : "flex",
             ])}
           >
@@ -258,6 +235,30 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
               barWidth={3}
               gap={1}
               minBarHeight={2}
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: muted ? 18 : 0,
+                width: 12,
+                height: "100%",
+                background:
+                  "linear-gradient(to right, rgb(254 242 242), transparent)",
+                pointerEvents: "none",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                width: 12,
+                height: "100%",
+                background:
+                  "linear-gradient(to left, rgb(254 242 242), transparent)",
+                pointerEvents: "none",
+              }}
             />
           </div>
           <div

@@ -50,7 +50,7 @@ export function TrialExpiredModal() {
   return (
     <>
       <div
-        className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
         onClick={close}
       >
         <div
@@ -60,7 +60,7 @@ export function TrialExpiredModal() {
         />
       </div>
 
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
         <div
           className={cn([
             "relative w-full max-w-lg max-h-full overflow-auto",

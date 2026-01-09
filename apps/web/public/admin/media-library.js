@@ -650,7 +650,8 @@ const createGitHubMediaLibrary = () => {
       item.addEventListener("dblclick", () => {
         const type = item.dataset.type;
         const publicPath = item.dataset.public;
-        if (type === "file" && publicPath) {
+        if (type === "file" && publicPath && handleInsert) {
+          console.log("Double-click inserting:", { path: publicPath, url: publicPath });
           handleInsert({ path: publicPath, url: publicPath });
           hide();
         }
@@ -696,7 +697,11 @@ const createGitHubMediaLibrary = () => {
             const publicPath = getPublicPath(path);
             return { path: publicPath, url: publicPath };
           });
-          handleInsert(assets.length === 1 ? assets[0] : assets);
+          console.log("Insert button clicked, assets:", assets);
+          console.log("handleInsert function:", handleInsert);
+          if (handleInsert) {
+            handleInsert(assets.length === 1 ? assets[0] : assets);
+          }
           hide();
         }
       });

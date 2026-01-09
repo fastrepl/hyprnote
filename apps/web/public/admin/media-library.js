@@ -456,6 +456,11 @@ const createGitHubMediaLibrary = () => {
         <div class="gml-header">
           <span class="gml-title">Media Library</span>
           <div class="gml-header-actions">
+            <button class="gml-btn gml-new-folder-btn" style="display:none;">New Folder</button>
+            <label class="gml-btn gml-btn-primary gml-upload-btn" style="display:none;">
+              Upload
+              <input type="file" accept="image/*" multiple style="display:none;">
+            </label>
             <div class="gml-view-toggle">
               <button class="gml-icon-btn gml-view-list" title="List view">☰</button>
               <button class="gml-icon-btn gml-view-grid active" title="Grid view">⊞</button>
@@ -668,11 +673,17 @@ const createGitHubMediaLibrary = () => {
   function updateToolbar() {
     const toolbarLeft = modal.querySelector(".gml-toolbar-left");
     const toolbarRight = modal.querySelector(".gml-toolbar-right");
+    const headerNewFolderBtn = modal.querySelector(".gml-header .gml-new-folder-btn");
+    const headerUploadBtn = modal.querySelector(".gml-header .gml-upload-btn");
 
     if (isUploading) {
+      headerNewFolderBtn.style.display = "none";
+      headerUploadBtn.style.display = "none";
       toolbarLeft.textContent = `${uploadingFiles.length} file${uploadingFiles.length > 1 ? "s" : ""}`;
       toolbarRight.innerHTML = `<button class="gml-btn" disabled>Uploading...</button>`;
     } else if (isEditorMode && selectedItems.size > 0) {
+      headerNewFolderBtn.style.display = "none";
+      headerUploadBtn.style.display = "none";
       toolbarLeft.textContent = `${selectedItems.size} selected`;
       toolbarRight.innerHTML = `
         <button class="gml-btn gml-cancel-btn">Cancel</button>
@@ -689,6 +700,8 @@ const createGitHubMediaLibrary = () => {
 
       toolbarRight.querySelector(".gml-cancel-btn").addEventListener("click", hide);
     } else if (isEditorMode && selectedItems.size === 0) {
+      headerNewFolderBtn.style.display = "none";
+      headerUploadBtn.style.display = "none";
       toolbarLeft.textContent = "";
       toolbarRight.innerHTML = `
         <button class="gml-btn gml-cancel-btn">Cancel</button>
@@ -696,6 +709,8 @@ const createGitHubMediaLibrary = () => {
 
       toolbarRight.querySelector(".gml-cancel-btn").addEventListener("click", hide);
     } else if (!isEditorMode && selectedItems.size > 0) {
+      headerNewFolderBtn.style.display = "none";
+      headerUploadBtn.style.display = "none";
       toolbarLeft.textContent = `${selectedItems.size} selected`;
       toolbarRight.innerHTML = `
         <button class="gml-btn gml-unselect-btn">Unselect All</button>
@@ -710,23 +725,10 @@ const createGitHubMediaLibrary = () => {
 
       toolbarRight.querySelector(".gml-delete-btn").addEventListener("click", handleDelete);
     } else {
+      headerNewFolderBtn.style.display = "inline-block";
+      headerUploadBtn.style.display = "inline-block";
       toolbarLeft.textContent = "";
-      toolbarRight.innerHTML = `
-        <button class="gml-btn gml-new-folder-btn">New Folder</button>
-        <label class="gml-btn gml-btn-primary gml-upload-btn">
-          Upload asset
-          <input type="file" accept="image/*" multiple style="display:none;">
-        </label>
-      `;
-
-      toolbarRight.querySelector('input[type="file"]').addEventListener("change", async (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length > 0) {
-          await handleUpload(files);
-        }
-      });
-
-      toolbarRight.querySelector(".gml-new-folder-btn").addEventListener("click", handleNewFolder);
+      toolbarRight.innerHTML = "";
     }
   }
 
@@ -835,6 +837,9 @@ const createGitHubMediaLibrary = () => {
     const content = modal.querySelector(".gml-content");
     const backBtn = modal.querySelector(".gml-nav-back");
     const forwardBtn = modal.querySelector(".gml-nav-forward");
+    const headerNewFolderBtn = modal.querySelector(".gml-header .gml-new-folder-btn");
+    const headerUploadBtn = modal.querySelector(".gml-header .gml-upload-btn");
+    const headerUploadInput = headerUploadBtn.querySelector('input[type="file"]');
 
     closeBtn.addEventListener("click", hide);
     modal.addEventListener("click", (e) => {
@@ -843,6 +848,15 @@ const createGitHubMediaLibrary = () => {
 
     backBtn.addEventListener("click", navigateBack);
     forwardBtn.addEventListener("click", navigateForward);
+
+    headerNewFolderBtn.addEventListener("click", handleNewFolder);
+    headerUploadInput.addEventListener("change", async (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length > 0) {
+        await handleUpload(files);
+      }
+      e.target.value = "";
+    });
 
     viewListBtn.addEventListener("click", () => {
       viewMode = "list";

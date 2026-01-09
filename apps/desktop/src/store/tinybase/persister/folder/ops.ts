@@ -45,25 +45,6 @@ export async function moveSessionToFolder(
   return { status: "ok" };
 }
 
-export async function createFolder(
-  folderPath: string,
-): Promise<{ status: "ok" } | { status: "error"; error: string }> {
-  const { reloadFolders } = getConfig();
-
-  // Mark as internal change to prevent watcher reload
-  markInternalChange();
-
-  const result = await fsSyncCommands.createFolder(folderPath);
-
-  if (result.status === "error") {
-    console.error("[FolderOps] createFolder failed:", result.error);
-    return { status: "error", error: result.error };
-  }
-
-  await reloadFolders();
-  return { status: "ok" };
-}
-
 export async function renameFolder(
   oldPath: string,
   newPath: string,
@@ -84,28 +65,7 @@ export async function renameFolder(
   return { status: "ok" };
 }
 
-export async function deleteFolder(
-  folderPath: string,
-): Promise<{ status: "ok" } | { status: "error"; error: string }> {
-  const { reloadFolders } = getConfig();
-
-  // Mark as internal change to prevent watcher reload
-  markInternalChange();
-
-  const result = await fsSyncCommands.deleteFolder(folderPath);
-
-  if (result.status === "error") {
-    console.error("[FolderOps] deleteFolder failed:", result.error);
-    return { status: "error", error: result.error };
-  }
-
-  await reloadFolders();
-  return { status: "ok" };
-}
-
 export const folderOps = {
   moveSessionToFolder,
-  createFolder,
   renameFolder,
-  deleteFolder,
 };

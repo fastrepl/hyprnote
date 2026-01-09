@@ -89,12 +89,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
         }
 
         std::fs::create_dir_all(&folder)?;
-
-        // Create .folder marker file for empty folder tracking
-        let marker = folder.join(".folder");
-        std::fs::write(&marker, "")?;
-
-        tracing::info!("Created folder with marker: {:?}", folder);
+        tracing::info!("Created folder: {:?}", folder);
         Ok(())
     }
 

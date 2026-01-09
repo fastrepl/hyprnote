@@ -1,3 +1,11 @@
+//! AttributeRun tests
+//!
+//! These tests correspond to the AttributeRun tests in the apple_cloud_notes_parser Ruby implementation:
+//! https://github.com/threeplanetssoftware/apple_cloud_notes_parser/blob/master/spec/base_classes/proto_patches.rb
+//!
+//! Tests cover style comparison between attribute runs, including font weight, underlined,
+//! strikethrough, superscript, link, paragraph style, font, and color comparisons.
+
 use apple_note::{AttributeRun, Color, Font, ParagraphStyle};
 
 #[test]

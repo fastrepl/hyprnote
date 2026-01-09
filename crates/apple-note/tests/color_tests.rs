@@ -1,3 +1,10 @@
+//! Color tests
+//!
+//! These tests correspond to the Color tests in the apple_cloud_notes_parser Ruby implementation:
+//! https://github.com/threeplanetssoftware/apple_cloud_notes_parser/blob/master/spec/base_classes/proto_patches.rb
+//!
+//! Tests cover hex string generation for RGB color values.
+
 use apple_note::Color;
 
 #[test]

@@ -42,68 +42,80 @@ function ScrollingWaveform({
   const resolvedMaxBarHeight = maxBarHeight ?? height;
   const maxBars = Math.floor(width / (barWidth + gap));
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const amplitudesRef = useRef<number[]>([]);
   const amplitudeRef = useRef(amplitude);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastUpdateRef = useRef(0);
 
   amplitudeRef.current = amplitude;
-
-  const dprRef = useRef(window.devicePixelRatio || 1);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const dpr = window.devicePixelRatio || 1;
-    dprRef.current = dpr;
     canvas.width = width * dpr;
     canvas.height = height * dpr;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: false });
     if (ctx) {
       ctx.scale(dpr, dpr);
+      ctxRef.current = ctx;
     }
   }, [width, height]);
 
   useEffect(() => {
     amplitudesRef.current = [];
+    const ctx = ctxRef.current;
+    if (!ctx) return;
 
-    const draw = () => {
+    const UPDATE_INTERVAL = 100;
+
+    const draw = (timestamp: number) => {
+      if (timestamp - lastUpdateRef.current < UPDATE_INTERVAL) {
+        animationFrameRef.current = requestAnimationFrame(draw);
+        return;
+      }
+      lastUpdateRef.current = timestamp;
+
       const amp = amplitudeRef.current;
       const linear = amp < 30 ? 0 : Math.min((amp - 30) / 40, 1);
       const normalized = Math.pow(linear, 0.6);
 
-      amplitudesRef.current.push(normalized);
-      if (amplitudesRef.current.length > maxBars) {
-        amplitudesRef.current = amplitudesRef.current.slice(-maxBars);
+      const amplitudes = amplitudesRef.current;
+      amplitudes.push(normalized);
+      if (amplitudes.length > maxBars) {
+        amplitudes.shift();
       }
-
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
 
       ctx.clearRect(0, 0, width, height);
 
-      const amplitudes = amplitudesRef.current;
       const startX = width - amplitudes.length * (barWidth + gap);
-
       ctx.fillStyle = color;
-      amplitudes.forEach((amp, index) => {
+
+      for (let i = 0; i < amplitudes.length; i++) {
+        const amp = amplitudes[i];
         const barHeight =
           minBarHeight + amp * (resolvedMaxBarHeight - minBarHeight);
-        const x = startX + index * (barWidth + gap);
+        const x = startX + i * (barWidth + gap);
         const y = (height - barHeight) / 2;
 
         ctx.beginPath();
         ctx.roundRect(x, y, barWidth, barHeight, barWidth / 2);
         ctx.fill();
-      });
+      }
+
+      animationFrameRef.current = requestAnimationFrame(draw);
     };
 
-    draw();
-    const interval = setInterval(draw, 100);
-    return () => clearInterval(interval);
+    animationFrameRef.current = requestAnimationFrame(draw);
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
   }, [
     color,
     height,

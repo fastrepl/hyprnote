@@ -51,6 +51,13 @@ const formatIgnoreReason = (reason: ModelIgnoreReason): string => {
   }
 };
 
+const getDisplayName = (providerId: string, model: string): string => {
+  if (providerId === "hyprnote" && model === "Auto") {
+    return "Pro";
+  }
+  return model;
+};
+
 export function ModelCombobox({
   providerId,
   value,
@@ -129,7 +136,9 @@ export function ModelCombobox({
         >
           <span className="flex items-center justify-between gap-2 w-full min-w-0">
             {value && value.length > 0 ? (
-              <span className="truncate">{value}</span>
+              <span className="truncate">
+                {getDisplayName(providerId, value)}
+              </span>
             ) : (
               <span className="text-muted-foreground truncate">
                 {isLoadingModels ? "Loading models..." : placeholder}
@@ -185,7 +194,9 @@ export function ModelCombobox({
                     "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
                   ])}
                 >
-                  <span className="truncate">{option}</span>
+                  <span className="truncate">
+                    {getDisplayName(providerId, option)}
+                  </span>
                 </CommandItem>
               ))}
 

@@ -84,7 +84,7 @@ export function TrialExpiredModal() {
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-3 max-w-md">
+            <div className="flex flex-wrap justify-center gap-2 max-w-md">
               {[
                 { label: "Pro AI models", icon: Sparkle },
                 { label: "Cloud sync", icon: Cloud },
@@ -98,7 +98,7 @@ export function TrialExpiredModal() {
                   className={cn([
                     "px-4 h-8 flex items-center text-sm rounded-full",
                     "bg-gradient-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700",
-                    "shadow-sm",
+                    "shadow-sm hover:shadow-md hover:scale-[102%] transition-all",
                     Icon && "gap-2",
                   ])}
                 >

@@ -672,11 +672,11 @@ const createGitHubMediaLibrary = () => {
     if (isUploading) {
       toolbarLeft.textContent = `${uploadingFiles.length} file${uploadingFiles.length > 1 ? "s" : ""}`;
       toolbarRight.innerHTML = `<button class="gml-btn" disabled>Uploading...</button>`;
-    } else if (isEditorMode) {
-      toolbarLeft.textContent = selectedItems.size > 0 ? `${selectedItems.size} selected` : "";
+    } else if (isEditorMode && selectedItems.size > 0) {
+      toolbarLeft.textContent = `${selectedItems.size} selected`;
       toolbarRight.innerHTML = `
         <button class="gml-btn gml-cancel-btn">Cancel</button>
-        <button class="gml-btn gml-btn-primary gml-insert-btn" ${selectedItems.size === 0 ? "disabled" : ""}>Insert</button>
+        <button class="gml-btn gml-btn-primary gml-insert-btn">Insert</button>
       `;
 
       toolbarRight.querySelector(".gml-insert-btn").addEventListener("click", () => {
@@ -688,7 +688,14 @@ const createGitHubMediaLibrary = () => {
       });
 
       toolbarRight.querySelector(".gml-cancel-btn").addEventListener("click", hide);
-    } else if (selectedItems.size > 0) {
+    } else if (isEditorMode && selectedItems.size === 0) {
+      toolbarLeft.textContent = "";
+      toolbarRight.innerHTML = `
+        <button class="gml-btn gml-cancel-btn">Cancel</button>
+      `;
+
+      toolbarRight.querySelector(".gml-cancel-btn").addEventListener("click", hide);
+    } else if (!isEditorMode && selectedItems.size > 0) {
       toolbarLeft.textContent = `${selectedItems.size} selected`;
       toolbarRight.innerHTML = `
         <button class="gml-btn gml-unselect-btn">Unselect All</button>

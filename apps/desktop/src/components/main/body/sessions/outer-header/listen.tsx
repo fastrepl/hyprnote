@@ -53,12 +53,12 @@ function ScrollingWaveform({
   }, [maxBars]);
 
   useEffect(() => {
-    const UPDATE_INTERVAL = 30;
+    const UPDATE_INTERVAL = 100;
 
     const animate = (timestamp: number) => {
       if (timestamp - lastUpdateRef.current >= UPDATE_INTERVAL) {
         const amp = amplitudeRef.current;
-        const linear = amp < 5 ? 0 : Math.min((amp - 5) / 45, 1);
+        const linear = amp < 30 ? 0 : Math.min((amp - 30) / 40, 1);
         const normalized = Math.pow(linear, 0.6);
 
         setBars((prev) => [...prev.slice(1), normalized]);

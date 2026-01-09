@@ -4,7 +4,8 @@ use std::path::PathBuf;
 use tauri_plugin_path2::Path2PluginExt;
 
 use crate::folder::{
-    cleanup_dirs_recursive, cleanup_files_in_dir, find_session_dir, scan_directory_recursive,
+    cleanup_dirs_recursive, cleanup_files_in_dir, find_session_dir, is_uuid,
+    scan_directory_recursive,
 };
 use crate::types::ListFoldersResult;
 
@@ -88,7 +89,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
         }
 
         std::fs::create_dir_all(&folder)?;
-        tracing::info!("Created folder: {:?}", folder);
+
+        // Create .folder marker file for empty folder tracking
+        let marker = folder.join(".folder");
+        std::fs::write(&marker, "")?;
+
+        tracing::info!("Created folder with marker: {:?}", folder);
         Ok(())
     }
 
@@ -128,9 +134,45 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
             return Ok(());
         }
 
+        // Safety check: refuse to delete folder containing sessions
+        if self.folder_contains_sessions(&folder)? {
+            return Err(crate::Error::Path(
+                "Cannot delete folder containing sessions. Move or delete sessions first."
+                    .to_string(),
+            ));
+        }
+
         std::fs::remove_dir_all(&folder)?;
         tracing::info!("Deleted folder: {:?}", folder);
         Ok(())
+    }
+
+    /// Check if a folder contains any sessions (UUID-named directories with _meta.json)
+    fn folder_contains_sessions(&self, folder: &PathBuf) -> Result<bool, crate::Error> {
+        let entries = std::fs::read_dir(folder)?;
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_dir() {
+                continue;
+            }
+
+            let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+                continue;
+            };
+
+            // Check if this is a session directory (UUID with _meta.json)
+            if is_uuid(name) && path.join("_meta.json").exists() {
+                return Ok(true);
+            }
+
+            // Recursively check subdirectories (non-UUID folders)
+            if !is_uuid(name) && self.folder_contains_sessions(&path)? {
+                return Ok(true);
+            }
+        }
+
+        Ok(false)
     }
 
     pub fn cleanup_orphan_files(

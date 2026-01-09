@@ -49,6 +49,9 @@ pub fn get_parent_folder_path(path: &str) -> Option<String> {
     Some(parts[..parts.len() - 1].join("/"))
 }
 
+/// Marker file name used to track empty folders
+pub const FOLDER_MARKER: &str = ".folder";
+
 pub fn scan_directory_recursive(
     sessions_dir: &Path,
     current_path: &str,
@@ -83,12 +86,15 @@ pub fn scan_directory_recursive(
         };
 
         let has_meta_json = sessions_dir.join(&entry_path).join("_meta.json").exists();
+        let marker_path = sessions_dir.join(&entry_path).join(FOLDER_MARKER);
+        let has_folder_marker = marker_path.exists();
 
         if has_meta_json {
             result
                 .session_folder_map
                 .insert(name, current_path.to_string());
         } else if !is_uuid(&name) {
+            // Track folder (whether it has marker or has children)
             result.folders.insert(
                 entry_path.clone(),
                 FolderInfo {
@@ -97,7 +103,16 @@ pub fn scan_directory_recursive(
                 },
             );
 
+            // Recursively scan children
+            let prev_session_count = result.session_folder_map.len();
             scan_directory_recursive(sessions_dir, &entry_path, result);
+            let has_sessions = result.session_folder_map.len() > prev_session_count;
+
+            // Clean up marker if folder now has sessions (no longer empty)
+            if has_folder_marker && has_sessions {
+                let _ = std::fs::remove_file(&marker_path);
+                tracing::debug!("Removed marker from non-empty folder: {:?}", entry_path);
+            }
         }
     }
 }

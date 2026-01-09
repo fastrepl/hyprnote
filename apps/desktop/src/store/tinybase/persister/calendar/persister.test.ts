@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
-  createTestStore,
+  createTestMainStore,
   MOCK_DATA_DIR,
   setupJsonFilePersisterMocks,
 } from "../testing/mocks";
@@ -10,10 +10,10 @@ import { createCalendarPersister } from "./persister";
 setupJsonFilePersisterMocks();
 
 describe("createCalendarPersister", () => {
-  let store: ReturnType<typeof createTestStore>;
+  let store: ReturnType<typeof createTestMainStore>;
 
   beforeEach(() => {
-    store = createTestStore();
+    store = createTestMainStore();
     vi.clearAllMocks();
   });
 

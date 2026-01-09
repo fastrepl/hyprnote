@@ -1,5 +1,9 @@
 import { exists, mkdir, readTextFile, remove } from "@tauri-apps/plugin-fs";
 import type {
+  PersistedChanges,
+  Persists,
+} from "tinybase/persisters/with-schemas";
+import type {
   Content,
   MergeableStore,
   OptionalSchemas,
@@ -10,6 +14,7 @@ import {
   type ParsedDocument,
 } from "@hypr/plugin-fs-sync";
 
+import { isFileNotFoundError } from "../shared/fs";
 import {
   buildEntityFilePath,
   buildEntityPath,
@@ -122,6 +127,61 @@ function collectMarkdownWriteOps<TStorage>(
   return { result: { operations }, validIds };
 }
 
+export function createEntityParser(
+  dirName: string,
+): (path: string) => string | null {
+  return (path: string): string | null => {
+    const parts = path.split("/");
+    const dirIndex = parts.indexOf(dirName);
+    if (dirIndex === -1 || dirIndex + 1 >= parts.length) {
+      return null;
+    }
+    const filename = parts[dirIndex + 1];
+    if (!filename?.endsWith(".md")) {
+      return null;
+    }
+    return filename.slice(0, -3);
+  };
+}
+
+async function loadSingleEntity<TStorage>(
+  store: MergeableStore<any>,
+  config: MarkdownDirPersisterConfig<TStorage>,
+  entityId: string,
+): Promise<PersistedChanges<any, Persists.StoreOrMergeableStore> | undefined> {
+  const { tableName, dirName, fromFrontmatter } = config;
+  const dataDir = await getDataDir();
+  const filePath = buildEntityFilePath(dataDir, dirName, entityId);
+
+  try {
+    const content = await readTextFile(filePath);
+    const parseResult = await fsSyncCommands.deserialize(content);
+
+    if (parseResult.status === "error") {
+      return undefined;
+    }
+
+    const entity = fromFrontmatter(
+      parseResult.data.frontmatter as Record<string, unknown>,
+      parseResult.data.content.trim(),
+    );
+
+    return asTablesChanges({
+      [tableName]: { [entityId]: entity as Record<string, unknown> },
+    }) as unknown as PersistedChanges<any, Persists.StoreOrMergeableStore>;
+  } catch (error) {
+    if (isFileNotFoundError(error)) {
+      const existingRow = store.getRow(tableName as any, entityId);
+      if (existingRow && Object.keys(existingRow).length > 0) {
+        return asTablesChanges({
+          [tableName]: { [entityId]: undefined },
+        }) as unknown as PersistedChanges<any, Persists.StoreOrMergeableStore>;
+      }
+    }
+    return undefined;
+  }
+}
+
 export function createMarkdownDirPersister<
   Schemas extends OptionalSchemas,
   TStorage,
@@ -134,6 +194,8 @@ export function createMarkdownDirPersister<
   return createCollectorPersister(store, {
     label,
     watchPaths: [`${dirName}/`],
+    entityParser: createEntityParser(dirName),
+    loadSingle: (entityId: string) => loadSingleEntity(store, config, entityId),
     collect: (_store, tables, dataDir, changedTables) => {
       const fullTableData =
         (tables as Record<string, Record<string, TStorage>>)[tableName] ?? {};

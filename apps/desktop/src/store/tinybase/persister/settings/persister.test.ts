@@ -1,8 +1,61 @@
 import { createMergeableStore } from "tinybase/with-schemas";
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { SCHEMA } from "../../store/settings";
+import { createTestSettingsStore } from "../testing/mocks";
 import { settingsToContent, storeToSettings } from "./transform";
+
+type FileChangeCallback = (event: {
+  payload: { path: string; kind: string };
+}) => void;
+
+const { notifyListen, notifyUnlisten, settingsLoad, settingsSave, mockState } =
+  vi.hoisted(() => {
+    const state = {
+      notifyCallback: null as FileChangeCallback | null,
+      settingsLoadData: {} as unknown,
+    };
+
+    const notifyUnlisten = vi.fn();
+    const notifyListen = vi
+      .fn()
+      .mockImplementation((cb: FileChangeCallback) => {
+        state.notifyCallback = cb;
+        return Promise.resolve(notifyUnlisten);
+      });
+
+    const settingsLoad = vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve({ status: "ok", data: state.settingsLoadData }),
+      );
+    const settingsSave = vi
+      .fn()
+      .mockImplementation(() => Promise.resolve({ status: "ok", data: null }));
+
+    return {
+      notifyListen,
+      notifyUnlisten,
+      settingsLoad,
+      settingsSave,
+      mockState: state,
+    };
+  });
+
+vi.mock("@hypr/plugin-notify", () => ({
+  events: {
+    fileChanged: {
+      listen: notifyListen,
+    },
+  },
+}));
+
+vi.mock("@hypr/plugin-settings", () => ({
+  commands: {
+    load: settingsLoad,
+    save: settingsSave,
+  },
+}));
 
 describe("settingsPersister roundtrip", () => {
   test("settings -> store -> settings preserves all data", () => {
@@ -339,5 +392,160 @@ describe("settingsPersister roundtrip", () => {
       ai_language: "ko",
       spoken_languages: ["ko", "ja"],
     });
+  });
+});
+
+describe("createSettingsPersister e2e", () => {
+  let store: ReturnType<typeof createTestSettingsStore>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockState.notifyCallback = null;
+    mockState.settingsLoadData = {};
+    store = createTestSettingsStore();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("startAutoPersisting loads initial data", async () => {
+    mockState.settingsLoadData = {
+      general: { autostart: true },
+    };
+
+    const { createSettingsPersister } = await import("./persister");
+    const persister = createSettingsPersister(store);
+    await persister.startAutoPersisting();
+
+    expect(settingsLoad).toHaveBeenCalled();
+    expect(store.getValue("autostart")).toBe(true);
+
+    await persister.stopAutoPersisting();
+    persister.destroy();
+  });
+
+  test("startAutoPersisting auto-saves on store change", async () => {
+    mockState.settingsLoadData = {};
+
+    const { createSettingsPersister } = await import("./persister");
+    const persister = createSettingsPersister(store);
+    await persister.startAutoPersisting();
+
+    settingsSave.mockClear();
+    store.setValue("autostart", true);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(settingsSave).toHaveBeenCalled();
+    const savedData = settingsSave.mock.calls[0][0];
+    expect(savedData.general?.autostart).toBe(true);
+
+    await persister.stopAutoPersisting();
+    persister.destroy();
+  });
+
+  test("startAutoPersisting auto-loads on file change event", async () => {
+    mockState.settingsLoadData = {};
+
+    const { createSettingsPersister } = await import("./persister");
+    const persister = createSettingsPersister(store);
+    await persister.startAutoPersisting();
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    mockState.settingsLoadData = {
+      general: { autostart: true, save_recordings: true },
+    };
+    settingsLoad.mockClear();
+
+    expect(mockState.notifyCallback).not.toBeNull();
+    mockState.notifyCallback!({
+      payload: { path: "/mock/data/settings.json", kind: "modified" },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(settingsLoad).toHaveBeenCalled();
+    expect(store.getValue("autostart")).toBe(true);
+    expect(store.getValue("save_recordings")).toBe(true);
+
+    await persister.stopAutoPersisting();
+    persister.destroy();
+  });
+
+  test("full lifecycle: load, save on change, reload on file event", async () => {
+    mockState.settingsLoadData = {
+      ai: { current_llm_provider: "openai" },
+    };
+
+    const { createSettingsPersister } = await import("./persister");
+    const persister = createSettingsPersister(store);
+    await persister.startAutoPersisting();
+
+    expect(store.getValue("current_llm_provider")).toBe("openai");
+
+    settingsSave.mockClear();
+    store.setValue("current_llm_model", "gpt-4");
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(settingsSave).toHaveBeenCalled();
+
+    mockState.settingsLoadData = {
+      ai: {
+        current_llm_provider: "anthropic",
+        current_llm_model: "claude-3",
+      },
+    };
+    settingsLoad.mockClear();
+
+    mockState.notifyCallback!({
+      payload: { path: "/path/to/settings.json", kind: "modified" },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(settingsLoad).toHaveBeenCalled();
+    expect(store.getValue("current_llm_provider")).toBe("anthropic");
+    expect(store.getValue("current_llm_model")).toBe("claude-3");
+
+    await persister.stopAutoPersisting();
+    persister.destroy();
+  });
+
+  test("stopAutoPersisting stops responding to store changes", async () => {
+    mockState.settingsLoadData = {};
+
+    const { createSettingsPersister } = await import("./persister");
+    const persister = createSettingsPersister(store);
+    await persister.startAutoPersisting();
+    await persister.stopAutoPersisting();
+
+    settingsSave.mockClear();
+
+    store.setValue("autostart", true);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(settingsSave).not.toHaveBeenCalled();
+
+    persister.destroy();
+  });
+
+  test("stopAutoPersisting calls unlisten on file watcher", async () => {
+    mockState.settingsLoadData = {};
+
+    const { createSettingsPersister } = await import("./persister");
+    const persister = createSettingsPersister(store);
+    await persister.startAutoPersisting();
+
+    expect(notifyUnlisten).not.toHaveBeenCalled();
+
+    await persister.stopAutoPersisting();
+
+    expect(notifyUnlisten).toHaveBeenCalled();
+
+    persister.destroy();
   });
 });

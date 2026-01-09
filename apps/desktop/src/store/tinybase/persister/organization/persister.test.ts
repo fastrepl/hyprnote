@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
-  createTestStore,
+  createTestMainStore,
   MOCK_DATA_DIR,
   setupMarkdownDirPersisterMocks,
   TEST_UUID_1,
@@ -12,10 +12,10 @@ import { createOrganizationPersister } from "./persister";
 setupMarkdownDirPersisterMocks();
 
 describe("createOrganizationPersister", () => {
-  let store: ReturnType<typeof createTestStore>;
+  let store: ReturnType<typeof createTestMainStore>;
 
   beforeEach(() => {
-    store = createTestStore();
+    store = createTestMainStore();
     vi.clearAllMocks();
   });
 

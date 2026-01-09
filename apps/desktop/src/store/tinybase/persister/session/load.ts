@@ -22,7 +22,7 @@ export type SessionDataLoad = Pick<Required<TablesContent>, SessionTables>;
 
 const LABEL = "SessionPersister";
 
-function extractSessionIdAndFolder(path: string): {
+export function extractSessionIdAndFolder(path: string): {
   sessionId: string;
   folderPath: string;
 } {

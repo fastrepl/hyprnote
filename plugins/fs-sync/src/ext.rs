@@ -4,9 +4,10 @@ use std::path::PathBuf;
 use tauri_plugin_path2::Path2PluginExt;
 
 use crate::folder::{
-    cleanup_dirs_recursive, cleanup_files_in_dir, find_session_dir, is_uuid,
-    scan_directory_recursive,
+    cleanup_dirs_recursive, cleanup_files_in_dir, cleanup_session_note_files, find_session_dir,
+    is_uuid, scan_directory_recursive,
 };
+use crate::types::CleanupTarget;
 use crate::types::ListFoldersResult;
 
 pub struct FsSync<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
@@ -170,26 +171,35 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
         Ok(false)
     }
 
-    pub fn cleanup_orphan_files(
+    pub fn cleanup_orphan(
         &self,
-        subdir: &str,
-        extension: &str,
+        target: CleanupTarget,
         valid_ids: Vec<String>,
     ) -> Result<u32, crate::Error> {
-        let dir = self.base_dir()?.join(subdir);
         let valid_set: HashSet<String> = valid_ids.into_iter().collect();
-        Ok(cleanup_files_in_dir(&dir, extension, &valid_set)?)
-    }
 
-    pub fn cleanup_orphan_dirs(
-        &self,
-        subdir: &str,
-        marker_file: &str,
-        valid_ids: Vec<String>,
-    ) -> Result<u32, crate::Error> {
-        let dir = self.base_dir()?.join(subdir);
-        let valid_set: HashSet<String> = valid_ids.into_iter().collect();
-        Ok(cleanup_dirs_recursive(&dir, marker_file, &valid_set)?)
+        match target {
+            CleanupTarget::Files { subdir, extension } => {
+                let dir = self.base_dir()?.join(&subdir);
+                Ok(cleanup_files_in_dir(&dir, &extension, &valid_set)?)
+            }
+            CleanupTarget::Dirs {
+                subdir,
+                marker_file,
+            } => {
+                let dir = self.base_dir()?.join(&subdir);
+                Ok(cleanup_dirs_recursive(&dir, &marker_file, &valid_set)?)
+            }
+            CleanupTarget::SessionNotes { sessions_with_memo } => {
+                let sessions_dir = self.sessions_dir()?;
+                let memo_set: HashSet<String> = sessions_with_memo.into_iter().collect();
+                Ok(cleanup_session_note_files(
+                    &sessions_dir,
+                    &valid_set,
+                    &memo_set,
+                )?)
+            }
+        }
     }
 }
 

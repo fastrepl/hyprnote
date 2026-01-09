@@ -15,10 +15,12 @@ import {
   buildEntityPath,
   getDataDir,
 } from "../shared/paths";
-import type {
-  ChangedTables,
-  CollectorResult,
-  MarkdownDirPersisterConfig,
+import {
+  asTablesChanges,
+  type ChangedTables,
+  type CollectorResult,
+  type MarkdownDirPersisterConfig,
+  type WriteOperation,
 } from "../shared/types";
 import { createCollectorPersister } from "./collector";
 
@@ -131,22 +133,29 @@ export function createMarkdownDirPersister<
 
   return createCollectorPersister(store, {
     label,
+    watchPaths: [`${dirName}/`],
     collect: (_store, tables, dataDir, changedTables) => {
       const fullTableData =
         (tables as Record<string, Record<string, TStorage>>)[tableName] ?? {};
 
       if (changedTables) {
         const changedRows = changedTables[tableName as keyof ChangedTables];
+        const allValidIds = new Set(Object.keys(fullTableData));
+
         if (!changedRows) {
-          return { operations: [], validIds: new Set() };
+          return { operations: [], validIds: allValidIds };
         }
 
         const changedIds = Object.keys(changedRows);
         const filteredTableData: Record<string, TStorage> = {};
+        const deletedIds: string[] = [];
+
         for (const id of changedIds) {
           const row = fullTableData[id];
           if (row) {
             filteredTableData[id] = row;
+          } else {
+            deletedIds.push(id);
           }
         }
 
@@ -155,7 +164,23 @@ export function createMarkdownDirPersister<
           dataDir,
           config,
         );
-        return { ...result, validIds: new Set<string>() };
+
+        const deleteOps: WriteOperation[] =
+          deletedIds.length > 0
+            ? [
+                {
+                  type: "delete-batch",
+                  paths: deletedIds.map((id) =>
+                    buildEntityFilePath(dataDir, dirName, id),
+                  ),
+                },
+              ]
+            : [];
+
+        return {
+          operations: [...result.operations, ...deleteOps],
+          validIds: allValidIds,
+        };
       }
 
       const { result, validIds } = collectMarkdownWriteOps(
@@ -169,18 +194,35 @@ export function createMarkdownDirPersister<
       const dataDir = await getDataDir();
       await migrateFromLegacyJson(dataDir, config);
       const entities = await loadMarkdownDir(dataDir, config);
-      if (Object.keys(entities).length === 0) {
+
+      const existingTable = store.getTable(tableName as any) ?? {};
+      const existingIds = new Set(Object.keys(existingTable));
+      const loadedIds = new Set(Object.keys(entities));
+
+      const result: Record<string, TStorage | undefined> = { ...entities };
+      for (const id of existingIds) {
+        if (!loadedIds.has(id)) {
+          result[id] = undefined;
+        }
+      }
+
+      if (Object.keys(result).length === 0) {
         return undefined;
       }
-      return [{ [tableName]: entities }, {}] as unknown as Content<Schemas>;
+
+      return asTablesChanges({
+        [tableName]: result as Record<
+          string,
+          Record<string, unknown> | undefined
+        >,
+      }) as unknown as Content<Schemas>;
     },
     postSave: async (_dataDir, result) => {
       const { validIds } = result as CollectorResult & {
         validIds: Set<string>;
       };
-      await fsSyncCommands.cleanupOrphanFiles(
-        dirName,
-        "md",
+      await fsSyncCommands.cleanupOrphan(
+        { type: "files", subdir: dirName, extension: "md" },
         Array.from(validIds),
       );
     },

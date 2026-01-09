@@ -116,9 +116,7 @@ export function collectSessionWriteOps(
 
   return {
     operations,
-    validSessionIds: changedSessionIds
-      ? new Set<string>()
-      : new Set(sessionMetas.keys()),
+    validSessionIds: new Set(sessionMetas.keys()),
   };
 }
 
@@ -226,18 +224,27 @@ function getEnhancedNoteFilename(
   return "_summary.md";
 }
 
+export type NoteCollectorResult = CollectorResult & {
+  validNoteIds: Set<string>;
+  sessionsWithMemo: Set<string>;
+};
+
 export function collectNoteWriteOps(
   store: Store,
   tables: TablesContent,
   dataDir: string,
   changedSessionIds?: Set<string>,
-): CollectorResult {
+): NoteCollectorResult {
   const frontmatterBatchItems: Array<[ParsedDocument, string]> = [];
+  const validNoteIds = new Set<string>();
+  const sessionsWithMemo = new Set<string>();
 
   for (const enhancedNote of iterateTableRows(tables, "enhanced_notes")) {
     if (!enhancedNote.content || !enhancedNote.session_id) {
       continue;
     }
+
+    validNoteIds.add(enhancedNote.id);
 
     if (changedSessionIds && !changedSessionIds.has(enhancedNote.session_id)) {
       continue;
@@ -277,6 +284,8 @@ export function collectNoteWriteOps(
       continue;
     }
 
+    sessionsWithMemo.add(session.id);
+
     if (changedSessionIds && !changedSessionIds.has(session.id)) {
       continue;
     }
@@ -308,5 +317,5 @@ export function collectNoteWriteOps(
     });
   }
 
-  return { operations };
+  return { operations, validNoteIds, sessionsWithMemo };
 }

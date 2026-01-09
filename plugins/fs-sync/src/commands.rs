@@ -8,7 +8,7 @@ use tauri_plugin_path2::Path2PluginExt;
 use crate::FsSyncPluginExt;
 use crate::folder::find_session_dir;
 use crate::frontmatter::ParsedDocument;
-use crate::types::{ListFoldersResult, ScanResult};
+use crate::types::{CleanupTarget, ListFoldersResult, ScanResult};
 
 /// For batch I/O on many small files, sync I/O with rayon parallelism
 /// is more efficient than async I/O (avoids per-file async task overhead).
@@ -133,27 +133,13 @@ pub(crate) async fn delete_folder<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn cleanup_orphan_files<R: tauri::Runtime>(
+pub(crate) async fn cleanup_orphan<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    subdir: String,
-    extension: String,
+    target: CleanupTarget,
     valid_ids: Vec<String>,
 ) -> Result<u32, String> {
     app.fs_sync()
-        .cleanup_orphan_files(&subdir, &extension, valid_ids)
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub(crate) async fn cleanup_orphan_dirs<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    subdir: String,
-    marker_file: String,
-    valid_ids: Vec<String>,
-) -> Result<u32, String> {
-    app.fs_sync()
-        .cleanup_orphan_dirs(&subdir, &marker_file, valid_ids)
+        .cleanup_orphan(target, valid_ids)
         .map_err(|e| e.to_string())
 }
 

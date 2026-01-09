@@ -20,3 +20,11 @@ pub struct ScanResult {
     pub files: HashMap<String, String>,
     pub dirs: Vec<String>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum CleanupTarget {
+    Files { subdir: String, extension: String },
+    Dirs { subdir: String, marker_file: String },
+    SessionNotes { sessions_with_memo: Vec<String> },
+}

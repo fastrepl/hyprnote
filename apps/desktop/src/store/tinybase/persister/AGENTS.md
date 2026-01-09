@@ -20,7 +20,7 @@ Three main patterns are used depending on data complexity:
 
 - `startAutoSave()`: Save-only (most persisters). Store changes trigger filesystem writes.
 - `startAutoLoad()`: Load-only (local). Filesystem changes trigger store updates.
-- `startAutoPersisting()`: Both save and load (settings, session).
+- `startAutoPersisting()`: Both save/load. In practice, it loads first, and auto-save based on `addDidFinishTransactionListener`, and do auto-load based on `addPersisterListener`.
 
 ## Notes
 

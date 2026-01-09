@@ -1,14 +1,10 @@
-import {
-  FolderIcon,
-  FoldersIcon,
-  PlusIcon,
-  StickyNoteIcon,
-} from "lucide-react";
-import { useMemo } from "react";
+import { FolderIcon, FoldersIcon, StickyNoteIcon } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
 import { useSession } from "../../../../hooks/tinybase";
+import { sessionOps } from "../../../../store/tinybase/persister/session/ops";
 import * as main from "../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -158,15 +154,7 @@ function TabContentFolderTopLevel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Section
-        icon={<FolderIcon className="w-4 h-4" />}
-        title="Folders"
-        action={
-          <button className="p-1 hover:bg-muted rounded">
-            <PlusIcon className="w-4 h-4" />
-          </button>
-        }
-      >
+      <Section icon={<FolderIcon className="w-4 h-4" />} title="Folders">
         {topLevelFolderIds.length > 0 && (
           <div className="grid grid-cols-4 gap-4">
             {topLevelFolderIds.map((folderId) => (
@@ -184,6 +172,9 @@ function FolderCard({ folderId }: { folderId: string }) {
   const openCurrent = useTabs((state) => state.openCurrent);
   const { byParent } = useFolderTree();
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(name);
+
   const childFolderIds = byParent[folderId] || [];
 
   const sessionIds = main.UI.useSliceRowIds(
@@ -194,16 +185,71 @@ function FolderCard({ folderId }: { folderId: string }) {
 
   const childCount = childFolderIds.length + (sessionIds?.length ?? 0);
 
+  const handleRename = useCallback(async () => {
+    const trimmed = editValue.trim();
+    if (!trimmed || trimmed === name) {
+      setEditValue(name);
+      setIsEditing(false);
+      return;
+    }
+
+    const parts = folderId.split("/");
+    parts[parts.length - 1] = trimmed;
+    const newFolderId = parts.join("/");
+
+    const result = await sessionOps.renameFolder(folderId, newFolderId);
+    if (result.status === "error") {
+      setEditValue(name);
+    }
+    setIsEditing(false);
+  }, [editValue, name, folderId]);
+
   return (
     <div
       className={cn([
         "flex flex-col items-center justify-center",
         "gap-2 p-6 border rounded-lg hover:bg-muted cursor-pointer",
       ])}
-      onClick={() => openCurrent({ type: "folders", id: folderId })}
+      onClick={() => {
+        if (!isEditing) {
+          openCurrent({ type: "folders", id: folderId });
+        }
+      }}
     >
       <FolderIcon className="w-12 h-12 text-muted-foreground" />
-      <span className="text-sm font-medium text-center">{name}</span>
+      {isEditing ? (
+        <input
+          type="text"
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleRename}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleRename();
+            } else if (e.key === "Escape") {
+              setEditValue(name);
+              setIsEditing(false);
+            }
+          }}
+          onClick={(e) => e.stopPropagation()}
+          autoFocus
+          className={cn([
+            "text-sm font-medium text-center w-full",
+            "border-none bg-transparent focus:outline-none focus:underline",
+          ])}
+        />
+      ) : (
+        <span
+          className="text-sm font-medium text-center"
+          onClick={(e) => {
+            e.stopPropagation();
+            setEditValue(name);
+            setIsEditing(true);
+          }}
+        >
+          {name}
+        </span>
+      )}
       {childCount > 0 && (
         <span className="text-xs text-muted-foreground">
           {childCount} items
@@ -230,15 +276,7 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
     <div className="flex flex-col gap-6">
       <TabContentFolderBreadcrumb folderId={folderId} />
 
-      <Section
-        icon={<FolderIcon className="w-4 h-4" />}
-        title="Folders"
-        action={
-          <button className="p-1 hover:bg-muted rounded">
-            <PlusIcon className="w-4 h-4" />
-          </button>
-        }
-      >
+      <Section icon={<FolderIcon className="w-4 h-4" />} title="Folders">
         {childFolderIds.length > 0 && (
           <div className="grid grid-cols-4 gap-4">
             {childFolderIds.map((childId) => (
@@ -249,15 +287,7 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
       </Section>
 
       {!isEmpty && (
-        <Section
-          icon={<StickyNoteIcon className="w-4 h-4" />}
-          title="Notes"
-          action={
-            <button className="p-1 hover:bg-muted rounded">
-              <PlusIcon className="w-4 h-4" />
-            </button>
-          }
-        >
+        <Section icon={<StickyNoteIcon className="w-4 h-4" />} title="Notes">
           {(sessionIds?.length ?? 0) > 0 && (
             <div className="space-y-2">
               {sessionIds!.map((sessionId) => (

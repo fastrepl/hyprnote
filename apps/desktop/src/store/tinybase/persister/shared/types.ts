@@ -23,7 +23,9 @@ type TableRowType<K extends keyof TablesContent> =
 
 export type WriteOperation =
   | { type: "json"; path: string; content: unknown }
-  | { type: "document-batch"; items: Array<[ParsedDocument, string]> };
+  | { type: "document-batch"; items: Array<[ParsedDocument, string]> }
+  | { type: "delete"; path: string }
+  | { type: "delete-batch"; paths: string[] };
 
 export type CollectorResult = {
   operations: WriteOperation[];
@@ -153,8 +155,16 @@ export interface MarkdownDirPersisterConfig<TStorage> {
 // https://github.com/tinyplex/tinybase/blob/aa5cb9014f6def18266414174e0fd31ccfae0828/src/persisters/common/create.ts#L185
 // When content[2] === 1, TinyBase uses applyChanges() instead of setContent(),
 // allowing us to merge into a specific table without wiping other tables.
+//
+// TinyBase deletion convention:
+// - Delete cell: { tableId: { rowId: { cellId: undefined } } }
+// - Delete row: { tableId: { rowId: undefined } }
+// - Delete table: { tableId: undefined }
 export function asTablesChanges(
-  tables: Record<string, Record<string, Record<string, unknown>>>,
+  tables: Record<
+    string,
+    Record<string, Record<string, unknown> | undefined> | undefined
+  >,
 ): [Record<string, unknown>, Record<string, unknown>, 1] {
   return [tables, {}, 1];
 }

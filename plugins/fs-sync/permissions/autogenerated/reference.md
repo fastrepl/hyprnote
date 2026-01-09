@@ -13,8 +13,7 @@ Default permissions for the fs-sync plugin
 - `allow-create-folder`
 - `allow-rename-folder`
 - `allow-delete-folder`
-- `allow-cleanup-orphan-files`
-- `allow-cleanup-orphan-dirs`
+- `allow-cleanup-orphan`
 - `allow-audio-exist`
 - `allow-audio-delete`
 - `allow-audio-import`
@@ -167,25 +166,12 @@ Denies the chat_dir command without any pre-configured scope.
 <tr>
 <td>
 
-`fs-sync:allow-cleanup-orphan-dirs`
+`fs-sync:allow-cleanup-orphan`
 
 </td>
 <td>
 
-Enables the cleanup_orphan_dirs command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`fs-sync:deny-cleanup-orphan-dirs`
-
-</td>
-<td>
-
-Denies the cleanup_orphan_dirs command without any pre-configured scope.
+Enables the cleanup_orphan command without any pre-configured scope.
 
 </td>
 </tr>
@@ -193,25 +179,12 @@ Denies the cleanup_orphan_dirs command without any pre-configured scope.
 <tr>
 <td>
 
-`fs-sync:allow-cleanup-orphan-files`
+`fs-sync:deny-cleanup-orphan`
 
 </td>
 <td>
 
-Enables the cleanup_orphan_files command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`fs-sync:deny-cleanup-orphan-files`
-
-</td>
-<td>
-
-Denies the cleanup_orphan_files command without any pre-configured scope.
+Denies the cleanup_orphan command without any pre-configured scope.
 
 </td>
 </tr>

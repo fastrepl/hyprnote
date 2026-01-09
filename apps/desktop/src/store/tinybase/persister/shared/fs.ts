@@ -30,7 +30,7 @@ type NotifyListenerHandle = {
   interval: ReturnType<typeof setInterval> | null;
 };
 
-const FALLBACK_POLL_INTERVAL = 60000;
+const FALLBACK_POLL_INTERVAL = 300000;
 
 export function createNotifyListener(
   pathMatcher: (path: string) => boolean,
@@ -44,17 +44,22 @@ export function createNotifyListener(
       const handle: NotifyListenerHandle = { unlisten: null, interval: null };
 
       (async () => {
-        const unlisten = await notifyEvents.fileChanged.listen((event) => {
-          if (pathMatcher(event.payload.path)) {
-            listener();
-          }
-        });
-        handle.unlisten = unlisten;
-      })().catch((error) => {
-        console.error("[NotifyListener] Failed to setup:", error);
-      });
+        try {
+          const unlisten = await notifyEvents.fileChanged.listen((event) => {
+            if (pathMatcher(event.payload.path)) {
+              listener();
+            }
+          });
+          handle.unlisten = unlisten;
+        } catch (error) {
+          console.error(
+            "[NotifyListener] Failed to setup, using polling:",
+            error,
+          );
+          handle.interval = setInterval(listener, fallbackIntervalMs);
+        }
+      })();
 
-      handle.interval = setInterval(listener, fallbackIntervalMs);
       return handle;
     },
     delListener: (handle: NotifyListenerHandle) => {

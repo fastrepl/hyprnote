@@ -43,7 +43,7 @@ export function setupMarkdownDirPersisterMocks() {
         .fn()
         .mockResolvedValue({ status: "ok", data: null }),
       readDocumentBatch: vi.fn(),
-      cleanupOrphanFiles: vi.fn().mockResolvedValue({ status: "ok", data: 0 }),
+      cleanupOrphan: vi.fn().mockResolvedValue({ status: "ok", data: 0 }),
     },
   }));
 

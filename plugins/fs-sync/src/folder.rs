@@ -181,6 +181,146 @@ pub fn delete_session_dir(session_dir: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
+pub fn cleanup_session_note_files(
+    base_dir: &Path,
+    valid_note_ids: &HashSet<String>,
+    sessions_with_memo: &HashSet<String>,
+) -> std::io::Result<u32> {
+    if !base_dir.exists() {
+        return Ok(0);
+    }
+
+    let mut removed = 0;
+    cleanup_session_notes_recursive(
+        base_dir,
+        base_dir,
+        valid_note_ids,
+        sessions_with_memo,
+        &mut removed,
+    )?;
+    Ok(removed)
+}
+
+fn cleanup_session_notes_recursive(
+    base_dir: &Path,
+    current_dir: &Path,
+    valid_note_ids: &HashSet<String>,
+    sessions_with_memo: &HashSet<String>,
+    removed: &mut u32,
+) -> std::io::Result<()> {
+    let entries = match std::fs::read_dir(current_dir) {
+        Ok(entries) => entries,
+        Err(_) => return Ok(()),
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+
+        let has_meta = path.join("_meta.json").exists();
+
+        if has_meta && is_uuid(name) {
+            cleanup_notes_in_session_dir(&path, name, valid_note_ids, sessions_with_memo, removed)?;
+        } else if !is_uuid(name) {
+            cleanup_session_notes_recursive(
+                base_dir,
+                &path,
+                valid_note_ids,
+                sessions_with_memo,
+                removed,
+            )?;
+        }
+    }
+
+    Ok(())
+}
+
+fn cleanup_notes_in_session_dir(
+    session_dir: &Path,
+    session_id: &str,
+    valid_note_ids: &HashSet<String>,
+    sessions_with_memo: &HashSet<String>,
+    removed: &mut u32,
+) -> std::io::Result<()> {
+    let entries = match std::fs::read_dir(session_dir) {
+        Ok(entries) => entries,
+        Err(_) => return Ok(()),
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+
+        let Some(ext) = path.extension().and_then(|e| e.to_str()) else {
+            continue;
+        };
+
+        if ext != "md" {
+            continue;
+        }
+
+        let Some(filename) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+
+        if filename == "_memo.md" {
+            if !sessions_with_memo.contains(session_id) {
+                if std::fs::remove_file(&path).is_ok() {
+                    tracing::debug!("Removed orphan memo file: {:?}", path);
+                    *removed += 1;
+                }
+            }
+            continue;
+        }
+
+        let content = match std::fs::read_to_string(&path) {
+            Ok(c) => c,
+            Err(_) => continue,
+        };
+
+        let note_id = extract_frontmatter_id(&content);
+        if let Some(id) = note_id {
+            if !valid_note_ids.contains(&id) {
+                if std::fs::remove_file(&path).is_ok() {
+                    tracing::debug!("Removed orphan note file: {:?}", path);
+                    *removed += 1;
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn extract_frontmatter_id(content: &str) -> Option<String> {
+    if !content.starts_with("---") {
+        return None;
+    }
+
+    let end_marker = content[3..].find("---")?;
+    let frontmatter = &content[3..3 + end_marker];
+
+    for line in frontmatter.lines() {
+        let line = line.trim();
+        if line.starts_with("id:") {
+            let value = line[3..].trim().trim_matches('"').trim_matches('\'');
+            if !value.is_empty() {
+                return Some(value.to_string());
+            }
+        }
+    }
+
+    None
+}
+
 fn collect_orphan_dirs(
     base_dir: &Path,
     marker_file: &str,

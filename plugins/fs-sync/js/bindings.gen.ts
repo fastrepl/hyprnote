@@ -78,17 +78,9 @@ async deleteFolder(folderPath: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async cleanupOrphanFiles(subdir: string, extension: string, validIds: string[]) : Promise<Result<number, string>> {
+async cleanupOrphan(target: CleanupTarget, validIds: string[]) : Promise<Result<number, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|cleanup_orphan_files", { subdir, extension, validIds }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async cleanupOrphanDirs(subdir: string, markerFile: string, validIds: string[]) : Promise<Result<number, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|cleanup_orphan_dirs", { subdir, markerFile, validIds }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|cleanup_orphan", { target, validIds }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -178,6 +170,7 @@ async entityDir(dirName: string) : Promise<Result<string, string>> {
 
 /** user-defined types **/
 
+export type CleanupTarget = { type: "files"; subdir: string; extension: string } | { type: "dirs"; subdir: string; marker_file: string } | { type: "sessionNotes"; sessions_with_memo: string[] }
 export type FolderInfo = { name: string; parent_folder_id: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type ListFoldersResult = { folders: Partial<{ [key in string]: FolderInfo }>; session_folder_map: Partial<{ [key in string]: string }> }

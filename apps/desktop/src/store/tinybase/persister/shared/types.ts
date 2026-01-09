@@ -16,11 +16,6 @@ export type { FsSyncJsonValue as JsonValue };
 
 export type BatchItem<T> = [T, string];
 
-export interface BatchCollectorResult<T> {
-  items: BatchItem<T>[];
-  dirs: Set<string>;
-}
-
 export type TablesContent = Partial<ReturnType<Store["getTables"]>>;
 
 type TableRowType<K extends keyof TablesContent> =
@@ -31,7 +26,6 @@ export type WriteOperation =
   | { type: "document-batch"; items: Array<[ParsedDocument, string]> };
 
 export type CollectorResult = {
-  dirs: Set<string>;
   operations: WriteOperation[];
 };
 

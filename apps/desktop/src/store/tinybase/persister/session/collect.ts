@@ -96,7 +96,6 @@ export function collectSessionWriteOps(
   dataDir: string,
   changedSessionIds?: Set<string>,
 ): SessionCollectorResult {
-  const dirs = new Set<string>();
   const operations: CollectorResult["operations"] = [];
 
   const sessionMetas = collectSessionMeta(store);
@@ -107,7 +106,6 @@ export function collectSessionWriteOps(
 
   for (const [sessionId, { meta, folderPath }] of sessionsToProcess) {
     const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
-    dirs.add(sessionDir);
 
     operations.push({
       type: "json",
@@ -117,7 +115,6 @@ export function collectSessionWriteOps(
   }
 
   return {
-    dirs,
     operations,
     validSessionIds: changedSessionIds
       ? new Set<string>()
@@ -131,7 +128,6 @@ export function collectTranscriptWriteOps(
   dataDir: string,
   changedSessionIds?: Set<string>,
 ): CollectorResult {
-  const dirs = new Set<string>();
   const operations: CollectorResult["operations"] = [];
 
   const transcripts = iterateTableRows(tables, "transcripts");
@@ -184,7 +180,6 @@ export function collectTranscriptWriteOps(
     const session = tables.sessions?.[sessionId];
     const folderPath = session?.folder_id ?? "";
     const sessionDir = getSessionDir(dataDir, sessionId, folderPath);
-    dirs.add(sessionDir);
 
     const content: TranscriptJson = { transcripts: sessionTranscripts };
     operations.push({
@@ -194,7 +189,7 @@ export function collectTranscriptWriteOps(
     });
   }
 
-  return { dirs, operations };
+  return { operations };
 }
 
 function tryParseAndConvertToMarkdown(content: string): string | undefined {
@@ -237,7 +232,6 @@ export function collectNoteWriteOps(
   dataDir: string,
   changedSessionIds?: Set<string>,
 ): CollectorResult {
-  const dirs = new Set<string>();
   const frontmatterBatchItems: Array<[ParsedDocument, string]> = [];
 
   for (const enhancedNote of iterateTableRows(tables, "enhanced_notes")) {
@@ -272,7 +266,6 @@ export function collectNoteWriteOps(
       enhancedNote.session_id,
       folderPath,
     );
-    dirs.add(sessionDir);
     frontmatterBatchItems.push([
       { frontmatter, content: markdown },
       [sessionDir, filename].join(sep()),
@@ -301,7 +294,6 @@ export function collectNoteWriteOps(
 
     const folderPath = session.folder_id ?? "";
     const sessionDir = getSessionDir(dataDir, session.id, folderPath);
-    dirs.add(sessionDir);
     frontmatterBatchItems.push([
       { frontmatter, content: markdown },
       [sessionDir, "_memo.md"].join(sep()),
@@ -316,5 +308,5 @@ export function collectNoteWriteOps(
     });
   }
 
-  return { dirs, operations };
+  return { operations };
 }

@@ -1,18 +1,4 @@
-import { mkdir, writeTextFile } from "@tauri-apps/plugin-fs";
-
 import { events as notifyEvents } from "@hypr/plugin-notify";
-
-export async function ensureDirsExist(dirs: Set<string>): Promise<void> {
-  for (const dir of dirs) {
-    try {
-      await mkdir(dir, { recursive: true });
-    } catch (e) {
-      if (!(e instanceof Error && e.message.includes("already exists"))) {
-        throw e;
-      }
-    }
-  }
-}
 
 export function safeParseJson(
   value: unknown,
@@ -37,22 +23,6 @@ export function isFileNotFoundError(error: unknown): boolean {
     errorStr.includes("ENOENT") ||
     errorStr.includes("not found")
   );
-}
-
-export async function writeJsonFiles(
-  operations: Array<{ path: string; content: unknown }>,
-  dirs: Set<string>,
-): Promise<void> {
-  if (operations.length === 0) return;
-
-  await ensureDirsExist(dirs);
-  for (const op of operations) {
-    try {
-      await writeTextFile(op.path, JSON.stringify(op.content, null, 2));
-    } catch (e) {
-      console.error(`Failed to write ${op.path}:`, e);
-    }
-  }
 }
 
 type NotifyListenerHandle = {

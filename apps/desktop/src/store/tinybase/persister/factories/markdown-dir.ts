@@ -96,12 +96,8 @@ function collectMarkdownWriteOps<TStorage>(
   config: MarkdownDirPersisterConfig<TStorage>,
 ): { result: CollectorResult; validIds: Set<string> } {
   const { dirName, toFrontmatter } = config;
-  const dirs = new Set<string>();
   const operations: CollectorResult["operations"] = [];
   const validIds = new Set<string>();
-
-  const entityDir = getMarkdownDir(dataDir, dirName);
-  dirs.add(entityDir);
 
   const documentItems: [ParsedDocument, string][] = [];
 
@@ -121,7 +117,7 @@ function collectMarkdownWriteOps<TStorage>(
     });
   }
 
-  return { result: { dirs, operations }, validIds };
+  return { result: { operations }, validIds };
 }
 
 export function createMarkdownDirPersister<
@@ -142,7 +138,7 @@ export function createMarkdownDirPersister<
       if (changedTables) {
         const changedRows = changedTables[tableName as keyof ChangedTables];
         if (!changedRows) {
-          return { dirs: new Set(), operations: [], validIds: new Set() };
+          return { operations: [], validIds: new Set() };
         }
 
         const changedIds = Object.keys(changedRows);

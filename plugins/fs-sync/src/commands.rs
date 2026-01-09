@@ -40,6 +40,10 @@ pub(crate) async fn deserialize(input: String) -> Result<ParsedDocument, String>
 pub(crate) async fn write_json_batch(items: Vec<(Value, String)>) -> Result<(), String> {
     spawn_blocking!({
         items.into_par_iter().try_for_each(|(json, path)| {
+            let path = std::path::Path::new(&path);
+            if let Some(parent) = path.parent() {
+                std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            }
             let content = crate::json::serialize(json)?;
             std::fs::write(path, content).map_err(|e| e.to_string())
         })
@@ -53,6 +57,10 @@ pub(crate) async fn write_document_batch(
 ) -> Result<(), String> {
     spawn_blocking!({
         items.into_par_iter().try_for_each(|(doc, path)| {
+            let path = std::path::Path::new(&path);
+            if let Some(parent) = path.parent() {
+                std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            }
             let content = crate::frontmatter::serialize(doc).map_err(|e| e.to_string())?;
             std::fs::write(path, content).map_err(|e| e.to_string())
         })

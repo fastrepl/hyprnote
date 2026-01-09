@@ -16,7 +16,6 @@ import {
 } from "@hypr/plugin-fs-sync";
 
 import { StoreOrMergeableStore } from "../../store/shared";
-import { ensureDirsExist } from "../shared/fs";
 import { getDataDir } from "../shared/paths";
 import {
   type ChangedTables,
@@ -67,13 +66,11 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
         dataDir,
         changedTables ?? undefined,
       );
-      const { dirs, operations } = result;
+      const { operations } = result;
 
       if (operations.length === 0) {
         return;
       }
-
-      await ensureDirsExist(dirs);
 
       const categorized = categorizeOperations(operations);
 

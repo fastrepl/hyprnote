@@ -48,7 +48,6 @@ export function createChatPersister(store: Store) {
         changedGroupIds = getChangedChatGroupIds(tables, changedTables);
         if (!changedGroupIds) {
           return {
-            dirs: new Set(),
             operations: [],
             validChatGroupIds: new Set(),
           };

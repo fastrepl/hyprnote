@@ -106,7 +106,6 @@ export function createSessionPersister(store: Store) {
         changedSessionIds = getChangedSessionIds(tables, changedTables);
         if (!changedSessionIds) {
           return {
-            dirs: new Set(),
             operations: [],
             validSessionIds: new Set(),
           };
@@ -132,11 +131,6 @@ export function createSessionPersister(store: Store) {
         changedSessionIds,
       );
 
-      const dirs = new Set([
-        ...sessionResult.dirs,
-        ...transcriptResult.dirs,
-        ...noteResult.dirs,
-      ]);
       const operations = [
         ...sessionResult.operations,
         ...transcriptResult.operations,
@@ -144,7 +138,6 @@ export function createSessionPersister(store: Store) {
       ];
 
       return {
-        dirs,
         operations,
         validSessionIds: changedSessionIds
           ? new Set<string>()

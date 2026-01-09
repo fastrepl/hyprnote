@@ -16,7 +16,6 @@ export function collectChatWriteOps(
   dataDir: string,
   changedGroupIds?: Set<string>,
 ): ChatCollectorResult {
-  const dirs = new Set<string>();
   const operations: CollectorResult["operations"] = [];
 
   const chatJsonList = tablesToChatJsonList(tables);
@@ -28,7 +27,6 @@ export function collectChatWriteOps(
   for (const chatJson of groupsToProcess) {
     const chatGroupId = chatJson.chat_group.id;
     const chatDir = getChatDir(dataDir, chatGroupId);
-    dirs.add(chatDir);
 
     operations.push({
       type: "json",
@@ -38,7 +36,6 @@ export function collectChatWriteOps(
   }
 
   return {
-    dirs,
     operations,
     validChatGroupIds: changedGroupIds
       ? new Set<string>()

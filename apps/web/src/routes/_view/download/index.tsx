@@ -81,6 +81,9 @@ function Component() {
 
               <h2 className="text-2xl font-serif tracking-tight mb-6 mt-16 text-center">
                 Linux
+                <span className="ml-2 text-sm font-sans text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                  Beta
+                </span>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
                 <DownloadCard
@@ -89,6 +92,7 @@ function Component() {
                   downloadUrl="/download/linux-appimage"
                   available={true}
                   platform="linux-appimage"
+                  beta={true}
                 />
                 <DownloadCard
                   iconName="simple-icons:linux"
@@ -96,6 +100,7 @@ function Component() {
                   downloadUrl="/download/linux-deb"
                   available={true}
                   platform="linux-deb"
+                  beta={true}
                 />
               </div>
             </div>
@@ -200,12 +205,14 @@ function DownloadCard({
   downloadUrl,
   available,
   platform,
+  beta = false,
 }: {
   iconName: string;
   spec: string;
   downloadUrl: string;
   available: boolean;
   platform: string;
+  beta?: boolean;
 }) {
   const { track } = useAnalytics();
 
@@ -223,18 +230,25 @@ function DownloadCard({
       <p className="text-sm text-neutral-600 mb-6 text-center">{spec}</p>
 
       {available ? (
-        <a
-          href={downloadUrl}
-          download
-          onClick={handleClick}
-          className="group w-full px-4 h-11 flex items-center justify-center bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all text-base font-medium"
-        >
-          Download
-          <Icon
-            icon="ph:arrow-circle-right"
-            className="text-xl ml-2 group-hover:translate-x-1 transition-transform"
-          />
-        </a>
+        <div className="relative w-full group/tooltip">
+          <a
+            href={downloadUrl}
+            download
+            onClick={handleClick}
+            className="group w-full px-4 h-11 flex items-center justify-center bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all text-base font-medium"
+          >
+            Download
+            <Icon
+              icon="ph:arrow-circle-right"
+              className="text-xl ml-2 group-hover:translate-x-1 transition-transform"
+            />
+          </a>
+          {beta && (
+            <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-stone-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none">
+              Public Beta
+            </span>
+          )}
+        </div>
       ) : (
         <button
           disabled

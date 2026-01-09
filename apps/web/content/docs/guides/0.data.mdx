@@ -4,42 +4,31 @@ section: "Guides"
 description: "How Hyprnote stores and manages your data."
 ---
 
-## Local-First Storage
-
-Hyprnote stores all your data locally on your device. Your notes, transcriptions, and summaries are saved in a SQLite database within the app's data directory.
+Hyprnote stores all data locally in a SQLite database. Nothing leaves your device unless you explicitly use cloud features.
 
 ## Data Location
 
-Your data is stored in the following locations:
+| Platform | Path |
+|----------|------|
+| macOS | `~/Library/Application Support/hyprnote/` |
+| Linux | `~/.local/share/hyprnote/` |
 
-- **macOS**: `~/Library/Application Support/com.hyprnote.desktop`
-- **Linux**: `~/.local/share/com.hyprnote.desktop`
+In development mode, the folder name changes to `com.hyprnote.dev` or `com.hyprnote.staging`.
+
+## Directory Structure
+
+```
+hyprnote/
+├── db.sqlite        # Notes, transcripts, metadata
+├── settings.json    # App configuration
+└── sessions/        # Audio recordings
+```
 
 ## Export
 
-You can export your notes in various formats directly from the app. Select any note and use the export option to save it as Markdown, JSON, or plain text.
+Select any note and use the export option to save as Markdown, JSON, or plain text.
 
 ## Backup
 
-Since all data is stored locally, you can back up your notes by copying the entire data directory. We recommend including this folder in your regular backup routine.
-
-# Base Directory
-
-Hyprnote stores its data in the following directories:
-
-## macOS
-
-```bash
-~/Library/Application Support/hyprnote/
-```
-
-In `staging` and `dev` mode, the base directory use `com.hyprnote.staging` or `com.hyprnote.dev` instead of `hyprnote`.
-
-# Settings
-
-`<BASE_DIR>/settings.json` is used to store the settings.
-
-# Sessions
-
-`<BASE_DIR>/sessions` is used to store the sessions.
+Copy the entire data directory to back up your notes. Include this folder in your regular backup routine.
 

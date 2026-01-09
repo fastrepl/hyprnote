@@ -1,5 +1,6 @@
 import { Brain, Cloud, ExternalLink, Puzzle, Sparkle, X } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { create } from "zustand";
 
 import { cn } from "@hypr/utils";
@@ -39,7 +40,7 @@ export function TrialBeginModal() {
     return null;
   }
 
-  return (
+  return createPortal(
     <>
       <div
         className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
@@ -110,6 +111,7 @@ export function TrialBeginModal() {
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }

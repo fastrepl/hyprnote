@@ -75,9 +75,7 @@ export function TrialBeginModal() {
                 Welcome to Pro!
               </h2>
               <p className="text-muted-foreground">
-                Your free trial has started.
-                <br />
-                Here's what you now have access to
+                You just gained access to these features
               </p>
             </div>
 
@@ -88,6 +86,7 @@ export function TrialBeginModal() {
                 { label: "Memory", icon: Brain },
                 { label: "Integrations", icon: Puzzle },
                 { label: "Shareable links", icon: ExternalLink },
+                { label: "and more", icon: null },
               ].map(({ label, icon: Icon }) => (
                 <div
                   key={label}
@@ -96,7 +95,7 @@ export function TrialBeginModal() {
                     "flex items-center gap-2",
                   ])}
                 >
-                  <Icon className="h-4 w-4" />
+                  {Icon && <Icon className="h-4 w-4" />}
                   {label}
                 </div>
               ))}

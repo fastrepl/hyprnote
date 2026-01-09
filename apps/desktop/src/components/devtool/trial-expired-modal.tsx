@@ -80,9 +80,7 @@ export function TrialExpiredModal() {
                 Your free trial is over
               </h2>
               <p className="text-muted-foreground">
-                You can keep using Hyprnote for free,
-                <br />
-                but here's what you'll be losing
+                Here's what you just lost access to
               </p>
             </div>
 
@@ -93,6 +91,7 @@ export function TrialExpiredModal() {
                 { label: "Memory", icon: Brain },
                 { label: "Integrations", icon: Puzzle },
                 { label: "Shareable links", icon: ExternalLink },
+                { label: "and more", icon: null },
               ].map(({ label, icon: Icon }) => (
                 <div
                   key={label}
@@ -101,7 +100,7 @@ export function TrialExpiredModal() {
                     "flex items-center gap-2",
                   ])}
                 >
-                  <Icon className="h-4 w-4" />
+                  {Icon && <Icon className="h-4 w-4" />}
                   {label}
                 </div>
               ))}

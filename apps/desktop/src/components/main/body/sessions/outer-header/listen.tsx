@@ -247,7 +247,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
               color="#ef4444"
               height={16}
               width={muted ? 50 : 75}
-              barWidth={2}
+              barWidth={3}
               gap={1}
               minBarHeight={2}
             />

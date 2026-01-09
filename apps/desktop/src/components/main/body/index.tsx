@@ -111,9 +111,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
     useState(false);
   const { ref: rightContainerRef, hasSpace: hasSpaceForSearch } =
     useHasSpaceForSearch();
-  const scrollState = useScrollState(tabsScrollContainerRef, [tabs]);
-
-  const setTabRef = useScrollActiveTabIntoView(tabs);
+  const { setTabRef, tabRefsMap } = useScrollActiveTabIntoView(tabs);
+  const scrollState = useScrollState(tabsScrollContainerRef, tabRefsMap, tabs, [
+    tabs,
+  ]);
   useTabsShortcuts();
 
   return (
@@ -206,10 +207,20 @@ function Header({ tabs }: { tabs: Tab[] }) {
           </Reorder.Group>
         </div>
         {!scrollState.atStart && (
-          <div className="absolute left-0 top-0 h-full w-8 z-20 pointer-events-none bg-gradient-to-r from-white to-transparent" />
+          <div
+            className={cn([
+              "absolute left-0 top-0 h-full w-8 z-20 pointer-events-none bg-gradient-to-r to-transparent",
+              scrollState.activeHiddenLeft ? "from-red-400/50" : "from-white",
+            ])}
+          />
         )}
         {!scrollState.atEnd && (
-          <div className="absolute right-0 top-0 h-full w-8 z-20 pointer-events-none bg-gradient-to-l from-white to-transparent" />
+          <div
+            className={cn([
+              "absolute right-0 top-0 h-full w-8 z-20 pointer-events-none bg-gradient-to-l to-transparent",
+              scrollState.activeHiddenRight ? "from-red-400/50" : "from-white",
+            ])}
+          />
         )}
       </div>
 
@@ -566,11 +577,15 @@ function useHasSpaceForSearch() {
 
 function useScrollState(
   ref: React.RefObject<HTMLDivElement | null>,
+  tabRefsMap: React.RefObject<Map<string, HTMLDivElement>>,
+  tabs: Tab[],
   deps: unknown[] = [],
 ) {
   const [scrollState, setScrollState] = useState({
     atStart: true,
     atEnd: true,
+    activeHiddenLeft: false,
+    activeHiddenRight: false,
   });
 
   const updateScrollState = useCallback(() => {
@@ -578,11 +593,32 @@ function useScrollState(
     if (!container) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
+    const atStart = scrollLeft <= 1;
+    const atEnd = scrollLeft + clientWidth >= scrollWidth - 1;
+
+    let activeHiddenLeft = false;
+    let activeHiddenRight = false;
+
+    const activeTab = tabs.find((tab) => tab.active);
+    if (activeTab && tabRefsMap.current) {
+      const tabKey = uniqueIdfromTab(activeTab);
+      const tabElement = tabRefsMap.current.get(tabKey);
+      if (tabElement) {
+        const containerRect = container.getBoundingClientRect();
+        const tabRect = tabElement.getBoundingClientRect();
+
+        activeHiddenLeft = tabRect.right < containerRect.left;
+        activeHiddenRight = tabRect.left > containerRect.right;
+      }
+    }
+
     setScrollState({
-      atStart: scrollLeft <= 1,
-      atEnd: scrollLeft + clientWidth >= scrollWidth - 1,
+      atStart,
+      atEnd,
+      activeHiddenLeft,
+      activeHiddenRight,
     });
-  }, [ref]);
+  }, [ref, tabRefsMap, tabs]);
 
   useResizeObserver({
     ref: ref as React.RefObject<HTMLDivElement>,
@@ -630,7 +666,7 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
     }
   }, []);
 
-  return setTabRef;
+  return { setTabRef, tabRefsMap };
 }
 
 function useTabsShortcuts() {

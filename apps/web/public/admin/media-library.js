@@ -652,16 +652,17 @@ const createGitHubMediaLibrary = () => {
       });
     });
 
-    const gridOrList = content.querySelector(".gml-grid, .gml-list");
-    if (gridOrList) {
-      gridOrList.addEventListener("click", (e) => {
-        if (e.target === gridOrList) {
-          selectedItems.clear();
-          content.querySelectorAll(".selected").forEach((el) => el.classList.remove("selected"));
-          updateToolbar();
-        }
-      });
-    }
+    content.addEventListener("click", (e) => {
+      if (
+        e.target === content ||
+        e.target.classList.contains("gml-grid") ||
+        e.target.classList.contains("gml-list")
+      ) {
+        selectedItems.clear();
+        content.querySelectorAll(".selected").forEach((el) => el.classList.remove("selected"));
+        updateToolbar();
+      }
+    });
   }
 
   function updateToolbar() {

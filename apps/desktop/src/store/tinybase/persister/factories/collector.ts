@@ -17,7 +17,7 @@ import {
 } from "@hypr/plugin-fs-sync";
 
 import { StoreOrMergeableStore } from "../../store/shared";
-import { createNotifyListener } from "../shared/fs";
+import { createFileListener, type NotifyListenerHandle } from "../shared/fs";
 import { getDataDir } from "../shared/paths";
 import {
   type ChangedTables,
@@ -34,35 +34,67 @@ type CategorizedOperations = {
   delete: string[];
 };
 
-type NotifyListenerHandle = {
-  unlisten: (() => void) | null;
-  interval: ReturnType<typeof setInterval> | null;
+type LoadSingleFn<Schemas extends OptionalSchemas> = (
+  entityId: string,
+) => Promise<
+  PersistedChanges<Schemas, Persists.StoreOrMergeableStore> | undefined
+>;
+
+type BaseCollectorOptions<Schemas extends OptionalSchemas> = {
+  label: string;
+  collect: (
+    store: MergeableStore<Schemas>,
+    tables: TablesContent,
+    dataDir: string,
+    changedTables?: ChangedTables,
+  ) => CollectorResult;
+  load?: () => Promise<Content<Schemas> | undefined>;
+  postSave?: (dataDir: string, result: CollectorResult) => Promise<void>;
+  postSaveAlways?: boolean;
+  watchPaths?: string[];
+  watchIntervalMs?: number;
 };
+
+type CollectorOptionsWithEntityLoading<Schemas extends OptionalSchemas> =
+  BaseCollectorOptions<Schemas> & {
+    loadSingle: LoadSingleFn<Schemas>;
+    entityParser: (path: string) => string | null;
+  };
+
+type CollectorOptionsWithoutEntityLoading<Schemas extends OptionalSchemas> =
+  BaseCollectorOptions<Schemas> & {
+    loadSingle?: never;
+    entityParser?: never;
+  };
+
+export type CollectorOptions<Schemas extends OptionalSchemas> =
+  | CollectorOptionsWithEntityLoading<Schemas>
+  | CollectorOptionsWithoutEntityLoading<Schemas>;
 
 export function createCollectorPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
-  options: {
-    label: string;
-    collect: (
-      store: MergeableStore<Schemas>,
-      tables: TablesContent,
-      dataDir: string,
-      changedTables?: ChangedTables,
-    ) => CollectorResult;
-    load?: () => Promise<Content<Schemas> | undefined>;
-    postSave?: (dataDir: string, result: CollectorResult) => Promise<void>;
-    postSaveAlways?: boolean;
-    watchPaths?: string[];
-    watchIntervalMs?: number;
-  },
+  options: CollectorOptions<Schemas>,
 ) {
   const loadFn = options.load ?? (async () => undefined);
 
-  const notifyListener = options.watchPaths
-    ? createNotifyListener(
-        (path) => options.watchPaths!.some((p) => path.startsWith(p)),
-        options.watchIntervalMs ?? 30000,
-      )
+  const pathMatcher = (path: string) =>
+    options.watchPaths?.some((p) => path.startsWith(p)) ?? false;
+
+  const useEntityMode =
+    options.watchPaths && options.loadSingle && options.entityParser;
+
+  const fileListener = options.watchPaths
+    ? useEntityMode
+      ? createFileListener({
+          mode: "entity",
+          pathMatcher,
+          entityParser: options.entityParser!,
+        })
+      : createFileListener({
+          mode: "simple",
+          pathMatcher,
+          fallbackIntervalMs: options.watchIntervalMs ?? 30000,
+        })
     : null;
 
   const saveFn = async (
@@ -110,12 +142,43 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
     loadFn,
     saveFn,
     (listener) => {
-      if (!notifyListener) return null;
-      return notifyListener.addListener(() => listener());
+      if (!fileListener) return null;
+
+      if (useEntityMode && options.loadSingle) {
+        const entityFileListener = fileListener as ReturnType<
+          typeof createFileListener<{
+            mode: "entity";
+            pathMatcher: typeof pathMatcher;
+            entityParser: NonNullable<typeof options.entityParser>;
+          }>
+        >;
+        return entityFileListener.addListener(async ({ entityId }) => {
+          try {
+            const changes = await options.loadSingle!(entityId);
+            if (changes) {
+              listener(undefined, changes);
+            }
+          } catch (error) {
+            console.error(
+              `[${options.label}] loadSingle error for ${entityId}:`,
+              error,
+            );
+            listener();
+          }
+        });
+      }
+
+      const simpleFileListener = fileListener as ReturnType<
+        typeof createFileListener<{
+          mode: "simple";
+          pathMatcher: typeof pathMatcher;
+        }>
+      >;
+      return simpleFileListener.addListener(() => listener());
     },
     (handle: NotifyListenerHandle | null) => {
-      if (handle && notifyListener) {
-        notifyListener.delListener(handle);
+      if (handle && fileListener) {
+        fileListener.delListener(handle);
       }
     },
     (error) => console.error(`[${options.label}]:`, error),

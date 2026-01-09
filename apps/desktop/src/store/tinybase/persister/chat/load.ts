@@ -1,7 +1,9 @@
 import { sep } from "@tauri-apps/api/path";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
+import { isFileNotFoundError } from "../shared/fs";
 import {
   type ChatJson,
   chatJsonToData,
@@ -21,7 +23,7 @@ export async function loadAllChatData(
 
   const scanResult = await fsSyncCommands.scanAndRead(
     chatsDir,
-    ["messages.json"],
+    ["_messages.json"],
     false,
   );
 
@@ -44,4 +46,22 @@ export async function loadAllChatData(
   }
 
   return mergeLoadedData(items);
+}
+
+export async function loadSingleChatGroup(
+  dataDir: string,
+  groupId: string,
+): Promise<LoadedChatData> {
+  const filePath = [dataDir, "chats", groupId, "_messages.json"].join(sep());
+
+  try {
+    const content = await readTextFile(filePath);
+    const json = JSON.parse(content) as ChatJson;
+    return chatJsonToData(json);
+  } catch (error) {
+    if (!isFileNotFoundError(error)) {
+      console.error(`[${LABEL}] Failed to load chat group ${groupId}:`, error);
+    }
+    return createEmptyLoadedData();
+  }
 }

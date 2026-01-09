@@ -1,7 +1,11 @@
+import type {
+  PersistedChanges,
+  Persists,
+} from "tinybase/persisters/with-schemas";
 import type { Content } from "tinybase/with-schemas";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
-import type { ChatGroup, ChatMessageStorage, Schemas } from "@hypr/store";
+import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { createCollectorPersister } from "../factories";
@@ -9,53 +13,31 @@ import {
   asTablesChanges,
   type ChangedTables,
   type CollectorResult,
+  createDeletionMarker,
   getDataDir,
   type TablesContent,
 } from "../shared";
 import { collectChatWriteOps } from "./collect";
-import { loadAllChatData, type LoadedChatData } from "./load";
+import {
+  loadAllChatData,
+  type LoadedChatData,
+  loadSingleChatGroup,
+} from "./load";
 
-type LoadResultWithDeletions = {
-  chat_groups: Record<string, ChatGroup | undefined>;
-  chat_messages: Record<string, ChatMessageStorage | undefined>;
-};
+function createChatDeletionMarker(store: Store) {
+  return createDeletionMarker<LoadedChatData>(store, [
+    { tableName: "chat_groups", isPrimary: true },
+    { tableName: "chat_messages", foreignKey: "chat_group_id" },
+  ]);
+}
 
-function markDeletedRows(
-  store: Store,
-  loaded: LoadedChatData,
-): LoadResultWithDeletions {
-  const existingGroups = store.getTable("chat_groups") ?? {};
-  const existingMessages = store.getTable("chat_messages") ?? {};
-
-  const existingGroupIds = new Set(Object.keys(existingGroups));
-  const existingMessageIds = new Set(Object.keys(existingMessages));
-
-  const loadedGroupIds = new Set(Object.keys(loaded.chat_groups));
-  const loadedMessageIds = new Set(Object.keys(loaded.chat_messages));
-
-  const resultGroups: Record<string, ChatGroup | undefined> = {
-    ...loaded.chat_groups,
-  };
-  const resultMessages: Record<string, ChatMessageStorage | undefined> = {
-    ...loaded.chat_messages,
-  };
-
-  for (const id of existingGroupIds) {
-    if (!loadedGroupIds.has(id)) {
-      resultGroups[id] = undefined;
-    }
+function parseGroupIdFromPath(path: string): string | null {
+  const parts = path.split("/");
+  const chatsIndex = parts.indexOf("chats");
+  if (chatsIndex === -1 || chatsIndex + 1 >= parts.length) {
+    return null;
   }
-
-  for (const id of existingMessageIds) {
-    if (!loadedMessageIds.has(id)) {
-      resultMessages[id] = undefined;
-    }
-  }
-
-  return {
-    chat_groups: resultGroups,
-    chat_messages: resultMessages,
-  };
+  return parts[chatsIndex + 1] || null;
 }
 
 function getChangedChatGroupIds(
@@ -89,10 +71,43 @@ function getChangedChatGroupIds(
 }
 
 export function createChatPersister(store: Store) {
+  const deletionMarker = createChatDeletionMarker(store);
+
   return createCollectorPersister(store, {
     label: "ChatPersister",
     watchPaths: ["chats/"],
     postSaveAlways: true,
+    entityParser: parseGroupIdFromPath,
+    loadSingle: async (groupId: string) => {
+      try {
+        const dataDir = await getDataDir();
+        const data = await loadSingleChatGroup(dataDir, groupId);
+
+        const result = deletionMarker.markForEntity(data, groupId);
+
+        const hasChanges =
+          Object.keys(result.chat_groups).length > 0 ||
+          Object.keys(result.chat_messages).length > 0;
+
+        if (!hasChanges) {
+          return undefined;
+        }
+
+        return asTablesChanges({
+          chat_groups: result.chat_groups,
+          chat_messages: result.chat_messages,
+        }) as unknown as PersistedChanges<
+          Schemas,
+          Persists.StoreOrMergeableStore
+        >;
+      } catch (error) {
+        console.error(
+          `[ChatPersister] loadSingle error for ${groupId}:`,
+          error,
+        );
+        return undefined;
+      }
+    },
     collect: (_store, tables, dataDir, changedTables) => {
       let changedGroupIds: Set<string> | undefined;
 
@@ -114,7 +129,7 @@ export function createChatPersister(store: Store) {
         const dataDir = await getDataDir();
         const data = await loadAllChatData(dataDir);
 
-        const result = markDeletedRows(store, data);
+        const result = deletionMarker.markAll(data);
 
         const hasChanges =
           Object.keys(result.chat_groups).length > 0 ||
@@ -140,7 +155,7 @@ export function createChatPersister(store: Store) {
         return;
       }
       await fsSyncCommands.cleanupOrphan(
-        { type: "dirs", subdir: "chats", marker_file: "messages.json" },
+        { type: "dirs", subdir: "chats", marker_file: "_messages.json" },
         Array.from(validChatGroupIds),
       );
     },

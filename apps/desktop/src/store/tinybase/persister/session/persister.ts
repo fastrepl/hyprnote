@@ -1,3 +1,7 @@
+import type {
+  PersistedChanges,
+  Persists,
+} from "tinybase/persisters/with-schemas";
 import type { Content } from "tinybase/with-schemas";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
@@ -9,6 +13,7 @@ import {
   asTablesChanges,
   type ChangedTables,
   type CollectorResult,
+  createDeletionMarker,
   getDataDir,
   type TablesContent,
 } from "../shared";
@@ -19,78 +24,30 @@ import {
   type NoteCollectorResult,
   type SessionCollectorResult,
 } from "./collect";
-import { loadAllSessionData, type SessionDataLoad } from "./load";
+import {
+  loadAllSessionData,
+  loadSingleSession,
+  type SessionDataLoad,
+} from "./load";
 
-type SessionLoadResultWithDeletions = {
-  sessions: Record<string, Record<string, unknown> | undefined>;
-  mapping_session_participant: Record<
-    string,
-    Record<string, unknown> | undefined
-  >;
-  tags: Record<string, Record<string, unknown> | undefined>;
-  mapping_tag_session: Record<string, Record<string, unknown> | undefined>;
-  transcripts: Record<string, Record<string, unknown> | undefined>;
-  enhanced_notes: Record<string, Record<string, unknown> | undefined>;
-};
+function createSessionDeletionMarker(store: Store) {
+  return createDeletionMarker<SessionDataLoad>(store, [
+    { tableName: "sessions", isPrimary: true },
+    { tableName: "mapping_session_participant", foreignKey: "session_id" },
+    { tableName: "tags" },
+    { tableName: "mapping_tag_session", foreignKey: "session_id" },
+    { tableName: "transcripts", foreignKey: "session_id" },
+    { tableName: "enhanced_notes", foreignKey: "session_id" },
+  ]);
+}
 
-function markDeletedRows(
-  store: Store,
-  loaded: SessionDataLoad,
-): SessionLoadResultWithDeletions {
-  const result: SessionLoadResultWithDeletions = {
-    sessions: { ...loaded.sessions },
-    mapping_session_participant: { ...loaded.mapping_session_participant },
-    tags: { ...loaded.tags },
-    mapping_tag_session: { ...loaded.mapping_tag_session },
-    transcripts: { ...loaded.transcripts },
-    enhanced_notes: { ...loaded.enhanced_notes },
-  };
-
-  const existingSessions = store.getTable("sessions") ?? {};
-  const existingParticipants =
-    store.getTable("mapping_session_participant") ?? {};
-  const existingTags = store.getTable("tags") ?? {};
-  const existingTagSessions = store.getTable("mapping_tag_session") ?? {};
-  const existingTranscripts = store.getTable("transcripts") ?? {};
-  const existingNotes = store.getTable("enhanced_notes") ?? {};
-
-  for (const id of Object.keys(existingSessions)) {
-    if (!(id in loaded.sessions)) {
-      result.sessions[id] = undefined;
-    }
+function parseSessionIdFromPath(path: string): string | null {
+  const parts = path.split("/");
+  const sessionsIndex = parts.indexOf("sessions");
+  if (sessionsIndex === -1 || sessionsIndex + 1 >= parts.length) {
+    return null;
   }
-
-  for (const id of Object.keys(existingParticipants)) {
-    if (!(id in loaded.mapping_session_participant)) {
-      result.mapping_session_participant[id] = undefined;
-    }
-  }
-
-  for (const id of Object.keys(existingTags)) {
-    if (!(id in loaded.tags)) {
-      result.tags[id] = undefined;
-    }
-  }
-
-  for (const id of Object.keys(existingTagSessions)) {
-    if (!(id in loaded.mapping_tag_session)) {
-      result.mapping_tag_session[id] = undefined;
-    }
-  }
-
-  for (const id of Object.keys(existingTranscripts)) {
-    if (!(id in loaded.transcripts)) {
-      result.transcripts[id] = undefined;
-    }
-  }
-
-  for (const id of Object.keys(existingNotes)) {
-    if (!(id in loaded.enhanced_notes)) {
-      result.enhanced_notes[id] = undefined;
-    }
-  }
-
-  return result;
+  return parts[sessionsIndex + 1] || null;
 }
 
 type ChangeResult = {
@@ -182,10 +139,51 @@ function getChangedSessionIds(
 }
 
 export function createSessionPersister(store: Store) {
+  const deletionMarker = createSessionDeletionMarker(store);
+
   return createCollectorPersister(store, {
     label: "SessionPersister",
     watchPaths: ["sessions/"],
     postSaveAlways: true,
+    entityParser: parseSessionIdFromPath,
+    loadSingle: async (sessionId: string) => {
+      try {
+        const dataDir = await getDataDir();
+        const data = await loadSingleSession(dataDir, sessionId);
+
+        const result = deletionMarker.markForEntity(data, sessionId);
+
+        const hasChanges =
+          Object.keys(result.sessions).length > 0 ||
+          Object.keys(result.mapping_session_participant).length > 0 ||
+          Object.keys(result.tags).length > 0 ||
+          Object.keys(result.mapping_tag_session).length > 0 ||
+          Object.keys(result.transcripts).length > 0 ||
+          Object.keys(result.enhanced_notes).length > 0;
+
+        if (!hasChanges) {
+          return undefined;
+        }
+
+        return asTablesChanges({
+          sessions: result.sessions,
+          mapping_session_participant: result.mapping_session_participant,
+          tags: result.tags,
+          mapping_tag_session: result.mapping_tag_session,
+          transcripts: result.transcripts,
+          enhanced_notes: result.enhanced_notes,
+        }) as unknown as PersistedChanges<
+          Schemas,
+          Persists.StoreOrMergeableStore
+        >;
+      } catch (error) {
+        console.error(
+          `[SessionPersister] loadSingle error for ${sessionId}:`,
+          error,
+        );
+        return undefined;
+      }
+    },
     collect: (store, tables, dataDir, changedTables) => {
       let changedSessionIds: Set<string> | undefined;
 
@@ -254,7 +252,7 @@ export function createSessionPersister(store: Store) {
         const dataDir = await getDataDir();
         const data = await loadAllSessionData(dataDir);
 
-        const result = markDeletedRows(store, data);
+        const result = deletionMarker.markAll(data);
 
         const hasChanges =
           Object.keys(result.sessions).length > 0 ||

@@ -28,8 +28,10 @@ async stop() : Promise<Result<null, string>> {
 
 
 export const events = __makeEvents__<{
+entityChanged: EntityChanged,
 fileChanged: FileChanged
 }>({
+entityChanged: "plugin:notify:entity-changed",
 fileChanged: "plugin:notify:file-changed"
 })
 
@@ -40,6 +42,8 @@ fileChanged: "plugin:notify:file-changed"
 /** user-defined types **/
 
 export type ChangeKind = "created" | "modified" | "removed" | "renamed" | "access" | "any" | "other"
+export type EntityChanged = { entity: EntityKind; id: string; change: ChangeKind }
+export type EntityKind = "session" | "human" | "organization" | "chat_group" | "prompt" | "template" | "calendar" | "event" | "chat_shortcuts" | "unknown"
 export type FileChanged = { path: string; kind: ChangeKind }
 
 /** tauri-specta globals **/

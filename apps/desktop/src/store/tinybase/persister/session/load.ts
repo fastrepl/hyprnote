@@ -154,10 +154,8 @@ async function processMdFile(
   }
 }
 
-export async function loadAllSessionData(
-  dataDir: string,
-): Promise<SessionDataLoad> {
-  const result: SessionDataLoad = {
+function createEmptyResult(): SessionDataLoad {
+  return {
     sessions: {},
     mapping_session_participant: {},
     tags: {},
@@ -165,23 +163,13 @@ export async function loadAllSessionData(
     transcripts: {},
     enhanced_notes: {},
   };
+}
 
-  const sessionsDir = [dataDir, "sessions"].join(sep());
-  const now = new Date().toISOString();
-
-  const scanResult = await fsSyncCommands.scanAndRead(
-    sessionsDir,
-    ["_meta.json", "transcript.json", "*.md"],
-    true,
-  );
-
-  if (scanResult.status === "error") {
-    console.error(`[${LABEL}] scan error:`, scanResult.error);
-    return result;
-  }
-
-  const { files } = scanResult.data;
-
+async function processFiles(
+  files: Partial<Record<string, string>>,
+  result: SessionDataLoad,
+  now: string,
+): Promise<void> {
   for (const [path, content] of Object.entries(files)) {
     if (!content) continue;
     if (path.endsWith("_meta.json")) {
@@ -191,7 +179,7 @@ export async function loadAllSessionData(
 
   for (const [path, content] of Object.entries(files)) {
     if (!content) continue;
-    if (path.endsWith("transcript.json")) {
+    if (path.endsWith("_transcript.json")) {
       processTranscriptFile(path, content, result);
     }
   }
@@ -204,6 +192,48 @@ export async function loadAllSessionData(
     }
   }
   await Promise.all(mdPromises);
+}
 
+export async function loadAllSessionData(
+  dataDir: string,
+): Promise<SessionDataLoad> {
+  const result = createEmptyResult();
+  const sessionsDir = [dataDir, "sessions"].join(sep());
+  const now = new Date().toISOString();
+
+  const scanResult = await fsSyncCommands.scanAndRead(
+    sessionsDir,
+    ["_meta.json", "_transcript.json", "*.md"],
+    true,
+  );
+
+  if (scanResult.status === "error") {
+    console.error(`[${LABEL}] scan error:`, scanResult.error);
+    return result;
+  }
+
+  await processFiles(scanResult.data.files, result, now);
+  return result;
+}
+
+export async function loadSingleSession(
+  dataDir: string,
+  sessionId: string,
+): Promise<SessionDataLoad> {
+  const result = createEmptyResult();
+  const sessionDir = [dataDir, "sessions", sessionId].join(sep());
+  const now = new Date().toISOString();
+
+  const scanResult = await fsSyncCommands.scanAndRead(
+    sessionDir,
+    ["_meta.json", "_transcript.json", "*.md"],
+    false,
+  );
+
+  if (scanResult.status === "error") {
+    return result;
+  }
+
+  await processFiles(scanResult.data.files, result, now);
   return result;
 }

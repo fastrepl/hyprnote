@@ -615,6 +615,7 @@ const createGitHubMediaLibrary = () => {
 
     content.querySelectorAll(".gml-grid-item, .gml-list-item").forEach((item) => {
       item.addEventListener("click", (e) => {
+        e.stopPropagation();
         const type = item.dataset.type;
         const path = item.dataset.path;
         const publicPath = item.dataset.public || path;
@@ -650,6 +651,17 @@ const createGitHubMediaLibrary = () => {
         }
       });
     });
+
+    const gridOrList = content.querySelector(".gml-grid, .gml-list");
+    if (gridOrList) {
+      gridOrList.addEventListener("click", (e) => {
+        if (e.target === gridOrList) {
+          selectedItems.clear();
+          content.querySelectorAll(".selected").forEach((el) => el.classList.remove("selected"));
+          updateToolbar();
+        }
+      });
+    }
   }
 
   function updateToolbar() {

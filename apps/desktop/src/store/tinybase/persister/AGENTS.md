@@ -19,9 +19,9 @@ Only needs `index.ts` + `persister.ts`. Configuration-only, no transform needed.
 
 ### Markdown Dir Pattern (human, organization, prompts)
 
-- `changes.ts`: Path parsing for file watcher and change detection helpers.
+- `changes.ts`: Path parsing for file watcher.
   - Export `parseXxxIdFromPath(path) → string | null`
-  - Export `getChangedXxxIds(changedTables) → Set<string> | undefined`
+  - Note: Change detection is handled by the factory via `changedTables[tableName]`
 - `transform.ts`: Bidirectional conversion between frontmatter/body and store format.
   - Export `xxxToFrontmatter(storage) → { frontmatter, body }`
   - Export `frontmatterToXxx(frontmatter, body) → storage`
@@ -33,10 +33,10 @@ Only needs `index.ts` + `persister.ts`. Configuration-only, no transform needed.
   - Export `loadSingleXxx(dataDir, id) → LoadedData`
 - `collect.ts`: Extracts store data and prepares write operations (store → filesystem).
   - Export `collectXxxWriteOps(store, tables, dataDir, changedIds?) → CollectorResult`
-- `changes.ts`: Change detection and deletion tracking for incremental saves.
-  - Export `getChangedXxxIds(tables, changedTables) → Set<string> | undefined`
-  - Export `createXxxDeletionMarker(store) → DeletionMarker`
+- `changes.ts`: Change detection with relationship traversal and deletion tracking.
   - Export `parseXxxIdFromPath(path) → string | null`
+  - Export `getChangedXxxIds(tables, changedTables) → Set<string> | undefined` — needed for resolving child table changes to parent entity
+  - Export `createXxxDeletionMarker(store) → DeletionMarker`
 - `transform.ts`: Type definitions for JSON file structures and loaded data types.
 - `ops.ts`: External mutation API (session-specific, for folder/session operations).
 

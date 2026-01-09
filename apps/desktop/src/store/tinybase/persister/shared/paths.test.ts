@@ -5,6 +5,7 @@ import {
   buildEntityFilePath,
   buildEntityPath,
   buildSessionPath,
+  createMarkdownEntityParser,
   getParentFolderPath,
   sanitizeFilename,
 } from "./paths";
@@ -190,5 +191,47 @@ describe("sanitizeFilename", () => {
 
   test("preserves underscores", () => {
     expect(sanitizeFilename("file_name_test")).toBe("file_name_test");
+  });
+});
+
+describe("createMarkdownEntityParser", () => {
+  const parseHumanId = createMarkdownEntityParser("humans");
+
+  test("parses id from valid path", () => {
+    expect(parseHumanId("humans/person-123.md")).toBe("person-123");
+  });
+
+  test("parses id from path with leading segments", () => {
+    expect(parseHumanId("/data/hyprnote/humans/person-123.md")).toBe(
+      "person-123",
+    );
+  });
+
+  test("parses uuid from path", () => {
+    expect(parseHumanId("humans/550e8400-e29b-41d4-a716-446655440000.md")).toBe(
+      "550e8400-e29b-41d4-a716-446655440000",
+    );
+  });
+
+  test("returns null for non-markdown file", () => {
+    expect(parseHumanId("humans/person-123.json")).toBeNull();
+  });
+
+  test("returns null for wrong directory", () => {
+    expect(parseHumanId("organizations/org-123.md")).toBeNull();
+  });
+
+  test("returns null for path without filename", () => {
+    expect(parseHumanId("humans/")).toBeNull();
+  });
+
+  test("returns null for directory name only", () => {
+    expect(parseHumanId("humans")).toBeNull();
+  });
+
+  test("works with different directory names", () => {
+    const parseOrgId = createMarkdownEntityParser("organizations");
+    expect(parseOrgId("organizations/acme-corp.md")).toBe("acme-corp");
+    expect(parseOrgId("humans/person.md")).toBeNull();
   });
 });

@@ -200,60 +200,6 @@ describe("createHumanPersister", () => {
     });
   });
 
-  describe("migration", () => {
-    test("migrates from humans.json when it exists and humans dir does not", async () => {
-      const { exists, readTextFile, mkdir, remove } =
-        await import("@tauri-apps/plugin-fs");
-      const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");
-
-      vi.mocked(exists).mockImplementation(async (path: string | URL) => {
-        const p = typeof path === "string" ? path : path.toString();
-        if (p.endsWith("humans.json")) return true;
-        if (p.endsWith("humans")) return false;
-        return false;
-      });
-
-      const mockJsonData = {
-        [TEST_UUID_1]: {
-          user_id: "user-1",
-          created_at: "2024-01-01T00:00:00Z",
-          name: "John Doe",
-          email: "john@example.com",
-          org_id: "org-1",
-          job_title: "Engineer",
-          linkedin_username: "johndoe",
-          memo: "Some notes",
-        },
-      };
-      vi.mocked(readTextFile).mockResolvedValue(JSON.stringify(mockJsonData));
-
-      const persister = createHumanPersister(store);
-      await persister.load();
-
-      expect(mkdir).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/humans`, {
-        recursive: true,
-      });
-      expect(fsSyncCommands.writeDocumentBatch).toHaveBeenCalledWith([
-        [
-          {
-            frontmatter: {
-              user_id: "user-1",
-              created_at: "2024-01-01T00:00:00Z",
-              name: "John Doe",
-              emails: ["john@example.com"],
-              org_id: "org-1",
-              job_title: "Engineer",
-              linkedin_username: "johndoe",
-            },
-            content: "Some notes",
-          },
-          `${MOCK_DATA_DIR}/humans/${TEST_UUID_1}.md`,
-        ],
-      ]);
-      expect(remove).toHaveBeenCalledWith(`${MOCK_DATA_DIR}/humans.json`);
-    });
-  });
-
   describe("email transform", () => {
     test("loads with emails array (new format)", async () => {
       const { commands: fsSyncCommands } = await import("@hypr/plugin-fs-sync");

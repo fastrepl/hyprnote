@@ -1,22 +1,3 @@
-import type { ChangedTables } from "../shared";
+import { createMarkdownEntityParser } from "../shared/paths";
 
-export function parsePromptIdFromPath(path: string): string | null {
-  const parts = path.split("/");
-  const dirIndex = parts.indexOf("prompts");
-  if (dirIndex === -1 || dirIndex + 1 >= parts.length) {
-    return null;
-  }
-  const filename = parts[dirIndex + 1];
-  if (!filename?.endsWith(".md")) {
-    return null;
-  }
-  return filename.slice(0, -3);
-}
-
-export function getChangedPromptIds(
-  changedTables: ChangedTables,
-): Set<string> | undefined {
-  const changedRows = changedTables.prompts;
-  if (!changedRows) return undefined;
-  return new Set(Object.keys(changedRows));
-}
+export const parsePromptIdFromPath = createMarkdownEntityParser("prompts");

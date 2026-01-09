@@ -46,3 +46,18 @@ export function getParentFolderPath(folderPath: string): string {
 export function sanitizeFilename(name: string): string {
   return name.replace(/[<>:"/\\|?*]/g, "_").trim();
 }
+
+export function createMarkdownEntityParser(dirName: string) {
+  return (path: string): string | null => {
+    const parts = path.split("/");
+    const dirIndex = parts.indexOf(dirName);
+    if (dirIndex === -1 || dirIndex + 1 >= parts.length) {
+      return null;
+    }
+    const filename = parts[dirIndex + 1];
+    if (!filename?.endsWith(".md")) {
+      return null;
+    }
+    return filename.slice(0, -3);
+  };
+}

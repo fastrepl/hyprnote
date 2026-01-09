@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "tauri:dev": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f .env -- tauri dev --no-watch",
+    "tauri:dev:scan": "REACT_SCAN=true pnpm tauri:dev",
     "tauri:build": "tauri build",
+    "tauri:build:scan": "REACT_SCAN=true pnpm tauri:build",
     "gen:schema": "tsx src/components/devtool/seed/script.ts"
   },
   "dependencies": {

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode, useMemo } from "react";
 import ReactDOM from "react-dom/client";
+import { scan } from "react-scan";
 import { Provider as TinyBaseProvider, useStores } from "tinybase/ui-react";
 import { createManager } from "tinytick";
 import {
@@ -33,6 +34,15 @@ import {
 import { createAITaskStore } from "./store/zustand/ai-task";
 import { createListenerStore } from "./store/zustand/listener";
 import "./styles/globals.css";
+
+const shouldEnableScan = import.meta.env.REACT_SCAN === "true";
+
+if (shouldEnableScan) {
+  scan({
+    enabled: true,
+    log: false,
+  });
+}
 
 const toolRegistry = createToolRegistry();
 const listenerStore = createListenerStore();

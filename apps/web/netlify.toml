@@ -16,11 +16,3 @@ remote_images = [
   "https://hyprnote\\.com/.*",
   "https://ijoptyyjrfqwaqhyxkxj\\.supabase\\.co/.*",
 ]
-
-# Remove trailing slashes for SEO (301 redirect)
-# https://docs.netlify.com/routing/redirects/redirect-options/#trailing-slash
-[[redirects]]
-from = "/*/"
-to = "/:splat"
-status = 301
-force = false

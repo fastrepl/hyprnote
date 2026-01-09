@@ -1,6 +1,6 @@
 import { useHover } from "@uidotdev/usehooks";
 import { MicOff } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -41,96 +41,31 @@ function ScrollingWaveform({
 }) {
   const resolvedMaxBarHeight = maxBarHeight ?? height;
   const maxBars = Math.floor(width / (barWidth + gap));
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
-  const amplitudesRef = useRef<number[]>([]);
+  const [bars, setBars] = useState<number[]>(() => Array(maxBars).fill(0));
   const amplitudeRef = useRef(amplitude);
-  const animationFrameRef = useRef<number | null>(null);
-  const lastUpdateRef = useRef(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   amplitudeRef.current = amplitude;
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (ctx) {
-      ctx.scale(dpr, dpr);
-      ctxRef.current = ctx;
-    }
-  }, [width, height]);
+    setBars(Array(maxBars).fill(0));
+  }, [maxBars]);
 
   useEffect(() => {
-    if (amplitudesRef.current.length !== maxBars) {
-      amplitudesRef.current = Array(maxBars).fill(0);
-    }
-    const ctx = ctxRef.current;
-    if (!ctx) return;
-
-    const UPDATE_INTERVAL = 100;
-
-    const drawWaveform = () => {
-      const amplitudes = amplitudesRef.current;
-      ctx.clearRect(0, 0, width, height);
-
-      ctx.fillStyle = color;
-
-      for (let i = 0; i < amplitudes.length; i++) {
-        const amp = amplitudes[i];
-        const barHeight =
-          minBarHeight + amp * (resolvedMaxBarHeight - minBarHeight);
-        const x = i * (barWidth + gap);
-        const y = (height - barHeight) / 2;
-
-        ctx.beginPath();
-        ctx.roundRect(x, y, barWidth, barHeight, barWidth / 2);
-        ctx.fill();
-      }
-    };
-
-    const draw = (timestamp: number) => {
-      if (timestamp - lastUpdateRef.current < UPDATE_INTERVAL) {
-        animationFrameRef.current = requestAnimationFrame(draw);
-        return;
-      }
-      lastUpdateRef.current = timestamp;
-
+    intervalRef.current = setInterval(() => {
       const amp = amplitudeRef.current;
       const linear = amp < 30 ? 0 : Math.min((amp - 30) / 40, 1);
       const normalized = Math.pow(linear, 0.6);
 
-      const amplitudes = amplitudesRef.current;
-      amplitudes.shift();
-      amplitudes.push(normalized);
-
-      drawWaveform();
-
-      animationFrameRef.current = requestAnimationFrame(draw);
-    };
-
-    drawWaveform();
-    animationFrameRef.current = requestAnimationFrame(draw);
+      setBars((prev) => [...prev.slice(1), normalized]);
+    }, 100);
 
     return () => {
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
     };
-  }, [
-    color,
-    height,
-    width,
-    barWidth,
-    gap,
-    minBarHeight,
-    resolvedMaxBarHeight,
-    maxBars,
-  ]);
+  }, []);
 
   return (
     <div
@@ -142,7 +77,31 @@ function ScrollingWaveform({
         minHeight: height,
       }}
     >
-      <canvas ref={canvasRef} style={{ width, height }} />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          height: "100%",
+          gap,
+        }}
+      >
+        {bars.map((amp, i) => {
+          const barHeight =
+            minBarHeight + amp * (resolvedMaxBarHeight - minBarHeight);
+          return (
+            <div
+              key={i}
+              style={{
+                width: barWidth,
+                height: barHeight,
+                backgroundColor: color,
+                borderRadius: barWidth / 2,
+                transition: "height 0.1s ease-out",
+              }}
+            />
+          );
+        })}
+      </div>
       <div
         style={{
           position: "absolute",

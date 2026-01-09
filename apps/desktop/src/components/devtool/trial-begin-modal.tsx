@@ -91,8 +91,10 @@ export function TrialBeginModal() {
                 <div
                   key={label}
                   className={cn([
-                    "rounded-full border border-border bg-secondary/50 px-4 py-2 text-[12px] text-secondary-foreground",
-                    "flex items-center gap-2",
+                    "px-4 h-8 flex items-center text-sm rounded-full",
+                    "bg-gradient-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700",
+                    "shadow-sm",
+                    Icon && "gap-2",
                   ])}
                 >
                   {Icon && <Icon className="h-4 w-4" />}

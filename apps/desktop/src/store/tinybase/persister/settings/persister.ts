@@ -8,7 +8,14 @@ import type {
 import { commands } from "@hypr/plugin-settings";
 
 import { StoreOrMergeableStore } from "../../store/shared";
+import { createNotifyListener } from "../shared/fs";
 import { settingsToContent, storeToSettings } from "./transform";
+
+const SETTINGS_FILENAME = "settings.json";
+
+const settingsNotifyListener = createNotifyListener((path) =>
+  path.endsWith(SETTINGS_FILENAME),
+);
 
 export const createSettingsPersister = createPersisterBuilder({
   toStore: settingsToContent,
@@ -43,8 +50,8 @@ function createPersisterBuilder<T, Schemas extends OptionalSchemas>(
           console.error("[SettingsPersister] save error:", result.error);
         }
       },
-      () => undefined,
-      () => {},
+      (listener) => settingsNotifyListener.addListener(listener),
+      (handle) => settingsNotifyListener.delListener(handle),
       (error) => console.error("[SettingsPersister]:", error),
       StoreOrMergeableStore,
     );

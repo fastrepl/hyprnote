@@ -692,7 +692,10 @@ const createGitHubMediaLibrary = () => {
 
       toolbarRight.querySelector(".gml-insert-btn").addEventListener("click", () => {
         if (selectedItems.size > 0) {
-          const assets = Array.from(selectedItems).map((path) => ({ path, url: path }));
+          const assets = Array.from(selectedItems).map((path) => {
+            const publicPath = getPublicPath(path);
+            return { path: publicPath, url: publicPath };
+          });
           handleInsert(assets.length === 1 ? assets[0] : assets);
           hide();
         }

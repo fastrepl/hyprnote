@@ -1,5 +1,4 @@
-use apple_note::{EmbeddedObjectType, extract_embedded_objects, parse_note_store_proto};
-use std::fs;
+use apple_note::{EmbeddedObjectType, extract_embedded_objects};
 
 #[test]
 fn test_embedded_object_type_detection() {
@@ -203,4 +202,143 @@ fn test_extract_multiple_embedded_objects() {
     assert_eq!(objects[0].uuid, "table-uuid");
     assert_eq!(objects[1].object_type, EmbeddedObjectType::Image);
     assert_eq!(objects[1].uuid, "image-uuid");
+}
+
+// Additional tests based on Ruby apple_uniform_type_identifier.rb spec
+
+#[test]
+fn test_uti_refuses_non_string() {
+    // In Rust, this is enforced by the type system, so we test with empty/invalid strings
+    // instead of non-String types
+    let uti_type = EmbeddedObjectType::from_uti("");
+    assert_eq!(uti_type, EmbeddedObjectType::Unknown);
+}
+
+#[test]
+fn test_uti_identifies_unknown_type() {
+    let uti_type = EmbeddedObjectType::from_uti("thisisamadeuputi");
+    assert_eq!(uti_type, EmbeddedObjectType::Unknown);
+}
+
+#[test]
+fn test_uti_recognizes_public_types() {
+    // Ruby test: recognizes 'public' UTIs
+    assert_eq!(
+        EmbeddedObjectType::from_uti("public.thisisamadeuputi"),
+        EmbeddedObjectType::Unknown
+    );
+
+    // Known public types should be recognized correctly
+    assert_eq!(
+        EmbeddedObjectType::from_uti("public.image"),
+        EmbeddedObjectType::Image
+    );
+    assert_eq!(
+        EmbeddedObjectType::from_uti("public.audio"),
+        EmbeddedObjectType::Audio
+    );
+    assert_eq!(
+        EmbeddedObjectType::from_uti("public.movie"),
+        EmbeddedObjectType::Video
+    );
+}
+
+#[test]
+fn test_uti_recognizes_dynamic_types() {
+    // Ruby test: recognizes dynamic UTIs (dyn.* prefix)
+    // Dynamic UTIs should fall into Unknown category
+    let uti_type = EmbeddedObjectType::from_uti("dyn.thisisamadeuputi");
+    assert_eq!(uti_type, EmbeddedObjectType::Unknown);
+
+    let uti_type2 = EmbeddedObjectType::from_uti("dyn.aghsjdgsa");
+    assert_eq!(uti_type2, EmbeddedObjectType::Unknown);
+}
+
+#[test]
+fn test_uti_handles_apple_specific_types() {
+    assert_eq!(
+        EmbeddedObjectType::from_uti("com.apple.notes.table"),
+        EmbeddedObjectType::Table
+    );
+    assert_eq!(
+        EmbeddedObjectType::from_uti("com.apple.drawing.2"),
+        EmbeddedObjectType::Drawing
+    );
+    assert_eq!(
+        EmbeddedObjectType::from_uti("com.apple.paper"),
+        EmbeddedObjectType::Document
+    );
+    assert_eq!(
+        EmbeddedObjectType::from_uti("com.apple.notes.gallery"),
+        EmbeddedObjectType::Gallery
+    );
+}
+
+#[test]
+fn test_uti_handles_third_party_types() {
+    assert_eq!(
+        EmbeddedObjectType::from_uti("com.adobe.pdf"),
+        EmbeddedObjectType::PDF
+    );
+}
+
+#[test]
+fn test_embedded_object_new() {
+    let obj = apple_note::EmbeddedObject::new(
+        EmbeddedObjectType::Table,
+        "test-uuid".to_string(),
+        "com.apple.notes.table".to_string(),
+    );
+
+    assert_eq!(obj.object_type, EmbeddedObjectType::Table);
+    assert_eq!(obj.uuid, "test-uuid");
+    assert_eq!(obj.type_uti, "com.apple.notes.table");
+}
+
+#[test]
+fn test_embedded_object_clone() {
+    let obj = apple_note::EmbeddedObject::new(
+        EmbeddedObjectType::Image,
+        "image-123".to_string(),
+        "public.image".to_string(),
+    );
+
+    let cloned = obj.clone();
+    assert_eq!(obj, cloned);
+    assert_eq!(obj.uuid, cloned.uuid);
+    assert_eq!(obj.type_uti, cloned.type_uti);
+}
+
+#[test]
+fn test_embedded_object_equality() {
+    let obj1 = apple_note::EmbeddedObject::new(
+        EmbeddedObjectType::Table,
+        "uuid-1".to_string(),
+        "com.apple.notes.table".to_string(),
+    );
+
+    let obj2 = apple_note::EmbeddedObject::new(
+        EmbeddedObjectType::Table,
+        "uuid-1".to_string(),
+        "com.apple.notes.table".to_string(),
+    );
+
+    assert_eq!(obj1, obj2);
+}
+
+#[test]
+fn test_embedded_object_inequality() {
+    let obj1 = apple_note::EmbeddedObject::new(
+        EmbeddedObjectType::Table,
+        "uuid-1".to_string(),
+        "com.apple.notes.table".to_string(),
+    );
+
+    let obj2 = apple_note::EmbeddedObject::new(
+        EmbeddedObjectType::Image,
+        "uuid-2".to_string(),
+        "public.image".to_string(),
+    );
+
+    assert_ne!(obj1, obj2);
 }

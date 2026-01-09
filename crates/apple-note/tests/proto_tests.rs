@@ -1,5 +1,4 @@
-use apple_note::proto::{AttributeRun, Checklist, Color, Font, ParagraphStyle};
-use apple_note::{STYLE_ALIGNMENT_CENTER, STYLE_ALIGNMENT_JUSTIFY, STYLE_ALIGNMENT_RIGHT};
+use apple_note::proto::{AttributeRun, Color, Font, ParagraphStyle};
 
 #[cfg(test)]
 mod color_tests {

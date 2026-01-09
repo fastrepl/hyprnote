@@ -20,8 +20,14 @@ export const Route = createFileRoute("/auth")({
   beforeLoad: async ({ search }) => {
     const user = await fetchUser();
     if (user && search.flow === "web") {
+      const isUnsafeRedirect =
+        search.redirect?.startsWith("http://") ||
+        search.redirect?.startsWith("https://") ||
+        search.redirect?.startsWith("//");
       throw redirect({
-        to: search.redirect || "/app/account",
+        to: isUnsafeRedirect
+          ? "/app/account"
+          : search.redirect || "/app/account",
       });
     }
   },

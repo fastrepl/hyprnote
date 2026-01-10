@@ -3,6 +3,12 @@ import { useState } from "react";
 
 import type { PermissionStatus } from "@hypr/plugin-permissions";
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@hypr/ui/components/ui/tabs";
 import { cn } from "@hypr/utils";
 
 import { usePermission } from "../../../hooks/use-permissions";
@@ -127,43 +133,64 @@ function PermissionRow({
   );
 }
 
-export function Permissions() {
+function GeneralPermissions() {
   const mic = usePermission("microphone");
   const systemAudio = usePermission("systemAudio");
   const accessibility = usePermission("accessibility");
 
   return (
+    <div className="space-y-4">
+      <PermissionRow
+        title="Microphone"
+        description="Required to record your voice during meetings and calls"
+        status={mic.status}
+        isPending={mic.isPending}
+        onRequest={mic.request}
+        onReset={mic.reset}
+        onOpen={mic.open}
+      />
+      <PermissionRow
+        title="System audio"
+        description="Required to capture other participants' voices in meetings"
+        status={systemAudio.status}
+        isPending={systemAudio.isPending}
+        onRequest={systemAudio.request}
+        onReset={systemAudio.reset}
+        onOpen={systemAudio.open}
+      />
+      <PermissionRow
+        title="Accessibility"
+        description="Required to detect meeting apps and sync mute status"
+        status={accessibility.status}
+        isPending={accessibility.isPending}
+        onRequest={accessibility.request}
+        onReset={accessibility.reset}
+        onOpen={accessibility.open}
+      />
+    </div>
+  );
+}
+
+function AudioPermissions() {
+  return <div />;
+}
+
+export function Permissions() {
+  return (
     <div>
       <h2 className="font-semibold mb-4">Permissions</h2>
-      <div className="space-y-4">
-        <PermissionRow
-          title="Microphone"
-          description="Required to record your voice during meetings and calls"
-          status={mic.status}
-          isPending={mic.isPending}
-          onRequest={mic.request}
-          onReset={mic.reset}
-          onOpen={mic.open}
-        />
-        <PermissionRow
-          title="System audio"
-          description="Required to capture other participants' voices in meetings"
-          status={systemAudio.status}
-          isPending={systemAudio.isPending}
-          onRequest={systemAudio.request}
-          onReset={systemAudio.reset}
-          onOpen={systemAudio.open}
-        />
-        <PermissionRow
-          title="Accessibility"
-          description="Required to detect meeting apps and sync mute status"
-          status={accessibility.status}
-          isPending={accessibility.isPending}
-          onRequest={accessibility.request}
-          onReset={accessibility.reset}
-          onOpen={accessibility.open}
-        />
-      </div>
+      <Tabs defaultValue="general">
+        <TabsList>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="audio">Audio</TabsTrigger>
+        </TabsList>
+        <TabsContent value="general">
+          <GeneralPermissions />
+        </TabsContent>
+        <TabsContent value="audio">
+          <AudioPermissions />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

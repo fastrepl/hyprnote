@@ -97,7 +97,7 @@ export const Route = createFileRoute("/api/media-upload")({
                 Accept: "application/vnd.github.v3+json",
               },
               body: JSON.stringify({
-                message: `Upload ${sanitizedFilename} via Decap CMS`,
+                message: `Upload ${sanitizedFilename} via Admin`,
                 content,
                 branch: GITHUB_BRANCH,
               }),

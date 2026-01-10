@@ -1,5 +1,6 @@
 import { AudioLinesIcon, SparklesIcon } from "lucide-react";
 import {
+  memo,
   type RefObject,
   useCallback,
   useEffect,
@@ -119,17 +120,36 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
 function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
   const ref = useRef<T>(null);
   const [state, setState] = useState({ atStart: true, atEnd: true });
+  const rafRef = useRef<number | null>(null);
 
   const update = useCallback(() => {
     const el = ref.current;
     if (!el) return;
 
     const { scrollTop, scrollHeight, clientHeight } = el;
-    setState({
+    const newState = {
       atStart: scrollTop <= 1,
       atEnd: scrollTop + clientHeight >= scrollHeight - 1,
+    };
+
+    setState((prev) => {
+      if (prev.atStart === newState.atStart && prev.atEnd === newState.atEnd) {
+        return prev;
+      }
+      return newState;
     });
   }, []);
+
+  const throttledUpdate = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+
+    rafRef.current = requestAnimationFrame(() => {
+      update();
+      rafRef.current = null;
+    });
+  }, [update]);
 
   useResizeObserver({ ref: ref as RefObject<T>, onResize: update });
 
@@ -138,23 +158,31 @@ function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
     if (!el) return;
 
     update();
-    el.addEventListener("scroll", update);
-    return () => el.removeEventListener("scroll", update);
-  }, [update, ...deps]);
+    el.addEventListener("scroll", throttledUpdate, { passive: true });
+
+    return () => {
+      el.removeEventListener("scroll", throttledUpdate);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [throttledUpdate, update, ...deps]);
 
   return { ref, ...state };
 }
 
-function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
-  return (
-    <div
-      className={cn([
-        "absolute left-0 w-full h-8 z-20 pointer-events-none",
-        position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
-        position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
-      ])}
-    />
-  );
-}
+const ScrollFadeOverlay = memo(
+  ({ position }: { position: "top" | "bottom" }) => {
+    return (
+      <div
+        className={cn([
+          "absolute left-0 w-full h-8 z-20 pointer-events-none",
+          position === "top" &&
+            "top-0 bg-gradient-to-b from-white to-transparent",
+          position === "bottom" &&
+            "bottom-0 bg-gradient-to-t from-white to-transparent",
+        ])}
+      />
+    );
+  },
+);

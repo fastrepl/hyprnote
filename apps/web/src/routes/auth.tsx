@@ -26,8 +26,11 @@ export const Route = createFileRoute("/auth")({
         search.redirect?.startsWith("//");
       throw redirect({
         to: isUnsafeRedirect
-          ? "/app/account"
-          : search.redirect || "/app/account",
+      throw redirect({
+        to: search.redirect && !search.redirect.startsWith('http://') && 
+            !search.redirect.startsWith('https://') && !search.redirect.startsWith('//') 
+          ? search.redirect 
+          : "/app/account",
       });
     }
   },

@@ -1,6 +1,13 @@
 import { usePrevious } from "@uidotdev/usehooks";
 import { SparklesIcon } from "lucide-react";
-import { forwardRef, memo, useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -52,12 +59,43 @@ export const TitleInput = forwardRef<
     }
   }, [wasGenerating, isGenerating]);
 
-  const persistTitle = main.UI.useSetPartialRowCallback(
+  const setStoreTitle = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (title: string) => ({ title }),
     [],
     main.STORE_ID,
+  );
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingValueRef = useRef<string | null>(null);
+
+  const flushDebounce = useCallback(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    if (pendingValueRef.current !== null) {
+      setStoreTitle(pendingValueRef.current);
+      pendingValueRef.current = null;
+    }
+  }, [setStoreTitle]);
+
+  const debouncedPersist = useCallback(
+    (value: string) => {
+      pendingValueRef.current = value;
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      debounceRef.current = setTimeout(() => {
+        if (pendingValueRef.current !== null) {
+          setStoreTitle(pendingValueRef.current);
+          pendingValueRef.current = null;
+        }
+        debounceRef.current = null;
+      }, 150);
+    },
+    [setStoreTitle],
   );
 
   useEffect(() => {
@@ -116,7 +154,8 @@ export const TitleInput = forwardRef<
       const beforeCursor = input.value.slice(0, cursorPos);
       const afterCursor = input.value.slice(cursorPos);
 
-      persistTitle(beforeCursor);
+      flushDebounce();
+      setStoreTitle(beforeCursor);
 
       if (afterCursor) {
         setTimeout(() => {
@@ -194,14 +233,17 @@ export const TitleInput = forwardRef<
         id={`title-input-${sessionId}-${editorId}`}
         placeholder="Untitled"
         type="text"
-        onChange={(e) => setLocalTitle(e.target.value)}
+        onChange={(e) => {
+          setLocalTitle(e.target.value);
+          debouncedPersist(e.target.value);
+        }}
         onKeyDown={handleKeyDown}
         onFocus={() => {
           isFocused.current = true;
         }}
         onBlur={() => {
           isFocused.current = false;
-          persistTitle(localTitle);
+          flushDebounce();
         }}
         value={localTitle}
         className={cn([

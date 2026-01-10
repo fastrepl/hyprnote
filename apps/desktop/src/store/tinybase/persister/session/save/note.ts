@@ -46,7 +46,7 @@ function getEnhancedNoteFilename(
   return "_summary.md";
 }
 
-export function collectNoteWriteOps(
+export function buildNoteSaveOps(
   store: Store,
   tables: TablesContent,
   dataDir: string,

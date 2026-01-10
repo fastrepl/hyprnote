@@ -1,21 +1,4 @@
-import type { Store } from "../../store/main";
-import {
-  type ChangedTables,
-  createDeletionMarker,
-  type TablesContent,
-} from "../shared";
-import type { LoadedSessionData } from "./load/types";
-
-export function createSessionDeletionMarker(store: Store) {
-  return createDeletionMarker<LoadedSessionData>(store, [
-    { tableName: "sessions", isPrimary: true },
-    { tableName: "mapping_session_participant", foreignKey: "session_id" },
-    { tableName: "tags" },
-    { tableName: "mapping_tag_session", foreignKey: "session_id" },
-    { tableName: "transcripts", foreignKey: "session_id" },
-    { tableName: "enhanced_notes", foreignKey: "session_id" },
-  ]);
-}
+import { type ChangedTables, type TablesContent } from "../shared";
 
 export function parseSessionIdFromPath(path: string): string | null {
   const parts = path.split("/");

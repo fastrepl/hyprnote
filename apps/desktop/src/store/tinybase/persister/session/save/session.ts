@@ -69,7 +69,7 @@ export function tablesToSessionMetaMap(
   return result;
 }
 
-export function collectSessionWriteOps(
+export function buildSessionSaveOps(
   store: Store,
   _tables: unknown,
   dataDir: string,

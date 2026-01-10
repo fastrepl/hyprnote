@@ -1,12 +1,7 @@
-import type {
-  JsonValue as FsSyncJsonValue,
-  ParsedDocument,
-} from "@hypr/plugin-fs-sync";
+import type { ParsedDocument } from "@hypr/plugin-fs-sync";
 import { SCHEMA } from "@hypr/store";
 
 import type { Store } from "../../store/main";
-
-export type { FsSyncJsonValue as JsonValue };
 
 export type BatchItem<T> = [T, string];
 
@@ -18,7 +13,7 @@ export type WriteOperation =
   | { type: "delete"; path: string }
   | { type: "delete-batch"; paths: string[] };
 
-export type CollectorResult = {
+export type SaveResult = {
   operations: WriteOperation[];
 };
 
@@ -28,17 +23,10 @@ export type ChangedTables = Partial<{
   [K in TableNames]: Record<string, unknown> | undefined;
 }>;
 
-export interface MarkdownDirPersisterConfig<TStorage> {
-  tableName: string;
-  dirName: string;
-  label: string;
-  entityParser: (path: string) => string | null;
-  toFrontmatter: (entity: TStorage) => {
-    frontmatter: Record<string, FsSyncJsonValue>;
-    body: string;
-  };
-  fromFrontmatter: (
-    frontmatter: Record<string, unknown>,
-    body: string,
-  ) => TStorage;
-}
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };

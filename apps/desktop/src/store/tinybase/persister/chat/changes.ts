@@ -1,17 +1,4 @@
-import type { Store } from "../../store/main";
-import {
-  type ChangedTables,
-  createDeletionMarker,
-  type TablesContent,
-} from "../shared";
-import type { LoadedChatData } from "./load";
-
-export function createChatDeletionMarker(store: Store) {
-  return createDeletionMarker<LoadedChatData>(store, [
-    { tableName: "chat_groups", isPrimary: true },
-    { tableName: "chat_messages", foreignKey: "chat_group_id" },
-  ]);
-}
+import { type ChangedTables, type TablesContent } from "../shared";
 
 export type ChatChangeResult = {
   changedChatGroupIds: Set<string>;

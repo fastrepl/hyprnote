@@ -11,9 +11,11 @@ import type {
 
 import {
   commands as fsSyncCommands,
+  type JsonValue,
   type ParsedDocument,
 } from "@hypr/plugin-fs-sync";
 
+import { createDeletionMarker } from "../shared/deletion-marker";
 import { isFileNotFoundError } from "../shared/fs";
 import {
   buildEntityFilePath,
@@ -22,12 +24,30 @@ import {
 } from "../shared/paths";
 import {
   type ChangedTables,
-  type MarkdownDirPersisterConfig,
   type TablesContent,
   type WriteOperation,
 } from "../shared/types";
 import { asTablesChanges } from "../shared/utils";
 import { createCollectorPersister } from "./collector";
+
+export interface MarkdownDirPersisterConfig<TStorage> {
+  tableName: string;
+  dirName: string;
+  label: string;
+  entityParser: (path: string) => string | null;
+  toFrontmatter: (entity: TStorage) => {
+    frontmatter: Record<string, JsonValue>;
+    body: string;
+  };
+  fromFrontmatter: (
+    frontmatter: Record<string, unknown>,
+    body: string,
+  ) => TStorage;
+}
+
+type LoadedData<TStorage> = {
+  [tableName: string]: Record<string, TStorage>;
+};
 
 async function loadMarkdownDir<TStorage>(
   dataDir: string,
@@ -80,11 +100,11 @@ function collectMarkdownWriteOps<TStorage>(
   return operations;
 }
 
-async function loadSingleEntity<TStorage>(
-  store: MergeableStore<any>,
+async function loadSingleEntity<Schemas extends OptionalSchemas, TStorage>(
   config: MarkdownDirPersisterConfig<TStorage>,
   entityId: string,
-): Promise<PersistedChanges<any, Persists.StoreOrMergeableStore> | undefined> {
+  deletionMarker: ReturnType<typeof createDeletionMarker<LoadedData<TStorage>>>,
+) {
   const { tableName, dirName, fromFrontmatter } = config;
   const dataDir = await getDataDir();
   const filePath = buildEntityFilePath(dataDir, dirName, entityId);
@@ -104,14 +124,22 @@ async function loadSingleEntity<TStorage>(
 
     return asTablesChanges({
       [tableName]: { [entityId]: entity as Record<string, unknown> },
-    }) as unknown as PersistedChanges<any, Persists.StoreOrMergeableStore>;
+    }) as unknown as PersistedChanges<Schemas, Persists.StoreOrMergeableStore>;
   } catch (error) {
     if (isFileNotFoundError(error)) {
-      const existingRow = store.getRow(tableName as any, entityId);
-      if (existingRow && Object.keys(existingRow).length > 0) {
-        return asTablesChanges({
-          [tableName]: { [entityId]: undefined },
-        }) as unknown as PersistedChanges<any, Persists.StoreOrMergeableStore>;
+      const loaded = { [tableName]: {} } as LoadedData<TStorage>;
+      const result = deletionMarker.markForEntity(loaded, entityId);
+
+      if (Object.keys(result[tableName] ?? {}).length > 0) {
+        return asTablesChanges(
+          result as Record<
+            string,
+            Record<string, Record<string, unknown> | undefined>
+          >,
+        ) as unknown as PersistedChanges<
+          Schemas,
+          Persists.StoreOrMergeableStore
+        >;
       }
     }
     return undefined;
@@ -126,6 +154,11 @@ export function createMarkdownDirPersister<
   config: MarkdownDirPersisterConfig<TStorage>,
 ): ReturnType<typeof createCollectorPersister<Schemas>> {
   const { tableName, dirName, label, entityParser } = config;
+
+  const deletionMarker = createDeletionMarker<LoadedData<TStorage>>(
+    store as any,
+    [{ tableName, isPrimary: true }],
+  );
 
   const getValidIds = (tables: TablesContent): Set<string> =>
     new Set(
@@ -146,8 +179,9 @@ export function createMarkdownDirPersister<
       },
     ],
     entityParser,
-    loadSingle: (entityId: string) => loadSingleEntity(store, config, entityId),
-    collect: (_store, tables, dataDir, changedTables) => {
+    loadSingle: (entityId: string) =>
+      loadSingleEntity(config, entityId, deletionMarker),
+    save: (_store, tables, dataDir, changedTables) => {
       const fullTableData =
         (tables as Record<string, Record<string, TStorage>>)[tableName] ?? {};
 
@@ -198,31 +232,23 @@ export function createMarkdownDirPersister<
         operations: collectMarkdownWriteOps(fullTableData, dataDir, config),
       };
     },
-    load: async (): Promise<Content<Schemas> | undefined> => {
+    load: async () => {
       const dataDir = await getDataDir();
       const entities = await loadMarkdownDir(dataDir, config);
 
-      const existingTable = store.getTable(tableName as any) ?? {};
-      const existingIds = new Set(Object.keys(existingTable));
-      const loadedIds = new Set(Object.keys(entities));
+      const loaded = { [tableName]: entities } as LoadedData<TStorage>;
+      const result = deletionMarker.markAll(loaded);
 
-      const result: Record<string, TStorage | undefined> = { ...entities };
-      for (const id of existingIds) {
-        if (!loadedIds.has(id)) {
-          result[id] = undefined;
-        }
-      }
-
-      if (Object.keys(result).length === 0) {
+      if (Object.keys(result[tableName] ?? {}).length === 0) {
         return undefined;
       }
 
-      return asTablesChanges({
-        [tableName]: result as Record<
+      return asTablesChanges(
+        result as Record<
           string,
-          Record<string, unknown> | undefined
+          Record<string, Record<string, unknown> | undefined>
         >,
-      }) as unknown as Content<Schemas>;
+      ) as unknown as Content<Schemas>;
     },
   });
 }

@@ -1,25 +1,18 @@
-import type {
-  PersistedChanges,
-  Persists,
-} from "tinybase/persisters/with-schemas";
-import type { Content } from "tinybase/with-schemas";
-
 import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
-import { createCollectorPersister } from "../factories";
-import { asTablesChanges, getDataDir } from "../shared";
+import { createMultiTableDirPersister } from "../factories";
+import { getChangedSessionIds, parseSessionIdFromPath } from "./changes";
 import {
-  createSessionDeletionMarker,
-  getChangedSessionIds,
-  parseSessionIdFromPath,
-} from "./changes";
+  loadAllSessionData,
+  type LoadedSessionData,
+  loadSingleSession,
+} from "./load/index";
 import {
-  collectNoteWriteOps,
-  collectSessionWriteOps,
-  collectTranscriptWriteOps,
-} from "./collect/index";
-import { loadAllSessionData, loadSingleSession } from "./load/index";
+  buildNoteSaveOps,
+  buildSessionSaveOps,
+  buildTranscriptSaveOps,
+} from "./save/index";
 import {
   getSessionsWithMemo,
   getValidNoteIds,
@@ -27,11 +20,18 @@ import {
 } from "./validators";
 
 export function createSessionPersister(store: Store) {
-  const deletionMarker = createSessionDeletionMarker(store);
-
-  return createCollectorPersister(store, {
+  return createMultiTableDirPersister<Schemas, LoadedSessionData>(store, {
     label: "SessionPersister",
-    watchPaths: ["sessions/"],
+    dirName: "sessions",
+    entityParser: parseSessionIdFromPath,
+    tables: [
+      { tableName: "sessions", isPrimary: true },
+      { tableName: "mapping_session_participant", foreignKey: "session_id" },
+      { tableName: "tags" },
+      { tableName: "mapping_tag_session", foreignKey: "session_id" },
+      { tableName: "transcripts", foreignKey: "session_id" },
+      { tableName: "enhanced_notes", foreignKey: "session_id" },
+    ],
     cleanup: [
       {
         type: "dirs",
@@ -45,46 +45,9 @@ export function createSessionPersister(store: Store) {
         getSessionsWithMemo: getSessionsWithMemo,
       },
     ],
-    entityParser: parseSessionIdFromPath,
-    loadSingle: async (sessionId: string) => {
-      try {
-        const dataDir = await getDataDir();
-        const data = await loadSingleSession(dataDir, sessionId);
-
-        const result = deletionMarker.markForEntity(data, sessionId);
-
-        const hasChanges =
-          Object.keys(result.sessions).length > 0 ||
-          Object.keys(result.mapping_session_participant).length > 0 ||
-          Object.keys(result.tags).length > 0 ||
-          Object.keys(result.mapping_tag_session).length > 0 ||
-          Object.keys(result.transcripts).length > 0 ||
-          Object.keys(result.enhanced_notes).length > 0;
-
-        if (!hasChanges) {
-          return undefined;
-        }
-
-        return asTablesChanges({
-          sessions: result.sessions,
-          mapping_session_participant: result.mapping_session_participant,
-          tags: result.tags,
-          mapping_tag_session: result.mapping_tag_session,
-          transcripts: result.transcripts,
-          enhanced_notes: result.enhanced_notes,
-        }) as unknown as PersistedChanges<
-          Schemas,
-          Persists.StoreOrMergeableStore
-        >;
-      } catch (error) {
-        console.error(
-          `[SessionPersister] loadSingle error for ${sessionId}:`,
-          error,
-        );
-        return undefined;
-      }
-    },
-    collect: (store, tables, dataDir, changedTables) => {
+    loadAll: loadAllSessionData,
+    loadSingle: loadSingleSession,
+    save: (store, tables, dataDir, changedTables) => {
       let changedSessionIds: Set<string> | undefined;
 
       if (changedTables) {
@@ -100,18 +63,18 @@ export function createSessionPersister(store: Store) {
         }
       }
 
-      const sessionOps = collectSessionWriteOps(
+      const sessionOps = buildSessionSaveOps(
         store,
         tables,
         dataDir,
         changedSessionIds,
       );
-      const transcriptOps = collectTranscriptWriteOps(
+      const transcriptOps = buildTranscriptSaveOps(
         tables,
         dataDir,
         changedSessionIds,
       );
-      const noteOps = collectNoteWriteOps(
+      const noteOps = buildNoteSaveOps(
         store,
         tables,
         dataDir,
@@ -121,38 +84,6 @@ export function createSessionPersister(store: Store) {
       return {
         operations: [...sessionOps, ...transcriptOps, ...noteOps],
       };
-    },
-    load: async () => {
-      try {
-        const dataDir = await getDataDir();
-        const data = await loadAllSessionData(dataDir);
-
-        const result = deletionMarker.markAll(data);
-
-        const hasChanges =
-          Object.keys(result.sessions).length > 0 ||
-          Object.keys(result.mapping_session_participant).length > 0 ||
-          Object.keys(result.tags).length > 0 ||
-          Object.keys(result.mapping_tag_session).length > 0 ||
-          Object.keys(result.transcripts).length > 0 ||
-          Object.keys(result.enhanced_notes).length > 0;
-
-        if (!hasChanges) {
-          return undefined;
-        }
-
-        return asTablesChanges({
-          sessions: result.sessions,
-          mapping_session_participant: result.mapping_session_participant,
-          tags: result.tags,
-          mapping_tag_session: result.mapping_tag_session,
-          transcripts: result.transcripts,
-          enhanced_notes: result.enhanced_notes,
-        }) as unknown as Content<Schemas>;
-      } catch (error) {
-        console.error("[SessionPersister] load error:", error);
-        return undefined;
-      }
     },
   });
 }

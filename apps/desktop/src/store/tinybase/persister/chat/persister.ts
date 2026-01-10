@@ -1,29 +1,25 @@
-import type {
-  PersistedChanges,
-  Persists,
-} from "tinybase/persisters/with-schemas";
-import type { Content } from "tinybase/with-schemas";
-
 import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
-import { createCollectorPersister } from "../factories";
-import { asTablesChanges, getDataDir } from "../shared";
+import { createMultiTableDirPersister } from "../factories";
+import { getChangedChatGroupIds, parseChatGroupIdFromPath } from "./changes";
 import {
-  createChatDeletionMarker,
-  getChangedChatGroupIds,
-  parseChatGroupIdFromPath,
-} from "./changes";
-import { collectChatWriteOps } from "./collect";
-import { loadAllChatGroups, loadSingleChatGroup } from "./load";
+  loadAllChatGroups,
+  type LoadedChatData,
+  loadSingleChatGroup,
+} from "./load";
+import { buildChatSaveOps } from "./save";
 import { getValidChatGroupIds } from "./validators";
 
 export function createChatPersister(store: Store) {
-  const deletionMarker = createChatDeletionMarker(store);
-
-  return createCollectorPersister(store, {
+  return createMultiTableDirPersister<Schemas, LoadedChatData>(store, {
     label: "ChatPersister",
-    watchPaths: ["chats/"],
+    dirName: "chats",
+    entityParser: parseChatGroupIdFromPath,
+    tables: [
+      { tableName: "chat_groups", isPrimary: true },
+      { tableName: "chat_messages", foreignKey: "chat_group_id" },
+    ],
     cleanup: [
       {
         type: "dirs",
@@ -32,38 +28,9 @@ export function createChatPersister(store: Store) {
         getValidIds: getValidChatGroupIds,
       },
     ],
-    entityParser: parseChatGroupIdFromPath,
-    loadSingle: async (groupId: string) => {
-      try {
-        const dataDir = await getDataDir();
-        const data = await loadSingleChatGroup(dataDir, groupId);
-
-        const result = deletionMarker.markForEntity(data, groupId);
-
-        const hasChanges =
-          Object.keys(result.chat_groups).length > 0 ||
-          Object.keys(result.chat_messages).length > 0;
-
-        if (!hasChanges) {
-          return undefined;
-        }
-
-        return asTablesChanges({
-          chat_groups: result.chat_groups,
-          chat_messages: result.chat_messages,
-        }) as unknown as PersistedChanges<
-          Schemas,
-          Persists.StoreOrMergeableStore
-        >;
-      } catch (error) {
-        console.error(
-          `[ChatPersister] loadSingle error for ${groupId}:`,
-          error,
-        );
-        return undefined;
-      }
-    },
-    collect: (_store, tables, dataDir, changedTables) => {
+    loadAll: loadAllChatGroups,
+    loadSingle: loadSingleChatGroup,
+    save: (_store, tables, dataDir, changedTables) => {
       let changedGroupIds: Set<string> | undefined;
 
       if (changedTables) {
@@ -75,31 +42,8 @@ export function createChatPersister(store: Store) {
       }
 
       return {
-        operations: collectChatWriteOps(tables, dataDir, changedGroupIds),
+        operations: buildChatSaveOps(tables, dataDir, changedGroupIds),
       };
-    },
-    load: async () => {
-      try {
-        const dataDir = await getDataDir();
-        const data = await loadAllChatGroups(dataDir);
-
-        const result = deletionMarker.markAll(data);
-
-        const hasChanges =
-          Object.keys(result.chat_groups).length > 0 ||
-          Object.keys(result.chat_messages).length > 0;
-        if (!hasChanges) {
-          return undefined;
-        }
-
-        return asTablesChanges({
-          chat_groups: result.chat_groups,
-          chat_messages: result.chat_messages,
-        }) as unknown as Content<Schemas>;
-      } catch (error) {
-        console.error("[ChatPersister] load error:", error);
-        return undefined;
-      }
     },
   });
 }

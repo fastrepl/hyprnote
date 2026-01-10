@@ -10,7 +10,7 @@ import {
 } from "../../shared";
 import type { TranscriptJson } from "../types";
 
-export function collectTranscriptWriteOps(
+export function buildTranscriptSaveOps(
   tables: TablesContent,
   dataDir: string,
   changedSessionIds?: Set<string>,

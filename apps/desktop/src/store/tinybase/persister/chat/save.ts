@@ -55,7 +55,7 @@ export function tablesToChatJsonList(tables: TablesContent): ChatJson[] {
   return result;
 }
 
-export function collectChatWriteOps(
+export function buildChatSaveOps(
   tables: TablesContent,
   dataDir: string,
   changedGroupIds?: Set<string>,

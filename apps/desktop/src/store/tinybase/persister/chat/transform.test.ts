@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
 
 import type { TablesContent } from "../shared";
-import { tablesToChatJsonList } from "./collect";
 import {
   chatJsonToData,
   createEmptyLoadedChatData,
   mergeLoadedData,
 } from "./load";
+import { tablesToChatJsonList } from "./save";
 import type { ChatJson, LoadedChatData } from "./types";
 
 describe("chatJsonToData", () => {

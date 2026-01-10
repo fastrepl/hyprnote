@@ -24,8 +24,8 @@ import {
 import { getDataDir } from "../shared/paths";
 import {
   type ChangedTables,
-  type CollectorResult,
   type JsonValue,
+  type SaveResult,
   type TablesContent,
   type WriteOperation,
 } from "../shared/types";
@@ -70,12 +70,12 @@ export type OrphanCleanupConfig =
 
 type BaseCollectorOptions<Schemas extends OptionalSchemas> = {
   label: string;
-  collect: (
+  save: (
     store: MergeableStore<Schemas>,
     tables: TablesContent,
     dataDir: string,
     changedTables?: ChangedTables,
-  ) => CollectorResult;
+  ) => SaveResult;
   load?: () => Promise<Content<Schemas> | undefined>;
   cleanup?: OrphanCleanupConfig[];
   watchPaths?: string[];
@@ -136,7 +136,7 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
     try {
       const dataDir = await getDataDir();
       const tables = store.getTables() as TablesContent | undefined;
-      const result = options.collect(
+      const result = options.save(
         store,
         tables ?? {},
         dataDir,

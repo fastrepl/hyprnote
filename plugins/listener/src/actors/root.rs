@@ -90,25 +90,25 @@ impl Actor for RootActor {
         match message {
             SupervisionEvent::ActorStarted(_) | SupervisionEvent::ProcessGroupChanged(_) => {}
             SupervisionEvent::ActorTerminated(cell, _, reason) => {
-                if let Some(supervisor) = &state.supervisor {
-                    if cell.get_id() == supervisor.get_id() {
-                        tracing::info!(?reason, "session_supervisor_terminated");
-                        let session_id = state.session_id.take().unwrap_or_default();
-                        state.supervisor = None;
-                        state.finalizing = false;
-                        emit_session_ended(&state.app, &session_id, None);
-                    }
+                if let Some(supervisor) = &state.supervisor
+                    && cell.get_id() == supervisor.get_id()
+                {
+                    tracing::info!(?reason, "session_supervisor_terminated");
+                    let session_id = state.session_id.take().unwrap_or_default();
+                    state.supervisor = None;
+                    state.finalizing = false;
+                    emit_session_ended(&state.app, &session_id, None);
                 }
             }
             SupervisionEvent::ActorFailed(cell, error) => {
-                if let Some(supervisor) = &state.supervisor {
-                    if cell.get_id() == supervisor.get_id() {
-                        tracing::warn!(?error, "session_supervisor_failed");
-                        let session_id = state.session_id.take().unwrap_or_default();
-                        state.supervisor = None;
-                        state.finalizing = false;
-                        emit_session_ended(&state.app, &session_id, Some(format!("{:?}", error)));
-                    }
+                if let Some(supervisor) = &state.supervisor
+                    && cell.get_id() == supervisor.get_id()
+                {
+                    tracing::warn!(?error, "session_supervisor_failed");
+                    let session_id = state.session_id.take().unwrap_or_default();
+                    state.supervisor = None;
+                    state.finalizing = false;
+                    emit_session_ended(&state.app, &session_id, Some(format!("{:?}", error)));
                 }
             }
         }
@@ -183,14 +183,13 @@ fn stop_session_impl(state: &mut RootState) {
     if let Some(supervisor) = &state.supervisor {
         state.finalizing = true;
 
-        if let Some(session_id) = &state.session_id {
-            if let Err(error) = (SessionLifecycleEvent::Finalizing {
+        if let Some(session_id) = &state.session_id
+            && let Err(error) = (SessionLifecycleEvent::Finalizing {
                 session_id: session_id.clone(),
             })
             .emit(&state.app)
-            {
-                tracing::error!(?error, "failed_to_emit_finalizing");
-            }
+        {
+            tracing::error!(?error, "failed_to_emit_finalizing");
         }
 
         supervisor.stop(None);

@@ -202,7 +202,7 @@ pub fn cleanup_session_note_files(
 }
 
 fn cleanup_session_notes_recursive(
-    base_dir: &Path,
+    _base_dir: &Path,
     current_dir: &Path,
     valid_note_ids: &HashSet<String>,
     sessions_with_memo: &HashSet<String>,
@@ -229,7 +229,7 @@ fn cleanup_session_notes_recursive(
             cleanup_notes_in_session_dir(&path, name, valid_note_ids, sessions_with_memo, removed)?;
         } else if !is_uuid(name) {
             cleanup_session_notes_recursive(
-                base_dir,
+                _base_dir,
                 &path,
                 valid_note_ids,
                 sessions_with_memo,
@@ -272,11 +272,9 @@ fn cleanup_notes_in_session_dir(
         };
 
         if filename == "_memo.md" {
-            if !sessions_with_memo.contains(session_id) {
-                if std::fs::remove_file(&path).is_ok() {
-                    tracing::debug!("Removed orphan memo file: {:?}", path);
-                    *removed += 1;
-                }
+            if !sessions_with_memo.contains(session_id) && std::fs::remove_file(&path).is_ok() {
+                tracing::debug!("Removed orphan memo file: {:?}", path);
+                *removed += 1;
             }
             continue;
         }
@@ -287,13 +285,12 @@ fn cleanup_notes_in_session_dir(
         };
 
         let note_id = extract_frontmatter_id(&content);
-        if let Some(id) = note_id {
-            if !valid_note_ids.contains(&id) {
-                if std::fs::remove_file(&path).is_ok() {
-                    tracing::debug!("Removed orphan note file: {:?}", path);
-                    *removed += 1;
-                }
-            }
+        if let Some(id) = note_id
+            && !valid_note_ids.contains(&id)
+            && std::fs::remove_file(&path).is_ok()
+        {
+            tracing::debug!("Removed orphan note file: {:?}", path);
+            *removed += 1;
         }
     }
 
@@ -310,8 +307,8 @@ fn extract_frontmatter_id(content: &str) -> Option<String> {
 
     for line in frontmatter.lines() {
         let line = line.trim();
-        if line.starts_with("id:") {
-            let value = line[3..].trim().trim_matches('"').trim_matches('\'');
+        if let Some(stripped) = line.strip_prefix("id:") {
+            let value = stripped.trim().trim_matches('"').trim_matches('\'');
             if !value.is_empty() {
                 return Some(value.to_string());
             }
@@ -332,7 +329,7 @@ fn collect_orphan_dirs(
 }
 
 fn collect_orphan_dirs_recursive(
-    base_dir: &Path,
+    _base_dir: &Path,
     current_dir: &Path,
     marker_file: &str,
     valid_ids: &HashSet<String>,
@@ -360,7 +357,7 @@ fn collect_orphan_dirs_recursive(
                 orphans.push(path);
             }
         } else if !is_uuid(name) {
-            collect_orphan_dirs_recursive(base_dir, &path, marker_file, valid_ids, orphans);
+            collect_orphan_dirs_recursive(_base_dir, &path, marker_file, valid_ids, orphans);
         }
     }
 }

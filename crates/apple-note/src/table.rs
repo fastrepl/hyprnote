@@ -54,14 +54,12 @@ pub fn parse_table(proto: &MergableDataProto) -> Option<Table> {
     let mut table_direction = LEFT_TO_RIGHT_DIRECTION.to_string();
 
     for entry in table_objects {
-        if let Some(ref custom_map) = entry.custom_map {
-            if let Some(first_entry) = custom_map.map_entry.first() {
-                if (first_entry.key as usize) == key_items.len() {
-                    if let Some(dir) = &first_entry.value.string_value.as_str().into() {
-                        table_direction = (*dir).to_string();
-                    }
-                }
-            }
+        if let Some(ref custom_map) = entry.custom_map
+            && let Some(first_entry) = custom_map.map_entry.first()
+            && (first_entry.key as usize) == key_items.len()
+            && let Some(dir) = &first_entry.value.string_value.as_str().into()
+        {
+            table_direction = (*dir).to_string();
         }
     }
 
@@ -192,10 +190,9 @@ fn parse_rows(
         if let (Some(key_uuid), Some(value_uuid)) = (
             get_target_uuid_from_object_entry(&table_objects[key_index]),
             get_target_uuid_from_object_entry(&table_objects[value_index]),
-        ) {
-            if let Some(&key_row_index) = row_indices.get(&key_uuid) {
-                row_indices.insert(value_uuid, key_row_index);
-            }
+        ) && let Some(&key_row_index) = row_indices.get(&key_uuid)
+        {
+            row_indices.insert(value_uuid, key_row_index);
         }
     }
 
@@ -233,10 +230,9 @@ fn parse_columns(
         if let (Some(key_uuid), Some(value_uuid)) = (
             get_target_uuid_from_object_entry(&table_objects[key_index]),
             get_target_uuid_from_object_entry(&table_objects[value_index]),
-        ) {
-            if let Some(&key_col_index) = column_indices.get(&key_uuid) {
-                column_indices.insert(value_uuid, key_col_index);
-            }
+        ) && let Some(&key_col_index) = column_indices.get(&key_uuid)
+        {
+            column_indices.insert(value_uuid, key_col_index);
         }
     }
 
@@ -304,12 +300,10 @@ fn parse_cell_columns(
             if let (Some(&row_idx), Some(&col_idx)) = (
                 row_indices.get(&current_row),
                 column_indices.get(&current_column),
-            ) {
-                if row_idx < reconstructed_table.len()
-                    && col_idx < reconstructed_table[row_idx].len()
-                {
-                    reconstructed_table[row_idx][col_idx] = cell_text;
-                }
+            ) && row_idx < reconstructed_table.len()
+                && col_idx < reconstructed_table[row_idx].len()
+            {
+                reconstructed_table[row_idx][col_idx] = cell_text;
             }
         }
     }

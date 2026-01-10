@@ -179,11 +179,9 @@ pub fn split_by_headings(node: &Node) -> Vec<Vec<&Node>> {
     let mut current: Vec<&Node> = Vec::new();
 
     for child in &root.children {
-        if matches!(child, Node::Heading(_)) {
-            if !current.is_empty() {
-                sections.push(current);
-                current = Vec::new();
-            }
+        if matches!(child, Node::Heading(_)) && !current.is_empty() {
+            sections.push(current);
+            current = Vec::new();
         }
         current.push(child);
     }

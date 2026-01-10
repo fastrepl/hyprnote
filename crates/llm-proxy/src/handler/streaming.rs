@@ -105,17 +105,16 @@ pub(super) async fn handle_stream_response(
                     yield Ok::<_, std::io::Error>(chunk);
                 }
                 Err(e) => {
-                    yield Err(std::io::Error::new(std::io::ErrorKind::Other, e));
+                    yield Err(std::io::Error::other(e));
                     break;
                 }
             }
         }
 
-        if let Some(analytics) = analytics {
-            if let Some(event) = accumulator.into_event(start_time, http_status) {
+        if let Some(analytics) = analytics
+            && let Some(event) = accumulator.into_event(start_time, http_status) {
                 report_with_cost(&*analytics, &client, &api_key, event).await;
             }
-        }
     };
 
     let body = Body::from_stream(output_stream);

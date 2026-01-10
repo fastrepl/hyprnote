@@ -36,10 +36,10 @@ pub fn is_control_message(data: &[u8], types: &HashSet<&str>) -> bool {
     if data.first() != Some(&b'{') {
         return false;
     }
-    if let Ok(parsed) = serde_json::from_slice::<TypeOnly>(data) {
-        if let Some(msg_type) = parsed.msg_type {
-            return types.contains(msg_type);
-        }
+    if let Ok(parsed) = serde_json::from_slice::<TypeOnly>(data)
+        && let Some(msg_type) = parsed.msg_type
+    {
+        return types.contains(msg_type);
     }
     false
 }

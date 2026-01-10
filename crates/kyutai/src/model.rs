@@ -76,10 +76,10 @@ impl Model {
                     }
                     moshi::asr::AsrMsg::EndWord { stop_time, .. } => {
                         printed_eot = false;
-                        if self.timestamps {
-                            if let Some((word, start_time)) = last_word.take() {
-                                println!("[{start_time:5.2}-{stop_time:5.2}] {word}");
-                            }
+                        if self.timestamps
+                            && let Some((word, start_time)) = last_word.take()
+                        {
+                            println!("[{start_time:5.2}-{stop_time:5.2}] {word}");
                         }
                     }
                     moshi::asr::AsrMsg::Word {

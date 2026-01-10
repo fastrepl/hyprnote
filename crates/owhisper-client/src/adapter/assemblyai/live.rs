@@ -49,10 +49,10 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
                 query_pairs.append_pair("language_detection", "true");
             }
 
-            if let Some(custom) = &params.custom_query {
-                if let Some(max_silence) = custom.get("max_turn_silence") {
-                    query_pairs.append_pair("max_turn_silence", max_silence);
-                }
+            if let Some(custom) = &params.custom_query
+                && let Some(max_silence) = custom.get("max_turn_silence")
+            {
+                query_pairs.append_pair("max_turn_silence", max_silence);
             }
 
             if !params.keywords.is_empty() {

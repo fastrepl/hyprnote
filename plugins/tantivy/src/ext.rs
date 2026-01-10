@@ -301,15 +301,15 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         }
 
         // Apply facet filter
-        if let Some(ref facet_path) = request.filters.facet {
-            if let Ok(facet) = Facet::from_text(facet_path) {
-                let facet_term = Term::from_facet(fields.facets, &facet);
-                let facet_query = TermQuery::new(facet_term, IndexRecordOption::Basic);
-                combined_query = Box::new(BooleanQuery::new(vec![
-                    (Occur::Must, combined_query),
-                    (Occur::Must, Box::new(facet_query)),
-                ]));
-            }
+        if let Some(ref facet_path) = request.filters.facet
+            && let Ok(facet) = Facet::from_text(facet_path)
+        {
+            let facet_term = Term::from_facet(fields.facets, &facet);
+            let facet_query = TermQuery::new(facet_term, IndexRecordOption::Basic);
+            combined_query = Box::new(BooleanQuery::new(vec![
+                (Occur::Must, combined_query),
+                (Occur::Must, Box::new(facet_query)),
+            ]));
         }
 
         // Use tuple collector to get both top docs and total count

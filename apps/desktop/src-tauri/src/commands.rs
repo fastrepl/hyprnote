@@ -71,7 +71,7 @@ pub fn show_devtool() -> bool {
 
     #[cfg(not(feature = "devtools"))]
     {
-        return false;
+        false
     }
 }
 

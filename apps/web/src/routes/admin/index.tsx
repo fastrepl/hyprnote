@@ -25,7 +25,10 @@ function AdminDashboard() {
           </p>
         </a>
 
-        <div className="block p-6 bg-white rounded-lg border border-neutral-200 opacity-50">
+        <a
+          href="/admin/import"
+          className="block p-6 bg-white rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all"
+        >
           <h2 className="text-lg font-medium text-neutral-900 mb-2">
             Import from Google Docs
           </h2>
@@ -33,10 +36,7 @@ function AdminDashboard() {
             Import blog posts from Google Docs with automatic markdown
             conversion.
           </p>
-          <span className="inline-block mt-2 text-xs text-neutral-400">
-            Coming soon
-          </span>
-        </div>
+        </a>
 
         <div className="block p-6 bg-white rounded-lg border border-neutral-200 opacity-50">
           <h2 className="text-lg font-medium text-neutral-900 mb-2">

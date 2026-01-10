@@ -93,13 +93,21 @@ export const Route = createFileRoute("/api/admin/import/save")({
             },
           );
 
-          if (checkResponse.ok) {
+          if (checkResponse.status === 200) {
             return new Response(
               JSON.stringify({
                 success: false,
                 error: `File already exists: ${path}`,
               }),
               { status: 409, headers: { "Content-Type": "application/json" } },
+            );
+          } else if (checkResponse.status !== 404) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: `Failed to check file existence: ${checkResponse.statusText}`,
+              }),
+              { status: 500, headers: { "Content-Type": "application/json" } },
             );
           }
 

@@ -153,21 +153,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
         </div>
       )}
 
-      {listeningTab && (
-        <div className="flex items-center h-full shrink-0 mr-1">
-          <TabItem
-            tab={listeningTab}
-            handleClose={close}
-            handleSelect={select}
-            handleCloseOthersCallback={closeOthers}
-            handleCloseAll={closeAll}
-            handlePin={pin}
-            handleUnpin={unpin}
-            tabIndex={1}
-          />
-        </div>
-      )}
-
       <div className="flex items-center h-full shrink-0">
         <Button
           onClick={goBack}
@@ -186,6 +171,21 @@ function Header({ tabs }: { tabs: Tab[] }) {
           <ArrowRightIcon size={16} />
         </Button>
       </div>
+
+      {listeningTab && (
+        <div className="flex items-center h-full shrink-0 mr-1">
+          <TabItem
+            tab={listeningTab}
+            handleClose={close}
+            handleSelect={select}
+            handleCloseOthersCallback={closeOthers}
+            handleCloseAll={closeAll}
+            handlePin={pin}
+            handleUnpin={unpin}
+            tabIndex={1}
+          />
+        </div>
+      )}
 
       <div className="relative h-full min-w-0">
         <div

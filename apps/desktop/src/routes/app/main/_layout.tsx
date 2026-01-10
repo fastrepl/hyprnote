@@ -29,14 +29,9 @@ function Component() {
   const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({
     from: "__root__",
   });
-  const {
-    registerOnEmpty,
-    registerCanClose,
-    registerOnClose,
-    openNew,
-    tabs,
-    pin,
-  } = useTabs();
+  const { registerOnEmpty, registerCanClose, registerOnClose, openNew, pin } =
+    useTabs();
+  const tabs = useTabs((state) => state.tabs);
   const hasOpenedInitialTab = useRef(false);
   const liveSessionId = useListener((state) => state.live.sessionId);
   const liveStatus = useListener((state) => state.live.status);
@@ -63,14 +58,15 @@ function Component() {
     const justStartedListening =
       prevLiveStatus !== "active" && liveStatus === "active";
     if (justStartedListening && liveSessionId) {
-      const sessionTab = tabs.find(
+      const currentTabs = useTabs.getState().tabs;
+      const sessionTab = currentTabs.find(
         (t) => t.type === "sessions" && t.id === liveSessionId,
       );
       if (sessionTab && !sessionTab.pinned) {
         pin(sessionTab);
       }
     }
-  }, [liveStatus, prevLiveStatus, liveSessionId, tabs, pin]);
+  }, [liveStatus, prevLiveStatus, liveSessionId, pin]);
 
   useEffect(() => {
     registerOnClose((tab) => {

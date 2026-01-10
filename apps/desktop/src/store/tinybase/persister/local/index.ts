@@ -166,7 +166,6 @@ export function useLocalPersister(store: Store) {
         await persister.save();
       }
 
-      await persister.startAutoLoad();
       return persister;
     },
     [],

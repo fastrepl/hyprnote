@@ -266,6 +266,13 @@ pub async fn main() {
             }
         }
         tauri::RunEvent::Exit => {
+            {
+                use tauri_plugin_store2::Store2PluginExt;
+                if let Ok(store) = app.store2().store() {
+                    let _ = store.save();
+                }
+            }
+
             if let Some(ref ctx) = root_supervisor_ctx_for_run {
                 ctx.mark_exiting();
                 ctx.stop();

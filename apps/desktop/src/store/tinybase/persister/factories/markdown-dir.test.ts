@@ -1,71 +1,221 @@
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { parseHumanIdFromPath } from "../human/changes";
-import { parseOrganizationIdFromPath } from "../organization/changes";
-import { parsePromptIdFromPath } from "../prompts/changes";
+import type { JsonValue } from "@hypr/plugin-fs-sync";
 
-describe("parseHumanIdFromPath", () => {
-  test("extracts entity id from valid path", () => {
-    expect(parseHumanIdFromPath("/data/humans/uuid-123.md")).toBe("uuid-123");
+import {
+  createTestMainStore,
+  MOCK_DATA_DIR,
+  TEST_UUID_1,
+  TEST_UUID_2,
+} from "../testing/mocks";
+import { createMarkdownDirPersister } from "./markdown-dir";
+
+const path2Mocks = vi.hoisted(() => ({
+  base: vi.fn().mockResolvedValue("/mock/data/dir/hyprnote"),
+}));
+
+const fsSyncMocks = vi.hoisted(() => ({
+  deserialize: vi.fn(),
+  serialize: vi.fn().mockResolvedValue({ status: "ok", data: "" }),
+  writeDocumentBatch: vi.fn().mockResolvedValue({ status: "ok", data: null }),
+  readDocumentBatch: vi.fn(),
+  cleanupOrphan: vi.fn().mockResolvedValue({ status: "ok", data: 0 }),
+}));
+
+const fsMocks = vi.hoisted(() => ({
+  mkdir: vi.fn().mockResolvedValue(undefined),
+  readDir: vi.fn(),
+  readTextFile: vi.fn(),
+  writeTextFile: vi.fn().mockResolvedValue(undefined),
+  exists: vi.fn(),
+  remove: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@hypr/plugin-path2", () => ({ commands: path2Mocks }));
+vi.mock("@hypr/plugin-fs-sync", () => ({ commands: fsSyncMocks }));
+vi.mock("@tauri-apps/plugin-fs", () => fsMocks);
+
+const testConfig = {
+  tableName: "humans",
+  dirName: "humans",
+  label: "TestHumanPersister",
+  entityParser: (path: string) => {
+    const match = path.match(/humans\/([^/]+)\.md$/);
+    return match ? match[1] : null;
+  },
+  toFrontmatter: (entity: Record<string, unknown>) => ({
+    frontmatter: entity as Record<string, JsonValue>,
+    body: "",
+  }),
+  fromFrontmatter: (frontmatter: Record<string, unknown>) => frontmatter,
+};
+
+describe("createMarkdownDirPersister", () => {
+  let store: ReturnType<typeof createTestMainStore>;
+
+  beforeEach(() => {
+    store = createTestMainStore();
+    vi.clearAllMocks();
   });
 
-  test("extracts entity id from path with nested directories", () => {
-    expect(parseHumanIdFromPath("/some/nested/path/humans/entity-456.md")).toBe(
-      "entity-456",
-    );
+  test("returns a persister object with expected methods", () => {
+    const persister = createMarkdownDirPersister(store, testConfig);
+
+    expect(persister).toBeDefined();
+    expect(persister.save).toBeTypeOf("function");
+    expect(persister.load).toBeTypeOf("function");
+    expect(persister.destroy).toBeTypeOf("function");
   });
 
-  test("extracts UUID-style entity id", () => {
-    expect(
-      parseHumanIdFromPath(
-        "/data/humans/550e8400-e29b-41d4-a716-446655440000.md",
-      ),
-    ).toBe("550e8400-e29b-41d4-a716-446655440000");
+  describe("load", () => {
+    test("loads entities from markdown files", async () => {
+      fsSyncMocks.readDocumentBatch.mockResolvedValue({
+        status: "ok",
+        data: {
+          [TEST_UUID_1]: {
+            frontmatter: {
+              user_id: "user-1",
+              created_at: "2024-01-01T00:00:00Z",
+              name: "John Doe",
+              email: "john@example.com",
+              org_id: "",
+            },
+            content: "",
+          },
+        },
+      });
+
+      const persister = createMarkdownDirPersister(store, testConfig);
+      await persister.load();
+
+      expect(fsSyncMocks.readDocumentBatch).toHaveBeenCalledWith(
+        `${MOCK_DATA_DIR}/humans`,
+      );
+
+      const entities = store.getTable("humans");
+      expect(entities[TEST_UUID_1]).toEqual({
+        user_id: "user-1",
+        created_at: "2024-01-01T00:00:00Z",
+        name: "John Doe",
+        email: "john@example.com",
+        org_id: "",
+      });
+    });
+
+    test("loads multiple entities", async () => {
+      fsSyncMocks.readDocumentBatch.mockResolvedValue({
+        status: "ok",
+        data: {
+          [TEST_UUID_1]: {
+            frontmatter: {
+              user_id: "user-1",
+              created_at: "2024-01-01T00:00:00Z",
+              name: "John Doe",
+              email: "john@example.com",
+              org_id: "",
+            },
+            content: "",
+          },
+          [TEST_UUID_2]: {
+            frontmatter: {
+              user_id: "user-1",
+              created_at: "2024-01-02T00:00:00Z",
+              name: "Jane Doe",
+              email: "jane@example.com",
+              org_id: "",
+            },
+            content: "",
+          },
+        },
+      });
+
+      const persister = createMarkdownDirPersister(store, testConfig);
+      await persister.load();
+
+      const entities = store.getTable("humans");
+      expect(Object.keys(entities)).toHaveLength(2);
+      expect(entities[TEST_UUID_1]).toBeDefined();
+      expect(entities[TEST_UUID_2]).toBeDefined();
+    });
+
+    test("returns empty when directory does not exist", async () => {
+      fsSyncMocks.readDocumentBatch.mockResolvedValue({
+        status: "error",
+        error: "No such file or directory",
+      });
+
+      const persister = createMarkdownDirPersister(store, testConfig);
+      await persister.load();
+
+      expect(store.getTable("humans")).toEqual({});
+    });
   });
 
-  test("returns null when directory not in path", () => {
-    expect(parseHumanIdFromPath("/data/organizations/uuid-123.md")).toBeNull();
-  });
+  describe("save", () => {
+    test("saves entity to markdown file via batch write", async () => {
+      store.setRow("humans", TEST_UUID_1, {
+        user_id: "user-1",
+        created_at: "2024-01-01T00:00:00Z",
+        name: "John Doe",
+        email: "john@example.com",
+        org_id: "",
+      });
 
-  test("returns null for non-md file", () => {
-    expect(parseHumanIdFromPath("/data/humans/uuid-123.json")).toBeNull();
-  });
+      const persister = createMarkdownDirPersister(store, testConfig);
+      await persister.save();
 
-  test("returns null for directory path without filename", () => {
-    expect(parseHumanIdFromPath("/data/humans/")).toBeNull();
-  });
+      expect(fsSyncMocks.writeDocumentBatch).toHaveBeenCalledWith([
+        [
+          {
+            frontmatter: {
+              user_id: "user-1",
+              created_at: "2024-01-01T00:00:00Z",
+              name: "John Doe",
+              email: "john@example.com",
+              org_id: "",
+            },
+            content: "",
+          },
+          `${MOCK_DATA_DIR}/humans/${TEST_UUID_1}.md`,
+        ],
+      ]);
+    });
 
-  test("returns null when directory is last element", () => {
-    expect(parseHumanIdFromPath("/data/humans")).toBeNull();
-  });
+    test("does not write when no entities exist", async () => {
+      const persister = createMarkdownDirPersister(store, testConfig);
+      await persister.save();
 
-  test("returns null for empty path", () => {
-    expect(parseHumanIdFromPath("")).toBeNull();
-  });
-});
+      expect(fsSyncMocks.writeDocumentBatch).not.toHaveBeenCalled();
+    });
 
-describe("parsePromptIdFromPath", () => {
-  test("extracts entity id from prompts path", () => {
-    expect(parsePromptIdFromPath("/data/prompts/summary-prompt.md")).toBe(
-      "summary-prompt",
-    );
-  });
+    test("saves multiple entities in single batch call", async () => {
+      store.setRow("humans", TEST_UUID_1, {
+        user_id: "user-1",
+        created_at: "2024-01-01T00:00:00Z",
+        name: "John Doe",
+        email: "john@example.com",
+        org_id: "",
+      });
 
-  test("returns null for humans path", () => {
-    expect(parsePromptIdFromPath("/data/humans/uuid-123.md")).toBeNull();
-  });
-});
+      store.setRow("humans", TEST_UUID_2, {
+        user_id: "user-1",
+        created_at: "2024-01-02T00:00:00Z",
+        name: "Jane Doe",
+        email: "jane@example.com",
+        org_id: "",
+      });
 
-describe("parseOrganizationIdFromPath", () => {
-  test("extracts entity id from organizations path", () => {
-    expect(
-      parseOrganizationIdFromPath("/data/organizations/acme-corp.md"),
-    ).toBe("acme-corp");
-  });
+      const persister = createMarkdownDirPersister(store, testConfig);
+      await persister.save();
 
-  test("handles filename with dots", () => {
-    expect(
-      parseOrganizationIdFromPath("/data/organizations/acme.corp.inc.md"),
-    ).toBe("acme.corp.inc");
+      expect(fsSyncMocks.writeDocumentBatch).toHaveBeenCalledTimes(1);
+
+      const batchItems = fsSyncMocks.writeDocumentBatch.mock.calls[0][0];
+      expect(batchItems).toHaveLength(2);
+
+      const paths = batchItems.map((item: [unknown, string]) => item[1]);
+      expect(paths).toContain(`${MOCK_DATA_DIR}/humans/${TEST_UUID_1}.md`);
+      expect(paths).toContain(`${MOCK_DATA_DIR}/humans/${TEST_UUID_2}.md`);
+    });
   });
 });

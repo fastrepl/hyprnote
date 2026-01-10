@@ -1,20 +1,22 @@
-import type { Store } from "../../store/main";
+type Row = Record<string, unknown>;
+type Table = Record<string, Row>;
 
-type TableConfig<TData> =
+export type TableConfig<TData extends Record<string, Table>> =
   | { tableName: keyof TData & string; isPrimary: true }
   | { tableName: keyof TData & string; foreignKey: string }
   | { tableName: keyof TData & string };
 
-type DeletionMarkerResult<
-  TData extends Record<string, Record<string, unknown>>,
-> = {
-  [K in keyof TData]: Record<string, TData[K][string] | undefined>;
+export interface DeletionMarkerStore {
+  getTable(tableName: string): Table | undefined;
+  getRow(tableName: string, rowId: string): Row | undefined;
+}
+
+export type DeletionMarkerResult<TData extends Record<string, Table>> = {
+  [K in keyof TData]: Record<string, Row | undefined>;
 };
 
-export function createDeletionMarker<
-  TData extends Record<string, Record<string, unknown>>,
->(
-  store: Store,
+export function createDeletionMarker<TData extends Record<string, Table>>(
+  store: DeletionMarkerStore,
   tableConfigs: TableConfig<TData>[],
 ): {
   markAll: (loaded: TData) => DeletionMarkerResult<TData>;
@@ -23,24 +25,41 @@ export function createDeletionMarker<
     entityId: string,
   ) => DeletionMarkerResult<TData>;
 } {
+  const markTable = (
+    tableName: string,
+    loadedTable: Table,
+    idsToCheck: Iterable<string>,
+    shouldMark: (id: string, row: Row) => boolean,
+  ): Record<string, Row | undefined> => {
+    const tableResult: Record<string, Row | undefined> = { ...loadedTable };
+
+    for (const id of idsToCheck) {
+      if (!(id in loadedTable)) {
+        const row = store.getRow(tableName, id);
+        if (row && shouldMark(id, row)) {
+          tableResult[id] = undefined;
+        }
+      }
+    }
+
+    return tableResult;
+  };
+
   return {
     markAll: (loaded: TData): DeletionMarkerResult<TData> => {
       const result = {} as DeletionMarkerResult<TData>;
 
       for (const config of tableConfigs) {
-        const { tableName } = config;
+        const tableName = config.tableName as keyof TData & string;
         const loadedTable = loaded[tableName] ?? {};
-        const existingTable = store.getTable(tableName as any) ?? {};
+        const existingTable = store.getTable(tableName) ?? {};
 
-        const tableResult: Record<string, unknown> = { ...loadedTable };
-
-        for (const id of Object.keys(existingTable)) {
-          if (!(id in loadedTable)) {
-            tableResult[id] = undefined;
-          }
-        }
-
-        result[tableName as keyof TData] = tableResult as any;
+        result[tableName] = markTable(
+          tableName,
+          loadedTable,
+          Object.keys(existingTable),
+          () => true,
+        );
       }
 
       return result;
@@ -53,32 +72,29 @@ export function createDeletionMarker<
       const result = {} as DeletionMarkerResult<TData>;
 
       for (const config of tableConfigs) {
-        const { tableName } = config;
+        const tableName = config.tableName as keyof TData & string;
         const loadedTable = loaded[tableName] ?? {};
-        const tableResult: Record<string, unknown> = { ...loadedTable };
 
         if ("isPrimary" in config && config.isPrimary) {
-          const existingRow = store.getRow(tableName as any, entityId);
-          if (
-            existingRow &&
-            Object.keys(existingRow).length > 0 &&
-            !(entityId in loadedTable)
-          ) {
-            tableResult[entityId] = undefined;
-          }
+          result[tableName] = markTable(
+            tableName,
+            loadedTable,
+            [entityId],
+            () => true,
+          );
         } else if ("foreignKey" in config) {
-          const existingTable = store.getTable(tableName as any) ?? {};
-          for (const [id, row] of Object.entries(existingTable)) {
-            const rowForeignKey = (row as Record<string, unknown>)[
-              config.foreignKey
-            ];
-            if (rowForeignKey === entityId && !(id in loadedTable)) {
-              tableResult[id] = undefined;
-            }
-          }
-        }
+          const existingTable = store.getTable(tableName) ?? {};
+          const foreignKey = config.foreignKey;
 
-        result[tableName as keyof TData] = tableResult as any;
+          result[tableName] = markTable(
+            tableName,
+            loadedTable,
+            Object.keys(existingTable),
+            (_id, row) => row[foreignKey] === entityId,
+          );
+        } else {
+          result[tableName] = { ...loadedTable };
+        }
       }
 
       return result;

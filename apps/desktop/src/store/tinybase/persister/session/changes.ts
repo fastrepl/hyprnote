@@ -3,10 +3,21 @@ import { type ChangedTables, type TablesContent } from "../shared";
 export function parseSessionIdFromPath(path: string): string | null {
   const parts = path.split("/");
   const sessionsIndex = parts.indexOf("sessions");
-  if (sessionsIndex === -1 || sessionsIndex + 1 >= parts.length) {
+  if (sessionsIndex === -1) {
     return null;
   }
-  return parts[sessionsIndex + 1] || null;
+
+  const filename = parts[parts.length - 1];
+  const isSessionFile =
+    filename === "_meta.json" ||
+    filename === "_transcript.json" ||
+    filename?.endsWith(".md");
+
+  if (isSessionFile && parts.length >= 2) {
+    return parts[parts.length - 2] || null;
+  }
+
+  return null;
 }
 
 export type ChangeResult = {

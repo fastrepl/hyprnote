@@ -197,41 +197,62 @@ describe("sanitizeFilename", () => {
 describe("createMarkdownEntityParser", () => {
   const parseHumanId = createMarkdownEntityParser("humans");
 
-  test("parses id from valid path", () => {
-    expect(parseHumanId("humans/person-123.md")).toBe("person-123");
+  describe("relative paths (from notify events)", () => {
+    test("parses id from valid path", () => {
+      expect(parseHumanId("humans/person-123.md")).toBe("person-123");
+    });
+
+    test("parses uuid from path", () => {
+      expect(
+        parseHumanId("humans/550e8400-e29b-41d4-a716-446655440000.md"),
+      ).toBe("550e8400-e29b-41d4-a716-446655440000");
+    });
+
+    test("parses id with special characters", () => {
+      expect(parseHumanId("humans/john-doe_2024.md")).toBe("john-doe_2024");
+    });
   });
 
-  test("parses id from path with leading segments", () => {
-    expect(parseHumanId("/data/hyprnote/humans/person-123.md")).toBe(
-      "person-123",
-    );
+  describe("edge cases", () => {
+    test("returns null for non-markdown file", () => {
+      expect(parseHumanId("humans/person-123.json")).toBeNull();
+    });
+
+    test("returns null for wrong directory", () => {
+      expect(parseHumanId("organizations/org-123.md")).toBeNull();
+    });
+
+    test("returns null for path without filename", () => {
+      expect(parseHumanId("humans/")).toBeNull();
+    });
+
+    test("returns null for directory name only", () => {
+      expect(parseHumanId("humans")).toBeNull();
+    });
+
+    test("returns null for empty path", () => {
+      expect(parseHumanId("")).toBeNull();
+    });
   });
 
-  test("parses uuid from path", () => {
-    expect(parseHumanId("humans/550e8400-e29b-41d4-a716-446655440000.md")).toBe(
-      "550e8400-e29b-41d4-a716-446655440000",
-    );
+  describe("absolute paths (defensive handling)", () => {
+    test("parses id from path with leading segments", () => {
+      expect(parseHumanId("/data/hyprnote/humans/person-123.md")).toBe(
+        "person-123",
+      );
+    });
   });
 
-  test("returns null for non-markdown file", () => {
-    expect(parseHumanId("humans/person-123.json")).toBeNull();
-  });
+  describe("different directory names", () => {
+    test("works with organizations directory", () => {
+      const parseOrgId = createMarkdownEntityParser("organizations");
+      expect(parseOrgId("organizations/acme-corp.md")).toBe("acme-corp");
+      expect(parseOrgId("humans/person.md")).toBeNull();
+    });
 
-  test("returns null for wrong directory", () => {
-    expect(parseHumanId("organizations/org-123.md")).toBeNull();
-  });
-
-  test("returns null for path without filename", () => {
-    expect(parseHumanId("humans/")).toBeNull();
-  });
-
-  test("returns null for directory name only", () => {
-    expect(parseHumanId("humans")).toBeNull();
-  });
-
-  test("works with different directory names", () => {
-    const parseOrgId = createMarkdownEntityParser("organizations");
-    expect(parseOrgId("organizations/acme-corp.md")).toBe("acme-corp");
-    expect(parseOrgId("humans/person.md")).toBeNull();
+    test("works with prompts directory", () => {
+      const parsePromptId = createMarkdownEntityParser("prompts");
+      expect(parsePromptId("prompts/my-prompt.md")).toBe("my-prompt");
+    });
   });
 });

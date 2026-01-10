@@ -15,7 +15,10 @@ import {
   type ParsedDocument,
 } from "@hypr/plugin-fs-sync";
 
-import { createDeletionMarker } from "../shared/deletion-marker";
+import {
+  createDeletionMarker,
+  type DeletionMarkerStore,
+} from "../shared/deletion-marker";
 import { isFileNotFoundError } from "../shared/fs";
 import {
   buildEntityFilePath,
@@ -30,7 +33,9 @@ import {
 import { asTablesChanges } from "../shared/utils";
 import { createCollectorPersister } from "./collector";
 
-export interface MarkdownDirPersisterConfig<TStorage> {
+export interface MarkdownDirPersisterConfig<
+  TStorage extends Record<string, unknown>,
+> {
   tableName: string;
   dirName: string;
   label: string;
@@ -45,11 +50,11 @@ export interface MarkdownDirPersisterConfig<TStorage> {
   ) => TStorage;
 }
 
-type LoadedData<TStorage> = {
+type LoadedData<TStorage extends Record<string, unknown>> = {
   [tableName: string]: Record<string, TStorage>;
 };
 
-async function loadMarkdownDir<TStorage>(
+async function loadMarkdownDir<TStorage extends Record<string, unknown>>(
   dataDir: string,
   config: MarkdownDirPersisterConfig<TStorage>,
 ): Promise<Record<string, TStorage>> {
@@ -73,7 +78,7 @@ async function loadMarkdownDir<TStorage>(
   return entities;
 }
 
-function collectMarkdownWriteOps<TStorage>(
+function collectMarkdownWriteOps<TStorage extends Record<string, unknown>>(
   tableData: Record<string, TStorage>,
   dataDir: string,
   config: MarkdownDirPersisterConfig<TStorage>,
@@ -100,7 +105,10 @@ function collectMarkdownWriteOps<TStorage>(
   return operations;
 }
 
-async function loadSingleEntity<Schemas extends OptionalSchemas, TStorage>(
+async function loadSingleEntity<
+  Schemas extends OptionalSchemas,
+  TStorage extends Record<string, unknown>,
+>(
   config: MarkdownDirPersisterConfig<TStorage>,
   entityId: string,
   deletionMarker: ReturnType<typeof createDeletionMarker<LoadedData<TStorage>>>,
@@ -148,7 +156,7 @@ async function loadSingleEntity<Schemas extends OptionalSchemas, TStorage>(
 
 export function createMarkdownDirPersister<
   Schemas extends OptionalSchemas,
-  TStorage,
+  TStorage extends Record<string, unknown>,
 >(
   store: MergeableStore<Schemas>,
   config: MarkdownDirPersisterConfig<TStorage>,
@@ -156,7 +164,7 @@ export function createMarkdownDirPersister<
   const { tableName, dirName, label, entityParser } = config;
 
   const deletionMarker = createDeletionMarker<LoadedData<TStorage>>(
-    store as any,
+    store as DeletionMarkerStore,
     [{ tableName, isPrimary: true }],
   );
 

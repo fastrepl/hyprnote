@@ -1,5 +1,4 @@
 import { createMergeableStore } from "tinybase/with-schemas";
-import { vi } from "vitest";
 
 import { SCHEMA } from "@hypr/store";
 
@@ -23,47 +22,4 @@ export function createTestSettingsStore(): SettingsStore {
   return createMergeableStore()
     .setTablesSchema(SETTINGS_SCHEMA.table)
     .setValuesSchema(SETTINGS_SCHEMA.value) as SettingsStore;
-}
-
-export function setupJsonFilePersisterMocks() {
-  vi.mock("@hypr/plugin-path2", () => ({
-    commands: {
-      base: vi.fn().mockResolvedValue(MOCK_DATA_DIR),
-    },
-  }));
-
-  vi.mock("@tauri-apps/plugin-fs", () => ({
-    mkdir: vi.fn().mockResolvedValue(undefined),
-    readTextFile: vi.fn(),
-    writeTextFile: vi.fn().mockResolvedValue(undefined),
-  }));
-}
-
-export function setupMarkdownDirPersisterMocks() {
-  vi.mock("@hypr/plugin-path2", () => ({
-    commands: {
-      base: vi.fn().mockResolvedValue(MOCK_DATA_DIR),
-    },
-  }));
-
-  vi.mock("@hypr/plugin-fs-sync", () => ({
-    commands: {
-      deserialize: vi.fn(),
-      serialize: vi.fn().mockResolvedValue({ status: "ok", data: "" }),
-      writeDocumentBatch: vi
-        .fn()
-        .mockResolvedValue({ status: "ok", data: null }),
-      readDocumentBatch: vi.fn(),
-      cleanupOrphan: vi.fn().mockResolvedValue({ status: "ok", data: 0 }),
-    },
-  }));
-
-  vi.mock("@tauri-apps/plugin-fs", () => ({
-    mkdir: vi.fn().mockResolvedValue(undefined),
-    readDir: vi.fn(),
-    readTextFile: vi.fn(),
-    writeTextFile: vi.fn().mockResolvedValue(undefined),
-    exists: vi.fn(),
-    remove: vi.fn().mockResolvedValue(undefined),
-  }));
 }

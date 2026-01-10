@@ -8,7 +8,11 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
-import { createDeletionMarker } from "../shared/deletion-marker";
+import {
+  createDeletionMarker,
+  type DeletionMarkerStore,
+  type TableConfig,
+} from "../shared/deletion-marker";
 import { getDataDir } from "../shared/paths";
 import type { ChangedTables, SaveResult, TablesContent } from "../shared/types";
 import { asTablesChanges } from "../shared/utils";
@@ -17,14 +21,11 @@ import {
   type OrphanCleanupConfig,
 } from "./collector";
 
-type TableConfig<TData> =
-  | { tableName: keyof TData & string; isPrimary: true }
-  | { tableName: keyof TData & string; foreignKey: string }
-  | { tableName: keyof TData & string };
+type Table = Record<string, Record<string, unknown>>;
 
 export type MultiTableDirConfig<
   Schemas extends OptionalSchemas,
-  TLoadedData extends Record<string, Record<string, unknown>>,
+  TLoadedData extends Record<string, Table>,
 > = {
   label: string;
   dirName: string;
@@ -41,9 +42,7 @@ export type MultiTableDirConfig<
   ) => SaveResult;
 };
 
-function hasChanges<
-  TLoadedData extends Record<string, Record<string, unknown>>,
->(
+function hasChanges<TLoadedData extends Record<string, Table>>(
   result: { [K in keyof TLoadedData]: Record<string, unknown> },
   tableNames: (keyof TLoadedData)[],
 ): boolean {
@@ -52,7 +51,7 @@ function hasChanges<
 
 export function createMultiTableDirPersister<
   Schemas extends OptionalSchemas,
-  TLoadedData extends Record<string, Record<string, unknown>>,
+  TLoadedData extends Record<string, Table>,
 >(
   store: MergeableStore<Schemas>,
   config: MultiTableDirConfig<Schemas, TLoadedData>,
@@ -69,7 +68,7 @@ export function createMultiTableDirPersister<
   } = config;
 
   const deletionMarker = createDeletionMarker<TLoadedData>(
-    store as any,
+    store as DeletionMarkerStore,
     tables,
   );
   const tableNames = tables.map((t) => t.tableName);

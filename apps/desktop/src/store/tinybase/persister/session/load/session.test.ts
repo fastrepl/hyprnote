@@ -1,6 +1,7 @@
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { extractSessionIdAndFolder } from "./session";
+import { extractSessionIdAndFolder, processMetaFile } from "./session";
+import { createEmptyLoadedSessionData, type LoadedSessionData } from "./types";
 
 describe("extractSessionIdAndFolder", () => {
   describe("standard paths", () => {
@@ -100,5 +101,124 @@ describe("extractSessionIdAndFolder", () => {
       expect(result.sessionId).toBe("session-123");
       expect(result.folderPath).toBe("sessions");
     });
+  });
+});
+
+describe("processMetaFile", () => {
+  let result: LoadedSessionData;
+  const now = "2024-01-15T00:00:00Z";
+
+  beforeEach(() => {
+    result = createEmptyLoadedSessionData();
+  });
+
+  test("parses meta JSON and creates session entry", () => {
+    const content = JSON.stringify({
+      id: "session-1",
+      user_id: "user-1",
+      created_at: "2024-01-01T00:00:00Z",
+      title: "Test Session",
+      event_id: "event-1",
+      participants: [],
+    });
+
+    processMetaFile(
+      "/data/sessions/session-1/_meta.json",
+      content,
+      result,
+      now,
+    );
+
+    expect(result.sessions["session-1"]).toEqual({
+      user_id: "user-1",
+      created_at: "2024-01-01T00:00:00Z",
+      title: "Test Session",
+      folder_id: "/data/sessions",
+      event_id: "event-1",
+      raw_md: "",
+    });
+  });
+
+  test("creates mapping_session_participant entries", () => {
+    const content = JSON.stringify({
+      id: "session-1",
+      user_id: "user-1",
+      created_at: "2024-01-01T00:00:00Z",
+      title: "Test Session",
+      participants: [
+        {
+          id: "participant-1",
+          user_id: "user-1",
+          created_at: "2024-01-01T00:00:00Z",
+          human_id: "human-1",
+          source: "manual",
+        },
+      ],
+    });
+
+    processMetaFile(
+      "/data/sessions/session-1/_meta.json",
+      content,
+      result,
+      now,
+    );
+
+    expect(result.mapping_session_participant["participant-1"]).toEqual({
+      user_id: "user-1",
+      created_at: "2024-01-01T00:00:00Z",
+      session_id: "session-1",
+      human_id: "human-1",
+      source: "manual",
+    });
+  });
+
+  test("creates tags and mapping_tag_session entries", () => {
+    const content = JSON.stringify({
+      id: "session-1",
+      user_id: "user-1",
+      created_at: "2024-01-01T00:00:00Z",
+      title: "Test Session",
+      participants: [],
+      tags: ["work", "important"],
+    });
+
+    processMetaFile(
+      "/data/sessions/session-1/_meta.json",
+      content,
+      result,
+      now,
+    );
+
+    expect(result.tags["work"]).toEqual({
+      user_id: "user-1",
+      created_at: now,
+      name: "work",
+    });
+    expect(result.tags["important"]).toEqual({
+      user_id: "user-1",
+      created_at: now,
+      name: "important",
+    });
+    expect(result.mapping_tag_session["session-1:work"]).toEqual({
+      user_id: "user-1",
+      created_at: now,
+      tag_id: "work",
+      session_id: "session-1",
+    });
+  });
+
+  test("handles parse errors gracefully", () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    processMetaFile(
+      "/data/sessions/session-1/_meta.json",
+      "invalid json",
+      result,
+      now,
+    );
+
+    expect(Object.keys(result.sessions)).toHaveLength(0);
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 });

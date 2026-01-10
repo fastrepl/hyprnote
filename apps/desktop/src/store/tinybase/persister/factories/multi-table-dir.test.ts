@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { createTestMainStore, MOCK_DATA_DIR } from "../testing/mocks";
-import { createOrganizationPersister } from "./persister";
+import { createTestMainStore } from "../testing/mocks";
+import { createMultiTableDirPersister } from "./multi-table-dir";
 
 const path2Mocks = vi.hoisted(() => ({
   base: vi.fn().mockResolvedValue("/mock/data/dir/hyprnote"),
@@ -28,7 +28,7 @@ vi.mock("@hypr/plugin-path2", () => ({ commands: path2Mocks }));
 vi.mock("@hypr/plugin-fs-sync", () => ({ commands: fsSyncMocks }));
 vi.mock("@tauri-apps/plugin-fs", () => fsMocks);
 
-describe("createOrganizationPersister", () => {
+describe("createMultiTableDirPersister", () => {
   let store: ReturnType<typeof createTestMainStore>;
 
   beforeEach(() => {
@@ -37,25 +37,20 @@ describe("createOrganizationPersister", () => {
   });
 
   test("returns a persister object with expected methods", () => {
-    const persister = createOrganizationPersister(store);
+    const persister = createMultiTableDirPersister(store, {
+      label: "TestPersister",
+      dirName: "test",
+      entityParser: () => null,
+      tables: [{ tableName: "sessions", isPrimary: true }],
+      cleanup: [],
+      loadAll: async () => ({ sessions: {} }),
+      loadSingle: async () => ({ sessions: {} }),
+      save: () => ({ operations: [] }),
+    });
 
     expect(persister).toBeDefined();
     expect(persister.save).toBeTypeOf("function");
     expect(persister.load).toBeTypeOf("function");
     expect(persister.destroy).toBeTypeOf("function");
-  });
-
-  test("configures correct table and directory names", async () => {
-    fsSyncMocks.readDocumentBatch.mockResolvedValue({
-      status: "ok",
-      data: {},
-    });
-
-    const persister = createOrganizationPersister(store);
-    await persister.load();
-
-    expect(fsSyncMocks.readDocumentBatch).toHaveBeenCalledWith(
-      `${MOCK_DATA_DIR}/organizations`,
-    );
   });
 });

@@ -14,7 +14,7 @@ type SessionTables =
   | "transcripts"
   | "enhanced_notes";
 
-export type SessionDataLoad = Pick<Required<TablesContent>, SessionTables>;
+export type LoadedSessionData = Pick<Required<TablesContent>, SessionTables>;
 
 const LABEL = "SessionPersister";
 
@@ -31,7 +31,7 @@ export function extractSessionIdAndFolder(path: string): {
 function processMetaFile(
   path: string,
   content: string,
-  result: SessionDataLoad,
+  result: LoadedSessionData,
   now: string,
 ): void {
   const { sessionId, folderPath } = extractSessionIdAndFolder(path);
@@ -86,7 +86,7 @@ function processMetaFile(
 function processTranscriptFile(
   path: string,
   content: string,
-  result: SessionDataLoad,
+  result: LoadedSessionData,
 ): void {
   try {
     const data = JSON.parse(content) as TranscriptJson;
@@ -107,7 +107,7 @@ function processTranscriptFile(
 async function processMdFile(
   path: string,
   content: string,
-  result: SessionDataLoad,
+  result: LoadedSessionData,
 ): Promise<void> {
   try {
     const parseResult = await fsSyncCommands.deserialize(content);
@@ -150,7 +150,7 @@ async function processMdFile(
   }
 }
 
-function createEmptyResult(): SessionDataLoad {
+function createEmptyLoadedSessionData(): LoadedSessionData {
   return {
     sessions: {},
     mapping_session_participant: {},
@@ -163,7 +163,7 @@ function createEmptyResult(): SessionDataLoad {
 
 async function processFiles(
   files: Partial<Record<string, string>>,
-  result: SessionDataLoad,
+  result: LoadedSessionData,
   now: string,
 ): Promise<void> {
   for (const [path, content] of Object.entries(files)) {
@@ -192,8 +192,8 @@ async function processFiles(
 
 export async function loadAllSessionData(
   dataDir: string,
-): Promise<SessionDataLoad> {
-  const result = createEmptyResult();
+): Promise<LoadedSessionData> {
+  const result = createEmptyLoadedSessionData();
   const sessionsDir = [dataDir, "sessions"].join(sep());
   const now = new Date().toISOString();
 
@@ -215,8 +215,8 @@ export async function loadAllSessionData(
 export async function loadSingleSession(
   dataDir: string,
   sessionId: string,
-): Promise<SessionDataLoad> {
-  const result = createEmptyResult();
+): Promise<LoadedSessionData> {
+  const result = createEmptyLoadedSessionData();
   const sessionDir = [dataDir, "sessions", sessionId].join(sep());
   const now = new Date().toISOString();
 

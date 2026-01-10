@@ -13,7 +13,12 @@ export function createChatDeletionMarker(store: Store) {
   ]);
 }
 
-export function parseGroupIdFromPath(path: string): string | null {
+export type ChatChangeResult = {
+  changedChatGroupIds: Set<string>;
+  hasUnresolvedDeletions: boolean;
+};
+
+export function parseChatGroupIdFromPath(path: string): string | null {
   const parts = path.split("/");
   const chatsIndex = parts.indexOf("chats");
   if (chatsIndex === -1 || chatsIndex + 1 >= parts.length) {
@@ -25,13 +30,14 @@ export function parseGroupIdFromPath(path: string): string | null {
 export function getChangedChatGroupIds(
   tables: TablesContent,
   changedTables: ChangedTables,
-): Set<string> | undefined {
-  const changedGroupIds = new Set<string>();
+): ChatChangeResult | undefined {
+  const changedChatGroupIds = new Set<string>();
+  let hasUnresolvedDeletions = false;
 
   const changedGroups = changedTables.chat_groups;
   if (changedGroups) {
     for (const id of Object.keys(changedGroups)) {
-      changedGroupIds.add(id);
+      changedChatGroupIds.add(id);
     }
   }
 
@@ -40,14 +46,16 @@ export function getChangedChatGroupIds(
     for (const id of Object.keys(changedMessages)) {
       const message = tables.chat_messages?.[id];
       if (message?.chat_group_id) {
-        changedGroupIds.add(message.chat_group_id);
+        changedChatGroupIds.add(message.chat_group_id);
+      } else {
+        hasUnresolvedDeletions = true;
       }
     }
   }
 
-  if (changedGroupIds.size === 0) {
+  if (changedChatGroupIds.size === 0 && !hasUnresolvedDeletions) {
     return undefined;
   }
 
-  return changedGroupIds;
+  return { changedChatGroupIds, hasUnresolvedDeletions };
 }

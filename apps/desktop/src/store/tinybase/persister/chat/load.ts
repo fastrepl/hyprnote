@@ -41,14 +41,14 @@ export function mergeLoadedData(items: LoadedChatData[]): LoadedChatData {
   return result;
 }
 
-export function createEmptyLoadedData(): LoadedChatData {
+export function createEmptyLoadedChatData(): LoadedChatData {
   return {
     chat_groups: {},
     chat_messages: {},
   };
 }
 
-export async function loadAllChatData(
+export async function loadAllChatGroups(
   dataDir: string,
 ): Promise<LoadedChatData> {
   const chatsDir = [dataDir, "chats"].join(sep());
@@ -61,7 +61,7 @@ export async function loadAllChatData(
 
   if (scanResult.status === "error") {
     console.error(`[${LABEL}] scan error:`, scanResult.error);
-    return createEmptyLoadedData();
+    return createEmptyLoadedChatData();
   }
 
   const { files } = scanResult.data;
@@ -94,6 +94,6 @@ export async function loadSingleChatGroup(
     if (!isFileNotFoundError(error)) {
       console.error(`[${LABEL}] Failed to load chat group ${groupId}:`, error);
     }
-    return createEmptyLoadedData();
+    return createEmptyLoadedChatData();
   }
 }

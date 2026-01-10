@@ -2,6 +2,7 @@ import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { createMultiTableDirPersister } from "../factories";
+import type { TablesContent } from "../shared";
 import { getChangedChatGroupIds, parseChatGroupIdFromPath } from "./changes";
 import {
   loadAllChatGroups,
@@ -9,7 +10,6 @@ import {
   loadSingleChatGroup,
 } from "./load";
 import { buildChatSaveOps } from "./save";
-import { getValidChatGroupIds } from "./validators";
 
 export function createChatPersister(store: Store) {
   return createMultiTableDirPersister<Schemas, LoadedChatData>(store, {
@@ -46,4 +46,8 @@ export function createChatPersister(store: Store) {
       };
     },
   });
+}
+
+function getValidChatGroupIds(tables: TablesContent): Set<string> {
+  return new Set(Object.keys(tables.chat_groups ?? {}));
 }

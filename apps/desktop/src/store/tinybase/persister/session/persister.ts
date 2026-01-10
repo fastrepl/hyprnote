@@ -2,6 +2,7 @@ import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { createMultiTableDirPersister } from "../factories";
+import type { TablesContent } from "../shared";
 import { getChangedSessionIds, parseSessionIdFromPath } from "./changes";
 import {
   loadAllSessionData,
@@ -13,11 +14,6 @@ import {
   buildSessionSaveOps,
   buildTranscriptSaveOps,
 } from "./save/index";
-import {
-  getSessionsWithMemo,
-  getValidNoteIds,
-  getValidSessionIds,
-} from "./validators";
 
 export function createSessionPersister(store: Store) {
   return createMultiTableDirPersister<Schemas, LoadedSessionData>(store, {
@@ -86,4 +82,20 @@ export function createSessionPersister(store: Store) {
       };
     },
   });
+}
+
+function getValidSessionIds(tables: TablesContent): Set<string> {
+  return new Set(Object.keys(tables.sessions ?? {}));
+}
+
+function getValidNoteIds(tables: TablesContent): Set<string> {
+  return new Set(Object.keys(tables.enhanced_notes ?? {}));
+}
+
+function getSessionsWithMemo(tables: TablesContent): Set<string> {
+  return new Set(
+    Object.entries(tables.sessions ?? {})
+      .filter(([, s]) => s.raw_md)
+      .map(([id]) => id),
+  );
 }

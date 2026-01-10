@@ -1,6 +1,6 @@
 import { usePrevious } from "@uidotdev/usehooks";
 import { SparklesIcon } from "lucide-react";
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, memo, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -187,9 +187,6 @@ export const TitleInput = forwardRef<
     );
   }
 
-  const hasTitle = Boolean(localTitle?.trim());
-  const showButton = hasTitle && onGenerateTitle;
-
   return (
     <div className="flex items-center gap-2 w-full">
       <input
@@ -213,23 +210,31 @@ export const TitleInput = forwardRef<
           "text-xl font-semibold placeholder:text-muted-foreground",
         ])}
       />
-      {showButton && (
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onGenerateTitle?.();
-          }}
-          onMouseDown={(e) => e.preventDefault()}
-          className={cn([
-            "shrink-0",
-            "text-muted-foreground hover:text-foreground",
-            "opacity-50 hover:opacity-100 transition-opacity",
-          ])}
-        >
-          <SparklesIcon className="w-4 h-4" />
-        </button>
-      )}
+      {onGenerateTitle && <GenerateButton onGenerateTitle={onGenerateTitle} />}
     </div>
+  );
+});
+
+const GenerateButton = memo(function GenerateButton({
+  onGenerateTitle,
+}: {
+  onGenerateTitle: () => void;
+}) {
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onGenerateTitle();
+      }}
+      onMouseDown={(e) => e.preventDefault()}
+      className={cn([
+        "shrink-0",
+        "text-muted-foreground hover:text-foreground",
+        "opacity-50 hover:opacity-100 transition-opacity",
+      ])}
+    >
+      <SparklesIcon className="w-4 h-4" />
+    </button>
   );
 });

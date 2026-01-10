@@ -8,6 +8,8 @@ use std::time::Duration;
 use tracing::error;
 use wasapi::{Direction, SampleType, StreamMode, WaveFormat, get_default_device};
 
+use super::{BUFFER_SIZE, CHUNK_SIZE};
+
 pub struct SpeakerInput {}
 
 impl SpeakerInput {
@@ -41,7 +43,6 @@ impl SpeakerInput {
             error!("Audio initialization failed: {}", e);
         }
 
-        const CHUNK_SIZE: usize = 256;
         SpeakerStream {
             sample_queue,
             waker_state,
@@ -142,10 +143,10 @@ impl SpeakerStream {
                             queue.extend(samples);
 
                             let len = queue.len();
-                            if len > 8192 {
-                                let dropped = len - 8192;
+                            if len > BUFFER_SIZE {
+                                let dropped = len - BUFFER_SIZE;
                                 tracing::warn!(dropped, "samples_dropped");
-                                queue.drain(0..(len - 8192));
+                                queue.drain(0..(len - BUFFER_SIZE));
                             }
                         }
 

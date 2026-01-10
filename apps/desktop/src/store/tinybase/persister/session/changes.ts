@@ -4,10 +4,10 @@ import {
   createDeletionMarker,
   type TablesContent,
 } from "../shared";
-import type { SessionDataLoad } from "./load";
+import type { LoadedSessionData } from "./load";
 
 export function createSessionDeletionMarker(store: Store) {
-  return createDeletionMarker<SessionDataLoad>(store, [
+  return createDeletionMarker<LoadedSessionData>(store, [
     { tableName: "sessions", isPrimary: true },
     { tableName: "mapping_session_participant", foreignKey: "session_id" },
     { tableName: "tags" },

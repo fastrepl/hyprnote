@@ -12,10 +12,10 @@ import { asTablesChanges, getDataDir } from "../shared";
 import {
   createChatDeletionMarker,
   getChangedChatGroupIds,
-  parseGroupIdFromPath,
+  parseChatGroupIdFromPath,
 } from "./changes";
 import { collectChatWriteOps } from "./collect";
-import { loadAllChatData, loadSingleChatGroup } from "./load";
+import { loadAllChatGroups, loadSingleChatGroup } from "./load";
 
 export function createChatPersister(store: Store) {
   const deletionMarker = createChatDeletionMarker(store);
@@ -31,7 +31,7 @@ export function createChatPersister(store: Store) {
         validIdsKey: "validChatGroupIds",
       },
     ],
-    entityParser: parseGroupIdFromPath,
+    entityParser: parseChatGroupIdFromPath,
     loadSingle: async (groupId: string) => {
       try {
         const dataDir = await getDataDir();
@@ -66,14 +66,15 @@ export function createChatPersister(store: Store) {
       let changedGroupIds: Set<string> | undefined;
 
       if (changedTables) {
-        changedGroupIds = getChangedChatGroupIds(tables, changedTables);
-        if (!changedGroupIds) {
+        const changeResult = getChangedChatGroupIds(tables, changedTables);
+        if (!changeResult) {
           const allGroupIds = new Set(Object.keys(tables.chat_groups ?? {}));
           return {
             operations: [],
             validChatGroupIds: allGroupIds,
           };
         }
+        changedGroupIds = changeResult.changedChatGroupIds;
       }
 
       return collectChatWriteOps(tables, dataDir, changedGroupIds);
@@ -81,7 +82,7 @@ export function createChatPersister(store: Store) {
     load: async () => {
       try {
         const dataDir = await getDataDir();
-        const data = await loadAllChatData(dataDir);
+        const data = await loadAllChatGroups(dataDir);
 
         const result = deletionMarker.markAll(data);
 

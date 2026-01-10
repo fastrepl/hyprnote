@@ -144,6 +144,11 @@ function MediaLibrary() {
       for (const file of selectedFiles) {
         if (file.downloadUrl) {
           const response = await fetch(file.downloadUrl);
+          if (!response.ok) {
+            throw new Error(
+              `Failed to download ${file.name}: ${response.statusText}`,
+            );
+          }
           const blob = await response.blob();
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement("a");

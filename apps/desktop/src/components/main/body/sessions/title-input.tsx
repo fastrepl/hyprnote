@@ -20,10 +20,23 @@ export const TitleInput = forwardRef<
     id: sessionId,
     state: { view },
   } = tab;
-  const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
+  const storeTitle = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "title",
+    main.STORE_ID,
+  );
   const isGenerating = useTitleGenerating(sessionId);
   const wasGenerating = usePrevious(isGenerating);
   const [showRevealAnimation, setShowRevealAnimation] = useState(false);
+  const [localTitle, setLocalTitle] = useState(storeTitle ?? "");
+  const isFocused = useRef(false);
+
+  useEffect(() => {
+    if (!isFocused.current) {
+      setLocalTitle(storeTitle ?? "");
+    }
+  }, [storeTitle]);
 
   const editorId = view ? "active" : "inactive";
   const internalRef = useRef<HTMLInputElement>(null);
@@ -39,7 +52,7 @@ export const TitleInput = forwardRef<
     }
   }, [wasGenerating, isGenerating]);
 
-  const handleEditTitle = main.UI.useSetPartialRowCallback(
+  const persistTitle = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (title: string) => ({ title }),
@@ -103,7 +116,7 @@ export const TitleInput = forwardRef<
       const beforeCursor = input.value.slice(0, cursorPos);
       const afterCursor = input.value.slice(cursorPos);
 
-      handleEditTitle(beforeCursor);
+      persistTitle(beforeCursor);
 
       if (afterCursor) {
         setTimeout(() => {
@@ -168,13 +181,13 @@ export const TitleInput = forwardRef<
     return (
       <div className="w-full h-[28px] flex items-center overflow-hidden">
         <span className="text-xl font-semibold animate-reveal-left whitespace-nowrap">
-          {title}
+          {storeTitle}
         </span>
       </div>
     );
   }
 
-  const hasTitle = Boolean(title?.trim());
+  const hasTitle = Boolean(localTitle?.trim());
   const showButton = hasTitle && onGenerateTitle;
 
   return (
@@ -184,9 +197,16 @@ export const TitleInput = forwardRef<
         id={`title-input-${sessionId}-${editorId}`}
         placeholder="Untitled"
         type="text"
-        onChange={(e) => handleEditTitle(e.target.value)}
+        onChange={(e) => setLocalTitle(e.target.value)}
         onKeyDown={handleKeyDown}
-        value={title ?? ""}
+        onFocus={() => {
+          isFocused.current = true;
+        }}
+        onBlur={() => {
+          isFocused.current = false;
+          persistTitle(localTitle);
+        }}
+        value={localTitle}
         className={cn([
           "flex-1 min-w-0 transition-opacity duration-200",
           "border-none bg-transparent focus:outline-none",

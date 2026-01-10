@@ -4,9 +4,9 @@ import type { SpeakerHintStorage, WordStorage } from "@hypr/store";
 
 import {
   buildSessionPath,
-  type CollectorResult,
   iterateTableRows,
   type TablesContent,
+  type WriteOperation,
 } from "../../shared";
 import type { TranscriptJson } from "../types";
 
@@ -14,8 +14,8 @@ export function collectTranscriptWriteOps(
   tables: TablesContent,
   dataDir: string,
   changedSessionIds?: Set<string>,
-): CollectorResult {
-  const operations: CollectorResult["operations"] = [];
+): WriteOperation[] {
+  const operations: WriteOperation[] = [];
 
   const transcripts = iterateTableRows(tables, "transcripts");
 
@@ -76,5 +76,5 @@ export function collectTranscriptWriteOps(
     });
   }
 
-  return { operations };
+  return operations;
 }

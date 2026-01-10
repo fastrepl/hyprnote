@@ -1,16 +1,12 @@
 import { sep } from "@tauri-apps/api/path";
 
 import type { Store } from "../../../store/main";
-import { buildSessionPath, type CollectorResult } from "../../shared";
+import { buildSessionPath, type WriteOperation } from "../../shared";
 import type { ParticipantData, SessionMetaJson } from "../types";
 
 type SessionMetaWithFolder = {
   meta: SessionMetaJson;
   folderPath: string;
-};
-
-export type SessionCollectorResult = CollectorResult & {
-  validSessionIds: Set<string>;
 };
 
 export function tablesToSessionMetaMap(
@@ -78,8 +74,8 @@ export function collectSessionWriteOps(
   _tables: unknown,
   dataDir: string,
   changedSessionIds?: Set<string>,
-): SessionCollectorResult {
-  const operations: CollectorResult["operations"] = [];
+): WriteOperation[] {
+  const operations: WriteOperation[] = [];
 
   const sessionMetas = tablesToSessionMetaMap(store);
 
@@ -97,8 +93,5 @@ export function collectSessionWriteOps(
     });
   }
 
-  return {
-    operations,
-    validSessionIds: new Set(sessionMetas.keys()),
-  };
+  return operations;
 }

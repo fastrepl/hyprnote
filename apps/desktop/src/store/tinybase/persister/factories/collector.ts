@@ -47,20 +47,20 @@ type OrphanCleanupDirs = {
   type: "dirs";
   subdir: string;
   markerFile: string;
-  validIdsKey: string;
+  getValidIds: (tables: TablesContent) => Set<string>;
 };
 
 type OrphanCleanupFiles = {
   type: "files";
   subdir: string;
   extension: string;
-  validIdsKey: string;
+  getValidIds: (tables: TablesContent) => Set<string>;
 };
 
 type OrphanCleanupSessionNotes = {
   type: "sessionNotes";
-  validIdsKey: string;
-  sessionsWithMemoKey: string;
+  getValidIds: (tables: TablesContent) => Set<string>;
+  getSessionsWithMemo: (tables: TablesContent) => Set<string>;
 };
 
 export type OrphanCleanupConfig =
@@ -144,18 +144,16 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
       );
       const { operations } = result;
 
-      if (operations.length === 0) {
-        return;
+      if (operations.length > 0) {
+        const categorized = categorizeOperations(operations);
+
+        await writeJsonBatch(categorized.json, options.label);
+        await writeDocumentBatch(categorized.document, options.label);
+        await deleteFiles(categorized.delete, options.label);
       }
 
-      const categorized = categorizeOperations(operations);
-
-      await writeJsonBatch(categorized.json, options.label);
-      await writeDocumentBatch(categorized.document, options.label);
-      await deleteFiles(categorized.delete, options.label);
-
       if (options.cleanup) {
-        await runOrphanCleanup(options.cleanup, result, options.label);
+        await runOrphanCleanup(options.cleanup, tables ?? {}, options.label);
       }
     } catch (error) {
       console.error(`[${options.label}] save error:`, error);
@@ -276,14 +274,12 @@ async function deleteFiles(paths: string[], label: string): Promise<void> {
 
 async function runOrphanCleanup(
   configs: OrphanCleanupConfig[],
-  result: CollectorResult,
+  tables: TablesContent,
   label: string,
 ): Promise<void> {
-  const resultWithIds = result as CollectorResult & Record<string, Set<string>>;
-
   for (const config of configs) {
-    const validIds = resultWithIds[config.validIdsKey];
-    if (!validIds || validIds.size === 0) {
+    const validIds = config.getValidIds(tables);
+    if (validIds.size === 0) {
       continue;
     }
 
@@ -303,11 +299,11 @@ async function runOrphanCleanup(
           Array.from(validIds),
         );
       } else if (config.type === "sessionNotes") {
-        const sessionsWithMemo = resultWithIds[config.sessionsWithMemoKey];
+        const sessionsWithMemo = config.getSessionsWithMemo(tables);
         await fsSyncCommands.cleanupOrphan(
           {
             type: "sessionNotes",
-            sessions_with_memo: Array.from(sessionsWithMemo ?? []),
+            sessions_with_memo: Array.from(sessionsWithMemo),
           },
           Array.from(validIds),
         );

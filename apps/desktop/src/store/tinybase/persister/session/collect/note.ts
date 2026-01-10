@@ -6,17 +6,12 @@ import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 import type { Store } from "../../../store/main";
 import {
   buildSessionPath,
-  type CollectorResult,
   iterateTableRows,
   sanitizeFilename,
   type TablesContent,
+  type WriteOperation,
 } from "../../shared";
 import type { NoteFrontmatter } from "../types";
-
-export type NoteCollectorResult = CollectorResult & {
-  validNoteIds: Set<string>;
-  sessionsWithMemo: Set<string>;
-};
 
 function tryParseAndConvertToMarkdown(content: string): string | undefined {
   let parsed: unknown;
@@ -56,17 +51,13 @@ export function collectNoteWriteOps(
   tables: TablesContent,
   dataDir: string,
   changedSessionIds?: Set<string>,
-): NoteCollectorResult {
+): WriteOperation[] {
   const frontmatterBatchItems: Array<[ParsedDocument, string]> = [];
-  const validNoteIds = new Set<string>();
-  const sessionsWithMemo = new Set<string>();
 
   for (const enhancedNote of iterateTableRows(tables, "enhanced_notes")) {
     if (!enhancedNote.content || !enhancedNote.session_id) {
       continue;
     }
-
-    validNoteIds.add(enhancedNote.id);
 
     if (changedSessionIds && !changedSessionIds.has(enhancedNote.session_id)) {
       continue;
@@ -106,8 +97,6 @@ export function collectNoteWriteOps(
       continue;
     }
 
-    sessionsWithMemo.add(session.id);
-
     if (changedSessionIds && !changedSessionIds.has(session.id)) {
       continue;
     }
@@ -131,7 +120,7 @@ export function collectNoteWriteOps(
     ]);
   }
 
-  const operations: CollectorResult["operations"] = [];
+  const operations: WriteOperation[] = [];
   if (frontmatterBatchItems.length > 0) {
     operations.push({
       type: "document-batch",
@@ -139,5 +128,5 @@ export function collectNoteWriteOps(
     });
   }
 
-  return { operations, validNoteIds, sessionsWithMemo };
+  return operations;
 }

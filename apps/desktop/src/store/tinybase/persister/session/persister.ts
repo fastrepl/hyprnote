@@ -18,10 +18,13 @@ import {
   collectNoteWriteOps,
   collectSessionWriteOps,
   collectTranscriptWriteOps,
-  type NoteCollectorResult,
-  type SessionCollectorResult,
 } from "./collect/index";
 import { loadAllSessionData, loadSingleSession } from "./load/index";
+import {
+  getSessionsWithMemo,
+  getValidNoteIds,
+  getValidSessionIds,
+} from "./validators";
 
 export function createSessionPersister(store: Store) {
   const deletionMarker = createSessionDeletionMarker(store);
@@ -34,12 +37,12 @@ export function createSessionPersister(store: Store) {
         type: "dirs",
         subdir: "sessions",
         markerFile: "_meta.json",
-        validIdsKey: "validSessionIds",
+        getValidIds: getValidSessionIds,
       },
       {
         type: "sessionNotes",
-        validIdsKey: "validNoteIds",
-        sessionsWithMemoKey: "sessionsWithMemo",
+        getValidIds: getValidNoteIds,
+        getSessionsWithMemo: getSessionsWithMemo,
       },
     ],
     entityParser: parseSessionIdFromPath,
@@ -87,22 +90,7 @@ export function createSessionPersister(store: Store) {
       if (changedTables) {
         const changeResult = getChangedSessionIds(tables, changedTables);
         if (!changeResult) {
-          const allNoteIds = new Set(
-            Object.keys(store.getTable("enhanced_notes") ?? {}),
-          );
-          const sessionsWithMemo = new Set(
-            Object.entries(store.getTable("sessions") ?? {})
-              .filter(([, s]) => s.raw_md)
-              .map(([id]) => id),
-          );
-          return {
-            operations: [],
-            validSessionIds: new Set(
-              Object.keys(store.getTable("sessions") ?? {}),
-            ),
-            validNoteIds: allNoteIds,
-            sessionsWithMemo,
-          };
+          return { operations: [] };
         }
 
         if (changeResult.hasUnresolvedDeletions) {
@@ -112,35 +100,26 @@ export function createSessionPersister(store: Store) {
         }
       }
 
-      const sessionResult = collectSessionWriteOps(
+      const sessionOps = collectSessionWriteOps(
         store,
-        tables,
-        dataDir,
-        changedSessionIds,
-      ) as SessionCollectorResult;
-      const transcriptResult = collectTranscriptWriteOps(
         tables,
         dataDir,
         changedSessionIds,
       );
-      const noteResult = collectNoteWriteOps(
+      const transcriptOps = collectTranscriptWriteOps(
+        tables,
+        dataDir,
+        changedSessionIds,
+      );
+      const noteOps = collectNoteWriteOps(
         store,
         tables,
         dataDir,
         changedSessionIds,
-      ) as NoteCollectorResult;
-
-      const operations = [
-        ...sessionResult.operations,
-        ...transcriptResult.operations,
-        ...noteResult.operations,
-      ];
+      );
 
       return {
-        operations,
-        validSessionIds: sessionResult.validSessionIds,
-        validNoteIds: noteResult.validNoteIds,
-        sessionsWithMemo: noteResult.sessionsWithMemo,
+        operations: [...sessionOps, ...transcriptOps, ...noteOps],
       };
     },
     load: async () => {

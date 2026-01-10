@@ -2,16 +2,11 @@ import { sep } from "@tauri-apps/api/path";
 
 import {
   buildChatPath,
-  type CollectorResult,
   iterateTableRows,
   type TablesContent,
   type WriteOperation,
 } from "../shared";
 import type { ChatGroupData, ChatJson, ChatMessageWithId } from "./types";
-
-export type ChatCollectorResult = CollectorResult & {
-  validChatGroupIds: Set<string>;
-};
 
 export function tablesToChatJsonList(tables: TablesContent): ChatJson[] {
   const chatGroups = iterateTableRows(tables, "chat_groups");
@@ -64,8 +59,8 @@ export function collectChatWriteOps(
   tables: TablesContent,
   dataDir: string,
   changedGroupIds?: Set<string>,
-): ChatCollectorResult {
-  const operations: CollectorResult["operations"] = [];
+): WriteOperation[] {
+  const operations: WriteOperation[] = [];
 
   const chatJsonList = tablesToChatJsonList(tables);
   const allGroupIds = new Set(Object.keys(tables.chat_groups ?? {}));
@@ -106,10 +101,7 @@ export function collectChatWriteOps(
       operations.push(deleteOps);
     }
 
-    return {
-      operations,
-      validChatGroupIds: allGroupIds,
-    };
+    return operations;
   }
 
   for (const chatJson of chatJsonList) {
@@ -135,8 +127,5 @@ export function collectChatWriteOps(
     }
   }
 
-  return {
-    operations,
-    validChatGroupIds: allGroupIds,
-  };
+  return operations;
 }

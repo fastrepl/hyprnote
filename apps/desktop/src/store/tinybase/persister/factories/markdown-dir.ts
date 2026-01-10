@@ -22,8 +22,8 @@ import {
 } from "../shared/paths";
 import {
   type ChangedTables,
-  type CollectorResult,
   type MarkdownDirPersisterConfig,
+  type TablesContent,
   type WriteOperation,
 } from "../shared/types";
 import { asTablesChanges } from "../shared/utils";
@@ -57,16 +57,13 @@ function collectMarkdownWriteOps<TStorage>(
   tableData: Record<string, TStorage>,
   dataDir: string,
   config: MarkdownDirPersisterConfig<TStorage>,
-): { result: CollectorResult; validIds: Set<string> } {
+): WriteOperation[] {
   const { dirName, toFrontmatter } = config;
-  const operations: CollectorResult["operations"] = [];
-  const validIds = new Set<string>();
+  const operations: WriteOperation[] = [];
 
   const documentItems: [ParsedDocument, string][] = [];
 
   for (const [entityId, entity] of Object.entries(tableData)) {
-    validIds.add(entityId);
-
     const { frontmatter, body } = toFrontmatter(entity);
     const filePath = buildEntityFilePath(dataDir, dirName, entityId);
 
@@ -80,7 +77,7 @@ function collectMarkdownWriteOps<TStorage>(
     });
   }
 
-  return { result: { operations }, validIds };
+  return operations;
 }
 
 async function loadSingleEntity<TStorage>(
@@ -130,6 +127,13 @@ export function createMarkdownDirPersister<
 ): ReturnType<typeof createCollectorPersister<Schemas>> {
   const { tableName, dirName, label, entityParser } = config;
 
+  const getValidIds = (tables: TablesContent): Set<string> =>
+    new Set(
+      Object.keys(
+        (tables as Record<string, Record<string, unknown>>)[tableName] ?? {},
+      ),
+    );
+
   return createCollectorPersister(store, {
     label,
     watchPaths: [`${dirName}/`],
@@ -138,7 +142,7 @@ export function createMarkdownDirPersister<
         type: "files",
         subdir: dirName,
         extension: "md",
-        validIdsKey: "validIds",
+        getValidIds,
       },
     ],
     entityParser,
@@ -149,10 +153,9 @@ export function createMarkdownDirPersister<
 
       if (changedTables) {
         const changedRows = changedTables[tableName as keyof ChangedTables];
-        const allValidIds = new Set(Object.keys(fullTableData));
 
         if (!changedRows) {
-          return { operations: [], validIds: allValidIds };
+          return { operations: [] };
         }
 
         const changedIds = Object.keys(changedRows);
@@ -168,7 +171,7 @@ export function createMarkdownDirPersister<
           }
         }
 
-        const { result } = collectMarkdownWriteOps(
+        const writeOps = collectMarkdownWriteOps(
           filteredTableData,
           dataDir,
           config,
@@ -187,17 +190,13 @@ export function createMarkdownDirPersister<
             : [];
 
         return {
-          operations: [...result.operations, ...deleteOps],
-          validIds: allValidIds,
+          operations: [...writeOps, ...deleteOps],
         };
       }
 
-      const { result, validIds } = collectMarkdownWriteOps(
-        fullTableData,
-        dataDir,
-        config,
-      );
-      return { ...result, validIds };
+      return {
+        operations: collectMarkdownWriteOps(fullTableData, dataDir, config),
+      };
     },
     load: async (): Promise<Content<Schemas> | undefined> => {
       const dataDir = await getDataDir();

@@ -16,6 +16,7 @@ import {
 } from "./changes";
 import { collectChatWriteOps } from "./collect";
 import { loadAllChatGroups, loadSingleChatGroup } from "./load";
+import { getValidChatGroupIds } from "./validators";
 
 export function createChatPersister(store: Store) {
   const deletionMarker = createChatDeletionMarker(store);
@@ -27,8 +28,8 @@ export function createChatPersister(store: Store) {
       {
         type: "dirs",
         subdir: "chats",
-        markerFile: "_messages.json",
-        validIdsKey: "validChatGroupIds",
+        markerFile: "messages.json",
+        getValidIds: getValidChatGroupIds,
       },
     ],
     entityParser: parseChatGroupIdFromPath,
@@ -68,16 +69,14 @@ export function createChatPersister(store: Store) {
       if (changedTables) {
         const changeResult = getChangedChatGroupIds(tables, changedTables);
         if (!changeResult) {
-          const allGroupIds = new Set(Object.keys(tables.chat_groups ?? {}));
-          return {
-            operations: [],
-            validChatGroupIds: allGroupIds,
-          };
+          return { operations: [] };
         }
         changedGroupIds = changeResult.changedChatGroupIds;
       }
 
-      return collectChatWriteOps(tables, dataDir, changedGroupIds);
+      return {
+        operations: collectChatWriteOps(tables, dataDir, changedGroupIds),
+      };
     },
     load: async () => {
       try {

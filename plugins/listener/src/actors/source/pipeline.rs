@@ -18,6 +18,8 @@ use hypr_audio_utils::f32_to_i16_bytes;
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
 const MAX_BUFFER_CHUNKS: usize = 150;
 
+const BUFFER_LOG_INTERVAL: usize = 50;
+
 pub(in crate::actors) struct Pipeline {
     agc_mic: VadAgc,
     agc_spk: VadAgc,
@@ -26,6 +28,7 @@ pub(in crate::actors) struct Pipeline {
     amplitude: AmplitudeEmitter,
     audio_buffer: AudioBuffer,
     backlog_quota: f32,
+    buffer_log_counter: usize,
 }
 
 impl Pipeline {
@@ -41,10 +44,15 @@ impl Pipeline {
             amplitude: AmplitudeEmitter::new(app, session_id),
             audio_buffer: AudioBuffer::new(MAX_BUFFER_CHUNKS),
             backlog_quota: 0.0,
+            buffer_log_counter: 0,
         }
     }
 
     pub(super) fn reset(&mut self) {
+        let buffered_chunks = self.audio_buffer.len();
+        let mic_queue = self.joiner.mic.len();
+        let spk_queue = self.joiner.spk.len();
+
         self.joiner.reset();
         self.agc_mic = VadAgc::default().with_masking(true);
         self.agc_spk = VadAgc::default();
@@ -54,6 +62,14 @@ impl Pipeline {
         self.amplitude.reset();
         self.audio_buffer.clear();
         self.backlog_quota = 0.0;
+        self.buffer_log_counter = 0;
+
+        tracing::info!(
+            buffered_chunks_cleared = buffered_chunks,
+            mic_queue_cleared = mic_queue,
+            spk_queue_cleared = spk_queue,
+            "pipeline_reset"
+        );
     }
 
     pub(super) fn ingest_mic(&mut self, chunk: AudioChunk) {
@@ -114,13 +130,21 @@ impl Pipeline {
 
         let Some(cell) = registry::where_is(ListenerActor::name()) else {
             self.audio_buffer.push(processed_mic, processed_spk, mode);
-            tracing::debug!(
-                actor = ListenerActor::name(),
-                buffered = self.audio_buffer.len(),
-                "listener_unavailable_buffering"
-            );
+            self.buffer_log_counter += 1;
+            if self.buffer_log_counter == 1 || self.buffer_log_counter % BUFFER_LOG_INTERVAL == 0 {
+                tracing::warn!(
+                    buffered = self.audio_buffer.len(),
+                    capacity = MAX_BUFFER_CHUNKS,
+                    chunks_since_last_log = self.buffer_log_counter,
+                    "listener_unavailable_buffering"
+                );
+            }
             return;
         };
+
+        if self.buffer_log_counter > 0 {
+            self.buffer_log_counter = 0;
+        }
 
         let actor: ActorRef<ListenerMsg> = cell.into();
 
@@ -171,7 +195,16 @@ impl Pipeline {
         };
 
         if result.is_err() {
-            tracing::warn!(actor = ListenerActor::name(), "cast_failed");
+            let message_type = match mode {
+                ChannelMode::MicOnly | ChannelMode::SpeakerOnly => "AudioSingle",
+                ChannelMode::MicAndSpeaker => "AudioDual",
+            };
+            tracing::warn!(
+                target_actor = ListenerActor::name(),
+                message_type,
+                ?mode,
+                "listener_cast_failed"
+            );
         }
     }
 }

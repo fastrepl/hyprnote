@@ -83,7 +83,14 @@ impl MicInput {
         };
 
         let config = device.default_input_config().unwrap();
-        tracing::info!(sample_rate = ?config.sample_rate());
+        let device_name = device.name().unwrap_or_else(|_| "Unknown".to_string());
+        tracing::info!(
+            device = %device_name,
+            sample_rate = config.sample_rate().0,
+            channels = config.channels(),
+            sample_format = ?config.sample_format(),
+            "mic_device_initialized"
+        );
 
         Ok(Self {
             host,

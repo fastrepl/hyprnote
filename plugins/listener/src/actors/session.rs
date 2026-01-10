@@ -61,6 +61,17 @@ pub async fn spawn_session_supervisor(
     ctx: SessionContext,
 ) -> Result<(ActorCell, tokio::task::JoinHandle<()>), ActorProcessingErr> {
     let supervisor_name = session_supervisor_name(&ctx.params.session_id);
+    let mode = ChannelMode::determine(ctx.params.onboarding);
+
+    tracing::info!(
+        session_id = %ctx.params.session_id,
+        languages = ?ctx.params.languages,
+        ?mode,
+        record_enabled = ctx.params.record_enabled,
+        model = %ctx.params.model,
+        onboarding = ctx.params.onboarding,
+        "session_starting"
+    );
 
     let mut child_specs = Vec::new();
 

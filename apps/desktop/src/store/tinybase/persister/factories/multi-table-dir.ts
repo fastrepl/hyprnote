@@ -11,7 +11,7 @@ import type {
 import {
   createDeletionMarker,
   type DeletionMarkerStore,
-  type TableConfig,
+  type TableConfigEntry,
 } from "../shared/deletion-marker";
 import { getDataDir } from "../shared/paths";
 import type { ChangedTables, SaveResult, TablesContent } from "../shared/types";
@@ -30,7 +30,7 @@ export type MultiTableDirConfig<
   label: string;
   dirName: string;
   entityParser: (path: string) => string | null;
-  tables: TableConfig<TLoadedData>[];
+  tables: TableConfigEntry<Schemas, TLoadedData>[];
   cleanup: OrphanCleanupConfig[];
   loadAll: (dataDir: string) => Promise<TLoadedData>;
   loadSingle: (dataDir: string, entityId: string) => Promise<TLoadedData>;

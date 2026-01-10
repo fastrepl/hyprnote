@@ -1,7 +1,9 @@
+import type { AppleCalendar } from "@hypr/plugin-apple-calendar";
+
 import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 
 export * from "./builders";
-export { createCalendar } from "./calendar";
+export { createCalendar, createCalendarFromFixture } from "./calendar";
 export { createChatGroup, createChatMessage } from "./chat";
 export { createChatShortcut } from "./chat-shortcut";
 export { createEnhancedNote } from "./enhanced-note";
@@ -23,6 +25,9 @@ export type CalendarFixtureBase = "default";
 export type SeedDefinition = {
   id: string;
   label: string;
-  run: (store: MainStore) => void | Promise<void>;
+  run: (
+    store: MainStore,
+    fixtureCalendars?: AppleCalendar[],
+  ) => void | Promise<void>;
   calendarFixtureBase?: CalendarFixtureBase;
 };

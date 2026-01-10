@@ -1,5 +1,7 @@
 import { faker } from "@faker-js/faker/locale/en";
 
+import type { AppleCalendar } from "@hypr/plugin-apple-calendar";
+
 import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 import type { SeedDefinition } from "../shared";
 import {
@@ -19,7 +21,7 @@ import {
   buildTranscriptsForSessions,
 } from "../shared";
 
-const buildRandomData = () => {
+const buildRandomData = (fixtureCalendars?: AppleCalendar[]) => {
   faker.seed(123);
 
   const organizations = buildOrganizations(4);
@@ -31,7 +33,7 @@ const buildRandomData = () => {
   });
   const humanIds = Object.keys(humans);
 
-  const calendars = buildCalendars(3);
+  const calendars = buildCalendars(3, fixtureCalendars);
   const calendarIds = Object.keys(calendars);
 
   const { events, eventsByHuman } = buildEventsByHuman(humanIds, calendarIds, {

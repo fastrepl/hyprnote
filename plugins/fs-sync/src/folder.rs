@@ -117,6 +117,7 @@ pub fn cleanup_files_in_dir(
         return Ok(0);
     }
 
+    let base_name = dir.file_name().and_then(|n| n.to_str()).unwrap_or("");
     let mut removed = 0;
 
     for entry in std::fs::read_dir(dir)?.flatten() {
@@ -138,10 +139,16 @@ pub fn cleanup_files_in_dir(
         }
 
         if !valid_ids.contains(stem) {
+            let relative_path = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .map(|name| format!("{}/{}", base_name, name))
+                .unwrap_or_else(|| path.display().to_string());
+
             if let Err(e) = std::fs::remove_file(&path) {
-                tracing::warn!("Failed to remove orphan file {:?}: {}", path, e);
+                tracing::warn!(path = %relative_path, error = %e, "failed_to_remove_orphan_file");
             } else {
-                tracing::debug!("Removed orphan file: {:?}", path);
+                tracing::debug!(path = %relative_path, "orphan_file_removed");
                 removed += 1;
             }
         }
@@ -160,13 +167,19 @@ pub fn cleanup_dirs_recursive(
     }
 
     let orphans = collect_orphan_dirs(base_dir, marker_file, valid_ids);
+    let base_name = base_dir.file_name().and_then(|n| n.to_str()).unwrap_or("");
 
     let mut removed = 0;
     for dir in orphans {
+        let relative_path = dir
+            .strip_prefix(base_dir)
+            .map(|p| format!("{}/{}", base_name, p.display()))
+            .unwrap_or_else(|_| dir.display().to_string());
+
         if let Err(e) = std::fs::remove_dir_all(&dir) {
-            tracing::warn!("Failed to remove orphan dir {:?}: {}", dir, e);
+            tracing::warn!(path = %relative_path, error = %e, "failed to remove orphan directory");
         } else {
-            tracing::info!("Removed orphan dir: {:?}", dir);
+            tracing::info!(path = %relative_path, "orphan directory removed");
             removed += 1;
         }
     }
@@ -274,7 +287,8 @@ fn cleanup_notes_in_session_dir(
         if filename == "_memo.md" {
             if !sessions_with_memo.contains(session_id) {
                 if std::fs::remove_file(&path).is_ok() {
-                    tracing::debug!("Removed orphan memo file: {:?}", path);
+                    let relative_path = format!("sessions/{}/{}", session_id, filename);
+                    tracing::debug!(path = %relative_path, "orphan memo file removed");
                     *removed += 1;
                 }
             }
@@ -290,7 +304,8 @@ fn cleanup_notes_in_session_dir(
         if let Some(id) = note_id {
             if !valid_note_ids.contains(&id) {
                 if std::fs::remove_file(&path).is_ok() {
-                    tracing::debug!("Removed orphan note file: {:?}", path);
+                    let relative_path = format!("sessions/{}/{}", session_id, filename);
+                    tracing::debug!(path = %relative_path, "orphan note file removed");
                     *removed += 1;
                 }
             }

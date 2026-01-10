@@ -15,6 +15,7 @@ import {
   InputGroup,
   InputGroupInput,
 } from "@hypr/ui/components/ui/input-group";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
@@ -25,6 +26,7 @@ import {
   type ProviderRequirement,
   requiresEntitlement,
 } from "./eligibility";
+import { useLocalProviderStatus } from "./use-local-provider-status";
 
 export * from "./model-combobox";
 
@@ -94,6 +96,7 @@ export function NonHyprProviderCard({
     providerType,
     providers,
   );
+  const localProviderStatus = useLocalProviderStatus(config.id);
 
   const requiredFields = getRequiredConfigFields(config.requirements);
   const showApiKey = requiredFields.includes("api_key");
@@ -146,6 +149,9 @@ export function NonHyprProviderCard({
             <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
               {config.badge}
             </span>
+          )}
+          {localProviderStatus && (
+            <LocalProviderStatusBadge status={localProviderStatus} />
           )}
         </div>
       </AccordionTrigger>
@@ -234,6 +240,32 @@ export function StyledStreamdown({
     >
       {children}
     </Streamdown>
+  );
+}
+
+function LocalProviderStatusBadge({
+  status,
+}: {
+  status: "connected" | "disconnected" | "checking";
+}) {
+  if (status === "checking") {
+    return <Spinner size={12} className="shrink-0 text-neutral-400" />;
+  }
+
+  if (status === "connected") {
+    return (
+      <span className="flex items-center gap-1 text-xs text-green-600 font-light">
+        <span className="size-1.5 rounded-full bg-green-500" />
+        Connected
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex items-center gap-1 text-xs text-neutral-500 font-light">
+      <span className="size-1.5 rounded-full bg-neutral-400" />
+      Not Running
+    </span>
   );
 }
 

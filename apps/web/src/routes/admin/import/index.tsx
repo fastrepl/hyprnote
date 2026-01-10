@@ -78,6 +78,19 @@ function ImportPage() {
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        try {
+          const errorData = JSON.parse(errorText);
+          setError(
+            errorData.error || `Import failed with status ${response.status}`,
+          );
+        } catch {
+          setError(`Import failed: ${response.status} ${response.statusText}`);
+        }
+        return;
+      }
+
       const data: ImportResult = await response.json();
 
       if (!data.success) {
@@ -122,6 +135,19 @@ function ImportPage() {
           folder,
         }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        try {
+          const errorData = JSON.parse(errorText);
+          setError(
+            errorData.error || `Save failed with status ${response.status}`,
+          );
+        } catch {
+          setError(`Save failed: ${response.status} ${response.statusText}`);
+        }
+        return;
+      }
 
       const data: SaveResult = await response.json();
 

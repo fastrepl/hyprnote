@@ -46,8 +46,8 @@ export function SelectProviderAndModel() {
   const hasError = isConfigured && health.status === "error";
 
   // Get local provider statuses
-  const ollamaStatus = useLocalProviderStatus("ollama");
-  const lmStudioStatus = useLocalProviderStatus("lmstudio");
+  const { status: ollamaStatus } = useLocalProviderStatus("ollama");
+  const { status: lmStudioStatus } = useLocalProviderStatus("lmstudio");
 
   const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_llm_provider",
@@ -219,8 +219,8 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
   );
 
   // Get local provider statuses here as well for the mapping
-  const ollamaStatus = useLocalProviderStatus("ollama");
-  const lmStudioStatus = useLocalProviderStatus("lmstudio");
+  const { status: ollamaStatus } = useLocalProviderStatus("ollama");
+  const { status: lmStudioStatus } = useLocalProviderStatus("lmstudio");
 
   const mapping = useMemo(() => {
     return Object.fromEntries(

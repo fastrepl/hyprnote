@@ -17,9 +17,10 @@ function isLocalProvider(providerId: string): providerId is LocalProviderId {
   return LOCAL_PROVIDERS.includes(providerId as LocalProviderId);
 }
 
-export function useLocalProviderStatus(
-  providerId: string,
-): LocalProviderStatus | null {
+export function useLocalProviderStatus(providerId: string): {
+  status: LocalProviderStatus | null;
+  refetch: () => void;
+} {
   const configuredProviders = settings.UI.useResultTable(
     settings.QUERIES.llmProviders,
     settings.STORE_ID,
@@ -56,12 +57,15 @@ export function useLocalProviderStatus(
   });
 
   if (!isLocalProvider(providerId)) {
-    return null;
+    return { status: null, refetch: () => {} };
   }
 
-  if (query.isLoading || query.isFetching) {
-    return "checking";
-  }
+  const status: LocalProviderStatus =
+    query.isLoading || query.isFetching
+      ? "checking"
+      : query.data
+        ? "connected"
+        : "disconnected";
 
-  return query.data ? "connected" : "disconnected";
+  return { status, refetch: () => void query.refetch() };
 }

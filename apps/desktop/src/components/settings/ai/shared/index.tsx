@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@hypr/ui/components/ui/accordion";
+import { Button } from "@hypr/ui/components/ui/button";
 import {
   InputGroup,
   InputGroupInput,
@@ -40,6 +41,10 @@ type ProviderConfig = {
   baseUrl?: string;
   disabled?: boolean;
   requirements: ProviderRequirement[];
+  links?: {
+    download?: { label: string; url: string };
+    models?: { label: string; url: string };
+  };
 };
 
 function useIsProviderConfigured(
@@ -96,7 +101,8 @@ export function NonHyprProviderCard({
     providerType,
     providers,
   );
-  const localProviderStatus = useLocalProviderStatus(config.id);
+  const { status: localProviderStatus, refetch: refetchStatus } =
+    useLocalProviderStatus(config.id);
 
   const requiredFields = getRequiredConfigFields(config.requirements);
   const showApiKey = requiredFields.includes("api_key");
@@ -142,16 +148,32 @@ export function NonHyprProviderCard({
           (config.disabled || locked) && "cursor-not-allowed opacity-30",
         ])}
       >
-        <div className="flex items-center gap-2">
-          {config.icon}
-          <span>{config.displayName}</span>
-          {config.badge && (
-            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
-              {config.badge}
-            </span>
-          )}
-          {localProviderStatus && (
-            <LocalProviderStatusBadge status={localProviderStatus} />
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-2">
+            {config.icon}
+            <span>{config.displayName}</span>
+            {config.badge && (
+              <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
+                {config.badge}
+              </span>
+            )}
+            {localProviderStatus && (
+              <LocalProviderStatusBadge status={localProviderStatus} />
+            )}
+          </div>
+          {localProviderStatus && localProviderStatus !== "connected" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                refetchStatus();
+              }}
+              disabled={localProviderStatus === "checking"}
+              className="mr-2"
+            >
+              Connect
+            </Button>
           )}
         </div>
       </AccordionTrigger>
@@ -197,6 +219,31 @@ export function NonHyprProviderCard({
             </details>
           )}
         </form>
+
+        {config.links && (config.links.download || config.links.models) && (
+          <div className="flex items-center gap-4 pt-2 text-sm">
+            {config.links.download && (
+              <a
+                href={config.links.download.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-neutral-600 hover:text-neutral-900 hover:underline"
+              >
+                {config.links.download.label}
+              </a>
+            )}
+            {config.links.models && (
+              <a
+                href={config.links.models.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-neutral-600 hover:text-neutral-900 hover:underline"
+              >
+                {config.links.models.label}
+              </a>
+            )}
+          </div>
+        )}
       </AccordionContent>
     </AccordionItem>
   );

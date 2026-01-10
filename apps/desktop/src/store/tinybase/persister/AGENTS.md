@@ -33,7 +33,9 @@ Only needs `index.ts` + `persister.ts`. Configuration-only, no transform needed.
   - Export `loadAllXxxData(dataDir) → LoadedData`
   - Export `loadSingleXxx(dataDir, id) → LoadedData`
 - `collect.ts`: Extracts store data and prepares write operations (store → filesystem).
-  - Export `collectXxxWriteOps(store, tables, dataDir, changedIds?) → CollectorResult`
+  - Export `tablesToXxx(...)` — pure transformation from tables to intermediate format
+  - Export `collectXxxWriteOps(tables, dataDir, changedIds?) → CollectorResult`
+  - Optionally takes `store` as first param when direct store access is needed
 - `changes.ts`: Change detection with relationship traversal and deletion tracking.
   - Export `parseXxxIdFromPath(path) → string | null`
   - Export `getChangedXxxIds(tables, changedTables) → Set<string> | undefined` — needed for resolving child table changes to parent entity

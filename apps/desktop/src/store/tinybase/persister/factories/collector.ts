@@ -17,16 +17,19 @@ import {
 } from "@hypr/plugin-fs-sync";
 
 import { StoreOrMergeableStore } from "../../store/shared";
-import { createFileListener, type NotifyListenerHandle } from "../shared/fs";
+import {
+  createFileListener,
+  type NotifyListenerHandle,
+} from "../shared/listener";
 import { getDataDir } from "../shared/paths";
 import {
   type ChangedTables,
   type CollectorResult,
-  extractChangedTables,
   type JsonValue,
   type TablesContent,
   type WriteOperation,
 } from "../shared/types";
+import { extractChangedTables } from "../shared/utils";
 
 type CategorizedOperations = {
   json: Array<[JsonValue, string]>;

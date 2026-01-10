@@ -4,7 +4,7 @@ import {
   createDeletionMarker,
   type TablesContent,
 } from "../shared";
-import type { LoadedSessionData } from "./load";
+import type { LoadedSessionData } from "./load/types";
 
 export function createSessionDeletionMarker(store: Store) {
   return createDeletionMarker<LoadedSessionData>(store, [

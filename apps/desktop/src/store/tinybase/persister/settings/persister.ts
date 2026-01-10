@@ -5,14 +5,15 @@ import { commands } from "@hypr/plugin-settings";
 
 import type { Schemas, Store } from "../../store/settings";
 import { StoreOrMergeableStore } from "../../store/shared";
-import { createNotifyListener } from "../shared/fs";
+import { createFileListener } from "../shared/listener";
 import { settingsToContent, storeToSettings } from "./transform";
 
 const SETTINGS_FILENAME = "settings.json";
 
-const settingsNotifyListener = createNotifyListener((path) =>
-  path.endsWith(SETTINGS_FILENAME),
-);
+const settingsNotifyListener = createFileListener({
+  mode: "simple",
+  pathMatcher: (path) => path.endsWith(SETTINGS_FILENAME),
+});
 
 export const createSettingsPersister = createPersisterBuilder({
   toStore: settingsToContent,

@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
 
+import type { TablesContent } from "./types";
 import {
   asTablesChanges,
   extractChangedTables,
   iterateTableRows,
-  type TablesContent,
-} from "./types";
+} from "./utils";
 
 describe("extractChangedTables", () => {
   describe("null/invalid input handling", () => {

@@ -1,10 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import {
-  createDebouncedBatcher,
-  isFileNotFoundError,
-  safeParseJson,
-} from "./fs";
+import { isFileNotFoundError, safeParseJson } from "./fs";
+import { createDebouncedBatcher } from "./listener";
 
 describe("safeParseJson", () => {
   describe("string input", () => {

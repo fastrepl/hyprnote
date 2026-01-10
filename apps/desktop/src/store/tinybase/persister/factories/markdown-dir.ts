@@ -21,12 +21,12 @@ import {
   getDataDir,
 } from "../shared/paths";
 import {
-  asTablesChanges,
   type ChangedTables,
   type CollectorResult,
   type MarkdownDirPersisterConfig,
   type WriteOperation,
 } from "../shared/types";
+import { asTablesChanges } from "../shared/utils";
 import { createCollectorPersister } from "./collector";
 
 async function loadMarkdownDir<TStorage>(

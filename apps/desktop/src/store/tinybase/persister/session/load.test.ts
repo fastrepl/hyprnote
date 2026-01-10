@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { extractSessionIdAndFolder } from "./load";
+import { extractSessionIdAndFolder } from "./load/session";
 
 describe("extractSessionIdAndFolder", () => {
   describe("standard paths", () => {

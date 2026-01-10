@@ -20,8 +20,8 @@ import {
   collectTranscriptWriteOps,
   type NoteCollectorResult,
   type SessionCollectorResult,
-} from "./collect";
-import { loadAllSessionData, loadSingleSession } from "./load";
+} from "./collect/index";
+import { loadAllSessionData, loadSingleSession } from "./load/index";
 
 export function createSessionPersister(store: Store) {
   const deletionMarker = createSessionDeletionMarker(store);
@@ -119,7 +119,6 @@ export function createSessionPersister(store: Store) {
         changedSessionIds,
       ) as SessionCollectorResult;
       const transcriptResult = collectTranscriptWriteOps(
-        store,
         tables,
         dataDir,
         changedSessionIds,

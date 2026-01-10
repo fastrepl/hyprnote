@@ -12,11 +12,8 @@ import { commands as path2Commands } from "@hypr/plugin-path2";
 
 import { StoreOrMergeableStore } from "../../store/shared";
 import { isFileNotFoundError } from "../shared/fs";
-import {
-  asTablesChanges,
-  type ChangedTables,
-  extractChangedTables,
-} from "../shared/types";
+import type { ChangedTables } from "../shared/types";
+import { asTablesChanges, extractChangedTables } from "../shared/utils";
 
 export type ListenMode = "notify" | "poll" | "both";
 

@@ -1,5 +1,5 @@
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { LMStudioClient } from "@lmstudio/sdk";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { Effect, pipe } from "effect";
 
 export type LocalProviderStatus = "connected" | "disconnected" | "checking";
@@ -28,7 +28,9 @@ export async function checkOllamaConnection(baseUrl: string): Promise<boolean> {
   );
 }
 
-export async function checkLMStudioConnection(baseUrl: string): Promise<boolean> {
+export async function checkLMStudioConnection(
+  baseUrl: string,
+): Promise<boolean> {
   if (!baseUrl) {
     return false;
   }

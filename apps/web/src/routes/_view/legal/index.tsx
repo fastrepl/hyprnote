@@ -79,7 +79,7 @@ function LegalCard({ doc }: { doc: (typeof allLegals)[number] }) {
         <div className="flex items-center justify-between text-sm text-neutral-500 mt-4 pt-4 border-t border-neutral-100">
           <span className="text-xs">
             Updated{" "}
-            {new Date(doc.updated).toLocaleDateString("en-US", {
+            {new Date(doc.date).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
               year: "numeric",

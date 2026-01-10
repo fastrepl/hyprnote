@@ -4,8 +4,6 @@ import type {
   ChangelogState,
   ChatShortcutsState,
   ContactsState,
-  DataState,
-  DataTab,
   EditorView,
   ExtensionsState,
   PromptsState,
@@ -20,8 +18,6 @@ export type {
   ChangelogState,
   ChatShortcutsState,
   ContactsState,
-  DataState,
-  DataTab,
   EditorView,
   ExtensionsState,
   PromptsState,
@@ -42,6 +38,7 @@ export const isTranscriptView = (
 type BaseTab = {
   active: boolean;
   slotId: string;
+  pinned: boolean;
 };
 
 export type Tab =
@@ -70,7 +67,6 @@ export type Tab =
       type: "extensions";
       state: ExtensionsState;
     })
-  | (BaseTab & { type: "events"; id: string })
   | (BaseTab & { type: "humans"; id: string })
   | (BaseTab & { type: "organizations"; id: string })
   | (BaseTab & { type: "folders"; id: string | null })
@@ -89,14 +85,10 @@ export type Tab =
   | (BaseTab & {
       type: "ai";
       state: AiState;
-    })
-  | (BaseTab & {
-      type: "data";
-      state: DataState;
     });
 
 export const getDefaultState = (tab: TabInput): Tab => {
-  const base = { active: false, slotId: "" };
+  const base = { active: false, slotId: "", pinned: false };
 
   switch (tab.type) {
     case "sessions":
@@ -104,7 +96,7 @@ export const getDefaultState = (tab: TabInput): Tab => {
         ...base,
         type: "sessions",
         id: tab.id,
-        state: tab.state ?? { editor: null },
+        state: tab.state ?? { view: null, autoStart: null },
       };
     case "contacts":
       return {
@@ -152,8 +144,6 @@ export const getDefaultState = (tab: TabInput): Tab => {
           selectedExtension: null,
         },
       };
-    case "events":
-      return { ...base, type: "events", id: tab.id };
     case "humans":
       return { ...base, type: "humans", id: tab.id };
     case "organizations":
@@ -185,20 +175,15 @@ export const getDefaultState = (tab: TabInput): Tab => {
         type: "ai",
         state: tab.state ?? { tab: null },
       };
-    case "data":
-      return {
-        ...base,
-        type: "data",
-        state: tab.state ?? { tab: null },
-      };
+    default:
+      const _exhaustive: never = tab;
+      return _exhaustive;
   }
 };
 
 export const rowIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
     case "sessions":
-      return tab.id;
-    case "events":
       return tab.id;
     case "humans":
       return tab.id;
@@ -215,7 +200,6 @@ export const rowIdfromTab = (tab: Tab): string => {
     case "changelog":
     case "settings":
     case "ai":
-    case "data":
       throw new Error("invalid_resource");
     case "folders":
       if (!tab.id) {
@@ -229,8 +213,6 @@ export const uniqueIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
     case "sessions":
       return `sessions-${tab.id}`;
-    case "events":
-      return `events-${tab.id}`;
     case "humans":
       return `humans-${tab.id}`;
     case "organizations":
@@ -259,8 +241,6 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `settings`;
     case "ai":
       return `ai`;
-    case "data":
-      return `data`;
   }
 };
 

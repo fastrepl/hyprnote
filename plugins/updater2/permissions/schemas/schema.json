@@ -331,10 +331,22 @@
           "markdownDescription": "Denies the install command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check`\n- `allow-download`\n- `allow-install`",
+          "description": "Enables the maybe_emit_updated command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-maybe-emit-updated",
+          "markdownDescription": "Enables the maybe_emit_updated command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the maybe_emit_updated command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-maybe-emit-updated",
+          "markdownDescription": "Denies the maybe_emit_updated command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check`\n- `allow-download`\n- `allow-install`\n- `allow-maybe-emit-updated`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check`\n- `allow-download`\n- `allow-install`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check`\n- `allow-download`\n- `allow-install`\n- `allow-maybe-emit-updated`"
         }
       ]
     }

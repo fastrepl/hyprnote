@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker/locale/en";
 
+import type { AppleCalendar } from "@hypr/plugin-apple-calendar";
 import type {
   Calendar,
   ChatGroup,
@@ -7,7 +8,6 @@ import type {
   ChatShortcutStorage,
   EnhancedNoteStorage,
   EventStorage,
-  Folder,
   Human,
   MappingSessionParticipant,
   MappingTagSession,
@@ -15,16 +15,14 @@ import type {
   SessionStorage,
   Tag,
   TemplateStorage,
-  Transcript,
-  WordStorage,
+  TranscriptStorage,
 } from "@hypr/store";
 
-import { createCalendar } from "./calendar";
+import { createCalendar, createCalendarFromFixture } from "./calendar";
 import { createChatGroup, createChatMessage } from "./chat";
 import { createChatShortcut } from "./chat-shortcut";
 import { createEnhancedNote } from "./enhanced-note";
 import { createEvent } from "./event";
-import { createFolder } from "./folder";
 import { createHuman } from "./human";
 import {
   createMappingSessionParticipant,
@@ -49,9 +47,20 @@ export const buildOrganizations = (
   return organizations;
 };
 
-export const buildCalendars = (count: number): Record<string, Calendar> => {
-  const calendars: Record<string, Calendar> = {};
+export const buildCalendars = (
+  count: number,
+  fixtureCalendars?: AppleCalendar[],
+): Record<string, Calendar> => {
+  if (fixtureCalendars?.length) {
+    const calendars: Record<string, Calendar> = {};
+    for (const fc of fixtureCalendars) {
+      const cal = createCalendarFromFixture(fc);
+      calendars[cal.id] = cal.data;
+    }
+    return calendars;
+  }
 
+  const calendars: Record<string, Calendar> = {};
   for (let i = 0; i < count; i++) {
     const calendar = createCalendar();
     calendars[calendar.id] = calendar.data;
@@ -73,7 +82,7 @@ export const buildHumans = (
   const humans: Record<string, Human> = {};
 
   if (options.includeCurrentUser && orgIds.length > 0) {
-    const currentUser = createHuman(orgIds[0], true);
+    const currentUser = createHuman(orgIds[0]);
     humans[currentUser.id] = currentUser.data;
   }
 
@@ -81,7 +90,7 @@ export const buildHumans = (
     const humanCount = faker.number.int(options.countPerOrg);
 
     for (let i = 0; i < humanCount; i++) {
-      const human = createHuman(orgId, false);
+      const human = createHuman(orgId);
       humans[human.id] = human.data;
     }
   });
@@ -131,30 +140,6 @@ export const buildEventsByHuman = (
   return { events, eventsByHuman };
 };
 
-export const buildFolders = (
-  rootCount: number,
-  subFoldersPerRoot: { min: number; max: number },
-): Record<string, Folder> => {
-  const folders: Record<string, Folder> = {};
-
-  const rootFolderIds: string[] = [];
-  for (let i = 0; i < rootCount; i++) {
-    const folder = createFolder();
-    folders[folder.id] = folder.data;
-    rootFolderIds.push(folder.id);
-  }
-
-  rootFolderIds.forEach((rootId) => {
-    const subFolderCount = faker.number.int(subFoldersPerRoot);
-    for (let i = 0; i < subFolderCount; i++) {
-      const subFolder = createFolder(rootId);
-      folders[subFolder.id] = subFolder.data;
-    }
-  });
-
-  return folders;
-};
-
 export const buildTags = (count: number): Record<string, Tag> => {
   const tags: Record<string, Tag> = {};
 
@@ -183,35 +168,22 @@ export const buildSessions = (
   count: number,
   options: {
     eventIds?: string[];
-    folderIds?: string[];
     eventLinkProbability?: number;
-    folderProbability?: number;
   } = {},
 ): Record<string, SessionStorage> => {
   const sessions: Record<string, SessionStorage> = {};
-  const {
-    eventIds = [],
-    folderIds = [],
-    eventLinkProbability = 0.6,
-    folderProbability = 0.6,
-  } = options;
+  const { eventIds = [], eventLinkProbability = 0.6 } = options;
 
   for (let i = 0; i < count; i++) {
     const shouldLinkToEvent =
       eventIds.length > 0 &&
       faker.datatype.boolean({ probability: eventLinkProbability });
-    const shouldAddToFolder =
-      folderIds.length > 0 &&
-      faker.datatype.boolean({ probability: folderProbability });
 
     const eventId = shouldLinkToEvent
       ? faker.helpers.arrayElement(eventIds)
       : undefined;
-    const folderId = shouldAddToFolder
-      ? faker.helpers.arrayElement(folderIds)
-      : undefined;
 
-    const session = createSession(eventId, folderId);
+    const session = createSession(eventId, undefined);
     sessions[session.id] = session.data;
   }
 
@@ -223,18 +195,11 @@ export const buildSessionsPerHuman = (
   sessionsPerHuman: { min: number; max: number },
   options: {
     eventsByHuman?: Record<string, string[]>;
-    folderIds?: string[];
     eventLinkProbability?: number;
-    folderProbability?: number;
   } = {},
 ): Record<string, SessionStorage> => {
   const sessions: Record<string, SessionStorage> = {};
-  const {
-    eventsByHuman = {},
-    folderIds = [],
-    eventLinkProbability = 0.6,
-    folderProbability = 0.6,
-  } = options;
+  const { eventsByHuman = {}, eventLinkProbability = 0.6 } = options;
 
   humanIds.forEach((humanId) => {
     const sessionCount = faker.number.int(sessionsPerHuman);
@@ -244,18 +209,12 @@ export const buildSessionsPerHuman = (
       const shouldLinkToEvent =
         humanEventIds.length > 0 &&
         faker.datatype.boolean({ probability: eventLinkProbability });
-      const shouldAddToFolder =
-        folderIds.length > 0 &&
-        faker.datatype.boolean({ probability: folderProbability });
 
       const eventId = shouldLinkToEvent
         ? faker.helpers.arrayElement(humanEventIds)
         : undefined;
-      const folderId = shouldAddToFolder
-        ? faker.helpers.arrayElement(folderIds)
-        : undefined;
 
-      const session = createSession(eventId, folderId);
+      const session = createSession(eventId, undefined);
       sessions[session.id] = session.data;
     }
   });
@@ -269,11 +228,9 @@ export const buildTranscriptsForSessions = (
     turnCount?: { min: number; max: number };
   } = {},
 ): {
-  transcripts: Record<string, Transcript>;
-  words: Record<string, WordStorage>;
+  transcripts: Record<string, TranscriptStorage>;
 } => {
-  const transcripts: Record<string, Transcript> = {};
-  const words: Record<string, WordStorage> = {};
+  const transcripts: Record<string, TranscriptStorage> = {};
 
   sessionIds.forEach((sessionId) => {
     const result = generateTranscript({
@@ -285,16 +242,11 @@ export const buildTranscriptsForSessions = (
       throw new Error("Expected transcript metadata");
     }
 
-    const { transcriptId, transcript, words: transcriptWords } = result;
-
-    Object.entries(transcriptWords).forEach(([wordId, word]) => {
-      words[wordId] = word;
-    });
-
+    const { transcriptId, transcript } = result;
     transcripts[transcriptId] = transcript;
   });
 
-  return { transcripts, words };
+  return { transcripts };
 };
 
 export const buildSessionParticipants = (

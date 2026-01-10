@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 
-import type { Search } from "../../routes/app/onboarding";
+import type { Search } from "../../routes/app/onboarding/_layout.index";
 import { ConfigureNotice, STEP_ID_CONFIGURE_NOTICE } from "./configure-notice";
 import { Login, STEP_ID_LOGIN } from "./login";
 import { Permissions, STEP_ID_PERMISSIONS } from "./permissions";
@@ -16,8 +16,8 @@ export type StepProps = {
 export function getNext(ctx: Search): Search["step"] | null {
   switch (ctx.step) {
     case STEP_ID_WELCOME:
-      if (ctx.local) return STEP_ID_CONFIGURE_NOTICE;
       if (ctx.platform === "macos") return STEP_ID_PERMISSIONS;
+      if (ctx.local) return STEP_ID_CONFIGURE_NOTICE;
       return STEP_ID_LOGIN;
     case STEP_ID_PERMISSIONS:
       return ctx.local ? STEP_ID_CONFIGURE_NOTICE : STEP_ID_LOGIN;
@@ -39,7 +39,9 @@ export function getBack(ctx: Search): Search["step"] | null {
     case STEP_ID_LOGIN:
       return ctx.platform === "macos" ? STEP_ID_PERMISSIONS : STEP_ID_WELCOME;
     case STEP_ID_CONFIGURE_NOTICE:
-      if (ctx.local) return STEP_ID_WELCOME;
+      if (ctx.local) {
+        return ctx.platform === "macos" ? STEP_ID_PERMISSIONS : STEP_ID_WELCOME;
+      }
       return STEP_ID_LOGIN;
     case STEP_ID_READY:
       return null;

@@ -1,10 +1,6 @@
 import type { StoreApi } from "zustand";
 
-import type {
-  BatchAlternatives,
-  BatchResponse,
-  StreamResponse,
-} from "@hypr/plugin-listener2";
+import type { BatchResponse, StreamResponse } from "@hypr/plugin-listener2";
 
 import {
   ChannelProfile,
@@ -12,7 +8,7 @@ import {
   type WordLike,
 } from "../../../utils/segment";
 import type { HandlePersistCallback } from "./transcript";
-import { fixSpacingForWords } from "./utils";
+import { transformWordEntries } from "./utils";
 
 export type BatchState = {
   batch: Record<
@@ -123,9 +119,10 @@ function transformBatch(
       return;
     }
 
-    const [words, hints] = transformAlternativeWords(
+    const [words, hints] = transformWordEntries(
       alternative.words,
       alternative.transcript,
+      ChannelProfile.MixedCapture,
     );
 
     hints.forEach((hint) => {
@@ -139,41 +136,4 @@ function transformBatch(
   });
 
   return [allWords, allHints];
-}
-
-function transformAlternativeWords(
-  wordEntries: BatchAlternatives["words"],
-  transcript: string,
-): [WordLike[], RuntimeSpeakerHint[]] {
-  const words: WordLike[] = [];
-  const hints: RuntimeSpeakerHint[] = [];
-
-  const textsWithSpacing = fixSpacingForWords(
-    (wordEntries ?? []).map((w) => w.punctuated_word ?? w.word),
-    transcript,
-  );
-
-  for (let i = 0; i < (wordEntries ?? []).length; i++) {
-    const word = (wordEntries ?? [])[i];
-    const text = textsWithSpacing[i];
-
-    words.push({
-      text,
-      start_ms: Math.round(word.start * 1000),
-      end_ms: Math.round(word.end * 1000),
-      channel: ChannelProfile.MixedCapture,
-    });
-
-    if (typeof word.speaker === "number") {
-      hints.push({
-        wordIndex: i,
-        data: {
-          type: "provider_speaker_index",
-          speaker_index: word.speaker,
-        },
-      });
-    }
-  }
-
-  return [words, hints];
 }

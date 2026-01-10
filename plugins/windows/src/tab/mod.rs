@@ -1,5 +1,5 @@
 mod state;
-use state::*;
+pub use state::*;
 
 #[macro_export]
 macro_rules! common_derives {
@@ -44,8 +44,6 @@ common_derives! {
             #[serde(skip_serializing_if = "Option::is_none")]
             state: Option<ExtensionsState>,
         },
-        #[serde(rename = "events")]
-        Events { id: String },
         #[serde(rename = "humans")]
         Humans { id: String },
         #[serde(rename = "organizations")]
@@ -71,11 +69,6 @@ common_derives! {
         Ai {
             #[serde(skip_serializing_if = "Option::is_none")]
             state: Option<AiState>,
-        },
-        #[serde(rename = "data")]
-        Data {
-            #[serde(skip_serializing_if = "Option::is_none")]
-            state: Option<DataState>,
         },
     }
 }

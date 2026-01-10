@@ -14,10 +14,11 @@ import {
 import { templateSectionSchema } from "@hypr/store";
 
 import type { TaskArgsMapTransformed, TaskConfig } from ".";
-import type { Store } from "../../../tinybase/main";
-import { getCustomPrompt } from "../../../tinybase/prompts";
+import type { Store } from "../../../tinybase/store/main";
+import { getCustomPrompt } from "../../../tinybase/store/prompts";
 import {
   addMarkdownSectionSeparators,
+  normalizeBulletPoints,
   trimBeforeMarker,
 } from "../shared/transform_impl";
 import {
@@ -32,6 +33,7 @@ export const enhanceWorkflow: Pick<
   executeWorkflow,
   transforms: [
     trimBeforeMarker("#"),
+    normalizeBulletPoints(),
     addMarkdownSectionSeparators(),
     smoothStream({ delayInMs: 250, chunking: "line" }),
   ],

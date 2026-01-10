@@ -1,11 +1,14 @@
 import { X } from "lucide-react";
 import { useCallback } from "react";
 
-import type { SpeakerHintStorage } from "@hypr/store";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 
-import * as main from "../../../../../../../store/tinybase/main";
+import * as main from "../../../../../../../store/tinybase/store/main";
+import {
+  parseTranscriptHints,
+  updateTranscriptHints,
+} from "../../../../../../../store/transcript/utils";
 import { useTabs } from "../../../../../../../store/zustand/tabs/index";
 
 export function ParticipantChip({ mappingId }: { mappingId: string }) {
@@ -85,7 +88,6 @@ function useParticipantDetails(mappingId: string) {
     humanJobTitle: (result.human_job_title as string | undefined) || undefined,
     humanLinkedinUsername:
       (result.human_linkedin_username as string | undefined) || undefined,
-    humanIsUser: result.human_is_user as boolean,
     orgId: (result.org_id as string | undefined) || undefined,
     orgName: result.org_name as string | undefined,
     sessionId: result.session_id as string,
@@ -131,36 +133,26 @@ function useRemoveParticipant({
     }
 
     if (assignedHumanId && sessionId && indexes) {
-      const hintIdsToDelete: string[] = [];
-
       const transcriptIds = indexes.getSliceRowIds(
         main.INDEXES.transcriptBySession,
         sessionId,
       );
 
       for (const transcriptId of transcriptIds) {
-        const hintIds = indexes.getSliceRowIds(
-          main.INDEXES.speakerHintsByTranscript,
-          transcriptId,
-        );
+        const hints = parseTranscriptHints(store, transcriptId);
+        if (hints.length === 0) continue;
 
-        for (const hintId of hintIds) {
-          const hint = store.getRow("speaker_hints", hintId) as
-            | SpeakerHintStorage
-            | undefined;
-          if (!hint || hint.type !== "user_speaker_assignment") {
-            continue;
+        const filteredHints = hints.filter((hint) => {
+          if (hint.type !== "user_speaker_assignment") {
+            return true;
           }
-
           const hintHumanId = parseHumanIdFromHintValue(hint.value);
-          if (hintHumanId === assignedHumanId) {
-            hintIdsToDelete.push(hintId);
-          }
-        }
-      }
+          return hintHumanId !== assignedHumanId;
+        });
 
-      for (const hintId of hintIdsToDelete) {
-        store.delRow("speaker_hints", hintId);
+        if (filteredHints.length !== hints.length) {
+          updateTranscriptHints(store, transcriptId, filteredHints);
+        }
       }
     }
 

@@ -28,13 +28,7 @@ declare module "@hypr/store" {
     foldersByParent: string;
     sessionsByFolder: string;
     transcriptBySession: string;
-    wordsByTranscript: string;
-    speakerHintsByTranscript: string;
-    speakerHintsByWord: string;
-    eventsByCalendar: string;
-    tagsByName: string;
     tagSessionsBySession: string;
-    tagSessionsByTag: string;
     chatMessagesByGroup: string;
     sessionsByHuman: string;
     enhancedNotesBySession: string;
@@ -46,7 +40,6 @@ declare module "@hypr/store" {
     visibleHumans: string;
     visibleTemplates: string;
     visibleFolders: string;
-    visibleVocabs: string;
     llmProviders: string;
     sttProviders: string;
     sessionParticipantsWithDetails: string;
@@ -55,23 +48,11 @@ declare module "@hypr/store" {
   export const METRICS: {
     totalHumans: string;
     totalOrganizations: string;
-    totalCustomVocabs: string;
   };
   export const RELATIONSHIPS: {
-    sessionHuman: string;
     sessionToFolder: string;
     sessionToEvent: string;
     folderToParentFolder: string;
-    transcriptToSession: string;
-    wordToTranscript: string;
-    speakerHintToTranscript: string;
-    speakerHintToWord: string;
-    sessionParticipantToHuman: string;
-    sessionParticipantToSession: string;
-    eventToCalendar: string;
-    tagSessionToTag: string;
-    tagSessionToSession: string;
-    chatMessageToGroup: string;
     enhancedNoteToSession: string;
   };
 }
@@ -499,13 +480,7 @@ declare module "hyprnote" {
       foldersByParent: string;
       sessionsByFolder: string;
       transcriptBySession: string;
-      wordsByTranscript: string;
-      speakerHintsByTranscript: string;
-      speakerHintsByWord: string;
-      eventsByCalendar: string;
-      tagsByName: string;
       tagSessionsBySession: string;
-      tagSessionsByTag: string;
       chatMessagesByGroup: string;
       sessionsByHuman: string;
       enhancedNotesBySession: string;
@@ -517,7 +492,6 @@ declare module "hyprnote" {
       visibleHumans: string;
       visibleTemplates: string;
       visibleFolders: string;
-      visibleVocabs: string;
       llmProviders: string;
       sttProviders: string;
       sessionParticipantsWithDetails: string;
@@ -526,23 +500,11 @@ declare module "hyprnote" {
     METRICS: {
       totalHumans: string;
       totalOrganizations: string;
-      totalCustomVocabs: string;
     };
     RELATIONSHIPS: {
-      sessionHuman: string;
       sessionToFolder: string;
       sessionToEvent: string;
       folderToParentFolder: string;
-      transcriptToSession: string;
-      wordToTranscript: string;
-      speakerHintToTranscript: string;
-      speakerHintToWord: string;
-      sessionParticipantToHuman: string;
-      sessionParticipantToSession: string;
-      eventToCalendar: string;
-      tagSessionToTag: string;
-      tagSessionToSession: string;
-      chatMessageToGroup: string;
       enhancedNoteToSession: string;
     };
   };

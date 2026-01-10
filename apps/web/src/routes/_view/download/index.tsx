@@ -8,6 +8,7 @@ import { cn } from "@hypr/utils";
 import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
 import { usePlatform } from "@/hooks/use-platform";
+import { useAnalytics } from "@/hooks/use-posthog";
 
 export const Route = createFileRoute("/_view/download/")({
   component: Component,
@@ -60,18 +61,21 @@ function Component() {
                   spec="macOS 14.2+ (Apple Silicon)"
                   downloadUrl="/download/apple-silicon"
                   available={true}
+                  platform="macos-apple-silicon"
                 />
                 <DownloadCard
                   iconName="simple-icons:apple"
                   spec="macOS 14.2+ (Intel)"
                   downloadUrl="/download/apple-intel"
                   available={true}
+                  platform="macos-intel"
                 />
                 <DownloadCard
                   iconName="simple-icons:windows"
                   spec="Windows"
                   downloadUrl="#"
                   available={false}
+                  platform="windows"
                 />
               </div>
 
@@ -84,12 +88,16 @@ function Component() {
                   spec="Linux (AppImage)"
                   downloadUrl="/download/linux-appimage"
                   available={true}
+                  platform="linux-appimage"
+                  beta={true}
                 />
                 <DownloadCard
                   iconName="simple-icons:linux"
                   spec="Linux (.deb)"
                   downloadUrl="/download/linux-deb"
                   available={true}
+                  platform="linux-deb"
+                  beta={true}
                 />
               </div>
             </div>
@@ -115,12 +123,14 @@ function Component() {
                   spec="iOS 15+"
                   downloadUrl="#"
                   available={false}
+                  platform="ios"
                 />
                 <DownloadCard
                   iconName="simple-icons:android"
                   spec="Android 10+"
                   downloadUrl="#"
                   available={false}
+                  platform="android"
                 />
               </div>
             </div>
@@ -191,29 +201,52 @@ function DownloadCard({
   spec,
   downloadUrl,
   available,
+  platform,
+  beta = false,
 }: {
   iconName: string;
   spec: string;
   downloadUrl: string;
   available: boolean;
+  platform: string;
+  beta?: boolean;
 }) {
+  const { track } = useAnalytics();
+
+  const handleClick = () => {
+    track("download_clicked", {
+      platform,
+      spec,
+      source: "download_page",
+    });
+  };
+
   return (
     <div className="flex flex-col items-center p-6 rounded-sm border border-neutral-100 bg-white hover:bg-stone-50 transition-all duration-200">
       <Icon icon={iconName} className="text-5xl text-neutral-700 mb-4" />
       <p className="text-sm text-neutral-600 mb-6 text-center">{spec}</p>
 
       {available ? (
-        <a
-          href={downloadUrl}
-          download
-          className="group w-full px-4 h-11 flex items-center justify-center bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all text-base font-medium"
-        >
-          Download
-          <Icon
-            icon="ph:arrow-circle-right"
-            className="text-xl ml-2 group-hover:translate-x-1 transition-transform"
-          />
-        </a>
+        <div className="relative w-full group/tooltip">
+          <a
+            href={downloadUrl}
+            download
+            onClick={handleClick}
+            className="group gap-2 w-full px-4 h-11 flex items-center justify-center bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all text-base font-medium"
+          >
+            {beta ? (
+              <>
+                Download <span className="font-mono">Beta</span>
+              </>
+            ) : (
+              "Download"
+            )}
+            <Icon
+              icon="ph:arrow-circle-right"
+              className="text-xl group-hover:translate-x-1 transition-transform"
+            />
+          </a>
+        </div>
       ) : (
         <button
           disabled
@@ -300,6 +333,7 @@ function CTASection() {
         <div className="pt-6">
           <Link
             to="/founders"
+            search={{ source: "download" }}
             className="px-6 h-12 flex items-center justify-center text-base sm:text-lg bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >
             Book a call

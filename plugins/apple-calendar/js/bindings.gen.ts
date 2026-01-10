@@ -29,6 +29,15 @@ async listEvents(filter: EventFilter) : Promise<Result<AppleEvent[], string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async advanceFixture() : Promise<FixtureInfo> {
+    return await TAURI_INVOKE("plugin:apple-calendar|advance_fixture");
+},
+async resetFixture() : Promise<FixtureInfo> {
+    return await TAURI_INVOKE("plugin:apple-calendar|reset_fixture");
+},
+async getFixtureInfo() : Promise<FixtureInfo> {
+    return await TAURI_INVOKE("plugin:apple-calendar|get_fixture_info");
 }
 }
 
@@ -62,6 +71,7 @@ export type CalendarType = "Local" | "CalDav" | "Exchange" | "Subscription" | "B
 export type EventAvailability = "NotSupported" | "Busy" | "Free" | "Tentative" | "Unavailable"
 export type EventFilter = { from: string; to: string; calendar_tracking_id: string }
 export type EventStatus = "None" | "Confirmed" | "Tentative" | "Canceled"
+export type FixtureInfo = { current_step: number; max_steps: number; step_name: string }
 export type GeoLocation = { latitude: number; longitude: number }
 export type Participant = { name: string | null; email: string | null; is_current_user: boolean; role: ParticipantRole; status: ParticipantStatus; participant_type: ParticipantType; schedule_status: ParticipantScheduleStatus | null; url: string | null; contact: ParticipantContact | null }
 export type ParticipantContact = { identifier: string; given_name: string | null; family_name: string | null; middle_name: string | null; organization_name: string | null; job_title: string | null; email_addresses: string[]; phone_numbers: string[]; url_addresses: string[]; image_available: boolean }

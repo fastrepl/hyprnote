@@ -14,6 +14,11 @@
   [id] {
     scroll-margin-top: 69px;
   }
+
+  .prose code:not(pre code) {
+    overflow-wrap: break-word;
+    word-break: break-all;
+  }
 }
 
 @layer utilities {

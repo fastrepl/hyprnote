@@ -49,9 +49,10 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
                 query_pairs.append_pair("language_detection", "true");
             }
 
-            if let Some(redemption_time) = params.redemption_time_ms {
-                let max_silence = redemption_time.to_string();
-                query_pairs.append_pair("max_turn_silence", &max_silence);
+            if let Some(custom) = &params.custom_query {
+                if let Some(max_silence) = custom.get("max_turn_silence") {
+                    query_pairs.append_pair("max_turn_silence", max_silence);
+                }
             }
 
             if !params.keywords.is_empty() {
@@ -108,7 +109,11 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
             }
             AssemblyAIMessage::Error { error } => {
                 tracing::error!(error = %error, "assemblyai_error");
-                vec![]
+                vec![StreamResponse::ErrorResponse {
+                    error_code: None,
+                    error_message: error,
+                    provider: "assemblyai".to_string(),
+                }]
             }
             AssemblyAIMessage::Unknown => {
                 tracing::debug!(raw = raw, "assemblyai_unknown_message");
@@ -283,23 +288,67 @@ mod tests {
     use crate::ListenClient;
     use crate::test_utils::{run_dual_test, run_single_test};
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_single() {
-        let client = ListenClient::builder()
-            .adapter::<AssemblyAIAdapter>()
-            .api_base("wss://streaming.assemblyai.com")
-            .api_key(std::env::var("ASSEMBLYAI_API_KEY").expect("ASSEMBLYAI_API_KEY not set"))
-            .params(owhisper_interface::ListenParams {
-                model: Some("universal-streaming-english".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single()
-            .await;
-
-        run_single_test(client, "assemblyai").await;
+    macro_rules! single_test {
+        ($name:ident, $params:expr) => {
+            #[tokio::test]
+            #[ignore]
+            async fn $name() {
+                let client = ListenClient::builder()
+                    .adapter::<AssemblyAIAdapter>()
+                    .api_base("wss://streaming.assemblyai.com")
+                    .api_key(
+                        std::env::var("ASSEMBLYAI_API_KEY").expect("ASSEMBLYAI_API_KEY not set"),
+                    )
+                    .params($params)
+                    .build_single()
+                    .await;
+                run_single_test(client, "assemblyai").await;
+            }
+        };
     }
+
+    single_test!(
+        test_build_single,
+        owhisper_interface::ListenParams {
+            model: Some("universal-streaming-english".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_with_keywords,
+        owhisper_interface::ListenParams {
+            model: Some("universal-streaming-english".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            keywords: vec!["Hyprnote".to_string(), "transcription".to_string()],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_multi_lang_1,
+        owhisper_interface::ListenParams {
+            model: Some("universal-streaming-multilingual".to_string()),
+            languages: vec![
+                hypr_language::ISO639::En.into(),
+                hypr_language::ISO639::Es.into(),
+            ],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_multi_lang_2,
+        owhisper_interface::ListenParams {
+            model: Some("universal-streaming-multilingual".to_string()),
+            languages: vec![
+                hypr_language::ISO639::En.into(),
+                hypr_language::ISO639::Ko.into(),
+            ],
+            ..Default::default()
+        }
+    );
 
     #[tokio::test]
     #[ignore]

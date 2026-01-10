@@ -1,4 +1,4 @@
-import type { Store } from "../../../store/tinybase/main";
+import type { Store } from "../../../store/tinybase/store/main";
 
 export function isSessionEmpty(store: Store, sessionId: string): boolean {
   const session = store.getRow("sessions", sessionId);
@@ -10,7 +10,18 @@ export function isSessionEmpty(store: Store, sessionId: string): boolean {
     return false;
   }
 
-  if (session.enhanced_md && String(session.enhanced_md).trim()) {
+  let hasEnhancedNotes = false;
+  store.forEachRow("enhanced_notes", (rowId, _forEachCell) => {
+    const note = store.getRow("enhanced_notes", rowId);
+    if (note?.session_id === sessionId) {
+      const content = note.content;
+      if (typeof content === "string" && content.trim()) {
+        hasEnhancedNotes = true;
+      }
+    }
+  });
+
+  if (hasEnhancedNotes) {
     return false;
   }
 

@@ -6,7 +6,11 @@ import { InteractiveContainer } from "./interactive";
 import { ChatTrigger } from "./trigger";
 import { ChatView } from "./view";
 
-export function ChatFloatingButton() {
+export function ChatFloatingButton({
+  isCaretNearBottom = false,
+}: {
+  isCaretNearBottom?: boolean;
+}) {
   const { chat } = useShell();
   const isOpen = chat.mode === "FloatingOpen";
 
@@ -20,7 +24,12 @@ export function ChatFloatingButton() {
   }, [chat]);
 
   if (!isOpen) {
-    return <ChatTrigger onClick={handleClickTrigger} />;
+    return (
+      <ChatTrigger
+        onClick={handleClickTrigger}
+        isCaretNearBottom={isCaretNearBottom}
+      />
+    );
   }
 
   return (

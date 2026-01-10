@@ -1,19 +1,10 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import { ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Download } from "lucide-react";
+import { useState } from "react";
 import semver from "semver";
 
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@hypr/ui/components/ui/resizable";
-import { useIsMobile } from "@hypr/ui/hooks/use-mobile";
 import { cn } from "@hypr/utils";
 
 import {
@@ -22,17 +13,8 @@ import {
   getChangelogList,
 } from "@/changelog";
 import { defaultMDXComponents } from "@/components/mdx";
-import { MockWindow } from "@/components/mock-window";
 import { NotFoundContent } from "@/components/not-found";
-
-dayjs.extend(relativeTime);
-
-const ITEMS_PER_PAGE = 20;
-
-type VersionGroup = {
-  baseVersion: string;
-  versions: ChangelogWithMeta[];
-};
+import { getDownloadLinks, groupDownloadLinks } from "@/utils/download";
 
 export const Route = createFileRoute("/_view/changelog/$slug")({
   component: Component,
@@ -45,13 +27,6 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
 
     const allChangelogs = getChangelogList();
 
-    const nextChangelog = changelog.newerSlug
-      ? (getChangelogBySlug(changelog.newerSlug) ?? null)
-      : null;
-    const prevChangelog = changelog.olderSlug
-      ? (getChangelogBySlug(changelog.olderSlug) ?? null)
-      : null;
-
     const beforeVersion = changelog.beforeVersion;
     const diffUrl =
       beforeVersion != null
@@ -61,8 +36,6 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
     return {
       changelog,
       allChangelogs,
-      nextChangelog,
-      prevChangelog,
       diffUrl,
     };
   },
@@ -102,531 +75,327 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
 });
 
 function Component() {
-  const { changelog, allChangelogs } = Route.useLoaderData();
+  const { changelog, allChangelogs, diffUrl } = Route.useLoaderData();
+
+  const currentVersion = semver.parse(changelog.version);
+  const isPrerelease = !!(
+    currentVersion && currentVersion.prerelease.length > 0
+  );
 
   return (
-    <div
-      className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
+    <main
+      className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        <HeroSection changelog={changelog} />
-        <ChangelogContentSection
-          changelog={changelog}
-          allChangelogs={allChangelogs}
-        />
-      </div>
-    </div>
-  );
-}
+        <div className="max-w-3xl mx-auto px-6 pt-16 lg:pt-24 pb-8">
+          <div className="hidden md:flex md:flex-col md:items-center gap-12">
+            <div className="flex flex-col items-center gap-6">
+              <img
+                src={
+                  isPrerelease
+                    ? "/api/images/icons/nightly-icon.png"
+                    : "/api/images/icons/stable-icon.png"
+                }
+                alt="Hyprnote"
+                className="size-32 rounded-2xl"
+              />
+              <h1 className="text-3xl sm:text-4xl font-mono font-medium text-stone-600">
+                {changelog.version}
+              </h1>
+            </div>
 
-function HeroSection({ changelog }: { changelog: ChangelogWithMeta }) {
-  const relativeTimeText = dayjs(changelog.created).fromNow();
+            <DownloadLinksHero version={changelog.version} />
+          </div>
 
-  return (
-    <div className="px-6 py-16 lg:py-24">
-      <div className="text-center max-w-3xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-600 mb-2">
-          Version {changelog.version}
-        </h1>
-        <p className="text-sm text-neutral-500 mb-6">{relativeTimeText}</p>
-        <DownloadButtons version={changelog.version} />
-      </div>
-    </div>
-  );
-}
+          <div className="md:hidden text-center">
+            <div className="flex flex-col items-center gap-3 mb-8">
+              <img
+                src={
+                  isPrerelease
+                    ? "/api/images/icons/nightly-icon.png"
+                    : "/api/images/icons/stable-icon.png"
+                }
+                alt="Hyprnote"
+                className="size-16 rounded-2xl"
+              />
+              <h1 className="text-3xl font-mono font-medium text-stone-600">
+                {changelog.version}
+              </h1>
+            </div>
 
-function DownloadButtons({ version }: { version: string }) {
-  const baseUrl = `https://github.com/fastrepl/hyprnote/releases/download/desktop_v${version}`;
-  const [isOpen, setIsOpen] = useState(false);
-  const [detectedOS, setDetectedOS] = useState<
-    "apple-silicon" | "apple-intel" | "linux-appimage" | "linux-deb"
-  >("apple-silicon");
+            <DownloadLinksHeroMobile version={changelog.version} />
+          </div>
 
-  useEffect(() => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (userAgent.includes("mac")) {
-      setDetectedOS("apple-silicon");
-    } else if (userAgent.includes("linux")) {
-      setDetectedOS("linux-appimage");
-    }
-  }, []);
-
-  const platforms = [
-    {
-      id: "apple-silicon" as const,
-      icon: "ri:apple-fill",
-      label: "Apple Silicon",
-      url: `${baseUrl}/hyprnote-macos-aarch64.dmg`,
-    },
-    {
-      id: "apple-intel" as const,
-      icon: "ri:apple-fill",
-      label: "Intel Mac",
-      url: `${baseUrl}/hyprnote-macos-x86_64.dmg`,
-    },
-    {
-      id: "linux-appimage" as const,
-      icon: "simple-icons:linux",
-      label: "Linux (AppImage)",
-      url: `${baseUrl}/hyprnote-linux-x86_64.AppImage`,
-    },
-    {
-      id: "linux-deb" as const,
-      icon: "simple-icons:linux",
-      label: "Linux (.deb)",
-      url: `${baseUrl}/hyprnote-linux-x86_64.deb`,
-    },
-  ];
-
-  const primaryPlatform =
-    platforms.find((p) => p.id === detectedOS) || platforms[0];
-  const otherPlatforms = platforms.filter((p) => p.id !== detectedOS);
-
-  return (
-    <div className="relative inline-block mt-6">
-      <div className="flex items-center bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all overflow-hidden">
-        <a
-          download
-          href={primaryPlatform.url}
-          className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium"
-        >
-          <Icon icon={primaryPlatform.icon} className="text-base" />
-          <span>Download for {primaryPlatform.label}</span>
-        </a>
-        <div className="w-px h-7 bg-stone-400/50" />
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsOpen(!isOpen);
-          }}
-          className="cursor-pointer px-3 pl-2.5 pr-3"
-          aria-label="Show other platforms"
-        >
-          <ChevronDown size={16} />
-        </button>
-      </div>
-
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <motion.div
-              className="fixed inset-0 z-40"
-              onClick={() => setIsOpen(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+          <article className="mt-12 prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-lg prose-img:border prose-img:border-neutral-200 prose-img:my-6 max-w-none">
+            <MDXContent
+              code={changelog.mdx}
+              components={defaultMDXComponents}
             />
-            <motion.div
-              className="absolute top-full mt-2 right-0 bg-white border border-stone-200 rounded-lg shadow-lg overflow-hidden z-50 min-w-[200px]"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.15 }}
-            >
-              {otherPlatforms.map((platform) => (
-                <a
-                  key={platform.id}
-                  download
-                  href={platform.url}
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50 transition-colors border-b border-stone-100 last:border-b-0"
-                >
-                  <Icon
-                    icon={platform.icon}
-                    className="text-base text-stone-600"
-                  />
-                  <span className="text-sm font-medium text-stone-700">
-                    {platform.label}
-                  </span>
-                </a>
-              ))}
-            </motion.div>
+          </article>
+        </div>
+
+        {diffUrl && (
+          <>
+            <div className="border-t border-neutral-100" />
+            <div className="max-w-3xl mx-auto px-6 py-16 flex flex-col items-center text-center">
+              <h2 className="text-3xl font-serif text-stone-600 mb-2">
+                View the Code
+              </h2>
+              <p className="text-neutral-600 mb-6">
+                Curious about what changed? See the full diff on GitHub.
+              </p>
+              <a
+                href={diffUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 h-12 text-base font-medium bg-linear-to-t from-neutral-800 to-neutral-700 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+              >
+                <Icon icon="mdi:github" className="text-xl" />
+                View Diff on GitHub
+              </a>
+            </div>
           </>
         )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
-function ChangelogContentSection({
-  changelog,
-  allChangelogs,
-}: {
-  changelog: ChangelogWithMeta;
-  allChangelogs: ChangelogWithMeta[];
-}) {
-  const isMobile = useIsMobile();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const relativeTimeText = dayjs(changelog.created).fromNow();
+        <div className="border-t border-neutral-100" />
 
-  return (
-    <section className="px-6 pb-16 lg:pb-24">
-      <div className="max-w-4xl mx-auto">
-        <MockWindow
-          title={
-            isMobile
-              ? undefined
-              : `Version ${changelog.version} · ${relativeTimeText}`
-          }
-          className="rounded-lg w-full max-w-none"
-          prefixIcons={
-            isMobile && (
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="p-1 hover:bg-neutral-200 rounded transition-colors"
-                aria-label="Open version list"
-              >
-                <Menu className="w-4 h-4 text-neutral-600" />
-              </button>
-            )
-          }
-        >
-          <div className="h-[600px] relative">
-            {isMobile ? (
-              <>
-                <MobileSidebarDrawer
-                  open={drawerOpen}
-                  onClose={() => setDrawerOpen(false)}
-                  changelog={changelog}
-                  allChangelogs={allChangelogs}
-                />
-                <ChangelogContent changelog={changelog} />
-              </>
-            ) : (
-              <ChangelogSplitView
-                changelog={changelog}
-                allChangelogs={allChangelogs}
-              />
-            )}
-          </div>
-          <ChangelogStatusBar changelog={changelog} />
-        </MockWindow>
-      </div>
-    </section>
-  );
-}
-
-function ChangelogSplitView({
-  changelog,
-  allChangelogs,
-}: {
-  changelog: ChangelogWithMeta;
-  allChangelogs: ChangelogWithMeta[];
-}) {
-  return (
-    <ResizablePanelGroup direction="horizontal" className="h-[600px]">
-      <ResizablePanel defaultSize={35} minSize={25} maxSize={45}>
-        <ChangelogSidebar changelog={changelog} allChangelogs={allChangelogs} />
-      </ResizablePanel>
-      <ResizableHandle withHandle className="bg-neutral-200 w-px" />
-      <ResizablePanel defaultSize={65}>
-        <ChangelogContent changelog={changelog} />
-      </ResizablePanel>
-    </ResizablePanelGroup>
-  );
-}
-
-function MobileSidebarDrawer({
-  open,
-  onClose,
-  changelog,
-  allChangelogs,
-}: {
-  open: boolean;
-  onClose: () => void;
-  changelog: ChangelogWithMeta;
-  allChangelogs: ChangelogWithMeta[];
-}) {
-  return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            className="absolute inset-0 z-40 bg-black/20"
-            onClick={onClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+        <div className="max-w-3xl mx-auto px-6 py-16">
+          <RelatedReleases
+            currentSlug={changelog.slug}
+            allChangelogs={allChangelogs}
           />
-          <motion.div
-            className="absolute left-0 top-0 bottom-0 z-50 w-72 bg-white border-r border-neutral-200 shadow-lg"
-            initial={{ x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
-            transition={{
-              type: "tween",
-              duration: 0.2,
-              ease: "easeOut",
-            }}
-          >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
-              <span className="text-sm font-medium text-stone-600">
-                All Versions
-              </span>
-              <button
-                onClick={onClose}
-                className="p-1 hover:bg-neutral-200 rounded transition-colors"
-                aria-label="Close drawer"
-              >
-                <X className="w-4 h-4 text-neutral-600" />
-              </button>
-            </div>
-            <div className="h-[calc(100%-49px)] overflow-hidden">
-              <ChangelogSidebar
-                changelog={changelog}
-                allChangelogs={allChangelogs}
-                onNavigate={onClose}
-              />
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        </div>
+      </div>
+    </main>
   );
 }
 
-function groupVersions(changelogs: ChangelogWithMeta[]): VersionGroup[] {
-  const groups = new Map<string, ChangelogWithMeta[]>();
-
-  for (const changelog of changelogs) {
-    const version = semver.parse(changelog.version);
-    if (version) {
-      const baseVersion = `${version.major}.${version.minor}.${version.patch}`;
-      if (!groups.has(baseVersion)) {
-        groups.set(baseVersion, []);
-      }
-      groups.get(baseVersion)!.push(changelog);
-    }
-  }
-
-  return Array.from(groups.entries())
-    .map(([baseVersion, versions]) => ({
-      baseVersion,
-      versions: versions.sort((a, b) => semver.rcompare(a.version, b.version)),
-    }))
-    .sort((a, b) => semver.rcompare(a.baseVersion, b.baseVersion));
-}
-
-function ChangelogSidebar({
-  changelog,
-  allChangelogs,
-  onNavigate,
-}: {
-  changelog: ChangelogWithMeta;
-  allChangelogs: ChangelogWithMeta[];
-  onNavigate?: () => void;
-}) {
-  const navigate = useNavigate({ from: Route.fullPath });
-  const [currentPage, setCurrentPage] = useState(0);
-
-  const versionGroups = groupVersions(allChangelogs);
-  const totalPages = Math.ceil(versionGroups.length / ITEMS_PER_PAGE);
-  const startIndex = currentPage * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedGroups = versionGroups.slice(startIndex, endIndex);
-
-  const goToNextPage = () => {
-    if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const goToPrevPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleVersionClick = (slug: string) => {
-    navigate({
-      to: "/changelog/$slug",
-      params: { slug },
-      resetScroll: false,
-    });
-    onNavigate?.();
-  };
+function DownloadLinksHero({ version }: { version: string }) {
+  const links = getDownloadLinks(version);
+  const grouped = groupDownloadLinks(links);
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 p-4 overflow-y-auto">
-        <div className="space-y-4">
-          {paginatedGroups.map((group) => (
-            <div key={group.baseVersion}>
-              <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 px-2">
-                Version {group.baseVersion}
-              </div>
-              <div className="space-y-2">
-                {group.versions.map((version) => {
-                  const v = semver.parse(version.version);
-                  const isPrerelease = v && v.prerelease.length > 0;
-                  const iconUrl = isPrerelease
-                    ? "/api/images/icons/nightly-icon.png"
-                    : "/api/images/icons/stable-icon.png";
-
-                  return (
-                    <button
-                      key={version.slug}
-                      onClick={() => handleVersionClick(version.slug)}
-                      className={cn([
-                        "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors flex items-center gap-3 cursor-pointer",
-                        version.slug === changelog.slug
-                          ? "border-stone-600 bg-stone-100"
-                          : "border-neutral-200",
-                      ])}
-                    >
-                      <div className="w-10 h-10 shrink-0 flex items-center justify-center">
-                        <img
-                          src={iconUrl}
-                          alt={`Version ${version.version}`}
-                          width={40}
-                          height={40}
-                          className="w-10 h-10"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0 text-left">
-                        <p className="text-sm font-medium text-stone-600 truncate">
-                          v{version.version}
-                        </p>
-                        <p className="text-xs text-neutral-500">
-                          {isPrerelease ? "Nightly" : "Stable"}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+    <div className="flex items-start gap-8">
+      <div className="flex flex-col items-center gap-2">
+        <h3 className="flex items-center gap-1.5 text-xs font-medium text-stone-500 uppercase tracking-wider">
+          <Icon icon="simple-icons:apple" className="text-sm" />
+          macOS
+        </h3>
+        <div className="flex flex-col gap-1.5">
+          {grouped.macos.map((link) => (
+            <a
+              key={link.url}
+              href={link.url}
+              className={cn([
+                "flex items-center justify-center gap-2 px-4 h-8 text-sm rounded-full transition-all",
+                "bg-linear-to-b from-white to-stone-50 text-neutral-700",
+                "border border-neutral-300",
+                "hover:shadow-sm hover:scale-[102%] active:scale-[98%]",
+              ])}
+            >
+              <Download className="size-3.5 shrink-0" />
+              <span>{link.label}</span>
+            </a>
           ))}
         </div>
       </div>
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="border-t border-neutral-200 p-3 bg-stone-50">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={goToPrevPage}
-              disabled={currentPage === 0}
+      <div className="flex flex-col items-center gap-2">
+        <h3 className="flex items-center gap-1.5 text-xs font-medium text-stone-500 uppercase tracking-wider">
+          <Icon icon="simple-icons:linux" className="text-sm" />
+          Linux
+        </h3>
+        <div className="flex flex-col gap-1.5">
+          {grouped.linux.map((link) => (
+            <a
+              key={link.url}
+              href={link.url}
               className={cn([
-                "px-3 py-1.5 text-xs rounded-full border transition-colors",
-                currentPage === 0
-                  ? "border-neutral-200 text-neutral-400 cursor-not-allowed"
-                  : "border-neutral-300 text-stone-600 hover:bg-stone-100 cursor-pointer",
+                "flex items-center justify-center gap-2 px-4 h-8 text-sm rounded-full transition-all",
+                "bg-linear-to-b from-white to-stone-50 text-neutral-700",
+                "border border-neutral-300",
+                "hover:shadow-sm hover:scale-[102%] active:scale-[98%]",
               ])}
             >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+              <Download className="size-3.5 shrink-0" />
+              <span>{link.label}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-            <span className="text-xs text-neutral-500">
-              Page {currentPage + 1} of {totalPages}
-            </span>
+function DownloadLinksHeroMobile({ version }: { version: string }) {
+  const links = getDownloadLinks(version);
+  const grouped = groupDownloadLinks(links);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-            <button
-              onClick={goToNextPage}
-              disabled={currentPage === totalPages - 1}
-              className={cn([
-                "px-3 py-1.5 text-xs rounded-full border transition-colors",
-                currentPage === totalPages - 1
-                  ? "border-neutral-200 text-neutral-400 cursor-not-allowed"
-                  : "border-neutral-300 text-stone-600 hover:bg-stone-100 cursor-pointer",
-              ])}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+  const allLinks = [...grouped.macos, ...grouped.linux];
+
+  return (
+    <div className="w-full max-w-sm">
+      <div className="relative">
+        <div className="overflow-hidden">
+          <div
+            className="flex transition-transform duration-300 ease-in-out"
+            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+          >
+            {allLinks.map((link) => (
+              <div key={link.url} className="w-full shrink-0 px-2">
+                <a
+                  href={link.url}
+                  className={cn([
+                    "flex flex-col items-center gap-2 px-6 py-4 rounded-2xl transition-all",
+                    "bg-linear-to-b from-white to-stone-50 text-neutral-700",
+                    "border border-neutral-300",
+                    "hover:shadow-sm active:scale-[98%]",
+                  ])}
+                >
+                  <Download className="size-5 shrink-0" />
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1">
+                      {link.platform}
+                    </div>
+                    <div className="text-sm font-medium">{link.label}</div>
+                  </div>
+                </a>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+
+        <div className="flex justify-center gap-2 mt-3">
+          {allLinks.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveIndex(index)}
+              className={cn([
+                "h-1.5 rounded-full transition-all",
+                activeIndex === index
+                  ? "w-6 bg-stone-600"
+                  : "w-1.5 bg-stone-300 hover:bg-stone-400",
+              ])}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
-function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
-  const { diffUrl } = Route.useLoaderData();
-  const isMobile = useIsMobile();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const currentVersion = semver.parse(changelog.version);
-  const isPrerelease = currentVersion && currentVersion.prerelease.length > 0;
-  const isLatest = changelog.newerSlug === null;
+function RelatedReleases({
+  currentSlug,
+  allChangelogs,
+}: {
+  currentSlug: string;
+  allChangelogs: ChangelogWithMeta[];
+}) {
+  const currentIndex = allChangelogs.findIndex((c) => c.slug === currentSlug);
+  if (currentIndex === -1) return null;
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTop = 0;
-  }, [changelog.slug]);
+  const total = allChangelogs.length;
+  let startIndex: number;
+  let endIndex: number;
 
-  let prereleaseType = "";
-  let buildNumber = "";
-  if (isPrerelease && currentVersion && currentVersion.prerelease.length > 0) {
-    prereleaseType = currentVersion.prerelease[0]?.toString() || "";
-    buildNumber = currentVersion.prerelease[1]?.toString() || "";
+  if (total <= 5) {
+    startIndex = 0;
+    endIndex = total;
+  } else if (currentIndex <= 2) {
+    startIndex = 0;
+    endIndex = 5;
+  } else if (currentIndex >= total - 2) {
+    startIndex = total - 5;
+    endIndex = total;
+  } else {
+    startIndex = currentIndex - 2;
+    endIndex = currentIndex + 3;
   }
 
-  const baseVersion = currentVersion
-    ? `v${currentVersion.major}.${currentVersion.minor}.${currentVersion.patch}`
-    : `v${changelog.version}`;
+  const relatedChangelogs = allChangelogs.slice(startIndex, endIndex);
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="h-[58px] px-4 flex items-center justify-between border-b border-neutral-200">
-        <div className="flex items-center gap-2">
-          <h2 className="font-medium text-stone-600">{baseVersion}</h2>
-          {isLatest && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-linear-to-t from-amber-200 to-amber-100 text-amber-900 rounded-full">
-              <Icon icon="ri:rocket-fill" className="text-xs" />
-              Latest
-            </span>
-          )}
-          {prereleaseType && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-linear-to-b from-[#03BCF1] to-[#127FE5] text-white rounded-full">
-              <Icon icon="ri:moon-fill" className="text-xs" />
-              {prereleaseType}
-            </span>
-          )}
-          {buildNumber && (
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full">
-              #{buildNumber}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {diffUrl && (
-            <a
-              href={diffUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={
-                isMobile
-                  ? "size-8 flex items-center justify-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
-                  : "px-4 h-8 flex items-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
-              }
-              title="View diff on GitHub"
+    <section>
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-serif text-stone-600 mb-2">
+          Other Releases
+        </h2>
+        <p className="text-neutral-600">Explore more versions of Hyprnote</p>
+      </div>
+
+      <div className="grid gap-4 grid-cols-5">
+        {relatedChangelogs.map((release) => {
+          const version = semver.parse(release.version);
+          const isPrerelease = version && version.prerelease.length > 0;
+          const nightlyNumber =
+            isPrerelease && version?.prerelease[0] === "nightly"
+              ? version.prerelease[1]
+              : null;
+          const isCurrent = release.slug === currentSlug;
+
+          return (
+            <Link
+              key={release.slug}
+              to="/changelog/$slug"
+              params={{ slug: release.slug }}
+              className={cn([
+                "group block",
+                isCurrent && "pointer-events-none",
+              ])}
             >
-              <Icon icon="mdi:github" className="text-lg" />
-              {!isMobile && <span>View Diff</span>}
-            </a>
-          )}
-        </div>
+              <article
+                className={cn([
+                  "flex flex-col items-center gap-2 p-4 rounded-lg transition-all duration-300",
+                  isCurrent ? "bg-stone-100" : "hover:bg-stone-50",
+                ])}
+              >
+                <img
+                  src={
+                    isPrerelease
+                      ? "/api/images/icons/nightly-icon.png"
+                      : "/api/images/icons/stable-icon.png"
+                  }
+                  alt="Hyprnote"
+                  className={cn([
+                    "size-12 rounded-xl transition-all duration-300",
+                    !isCurrent && "group-hover:scale-110",
+                  ])}
+                />
+
+                <div className="flex items-center gap-1.5">
+                  <h3
+                    className={cn([
+                      "text-sm font-mono font-medium text-stone-600 transition-colors",
+                      !isCurrent && "group-hover:text-stone-800",
+                    ])}
+                  >
+                    {version
+                      ? `${version.major}.${version.minor}.${version.patch}`
+                      : release.version}
+                  </h3>
+                  {nightlyNumber !== null && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-stone-200 text-stone-600 rounded-full">
+                      #{nightlyNumber}
+                    </span>
+                  )}
+                </div>
+              </article>
+            </Link>
+          );
+        })}
       </div>
 
-      <div ref={scrollRef} className="flex-1 p-6 overflow-y-auto">
-        <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4 prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3 prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2 prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-6 max-w-none">
-          <MDXContent code={changelog.mdx} components={defaultMDXComponents} />
-        </article>
+      <div className="text-center mt-8">
+        <Link
+          to="/changelog"
+          className="inline-flex items-center gap-2 px-6 h-12 text-base font-medium bg-linear-to-b from-white to-stone-50 text-neutral-700 border border-neutral-300 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+        >
+          View all releases
+          <Icon icon="mdi:arrow-right" className="text-base" />
+        </Link>
       </div>
-    </div>
-  );
-}
-
-function ChangelogStatusBar({ changelog }: { changelog: ChangelogWithMeta }) {
-  const { allChangelogs } = Route.useLoaderData();
-
-  return (
-    <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
-      <span className="text-xs text-neutral-500">
-        Viewing v{changelog.version} • {allChangelogs.length} total versions
-      </span>
-    </div>
+    </section>
   );
 }

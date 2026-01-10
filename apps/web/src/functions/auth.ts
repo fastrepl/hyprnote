@@ -37,6 +37,33 @@ export const doAuth = createServerFn({ method: "POST" })
     return { success: true, url: authData.url };
   });
 
+export const doMagicLinkAuth = createServerFn({ method: "POST" })
+  .inputValidator(
+    shared.extend({
+      email: z.string().email(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+
+    const params = new URLSearchParams({ flow: data.flow });
+    if (data.scheme) params.set("scheme", data.scheme);
+    if (data.redirect) params.set("redirect", data.redirect);
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: data.email,
+      options: {
+        emailRedirectTo: `${env.VITE_APP_URL}/callback/auth?${params.toString()}`,
+      },
+    });
+
+    if (error) {
+      return { error: true, message: error.message };
+    }
+
+    return { success: true };
+  });
+
 export const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getSupabaseServerClient();
   const { data, error: _error } = await supabase.auth.getUser();

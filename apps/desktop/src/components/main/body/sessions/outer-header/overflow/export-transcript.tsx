@@ -3,17 +3,18 @@ import { openPath } from "@tauri-apps/plugin-opener";
 import { FileTextIcon, Loader2Icon } from "lucide-react";
 import { useMemo } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import {
   commands as listener2Commands,
   type VttWord,
 } from "@hypr/plugin-listener2";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
+import { parseTranscriptWords } from "../../../../../../store/transcript/utils";
 
 export function ExportTranscript({ sessionId }: { sessionId: string }) {
   const store = main.UI.useStore(main.STORE_ID);
-  const indexes = main.UI.useIndexes(main.STORE_ID);
 
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -22,33 +23,33 @@ export function ExportTranscript({ sessionId }: { sessionId: string }) {
   );
 
   const words = useMemo(() => {
-    if (!store || !indexes || !transcriptIds || transcriptIds.length === 0) {
+    if (!store || !transcriptIds || transcriptIds.length === 0) {
       return [];
     }
 
     const allWords: VttWord[] = [];
 
     for (const transcriptId of transcriptIds) {
-      const wordIds = indexes.getSliceRowIds(
-        main.INDEXES.wordsByTranscript,
-        transcriptId,
-      );
-
-      for (const wordId of wordIds ?? []) {
-        const row = store.getRow("words", wordId);
-        if (row) {
-          allWords.push({
-            text: row.text as string,
-            start_ms: row.start_ms as number,
-            end_ms: row.end_ms as number,
-            speaker: null,
-          });
+      const words = parseTranscriptWords(store, transcriptId);
+      for (const word of words) {
+        if (
+          word.text === undefined ||
+          word.start_ms === undefined ||
+          word.end_ms === undefined
+        ) {
+          continue;
         }
+        allWords.push({
+          text: word.text,
+          start_ms: word.start_ms,
+          end_ms: word.end_ms,
+          speaker: null,
+        });
       }
     }
 
     return allWords.sort((a, b) => a.start_ms - b.start_ms);
-  }, [store, indexes, transcriptIds]);
+  }, [store, transcriptIds]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
@@ -59,6 +60,11 @@ export function ExportTranscript({ sessionId }: { sessionId: string }) {
       return result.data;
     },
     onSuccess: (path) => {
+      void analyticsCommands.event({
+        event: "session_exported",
+        format: "vtt",
+        word_count: words.length,
+      });
       openPath(path);
     },
   });

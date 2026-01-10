@@ -42,6 +42,9 @@
           "path": "$DATA/hyprnote/**/*"
         },
         {
+          "path": "$APPDATA/**/*"
+        },
+        {
           "path": "$DOWNLOAD/**/*"
         }
       ]
@@ -50,7 +53,33 @@
       "identifier": "fs:allow-mkdir",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-dir",
+      "allow": [
+        {
+          "path": "$DATA/hyprnote"
+        },
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**/*"
         }
       ]
     },
@@ -61,7 +90,16 @@
           "path": "/Applications/*"
         },
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**/*"
         }
       ]
     },
@@ -69,7 +107,16 @@
       "identifier": "fs:allow-read-file",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**/*"
         }
       ]
     },
@@ -77,7 +124,16 @@
       "identifier": "fs:allow-read-text-file",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**/*"
         }
       ]
     },
@@ -85,7 +141,16 @@
       "identifier": "fs:allow-write-text-file",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**/*"
         },
         {
           "path": "$DOWNLOAD/**/*"
@@ -96,7 +161,16 @@
       "identifier": "fs:allow-write-file",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**/*"
         },
         {
           "path": "$DOWNLOAD/**/*"
@@ -107,11 +181,39 @@
       "identifier": "fs:allow-remove",
       "allow": [
         {
+          "path": "$DATA/hyprnote"
+        },
+        {
           "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-rename",
+      "allow": [
+        {
+          "path": "$DATA/hyprnote"
+        },
+        {
+          "path": "$DATA/hyprnote/**/*"
+        },
+        {
+          "path": "$APPDATA"
+        },
+        {
+          "path": "$APPDATA/**/*"
         }
       ]
     },
     "apple-calendar:default",
+    "apple-contact:default",
+    "audio-priority:default",
     "auth:default",
     "extensions:default",
     "db2:default",
@@ -135,6 +237,9 @@
     "listener2:default",
     "template:default",
     "notification:default",
+    "overlay:default",
+    "notify:default",
+    "tantivy:default",
     "shell:allow-open",
     {
       "identifier": "shell:allow-execute",
@@ -152,15 +257,16 @@
       ]
     },
     "misc:default",
+    "fs-sync:default",
     "os:default",
     "detect:default",
-    "export:default",
     "permissions:default",
     "settings:default",
     "sfx:default",
     "path2:default",
     "pdf:default",
     "autostart:default",
+    "js:default",
     {
       "identifier": "http:default",
       "deny": [],

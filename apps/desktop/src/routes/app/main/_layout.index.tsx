@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
+import type { ComponentRef } from "react";
 
 import {
   ResizableHandle,
@@ -10,15 +12,34 @@ import { ChatView } from "../../../components/chat/view";
 import { Body } from "../../../components/main/body";
 import { LeftSidebar } from "../../../components/main/sidebar";
 import { useShell } from "../../../contexts/shell";
+import { commands } from "../../../types/tauri.gen";
 
 export const Route = createFileRoute("/app/main/_layout/")({
   component: Component,
 });
 
+const CHAT_MIN_WIDTH_PX = 280;
+
 function Component() {
   const { leftsidebar, chat } = useShell();
+  const previousModeRef = useRef(chat.mode);
+  const bodyPanelRef = useRef<ComponentRef<typeof ResizablePanel>>(null);
 
   const isChatOpen = chat.mode === "RightPanelOpen";
+
+  useEffect(() => {
+    const isOpeningRightPanel =
+      chat.mode === "RightPanelOpen" &&
+      previousModeRef.current !== "RightPanelOpen";
+
+    if (isOpeningRightPanel && bodyPanelRef.current) {
+      const currentSize = bodyPanelRef.current.getSize();
+      bodyPanelRef.current.resize(currentSize);
+      commands.resizeWindowForChat();
+    }
+
+    previousModeRef.current = chat.mode;
+  }, [chat.mode]);
 
   return (
     <div
@@ -32,7 +53,7 @@ function Component() {
         className="flex-1 overflow-hidden flex"
         autoSaveId="main-chat"
       >
-        <ResizablePanel className="flex-1 overflow-hidden">
+        <ResizablePanel ref={bodyPanelRef} className="flex-1 overflow-hidden">
           <Body />
         </ResizablePanel>
         {isChatOpen && (
@@ -43,6 +64,7 @@ function Component() {
               minSize={20}
               maxSize={50}
               className="pl-1"
+              style={{ minWidth: CHAT_MIN_WIDTH_PX }}
             >
               <ChatView />
             </ResizablePanel>

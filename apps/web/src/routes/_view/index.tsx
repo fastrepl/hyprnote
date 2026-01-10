@@ -619,7 +619,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         />
       </div>
 
-      <div className="h-[260px]">
+      <div className="h-65">
         <SocialCard
           platform="twitter"
           author="yoran was here"
@@ -630,7 +630,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         />
       </div>
 
-      <div className="h-[260px]">
+      <div className="h-65">
         <SocialCard
           platform="twitter"
           author="Tom Yang"
@@ -823,7 +823,7 @@ export function HowItWorksSection() {
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
             <MockWindow showAudioIndicator={enhancedLines === 0}>
-              <div className="p-6 h-[300px] overflow-hidden">
+              <div className="p-6 h-75 overflow-hidden">
                 <div className="text-neutral-700">ui update - moble</div>
                 <div className="text-neutral-700">api</div>
                 <div className="text-neutral-700 mt-4">new dash - urgnet</div>
@@ -855,7 +855,7 @@ export function HowItWorksSection() {
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
             <MockWindow>
-              <div className="p-6 space-y-4 h-[300px] overflow-hidden">
+              <div className="p-6 space-y-4 h-75 overflow-hidden">
                 <div className="space-y-2">
                   <h4
                     className={cn([
@@ -948,7 +948,7 @@ export function HowItWorksSection() {
               variant="mobile"
               showAudioIndicator={enhancedLines === 0}
             >
-              <div className="p-6 h-[200px] overflow-hidden">
+              <div className="p-6 h-50 overflow-hidden">
                 <div className="text-neutral-700">ui update - moble</div>
                 <div className="text-neutral-700">api</div>
                 <div className="text-neutral-700 mt-3">new dash - urgnet</div>
@@ -980,7 +980,7 @@ export function HowItWorksSection() {
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
             <MockWindow variant="mobile">
-              <div className="p-6 space-y-4 h-[200px] overflow-hidden">
+              <div className="p-6 space-y-4 h-50 overflow-hidden">
                 <div className="space-y-2">
                   <h4 className="text-lg font-semibold text-stone-700">
                     Mobile UI Update and API Adjustments
@@ -1614,7 +1614,7 @@ function DetailsTabletView({
                   selectedDetail === index && onPauseChange(false)
                 }
                 className={cn([
-                  "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors relative overflow-hidden",
+                  "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-70 text-left transition-colors relative overflow-hidden",
                   selectedDetail !== index && "hover:bg-neutral-50",
                 ])}
               >
@@ -1915,8 +1915,8 @@ function BlogSection() {
   const sortedArticles = allArticles
     .filter((a) => import.meta.env.DEV || a.published !== false)
     .sort((a, b) => {
-      const aDate = a.updated || a.created;
-      const bDate = b.updated || b.created;
+      const aDate = a.date;
+      const bDate = b.date;
       return new Date(bDate).getTime() - new Date(aDate).getTime();
     })
     .slice(0, 3);
@@ -1940,7 +1940,7 @@ function BlogSection() {
         {sortedArticles.map((article) => {
           const ogImage =
             article.coverImage ||
-            `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.created ? `&date=${encodeURIComponent(new Date(article.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
+            `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
 
           return (
             <Link
@@ -1969,10 +1969,10 @@ function BlogSection() {
 
                   <div className="flex items-center justify-between gap-4 pt-4 border-t border-neutral-100">
                     <time
-                      dateTime={article.updated}
+                      dateTime={article.date}
                       className="text-xs text-neutral-500"
                     >
-                      {new Date(article.updated).toLocaleDateString("en-US", {
+                      {new Date(article.date).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",

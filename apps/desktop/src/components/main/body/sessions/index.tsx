@@ -1,15 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import { cn } from "@hypr/utils";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
-import * as main from "../../../../store/tinybase/main";
-import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
+import { useShell } from "../../../../contexts/shell";
+import { useAutoEnhance } from "../../../../hooks/useAutoEnhance";
+import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
+import { useStartListening } from "../../../../hooks/useStartListening";
+import { useSTTConnection } from "../../../../hooks/useSTTConnection";
+import { useTitleGeneration } from "../../../../hooks/useTitleGeneration";
+import * as main from "../../../../store/tinybase/store/main";
+import {
+  rowIdfromTab,
+  type Tab,
+  useTabs,
+} from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
+import { CaretPositionProvider } from "./caret-position-context";
 import { FloatingActionButton } from "./floating";
 import { NoteInput } from "./note-input";
 import { SearchBar } from "./note-input/transcript/search-bar";
@@ -18,7 +33,11 @@ import {
   useTranscriptSearch,
 } from "./note-input/transcript/search-context";
 import { OuterHeader } from "./outer-header";
+import { useCurrentNoteTab } from "./shared";
 import { TitleInput } from "./title-input";
+
+const SIDEBAR_WIDTH = 280;
+const LAYOUT_PADDING = 4;
 
 export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   tab,
@@ -27,6 +46,8 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   const title = main.UI.useCell(
     "sessions",
@@ -35,7 +56,10 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
     main.STORE_ID,
   );
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
+  const isEnhancing = useIsSessionEnhancing(tab.id);
   const isActive = sessionMode === "active" || sessionMode === "finalizing";
+  const isFinalizing = sessionMode === "finalizing";
+  const showSpinner = !tab.active && (isFinalizing || isEnhancing);
 
   return (
     <TabItemBase
@@ -43,11 +67,15 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
       title={title || "Untitled"}
       selected={tab.active}
       active={isActive}
+      finalizing={showSpinner}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };
@@ -58,10 +86,38 @@ export function TabContentNote({
   tab: Extract<Tab, { type: "sessions" }>;
 }) {
   const listenerStatus = useListener((state) => state.live.status);
+  const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
+  const { conn } = useSTTConnection();
+  const startListening = useStartListening(tab.id);
+  const hasAttemptedAutoStart = useRef(false);
+
+  useEffect(() => {
+    if (!tab.state.autoStart) {
+      hasAttemptedAutoStart.current = false;
+      return;
+    }
+
+    if (hasAttemptedAutoStart.current) {
+      return;
+    }
+
+    if (listenerStatus !== "inactive") {
+      return;
+    }
+
+    if (!conn) {
+      return;
+    }
+
+    hasAttemptedAutoStart.current = true;
+    startListening();
+    updateSessionTabState(tab, { ...tab.state, autoStart: null });
+  }, [tab, listenerStatus, conn, startListening, updateSessionTabState]);
+
   const { data: audioUrl } = useQuery({
     enabled: listenerStatus === "inactive",
     queryKey: ["audio", tab.id, "url"],
-    queryFn: () => miscCommands.audioPath(tab.id),
+    queryFn: () => fsSyncCommands.audioPath(tab.id),
     select: (result) => {
       if (result.status === "error") {
         return null;
@@ -71,16 +127,18 @@ export function TabContentNote({
   });
 
   const showTimeline =
-    tab.state.editor?.type === "transcript" &&
+    tab.state.view?.type === "transcript" &&
     Boolean(audioUrl) &&
     listenerStatus === "inactive";
 
   return (
-    <SearchProvider>
-      <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
-        <TabContentNoteInner tab={tab} showTimeline={showTimeline} />
-      </AudioPlayer.Provider>
-    </SearchProvider>
+    <CaretPositionProvider>
+      <SearchProvider>
+        <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
+          <TabContentNoteInner tab={tab} showTimeline={showTimeline} />
+        </AudioPlayer.Provider>
+      </SearchProvider>
+    </CaretPositionProvider>
   );
 }
 
@@ -93,23 +151,148 @@ function TabContentNoteInner({
 }) {
   const search = useTranscriptSearch();
   const showSearchBar = search?.isVisible ?? false;
+  const titleInputRef = React.useRef<HTMLInputElement>(null);
+  const noteInputRef = React.useRef<{
+    editor: import("@hypr/tiptap/editor").TiptapEditor | null;
+  }>(null);
+
+  const currentView = useCurrentNoteTab(tab);
+  const { generateTitle } = useTitleGeneration(tab);
+
+  const sessionId = tab.id;
+  const { skipReason } = useAutoEnhance(tab);
+  const [showConsentBanner, setShowConsentBanner] = useState(false);
+
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const prevSessionMode = useRef<string | null>(null);
+
+  useEffect(() => {
+    const justStartedListening =
+      prevSessionMode.current !== "active" && sessionMode === "active";
+
+    prevSessionMode.current = sessionMode;
+
+    if (justStartedListening) {
+      setShowConsentBanner(true);
+      const timer = setTimeout(() => {
+        setShowConsentBanner(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [sessionMode]);
+
+  const focusTitle = React.useCallback(() => {
+    titleInputRef.current?.focus();
+  }, []);
+
+  const focusEditor = React.useCallback(() => {
+    noteInputRef.current?.editor?.commands.focus();
+  }, []);
 
   return (
-    <StandardTabWrapper
-      afterBorder={showTimeline && <AudioPlayer.Timeline />}
-      floatingButton={<FloatingActionButton tab={tab} />}
-    >
-      <div className="flex flex-col h-full">
-        <div className="pl-2 pr-1">
-          {showSearchBar ? <SearchBar /> : <OuterHeader sessionId={tab.id} />}
+    <>
+      <StandardTabWrapper
+        afterBorder={showTimeline && <AudioPlayer.Timeline />}
+        floatingButton={<FloatingActionButton tab={tab} />}
+      >
+        <div className="flex flex-col h-full">
+          <div className="pl-2 pr-1">
+            {showSearchBar ? (
+              <SearchBar />
+            ) : (
+              <OuterHeader sessionId={tab.id} currentView={currentView} />
+            )}
+          </div>
+          <div className="mt-2 px-3 shrink-0">
+            <TitleInput
+              ref={titleInputRef}
+              tab={tab}
+              onNavigateToEditor={focusEditor}
+              onGenerateTitle={generateTitle}
+            />
+          </div>
+          <div className="mt-2 px-2 flex-1 min-h-0">
+            <NoteInput
+              ref={noteInputRef}
+              tab={tab}
+              onNavigateToTitle={focusTitle}
+            />
+          </div>
         </div>
-        <div className="mt-2 px-3 shrink-0">
-          <TitleInput tab={tab} />
-        </div>
-        <div className="mt-2 px-2 flex-1 min-h-0">
-          <NoteInput tab={tab} />
-        </div>
-      </div>
-    </StandardTabWrapper>
+      </StandardTabWrapper>
+      <StatusBanner
+        skipReason={skipReason}
+        showConsentBanner={showConsentBanner}
+      />
+    </>
+  );
+}
+
+function StatusBanner({
+  skipReason,
+  showConsentBanner,
+}: {
+  skipReason: string | null;
+  showConsentBanner: boolean;
+}) {
+  const { leftsidebar, chat } = useShell();
+  const [chatPanelWidth, setChatPanelWidth] = useState(0);
+
+  const isChatPanelOpen = chat.mode === "RightPanelOpen";
+
+  useEffect(() => {
+    if (!isChatPanelOpen) {
+      setChatPanelWidth(0);
+      return;
+    }
+
+    const updateChatWidth = () => {
+      const chatPanel = document.querySelector("[data-panel-id]");
+      if (chatPanel) {
+        const panels = document.querySelectorAll("[data-panel-id]");
+        const lastPanel = panels[panels.length - 1];
+        if (lastPanel) {
+          setChatPanelWidth(lastPanel.getBoundingClientRect().width);
+        }
+      }
+    };
+
+    updateChatWidth();
+    window.addEventListener("resize", updateChatWidth);
+
+    const observer = new MutationObserver(updateChatWidth);
+    observer.observe(document.body, { subtree: true, attributes: true });
+
+    return () => {
+      window.removeEventListener("resize", updateChatWidth);
+      observer.disconnect();
+    };
+  }, [isChatPanelOpen]);
+
+  const leftOffset = leftsidebar.expanded
+    ? (SIDEBAR_WIDTH + LAYOUT_PADDING) / 2
+    : 0;
+  const rightOffset = chatPanelWidth / 2;
+  const totalOffset = leftOffset - rightOffset;
+
+  return createPortal(
+    <AnimatePresence>
+      {(skipReason || showConsentBanner) && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          style={{ left: `calc(50% + ${totalOffset}px)` }}
+          className={cn([
+            "fixed -translate-x-1/2 bottom-6 z-50",
+            "whitespace-nowrap text-center text-xs text-stone-300",
+          ])}
+        >
+          {skipReason || "Ask for consent when using Hyprnote"}
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
   );
 }

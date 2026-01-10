@@ -1,19 +1,16 @@
 import type { TablesSchema, ValuesSchema } from "tinybase/with-schemas";
 
-import { externalTableSchemaForTinybase } from "./schema-external";
-import { internalSchemaForTinybase } from "./schema-internal";
+import { tableSchemaForTinybase, valueSchemaForTinybase } from "./schema";
 
-export * from "./schema-external";
-export * from "./schema-internal";
+export * from "./schema";
 export * from "./shared";
 
 export const SCHEMA = {
   value: {
-    ...internalSchemaForTinybase.value,
+    ...valueSchemaForTinybase,
   } satisfies ValuesSchema,
   table: {
-    ...externalTableSchemaForTinybase,
-    ...internalSchemaForTinybase.table,
+    ...tableSchemaForTinybase,
   } satisfies TablesSchema,
 } as const;
 

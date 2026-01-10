@@ -1,10 +1,12 @@
-import type { Store as MainStore } from "../../../../store/tinybase/main";
+import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 import type { SeedDefinition } from "../shared";
 
 export const emptySeed: SeedDefinition = {
   id: "empty",
   label: "Empty",
-  run: (store: MainStore) => {
+  calendarFixtureBase: "default",
+  run: async (store: MainStore, _fixtureCalendars) => {
+    await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {
       store.delTables();
     });

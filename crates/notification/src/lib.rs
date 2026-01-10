@@ -5,9 +5,11 @@ use std::time::{Duration, Instant};
 pub use hypr_notification_interface::*;
 
 static RECENT_NOTIFICATIONS: OnceLock<Mutex<HashMap<String, Instant>>> = OnceLock::new();
-static NOTIFICATION_CONTEXT: OnceLock<Mutex<HashMap<String, Option<String>>>> = OnceLock::new();
+static NOTIFICATION_CONTEXT: OnceLock<Mutex<HashMap<String, (Option<String>, Instant)>>> =
+    OnceLock::new();
 
 const DEDUPE_WINDOW: Duration = Duration::from_secs(60 * 5);
+const CONTEXT_TTL: Duration = Duration::from_secs(60 * 10);
 
 pub enum NotificationMutation {
     Confirm,
@@ -16,12 +18,22 @@ pub enum NotificationMutation {
 
 fn store_context(key: &str, event_id: Option<String>) {
     let ctx_map = NOTIFICATION_CONTEXT.get_or_init(|| Mutex::new(HashMap::new()));
-    ctx_map.lock().unwrap().insert(key.to_string(), event_id);
+    let mut map = ctx_map.lock().unwrap();
+
+    let now = Instant::now();
+    map.retain(|_, (_, timestamp)| now.duration_since(*timestamp) < CONTEXT_TTL);
+
+    map.insert(key.to_string(), (event_id, now));
 }
 
 fn get_context(key: &str) -> NotificationContext {
     let ctx_map = NOTIFICATION_CONTEXT.get_or_init(|| Mutex::new(HashMap::new()));
-    let event_id = ctx_map.lock().unwrap().remove(key).flatten();
+    let event_id = ctx_map
+        .lock()
+        .unwrap()
+        .remove(key)
+        .map(|(event_id, _)| event_id)
+        .flatten();
     NotificationContext {
         key: key.to_string(),
         event_id,
@@ -81,7 +93,7 @@ pub fn clear() {
     hypr_notification_linux::dismiss_all();
 }
 
-pub fn setup_notification_dismiss_handler<F>(f: F)
+pub fn setup_dismiss_handler<F>(f: F)
 where
     F: Fn(NotificationContext) + Send + Sync + 'static,
 {
@@ -98,7 +110,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
-        hypr_notification_macos::setup_notification_dismiss_handler(move |key| {
+        hypr_notification_macos::setup_dismiss_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -114,7 +126,7 @@ where
     let _ = f;
 }
 
-pub fn setup_notification_confirm_handler<F>(f: F)
+pub fn setup_collapsed_confirm_handler<F>(f: F)
 where
     F: Fn(NotificationContext) + Send + Sync + 'static,
 {
@@ -131,7 +143,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
-        hypr_notification_macos::setup_notification_confirm_handler(move |key| {
+        hypr_notification_macos::setup_collapsed_confirm_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -147,7 +159,7 @@ where
     let _ = f;
 }
 
-pub fn setup_notification_accept_handler<F>(f: F)
+pub fn setup_expanded_accept_handler<F>(f: F)
 where
     F: Fn(NotificationContext) + Send + Sync + 'static,
 {
@@ -164,7 +176,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
-        hypr_notification_macos::setup_notification_accept_handler(move |key| {
+        hypr_notification_macos::setup_expanded_accept_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -180,7 +192,7 @@ where
     let _ = f;
 }
 
-pub fn setup_notification_timeout_handler<F>(f: F)
+pub fn setup_collapsed_timeout_handler<F>(f: F)
 where
     F: Fn(NotificationContext) + Send + Sync + 'static,
 {
@@ -197,7 +209,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
-        hypr_notification_macos::setup_notification_timeout_handler(move |key| {
+        hypr_notification_macos::setup_collapsed_timeout_handler(move |key| {
             f(get_context(&key));
         });
     }

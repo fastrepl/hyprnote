@@ -2,25 +2,17 @@ import { type ReactNode, useCallback, useMemo } from "react";
 
 import type {
   EnhancedNoteStorage,
-  FolderStorage,
   HumanStorage,
-  MemoryStorage,
   OrganizationStorage,
   SessionStorage,
   TemplateStorage,
 } from "@hypr/store";
 
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 
 export function useSession(sessionId: string) {
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
   const rawMd = main.UI.useCell("sessions", sessionId, "raw_md", main.STORE_ID);
-  const enhancedMd = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "enhanced_md",
-    main.STORE_ID,
-  );
   const createdAt = main.UI.useCell(
     "sessions",
     sessionId,
@@ -41,8 +33,8 @@ export function useSession(sessionId: string) {
   );
 
   return useMemo(
-    () => ({ title, rawMd, enhancedMd, createdAt, eventId, folderId }),
-    [title, rawMd, enhancedMd, createdAt, eventId, folderId],
+    () => ({ title, rawMd, createdAt, eventId, folderId }),
+    [title, rawMd, createdAt, eventId, folderId],
   );
 }
 
@@ -86,11 +78,10 @@ export function useHuman(humanId: string) {
     "linkedin_username",
     main.STORE_ID,
   );
-  const isUser = main.UI.useCell("humans", humanId, "is_user", main.STORE_ID);
 
   return useMemo(
-    () => ({ name, email, orgId, jobTitle, linkedinUsername, isUser }),
-    [name, email, orgId, jobTitle, linkedinUsername, isUser],
+    () => ({ name, email, orgId, jobTitle, linkedinUsername }),
+    [name, email, orgId, jobTitle, linkedinUsername],
   );
 }
 
@@ -106,24 +97,73 @@ export function useOrganization(orgId: string) {
   return useMemo(() => ({ name, createdAt }), [name, createdAt]);
 }
 
-export function useFolder(folderId: string) {
-  const name = main.UI.useCell("folders", folderId, "name", main.STORE_ID);
-  const parentFolderId = main.UI.useCell(
-    "folders",
-    folderId,
-    "parent_folder_id",
+export function useEvent(eventId: string | undefined) {
+  const title = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "title",
     main.STORE_ID,
   );
-  const createdAt = main.UI.useCell(
-    "folders",
-    folderId,
-    "created_at",
+  const startedAt = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "started_at",
+    main.STORE_ID,
+  );
+  const endedAt = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "ended_at",
+    main.STORE_ID,
+  );
+  const location = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "location",
+    main.STORE_ID,
+  );
+  const meetingLink = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "meeting_link",
+    main.STORE_ID,
+  );
+  const description = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "description",
+    main.STORE_ID,
+  );
+  const calendarId = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "calendar_id",
     main.STORE_ID,
   );
 
   return useMemo(
-    () => ({ name, parentFolderId, createdAt }),
-    [name, parentFolderId, createdAt],
+    () =>
+      eventId
+        ? {
+            title,
+            startedAt,
+            endedAt,
+            location,
+            meetingLink,
+            description,
+            calendarId,
+          }
+        : null,
+    [
+      eventId,
+      title,
+      startedAt,
+      endedAt,
+      location,
+      meetingLink,
+      description,
+      calendarId,
+    ],
   );
 }
 
@@ -165,9 +205,7 @@ interface TinyBaseTestWrapperProps {
     sessions?: Record<string, Partial<SessionStorage>>;
     humans?: Record<string, Partial<HumanStorage>>;
     organizations?: Record<string, Partial<OrganizationStorage>>;
-    folders?: Record<string, Partial<FolderStorage>>;
     templates?: Record<string, Partial<TemplateStorage>>;
-    memories?: Record<string, Partial<MemoryStorage>>;
     enhanced_notes?: Record<string, Partial<EnhancedNoteStorage>>;
   };
   initialValues?: {
@@ -220,19 +258,9 @@ export function TinyBaseTestWrapper({
         s.setRow("organizations", id, data as Record<string, unknown>);
       });
     }
-    if (initialData?.folders) {
-      Object.entries(initialData.folders).forEach(([id, data]) => {
-        s.setRow("folders", id, data as Record<string, unknown>);
-      });
-    }
     if (initialData?.templates) {
       Object.entries(initialData.templates).forEach(([id, data]) => {
         s.setRow("templates", id, data as Record<string, unknown>);
-      });
-    }
-    if (initialData?.memories) {
-      Object.entries(initialData.memories).forEach(([id, data]) => {
-        s.setRow("memories", id, data as Record<string, unknown>);
       });
     }
     if (initialData?.enhanced_notes) {
@@ -258,22 +286,10 @@ export function TinyBaseTestWrapper({
         "created_at",
       )
       .setIndexDefinition(
-        main.INDEXES.foldersByParent,
-        "folders",
-        "parent_folder_id",
-        "name",
-      )
-      .setIndexDefinition(
         main.INDEXES.transcriptBySession,
         "transcripts",
         "session_id",
         "created_at",
-      )
-      .setIndexDefinition(
-        main.INDEXES.wordsByTranscript,
-        "words",
-        "transcript_id",
-        "start_ms",
       )
       .setIndexDefinition(
         main.INDEXES.enhancedNotesBySession,
@@ -285,12 +301,6 @@ export function TinyBaseTestWrapper({
 
   const relationships = useCreateRelationships(store, (store) =>
     createRelationships(store)
-      .setRelationshipDefinition(
-        main.RELATIONSHIPS.sessionToFolder,
-        "sessions",
-        "folders",
-        "folder_id",
-      )
       .setRelationshipDefinition(
         main.RELATIONSHIPS.sessionToEvent,
         "sessions",
@@ -316,7 +326,6 @@ export function TinyBaseTestWrapper({
           select("org_id");
           select("job_title");
           select("linkedin_username");
-          select("is_user");
           select("created_at");
         },
       )
@@ -336,24 +345,6 @@ export function TinyBaseTestWrapper({
           select("description");
           select("sections");
           select("created_at");
-        },
-      )
-      .setQueryDefinition(
-        main.QUERIES.visibleFolders,
-        "folders",
-        ({ select }) => {
-          select("name");
-          select("parent_folder_id");
-          select("created_at");
-        },
-      )
-      .setQueryDefinition(
-        main.QUERIES.visibleVocabs,
-        "memories",
-        ({ select, where }) => {
-          select("text");
-          select("created_at");
-          where((getCell) => getCell("type") === "vocab");
         },
       ),
   );

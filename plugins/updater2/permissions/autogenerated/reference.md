@@ -7,6 +7,7 @@ Default permissions for the plugin
 - `allow-check`
 - `allow-download`
 - `allow-install`
+- `allow-maybe-emit-updated`
 
 ## Permission Table
 
@@ -91,6 +92,32 @@ Enables the install command without any pre-configured scope.
 <td>
 
 Denies the install command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`updater2:allow-maybe-emit-updated`
+
+</td>
+<td>
+
+Enables the maybe_emit_updated command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`updater2:deny-maybe-emit-updated`
+
+</td>
+<td>
+
+Denies the maybe_emit_updated command without any pre-configured scope.
 
 </td>
 </tr>

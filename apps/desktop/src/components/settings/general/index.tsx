@@ -2,19 +2,38 @@ import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
-import * as settings from "../../../store/tinybase/settings";
+import * as settings from "../../../store/tinybase/store/settings";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
-import { LabSettings } from "./lab";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 
-export function SettingsGeneral() {
+type SettingsSection =
+  | "app"
+  | "language"
+  | "notifications"
+  | "permissions"
+  | "data"
+  | "lab";
+
+export function SettingsGeneral({
+  appRef,
+  languageRef,
+  notificationsRef,
+  permissionsRef,
+}: {
+  appRef?: React.Ref<HTMLDivElement>;
+  languageRef?: React.Ref<HTMLDivElement>;
+  notificationsRef?: React.Ref<HTMLDivElement>;
+  permissionsRef?: React.Ref<HTMLDivElement>;
+  activeSection?: SettingsSection;
+} = {}) {
   const value = useConfigValues([
     "autostart",
     "notification_detect",
@@ -34,8 +53,8 @@ export function SettingsGeneral() {
         ignored_platforms: row.ignored_platforms
           ? JSON.stringify(row.ignored_platforms)
           : undefined,
-        dismissed_banners: row.dismissed_banners
-          ? JSON.stringify(row.dismissed_banners)
+        ignored_recurring_series: row.ignored_recurring_series
+          ? JSON.stringify(row.ignored_recurring_series)
           : undefined,
       }) satisfies Partial<GeneralStorage>,
     [],
@@ -70,68 +89,77 @@ export function SettingsGeneral() {
       } else {
         void disable();
       }
+
+      void analyticsCommands.event({
+        event: "settings_changed",
+        autostart: value.autostart,
+        notification_detect: value.notification_detect,
+        save_recordings: value.save_recordings,
+        telemetry_consent: value.telemetry_consent,
+      });
     },
   });
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h2 className="font-semibold mb-4">Account & Billing</h2>
+      <div className="pt-3">
         <AccountSettings />
       </div>
 
-      <form.Field name="autostart">
-        {(autostartField) => (
-          <form.Field name="notification_detect">
-            {(notificationDetectField) => (
-              <form.Field name="save_recordings">
-                {(saveRecordingsField) => (
-                  <form.Field name="telemetry_consent">
-                    {(telemetryConsentField) => (
-                      <AppSettingsView
-                        autostart={{
-                          title: "Start Hyprnote automatically at login",
-                          description:
-                            "Hyprnote will always be ready for action without you having to turn it on",
-                          value: autostartField.state.value,
-                          onChange: (val) => autostartField.handleChange(val),
-                        }}
-                        notificationDetect={{
-                          title:
-                            "Start/Stop listening to meetings automatically",
-                          description:
-                            "You don't have to press button every time — we'll start/stop listening for you",
-                          value: notificationDetectField.state.value,
-                          onChange: (val) =>
-                            notificationDetectField.handleChange(val),
-                        }}
-                        saveRecordings={{
-                          title: "Save recordings",
-                          description:
-                            "Audio files of meetings will be saved locally and won't be leaving your device",
-                          value: saveRecordingsField.state.value,
-                          onChange: (val) =>
-                            saveRecordingsField.handleChange(val),
-                        }}
-                        telemetryConsent={{
-                          title: "Share usage data",
-                          description:
-                            "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
-                          value: telemetryConsentField.state.value,
-                          onChange: (val) =>
-                            telemetryConsentField.handleChange(val),
-                        }}
-                      />
-                    )}
-                  </form.Field>
-                )}
-              </form.Field>
-            )}
-          </form.Field>
-        )}
-      </form.Field>
+      <div ref={appRef}>
+        <form.Field name="autostart">
+          {(autostartField) => (
+            <form.Field name="notification_detect">
+              {(notificationDetectField) => (
+                <form.Field name="save_recordings">
+                  {(saveRecordingsField) => (
+                    <form.Field name="telemetry_consent">
+                      {(telemetryConsentField) => (
+                        <AppSettingsView
+                          autostart={{
+                            title: "Start Hyprnote automatically at login",
+                            description:
+                              "Hyprnote will always be ready for action without you having to turn it on",
+                            value: autostartField.state.value,
+                            onChange: (val) => autostartField.handleChange(val),
+                          }}
+                          notificationDetect={{
+                            title:
+                              "Start/Stop listening to meetings automatically",
+                            description:
+                              "You don't have to press button every time — we'll start/stop listening for you",
+                            value: notificationDetectField.state.value,
+                            onChange: (val) =>
+                              notificationDetectField.handleChange(val),
+                          }}
+                          saveRecordings={{
+                            title: "Save recordings",
+                            description:
+                              "Audio files of meetings will be saved locally and won't be leaving your device",
+                            value: saveRecordingsField.state.value,
+                            onChange: (val) =>
+                              saveRecordingsField.handleChange(val),
+                          }}
+                          telemetryConsent={{
+                            title: "Share usage data",
+                            description:
+                              "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
+                            value: telemetryConsentField.state.value,
+                            onChange: (val) =>
+                              telemetryConsentField.handleChange(val),
+                          }}
+                        />
+                      )}
+                    </form.Field>
+                  )}
+                </form.Field>
+              )}
+            </form.Field>
+          )}
+        </form.Field>
+      </div>
 
-      <div>
+      <div ref={languageRef}>
         <h2 className="font-semibold mb-4">Language & Vocabulary</h2>
         <div className="space-y-6">
           <form.Field name="ai_language">
@@ -155,14 +183,14 @@ export function SettingsGeneral() {
         </div>
       </div>
 
-      <div>
+      <div ref={notificationsRef}>
         <h2 className="font-semibold mb-4">Notifications</h2>
         <NotificationSettingsView />
       </div>
 
-      <Permissions />
-
-      <LabSettings />
+      <div ref={permissionsRef}>
+        <Permissions />
+      </div>
     </div>
   );
 }

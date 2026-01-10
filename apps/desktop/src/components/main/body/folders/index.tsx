@@ -1,19 +1,63 @@
-import {
-  FolderIcon,
-  FoldersIcon,
-  PlusIcon,
-  StickyNoteIcon,
-} from "lucide-react";
+import { FolderIcon, FoldersIcon, StickyNoteIcon } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
-import { useFolder, useSession } from "../../../../hooks/tinybase";
-import * as main from "../../../../store/tinybase/main";
+import { useSession } from "../../../../hooks/tinybase";
+import { sessionOps } from "../../../../store/tinybase/persister/session/ops";
+import * as main from "../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 import { FolderBreadcrumb, useFolderChain } from "../shared/folder-breadcrumb";
 import { Section } from "./shared";
+
+function useFolderTree() {
+  const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
+
+  return useMemo(() => {
+    if (!store || !sessionIds)
+      return {
+        topLevel: [] as string[],
+        byParent: {} as Record<string, string[]>,
+      };
+
+    const allFolders = new Set<string>();
+    for (const id of sessionIds) {
+      const folderId = store.getCell("sessions", id, "folder_id") as string;
+      if (folderId) {
+        const parts = folderId.split("/");
+        for (let i = 1; i <= parts.length; i++) {
+          allFolders.add(parts.slice(0, i).join("/"));
+        }
+      }
+    }
+
+    const topLevel: string[] = [];
+    const byParent: Record<string, string[]> = {};
+
+    for (const folder of allFolders) {
+      const parts = folder.split("/");
+      if (parts.length === 1) {
+        topLevel.push(folder);
+      } else {
+        const parent = parts.slice(0, -1).join("/");
+        byParent[parent] = byParent[parent] || [];
+        byParent[parent].push(folder);
+      }
+    }
+
+    return { topLevel: topLevel.sort(), byParent };
+  }, [sessionIds, store]);
+}
+
+function useFolderName(folderId: string) {
+  return useMemo(() => {
+    const parts = folderId.split("/");
+    return parts[parts.length - 1] || "Untitled";
+  }, [folderId]);
+}
 
 export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (
   props,
@@ -36,17 +80,22 @@ const TabItemFolderAll: TabItem<Extract<Tab, { type: "folders" }>> = ({
   handleSelectThis,
   handleCloseAll,
   handleCloseOthers,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   return (
     <TabItemBase
       icon={<FoldersIcon className="w-4 h-4" />}
       title={"Folders"}
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };
@@ -58,12 +107,13 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   const folderId = tab.id!;
   const folders = useFolderChain(folderId);
-  const folder = useFolder(folderId);
+  const name = useFolderName(folderId);
   const repeatCount = Math.max(0, folders.length - 1);
-  const name = folder.name || "Untitled";
   const title = " .. / ".repeat(repeatCount) + name;
 
   return (
@@ -71,11 +121,14 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
       icon={<FolderIcon className="w-4 h-4" />}
       title={title}
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };
@@ -97,26 +150,14 @@ export function TabContentFolder({ tab }: { tab: Tab }) {
 }
 
 function TabContentFolderTopLevel() {
-  const topLevelFolderIds = main.UI.useSliceRowIds(
-    main.INDEXES.foldersByParent,
-    "",
-    main.STORE_ID,
-  );
+  const { topLevel: topLevelFolderIds } = useFolderTree();
 
   return (
     <div className="flex flex-col gap-6">
-      <Section
-        icon={<FolderIcon className="w-4 h-4" />}
-        title="Folders"
-        action={
-          <button className="p-1 hover:bg-muted rounded">
-            <PlusIcon className="w-4 h-4" />
-          </button>
-        }
-      >
-        {(topLevelFolderIds?.length ?? 0) > 0 && (
+      <Section icon={<FolderIcon className="w-4 h-4" />} title="Folders">
+        {topLevelFolderIds.length > 0 && (
           <div className="grid grid-cols-4 gap-4">
-            {topLevelFolderIds!.map((folderId) => (
+            {topLevelFolderIds.map((folderId) => (
               <FolderCard key={folderId} folderId={folderId} />
             ))}
           </div>
@@ -127,14 +168,14 @@ function TabContentFolderTopLevel() {
 }
 
 function FolderCard({ folderId }: { folderId: string }) {
-  const folder = useFolder(folderId);
+  const name = useFolderName(folderId);
   const openCurrent = useTabs((state) => state.openCurrent);
+  const { byParent } = useFolderTree();
 
-  const childFolderIds = main.UI.useSliceRowIds(
-    main.INDEXES.foldersByParent,
-    folderId,
-    main.STORE_ID,
-  );
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(name);
+
+  const childFolderIds = byParent[folderId] || [];
 
   const sessionIds = main.UI.useSliceRowIds(
     main.INDEXES.sessionsByFolder,
@@ -142,7 +183,26 @@ function FolderCard({ folderId }: { folderId: string }) {
     main.STORE_ID,
   );
 
-  const childCount = (childFolderIds?.length ?? 0) + (sessionIds?.length ?? 0);
+  const childCount = childFolderIds.length + (sessionIds?.length ?? 0);
+
+  const handleRename = useCallback(async () => {
+    const trimmed = editValue.trim();
+    if (!trimmed || trimmed === name) {
+      setEditValue(name);
+      setIsEditing(false);
+      return;
+    }
+
+    const parts = folderId.split("/");
+    parts[parts.length - 1] = trimmed;
+    const newFolderId = parts.join("/");
+
+    const result = await sessionOps.renameFolder(folderId, newFolderId);
+    if (result.status === "error") {
+      setEditValue(name);
+    }
+    setIsEditing(false);
+  }, [editValue, name, folderId]);
 
   return (
     <div
@@ -150,10 +210,46 @@ function FolderCard({ folderId }: { folderId: string }) {
         "flex flex-col items-center justify-center",
         "gap-2 p-6 border rounded-lg hover:bg-muted cursor-pointer",
       ])}
-      onClick={() => openCurrent({ type: "folders", id: folderId })}
+      onClick={() => {
+        if (!isEditing) {
+          openCurrent({ type: "folders", id: folderId });
+        }
+      }}
     >
       <FolderIcon className="w-12 h-12 text-muted-foreground" />
-      <span className="text-sm font-medium text-center">{folder.name}</span>
+      {isEditing ? (
+        <input
+          type="text"
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleRename}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleRename();
+            } else if (e.key === "Escape") {
+              setEditValue(name);
+              setIsEditing(false);
+            }
+          }}
+          onClick={(e) => e.stopPropagation()}
+          autoFocus
+          className={cn([
+            "text-sm font-medium text-center w-full",
+            "border-none bg-transparent focus:outline-none focus:underline",
+          ])}
+        />
+      ) : (
+        <span
+          className="text-sm font-medium text-center"
+          onClick={(e) => {
+            e.stopPropagation();
+            setEditValue(name);
+            setIsEditing(true);
+          }}
+        >
+          {name}
+        </span>
+      )}
       {childCount > 0 && (
         <span className="text-xs text-muted-foreground">
           {childCount} items
@@ -164,11 +260,8 @@ function FolderCard({ folderId }: { folderId: string }) {
 }
 
 function TabContentFolderSpecific({ folderId }: { folderId: string }) {
-  const childFolderIds = main.UI.useSliceRowIds(
-    main.INDEXES.foldersByParent,
-    folderId,
-    main.STORE_ID,
-  );
+  const { byParent } = useFolderTree();
+  const childFolderIds = byParent[folderId] || [];
 
   const sessionIds = main.UI.useSliceRowIds(
     main.INDEXES.sessionsByFolder,
@@ -177,24 +270,16 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
   );
 
   const isEmpty =
-    (childFolderIds?.length ?? 0) === 0 && (sessionIds?.length ?? 0) === 0;
+    childFolderIds.length === 0 && (sessionIds?.length ?? 0) === 0;
 
   return (
     <div className="flex flex-col gap-6">
       <TabContentFolderBreadcrumb folderId={folderId} />
 
-      <Section
-        icon={<FolderIcon className="w-4 h-4" />}
-        title="Folders"
-        action={
-          <button className="p-1 hover:bg-muted rounded">
-            <PlusIcon className="w-4 h-4" />
-          </button>
-        }
-      >
-        {(childFolderIds?.length ?? 0) > 0 && (
+      <Section icon={<FolderIcon className="w-4 h-4" />} title="Folders">
+        {childFolderIds.length > 0 && (
           <div className="grid grid-cols-4 gap-4">
-            {childFolderIds!.map((childId) => (
+            {childFolderIds.map((childId) => (
               <FolderCard key={childId} folderId={childId} />
             ))}
           </div>
@@ -202,15 +287,7 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
       </Section>
 
       {!isEmpty && (
-        <Section
-          icon={<StickyNoteIcon className="w-4 h-4" />}
-          title="Notes"
-          action={
-            <button className="p-1 hover:bg-muted rounded">
-              <PlusIcon className="w-4 h-4" />
-            </button>
-          }
-        >
+        <Section icon={<StickyNoteIcon className="w-4 h-4" />} title="Notes">
           {(sessionIds?.length ?? 0) > 0 && (
             <div className="space-y-2">
               {sessionIds!.map((sessionId) => (

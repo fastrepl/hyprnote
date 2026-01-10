@@ -1,0 +1,12 @@
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-reset-fixture"
+description = "Enables the reset_fixture command without any pre-configured scope."
+commands.allow = ["reset_fixture"]
+
+[[permission]]
+identifier = "deny-reset-fixture"
+description = "Denies the reset_fixture command without any pre-configured scope."
+commands.deny = ["reset_fixture"]
+

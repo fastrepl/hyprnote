@@ -1,7 +1,9 @@
 import {
+  forwardRef,
   type RefObject,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
 } from "react";
@@ -11,39 +13,56 @@ import { useResizeObserver } from "usehooks-ts";
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
 
-import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
-import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
+import { useListener } from "../../../../../contexts/listener";
 import { useScrollPreservation } from "../../../../../hooks/useScrollPreservation";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
+import { useCaretNearBottom } from "../caret-position-context";
 import { useCurrentNoteTab } from "../shared";
 import { Enhanced } from "./enhanced";
 import { Header, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
 
-export function NoteInput({
-  tab,
-}: {
-  tab: Extract<Tab, { type: "sessions" }>;
-}) {
+export const NoteInput = forwardRef<
+  { editor: TiptapEditor | null },
+  {
+    tab: Extract<Tab, { type: "sessions" }>;
+    onNavigateToTitle?: () => void;
+  }
+>(({ tab, onNavigateToTitle }, ref) => {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
-  const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const internalEditorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const [editor, setEditor] = useState<TiptapEditor | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const sessionId = tab.id;
-  useAutoEnhance(tab);
-  useAutoTitle(tab);
 
   const tabRef = useRef(tab);
   tabRef.current = tab;
 
   const currentTab: EditorView = useCurrentNoteTab(tab);
+  useImperativeHandle(
+    ref,
+    () => internalEditorRef.current ?? { editor: null },
+    [currentTab],
+  );
+
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const isMeetingInProgress =
+    sessionMode === "active" ||
+    sessionMode === "finalizing" ||
+    sessionMode === "running_batch";
+
   const { scrollRef, onBeforeTabChange } = useScrollPreservation(
     currentTab.type === "enhanced"
       ? `enhanced-${currentTab.id}`
       : currentTab.type,
+    {
+      skipRestoration: currentTab.type === "transcript" && isMeetingInProgress,
+    },
   );
 
   const { fadeRef, atStart, atEnd } = useScrollFade<HTMLDivElement>([
@@ -53,7 +72,10 @@ export function NoteInput({
   const handleTabChange = useCallback(
     (view: EditorView) => {
       onBeforeTabChange();
-      updateSessionTabState(tabRef.current, { editor: view });
+      updateSessionTabState(tabRef.current, {
+        ...tabRef.current.state,
+        view,
+      });
     },
     [onBeforeTabChange, updateSessionTabState],
   );
@@ -65,20 +87,131 @@ export function NoteInput({
   });
 
   useEffect(() => {
-    if (currentTab.type === "transcript" && editorRef.current) {
-      editorRef.current = { editor: null };
+    if (currentTab.type === "transcript") {
+      internalEditorRef.current = { editor: null };
+      setEditor(null);
+    } else if (currentTab.type === "raw" && isMeetingInProgress) {
+      requestAnimationFrame(() => {
+        internalEditorRef.current?.editor?.commands.focus();
+      });
     }
-  }, [currentTab]);
+  }, [currentTab, isMeetingInProgress]);
+
+  useEffect(() => {
+    const editorInstance = internalEditorRef.current?.editor ?? null;
+    if (editorInstance !== editor) {
+      setEditor(editorInstance);
+    }
+  });
+
+  useEffect(() => {
+    const handleContentTransfer = (e: Event) => {
+      const customEvent = e as CustomEvent<{ content: string }>;
+      const content = customEvent.detail.content;
+      const editorInstance = internalEditorRef.current?.editor;
+
+      if (editorInstance && content) {
+        editorInstance.commands.insertContentAt(0, content);
+        editorInstance.commands.setTextSelection(0);
+        editorInstance.commands.focus();
+      }
+    };
+
+    const handleMoveToEditorStart = () => {
+      const editorInstance = internalEditorRef.current?.editor;
+      if (editorInstance) {
+        editorInstance.commands.setTextSelection(0);
+        editorInstance.commands.focus();
+      }
+    };
+
+    const handleMoveToEditorPosition = (e: Event) => {
+      const customEvent = e as CustomEvent<{ pixelWidth: number }>;
+      const pixelWidth = customEvent.detail.pixelWidth;
+      const editorInstance = internalEditorRef.current?.editor;
+
+      if (editorInstance) {
+        const editorDom = editorInstance.view.dom;
+        const firstTextNode = editorDom.querySelector(".ProseMirror > *");
+
+        if (firstTextNode) {
+          const editorStyle = window.getComputedStyle(firstTextNode);
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          if (ctx) {
+            ctx.font = `${editorStyle.fontWeight} ${editorStyle.fontSize} ${editorStyle.fontFamily}`;
+
+            const firstBlock = editorInstance.state.doc.firstChild;
+            if (firstBlock && firstBlock.textContent) {
+              const text = firstBlock.textContent;
+              let charPos = 0;
+
+              for (let i = 0; i <= text.length; i++) {
+                const currentWidth = ctx.measureText(text.slice(0, i)).width;
+                if (currentWidth >= pixelWidth) {
+                  charPos = i;
+                  break;
+                }
+                charPos = i;
+              }
+
+              const targetPos = Math.min(
+                charPos,
+                editorInstance.state.doc.content.size - 1,
+              );
+              editorInstance.commands.setTextSelection(targetPos);
+              editorInstance.commands.focus();
+              return;
+            }
+          }
+        }
+
+        editorInstance.commands.setTextSelection(0);
+        editorInstance.commands.focus();
+      }
+    };
+
+    window.addEventListener("title-content-transfer", handleContentTransfer);
+    window.addEventListener(
+      "title-move-to-editor-start",
+      handleMoveToEditorStart,
+    );
+    window.addEventListener(
+      "title-move-to-editor-position",
+      handleMoveToEditorPosition,
+    );
+    return () => {
+      window.removeEventListener(
+        "title-content-transfer",
+        handleContentTransfer,
+      );
+      window.removeEventListener(
+        "title-move-to-editor-start",
+        handleMoveToEditorStart,
+      );
+      window.removeEventListener(
+        "title-move-to-editor-position",
+        handleMoveToEditorPosition,
+      );
+    };
+  }, []);
+
+  useCaretNearBottom({
+    editor,
+    container,
+    enabled: currentTab.type !== "transcript",
+  });
 
   const handleContainerClick = () => {
     if (currentTab.type !== "transcript") {
-      editorRef.current?.editor?.commands.focus();
+      internalEditorRef.current?.editor?.commands.focus();
     }
   };
 
   return (
     <div className="flex flex-col h-full -mx-2">
-      <div className="px-2">
+      <div className="px-2 relative">
         <Header
           sessionId={sessionId}
           editorTabs={editorTabs}
@@ -89,12 +222,15 @@ export function NoteInput({
         />
       </div>
 
-      <div className="relative flex-1 mt-2 overflow-hidden">
+      <div className="relative flex-1 overflow-hidden">
         <div
           ref={(node) => {
             fadeRef.current = node;
             if (currentTab.type !== "transcript") {
               scrollRef.current = node;
+              setContainer(node);
+            } else {
+              setContainer(null);
             }
           }}
           onClick={handleContainerClick}
@@ -102,18 +238,23 @@ export function NoteInput({
             "h-full px-3",
             currentTab.type === "transcript"
               ? "overflow-hidden"
-              : ["overflow-auto", "pb-6"],
+              : ["overflow-auto", "pt-2", "pb-6"],
           ])}
         >
           {currentTab.type === "enhanced" && (
             <Enhanced
-              ref={editorRef}
+              ref={internalEditorRef}
               sessionId={sessionId}
               enhancedNoteId={currentTab.id}
+              onNavigateToTitle={onNavigateToTitle}
             />
           )}
           {currentTab.type === "raw" && (
-            <RawEditor ref={editorRef} sessionId={sessionId} />
+            <RawEditor
+              ref={internalEditorRef}
+              sessionId={sessionId}
+              onNavigateToTitle={onNavigateToTitle}
+            />
           )}
           {currentTab.type === "transcript" && (
             <Transcript
@@ -128,7 +269,7 @@ export function NoteInput({
       </div>
     </div>
   );
-}
+});
 
 function useTabShortcuts({
   editorTabs,

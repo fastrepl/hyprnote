@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAutoCloser } from "../../../../../../../hooks/useAutoCloser";
-import * as main from "../../../../../../../store/tinybase/main";
+import * as main from "../../../../../../../store/tinybase/store/main";
 import { ParticipantChip } from "./chip";
 import { ParticipantDropdown } from "./dropdown";
 
@@ -321,7 +321,6 @@ function useCreateHuman(userId: string): (name: string) => string {
       org_id: "",
       job_title: "",
       linkedin_username: "",
-      is_user: false,
       memo: "",
     }),
     [userId],

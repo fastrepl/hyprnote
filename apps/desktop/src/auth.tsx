@@ -20,6 +20,7 @@ import {
   useState,
 } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands } from "@hypr/plugin-auth";
 
 import { env } from "./env";
@@ -237,6 +238,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           void clearAuthStorage();
           setServerReachable(false);
         }
+      }
+      if (event === "SIGNED_IN" && session) {
+        void analyticsCommands.event({
+          event: "user_signed_in",
+        });
       }
       setSession(session);
     });

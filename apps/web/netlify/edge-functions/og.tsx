@@ -43,6 +43,13 @@ const docsSchema = z.object({
   description: z.string().optional(),
 });
 
+const handbookSchema = z.object({
+  type: z.literal("handbook"),
+  title: z.string(),
+  section: z.string(),
+  description: z.string().optional(),
+});
+
 const OGSchema = z.discriminatedUnion("type", [
   meetingSchema,
   templatesSchema,
@@ -50,6 +57,7 @@ const OGSchema = z.discriminatedUnion("type", [
   changelogSchema,
   blogSchema,
   docsSchema,
+  handbookSchema,
 ]);
 
 function preventWidow(text: string): string {
@@ -82,11 +90,26 @@ function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
     const author = url.searchParams.get("author") || undefined;
     const date = url.searchParams.get("date") || undefined;
 
-    const result = OGSchema.safeParse({ type, title, description, author, date });
+    const result = OGSchema.safeParse({
+      type,
+      title,
+      description,
+      author,
+      date,
+    });
     return result.success ? result.data : null;
   }
 
   if (type === "docs") {
+    const title = url.searchParams.get("title");
+    const section = url.searchParams.get("section");
+    const description = url.searchParams.get("description") || undefined;
+
+    const result = OGSchema.safeParse({ type, title, section, description });
+    return result.success ? result.data : null;
+  }
+
+  if (type === "handbook") {
     const title = url.searchParams.get("title");
     const section = url.searchParams.get("section");
     const description = url.searchParams.get("description") || undefined;
@@ -272,8 +295,14 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
           }}
         ></div>
         <img
-          style={{ width: 462, height: 462, right: 57, bottom: -69, position: "absolute" }}
-          src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/nightly-icon.png"
+          style={{
+            width: 462,
+            height: 462,
+            right: 57,
+            bottom: -69,
+            position: "absolute",
+          }}
+          src="https://hyprnote.com/api/images/icons/nightly-icon.png"
         />
       </div>
     );
@@ -364,8 +393,14 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
         }}
       ></div>
       <img
-        style={{ width: 462, height: 462, right: 57, bottom: -69, position: "absolute" }}
-        src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png"
+        style={{
+          width: 462,
+          height: 462,
+          right: 57,
+          bottom: -69,
+          position: "absolute",
+        }}
+        src="https://hyprnote.com/api/images/icons/stable-icon.png"
       />
     </div>
   );
@@ -373,15 +408,12 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
 
 function getAuthorAvatar(author: string): string {
   const authorMap: Record<string, string> = {
-    "John Jeong":
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john.png",
-    "Yujong Lee":
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong.png",
+    "John Jeong": "https://hyprnote.com/api/images/team/john.png",
+    "Yujong Lee": "https://hyprnote.com/api/images/team/yujong.png",
   };
 
   return (
-    authorMap[author] ||
-    "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png"
+    authorMap[author] || "https://hyprnote.com/api/images/icons/stable-icon.png"
   );
 }
 
@@ -414,7 +446,10 @@ function renderBlogTemplate(params: z.infer<typeof blogSchema>) {
           {preventWidow(params.title)}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <img style={{ width: 44, height: 44, borderRadius: 1000 }} src={avatarUrl} />
+          <img
+            style={{ width: 44, height: 44, borderRadius: 1000 }}
+            src={avatarUrl}
+          />
           <div
             style={{
               color: "#292524",
@@ -454,7 +489,7 @@ function renderBlogTemplate(params: z.infer<typeof blogSchema>) {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <img
             style={{ width: 48, height: 48 }}
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png"
+            src="https://hyprnote.com/api/images/icons/stable-icon.png"
           />
           <div
             style={{
@@ -498,10 +533,17 @@ function renderGenericTemplate({
         display: "flex",
       }}
     >
-      <div style={{ justifyContent: "flex-start", alignItems: "center", gap: 12, display: "flex" }}>
+      <div
+        style={{
+          justifyContent: "flex-start",
+          alignItems: "center",
+          gap: 12,
+          display: "flex",
+        }}
+      >
         <img
           style={{ width: 48, height: 48 }}
-          src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png"
+          src="https://hyprnote.com/api/images/icons/stable-icon.png"
         />
         <div
           style={{
@@ -576,6 +618,15 @@ function renderDocsTemplate(params: z.infer<typeof docsSchema>) {
   });
 }
 
+function renderHandbookTemplate(params: z.infer<typeof handbookSchema>) {
+  return renderGenericTemplate({
+    headerText: "Hyprnote / Company Handbook",
+    category: params.section,
+    title: params.title,
+    description: params.description,
+  });
+}
+
 function renderTemplatesTemplate(params: z.infer<typeof templatesSchema>) {
   return renderGenericTemplate({
     headerText: "Hyprnote / Meeting Templates",
@@ -608,7 +659,8 @@ export default async function handler(req: Request) {
 
   try {
     // deno-lint-ignore no-import-prefix
-    const { ImageResponse } = await import("https://deno.land/x/og_edge@0.0.6/mod.ts");
+    const { ImageResponse } =
+      await import("https://deno.land/x/og_edge@0.0.6/mod.ts");
 
     // https://unpic.pics/og-edge
     let response;
@@ -618,6 +670,8 @@ export default async function handler(req: Request) {
       response = renderBlogTemplate(params);
     } else if (params.type === "docs") {
       response = renderDocsTemplate(params);
+    } else if (params.type === "handbook") {
+      response = renderHandbookTemplate(params);
     } else if (params.type === "templates") {
       response = renderTemplatesTemplate(params);
     } else if (params.type === "shortcuts") {
@@ -630,6 +684,7 @@ export default async function handler(req: Request) {
       params.type === "changelog" ||
       params.type === "blog" ||
       params.type === "docs" ||
+      params.type === "handbook" ||
       params.type === "templates" ||
       params.type === "shortcuts";
     const fonts = needsCustomFonts
@@ -662,8 +717,14 @@ export default async function handler(req: Request) {
       : undefined;
 
     const imageResponse = new ImageResponse(response, { fonts });
-    imageResponse.headers.set("Netlify-CDN-Cache-Control", "public, s-maxage=31536000");
-    imageResponse.headers.set("Cache-Control", "public, max-age=31536000, immutable");
+    imageResponse.headers.set(
+      "Netlify-CDN-Cache-Control",
+      "public, s-maxage=31536000",
+    );
+    imageResponse.headers.set(
+      "Cache-Control",
+      "public, max-age=31536000, immutable",
+    );
     imageResponse.headers.set("Netlify-Vary", "query");
     return imageResponse;
   } catch (error) {

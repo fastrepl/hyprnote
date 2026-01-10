@@ -1,16 +1,26 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLinkIcon } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useResizeObserver } from "usehooks-ts";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
+import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
 import { env } from "../../../env";
+import { useTrialBeginModal } from "../../devtool/trial-begin-modal";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
@@ -43,6 +53,9 @@ export function AccountSettings() {
   }, [auth]);
 
   const handleSignOut = useCallback(async () => {
+    void analyticsCommands.event({
+      event: "user_signed_out",
+    });
     await auth?.signOut();
   }, [auth]);
 
@@ -59,7 +72,7 @@ export function AccountSettings() {
           <Input
             type="text"
             className="text-xs font-mono"
-            placeholder="hyprnote://auth/callback?access_token=...&refresh_token=..."
+            placeholder="hyprnote://deeplink/auth?access_token=...&refresh_token=..."
             value={callbackUrl}
             onChange={(e) => setCallbackUrl(e.target.value)}
           />
@@ -108,9 +121,12 @@ export function AccountSettings() {
         title="Sign in to Hyprnote"
         description="Hyprnote account is required to access pro plan."
         action={
-          <Button onClick={handleSignIn}>
-            <span>Get Started</span>
-          </Button>
+          <button
+            onClick={handleSignIn}
+            className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
+          >
+            Get Started
+          </button>
         }
       ></Container>
     );
@@ -161,6 +177,7 @@ export function AccountSettings() {
 function BillingButton() {
   const auth = useAuth();
   const { isPro } = useBillingAccess();
+  const { open: openTrialBeginModal } = useTrialBeginModal();
 
   const canTrialQuery = useQuery({
     enabled: !!auth?.session && !isPro,
@@ -198,11 +215,20 @@ function BillingButton() {
       await new Promise((resolve) => setTimeout(resolve, 3000));
     },
     onSuccess: async () => {
+      void analyticsCommands.event({
+        event: "trial_started",
+        plan: "pro",
+      });
       await auth?.refreshSession();
+      openTrialBeginModal();
     },
   });
 
   const handleProUpgrade = useCallback(() => {
+    void analyticsCommands.event({
+      event: "upgrade_clicked",
+      plan: "pro",
+    });
     void openUrl(`${WEB_APP_BASE_URL}/app/checkout?period=monthly`);
   }, []);
 
@@ -254,9 +280,29 @@ function Container({
   action?: ReactNode;
   children?: ReactNode;
 }) {
+  const containerRef = useRef<HTMLElement>(null);
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useResizeObserver({
+    ref: containerRef as React.RefObject<HTMLElement>,
+    onResize: ({ width }) => {
+      if (width !== undefined) {
+        setIsNarrow(width < 400);
+      }
+    },
+  });
+
   return (
-    <section className="bg-neutral-50 p-4 rounded-lg flex flex-col gap-4">
-      <div className="flex flex-row items-center justify-between gap-4">
+    <section
+      ref={containerRef}
+      className="bg-neutral-50 p-4 rounded-lg flex flex-col gap-4"
+    >
+      <div
+        className={cn([
+          "flex gap-4",
+          isNarrow ? "flex-col" : "flex-row items-center justify-between",
+        ])}
+      >
         <div className="flex flex-col gap-2">
           <h1 className="text-md font-semibold">{title}</h1>
           {description && (

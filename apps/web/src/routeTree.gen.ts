@@ -12,17 +12,18 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as YoutubeRouteImport } from './routes/youtube'
 import { Route as XRouteImport } from './routes/x'
 import { Route as LinkedinRouteImport } from './routes/linkedin'
-import { Route as JoinWaitlistRouteImport } from './routes/join-waitlist'
 import { Route as GithubRouteImport } from './routes/github'
 import { Route as FoundersRouteImport } from './routes/founders'
 import { Route as DiscordRouteImport } from './routes/discord'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as BountiesRouteImport } from './routes/bounties'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
+import { Route as ApiMediaUploadRouteImport } from './routes/api/media-upload'
 import { Route as ApiK6ReportsRouteImport } from './routes/api/k6-reports'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewPrivacyRouteImport } from './routes/_view/privacy'
@@ -87,10 +88,8 @@ import { Route as ViewK6ReportsIdRouteImport } from './routes/_view/k6-reports/$
 import { Route as ViewDownloadWindowsRouteImport } from './routes/_view/download/windows'
 import { Route as ViewDownloadLinuxDebRouteImport } from './routes/_view/download/linux-deb'
 import { Route as ViewDownloadLinuxAppimageRouteImport } from './routes/_view/download/linux-appimage'
-import { Route as ViewDownloadLinuxRouteImport } from './routes/_view/download/linux'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
-import { Route as ViewDownloadAppleRouteImport } from './routes/_view/download/apple'
 import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
 import { Route as ViewCompanyHandbookSplatRouteImport } from './routes/_view/company-handbook/$'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
@@ -118,11 +117,6 @@ const LinkedinRoute = LinkedinRouteImport.update({
   path: '/linkedin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const JoinWaitlistRoute = JoinWaitlistRouteImport.update({
-  id: '/join-waitlist',
-  path: '/join-waitlist',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GithubRoute = GithubRouteImport.update({
   id: '/github',
   path: '/github',
@@ -141,6 +135,11 @@ const DiscordRoute = DiscordRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BountiesRoute = BountiesRouteImport.update({
+  id: '/bounties',
+  path: '/bounties',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -170,6 +169,11 @@ const ApiTemplatesRoute = ApiTemplatesRouteImport.update({
 const ApiShortcutsRoute = ApiShortcutsRouteImport.update({
   id: '/api/shortcuts',
   path: '/api/shortcuts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMediaUploadRoute = ApiMediaUploadRouteImport.update({
+  id: '/api/media-upload',
+  path: '/api/media-upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiK6ReportsRoute = ApiK6ReportsRouteImport.update({
@@ -498,11 +502,6 @@ const ViewDownloadLinuxAppimageRoute =
     path: '/download/linux-appimage',
     getParentRoute: () => ViewRouteRoute,
   } as any)
-const ViewDownloadLinuxRoute = ViewDownloadLinuxRouteImport.update({
-  id: '/download/linux',
-  path: '/download/linux',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewDownloadAppleSiliconRoute =
   ViewDownloadAppleSiliconRouteImport.update({
     id: '/download/apple-silicon',
@@ -512,11 +511,6 @@ const ViewDownloadAppleSiliconRoute =
 const ViewDownloadAppleIntelRoute = ViewDownloadAppleIntelRouteImport.update({
   id: '/download/apple-intel',
   path: '/download/apple-intel',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewDownloadAppleRoute = ViewDownloadAppleRouteImport.update({
-  id: '/download/apple',
-  path: '/download/apple',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewDocsSplatRoute = ViewDocsSplatRouteImport.update({
@@ -580,11 +574,11 @@ const ViewGalleryTypeSlugRoute = ViewGalleryTypeSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
+  '/bounties': typeof BountiesRoute
   '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
-  '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
@@ -602,6 +596,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
+  '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -615,10 +610,8 @@ export interface FileRoutesByFullPath {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
-  '/download/apple': typeof ViewDownloadAppleRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/download/linux': typeof ViewDownloadLinuxRoute
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
@@ -674,11 +667,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/bounties': typeof BountiesRoute
   '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
-  '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
@@ -693,6 +686,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
+  '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -706,10 +700,8 @@ export interface FileRoutesByTo {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
-  '/download/apple': typeof ViewDownloadAppleRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/download/linux': typeof ViewDownloadLinuxRoute
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
@@ -767,11 +759,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_view': typeof ViewRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/bounties': typeof BountiesRoute
   '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
-  '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
@@ -789,6 +781,7 @@ export interface FileRoutesById {
   '/_view/privacy': typeof ViewPrivacyRoute
   '/_view/security': typeof ViewSecurityRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
+  '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -802,10 +795,8 @@ export interface FileRoutesById {
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
   '/_view/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/_view/docs/$': typeof ViewDocsSplatRoute
-  '/_view/download/apple': typeof ViewDownloadAppleRoute
   '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/_view/download/linux': typeof ViewDownloadLinuxRoute
   '/_view/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/_view/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/_view/download/windows': typeof ViewDownloadWindowsRoute
@@ -863,11 +854,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/auth'
+    | '/bounties'
     | '/contact'
     | '/discord'
     | '/founders'
     | '/github'
-    | '/join-waitlist'
     | '/linkedin'
     | '/x'
     | '/youtube'
@@ -885,6 +876,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/security'
     | '/api/k6-reports'
+    | '/api/media-upload'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
@@ -898,10 +890,8 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/company-handbook/$'
     | '/docs/$'
-    | '/download/apple'
     | '/download/apple-intel'
     | '/download/apple-silicon'
-    | '/download/linux'
     | '/download/linux-appimage'
     | '/download/linux-deb'
     | '/download/windows'
@@ -957,11 +947,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/bounties'
     | '/contact'
     | '/discord'
     | '/founders'
     | '/github'
-    | '/join-waitlist'
     | '/linkedin'
     | '/x'
     | '/youtube'
@@ -976,6 +966,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/security'
     | '/api/k6-reports'
+    | '/api/media-upload'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
@@ -989,10 +980,8 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/company-handbook/$'
     | '/docs/$'
-    | '/download/apple'
     | '/download/apple-intel'
     | '/download/apple-silicon'
-    | '/download/linux'
     | '/download/linux-appimage'
     | '/download/linux-deb'
     | '/download/windows'
@@ -1049,11 +1038,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_view'
     | '/auth'
+    | '/bounties'
     | '/contact'
     | '/discord'
     | '/founders'
     | '/github'
-    | '/join-waitlist'
     | '/linkedin'
     | '/x'
     | '/youtube'
@@ -1071,6 +1060,7 @@ export interface FileRouteTypes {
     | '/_view/privacy'
     | '/_view/security'
     | '/api/k6-reports'
+    | '/api/media-upload'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
@@ -1084,10 +1074,8 @@ export interface FileRouteTypes {
     | '/_view/changelog/$slug'
     | '/_view/company-handbook/$'
     | '/_view/docs/$'
-    | '/_view/download/apple'
     | '/_view/download/apple-intel'
     | '/_view/download/apple-silicon'
-    | '/_view/download/linux'
     | '/_view/download/linux-appimage'
     | '/_view/download/linux-deb'
     | '/_view/download/windows'
@@ -1145,15 +1133,16 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BountiesRoute: typeof BountiesRoute
   ContactRoute: typeof ContactRoute
   DiscordRoute: typeof DiscordRoute
   FoundersRoute: typeof FoundersRoute
   GithubRoute: typeof GithubRoute
-  JoinWaitlistRoute: typeof JoinWaitlistRoute
   LinkedinRoute: typeof LinkedinRoute
   XRoute: typeof XRoute
   YoutubeRoute: typeof YoutubeRoute
   ApiK6ReportsRoute: typeof ApiK6ReportsRoute
+  ApiMediaUploadRoute: typeof ApiMediaUploadRoute
   ApiShortcutsRoute: typeof ApiShortcutsRoute
   ApiTemplatesRoute: typeof ApiTemplatesRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
@@ -1184,13 +1173,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LinkedinRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/join-waitlist': {
-      id: '/join-waitlist'
-      path: '/join-waitlist'
-      fullPath: '/join-waitlist'
-      preLoaderRoute: typeof JoinWaitlistRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/github': {
       id: '/github'
       path: '/github'
@@ -1217,6 +1199,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bounties': {
+      id: '/bounties'
+      path: '/bounties'
+      fullPath: '/bounties'
+      preLoaderRoute: typeof BountiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -1259,6 +1248,13 @@ declare module '@tanstack/react-router' {
       path: '/api/shortcuts'
       fullPath: '/api/shortcuts'
       preLoaderRoute: typeof ApiShortcutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/media-upload': {
+      id: '/api/media-upload'
+      path: '/api/media-upload'
+      fullPath: '/api/media-upload'
+      preLoaderRoute: typeof ApiMediaUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/k6-reports': {
@@ -1709,13 +1705,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDownloadLinuxAppimageRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/download/linux': {
-      id: '/_view/download/linux'
-      path: '/download/linux'
-      fullPath: '/download/linux'
-      preLoaderRoute: typeof ViewDownloadLinuxRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/download/apple-silicon': {
       id: '/_view/download/apple-silicon'
       path: '/download/apple-silicon'
@@ -1728,13 +1717,6 @@ declare module '@tanstack/react-router' {
       path: '/download/apple-intel'
       fullPath: '/download/apple-intel'
       preLoaderRoute: typeof ViewDownloadAppleIntelRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/apple': {
-      id: '/_view/download/apple'
-      path: '/download/apple'
-      fullPath: '/download/apple'
-      preLoaderRoute: typeof ViewDownloadAppleRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/docs/$': {
@@ -1885,10 +1867,8 @@ interface ViewRouteRouteChildren {
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
-  ViewDownloadAppleRoute: typeof ViewDownloadAppleRoute
   ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
-  ViewDownloadLinuxRoute: typeof ViewDownloadLinuxRoute
   ViewDownloadLinuxAppimageRoute: typeof ViewDownloadLinuxAppimageRoute
   ViewDownloadLinuxDebRoute: typeof ViewDownloadLinuxDebRoute
   ViewDownloadWindowsRoute: typeof ViewDownloadWindowsRoute
@@ -1956,10 +1936,8 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
-  ViewDownloadAppleRoute: ViewDownloadAppleRoute,
   ViewDownloadAppleIntelRoute: ViewDownloadAppleIntelRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
-  ViewDownloadLinuxRoute: ViewDownloadLinuxRoute,
   ViewDownloadLinuxAppimageRoute: ViewDownloadLinuxAppimageRoute,
   ViewDownloadLinuxDebRoute: ViewDownloadLinuxDebRoute,
   ViewDownloadWindowsRoute: ViewDownloadWindowsRoute,
@@ -2016,15 +1994,16 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BountiesRoute: BountiesRoute,
   ContactRoute: ContactRoute,
   DiscordRoute: DiscordRoute,
   FoundersRoute: FoundersRoute,
   GithubRoute: GithubRoute,
-  JoinWaitlistRoute: JoinWaitlistRoute,
   LinkedinRoute: LinkedinRoute,
   XRoute: XRoute,
   YoutubeRoute: YoutubeRoute,
   ApiK6ReportsRoute: ApiK6ReportsRoute,
+  ApiMediaUploadRoute: ApiMediaUploadRoute,
   ApiShortcutsRoute: ApiShortcutsRoute,
   ApiTemplatesRoute: ApiTemplatesRoute,
   WebhookNangoRoute: WebhookNangoRoute,

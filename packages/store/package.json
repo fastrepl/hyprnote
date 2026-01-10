@@ -6,13 +6,11 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./schema-external": "./src/schema-external.ts",
-    "./schema-internal": "./src/schema-internal.ts",
+    "./schema": "./src/schema.ts",
     "./shared": "./src/shared.ts"
   },
   "types": "./src/index.ts",
   "dependencies": {
-    "@hypr/db": "workspace:*",
     "tinybase": "^7.3.0",
     "zod": "^4.2.1"
   },

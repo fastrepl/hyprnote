@@ -1,10 +1,12 @@
 mod listener;
 mod recorder;
+mod root;
 mod session;
 mod source;
 
 pub use listener::*;
 pub use recorder::*;
+pub use root::*;
 pub use session::*;
 pub use source::*;
 
@@ -60,6 +62,14 @@ impl ChannelMode {
     #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     pub fn determine(_onboarding: bool) -> Self {
         ChannelMode::MicAndSpeaker
+    }
+
+    pub fn uses_mic(self) -> bool {
+        matches!(self, ChannelMode::MicOnly | ChannelMode::MicAndSpeaker)
+    }
+
+    pub fn uses_speaker(self) -> bool {
+        matches!(self, ChannelMode::SpeakerOnly | ChannelMode::MicAndSpeaker)
     }
 }
 

@@ -134,6 +134,12 @@ common_derives! {
             channel: Vec<u8>,
             last_word_end: f64,
         },
+        #[serde(rename = "Error")]
+        ErrorResponse {
+            error_code: Option<i32>,
+            error_message: String,
+            provider: String,
+        },
     }
 }
 

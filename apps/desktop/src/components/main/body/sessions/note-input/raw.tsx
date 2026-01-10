@@ -18,12 +18,12 @@ import {
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
 
-import * as main from "../../../../../store/tinybase/main";
+import * as main from "../../../../../store/tinybase/store/main";
 
 export const RawEditor = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string }
->(({ sessionId }, ref) => {
+  { sessionId: string; onNavigateToTitle?: () => void }
+>(({ sessionId, onNavigateToTitle }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
 
   const [initialContent, setInitialContent] =
@@ -79,7 +79,7 @@ export const RawEditor = forwardRef<
         if (hasContent) {
           hasTrackedWriteRef.current = true;
           void analyticsCommands.event({
-            event: "note_written",
+            event: "note_edited",
             has_content: true,
           });
         }
@@ -106,6 +106,7 @@ export const RawEditor = forwardRef<
       handleChange={handleChange}
       mentionConfig={mentionConfig}
       placeholderComponent={Placeholder}
+      onNavigateToTitle={onNavigateToTitle}
     />
   );
 });

@@ -78,13 +78,7 @@ export const HYPR_MODULES = {
     foldersByParent: string;
     sessionsByFolder: string;
     transcriptBySession: string;
-    wordsByTranscript: string;
-    speakerHintsByTranscript: string;
-    speakerHintsByWord: string;
-    eventsByCalendar: string;
-    tagsByName: string;
     tagSessionsBySession: string;
-    tagSessionsByTag: string;
     chatMessagesByGroup: string;
     sessionsByHuman: string;
     enhancedNotesBySession: string;
@@ -99,7 +93,6 @@ export const HYPR_MODULES = {
     visibleHumans: string;
     visibleTemplates: string;
     visibleFolders: string;
-    visibleVocabs: string;
     llmProviders: string;
     sttProviders: string;
     sessionParticipantsWithDetails: string;
@@ -111,26 +104,14 @@ export const HYPR_MODULES = {
         type: `{
     totalHumans: string;
     totalOrganizations: string;
-    totalCustomVocabs: string;
   }`,
         description: "Available TinyBase metrics",
       },
       RELATIONSHIPS: {
         type: `{
-    sessionHuman: string;
     sessionToFolder: string;
     sessionToEvent: string;
     folderToParentFolder: string;
-    transcriptToSession: string;
-    wordToTranscript: string;
-    speakerHintToTranscript: string;
-    speakerHintToWord: string;
-    sessionParticipantToHuman: string;
-    sessionParticipantToSession: string;
-    eventToCalendar: string;
-    tagSessionToTag: string;
-    tagSessionToSession: string;
-    chatMessageToGroup: string;
     enhancedNoteToSession: string;
   }`,
         description: "Available TinyBase relationships",

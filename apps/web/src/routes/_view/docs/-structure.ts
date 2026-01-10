@@ -4,6 +4,7 @@ export const docsStructure = {
   sections: [
     "about",
     "getting started",
+    "guides",
     "calendar",
     "developers",
     "pro",
@@ -12,6 +13,7 @@ export const docsStructure = {
   defaultPages: {
     about: "about/hello-world",
     "getting-started": "getting-started/installation",
+    guides: "guides/data",
     calendar: "calendar/apple",
     developers: "developers/analytics",
     pro: "pro/activation",

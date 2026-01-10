@@ -74,6 +74,10 @@ const useHandleDetectEvents = (store: ListenerStore) => {
                   message: "Mic started",
                   timeout: { secs: 8, nanos: 0 },
                   event_id: null,
+                  start_time: null,
+                  participants: null,
+                  event_details: null,
+                  action_label: null,
                 });
               }, 2000);
             });

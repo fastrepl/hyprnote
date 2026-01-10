@@ -1,0 +1,30 @@
+---
+title: "CMS"
+section: "How We Work"
+summary: "We use GitHub as our CMS, keeping us open-source friendly and transparent."
+---
+
+## Why MDX + GitHub
+
+Files endure, interfaces change. The same philosophy that shapes Hyprnote shapes how we run the company.
+
+Content lives as MDX files in Git — not locked in a proprietary database.
+
+* **Ownership** — Plain text we control, not opaque blobs behind an API
+* **Durability** — Markdown outlasts any CMS platform
+* **Transparency** — Version-controlled and inspectable
+* **Friction-free** — Edit, push, done
+
+We eat our own cooking. If users' notes should be files they own, our company content should be too.
+
+## Decap
+
+![](/images/handbook/decap-as-cms.png)
+
+[Decap CMS](https://github.com/decaporg/decap-cms) for non-technical editors.
+
+**Developer** — Config in `apps/web/public/admin`, accessible at `https://hyprnote.com/admin` (not in dev mode). [GitHub backend](https://decapcms.org/docs/github-backend) with [Netlify Git Gateway](https://docs.netlify.com/manage/security/secure-access-to-sites/git-gateway). Invite users at [Netlify Identity](https://app.netlify.com/projects/hyprnote/configuration/identity#users).
+
+**Non-Developer** — Rename images before uploading.
+
+![](/images/handbook/decap-workflow.png)

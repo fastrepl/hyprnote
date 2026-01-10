@@ -139,8 +139,8 @@ common_derives! {
         pub languages: Vec<hypr_language::Language>,
         #[serde(default)]
         pub keywords: Vec<String>,
-        pub redemption_time_ms: Option<u64>,
-
+        #[serde(default)]
+        pub custom_query: Option<std::collections::HashMap<String, String>>,
     }
 }
 
@@ -152,7 +152,7 @@ impl Default for ListenParams {
             sample_rate: 16000,
             languages: vec![],
             keywords: vec![],
-            redemption_time_ms: None,
+            custom_query: None,
         }
     }
 }

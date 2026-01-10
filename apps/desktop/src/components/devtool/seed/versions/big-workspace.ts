@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker/locale/en";
-import type { Tables } from "tinybase/with-schemas";
 
-import type { Schemas } from "../../../../store/tinybase/main";
-import type { Store as MainStore } from "../../../../store/tinybase/main";
+import type { AppleCalendar } from "@hypr/plugin-apple-calendar";
+
+import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 import type { SeedDefinition } from "../shared";
 import {
   buildCalendars,
@@ -11,7 +11,6 @@ import {
   buildChatShortcuts,
   buildEnhancedNotesForSessions,
   buildEventsByHuman,
-  buildFolders,
   buildHumans,
   buildOrganizations,
   buildSessionParticipants,
@@ -24,7 +23,7 @@ import {
   buildSessionsForBigWorkspace,
 } from "./big-workspace-builders";
 
-const buildBigWorkspaceData = (): Tables<Schemas[0]> => {
+const buildBigWorkspaceData = (fixtureCalendars?: AppleCalendar[]) => {
   faker.seed(456);
 
   const organizations = buildOrganizations(8);
@@ -36,16 +35,13 @@ const buildBigWorkspaceData = (): Tables<Schemas[0]> => {
   });
   const humanIds = Object.keys(humans);
 
-  const calendars = buildCalendars(5);
+  const calendars = buildCalendars(5, fixtureCalendars);
   const calendarIds = Object.keys(calendars);
 
   const { events } = buildEventsByHuman(humanIds, calendarIds, {
     min: 2,
     max: 6,
   });
-
-  const folders = buildFolders(10, { min: 2, max: 5 });
-  const folderIds = Object.keys(folders);
 
   const tags = buildTags(15);
   const tagIds = Object.keys(tags);
@@ -55,13 +51,11 @@ const buildBigWorkspaceData = (): Tables<Schemas[0]> => {
 
   const sessions = buildSessionsForBigWorkspace(150, {
     eventIds: Object.keys(events),
-    folderIds,
     eventLinkProbability: 0.7,
-    folderProbability: 0.8,
   });
   const sessionIds = Object.keys(sessions);
 
-  const { transcripts, words } = buildLongTranscriptsForSessions(sessionIds, {
+  const { transcripts } = buildLongTranscriptsForSessions(sessionIds, {
     turnCount: { min: 1500, max: 2000 },
     days: 90,
   });
@@ -100,10 +94,8 @@ const buildBigWorkspaceData = (): Tables<Schemas[0]> => {
     organizations,
     humans,
     calendars,
-    folders,
     sessions,
     transcripts,
-    words,
     events,
     mapping_session_participant,
     tags,
@@ -119,11 +111,14 @@ const buildBigWorkspaceData = (): Tables<Schemas[0]> => {
 export const bigWorkspaceSeed: SeedDefinition = {
   id: "big-workspace",
   label: "Big Workspace",
-  run: (store: MainStore) => {
-    const data = buildBigWorkspaceData();
+  calendarFixtureBase: "default",
+  run: async (store: MainStore, fixtureCalendars?: AppleCalendar[]) => {
+    const data = buildBigWorkspaceData(fixtureCalendars);
+    await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {
       store.delTables();
-      store.setTables(data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      store.setTables(data as any);
     });
   },
 };

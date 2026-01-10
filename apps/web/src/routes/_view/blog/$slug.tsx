@@ -38,7 +38,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
           return bScore - aScore;
         }
 
-        return new Date(b.updated).getTime() - new Date(a.updated).getTime();
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
       })
       .slice(0, 3);
 
@@ -54,12 +54,13 @@ export const Route = createFileRoute("/_view/blog/$slug")({
 
     const ogImage =
       article.coverImage ||
-      `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.created ? `&date=${encodeURIComponent(new Date(article.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
+      `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
 
     return {
       meta: [
         { title: `${article.title} - Hyprnote Blog` },
         { name: "description", content: article.meta_description },
+        { tag: "link", attrs: { rel: "canonical", href: url } },
         {
           property: "og:title",
           content: `${article.title} - Hyprnote Blog`,
@@ -86,16 +87,8 @@ export const Route = createFileRoute("/_view/blog/$slug")({
           : []),
         {
           property: "article:published_time",
-          content: article.created,
+          content: article.date,
         },
-        ...(article.updated
-          ? [
-              {
-                property: "article:modified_time",
-                content: article.updated,
-              },
-            ]
-          : []),
       ],
     };
   },
@@ -112,7 +105,7 @@ function Component() {
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection article={article} />
         <SlashSeparator />
-        <div className="max-w-[800px] mx-auto px-4 py-8">
+        <div className="max-w-200 mx-auto px-4 py-8">
           <ArticleContent article={article} />
           <RelatedArticlesSection relatedArticles={relatedArticles} />
         </div>
@@ -134,7 +127,7 @@ function HeroSection({ article }: { article: any }) {
   const avatarUrl = AUTHOR_AVATARS[article.author];
 
   return (
-    <header className="py-12 lg:py-16 text-center max-w-[800px] mx-auto px-4">
+    <header className="py-12 lg:py-16 text-center max-w-200 mx-auto px-4">
       <Link
         to="/blog"
         className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8"
@@ -161,10 +154,10 @@ function HeroSection({ article }: { article: any }) {
       )}
 
       <time
-        dateTime={article.created}
+        dateTime={article.date}
         className="text-xs font-mono text-neutral-500"
       >
-        {new Date(article.created).toLocaleDateString("en-US", {
+        {new Date(article.date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
           day: "numeric",
@@ -176,7 +169,7 @@ function HeroSection({ article }: { article: any }) {
 
 function ArticleContent({ article }: { article: any }) {
   return (
-    <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
+    <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
       <MDXContent
         code={article.mdx}
         components={createMDXComponents({ CtaCard })}
@@ -322,7 +315,7 @@ function MobileCTA() {
 function RelatedArticleCard({ article }: { article: any }) {
   const ogImage =
     article.coverImage ||
-    `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.created ? `&date=${encodeURIComponent(new Date(article.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
+    `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.date ? `&date=${encodeURIComponent(new Date(article.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
 
   return (
     <Link
@@ -344,17 +337,11 @@ function RelatedArticleCard({ article }: { article: any }) {
         <p className="text-xs text-neutral-500 line-clamp-2 mb-2">
           {article.summary}
         </p>
-        <time
-          dateTime={article.updated || article.created}
-          className="text-xs text-neutral-400"
-        >
-          {new Date(article.updated || article.created).toLocaleDateString(
-            "en-US",
-            {
-              month: "short",
-              day: "numeric",
-            },
-          )}
+        <time dateTime={article.date} className="text-xs text-neutral-400">
+          {new Date(article.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}
         </time>
       </div>
     </Link>

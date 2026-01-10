@@ -51,6 +51,13 @@ const formatIgnoreReason = (reason: ModelIgnoreReason): string => {
   }
 };
 
+const getDisplayName = (providerId: string, model: string): string => {
+  if (providerId === "hyprnote" && model === "Auto") {
+    return "Pro";
+  }
+  return model;
+};
+
 export function ModelCombobox({
   providerId,
   value,
@@ -58,6 +65,7 @@ export function ModelCombobox({
   listModels,
   disabled = false,
   placeholder = "Select a model",
+  suffix,
 }: {
   providerId: string;
   value: string;
@@ -65,6 +73,7 @@ export function ModelCombobox({
   listModels?: () => Promise<ListModelsResult> | ListModelsResult;
   disabled?: boolean;
   placeholder?: string;
+  suffix?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -122,15 +131,21 @@ export function ModelCombobox({
           aria-expanded={open}
           className={cn([
             "w-full justify-between font-normal bg-white shadow-none focus-visible:ring-0",
+            "rounded-md px-3",
           ])}
         >
-          {value && value.length > 0 ? (
-            <span className="truncate">{value}</span>
-          ) : (
-            <span className="text-muted-foreground">
-              {isLoadingModels ? "Loading models..." : placeholder}
-            </span>
-          )}
+          <span className="flex items-center justify-between gap-2 w-full min-w-0">
+            {value && value.length > 0 ? (
+              <span className="truncate">
+                {getDisplayName(providerId, value)}
+              </span>
+            ) : (
+              <span className="text-muted-foreground truncate">
+                {isLoadingModels ? "Loading models..." : placeholder}
+              </span>
+            )}
+            {suffix}
+          </span>
           <ChevronDown className="-mr-1 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -179,7 +194,9 @@ export function ModelCombobox({
                     "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
                   ])}
                 >
-                  <span className="truncate">{option}</span>
+                  <span className="truncate">
+                    {getDisplayName(providerId, option)}
+                  </span>
                 </CommandItem>
               ))}
 

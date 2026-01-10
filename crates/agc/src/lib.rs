@@ -64,15 +64,13 @@ impl Default for VadAgc {
 mod tests {
     use super::*;
 
-    use rodio::Source;
-
     #[test]
     fn test_agc() {
-        let input_audio = rodio::Decoder::new(std::io::BufReader::new(
+        let input_audio = rodio::Decoder::try_from(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
+        )
         .unwrap();
-        let original_samples = input_audio.convert_samples::<f32>().collect::<Vec<_>>();
+        let original_samples: Vec<f32> = input_audio.collect();
 
         let mut agc = VadAgc::default();
 
@@ -102,14 +100,14 @@ mod tests {
 
     #[test]
     fn test_cross_call_framing() {
-        let input_audio = rodio::Decoder::new(std::io::BufReader::new(
+        let input_audio = rodio::Decoder::try_from(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
+        )
         .unwrap();
-        let original_samples = input_audio.convert_samples::<f32>().collect::<Vec<_>>();
+        let original_samples: Vec<f32> = input_audio.collect();
 
         let mut agc = VadAgc::default();
-        let mut processed = Vec::new();
+        let mut processed: Vec<f32> = Vec::new();
         for chunk in original_samples.chunks(200) {
             let mut target = chunk.to_vec();
             agc.process(&mut target);

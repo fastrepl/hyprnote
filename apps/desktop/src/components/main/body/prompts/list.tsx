@@ -2,11 +2,11 @@ import { CheckIcon, SparklesIcon } from "lucide-react";
 
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import {
   TASK_CONFIGS,
   type TaskType,
-} from "../../../../store/tinybase/prompts";
+} from "../../../../store/tinybase/store/prompts";
 
 export function PromptsListColumn({
   selectedTask,

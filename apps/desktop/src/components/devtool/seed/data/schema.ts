@@ -10,7 +10,6 @@ const CuratedPersonSchema = z.object({
   job_title: z.string(),
   linkedin_username: z.string().optional(),
   organization: z.string(),
-  is_user: z.boolean(),
 });
 
 const CuratedCalendarSchema = z.object({
@@ -69,7 +68,6 @@ const CuratedEventSchema = z.object({
 const CuratedSessionSchema = z.object({
   title: z.string(),
   raw_md: z.string(),
-  enhanced_md: z.string(),
   folder: z.string().nullable(),
   event: z.string().nullable(),
   participants: z.array(z.string()),

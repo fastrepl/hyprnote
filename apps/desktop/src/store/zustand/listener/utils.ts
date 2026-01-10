@@ -1,3 +1,5 @@
+import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
+
 export function fixSpacingForWords(
   words: string[],
   transcript: string,
@@ -25,4 +27,51 @@ export function fixSpacingForWords(
   }
 
   return result;
+}
+
+export type WordEntry = {
+  word: string;
+  punctuated_word?: string | null;
+  start: number;
+  end: number;
+  speaker?: number | null;
+};
+
+export function transformWordEntries(
+  wordEntries: WordEntry[] | null | undefined,
+  transcript: string,
+  channel: number,
+): [WordLike[], RuntimeSpeakerHint[]] {
+  const words: WordLike[] = [];
+  const hints: RuntimeSpeakerHint[] = [];
+
+  const entries = wordEntries ?? [];
+  const textsWithSpacing = fixSpacingForWords(
+    entries.map((w) => w.punctuated_word ?? w.word),
+    transcript,
+  );
+
+  for (let i = 0; i < entries.length; i++) {
+    const word = entries[i];
+    const text = textsWithSpacing[i];
+
+    words.push({
+      text,
+      start_ms: Math.round(word.start * 1000),
+      end_ms: Math.round(word.end * 1000),
+      channel,
+    });
+
+    if (typeof word.speaker === "number") {
+      hints.push({
+        wordIndex: i,
+        data: {
+          type: "provider_speaker_index",
+          speaker_index: word.speaker,
+        },
+      });
+    }
+  }
+
+  return [words, hints];
 }

@@ -4,17 +4,35 @@ import { id } from "../../../../utils";
 import type { Ctx } from "../../ctx";
 import type { EventsSyncOutput } from "./types";
 
+export type EventsSyncResult = {
+  trackingIdToEventId: Map<string, string>;
+};
+
+function getIgnoredRecurringSeries(ctx: Ctx): Set<string> {
+  const raw = ctx.store.getValue("ignored_recurring_series");
+  if (!raw) {
+    return new Set();
+  }
+  try {
+    const parsed = JSON.parse(String(raw));
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set();
+  }
+}
+
 export function executeForEventsSync(
   ctx: Ctx,
   out: EventsSyncOutput,
-): { addedEventIds: string[] } {
+): EventsSyncResult {
   const userId = ctx.store.getValue("user_id");
   if (!userId) {
     throw new Error("user_id is not set");
   }
 
   const now = new Date().toISOString();
-  const addedEventIds: string[] = [];
+  const trackingIdToEventId = new Map<string, string>();
+  const ignoredSeries = getIgnoredRecurringSeries(ctx);
 
   ctx.store.transaction(() => {
     for (const eventId of out.toDelete) {
@@ -31,8 +49,9 @@ export function executeForEventsSync(
         location: event.location,
         meeting_link: event.meeting_link,
         description: event.description,
-        participants: event.participants,
+        recurrence_series_id: event.recurrence_series_id,
       });
+      trackingIdToEventId.set(event.tracking_id_event!, event.id);
     }
 
     for (const incomingEvent of out.toAdd) {
@@ -44,7 +63,11 @@ export function executeForEventsSync(
       }
 
       const eventId = id();
-      addedEventIds.push(eventId);
+      trackingIdToEventId.set(incomingEvent.tracking_id_event, eventId);
+
+      const shouldIgnore =
+        incomingEvent.recurrence_series_id &&
+        ignoredSeries.has(incomingEvent.recurrence_series_id);
 
       ctx.store.setRow("events", eventId, {
         user_id: userId,
@@ -57,10 +80,11 @@ export function executeForEventsSync(
         location: incomingEvent.location,
         meeting_link: incomingEvent.meeting_link,
         description: incomingEvent.description,
-        participants: incomingEvent.participants,
+        recurrence_series_id: incomingEvent.recurrence_series_id,
+        ignored: shouldIgnore || undefined,
       } satisfies EventStorage);
     }
   });
 
-  return { addedEventIds };
+  return { trackingIdToEventId };
 }

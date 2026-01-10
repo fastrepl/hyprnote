@@ -16,3 +16,11 @@ pub(crate) async fn reset_dock_icon<R: tauri::Runtime>(
 ) -> Result<(), String> {
     app.icon().reset_dock_icon().map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_icon<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<String>, String> {
+    app.icon().get_icon().map_err(|e| e.to_string())
+}

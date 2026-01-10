@@ -240,7 +240,11 @@ impl RealtimeSttAdapter for GladiaAdapter {
             GladiaMessage::EndRecording { .. } => vec![],
             GladiaMessage::Error { message, code } => {
                 tracing::error!(error = %message, code = ?code, "gladia_error");
-                vec![]
+                vec![StreamResponse::ErrorResponse {
+                    error_code: code,
+                    error_message: message,
+                    provider: "gladia".to_string(),
+                }]
             }
             GladiaMessage::Unknown => {
                 tracing::debug!(raw = raw, "gladia_unknown_message");
@@ -479,22 +483,61 @@ mod tests {
     use crate::ListenClient;
     use crate::test_utils::{run_dual_test, run_single_test};
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_single() {
-        let client = ListenClient::builder()
-            .adapter::<GladiaAdapter>()
-            .api_base("https://api.gladia.io")
-            .api_key(std::env::var("GLADIA_API_KEY").expect("GLADIA_API_KEY not set"))
-            .params(owhisper_interface::ListenParams {
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single()
-            .await;
-
-        run_single_test(client, "gladia").await;
+    macro_rules! single_test {
+        ($name:ident, $params:expr) => {
+            #[tokio::test]
+            #[ignore]
+            async fn $name() {
+                let client = ListenClient::builder()
+                    .adapter::<GladiaAdapter>()
+                    .api_base("https://api.gladia.io")
+                    .api_key(std::env::var("GLADIA_API_KEY").expect("GLADIA_API_KEY not set"))
+                    .params($params)
+                    .build_single()
+                    .await;
+                run_single_test(client, "gladia").await;
+            }
+        };
     }
+
+    single_test!(
+        test_build_single,
+        owhisper_interface::ListenParams {
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_with_keywords,
+        owhisper_interface::ListenParams {
+            languages: vec![hypr_language::ISO639::En.into()],
+            keywords: vec!["Hyprnote".to_string(), "transcription".to_string()],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_multi_lang_1,
+        owhisper_interface::ListenParams {
+            languages: vec![
+                hypr_language::ISO639::En.into(),
+                hypr_language::ISO639::Es.into(),
+            ],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_multi_lang_2,
+        owhisper_interface::ListenParams {
+            languages: vec![
+                hypr_language::ISO639::En.into(),
+                hypr_language::ISO639::Ko.into(),
+            ],
+            ..Default::default()
+        }
+    );
 
     #[tokio::test]
     #[ignore]

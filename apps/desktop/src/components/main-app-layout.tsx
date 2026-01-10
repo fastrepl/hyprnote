@@ -2,26 +2,27 @@ import { Outlet, useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect } from "react";
 
-import { events as deeplink2Events } from "@hypr/plugin-deeplink2";
 import { events as windowsEvents } from "@hypr/plugin-windows";
 
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
+import { NetworkProvider } from "../contexts/network";
 import { useTabs } from "../store/zustand/tabs";
+import { TrialBeginModal } from "./devtool/trial-begin-modal";
+import { TrialExpiredModal } from "./devtool/trial-expired-modal";
+import { useNewNote } from "./main/shared";
 
-/**
- * Main app layout component that wraps routes with auth/billing providers.
- * This is loaded dynamically to prevent auth.tsx from being imported in iframe context.
- * auth.tsx creates Supabase client at module level which uses Tauri APIs that aren't
- * available in iframes.
- */
 export default function MainAppLayout() {
   useNavigationEvents();
 
   return (
     <AuthProvider>
       <BillingProvider>
-        <Outlet />
+        <NetworkProvider>
+          <Outlet />
+          <TrialBeginModal />
+          <TrialExpiredModal />
+        </NetworkProvider>
       </BillingProvider>
     </AuthProvider>
   );
@@ -30,10 +31,10 @@ export default function MainAppLayout() {
 const useNavigationEvents = () => {
   const navigate = useNavigate();
   const openNew = useTabs((state) => state.openNew);
+  const openNewNote = useNewNote({ behavior: "new" });
 
   useEffect(() => {
     let unlistenNavigate: (() => void) | undefined;
-    let unlistenDeepLink: (() => void) | undefined;
     let unlistenOpenTab: (() => void) | undefined;
 
     const webview = getCurrentWebviewWindow();
@@ -41,6 +42,7 @@ const useNavigationEvents = () => {
     void windowsEvents
       .navigate(webview)
       .listen(({ payload }) => {
+        // TODO: Not very ideal
         if (payload.path === "/app/settings") {
           let tab = (payload.search?.tab as string) ?? "general";
           if (tab === "notifications" || tab === "account") {
@@ -72,24 +74,20 @@ const useNavigationEvents = () => {
     void windowsEvents
       .openTab(webview)
       .listen(({ payload }) => {
-        openNew(payload.tab);
+        // TODO: Not very ideal
+        if (payload.tab.type === "sessions" && payload.tab.id === "new") {
+          openNewNote();
+        } else {
+          openNew(payload.tab);
+        }
       })
       .then((fn) => {
         unlistenOpenTab = fn;
       });
 
-    void deeplink2Events.deepLinkEvent
-      .listen(({ payload }) => {
-        void navigate({ to: payload.to, search: payload.search });
-      })
-      .then((fn) => {
-        unlistenDeepLink = fn;
-      });
-
     return () => {
       unlistenNavigate?.();
       unlistenOpenTab?.();
-      unlistenDeepLink?.();
     };
-  }, [navigate, openNew]);
+  }, [navigate, openNew, openNewNote]);
 };

@@ -1,5 +1,5 @@
+use ractor::Actor;
 use tauri::Manager;
-use tokio::sync::Mutex;
 
 mod actors;
 mod commands;
@@ -12,25 +12,9 @@ pub use error::*;
 pub use events::*;
 pub use ext::*;
 
+use actors::{RootActor, RootArgs, SourceActor};
+
 const PLUGIN_NAME: &str = "listener";
-
-pub type SharedState = std::sync::Arc<Mutex<State>>;
-
-pub struct State {
-    pub app: tauri::AppHandle,
-    pub session_supervisor: Option<ractor::ActorCell>,
-    pub supervisor_handle: Option<tokio::task::JoinHandle<()>>,
-}
-
-impl State {
-    pub fn get_state(&self) -> fsm::State {
-        if self.session_supervisor.is_some() {
-            crate::fsm::State::Active
-        } else {
-            crate::fsm::State::Inactive
-        }
-    }
-}
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
@@ -63,30 +47,37 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             let app_handle = app.app_handle().clone();
 
-            let state: SharedState = std::sync::Arc::new(Mutex::new(State {
-                app: app_handle,
-                session_supervisor: None,
-                supervisor_handle: None,
-            }));
-
-            app.manage(state);
+            tauri::async_runtime::spawn(async move {
+                match Actor::spawn(
+                    Some(RootActor::name()),
+                    RootActor,
+                    RootArgs { app: app_handle },
+                )
+                .await
+                {
+                    Ok(_) => {
+                        tracing::info!("root_actor_spawned");
+                    }
+                    Err(e) => {
+                        tracing::error!(?e, "failed_to_spawn_root_actor");
+                    }
+                }
+            });
 
             Ok(())
         })
-        .on_event(move |app, event| {
+        .on_event(move |_app, event| {
             if let tauri::RunEvent::Ready = event {
-                let app_handle = app.clone();
-                hypr_intercept::register_quit_handler(PLUGIN_NAME, move || {
-                    let state = app_handle.state::<SharedState>();
-                    match state.try_lock() {
-                        Ok(guard) => guard.session_supervisor.is_none(),
-                        Err(_) => false,
-                    }
+                hypr_intercept::register_quit_handler(PLUGIN_NAME, || {
+                    ractor::registry::where_is(SourceActor::name()).is_none()
                 });
             }
         })
         .on_drop(|_app| {
             hypr_intercept::unregister_quit_handler(PLUGIN_NAME);
+            if let Some(cell) = ractor::registry::where_is(RootActor::name()) {
+                cell.stop(None);
+            }
         })
         .build()
 }

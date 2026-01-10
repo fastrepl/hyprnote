@@ -35,6 +35,7 @@ impl RealtimeSttAdapter for SonioxAdapter {
         None
     }
 
+    // https://soniox.com/docs/stt/rt/connection-keepalive
     fn keep_alive_message(&self) -> Option<Message> {
         Some(Message::Text(r#"{"type":"keepalive"}"#.into()))
     }
@@ -96,10 +97,14 @@ impl RealtimeSttAdapter for SonioxAdapter {
 
         if let Some(error_msg) = &msg.error_message {
             tracing::error!(error_code = ?msg.error_code, error_message = %error_msg, "soniox_error");
-            return vec![];
+            return vec![StreamResponse::ErrorResponse {
+                error_code: msg.error_code,
+                error_message: error_msg.clone(),
+                provider: "soniox".to_string(),
+            }];
         }
 
-        let has_fin_token = msg.tokens.iter().any(|t| t.text == "<fin>");
+        let has_fin_token = msg.tokens.iter().any(Token::is_fin_marker);
         let has_end_token = msg.tokens.iter().any(|t| t.text == "<end>");
         let is_finished = msg.finished.unwrap_or(false) || has_fin_token || has_end_token;
 
@@ -141,6 +146,7 @@ impl RealtimeSttAdapter for SonioxAdapter {
         responses
     }
 
+    // https://soniox.com/docs/stt/rt/manual-finalization
     fn finalize_message(&self) -> Message {
         Message::Text(r#"{"type":"finalize"}"#.into())
     }
@@ -180,6 +186,13 @@ struct Token {
     is_final: Option<bool>,
     #[serde(default)]
     speaker: Option<SpeakerId>,
+}
+
+impl Token {
+    // https://soniox.com/docs/stt/rt/manual-finalization
+    fn is_fin_marker(&self) -> bool {
+        self.text == "<fin>" && self.is_final == Some(true)
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -281,23 +294,65 @@ mod tests {
     use crate::ListenClient;
     use crate::test_utils::{run_dual_test, run_single_test};
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_single() {
-        let client = ListenClient::builder()
-            .adapter::<SonioxAdapter>()
-            .api_base("https://api.soniox.com")
-            .api_key(std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set"))
-            .params(owhisper_interface::ListenParams {
-                model: Some("stt-v3".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single()
-            .await;
-
-        run_single_test(client, "soniox").await;
+    macro_rules! single_test {
+        ($name:ident, $params:expr) => {
+            #[tokio::test]
+            #[ignore]
+            async fn $name() {
+                let client = ListenClient::builder()
+                    .adapter::<SonioxAdapter>()
+                    .api_base("https://api.soniox.com")
+                    .api_key(std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set"))
+                    .params($params)
+                    .build_single()
+                    .await;
+                run_single_test(client, "soniox").await;
+            }
+        };
     }
+
+    single_test!(
+        test_build_single,
+        owhisper_interface::ListenParams {
+            model: Some("stt-v3".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_with_keywords,
+        owhisper_interface::ListenParams {
+            model: Some("stt-v3".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            keywords: vec!["Hyprnote".to_string(), "transcription".to_string()],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_multi_lang_1,
+        owhisper_interface::ListenParams {
+            model: Some("stt-v3".to_string()),
+            languages: vec![
+                hypr_language::ISO639::En.into(),
+                hypr_language::ISO639::Es.into(),
+            ],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_multi_lang_2,
+        owhisper_interface::ListenParams {
+            model: Some("stt-v3".to_string()),
+            languages: vec![
+                hypr_language::ISO639::En.into(),
+                hypr_language::ISO639::Ko.into(),
+            ],
+            ..Default::default()
+        }
+    );
 
     #[tokio::test]
     #[ignore]

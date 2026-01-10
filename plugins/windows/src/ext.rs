@@ -47,6 +47,11 @@ impl AppWindow {
     pub fn hide(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
         if let Some(window) = self.get(app) {
             window.hide()?;
+            let _ = events::VisibilityEvent {
+                window: self.clone(),
+                visible: false,
+            }
+            .emit(app);
         }
 
         Ok(())
@@ -110,13 +115,20 @@ impl AppWindow {
     {
         self.prepare_show(app);
 
-        if let Some(window) = self.try_show_existing(app)? {
-            return Ok(window);
-        }
+        let window = if let Some(window) = self.try_show_existing(app)? {
+            window
+        } else {
+            let window = self.build_window(app)?;
+            std::thread::sleep(std::time::Duration::from_millis(100));
+            self.finalize_show(&window)?;
+            window
+        };
 
-        let window = self.build_window(app)?;
-        std::thread::sleep(std::time::Duration::from_millis(100));
-        self.finalize_show(&window)?;
+        let _ = events::VisibilityEvent {
+            window: self.clone(),
+            visible: true,
+        }
+        .emit(app);
 
         Ok(window)
     }
@@ -130,21 +142,28 @@ impl AppWindow {
     {
         self.prepare_show(app);
 
-        if let Some(window) = self.try_show_existing(app)? {
-            return Ok(window);
+        let window = if let Some(window) = self.try_show_existing(app)? {
+            window
+        } else {
+            let ready_rx = app
+                .try_state::<WindowReadyState>()
+                .map(|state| state.register(self.label()));
+
+            let window = self.build_window(app)?;
+
+            if let Some(rx) = ready_rx {
+                let _ = tokio::time::timeout(std::time::Duration::from_secs(2), rx).await;
+            }
+
+            self.finalize_show(&window)?;
+            window
+        };
+
+        let _ = events::VisibilityEvent {
+            window: self.clone(),
+            visible: true,
         }
-
-        let ready_rx = app
-            .try_state::<WindowReadyState>()
-            .map(|state| state.register(self.label()));
-
-        let window = self.build_window(app)?;
-
-        if let Some(rx) = ready_rx {
-            let _ = tokio::time::timeout(std::time::Duration::from_secs(2), rx).await;
-        }
-
-        self.finalize_show(&window)?;
+        .emit(app);
 
         Ok(window)
     }

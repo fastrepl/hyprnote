@@ -5,11 +5,9 @@ use serde::{Deserialize, Serialize};
 use ureq::Agent;
 
 use crate::cache::CachingClient;
+use crate::constants::{DEFAULT_RETRY_INTERVAL_MS, DEFAULT_TEMPERATURE, OPENROUTER_BASE_URL};
 
-const OPENROUTER_BASE_URL: &str = "https://openrouter.ai/api/v1";
-const DEFAULT_TEMPERATURE: f64 = 0.2;
-const DEFAULT_RETRY_INTERVAL_MS: u64 = 500;
-
+/// Errors that can occur when interacting with the LLM API.
 #[derive(Debug, thiserror::Error)]
 pub enum ClientError {
     #[error("HTTP error: {0}")]
@@ -18,10 +16,43 @@ pub enum ClientError {
     Io(#[from] std::io::Error),
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
-    #[error("No choices in response")]
+    #[error("No choices in response from model")]
     NoChoices,
     #[error("Unexpected status code: {0}")]
     UnexpectedStatus(u16),
+    #[error("Request to model '{model}' failed: {message}")]
+    ModelError { model: String, message: String },
+    #[error("Grader error for rubric '{rubric}': {message}")]
+    GraderError { rubric: String, message: String },
+}
+
+impl ClientError {
+    /// Creates a new model error with context.
+    pub fn model_error(model: impl Into<String>, message: impl Into<String>) -> Self {
+        ClientError::ModelError {
+            model: model.into(),
+            message: message.into(),
+        }
+    }
+
+    /// Creates a new grader error with context.
+    pub fn grader_error(rubric: impl Into<String>, message: impl Into<String>) -> Self {
+        ClientError::GraderError {
+            rubric: rubric.into(),
+            message: message.into(),
+        }
+    }
+
+    /// Returns true if this error is retryable.
+    pub fn is_retryable(&self) -> bool {
+        match self {
+            ClientError::Http(ureq::Error::StatusCode(code)) => {
+                matches!(*code, 429 | 500 | 502 | 503 | 504)
+            }
+            ClientError::Http(ureq::Error::Io(_)) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -208,7 +239,7 @@ impl ChatCompleter for OpenRouterClient {
 
         let result = (|| self.make_request(request))
             .retry(retry_strategy)
-            .when(|e| is_retryable(e))
+            .when(|e| e.is_retryable())
             .call();
 
         result
@@ -239,13 +270,48 @@ impl UsageResolver for OpenRouterClient {
     }
 }
 
-fn is_retryable(err: &ClientError) -> bool {
-    match err {
-        ClientError::Http(ureq::Error::StatusCode(code)) => {
-            matches!(*code, 429 | 500 | 502 | 503 | 504)
-        }
-        ClientError::Http(ureq::Error::Io(_)) => true,
-        _ => false,
+/// Builds a chat completion request with common defaults.
+fn build_request(
+    model: &str,
+    messages: Vec<ChatMessage>,
+    n: Option<i32>,
+    response_format: Option<ResponseFormat>,
+) -> ChatCompletionRequest {
+    ChatCompletionRequest {
+        model: model.to_string(),
+        messages,
+        temperature: Some(DEFAULT_TEMPERATURE),
+        n,
+        response_format,
+    }
+}
+
+/// Extracts outputs from a chat completion response.
+fn extract_outputs(response: &ChatCompletionResponse) -> Vec<String> {
+    response
+        .choices
+        .iter()
+        .map(|c| c.message.content.clone())
+        .collect()
+}
+
+/// Creates a user message from a prompt string.
+fn user_message(prompt: &str) -> Vec<ChatMessage> {
+    vec![ChatMessage {
+        role: "user".to_string(),
+        content: prompt.to_string(),
+    }]
+}
+
+/// Creates the grader response format for structured output.
+fn grader_response_format() -> ResponseFormat {
+    ResponseFormat {
+        format_type: "json_schema".to_string(),
+        json_schema: Some(JsonSchemaFormat {
+            name: "grader_response".to_string(),
+            schema: grader_response_schema(),
+            strict: true,
+        }),
     }
 }
 
@@ -254,17 +320,7 @@ pub fn generate_text_with_generation_id(
     model: &str,
     prompt: &str,
 ) -> Result<(String, String), ClientError> {
-    let request = ChatCompletionRequest {
-        model: model.to_string(),
-        messages: vec![ChatMessage {
-            role: "user".to_string(),
-            content: prompt.to_string(),
-        }],
-        temperature: Some(DEFAULT_TEMPERATURE),
-        n: None,
-        response_format: None,
-    };
-
+    let request = build_request(model, user_message(prompt), None, None);
     let response = client.create_chat_completion(&request)?;
     Ok((response.choices[0].message.content.clone(), response.id))
 }
@@ -275,24 +331,30 @@ pub fn generate_text_multi_with_generation_id(
     prompt: &str,
     n: i32,
 ) -> Result<(Vec<String>, String), ClientError> {
-    let request = ChatCompletionRequest {
-        model: model.to_string(),
-        messages: vec![ChatMessage {
-            role: "user".to_string(),
-            content: prompt.to_string(),
-        }],
-        temperature: Some(DEFAULT_TEMPERATURE),
-        n: Some(n),
-        response_format: None,
-    };
-
+    let request = build_request(model, user_message(prompt), Some(n), None);
     let response = client.create_chat_completion(&request)?;
-    let outputs: Vec<String> = response
-        .choices
-        .iter()
-        .map(|c| c.message.content.clone())
-        .collect();
-    Ok((outputs, response.id))
+    Ok((extract_outputs(&response), response.id))
+}
+
+pub fn generate_chat_with_generation_id(
+    client: &dyn ChatCompleter,
+    model: &str,
+    messages: &[ChatMessage],
+) -> Result<(String, String), ClientError> {
+    let request = build_request(model, messages.to_vec(), None, None);
+    let response = client.create_chat_completion(&request)?;
+    Ok((response.choices[0].message.content.clone(), response.id))
+}
+
+pub fn generate_chat_multi_with_generation_id(
+    client: &dyn ChatCompleter,
+    model: &str,
+    messages: &[ChatMessage],
+    n: i32,
+) -> Result<(Vec<String>, String), ClientError> {
+    let request = build_request(model, messages.to_vec(), Some(n), None);
+    let response = client.create_chat_completion(&request)?;
+    Ok((extract_outputs(&response), response.id))
 }
 
 pub fn generate_structured_grader_response(
@@ -300,24 +362,12 @@ pub fn generate_structured_grader_response(
     model: &str,
     prompt: &str,
 ) -> Result<GraderResponse, ClientError> {
-    let request = ChatCompletionRequest {
-        model: model.to_string(),
-        messages: vec![ChatMessage {
-            role: "user".to_string(),
-            content: prompt.to_string(),
-        }],
-        temperature: Some(DEFAULT_TEMPERATURE),
-        n: None,
-        response_format: Some(ResponseFormat {
-            format_type: "json_schema".to_string(),
-            json_schema: Some(JsonSchemaFormat {
-                name: "grader_response".to_string(),
-                schema: grader_response_schema(),
-                strict: true,
-            }),
-        }),
-    };
-
+    let request = build_request(
+        model,
+        user_message(prompt),
+        None,
+        Some(grader_response_format()),
+    );
     let response = client.create_chat_completion(&request)?;
     let grader_resp: GraderResponse = serde_json::from_str(&response.choices[0].message.content)?;
     Ok(grader_resp)
@@ -329,29 +379,16 @@ pub fn generate_structured_grader_response_multi(
     prompt: &str,
     n: i32,
 ) -> Result<Vec<GraderResponse>, ClientError> {
-    let request = ChatCompletionRequest {
-        model: model.to_string(),
-        messages: vec![ChatMessage {
-            role: "user".to_string(),
-            content: prompt.to_string(),
-        }],
-        temperature: Some(DEFAULT_TEMPERATURE),
-        n: Some(n),
-        response_format: Some(ResponseFormat {
-            format_type: "json_schema".to_string(),
-            json_schema: Some(JsonSchemaFormat {
-                name: "grader_response".to_string(),
-                schema: grader_response_schema(),
-                strict: true,
-            }),
-        }),
-    };
-
+    let request = build_request(
+        model,
+        user_message(prompt),
+        Some(n),
+        Some(grader_response_format()),
+    );
     let response = client.create_chat_completion(&request)?;
-    let mut responses = Vec::new();
-    for choice in &response.choices {
-        let grader_resp: GraderResponse = serde_json::from_str(&choice.message.content)?;
-        responses.push(grader_resp);
-    }
-    Ok(responses)
+    response
+        .choices
+        .iter()
+        .map(|choice| serde_json::from_str(&choice.message.content).map_err(ClientError::from))
+        .collect()
 }

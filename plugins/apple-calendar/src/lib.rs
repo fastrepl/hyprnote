@@ -1,6 +1,9 @@
 #[cfg(target_os = "macos")]
 mod apple;
 
+#[cfg(feature = "fixture")]
+pub mod fixture;
+
 mod commands;
 mod error;
 mod events;
@@ -14,6 +17,7 @@ pub use types::*;
 
 const PLUGIN_NAME: &str = "apple-calendar";
 
+#[cfg(not(feature = "fixture"))]
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
@@ -21,6 +25,22 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::open_calendar::<tauri::Wry>,
             commands::list_calendars::<tauri::Wry>,
             commands::list_events::<tauri::Wry>,
+        ])
+        .events(tauri_specta::collect_events![CalendarChangedEvent])
+        .error_handling(tauri_specta::ErrorHandlingMode::Result)
+}
+
+#[cfg(feature = "fixture")]
+fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
+    tauri_specta::Builder::<R>::new()
+        .plugin_name(PLUGIN_NAME)
+        .commands(tauri_specta::collect_commands![
+            commands::open_calendar::<tauri::Wry>,
+            commands::list_calendars::<tauri::Wry>,
+            commands::list_events::<tauri::Wry>,
+            commands::advance_fixture,
+            commands::reset_fixture,
+            commands::get_fixture_info,
         ])
         .events(tauri_specta::collect_events![CalendarChangedEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
@@ -34,7 +54,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            #[cfg(target_os = "macos")]
+            #[cfg(all(target_os = "macos", not(feature = "fixture")))]
             {
                 use tauri::Manager;
                 use tauri_specta::Event;

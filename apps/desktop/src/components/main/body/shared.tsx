@@ -1,7 +1,8 @@
-import { X } from "lucide-react";
+import { Pin, X } from "lucide-react";
 import { useState } from "react";
 
 import { Kbd } from "@hypr/ui/components/ui/kbd";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
@@ -13,6 +14,8 @@ type TabItemProps<T extends Tab = Tab> = { tab: T; tabIndex?: number } & {
   handleCloseThis: (tab: T) => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
+  handlePinThis: (tab: T) => void;
+  handleUnpinThis: (tab: T) => void;
 };
 
 type TabItemBaseProps = {
@@ -20,6 +23,9 @@ type TabItemBaseProps = {
   title: React.ReactNode;
   selected: boolean;
   active?: boolean;
+  finalizing?: boolean;
+  pinned?: boolean;
+  allowPin?: boolean;
   isEmptyTab?: boolean;
   tabIndex?: number;
 } & {
@@ -27,6 +33,8 @@ type TabItemBaseProps = {
   handleSelectThis: () => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
+  handlePinThis: () => void;
+  handleUnpinThis: () => void;
 };
 
 export type TabItem<T extends Tab = Tab> = (
@@ -38,12 +46,17 @@ export function TabItemBase({
   title,
   selected,
   active = false,
+  finalizing = false,
+  pinned = false,
+  allowPin = true,
   isEmptyTab = false,
   tabIndex,
   handleCloseThis,
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }: TabItemBaseProps) {
   const isCmdPressed = useCmdKeyPressed();
   const [isHovered, setIsHovered] = useState(false);
@@ -56,9 +69,23 @@ export function TabItemBase({
     }
   };
 
-  const contextMenu = !active
-    ? selected && !isEmptyTab
-      ? [{ id: "close-tab", text: "Close", action: handleCloseThis }]
+  const contextMenu =
+    active || (selected && !isEmptyTab)
+      ? [
+          { id: "close-tab", text: "Close", action: handleCloseThis },
+          ...(allowPin
+            ? [
+                { separator: true as const },
+                pinned
+                  ? {
+                      id: "unpin-tab",
+                      text: "Unpin tab",
+                      action: handleUnpinThis,
+                    }
+                  : { id: "pin-tab", text: "Pin tab", action: handlePinThis },
+              ]
+            : []),
+        ]
       : [
           { id: "close-tab", text: "Close", action: handleCloseThis },
           {
@@ -67,8 +94,19 @@ export function TabItemBase({
             action: handleCloseOthers,
           },
           { id: "close-all", text: "Close all", action: handleCloseAll },
-        ]
-    : undefined;
+          ...(allowPin
+            ? [
+                { separator: true as const },
+                pinned
+                  ? {
+                      id: "unpin-tab",
+                      text: "Unpin tab",
+                      action: handleUnpinThis,
+                    }
+                  : { id: "pin-tab", text: "Pin tab", action: handlePinThis },
+              ]
+            : []),
+        ];
 
   const showShortcut = isCmdPressed && tabIndex !== undefined;
 
@@ -110,11 +148,27 @@ export function TabItemBase({
                 isHovered ? "opacity-0" : "opacity-100",
               ])}
             >
-              {active ? (
+              {finalizing ? (
+                <Spinner size={16} />
+              ) : active ? (
                 <div className="relative size-2">
                   <div className="absolute inset-0 rounded-full bg-red-600"></div>
                   <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
                 </div>
+              ) : pinned ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUnpinThis();
+                  }}
+                  className={cn([
+                    "flex items-center justify-center transition-colors",
+                    selected && "text-neutral-700 hover:text-neutral-900",
+                    !selected && "text-neutral-500 hover:text-neutral-700",
+                  ])}
+                >
+                  <Pin size={14} />
+                </button>
               ) : (
                 icon
               )}

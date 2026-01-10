@@ -18,6 +18,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::check::<tauri::Wry>,
             commands::download::<tauri::Wry>,
             commands::install::<tauri::Wry>,
+            commands::maybe_emit_updated::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![
             events::UpdatedEvent,

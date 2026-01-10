@@ -4,9 +4,10 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../contexts/listener";
+import { useNetwork } from "../../../../contexts/network";
 import { useAITaskTask } from "../../../../hooks/useAITaskTask";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { createTaskId } from "../../../../store/zustand/ai-task/task-configs";
 import type { Tab } from "../../../../store/zustand/tabs/schema";
 import { type EditorView } from "../../../../store/zustand/tabs/schema";
@@ -36,8 +37,8 @@ export function useCurrentNoteTab(
   const firstEnhancedNoteId = enhancedNoteIds?.[0];
 
   return useMemo(() => {
-    if (tab.state.editor) {
-      return tab.state.editor;
+    if (tab.state.view) {
+      return tab.state.view;
     }
 
     if (isListenerActive) {
@@ -49,7 +50,7 @@ export function useCurrentNoteTab(
     }
 
     return { type: "raw" };
-  }, [tab.state.editor, isListenerActive, firstEnhancedNoteId]);
+  }, [tab.state.view, isListenerActive, firstEnhancedNoteId]);
 }
 
 export function RecordingIcon({ disabled }: { disabled?: boolean }) {
@@ -68,23 +69,35 @@ export function RecordingIcon({ disabled }: { disabled?: boolean }) {
 
 export function useListenButtonState(sessionId: string) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const lastError = useListener((state) => state.live.lastError);
   const active = sessionMode === "active" || sessionMode === "finalizing";
   const batching = sessionMode === "running_batch";
 
   const taskId = createTaskId(sessionId, "enhance");
   const { status } = useAITaskTask(taskId, "enhance");
   const generating = status === "generating";
-  const { conn: sttConnection, local } = useSTTConnection();
+  const { conn: sttConnection, local, isLocalModel } = useSTTConnection();
+  const { isOnline } = useNetwork();
 
   const localServerStatus = local.data?.status ?? "unavailable";
   const isLocalServerLoading = localServerStatus === "loading";
 
+  const isOfflineWithCloudModel = !isOnline && !isLocalModel;
+
   const shouldRender = !active && !generating;
-  const isDisabled = !sttConnection || batching || isLocalServerLoading;
+  const isDisabled =
+    !sttConnection ||
+    batching ||
+    isLocalServerLoading ||
+    isOfflineWithCloudModel;
 
   let warningMessage = "";
-  if (isLocalServerLoading) {
+  if (lastError) {
+    warningMessage = `Session failed: ${lastError}`;
+  } else if (isLocalServerLoading) {
     warningMessage = "Local STT server is starting up...";
+  } else if (isOfflineWithCloudModel) {
+    warningMessage = "You're offline. Use on-device models to continue.";
   } else if (!sttConnection) {
     warningMessage = "Transcription model not available.";
   } else if (batching) {

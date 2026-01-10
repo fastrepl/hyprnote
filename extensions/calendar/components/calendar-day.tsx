@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { DayEvent } from "./day-event";
 import { DayMore } from "./day-more";
 import { DaySession } from "./day-session";
+import { parseLocalDate } from "./utils";
 
 export function CalendarDay({
   day,
@@ -45,9 +46,10 @@ export function CalendarDay({
     store.STORE_ID,
   );
 
-  const dayNumber = format(new Date(day), "d");
+  const dayDate = parseLocalDate(day);
+  const dayNumber = format(dayDate, "d");
   const isToday = format(new Date(), "yyyy-MM-dd") === day;
-  const dayOfWeek = getDay(new Date(day));
+  const dayOfWeek = getDay(dayDate);
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
   useEffect(() => {

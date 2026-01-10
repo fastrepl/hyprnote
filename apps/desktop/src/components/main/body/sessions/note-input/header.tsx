@@ -1,4 +1,4 @@
-import { AlertCircleIcon, PlusIcon, RefreshCcwIcon } from "lucide-react";
+import { AlertCircleIcon, PlusIcon, RefreshCcwIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -8,11 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@hypr/ui/components/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
@@ -25,8 +21,9 @@ import {
   useLanguageModel,
   useLLMConnectionStatus,
 } from "../../../../../hooks/useLLMConnection";
-import * as main from "../../../../../store/tinybase/main";
+import * as main from "../../../../../store/tinybase/store/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
+import { type TaskStepInfo } from "../../../../../store/zustand/ai-task/tasks";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useHasTranscript } from "../shared";
@@ -56,7 +53,7 @@ function HeaderTab({
             ],
       ])}
     >
-      {children}
+      <span className="flex items-center h-5">{children}</span>
     </button>
   );
 }
@@ -88,10 +85,8 @@ function HeaderTabEnhanced({
   sessionId: string;
   enhancedNoteId: string;
 }) {
-  const { isGenerating, isError, error, onRegenerate } = useEnhanceLogic(
-    sessionId,
-    enhancedNoteId,
-  );
+  const { isGenerating, isError, onRegenerate, onCancel, currentStep } =
+    useEnhanceLogic(sessionId, enhancedNoteId);
 
   const title =
     main.UI.useCell("enhanced_notes", enhancedNoteId, "title", main.STORE_ID) ||
@@ -106,12 +101,59 @@ function HeaderTabEnhanced({
   );
 
   if (isGenerating) {
+    const step = currentStep as TaskStepInfo<"enhance"> | undefined;
+
+    const handleCancelClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onCancel();
+    };
+
     return (
-      <HeaderTab isActive={isActive} onClick={onClick}>
-        <span className="flex items-center gap-1">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        className={cn([
+          "group/tab relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 cursor-pointer",
+          isActive
+            ? ["text-neutral-900", "border-neutral-900"]
+            : [
+                "text-neutral-600",
+                "border-transparent",
+                "hover:text-neutral-800",
+              ],
+        ])}
+      >
+        <span className="flex items-center gap-1 h-5">
           <TruncatedTitle title={title} isActive={isActive} />
+          <button
+            type="button"
+            onClick={handleCancelClick}
+            className="inline-flex h-5 w-5 items-center justify-center rounded cursor-pointer hover:bg-neutral-200"
+            aria-label="Cancel enhancement"
+          >
+            <span className="group-hover/tab:hidden flex items-center justify-center">
+              {step?.type === "generating" ? (
+                <img
+                  src="/assets/write-animation.gif"
+                  alt=""
+                  aria-hidden="true"
+                  className="size-3"
+                />
+              ) : (
+                <Spinner size={14} />
+              )}
+            </span>
+            <XIcon className="hidden group-hover/tab:flex items-center justify-center size-4" />
+          </button>
         </span>
-      </HeaderTab>
+      </div>
     );
   }
 
@@ -159,26 +201,9 @@ function HeaderTabEnhanced({
             ],
       ])}
     >
-      <span className="flex items-center gap-1">
+      <span className="flex items-center gap-1 h-5">
         <TruncatedTitle title={title} isActive={isActive} />
-        {isActive && (
-          <div className="flex items-center gap-1">
-            {isError ? (
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>{regenerateIcon}</TooltipTrigger>
-                {error && (
-                  <TooltipContent side="bottom">
-                    <p className="text-xs max-w-xs">
-                      {error instanceof Error ? error.message : String(error)}
-                    </p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            ) : (
-              regenerateIcon
-            )}
-          </div>
-        )}
+        {isActive && regenerateIcon}
       </span>
     </button>
   );
@@ -252,8 +277,9 @@ function CreateOtherFormatButton({
       }
 
       void analyticsCommands.event({
-        event: "template_summary_created",
+        event: "note_enhanced",
         template_id: templateId,
+        is_auto: false,
       });
 
       handleTabChange({ type: "enhanced", id: enhancedNoteId });
@@ -300,15 +326,20 @@ function CreateOtherFormatButton({
               </TemplateButton>
             </>
           ) : (
-            <TemplateButton
-              className="italic text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50"
-              onClick={() => {
-                setOpen(false);
-                openNew({ type: "templates" });
-              }}
-            >
-              Create templates
-            </TemplateButton>
+            <>
+              <p className="text-sm text-neutral-600 text-center mb-2">
+                No templates yet
+              </p>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  openNew({ type: "templates" });
+                }}
+                className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
+              >
+                Create templates
+              </button>
+            </>
           )}
         </div>
       </PopoverContent>
@@ -334,6 +365,7 @@ export function Header({
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const isBatchProcessing = sessionMode === "running_batch";
   const isLiveProcessing = sessionMode === "active";
+  const isMeetingOver = !isLiveProcessing && !isBatchProcessing;
 
   if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
@@ -373,7 +405,7 @@ export function Header({
               </HeaderTab>
             );
           })}
-          {currentTab.type === "enhanced" && (
+          {isMeetingOver && (
             <CreateOtherFormatButton
               sessionId={sessionId}
               handleTabChange={handleTabChange}
@@ -473,7 +505,7 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
       setMissingModelError(null);
 
       void analyticsCommands.event({
-        event: "summary_generated",
+        event: "note_enhanced",
         is_auto: false,
       });
 
@@ -512,6 +544,8 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
     isError,
     error,
     onRegenerate,
+    onCancel: enhanceTask.cancel,
+    currentStep: enhanceTask.currentStep,
   };
 }
 

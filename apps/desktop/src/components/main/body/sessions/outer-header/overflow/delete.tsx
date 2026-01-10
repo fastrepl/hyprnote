@@ -2,23 +2,34 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, TrashIcon } from "lucide-react";
 import { useCallback } from "react";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../../../store/tinybase/main";
+import { deleteSessionCascade } from "../../../../../../store/tinybase/store/deleteSession";
+import * as main from "../../../../../../store/tinybase/store/main";
+import { useTabs } from "../../../../../../store/zustand/tabs";
 
 export function DeleteNote({ sessionId }: { sessionId: string }) {
-  const deleteRow = main.UI.useDelRowCallback(
-    "sessions",
-    sessionId,
-    main.STORE_ID,
-  );
+  const store = main.UI.useStore(main.STORE_ID);
+  const indexes = main.UI.useIndexes(main.STORE_ID);
+  const invalidateResource = useTabs((state) => state.invalidateResource);
 
   const handleDeleteNote = useCallback(() => {
-    deleteRow();
-    void miscCommands.audioDelete(sessionId);
-  }, [sessionId, deleteRow]);
+    if (!store) {
+      return;
+    }
+
+    invalidateResource("sessions", sessionId);
+
+    void deleteSessionCascade(store, indexes, sessionId);
+
+    void analyticsCommands.event({
+      event: "session_deleted",
+      includes_recording: true,
+    });
+  }, [store, indexes, sessionId, invalidateResource]);
 
   return (
     <DropdownMenuItem
@@ -37,7 +48,7 @@ export function DeleteRecording({ sessionId }: { sessionId: string }) {
     mutationFn: async () => {
       await Promise.all([
         new Promise((resolve) => setTimeout(resolve, 300)),
-        miscCommands.audioDelete(sessionId).then((result) => {
+        fsSyncCommands.audioDelete(sessionId).then((result) => {
           if (result.status === "error") {
             throw new Error(result.error);
           }
@@ -47,6 +58,9 @@ export function DeleteRecording({ sessionId }: { sessionId: string }) {
       ]);
     },
     onSuccess: () => {
+      void analyticsCommands.event({
+        event: "recording_deleted",
+      });
       void queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.length >= 2 &&

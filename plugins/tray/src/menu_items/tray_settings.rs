@@ -16,6 +16,9 @@ impl MenuItemHandler for TraySettings {
         let submenu = {
             let submenu = Submenu::with_id(app, Self::ID, "Settings", true)?;
 
+            let open_ai =
+                MenuItem::with_id(app, TraySettingsAI::ID, "Open AI", true, None::<&str>)?;
+
             let open_general = MenuItem::with_id(
                 app,
                 TraySettingsGeneral::ID,
@@ -24,10 +27,7 @@ impl MenuItemHandler for TraySettings {
                 None::<&str>,
             )?;
 
-            let open_ai =
-                MenuItem::with_id(app, TraySettingsAI::ID, "Open AI", true, None::<&str>)?;
-
-            submenu.append_items(&[&open_general, &open_ai])?;
+            submenu.append_items(&[&open_ai, &open_general])?;
             submenu
         };
 

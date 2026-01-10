@@ -14,6 +14,7 @@ import { useShallow } from "zustand/shallow";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { useNotifications } from "../../../contexts/notifications";
 import { useShell } from "../../../contexts/shell";
 import {
   type Tab,
@@ -21,6 +22,7 @@ import {
   useTabs,
 } from "../../../store/zustand/tabs";
 import { ChatFloatingButton } from "../../chat";
+import { NotificationBadge } from "../../ui/notification-badge";
 import { TrafficLights } from "../../window/traffic-lights";
 import { useNewNote } from "../shared";
 import { TabContentAI, TabItemAI } from "./ai";
@@ -28,9 +30,7 @@ import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
-import { TabContentData, TabItemData } from "./data";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
-import { TabContentEvent, TabItemEvent } from "./events";
 import {
   TabContentExtension,
   TabContentExtensions,
@@ -43,6 +43,7 @@ import { TabContentHuman, TabItemHuman } from "./humans";
 import { TabContentPrompt, TabItemPrompt } from "./prompts";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
+import { useCaretPosition } from "./sessions/caret-position-context";
 import { TabContentSettings, TabItemSettings } from "./settings";
 import { TabContentTemplate, TabItemTemplate } from "./templates";
 import { Update } from "./update";
@@ -76,6 +77,7 @@ export function Body() {
 function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
   const isLinux = platform() === "linux";
+  const notifications = useNotifications();
   const {
     select,
     close,
@@ -86,6 +88,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
     canGoNext,
     closeOthers,
     closeAll,
+    pin,
+    unpin,
   } = useTabs(
     useShallow((state) => ({
       select: state.select,
@@ -97,6 +101,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
       canGoNext: state.canGoNext,
       closeOthers: state.closeOthers,
       closeAll: state.closeAll,
+      pin: state.pin,
+      unpin: state.unpin,
     })),
   );
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
@@ -120,14 +126,17 @@ function Header({ tabs }: { tabs: Tab[] }) {
     >
       {!leftsidebar.expanded && isLinux && <TrafficLights className="mr-2" />}
       {!leftsidebar.expanded && (
-        <Button
-          size="icon"
-          variant="ghost"
-          className="shrink-0"
-          onClick={() => leftsidebar.setExpanded(true)}
-        >
-          <PanelLeftOpenIcon size={16} className="text-neutral-600" />
-        </Button>
+        <div className="relative">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="shrink-0"
+            onClick={() => leftsidebar.setExpanded(true)}
+          >
+            <PanelLeftOpenIcon size={16} className="text-neutral-600" />
+          </Button>
+          <NotificationBadge show={notifications.shouldShowBadge} />
+        </div>
       )}
 
       <div className="flex items-center h-full shrink-0">
@@ -187,6 +196,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
                     handleSelect={select}
                     handleCloseOthersCallback={closeOthers}
                     handleCloseAll={closeAll}
+                    handlePin={pin}
+                    handleUnpin={unpin}
                     tabIndex={shortcutIndex}
                   />
                 </Reorder.Item>
@@ -236,6 +247,8 @@ function TabItem({
   handleSelect,
   handleCloseOthersCallback,
   handleCloseAll,
+  handlePin,
+  handleUnpin,
   tabIndex,
 }: {
   tab: Tab;
@@ -243,9 +256,13 @@ function TabItem({
   handleSelect: (tab: Tab) => void;
   handleCloseOthersCallback: (tab: Tab) => void;
   handleCloseAll: () => void;
+  handlePin: (tab: Tab) => void;
+  handleUnpin: (tab: Tab) => void;
   tabIndex?: number;
 }) {
   const handleCloseOthers = () => handleCloseOthersCallback(tab);
+  const handlePinThis = () => handlePin(tab);
+  const handleUnpinThis = () => handleUnpin(tab);
 
   if (tab.type === "sessions") {
     return (
@@ -256,18 +273,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
-      />
-    );
-  }
-  if (tab.type === "events") {
-    return (
-      <TabItemEvent
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -280,6 +287,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -292,6 +301,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -304,6 +315,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -316,6 +329,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -328,6 +343,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -340,6 +357,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -352,6 +371,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -364,6 +385,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -376,6 +399,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -388,6 +413,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -400,6 +427,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -412,6 +441,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -424,31 +455,17 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
-  if (tab.type === "data") {
-    return (
-      <TabItemData
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-      />
-    );
-  }
-
   return null;
 }
 
 function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "sessions") {
     return <TabContentNote tab={tab} />;
-  }
-  if (tab.type === "events") {
-    return <TabContentEvent tab={tab} />;
   }
   if (tab.type === "folders") {
     return <TabContentFolder tab={tab} />;
@@ -489,14 +506,14 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "ai") {
     return <TabContentAI tab={tab} />;
   }
-  if (tab.type === "data") {
-    return <TabContentData tab={tab} />;
-  }
-
   return null;
 }
 
-function TabChatButton() {
+function TabChatButton({
+  isCaretNearBottom = false,
+}: {
+  isCaretNearBottom?: boolean;
+}) {
   const { chat } = useShell();
   const currentTab = useTabs((state) => state.currentTab);
 
@@ -504,15 +521,11 @@ function TabChatButton() {
     return null;
   }
 
-  if (
-    currentTab?.type === "ai" ||
-    currentTab?.type === "settings" ||
-    currentTab?.type === "data"
-  ) {
+  if (currentTab?.type === "ai" || currentTab?.type === "settings") {
     return null;
   }
 
-  return <ChatFloatingButton />;
+  return <ChatFloatingButton isCaretNearBottom={isCaretNearBottom} />;
 }
 
 export function StandardTabWrapper({
@@ -529,11 +542,18 @@ export function StandardTabWrapper({
       <div className="flex flex-col rounded-xl border border-neutral-200 flex-1 overflow-hidden relative">
         {children}
         {floatingButton}
-        <TabChatButton />
+        <StandardTabChatButton />
       </div>
       {afterBorder}
     </div>
   );
+}
+
+function StandardTabChatButton() {
+  const caretPosition = useCaretPosition();
+  const isCaretNearBottom = caretPosition?.isCaretNearBottom ?? false;
+
+  return <TabChatButton isCaretNearBottom={isCaretNearBottom} />;
 }
 
 function useHasSpaceForSearch() {
@@ -623,6 +643,7 @@ function useTabsShortcuts() {
     selectPrev,
     restoreLastClosedTab,
     openNew,
+    unpin,
   } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
@@ -633,6 +654,7 @@ function useTabsShortcuts() {
       selectPrev: state.selectPrev,
       restoreLastClosedTab: state.restoreLastClosedTab,
       openNew: state.openNew,
+      unpin: state.unpin,
     })),
   );
   const newNote = useNewNote({ behavior: "new" });
@@ -671,7 +693,11 @@ function useTabsShortcuts() {
     "mod+w",
     async () => {
       if (currentTab) {
-        close(currentTab);
+        if (currentTab.pinned) {
+          unpin(currentTab);
+        } else {
+          close(currentTab);
+        }
       }
     },
     {
@@ -679,7 +705,7 @@ function useTabsShortcuts() {
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [currentTab, close],
+    [currentTab, close, unpin],
   );
 
   useHotkeys(
@@ -772,19 +798,8 @@ function useTabsShortcuts() {
   );
 
   useHotkeys(
-    "mod+shift+d",
+    "mod+shift+l",
     () => openNew({ type: "folders", id: null }),
-    {
-      preventDefault: true,
-      enableOnFormTags: true,
-      enableOnContentEditable: true,
-    },
-    [openNew],
-  );
-
-  useHotkeys(
-    "mod+shift+f",
-    () => openNew({ type: "data", state: { tab: null } }),
     {
       preventDefault: true,
       enableOnFormTags: true,

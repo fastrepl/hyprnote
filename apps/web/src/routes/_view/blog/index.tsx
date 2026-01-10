@@ -57,8 +57,8 @@ function Component() {
     (a) => import.meta.env.DEV || a.published === true,
   );
   const sortedArticles = [...publishedArticles].sort((a, b) => {
-    const aDate = a.updated || a.created;
-    const bDate = b.updated || b.created;
+    const aDate = a.date;
+    const bDate = b.date;
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   });
 
@@ -368,7 +368,7 @@ function MostRecentFeaturedCard({ article }: { article: Article }) {
   const [coverImageError, setCoverImageError] = useState(false);
   const [coverImageLoaded, setCoverImageLoaded] = useState(false);
   const hasCoverImage = !coverImageError;
-  const displayDate = article.updated || article.created;
+  const displayDate = article.date;
   const avatarUrl = AUTHOR_AVATARS[article.author];
 
   return (
@@ -448,7 +448,7 @@ function OtherFeaturedCard({
   const [coverImageError, setCoverImageError] = useState(false);
   const [coverImageLoaded, setCoverImageLoaded] = useState(false);
   const hasCoverImage = !coverImageError;
-  const displayDate = article.updated || article.created;
+  const displayDate = article.date;
   const avatarUrl = AUTHOR_AVATARS[article.author];
 
   return (
@@ -535,7 +535,7 @@ function OtherFeaturedCard({
 }
 
 function ArticleListItem({ article }: { article: Article }) {
-  const displayDate = article.updated || article.created;
+  const displayDate = article.date;
   const avatarUrl = AUTHOR_AVATARS[article.author];
 
   return (

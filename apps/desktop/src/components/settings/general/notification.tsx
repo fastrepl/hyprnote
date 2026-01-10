@@ -15,7 +15,7 @@ import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
 
 import { useConfigValues } from "../../../config/use-config";
-import * as settings from "../../../store/tinybase/settings";
+import * as settings from "../../../store/tinybase/store/settings";
 
 export function NotificationSettingsView() {
   const [inputValue, setInputValue] = useState("");
@@ -236,17 +236,14 @@ export function NotificationSettingsView() {
         {(field) => (
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <h3 className="mb-1 text-sm font-medium">
-                Event notifications (Not-available)
-              </h3>
+              <h3 className="mb-1 text-sm font-medium">Event notifications</h3>
               <p className="text-xs text-neutral-600">
-                Get notified about upcoming calendar events
+                Get notified 5 minutes before calendar events start
               </p>
             </div>
             <Switch
-              checked={false}
+              checked={field.state.value}
               onCheckedChange={field.handleChange}
-              disabled
             />
           </div>
         )}

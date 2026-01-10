@@ -4,11 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-macos-examples = []
+examples = []
 
 [[example]]
-name = "test_notification"
-required-features = ["macos-examples"]
+name = "test_notification_without_event"
+required-features = ["examples"]
+
+[[example]]
+name = "test_notification_with_event"
+required-features = ["examples"]
 
 [build-dependencies]
 swift-rs = { workspace = true, features = ["build"] }
@@ -16,6 +20,9 @@ swift-rs = { workspace = true, features = ["build"] }
 [dependencies]
 hypr-notification-interface = { workspace = true }
 swift-rs = { workspace = true }
+
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dev-dependencies]
 objc2 = { workspace = true }

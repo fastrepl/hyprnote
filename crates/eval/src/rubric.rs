@@ -5,13 +5,7 @@ use crate::{
     generate_structured_grader_response, generate_structured_grader_response_multi,
 };
 
-#[derive(Debug, Clone)]
-pub struct Rubric {
-    pub name: String,
-    pub description: String,
-    pub grader: GraderType,
-}
-
+/// Score represents the result of evaluating output against a rubric.
 #[derive(Debug, Clone, Default)]
 pub struct Score {
     pub rubric_name: String,
@@ -29,36 +23,32 @@ pub struct Score {
     pub fail_count: i32,
 }
 
-#[derive(Debug, Clone)]
-pub enum GraderType {
-    Func(fn(&str) -> (bool, String)),
-    FuncWithInputs(fn(&str, &HashMap<String, serde_json::Value>) -> (bool, String)),
-    Llm { samples: i32 },
-}
-
-impl Default for GraderType {
-    fn default() -> Self {
-        GraderType::Llm { samples: 1 }
-    }
-}
-
+/// Grades output using an LLM-based grader.
+///
+/// # Arguments
+/// * `client` - The chat completion client
+/// * `model` - The model to use for grading
+/// * `rubric_name` - Name of the rubric
+/// * `rubric_description` - Description of what the rubric evaluates
+/// * `samples` - Number of grading samples for consensus (1 for single evaluation)
+/// * `output` - The output to evaluate
+/// * `inputs` - Optional input variables for context
+/// * `on_evaluation` - Optional callback called after each evaluation
 pub fn grade_with_llm(
     client: &dyn ChatCompleter,
     model: &str,
-    rubric: &Rubric,
+    rubric_name: &str,
+    rubric_description: &str,
+    samples: i32,
     output: &str,
     inputs: Option<&HashMap<String, serde_json::Value>>,
     on_evaluation: Option<&dyn Fn()>,
 ) -> Score {
-    let samples = match &rubric.grader {
-        GraderType::Llm { samples } => *samples,
-        _ => 1,
-    };
-
-    let prompt = build_llm_prompt(rubric, output, inputs);
+    let samples = if samples <= 0 { 1 } else { samples };
+    let prompt = build_llm_prompt(rubric_name, rubric_description, output, inputs);
 
     let mut score = Score {
-        rubric_name: rubric.name.clone(),
+        rubric_name: rubric_name.to_string(),
         grader_type: "llm".to_string(),
         grader_model: model.to_string(),
         samples: 1,
@@ -111,31 +101,15 @@ pub fn grade_with_llm(
     score
 }
 
+/// Grades output using a function-based grader.
 pub fn grade_with_func(
-    rubric: &Rubric,
+    rubric_name: &str,
     output: &str,
     grader_fn: fn(&str) -> (bool, String),
 ) -> Score {
     let (passed, reasoning) = grader_fn(output);
     Score {
-        rubric_name: rubric.name.clone(),
-        passed,
-        value: if passed { 1 } else { 0 },
-        reasoning,
-        grader_type: "func".to_string(),
-        ..Default::default()
-    }
-}
-
-pub fn grade_with_func_inputs(
-    rubric: &Rubric,
-    output: &str,
-    inputs: &HashMap<String, serde_json::Value>,
-    grader_fn: fn(&str, &HashMap<String, serde_json::Value>) -> (bool, String),
-) -> Score {
-    let (passed, reasoning) = grader_fn(output, inputs);
-    Score {
-        rubric_name: rubric.name.clone(),
+        rubric_name: rubric_name.to_string(),
         passed,
         value: if passed { 1 } else { 0 },
         reasoning,
@@ -145,7 +119,8 @@ pub fn grade_with_func_inputs(
 }
 
 fn build_llm_prompt(
-    rubric: &Rubric,
+    rubric_name: &str,
+    rubric_description: &str,
     output: &str,
     inputs: Option<&HashMap<String, serde_json::Value>>,
 ) -> String {
@@ -169,18 +144,15 @@ Output to evaluate:
 ---
 {}
 ---"#,
-        rubric.name, rubric.description, inputs_str, output
+        rubric_name, rubric_description, inputs_str, output
     )
 }
 
+/// A simple grader function that checks if output is non-empty.
 pub fn is_non_empty(output: &str) -> (bool, String) {
     if output.trim().is_empty() {
         (false, "output is empty".to_string())
     } else {
         (true, "output is non-empty".to_string())
     }
-}
-
-pub fn non_empty_grader() -> GraderType {
-    GraderType::Func(is_non_empty)
 }

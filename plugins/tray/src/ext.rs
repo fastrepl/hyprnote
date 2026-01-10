@@ -7,7 +7,7 @@ use tauri::{
 
 use crate::menu_items::{
     AppInfo, AppNew, HyprMenuItem, MenuItemHandler, TrayCheckUpdate, TrayOpen, TrayQuit,
-    TraySettings, TrayStart, app_cli_menu,
+    TraySettings, TrayStart, TrayVersion, app_cli_menu,
 };
 
 const TRAY_ID: &str = "hypr-tray";
@@ -83,6 +83,8 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                 &TrayCheckUpdate::build(app)?,
                 &PredefinedMenuItem::separator(app)?,
                 &TrayQuit::build(app)?,
+                &PredefinedMenuItem::separator(app)?,
+                &TrayVersion::build(app)?,
             ],
         )?;
 
@@ -94,7 +96,11 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
             .menu(&menu)
             .show_menu_on_left_click(true)
             .on_menu_event(move |app: &AppHandle, event| {
-                HyprMenuItem::from(event.id.clone()).handle(app);
+                // Tauri dispatches menu events globally, so we receive events from context menus
+                // created elsewhere. TryFrom gracefully ignores unknown menu IDs that don't belong to the tray menu.
+                if let Ok(item) = HyprMenuItem::try_from(event.id.clone()) {
+                    item.handle(app);
+                }
             })
             .build(app)?;
 
@@ -114,6 +120,8 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                     &TrayCheckUpdate::build(app)?,
                     &PredefinedMenuItem::separator(app)?,
                     &TrayQuit::build(app)?,
+                    &PredefinedMenuItem::separator(app)?,
+                    &TrayVersion::build(app)?,
                 ],
             )?;
 

@@ -1,7 +1,8 @@
-use crate::types::{ImportSourceInfo, ImportSourceKind};
+use crate::output::to_tinybase_json;
+use crate::types::{ImportSource, ImportSourceInfo, ImportSourceKind, ImportStats};
+use tauri::path::BaseDirectory;
 
 pub struct Importer<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
-    #[allow(dead_code)]
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
@@ -11,12 +12,60 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
         crate::sources::list_available_sources()
     }
 
-    pub async fn run_import(&self, _source: ImportSourceKind) -> crate::Result<()> {
-        Ok(())
+    pub async fn run_import(
+        &self,
+        source_kind: ImportSourceKind,
+        user_id: String,
+    ) -> Result<ImportStats, crate::Error> {
+        let source = ImportSource::from(source_kind.clone());
+        self.run_import_from_source(&source, user_id).await
     }
 
-    pub async fn run_import_dry(&self, _source: ImportSourceKind) -> crate::Result<()> {
-        Ok(())
+    pub async fn run_import_from_source(
+        &self,
+        source: &ImportSource,
+        user_id: String,
+    ) -> Result<ImportStats, crate::Error> {
+        if !source.is_available() {
+            return Err(crate::Error::SourceNotAvailable(source.name.clone()));
+        }
+
+        let data = crate::sources::import_all(source).await?;
+        let stats = data.stats();
+
+        let tinybase_json = to_tinybase_json(&data, &user_id);
+
+        let dir_path = self
+            .manager
+            .path()
+            .resolve("hyprnote", BaseDirectory::Data)?;
+        std::fs::create_dir_all(&dir_path)?;
+        let file_path = dir_path.join("import.json");
+
+        let json_str = serde_json::to_string_pretty(&tinybase_json)?;
+        std::fs::write(&file_path, json_str)?;
+
+        Ok(stats)
+    }
+
+    pub async fn run_import_dry(
+        &self,
+        source_kind: ImportSourceKind,
+    ) -> Result<ImportStats, crate::Error> {
+        let source = ImportSource::from(source_kind.clone());
+        self.run_import_dry_from_source(&source).await
+    }
+
+    pub async fn run_import_dry_from_source(
+        &self,
+        source: &ImportSource,
+    ) -> Result<ImportStats, crate::Error> {
+        if !source.is_available() {
+            return Err(crate::Error::SourceNotAvailable(source.name.clone()));
+        }
+
+        let data = crate::sources::import_all(source).await?;
+        Ok(data.stats())
     }
 }
 

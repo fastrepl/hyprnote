@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import { cn } from "@hypr/utils";
 
 import { type SearchResult } from "../../../../contexts/search/ui";
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { getInitials } from "../../body/contacts/shared";
 
@@ -55,9 +55,9 @@ function HumanSearchResultItem({
     <button
       onClick={onClick}
       className={cn([
-        "w-full px-3 py-2.5",
+        "w-full px-3 py-2",
         "flex items-start gap-3",
-        "hover:bg-neutral-50 active:bg-neutral-100",
+        "hover:bg-neutral-100",
         "rounded-lg transition-colors",
         "text-left",
       ])}
@@ -74,7 +74,7 @@ function HumanSearchResultItem({
       <div className={cn(["flex-1 min-w-0"])}>
         <div
           className={cn([
-            "text-sm font-medium text-neutral-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold",
+            "text-sm font-normal truncate [&_mark]:bg-yellow-200 [&_mark]:font-semibold [&_mark]:text-neutral-900",
           ])}
           dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
         />
@@ -112,9 +112,9 @@ function OrganizationSearchResultItem({
     <button
       onClick={onClick}
       className={cn([
-        "w-full px-3 py-2.5",
+        "w-full px-3 py-2",
         "flex items-start gap-3",
-        "hover:bg-neutral-50 active:bg-neutral-100",
+        "hover:bg-neutral-100",
         "rounded-lg transition-colors",
         "text-left",
       ])}
@@ -122,7 +122,7 @@ function OrganizationSearchResultItem({
       <div className={cn(["flex-1 min-w-0"])}>
         <div
           className={cn([
-            "text-sm font-medium text-neutral-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold",
+            "text-sm font-normal truncate [&_mark]:bg-yellow-200 [&_mark]:font-semibold [&_mark]:text-neutral-900",
           ])}
           dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
         />
@@ -141,23 +141,51 @@ function SessionSearchResultItem({
   result: SearchResult;
   onClick: () => void;
 }) {
-  const sanitizedTitle = useMemo(
-    () =>
-      DOMPurify.sanitize(result.titleHighlighted, {
-        ALLOWED_TAGS: ["mark"],
-        ALLOWED_ATTR: [],
-      }),
-    [result.titleHighlighted],
-  );
+  const displayTitle = useMemo(() => {
+    const sanitized = DOMPurify.sanitize(result.titleHighlighted, {
+      ALLOWED_TAGS: ["mark"],
+      ALLOWED_ATTR: [],
+    });
+    if (sanitized.trim()) {
+      return sanitized;
+    }
+    return result.title || "Untitled";
+  }, [result.titleHighlighted, result.title]);
 
-  const sanitizedContent = useMemo(
-    () =>
-      DOMPurify.sanitize(result.contentHighlighted.slice(0, 200), {
+  const snippet = useMemo(() => {
+    if (!result.content) {
+      return "";
+    }
+
+    const markRegex = /<mark\b/;
+    const markMatch = result.contentHighlighted.match(markRegex);
+
+    if (markMatch) {
+      const markPos = markMatch.index!;
+      const beforeMark = result.contentHighlighted.substring(0, markPos);
+      const contextStart = Math.max(0, beforeMark.length - 60);
+      const contextEnd = Math.min(
+        result.contentHighlighted.length,
+        markPos + 200,
+      );
+
+      const snippetText = result.contentHighlighted.substring(
+        contextStart,
+        contextEnd,
+      );
+      const prefix = contextStart > 0 ? "..." : "";
+
+      return DOMPurify.sanitize(prefix + snippetText, {
         ALLOWED_TAGS: ["mark"],
         ALLOWED_ATTR: [],
-      }),
-    [result.contentHighlighted],
-  );
+      });
+    }
+
+    return DOMPurify.sanitize(result.content.slice(0, 150), {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    });
+  }, [result.contentHighlighted, result.content]);
 
   const createdAt = new Date(result.created_at);
   const now = new Date();
@@ -186,9 +214,9 @@ function SessionSearchResultItem({
     <button
       onClick={onClick}
       className={cn([
-        "w-full px-3 py-2.5",
-        "flex flex-col gap-1",
-        "hover:bg-neutral-50 active:bg-neutral-100",
+        "w-full px-3 py-2",
+        "flex flex-col gap-0.5",
+        "hover:bg-neutral-100",
         "rounded-lg transition-colors",
         "text-left",
         "min-w-0",
@@ -196,20 +224,20 @@ function SessionSearchResultItem({
     >
       <div
         className={cn([
-          "text-sm font-medium text-neutral-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold",
+          "text-sm font-medium text-neutral-900 truncate [&_mark]:bg-yellow-200 [&_mark]:font-semibold",
           "w-full",
         ])}
-        dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
+        dangerouslySetInnerHTML={{ __html: displayTitle }}
       />
-      <div className={cn(["text-xs text-neutral-500"])}>{timeAgo}</div>
-      {result.content && (
+      {snippet && (
         <div
           className={cn([
-            "text-xs text-neutral-500 line-clamp-2 [&_mark]:bg-transparent [&_mark]:font-semibold [&_mark]:text-neutral-900",
+            "text-xs text-neutral-500 line-clamp-2 [&_mark]:bg-yellow-200 [&_mark]:font-semibold [&_mark]:text-neutral-900",
           ])}
-          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+          dangerouslySetInnerHTML={{ __html: snippet }}
         />
       )}
+      <div className={cn(["text-xs text-neutral-500"])}>{timeAgo}</div>
     </button>
   );
 }

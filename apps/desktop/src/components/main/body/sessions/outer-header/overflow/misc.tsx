@@ -1,28 +1,39 @@
 import { Icon } from "@iconify-icon/react";
 import { useMutation } from "@tanstack/react-query";
+import { openPath } from "@tauri-apps/plugin-opener";
 import { FolderIcon, Link2Icon, Loader2Icon } from "lucide-react";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import {
   DropdownMenuItem,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 
 import { SearchableFolderSubmenuContent } from "../shared/folder";
 
 export function Copy() {
-  const handleCopyLink = () => {};
-
   return (
-    <DropdownMenuItem
-      disabled={true}
-      className="cursor-pointer"
-      onClick={handleCopyLink}
-    >
-      <Link2Icon />
-      <span>Copy link</span>
-    </DropdownMenuItem>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <DropdownMenuItem
+          disabled={true}
+          className="cursor-not-allowed"
+          onSelect={(e) => e.preventDefault()}
+        >
+          <Link2Icon />
+          <span>Copy link</span>
+        </DropdownMenuItem>
+      </TooltipTrigger>
+      <TooltipContent side="left">
+        <span>Coming soon</span>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -47,11 +58,11 @@ export function Folder({
 export function ShowInFinder({ sessionId }: { sessionId: string }) {
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      const result = await miscCommands.audioOpen(sessionId);
+      const result = await fsSyncCommands.sessionDir(sessionId);
       if (result.status === "error") {
         throw new Error(result.error);
       }
-      return result.data;
+      await openPath(result.data);
     },
   });
 

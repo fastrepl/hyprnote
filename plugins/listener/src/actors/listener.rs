@@ -149,6 +149,34 @@ impl Actor for ListenerActor {
             }
 
             ListenerMsg::StreamResponse(mut response) => {
+                if let StreamResponse::ErrorResponse {
+                    error_code,
+                    error_message,
+                    provider,
+                } = &response
+                {
+                    tracing::error!(
+                        ?error_code,
+                        %error_message,
+                        %provider,
+                        "stream_provider_error"
+                    );
+                    let _ = (SessionErrorEvent::ConnectionError {
+                        session_id: state.args.session_id.clone(),
+                        error: format!(
+                            "[{}] {} (code: {})",
+                            provider,
+                            error_message,
+                            error_code
+                                .map(|c| c.to_string())
+                                .unwrap_or_else(|| "none".to_string())
+                        ),
+                    })
+                    .emit(&state.args.app);
+                    myself.stop(Some(format!("{}: {}", provider, error_message)));
+                    return Ok(());
+                }
+
                 match state.args.mode {
                     crate::actors::ChannelMode::MicOnly => {
                         response.remap_channel_index(0, 2);
@@ -280,12 +308,16 @@ async fn spawn_rx_task(
 }
 
 fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams {
+    let redemption_time_ms = if args.onboarding { "60" } else { "400" };
     owhisper_interface::ListenParams {
         model: Some(args.model.clone()),
         languages: args.languages.clone(),
         sample_rate: super::SAMPLE_RATE,
-        redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
         keywords: args.keywords.clone(),
+        custom_query: Some(std::collections::HashMap::from([(
+            "redemption_time_ms".to_string(),
+            redemption_time_ms.to_string(),
+        )])),
         ..Default::default()
     }
 }
@@ -344,7 +376,6 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: "listen_ws_connect_timeout".to_string(),
-                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
@@ -354,7 +385,6 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),
-                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
@@ -416,7 +446,6 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: "listen_ws_connect_timeout".to_string(),
-                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error("listen_ws_connect_timeout"));
@@ -426,7 +455,6 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),
-                is_retryable: true,
             })
             .emit(&args.app);
             return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));

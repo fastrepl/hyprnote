@@ -4,8 +4,14 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
+    #[error(transparent)]
+    SerdeJsonError(#[from] serde_json::Error),
     #[error("settings: {0}")]
     Settings(String),
+    #[error(transparent)]
+    Path2Error(#[from] tauri_plugin_path2::Error),
 }
 
 impl Serialize for Error {

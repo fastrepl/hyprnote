@@ -1,3 +1,6 @@
 ```bash
-cargo run --example test_notification -p notification-macos
+cargo run \
+  --example test_notification_with_event \
+  -p notification-macos \
+  --features="examples"
 ```

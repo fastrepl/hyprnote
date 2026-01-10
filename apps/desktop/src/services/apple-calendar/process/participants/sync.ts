@@ -1,8 +1,7 @@
-import type { EventParticipant } from "@hypr/store";
-
-import type { Store } from "../../../../store/tinybase/main";
+import type { Store } from "../../../../store/tinybase/store/main";
 import { id } from "../../../../utils";
 import type { Ctx } from "../../ctx";
+import type { EventParticipant } from "../../fetch/types";
 import { getSessionForEvent } from "../utils";
 import type {
   HumanToCreate,
@@ -24,17 +23,21 @@ export function syncParticipants(
   const humansByEmail = buildHumansByEmailIndex(ctx.store);
   const humansToCreateMap = new Map<string, HumanToCreate>();
 
-  for (const eventId of input.eventIds) {
+  for (const [trackingId, participants] of input.incomingParticipants) {
+    const eventId = input.trackingIdToEventId.get(trackingId);
+    if (!eventId) {
+      continue;
+    }
+
     const sessionId = getSessionForEvent(ctx.store, eventId);
     if (!sessionId) {
       continue;
     }
 
-    const eventParticipants = getEventParticipants(ctx.store, eventId);
     const sessionOutput = computeSessionParticipantChanges(
       ctx.store,
       sessionId,
-      eventParticipants,
+      participants,
       humansByEmail,
       humansToCreateMap,
     );
@@ -60,23 +63,6 @@ function buildHumansByEmailIndex(store: Store): Map<string, string> {
   });
 
   return humansByEmail;
-}
-
-function getEventParticipants(
-  store: Store,
-  eventId: string,
-): EventParticipant[] {
-  const event = store.getRow("events", eventId);
-  if (!event?.participants) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(String(event.participants));
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
 }
 
 function computeSessionParticipantChanges(

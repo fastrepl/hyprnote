@@ -31,9 +31,19 @@ export type SessionsWithMaybeEventTable =
   | null
   | undefined;
 
-export type TimelineItem =
-  | { type: "event"; id: string; date: string; data: Event }
-  | { type: "session"; id: string; date: string; data: Session };
+export type EventTimelineItem = {
+  type: "event";
+  id: string;
+  date: string;
+  data: Event;
+};
+export type SessionTimelineItem = {
+  type: "session";
+  id: string;
+  date: string;
+  data: Session;
+};
+export type TimelineItem = EventTimelineItem | SessionTimelineItem;
 
 export type TimelinePrecision = "time" | "date";
 

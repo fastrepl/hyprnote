@@ -1,0 +1,133 @@
+backend:
+  name: git-gateway
+  branch: main
+
+publish_mode: editorial_workflow
+
+media_folder: apps/web/public/images
+public_folder: /images
+
+media_library:
+  name: github-images
+
+collections:
+  - name: articles
+    label: Blog
+    folder: apps/web/content/articles
+    media_folder: /apps/web/public/images/blog
+    public_folder: /images/blog
+    create: true
+    slug: "{{slug}}"
+    extension: mdx
+    format: mdx-custom
+    fields:
+      - label: Meta Title
+        name: meta_title
+        widget: string
+        hint: Title for SEO/browser tab (50-60 chars ideal)
+        pattern: ["^.{1,70}$", "Keep under 70 characters for SEO"]
+
+      - label: Display Title
+        name: display_title
+        widget: string
+        required: false
+        hint: Optional display title (defaults to meta_title if not set)
+
+      - label: Meta Description
+        name: meta_description
+        widget: text
+        hint: Description for SEO (150-160 chars ideal)
+        pattern: ["^.{50,200}$", "Aim for 150-160 characters"]
+
+      - label: Author
+        name: author
+        widget: select
+        options:
+          - Harshika
+          - John Jeong
+          - Yujong Lee
+
+      - label: Created Date
+        name: created
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        default: "{{now}}"
+        picker_utc: true
+
+      - label: Updated Date
+        name: updated
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        required: false
+        default: "{{now}}"
+        picker_utc: true
+
+      - label: Cover Image
+        name: coverImage
+        widget: image
+        required: false
+        choose_url: false
+        hint: Upload a cover image for this article
+
+      - label: Featured
+        name: featured
+        widget: boolean
+        default: false
+
+      - label: Published
+        name: published
+        widget: boolean
+        default: false
+        hint: Set to true to publish the article
+
+      - label: Category
+        name: category
+        widget: select
+        options:
+          - Case Study
+          - Hyprnote Weekly
+          - Productivity Hack
+          - Engineering
+
+      - label: Body
+        name: body
+        widget: markdown
+        hint: Use standard markdown. For images, use ![alt text](/api/images/blog/...) syntax.
+
+  - name: handbook
+    label: Handbook
+    folder: apps/web/content/handbook
+    media_folder: /apps/web/public/images/handbook
+    public_folder: /images/handbook
+    create: true
+    slug: "{{slug}}"
+    extension: mdx
+    format: mdx-custom
+    nested:
+      depth: 10
+      summary: "{{title}}"
+      subfolders: false
+    fields:
+      - label: Title
+        name: title
+        widget: string
+      - label: Section
+        name: section
+        widget: select
+        options:
+          - About
+          - How We Work
+          - Who We Want
+          - Go To Market
+          - Communication
+          - Beliefs
+      - label: Summary
+        name: summary
+        widget: text
+      - label: Body
+        name: body
+        widget: markdown

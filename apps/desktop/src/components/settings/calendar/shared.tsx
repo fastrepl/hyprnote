@@ -17,31 +17,31 @@ export type CalendarProviderId = (typeof _PROVIDERS)[number]["id"];
 
 const _PROVIDERS = [
   {
-    disabled: true,
+    disabled: false,
     id: "apple",
     displayName: "Apple",
-    badge: "Almost Done, really",
+    badge: "Beta",
     icon: <Icon icon="logos:apple" width={20} height={20} />,
     platform: "macos",
-    docsPath: "/docs/calendar/apple",
+    docsPath: "https://hyprnote.com/docs/calendar/apple",
   },
   {
     disabled: true,
     id: "google",
     displayName: "Google",
-    badge: "After Apple Calendar",
+    badge: "Coming soon",
     icon: <Icon icon="logos:google-calendar" width={20} height={20} />,
     platform: "all",
-    docsPath: "/docs/calendar/gcal",
+    docsPath: "https://hyprnote.com/docs/calendar/gcal",
   },
   {
     disabled: true,
     id: "outlook",
     displayName: "Outlook",
-    badge: "After Apple Calendar",
+    badge: "Coming soon",
     icon: <OutlookIcon size={20} />,
     platform: "all",
-    docsPath: "/docs/calendar/outlook",
+    docsPath: "https://hyprnote.com/docs/calendar/outlook",
   },
 ] as const satisfies readonly CalendarProvider[];
 

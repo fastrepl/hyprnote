@@ -4,12 +4,12 @@ import { type JSONContent, TiptapEditor } from "@hypr/tiptap/editor";
 import NoteEditor from "@hypr/tiptap/editor";
 import { EMPTY_TIPTAP_DOC, isValidTiptapContent } from "@hypr/tiptap/shared";
 
-import * as main from "../../../../../../store/tinybase/main";
+import * as main from "../../../../../../store/tinybase/store/main";
 
 export const EnhancedEditor = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string; enhancedNoteId: string }
->(({ enhancedNoteId }, ref) => {
+  { sessionId: string; enhancedNoteId: string; onNavigateToTitle?: () => void }
+>(({ enhancedNoteId, onNavigateToTitle }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
   const [initialContent, setInitialContent] =
     useState<JSONContent>(EMPTY_TIPTAP_DOC);
@@ -60,6 +60,7 @@ export const EnhancedEditor = forwardRef<
         initialContent={initialContent}
         handleChange={handleChange}
         mentionConfig={mentionConfig}
+        onNavigateToTitle={onNavigateToTitle}
       />
     </div>
   );

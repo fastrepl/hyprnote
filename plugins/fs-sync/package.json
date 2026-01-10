@@ -1,0 +1,12 @@
+{
+  "name": "@hypr/plugin-fs-sync",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./js/index.ts",
+  "scripts": {
+    "codegen": "cargo test -p tauri-plugin-fs-sync"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.1"
+  }
+}

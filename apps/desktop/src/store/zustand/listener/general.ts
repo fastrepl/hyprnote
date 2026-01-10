@@ -48,6 +48,7 @@ export type GeneralState = {
     sessionId: string | null;
     muted: boolean;
     lastError: string | null;
+    device: string | null;
   };
 };
 
@@ -75,6 +76,7 @@ const initialState: GeneralState = {
     sessionId: null,
     muted: false,
     lastError: null,
+    device: null,
   },
 };
 
@@ -204,7 +206,8 @@ export const createGeneralSlice = <
             draft.live.loadingPhase = "idle";
             draft.live.sessionId = null;
             draft.live.eventUnlisteners = undefined;
-            draft.live.lastError = null;
+            draft.live.lastError = payload.error ?? null;
+            draft.live.device = null;
           }),
         );
 
@@ -228,6 +231,7 @@ export const createGeneralSlice = <
         set((state) =>
           mutate(state, (draft) => {
             draft.live.loadingPhase = "audio_ready";
+            draft.live.device = payload.device;
           }),
         );
       } else if (payload.type === "connecting") {
@@ -372,6 +376,7 @@ export const createGeneralSlice = <
               draft.live.sessionId = null;
               draft.live.muted = initialState.live.muted;
               draft.live.lastError = null;
+              draft.live.device = null;
             }),
           );
         },

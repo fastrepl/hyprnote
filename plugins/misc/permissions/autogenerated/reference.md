@@ -7,13 +7,7 @@ Default permissions for the plugin
 - `allow-get-git-hash`
 - `allow-get-fingerprint`
 - `allow-opinionated-md-to-html`
-- `allow-delete-session-folder`
 - `allow-parse-meeting-link`
-- `allow-audio-open`
-- `allow-audio-path`
-- `allow-audio-exist`
-- `allow-audio-delete`
-- `allow-audio-import`
 
 ## Permission Table
 
@@ -280,6 +274,32 @@ Enables the parse_meeting_link command without any pre-configured scope.
 <td>
 
 Denies the parse_meeting_link command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:allow-reveal-session-in-finder`
+
+</td>
+<td>
+
+Enables the reveal_session_in_finder command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-reveal-session-in-finder`
+
+</td>
+<td>
+
+Denies the reveal_session_in_finder command without any pre-configured scope.
 
 </td>
 </tr>

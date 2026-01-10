@@ -7,6 +7,9 @@ Default permissions for the plugin
 - `allow-open-calendar`
 - `allow-list-calendars`
 - `allow-list-events`
+- `allow-advance-fixture`
+- `allow-reset-fixture`
+- `allow-get-fixture-info`
 
 ## Permission Table
 
@@ -16,6 +19,58 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`apple-calendar:allow-advance-fixture`
+
+</td>
+<td>
+
+Enables the advance_fixture command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-advance-fixture`
+
+</td>
+<td>
+
+Denies the advance_fixture command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-get-fixture-info`
+
+</td>
+<td>
+
+Enables the get_fixture_info command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-get-fixture-info`
+
+</td>
+<td>
+
+Denies the get_fixture_info command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>
@@ -91,6 +146,32 @@ Enables the open_calendar command without any pre-configured scope.
 <td>
 
 Denies the open_calendar command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-reset-fixture`
+
+</td>
+<td>
+
+Enables the reset_fixture command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-reset-fixture`
+
+</td>
+<td>
+
+Denies the reset_fixture command without any pre-configured scope.
 
 </td>
 </tr>

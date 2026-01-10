@@ -37,7 +37,7 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { useWebResources } from "../resource-list";
@@ -51,17 +51,22 @@ export const TabItemTemplate: TabItem<Extract<Tab, { type: "templates" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   return (
     <TabItemBase
       icon={<BookTextIcon className="w-4 h-4" />}
       title={"Templates"}
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };
@@ -404,7 +409,7 @@ function TemplatesHomepage({
                 onClick={onExpandSidebar}
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8"
+                className="h-8 w-8 text-neutral-600 hover:text-black"
               >
                 <Star size={16} className="text-amber-500" />
               </Button>
@@ -543,7 +548,7 @@ function TemplateCard({
         <div className="text-base font-medium font-serif line-clamp-1">
           {template.title || "Untitled"}
         </div>
-        <div className="text-sm text-stone-600 line-clamp-1">
+        <div className="text-sm text-stone-600 truncate">
           {template.description || "No description"}
         </div>
         {template.targets && template.targets.length > 0 && (
@@ -643,7 +648,11 @@ function TemplateListColumn({
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-neutral-600 hover:text-black"
+                >
                   <ArrowDownUp size={16} />
                 </Button>
               </DropdownMenuTrigger>

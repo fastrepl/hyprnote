@@ -19,9 +19,11 @@ export const createSessionTab = (
   type: "sessions",
   id: overrides.id ?? id(),
   active: overrides.active ?? false,
+  pinned: overrides.pinned ?? false,
   slotId: id(),
   state: {
-    editor: null,
+    view: null,
+    autoStart: null,
     ...overrides.state,
   },
 });
@@ -31,6 +33,7 @@ export const createContactsTab = (
 ): ContactsTab => ({
   type: "contacts",
   active: overrides.active ?? false,
+  pinned: overrides.pinned ?? false,
   slotId: id(),
   state: {
     selectedOrganization: null,

@@ -5,6 +5,15 @@ pub trait AppExt<R: tauri::Runtime> {
 
     fn get_onboarding_needed(&self) -> Result<bool, String>;
     fn set_onboarding_needed(&self, v: bool) -> Result<(), String>;
+
+    fn get_dismissed_toasts(&self) -> Result<Vec<String>, String>;
+    fn set_dismissed_toasts(&self, v: Vec<String>) -> Result<(), String>;
+
+    fn get_onboarding_local(&self) -> Result<bool, String>;
+    fn set_onboarding_local(&self, v: bool) -> Result<(), String>;
+
+    fn get_tinybase_values(&self) -> Result<Option<String>, String>;
+    fn set_tinybase_values(&self, v: String) -> Result<(), String>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
@@ -30,5 +39,57 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
         store
             .set(StoreKey::OnboardingNeeded2, v)
             .map_err(|e| e.to_string())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn get_dismissed_toasts(&self) -> Result<Vec<String>, String> {
+        let store = self.desktop_store()?;
+        store
+            .get(StoreKey::DismissedToasts)
+            .map(|opt| opt.unwrap_or_default())
+            .map_err(|e| e.to_string())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn set_dismissed_toasts(&self, v: Vec<String>) -> Result<(), String> {
+        let store = self.desktop_store()?;
+        store
+            .set(StoreKey::DismissedToasts, v)
+            .map_err(|e| e.to_string())?;
+        store.save().map_err(|e| e.to_string())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn get_onboarding_local(&self) -> Result<bool, String> {
+        let store = self.desktop_store()?;
+        store
+            .get(StoreKey::OnboardingLocal)
+            .map(|opt| opt.unwrap_or(false))
+            .map_err(|e| e.to_string())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn set_onboarding_local(&self, v: bool) -> Result<(), String> {
+        let store = self.desktop_store()?;
+        store
+            .set(StoreKey::OnboardingLocal, v)
+            .map_err(|e| e.to_string())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn get_tinybase_values(&self) -> Result<Option<String>, String> {
+        let store = self.desktop_store()?;
+        store
+            .get(StoreKey::TinybaseValues)
+            .map_err(|e| e.to_string())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn set_tinybase_values(&self, v: String) -> Result<(), String> {
+        let store = self.desktop_store()?;
+        store
+            .set(StoreKey::TinybaseValues, v)
+            .map_err(|e| e.to_string())?;
+        store.save().map_err(|e| e.to_string())
     }
 }

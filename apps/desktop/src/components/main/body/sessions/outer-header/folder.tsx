@@ -10,7 +10,7 @@ import {
 } from "@hypr/ui/components/ui/breadcrumb";
 import { Button } from "@hypr/ui/components/ui/button";
 
-import * as main from "../../../../../store/tinybase/main";
+import * as main from "../../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { FolderBreadcrumb } from "../../shared/folder-breadcrumb";
 import { SearchableFolderDropdown } from "./shared/folder";
@@ -81,7 +81,7 @@ function RenderIfRootExist({
                 size="sm"
                 variant="ghost"
                 onClick={() => openNew({ type: "folders", id })}
-                className="truncate px-0"
+                className="truncate px-0 text-neutral-600 hover:text-black"
               >
                 {name}
               </Button>

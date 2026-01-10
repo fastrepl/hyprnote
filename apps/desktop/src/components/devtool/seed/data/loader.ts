@@ -2,7 +2,7 @@ import type { Tables } from "tinybase/with-schemas";
 
 import { md2json } from "@hypr/tiptap/shared";
 
-import type { Schemas } from "../../../../store/tinybase/main";
+import type { Schemas } from "../../../../store/tinybase/store/main";
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 import { type CuratedData, CuratedDataSchema } from "./schema";
 
@@ -13,13 +13,11 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const organizations: Tables<Schemas[0]>["organizations"] = {};
   const humans: Tables<Schemas[0]>["humans"] = {};
   const calendars: Tables<Schemas[0]>["calendars"] = {};
-  const folders: Tables<Schemas[0]>["folders"] = {};
   const tags: Tables<Schemas[0]>["tags"] = {};
   const templates: Tables<Schemas[0]>["templates"] = {};
   const events: Tables<Schemas[0]>["events"] = {};
   const sessions: Tables<Schemas[0]>["sessions"] = {};
   const transcripts: Tables<Schemas[0]>["transcripts"] = {};
-  const words: Tables<Schemas[0]>["words"] = {};
   const mapping_session_participant: Tables<
     Schemas[0]
   >["mapping_session_participant"] = {};
@@ -30,7 +28,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const chat_shortcuts: Tables<Schemas[0]>["chat_shortcuts"] = {};
 
   const orgNameToId = new Map<string, string>();
-  const folderNameToId = new Map<string, string>();
   const tagNameToId = new Map<string, string>();
   const personNameToId = new Map<string, string>();
   const calendarNameToId = new Map<string, string>();
@@ -58,7 +55,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       email: person.email,
       job_title: person.job_title,
       linkedin_username: person.linkedin_username,
-      is_user: person.is_user,
       org_id: orgId,
       created_at: new Date().toISOString(),
     };
@@ -70,19 +66,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     calendars[calId] = {
       user_id: DEFAULT_USER_ID,
       name: cal.name,
-      created_at: new Date().toISOString(),
-    };
-  });
-
-  data.folders.forEach((folder) => {
-    const folderId = id();
-    folderNameToId.set(folder.name, folderId);
-    folders[folderId] = {
-      user_id: DEFAULT_USER_ID,
-      name: folder.name,
-      parent_folder_id: folder.parent
-        ? folderNameToId.get(folder.parent)
-        : undefined,
       created_at: new Date().toISOString(),
     };
   });
@@ -130,9 +113,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   data.sessions.forEach((session) => {
     const sessionId = id();
     sessionTitleToId.set(session.title, sessionId);
-    const folderId = session.folder
-      ? folderNameToId.get(session.folder)
-      : undefined;
     const eventId = session.event
       ? eventNameToId.get(session.event)
       : undefined;
@@ -141,10 +121,9 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       user_id: DEFAULT_USER_ID,
       title: session.title,
       raw_md: JSON.stringify(md2json(session.raw_md)),
-      enhanced_md: JSON.stringify(md2json(session.enhanced_md)),
       created_at: new Date().toISOString(),
       event_id: eventId,
-      folder_id: folderId,
+      folder_id: session.folder ?? undefined,
     };
 
     session.participants.forEach((participantName) => {
@@ -178,11 +157,33 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       const baseTimestamp = Date.now() - 3 * 60 * 60 * 1000;
 
       let maxEndMs = 0;
+      const wordsList: Array<{
+        id: string;
+        user_id: string;
+        transcript_id: string;
+        text: string;
+        start_ms: number;
+        end_ms: number;
+        channel: number;
+        created_at: string;
+      }> = [];
+
       session.transcript.segments.forEach((segment) => {
         segment.words.forEach((word) => {
           if (word.end_ms > maxEndMs) {
             maxEndMs = word.end_ms;
           }
+
+          wordsList.push({
+            id: id(),
+            user_id: DEFAULT_USER_ID,
+            transcript_id: transcriptId,
+            text: word.text,
+            start_ms: word.start_ms,
+            end_ms: word.end_ms,
+            channel: segment.channel,
+            created_at: new Date().toISOString(),
+          });
         });
       });
 
@@ -192,22 +193,9 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
         created_at: new Date().toISOString(),
         started_at: baseTimestamp,
         ended_at: maxEndMs > 0 ? baseTimestamp + maxEndMs : undefined,
+        words: JSON.stringify(wordsList),
+        speaker_hints: "[]",
       };
-
-      session.transcript.segments.forEach((segment) => {
-        segment.words.forEach((word) => {
-          const wordId = id();
-          words[wordId] = {
-            user_id: DEFAULT_USER_ID,
-            transcript_id: transcriptId,
-            text: word.text,
-            start_ms: word.start_ms,
-            end_ms: word.end_ms,
-            channel: segment.channel,
-            created_at: new Date().toISOString(),
-          };
-        });
-      });
     }
   });
 
@@ -266,10 +254,8 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     organizations,
     humans,
     calendars,
-    folders,
     sessions,
     transcripts,
-    words,
     events,
     mapping_session_participant,
     tags,

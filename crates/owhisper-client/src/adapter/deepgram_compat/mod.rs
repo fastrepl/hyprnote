@@ -2,7 +2,7 @@ mod keywords;
 mod language;
 
 pub use keywords::KeywordQueryStrategy;
-pub use language::LanguageQueryStrategy;
+pub use language::{LanguageQueryStrategy, TranscriptionMode};
 
 pub use url::UrlQuery;
 pub use url::form_urlencoded::Serializer;
@@ -76,17 +76,19 @@ where
         .add_common_listen_params(params, channels)
         .add_bool("interim_results", true)
         .add_bool("multichannel", channels > 1)
-        .add_bool("vad_events", false)
-        .add(
-            "redemption_time_ms",
-            params.redemption_time_ms.unwrap_or(400),
-        );
+        .add_bool("vad_events", false);
+
+    if let Some(custom) = &params.custom_query {
+        for (key, value) in custom {
+            builder.add(key, value);
+        }
+    }
 
     builder.apply_to(&mut url);
 
     {
         let mut query_pairs = url.query_pairs_mut();
-        lang_strategy.append_language_query(&mut query_pairs, params);
+        lang_strategy.append_language_query(&mut query_pairs, params, TranscriptionMode::Live);
         keyword_strategy.append_keyword_query(&mut query_pairs, params);
     }
 
@@ -142,7 +144,7 @@ where
 
     {
         let mut query_pairs = url.query_pairs_mut();
-        lang_strategy.append_language_query(&mut query_pairs, params);
+        lang_strategy.append_language_query(&mut query_pairs, params, TranscriptionMode::Batch);
         keyword_strategy.append_keyword_query(&mut query_pairs, params);
     }
 

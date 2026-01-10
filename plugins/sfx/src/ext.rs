@@ -25,22 +25,20 @@ pub(crate) fn to_speaker(
     looping: bool,
 ) -> std::sync::mpsc::Sender<SoundControl> {
     use rodio::source::Source;
-    use rodio::{Decoder, OutputStream, Sink};
+    use rodio::{Decoder, OutputStreamBuilder, Sink};
     let (tx, rx) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
-        let Ok((stream, stream_handle)) = OutputStream::try_default() else {
+        let Ok(stream) = OutputStreamBuilder::open_default_stream() else {
             return;
         };
 
         let file = std::io::Cursor::new(bytes);
-        let Ok(source) = Decoder::new(file) else {
+        let Ok(source) = Decoder::try_from(file) else {
             return;
         };
 
-        let Ok(sink) = Sink::try_new(&stream_handle) else {
-            return;
-        };
+        let sink = Sink::connect_new(stream.mixer());
 
         if looping {
             sink.append(source.repeat_infinite());

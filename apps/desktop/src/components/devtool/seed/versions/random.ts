@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker/locale/en";
-import type { Tables } from "tinybase/with-schemas";
 
-import type { Schemas } from "../../../../store/tinybase/main";
-import type { Store as MainStore } from "../../../../store/tinybase/main";
+import type { AppleCalendar } from "@hypr/plugin-apple-calendar";
+
+import type { Store as MainStore } from "../../../../store/tinybase/store/main";
 import type { SeedDefinition } from "../shared";
 import {
   buildCalendars,
@@ -11,7 +11,6 @@ import {
   buildChatShortcuts,
   buildEnhancedNotesForSessions,
   buildEventsByHuman,
-  buildFolders,
   buildHumans,
   buildOrganizations,
   buildSessionParticipants,
@@ -22,7 +21,7 @@ import {
   buildTranscriptsForSessions,
 } from "../shared";
 
-const buildRandomData = (): Tables<Schemas[0]> => {
+const buildRandomData = (fixtureCalendars?: AppleCalendar[]) => {
   faker.seed(123);
 
   const organizations = buildOrganizations(4);
@@ -34,16 +33,13 @@ const buildRandomData = (): Tables<Schemas[0]> => {
   });
   const humanIds = Object.keys(humans);
 
-  const calendars = buildCalendars(3);
+  const calendars = buildCalendars(3, fixtureCalendars);
   const calendarIds = Object.keys(calendars);
 
   const { events, eventsByHuman } = buildEventsByHuman(humanIds, calendarIds, {
     min: 1,
     max: 3,
   });
-
-  const folders = buildFolders(3, { min: 0, max: 3 });
-  const folderIds = Object.keys(folders);
 
   const tags = buildTags(8);
   const tagIds = Object.keys(tags);
@@ -56,14 +52,12 @@ const buildRandomData = (): Tables<Schemas[0]> => {
     { min: 1, max: 3 },
     {
       eventsByHuman,
-      folderIds,
       eventLinkProbability: 0.6,
-      folderProbability: 0.6,
     },
   );
   const sessionIds = Object.keys(sessions);
 
-  const { transcripts, words } = buildTranscriptsForSessions(sessionIds, {
+  const { transcripts } = buildTranscriptsForSessions(sessionIds, {
     turnCount: { min: 20, max: 50 },
   });
 
@@ -101,10 +95,8 @@ const buildRandomData = (): Tables<Schemas[0]> => {
     organizations,
     humans,
     calendars,
-    folders,
     sessions,
     transcripts,
-    words,
     events,
     mapping_session_participant,
     tags,
@@ -120,11 +112,14 @@ const buildRandomData = (): Tables<Schemas[0]> => {
 export const randomSeed: SeedDefinition = {
   id: "random",
   label: "Random",
-  run: (store: MainStore) => {
-    const data = buildRandomData();
+  calendarFixtureBase: "default",
+  run: async (store: MainStore, fixtureCalendars?: AppleCalendar[]) => {
+    const data = buildRandomData(fixtureCalendars);
+    await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {
       store.delTables();
-      store.setTables(data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      store.setTables(data as any);
     });
   },
 };

@@ -12,7 +12,8 @@ crate::common_derives! {
 
 crate::common_derives! {
     pub struct SessionsState {
-        pub editor: Option<EditorView>,
+        pub view: Option<EditorView>,
+        pub auto_start: Option<bool>,
     }
 }
 
@@ -74,23 +75,5 @@ crate::common_derives! {
     #[derive(Default)]
     pub struct AiState {
         pub tab: Option<AiTab>,
-    }
-}
-
-crate::common_derives! {
-    #[derive(Default)]
-    pub enum DataTab {
-        #[default]
-        #[serde(rename = "import")]
-        Import,
-        #[serde(rename = "export")]
-        Export,
-    }
-}
-
-crate::common_derives! {
-    #[derive(Default)]
-    pub struct DataState {
-        pub tab: Option<DataTab>,
     }
 }

@@ -1,7 +1,5 @@
 import { type ReactNode, useMemo } from "react";
 
-import * as main from "../../../../store/tinybase/main";
-
 export function FolderBreadcrumb({
   folderId,
   renderBefore,
@@ -35,7 +33,10 @@ export function FolderBreadcrumb({
           ) : index > 0 || renderBefore ? (
             <span>/</span>
           ) : null}
-          <FolderWrapper folderId={id}>
+          <FolderWrapper
+            folderId={id}
+            isLast={index === folderChain.length - 1}
+          >
             {({ id, name, isLast }) => {
               return renderCrumb({ id, name, isLast });
             }}
@@ -49,35 +50,33 @@ export function FolderBreadcrumb({
 
 function FolderWrapper({
   folderId,
+  isLast,
   children,
 }: {
   folderId: string;
+  isLast: boolean;
   children: (props: { id: string; name: string; isLast: boolean }) => ReactNode;
 }) {
-  const name = main.UI.useCell("folders", folderId, "name", main.STORE_ID);
+  const name = useMemo(() => {
+    const parts = folderId.split("/");
+    return parts[parts.length - 1] || "Untitled";
+  }, [folderId]);
+
   return (
     <>
       {children({
         id: folderId,
-        name: name ?? "Untitled",
-        isLast: false,
+        name,
+        isLast,
       })}
     </>
   );
 }
 
 export function useFolderChain(folderId: string) {
-  const folderIds = main.UI.useLinkedRowIds(
-    "folderToParentFolder",
-    folderId,
-    main.STORE_ID,
-  );
-
   return useMemo(() => {
-    if (!folderIds || folderIds.length === 0) {
-      return [] as string[];
-    }
-
-    return [...folderIds].reverse();
-  }, [folderIds]);
+    if (!folderId) return [];
+    const parts = folderId.split("/").filter(Boolean);
+    return parts.map((_, i) => parts.slice(0, i + 1).join("/"));
+  }, [folderId]);
 }

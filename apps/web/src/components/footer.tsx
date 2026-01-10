@@ -70,7 +70,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
       <p className="text-sm text-neutral-600 mb-3">
         Are you in back-to-back meetings?{" "}
         <Link
-          to="/join-waitlist"
+          to="/auth"
           className="text-neutral-600 hover:text-stone-600 transition-colors underline decoration-solid"
         >
           Get started
@@ -445,6 +445,17 @@ function SocialLinks() {
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
           >
             YouTube
+            <ExternalLinkIcon className="size-3" />
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://www.linkedin.com/company/hyprnote"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
+          >
+            LinkedIn
             <ExternalLinkIcon className="size-3" />
           </a>
         </li>

@@ -1,6 +1,8 @@
-import { providerSpeakerIndexSchema } from "@hypr/db";
-import type { ProviderSpeakerIndexHint } from "@hypr/db";
-import type { SpeakerHintStorage } from "@hypr/store";
+import {
+  type ProviderSpeakerIndexHint,
+  providerSpeakerIndexSchema,
+  type SpeakerHintStorage,
+} from "@hypr/store";
 
 import type { RuntimeSpeakerHint } from "./segment";
 

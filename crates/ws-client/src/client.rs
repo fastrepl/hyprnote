@@ -80,12 +80,12 @@ impl WebSocketClient {
         let ws_stream = (|| self.try_connect(self.request.clone()))
             .retry(
                 ConstantBuilder::default()
-                    .with_max_times(5)
+                    .with_max_times(3)
                     .with_delay(std::time::Duration::from_millis(500)),
             )
             .when(|e| {
                 tracing::error!("ws_connect_failed: {:?}", e);
-                true
+                !e.is_auth_error()
             })
             .sleep(tokio::time::sleep)
             .await?;

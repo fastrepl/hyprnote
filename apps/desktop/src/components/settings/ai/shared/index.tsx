@@ -3,6 +3,7 @@ import { type AnyFieldApi, useForm } from "@tanstack/react-form";
 import type { ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { AIProvider } from "@hypr/store";
 import { aiProviderSchema } from "@hypr/store";
 import {
@@ -12,14 +13,12 @@ import {
 } from "@hypr/ui/components/ui/accordion";
 import {
   InputGroup,
-  InputGroupAddon,
   InputGroupInput,
-  InputGroupText,
 } from "@hypr/ui/components/ui/input-group";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
-import * as settings from "../../../../store/tinybase/settings";
+import * as settings from "../../../../store/tinybase/store/settings";
 import {
   getProviderSelectionBlockers,
   getRequiredConfigFields,
@@ -101,7 +100,13 @@ export function NonHyprProviderCard({
   const showBaseUrl = requiredFields.includes("base_url");
 
   const form = useForm({
-    onSubmit: ({ value }) => setProvider(value),
+    onSubmit: ({ value }) => {
+      void analyticsCommands.event({
+        event: "ai_provider_configured",
+        provider: value.type,
+      });
+      setProvider(value);
+    },
     defaultValues:
       provider ??
       ({
@@ -158,9 +163,7 @@ export function NonHyprProviderCard({
         >
           {showBaseUrl && (
             <form.Field name="base_url">
-              {(field) => (
-                <FormField field={field} label="Base URL" icon="mdi:web" />
-              )}
+              {(field) => <FormField field={field} label="Base URL" />}
             </form.Field>
           )}
           {showApiKey && (
@@ -169,7 +172,6 @@ export function NonHyprProviderCard({
                 <FormField
                   field={field}
                   label="API Key"
-                  icon="mdi:key"
                   placeholder="Enter your API key"
                   type="password"
                 />
@@ -183,9 +185,7 @@ export function NonHyprProviderCard({
               </summary>
               <div className="mt-4">
                 <form.Field name="base_url">
-                  {(field) => (
-                    <FormField field={field} label="Base URL" icon="mdi:web" />
-                  )}
+                  {(field) => <FormField field={field} label="Base URL" />}
                 </form.Field>
               </div>
             </details>
@@ -254,13 +254,11 @@ function useProvider(id: string) {
 function FormField({
   field,
   label,
-  icon,
   placeholder,
   type,
 }: {
   field: AnyFieldApi;
   label: string;
-  icon: string;
   placeholder?: string;
   type?: string;
 }) {
@@ -280,11 +278,6 @@ function FormField({
     <div className="space-y-2">
       <label className="block text-xs font-medium">{label}</label>
       <InputGroup className="bg-white">
-        <InputGroupAddon align="inline-start">
-          <InputGroupText>
-            <Icon icon={icon} />
-          </InputGroupText>
-        </InputGroupAddon>
         <InputGroupInput
           name={field.name}
           type={type}

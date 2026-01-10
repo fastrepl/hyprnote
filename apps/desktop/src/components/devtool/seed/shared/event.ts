@@ -192,6 +192,7 @@ export const createEvent = (calendar_id: string) => {
       meeting_link,
       description,
       note,
+      ignored: undefined,
     } satisfies EventStorage,
   };
 };

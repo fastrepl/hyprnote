@@ -6,6 +6,7 @@ Default permissions for the plugin
 
 - `allow-set-dock-icon`
 - `allow-reset-dock-icon`
+- `allow-get-icon`
 
 ## Permission Table
 
@@ -15,6 +16,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`icon:allow-get-icon`
+
+</td>
+<td>
+
+Enables the get_icon command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`icon:deny-get-icon`
+
+</td>
+<td>
+
+Denies the get_icon command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>

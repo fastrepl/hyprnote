@@ -1,0 +1,34 @@
+---
+title: "Data"
+section: "Guides"
+description: "How Hyprnote stores and manages your data."
+---
+
+Hyprnote stores all data locally in a SQLite database. Nothing leaves your device unless you explicitly use cloud features.
+
+## Data Location
+
+| Platform | Path |
+|----------|------|
+| macOS | `~/Library/Application Support/hyprnote/` |
+| Linux | `~/.local/share/hyprnote/` |
+
+In development mode, the folder name changes to `com.hyprnote.dev` or `com.hyprnote.staging`.
+
+## Directory Structure
+
+```
+hyprnote/
+├── db.sqlite        # Notes, transcripts, metadata
+├── settings.json    # App configuration
+└── sessions/        # Audio recordings
+```
+
+## Export
+
+Select any note and use the export option to save as Markdown, JSON, or plain text.
+
+## Backup
+
+Copy the entire data directory to back up your notes. Include this folder in your regular backup routine.
+

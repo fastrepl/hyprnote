@@ -1,0 +1,30 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Force light color scheme */
+:root {
+  color-scheme: light;
+}
+
+/* Code block styling */
+.astro-code {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Table styling */
+.prose table {
+  font-size: 0.875rem;
+}
+
+.prose th {
+  background-color: #f9fafb;
+}
+
+.prose td,
+.prose th {
+  border-color: #e5e7eb;
+}

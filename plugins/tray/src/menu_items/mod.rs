@@ -6,6 +6,7 @@ mod tray_open;
 mod tray_quit;
 mod tray_settings;
 mod tray_start;
+mod tray_version;
 
 pub use app_cli::{AppCliInstall, AppCliUninstall, app_cli_menu};
 pub use app_info::AppInfo;
@@ -15,6 +16,7 @@ pub use tray_open::TrayOpen;
 pub use tray_quit::TrayQuit;
 pub use tray_settings::{TraySettings, TraySettingsAI, TraySettingsGeneral};
 pub use tray_start::TrayStart;
+pub use tray_version::TrayVersion;
 
 use tauri::{AppHandle, Result, menu::MenuItemKind};
 
@@ -40,12 +42,14 @@ macro_rules! menu_items {
             }
         }
 
-        impl From<tauri::menu::MenuId> for HyprMenuItem {
-            fn from(id: tauri::menu::MenuId) -> Self {
+        impl TryFrom<tauri::menu::MenuId> for HyprMenuItem {
+            type Error = ();
+
+            fn try_from(id: tauri::menu::MenuId) -> std::result::Result<Self, Self::Error> {
                 let id = id.0.as_str();
                 match id {
-                    $(<$item as MenuItemHandler>::ID => HyprMenuItem::$variant,)*
-                    _ => unreachable!("Unknown menu id: {}", id),
+                    $(<$item as MenuItemHandler>::ID => Ok(HyprMenuItem::$variant),)*
+                    _ => Err(()),
                 }
             }
         }
@@ -68,6 +72,7 @@ menu_items! {
     TraySettingsAI => TraySettingsAI,
     TrayCheckUpdate => TrayCheckUpdate,
     TrayQuit => TrayQuit,
+    TrayVersion => TrayVersion,
     AppInfo => AppInfo,
     AppCliInstall => AppCliInstall,
     AppCliUninstall => AppCliUninstall,

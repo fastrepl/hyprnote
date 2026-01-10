@@ -80,3 +80,42 @@ pub(crate) async fn set_respect_do_not_disturb<R: tauri::Runtime>(
     app.detect().set_respect_do_not_disturb(enabled).await;
     Ok(())
 }
+
+#[cfg(target_os = "macos")]
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_preferred_languages<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    Ok(hypr_detect::get_preferred_languages()
+        .into_iter()
+        .map(|l| l.bcp47())
+        .collect())
+}
+
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_preferred_languages<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    Ok(Vec::new())
+}
+
+#[cfg(target_os = "macos")]
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_current_locale_identifier<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    Ok(hypr_detect::get_current_locale_identifier())
+}
+
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_current_locale_identifier<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    Ok(String::new())
+}

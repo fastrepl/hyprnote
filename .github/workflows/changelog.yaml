@@ -1,0 +1,83 @@
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Release channel"
+        required: true
+        type: choice
+        options:
+          - nightly
+          - stable
+  workflow_call:
+    inputs:
+      channel:
+        required: true
+        type: string
+      issue_number:
+        required: false
+        type: number
+      comment_id:
+        required: false
+        type: number
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - run: git fetch --tags --force
+
+      - if: inputs.comment_id
+        uses: ./.github/actions/add-reaction
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repo: ${{ github.repository }}
+          comment: ${{ inputs.comment_id }}
+          reaction: eyes
+
+      - uses: ./.github/actions/doxxer_install
+      - id: version
+        run: |
+          if [ "${{ inputs.channel }}" = "nightly" ]; then
+            LATEST_TAG=$(git tag -l 'desktop_v*' --sort=-v:refname | head -n1)
+            if [[ "$LATEST_TAG" == *"-nightly"* ]]; then
+              VERSION=$(doxxer --config doxxer.desktop.toml next prerelease)
+            else
+              VERSION=$(doxxer --config doxxer.desktop.toml next pre-patch)
+            fi
+            PREV=$(git tag -l 'desktop_v*-nightly.*' --sort=-v:refname | head -n1)
+            CURRENT="HEAD"
+          else
+            VERSION=$(doxxer --config doxxer.desktop.toml next patch)
+            PREV=$(git tag -l 'desktop_v*' --sort=-v:refname | grep -v 'nightly' | head -n1)
+            CURRENT=$(git tag -l 'desktop_v*-nightly.*' --sort=-v:refname | head -n1)
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "prev=$PREV" >> $GITHUB_OUTPUT
+
+      - uses: anomalyco/opencode/github@latest
+        env:
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+        with:
+          model: zai-coding-plan/glm-4.7
+          prompt: |
+            1.
+            Create apps/web/content/changelog/${{ steps.version.outputs.version }}.mdx.
+            Changelog should be generated from commits between ${{ steps.version.outputs.prev }} ~ ${{ steps.version.outputs.current }}.
+            Follow guidelines in apps/web/content/changelog/AGENTS.md.
+
+            2.
+            Create a PR with title "Publish Changelog for ${{ steps.version.outputs.version }}"
+
+            3. Do not run `typecheck`, `dprint` or `pnpm` things.

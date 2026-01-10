@@ -54,6 +54,7 @@ tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 tauri-plugin-shell = { workspace = true }
+tauri-plugin-sidecar2 = { workspace = true }
 tauri-plugin-windows = { workspace = true }
 
 dirs = { workspace = true }

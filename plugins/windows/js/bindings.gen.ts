@@ -45,22 +45,6 @@ async windowIsExists(window: AppWindow) : Promise<Result<boolean, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
-},
-async setFakeWindowBounds(name: string, bounds: OverlayBound) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|set_fake_window_bounds", { name, bounds }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async removeFakeWindow(name: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|remove_fake_window", { name }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
 }
 }
 
@@ -68,14 +52,14 @@ async removeFakeWindow(name: string) : Promise<Result<null, string>> {
 
 
 export const events = __makeEvents__<{
-mainWindowState: MainWindowState,
 navigate: Navigate,
 openTab: OpenTab,
+visibilityEvent: VisibilityEvent,
 windowDestroyed: WindowDestroyed
 }>({
-mainWindowState: "plugin:windows:main-window-state",
 navigate: "plugin:windows:navigate",
 openTab: "plugin:windows:open-tab",
+visibilityEvent: "plugin:windows:visibility-event",
 windowDestroyed: "plugin:windows:window-destroyed"
 })
 
@@ -91,19 +75,16 @@ export type AppWindow = { type: "onboarding" } | { type: "main" } | { type: "con
 export type ChangelogState = { previous: string | null; current: string }
 export type ChatShortcutsState = { isWebMode: boolean | null; selectedMineId: string | null; selectedWebIndex: number | null }
 export type ContactsState = { selectedOrganization: string | null; selectedPerson: string | null }
-export type DataState = { tab: DataTab | null }
-export type DataTab = "import" | "export"
 export type EditorView = { type: "raw" } | { type: "transcript" } | { type: "enhanced"; id: string }
 export type ExtensionsState = { selectedExtension: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type MainWindowState = { left_sidebar_expanded: boolean | null; right_panel_expanded: boolean | null }
 export type Navigate = { path: string; search: Partial<{ [key in string]: JsonValue }> | null }
 export type OpenTab = { tab: TabInput }
-export type OverlayBound = { x: number; y: number; width: number; height: number }
 export type PromptsState = { selectedTask: string | null }
-export type SessionsState = { editor: EditorView | null }
-export type TabInput = { type: "sessions"; id: string; state?: SessionsState | null } | { type: "contacts"; state?: ContactsState | null } | { type: "templates"; state?: TemplatesState | null } | { type: "prompts"; state?: PromptsState | null } | { type: "chat_shortcuts"; state?: ChatShortcutsState | null } | { type: "extensions"; state?: ExtensionsState | null } | { type: "events"; id: string } | { type: "humans"; id: string } | { type: "organizations"; id: string } | { type: "folders"; id: string | null } | { type: "empty" } | { type: "extension"; extensionId: string; state?: Partial<{ [key in string]: JsonValue }> | null } | { type: "calendar" } | { type: "changelog"; state: ChangelogState } | { type: "settings" } | { type: "ai"; state?: AiState | null } | { type: "data"; state?: DataState | null }
+export type SessionsState = { view: EditorView | null; autoStart: boolean | null }
+export type TabInput = { type: "sessions"; id: string; state?: SessionsState | null } | { type: "contacts"; state?: ContactsState | null } | { type: "templates"; state?: TemplatesState | null } | { type: "prompts"; state?: PromptsState | null } | { type: "chat_shortcuts"; state?: ChatShortcutsState | null } | { type: "extensions"; state?: ExtensionsState | null } | { type: "humans"; id: string } | { type: "organizations"; id: string } | { type: "folders"; id: string | null } | { type: "empty" } | { type: "extension"; extensionId: string; state?: Partial<{ [key in string]: JsonValue }> | null } | { type: "calendar" } | { type: "changelog"; state: ChangelogState } | { type: "settings" } | { type: "ai"; state?: AiState | null }
 export type TemplatesState = { showHomepage: boolean | null; isWebMode: boolean | null; selectedMineId: string | null; selectedWebIndex: number | null }
+export type VisibilityEvent = { window: AppWindow; visible: boolean }
 export type WindowDestroyed = { window: AppWindow }
 
 /** tauri-specta globals **/

@@ -254,7 +254,6 @@ fn argmax_1d(v: Array1<f32>) -> i64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rodio::Source;
 
     #[test]
     fn test_transcribe() {
@@ -271,12 +270,12 @@ mod tests {
         )
         .unwrap();
 
-        let decoder = rodio::Decoder::new(std::io::BufReader::new(
+        let decoder = rodio::Decoder::try_from(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
+        )
         .unwrap();
 
-        let samples: Vec<f32> = decoder.convert_samples::<f32>().collect();
+        let samples: Vec<f32> = decoder.collect();
 
         let start_idx = 50000;
         let segment_len = 16000 * 15;

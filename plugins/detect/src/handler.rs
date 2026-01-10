@@ -39,7 +39,11 @@ pub(crate) fn default_ignored_bundle_ids() -> Vec<String> {
 
     let ai_assistants = ["com.openai.chat", "com.anthropic.claudefordesktop"];
 
-    let other = ["com.raycast.macos", "com.apple.garageband10"];
+    let other = [
+        "com.raycast.macos",
+        "com.apple.garageband10",
+        "com.apple.Sound-Settings.extension",
+    ];
 
     dictation_apps
         .into_iter()
@@ -105,6 +109,7 @@ pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::er
                     },
                 );
             }
+            #[cfg(all(target_os = "macos", feature = "zoom"))]
             other_event => {
                 emit_to_main(&app_handle, DetectEvent::from(other_event));
             }

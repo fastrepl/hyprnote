@@ -7,7 +7,7 @@ import {
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
 
-import type { TaskType } from "../../../../store/tinybase/prompts";
+import type { TaskType } from "../../../../store/tinybase/store/prompts";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
@@ -21,17 +21,22 @@ export const TabItemPrompt: TabItem<Extract<Tab, { type: "prompts" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   return (
     <TabItemBase
       icon={<SparklesIcon className="w-4 h-4" />}
       title={"Prompts"}
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };

@@ -65,10 +65,23 @@ impl Session {
     pub fn is_empty(&self) -> bool {
         self.enhanced_memo_html
             .as_ref()
-            .is_none_or(|s| s.is_empty())
-            && self.raw_memo_html.is_empty()
+            .is_none_or(|s| is_html_empty(s))
+            && is_html_empty(&self.raw_memo_html)
             && self.words.is_empty()
     }
+}
+
+fn is_html_empty(html: &str) -> bool {
+    let mut in_tag = false;
+    for c in html.chars() {
+        match c {
+            '<' => in_tag = true,
+            '>' => in_tag = false,
+            _ if !in_tag && !c.is_whitespace() => return false,
+            _ => {}
+        }
+    }
+    true
 }
 
 user_common_derives! {

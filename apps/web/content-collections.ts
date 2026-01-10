@@ -18,31 +18,26 @@ async function embedGithubCode(content: string): Promise<string> {
   for (const match of matches) {
     const [fullMatch, url] = match;
 
-    // Check if it's a same-repo URL (fastrepl/hyprnote)
     const repoMatch = url.match(
       /github\.com\/fastrepl\/hyprnote\/blob\/[^/]+\/(.+)/,
     );
     if (repoMatch) {
       const filePath = repoMatch[1];
       const fileName = path.basename(filePath);
-      // Use process.cwd() which is the apps/web directory during content-collections build
       const localPath = path.resolve(process.cwd(), "..", "..", filePath);
 
       try {
         const fileContent = fs.readFileSync(localPath, "utf-8");
 
-        // Extract code block content if the file is markdown
         const codeBlockMatch = fileContent.match(/```(\w+)\n([\s\S]*?)```/);
         if (codeBlockMatch) {
           const [, lang, code] = codeBlockMatch;
-          // Generate GithubEmbed component with escaped code
           const escapedCode = JSON.stringify(code.trimEnd());
           result = result.replace(
             fullMatch,
             `<GithubEmbed code={${escapedCode}} fileName="${fileName}" language="${lang}" />`,
           );
         } else {
-          // If no code block, embed the whole file as plain text
           const escapedCode = JSON.stringify(fileContent.trimEnd());
           result = result.replace(
             fullMatch,
@@ -92,8 +87,7 @@ const articles = defineCollection({
     meta_title: z.string(),
     meta_description: z.string(),
     author: z.enum(["Harshika", "John Jeong", "Yujong Lee"]),
-    created: z.string(),
-    updated: z.string().optional(),
+    date: z.string(),
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),
     published: z.boolean().default(false),
@@ -129,14 +123,12 @@ const articles = defineCollection({
 
     const author = document.author || "Hyprnote Team";
     const title = document.display_title || document.meta_title;
-    const updated = document.updated || document.created;
 
     return {
       ...document,
       mdx,
       slug,
       author,
-      updated,
       title,
       toc,
     };
@@ -149,7 +141,7 @@ const changelog = defineCollection({
   include: "*.mdx",
   exclude: "AGENTS.md",
   schema: z.object({
-    created: z.coerce.date(),
+    date: z.string(),
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
@@ -197,11 +189,9 @@ const docs = defineCollection({
     summary: z.string().optional(),
     category: z.string().optional(),
     author: z.string().optional(),
-    created: z.string().optional(),
-    updated: z.string().optional(),
+    date: z.string().optional(),
   }),
   transform: async (document, context) => {
-    // Preprocess content to embed GitHub code snippets at build time
     const processedContent = await embedGithubCode(document.content);
     const processedDocument = { ...document, content: processedContent };
 
@@ -261,7 +251,7 @@ const legal = defineCollection({
   schema: z.object({
     title: z.string(),
     summary: z.string(),
-    updated: z.string(),
+    date: z.string(),
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
@@ -557,11 +547,9 @@ const roadmap = defineCollection({
   schema: z.object({
     title: z.string(),
     status: z.enum(["todo", "in-progress", "done"]),
-    created: z.string(),
-    updated: z.string().optional(),
+    date: z.string(),
     labels: z.array(z.string()).optional(),
     priority: z.enum(["high", "mid", "low"]),
-    date: z.string().optional(),
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
@@ -627,8 +615,7 @@ const handbook = defineCollection({
     section: z.string(),
     summary: z.string().optional(),
     author: z.string().optional(),
-    created: z.string().optional(),
-    updated: z.string().optional(),
+    date: z.string().optional(),
   }),
   transform: async (document, context) => {
     const toc = extractToc(document.content);
@@ -678,6 +665,27 @@ const handbook = defineCollection({
   },
 });
 
+const bounties = defineCollection({
+  name: "bounties",
+  directory: "content/bounties",
+  include: "*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    title: z.string(),
+    amount: z.number(),
+    issue: z.number(),
+    status: z.enum(["open", "claimed", "paid"]).default("open"),
+  }),
+  transform: async (document) => {
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    return {
+      ...document,
+      slug,
+    };
+  },
+});
+
 export default defineConfig({
   collections: [
     articles,
@@ -693,5 +701,6 @@ export default defineConfig({
     handbook,
     roadmap,
     ossFriends,
+    bounties,
   ],
 });

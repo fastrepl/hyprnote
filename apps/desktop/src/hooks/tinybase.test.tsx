@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   TinyBaseTestWrapper,
-  useFolder,
   useHuman,
   useOrganization,
   useSession,
@@ -23,7 +22,6 @@ describe("TinyBase hooks", () => {
 
       expect(result.current).toHaveProperty("title");
       expect(result.current).toHaveProperty("rawMd");
-      expect(result.current).toHaveProperty("enhancedMd");
       expect(result.current).toHaveProperty("createdAt");
       expect(result.current).toHaveProperty("eventId");
       expect(result.current).toHaveProperty("folderId");
@@ -78,7 +76,6 @@ describe("TinyBase hooks", () => {
       expect(result.current).toHaveProperty("orgId");
       expect(result.current).toHaveProperty("jobTitle");
       expect(result.current).toHaveProperty("linkedinUsername");
-      expect(result.current).toHaveProperty("isUser");
     });
   });
 
@@ -91,20 +88,6 @@ describe("TinyBase hooks", () => {
       });
 
       expect(result.current).toHaveProperty("name");
-      expect(result.current).toHaveProperty("createdAt");
-    });
-  });
-
-  describe("useFolder", () => {
-    it("returns an object with folder fields", () => {
-      const { result } = renderHook(() => useFolder("test-folder"), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(result.current).toHaveProperty("name");
-      expect(result.current).toHaveProperty("parentFolderId");
       expect(result.current).toHaveProperty("createdAt");
     });
   });

@@ -47,8 +47,34 @@ impl RealtimeSttAdapter for ArgmaxAdapter {
     }
 
     fn parse_response(&self, raw: &str) -> Vec<StreamResponse> {
-        serde_json::from_str(raw).into_iter().collect()
+        match serde_json::from_str::<StreamResponse>(raw) {
+            Ok(response) => vec![response],
+            Err(_) => {
+                if let Ok(error) = serde_json::from_str::<ArgmaxError>(raw) {
+                    tracing::error!(
+                        error_type = %error.error_type,
+                        error_message = %error.message,
+                        "argmax_error"
+                    );
+                    vec![StreamResponse::ErrorResponse {
+                        error_code: None,
+                        error_message: format!("{}: {}", error.error_type, error.message),
+                        provider: "argmax".to_string(),
+                    }]
+                } else {
+                    tracing::warn!(raw = raw, "argmax_unknown_message");
+                    vec![]
+                }
+            }
+        }
     }
+}
+
+#[derive(serde::Deserialize)]
+struct ArgmaxError {
+    #[serde(rename = "type")]
+    error_type: String,
+    message: String,
 }
 
 #[cfg(test)]
@@ -57,23 +83,41 @@ mod tests {
     use crate::ListenClient;
     use crate::test_utils::{run_dual_test, run_single_test};
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_single() {
-        let client = ListenClient::builder()
-            .adapter::<ArgmaxAdapter>()
-            .api_base("ws://localhost:50060/v1")
-            .api_key("")
-            .params(owhisper_interface::ListenParams {
-                model: Some("large-v3-v20240930_626MB".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single()
-            .await;
-
-        run_single_test(client, "argmax").await;
+    macro_rules! single_test {
+        ($name:ident, $params:expr) => {
+            #[tokio::test]
+            #[ignore]
+            async fn $name() {
+                let client = ListenClient::builder()
+                    .adapter::<ArgmaxAdapter>()
+                    .api_base("ws://localhost:50060/v1")
+                    .api_key("")
+                    .params($params)
+                    .build_single()
+                    .await;
+                run_single_test(client, "argmax").await;
+            }
+        };
     }
+
+    single_test!(
+        test_build_single,
+        owhisper_interface::ListenParams {
+            model: Some("large-v3-v20240930_626MB".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        }
+    );
+
+    single_test!(
+        test_single_with_keywords,
+        owhisper_interface::ListenParams {
+            model: Some("large-v3-v20240930_626MB".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            keywords: vec!["Hyprnote".to_string(), "transcription".to_string()],
+            ..Default::default()
+        }
+    );
 
     #[tokio::test]
     #[ignore]

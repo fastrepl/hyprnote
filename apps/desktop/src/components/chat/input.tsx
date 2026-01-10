@@ -1,5 +1,11 @@
-import { FullscreenIcon, MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  FullscreenIcon,
+  MicIcon,
+  PaperclipIcon,
+  SendIcon,
+  SquareIcon,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { SlashCommandConfig, TiptapEditor } from "@hypr/tiptap/chat";
@@ -9,21 +15,32 @@ import {
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../contexts/shell";
-import * as main from "../../store/tinybase/main";
+import * as main from "../../store/tinybase/store/main";
 
 export function ChatMessageInput({
   onSendMessage,
   disabled: disabledProp,
   attachedSession,
+  isStreaming,
+  onStop,
 }: {
   onSendMessage: (content: string, parts: any[]) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
   attachedSession?: { id: string; title?: string };
+  isStreaming?: boolean;
+  onStop?: () => void;
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const [hasContent, setHasContent] = useState(false);
+  const { chat } = useShell();
   const chatShortcuts = main.UI.useResultTable(
     main.QUERIES.visibleChatShortcuts,
     main.STORE_ID,
@@ -44,10 +61,11 @@ export function ChatMessageInput({
       return;
     }
 
-    void analyticsCommands.event({ event: "chat_message_sent" });
+    void analyticsCommands.event({ event: "message_sent" });
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
-  }, [disabled, onSendMessage]);
+    chat.setDraftMessage(undefined);
+  }, [disabled, onSendMessage, chat]);
 
   useEffect(() => {
     const editor = editorRef.current?.editor;
@@ -60,17 +78,42 @@ export function ChatMessageInput({
     }
   }, [disabled]);
 
-  const handleAttachFile = useCallback(() => {
-    console.log("Attach file clicked");
-  }, []);
+  useEffect(() => {
+    let updateHandler: (() => void) | null = null;
+    const checkEditor = setInterval(() => {
+      const editor = editorRef.current?.editor;
+      if (editor && !editor.isDestroyed && editor.isInitialized) {
+        clearInterval(checkEditor);
 
-  const handleTakeScreenshot = useCallback(() => {
-    console.log("Take screenshot clicked");
-  }, []);
+        if (chat.draftMessage) {
+          editor.commands.setContent(chat.draftMessage);
+        }
 
-  const handleVoiceInput = useCallback(() => {
-    console.log("Voice input clicked");
-  }, []);
+        updateHandler = () => {
+          const json = editor.getJSON();
+          const text = tiptapJsonToText(json).trim();
+          setHasContent(text.length > 0);
+          chat.setDraftMessage(json);
+        };
+
+        editor.on("update", updateHandler);
+      }
+    }, 100);
+
+    return () => {
+      clearInterval(checkEditor);
+      const editor = editorRef.current?.editor;
+      if (editor && updateHandler) {
+        editor.off("update", updateHandler);
+      }
+    };
+  }, [chat]);
+
+  const handleAttachFile = useCallback(() => {}, []);
+
+  const handleTakeScreenshot = useCallback(() => {}, []);
+
+  const handleVoiceInput = useCallback(() => {}, []);
 
   const slashCommandConfig: SlashCommandConfig = useMemo(
     () => ({
@@ -133,49 +176,86 @@ export function ChatMessageInput({
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <Button
-              onClick={handleAttachFile}
-              disabled={disabled}
-              size="icon"
-              variant="ghost"
-              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-            >
-              <PaperclipIcon size={16} />
-            </Button>
-            <Button
-              onClick={handleTakeScreenshot}
-              disabled={disabled}
-              size="icon"
-              variant="ghost"
-              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-            >
-              <FullscreenIcon size={16} />
-            </Button>
+          <div className="flex items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleAttachFile}
+                  disabled={true}
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
+                >
+                  <PaperclipIcon size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <span>Coming soon</span>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleTakeScreenshot}
+                  disabled={true}
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
+                >
+                  <FullscreenIcon size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <span>Coming soon</span>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
-          <div className="flex items-center gap-1">
-            <Button
-              onClick={handleVoiceInput}
-              disabled={disabled}
-              size="icon"
-              variant="ghost"
-              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-            >
-              <MicIcon size={16} />
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={disabled}
-              size="icon"
-              variant="ghost"
-              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-            >
-              <SendIcon size={16} />
-            </Button>
+          <div className="flex items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleVoiceInput}
+                  disabled={true}
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
+                >
+                  <MicIcon size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <span>Coming soon</span>
+              </TooltipContent>
+            </Tooltip>
+            {isStreaming ? (
+              <Button
+                onClick={onStop}
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+              >
+                <SquareIcon size={16} className="fill-current" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSubmit}
+                disabled={disabled}
+                size="icon"
+                variant="ghost"
+                className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
+              >
+                <SendIcon size={16} />
+              </Button>
+            )}
           </div>
         </div>
       </div>
+      {hasContent && (
+        <span className="absolute bottom-1.5 right-5 text-[8px] text-neutral-400">
+          Shift + Enter to add a new line
+        </span>
+      )}
     </Container>
   );
 }
@@ -184,7 +264,7 @@ function Container({ children }: { children: React.ReactNode }) {
   const { chat } = useShell();
 
   return (
-    <div className={cn([chat.mode !== "RightPanelOpen" && "p-1"])}>
+    <div className={cn(["relative", chat.mode !== "RightPanelOpen" && "p-1"])}>
       <div
         className={cn([
           "flex flex-col border border-neutral-200 rounded-xl",

@@ -1,4 +1,3 @@
-import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
@@ -9,8 +8,6 @@ import {
   createTrialCheckoutSession,
   syncAfterSuccess,
 } from "@/functions/billing";
-import { addContact } from "@/functions/loops";
-import { useAnalytics } from "@/hooks/use-posthog";
 
 export const Route = createFileRoute("/_view/app/account")({
   component: Component,
@@ -45,8 +42,6 @@ function Component() {
           </section>
 
           <AccountSettingsCard />
-
-          <ProWaitlistCard userEmail={user?.email} />
 
           <IntegrationsSettingsCard />
 
@@ -133,7 +128,7 @@ function AccountSettingsCard() {
       <button
         onClick={() => manageBillingMutation.mutate()}
         disabled={manageBillingMutation.isPending}
-        className="px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
+        className="cursor-pointer px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
       >
         {manageBillingMutation.isPending ? "Loading..." : "Manage Billing"}
       </button>
@@ -198,105 +193,6 @@ function IntegrationsSettingsCard() {
   );
 }
 
-function ProWaitlistCard({ userEmail }: { userEmail?: string }) {
-  const { track } = useAnalytics();
-
-  const addContactMutation = useMutation({
-    mutationFn: async (email: string) => {
-      track("pro_waitlist_joined", {
-        timestamp: new Date().toISOString(),
-        email,
-        source: "account_page",
-      });
-
-      await addContact({
-        data: {
-          email,
-          userGroup: "Lead",
-          platform: "Web",
-          source: "ACCOUNT_PAGE",
-          intent: "Pro Waitlist",
-        },
-      });
-    },
-  });
-
-  const form = useForm({
-    defaultValues: {
-      email: userEmail || "",
-    },
-    onSubmit: async ({ value }) => {
-      addContactMutation.mutate(value.email);
-    },
-  });
-
-  return (
-    <div className="border border-neutral-100 rounded-sm">
-      <div className="p-4">
-        <h3 className="font-serif text-lg font-semibold mb-2">
-          Join Pro Waitlist
-        </h3>
-        <p className="text-sm text-neutral-600 mb-4">
-          Get notified when Pro features are available, including cloud
-          services, templates, chat, and more.
-        </p>
-
-        {addContactMutation.isSuccess ? (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-sm">
-            <p className="text-sm text-green-700">
-              Thanks for joining the waitlist! We'll notify you when Pro is
-              ready.
-            </p>
-          </div>
-        ) : (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-            className="space-y-3"
-          >
-            <form.Field
-              name="email"
-              validators={{
-                onChange: ({ value }) =>
-                  !value ? "Email is required" : undefined,
-              }}
-            >
-              {(field) => (
-                <input
-                  type="email"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Enter your email"
-                  className="w-full px-4 py-2 text-sm border border-neutral-200 rounded-sm focus:outline-none focus:border-stone-500 transition-colors"
-                  required
-                  disabled={addContactMutation.isPending}
-                />
-              )}
-            </form.Field>
-            {addContactMutation.isError && (
-              <p className="text-sm text-red-600">
-                {addContactMutation.error instanceof Error
-                  ? addContactMutation.error.message
-                  : "Something went wrong. Please try again."}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={addContactMutation.isPending}
-              className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
-            >
-              {addContactMutation.isPending ? "Joining..." : "Join Waitlist"}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function SignOutSection() {
   const navigate = useNavigate();
 
@@ -323,7 +219,7 @@ function SignOutSection() {
       <button
         onClick={() => signOut.mutate()}
         disabled={signOut.isPending}
-        className="px-4 h-8 flex items-center text-sm text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 rounded-full transition-all disabled:opacity-50 disabled:hover:border-red-200"
+        className="cursor-pointer px-4 h-8 flex items-center text-sm text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 rounded-full transition-all disabled:opacity-50 disabled:hover:border-red-200"
       >
         {signOut.isPending ? "Signing out..." : "Sign out"}
       </button>

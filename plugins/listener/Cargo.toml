@@ -24,11 +24,13 @@ hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
 hypr-device-heuristic = { workspace = true }
+hypr-device-monitor = { workspace = true }
 hypr-intercept = { workspace = true }
 hypr-language = { workspace = true }
 hypr-llm = { workspace = true }
 hypr-vad-ext = { workspace = true }
 hypr-vad2 = { workspace = true }
+tauri-plugin-fs-sync = { workspace = true }
 
 owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }

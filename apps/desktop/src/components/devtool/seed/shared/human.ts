@@ -4,7 +4,7 @@ import type { Human } from "@hypr/store";
 
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
-export const createHuman = (org_id: string, isUser = false) => {
+export const createHuman = (org_id: string) => {
   const sex = faker.person.sexType();
   const firstName = faker.person.firstName(sex);
   const lastName = faker.person.lastName();
@@ -36,7 +36,6 @@ export const createHuman = (org_id: string, isUser = false) => {
       linkedin_username: faker.datatype.boolean({ probability: 0.7 })
         ? `${firstName.toLowerCase()}${lastName.toLowerCase()}`
         : undefined,
-      is_user: isUser,
       created_at: faker.date.past({ years: 1 }).toISOString(),
       org_id,
     } satisfies Human,

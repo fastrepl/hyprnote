@@ -3,7 +3,7 @@ import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 import { cn } from "@hypr/utils";
 
 import { usePermissions } from "../../hooks/use-permissions";
-import { Route } from "../../routes/app/onboarding";
+import { Route } from "../../routes/app/onboarding/_layout.index";
 import { getBack, getNext, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 
@@ -98,7 +98,10 @@ export function Permissions({ onNavigate }: StepProps) {
     <OnboardingContainer
       title="Permissions needed for best experience"
       onBack={
-        backStep ? () => onNavigate({ ...search, step: backStep }) : undefined
+        backStep
+          ? () =>
+              onNavigate({ ...search, step: backStep, skipAutoForward: true })
+          : undefined
       }
     >
       <div className="flex flex-col gap-4">

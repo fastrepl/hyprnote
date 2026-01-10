@@ -18,7 +18,7 @@ pub async fn run_hooks_for_event<R: tauri::Runtime>(
     app: &impl tauri::Manager<R>,
     event: HookEvent,
 ) -> crate::Result<Vec<HookResult>> {
-    let config = HooksConfig::load(app)?;
+    let config = HooksConfig::load(app).await?;
     let condition_key = event.condition_key();
     let cli_args = event.cli_args();
 

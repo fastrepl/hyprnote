@@ -1,5 +1,5 @@
 import { FolderIcon } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import {
   Command,
@@ -16,7 +16,27 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 
-import * as main from "../../../../../../store/tinybase/main";
+import { sessionOps } from "../../../../../../store/tinybase/persister/session/ops";
+import * as main from "../../../../../../store/tinybase/store/main";
+
+function useFolders() {
+  const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
+
+  return useMemo(() => {
+    if (!store || !sessionIds) return {};
+
+    const folders: Record<string, { name: string }> = {};
+    for (const id of sessionIds) {
+      const folderId = store.getCell("sessions", id, "folder_id") as string;
+      if (folderId && !folders[folderId]) {
+        const parts = folderId.split("/");
+        folders[folderId] = { name: parts[parts.length - 1] };
+      }
+    }
+    return folders;
+  }, [sessionIds, store]);
+}
 
 export function SearchableFolderDropdown({
   sessionId,
@@ -26,18 +46,9 @@ export function SearchableFolderDropdown({
   trigger: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const folders = main.UI.useResultTable(
-    main.QUERIES.visibleFolders,
-    main.STORE_ID,
-  );
+  const folders = useFolders();
 
-  const handleSelectFolder = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (folderId: string) => ({ folder_id: folderId }),
-    [],
-    main.STORE_ID,
-  );
+  const handleSelectFolder = useMoveSessionToFolder(sessionId);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -66,18 +77,9 @@ export function SearchableFolderSubmenuContent({
   sessionId: string;
   setOpen?: (open: boolean) => void;
 }) {
-  const folders = main.UI.useResultTable(
-    main.QUERIES.visibleFolders,
-    main.STORE_ID,
-  );
+  const folders = useFolders();
 
-  const handleSelectFolder = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (folderId: string) => ({ folder_id: folderId }),
-    [],
-    main.STORE_ID,
-  );
+  const handleSelectFolder = useMoveSessionToFolder(sessionId);
 
   return (
     <DropdownMenuSubContent className="w-[200px] p-0">
@@ -101,12 +103,12 @@ function SearchableFolderContent({
   onSelectFolder,
   setOpen,
 }: {
-  folders: Record<string, any>;
-  onSelectFolder: (folderId: string) => void;
+  folders: Record<string, { name: string }>;
+  onSelectFolder: (folderId: string) => Promise<void>;
   setOpen?: (open: boolean) => void;
 }) {
-  const handleSelect = (folderId: string) => {
-    onSelectFolder(folderId);
+  const handleSelect = async (folderId: string) => {
+    await onSelectFolder(folderId);
     setOpen?.(false);
   };
 
@@ -129,5 +131,20 @@ function SearchableFolderContent({
         </CommandGroup>
       </CommandList>
     </Command>
+  );
+}
+
+function useMoveSessionToFolder(sessionId: string) {
+  return useCallback(
+    async (targetFolderId: string) => {
+      const result = await sessionOps.moveSessionToFolder(
+        sessionId,
+        targetFolderId,
+      );
+      if (result.status === "error") {
+        console.error("[MoveSession] Failed:", result.error);
+      }
+    },
+    [sessionId],
   );
 }

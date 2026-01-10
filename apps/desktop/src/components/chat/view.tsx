@@ -4,7 +4,7 @@ import type { HyprUIMessage } from "../../chat/types";
 import { useShell } from "../../contexts/shell";
 import { useSession } from "../../hooks/tinybase";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
-import * as main from "../../store/tinybase/main";
+import * as main from "../../store/tinybase/store/main";
 import { useTabs } from "../../store/zustand/tabs";
 import { id } from "../../utils";
 import { ChatBody } from "./body";
@@ -186,7 +186,6 @@ function ChatViewContent({
         status={status}
         error={error}
         onReload={regenerate}
-        onStop={stop}
         isModelConfigured={!!model}
       />
       <ChatMessageInput
@@ -195,6 +194,8 @@ function ChatViewContent({
           handleSendMessage(content, parts, sendMessage)
         }
         attachedSession={attachedSession}
+        isStreaming={status === "streaming" || status === "submitted"}
+        onStop={stop}
       />
     </>
   );

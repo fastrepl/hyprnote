@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Media Library | Hyprnote</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: #f5f5f5;
+        min-height: 100vh;
+      }
+      .header {
+        background: white;
+        border-bottom: 1px solid #e5e5e5;
+        padding: 16px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .header h1 {
+        font-size: 20px;
+        font-weight: 600;
+      }
+      .header-actions {
+        display: flex;
+        gap: 12px;
+      }
+      .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+        background: white;
+        text-decoration: none;
+        color: #333;
+      }
+      .btn:hover {
+        background: #f5f5f5;
+      }
+      .btn-primary {
+        background: #0066cc;
+        color: white;
+        border-color: #0066cc;
+      }
+      .btn-primary:hover {
+        background: #0052a3;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 24px;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #e5e5e5;
+      }
+      .tab {
+        padding: 12px 24px;
+        border: none;
+        background: none;
+        font-size: 14px;
+        cursor: pointer;
+        color: #666;
+        border-right: 1px solid #e5e5e5;
+      }
+      .tab:last-child {
+        border-right: none;
+      }
+      .tab:hover {
+        background: #f9f9f9;
+      }
+      .tab.active {
+        background: #0066cc;
+        color: white;
+      }
+      .panel {
+        display: none;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e5e5e5;
+        overflow: hidden;
+      }
+      .panel.active {
+        display: block;
+      }
+      .toolbar {
+        padding: 16px;
+        border-bottom: 1px solid #e5e5e5;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .toolbar label {
+        font-size: 14px;
+        color: #666;
+      }
+      .folder-filter, .upload-folder {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        min-width: 180px;
+      }
+      .search {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        flex: 1;
+        min-width: 200px;
+      }
+      .content {
+        padding: 24px;
+        min-height: 400px;
+      }
+      .loading {
+        text-align: center;
+        padding: 60px;
+        color: #666;
+      }
+      .error {
+        text-align: center;
+        padding: 60px;
+        color: #dc3545;
+      }
+      .empty {
+        text-align: center;
+        padding: 60px;
+        color: #666;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 20px;
+      }
+      .image-item {
+        border: 2px solid #e5e5e5;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        background: white;
+      }
+      .image-item:hover {
+        border-color: #0066cc;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      .image-item.selected {
+        border-color: #0066cc;
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+      }
+      .image-wrapper {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #fafafa;
+      }
+      .image-wrapper img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+      .image-info {
+        padding: 10px;
+        font-size: 12px;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border-top: 1px solid #eee;
+      }
+      .image-folder {
+        font-size: 11px;
+        color: #999;
+        margin-top: 2px;
+      }
+      .image-path {
+        font-size: 10px;
+        color: #0066cc;
+        margin-top: 4px;
+        word-break: break-all;
+        white-space: normal;
+      }
+      .upload-zone {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 60px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .upload-zone:hover, .upload-zone.dragover {
+        border-color: #0066cc;
+        background: #f0f7ff;
+      }
+      .upload-zone input {
+        display: none;
+      }
+      .upload-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+      }
+      .upload-text {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 8px;
+      }
+      .upload-hint {
+        font-size: 14px;
+        color: #666;
+      }
+      .upload-progress {
+        margin-top: 24px;
+        padding: 20px;
+        background: #f5f5f5;
+        border-radius: 8px;
+      }
+      .upload-progress-text {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 12px;
+      }
+      .upload-progress-bar {
+        height: 6px;
+        background: #ddd;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .upload-progress-fill {
+        height: 100%;
+        background: #0066cc;
+        transition: width 0.3s ease;
+      }
+      .uploaded-preview {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: #d4edda;
+        border-radius: 8px;
+        margin-top: 16px;
+      }
+      .uploaded-preview img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 6px;
+      }
+      .uploaded-info {
+        flex: 1;
+      }
+      .uploaded-name {
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .uploaded-path {
+        font-size: 13px;
+        color: #155724;
+      }
+      .copy-btn {
+        padding: 8px 16px;
+        background: #155724;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .copy-btn:hover {
+        background: #0d3d17;
+      }
+      .stats {
+        padding: 12px 16px;
+        background: #f9f9f9;
+        border-top: 1px solid #e5e5e5;
+        font-size: 13px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Media Library</h1>
+      <div class="header-actions">
+        <a href="/admin/#/" class="btn">← Back to CMS</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="tabs">
+        <button class="tab active" data-tab="browse">Browse Images</button>
+        <button class="tab" data-tab="upload">Upload New</button>
+      </div>
+
+      <div class="panel active" data-panel="browse">
+        <div class="toolbar">
+          <label>Folder:</label>
+          <select class="folder-filter">
+            <option value="">All folders</option>
+          </select>
+          <input type="text" class="search" placeholder="Search images by name...">
+        </div>
+        <div class="content">
+          <div class="loading">Loading images...</div>
+        </div>
+        <div class="stats"></div>
+      </div>
+
+      <div class="panel" data-panel="upload">
+        <div class="toolbar">
+          <label>Upload to:</label>
+          <select class="upload-folder">
+            <option value="apps/web/public/images">/images (root)</option>
+            <option value="apps/web/public/images/blog">/images/blog</option>
+            <option value="apps/web/public/images/handbook">/images/handbook</option>
+          </select>
+        </div>
+        <div class="content">
+          <div class="upload-zone">
+            <input type="file" accept="image/*" multiple>
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Drop images here or click to browse</div>
+            <div class="upload-hint">Supports JPG, PNG, GIF, SVG, WebP, AVIF</div>
+          </div>
+          <div class="upload-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const GITHUB_REPO = "fastrepl/hyprnote";
+      const GITHUB_BRANCH = "main";
+      const IMAGES_PATH = "apps/web/public/images";
+
+      let allImages = [];
+      let cachedImages = null;
+      let cacheTimestamp = null;
+      const CACHE_DURATION = 5 * 60 * 1000;
+
+      async function fetchImagesFromGitHub(path = IMAGES_PATH) {
+        const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+        return response.json();
+      }
+
+      async function fetchAllImages(path = IMAGES_PATH, forceRefresh = false) {
+        if (!forceRefresh && cachedImages && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_DURATION) {
+          return cachedImages;
+        }
+
+        const contents = await fetchImagesFromGitHub(path);
+        const images = [];
+
+        for (const item of contents) {
+          if (item.type === "dir") {
+            const subImages = await fetchAllImages(item.path, true);
+            images.push(...subImages);
+          } else if (item.type === "file" && isImageFile(item.name)) {
+            const publicPath = item.path.replace("apps/web/public", "");
+            images.push({
+              name: item.name,
+              path: publicPath,
+              fullPath: item.path,
+              folder: item.path.replace(`/${item.name}`, "").replace("apps/web/public/images", "") || "/",
+              url: item.download_url,
+            });
+          }
+        }
+
+        if (path === IMAGES_PATH) {
+          cachedImages = images;
+          cacheTimestamp = Date.now();
+        }
+
+        return images;
+      }
+
+      function isImageFile(filename) {
+        const ext = filename.toLowerCase().split(".").pop();
+        return ["jpg", "jpeg", "png", "gif", "svg", "webp", "avif"].includes(ext);
+      }
+
+      function renderImages(images, container, filterFolder = "", searchQuery = "") {
+        let filtered = images;
+
+        if (filterFolder) {
+          filtered = filtered.filter(img => img.folder === filterFolder);
+        }
+
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase();
+          filtered = filtered.filter(img => img.name.toLowerCase().includes(query));
+        }
+
+        if (filtered.length === 0) {
+          container.innerHTML = '<div class="empty">No images found</div>';
+          updateStats(0, images.length);
+          return;
+        }
+
+        container.innerHTML = `<div class="grid">${filtered.map(img => `
+          <div class="image-item" data-path="${img.path}" title="${img.path}">
+            <div class="image-wrapper">
+              <img src="${img.url}" alt="${img.name}" loading="lazy">
+            </div>
+            <div class="image-info">
+              ${img.name}
+              <div class="image-folder">${img.folder}</div>
+              <div class="image-path">${img.path}</div>
+            </div>
+          </div>
+        `).join("")}</div>`;
+
+        updateStats(filtered.length, images.length);
+
+        container.querySelectorAll(".image-item").forEach(item => {
+          item.addEventListener("click", () => {
+            const path = item.dataset.path;
+            navigator.clipboard.writeText(path).then(() => {
+              item.classList.add("selected");
+              setTimeout(() => item.classList.remove("selected"), 1000);
+            });
+          });
+        });
+      }
+
+      function updateStats(shown, total) {
+        const stats = document.querySelector(".stats");
+        if (shown === total) {
+          stats.textContent = `${total} images total. Click an image to copy its path.`;
+        } else {
+          stats.textContent = `Showing ${shown} of ${total} images. Click an image to copy its path.`;
+        }
+      }
+
+      function switchTab(tabName) {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+        document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add("active");
+        document.querySelector(`.panel[data-panel="${tabName}"]`).classList.add("active");
+      }
+
+      async function uploadViaAPI(file, folder) {
+        const base64Content = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(",")[1]);
+          reader.readAsDataURL(file);
+        });
+
+        const response = await fetch("/api/media-upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: file.name, content: base64Content, folder }),
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || `Upload failed: ${response.status}`);
+
+        cachedImages = null;
+        return result;
+      }
+
+      async function init() {
+        const content = document.querySelector('[data-panel="browse"] .content');
+        const folderFilter = document.querySelector(".folder-filter");
+        const searchInput = document.querySelector(".search");
+        const uploadZone = document.querySelector(".upload-zone");
+        const uploadInput = document.querySelector('.upload-zone input[type="file"]');
+        const uploadFolder = document.querySelector(".upload-folder");
+        const uploadResult = document.querySelector(".upload-result");
+
+        document.querySelectorAll(".tab").forEach(tab => {
+          tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+        });
+
+        uploadZone.addEventListener("click", () => uploadInput.click());
+        uploadZone.addEventListener("dragover", e => {
+          e.preventDefault();
+          uploadZone.classList.add("dragover");
+        });
+        uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("dragover"));
+        uploadZone.addEventListener("drop", async e => {
+          e.preventDefault();
+          uploadZone.classList.remove("dragover");
+          const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+          if (files.length > 0) await handleUpload(files, uploadFolder.value, uploadResult);
+        });
+        uploadInput.addEventListener("change", async e => {
+          const files = Array.from(e.target.files);
+          if (files.length > 0) await handleUpload(files, uploadFolder.value, uploadResult);
+        });
+
+        async function handleUpload(files, folder, resultContainer) {
+          resultContainer.innerHTML = `
+            <div class="upload-progress">
+              <div class="upload-progress-text">Uploading ${files.length} file(s)...</div>
+              <div class="upload-progress-bar">
+                <div class="upload-progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          `;
+
+          const progressFill = resultContainer.querySelector(".upload-progress-fill");
+          const progressText = resultContainer.querySelector(".upload-progress-text");
+          const uploaded = [];
+
+          for (let i = 0; i < files.length; i++) {
+            try {
+              progressText.textContent = `Uploading ${files[i].name}... (${i + 1}/${files.length})`;
+              const result = await uploadViaAPI(files[i], folder);
+              uploaded.push(result);
+              progressFill.style.width = `${((i + 1) / files.length) * 100}%`;
+            } catch (error) {
+              resultContainer.innerHTML = `<div class="error">${error.message}</div>`;
+              return;
+            }
+          }
+
+          resultContainer.innerHTML = uploaded.map(img => `
+            <div class="uploaded-preview">
+              <img src="${img.url}" alt="${img.name}">
+              <div class="uploaded-info">
+                <div class="uploaded-name">${img.name}</div>
+                <div class="uploaded-path">${img.path}</div>
+              </div>
+              <button class="copy-btn" data-path="${img.path}">Copy Path</button>
+            </div>
+          `).join("");
+
+          resultContainer.querySelectorAll(".copy-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+              navigator.clipboard.writeText(btn.dataset.path);
+              btn.textContent = "Copied!";
+              setTimeout(() => btn.textContent = "Copy Path", 2000);
+            });
+          });
+
+          allImages = await fetchAllImages(IMAGES_PATH, true);
+          renderImages(allImages, content, folderFilter.value, searchInput.value);
+          populateFolders(allImages, folderFilter);
+        }
+
+        try {
+          allImages = await fetchAllImages();
+          populateFolders(allImages, folderFilter);
+          renderImages(allImages, content);
+
+          folderFilter.addEventListener("change", () => {
+            renderImages(allImages, content, folderFilter.value, searchInput.value);
+          });
+
+          searchInput.addEventListener("input", () => {
+            renderImages(allImages, content, folderFilter.value, searchInput.value);
+          });
+        } catch (error) {
+          console.error("Failed to fetch images:", error);
+          content.innerHTML = `<div class="error">Failed to load images: ${error.message}</div>`;
+        }
+      }
+
+      function populateFolders(images, select) {
+        const currentValue = select.value;
+        const folders = [...new Set(images.map(img => img.folder))].sort();
+        select.innerHTML = '<option value="">All folders</option>';
+        folders.forEach(folder => {
+          const option = document.createElement("option");
+          option.value = folder;
+          option.textContent = folder || "/";
+          select.appendChild(option);
+        });
+        select.value = currentValue;
+      }
+
+      init();
+    </script>
+  </body>
+</html>

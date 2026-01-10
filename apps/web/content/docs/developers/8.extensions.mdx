@@ -154,59 +154,22 @@ import { useTabs } from "@hypr/tabs";
 
 # State Synchronization
 
-Extensions can read and write state that synchronizes with the main Hyprnote application using TinyBase. The synchronization happens automatically via postMessage between the iframe and parent window.
+Extensions can read state from the main Hyprnote application using TinyBase. The synchronization happens automatically via postMessage between the iframe and parent window.
 
 ## Reading State
 
 Use TinyBase hooks to read from the synchronized store:
 
 ```tsx
-import { useRow, useStore } from "tinybase/ui-react";
+import { useStore } from "tinybase/ui-react";
 
 function MyExtension({ extensionId }: ExtensionViewProps) {
   const store = useStore();
 
-  // Read extension-specific state
-  const extensionState = useRow("extension_state", extensionId) as {
-    counter?: number;
-    last_updated?: string;
-  };
-
   // Read app data (calendars, events, sessions, etc.)
   const calendarIds = store?.getRowIds("calendars") ?? [];
 
-  return <div>Counter: {extensionState?.counter ?? 0}</div>;
-}
-```
-
-## Writing State
-
-Use `useSetRowCallback` to write state that syncs back to the main app:
-
-```tsx
-import { useRow, useSetRowCallback } from "tinybase/ui-react";
-
-function MyExtension({ extensionId }: ExtensionViewProps) {
-  const extensionState = useRow("extension_state", extensionId) as {
-    counter?: number;
-    last_updated?: string;
-  };
-
-  const setExtensionState = useSetRowCallback(
-    "extension_state",
-    extensionId,
-    (newState: { counter: number; last_updated: string }) => newState,
-    [],
-  );
-
-  const handleIncrement = () => {
-    setExtensionState({
-      counter: (extensionState?.counter ?? 0) + 1,
-      last_updated: new Date().toISOString(),
-    });
-  };
-
-  return <Button onClick={handleIncrement}>Increment</Button>;
+  return <div>Calendars: {calendarIds.length}</div>;
 }
 ```
 

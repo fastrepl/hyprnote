@@ -11,21 +11,25 @@ debug = false
 resolver = "2"
 members = [
   "apps/*",
+  "apps/control/src-tauri",
   "apps/desktop/src-tauri",
   "crates/*",
   "plugins/*",
 ]
 exclude = [
+  "apps/control",
   "apps/desktop",
   "apps/desktop-e2e",
   "apps/k6",
   "apps/pro",
   "apps/restate",
   "apps/storybook",
+  "apps/howto",
   "apps/api",
   "apps/bot",
   "apps/web",
   "plugins/db",
+  "plugins/export",
 ]
 
 [workspace.dependencies]
@@ -35,20 +39,25 @@ hypr-agc = { path = "crates/agc", package = "agc" }
 hypr-am = { path = "crates/am", package = "am" }
 hypr-am2 = { path = "crates/am2", package = "am2" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
+hypr-apple-note = { path = "crates/apple-note", package = "apple-note" }
 hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-interface = { path = "crates/audio-interface", package = "audio-interface" }
+hypr-audio-priority = { path = "crates/audio-priority", package = "audio-priority" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
+hypr-bundle = { path = "crates/bundle", package = "bundle" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }
 hypr-detect = { path = "crates/detect", package = "detect" }
 hypr-device-heuristic = { path = "crates/device-heuristic", package = "device-heuristic" }
+hypr-device-monitor = { path = "crates/device-monitor", package = "device-monitor" }
 hypr-docs = { path = "crates/docs", package = "docs" }
 hypr-download-interface = { path = "crates/download-interface", package = "download-interface" }
 hypr-eval = { path = "crates/eval", package = "eval" }
 hypr-extensions-runtime = { path = "crates/extensions-runtime", package = "extensions-runtime" }
 hypr-file = { path = "crates/file", package = "file" }
+hypr-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-granola = { path = "crates/granola", package = "granola" }
@@ -79,6 +88,7 @@ hypr-tcc = { path = "crates/tcc", package = "tcc" }
 hypr-template-app = { path = "crates/template-app", package = "template-app" }
 hypr-template-app-legacy = { path = "crates/template-app-legacy", package = "template-app-legacy" }
 hypr-template-eval = { path = "crates/template-eval", package = "template-eval" }
+hypr-tiptap = { path = "crates/tiptap", package = "tiptap" }
 hypr-transcribe-aws = { path = "crates/transcribe-aws", package = "transcribe-aws" }
 hypr-transcribe-azure = { path = "crates/transcribe-azure", package = "transcribe-azure" }
 hypr-transcribe-deepgram = { path = "crates/transcribe-deepgram", package = "transcribe-deepgram" }
@@ -107,12 +117,11 @@ tauri = "2.9"
 tauri-build = "2.5"
 tauri-plugin = "2.5"
 tauri-plugin-autostart = "2.5"
-tauri-plugin-cli = "2.4"
 tauri-plugin-clipboard-manager = "2.3"
 tauri-plugin-deep-link = "2.4"
 tauri-plugin-dialog = "2.3"
 tauri-plugin-fs = "2.4"
-tauri-plugin-http = "2.5"
+tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
 tauri-plugin-opener = "2.5"
 tauri-plugin-os = "2.3"
 tauri-plugin-prevent-default = "4"
@@ -126,16 +135,19 @@ tauri-plugin-window-state = "2.4"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
+tauri-plugin-apple-contact = { path = "plugins/apple-contact" }
+tauri-plugin-audio-priority = { path = "plugins/audio-priority" }
 tauri-plugin-auth = { path = "plugins/auth" }
 tauri-plugin-cli2 = { path = "plugins/cli2" }
 tauri-plugin-db2 = { path = "plugins/db2" }
 tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }
 tauri-plugin-detect = { path = "plugins/detect" }
-tauri-plugin-export = { path = "plugins/export" }
 tauri-plugin-extensions = { path = "plugins/extensions" }
+tauri-plugin-fs-sync = { path = "plugins/fs-sync" }
 tauri-plugin-hooks = { path = "plugins/hooks" }
 tauri-plugin-icon = { path = "plugins/icon" }
 tauri-plugin-importer = { path = "plugins/importer" }
+tauri-plugin-js = { path = "plugins/js" }
 tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-listener2 = { path = "plugins/listener2" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }
@@ -143,12 +155,16 @@ tauri-plugin-local-stt = { path = "plugins/local-stt" }
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-network = { path = "plugins/network" }
 tauri-plugin-notification = { path = "plugins/notification" }
+tauri-plugin-notify = { path = "plugins/notify" }
+tauri-plugin-overlay = { path = "plugins/overlay" }
 tauri-plugin-path2 = { path = "plugins/path2" }
 tauri-plugin-pdf = { path = "plugins/pdf" }
 tauri-plugin-permissions = { path = "plugins/permissions" }
 tauri-plugin-settings = { path = "plugins/settings" }
 tauri-plugin-sfx = { path = "plugins/sfx" }
+tauri-plugin-sidecar2 = { path = "plugins/sidecar2" }
 tauri-plugin-store2 = { path = "plugins/store2" }
+tauri-plugin-tantivy = { path = "plugins/tantivy" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-tray = { path = "plugins/tray" }
@@ -179,6 +195,7 @@ base64 = "0.22.1"
 bytes = "1.9.0"
 cached = "0.55.1"
 clap = "4"
+clap_mangen = "0.2"
 codes-iso-639 = "0.1.5"
 derive_more = "2"
 dirs = "6.0.0"
@@ -187,6 +204,7 @@ include_url_macro = "0.1.0"
 indoc = "2"
 isolang = "2.4"
 itertools = "0.14.0"
+jsonschema = "0.29"
 lazy_static = "1.5.0"
 once_cell = "1.20.3"
 open = "5"
@@ -254,9 +272,10 @@ dasp = { version = "0.11.0", features = ["interpolate", "interpolate-linear"] }
 earshot = "0.1.0"
 flume = "0.11.1"
 hound = "3.5.1"
+htmd = "0.5.0"
 realfft = "3.5.0"
 ringbuf = "0.4.8"
-rodio = { version = "0.20.1", features = ["symphonia"] }
+rodio = "0.21"
 silero-rs = { git = "https://github.com/emotechlab/silero-rs", rev = "26a6460", package = "silero" }
 vorbis_rs = "0.5.5"
 
@@ -276,6 +295,7 @@ objc2-foundation = "0.3"
 objc2-user-notifications = "0.3"
 
 tokenizers = "0.21.4"
+whichlang = "0.1"
 
 swift-rs = { git = "https://github.com/yujonglee/swift-rs", rev = "41a1605" }
 sysinfo = "0.37.0"

@@ -1,5 +1,5 @@
 use cidre::{core_audio as ca, io};
-use objc2_core_graphics::{CGDisplayIsBuiltin, CGGetActiveDisplayList};
+use objc2_core_graphics::{CGDisplayIsBuiltin, CGGetOnlineDisplayList};
 
 fn is_headphone_from_device(device: Option<ca::Device>) -> bool {
     match device {
@@ -53,12 +53,13 @@ pub fn is_default_input_external() -> bool {
     is_external_from_device(device)
 }
 
+//  Used `CGGetOnlineDisplayList` instead of `CGGetActiveDisplayList` to handle external display.
 pub fn is_builtin_display_inactive() -> bool {
     let mut display_count: u32 = 0;
     let mut displays: [u32; 16] = [0; 16];
 
     unsafe {
-        let result = CGGetActiveDisplayList(16, displays.as_mut_ptr(), &mut display_count);
+        let result = CGGetOnlineDisplayList(16, displays.as_mut_ptr(), &mut display_count);
         if result.0 != 0 {
             return false;
         }

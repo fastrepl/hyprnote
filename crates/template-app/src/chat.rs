@@ -15,6 +15,7 @@ common_derives! {
     #[template(path = "chat.system.md.jinja")]
     pub struct ChatSystem {
         pub language: Option<String>,
+        pub current_date: Option<String>,
         pub context: Option<ChatContext>,
     }
 }
@@ -29,6 +30,7 @@ mod tests {
         test_chat_system_with_context, 
         ChatSystem {
             language: None,
+            current_date: None,
             context: Some(ChatContext {
                 title: Some("Weekly Standup".to_string()),
                 date: Some("2025-01-15".to_string()),
@@ -57,6 +59,8 @@ mod tests {
         |v| v.contains("English"),
         @r#"
     # General Instructions
+
+    Current date: 2025-01-01
 
     - You are a helpful AI meeting assistant in Hyprnote, an intelligent meeting platform that transcribes and analyzes meetings. Your purpose is to help users understand their meeting content better.
     - Always respond in English, unless the user explicitly asks for a different language.

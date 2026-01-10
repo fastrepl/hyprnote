@@ -10,24 +10,19 @@ import retextStringify from "retext-stringify";
 import { unified } from "unified";
 import type { VFile } from "vfile";
 
-import * as main from "../store/tinybase/main";
+import * as main from "../store/tinybase/store/main";
 
 export function useKeywords(sessionId: string) {
-  const vocabsTable = main.UI.useResultTable(
-    main.QUERIES.visibleVocabs,
-    main.STORE_ID,
-  );
   const rawMd = main.UI.useCell("sessions", sessionId, "raw_md", main.STORE_ID);
 
   return useMemo(() => {
-    const vocabs = extractVocabs(vocabsTable);
     const { keywords, keyphrases } =
       rawMd && typeof rawMd === "string"
         ? extractKeywordsFromMarkdown(rawMd)
         : { keywords: [], keyphrases: [] };
 
-    return combineKeywords(vocabs, [...keywords, ...keyphrases]);
-  }, [vocabsTable, rawMd]);
+    return combineKeywords([...keywords, ...keyphrases]);
+  }, [rawMd]);
 }
 
 export const extractKeywordsFromMarkdown = (
@@ -105,26 +100,8 @@ const extractKeyphraseMatches = (phrase: Keyphrase): string[] =>
     return text.length > 0 ? [text] : [];
   });
 
-const extractVocabs = (
-  vocabsTable: Record<string, { text?: unknown }>,
-): string[] =>
-  Object.values(vocabsTable).flatMap(({ text }) =>
-    pipe(
-      Option.fromNullable(text),
-      Option.filter((t): t is string => typeof t === "string"),
-      Option.map((t) => t.trim()),
-      Option.filter((t) => t.length > 0),
-      Option.match({
-        onNone: () => [],
-        onSome: (t) => [t],
-      }),
-    ),
-  );
-
-const combineKeywords = (vocabs: string[], markdownWords: string[]): string[] =>
-  Array.from(new Set([...vocabs, ...markdownWords])).filter(
-    (keyword) => keyword.length >= 2,
-  );
+const combineKeywords = (markdownWords: string[]): string[] =>
+  Array.from(new Set(markdownWords)).filter((keyword) => keyword.length >= 2);
 
 const removeCodeBlocks = (text: string): string =>
   text.replace(/```[\s\S]*?```/g, "").replace(/`[^`]+`/g, "");

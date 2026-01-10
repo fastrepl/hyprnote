@@ -1,11 +1,11 @@
-import { flattenTranscript, mergeContent } from "./utils";
+import { extractPlainText, flattenTranscript, mergeContent } from "./utils";
 
 export function createSessionSearchableContent(
   row: Record<string, unknown>,
 ): string {
   return mergeContent([
-    row.raw_md,
-    row.enhanced_md,
+    extractPlainText(row.raw_md),
+    extractPlainText(row.enhanced_notes_content),
     flattenTranscript(row.transcript),
   ]);
 }

@@ -35,6 +35,7 @@ pub(super) async fn start_source_loop(
     if result.is_ok()
         && let Err(error) = (SessionProgressEvent::AudioReady {
             session_id: st.session_id.clone(),
+            device: st.mic_device.clone(),
         })
         .emit(&st.app)
     {

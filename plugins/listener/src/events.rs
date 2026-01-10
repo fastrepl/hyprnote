@@ -31,7 +31,10 @@ common_event_derives! {
         #[serde(rename = "audio_initializing")]
         AudioInitializing { session_id: String },
         #[serde(rename = "audio_ready")]
-        AudioReady { session_id: String },
+        AudioReady {
+            session_id: String,
+            device: Option<String>,
+        },
         #[serde(rename = "connecting")]
         Connecting { session_id: String },
         #[serde(rename = "connected")]

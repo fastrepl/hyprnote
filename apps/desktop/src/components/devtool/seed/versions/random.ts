@@ -113,8 +113,8 @@ export const randomSeed: SeedDefinition = {
   id: "random",
   label: "Random",
   calendarFixtureBase: "default",
-  run: async (store: MainStore) => {
-    const data = buildRandomData();
+  run: async (store: MainStore, fixtureCalendars?: AppleCalendar[]) => {
+    const data = buildRandomData(fixtureCalendars);
     await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {
       store.delTables();

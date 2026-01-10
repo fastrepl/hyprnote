@@ -125,7 +125,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
     useState(false);
   const { ref: rightContainerRef, hasSpace: hasSpaceForSearch } =
     useHasSpaceForSearch();
-  const scrollState = useScrollState(tabsScrollContainerRef, [regularTabs]);
+  const scrollState = useScrollState(
+    tabsScrollContainerRef,
+    regularTabs.length,
+  );
 
   const setTabRef = useScrollActiveTabIntoView(regularTabs);
   useTabsShortcuts();
@@ -604,7 +607,7 @@ function useHasSpaceForSearch() {
 
 function useScrollState(
   ref: React.RefObject<HTMLDivElement | null>,
-  deps: unknown[] = [],
+  tabCount: number,
 ) {
   const [scrollState, setScrollState] = useState({
     atStart: true,
@@ -616,9 +619,15 @@ function useScrollState(
     if (!container) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
-    setScrollState({
+    const newState = {
       atStart: scrollLeft <= 1,
       atEnd: scrollLeft + clientWidth >= scrollWidth - 1,
+    };
+    setScrollState((prev) => {
+      if (prev.atStart === newState.atStart && prev.atEnd === newState.atEnd) {
+        return prev;
+      }
+      return newState;
     });
   }, [ref]);
 
@@ -637,19 +646,19 @@ function useScrollState(
     return () => {
       container.removeEventListener("scroll", updateScrollState);
     };
-  }, [updateScrollState, ...deps]);
+  }, [updateScrollState, tabCount]);
 
   return scrollState;
 }
 
 function useScrollActiveTabIntoView(tabs: Tab[]) {
   const tabRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
+  const activeTab = tabs.find((tab) => tab.active);
+  const activeTabKey = activeTab ? uniqueIdfromTab(activeTab) : null;
 
   useEffect(() => {
-    const activeTab = tabs.find((tab) => tab.active);
-    if (activeTab) {
-      const tabKey = uniqueIdfromTab(activeTab);
-      const tabElement = tabRefsMap.current.get(tabKey);
+    if (activeTabKey) {
+      const tabElement = tabRefsMap.current.get(activeTabKey);
       if (tabElement) {
         tabElement.scrollIntoView({
           behavior: "smooth",
@@ -658,7 +667,7 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
         });
       }
     }
-  }, [tabs]);
+  }, [activeTabKey]);
 
   const setTabRef = useCallback((tab: Tab, el: HTMLDivElement | null) => {
     if (el) {

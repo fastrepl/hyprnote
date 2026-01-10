@@ -1,7 +1,10 @@
 import { describe, expect, test, vi } from "vitest";
 
-import type { TablesContent, WriteOperation } from "../shared";
+import type { TablesContent } from "../shared";
 import { buildChatSaveOps } from "./save";
+import type { ChatJson } from "./types";
+
+type JsonOp = { type: "json"; path: string; content: ChatJson };
 
 vi.mock("@tauri-apps/api/path", () => ({
   sep: () => "/",
@@ -125,10 +128,10 @@ describe("buildChatSaveOps", () => {
 
       const group1Op = ops.find(
         (op) => op.type === "json" && op.path.includes("group-1"),
-      ) as WriteOperation & { type: "json" };
+      ) as JsonOp;
       const group2Op = ops.find(
         (op) => op.type === "json" && op.path.includes("group-2"),
-      ) as WriteOperation & { type: "json" };
+      ) as JsonOp;
 
       expect(group1Op.content.messages).toHaveLength(1);
       expect(group2Op.content.messages).toHaveLength(0);
@@ -182,7 +185,7 @@ describe("buildChatSaveOps", () => {
 
       expect(ops).toHaveLength(1);
       expect(ops[0].type).toBe("json");
-      expect((ops[0] as { path: string }).path).toContain("group-1");
+      expect((ops[0] as JsonOp).path).toContain("group-1");
     });
 
     test("creates delete-batch operation for deleted groups", () => {
@@ -249,11 +252,11 @@ describe("buildChatSaveOps", () => {
       expect(deleteOps).toHaveLength(1);
 
       const group1Op = jsonOps.find((op) =>
-        (op as { path: string }).path.includes("group-1"),
-      ) as { content: { messages: unknown[] } };
+        (op as JsonOp).path.includes("group-1"),
+      ) as JsonOp;
       const group2Op = jsonOps.find((op) =>
-        (op as { path: string }).path.includes("group-2"),
-      ) as { content: { messages: unknown[] } };
+        (op as JsonOp).path.includes("group-2"),
+      ) as JsonOp;
 
       expect(group1Op.content.messages).toHaveLength(1);
       expect(group2Op.content.messages).toHaveLength(0);

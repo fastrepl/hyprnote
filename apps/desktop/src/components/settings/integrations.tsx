@@ -2,6 +2,7 @@ import { Icon } from "@iconify-icon/react";
 import { Puzzle, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import { Input } from "@hypr/ui/components/ui/input";
@@ -133,7 +134,12 @@ export function SettingsIntegrations() {
     <div className="flex flex-col gap-8">
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold cursor-default">Integrations</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="font-semibold cursor-default">Integrations</h2>
+            <Badge variant="secondary" className="text-xs">
+              Coming soon
+            </Badge>
+          </div>
           <ButtonGroup>
             <Button
               variant={filterStatus === "all" ? "default" : "outline"}

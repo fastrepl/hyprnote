@@ -49,8 +49,11 @@ const _PROVIDERS = [
     baseUrl: "http://127.0.0.1:1234/v1",
     requirements: [],
     links: {
-      download: { label: "LM Studio", url: "https://lmstudio.ai/download" },
-      models: { label: "Model Catalog", url: "https://lmstudio.ai/models" },
+      download: {
+        label: "Download LM Studio",
+        url: "https://lmstudio.ai/download",
+      },
+      models: { label: "Available models", url: "https://lmstudio.ai/models" },
     },
   },
   {
@@ -65,7 +68,7 @@ const _PROVIDERS = [
         label: "Download Ollama",
         url: "https://ollama.com/download",
       },
-      models: { label: "View All Models", url: "https://ollama.com/library" },
+      models: { label: "Available models", url: "https://ollama.com/library" },
     },
   },
   {

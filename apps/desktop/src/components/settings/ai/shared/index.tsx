@@ -1,5 +1,6 @@
 import { Icon } from "@iconify-icon/react";
 import { type AnyFieldApi, useForm } from "@tanstack/react-form";
+import { MoveUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
@@ -206,6 +207,32 @@ export function NonHyprProviderCard({
               )}
             </form.Field>
           )}
+          {config.links && (config.links.download || config.links.models) && (
+            <div className="flex items-center gap-4 text-xs">
+              {config.links.download && (
+                <a
+                  href={config.links.download.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-0.5 text-neutral-600 hover:text-neutral-900 hover:underline"
+                >
+                  {config.links.download.label}
+                  <MoveUpRight size={12} />
+                </a>
+              )}
+              {config.links.models && (
+                <a
+                  href={config.links.models.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-0.5 text-neutral-600 hover:text-neutral-900 hover:underline"
+                >
+                  {config.links.models.label}
+                  <MoveUpRight size={12} />
+                </a>
+              )}
+            </div>
+          )}
           {!showBaseUrl && config.baseUrl && (
             <details className="space-y-4 pt-2">
               <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
@@ -219,31 +246,6 @@ export function NonHyprProviderCard({
             </details>
           )}
         </form>
-
-        {config.links && (config.links.download || config.links.models) && (
-          <div className="flex items-center gap-4 pt-2 text-sm">
-            {config.links.download && (
-              <a
-                href={config.links.download.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-neutral-600 hover:text-neutral-900 hover:underline"
-              >
-                {config.links.download.label}
-              </a>
-            )}
-            {config.links.models && (
-              <a
-                href={config.links.models.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-neutral-600 hover:text-neutral-900 hover:underline"
-              >
-                {config.links.models.label}
-              </a>
-            )}
-          </div>
-        )}
       </AccordionContent>
     </AccordionItem>
   );

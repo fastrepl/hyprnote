@@ -38,17 +38,17 @@ function AdminDashboard() {
           </p>
         </a>
 
-        <div className="block p-6 bg-white rounded-lg border border-neutral-200 opacity-50">
+        <a
+          href="/admin/content"
+          className="block p-6 bg-white rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all"
+        >
           <h2 className="text-lg font-medium text-neutral-900 mb-2">
-            Blog Posts
+            Content Management
           </h2>
           <p className="text-sm text-neutral-500">
-            View and manage all published and draft blog posts.
+            Browse and manage MDX content files across all content folders.
           </p>
-          <span className="inline-block mt-2 text-xs text-neutral-400">
-            Coming soon
-          </span>
-        </div>
+        </a>
       </div>
     </div>
   );

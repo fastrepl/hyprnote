@@ -31,15 +31,20 @@ function getPublicPath(fullPath: string): string {
   return fullPath.replace("apps/web/public", "");
 }
 
+
 function getFullPath(relativePath: string): string {
   if (relativePath.startsWith("/")) {
     relativePath = relativePath.slice(1);
   }
+  // Sanitize path traversal by removing any directory traversal sequences
+  relativePath = relativePath.replace(/\.\.\//g, "");
+  
   if (relativePath.startsWith("images")) {
     return `apps/web/public/${relativePath}`;
   }
   return `${IMAGES_PATH}/${relativePath}`;
 }
+
 
 export async function listMediaFiles(
   path: string = "",

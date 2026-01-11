@@ -6,32 +6,15 @@
 
 
 export const commands = {
-async start() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:notify|start") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async stop() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:notify|stop") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-}
+
 }
 
 /** user-defined events **/
 
 
 export const events = __makeEvents__<{
-entityChanged: EntityChanged,
 fileChanged: FileChanged
 }>({
-entityChanged: "plugin:notify:entity-changed",
 fileChanged: "plugin:notify:file-changed"
 })
 
@@ -42,8 +25,6 @@ fileChanged: "plugin:notify:file-changed"
 /** user-defined types **/
 
 export type ChangeKind = "created" | "modified" | "removed" | "renamed" | "access" | "any" | "other"
-export type EntityChanged = { entity: EntityKind; id: string; change: ChangeKind }
-export type EntityKind = "session" | "human" | "organization" | "chat_group" | "prompt" | "template" | "calendar" | "event" | "chat_shortcuts" | "unknown"
 export type FileChanged = { path: string; kind: ChangeKind }
 
 /** tauri-specta globals **/

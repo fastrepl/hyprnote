@@ -42,6 +42,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                                 .to_string_lossy()
                                 .to_string();
 
+                            tracing::info!("file_changed: {:?}", relative_path);
                             let _ = FileChanged {
                                 path: relative_path,
                                 kind: change_kind.clone(),

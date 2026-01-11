@@ -8,3 +8,9 @@ pub(crate) async fn base<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<
         .map(|p| p.to_string_lossy().to_string())
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn sanitize(name: String) -> String {
+    crate::sanitize::sanitize(&name)
+}

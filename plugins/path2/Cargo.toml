@@ -20,5 +20,6 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
 specta = { workspace = true }
-
 thiserror = { workspace = true }
+
+sanitize-filename = "0.6"

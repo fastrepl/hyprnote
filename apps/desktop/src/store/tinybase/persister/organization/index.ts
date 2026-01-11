@@ -12,7 +12,7 @@ export function useOrganizationPersister(store: Store) {
     store,
     async (store) => {
       const persister = createOrganizationPersister(store as Store);
-      await persister.startAutoSave();
+      await persister.startAutoPersisting();
       return persister;
     },
     [],

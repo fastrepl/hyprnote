@@ -12,7 +12,7 @@ export function useEventsPersister(store: Store) {
     store,
     async (store) => {
       const persister = createEventPersister(store as Store);
-      await persister.startAutoSave();
+      await persister.startAutoPersisting();
       return persister;
     },
     [],

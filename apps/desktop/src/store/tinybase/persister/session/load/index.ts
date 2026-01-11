@@ -2,6 +2,11 @@ import { sep } from "@tauri-apps/api/path";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
+import {
+  SESSION_META_FILE,
+  SESSION_NOTE_EXTENSION,
+  SESSION_TRANSCRIPT_FILE,
+} from "../../shared";
 import { processMdFile } from "./note";
 import { processMetaFile } from "./session";
 import { processTranscriptFile } from "./transcript";
@@ -19,14 +24,14 @@ async function processFiles(
 ): Promise<void> {
   for (const [path, content] of Object.entries(files)) {
     if (!content) continue;
-    if (path.endsWith("_meta.json")) {
+    if (path.endsWith(SESSION_META_FILE)) {
       processMetaFile(path, content, result, now);
     }
   }
 
   for (const [path, content] of Object.entries(files)) {
     if (!content) continue;
-    if (path.endsWith("_transcript.json")) {
+    if (path.endsWith(SESSION_TRANSCRIPT_FILE)) {
       processTranscriptFile(path, content, result);
     }
   }
@@ -34,7 +39,7 @@ async function processFiles(
   const mdPromises: Promise<void>[] = [];
   for (const [path, content] of Object.entries(files)) {
     if (!content) continue;
-    if (path.endsWith(".md")) {
+    if (path.endsWith(SESSION_NOTE_EXTENSION)) {
       mdPromises.push(processMdFile(path, content, result));
     }
   }
@@ -50,7 +55,7 @@ export async function loadAllSessionData(
 
   const scanResult = await fsSyncCommands.scanAndRead(
     sessionsDir,
-    ["_meta.json", "_transcript.json", "*.md"],
+    [SESSION_META_FILE, SESSION_TRANSCRIPT_FILE, `*${SESSION_NOTE_EXTENSION}`],
     true,
   );
 
@@ -73,11 +78,12 @@ export async function loadSingleSession(
 
   const scanResult = await fsSyncCommands.scanAndRead(
     sessionDir,
-    ["_meta.json", "_transcript.json", "*.md"],
+    [SESSION_META_FILE, SESSION_TRANSCRIPT_FILE, `*${SESSION_NOTE_EXTENSION}`],
     false,
   );
 
   if (scanResult.status === "error") {
+    console.error(`loadSingleSession scan error:`, scanResult.error);
     return result;
   }
 

@@ -12,8 +12,7 @@ export function useValuesPersister(store: Store) {
     store,
     async (store) => {
       const persister = createValuesPersister(store as Store);
-      await persister.load();
-      await persister.startAutoSave();
+      await persister.startAutoPersisting();
       return persister;
     },
     [],

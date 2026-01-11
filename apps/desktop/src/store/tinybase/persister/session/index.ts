@@ -13,7 +13,7 @@ export function useSessionPersister(store: Store) {
     store,
     async (store) => {
       const persister = createSessionPersister(store as Store);
-      await persister.startAutoSave();
+      await persister.startAutoPersisting();
 
       initSessionOps({
         store: store as Store,

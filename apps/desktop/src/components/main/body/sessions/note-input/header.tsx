@@ -43,7 +43,7 @@ function HeaderTab({
     <button
       onClick={onClick}
       className={cn([
-        "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200",
+        "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200 flex-shrink-0",
         isActive
           ? ["border-neutral-900", "text-neutral-900"]
           : [
@@ -120,7 +120,7 @@ function HeaderTabEnhanced({
           }
         }}
         className={cn([
-          "group/tab relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 cursor-pointer",
+          "group/tab relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 cursor-pointer flex-shrink-0",
           isActive
             ? ["text-neutral-900", "border-neutral-900"]
             : [
@@ -194,7 +194,7 @@ function HeaderTabEnhanced({
     <button
       onClick={onClick}
       className={cn([
-        "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
+        "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 flex-shrink-0",
         isActive
           ? ["text-neutral-900", "border-neutral-900"]
           : [
@@ -296,7 +296,7 @@ function CreateOtherFormatButton({
       <PopoverTrigger asChild>
         <button
           className={cn([
-            "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200",
+            "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap",
             "text-neutral-600 hover:text-neutral-800",
             "flex items-center gap-1",
             "border-b-2 border-transparent",
@@ -382,7 +382,7 @@ export function Header({
   return (
     <div className="flex flex-col">
       <div className="flex justify-between items-center gap-2">
-        <div className="flex gap-1 items-center min-w-0 overflow-x-auto">
+        <div className="flex gap-1 items-center min-w-0 overflow-x-auto scrollbar-hide">
           {editorTabs.map((view) => {
             if (view.type === "enhanced") {
               return (

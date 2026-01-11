@@ -1,6 +1,6 @@
-import { createAPIFileRoute } from "@tanstack/start/api";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { isAdmin } from "../../../../functions/admin";
+import { fetchAdminUser } from "@/functions/admin";
 
 interface ImportRequest {
   url: string;
@@ -170,98 +170,102 @@ date: "${today}"
   return `${frontmatter}\n\n${content}`;
 }
 
-export const Route = createAPIFileRoute("/api/admin/import/google-docs")({
-  POST: async ({ request }) => {
-    const adminCheck = await isAdmin(request);
-    if (!adminCheck.isAdmin) {
-      return new Response(JSON.stringify({ error: adminCheck.error }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+export const Route = createFileRoute("/api/admin/import/google-docs")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        const user = await fetchAdminUser();
+        if (!user?.isAdmin) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
 
-    try {
-      const body: ImportRequest = await request.json();
-      const { url, title, author, description, coverImage, slug } = body;
+        try {
+          const body: ImportRequest = await request.json();
+          const { url, title, author, description, coverImage, slug } = body;
 
-      if (!url) {
-        return new Response(
-          JSON.stringify({ success: false, error: "URL is required" }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
-        );
-      }
+          if (!url) {
+            return new Response(
+              JSON.stringify({ success: false, error: "URL is required" }),
+              { status: 400, headers: { "Content-Type": "application/json" } },
+            );
+          }
 
-      const docId = extractGoogleDocsId(url);
-      if (!docId) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "Invalid Google Docs URL",
-          }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
-        );
-      }
+          const docId = extractGoogleDocsId(url);
+          if (!docId) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: "Invalid Google Docs URL",
+              }),
+              { status: 400, headers: { "Content-Type": "application/json" } },
+            );
+          }
 
-      const publishedUrl = `https://docs.google.com/document/d/${docId}/pub`;
-      const response = await fetch(publishedUrl);
+          const publishedUrl = `https://docs.google.com/document/d/${docId}/pub`;
+          const response = await fetch(publishedUrl);
 
-      if (!response.ok) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error:
-              "Failed to fetch document. Make sure it is published to the web.",
-          }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
-        );
-      }
+          if (!response.ok) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error:
+                  "Failed to fetch document. Make sure it is published to the web.",
+              }),
+              { status: 400, headers: { "Content-Type": "application/json" } },
+            );
+          }
 
-      const html = await response.text();
-      const extractedTitle = extractTitle(html) || "Untitled";
-      const finalTitle = title || extractedTitle;
-      const finalSlug = slug || generateSlug(finalTitle);
+          const html = await response.text();
+          const extractedTitle = extractTitle(html) || "Untitled";
+          const finalTitle = title || extractedTitle;
+          const finalSlug = slug || generateSlug(finalTitle);
 
-      const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-      const bodyContent = bodyMatch ? bodyMatch[1] : html;
+          const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+          const bodyContent = bodyMatch ? bodyMatch[1] : html;
 
-      const markdown = htmlToMarkdown(bodyContent);
+          const markdown = htmlToMarkdown(bodyContent);
 
-      const mdx = generateMdx(markdown, {
-        title: finalTitle,
-        author: author || "Unknown",
-        description: description || "",
-        coverImage: coverImage || `/api/images/blog/${finalSlug}/cover.png`,
-      });
+          const mdx = generateMdx(markdown, {
+            title: finalTitle,
+            author: author || "Unknown",
+            description: description || "",
+            coverImage: coverImage || `/api/images/blog/${finalSlug}/cover.png`,
+          });
 
-      const frontmatter = {
-        meta_title: finalTitle,
-        display_title: finalTitle,
-        meta_description: description || "",
-        author: author || "Unknown",
-        coverImage: coverImage || `/api/images/blog/${finalSlug}/cover.png`,
-        featured: false,
-        published: false,
-        date: new Date().toISOString().split("T")[0],
-      };
+          const frontmatter = {
+            meta_title: finalTitle,
+            display_title: finalTitle,
+            meta_description: description || "",
+            author: author || "Unknown",
+            coverImage: coverImage || `/api/images/blog/${finalSlug}/cover.png`,
+            featured: false,
+            published: false,
+            date: new Date().toISOString().split("T")[0],
+          };
 
-      const result: ImportResponse = {
-        success: true,
-        mdx,
-        frontmatter,
-      };
+          const result: ImportResponse = {
+            success: true,
+            mdx,
+            frontmatter,
+          };
 
-      return new Response(JSON.stringify(result), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    } catch (err) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: (err as Error).message,
-        }),
-        { status: 500, headers: { "Content-Type": "application/json" } },
-      );
-    }
+          return new Response(JSON.stringify(result), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch (err) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: (err as Error).message,
+            }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
+        }
+      },
+    },
   },
 });

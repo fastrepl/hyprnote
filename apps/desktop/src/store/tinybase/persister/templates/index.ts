@@ -12,7 +12,7 @@ export function useTemplatePersister(store: Store) {
     store,
     async (store) => {
       const persister = createTemplatePersister(store as Store);
-      await persister.startAutoSave();
+      await persister.startAutoPersisting();
       return persister;
     },
     [],

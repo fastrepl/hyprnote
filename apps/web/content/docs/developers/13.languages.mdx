@@ -4,15 +4,22 @@ section: "Developers"
 description: "Learn about language support in Hyprnote"
 ---
 
-## How we support languages
+Hyprnote supports 45+ languages for transcription and AI features. Language support varies by provider.
 
-https://developers.deepgram.com/docs/models-languages-overview
+## Supported Languages
 
-## Explanation
+See the [Features FAQ](/docs/faq/features) for the full list of supported languages.
 
-### Every Provider/Model has its own supported languages
+## Provider-Specific Support
 
-- Whisper (50-60 languages)
-- Deepgram ()
+Each transcription provider has different language coverage:
 
-### Every Provider/Model has different ways to specify languages
+| Provider | Languages | Notes |
+|----------|-----------|-------|
+| Whisper (local) | 50+ | Best multilingual support |
+| Deepgram | 30+ | [Full list](https://developers.deepgram.com/docs/models-languages-overview) |
+| AssemblyAI | 20+ | Best for English variants |
+
+## Configuration
+
+Set your main language and additional spoken languages in Settings > Language & Vocabulary. The main language is used for AI responses; spoken languages improve transcription accuracy in multilingual meetings.

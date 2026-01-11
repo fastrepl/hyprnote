@@ -20,7 +20,7 @@ describe("processTranscriptFile", () => {
       ],
     });
 
-    processTranscriptFile("/path/to/_transcript.json", content, result);
+    processTranscriptFile("/path/to/transcript.json", content, result);
 
     expect(result.transcripts["transcript-1"]).toEqual({
       user_id: "user-1",
@@ -57,7 +57,7 @@ describe("processTranscriptFile", () => {
       ],
     });
 
-    processTranscriptFile("/path/to/_transcript.json", content, result);
+    processTranscriptFile("/path/to/transcript.json", content, result);
 
     expect(Object.keys(result.transcripts)).toHaveLength(2);
     expect(result.transcripts["transcript-1"]).toBeDefined();
@@ -68,7 +68,7 @@ describe("processTranscriptFile", () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const result = createEmptyLoadedSessionData();
 
-    processTranscriptFile("/path/to/_transcript.json", "invalid json", result);
+    processTranscriptFile("/path/to/transcript.json", "invalid json", result);
 
     expect(Object.keys(result.transcripts)).toHaveLength(0);
     expect(consoleSpy).toHaveBeenCalled();

@@ -12,7 +12,7 @@ export function useChatPersister(store: Store) {
     store,
     async (store) => {
       const persister = createChatPersister(store as Store);
-      await persister.startAutoSave();
+      await persister.startAutoPersisting();
       return persister;
     },
     [],

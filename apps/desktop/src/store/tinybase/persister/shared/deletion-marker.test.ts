@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import {
   createDeletionMarker,
   type DeletionMarkerStore,
-  type TableConfig,
+  type RuntimeTableConfig,
 } from "./deletion-marker";
 
 type TestData = {
@@ -29,7 +29,7 @@ describe("createDeletionMarker", () => {
   describe("markAll", () => {
     test("returns loaded data when store is empty", () => {
       const store = createMockStore({});
-      const configs: TableConfig<TestData>[] = [
+      const configs: RuntimeTableConfig[] = [
         { tableName: "sessions", isPrimary: true },
       ];
       const marker = createDeletionMarker<TestData>(store, configs);
@@ -56,7 +56,7 @@ describe("createDeletionMarker", () => {
           "session-2": { title: "ToDelete", folder_id: "folder-1" },
         },
       });
-      const configs: TableConfig<TestData>[] = [
+      const configs: RuntimeTableConfig[] = [
         { tableName: "sessions", isPrimary: true },
       ];
       const marker = createDeletionMarker<TestData>(store, configs);
@@ -88,7 +88,7 @@ describe("createDeletionMarker", () => {
           "word-1": { session_id: "session-1", text: "hello" },
         },
       });
-      const configs: TableConfig<TestData>[] = [
+      const configs: RuntimeTableConfig[] = [
         { tableName: "sessions", isPrimary: true },
         { tableName: "words", foreignKey: "session_id" },
       ];
@@ -114,7 +114,7 @@ describe("createDeletionMarker", () => {
           "session-1": { title: "ToDelete", folder_id: "f1" },
         },
       });
-      const configs: TableConfig<TestData>[] = [
+      const configs: RuntimeTableConfig[] = [
         { tableName: "sessions", isPrimary: true },
       ];
       const marker = createDeletionMarker<TestData>(store, configs);
@@ -137,7 +137,7 @@ describe("createDeletionMarker", () => {
           "session-1": { title: "Test", folder_id: "f1" },
         },
       });
-      const configs: TableConfig<TestData>[] = [
+      const configs: RuntimeTableConfig[] = [
         { tableName: "sessions", isPrimary: true },
       ];
       const marker = createDeletionMarker<TestData>(store, configs);
@@ -152,7 +152,7 @@ describe("createDeletionMarker", () => {
 
     test("preserves all loaded rows even when not in store", () => {
       const store = createMockStore({});
-      const configs: TableConfig<TestData>[] = [
+      const configs: RuntimeTableConfig[] = [
         { tableName: "sessions", isPrimary: true },
       ];
       const marker = createDeletionMarker<TestData>(store, configs);
@@ -184,7 +184,7 @@ describe("createDeletionMarker", () => {
             "session-2": { title: "Session2", folder_id: "f1" },
           },
         });
-        const configs: TableConfig<TestData>[] = [
+        const configs: RuntimeTableConfig[] = [
           { tableName: "sessions", isPrimary: true },
         ];
         const marker = createDeletionMarker<TestData>(store, configs);
@@ -208,7 +208,7 @@ describe("createDeletionMarker", () => {
             "session-1": { title: "OldTitle", folder_id: "f1" },
           },
         });
-        const configs: TableConfig<TestData>[] = [
+        const configs: RuntimeTableConfig[] = [
           { tableName: "sessions", isPrimary: true },
         ];
         const marker = createDeletionMarker<TestData>(store, configs);
@@ -231,7 +231,7 @@ describe("createDeletionMarker", () => {
 
       test("does not mark entity when it does not exist in store", () => {
         const store = createMockStore({});
-        const configs: TableConfig<TestData>[] = [
+        const configs: RuntimeTableConfig[] = [
           { tableName: "sessions", isPrimary: true },
         ];
         const marker = createDeletionMarker<TestData>(store, configs);
@@ -257,7 +257,7 @@ describe("createDeletionMarker", () => {
             "word-3": { session_id: "session-2", text: "other" },
           },
         });
-        const configs: TableConfig<TestData>[] = [
+        const configs: RuntimeTableConfig[] = [
           { tableName: "words", foreignKey: "session_id" },
         ];
         const marker = createDeletionMarker<TestData>(store, configs);
@@ -284,7 +284,7 @@ describe("createDeletionMarker", () => {
             "word-2": { session_id: "session-1", text: "toDelete" },
           },
         });
-        const configs: TableConfig<TestData>[] = [
+        const configs: RuntimeTableConfig[] = [
           { tableName: "words", foreignKey: "session_id" },
         ];
         const marker = createDeletionMarker<TestData>(store, configs);
@@ -313,7 +313,7 @@ describe("createDeletionMarker", () => {
             "word-1": { session_id: "session-2", text: "different" },
           },
         });
-        const configs: TableConfig<TestData>[] = [
+        const configs: RuntimeTableConfig[] = [
           { tableName: "words", foreignKey: "session_id" },
         ];
         const marker = createDeletionMarker<TestData>(store, configs);
@@ -337,7 +337,7 @@ describe("createDeletionMarker", () => {
             "event-1": { name: "Existing" },
           },
         });
-        const configs: TableConfig<TestData>[] = [{ tableName: "events" }];
+        const configs: RuntimeTableConfig[] = [{ tableName: "events" }];
         const marker = createDeletionMarker<TestData>(store, configs);
 
         const loaded = {
@@ -372,7 +372,7 @@ describe("createDeletionMarker", () => {
             "event-1": { name: "Event" },
           },
         });
-        const configs: TableConfig<TestData>[] = [
+        const configs: RuntimeTableConfig[] = [
           { tableName: "sessions", isPrimary: true },
           { tableName: "words", foreignKey: "session_id" },
           { tableName: "events" },
@@ -407,7 +407,7 @@ describe("createDeletionMarker", () => {
       const store = createMockStore({
         sessions: { s1: { title: "Test", folder_id: "f1" } },
       });
-      const configs: TableConfig<TestData>[] = [];
+      const configs: RuntimeTableConfig[] = [];
       const marker = createDeletionMarker<TestData>(store, configs);
 
       const loaded = { sessions: {}, words: {}, events: {} };
@@ -421,7 +421,7 @@ describe("createDeletionMarker", () => {
 
     test("handles store with undefined table", () => {
       const store = createMockStore({});
-      const configs: TableConfig<TestData>[] = [
+      const configs: RuntimeTableConfig[] = [
         { tableName: "sessions", isPrimary: true },
       ];
       const marker = createDeletionMarker<TestData>(store, configs);
@@ -441,7 +441,7 @@ describe("createDeletionMarker", () => {
 
     test("handles row that exists in loaded but not in store for foreign key check", () => {
       const store = createMockStore({});
-      const configs: TableConfig<TestData>[] = [
+      const configs: RuntimeTableConfig[] = [
         { tableName: "words", foreignKey: "session_id" },
       ];
       const marker = createDeletionMarker<TestData>(store, configs);

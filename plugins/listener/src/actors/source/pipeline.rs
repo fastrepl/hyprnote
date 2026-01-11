@@ -59,6 +59,7 @@ impl Pipeline {
     pub(super) fn ingest_mic(&mut self, chunk: AudioChunk) {
         let mut data = chunk.data;
         self.agc_mic.process(&mut data);
+        self.amplitude.observe_mic(&data);
         let arc = Arc::<[f32]>::from(data);
         self.joiner.push_mic(arc);
     }
@@ -66,6 +67,7 @@ impl Pipeline {
     pub(super) fn ingest_speaker(&mut self, chunk: AudioChunk) {
         let mut data = chunk.data;
         self.agc_spk.process(&mut data);
+        self.amplitude.observe_spk(&data);
         let arc = Arc::<[f32]>::from(data);
         self.joiner.push_spk(arc);
     }
@@ -108,9 +110,6 @@ impl Pipeline {
                 tracing::error!(error = ?e, "failed_to_send_audio_to_recorder");
             }
         }
-
-        self.amplitude
-            .observe(Arc::clone(&processed_mic), Arc::clone(&processed_spk));
 
         let Some(cell) = registry::where_is(ListenerActor::name()) else {
             self.audio_buffer.push(processed_mic, processed_spk, mode);
@@ -217,8 +216,8 @@ impl AudioBuffer {
 struct AmplitudeEmitter {
     app: tauri::AppHandle,
     session_id: String,
-    last_mic: Option<Arc<[f32]>>,
-    last_spk: Option<Arc<[f32]>>,
+    last_mic_level: u16,
+    last_spk_level: u16,
     last_emit: Instant,
 }
 
@@ -227,21 +226,25 @@ impl AmplitudeEmitter {
         Self {
             app,
             session_id,
-            last_mic: None,
-            last_spk: None,
+            last_mic_level: 0,
+            last_spk_level: 0,
             last_emit: Instant::now() - AUDIO_AMPLITUDE_THROTTLE,
         }
     }
 
     fn reset(&mut self) {
-        self.last_mic = None;
-        self.last_spk = None;
+        self.last_mic_level = 0;
+        self.last_spk_level = 0;
         self.last_emit = Instant::now() - AUDIO_AMPLITUDE_THROTTLE;
     }
 
-    fn observe(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>) {
-        self.last_mic = Some(mic);
-        self.last_spk = Some(spk);
+    fn observe_mic(&mut self, data: &[f32]) {
+        self.last_mic_level = Self::amplitude_from_chunk(data);
+        self.emit_if_ready();
+    }
+
+    fn observe_spk(&mut self, data: &[f32]) {
+        self.last_spk_level = Self::amplitude_from_chunk(data);
         self.emit_if_ready();
     }
 
@@ -250,17 +253,10 @@ impl AmplitudeEmitter {
             return;
         }
 
-        let (Some(mic), Some(spk)) = (&self.last_mic, &self.last_spk) else {
-            return;
-        };
-
-        let mic_level = Self::amplitude_from_chunk(mic.as_ref());
-        let spk_level = Self::amplitude_from_chunk(spk.as_ref());
-
         if let Err(error) = (SessionDataEvent::AudioAmplitude {
             session_id: self.session_id.clone(),
-            mic: mic_level,
-            speaker: spk_level,
+            mic: self.last_mic_level,
+            speaker: self.last_spk_level,
         })
         .emit(&self.app)
         {

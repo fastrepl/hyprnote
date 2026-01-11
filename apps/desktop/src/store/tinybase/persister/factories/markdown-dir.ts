@@ -25,11 +25,7 @@ import {
   buildEntityPath,
   getDataDir,
 } from "../shared/paths";
-import {
-  type ChangedTables,
-  type TablesContent,
-  type WriteOperation,
-} from "../shared/types";
+import { type ChangedTables, type WriteOperation } from "../shared/types";
 import { asTablesChanges } from "../shared/utils";
 import { createCollectorPersister } from "./collector";
 
@@ -97,7 +93,7 @@ function collectMarkdownWriteOps<TStorage extends Record<string, unknown>>(
 
   if (documentItems.length > 0) {
     operations.push({
-      type: "document-batch",
+      type: "write-document-batch",
       items: documentItems,
     });
   }
@@ -168,22 +164,17 @@ export function createMarkdownDirPersister<
     [{ tableName, isPrimary: true }],
   );
 
-  const getValidIds = (tables: TablesContent): Set<string> =>
-    new Set(
-      Object.keys(
-        (tables as Record<string, Record<string, unknown>>)[tableName] ?? {},
-      ),
-    );
-
   return createCollectorPersister(store, {
     label,
     watchPaths: [`${dirName}/`],
-    cleanup: [
+    cleanup: (tables) => [
       {
         type: "files",
         subdir: dirName,
         extension: "md",
-        getValidIds,
+        keepIds: Object.keys(
+          (tables as Record<string, Record<string, unknown>>)[tableName] ?? {},
+        ),
       },
     ],
     entityParser,
@@ -223,7 +214,7 @@ export function createMarkdownDirPersister<
           deletedIds.length > 0
             ? [
                 {
-                  type: "delete-batch",
+                  type: "delete",
                   paths: deletedIds.map((id) =>
                     buildEntityFilePath(dataDir, dirName, id),
                   ),

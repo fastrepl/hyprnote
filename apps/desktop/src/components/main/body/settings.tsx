@@ -7,15 +7,7 @@ import {
   SettingsIcon,
   SmartphoneIcon,
 } from "lucide-react";
-import {
-  type RefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useResizeObserver } from "usehooks-ts";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -24,6 +16,7 @@ import { type Tab } from "../../../store/zustand/tabs";
 import { Data } from "../../settings/data";
 import { SettingsGeneral } from "../../settings/general";
 import { SettingsLab } from "../../settings/lab";
+import { ScrollFadeOverlay, useScrollFade } from "../../ui/scroll-fade";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
 
@@ -92,7 +85,9 @@ function SettingsView() {
   const sectionRefs = useRef(new Map<SettingsSection, HTMLDivElement | null>());
   const [activeSection, setActiveSection] = useState<SettingsSection>("app");
   const isProgrammaticScroll = useRef(false);
-  const { atStart, atEnd } = useScrollFade(scrollContainerRef, [activeSection]);
+  const { atStart, atEnd } = useScrollFade(scrollContainerRef, "vertical", [
+    activeSection,
+  ]);
 
   const refCallbacks = useMemo(
     () => ({
@@ -182,28 +177,41 @@ function SettingsView() {
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const { atStart: tabsAtStart, atEnd: tabsAtEnd } = useScrollFade(
+    tabsRef,
+    "horizontal",
+  );
+
   return (
     <div className="flex flex-col flex-1 w-full overflow-hidden">
-      <div className="flex gap-1 px-6 pt-6 pb-2 overflow-x-auto scrollbar-hide">
-        {SECTIONS.map(({ id, label, icon: Icon }) => (
-          <Button
-            key={id}
-            variant="ghost"
-            size="sm"
-            onClick={() => scrollToSection(id)}
-            className={cn([
-              "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
-              id === "lab" && "ml-2 text-neutral-500",
-              activeSection === id &&
-                (id === "lab"
-                  ? "bg-amber-50 border-amber-200 text-amber-700"
-                  : "bg-neutral-100 border-neutral-200"),
-            ])}
-          >
-            <Icon size={14} />
-            <span className="text-xs">{label}</span>
-          </Button>
-        ))}
+      <div className="relative pt-6 pb-2">
+        <div
+          ref={tabsRef}
+          className="flex gap-1 px-6 overflow-x-auto scrollbar-hide"
+        >
+          {SECTIONS.map(({ id, label, icon: Icon }) => (
+            <Button
+              key={id}
+              variant="ghost"
+              size="sm"
+              onClick={() => scrollToSection(id)}
+              className={cn([
+                "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
+                id === "lab" && "ml-2 text-neutral-500",
+                activeSection === id &&
+                  (id === "lab"
+                    ? "bg-amber-50 border-amber-200 text-amber-700"
+                    : "bg-neutral-100 border-neutral-200"),
+              ])}
+            >
+              <Icon size={14} />
+              <span className="text-xs">{label}</span>
+            </Button>
+          ))}
+        </div>
+        {!tabsAtStart && <ScrollFadeOverlay position="left" />}
+        {!tabsAtEnd && <ScrollFadeOverlay position="right" />}
       </div>
       <div className="relative flex-1 w-full overflow-hidden">
         <div
@@ -234,53 +242,5 @@ function SettingsView() {
         {!atEnd && <ScrollFadeOverlay position="bottom" />}
       </div>
     </div>
-  );
-}
-
-function useScrollFade<T extends HTMLElement>(
-  ref: RefObject<T | null>,
-  deps: unknown[] = [],
-) {
-  const [state, setState] = useState({ atStart: true, atEnd: true });
-
-  const update = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    setState({
-      atStart: scrollTop <= 1,
-      atEnd: scrollTop + clientHeight >= scrollHeight - 1,
-    });
-  }, [ref]);
-
-  useResizeObserver({
-    ref: ref as RefObject<T>,
-    onResize: update,
-  });
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    update();
-    el.addEventListener("scroll", update);
-    return () => el.removeEventListener("scroll", update);
-  }, [ref, update, ...deps]);
-
-  return state;
-}
-
-function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
-  return (
-    <div
-      className={cn([
-        "absolute left-0 w-full h-8 z-20 pointer-events-none",
-        position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
-        position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
-      ])}
-    />
   );
 }

@@ -12,7 +12,7 @@ export function usePromptPersister(store: Store) {
     store,
     async (store) => {
       const persister = createPromptPersister(store as Store);
-      await persister.startAutoSave();
+      await persister.startAutoPersisting();
       return persister;
     },
     [],

@@ -47,26 +47,11 @@ pub fn cleanup_files_in_dir(
     Ok(removed)
 }
 
-pub fn cleanup_dirs_recursive(
-    base_dir: &Path,
-    marker_file: &str,
-    valid_ids: &HashSet<String>,
-) -> std::io::Result<u32> {
-    if !base_dir.exists() {
-        return Ok(0);
-    }
-
-    let mut removed = 0;
-    cleanup_dirs_impl(base_dir, base_dir, marker_file, valid_ids, &mut removed);
-    Ok(removed)
-}
-
-fn cleanup_dirs_impl(
+fn for_each_entity_dir(
     base_dir: &Path,
     current_dir: &Path,
     marker_file: &str,
-    valid_ids: &HashSet<String>,
-    removed: &mut u32,
+    callback: &mut impl FnMut(&Path, &str),
 ) {
     let Ok(entries) = std::fs::read_dir(current_dir) else {
         return;
@@ -84,113 +69,94 @@ fn cleanup_dirs_impl(
 
         let has_marker = path.join(marker_file).exists();
 
-        if has_marker && is_uuid(name) && !valid_ids.contains(name) {
-            let relative_path = to_relative_path(&path, base_dir);
-            if let Err(e) = std::fs::remove_dir_all(&path) {
-                tracing::warn!(path = %relative_path, error = %e, "failed to remove orphan directory");
-            } else {
-                tracing::info!(path = %relative_path, "orphan directory removed");
-                *removed += 1;
-            }
+        if has_marker && is_uuid(name) {
+            callback(&path, name);
         } else if !has_marker && !is_uuid(name) {
-            cleanup_dirs_impl(base_dir, &path, marker_file, valid_ids, removed);
+            for_each_entity_dir(base_dir, &path, marker_file, callback);
         }
     }
 }
 
-pub fn cleanup_session_note_files(
+pub fn cleanup_dirs_recursive(
     base_dir: &Path,
-    valid_note_ids: &HashSet<String>,
-    sessions_with_memo: &HashSet<String>,
+    marker_file: &str,
+    valid_ids: &HashSet<String>,
 ) -> std::io::Result<u32> {
     if !base_dir.exists() {
         return Ok(0);
     }
 
     let mut removed = 0;
-    cleanup_notes_impl(
-        base_dir,
-        base_dir,
-        valid_note_ids,
-        sessions_with_memo,
-        &mut removed,
-    );
+    for_each_entity_dir(base_dir, base_dir, marker_file, &mut |path, name| {
+        if !valid_ids.contains(name) {
+            let relative_path = to_relative_path(path, base_dir);
+            if let Err(e) = std::fs::remove_dir_all(path) {
+                tracing::warn!(path = %relative_path, error = %e, "failed to remove orphan directory");
+            } else {
+                tracing::info!(path = %relative_path, "orphan directory removed");
+                removed += 1;
+            }
+        }
+    });
     Ok(removed)
 }
 
-fn cleanup_notes_impl(
+pub fn cleanup_files_recursive(
     base_dir: &Path,
-    current_dir: &Path,
-    valid_note_ids: &HashSet<String>,
-    sessions_with_memo: &HashSet<String>,
-    removed: &mut u32,
-) {
-    let Ok(entries) = std::fs::read_dir(current_dir) else {
-        return;
-    };
-
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if !path.is_dir() {
-            continue;
-        }
-
-        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
-            continue;
-        };
-
-        let has_meta = path.join("_meta.json").exists();
-
-        if has_meta && is_uuid(name) {
-            cleanup_md_files_in_dir(&path, name, valid_note_ids, sessions_with_memo, removed);
-        } else if !is_uuid(name) {
-            cleanup_notes_impl(base_dir, &path, valid_note_ids, sessions_with_memo, removed);
-        }
+    marker_file: &str,
+    extension: &str,
+    valid_ids: &HashSet<String>,
+) -> std::io::Result<u32> {
+    if !base_dir.exists() {
+        return Ok(0);
     }
+
+    let mut removed = 0;
+    for_each_entity_dir(base_dir, base_dir, marker_file, &mut |entity_dir, _| {
+        removed += cleanup_files_in_entity_dir(entity_dir, extension, valid_ids);
+    });
+    Ok(removed)
 }
 
-fn cleanup_md_files_in_dir(
-    session_dir: &Path,
-    session_id: &str,
-    valid_note_ids: &HashSet<String>,
-    sessions_with_memo: &HashSet<String>,
-    removed: &mut u32,
-) {
-    let Ok(entries) = std::fs::read_dir(session_dir) else {
-        return;
+fn cleanup_files_in_entity_dir(
+    entity_dir: &Path,
+    extension: &str,
+    valid_ids: &HashSet<String>,
+) -> u32 {
+    let Ok(entries) = std::fs::read_dir(entity_dir) else {
+        return 0;
     };
 
+    let mut removed = 0;
     for entry in entries.flatten() {
         let path = entry.path();
-        if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("md") {
+        if !path.is_file() {
             continue;
         }
 
-        let Some(filename) = path.file_name().and_then(|n| n.to_str()) else {
+        let Some(ext) = path.extension().and_then(|e| e.to_str()) else {
             continue;
         };
+        if ext != extension {
+            continue;
+        }
 
-        let should_remove = if filename == "_memo.md" {
-            !sessions_with_memo.contains(session_id)
-        } else {
-            std::fs::read_to_string(&path)
-                .ok()
-                .and_then(|c| extract_frontmatter_id(&c))
-                .is_some_and(|id| !valid_note_ids.contains(&id))
+        let Some(stem) = path.file_stem().and_then(|s| s.to_str()) else {
+            continue;
         };
+        if !is_uuid(stem) {
+            continue;
+        }
 
-        if should_remove && std::fs::remove_file(&path).is_ok() {
-            tracing::debug!(path = %format!("sessions/{}/{}", session_id, filename), "orphan file removed");
-            *removed += 1;
+        if !valid_ids.contains(stem) {
+            if std::fs::remove_file(&path).is_ok() {
+                tracing::debug!(path = %path.display(), "orphan file removed");
+                removed += 1;
+            }
         }
     }
-}
 
-fn extract_frontmatter_id(content: &str) -> Option<String> {
-    crate::frontmatter::deserialize(content)
-        .ok()
-        .and_then(|doc| doc.frontmatter.get("id").cloned())
-        .and_then(|v| v.as_str().map(String::from))
+    removed
 }
 
 #[cfg(test)]
@@ -271,7 +237,7 @@ mod tests {
     }
 
     #[test]
-    fn cleanup_session_notes_removes_orphan_notes() {
+    fn cleanup_files_recursive_removes_orphan_notes() {
         let env = TestEnv::new()
             .session(UUID_1)
             .note(UUID_2, "valid")
@@ -279,10 +245,8 @@ mod tests {
             .done()
             .build();
 
-        let valid_notes: HashSet<String> = [UUID_2.to_string()].into();
-        let sessions_with_memo: HashSet<String> = HashSet::new();
-        let removed =
-            cleanup_session_note_files(env.path(), &valid_notes, &sessions_with_memo).unwrap();
+        let valid: HashSet<String> = [UUID_2.to_string()].into();
+        let removed = cleanup_files_recursive(env.path(), "_meta.json", "md", &valid).unwrap();
 
         assert_eq!(removed, 1);
         env.child(UUID_1)
@@ -294,38 +258,46 @@ mod tests {
     }
 
     #[test]
-    fn cleanup_session_notes_removes_orphan_memo() {
+    fn cleanup_files_recursive_in_nested_folders() {
         let env = TestEnv::new()
+            .folder("work")
             .session(UUID_1)
-            .memo("memo content")
+            .note(UUID_2, "valid")
+            .note(UUID_3, "orphan")
+            .done_folder()
             .done()
             .build();
 
-        let valid_notes: HashSet<String> = HashSet::new();
-        let sessions_with_memo: HashSet<String> = HashSet::new();
-        let removed =
-            cleanup_session_note_files(env.path(), &valid_notes, &sessions_with_memo).unwrap();
+        let valid: HashSet<String> = [UUID_2.to_string()].into();
+        let removed = cleanup_files_recursive(env.path(), "_meta.json", "md", &valid).unwrap();
 
         assert_eq!(removed, 1);
-        env.child(UUID_1)
-            .child("_memo.md")
+        env.child("work")
+            .child(UUID_1)
+            .child(&format!("{UUID_2}.md"))
+            .assert(predicate::path::exists());
+        env.child("work")
+            .child(UUID_1)
+            .child(&format!("{UUID_3}.md"))
             .assert(predicate::path::missing());
     }
 
     #[test]
-    fn cleanup_session_notes_keeps_valid_memo() {
+    fn cleanup_files_recursive_ignores_non_uuid_files() {
         let env = TestEnv::new()
             .session(UUID_1)
+            .note(UUID_2, "valid")
             .memo("memo content")
             .done()
             .build();
 
-        let valid_notes: HashSet<String> = HashSet::new();
-        let sessions_with_memo: HashSet<String> = [UUID_1.to_string()].into();
-        let removed =
-            cleanup_session_note_files(env.path(), &valid_notes, &sessions_with_memo).unwrap();
+        let valid: HashSet<String> = [UUID_2.to_string()].into();
+        let removed = cleanup_files_recursive(env.path(), "_meta.json", "md", &valid).unwrap();
 
         assert_eq!(removed, 0);
+        env.child(UUID_1)
+            .child(&format!("{UUID_2}.md"))
+            .assert(predicate::path::exists());
         env.child(UUID_1)
             .child("_memo.md")
             .assert(predicate::path::exists());

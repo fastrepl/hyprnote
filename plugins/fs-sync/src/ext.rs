@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use tauri_plugin_path2::Path2PluginExt;
 
-use crate::cleanup::{cleanup_dirs_recursive, cleanup_files_in_dir, cleanup_session_note_files};
+use crate::cleanup::{cleanup_dirs_recursive, cleanup_files_in_dir, cleanup_files_recursive};
 use crate::folder::scan_directory_recursive;
 use crate::path::is_uuid;
 use crate::session::find_session_dir;
@@ -186,13 +186,17 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
                 let dir = self.base_dir()?.join(&subdir);
                 Ok(cleanup_dirs_recursive(&dir, &marker_file, &valid_set)?)
             }
-            CleanupTarget::SessionNotes { sessions_with_memo } => {
-                let sessions_dir = self.sessions_dir()?;
-                let memo_set: HashSet<String> = sessions_with_memo.into_iter().collect();
-                Ok(cleanup_session_note_files(
-                    &sessions_dir,
+            CleanupTarget::FilesRecursive {
+                subdir,
+                marker_file,
+                extension,
+            } => {
+                let dir = self.base_dir()?.join(&subdir);
+                Ok(cleanup_files_recursive(
+                    &dir,
+                    &marker_file,
+                    &extension,
                     &valid_set,
-                    &memo_set,
                 )?)
             }
         }

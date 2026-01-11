@@ -36,9 +36,11 @@ export function createSessionPersister(store: Store) {
         getIdsToKeep: getSessionIdsToKeep,
       },
       {
-        type: "sessionNotes",
+        type: "filesRecursive",
+        subdir: "sessions",
+        markerFile: "_meta.json",
+        extension: "md",
         getIdsToKeep: getNoteIdsToKeep,
-        getSessionsWithMemo: getSessionsWithMemo,
       },
     ],
     loadAll: loadAllSessionData,
@@ -90,12 +92,4 @@ function getSessionIdsToKeep(tables: TablesContent): Set<string> {
 
 function getNoteIdsToKeep(tables: TablesContent): Set<string> {
   return new Set(Object.keys(tables.enhanced_notes ?? {}));
-}
-
-function getSessionsWithMemo(tables: TablesContent): Set<string> {
-  return new Set(
-    Object.entries(tables.sessions ?? {})
-      .filter(([, s]) => s.raw_md)
-      .map(([id]) => id),
-  );
 }

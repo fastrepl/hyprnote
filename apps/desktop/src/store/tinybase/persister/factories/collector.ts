@@ -57,16 +57,18 @@ type OrphanCleanupFiles = {
   getIdsToKeep: (tables: TablesContent) => Set<string>;
 };
 
-type OrphanCleanupSessionNotes = {
-  type: "sessionNotes";
+type OrphanCleanupFilesRecursive = {
+  type: "filesRecursive";
+  subdir: string;
+  markerFile: string;
+  extension: string;
   getIdsToKeep: (tables: TablesContent) => Set<string>;
-  getSessionsWithMemo: (tables: TablesContent) => Set<string>;
 };
 
 export type OrphanCleanupConfig =
   | OrphanCleanupDirs
   | OrphanCleanupFiles
-  | OrphanCleanupSessionNotes;
+  | OrphanCleanupFilesRecursive;
 
 type BaseCollectorOptions<Schemas extends OptionalSchemas> = {
   label: string;
@@ -298,12 +300,13 @@ async function runOrphanCleanup(
           { type: "files", subdir: config.subdir, extension: config.extension },
           Array.from(idsToKeep),
         );
-      } else if (config.type === "sessionNotes") {
-        const sessionsWithMemo = config.getSessionsWithMemo(tables);
+      } else if (config.type === "filesRecursive") {
         await fsSyncCommands.cleanupOrphan(
           {
-            type: "sessionNotes",
-            sessions_with_memo: Array.from(sessionsWithMemo),
+            type: "filesRecursive",
+            subdir: config.subdir,
+            marker_file: config.markerFile,
+            extension: config.extension,
           },
           Array.from(idsToKeep),
         );

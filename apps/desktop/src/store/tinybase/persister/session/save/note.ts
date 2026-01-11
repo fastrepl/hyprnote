@@ -92,17 +92,25 @@ export function buildNoteSaveOps(
     ]);
   }
 
+  const memoDeletePaths: string[] = [];
+
   for (const session of iterateTableRows(tables, "sessions")) {
-    if (!session.raw_md) {
+    if (changedSessionIds && !changedSessionIds.has(session.id)) {
       continue;
     }
 
-    if (changedSessionIds && !changedSessionIds.has(session.id)) {
+    const folderPath = session.folder_id ?? "";
+    const sessionDir = buildSessionPath(dataDir, session.id, folderPath);
+    const memoPath = [sessionDir, "_memo.md"].join(sep());
+
+    if (!session.raw_md) {
+      memoDeletePaths.push(memoPath);
       continue;
     }
 
     const markdown = tryParseAndConvertToMarkdown(session.raw_md);
     if (!markdown) {
+      memoDeletePaths.push(memoPath);
       continue;
     }
 
@@ -112,12 +120,7 @@ export function buildNoteSaveOps(
       type: "memo",
     };
 
-    const folderPath = session.folder_id ?? "";
-    const sessionDir = buildSessionPath(dataDir, session.id, folderPath);
-    frontmatterBatchItems.push([
-      { frontmatter, content: markdown },
-      [sessionDir, "_memo.md"].join(sep()),
-    ]);
+    frontmatterBatchItems.push([{ frontmatter, content: markdown }, memoPath]);
   }
 
   const operations: WriteOperation[] = [];
@@ -125,6 +128,12 @@ export function buildNoteSaveOps(
     operations.push({
       type: "document-batch",
       items: frontmatterBatchItems,
+    });
+  }
+  if (memoDeletePaths.length > 0) {
+    operations.push({
+      type: "delete-batch",
+      paths: memoDeletePaths,
     });
   }
 

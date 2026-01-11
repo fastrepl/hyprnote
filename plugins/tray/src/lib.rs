@@ -1,5 +1,7 @@
 mod ext;
 mod menu_items;
+#[cfg(target_os = "macos")]
+pub mod panel;
 
 pub use ext::*;
 pub use menu_items::{HyprMenuItem, UpdateMenuState};

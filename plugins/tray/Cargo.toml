@@ -16,7 +16,7 @@ specta-typescript = { workspace = true }
 [dependencies]
 hypr-host = { workspace = true }
 
-tauri = { workspace = true, features = ["tray-icon", "image-png"] }
+tauri = { workspace = true, features = ["tray-icon", "image-png", "macos-private-api"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 tauri-plugin-cli2 = { workspace = true }
@@ -30,3 +30,9 @@ tauri-plugin-windows = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
 tracing = { workspace = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.1" }
+objc2 = { workspace = true }
+objc2-app-kit = { workspace = true }
+objc2-foundation = { workspace = true }

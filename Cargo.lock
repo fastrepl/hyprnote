@@ -18884,10 +18884,14 @@ name = "tauri-plugin-tray"
 version = "0.1.0"
 dependencies = [
  "host",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
  "serde_json",
  "specta",
  "specta-typescript",
  "tauri",
+ "tauri-nspanel",
  "tauri-plugin",
  "tauri-plugin-cli2",
  "tauri-plugin-clipboard-manager",

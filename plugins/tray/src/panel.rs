@@ -1,7 +1,5 @@
 #![cfg(target_os = "macos")]
 
-use objc2_app_kit::NSScreen;
-use objc2_foundation::MainThreadMarker;
 use tauri::{LogicalPosition, LogicalSize, Manager, WebviewWindow};
 use tauri_nspanel::{
     CollectionBehavior, ManagerExt, Panel, PanelLevel, StyleMask, WebviewWindowExt, tauri_panel,
@@ -78,6 +76,9 @@ pub fn position_panel_at_tray_icon(app: &tauri::AppHandle, tray_rect: tauri::Rec
 }
 
 fn get_menubar_height() -> f64 {
+    use objc2_app_kit::NSScreen;
+    use objc2_foundation::MainThreadMarker;
+
     if let Some(mtm) = MainThreadMarker::new() {
         if let Some(screen) = NSScreen::mainScreen(mtm) {
             let frame = screen.frame();

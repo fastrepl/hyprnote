@@ -1,19 +1,25 @@
+#[cfg(test)]
+mod test_fixtures;
+
 mod audio;
+mod cleanup;
 mod commands;
 mod error;
 mod ext;
 mod folder;
 mod frontmatter;
 mod json;
-mod migration;
+mod path;
 mod scan;
+mod session;
 mod types;
 
 pub use types::*;
 
 pub use error::{Error, Result};
 pub use ext::*;
-pub use folder::{find_session_dir, is_uuid};
+pub use path::is_uuid;
+pub use session::find_session_dir;
 
 const PLUGIN_NAME: &str = "fs-sync";
 
@@ -37,7 +43,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::audio_path::<tauri::Wry>,
             commands::session_dir::<tauri::Wry>,
             commands::delete_session_folder::<tauri::Wry>,
-            commands::scan_and_read,
+            commands::scan_and_read::<tauri::Wry>,
             commands::chat_dir::<tauri::Wry>,
             commands::entity_dir::<tauri::Wry>,
         ])
@@ -49,12 +55,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
-            use tauri_plugin_path2::Path2PluginExt;
-            let base = app.path2().base().unwrap();
-            migration::run(&base);
-            Ok(())
-        })
+        .setup(|_app, _api| Ok(()))
         .build()
 }
 

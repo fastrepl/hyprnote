@@ -1,10 +1,49 @@
+import type { OptionalSchemas } from "tinybase/with-schemas";
+
 type Row = Record<string, unknown>;
 type Table = Record<string, Row>;
 
-export type TableConfig<TData extends Record<string, Table>> =
-  | { tableName: keyof TData & string; isPrimary: true }
-  | { tableName: keyof TData & string; foreignKey: string }
-  | { tableName: keyof TData & string };
+type TablesSchemaOf<S extends OptionalSchemas> = S extends [infer T, unknown]
+  ? T
+  : never;
+
+export type TableNames<S extends OptionalSchemas> = keyof TablesSchemaOf<S> &
+  string;
+
+export type TableColumns<
+  S extends OptionalSchemas,
+  TName extends TableNames<S>,
+> =
+  TablesSchemaOf<S> extends infer T
+    ? TName extends keyof T
+      ? keyof T[TName] & string
+      : never
+    : never;
+
+export type TableConfig<
+  S extends OptionalSchemas,
+  TData extends Record<string, Table>,
+  TName extends TableNames<S> & (keyof TData & string) = TableNames<S> &
+    (keyof TData & string),
+> =
+  | { tableName: TName; isPrimary: true }
+  | { tableName: TName; foreignKey: TableColumns<S, TName> }
+  | { tableName: TName };
+
+export type TableConfigEntry<
+  S extends OptionalSchemas,
+  TData extends Record<string, Table>,
+> = {
+  [TName in TableNames<S> & (keyof TData & string)]:
+    | { tableName: TName; isPrimary: true }
+    | { tableName: TName; foreignKey: TableColumns<S, TName> }
+    | { tableName: TName };
+}[TableNames<S> & (keyof TData & string)];
+
+export type RuntimeTableConfig =
+  | { tableName: string; isPrimary: true }
+  | { tableName: string; foreignKey: string }
+  | { tableName: string };
 
 export interface DeletionMarkerStore {
   getTable(tableName: string): Table | undefined;
@@ -17,7 +56,7 @@ export type DeletionMarkerResult<TData extends Record<string, Table>> = {
 
 export function createDeletionMarker<TData extends Record<string, Table>>(
   store: DeletionMarkerStore,
-  tableConfigs: TableConfig<TData>[],
+  tableConfigs: RuntimeTableConfig[],
 ): {
   markAll: (loaded: TData) => DeletionMarkerResult<TData>;
   markForEntity: (

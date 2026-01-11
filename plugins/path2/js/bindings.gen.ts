@@ -8,6 +8,9 @@
 export const commands = {
 async base() : Promise<string> {
     return await TAURI_INVOKE("plugin:path2|base");
+},
+async sanitize(name: string) : Promise<string> {
+    return await TAURI_INVOKE("plugin:path2|sanitize", { name });
 }
 }
 

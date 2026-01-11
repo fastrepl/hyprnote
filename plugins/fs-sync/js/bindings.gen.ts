@@ -134,9 +134,9 @@ async deleteSessionFolder(sessionId: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async scanAndRead(baseDir: string, filePatterns: string[], recursive: boolean) : Promise<Result<ScanResult, string>> {
+async scanAndRead(scanDir: string, filePatterns: string[], recursive: boolean) : Promise<Result<ScanResult, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|scan_and_read", { baseDir, filePatterns, recursive }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|scan_and_read", { scanDir, filePatterns, recursive }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -170,7 +170,7 @@ async entityDir(dirName: string) : Promise<Result<string, string>> {
 
 /** user-defined types **/
 
-export type CleanupTarget = { type: "files"; subdir: string; extension: string } | { type: "dirs"; subdir: string; marker_file: string } | { type: "sessionNotes"; sessions_with_memo: string[] }
+export type CleanupTarget = { type: "files"; subdir: string; extension: string } | { type: "dirs"; subdir: string; marker_file: string } | { type: "filesRecursive"; subdir: string; marker_file: string; extension: string }
 export type FolderInfo = { name: string; parent_folder_id: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type ListFoldersResult = { folders: Partial<{ [key in string]: FolderInfo }>; session_folder_map: Partial<{ [key in string]: string }> }

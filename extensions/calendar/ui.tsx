@@ -20,6 +20,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "./components/icons";
+import { parseLocalDate } from "./components/utils";
 
 const { Button } = ui.button;
 const { ButtonGroup } = ui.buttonGroup;
@@ -187,7 +188,7 @@ export default function CalendarExtensionView({
                   <CalendarDay
                     key={day}
                     day={day}
-                    isCurrentMonth={isSameMonth(new Date(day), month)}
+                    isCurrentMonth={isSameMonth(parseLocalDate(day), month)}
                     isFirstColumn={dayIndex === 0}
                     isLastRow={weekIndex === 5}
                     selectedCalendars={selectedCalendars}

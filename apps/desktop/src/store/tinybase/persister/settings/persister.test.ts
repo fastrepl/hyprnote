@@ -5,9 +5,7 @@ import { SCHEMA } from "../../store/settings";
 import { createTestSettingsStore } from "../testing/mocks";
 import { settingsToContent, storeToSettings } from "./transform";
 
-type FileChangeCallback = (event: {
-  payload: { path: string; kind: string };
-}) => void;
+type FileChangeCallback = (event: { payload: { path: string } }) => void;
 
 const { notifyListen, notifyUnlisten, settingsLoad, settingsSave, mockState } =
   vi.hoisted(() => {
@@ -461,7 +459,7 @@ describe("createSettingsPersister e2e", () => {
 
     expect(mockState.notifyCallback).not.toBeNull();
     mockState.notifyCallback!({
-      payload: { path: "/mock/data/settings.json", kind: "modified" },
+      payload: { path: "/mock/data/settings.json" },
     });
 
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -501,7 +499,7 @@ describe("createSettingsPersister e2e", () => {
     settingsLoad.mockClear();
 
     mockState.notifyCallback!({
-      payload: { path: "/path/to/settings.json", kind: "modified" },
+      payload: { path: "/path/to/settings.json" },
     });
 
     await new Promise((resolve) => setTimeout(resolve, 50));

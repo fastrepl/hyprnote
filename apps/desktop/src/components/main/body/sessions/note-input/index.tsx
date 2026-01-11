@@ -1,6 +1,5 @@
 import {
   forwardRef,
-  type RefObject,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -8,7 +7,6 @@ import {
   useState,
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useResizeObserver } from "usehooks-ts";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
@@ -17,6 +15,7 @@ import { useListener } from "../../../../../contexts/listener";
 import { useScrollPreservation } from "../../../../../hooks/useScrollPreservation";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
+import { ScrollFadeOverlay, useScrollFade } from "../../../../ui/scroll-fade";
 import { useCaretNearBottom } from "../caret-position-context";
 import { useCurrentNoteTab } from "../shared";
 import { Enhanced } from "./enhanced";
@@ -65,9 +64,8 @@ export const NoteInput = forwardRef<
     },
   );
 
-  const { fadeRef, atStart, atEnd } = useScrollFade<HTMLDivElement>([
-    currentTab,
-  ]);
+  const fadeRef = useRef<HTMLDivElement>(null);
+  const { atStart, atEnd } = useScrollFade(fadeRef, "vertical", [currentTab]);
 
   const handleTabChange = useCallback(
     (view: EditorView) => {
@@ -378,48 +376,5 @@ function useTabShortcuts({
       enableOnContentEditable: true,
     },
     [currentTab, editorTabs, handleTabChange],
-  );
-}
-
-function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
-  const fadeRef = useRef<T>(null);
-  const [state, setState] = useState({ atStart: true, atEnd: true });
-
-  const update = useCallback(() => {
-    const el = fadeRef.current;
-    if (!el) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    setState({
-      atStart: scrollTop <= 1,
-      atEnd: scrollTop + clientHeight >= scrollHeight - 1,
-    });
-  }, []);
-
-  useResizeObserver({ ref: fadeRef as RefObject<T>, onResize: update });
-
-  useEffect(() => {
-    const el = fadeRef.current;
-    if (!el) return;
-
-    update();
-    el.addEventListener("scroll", update);
-    return () => el.removeEventListener("scroll", update);
-  }, [update, ...deps]);
-
-  return { fadeRef, ...state };
-}
-
-function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
-  return (
-    <div
-      className={cn([
-        "absolute left-0 w-full h-8 z-20 pointer-events-none",
-        position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
-        position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
-      ])}
-    />
   );
 }

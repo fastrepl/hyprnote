@@ -11,6 +11,12 @@ interface MediaItem {
   downloadUrl: string | null;
 }
 
+interface FolderOption {
+  path: string;
+  name: string;
+  depth: number;
+}
+
 export const Route = createFileRoute("/admin/media/")({
   component: MediaLibrary,
 });
@@ -25,6 +31,11 @@ function MediaLibrary() {
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const [showMoveDialog, setShowMoveDialog] = useState(false);
+  const [moveDestination, setMoveDestination] = useState("");
+  const [folderOptions, setFolderOptions] = useState<FolderOption[]>([]);
+  const [moving, setMoving] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchItems = useCallback(async (path: string) => {
@@ -112,6 +123,152 @@ function MediaLibrary() {
     }
   };
 
+  const handleSelectAll = () => {
+    const fileItems = items.filter((item) => item.type === "file");
+    if (selectedItems.size === fileItems.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(fileItems.map((item) => item.path)));
+    }
+  };
+
+  const handleDownload = async () => {
+    if (selectedItems.size === 0) return;
+    setDownloading(true);
+
+    const errors: string[] = [];
+    const selectedFiles = items.filter(
+      (item) => selectedItems.has(item.path) && item.downloadUrl,
+    );
+
+    for (const file of selectedFiles) {
+      if (file.downloadUrl) {
+        try {
+          const response = await fetch(file.downloadUrl);
+          if (!response.ok) {
+            errors.push(`${file.name}: ${response.statusText}`);
+            continue;
+          }
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = file.name;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          }, 100);
+        } catch (err) {
+          errors.push(`${file.name}: ${(err as Error).message}`);
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      setError(`Some files failed to download: ${errors.join(", ")}`);
+    }
+    setDownloading(false);
+  };
+
+  const fetchFolderOptions = async () => {
+    const folders: FolderOption[] = [
+      { path: "", name: "images (root)", depth: 0 },
+    ];
+
+    const fetchFoldersRecursive = async (
+      path: string,
+      depth: number,
+    ): Promise<void> => {
+      try {
+        const response = await fetch(
+          `/api/admin/media/list?path=${encodeURIComponent(path)}`,
+        );
+        const data = await response.json();
+        if (response.ok) {
+          const subfolders = data.items.filter(
+            (item: MediaItem) => item.type === "dir",
+          );
+          for (const folder of subfolders) {
+            const folderPath = path ? `${path}/${folder.name}` : folder.name;
+            folders.push({
+              path: folderPath,
+              name: folder.name,
+              depth: depth + 1,
+            });
+            if (depth < 2) {
+              await fetchFoldersRecursive(folderPath, depth + 1);
+            }
+          }
+        }
+      } catch {
+        // Ignore errors when fetching folder structure
+      }
+    };
+
+    await fetchFoldersRecursive("", 0);
+    setFolderOptions(folders);
+  };
+
+  const openMoveDialog = async () => {
+    if (selectedItems.size === 0) return;
+    await fetchFolderOptions();
+    setMoveDestination("");
+    setShowMoveDialog(true);
+  };
+
+  const handleMove = async () => {
+    if (selectedItems.size === 0) return;
+
+    // Check if any files would be moved to their current location
+    const wouldMoveToSelf = Array.from(selectedItems).some((sourcePath) => {
+      const sourceFolder =
+        sourcePath.substring(0, sourcePath.lastIndexOf("/")) || "";
+      return sourceFolder === moveDestination;
+    });
+
+    if (wouldMoveToSelf) {
+      setError("Cannot move files to their current location");
+      return;
+    }
+
+    setMoving(true);
+
+    try {
+      const errors: string[] = [];
+      for (const sourcePath of selectedItems) {
+        const fileName = sourcePath.split("/").pop() || "";
+        const toPath = moveDestination
+          ? `${moveDestination}/${fileName}`
+          : fileName;
+
+        const response = await fetch("/api/admin/media/move", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fromPath: sourcePath, toPath }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          errors.push(`${fileName}: ${data.error || "Move failed"}`);
+        }
+      }
+
+      if (errors.length > 0) {
+        setError(`Some files failed to move: ${errors.join(", ")}`);
+      }
+
+      setSelectedItems(new Set());
+      setShowMoveDialog(false);
+      await fetchItems(currentPath);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setMoving(false);
+    }
+  };
+
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return;
 
@@ -183,14 +340,6 @@ function MediaLibrary() {
           Media Library
         </h1>
         <div className="flex gap-2">
-          {selectedItems.size > 0 && (
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-            >
-              Delete ({selectedItems.size})
-            </button>
-          )}
           <button
             onClick={() => setShowCreateFolder(true)}
             className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50"
@@ -214,6 +363,52 @@ function MediaLibrary() {
           />
         </div>
       </div>
+
+      {selectedItems.size > 0 && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-blue-800">
+              {selectedItems.size} item(s) selected
+            </span>
+            <button
+              onClick={handleSelectAll}
+              className="text-sm text-blue-600 hover:text-blue-800 underline"
+            >
+              {selectedItems.size ===
+              items.filter((i) => i.type === "file").length
+                ? "Deselect All"
+                : "Select All"}
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50 disabled:opacity-50"
+            >
+              {downloading ? "Downloading..." : "Download"}
+            </button>
+            <button
+              onClick={openMoveDialog}
+              className="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50"
+            >
+              Move
+            </button>
+            <button
+              onClick={handleDelete}
+              className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => setSelectedItems(new Set())}
+              className="px-3 py-1.5 text-sm font-medium text-neutral-500 hover:text-neutral-700"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <nav className="flex items-center gap-2 mb-4 text-sm">
         <button
@@ -382,6 +577,46 @@ function MediaLibrary() {
           </div>
         )}
       </div>
+
+      {showMoveDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h2 className="text-lg font-semibold text-neutral-900 mb-4">
+              Move {selectedItems.size} item(s)
+            </h2>
+            <p className="text-sm text-neutral-600 mb-4">
+              Select destination folder:
+            </p>
+            <select
+              value={moveDestination}
+              onChange={(e) => setMoveDestination(e.target.value)}
+              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+            >
+              {folderOptions.map((folder) => (
+                <option key={folder.path} value={folder.path}>
+                  {"  ".repeat(folder.depth)}
+                  {folder.name}
+                </option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowMoveDialog(false)}
+                className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMove}
+                disabled={moving}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              >
+                {moving ? "Moving..." : "Move"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

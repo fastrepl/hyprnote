@@ -102,6 +102,11 @@ import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integ
 import { Route as ViewAppFileTranscriptionRouteImport } from './routes/_view/app/file-transcription'
 import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
+import { Route as ApiAdminMediaUploadRouteImport } from './routes/api/admin/media/upload'
+import { Route as ApiAdminMediaMoveRouteImport } from './routes/api/admin/media/move'
+import { Route as ApiAdminMediaListRouteImport } from './routes/api/admin/media/list'
+import { Route as ApiAdminMediaDeleteRouteImport } from './routes/api/admin/media/delete'
+import { Route as ApiAdminMediaCreateFolderRouteImport } from './routes/api/admin/media/create-folder'
 import { Route as ViewIntegrationsCategorySlugRouteImport } from './routes/_view/integrations/$category.$slug'
 import { Route as ViewGalleryTypeSlugRouteImport } from './routes/_view/gallery/$type.$slug'
 
@@ -578,6 +583,32 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
+const ApiAdminMediaUploadRoute = ApiAdminMediaUploadRouteImport.update({
+  id: '/api/admin/media/upload',
+  path: '/api/admin/media/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminMediaMoveRoute = ApiAdminMediaMoveRouteImport.update({
+  id: '/api/admin/media/move',
+  path: '/api/admin/media/move',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminMediaListRoute = ApiAdminMediaListRouteImport.update({
+  id: '/api/admin/media/list',
+  path: '/api/admin/media/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminMediaDeleteRoute = ApiAdminMediaDeleteRouteImport.update({
+  id: '/api/admin/media/delete',
+  path: '/api/admin/media/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminMediaCreateFolderRoute =
+  ApiAdminMediaCreateFolderRouteImport.update({
+    id: '/api/admin/media/create-folder',
+    path: '/api/admin/media/create-folder',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ViewIntegrationsCategorySlugRoute =
   ViewIntegrationsCategorySlugRouteImport.update({
     id: '/integrations/$category/$slug',
@@ -685,6 +716,11 @@ export interface FileRoutesByFullPath {
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
+  '/api/admin/media/delete': typeof ApiAdminMediaDeleteRoute
+  '/api/admin/media/list': typeof ApiAdminMediaListRoute
+  '/api/admin/media/move': typeof ApiAdminMediaMoveRoute
+  '/api/admin/media/upload': typeof ApiAdminMediaUploadRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -777,6 +813,11 @@ export interface FileRoutesByTo {
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
+  '/api/admin/media/delete': typeof ApiAdminMediaDeleteRoute
+  '/api/admin/media/list': typeof ApiAdminMediaListRoute
+  '/api/admin/media/move': typeof ApiAdminMediaMoveRoute
+  '/api/admin/media/upload': typeof ApiAdminMediaUploadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -875,6 +916,11 @@ export interface FileRoutesById {
   '/admin/media/': typeof AdminMediaIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
+  '/api/admin/media/delete': typeof ApiAdminMediaDeleteRoute
+  '/api/admin/media/list': typeof ApiAdminMediaListRoute
+  '/api/admin/media/move': typeof ApiAdminMediaMoveRoute
+  '/api/admin/media/upload': typeof ApiAdminMediaUploadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -973,6 +1019,11 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
+    | '/api/admin/media/create-folder'
+    | '/api/admin/media/delete'
+    | '/api/admin/media/list'
+    | '/api/admin/media/move'
+    | '/api/admin/media/upload'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -1065,6 +1116,11 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
+    | '/api/admin/media/create-folder'
+    | '/api/admin/media/delete'
+    | '/api/admin/media/list'
+    | '/api/admin/media/move'
+    | '/api/admin/media/upload'
   id:
     | '__root__'
     | '/_view'
@@ -1162,6 +1218,11 @@ export interface FileRouteTypes {
     | '/admin/media/'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
+    | '/api/admin/media/create-folder'
+    | '/api/admin/media/delete'
+    | '/api/admin/media/list'
+    | '/api/admin/media/move'
+    | '/api/admin/media/upload'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1183,6 +1244,11 @@ export interface RootRouteChildren {
   WebhookNangoRoute: typeof WebhookNangoRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
+  ApiAdminMediaCreateFolderRoute: typeof ApiAdminMediaCreateFolderRoute
+  ApiAdminMediaDeleteRoute: typeof ApiAdminMediaDeleteRoute
+  ApiAdminMediaListRoute: typeof ApiAdminMediaListRoute
+  ApiAdminMediaMoveRoute: typeof ApiAdminMediaMoveRoute
+  ApiAdminMediaUploadRoute: typeof ApiAdminMediaUploadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1838,6 +1904,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppAccountRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
+    '/api/admin/media/upload': {
+      id: '/api/admin/media/upload'
+      path: '/api/admin/media/upload'
+      fullPath: '/api/admin/media/upload'
+      preLoaderRoute: typeof ApiAdminMediaUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/media/move': {
+      id: '/api/admin/media/move'
+      path: '/api/admin/media/move'
+      fullPath: '/api/admin/media/move'
+      preLoaderRoute: typeof ApiAdminMediaMoveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/media/list': {
+      id: '/api/admin/media/list'
+      path: '/api/admin/media/list'
+      fullPath: '/api/admin/media/list'
+      preLoaderRoute: typeof ApiAdminMediaListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/media/delete': {
+      id: '/api/admin/media/delete'
+      path: '/api/admin/media/delete'
+      fullPath: '/api/admin/media/delete'
+      preLoaderRoute: typeof ApiAdminMediaDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/media/create-folder': {
+      id: '/api/admin/media/create-folder'
+      path: '/api/admin/media/create-folder'
+      fullPath: '/api/admin/media/create-folder'
+      preLoaderRoute: typeof ApiAdminMediaCreateFolderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_view/integrations/$category/$slug': {
       id: '/_view/integrations/$category/$slug'
       path: '/integrations/$category/$slug'
@@ -2080,6 +2181,11 @@ const rootRouteChildren: RootRouteChildren = {
   WebhookNangoRoute: WebhookNangoRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
+  ApiAdminMediaCreateFolderRoute: ApiAdminMediaCreateFolderRoute,
+  ApiAdminMediaDeleteRoute: ApiAdminMediaDeleteRoute,
+  ApiAdminMediaListRoute: ApiAdminMediaListRoute,
+  ApiAdminMediaMoveRoute: ApiAdminMediaMoveRoute,
+  ApiAdminMediaUploadRoute: ApiAdminMediaUploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -42,7 +42,7 @@ describe("createMultiTableDirPersister", () => {
       dirName: "test",
       entityParser: () => null,
       tables: [{ tableName: "sessions", isPrimary: true }],
-      cleanup: [],
+      cleanup: () => [],
       loadAll: async () => ({ sessions: {} }),
       loadSingle: async () => ({ sessions: {} }),
       save: () => ({ operations: [] }),

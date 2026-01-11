@@ -11,9 +11,9 @@ describe("parseSessionIdFromPath", () => {
       );
     });
 
-    test("extracts session id from _transcript.json", () => {
+    test("extracts session id from transcript.json", () => {
       expect(
-        parseSessionIdFromPath("sessions/session-123/_transcript.json"),
+        parseSessionIdFromPath("sessions/session-123/transcript.json"),
       ).toBe("session-123");
     });
 

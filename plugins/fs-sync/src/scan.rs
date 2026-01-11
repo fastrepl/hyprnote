@@ -4,11 +4,16 @@ use std::path::{Path, PathBuf};
 use glob::Pattern;
 use rayon::prelude::*;
 
-use crate::folder::is_uuid;
+use crate::path::{is_uuid, to_relative_path};
 use crate::types::ScanResult;
 
-pub fn scan_and_read(base_dir: &Path, file_patterns: &[String], recursive: bool) -> ScanResult {
-    if !base_dir.exists() {
+pub fn scan_and_read(
+    scan_dir: &Path,
+    relative_to: &Path,
+    file_patterns: &[String],
+    recursive: bool,
+) -> ScanResult {
+    if !scan_dir.exists() {
         return ScanResult {
             files: HashMap::new(),
             dirs: Vec::new(),
@@ -24,7 +29,12 @@ pub fn scan_and_read(base_dir: &Path, file_patterns: &[String], recursive: bool)
     let mut dirs = Vec::new();
 
     scan_directory_for_files(
-        base_dir, base_dir, &patterns, recursive, &mut files, &mut dirs,
+        relative_to,
+        scan_dir,
+        &patterns,
+        recursive,
+        &mut files,
+        &mut dirs,
     );
 
     let files: HashMap<String, String> = files
@@ -59,15 +69,10 @@ fn scan_directory_for_files(
         };
 
         if path.is_dir() {
-            let rel_path = path
-                .strip_prefix(base_path)
-                .ok()
-                .and_then(|p| p.to_str())
-                .map(|s| s.replace(std::path::MAIN_SEPARATOR, "/"))
-                .unwrap_or_default();
+            let rel_path = to_relative_path(&path, base_path);
 
             if !is_uuid(name) {
-                dirs.push(rel_path.clone());
+                dirs.push(rel_path);
             }
 
             if recursive && !is_uuid(name) {
@@ -75,17 +80,8 @@ fn scan_directory_for_files(
             } else if is_uuid(name) {
                 scan_directory_for_files(base_path, &path, patterns, false, files, dirs);
             }
-        } else if path.is_file() {
-            let matches = patterns.iter().any(|p| p.matches(name));
-            if matches {
-                let rel_path = path
-                    .strip_prefix(base_path)
-                    .ok()
-                    .and_then(|p| p.to_str())
-                    .map(|s| s.replace(std::path::MAIN_SEPARATOR, "/"))
-                    .unwrap_or_default();
-                files.insert(rel_path, path);
-            }
+        } else if path.is_file() && patterns.iter().any(|p| p.matches(name)) {
+            files.insert(to_relative_path(&path, base_path), path);
         }
     }
 }
@@ -93,14 +89,15 @@ fn scan_directory_for_files(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
+    use crate::test_fixtures::{TestEnv, UUID_1};
+    use assert_fs::TempDir;
 
     #[test]
     fn nonexistent_dir_returns_empty() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = TempDir::new().unwrap();
         let nonexistent = temp.path().join("does_not_exist");
 
-        let result = scan_and_read(&nonexistent, &["*.txt".into()], true);
+        let result = scan_and_read(&nonexistent, &nonexistent, &["*.txt".into()], true);
 
         assert!(result.files.is_empty());
         assert!(result.dirs.is_empty());
@@ -108,11 +105,12 @@ mod tests {
 
     #[test]
     fn matches_files_by_pattern() {
-        let temp = tempfile::tempdir().unwrap();
-        fs::write(temp.path().join("note.txt"), "hello").unwrap();
-        fs::write(temp.path().join("data.json"), "{}").unwrap();
+        let env = TestEnv::new()
+            .file("note.txt", "hello")
+            .file("data.json", "{}")
+            .build();
 
-        let result = scan_and_read(temp.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false);
 
         assert_eq!(result.files.len(), 1);
         assert_eq!(result.files.get("note.txt"), Some(&"hello".into()));
@@ -120,12 +118,14 @@ mod tests {
 
     #[test]
     fn recursive_finds_nested_files() {
-        let temp = tempfile::tempdir().unwrap();
-        fs::create_dir(temp.path().join("sub")).unwrap();
-        fs::write(temp.path().join("root.txt"), "root").unwrap();
-        fs::write(temp.path().join("sub/nested.txt"), "nested").unwrap();
+        let env = TestEnv::new()
+            .file("root.txt", "root")
+            .folder("sub")
+            .file("nested.txt", "nested")
+            .done()
+            .build();
 
-        let result = scan_and_read(temp.path(), &["*.txt".into()], true);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], true);
 
         assert_eq!(result.files.len(), 2);
         assert_eq!(result.files.get("root.txt"), Some(&"root".into()));
@@ -134,12 +134,14 @@ mod tests {
 
     #[test]
     fn non_recursive_skips_nested_files() {
-        let temp = tempfile::tempdir().unwrap();
-        fs::create_dir(temp.path().join("sub")).unwrap();
-        fs::write(temp.path().join("root.txt"), "root").unwrap();
-        fs::write(temp.path().join("sub/nested.txt"), "nested").unwrap();
+        let env = TestEnv::new()
+            .file("root.txt", "root")
+            .folder("sub")
+            .file("nested.txt", "nested")
+            .done()
+            .build();
 
-        let result = scan_and_read(temp.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false);
 
         assert_eq!(result.files.len(), 1);
         assert_eq!(result.files.get("root.txt"), Some(&"root".into()));
@@ -147,11 +149,14 @@ mod tests {
 
     #[test]
     fn collects_non_uuid_directories() {
-        let temp = tempfile::tempdir().unwrap();
-        fs::create_dir(temp.path().join("work")).unwrap();
-        fs::create_dir(temp.path().join("personal")).unwrap();
+        let env = TestEnv::new()
+            .folder("work")
+            .done()
+            .folder("personal")
+            .done()
+            .build();
 
-        let result = scan_and_read(temp.path(), &["*.txt".into()], true);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], true);
 
         assert!(result.dirs.contains(&"work".into()));
         assert!(result.dirs.contains(&"personal".into()));
@@ -159,19 +164,36 @@ mod tests {
 
     #[test]
     fn uuid_dirs_not_in_dirs_list_but_files_are_scanned() {
-        let temp = tempfile::tempdir().unwrap();
-        let uuid_dir = temp.path().join("550e8400-e29b-41d4-a716-446655440000");
-        fs::create_dir(&uuid_dir).unwrap();
-        fs::write(uuid_dir.join("note.txt"), "inside uuid").unwrap();
+        let env = TestEnv::new()
+            .folder(UUID_1)
+            .file("note.txt", "inside uuid")
+            .done()
+            .build();
 
-        let result = scan_and_read(temp.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false);
 
-        assert!(!result.dirs.iter().any(|d| d.contains("550e8400")));
+        assert!(!result.dirs.iter().any(|d| d.contains(UUID_1)));
         assert_eq!(
-            result
-                .files
-                .get("550e8400-e29b-41d4-a716-446655440000/note.txt"),
+            result.files.get(&format!("{UUID_1}/note.txt")),
             Some(&"inside uuid".into())
+        );
+    }
+
+    #[test]
+    fn paths_relative_to_different_base() {
+        let env = TestEnv::new()
+            .folder(&format!("sessions/{UUID_1}"))
+            .file("_meta.json", "{}")
+            .done()
+            .build();
+
+        let scan_dir = env.path().join("sessions").join(UUID_1);
+        let result = scan_and_read(&scan_dir, env.path(), &["*.json".into()], false);
+
+        assert_eq!(result.files.len(), 1);
+        assert_eq!(
+            result.files.get(&format!("sessions/{UUID_1}/_meta.json")),
+            Some(&"{}".into())
         );
     }
 }

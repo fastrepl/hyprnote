@@ -8,10 +8,9 @@ export type BatchItem<T> = [T, string];
 export type TablesContent = Partial<ReturnType<Store["getTables"]>>;
 
 export type WriteOperation =
-  | { type: "json"; path: string; content: unknown }
-  | { type: "document-batch"; items: Array<[ParsedDocument, string]> }
-  | { type: "delete"; path: string }
-  | { type: "delete-batch"; paths: string[] };
+  | { type: "write-json"; path: string; content: unknown }
+  | { type: "write-document-batch"; items: Array<[ParsedDocument, string]> }
+  | { type: "delete"; paths: string[] };
 
 export type SaveResult = {
   operations: WriteOperation[];

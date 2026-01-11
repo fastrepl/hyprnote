@@ -11,7 +11,9 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+assert_fs = "1"
 hypr-data = { workspace = true }
+predicates = "3"
 specta-typescript = { workspace = true }
 tempfile = "3"
 tokio = { workspace = true, features = ["macros"] }

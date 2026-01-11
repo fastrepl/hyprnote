@@ -3,6 +3,7 @@ import {
   Outlet,
   useRouteContext,
 } from "@tanstack/react-router";
+import { usePrevious } from "@uidotdev/usehooks";
 import { useCallback, useEffect, useRef } from "react";
 
 import { events as deeplink2Events } from "@hypr/plugin-deeplink2";
@@ -28,9 +29,15 @@ function Component() {
   const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({
     from: "__root__",
   });
-  const { registerOnEmpty, registerCanClose, openNew, tabs } = useTabs();
+  const { registerOnEmpty, registerCanClose, registerOnClose, openNew, pin } =
+    useTabs();
+  const tabs = useTabs((state) => state.tabs);
   const hasOpenedInitialTab = useRef(false);
+  const liveSessionId = useListener((state) => state.live.sessionId);
+  const liveStatus = useListener((state) => state.live.status);
+  const prevLiveStatus = usePrevious(liveStatus);
   const getSessionMode = useListener((state) => state.getSessionMode);
+  const stop = useListener((state) => state.stop);
 
   useDeeplinkHandler();
 
@@ -48,14 +55,34 @@ function Component() {
   }, [tabs.length, openDefaultEmptyTab, registerOnEmpty]);
 
   useEffect(() => {
-    registerCanClose((tab) => {
+    const justStartedListening =
+      prevLiveStatus !== "active" && liveStatus === "active";
+    if (justStartedListening && liveSessionId) {
+      const currentTabs = useTabs.getState().tabs;
+      const sessionTab = currentTabs.find(
+        (t) => t.type === "sessions" && t.id === liveSessionId,
+      );
+      if (sessionTab && !sessionTab.pinned) {
+        pin(sessionTab);
+      }
+    }
+  }, [liveStatus, prevLiveStatus, liveSessionId, pin]);
+
+  useEffect(() => {
+    registerOnClose((tab) => {
       if (tab.type !== "sessions") {
-        return true;
+        return;
       }
       const mode = getSessionMode(tab.id);
-      return mode !== "active" && mode !== "finalizing";
+      if (mode === "active" || mode === "finalizing") {
+        stop();
+      }
     });
-  }, [registerCanClose, getSessionMode]);
+  }, [registerOnClose, getSessionMode, stop]);
+
+  useEffect(() => {
+    registerCanClose(() => true);
+  }, [registerCanClose]);
 
   if (!aiTaskStore) {
     return null;

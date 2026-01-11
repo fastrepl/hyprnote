@@ -12,7 +12,7 @@ export function useCalendarPersister(store: Store) {
     store,
     async (store) => {
       const persister = createCalendarPersister(store as Store);
-      await persister.startAutoSave();
+      await persister.startAutoPersisting();
       return persister;
     },
     [],

@@ -216,43 +216,57 @@ function MediaLibrary() {
     setShowMoveDialog(true);
   };
 
-  const handleMove = async () => {
-    if (selectedItems.size === 0) return;
-    setMoving(true);
 
-    try {
-      const errors: string[] = [];
-      for (const sourcePath of selectedItems) {
-        const fileName = sourcePath.split("/").pop() || "";
-        const toPath = moveDestination
-          ? `${moveDestination}/${fileName}`
-          : fileName;
+const handleMove = async () => {
+  if (selectedItems.size === 0) return;
+  
+  // Check if any files would be moved to their current location
+  const wouldMoveToSelf = Array.from(selectedItems).some(sourcePath => {
+    const sourceFolder = sourcePath.substring(0, sourcePath.lastIndexOf('/')) || '';
+    return sourceFolder === moveDestination;
+  });
+  
+  if (wouldMoveToSelf) {
+    setError('Cannot move files to their current location');
+    return;
+  }
+  
+  setMoving(true);
 
-        const response = await fetch("/api/admin/media/move", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fromPath: sourcePath, toPath }),
-        });
+  try {
+    const errors: string[] = [];
+    for (const sourcePath of selectedItems) {
+      const fileName = sourcePath.split("/").pop() || "";
+      const toPath = moveDestination
+        ? `${moveDestination}/${fileName}`
+        : fileName;
 
-        if (!response.ok) {
-          const data = await response.json();
-          errors.push(`${fileName}: ${data.error || "Move failed"}`);
-        }
+      const response = await fetch("/api/admin/media/move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fromPath: sourcePath, toPath }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        errors.push(`${fileName}: ${data.error || "Move failed"}`);
       }
-
-      if (errors.length > 0) {
-        setError(`Some files failed to move: ${errors.join(", ")}`);
-      }
-
-      setSelectedItems(new Set());
-      setShowMoveDialog(false);
-      await fetchItems(currentPath);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setMoving(false);
     }
-  };
+
+    if (errors.length > 0) {
+      setError(`Some files failed to move: ${errors.join(", ")}`);
+    }
+
+    setSelectedItems(new Set());
+    setShowMoveDialog(false);
+    await fetchItems(currentPath);
+  } catch (err) {
+    setError((err as Error).message);
+  } finally {
+    setMoving(false);
+  }
+};
+
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return;

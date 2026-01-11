@@ -1,4 +1,10 @@
-import { type ChangedTables, type TablesContent } from "../shared";
+import {
+  type ChangedTables,
+  SESSION_META_FILE,
+  SESSION_NOTE_EXTENSION,
+  SESSION_TRANSCRIPT_FILE,
+  type TablesContent,
+} from "../shared";
 
 export function parseSessionIdFromPath(path: string): string | null {
   const parts = path.split("/");
@@ -9,9 +15,9 @@ export function parseSessionIdFromPath(path: string): string | null {
 
   const filename = parts[parts.length - 1];
   const isSessionFile =
-    filename === "_meta.json" ||
-    filename === "_transcript.json" ||
-    filename?.endsWith(".md");
+    filename === SESSION_META_FILE ||
+    filename === SESSION_TRANSCRIPT_FILE ||
+    filename?.endsWith(SESSION_NOTE_EXTENSION);
 
   if (isSessionFile && parts.length >= 2) {
     return parts[parts.length - 2] || null;

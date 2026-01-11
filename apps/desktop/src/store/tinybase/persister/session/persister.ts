@@ -2,6 +2,7 @@ import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { createMultiTableDirPersister } from "../factories";
+import { SESSION_META_FILE, SESSION_NOTE_EXTENSION } from "../shared";
 import { getChangedSessionIds, parseSessionIdFromPath } from "./changes";
 import {
   loadAllSessionData,
@@ -31,14 +32,14 @@ export function createSessionPersister(store: Store) {
       {
         type: "dirs",
         subdir: "sessions",
-        markerFile: "_meta.json",
+        markerFile: SESSION_META_FILE,
         keepIds: Object.keys(tables.sessions ?? {}),
       },
       {
         type: "filesRecursive",
         subdir: "sessions",
-        markerFile: "_meta.json",
-        extension: "md",
+        markerFile: SESSION_META_FILE,
+        extension: SESSION_NOTE_EXTENSION.slice(1),
         keepIds: Object.keys(tables.enhanced_notes ?? {}),
       },
     ],

@@ -13,6 +13,119 @@ import {
 } from "../../shared";
 import type { NoteFrontmatter } from "../types";
 
+type DocumentItem = [ParsedDocument, string];
+
+type BuildContext = {
+  store: Store;
+  tables: TablesContent;
+  dataDir: string;
+  changedSessionIds?: Set<string>;
+};
+
+export function buildNoteSaveOps(
+  store: Store,
+  tables: TablesContent,
+  dataDir: string,
+  changedSessionIds?: Set<string>,
+): WriteOperation[] {
+  const ctx: BuildContext = { store, tables, dataDir, changedSessionIds };
+
+  const enhancedNoteItems = collectEnhancedNotes(ctx);
+  const { items: memoItems, deletePaths: memoDeletePaths } = collectMemos(ctx);
+
+  return buildOperations([...enhancedNoteItems, ...memoItems], memoDeletePaths);
+}
+
+function collectEnhancedNotes(ctx: BuildContext): DocumentItem[] {
+  const { store, tables, dataDir, changedSessionIds } = ctx;
+
+  return Array.from(iterateTableRows(tables, "enhanced_notes"))
+    .filter((note) => note.content && note.session_id)
+    .filter(
+      (note) => !changedSessionIds || changedSessionIds.has(note.session_id!),
+    )
+    .map((note) => {
+      const markdown = tryParseAndConvertToMarkdown(note.content!);
+      if (!markdown) return null;
+
+      const session = tables.sessions?.[note.session_id!];
+      const sessionDir = buildSessionPath(
+        dataDir,
+        note.session_id!,
+        session?.folder_id ?? "",
+      );
+      const path = [sessionDir, getEnhancedNoteFilename(store, note)].join(
+        sep(),
+      );
+
+      const frontmatter: NoteFrontmatter = {
+        id: note.id,
+        session_id: note.session_id!,
+        type: "enhanced_note",
+        template_id: note.template_id || undefined,
+        position: note.position,
+        title: note.title || undefined,
+      };
+
+      return [{ frontmatter, content: markdown }, path] as DocumentItem;
+    })
+    .filter((item): item is DocumentItem => item !== null);
+}
+
+function collectMemos(ctx: BuildContext): {
+  items: DocumentItem[];
+  deletePaths: string[];
+} {
+  const { tables, dataDir, changedSessionIds } = ctx;
+  const items: DocumentItem[] = [];
+  const deletePaths: string[] = [];
+
+  for (const session of iterateTableRows(tables, "sessions")) {
+    if (changedSessionIds && !changedSessionIds.has(session.id)) continue;
+
+    const sessionDir = buildSessionPath(
+      dataDir,
+      session.id,
+      session.folder_id ?? "",
+    );
+    const memoPath = [sessionDir, "_memo.md"].join(sep());
+
+    const markdown = session.raw_md
+      ? tryParseAndConvertToMarkdown(session.raw_md)
+      : null;
+    if (!markdown) {
+      deletePaths.push(memoPath);
+      continue;
+    }
+
+    const frontmatter: NoteFrontmatter = {
+      id: session.id,
+      session_id: session.id,
+      type: "memo",
+    };
+
+    items.push([{ frontmatter, content: markdown }, memoPath]);
+  }
+
+  return { items, deletePaths };
+}
+
+function buildOperations(
+  items: DocumentItem[],
+  deletePaths: string[],
+): WriteOperation[] {
+  const operations: WriteOperation[] = [];
+
+  if (items.length > 0) {
+    operations.push({ type: "write-document-batch", items });
+  }
+  if (deletePaths.length > 0) {
+    operations.push({ type: "delete", paths: deletePaths });
+  }
+
+  return operations;
+}
+
 function tryParseAndConvertToMarkdown(content: string): string | undefined {
   let parsed: unknown;
   try {
@@ -44,98 +157,4 @@ function getEnhancedNoteFilename(
     return `${safeName}.md`;
   }
   return "_summary.md";
-}
-
-export function buildNoteSaveOps(
-  store: Store,
-  tables: TablesContent,
-  dataDir: string,
-  changedSessionIds?: Set<string>,
-): WriteOperation[] {
-  const frontmatterBatchItems: Array<[ParsedDocument, string]> = [];
-
-  for (const enhancedNote of iterateTableRows(tables, "enhanced_notes")) {
-    if (!enhancedNote.content || !enhancedNote.session_id) {
-      continue;
-    }
-
-    if (changedSessionIds && !changedSessionIds.has(enhancedNote.session_id)) {
-      continue;
-    }
-
-    const markdown = tryParseAndConvertToMarkdown(enhancedNote.content);
-    if (!markdown) {
-      continue;
-    }
-
-    const filename = getEnhancedNoteFilename(store, enhancedNote);
-
-    const frontmatter: NoteFrontmatter = {
-      id: enhancedNote.id,
-      session_id: enhancedNote.session_id,
-      type: "enhanced_note",
-      template_id: enhancedNote.template_id || undefined,
-      position: enhancedNote.position,
-      title: enhancedNote.title || undefined,
-    };
-
-    const session = tables.sessions?.[enhancedNote.session_id];
-    const folderPath = session?.folder_id ?? "";
-    const sessionDir = buildSessionPath(
-      dataDir,
-      enhancedNote.session_id,
-      folderPath,
-    );
-    frontmatterBatchItems.push([
-      { frontmatter, content: markdown },
-      [sessionDir, filename].join(sep()),
-    ]);
-  }
-
-  const memoDeletePaths: string[] = [];
-
-  for (const session of iterateTableRows(tables, "sessions")) {
-    if (changedSessionIds && !changedSessionIds.has(session.id)) {
-      continue;
-    }
-
-    const folderPath = session.folder_id ?? "";
-    const sessionDir = buildSessionPath(dataDir, session.id, folderPath);
-    const memoPath = [sessionDir, "_memo.md"].join(sep());
-
-    if (!session.raw_md) {
-      memoDeletePaths.push(memoPath);
-      continue;
-    }
-
-    const markdown = tryParseAndConvertToMarkdown(session.raw_md);
-    if (!markdown) {
-      memoDeletePaths.push(memoPath);
-      continue;
-    }
-
-    const frontmatter: NoteFrontmatter = {
-      id: session.id,
-      session_id: session.id,
-      type: "memo",
-    };
-
-    frontmatterBatchItems.push([{ frontmatter, content: markdown }, memoPath]);
-  }
-
-  const operations: WriteOperation[] = [];
-  if (frontmatterBatchItems.length > 0) {
-    operations.push({
-      type: "write-document-batch",
-      items: frontmatterBatchItems,
-    });
-  }
-  if (memoDeletePaths.length > 0) {
-    operations.push({
-      type: "delete",
-      paths: memoDeletePaths,
-    });
-  }
-
-  return operations;
 }

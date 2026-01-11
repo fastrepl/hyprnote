@@ -32,7 +32,6 @@ const {
   useProvideMetrics,
   useCreateIndexes,
   useCreateMetrics,
-  useProvidePersister,
   useProvideQueries,
   useProvideSynchronizer,
   useCreateCheckpoints,
@@ -66,8 +65,7 @@ export const StoreComponent = () => {
       .setValuesSchema(SCHEMA.value),
   );
 
-  const { localPersister, sessionPersister, humanPersister } =
-    useMainPersisters(store as Store);
+  useMainPersisters(store as Store);
 
   const synchronizer = useCreateSynchronizer(store, async (store) =>
     createBroadcastChannelSynchronizer(
@@ -340,9 +338,6 @@ export const StoreComponent = () => {
   useProvideQueries(STORE_ID, queries!);
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
-  useProvidePersister(STORE_ID, localPersister);
-  useProvidePersister("session", sessionPersister);
-  useProvidePersister("human", humanPersister);
   useProvideSynchronizer(STORE_ID, synchronizer);
   useProvideCheckpoints(STORE_ID, checkpoints!);
 

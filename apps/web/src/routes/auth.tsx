@@ -1,23 +1,50 @@
 import { Icon } from "@iconify-icon/react";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
-import { doAuth, doMagicLinkAuth } from "@/functions/auth";
+import { doAuth, doMagicLinkAuth, fetchUser } from "@/functions/auth";
+import { getSupabaseServerClient } from "@/functions/supabase";
 
 const validateSearch = z.object({
   flow: z.enum(["desktop", "web"]).default("web"),
-  scheme: z.string().optional(),
+  scheme: z.string().default("hyprnote"),
   redirect: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth")({
   validateSearch,
   component: Component,
+  beforeLoad: async ({ search }) => {
+    const user = await fetchUser();
+
+    if (user) {
+      if (search.flow === "web") {
+        throw redirect({ href: search.redirect || "/app/account" });
+      }
+
+      if (search.flow === "desktop") {
+        const supabase = getSupabaseServerClient();
+        const { data } = await supabase.auth.getSession();
+
+        if (data.session) {
+          throw redirect({
+            to: "/callback/auth",
+            search: {
+              flow: "desktop",
+              scheme: search.scheme,
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token,
+            },
+          });
+        }
+      }
+    }
+  },
 });
 
 function Component() {

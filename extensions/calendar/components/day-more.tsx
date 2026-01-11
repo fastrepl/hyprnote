@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { DayEvent } from "./day-event";
 import { DaySession } from "./day-session";
+import { parseLocalDate } from "./utils";
 
 const { Button } = ui.button;
 const { Popover, PopoverContent, PopoverTrigger } = ui.popover;
@@ -36,7 +37,7 @@ export function DayMore({
         align="start"
       >
         <div className="text-lg font-semibold text-neutral-800 mb-2">
-          {format(new Date(day), "MMMM d, yyyy")}
+          {format(parseLocalDate(day), "MMMM d, yyyy")}
         </div>
 
         <div className="space-y-1">

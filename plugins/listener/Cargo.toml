@@ -12,6 +12,8 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 insta = { workspace = true }
+quickcheck = { workspace = true }
+quickcheck_macros = { workspace = true }
 rodio = { workspace = true, features = ["wav"] }
 serde_json = { workspace = true }
 specta-typescript = { workspace = true }

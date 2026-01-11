@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker/locale/en";
 
+import type { AppleCalendar } from "@hypr/plugin-apple-calendar";
 import type {
   Calendar,
   ChatGroup,
@@ -17,7 +18,7 @@ import type {
   TranscriptStorage,
 } from "@hypr/store";
 
-import { createCalendar } from "./calendar";
+import { createCalendar, createCalendarFromFixture } from "./calendar";
 import { createChatGroup, createChatMessage } from "./chat";
 import { createChatShortcut } from "./chat-shortcut";
 import { createEnhancedNote } from "./enhanced-note";
@@ -46,9 +47,20 @@ export const buildOrganizations = (
   return organizations;
 };
 
-export const buildCalendars = (count: number): Record<string, Calendar> => {
-  const calendars: Record<string, Calendar> = {};
+export const buildCalendars = (
+  count: number,
+  fixtureCalendars?: AppleCalendar[],
+): Record<string, Calendar> => {
+  if (fixtureCalendars?.length) {
+    const calendars: Record<string, Calendar> = {};
+    for (const fc of fixtureCalendars) {
+      const cal = createCalendarFromFixture(fc);
+      calendars[cal.id] = cal.data;
+    }
+    return calendars;
+  }
 
+  const calendars: Record<string, Calendar> = {};
   for (let i = 0; i < count; i++) {
     const calendar = createCalendar();
     calendars[calendar.id] = calendar.data;

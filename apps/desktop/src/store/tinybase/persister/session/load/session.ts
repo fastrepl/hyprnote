@@ -9,7 +9,14 @@ export function extractSessionIdAndFolder(path: string): {
 } {
   const parts = path.split("/");
   const sessionId = parts[parts.length - 2] || "";
-  const folderPath = parts.slice(0, -2).join("/");
+  let folderPath = parts.slice(0, -2).join("/");
+
+  if (folderPath === "sessions") {
+    folderPath = "";
+  } else if (folderPath.startsWith("sessions/")) {
+    folderPath = folderPath.slice("sessions/".length);
+  }
+
   return { sessionId, folderPath };
 }
 

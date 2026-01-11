@@ -1,0 +1,37 @@
+---
+date: 2026-01-11T00:00:00.000Z
+---
+
+## Data & Storage
+
+- Replaced `sqlite` based persisters with `json` and `markdown` based persisters.
+
+## Audio & Devices
+
+- Fix listen mode heuristic around headphones with wrong terminal type
+
+## Authentication
+
+- Preserve auth session by saving store on app exit
+- Enhance authentication flow with redirect handling
+
+## UI & Navigation
+
+- Add "Open in new tab" context menu option
+- Force pin listening tab with fixed left section
+- Scroll left sidebar to 'now' indicator on initial load
+- Add 'coming soon' tooltips to unimplemented features
+
+## AI
+
+- Add display name for Hyprnote auto model
+
+## Calendar
+
+- Parse date strings as local time to fix timezone offset
+
+## Performance
+
+- Optimize scroll fade performance and memoize overlay
+- Improve title input with local state management
+- Reduce delay for toast appearance

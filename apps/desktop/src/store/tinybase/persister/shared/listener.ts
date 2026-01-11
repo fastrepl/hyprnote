@@ -1,4 +1,4 @@
-import { type ChangeKind, events as notifyEvents } from "@hypr/plugin-notify";
+import { events as notifyEvents } from "@hypr/plugin-notify";
 
 export type NotifyListenerHandle = {
   unlisten: (() => void) | null;
@@ -11,7 +11,6 @@ const FALLBACK_POLL_INTERVAL = 300000;
 export type EntityInfo = {
   entityId: string;
   path: string;
-  kind: ChangeKind;
 };
 
 export type DebouncedBatcher<T> = {
@@ -118,13 +117,13 @@ export function createFileListener<TConfig extends FileListenerConfig>(
         (async () => {
           try {
             const unlisten = await notifyEvents.fileChanged.listen((event) => {
-              const { path, kind } = event.payload;
+              const { path } = event.payload;
               if (!pathMatcher(path)) return;
 
               const entityId = entityParser(path);
               if (!entityId) return;
 
-              batcher.add(entityId, { entityId, path, kind });
+              batcher.add(entityId, { entityId, path });
               handle.debounceTimeout = batcher.getTimeoutHandle();
             });
             handle.unlisten = unlisten;
@@ -196,13 +195,13 @@ export function createEntityListener(
       (async () => {
         try {
           const unlisten = await notifyEvents.fileChanged.listen((event) => {
-            const { path, kind } = event.payload;
+            const { path } = event.payload;
             if (!pathMatcher(path)) return;
 
             const entityId = entityParser(path);
             if (!entityId) return;
 
-            batcher.add(entityId, { entityId, path, kind });
+            batcher.add(entityId, { entityId, path });
             handle.debounceTimeout = batcher.getTimeoutHandle();
           });
           handle.unlisten = unlisten;

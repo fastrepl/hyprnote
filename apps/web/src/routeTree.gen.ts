@@ -18,7 +18,9 @@ import { Route as DiscordRouteImport } from './routes/discord'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BountiesRouteImport } from './routes/bounties'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
@@ -38,6 +40,7 @@ import { Route as ViewAboutRouteImport } from './routes/_view/about'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
+import { Route as AdminMediaIndexRouteImport } from './routes/admin/media/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
 import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts/index'
 import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
@@ -88,10 +91,8 @@ import { Route as ViewK6ReportsIdRouteImport } from './routes/_view/k6-reports/$
 import { Route as ViewDownloadWindowsRouteImport } from './routes/_view/download/windows'
 import { Route as ViewDownloadLinuxDebRouteImport } from './routes/_view/download/linux-deb'
 import { Route as ViewDownloadLinuxAppimageRouteImport } from './routes/_view/download/linux-appimage'
-import { Route as ViewDownloadLinuxRouteImport } from './routes/_view/download/linux'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
-import { Route as ViewDownloadAppleRouteImport } from './routes/_view/download/apple'
 import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
 import { Route as ViewCompanyHandbookSplatRouteImport } from './routes/_view/company-handbook/$'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
@@ -149,9 +150,19 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViewRouteRoute = ViewRouteRouteImport.update({
   id: '/_view',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const ViewIndexRoute = ViewIndexRouteImport.update({
   id: '/',
@@ -248,6 +259,11 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => ViewRouteRoute,
+} as any)
+const AdminMediaIndexRoute = AdminMediaIndexRouteImport.update({
+  id: '/media/',
+  path: '/media/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const ViewTemplatesIndexRoute = ViewTemplatesIndexRouteImport.update({
   id: '/templates/',
@@ -504,11 +520,6 @@ const ViewDownloadLinuxAppimageRoute =
     path: '/download/linux-appimage',
     getParentRoute: () => ViewRouteRoute,
   } as any)
-const ViewDownloadLinuxRoute = ViewDownloadLinuxRouteImport.update({
-  id: '/download/linux',
-  path: '/download/linux',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewDownloadAppleSiliconRoute =
   ViewDownloadAppleSiliconRouteImport.update({
     id: '/download/apple-silicon',
@@ -518,11 +529,6 @@ const ViewDownloadAppleSiliconRoute =
 const ViewDownloadAppleIntelRoute = ViewDownloadAppleIntelRouteImport.update({
   id: '/download/apple-intel',
   path: '/download/apple-intel',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewDownloadAppleRoute = ViewDownloadAppleRouteImport.update({
-  id: '/download/apple',
-  path: '/download/apple',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewDocsSplatRoute = ViewDocsSplatRouteImport.update({
@@ -585,6 +591,7 @@ const ViewGalleryTypeSlugRoute = ViewGalleryTypeSlugRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/admin': typeof AdminRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bounties': typeof BountiesRoute
   '/contact': typeof ContactRoute
@@ -613,6 +620,7 @@ export interface FileRoutesByFullPath {
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/': typeof ViewIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/checkout': typeof ViewAppCheckoutRoute
   '/app/file-transcription': typeof ViewAppFileTranscriptionRoute
@@ -622,10 +630,8 @@ export interface FileRoutesByFullPath {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
-  '/download/apple': typeof ViewDownloadAppleRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/download/linux': typeof ViewDownloadLinuxRoute
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
@@ -676,6 +682,7 @@ export interface FileRoutesByFullPath {
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
+  '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
 }
@@ -705,6 +712,7 @@ export interface FileRoutesByTo {
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/': typeof ViewIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/checkout': typeof ViewAppCheckoutRoute
   '/app/file-transcription': typeof ViewAppFileTranscriptionRoute
@@ -714,10 +722,8 @@ export interface FileRoutesByTo {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
-  '/download/apple': typeof ViewDownloadAppleRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/download/linux': typeof ViewDownloadLinuxRoute
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
@@ -768,12 +774,14 @@ export interface FileRoutesByTo {
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
+  '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_view': typeof ViewRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bounties': typeof BountiesRoute
   '/contact': typeof ContactRoute
@@ -802,6 +810,7 @@ export interface FileRoutesById {
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/_view/': typeof ViewIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/_view/app/account': typeof ViewAppAccountRoute
   '/_view/app/checkout': typeof ViewAppCheckoutRoute
   '/_view/app/file-transcription': typeof ViewAppFileTranscriptionRoute
@@ -811,10 +820,8 @@ export interface FileRoutesById {
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
   '/_view/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/_view/docs/$': typeof ViewDocsSplatRoute
-  '/_view/download/apple': typeof ViewDownloadAppleRoute
   '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/_view/download/linux': typeof ViewDownloadLinuxRoute
   '/_view/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/_view/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/_view/download/windows': typeof ViewDownloadWindowsRoute
@@ -865,12 +872,14 @@ export interface FileRoutesById {
   '/_view/roadmap/': typeof ViewRoadmapIndexRoute
   '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
+  '/admin/media/': typeof AdminMediaIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/admin'
     | '/auth'
     | '/bounties'
     | '/contact'
@@ -899,6 +908,7 @@ export interface FileRouteTypes {
     | '/api/templates'
     | '/webhook/nango'
     | '/'
+    | '/admin/'
     | '/app/account'
     | '/app/checkout'
     | '/app/file-transcription'
@@ -908,10 +918,8 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/company-handbook/$'
     | '/docs/$'
-    | '/download/apple'
     | '/download/apple-intel'
     | '/download/apple-silicon'
-    | '/download/linux'
     | '/download/linux-appimage'
     | '/download/linux-deb'
     | '/download/windows'
@@ -962,6 +970,7 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
+    | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -991,6 +1000,7 @@ export interface FileRouteTypes {
     | '/api/templates'
     | '/webhook/nango'
     | '/'
+    | '/admin'
     | '/app/account'
     | '/app/checkout'
     | '/app/file-transcription'
@@ -1000,10 +1010,8 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/company-handbook/$'
     | '/docs/$'
-    | '/download/apple'
     | '/download/apple-intel'
     | '/download/apple-silicon'
-    | '/download/linux'
     | '/download/linux-appimage'
     | '/download/linux-deb'
     | '/download/windows'
@@ -1054,11 +1062,13 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
+    | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
   id:
     | '__root__'
     | '/_view'
+    | '/admin'
     | '/auth'
     | '/bounties'
     | '/contact'
@@ -1087,6 +1097,7 @@ export interface FileRouteTypes {
     | '/api/templates'
     | '/webhook/nango'
     | '/_view/'
+    | '/admin/'
     | '/_view/app/account'
     | '/_view/app/checkout'
     | '/_view/app/file-transcription'
@@ -1096,10 +1107,8 @@ export interface FileRouteTypes {
     | '/_view/changelog/$slug'
     | '/_view/company-handbook/$'
     | '/_view/docs/$'
-    | '/_view/download/apple'
     | '/_view/download/apple-intel'
     | '/_view/download/apple-silicon'
-    | '/_view/download/linux'
     | '/_view/download/linux-appimage'
     | '/_view/download/linux-deb'
     | '/_view/download/windows'
@@ -1150,12 +1159,14 @@ export interface FileRouteTypes {
     | '/_view/roadmap/'
     | '/_view/shortcuts/'
     | '/_view/templates/'
+    | '/admin/media/'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BountiesRoute: typeof BountiesRoute
   ContactRoute: typeof ContactRoute
@@ -1239,12 +1250,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_view': {
       id: '/_view'
       path: ''
       fullPath: ''
       preLoaderRoute: typeof ViewRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/_view/': {
       id: '/_view/'
@@ -1378,6 +1403,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app'
       preLoaderRoute: typeof ViewAppRouteRouteImport
       parentRoute: typeof ViewRouteRoute
+    }
+    '/admin/media/': {
+      id: '/admin/media/'
+      path: '/media'
+      fullPath: '/admin/media'
+      preLoaderRoute: typeof AdminMediaIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/_view/templates/': {
       id: '/_view/templates/'
@@ -1729,13 +1761,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDownloadLinuxAppimageRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/download/linux': {
-      id: '/_view/download/linux'
-      path: '/download/linux'
-      fullPath: '/download/linux'
-      preLoaderRoute: typeof ViewDownloadLinuxRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/download/apple-silicon': {
       id: '/_view/download/apple-silicon'
       path: '/download/apple-silicon'
@@ -1748,13 +1773,6 @@ declare module '@tanstack/react-router' {
       path: '/download/apple-intel'
       fullPath: '/download/apple-intel'
       preLoaderRoute: typeof ViewDownloadAppleIntelRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/apple': {
-      id: '/_view/download/apple'
-      path: '/download/apple'
-      fullPath: '/download/apple'
-      preLoaderRoute: typeof ViewDownloadAppleRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/docs/$': {
@@ -1905,10 +1923,8 @@ interface ViewRouteRouteChildren {
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
-  ViewDownloadAppleRoute: typeof ViewDownloadAppleRoute
   ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
-  ViewDownloadLinuxRoute: typeof ViewDownloadLinuxRoute
   ViewDownloadLinuxAppimageRoute: typeof ViewDownloadLinuxAppimageRoute
   ViewDownloadLinuxDebRoute: typeof ViewDownloadLinuxDebRoute
   ViewDownloadWindowsRoute: typeof ViewDownloadWindowsRoute
@@ -1976,10 +1992,8 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
-  ViewDownloadAppleRoute: ViewDownloadAppleRoute,
   ViewDownloadAppleIntelRoute: ViewDownloadAppleIntelRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
-  ViewDownloadLinuxRoute: ViewDownloadLinuxRoute,
   ViewDownloadLinuxAppimageRoute: ViewDownloadLinuxAppimageRoute,
   ViewDownloadLinuxDebRoute: ViewDownloadLinuxDebRoute,
   ViewDownloadWindowsRoute: ViewDownloadWindowsRoute,
@@ -2033,8 +2047,23 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
   ViewRouteRouteChildren,
 )
 
+interface AdminRouteRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminMediaIndexRoute: typeof AdminMediaIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminMediaIndexRoute: AdminMediaIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BountiesRoute: BountiesRoute,
   ContactRoute: ContactRoute,

@@ -27,15 +27,8 @@ import {
   type JsonValue,
   type SaveResult,
   type TablesContent,
-  type WriteOperation,
 } from "../shared/types";
 import { extractChangedTables } from "../shared/utils";
-
-type CategorizedOperations = {
-  json: Array<[JsonValue, string]>;
-  document: Array<[ParsedDocument, string]>;
-  delete: string[];
-};
 
 type LoadSingleFn<Schemas extends OptionalSchemas> = (
   entityId: string,
@@ -47,26 +40,28 @@ type OrphanCleanupDirs = {
   type: "dirs";
   subdir: string;
   markerFile: string;
-  getValidIds: (tables: TablesContent) => Set<string>;
+  keepIds: string[];
 };
 
 type OrphanCleanupFiles = {
   type: "files";
   subdir: string;
   extension: string;
-  getValidIds: (tables: TablesContent) => Set<string>;
+  keepIds: string[];
 };
 
-type OrphanCleanupSessionNotes = {
-  type: "sessionNotes";
-  getValidIds: (tables: TablesContent) => Set<string>;
-  getSessionsWithMemo: (tables: TablesContent) => Set<string>;
+type OrphanCleanupFilesRecursive = {
+  type: "filesRecursive";
+  subdir: string;
+  markerFile: string;
+  extension: string;
+  keepIds: string[];
 };
 
 export type OrphanCleanupConfig =
   | OrphanCleanupDirs
   | OrphanCleanupFiles
-  | OrphanCleanupSessionNotes;
+  | OrphanCleanupFilesRecursive;
 
 type BaseCollectorOptions<Schemas extends OptionalSchemas> = {
   label: string;
@@ -77,7 +72,7 @@ type BaseCollectorOptions<Schemas extends OptionalSchemas> = {
     changedTables?: ChangedTables,
   ) => SaveResult;
   load?: () => Promise<Content<Schemas> | undefined>;
-  cleanup?: OrphanCleanupConfig[];
+  cleanup?: (tables: TablesContent) => OrphanCleanupConfig[];
   watchPaths?: string[];
   watchIntervalMs?: number;
 };
@@ -145,15 +140,28 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
       const { operations } = result;
 
       if (operations.length > 0) {
-        const categorized = categorizeOperations(operations);
+        const jsonItems: Array<[JsonValue, string]> = [];
+        const documentItems: Array<[ParsedDocument, string]> = [];
+        const deletePaths: string[] = [];
 
-        await writeJsonBatch(categorized.json, options.label);
-        await writeDocumentBatch(categorized.document, options.label);
-        await deleteFiles(categorized.delete, options.label);
+        for (const op of operations) {
+          if (op.type === "write-json") {
+            jsonItems.push([op.content as JsonValue, op.path]);
+          } else if (op.type === "write-document-batch") {
+            documentItems.push(...op.items);
+          } else if (op.type === "delete") {
+            deletePaths.push(...op.paths);
+          }
+        }
+
+        await writeJsonBatch(jsonItems, options.label);
+        await writeDocumentBatch(documentItems, options.label);
+        await deleteFiles(deletePaths, options.label);
       }
 
       if (options.cleanup) {
-        await runOrphanCleanup(options.cleanup, tables ?? {}, options.label);
+        const cleanupConfigs = options.cleanup(tables ?? {});
+        await runOrphanCleanup(cleanupConfigs, options.label);
       }
     } catch (error) {
       console.error(`[${options.label}] save error:`, error);
@@ -209,30 +217,6 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
   );
 }
 
-function categorizeOperations(
-  operations: WriteOperation[],
-): CategorizedOperations {
-  const result: CategorizedOperations = {
-    json: [],
-    document: [],
-    delete: [],
-  };
-
-  for (const op of operations) {
-    if (op.type === "json") {
-      result.json.push([op.content as JsonValue, op.path]);
-    } else if (op.type === "document-batch") {
-      result.document = result.document.concat(op.items);
-    } else if (op.type === "delete") {
-      result.delete.push(op.path);
-    } else if (op.type === "delete-batch") {
-      result.delete = result.delete.concat(op.paths);
-    }
-  }
-
-  return result;
-}
-
 async function writeJsonBatch(
   items: Array<[JsonValue, string]>,
   label: string,
@@ -274,12 +258,10 @@ async function deleteFiles(paths: string[], label: string): Promise<void> {
 
 async function runOrphanCleanup(
   configs: OrphanCleanupConfig[],
-  tables: TablesContent,
   label: string,
 ): Promise<void> {
   for (const config of configs) {
-    const validIds = config.getValidIds(tables);
-    if (validIds.size === 0) {
+    if (config.keepIds.length === 0) {
       continue;
     }
 
@@ -291,21 +273,22 @@ async function runOrphanCleanup(
             subdir: config.subdir,
             marker_file: config.markerFile,
           },
-          Array.from(validIds),
+          config.keepIds,
         );
       } else if (config.type === "files") {
         await fsSyncCommands.cleanupOrphan(
           { type: "files", subdir: config.subdir, extension: config.extension },
-          Array.from(validIds),
+          config.keepIds,
         );
-      } else if (config.type === "sessionNotes") {
-        const sessionsWithMemo = config.getSessionsWithMemo(tables);
+      } else if (config.type === "filesRecursive") {
         await fsSyncCommands.cleanupOrphan(
           {
-            type: "sessionNotes",
-            sessions_with_memo: Array.from(sessionsWithMemo),
+            type: "filesRecursive",
+            subdir: config.subdir,
+            marker_file: config.markerFile,
+            extension: config.extension,
           },
-          Array.from(validIds),
+          config.keepIds,
         );
       }
     } catch (error) {

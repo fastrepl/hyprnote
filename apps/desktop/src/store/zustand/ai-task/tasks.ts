@@ -213,7 +213,6 @@ export const createTasksSlice = <T extends TasksState>(
         }),
       );
 
-      console.log("fullText", fullText);
       config.onComplete?.(fullText);
     } catch (err) {
       if (

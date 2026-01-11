@@ -1,12 +1,5 @@
 import { AudioLinesIcon, SparklesIcon } from "lucide-react";
-import {
-  type RefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { useResizeObserver } from "usehooks-ts";
+import { useCallback, useRef } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -14,6 +7,7 @@ import { cn } from "@hypr/utils";
 import { type Tab, useTabs } from "../../../store/zustand/tabs";
 import { LLM } from "../../settings/ai/llm";
 import { STT } from "../../settings/ai/stt";
+import { ScrollFadeOverlay, useScrollFade } from "../../ui/scroll-fade";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
 
@@ -64,7 +58,8 @@ export function TabContentAI({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
 function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
   const updateAiTabState = useTabs((state) => state.updateAiTabState);
   const activeTab = tab.state.tab ?? "transcription";
-  const { ref, atStart, atEnd } = useScrollFade<HTMLDivElement>([activeTab]);
+  const ref = useRef<HTMLDivElement>(null);
+  const { atStart, atEnd } = useScrollFade(ref, "vertical", [activeTab]);
 
   const setActiveTab = useCallback(
     (newTab: AITabKey) => {
@@ -113,48 +108,5 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
         {!atEnd && <ScrollFadeOverlay position="bottom" />}
       </div>
     </div>
-  );
-}
-
-function useScrollFade<T extends HTMLElement>(deps: unknown[] = []) {
-  const ref = useRef<T>(null);
-  const [state, setState] = useState({ atStart: true, atEnd: true });
-
-  const update = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    setState({
-      atStart: scrollTop <= 1,
-      atEnd: scrollTop + clientHeight >= scrollHeight - 1,
-    });
-  }, []);
-
-  useResizeObserver({ ref: ref as RefObject<T>, onResize: update });
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    update();
-    el.addEventListener("scroll", update);
-    return () => el.removeEventListener("scroll", update);
-  }, [update, ...deps]);
-
-  return { ref, ...state };
-}
-
-function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
-  return (
-    <div
-      className={cn([
-        "absolute left-0 w-full h-8 z-20 pointer-events-none",
-        position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
-        position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
-      ])}
-    />
   );
 }

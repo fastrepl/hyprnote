@@ -2,6 +2,11 @@ import { sep } from "@tauri-apps/api/path";
 
 import { commands as path2Commands } from "@hypr/plugin-path2";
 
+export const SESSION_META_FILE = "_meta.json";
+export const SESSION_TRANSCRIPT_FILE = "transcript.json";
+export const SESSION_NOTE_EXTENSION = ".md";
+export const CHAT_MESSAGES_FILE = "messages.json";
+
 export async function getDataDir(): Promise<string> {
   return path2Commands.base();
 }
@@ -59,5 +64,16 @@ export function createMarkdownEntityParser(dirName: string) {
       return null;
     }
     return filename.slice(0, -3);
+  };
+}
+
+export function createFolderEntityParser(dirName: string) {
+  return (path: string): string | null => {
+    const parts = path.split("/");
+    const dirIndex = parts.indexOf(dirName);
+    if (dirIndex === -1 || dirIndex + 1 >= parts.length) {
+      return null;
+    }
+    return parts[dirIndex + 1] || null;
   };
 }

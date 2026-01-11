@@ -2,6 +2,7 @@ import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { createMultiTableDirPersister } from "../factories";
+import { CHAT_MESSAGES_FILE } from "../shared";
 import { getChangedChatGroupIds, parseChatGroupIdFromPath } from "./changes";
 import {
   loadAllChatGroups,
@@ -23,7 +24,7 @@ export function createChatPersister(store: Store) {
       {
         type: "dirs",
         subdir: "chats",
-        markerFile: "messages.json",
+        markerFile: CHAT_MESSAGES_FILE,
         keepIds: Object.keys(tables.chat_groups ?? {}),
       },
     ],
@@ -37,7 +38,12 @@ export function createChatPersister(store: Store) {
         if (!changeResult) {
           return { operations: [] };
         }
-        changedGroupIds = changeResult.changedChatGroupIds;
+
+        if (changeResult.hasUnresolvedDeletions) {
+          changedGroupIds = undefined;
+        } else {
+          changedGroupIds = changeResult.changedChatGroupIds;
+        }
       }
 
       return {

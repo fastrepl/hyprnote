@@ -51,7 +51,7 @@ describe("extractSessionIdAndFolder", () => {
   describe("different file types", () => {
     test("works with transcript.json files", () => {
       const result = extractSessionIdAndFolder(
-        "/data/sessions/session-123/_transcript.json",
+        "/data/sessions/session-123/transcript.json",
       );
       expect(result).toEqual({
         sessionId: "session-123",

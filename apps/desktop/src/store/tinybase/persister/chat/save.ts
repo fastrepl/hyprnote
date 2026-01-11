@@ -2,6 +2,7 @@ import { sep } from "@tauri-apps/api/path";
 
 import {
   buildChatPath,
+  CHAT_MESSAGES_FILE,
   iterateTableRows,
   type TablesContent,
   type WriteOperation,
@@ -75,7 +76,7 @@ export function buildChatSaveOps(
         const chatDir = buildChatPath(dataDir, id);
         operations.push({
           type: "write-json",
-          path: [chatDir, "messages.json"].join(sep()),
+          path: [chatDir, CHAT_MESSAGES_FILE].join(sep()),
           content: chatJson,
         });
       } else if (allGroupIds.has(id)) {
@@ -83,7 +84,7 @@ export function buildChatSaveOps(
         const chatDir = buildChatPath(dataDir, id);
         operations.push({
           type: "write-json",
-          path: [chatDir, "messages.json"].join(sep()),
+          path: [chatDir, CHAT_MESSAGES_FILE].join(sep()),
           content: { chat_group: { id, ...chatGroup }, messages: [] },
         });
       } else {
@@ -95,7 +96,7 @@ export function buildChatSaveOps(
       const deleteOps: WriteOperation = {
         type: "delete",
         paths: deletedIds.map((id) =>
-          [buildChatPath(dataDir, id), "messages.json"].join(sep()),
+          [buildChatPath(dataDir, id), CHAT_MESSAGES_FILE].join(sep()),
         ),
       };
       operations.push(deleteOps);
@@ -110,7 +111,7 @@ export function buildChatSaveOps(
 
     operations.push({
       type: "write-json",
-      path: [chatDir, "messages.json"].join(sep()),
+      path: [chatDir, CHAT_MESSAGES_FILE].join(sep()),
       content: chatJson,
     });
   }
@@ -121,7 +122,7 @@ export function buildChatSaveOps(
       const chatDir = buildChatPath(dataDir, id);
       operations.push({
         type: "write-json",
-        path: [chatDir, "messages.json"].join(sep()),
+        path: [chatDir, CHAT_MESSAGES_FILE].join(sep()),
         content: { chat_group: { id, ...chatGroup }, messages: [] },
       });
     }

@@ -1,5 +1,6 @@
 import {
   type ChangedTables,
+  getChangedIds,
   SESSION_META_FILE,
   SESSION_NOTE_EXTENSION,
   SESSION_TRANSCRIPT_FILE,
@@ -26,7 +27,7 @@ export function parseSessionIdFromPath(path: string): string | null {
   return null;
 }
 
-export type ChangeResult = {
+export type SessionChangeResult = {
   changedSessionIds: Set<string>;
   hasUnresolvedDeletions: boolean;
 };
@@ -34,82 +35,48 @@ export type ChangeResult = {
 export function getChangedSessionIds(
   tables: TablesContent,
   changedTables: ChangedTables,
-): ChangeResult | undefined {
-  const changedSessionIds = new Set<string>();
-  let hasUnresolvedDeletions = false;
+): SessionChangeResult | undefined {
+  const result = getChangedIds(tables, changedTables, [
+    { table: "sessions", extractId: (id) => id },
+    {
+      table: "mapping_session_participant",
+      extractId: (id, tables) =>
+        tables.mapping_session_participant?.[id]?.session_id,
+    },
+    {
+      table: "transcripts",
+      extractId: (id, tables) => tables.transcripts?.[id]?.session_id,
+    },
+    {
+      table: "words",
+      extractId: (id, tables) => {
+        const word = tables.words?.[id];
+        if (!word?.transcript_id) return undefined;
+        return tables.transcripts?.[word.transcript_id]?.session_id;
+      },
+      ignoreMissingParent: true,
+    },
+    {
+      table: "speaker_hints",
+      extractId: (id, tables) => {
+        const hint = tables.speaker_hints?.[id];
+        if (!hint?.transcript_id) return undefined;
+        return tables.transcripts?.[hint.transcript_id]?.session_id;
+      },
+      ignoreMissingParent: true,
+    },
+    {
+      table: "enhanced_notes",
+      extractId: (id, tables) => tables.enhanced_notes?.[id]?.session_id,
+    },
+  ]);
 
-  const changedSessions = changedTables.sessions;
-  if (changedSessions) {
-    for (const id of Object.keys(changedSessions)) {
-      changedSessionIds.add(id);
-    }
-  }
-
-  const changedParticipants = changedTables.mapping_session_participant;
-  if (changedParticipants) {
-    for (const id of Object.keys(changedParticipants)) {
-      const sessionId = tables.mapping_session_participant?.[id]?.session_id;
-      if (sessionId) {
-        changedSessionIds.add(sessionId);
-      } else {
-        hasUnresolvedDeletions = true;
-      }
-    }
-  }
-
-  const changedTranscripts = changedTables.transcripts;
-  if (changedTranscripts) {
-    for (const id of Object.keys(changedTranscripts)) {
-      const transcript = tables.transcripts?.[id];
-      if (transcript?.session_id) {
-        changedSessionIds.add(transcript.session_id);
-      } else {
-        hasUnresolvedDeletions = true;
-      }
-    }
-  }
-
-  const changedWords = changedTables.words;
-  if (changedWords) {
-    for (const id of Object.keys(changedWords)) {
-      const word = tables.words?.[id];
-      if (word?.transcript_id) {
-        const transcript = tables.transcripts?.[word.transcript_id];
-        if (transcript?.session_id) {
-          changedSessionIds.add(transcript.session_id);
-        }
-      }
-    }
-  }
-
-  const changedSpeakerHints = changedTables.speaker_hints;
-  if (changedSpeakerHints) {
-    for (const id of Object.keys(changedSpeakerHints)) {
-      const hint = tables.speaker_hints?.[id];
-      if (hint?.transcript_id) {
-        const transcript = tables.transcripts?.[hint.transcript_id];
-        if (transcript?.session_id) {
-          changedSessionIds.add(transcript.session_id);
-        }
-      }
-    }
-  }
-
-  const changedEnhancedNotes = changedTables.enhanced_notes;
-  if (changedEnhancedNotes) {
-    for (const id of Object.keys(changedEnhancedNotes)) {
-      const note = tables.enhanced_notes?.[id];
-      if (note?.session_id) {
-        changedSessionIds.add(note.session_id);
-      } else {
-        hasUnresolvedDeletions = true;
-      }
-    }
-  }
-
-  if (changedSessionIds.size === 0 && !hasUnresolvedDeletions) {
+  if (!result) {
     return undefined;
   }
 
-  return { changedSessionIds, hasUnresolvedDeletions };
+  return {
+    changedSessionIds: result.changedIds,
+    hasUnresolvedDeletions: result.hasUnresolvedDeletions,
+  };
 }

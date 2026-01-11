@@ -11,6 +11,8 @@ type ToastRegistryParams = {
   isAuthenticated: boolean;
   hasLLMConfigured: boolean;
   hasSttConfigured: boolean;
+  hasProSttConfigured: boolean;
+  hasProLlmConfigured: boolean;
   isAiTranscriptionTabActive: boolean;
   isAiIntelligenceTabActive: boolean;
   hasActiveDownload: boolean;
@@ -28,6 +30,8 @@ export function createToastRegistry({
   isAuthenticated,
   hasLLMConfigured,
   hasSttConfigured,
+  hasProSttConfigured,
+  hasProLlmConfigured,
   isAiTranscriptionTabActive,
   isAiIntelligenceTabActive,
   hasActiveDownload,
@@ -128,6 +132,28 @@ export function createToastRegistry({
     },
     {
       toast: {
+        id: "pro-requires-login",
+        icon: (
+          <img
+            src="/assets/hyprnote-pro.png"
+            alt="Hyprnote Pro"
+            className="size-5"
+          />
+        ),
+        title: "Sign in required",
+        description:
+          "You have Hyprnote Pro models configured. Please sign in to use them.",
+        primaryAction: {
+          label: "Sign in",
+          onClick: onSignIn,
+        },
+        dismissible: true,
+      },
+      condition: () =>
+        !isAuthenticated && (hasProSttConfigured || hasProLlmConfigured),
+    },
+    {
+      toast: {
         id: "upgrade-to-pro",
         icon: (
           <img
@@ -145,7 +171,12 @@ export function createToastRegistry({
         },
         dismissible: true,
       },
-      condition: () => !isAuthenticated && hasLLMConfigured && hasSttConfigured,
+      condition: () =>
+        !isAuthenticated &&
+        hasLLMConfigured &&
+        hasSttConfigured &&
+        !hasProSttConfigured &&
+        !hasProLlmConfigured,
     },
   ];
 }

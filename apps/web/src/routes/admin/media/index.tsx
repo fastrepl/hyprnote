@@ -136,18 +136,18 @@ function MediaLibrary() {
     if (selectedItems.size === 0) return;
     setDownloading(true);
 
-    try {
-      const selectedFiles = items.filter(
-        (item) => selectedItems.has(item.path) && item.downloadUrl,
-      );
+    const errors: string[] = [];
+    const selectedFiles = items.filter(
+      (item) => selectedItems.has(item.path) && item.downloadUrl,
+    );
 
-      for (const file of selectedFiles) {
-        if (file.downloadUrl) {
+    for (const file of selectedFiles) {
+      if (file.downloadUrl) {
+        try {
           const response = await fetch(file.downloadUrl);
           if (!response.ok) {
-            throw new Error(
-              `Failed to download ${file.name}: ${response.statusText}`,
-            );
+            errors.push(`${file.name}: ${response.statusText}`);
+            continue;
           }
           const blob = await response.blob();
           const url = window.URL.createObjectURL(blob);
@@ -156,15 +156,20 @@ function MediaLibrary() {
           a.download = file.name;
           document.body.appendChild(a);
           a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
+          setTimeout(() => {
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          }, 100);
+        } catch (err) {
+          errors.push(`${file.name}: ${(err as Error).message}`);
         }
       }
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setDownloading(false);
     }
+
+    if (errors.length > 0) {
+      setError(`Some files failed to download: ${errors.join(", ")}`);
+    }
+    setDownloading(false);
   };
 
   const fetchFolderOptions = async () => {

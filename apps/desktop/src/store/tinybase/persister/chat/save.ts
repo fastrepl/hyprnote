@@ -74,7 +74,7 @@ export function buildChatSaveOps(
         const chatJson = chatJsonList.find((c) => c.chat_group.id === id)!;
         const chatDir = buildChatPath(dataDir, id);
         operations.push({
-          type: "json",
+          type: "write-json",
           path: [chatDir, "messages.json"].join(sep()),
           content: chatJson,
         });
@@ -82,7 +82,7 @@ export function buildChatSaveOps(
         const chatGroup = tables.chat_groups![id];
         const chatDir = buildChatPath(dataDir, id);
         operations.push({
-          type: "json",
+          type: "write-json",
           path: [chatDir, "messages.json"].join(sep()),
           content: { chat_group: { id, ...chatGroup }, messages: [] },
         });
@@ -93,7 +93,7 @@ export function buildChatSaveOps(
 
     if (deletedIds.length > 0) {
       const deleteOps: WriteOperation = {
-        type: "delete-batch",
+        type: "delete",
         paths: deletedIds.map((id) =>
           [buildChatPath(dataDir, id), "messages.json"].join(sep()),
         ),
@@ -109,7 +109,7 @@ export function buildChatSaveOps(
     const chatDir = buildChatPath(dataDir, chatGroupId);
 
     operations.push({
-      type: "json",
+      type: "write-json",
       path: [chatDir, "messages.json"].join(sep()),
       content: chatJson,
     });
@@ -120,7 +120,7 @@ export function buildChatSaveOps(
       const chatGroup = tables.chat_groups![id];
       const chatDir = buildChatPath(dataDir, id);
       operations.push({
-        type: "json",
+        type: "write-json",
         path: [chatDir, "messages.json"].join(sep()),
         content: { chat_group: { id, ...chatGroup }, messages: [] },
       });

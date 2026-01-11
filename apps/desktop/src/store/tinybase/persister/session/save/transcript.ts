@@ -70,7 +70,7 @@ export function buildTranscriptSaveOps(
 
     const content: TranscriptJson = { transcripts: sessionTranscripts };
     operations.push({
-      type: "json",
+      type: "write-json",
       path: [sessionDir, "transcript.json"].join(sep()),
       content,
     });

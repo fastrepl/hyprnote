@@ -126,13 +126,13 @@ export function buildNoteSaveOps(
   const operations: WriteOperation[] = [];
   if (frontmatterBatchItems.length > 0) {
     operations.push({
-      type: "document-batch",
+      type: "write-document-batch",
       items: frontmatterBatchItems,
     });
   }
   if (memoDeletePaths.length > 0) {
     operations.push({
-      type: "delete-batch",
+      type: "delete",
       paths: memoDeletePaths,
     });
   }

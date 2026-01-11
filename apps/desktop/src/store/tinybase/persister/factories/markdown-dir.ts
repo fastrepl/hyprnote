@@ -93,7 +93,7 @@ function collectMarkdownWriteOps<TStorage extends Record<string, unknown>>(
 
   if (documentItems.length > 0) {
     operations.push({
-      type: "document-batch",
+      type: "write-document-batch",
       items: documentItems,
     });
   }
@@ -214,7 +214,7 @@ export function createMarkdownDirPersister<
           deletedIds.length > 0
             ? [
                 {
-                  type: "delete-batch",
+                  type: "delete",
                   paths: deletedIds.map((id) =>
                     buildEntityFilePath(dataDir, dirName, id),
                   ),

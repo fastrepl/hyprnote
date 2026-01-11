@@ -87,7 +87,7 @@ export function buildSessionSaveOps(
     const sessionDir = buildSessionPath(dataDir, sessionId, folderPath);
 
     operations.push({
-      type: "json",
+      type: "write-json",
       path: [sessionDir, "_meta.json"].join(sep()),
       content: meta,
     });

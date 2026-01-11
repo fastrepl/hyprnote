@@ -27,15 +27,8 @@ import {
   type JsonValue,
   type SaveResult,
   type TablesContent,
-  type WriteOperation,
 } from "../shared/types";
 import { extractChangedTables } from "../shared/utils";
-
-type CategorizedOperations = {
-  json: Array<[JsonValue, string]>;
-  document: Array<[ParsedDocument, string]>;
-  delete: string[];
-};
 
 type LoadSingleFn<Schemas extends OptionalSchemas> = (
   entityId: string,
@@ -147,11 +140,23 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
       const { operations } = result;
 
       if (operations.length > 0) {
-        const categorized = categorizeOperations(operations);
+        const jsonItems: Array<[JsonValue, string]> = [];
+        const documentItems: Array<[ParsedDocument, string]> = [];
+        const deletePaths: string[] = [];
 
-        await writeJsonBatch(categorized.json, options.label);
-        await writeDocumentBatch(categorized.document, options.label);
-        await deleteFiles(categorized.delete, options.label);
+        for (const op of operations) {
+          if (op.type === "write-json") {
+            jsonItems.push([op.content as JsonValue, op.path]);
+          } else if (op.type === "write-document-batch") {
+            documentItems.push(...op.items);
+          } else if (op.type === "delete") {
+            deletePaths.push(...op.paths);
+          }
+        }
+
+        await writeJsonBatch(jsonItems, options.label);
+        await writeDocumentBatch(documentItems, options.label);
+        await deleteFiles(deletePaths, options.label);
       }
 
       if (options.cleanup) {
@@ -210,30 +215,6 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
     (error) => console.error(`[${options.label}]:`, error),
     StoreOrMergeableStore,
   );
-}
-
-function categorizeOperations(
-  operations: WriteOperation[],
-): CategorizedOperations {
-  const result: CategorizedOperations = {
-    json: [],
-    document: [],
-    delete: [],
-  };
-
-  for (const op of operations) {
-    if (op.type === "json") {
-      result.json.push([op.content as JsonValue, op.path]);
-    } else if (op.type === "document-batch") {
-      result.document = result.document.concat(op.items);
-    } else if (op.type === "delete") {
-      result.delete.push(op.path);
-    } else if (op.type === "delete-batch") {
-      result.delete = result.delete.concat(op.paths);
-    }
-  }
-
-  return result;
 }
 
 async function writeJsonBatch(

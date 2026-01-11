@@ -73,7 +73,16 @@ pub(crate) async fn read_document_batch(
     dir_path: String,
 ) -> Result<HashMap<String, ParsedDocument>, String> {
     spawn_blocking!({
-        crate::frontmatter::read_document_from_dir(&dir_path).map_err(|e| e.to_string())
+        let files = crate::scan::list_uuid_files(&PathBuf::from(&dir_path), "md");
+        let results: HashMap<_, _> = files
+            .into_par_iter()
+            .filter_map(|(id, path)| {
+                let content = std::fs::read_to_string(&path).ok()?;
+                let doc = crate::frontmatter::deserialize(&content).ok()?;
+                Some((id, doc))
+            })
+            .collect();
+        Ok(results)
     })
 }
 

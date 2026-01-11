@@ -77,3 +77,17 @@ impl ChannelMode {
 pub struct AudioChunk {
     pub data: Vec<f32>,
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn test_channel_mode_determine() {
+        println!(
+            "ChannelMode::determine(false) = {:?}",
+            ChannelMode::determine(false),
+        );
+    }
+}

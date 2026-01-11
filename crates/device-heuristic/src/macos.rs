@@ -100,6 +100,19 @@ mod test {
             "is_headphone_from_default_output_device={}",
             is_headphone_from_default_output_device()
         );
+        println!(
+            "is_headphone_from_default_input_device={}",
+            is_headphone_from_default_input_device()
+        );
         println!("is_default_input_external={}", is_default_input_external());
+        println!(
+            "is_builtin_display_inactive={}",
+            is_builtin_display_inactive()
+        );
+        println!(
+            "is_builtin_display_foldable={}",
+            is_builtin_display_foldable()
+        );
+        println!("has_builtin_mic={}", has_builtin_mic());
     }
 }

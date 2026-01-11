@@ -1,4 +1,11 @@
-import { memo, type RefObject, useCallback, useEffect, useState } from "react";
+import {
+  memo,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useResizeObserver } from "usehooks-ts";
 
 import { cn } from "@hypr/utils";
@@ -11,25 +18,40 @@ export function useScrollFade<T extends HTMLElement>(
   deps: unknown[] = [],
 ) {
   const [state, setState] = useState({ atStart: true, atEnd: true });
+  const rafRef = useRef<number | null>(null);
 
   const update = useCallback(() => {
     const el = ref.current;
     if (!el) return;
 
-    if (direction === "vertical") {
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      setState({
-        atStart: scrollTop <= 1,
-        atEnd: scrollTop + clientHeight >= scrollHeight - 1,
-      });
-    } else {
-      const { scrollLeft, scrollWidth, clientWidth } = el;
-      setState({
-        atStart: scrollLeft <= 1,
-        atEnd: scrollLeft + clientWidth >= scrollWidth - 1,
-      });
-    }
+    const newState =
+      direction === "vertical"
+        ? {
+            atStart: el.scrollTop <= 1,
+            atEnd: el.scrollTop + el.clientHeight >= el.scrollHeight - 1,
+          }
+        : {
+            atStart: el.scrollLeft <= 1,
+            atEnd: el.scrollLeft + el.clientWidth >= el.scrollWidth - 1,
+          };
+
+    setState((prev) => {
+      if (prev.atStart === newState.atStart && prev.atEnd === newState.atEnd) {
+        return prev;
+      }
+      return newState;
+    });
   }, [ref, direction]);
+
+  const throttledUpdate = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      update();
+      rafRef.current = null;
+    });
+  }, [update]);
 
   useResizeObserver({
     ref: ref as RefObject<T>,
@@ -41,9 +63,15 @@ export function useScrollFade<T extends HTMLElement>(
     if (!el) return;
 
     update();
-    el.addEventListener("scroll", update);
-    return () => el.removeEventListener("scroll", update);
-  }, [ref, update, ...deps]);
+    el.addEventListener("scroll", throttledUpdate, { passive: true });
+
+    return () => {
+      el.removeEventListener("scroll", throttledUpdate);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [ref, update, throttledUpdate, ...deps]);
 
   return state;
 }

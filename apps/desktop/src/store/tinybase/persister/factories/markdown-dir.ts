@@ -25,11 +25,7 @@ import {
   buildEntityPath,
   getDataDir,
 } from "../shared/paths";
-import {
-  type ChangedTables,
-  type TablesContent,
-  type WriteOperation,
-} from "../shared/types";
+import { type ChangedTables, type WriteOperation } from "../shared/types";
 import { asTablesChanges } from "../shared/utils";
 import { createCollectorPersister } from "./collector";
 
@@ -168,22 +164,17 @@ export function createMarkdownDirPersister<
     [{ tableName, isPrimary: true }],
   );
 
-  const getIdsToKeep = (tables: TablesContent): Set<string> =>
-    new Set(
-      Object.keys(
-        (tables as Record<string, Record<string, unknown>>)[tableName] ?? {},
-      ),
-    );
-
   return createCollectorPersister(store, {
     label,
     watchPaths: [`${dirName}/`],
-    cleanup: [
+    cleanup: (tables) => [
       {
         type: "files",
         subdir: dirName,
         extension: "md",
-        getIdsToKeep,
+        keepIds: Object.keys(
+          (tables as Record<string, Record<string, unknown>>)[tableName] ?? {},
+        ),
       },
     ],
     entityParser,

@@ -47,14 +47,14 @@ type OrphanCleanupDirs = {
   type: "dirs";
   subdir: string;
   markerFile: string;
-  getIdsToKeep: (tables: TablesContent) => Set<string>;
+  keepIds: string[];
 };
 
 type OrphanCleanupFiles = {
   type: "files";
   subdir: string;
   extension: string;
-  getIdsToKeep: (tables: TablesContent) => Set<string>;
+  keepIds: string[];
 };
 
 type OrphanCleanupFilesRecursive = {
@@ -62,7 +62,7 @@ type OrphanCleanupFilesRecursive = {
   subdir: string;
   markerFile: string;
   extension: string;
-  getIdsToKeep: (tables: TablesContent) => Set<string>;
+  keepIds: string[];
 };
 
 export type OrphanCleanupConfig =
@@ -79,7 +79,7 @@ type BaseCollectorOptions<Schemas extends OptionalSchemas> = {
     changedTables?: ChangedTables,
   ) => SaveResult;
   load?: () => Promise<Content<Schemas> | undefined>;
-  cleanup?: OrphanCleanupConfig[];
+  cleanup?: (tables: TablesContent) => OrphanCleanupConfig[];
   watchPaths?: string[];
   watchIntervalMs?: number;
 };
@@ -155,7 +155,8 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
       }
 
       if (options.cleanup) {
-        await runOrphanCleanup(options.cleanup, tables ?? {}, options.label);
+        const cleanupConfigs = options.cleanup(tables ?? {});
+        await runOrphanCleanup(cleanupConfigs, options.label);
       }
     } catch (error) {
       console.error(`[${options.label}] save error:`, error);
@@ -276,12 +277,10 @@ async function deleteFiles(paths: string[], label: string): Promise<void> {
 
 async function runOrphanCleanup(
   configs: OrphanCleanupConfig[],
-  tables: TablesContent,
   label: string,
 ): Promise<void> {
   for (const config of configs) {
-    const idsToKeep = config.getIdsToKeep(tables);
-    if (idsToKeep.size === 0) {
+    if (config.keepIds.length === 0) {
       continue;
     }
 
@@ -293,12 +292,12 @@ async function runOrphanCleanup(
             subdir: config.subdir,
             marker_file: config.markerFile,
           },
-          Array.from(idsToKeep),
+          config.keepIds,
         );
       } else if (config.type === "files") {
         await fsSyncCommands.cleanupOrphan(
           { type: "files", subdir: config.subdir, extension: config.extension },
-          Array.from(idsToKeep),
+          config.keepIds,
         );
       } else if (config.type === "filesRecursive") {
         await fsSyncCommands.cleanupOrphan(
@@ -308,7 +307,7 @@ async function runOrphanCleanup(
             marker_file: config.markerFile,
             extension: config.extension,
           },
-          Array.from(idsToKeep),
+          config.keepIds,
         );
       }
     } catch (error) {

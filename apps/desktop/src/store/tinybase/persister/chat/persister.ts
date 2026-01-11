@@ -2,7 +2,6 @@ import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { createMultiTableDirPersister } from "../factories";
-import type { TablesContent } from "../shared";
 import { getChangedChatGroupIds, parseChatGroupIdFromPath } from "./changes";
 import {
   loadAllChatGroups,
@@ -20,12 +19,12 @@ export function createChatPersister(store: Store) {
       { tableName: "chat_groups", isPrimary: true },
       { tableName: "chat_messages", foreignKey: "chat_group_id" },
     ],
-    cleanup: [
+    cleanup: (tables) => [
       {
         type: "dirs",
         subdir: "chats",
         markerFile: "messages.json",
-        getIdsToKeep: getChatGroupIdsToKeep,
+        keepIds: Object.keys(tables.chat_groups ?? {}),
       },
     ],
     loadAll: loadAllChatGroups,
@@ -46,8 +45,4 @@ export function createChatPersister(store: Store) {
       };
     },
   });
-}
-
-function getChatGroupIdsToKeep(tables: TablesContent): Set<string> {
-  return new Set(Object.keys(tables.chat_groups ?? {}));
 }

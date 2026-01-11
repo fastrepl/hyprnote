@@ -31,7 +31,7 @@ export type MultiTableDirConfig<
   dirName: string;
   entityParser: (path: string) => string | null;
   tables: TableConfigEntry<Schemas, TLoadedData>[];
-  cleanup: OrphanCleanupConfig[];
+  cleanup: (tables: TablesContent) => OrphanCleanupConfig[];
   loadAll: (dataDir: string) => Promise<TLoadedData>;
   loadSingle: (dataDir: string, entityId: string) => Promise<TLoadedData>;
   save: (

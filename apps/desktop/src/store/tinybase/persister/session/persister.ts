@@ -2,7 +2,6 @@ import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { createMultiTableDirPersister } from "../factories";
-import type { TablesContent } from "../shared";
 import { getChangedSessionIds, parseSessionIdFromPath } from "./changes";
 import {
   loadAllSessionData,
@@ -28,19 +27,19 @@ export function createSessionPersister(store: Store) {
       { tableName: "transcripts", foreignKey: "session_id" },
       { tableName: "enhanced_notes", foreignKey: "session_id" },
     ],
-    cleanup: [
+    cleanup: (tables) => [
       {
         type: "dirs",
         subdir: "sessions",
         markerFile: "_meta.json",
-        getIdsToKeep: getSessionIdsToKeep,
+        keepIds: Object.keys(tables.sessions ?? {}),
       },
       {
         type: "filesRecursive",
         subdir: "sessions",
         markerFile: "_meta.json",
         extension: "md",
-        getIdsToKeep: getNoteIdsToKeep,
+        keepIds: Object.keys(tables.enhanced_notes ?? {}),
       },
     ],
     loadAll: loadAllSessionData,
@@ -84,12 +83,4 @@ export function createSessionPersister(store: Store) {
       };
     },
   });
-}
-
-function getSessionIdsToKeep(tables: TablesContent): Set<string> {
-  return new Set(Object.keys(tables.sessions ?? {}));
-}
-
-function getNoteIdsToKeep(tables: TablesContent): Set<string> {
-  return new Set(Object.keys(tables.enhanced_notes ?? {}));
 }

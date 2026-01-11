@@ -74,22 +74,66 @@ fn remove_directory_if_empty(path: &Path) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
+    use crate::test_fixtures::{TestEnv, UUID_1};
+    use assert_fs::prelude::*;
+    use predicates::prelude::*;
 
     #[test]
-    fn test_migrate_sessions_from_legacy_default_subdirectory() {
-        let temp = tempfile::tempdir().unwrap();
-        let sessions_dir = temp.path().join("sessions");
-        let session_id = "550e8400-e29b-41d4-a716-446655440000";
+    fn migrates_sessions_from_legacy_default_subdirectory() {
+        let env = TestEnv::new()
+            .folder("sessions")
+            .done()
+            .folder(&format!("sessions/{LEGACY_SESSIONS_SUBDIRECTORY}"))
+            .done()
+            .folder(&format!("sessions/{LEGACY_SESSIONS_SUBDIRECTORY}/{UUID_1}"))
+            .done()
+            .build();
 
-        let legacy_dir = sessions_dir.join(LEGACY_SESSIONS_SUBDIRECTORY);
-        let source = legacy_dir.join(session_id);
-        fs::create_dir_all(&source).unwrap();
+        migrate_sessions_from_legacy_default_subdirectory(&env.path().join("sessions"));
 
-        migrate_sessions_from_legacy_default_subdirectory(&sessions_dir);
+        env.child(&format!("sessions/{LEGACY_SESSIONS_SUBDIRECTORY}/{UUID_1}"))
+            .assert(predicate::path::missing());
+        env.child("sessions")
+            .child(UUID_1)
+            .assert(predicate::path::exists());
+        env.child(&format!("sessions/{LEGACY_SESSIONS_SUBDIRECTORY}"))
+            .assert(predicate::path::missing());
+    }
 
-        assert!(!source.exists());
-        assert!(sessions_dir.join(session_id).exists());
-        assert!(!legacy_dir.exists());
+    #[test]
+    fn skips_migration_if_destination_exists() {
+        let env = TestEnv::new()
+            .folder("sessions")
+            .done()
+            .folder(&format!("sessions/{LEGACY_SESSIONS_SUBDIRECTORY}"))
+            .done()
+            .folder(&format!("sessions/{LEGACY_SESSIONS_SUBDIRECTORY}/{UUID_1}"))
+            .file("old.txt", "old")
+            .done()
+            .folder(&format!("sessions/{UUID_1}"))
+            .file("new.txt", "new")
+            .done()
+            .build();
+
+        migrate_sessions_from_legacy_default_subdirectory(&env.path().join("sessions"));
+
+        env.child(&format!("sessions/{LEGACY_SESSIONS_SUBDIRECTORY}"))
+            .child(UUID_1)
+            .assert(predicate::path::exists());
+        env.child("sessions")
+            .child(UUID_1)
+            .child("new.txt")
+            .assert("new");
+    }
+
+    #[test]
+    fn noop_if_no_legacy_directory() {
+        let env = TestEnv::new().folder("sessions").done().build();
+
+        migrate_sessions_from_legacy_default_subdirectory(&env.path().join("sessions"));
+
+        env.child("sessions")
+            .child(LEGACY_SESSIONS_SUBDIRECTORY)
+            .assert(predicate::path::missing());
     }
 }

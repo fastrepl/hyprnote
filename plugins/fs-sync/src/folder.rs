@@ -383,11 +383,14 @@ fn collect_orphan_dirs_recursive(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
+    use crate::test_fixtures::{TestEnv, UUID_1, UUID_2, UUID_3};
+    use assert_fs::TempDir;
+    use assert_fs::prelude::*;
+    use predicates::prelude::*;
 
     #[test]
     fn test_is_uuid() {
-        assert!(is_uuid("550e8400-e29b-41d4-a716-446655440000"));
+        assert!(is_uuid(UUID_1));
         assert!(is_uuid("550E8400-E29B-41D4-A716-446655440000"));
         assert!(!is_uuid("_default"));
         assert!(!is_uuid("work"));
@@ -395,37 +398,231 @@ mod tests {
     }
 
     #[test]
-    fn test_find_session_dir_at_root() {
-        let temp = tempfile::tempdir().unwrap();
-        let sessions = temp.path().join("sessions");
-        let session_id = "550e8400-e29b-41d4-a716-446655440000";
-        let expected = sessions.join(session_id);
-        fs::create_dir_all(&expected).unwrap();
+    fn find_session_at_root() {
+        let env = TestEnv::new()
+            .folder("sessions")
+            .session(UUID_1)
+            .done_folder()
+            .done()
+            .build();
 
-        let result = find_session_dir(&sessions, session_id);
-        assert_eq!(result, expected);
+        let result = find_session_dir(&env.path().join("sessions"), UUID_1);
+        assert_eq!(result, env.folder_session_path("sessions", UUID_1));
     }
 
     #[test]
-    fn test_find_session_dir_in_subfolder() {
-        let temp = tempfile::tempdir().unwrap();
-        let sessions = temp.path().join("sessions");
-        let session_id = "550e8400-e29b-41d4-a716-446655440000";
-        let expected = sessions.join("work").join("project").join(session_id);
-        fs::create_dir_all(&expected).unwrap();
+    fn find_session_in_nested_folder() {
+        let env = TestEnv::new()
+            .folder("sessions")
+            .done()
+            .folder("sessions/work")
+            .done()
+            .folder("sessions/work/project")
+            .session(UUID_1)
+            .done_folder()
+            .done()
+            .build();
 
-        let result = find_session_dir(&sessions, session_id);
-        assert_eq!(result, expected);
+        let result = find_session_dir(&env.path().join("sessions"), UUID_1);
+        assert_eq!(
+            result,
+            env.path().join("sessions/work/project").join(UUID_1)
+        );
     }
 
     #[test]
-    fn test_find_session_dir_fallback() {
-        let temp = tempfile::tempdir().unwrap();
-        let sessions = temp.path().join("sessions");
-        fs::create_dir_all(&sessions).unwrap();
+    fn find_session_fallback_when_not_found() {
+        let temp = TempDir::new().unwrap();
+        let sessions = temp.child("sessions");
+        sessions.create_dir_all().unwrap();
 
-        let session_id = "550e8400-e29b-41d4-a716-446655440000";
-        let result = find_session_dir(&sessions, session_id);
-        assert_eq!(result, sessions.join(session_id));
+        let result = find_session_dir(sessions.path(), UUID_1);
+        assert_eq!(result, sessions.path().join(UUID_1));
+    }
+
+    #[test]
+    fn cleanup_files_removes_orphan_uuid_files() {
+        let env = TestEnv::new()
+            .file(&format!("{UUID_1}.json"), "{}")
+            .file(&format!("{UUID_2}.json"), "{}")
+            .file("not-uuid.json", "{}")
+            .build();
+
+        let valid: HashSet<String> = [UUID_1.to_string()].into();
+        let removed = cleanup_files_in_dir(env.path(), "json", &valid).unwrap();
+
+        assert_eq!(removed, 1);
+        env.child(&format!("{UUID_1}.json"))
+            .assert(predicate::path::exists());
+        env.child(&format!("{UUID_2}.json"))
+            .assert(predicate::path::missing());
+        env.child("not-uuid.json").assert(predicate::path::exists());
+    }
+
+    #[test]
+    fn cleanup_files_nonexistent_dir_returns_zero() {
+        let temp = TempDir::new().unwrap();
+        let nonexistent = temp.path().join("nope");
+
+        let removed = cleanup_files_in_dir(&nonexistent, "json", &HashSet::new()).unwrap();
+        assert_eq!(removed, 0);
+    }
+
+    #[test]
+    fn cleanup_dirs_removes_orphan_session_dirs() {
+        let env = TestEnv::new()
+            .session(UUID_1)
+            .done()
+            .session(UUID_2)
+            .done()
+            .build();
+
+        let valid: HashSet<String> = [UUID_1.to_string()].into();
+        let removed = cleanup_dirs_recursive(env.path(), "_meta.json", &valid).unwrap();
+
+        assert_eq!(removed, 1);
+        env.child(UUID_1).assert(predicate::path::exists());
+        env.child(UUID_2).assert(predicate::path::missing());
+    }
+
+    #[test]
+    fn cleanup_dirs_in_nested_folders() {
+        let env = TestEnv::new()
+            .folder("work")
+            .session(UUID_1)
+            .done_folder()
+            .session(UUID_2)
+            .done_folder()
+            .done()
+            .build();
+
+        let valid: HashSet<String> = [UUID_1.to_string()].into();
+        let removed = cleanup_dirs_recursive(env.path(), "_meta.json", &valid).unwrap();
+
+        assert_eq!(removed, 1);
+        env.child("work")
+            .child(UUID_1)
+            .assert(predicate::path::exists());
+        env.child("work")
+            .child(UUID_2)
+            .assert(predicate::path::missing());
+    }
+
+    #[test]
+    fn cleanup_session_notes_removes_orphan_notes() {
+        let env = TestEnv::new()
+            .session(UUID_1)
+            .note(UUID_2, "valid")
+            .note(UUID_3, "orphan")
+            .done()
+            .build();
+
+        let valid_notes: HashSet<String> = [UUID_2.to_string()].into();
+        let sessions_with_memo: HashSet<String> = HashSet::new();
+        let removed =
+            cleanup_session_note_files(env.path(), &valid_notes, &sessions_with_memo).unwrap();
+
+        assert_eq!(removed, 1);
+        env.child(UUID_1)
+            .child(&format!("{UUID_2}.md"))
+            .assert(predicate::path::exists());
+        env.child(UUID_1)
+            .child(&format!("{UUID_3}.md"))
+            .assert(predicate::path::missing());
+    }
+
+    #[test]
+    fn cleanup_session_notes_removes_orphan_memo() {
+        let env = TestEnv::new()
+            .session(UUID_1)
+            .memo("memo content")
+            .done()
+            .build();
+
+        let valid_notes: HashSet<String> = HashSet::new();
+        let sessions_with_memo: HashSet<String> = HashSet::new();
+        let removed =
+            cleanup_session_note_files(env.path(), &valid_notes, &sessions_with_memo).unwrap();
+
+        assert_eq!(removed, 1);
+        env.child(UUID_1)
+            .child("_memo.md")
+            .assert(predicate::path::missing());
+    }
+
+    #[test]
+    fn cleanup_session_notes_keeps_valid_memo() {
+        let env = TestEnv::new()
+            .session(UUID_1)
+            .memo("memo content")
+            .done()
+            .build();
+
+        let valid_notes: HashSet<String> = HashSet::new();
+        let sessions_with_memo: HashSet<String> = [UUID_1.to_string()].into();
+        let removed =
+            cleanup_session_note_files(env.path(), &valid_notes, &sessions_with_memo).unwrap();
+
+        assert_eq!(removed, 0);
+        env.child(UUID_1)
+            .child("_memo.md")
+            .assert(predicate::path::exists());
+    }
+
+    #[test]
+    fn scan_directory_detects_sessions_with_meta() {
+        let env = TestEnv::new()
+            .session(UUID_1)
+            .done()
+            .session(UUID_2)
+            .no_meta()
+            .done()
+            .build();
+
+        let mut result = ListFoldersResult {
+            folders: std::collections::HashMap::new(),
+            session_folder_map: std::collections::HashMap::new(),
+        };
+        scan_directory_recursive(env.path(), "", &mut result);
+
+        assert_eq!(result.session_folder_map.len(), 1);
+        assert!(result.session_folder_map.contains_key(UUID_1));
+        assert!(!result.session_folder_map.contains_key(UUID_2));
+    }
+
+    #[test]
+    fn scan_directory_tracks_folders_with_sessions() {
+        let env = TestEnv::new()
+            .folder("work")
+            .session(UUID_1)
+            .done_folder()
+            .done()
+            .build();
+
+        let mut result = ListFoldersResult {
+            folders: std::collections::HashMap::new(),
+            session_folder_map: std::collections::HashMap::new(),
+        };
+        scan_directory_recursive(env.path(), "", &mut result);
+
+        assert!(result.folders.contains_key("work"));
+        assert_eq!(result.folders["work"].name, "work");
+    }
+
+    #[test]
+    fn delete_session_dir_removes_directory() {
+        let env = TestEnv::new().session(UUID_1).done().build();
+
+        delete_session_dir(&env.session_path(UUID_1)).unwrap();
+        env.child(UUID_1).assert(predicate::path::missing());
+    }
+
+    #[test]
+    fn delete_session_dir_noop_if_missing() {
+        let temp = TempDir::new().unwrap();
+        let missing = temp.path().join(UUID_1);
+
+        let result = delete_session_dir(&missing);
+        assert!(result.is_ok());
     }
 }

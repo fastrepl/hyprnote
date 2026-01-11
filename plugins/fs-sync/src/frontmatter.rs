@@ -114,134 +114,110 @@ pub fn read_document_from_dir(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
-
-    fn create_md_file(dir: &Path, filename: &str, frontmatter: &str, content: &str) {
-        let path = dir.join(filename);
-        let file_content = format!("---\n{}\n---\n{}", frontmatter, content);
-        fs::write(path, file_content).unwrap();
-    }
+    use crate::test_fixtures::{TestEnv, UUID_1, UUID_2, md_with_frontmatter};
 
     #[test]
-    fn test_read_document_from_dir_nonexistent() {
+    fn read_from_nonexistent_dir_returns_empty() {
         let result = read_document_from_dir("/nonexistent/path").unwrap();
         assert!(result.is_empty());
     }
 
     #[test]
-    fn test_read_document_from_dir_empty() {
-        let temp = tempfile::tempdir().unwrap();
-        let result = read_document_from_dir(temp.path().to_str().unwrap()).unwrap();
+    fn read_from_empty_dir_returns_empty() {
+        let env = TestEnv::new().build();
+        let result = read_document_from_dir(env.path().to_str().unwrap()).unwrap();
         assert!(result.is_empty());
     }
 
     #[test]
-    fn test_read_document_from_dir_with_files() {
-        let temp = tempfile::tempdir().unwrap();
-        let uuid1 = "550e8400-e29b-41d4-a716-446655440000";
-        let uuid2 = "550e8400-e29b-41d4-a716-446655440001";
+    fn reads_uuid_named_md_files() {
+        let env = TestEnv::new()
+            .file(
+                &format!("{UUID_1}.md"),
+                &md_with_frontmatter("name: Alice\nage: 30", "Hello world"),
+            )
+            .file(
+                &format!("{UUID_2}.md"),
+                &md_with_frontmatter("name: Bob", "Goodbye"),
+            )
+            .build();
 
-        create_md_file(
-            temp.path(),
-            &format!("{}.md", uuid1),
-            "name: Alice\nage: 30",
-            "Hello world",
-        );
-        create_md_file(
-            temp.path(),
-            &format!("{}.md", uuid2),
-            "name: Bob",
-            "Goodbye",
-        );
-
-        let result = read_document_from_dir(temp.path().to_str().unwrap()).unwrap();
+        let result = read_document_from_dir(env.path().to_str().unwrap()).unwrap();
 
         assert_eq!(result.len(), 2);
-        assert!(result.contains_key(uuid1));
-        assert!(result.contains_key(uuid2));
-
-        let doc1 = &result[uuid1];
-        assert_eq!(doc1.frontmatter["name"], "Alice");
-        assert_eq!(doc1.content, "Hello world");
-
-        let doc2 = &result[uuid2];
-        assert_eq!(doc2.frontmatter["name"], "Bob");
-        assert_eq!(doc2.content, "Goodbye");
+        assert_eq!(result[UUID_1].frontmatter["name"], "Alice");
+        assert_eq!(result[UUID_1].content, "Hello world");
+        assert_eq!(result[UUID_2].frontmatter["name"], "Bob");
+        assert_eq!(result[UUID_2].content, "Goodbye");
     }
 
     #[test]
-    fn test_read_document_from_dir_skips_non_uuid() {
-        let temp = tempfile::tempdir().unwrap();
-        let uuid = "550e8400-e29b-41d4-a716-446655440000";
+    fn skips_non_uuid_filenames() {
+        let env = TestEnv::new()
+            .file(
+                &format!("{UUID_1}.md"),
+                &md_with_frontmatter("name: Valid", "content"),
+            )
+            .file(
+                "not-a-uuid.md",
+                &md_with_frontmatter("name: Invalid", "skip"),
+            )
+            .file("readme.md", &md_with_frontmatter("title: Readme", "skip"))
+            .build();
 
-        create_md_file(
-            temp.path(),
-            &format!("{}.md", uuid),
-            "name: Valid",
-            "content",
-        );
-        create_md_file(temp.path(), "not-a-uuid.md", "name: Invalid", "should skip");
-        create_md_file(temp.path(), "readme.md", "title: Readme", "also skip");
-
-        let result = read_document_from_dir(temp.path().to_str().unwrap()).unwrap();
+        let result = read_document_from_dir(env.path().to_str().unwrap()).unwrap();
 
         assert_eq!(result.len(), 1);
-        assert!(result.contains_key(uuid));
+        assert!(result.contains_key(UUID_1));
     }
 
     #[test]
-    fn test_read_document_from_dir_skips_non_md() {
-        let temp = tempfile::tempdir().unwrap();
-        let uuid = "550e8400-e29b-41d4-a716-446655440000";
+    fn skips_non_md_extensions() {
+        let env = TestEnv::new()
+            .file(
+                &format!("{UUID_1}.md"),
+                &md_with_frontmatter("name: Valid", "content"),
+            )
+            .file(&format!("{UUID_1}.txt"), "not md")
+            .file(&format!("{UUID_1}.json"), "{}")
+            .build();
 
-        create_md_file(
-            temp.path(),
-            &format!("{}.md", uuid),
-            "name: Valid",
-            "content",
-        );
-        fs::write(temp.path().join(format!("{}.txt", uuid)), "not markdown").unwrap();
-        fs::write(temp.path().join(format!("{}.json", uuid)), "{}").unwrap();
-
-        let result = read_document_from_dir(temp.path().to_str().unwrap()).unwrap();
+        let result = read_document_from_dir(env.path().to_str().unwrap()).unwrap();
 
         assert_eq!(result.len(), 1);
-        assert!(result.contains_key(uuid));
+        assert!(result.contains_key(UUID_1));
     }
 
     #[test]
-    fn test_read_document_from_dir_skips_directories() {
-        let temp = tempfile::tempdir().unwrap();
-        let uuid = "550e8400-e29b-41d4-a716-446655440000";
-        let uuid_dir = "550e8400-e29b-41d4-a716-446655440001";
+    fn skips_directories() {
+        let env = TestEnv::new()
+            .file(
+                &format!("{UUID_1}.md"),
+                &md_with_frontmatter("name: File", "content"),
+            )
+            .folder(UUID_2)
+            .done()
+            .build();
 
-        create_md_file(
-            temp.path(),
-            &format!("{}.md", uuid),
-            "name: File",
-            "content",
-        );
-        fs::create_dir(temp.path().join(uuid_dir)).unwrap();
-
-        let result = read_document_from_dir(temp.path().to_str().unwrap()).unwrap();
+        let result = read_document_from_dir(env.path().to_str().unwrap()).unwrap();
 
         assert_eq!(result.len(), 1);
-        assert!(result.contains_key(uuid));
+        assert!(result.contains_key(UUID_1));
     }
 
     #[test]
-    fn test_deserialize_without_frontmatter() {
-        let input = "# Meeting Summary\n\nThis is plain markdown without frontmatter.";
-        let result = super::deserialize(input).unwrap();
+    fn deserialize_without_frontmatter() {
+        let input = "# Meeting Summary\n\nPlain markdown.";
+        let result = deserialize(input).unwrap();
 
         assert!(result.frontmatter.is_empty());
         assert_eq!(result.content, input);
     }
 
     #[test]
-    fn test_deserialize_with_frontmatter() {
-        let input = "---\nid: test-id\ntype: memo\n---\n\nContent here.";
-        let result = super::deserialize(input).unwrap();
+    fn deserialize_with_frontmatter() {
+        let input = &md_with_frontmatter("id: test-id\ntype: memo", "Content here.");
+        let result = deserialize(input).unwrap();
 
         assert_eq!(result.frontmatter["id"], "test-id");
         assert_eq!(result.frontmatter["type"], "memo");

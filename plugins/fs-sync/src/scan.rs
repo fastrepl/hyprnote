@@ -93,11 +93,12 @@ fn scan_directory_for_files(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
+    use crate::test_fixtures::{TestEnv, UUID_1};
+    use assert_fs::TempDir;
 
     #[test]
     fn nonexistent_dir_returns_empty() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = TempDir::new().unwrap();
         let nonexistent = temp.path().join("does_not_exist");
 
         let result = scan_and_read(&nonexistent, &["*.txt".into()], true);
@@ -108,11 +109,12 @@ mod tests {
 
     #[test]
     fn matches_files_by_pattern() {
-        let temp = tempfile::tempdir().unwrap();
-        fs::write(temp.path().join("note.txt"), "hello").unwrap();
-        fs::write(temp.path().join("data.json"), "{}").unwrap();
+        let env = TestEnv::new()
+            .file("note.txt", "hello")
+            .file("data.json", "{}")
+            .build();
 
-        let result = scan_and_read(temp.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), &["*.txt".into()], false);
 
         assert_eq!(result.files.len(), 1);
         assert_eq!(result.files.get("note.txt"), Some(&"hello".into()));
@@ -120,12 +122,14 @@ mod tests {
 
     #[test]
     fn recursive_finds_nested_files() {
-        let temp = tempfile::tempdir().unwrap();
-        fs::create_dir(temp.path().join("sub")).unwrap();
-        fs::write(temp.path().join("root.txt"), "root").unwrap();
-        fs::write(temp.path().join("sub/nested.txt"), "nested").unwrap();
+        let env = TestEnv::new()
+            .file("root.txt", "root")
+            .folder("sub")
+            .file("nested.txt", "nested")
+            .done()
+            .build();
 
-        let result = scan_and_read(temp.path(), &["*.txt".into()], true);
+        let result = scan_and_read(env.path(), &["*.txt".into()], true);
 
         assert_eq!(result.files.len(), 2);
         assert_eq!(result.files.get("root.txt"), Some(&"root".into()));
@@ -134,12 +138,14 @@ mod tests {
 
     #[test]
     fn non_recursive_skips_nested_files() {
-        let temp = tempfile::tempdir().unwrap();
-        fs::create_dir(temp.path().join("sub")).unwrap();
-        fs::write(temp.path().join("root.txt"), "root").unwrap();
-        fs::write(temp.path().join("sub/nested.txt"), "nested").unwrap();
+        let env = TestEnv::new()
+            .file("root.txt", "root")
+            .folder("sub")
+            .file("nested.txt", "nested")
+            .done()
+            .build();
 
-        let result = scan_and_read(temp.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), &["*.txt".into()], false);
 
         assert_eq!(result.files.len(), 1);
         assert_eq!(result.files.get("root.txt"), Some(&"root".into()));
@@ -147,11 +153,14 @@ mod tests {
 
     #[test]
     fn collects_non_uuid_directories() {
-        let temp = tempfile::tempdir().unwrap();
-        fs::create_dir(temp.path().join("work")).unwrap();
-        fs::create_dir(temp.path().join("personal")).unwrap();
+        let env = TestEnv::new()
+            .folder("work")
+            .done()
+            .folder("personal")
+            .done()
+            .build();
 
-        let result = scan_and_read(temp.path(), &["*.txt".into()], true);
+        let result = scan_and_read(env.path(), &["*.txt".into()], true);
 
         assert!(result.dirs.contains(&"work".into()));
         assert!(result.dirs.contains(&"personal".into()));
@@ -159,18 +168,17 @@ mod tests {
 
     #[test]
     fn uuid_dirs_not_in_dirs_list_but_files_are_scanned() {
-        let temp = tempfile::tempdir().unwrap();
-        let uuid_dir = temp.path().join("550e8400-e29b-41d4-a716-446655440000");
-        fs::create_dir(&uuid_dir).unwrap();
-        fs::write(uuid_dir.join("note.txt"), "inside uuid").unwrap();
+        let env = TestEnv::new()
+            .folder(UUID_1)
+            .file("note.txt", "inside uuid")
+            .done()
+            .build();
 
-        let result = scan_and_read(temp.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), &["*.txt".into()], false);
 
-        assert!(!result.dirs.iter().any(|d| d.contains("550e8400")));
+        assert!(!result.dirs.iter().any(|d| d.contains(UUID_1)));
         assert_eq!(
-            result
-                .files
-                .get("550e8400-e29b-41d4-a716-446655440000/note.txt"),
+            result.files.get(&format!("{UUID_1}/note.txt")),
             Some(&"inside uuid".into())
         );
     }

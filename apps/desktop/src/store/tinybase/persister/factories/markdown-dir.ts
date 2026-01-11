@@ -168,7 +168,7 @@ export function createMarkdownDirPersister<
     [{ tableName, isPrimary: true }],
   );
 
-  const getValidIds = (tables: TablesContent): Set<string> =>
+  const getIdsToKeep = (tables: TablesContent): Set<string> =>
     new Set(
       Object.keys(
         (tables as Record<string, Record<string, unknown>>)[tableName] ?? {},
@@ -183,7 +183,7 @@ export function createMarkdownDirPersister<
         type: "files",
         subdir: dirName,
         extension: "md",
-        getValidIds,
+        getIdsToKeep,
       },
     ],
     entityParser,

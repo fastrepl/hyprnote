@@ -47,19 +47,19 @@ type OrphanCleanupDirs = {
   type: "dirs";
   subdir: string;
   markerFile: string;
-  getValidIds: (tables: TablesContent) => Set<string>;
+  getIdsToKeep: (tables: TablesContent) => Set<string>;
 };
 
 type OrphanCleanupFiles = {
   type: "files";
   subdir: string;
   extension: string;
-  getValidIds: (tables: TablesContent) => Set<string>;
+  getIdsToKeep: (tables: TablesContent) => Set<string>;
 };
 
 type OrphanCleanupSessionNotes = {
   type: "sessionNotes";
-  getValidIds: (tables: TablesContent) => Set<string>;
+  getIdsToKeep: (tables: TablesContent) => Set<string>;
   getSessionsWithMemo: (tables: TablesContent) => Set<string>;
 };
 
@@ -278,8 +278,8 @@ async function runOrphanCleanup(
   label: string,
 ): Promise<void> {
   for (const config of configs) {
-    const validIds = config.getValidIds(tables);
-    if (validIds.size === 0) {
+    const idsToKeep = config.getIdsToKeep(tables);
+    if (idsToKeep.size === 0) {
       continue;
     }
 
@@ -291,12 +291,12 @@ async function runOrphanCleanup(
             subdir: config.subdir,
             marker_file: config.markerFile,
           },
-          Array.from(validIds),
+          Array.from(idsToKeep),
         );
       } else if (config.type === "files") {
         await fsSyncCommands.cleanupOrphan(
           { type: "files", subdir: config.subdir, extension: config.extension },
-          Array.from(validIds),
+          Array.from(idsToKeep),
         );
       } else if (config.type === "sessionNotes") {
         const sessionsWithMemo = config.getSessionsWithMemo(tables);
@@ -305,7 +305,7 @@ async function runOrphanCleanup(
             type: "sessionNotes",
             sessions_with_memo: Array.from(sessionsWithMemo),
           },
-          Array.from(validIds),
+          Array.from(idsToKeep),
         );
       }
     } catch (error) {

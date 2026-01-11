@@ -7,6 +7,8 @@ mod frontmatter;
 mod json;
 mod migration;
 mod scan;
+#[cfg(test)]
+mod test_fixtures;
 mod types;
 
 pub use types::*;

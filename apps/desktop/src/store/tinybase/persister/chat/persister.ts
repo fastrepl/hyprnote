@@ -25,7 +25,7 @@ export function createChatPersister(store: Store) {
         type: "dirs",
         subdir: "chats",
         markerFile: "messages.json",
-        getValidIds: getValidChatGroupIds,
+        getIdsToKeep: getChatGroupIdsToKeep,
       },
     ],
     loadAll: loadAllChatGroups,
@@ -48,6 +48,6 @@ export function createChatPersister(store: Store) {
   });
 }
 
-function getValidChatGroupIds(tables: TablesContent): Set<string> {
+function getChatGroupIdsToKeep(tables: TablesContent): Set<string> {
   return new Set(Object.keys(tables.chat_groups ?? {}));
 }

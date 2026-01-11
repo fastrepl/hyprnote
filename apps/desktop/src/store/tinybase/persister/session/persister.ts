@@ -33,11 +33,11 @@ export function createSessionPersister(store: Store) {
         type: "dirs",
         subdir: "sessions",
         markerFile: "_meta.json",
-        getValidIds: getValidSessionIds,
+        getIdsToKeep: getSessionIdsToKeep,
       },
       {
         type: "sessionNotes",
-        getValidIds: getValidNoteIds,
+        getIdsToKeep: getNoteIdsToKeep,
         getSessionsWithMemo: getSessionsWithMemo,
       },
     ],
@@ -84,11 +84,11 @@ export function createSessionPersister(store: Store) {
   });
 }
 
-function getValidSessionIds(tables: TablesContent): Set<string> {
+function getSessionIdsToKeep(tables: TablesContent): Set<string> {
   return new Set(Object.keys(tables.sessions ?? {}));
 }
 
-function getValidNoteIds(tables: TablesContent): Set<string> {
+function getNoteIdsToKeep(tables: TablesContent): Set<string> {
   return new Set(Object.keys(tables.enhanced_notes ?? {}));
 }
 

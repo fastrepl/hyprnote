@@ -2,10 +2,10 @@
 
 use tauri::{LogicalPosition, LogicalSize, Manager, WebviewWindow};
 use tauri_nspanel::{
-    CollectionBehavior, ManagerExt, Panel, PanelLevel, StyleMask, WebviewWindowExt, panel,
+    CollectionBehavior, ManagerExt, Panel, PanelLevel, StyleMask, WebviewWindowExt, tauri_panel,
 };
 
-panel!(MenubarPanel {
+tauri_panel!(MenubarPanel {
     config: {
         can_become_key_window: true,
         can_become_main_window: false,

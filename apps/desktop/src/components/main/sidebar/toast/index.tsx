@@ -43,6 +43,9 @@ export function ToastArea({
   ] as const);
   const hasLLMConfigured = !!(current_llm_provider && current_llm_model);
   const hasSttConfigured = !!(current_stt_provider && current_stt_model);
+  const hasProSttConfigured =
+    current_stt_provider === "hyprnote" && current_stt_model === "cloud";
+  const hasProLlmConfigured = current_llm_provider === "hyprnote";
 
   const currentTab = useTabs((state) => state.currentTab);
   const isAiTranscriptionTabActive =
@@ -85,6 +88,8 @@ export function ToastArea({
         isAuthenticated,
         hasLLMConfigured,
         hasSttConfigured,
+        hasProSttConfigured,
+        hasProLlmConfigured,
         isAiTranscriptionTabActive,
         isAiIntelligenceTabActive,
         hasActiveDownload,
@@ -101,6 +106,8 @@ export function ToastArea({
       isAuthenticated,
       hasLLMConfigured,
       hasSttConfigured,
+      hasProSttConfigured,
+      hasProLlmConfigured,
       isAiTranscriptionTabActive,
       isAiIntelligenceTabActive,
       hasActiveDownload,

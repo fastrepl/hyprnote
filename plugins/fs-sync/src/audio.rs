@@ -141,6 +141,7 @@ pub fn import_audio(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use assert_fs::TempDir;
 
     macro_rules! test_import_audio {
         ($($name:ident: $path:expr),* $(,)?) => {
@@ -148,13 +149,9 @@ mod tests {
                 #[test]
                 fn $name() {
                     let source_path = std::path::Path::new($path);
-                    let unique_id = format!("{}_{:?}", std::process::id(), std::thread::current().id());
-                    let tmp_dir = std::env::temp_dir();
-                    let tmp_path = tmp_dir.join(format!("{}_{}_tmp.ogg", stringify!($name), unique_id));
-                    let target_path = tmp_dir.join(format!("{}_{}_target.ogg", stringify!($name), unique_id));
-
-                    let _ = std::fs::remove_file(&tmp_path);
-                    let _ = std::fs::remove_file(&target_path);
+                    let temp = TempDir::new().unwrap();
+                    let tmp_path = temp.path().join("tmp.ogg");
+                    let target_path = temp.path().join("target.ogg");
 
                     let result = import_audio(source_path, &tmp_path, &target_path);
                     assert!(result.is_ok(), "import_audio failed: {:?}", result.err());
@@ -162,9 +159,6 @@ mod tests {
 
                     let metadata = std::fs::metadata(&target_path).unwrap();
                     assert!(metadata.len() > 0, "Output file is empty");
-
-                    let _ = std::fs::remove_file(&tmp_path);
-                    let _ = std::fs::remove_file(&target_path);
                 }
             )*
         };

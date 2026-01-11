@@ -3,7 +3,7 @@ import { readTextFile } from "@tauri-apps/plugin-fs";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
-import { isFileNotFoundError } from "../shared/fs";
+import { CHAT_MESSAGES_FILE, isFileNotFoundError } from "../shared";
 import type { ChatJson, LoadedChatData } from "./types";
 
 export type { LoadedChatData } from "./types";
@@ -55,7 +55,7 @@ export async function loadAllChatGroups(
 
   const scanResult = await fsSyncCommands.scanAndRead(
     chatsDir,
-    ["_messages.json"],
+    [CHAT_MESSAGES_FILE],
     false,
   );
 
@@ -84,7 +84,7 @@ export async function loadSingleChatGroup(
   dataDir: string,
   groupId: string,
 ): Promise<LoadedChatData> {
-  const filePath = [dataDir, "chats", groupId, "_messages.json"].join(sep());
+  const filePath = [dataDir, "chats", groupId, CHAT_MESSAGES_FILE].join(sep());
 
   try {
     const content = await readTextFile(filePath);

@@ -2,6 +2,7 @@ import { sep } from "@tauri-apps/api/path";
 
 import {
   buildChatPath,
+  CHAT_MESSAGES_FILE,
   iterateTableRows,
   type TablesContent,
   type WriteOperation,
@@ -74,16 +75,16 @@ export function buildChatSaveOps(
         const chatJson = chatJsonList.find((c) => c.chat_group.id === id)!;
         const chatDir = buildChatPath(dataDir, id);
         operations.push({
-          type: "json",
-          path: [chatDir, "messages.json"].join(sep()),
+          type: "write-json",
+          path: [chatDir, CHAT_MESSAGES_FILE].join(sep()),
           content: chatJson,
         });
       } else if (allGroupIds.has(id)) {
         const chatGroup = tables.chat_groups![id];
         const chatDir = buildChatPath(dataDir, id);
         operations.push({
-          type: "json",
-          path: [chatDir, "messages.json"].join(sep()),
+          type: "write-json",
+          path: [chatDir, CHAT_MESSAGES_FILE].join(sep()),
           content: { chat_group: { id, ...chatGroup }, messages: [] },
         });
       } else {
@@ -93,9 +94,9 @@ export function buildChatSaveOps(
 
     if (deletedIds.length > 0) {
       const deleteOps: WriteOperation = {
-        type: "delete-batch",
+        type: "delete",
         paths: deletedIds.map((id) =>
-          [buildChatPath(dataDir, id), "messages.json"].join(sep()),
+          [buildChatPath(dataDir, id), CHAT_MESSAGES_FILE].join(sep()),
         ),
       };
       operations.push(deleteOps);
@@ -109,8 +110,8 @@ export function buildChatSaveOps(
     const chatDir = buildChatPath(dataDir, chatGroupId);
 
     operations.push({
-      type: "json",
-      path: [chatDir, "messages.json"].join(sep()),
+      type: "write-json",
+      path: [chatDir, CHAT_MESSAGES_FILE].join(sep()),
       content: chatJson,
     });
   }
@@ -120,8 +121,8 @@ export function buildChatSaveOps(
       const chatGroup = tables.chat_groups![id];
       const chatDir = buildChatPath(dataDir, id);
       operations.push({
-        type: "json",
-        path: [chatDir, "messages.json"].join(sep()),
+        type: "write-json",
+        path: [chatDir, CHAT_MESSAGES_FILE].join(sep()),
         content: { chat_group: { id, ...chatGroup }, messages: [] },
       });
     }

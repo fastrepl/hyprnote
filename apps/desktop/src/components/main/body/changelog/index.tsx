@@ -1,14 +1,7 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { format } from "date-fns";
 import { CalendarIcon, ExternalLinkIcon, SparklesIcon } from "lucide-react";
-import {
-  type RefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { useResizeObserver } from "usehooks-ts";
+import { useEffect, useRef, useState } from "react";
 
 import NoteEditor from "@hypr/tiptap/editor";
 import { md2json } from "@hypr/tiptap/shared";
@@ -20,9 +13,9 @@ import {
   BreadcrumbSeparator,
 } from "@hypr/ui/components/ui/breadcrumb";
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
 
 import { type Tab } from "../../../../store/zustand/tabs";
+import { ScrollFadeOverlay, useScrollFade } from "../../../ui/scroll-fade";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 
@@ -123,7 +116,8 @@ export function TabContentChangelog({
   const { current } = tab.state;
 
   const { content, date, loading } = useChangelogContent(current);
-  const { scrollRef, atStart, atEnd } = useScrollFade<HTMLDivElement>();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { atStart, atEnd } = useScrollFade(scrollRef);
 
   return (
     <StandardTabWrapper>
@@ -244,47 +238,4 @@ function useChangelogContent(version: string) {
   }, [version]);
 
   return { content, date, loading };
-}
-
-function useScrollFade<T extends HTMLElement>() {
-  const scrollRef = useRef<T>(null);
-  const [state, setState] = useState({ atStart: true, atEnd: true });
-
-  const update = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    setState({
-      atStart: scrollTop <= 1,
-      atEnd: scrollTop + clientHeight >= scrollHeight - 1,
-    });
-  }, []);
-
-  useResizeObserver({ ref: scrollRef as RefObject<T>, onResize: update });
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    update();
-    el.addEventListener("scroll", update);
-    return () => el.removeEventListener("scroll", update);
-  }, [update]);
-
-  return { scrollRef, ...state };
-}
-
-function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
-  return (
-    <div
-      className={cn([
-        "absolute left-0 w-full h-8 z-20 pointer-events-none",
-        position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
-        position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
-      ])}
-    />
-  );
 }

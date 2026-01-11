@@ -228,10 +228,10 @@ describe("buildSessionSaveOps", () => {
       raw_md: "",
     });
 
-    const ops = buildSessionSaveOps(store, {}, dataDir);
+    const ops = buildSessionSaveOps(store, store.getTables(), dataDir);
 
     expect(ops).toHaveLength(1);
-    expect(ops[0].type).toBe("json");
+    expect(ops[0].type).toBe("write-json");
     expect((ops[0] as { path: string }).path).toBe(
       "/data/sessions/session-1/_meta.json",
     );
@@ -256,7 +256,12 @@ describe("buildSessionSaveOps", () => {
       raw_md: "",
     });
 
-    const ops = buildSessionSaveOps(store, {}, dataDir, new Set(["session-1"]));
+    const ops = buildSessionSaveOps(
+      store,
+      store.getTables(),
+      dataDir,
+      new Set(["session-1"]),
+    );
 
     expect(ops).toHaveLength(1);
     expect((ops[0] as { path: string }).path).toContain("session-1");
@@ -273,7 +278,12 @@ describe("buildSessionSaveOps", () => {
       raw_md: "",
     });
 
-    const ops = buildSessionSaveOps(store, {}, dataDir, new Set());
+    const ops = buildSessionSaveOps(
+      store,
+      store.getTables(),
+      dataDir,
+      new Set(),
+    );
 
     expect(ops).toHaveLength(0);
   });
@@ -289,7 +299,7 @@ describe("buildSessionSaveOps", () => {
       raw_md: "",
     });
 
-    const ops = buildSessionSaveOps(store, {}, dataDir);
+    const ops = buildSessionSaveOps(store, store.getTables(), dataDir);
 
     expect((ops[0] as { path: string }).path).toBe(
       "/data/sessions/work/meetings/session-1/_meta.json",

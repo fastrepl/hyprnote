@@ -1,3 +1,4 @@
+export * from "./changes";
 export * from "./paths";
 export * from "./types";
 export * from "./fs";

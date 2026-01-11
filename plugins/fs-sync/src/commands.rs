@@ -6,13 +6,10 @@ use serde_json::Value;
 use tauri_plugin_path2::Path2PluginExt;
 
 use crate::FsSyncPluginExt;
-use crate::folder::find_session_dir;
 use crate::frontmatter::ParsedDocument;
+use crate::session::find_session_dir;
 use crate::types::{CleanupTarget, ListFoldersResult, ScanResult};
 
-/// For batch I/O on many small files, sync I/O with rayon parallelism
-/// is more efficient than async I/O (avoids per-file async task overhead).
-/// This macro wraps sync work to prevent blocking Tauri's invoke handler.
 macro_rules! spawn_blocking {
     ($body:expr) => {
         tokio::task::spawn_blocking(move || $body)
@@ -73,7 +70,7 @@ pub(crate) async fn read_document_batch(
     dir_path: String,
 ) -> Result<HashMap<String, ParsedDocument>, String> {
     spawn_blocking!({
-        let files = crate::scan::list_uuid_files(&PathBuf::from(&dir_path), "md");
+        let files = crate::session::list_uuid_files(&PathBuf::from(&dir_path), "md");
         let results: HashMap<_, _> = files
             .into_par_iter()
             .filter_map(|(id, path)| {
@@ -213,7 +210,7 @@ pub(crate) async fn delete_session_folder<R: tauri::Runtime>(
     session_id: String,
 ) -> Result<(), String> {
     let session_dir = resolve_session_dir(&app, &session_id)?;
-    crate::folder::delete_session_dir(&session_dir).map_err(|e| e.to_string())
+    crate::session::delete_session_dir(&session_dir).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

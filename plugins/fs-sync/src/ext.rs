@@ -3,10 +3,10 @@ use std::path::PathBuf;
 
 use tauri_plugin_path2::Path2PluginExt;
 
-use crate::folder::{
-    cleanup_dirs_recursive, cleanup_files_in_dir, cleanup_session_note_files, find_session_dir,
-    is_uuid, scan_directory_recursive,
-};
+use crate::cleanup::{cleanup_dirs_recursive, cleanup_files_in_dir, cleanup_session_note_files};
+use crate::folder::scan_directory_recursive;
+use crate::path::is_uuid;
+use crate::session::find_session_dir;
 use crate::types::CleanupTarget;
 use crate::types::ListFoldersResult;
 
@@ -130,7 +130,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
             return Ok(());
         }
 
-        // Safety check: refuse to delete folder containing sessions
         if self.folder_contains_sessions(&folder)? {
             return Err(crate::Error::Path(
                 "Cannot delete folder containing sessions. Move or delete sessions first."
@@ -143,7 +142,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
         Ok(())
     }
 
-    /// Check if a folder contains any sessions (UUID-named directories with _meta.json)
     fn folder_contains_sessions(&self, folder: &PathBuf) -> Result<bool, crate::Error> {
         let entries = std::fs::read_dir(folder)?;
 
@@ -157,12 +155,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
                 continue;
             };
 
-            // Check if this is a session directory (UUID with _meta.json)
             if is_uuid(name) && path.join("_meta.json").exists() {
                 return Ok(true);
             }
 
-            // Recursively check subdirectories (non-UUID folders)
             if !is_uuid(name) && self.folder_contains_sessions(&path)? {
                 return Ok(true);
             }

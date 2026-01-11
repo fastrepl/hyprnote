@@ -4,32 +4,8 @@ use std::path::{Path, PathBuf};
 use glob::Pattern;
 use rayon::prelude::*;
 
-use crate::folder::is_uuid;
+use crate::path::{is_uuid, to_relative_path};
 use crate::types::ScanResult;
-
-pub fn list_uuid_files(dir: &Path, ext: &str) -> Vec<(String, PathBuf)> {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-        return Vec::new();
-    };
-
-    entries
-        .flatten()
-        .filter_map(|entry| {
-            let path = entry.path();
-            if !path.is_file() {
-                return None;
-            }
-            if path.extension().and_then(|e| e.to_str()) != Some(ext) {
-                return None;
-            }
-            let stem = path.file_stem()?.to_str()?;
-            if !is_uuid(stem) {
-                return None;
-            }
-            Some((stem.to_string(), path))
-        })
-        .collect()
-}
 
 pub fn scan_and_read(base_dir: &Path, file_patterns: &[String], recursive: bool) -> ScanResult {
     if !base_dir.exists() {
@@ -83,15 +59,10 @@ fn scan_directory_for_files(
         };
 
         if path.is_dir() {
-            let rel_path = path
-                .strip_prefix(base_path)
-                .ok()
-                .and_then(|p| p.to_str())
-                .map(|s| s.replace(std::path::MAIN_SEPARATOR, "/"))
-                .unwrap_or_default();
+            let rel_path = to_relative_path(&path, base_path);
 
             if !is_uuid(name) {
-                dirs.push(rel_path.clone());
+                dirs.push(rel_path);
             }
 
             if recursive && !is_uuid(name) {
@@ -99,17 +70,8 @@ fn scan_directory_for_files(
             } else if is_uuid(name) {
                 scan_directory_for_files(base_path, &path, patterns, false, files, dirs);
             }
-        } else if path.is_file() {
-            let matches = patterns.iter().any(|p| p.matches(name));
-            if matches {
-                let rel_path = path
-                    .strip_prefix(base_path)
-                    .ok()
-                    .and_then(|p| p.to_str())
-                    .map(|s| s.replace(std::path::MAIN_SEPARATOR, "/"))
-                    .unwrap_or_default();
-                files.insert(rel_path, path);
-            }
+        } else if path.is_file() && patterns.iter().any(|p| p.matches(name)) {
+            files.insert(to_relative_path(&path, base_path), path);
         }
     }
 }
@@ -117,84 +79,8 @@ fn scan_directory_for_files(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_fixtures::{TestEnv, UUID_1, UUID_2};
+    use crate::test_fixtures::{TestEnv, UUID_1};
     use assert_fs::TempDir;
-
-    #[test]
-    fn list_uuid_files_nonexistent_dir_returns_empty() {
-        let temp = TempDir::new().unwrap();
-        let nonexistent = temp.path().join("does_not_exist");
-
-        let result = list_uuid_files(&nonexistent, "md");
-
-        assert!(result.is_empty());
-    }
-
-    #[test]
-    fn list_uuid_files_empty_dir_returns_empty() {
-        let env = TestEnv::new().build();
-
-        let result = list_uuid_files(env.path(), "md");
-
-        assert!(result.is_empty());
-    }
-
-    #[test]
-    fn list_uuid_files_finds_uuid_files() {
-        let env = TestEnv::new()
-            .file(&format!("{UUID_1}.md"), "content1")
-            .file(&format!("{UUID_2}.md"), "content2")
-            .build();
-
-        let result = list_uuid_files(env.path(), "md");
-
-        assert_eq!(result.len(), 2);
-        let ids: Vec<_> = result.iter().map(|(id, _)| id.as_str()).collect();
-        assert!(ids.contains(&UUID_1));
-        assert!(ids.contains(&UUID_2));
-    }
-
-    #[test]
-    fn list_uuid_files_skips_non_uuid_filenames() {
-        let env = TestEnv::new()
-            .file(&format!("{UUID_1}.md"), "valid")
-            .file("not-a-uuid.md", "skip")
-            .file("readme.md", "skip")
-            .build();
-
-        let result = list_uuid_files(env.path(), "md");
-
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].0, UUID_1);
-    }
-
-    #[test]
-    fn list_uuid_files_skips_wrong_extension() {
-        let env = TestEnv::new()
-            .file(&format!("{UUID_1}.md"), "valid")
-            .file(&format!("{UUID_1}.txt"), "skip")
-            .file(&format!("{UUID_1}.json"), "skip")
-            .build();
-
-        let result = list_uuid_files(env.path(), "md");
-
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].0, UUID_1);
-    }
-
-    #[test]
-    fn list_uuid_files_skips_directories() {
-        let env = TestEnv::new()
-            .file(&format!("{UUID_1}.md"), "valid")
-            .folder(UUID_2)
-            .done()
-            .build();
-
-        let result = list_uuid_files(env.path(), "md");
-
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].0, UUID_1);
-    }
 
     #[test]
     fn nonexistent_dir_returns_empty() {

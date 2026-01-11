@@ -57,10 +57,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   }),
   scripts: () => [
     {
-      id: "netlify-identity-redirect",
-      src: "/netlify-identity-redirect.js",
-    },
-    {
       id: "ze-snippet",
       src: "https://static.zdassets.com/ekr/snippet.js?key=15949e47-ed5a-4e52-846e-200dd0b8f4b9",
     },

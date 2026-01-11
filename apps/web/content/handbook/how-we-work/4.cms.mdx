@@ -17,14 +17,13 @@ Content lives as MDX files in Git — not locked in a proprietary database.
 
 We eat our own cooking. If users' notes should be files they own, our company content should be too.
 
-## Decap
+## Admin Interface
 
-![](/images/handbook/decap-as-cms.png)
+A custom admin interface at `https://hyprnote.com/admin` for content management.
 
-[Decap CMS](https://github.com/decaporg/decap-cms) for non-technical editors.
+**Features:**
+* Media library for managing images and assets
+* Google Docs import for blog posts
+* Blog post management with publish/unpublish controls
 
-**Developer** — Config in `apps/web/public/admin`, accessible at `https://hyprnote.com/admin` (not in dev mode). [GitHub backend](https://decapcms.org/docs/github-backend) with [Netlify Git Gateway](https://docs.netlify.com/manage/security/secure-access-to-sites/git-gateway). Invite users at [Netlify Identity](https://app.netlify.com/projects/hyprnote/configuration/identity#users).
-
-**Non-Developer** — Rename images before uploading.
-
-![](/images/handbook/decap-workflow.png)
+**Access:** Sign in with your authorized email account at `/admin/login`.

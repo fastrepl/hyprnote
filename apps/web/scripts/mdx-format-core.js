@@ -89,4 +89,3 @@ export function createMdxFormatter(yaml) {
 
   return { parse, stringify, format };
 }
-

@@ -1,9 +1,11 @@
 mod commands;
 mod error;
 mod ext;
+mod sanitize;
 
 pub use error::*;
 pub use ext::*;
+pub use sanitize::sanitize;
 
 const PLUGIN_NAME: &str = "path2";
 
@@ -12,6 +14,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::base::<tauri::Wry>,
+            commands::sanitize,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

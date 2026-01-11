@@ -26,6 +26,7 @@ import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs"
 import { type TaskStepInfo } from "../../../../../store/zustand/ai-task/tasks";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
+import { ScrollFadeOverlay, useScrollFade } from "../../../../ui/scroll-fade";
 import { useHasTranscript } from "../shared";
 import { EditingControls } from "./transcript/editing-controls";
 import { TranscriptionProgress } from "./transcript/progress";
@@ -43,7 +44,7 @@ function HeaderTab({
     <button
       onClick={onClick}
       className={cn([
-        "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200",
+        "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200 flex-shrink-0",
         isActive
           ? ["border-neutral-900", "text-neutral-900"]
           : [
@@ -120,7 +121,7 @@ function HeaderTabEnhanced({
           }
         }}
         className={cn([
-          "group/tab relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 cursor-pointer",
+          "group/tab relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 cursor-pointer flex-shrink-0",
           isActive
             ? ["text-neutral-900", "border-neutral-900"]
             : [
@@ -135,7 +136,10 @@ function HeaderTabEnhanced({
           <button
             type="button"
             onClick={handleCancelClick}
-            className="inline-flex h-5 w-5 items-center justify-center rounded cursor-pointer hover:bg-neutral-200"
+            className={cn([
+              "inline-flex h-5 w-5 items-center justify-center rounded cursor-pointer hover:bg-neutral-200",
+              !isActive && "opacity-50",
+            ])}
             aria-label="Cancel enhancement"
           >
             <span className="group-hover/tab:hidden flex items-center justify-center">
@@ -191,7 +195,7 @@ function HeaderTabEnhanced({
     <button
       onClick={onClick}
       className={cn([
-        "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
+        "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 flex-shrink-0",
         isActive
           ? ["text-neutral-900", "border-neutral-900"]
           : [
@@ -293,7 +297,7 @@ function CreateOtherFormatButton({
       <PopoverTrigger asChild>
         <button
           className={cn([
-            "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200",
+            "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap",
             "text-neutral-600 hover:text-neutral-800",
             "flex items-center gap-1",
             "border-b-2 border-transparent",
@@ -367,6 +371,11 @@ export function Header({
   const isLiveProcessing = sessionMode === "active";
   const isMeetingOver = !isLiveProcessing && !isBatchProcessing;
 
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const { atStart, atEnd } = useScrollFade(tabsRef, "horizontal", [
+    editorTabs.length,
+  ]);
+
   if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
   }
@@ -378,39 +387,47 @@ export function Header({
 
   return (
     <div className="flex flex-col">
-      <div className="flex justify-between items-center">
-        <div className="flex gap-1 items-center">
-          {editorTabs.map((view) => {
-            if (view.type === "enhanced") {
-              return (
-                <HeaderTabEnhanced
-                  key={`enhanced-${view.id}`}
-                  sessionId={sessionId}
-                  enhancedNoteId={view.id}
-                  isActive={
-                    currentTab.type === "enhanced" && currentTab.id === view.id
-                  }
-                  onClick={() => handleTabChange(view)}
-                />
-              );
-            }
+      <div className="flex justify-between items-center gap-2">
+        <div className="relative min-w-0 flex-1">
+          <div
+            ref={tabsRef}
+            className="flex gap-1 items-center overflow-x-auto scrollbar-hide"
+          >
+            {editorTabs.map((view) => {
+              if (view.type === "enhanced") {
+                return (
+                  <HeaderTabEnhanced
+                    key={`enhanced-${view.id}`}
+                    sessionId={sessionId}
+                    enhancedNoteId={view.id}
+                    isActive={
+                      currentTab.type === "enhanced" &&
+                      currentTab.id === view.id
+                    }
+                    onClick={() => handleTabChange(view)}
+                  />
+                );
+              }
 
-            return (
-              <HeaderTab
-                key={view.type}
-                isActive={currentTab.type === view.type}
-                onClick={() => handleTabChange(view)}
-              >
-                {labelForEditorView(view)}
-              </HeaderTab>
-            );
-          })}
-          {isMeetingOver && (
-            <CreateOtherFormatButton
-              sessionId={sessionId}
-              handleTabChange={handleTabChange}
-            />
-          )}
+              return (
+                <HeaderTab
+                  key={view.type}
+                  isActive={currentTab.type === view.type}
+                  onClick={() => handleTabChange(view)}
+                >
+                  {labelForEditorView(view)}
+                </HeaderTab>
+              );
+            })}
+            {isMeetingOver && (
+              <CreateOtherFormatButton
+                sessionId={sessionId}
+                handleTabChange={handleTabChange}
+              />
+            )}
+          </div>
+          {!atStart && <ScrollFadeOverlay position="left" />}
+          {!atEnd && <ScrollFadeOverlay position="right" />}
         </div>
         {showProgress && <TranscriptionProgress sessionId={sessionId} />}
         {showEditingControls && (

@@ -8,42 +8,30 @@ use std::time::Duration;
 const CONNECT_TIMEOUT: Duration = Duration::from_millis(2000);
 const QUERY_TIMEOUT: Duration = Duration::from_millis(1000);
 
-pub fn is_headphone_from_default_output_device() -> bool {
-    let mut mainloop = match Mainloop::new() {
-        Some(m) => m,
-        None => {
-            tracing::debug!("failed_to_create_pulseaudio_mainloop");
-            return false;
-        }
-    };
+pub fn is_headphone_from_default_output_device() -> Option<bool> {
+    let mut mainloop = Mainloop::new()?;
 
-    let mut context = match Context::new(&mainloop, "hyprnote-headphone-check") {
-        Some(c) => c,
-        None => {
-            tracing::debug!("failed_to_create_pulseaudio_context");
-            return false;
-        }
-    };
+    let mut context = Context::new(&mainloop, "hyprnote-headphone-check")?;
 
     if context
         .connect(None, ContextFlagSet::NOFLAGS, None)
         .is_err()
     {
         tracing::debug!("failed_to_connect_to_pulseaudio");
-        return false;
+        return None;
     }
 
     if mainloop.start().is_err() {
         tracing::debug!("failed_to_start_mainloop");
-        return false;
+        return None;
     }
 
     if !wait_for_context(&mut mainloop, &context, CONNECT_TIMEOUT) {
         mainloop.stop();
-        return false;
+        return None;
     }
 
-    let result = Arc::new(Mutex::new(false));
+    let result = Arc::new(Mutex::new(None));
     let done = Arc::new(AtomicBool::new(false));
 
     {
@@ -61,7 +49,7 @@ pub fn is_headphone_from_default_output_device() -> bool {
                 let is_headphone =
                     name_lower.contains("headphone") || name_lower.contains("headset");
                 if let Ok(mut r) = result.lock() {
-                    *r = is_headphone;
+                    *r = if is_headphone { Some(true) } else { None };
                 }
             }
             done.store(true, Ordering::Release);
@@ -72,7 +60,7 @@ pub fn is_headphone_from_default_output_device() -> bool {
     wait_for_done(&done, QUERY_TIMEOUT);
     mainloop.stop();
 
-    result.lock().map(|r| *r).unwrap_or(false)
+    result.lock().ok().and_then(|r| *r)
 }
 
 fn wait_for_context(mainloop: &mut Mainloop, context: &Context, timeout: Duration) -> bool {
@@ -113,6 +101,6 @@ mod test {
     #[test]
     fn test_is_headphone_from_default_output_device() {
         let result = is_headphone_from_default_output_device();
-        println!("is_headphone_from_default_output_device={}", result);
+        println!("is_headphone_from_default_output_device={:?}", result);
     }
 }

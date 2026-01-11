@@ -7,15 +7,7 @@ import {
   SettingsIcon,
   SmartphoneIcon,
 } from "lucide-react";
-import {
-  type RefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useResizeObserver } from "usehooks-ts";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -24,6 +16,7 @@ import { type Tab } from "../../../store/zustand/tabs";
 import { Data } from "../../settings/data";
 import { SettingsGeneral } from "../../settings/general";
 import { SettingsLab } from "../../settings/lab";
+import { ScrollFadeOverlay, useScrollFade } from "../../ui/scroll-fade";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
 
@@ -92,7 +85,9 @@ function SettingsView() {
   const sectionRefs = useRef(new Map<SettingsSection, HTMLDivElement | null>());
   const [activeSection, setActiveSection] = useState<SettingsSection>("app");
   const isProgrammaticScroll = useRef(false);
-  const { atStart, atEnd } = useScrollFade(scrollContainerRef, [activeSection]);
+  const { atStart, atEnd } = useScrollFade(scrollContainerRef, "vertical", [
+    activeSection,
+  ]);
 
   const refCallbacks = useMemo(
     () => ({
@@ -234,53 +229,5 @@ function SettingsView() {
         {!atEnd && <ScrollFadeOverlay position="bottom" />}
       </div>
     </div>
-  );
-}
-
-function useScrollFade<T extends HTMLElement>(
-  ref: RefObject<T | null>,
-  deps: unknown[] = [],
-) {
-  const [state, setState] = useState({ atStart: true, atEnd: true });
-
-  const update = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    setState({
-      atStart: scrollTop <= 1,
-      atEnd: scrollTop + clientHeight >= scrollHeight - 1,
-    });
-  }, [ref]);
-
-  useResizeObserver({
-    ref: ref as RefObject<T>,
-    onResize: update,
-  });
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    update();
-    el.addEventListener("scroll", update);
-    return () => el.removeEventListener("scroll", update);
-  }, [ref, update, ...deps]);
-
-  return state;
-}
-
-function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
-  return (
-    <div
-      className={cn([
-        "absolute left-0 w-full h-8 z-20 pointer-events-none",
-        position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
-        position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
-      ])}
-    />
   );
 }

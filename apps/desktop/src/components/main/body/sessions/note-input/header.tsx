@@ -26,13 +26,14 @@ import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs"
 import { type TaskStepInfo } from "../../../../../store/zustand/ai-task/tasks";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
+import { ScrollFadeOverlay, useScrollFade } from "../../../../ui/scroll-fade";
 import { useHasTranscript } from "../shared";
 import { EditingControls } from "./transcript/editing-controls";
 import { TranscriptionProgress } from "./transcript/progress";
 
 function HeaderTab({
   isActive,
-  onClick = () => { },
+  onClick = () => {},
   children,
 }: {
   isActive: boolean;
@@ -47,10 +48,10 @@ function HeaderTab({
         isActive
           ? ["border-neutral-900", "text-neutral-900"]
           : [
-            "border-transparent",
-            "text-neutral-600",
-            "hover:text-neutral-800",
-          ],
+              "border-transparent",
+              "text-neutral-600",
+              "hover:text-neutral-800",
+            ],
       ])}
     >
       <span className="flex items-center h-5">{children}</span>
@@ -76,7 +77,7 @@ function TruncatedTitle({
 
 function HeaderTabEnhanced({
   isActive,
-  onClick = () => { },
+  onClick = () => {},
   sessionId,
   enhancedNoteId,
 }: {
@@ -124,10 +125,10 @@ function HeaderTabEnhanced({
           isActive
             ? ["text-neutral-900", "border-neutral-900"]
             : [
-              "text-neutral-600",
-              "border-transparent",
-              "hover:text-neutral-800",
-            ],
+                "text-neutral-600",
+                "border-transparent",
+                "hover:text-neutral-800",
+              ],
         ])}
       >
         <span className="flex items-center gap-1 h-5">
@@ -167,8 +168,8 @@ function HeaderTabEnhanced({
         "group relative inline-flex h-5 w-5 items-center justify-center rounded transition-colors cursor-pointer",
         isError
           ? [
-            "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",
-          ]
+              "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",
+            ]
           : ["hover:bg-neutral-200 focus-visible:bg-neutral-200"],
       ])}
     >
@@ -198,10 +199,10 @@ function HeaderTabEnhanced({
         isActive
           ? ["text-neutral-900", "border-neutral-900"]
           : [
-            "text-neutral-600",
-            "border-transparent",
-            "hover:text-neutral-800",
-          ],
+              "text-neutral-600",
+              "border-transparent",
+              "hover:text-neutral-800",
+            ],
       ])}
     >
       <span className="flex items-center gap-1 h-5">
@@ -370,6 +371,11 @@ export function Header({
   const isLiveProcessing = sessionMode === "active";
   const isMeetingOver = !isLiveProcessing && !isBatchProcessing;
 
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const { atStart, atEnd } = useScrollFade(tabsRef, "horizontal", [
+    editorTabs.length,
+  ]);
+
   if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
   }
@@ -382,38 +388,46 @@ export function Header({
   return (
     <div className="flex flex-col">
       <div className="flex justify-between items-center gap-2">
-        <div className="flex gap-1 items-center min-w-0 overflow-x-auto scrollbar-hide">
-          {editorTabs.map((view) => {
-            if (view.type === "enhanced") {
-              return (
-                <HeaderTabEnhanced
-                  key={`enhanced-${view.id}`}
-                  sessionId={sessionId}
-                  enhancedNoteId={view.id}
-                  isActive={
-                    currentTab.type === "enhanced" && currentTab.id === view.id
-                  }
-                  onClick={() => handleTabChange(view)}
-                />
-              );
-            }
+        <div className="relative min-w-0 flex-1">
+          <div
+            ref={tabsRef}
+            className="flex gap-1 items-center overflow-x-auto scrollbar-hide"
+          >
+            {editorTabs.map((view) => {
+              if (view.type === "enhanced") {
+                return (
+                  <HeaderTabEnhanced
+                    key={`enhanced-${view.id}`}
+                    sessionId={sessionId}
+                    enhancedNoteId={view.id}
+                    isActive={
+                      currentTab.type === "enhanced" &&
+                      currentTab.id === view.id
+                    }
+                    onClick={() => handleTabChange(view)}
+                  />
+                );
+              }
 
-            return (
-              <HeaderTab
-                key={view.type}
-                isActive={currentTab.type === view.type}
-                onClick={() => handleTabChange(view)}
-              >
-                {labelForEditorView(view)}
-              </HeaderTab>
-            );
-          })}
-          {isMeetingOver && (
-            <CreateOtherFormatButton
-              sessionId={sessionId}
-              handleTabChange={handleTabChange}
-            />
-          )}
+              return (
+                <HeaderTab
+                  key={view.type}
+                  isActive={currentTab.type === view.type}
+                  onClick={() => handleTabChange(view)}
+                >
+                  {labelForEditorView(view)}
+                </HeaderTab>
+              );
+            })}
+            {isMeetingOver && (
+              <CreateOtherFormatButton
+                sessionId={sessionId}
+                handleTabChange={handleTabChange}
+              />
+            )}
+          </div>
+          {!atStart && <ScrollFadeOverlay position="left" />}
+          {!atEnd && <ScrollFadeOverlay position="right" />}
         </div>
         {showProgress && <TranscriptionProgress sessionId={sessionId} />}
         {showEditingControls && (

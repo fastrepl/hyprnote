@@ -12,7 +12,7 @@ export function useHumanPersister(store: Store) {
     store,
     async (store) => {
       const persister = createHumanPersister(store as Store);
-      await persister.startAutoSave();
+      await persister.startAutoPersisting();
       return persister;
     },
     [],

@@ -1,0 +1,2 @@
+- The `local` persister was originally the only one used, but has been replaced by others.
+- It now loads only once, intentionally, for backward compatibility.

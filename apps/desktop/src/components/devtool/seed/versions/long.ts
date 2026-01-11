@@ -57,7 +57,7 @@ export const longSeed: SeedDefinition = {
   id: "long",
   label: "Long",
   calendarFixtureBase: "default",
-  run: async (store: MainStore) => {
+  run: async (store: MainStore, _fixtureCalendars) => {
     const data = buildLongData();
     await new Promise((r) => setTimeout(r, 0));
     store.transaction(() => {

@@ -9,21 +9,31 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 
 import { SearchableFolderSubmenuContent } from "../shared/folder";
 
 export function Copy() {
-  const handleCopyLink = () => {};
-
   return (
-    <DropdownMenuItem
-      disabled={true}
-      className="cursor-pointer"
-      onClick={handleCopyLink}
-    >
-      <Link2Icon />
-      <span>Copy link</span>
-    </DropdownMenuItem>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <DropdownMenuItem
+          disabled={true}
+          className="cursor-not-allowed"
+          onSelect={(e) => e.preventDefault()}
+        >
+          <Link2Icon />
+          <span>Copy link</span>
+        </DropdownMenuItem>
+      </TooltipTrigger>
+      <TooltipContent side="left">
+        <span>Coming soon</span>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

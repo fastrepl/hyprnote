@@ -14,7 +14,7 @@ mod windows;
 #[derive(Debug, Clone)]
 pub enum DeviceSwitch {
     DefaultInputChanged,
-    DefaultOutputChanged { headphone: bool },
+    DefaultOutputChanged { headphone: Option<bool> },
     DeviceListChanged,
 }
 

@@ -185,6 +185,28 @@ pub async fn main() {
                 app_handle.tray().create_app_menu().unwrap();
             }
 
+            #[cfg(target_os = "macos")]
+            {
+                use tauri::{WebviewUrl, WebviewWindow};
+
+                let panel_window = WebviewWindow::builder(
+                    &app_handle,
+                    "tray-panel",
+                    WebviewUrl::App("/app/tray-panel".into()),
+                )
+                .title("Tray Panel")
+                .visible(false)
+                .decorations(false)
+                .transparent(true)
+                .resizable(false)
+                .skip_taskbar(true)
+                .always_on_top(true)
+                .inner_size(300.0, 400.0)
+                .build()?;
+
+                tauri_plugin_tray::panel::setup_panel(&panel_window)?;
+            }
+
             {
                 use tauri_plugin_path2::Path2PluginExt;
                 if let Ok(base) = app_handle.path2().base() {

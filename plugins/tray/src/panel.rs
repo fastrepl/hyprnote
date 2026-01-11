@@ -1,5 +1,7 @@
 #![cfg(target_os = "macos")]
 
+use objc2_app_kit::NSScreen;
+use objc2_foundation::MainThreadMarker;
 use tauri::{LogicalPosition, LogicalSize, Manager, WebviewWindow};
 use tauri_nspanel::{
     CollectionBehavior, ManagerExt, Panel, PanelLevel, StyleMask, WebviewWindowExt, tauri_panel,
@@ -67,10 +69,21 @@ pub fn position_panel_at_tray_icon(app: &tauri::AppHandle, tray_rect: tauri::Rec
     };
     let window_size: LogicalSize<f64> = window_size.to_logical(scale_factor);
 
-    let menubar_height = 24.0;
+    let menubar_height = get_menubar_height();
 
     let x = icon_pos.x + icon_size.width / 2.0 - window_size.width / 2.0;
     let y = monitor_pos.y + monitor_size.height - menubar_height - window_size.height;
 
     let _ = window.set_position(tauri::Position::Logical(LogicalPosition::new(x, y)));
+}
+
+fn get_menubar_height() -> f64 {
+    if let Some(mtm) = MainThreadMarker::new() {
+        if let Some(screen) = NSScreen::mainScreen(mtm) {
+            let frame = screen.frame();
+            let visible_frame = screen.visibleFrame();
+            return frame.size.height - visible_frame.size.height - visible_frame.origin.y;
+        }
+    }
+    24.0
 }

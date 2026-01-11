@@ -7,7 +7,7 @@ use tauri_specta::Event;
 
 use crate::{FileChanged, WatcherState};
 
-const DEBOUNCE_DELAY_MS: u64 = 500;
+const DEBOUNCE_DELAY_MS: u64 = 900;
 
 pub struct Notify<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -32,11 +32,16 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
             None,
             move |events: Result<Vec<DebouncedEvent>, Vec<notify::Error>>| {
                 if let Ok(events) = events {
+                    let mut changed_paths: std::collections::HashSet<String> =
+                        std::collections::HashSet::new();
+
                     for event in events {
                         let should_emit = match &event.kind {
-                            notify::EventKind::Any => true,
                             notify::EventKind::Create(_) => true,
                             notify::EventKind::Remove(_) => true,
+
+                            notify::EventKind::Any => false,
+                            notify::EventKind::Access(_) | notify::EventKind::Other => false,
                             notify::EventKind::Modify(modify_kind) => {
                                 matches!(
                                     modify_kind,
@@ -45,7 +50,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                                         | notify::event::ModifyKind::Name(_)
                                 )
                             }
-                            notify::EventKind::Access(_) | notify::EventKind::Other => false,
                         };
 
                         if !should_emit {
@@ -59,12 +63,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                                 .to_string_lossy()
                                 .to_string();
 
-                            tracing::info!("file_changed: {:?}", relative_path);
-                            let _ = FileChanged {
-                                path: relative_path,
-                            }
-                            .emit(&app_handle);
+                            changed_paths.insert(relative_path);
                         }
+                    }
+
+                    for path in changed_paths {
+                        tracing::info!("file_changed: {:?}", path);
+                        let _ = FileChanged { path }.emit(&app_handle);
                     }
                 }
             },

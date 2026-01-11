@@ -29,7 +29,6 @@ import { listOllamaModels } from "../shared/list-ollama";
 import { listGenericModels, listOpenAIModels } from "../shared/list-openai";
 import { listOpenRouterModels } from "../shared/list-openrouter";
 import { ModelCombobox } from "../shared/model-combobox";
-import { useLocalProviderStatus } from "../shared/use-local-provider-status";
 import { HealthStatusIndicator, useConnectionHealth } from "./health";
 import { PROVIDERS } from "./shared";
 
@@ -44,10 +43,6 @@ export function SelectProviderAndModel() {
   const health = useConnectionHealth();
   const isConfigured = !!(current_llm_provider && current_llm_model);
   const hasError = isConfigured && health.status === "error";
-
-  // Get local provider statuses
-  const { status: ollamaStatus } = useLocalProviderStatus("ollama");
-  const { status: lmStudioStatus } = useLocalProviderStatus("lmstudio");
 
   const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_llm_provider",
@@ -121,35 +116,16 @@ export function SelectProviderAndModel() {
                     {PROVIDERS.map((provider) => {
                       const status = configuredProviders[provider.id];
 
-                      // Get local provider status
-                      let localStatus = null;
-                      if (provider.id === "ollama") {
-                        localStatus = ollamaStatus;
-                      } else if (provider.id === "lmstudio") {
-                        localStatus = lmStudioStatus;
-                      }
-
-                      // For local providers, only enable if connected
-                      // For other providers, enable if they have listModels
-                      const isLocalProvider =
-                        provider.id === "ollama" || provider.id === "lmstudio";
-                      const isEnabled = isLocalProvider
-                        ? localStatus === "connected" && !!status?.listModels
-                        : !!status?.listModels;
-
                       return (
                         <SelectItem
                           key={provider.id}
                           value={provider.id}
-                          disabled={!isEnabled}
+                          disabled={!status?.listModels}
                         >
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-2">
                               {provider.icon}
                               <span>{provider.displayName}</span>
-                              {localStatus === "connected" && (
-                                <span className="size-1.5 rounded-full bg-green-500" />
-                              )}
                             </div>
                           </div>
                         </SelectItem>
@@ -218,10 +194,6 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
     settings.STORE_ID,
   );
 
-  // Get local provider statuses here as well for the mapping
-  const { status: ollamaStatus } = useLocalProviderStatus("ollama");
-  const { status: lmStudioStatus } = useLocalProviderStatus("lmstudio");
-
   const mapping = useMemo(() => {
     return Object.fromEntries(
       PROVIDERS.map((provider) => {
@@ -234,25 +206,14 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
         const proLocked =
           requiresEntitlement(provider.requirements, "pro") && !billing.isPro;
 
-        // Check if it's a connected local provider
-        const isLocalProvider =
-          provider.id === "ollama" || provider.id === "lmstudio";
-        const localStatus =
-          provider.id === "ollama"
-            ? ollamaStatus
-            : provider.id === "lmstudio"
-              ? lmStudioStatus
-              : null;
-        const isConnectedLocal = isLocalProvider && localStatus === "connected";
-
         const eligible =
           getProviderSelectionBlockers(provider.requirements, {
             isAuthenticated: !!auth?.session,
             isPro: billing.isPro,
             config: { base_url: baseUrl, api_key: apiKey },
-          }).length === 0 || isConnectedLocal;
+          }).length === 0;
 
-        if (!eligible && !isConnectedLocal) {
+        if (!eligible) {
           return [provider.id, { listModels: undefined, proLocked }];
         }
 
@@ -300,7 +261,7 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
         return [provider.id, { listModels: listModelsFunc, proLocked }];
       }),
     ) as Record<string, ProviderStatus>;
-  }, [configuredProviders, auth, billing, ollamaStatus, lmStudioStatus]);
+  }, [configuredProviders, auth, billing]);
 
   return mapping;
 }

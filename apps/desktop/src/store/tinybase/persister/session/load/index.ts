@@ -83,6 +83,7 @@ export async function loadSingleSession(
   );
 
   if (scanResult.status === "error") {
+    console.error(`loadSingleSession scan error:`, scanResult.error);
     return result;
   }
 

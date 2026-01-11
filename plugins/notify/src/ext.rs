@@ -5,7 +5,7 @@ use notify_debouncer_full::{DebouncedEvent, new_debouncer};
 use tauri_plugin_path2::Path2PluginExt;
 use tauri_specta::Event;
 
-use crate::{ChangeKind, FileChanged, WatcherState};
+use crate::{FileChanged, WatcherState};
 
 const DEBOUNCE_DELAY_MS: u64 = 500;
 
@@ -33,7 +33,24 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
             move |events: Result<Vec<DebouncedEvent>, Vec<notify::Error>>| {
                 if let Ok(events) = events {
                     for event in events {
-                        let change_kind = ChangeKind::from(&event.kind);
+                        let should_emit = match &event.kind {
+                            notify::EventKind::Any => true,
+                            notify::EventKind::Create(_) => true,
+                            notify::EventKind::Remove(_) => true,
+                            notify::EventKind::Modify(modify_kind) => {
+                                matches!(
+                                    modify_kind,
+                                    notify::event::ModifyKind::Any
+                                        | notify::event::ModifyKind::Data(_)
+                                        | notify::event::ModifyKind::Name(_)
+                                )
+                            }
+                            notify::EventKind::Access(_) | notify::EventKind::Other => false,
+                        };
+
+                        if !should_emit {
+                            continue;
+                        }
 
                         for path in &event.paths {
                             let relative_path = path
@@ -45,7 +62,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                             tracing::info!("file_changed: {:?}", relative_path);
                             let _ = FileChanged {
                                 path: relative_path,
-                                kind: change_kind.clone(),
                             }
                             .emit(&app_handle);
                         }

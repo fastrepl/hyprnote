@@ -7,8 +7,13 @@ use rayon::prelude::*;
 use crate::path::{is_uuid, to_relative_path};
 use crate::types::ScanResult;
 
-pub fn scan_and_read(base_dir: &Path, file_patterns: &[String], recursive: bool) -> ScanResult {
-    if !base_dir.exists() {
+pub fn scan_and_read(
+    scan_dir: &Path,
+    relative_to: &Path,
+    file_patterns: &[String],
+    recursive: bool,
+) -> ScanResult {
+    if !scan_dir.exists() {
         return ScanResult {
             files: HashMap::new(),
             dirs: Vec::new(),
@@ -24,7 +29,12 @@ pub fn scan_and_read(base_dir: &Path, file_patterns: &[String], recursive: bool)
     let mut dirs = Vec::new();
 
     scan_directory_for_files(
-        base_dir, base_dir, &patterns, recursive, &mut files, &mut dirs,
+        relative_to,
+        scan_dir,
+        &patterns,
+        recursive,
+        &mut files,
+        &mut dirs,
     );
 
     let files: HashMap<String, String> = files
@@ -87,7 +97,7 @@ mod tests {
         let temp = TempDir::new().unwrap();
         let nonexistent = temp.path().join("does_not_exist");
 
-        let result = scan_and_read(&nonexistent, &["*.txt".into()], true);
+        let result = scan_and_read(&nonexistent, &nonexistent, &["*.txt".into()], true);
 
         assert!(result.files.is_empty());
         assert!(result.dirs.is_empty());
@@ -100,7 +110,7 @@ mod tests {
             .file("data.json", "{}")
             .build();
 
-        let result = scan_and_read(env.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false);
 
         assert_eq!(result.files.len(), 1);
         assert_eq!(result.files.get("note.txt"), Some(&"hello".into()));
@@ -115,7 +125,7 @@ mod tests {
             .done()
             .build();
 
-        let result = scan_and_read(env.path(), &["*.txt".into()], true);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], true);
 
         assert_eq!(result.files.len(), 2);
         assert_eq!(result.files.get("root.txt"), Some(&"root".into()));
@@ -131,7 +141,7 @@ mod tests {
             .done()
             .build();
 
-        let result = scan_and_read(env.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false);
 
         assert_eq!(result.files.len(), 1);
         assert_eq!(result.files.get("root.txt"), Some(&"root".into()));
@@ -146,7 +156,7 @@ mod tests {
             .done()
             .build();
 
-        let result = scan_and_read(env.path(), &["*.txt".into()], true);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], true);
 
         assert!(result.dirs.contains(&"work".into()));
         assert!(result.dirs.contains(&"personal".into()));
@@ -160,12 +170,30 @@ mod tests {
             .done()
             .build();
 
-        let result = scan_and_read(env.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false);
 
         assert!(!result.dirs.iter().any(|d| d.contains(UUID_1)));
         assert_eq!(
             result.files.get(&format!("{UUID_1}/note.txt")),
             Some(&"inside uuid".into())
+        );
+    }
+
+    #[test]
+    fn paths_relative_to_different_base() {
+        let env = TestEnv::new()
+            .folder(&format!("sessions/{UUID_1}"))
+            .file("_meta.json", "{}")
+            .done()
+            .build();
+
+        let scan_dir = env.path().join("sessions").join(UUID_1);
+        let result = scan_and_read(&scan_dir, env.path(), &["*.json".into()], false);
+
+        assert_eq!(result.files.len(), 1);
+        assert_eq!(
+            result.files.get(&format!("sessions/{UUID_1}/_meta.json")),
+            Some(&"{}".into())
         );
     }
 }

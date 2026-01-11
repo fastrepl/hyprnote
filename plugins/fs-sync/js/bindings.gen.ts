@@ -134,9 +134,9 @@ async deleteSessionFolder(sessionId: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async scanAndRead(baseDir: string, filePatterns: string[], recursive: boolean) : Promise<Result<ScanResult, string>> {
+async scanAndRead(scanDir: string, filePatterns: string[], recursive: boolean) : Promise<Result<ScanResult, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|scan_and_read", { baseDir, filePatterns, recursive }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|scan_and_read", { scanDir, filePatterns, recursive }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

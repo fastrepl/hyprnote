@@ -94,12 +94,28 @@ describe("extractSessionIdAndFolder", () => {
       expect(result.folderPath).toBe("/data/sessions");
     });
 
-    test("handles relative path", () => {
+    test("handles relative path from base (root session)", () => {
       const result = extractSessionIdAndFolder(
         "sessions/session-123/_meta.json",
       );
       expect(result.sessionId).toBe("session-123");
-      expect(result.folderPath).toBe("sessions");
+      expect(result.folderPath).toBe("");
+    });
+
+    test("handles relative path from base (nested folder)", () => {
+      const result = extractSessionIdAndFolder(
+        "sessions/work/session-123/_meta.json",
+      );
+      expect(result.sessionId).toBe("session-123");
+      expect(result.folderPath).toBe("work");
+    });
+
+    test("handles relative path from base (deeply nested folder)", () => {
+      const result = extractSessionIdAndFolder(
+        "sessions/work/project-a/session-123/_meta.json",
+      );
+      expect(result.sessionId).toBe("session-123");
+      expect(result.folderPath).toBe("work/project-a");
     });
   });
 });

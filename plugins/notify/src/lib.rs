@@ -38,16 +38,16 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             Ok(())
         })
-        // .on_webview_ready(|webview| {
-        //     if let Err(e) = webview.app_handle().notify().start() {
-        //         tracing::error!("failed_to_start_watcher: {}", e);
-        //     }
-        // })
-        // .on_drop(|app| {
-        //     if let Err(e) = app.notify().stop() {
-        //         tracing::error!("failed_to_stop_watcher: {}", e);
-        //     }
-        // })
+        .on_webview_ready(|webview| {
+            if let Err(e) = webview.app_handle().notify().start() {
+                tracing::error!("failed_to_start_watcher: {}", e);
+            }
+        })
+        .on_drop(|app| {
+            if let Err(e) = app.notify().stop() {
+                tracing::error!("failed_to_stop_watcher: {}", e);
+            }
+        })
         .build()
 }
 

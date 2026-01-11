@@ -215,14 +215,17 @@ pub(crate) async fn delete_session_folder<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn scan_and_read(
-    base_dir: String,
+pub(crate) async fn scan_and_read<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    scan_dir: String,
     file_patterns: Vec<String>,
     recursive: bool,
 ) -> Result<ScanResult, String> {
+    let base = app.path2().base().map_err(|e| e.to_string())?;
     spawn_blocking!({
         Ok(crate::scan::scan_and_read(
-            &PathBuf::from(&base_dir),
+            &PathBuf::from(&scan_dir),
+            &base,
             &file_patterns,
             recursive,
         ))

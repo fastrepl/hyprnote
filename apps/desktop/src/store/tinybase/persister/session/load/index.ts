@@ -7,12 +7,12 @@ import {
   SESSION_NOTE_EXTENSION,
   SESSION_TRANSCRIPT_FILE,
 } from "../../shared";
+import { processMetaFile } from "./meta";
 import { processMdFile } from "./note";
-import { processMetaFile } from "./session";
 import { processTranscriptFile } from "./transcript";
 import { createEmptyLoadedSessionData, type LoadedSessionData } from "./types";
 
-export { extractSessionIdAndFolder } from "./session";
+export { extractSessionIdAndFolder } from "./meta";
 export { createEmptyLoadedSessionData, type LoadedSessionData } from "./types";
 
 const LABEL = "SessionPersister";

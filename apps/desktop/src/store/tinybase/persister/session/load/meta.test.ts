@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { extractSessionIdAndFolder, processMetaFile } from "./session";
+import { extractSessionIdAndFolder, processMetaFile } from "./meta";
 import { createEmptyLoadedSessionData, type LoadedSessionData } from "./types";
 
 describe("extractSessionIdAndFolder", () => {

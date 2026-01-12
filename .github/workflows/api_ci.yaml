@@ -31,4 +31,10 @@ jobs:
       - uses: ./.github/actions/pnpm_install
       - uses: ./.github/actions/bun_install
       - run: pnpm -F @hypr/api typecheck
-      - run: pnpm -F @hypr/api test
+      - name: Run tests if they exist
+        run: |
+          if find apps/api/src -name "*.test.ts" -o -name "*.spec.ts" | grep -q .; then
+            pnpm -F @hypr/api test
+          else
+            echo "No test files found, skipping tests"
+          fi

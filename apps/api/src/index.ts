@@ -50,14 +50,8 @@ app.use("*", (c, next) => {
   return corsMiddleware(c, next);
 });
 
-app.use("/chat/completions", loadTestOverride, supabaseAuthMiddleware);
 app.use("/webhook/stripe", verifyStripeWebhook);
 app.use("/webhook/slack/events", verifySlackWebhook);
-
-if (env.NODE_ENV !== "development") {
-  app.use("/listen", loadTestOverride, supabaseAuthMiddleware);
-  app.use("/transcribe", loadTestOverride, supabaseAuthMiddleware);
-}
 
 app.route("/", routes);
 

@@ -5,8 +5,6 @@ import {
   redirect,
 } from "@tanstack/react-router";
 
-import { cn } from "@hypr/utils";
-
 import { fetchAdminUser } from "@/functions/admin";
 
 export const Route = createFileRoute("/admin")({
@@ -58,10 +56,26 @@ function AdminHeader({ user }: { user: { email: string } }) {
   return (
     <header className="h-16 border-b border-neutral-100 bg-white">
       <div className="h-full px-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="font-serif2 italic text-stone-600 text-lg">
+        <div className="flex items-center gap-6">
+          <span className="font-serif2 italic text-stone-600 text-2xl">
             Content Admin
           </span>
+          <nav className="flex items-center gap-4">
+            <Link
+              to="/admin/collections"
+              className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+              activeProps={{ className: "text-neutral-900 font-medium" }}
+            >
+              Collections
+            </Link>
+            <Link
+              to="/admin/media"
+              className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+              activeProps={{ className: "text-neutral-900 font-medium" }}
+            >
+              Media
+            </Link>
+          </nav>
         </div>
 
         <div className="flex items-center gap-6">
@@ -70,12 +84,9 @@ function AdminHeader({ user }: { user: { email: string } }) {
           </span>
           <Link
             to="/"
-            className={cn([
-              "text-sm text-neutral-500 hover:text-neutral-700 transition-colors",
-              "hover:underline decoration-dotted",
-            ])}
+            className="px-4 h-8 flex items-center text-sm text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 rounded-full transition-all"
           >
-            logout
+            Sign out
           </Link>
         </div>
       </div>

@@ -1,10 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { Icon } from "@iconify-icon/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
-export const Route = createFileRoute("/admin/collections/")({
-  component: ContentManagementPage,
-});
+import { cn } from "@hypr/utils";
 
 interface ContentItem {
   name: string;
@@ -14,20 +13,22 @@ interface ContentItem {
   url: string;
 }
 
-interface ContentFolder {
-  name: string;
+interface FolderTreeItem {
   path: string;
-  items: ContentItem[];
+  name: string;
+  label: string;
+  children: ContentItem[];
   expanded: boolean;
+  loaded: boolean;
 }
 
 const CONTENT_FOLDERS = [
-  { name: "Articles", path: "articles" },
-  { name: "Changelog", path: "changelog" },
-  { name: "Documentation", path: "docs" },
-  { name: "Handbook", path: "handbook" },
-  { name: "Legal", path: "legal" },
-  { name: "Templates", path: "templates" },
+  { name: "articles", label: "Articles" },
+  { name: "changelog", label: "Changelog" },
+  { name: "docs", label: "Documentation" },
+  { name: "handbook", label: "Handbook" },
+  { name: "legal", label: "Legal" },
+  { name: "templates", label: "Templates" },
 ];
 
 async function fetchFolderContents(folderPath: string): Promise<ContentItem[]> {
@@ -49,225 +50,261 @@ async function fetchFolderContents(folderPath: string): Promise<ContentItem[]> {
   return data.items || [];
 }
 
-function ContentManagementPage() {
-  const [folders, setFolders] = useState<ContentFolder[]>(
+export const Route = createFileRoute("/admin/collections/")({
+  component: CollectionsPage,
+});
+
+type TabType = "all" | "mdx" | "md";
+
+function CollectionsPage() {
+  const queryClient = useQueryClient();
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<TabType>("all");
+  const [folders, setFolders] = useState<FolderTreeItem[]>(
     CONTENT_FOLDERS.map((f) => ({
+      path: f.name,
       name: f.name,
-      path: f.path,
-      items: [],
+      label: f.label,
+      children: [],
       expanded: false,
+      loaded: false,
     })),
   );
-  const [loadingFolder, setLoadingFolder] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchMutation = useMutation({
-    mutationFn: fetchFolderContents,
-    onMutate: (folderPath) => {
-      setLoadingFolder(folderPath);
-    },
-    onSuccess: (items, folderPath) => {
-      setFolders((prev) =>
-        prev.map((f) =>
-          f.path === folderPath ? { ...f, items, expanded: true } : f,
-        ),
-      );
-      setLoadingFolder(null);
-    },
-    onError: () => {
-      setLoadingFolder(null);
-    },
+  const selectedFolderData = folders.find((f) => f.path === selectedFolder);
+
+  const contentQuery = useQuery({
+    queryKey: ["content", selectedFolder],
+    queryFn: () => fetchFolderContents(selectedFolder!),
+    enabled: !!selectedFolder,
   });
 
-  const toggleFolder = (folderPath: string) => {
-    const folder = folders.find((f) => f.path === folderPath);
-    if (!folder) return;
+  const handleFolderClick = (folderPath: string) => {
+    setSelectedFolder(folderPath);
+    setFolders((prev) =>
+      prev.map((f) => (f.path === folderPath ? { ...f, expanded: true } : f)),
+    );
+  };
 
-    if (folder.expanded) {
-      setFolders((prev) =>
-        prev.map((f) =>
-          f.path === folderPath ? { ...f, expanded: false } : f,
-        ),
-      );
-    } else if (folder.items.length === 0) {
-      fetchMutation.mutate(folderPath);
-    } else {
-      setFolders((prev) =>
-        prev.map((f) => (f.path === folderPath ? { ...f, expanded: true } : f)),
-      );
+  const toggleFolderExpanded = (folderPath: string) => {
+    setFolders((prev) =>
+      prev.map((f) =>
+        f.path === folderPath ? { ...f, expanded: !f.expanded } : f,
+      ),
+    );
+  };
+
+  const getFileExtension = (filename: string): string => {
+    const parts = filename.split(".");
+    return parts.length > 1 ? parts.pop()?.toLowerCase() || "" : "";
+  };
+
+  const matchesFileTypeFilter = (item: ContentItem): boolean => {
+    if (item.type === "dir") return false;
+    if (activeTab === "all") return true;
+
+    const ext = getFileExtension(item.name);
+    switch (activeTab) {
+      case "mdx":
+        return ext === "mdx";
+      case "md":
+        return ext === "md";
+      default:
+        return true;
     }
   };
 
-  const filteredFolders = folders.map((folder) => ({
-    ...folder,
-    items: folder.items.filter(
-      (item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        searchQuery === "",
-    ),
-  }));
+  const filterFolders = (
+    items: FolderTreeItem[],
+    query: string,
+  ): FolderTreeItem[] => {
+    if (!query) return items;
+    const lowerQuery = query.toLowerCase();
 
-  const totalItems = folders.reduce(
-    (acc, folder) => acc + folder.items.length,
-    0,
-  );
+    return items.filter(
+      (item) =>
+        item.label.toLowerCase().includes(lowerQuery) ||
+        item.name.toLowerCase().includes(lowerQuery),
+    );
+  };
+
+  const filteredFolders = filterFolders(folders, searchQuery);
+
+  const items = contentQuery.data || [];
+  const filteredItems = items.filter((item) => {
+    if (item.type === "dir") return false;
+    const matchesSearch =
+      searchQuery === "" ||
+      item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = matchesFileTypeFilter(item);
+    return matchesSearch && matchesType;
+  });
+
+  const tabs: { id: TabType; label: string }[] = [
+    { id: "all", label: "All" },
+    { id: "mdx", label: "MDX" },
+    { id: "md", label: "Markdown" },
+  ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">
-            Content Management
-          </h1>
-          <p className="text-sm text-neutral-600 mt-1">
-            Browse and manage MDX content files
-          </p>
-        </div>
-        <Link
-          to="/admin/import"
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-        >
-          Import from Google Docs
-        </Link>
-      </div>
-
-      <div className="mb-6">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search content files..."
-          className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      {fetchMutation.error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {fetchMutation.error instanceof Error
-            ? fetchMutation.error.message
-            : "An error occurred"}
-          <button
-            onClick={() => fetchMutation.reset()}
-            className="ml-2 text-red-500 hover:text-red-700"
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-
-      <div className="bg-white rounded-lg border border-neutral-200">
-        {filteredFolders.map((folder, index) => (
-          <div
-            key={folder.path}
-            className={index > 0 ? "border-t border-neutral-200" : ""}
-          >
-            <button
-              onClick={() => toggleFolder(folder.path)}
-              className="w-full px-4 py-3 flex items-center justify-between hover:bg-neutral-50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-neutral-400">
-                  {folder.expanded ? (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  )}
-                </span>
-                <span className="text-lg font-medium text-neutral-900">
-                  {folder.name}
-                </span>
-                {folder.items.length > 0 && (
-                  <span className="text-sm text-neutral-500">
-                    ({folder.items.length} files)
-                  </span>
-                )}
-              </div>
-              {loadingFolder === folder.path && (
-                <span className="text-sm text-neutral-500">Loading...</span>
-              )}
-            </button>
-
-            {folder.expanded && folder.items.length > 0 && (
-              <div className="border-t border-neutral-100 bg-neutral-50">
-                {folder.items
-                  .filter((item) => item.type === "file")
-                  .map((item) => (
-                    <div
-                      key={item.path}
-                      className="px-4 py-2 pl-12 flex items-center justify-between hover:bg-neutral-100 transition-colors border-b border-neutral-100 last:border-b-0"
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4 text-neutral-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        <span className="text-sm text-neutral-700">
-                          {item.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={`https://github.com/fastrepl/hyprnote/blob/main/apps/web/content/${item.path}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:text-blue-800"
-                        >
-                          View on GitHub
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-
-            {folder.expanded &&
-              folder.items.length === 0 &&
-              loadingFolder !== folder.path && (
-                <div className="px-4 py-3 pl-12 text-sm text-neutral-500 bg-neutral-50 border-t border-neutral-100">
-                  No files found
-                </div>
-              )}
+    <div className="flex h-[calc(100vh-64px)]">
+      <div className="w-56 flex-shrink-0 border-r border-neutral-200 bg-white flex flex-col">
+        <div className="h-10 px-3 flex items-center border-b border-neutral-200">
+          <div className="relative w-full">
+            <Icon
+              icon="mdi:magnify"
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-sm"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              className={cn([
+                "w-full pl-7 pr-2 py-1 text-sm",
+                "border border-neutral-200 rounded",
+                "focus:outline-none focus:border-neutral-400",
+                "placeholder:text-neutral-400",
+              ])}
+            />
           </div>
-        ))}
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {filteredFolders.map((folder) => {
+            const isSelected = selectedFolder === folder.path;
+
+            return (
+              <div key={folder.path}>
+                <div
+                  className={cn([
+                    "flex items-center gap-1 py-1.5 px-2 cursor-pointer text-sm",
+                    "hover:bg-neutral-100 transition-colors",
+                    isSelected && "bg-neutral-100",
+                  ])}
+                  onClick={() => handleFolderClick(folder.path)}
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFolderExpanded(folder.path);
+                    }}
+                    className="w-4 h-4 flex items-center justify-center"
+                  >
+                    <Icon
+                      icon={
+                        folder.expanded
+                          ? "mdi:chevron-down"
+                          : "mdi:chevron-right"
+                      }
+                      className="text-neutral-400 text-xs"
+                    />
+                  </button>
+                  <Icon
+                    icon={folder.expanded ? "mdi:folder-open" : "mdi:folder"}
+                    className="text-neutral-400 text-sm"
+                  />
+                  <span className="truncate text-neutral-700">
+                    {folder.label}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {selectedFolder && (
+          <div className="p-2 border-t border-neutral-200">
+            <Link
+              to="/admin/import"
+              className={cn([
+                "w-full py-2 text-sm font-medium rounded flex items-center justify-center",
+                "bg-neutral-900 text-white",
+                "hover:bg-neutral-800 transition-colors",
+              ])}
+            >
+              + Import
+            </Link>
+          </div>
+        )}
       </div>
 
-      <div className="mt-4 text-sm text-neutral-500">
-        {totalItems > 0
-          ? `${totalItems} content files loaded`
-          : "Click a folder to load its contents"}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="h-10 flex items-stretch border-b border-neutral-200">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn([
+                "px-4 text-sm font-medium transition-colors",
+                "border-r border-neutral-200",
+                activeTab === tab.id
+                  ? "bg-neutral-100 text-neutral-900"
+                  : "bg-white text-neutral-600 hover:bg-neutral-50",
+              ])}
+            >
+              {tab.label}
+            </button>
+          ))}
+          <div className="flex-1" />
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          {!selectedFolder ? (
+            <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
+              <Icon icon="mdi:folder-open-outline" className="text-4xl mb-3" />
+              <p className="text-sm">Select a collection to view files</p>
+            </div>
+          ) : contentQuery.isLoading ? (
+            <div className="flex items-center justify-center h-64 text-neutral-500">
+              <Icon icon="mdi:loading" className="animate-spin text-2xl mr-2" />
+              Loading...
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
+              <Icon
+                icon="mdi:file-document-outline"
+                className="text-4xl mb-3"
+              />
+              <p className="text-sm">No files found</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.path}
+                  className={cn([
+                    "flex items-center justify-between px-3 py-2 rounded",
+                    "hover:bg-neutral-50 transition-colors",
+                    "border border-transparent hover:border-neutral-200",
+                  ])}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon
+                      icon="mdi:file-document-outline"
+                      className="text-neutral-400"
+                    />
+                    <span className="text-sm text-neutral-700">
+                      {item.name}
+                    </span>
+                    <span className="text-xs text-neutral-400 px-1.5 py-0.5 bg-neutral-100 rounded">
+                      {getFileExtension(item.name).toUpperCase()}
+                    </span>
+                  </div>
+                  <a
+                    href={`https://github.com/fastrepl/hyprnote/blob/main/apps/web/content/${item.path}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-neutral-500 hover:text-neutral-700"
+                  >
+                    <Icon icon="mdi:github" className="text-base" />
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

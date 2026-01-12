@@ -1,6 +1,9 @@
+import { Icon } from "@iconify-icon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 interface MediaItem {
   name: string;
@@ -12,20 +15,12 @@ interface MediaItem {
   downloadUrl: string | null;
 }
 
-interface FolderOption {
-  path: string;
-  name: string;
-  depth: number;
-}
-
 interface FolderTreeItem {
   path: string;
   name: string;
   children: FolderTreeItem[];
   expanded: boolean;
 }
-
-type FileTypeFilter = "all" | "images" | "videos" | "documents";
 
 async function fetchMediaItems(path: string): Promise<MediaItem[]> {
   const response = await fetch(
@@ -70,34 +65,6 @@ async function deleteFiles(paths: string[]) {
   return data;
 }
 
-async function moveFile(fromPath: string, toPath: string) {
-  const response = await fetch("/api/admin/media/move", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fromPath, toPath }),
-  });
-
-  if (!response.ok) {
-    const data = await response.json();
-    throw new Error(data.error || "Move failed");
-  }
-  return response.json();
-}
-
-async function createFolder(name: string, parentFolder: string) {
-  const response = await fetch("/api/admin/media/create-folder", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, parentFolder }),
-  });
-
-  if (!response.ok) {
-    const data = await response.json();
-    throw new Error(data.error || "Failed to create folder");
-  }
-  return response.json();
-}
-
 async function buildFolderTree(
   path: string,
   depth: number,
@@ -129,63 +96,21 @@ async function buildFolderTree(
   }
 }
 
-async function fetchFolderOptionsRecursive(
-  path: string,
-  depth: number,
-  folders: FolderOption[],
-): Promise<void> {
-  if (depth > 2) return;
-  try {
-    const response = await fetch(
-      `/api/admin/media/list?path=${encodeURIComponent(path)}`,
-    );
-    const data = await response.json();
-    if (response.ok) {
-      const subfolders = data.items.filter(
-        (item: MediaItem) => item.type === "dir",
-      );
-      for (const folder of subfolders) {
-        const folderPath = path ? `${path}/${folder.name}` : folder.name;
-        folders.push({
-          path: folderPath,
-          name: folder.name,
-          depth: depth + 1,
-        });
-        await fetchFolderOptionsRecursive(folderPath, depth + 1, folders);
-      }
-    }
-  } catch {
-    // Ignore errors when fetching folder structure
-  }
-}
-
 export const Route = createFileRoute("/admin/media/")({
   component: MediaLibrary,
 });
 
+type TabType = "all" | "images" | "videos" | "documents";
+
 function MediaLibrary() {
   const queryClient = useQueryClient();
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [currentPath, setCurrentPath] = useState("");
-  const [dragOver, setDragOver] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
-  const [showCreateFolder, setShowCreateFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
-  const [showMoveDialog, setShowMoveDialog] = useState(false);
-  const [moveDestination, setMoveDestination] = useState("");
-  const [folderOptions, setFolderOptions] = useState<FolderOption[]>([]);
-  const [downloading, setDownloading] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{
-    x: number;
-    y: number;
-    item: MediaItem;
-  } | null>(null);
-  const [showRenameDialog, setShowRenameDialog] = useState(false);
-  const [renameItem, setRenameItem] = useState<MediaItem | null>(null);
-  const [newName, setNewName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [fileTypeFilter, setFileTypeFilter] = useState<FileTypeFilter>("all");
+  const [activeTab, setActiveTab] = useState<TabType>("all");
   const [folderTree, setFolderTree] = useState<FolderTreeItem[]>([]);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const itemsQuery = useQuery({
@@ -206,6 +131,7 @@ function MediaLibrary() {
 
   const uploadMutation = useMutation({
     mutationFn: async (files: FileList) => {
+      const targetPath = selectedPath ?? currentPath;
       for (const file of Array.from(files)) {
         const reader = new FileReader();
         const content = await new Promise<string>((resolve, reject) => {
@@ -220,12 +146,22 @@ function MediaLibrary() {
         await uploadFile({
           filename: file.name,
           content,
-          folder: currentPath,
+          folder: targetPath,
         });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
+      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (paths: string[]) => deleteFiles(paths),
+    onSuccess: () => {
+      setSelectedItems(new Set());
+      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
+      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
     },
   });
 
@@ -233,173 +169,18 @@ function MediaLibrary() {
     uploadMutation.mutate(files);
   };
 
-  const deleteMutation = useMutation({
-    mutationFn: (paths: string[]) => deleteFiles(paths),
-    onSuccess: () => {
-      setSelectedItems(new Set());
-      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
-    },
-  });
-
   const handleDelete = () => {
     if (selectedItems.size === 0) return;
     if (
       !confirm(`Are you sure you want to delete ${selectedItems.size} item(s)?`)
     )
       return;
-
     deleteMutation.mutate(Array.from(selectedItems));
-  };
-
-  const handleSelectAll = () => {
-    const items = itemsQuery.data || [];
-    const fileItems = items.filter((item) => item.type === "file");
-    if (selectedItems.size === fileItems.length) {
-      setSelectedItems(new Set());
-    } else {
-      setSelectedItems(new Set(fileItems.map((item) => item.path)));
-    }
-  };
-
-  const handleDownload = async () => {
-    if (selectedItems.size === 0) return;
-    setDownloading(true);
-
-    const errors: string[] = [];
-    const items = itemsQuery.data || [];
-    const selectedFiles = items.filter(
-      (item) => selectedItems.has(item.path) && item.downloadUrl,
-    );
-
-    for (const file of selectedFiles) {
-      if (file.downloadUrl) {
-        try {
-          const response = await fetch(file.downloadUrl);
-          if (!response.ok) {
-            errors.push(`${file.name}: ${response.statusText}`);
-            continue;
-          }
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = file.name;
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(() => {
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-          }, 100);
-        } catch (err) {
-          errors.push(`${file.name}: ${(err as Error).message}`);
-        }
-      }
-    }
-
-    setDownloading(false);
-  };
-
-  const fetchFolderOptions = async () => {
-    const folders: FolderOption[] = [
-      { path: "", name: "images (root)", depth: 0 },
-    ];
-    await fetchFolderOptionsRecursive("", 0, folders);
-    setFolderOptions(folders);
-  };
-
-  const openMoveDialog = async () => {
-    if (selectedItems.size === 0) return;
-    await fetchFolderOptions();
-    setMoveDestination("");
-    setShowMoveDialog(true);
-  };
-
-  const moveMutation = useMutation({
-    mutationFn: async (params: { paths: string[]; destination: string }) => {
-      const errors: string[] = [];
-      for (const sourcePath of params.paths) {
-        const fileName = sourcePath.split("/").pop() || "";
-        const toPath = params.destination
-          ? `${params.destination}/${fileName}`
-          : fileName;
-
-        try {
-          await moveFile(sourcePath, toPath);
-        } catch (err) {
-          errors.push(`${fileName}: ${(err as Error).message}`);
-        }
-      }
-
-      if (errors.length > 0) {
-        throw new Error(`Some files failed to move: ${errors.join(", ")}`);
-      }
-    },
-    onSuccess: () => {
-      setSelectedItems(new Set());
-      setShowMoveDialog(false);
-      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
-      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
-    },
-  });
-
-  const handleMove = () => {
-    if (selectedItems.size === 0) return;
-
-    const wouldMoveToSelf = Array.from(selectedItems).some((sourcePath) => {
-      const sourceFolder =
-        sourcePath.substring(0, sourcePath.lastIndexOf("/")) || "";
-      return sourceFolder === moveDestination;
-    });
-
-    if (wouldMoveToSelf) {
-      return;
-    }
-
-    moveMutation.mutate({
-      paths: Array.from(selectedItems),
-      destination: moveDestination,
-    });
-  };
-
-  const createFolderMutation = useMutation({
-    mutationFn: (params: { name: string; parentFolder: string }) =>
-      createFolder(params.name, params.parentFolder),
-    onSuccess: () => {
-      setNewFolderName("");
-      setShowCreateFolder(false);
-      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
-      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
-    },
-  });
-
-  const handleCreateFolder = () => {
-    if (!newFolderName.trim()) return;
-
-    createFolderMutation.mutate({
-      name: newFolderName.trim(),
-      parentFolder: currentPath,
-    });
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    if (e.dataTransfer.files.length > 0) {
-      handleUpload(e.dataTransfer.files);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragOver(false);
   };
 
   const navigateToFolder = (path: string) => {
     setCurrentPath(path);
+    setSelectedPath(path);
     setSelectedItems(new Set());
   };
 
@@ -411,137 +192,6 @@ function MediaLibrary() {
       newSelection.add(path);
     }
     setSelectedItems(newSelection);
-  };
-
-  const breadcrumbs = currentPath ? currentPath.split("/").filter(Boolean) : [];
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
-  const handleContextMenu = (e: React.MouseEvent, item: MediaItem) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setContextMenu({ x: e.clientX, y: e.clientY, item });
-  };
-
-  const closeContextMenu = () => {
-    setContextMenu(null);
-  };
-
-  const handleContextDelete = (item: MediaItem) => {
-    closeContextMenu();
-    if (!confirm(`Are you sure you want to delete "${item.name}"?`)) return;
-
-    deleteMutation.mutate([item.path]);
-  };
-
-  const handleContextDownload = async (item: MediaItem) => {
-    closeContextMenu();
-    if (!item.downloadUrl) return;
-
-    try {
-      const response = await fetch(item.downloadUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = item.name;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      console.error("Failed to download file:", err);
-    }
-  };
-
-  const handleContextCopyPath = (item: MediaItem) => {
-    closeContextMenu();
-    copyToClipboard(item.publicPath);
-  };
-
-  const handleContextCopyImage = async (item: MediaItem) => {
-    closeContextMenu();
-    if (!item.downloadUrl) return;
-
-    try {
-      const response = await fetch(item.downloadUrl);
-      const blob = await response.blob();
-      await navigator.clipboard.write([
-        new ClipboardItem({ [blob.type]: blob }),
-      ]);
-    } catch (err) {
-      console.error("Failed to copy image to clipboard:", err);
-    }
-  };
-
-  const openRenameDialog = (item: MediaItem) => {
-    closeContextMenu();
-    setRenameItem(item);
-    const nameParts = item.name.split(".");
-    const nameWithoutExt =
-      nameParts.length > 1 ? nameParts.slice(0, -1).join(".") : item.name;
-    setNewName(nameWithoutExt);
-    setShowRenameDialog(true);
-  };
-
-  const renameMutation = useMutation({
-    mutationFn: async (params: { item: MediaItem; newName: string }) => {
-      const ext = params.item.name.includes(".")
-        ? "." + params.item.name.split(".").pop()
-        : "";
-      const newFileName = params.newName.trim() + ext;
-      const parentPath = params.item.path.split("/").slice(0, -1).join("/");
-      const toPath = parentPath ? `${parentPath}/${newFileName}` : newFileName;
-
-      await moveFile(params.item.path, toPath);
-    },
-    onSuccess: () => {
-      setShowRenameDialog(false);
-      setRenameItem(null);
-      setNewName("");
-      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
-      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
-    },
-  });
-
-  const handleRename = () => {
-    if (!renameItem || !newName.trim()) return;
-
-    renameMutation.mutate({ item: renameItem, newName });
-  };
-
-  const openContextMoveDialog = async (item: MediaItem) => {
-    closeContextMenu();
-    setSelectedItems(new Set([item.path]));
-    await fetchFolderOptions();
-    setMoveDestination("");
-    setShowMoveDialog(true);
-  };
-
-  const errorMessage =
-    (itemsQuery.error instanceof Error ? itemsQuery.error.message : null) ??
-    (uploadMutation.error instanceof Error
-      ? uploadMutation.error.message
-      : null) ??
-    (deleteMutation.error instanceof Error
-      ? deleteMutation.error.message
-      : null) ??
-    (moveMutation.error instanceof Error ? moveMutation.error.message : null) ??
-    (createFolderMutation.error instanceof Error
-      ? createFolderMutation.error.message
-      : null) ??
-    (renameMutation.error instanceof Error
-      ? renameMutation.error.message
-      : null);
-
-  const clearErrors = () => {
-    uploadMutation.reset();
-    deleteMutation.reset();
-    moveMutation.reset();
-    createFolderMutation.reset();
-    renameMutation.reset();
   };
 
   const toggleFolderExpanded = (path: string) => {
@@ -559,6 +209,18 @@ function MediaLibrary() {
     setFolderTree(updateTree(folderTree));
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files.length > 0) {
+      handleUpload(e.dataTransfer.files);
+    }
+  };
+
   const getFileExtension = (filename: string): string => {
     const parts = filename.split(".");
     return parts.length > 1 ? parts.pop()?.toLowerCase() || "" : "";
@@ -566,14 +228,14 @@ function MediaLibrary() {
 
   const matchesFileTypeFilter = (item: MediaItem): boolean => {
     if (item.type === "dir") return true;
-    if (fileTypeFilter === "all") return true;
+    if (activeTab === "all") return true;
 
     const ext = getFileExtension(item.name);
     const imageExts = ["jpg", "jpeg", "png", "gif", "webp", "svg", "ico"];
     const videoExts = ["mp4", "webm", "mov", "avi", "mkv"];
     const docExts = ["pdf", "doc", "docx", "txt", "md", "mdx"];
 
-    switch (fileTypeFilter) {
+    switch (activeTab) {
       case "images":
         return imageExts.includes(ext);
       case "videos":
@@ -585,6 +247,30 @@ function MediaLibrary() {
     }
   };
 
+  const filterFolderTree = (
+    items: FolderTreeItem[],
+    query: string,
+  ): FolderTreeItem[] => {
+    if (!query) return items;
+    const lowerQuery = query.toLowerCase();
+
+    return items
+      .map((item) => {
+        const matchesName = item.name.toLowerCase().includes(lowerQuery);
+        const filteredChildren = filterFolderTree(item.children, query);
+
+        if (matchesName || filteredChildren.length > 0) {
+          return {
+            ...item,
+            children: filteredChildren,
+            expanded: query.length > 0,
+          };
+        }
+        return null;
+      })
+      .filter((item): item is FolderTreeItem => item !== null);
+  };
+
   const items = itemsQuery.data || [];
   const filteredItems = items.filter((item) => {
     const matchesSearch =
@@ -594,683 +280,289 @@ function MediaLibrary() {
     return matchesSearch && matchesType;
   });
 
-  const clearFilters = () => {
-    setSearchQuery("");
-    setFileTypeFilter("all");
-  };
+  const filteredFolderTree = filterFolderTree(folderTree, searchQuery);
 
-  const hasActiveFilters = searchQuery !== "" || fileTypeFilter !== "all";
-
-  useEffect(() => {
-    const handleClickOutside = () => closeContextMenu();
-    if (contextMenu) {
-      document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
-    }
-  }, [contextMenu]);
+  const tabs: { id: TabType; label: string }[] = [
+    { id: "all", label: "All" },
+    { id: "images", label: "Images" },
+    { id: "videos", label: "Videos" },
+    { id: "documents", label: "Documents" },
+  ];
 
   const renderFolderTree = (
     items: FolderTreeItem[],
     depth: number = 0,
   ): React.ReactNode => {
-    return items.map((item) => (
-      <div key={item.path}>
-        <div
-          className={`flex items-center gap-1 py-1 px-2 rounded cursor-pointer hover:bg-neutral-100 ${
-            currentPath === item.path ? "bg-blue-50 text-blue-700" : ""
-          }`}
-          style={{ paddingLeft: `${depth * 12 + 8}px` }}
-        >
-          {item.children.length > 0 && (
+    return items.map((item) => {
+      const isSelected = selectedPath === item.path;
+      const hasChildren = item.children.length > 0;
+
+      return (
+        <div key={item.path}>
+          <div
+            className={cn([
+              "flex items-center gap-1 py-1 pr-2 cursor-pointer text-sm",
+              "hover:bg-neutral-100 transition-colors",
+              isSelected && "bg-neutral-100",
+            ])}
+            style={{ paddingLeft: `${depth * 16 + 8}px` }}
+            onClick={() => {
+              setSelectedPath(item.path);
+              navigateToFolder(item.path);
+            }}
+          >
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                toggleFolderExpanded(item.path);
+                if (hasChildren) {
+                  toggleFolderExpanded(item.path);
+                }
               }}
-              className="p-0.5 hover:bg-neutral-200 rounded"
+              className={cn([
+                "w-4 h-4 flex items-center justify-center",
+                !hasChildren && "invisible",
+              ])}
             >
-              <svg
-                className={`w-3 h-3 transition-transform ${item.expanded ? "rotate-90" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+              <Icon
+                icon={item.expanded ? "mdi:chevron-down" : "mdi:chevron-right"}
+                className="text-neutral-400 text-xs"
+              />
             </button>
+            <Icon
+              icon={item.expanded ? "mdi:folder-open" : "mdi:folder"}
+              className="text-neutral-400 text-sm"
+            />
+            <span className="truncate text-neutral-700">{item.name}</span>
+          </div>
+          {item.expanded && hasChildren && (
+            <div>{renderFolderTree(item.children, depth + 1)}</div>
           )}
-          {item.children.length === 0 && <span className="w-4" />}
-          <button
-            onClick={() => navigateToFolder(item.path)}
-            className="flex-1 text-left text-sm truncate"
-          >
-            {item.name}
-          </button>
         </div>
-        {item.expanded &&
-          item.children.length > 0 &&
-          renderFolderTree(item.children, depth + 1)}
-      </div>
-    ));
+      );
+    });
   };
 
   return (
     <div className="flex h-[calc(100vh-64px)]">
-      <div
-        className={`${sidebarCollapsed ? "w-0" : "w-64"} flex-shrink-0 border-r border-neutral-200 bg-neutral-50 overflow-hidden transition-all duration-200`}
-      >
-        <div className="p-4 h-full overflow-y-auto">
-          <div className="mb-4">
-            <div className="relative">
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search files..."
-                className="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
-              File Type
-            </h3>
-            <div className="space-y-1">
-              {(
-                [
-                  { value: "all", label: "All Files" },
-                  { value: "images", label: "Images" },
-                  { value: "videos", label: "Videos" },
-                  { value: "documents", label: "Documents" },
-                ] as const
-              ).map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setFileTypeFilter(option.value)}
-                  className={`w-full text-left px-2 py-1.5 text-sm rounded ${
-                    fileTypeFilter === option.value
-                      ? "bg-blue-100 text-blue-700"
-                      : "hover:bg-neutral-100"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="w-full mb-4 px-2 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded flex items-center gap-1"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-              Clear Filters
-            </button>
-          )}
-
-          <div>
-            <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
-              Folders
-            </h3>
-            <div
-              className={`py-1 px-2 rounded cursor-pointer hover:bg-neutral-100 ${
-                currentPath === "" ? "bg-blue-50 text-blue-700" : ""
-              }`}
-            >
-              <button
-                onClick={() => navigateToFolder("")}
-                className="flex items-center gap-1 text-sm"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                  />
-                </svg>
-                images (root)
-              </button>
-            </div>
-            {renderFolderTree(folderTree)}
+      <div className="w-56 flex-shrink-0 border-r border-neutral-200 bg-white flex flex-col">
+        <div className="h-10 px-3 flex items-center border-b border-neutral-200">
+          <div className="relative w-full">
+            <Icon
+              icon="mdi:magnify"
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-sm"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              className={cn([
+                "w-full pl-7 pr-2 py-1 text-sm",
+                "border border-neutral-200 rounded",
+                "focus:outline-none focus:border-neutral-400",
+                "placeholder:text-neutral-400",
+              ])}
+            />
           </div>
         </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <div
+            className={cn([
+              "flex items-center gap-1 py-1 px-2 cursor-pointer text-sm",
+              "hover:bg-neutral-100 transition-colors",
+              (selectedPath === "" || selectedPath === null) &&
+                "bg-neutral-100",
+            ])}
+            onClick={() => {
+              setSelectedPath("");
+              navigateToFolder("");
+            }}
+          >
+            <span className="w-4" />
+            <Icon icon="mdi:folder" className="text-neutral-400 text-sm" />
+            <span className="text-neutral-700">images</span>
+          </div>
+          {renderFolderTree(filteredFolderTree)}
+        </div>
+
+        {selectedPath !== null && (
+          <div className="p-2 border-t border-neutral-200">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadMutation.isPending}
+              className={cn([
+                "w-full py-2 text-sm font-medium rounded",
+                "bg-neutral-900 text-white",
+                "hover:bg-neutral-800 transition-colors",
+                "disabled:opacity-50",
+              ])}
+            >
+              {uploadMutation.isPending ? "Uploading..." : "+ Add"}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              className="hidden"
+              onChange={(e) => e.target.files && handleUpload(e.target.files)}
+            />
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded"
-                title={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-              <h1 className="text-2xl font-semibold text-neutral-900">
-                Media Library
-              </h1>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowCreateFolder(true)}
-                className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50"
-              >
-                New Folder
-              </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadMutation.isPending}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              >
-                {uploadMutation.isPending ? "Uploading..." : "Upload"}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => e.target.files && handleUpload(e.target.files)}
-              />
-            </div>
-          </div>
-
-          {selectedItems.size > 0 && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-blue-800">
-                  {selectedItems.size} item(s) selected
-                </span>
-                <button
-                  onClick={handleSelectAll}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                  {selectedItems.size ===
-                  items.filter((i) => i.type === "file").length
-                    ? "Deselect All"
-                    : "Select All"}
-                </button>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleDownload}
-                  disabled={downloading}
-                  className="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50 disabled:opacity-50"
-                >
-                  {downloading ? "Downloading..." : "Download"}
-                </button>
-                <button
-                  onClick={openMoveDialog}
-                  className="px-3 py-1.5 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50"
-                >
-                  Move
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => setSelectedItems(new Set())}
-                  className="px-3 py-1.5 text-sm font-medium text-neutral-500 hover:text-neutral-700"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-
-          <nav className="flex items-center gap-2 mb-4 text-sm">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="h-10 flex items-stretch border-b border-neutral-200">
+          {tabs.map((tab) => (
             <button
-              onClick={() => navigateToFolder("")}
-              className="text-blue-600 hover:text-blue-800"
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn([
+                "px-4 text-sm font-medium transition-colors",
+                "border-r border-neutral-200",
+                activeTab === tab.id
+                  ? "bg-neutral-100 text-neutral-900"
+                  : "bg-white text-neutral-600 hover:bg-neutral-50",
+              ])}
             >
-              images
+              {tab.label}
             </button>
-            {breadcrumbs.map((crumb, index) => (
-              <span key={index} className="flex items-center gap-2">
-                <span className="text-neutral-400">/</span>
-                <button
-                  onClick={() =>
-                    navigateToFolder(breadcrumbs.slice(0, index + 1).join("/"))
-                  }
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  {crumb}
-                </button>
+          ))}
+          <div className="flex-1" />
+          {selectedItems.size > 0 && (
+            <div className="flex items-center gap-2 px-3">
+              <span className="text-sm text-neutral-600">
+                {selectedItems.size} selected
               </span>
-            ))}
-          </nav>
-
-          {showCreateFolder && (
-            <div className="mb-4 p-4 bg-white rounded-lg border border-neutral-200">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  placeholder="Folder name"
-                  className="flex-1 px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
-                />
-                <button
-                  onClick={handleCreateFolder}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                >
-                  Create
-                </button>
-                <button
-                  onClick={() => {
-                    setShowCreateFolder(false);
-                    setNewFolderName("");
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-
-          {errorMessage && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-              {errorMessage}
               <button
-                onClick={clearErrors}
-                className="ml-2 text-red-500 hover:text-red-700"
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+                className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded"
               >
-                Dismiss
-              </button>
-            </div>
-          )}
-
-          <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            className={`bg-white rounded-lg border-2 ${
-              dragOver
-                ? "border-blue-500 border-dashed bg-blue-50"
-                : "border-neutral-200"
-            } min-h-[400px] transition-colors`}
-          >
-            {itemsQuery.isLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-neutral-500">Loading...</div>
-              </div>
-            ) : filteredItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
-                {hasActiveFilters ? (
-                  <>
-                    <p>No files match your filters</p>
-                    <button
-                      onClick={clearFilters}
-                      className="text-sm mt-2 text-blue-600 hover:text-blue-800"
-                    >
-                      Clear filters
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p>No files in this folder</p>
-                    <p className="text-sm mt-2">
-                      Drag and drop files here or click Upload
-                    </p>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4">
-                {filteredItems.map((item) => (
-                  <div
-                    key={item.path}
-                    className={`relative group cursor-pointer rounded-lg border ${
-                      selectedItems.has(item.path)
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-neutral-200 hover:border-neutral-300"
-                    } p-2`}
-                    onClick={() =>
-                      item.type === "dir"
-                        ? navigateToFolder(
-                            currentPath
-                              ? `${currentPath}/${item.name}`
-                              : item.name,
-                          )
-                        : toggleSelection(item.path)
-                    }
-                    onContextMenu={(e) => handleContextMenu(e, item)}
-                  >
-                    {item.type === "dir" ? (
-                      <div className="aspect-square flex items-center justify-center bg-neutral-100 rounded">
-                        <svg
-                          className="w-12 h-12 text-neutral-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                        </svg>
-                      </div>
-                    ) : (
-                      <div className="aspect-square bg-neutral-100 rounded overflow-hidden">
-                        {item.downloadUrl && (
-                          <img
-                            src={item.downloadUrl}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        )}
-                      </div>
-                    )}
-                    <div className="mt-2">
-                      <p
-                        className="text-xs text-neutral-700 truncate"
-                        title={item.name}
-                      >
-                        {item.name}
-                      </p>
-                      {item.type === "file" && (
-                        <p className="text-xs text-neutral-400">
-                          {formatFileSize(item.size)}
-                        </p>
-                      )}
-                    </div>
-                    {item.type === "file" && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyToClipboard(item.publicPath);
-                        }}
-                        className="absolute top-1 right-1 p-1 bg-white rounded shadow opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Copy path"
-                      >
-                        <svg
-                          className="w-4 h-4 text-neutral-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {showMoveDialog && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                <h2 className="text-lg font-semibold text-neutral-900 mb-4">
-                  Move {selectedItems.size} item(s)
-                </h2>
-                <p className="text-sm text-neutral-600 mb-4">
-                  Select destination folder:
-                </p>
-                <select
-                  value={moveDestination}
-                  onChange={(e) => setMoveDestination(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-                >
-                  {folderOptions.map((folder) => (
-                    <option key={folder.path} value={folder.path}>
-                      {"  ".repeat(folder.depth)}
-                      {folder.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => setShowMoveDialog(false)}
-                    className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleMove}
-                    disabled={moveMutation.isPending}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {moveMutation.isPending ? "Moving..." : "Move"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {contextMenu && (
-            <div
-              className="fixed bg-white rounded-lg shadow-xl border border-neutral-200 py-1 z-50 min-w-[160px]"
-              style={{ left: contextMenu.x, top: contextMenu.y }}
-            >
-              {contextMenu.item.type === "file" && (
-                <>
-                  <button
-                    onClick={() => handleContextDownload(contextMenu.item)}
-                    className="w-full px-4 py-2 text-sm text-left text-neutral-700 hover:bg-neutral-100 flex items-center gap-2"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                    Download
-                  </button>
-                  <button
-                    onClick={() => handleContextCopyPath(contextMenu.item)}
-                    className="w-full px-4 py-2 text-sm text-left text-neutral-700 hover:bg-neutral-100 flex items-center gap-2"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                    Copy Path
-                  </button>
-                  <button
-                    onClick={() => handleContextCopyImage(contextMenu.item)}
-                    className="w-full px-4 py-2 text-sm text-left text-neutral-700 hover:bg-neutral-100 flex items-center gap-2"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    Copy as PNG
-                  </button>
-                  <div className="border-t border-neutral-200 my-1" />
-                </>
-              )}
-              <button
-                onClick={() => openRenameDialog(contextMenu.item)}
-                className="w-full px-4 py-2 text-sm text-left text-neutral-700 hover:bg-neutral-100 flex items-center gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-                Rename
-              </button>
-              <button
-                onClick={() => openContextMoveDialog(contextMenu.item)}
-                className="w-full px-4 py-2 text-sm text-left text-neutral-700 hover:bg-neutral-100 flex items-center gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                  />
-                </svg>
-                Move
-              </button>
-              <div className="border-t border-neutral-200 my-1" />
-              <button
-                onClick={() => handleContextDelete(contextMenu.item)}
-                className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
                 Delete
               </button>
+              <button
+                onClick={() => setSelectedItems(new Set())}
+                className="px-2 py-1 text-xs text-neutral-500 hover:bg-neutral-100 rounded"
+              >
+                Clear
+              </button>
             </div>
           )}
+        </div>
 
-          {showRenameDialog && renameItem && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                <h2 className="text-lg font-semibold text-neutral-900 mb-4">
-                  Rename "{renameItem.name}"
-                </h2>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    New name
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="text"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      onKeyDown={(e) => e.key === "Enter" && handleRename()}
-                      autoFocus
-                    />
-                    {renameItem.name.includes(".") && (
-                      <span className="text-neutral-500">
-                        .{renameItem.name.split(".").pop()}
-                      </span>
+        <div
+          className={cn([
+            "flex-1 overflow-y-auto p-4",
+            dragOver && "bg-blue-50",
+          ])}
+          onDrop={handleDrop}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+        >
+          {itemsQuery.isLoading ? (
+            <div className="flex items-center justify-center h-64 text-neutral-500">
+              <Icon icon="mdi:loading" className="animate-spin text-2xl mr-2" />
+              Loading...
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
+              <Icon icon="mdi:folder-open-outline" className="text-4xl mb-3" />
+              <p className="text-sm">No files found</p>
+              <p className="text-xs mt-1">
+                Drag and drop files here or select a folder and click Add
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.path}
+                  className={cn([
+                    "group relative rounded border overflow-hidden cursor-pointer transition-all",
+                    selectedItems.has(item.path)
+                      ? "border-blue-500 ring-1 ring-blue-500"
+                      : "border-neutral-200 hover:border-neutral-300",
+                  ])}
+                  onClick={() =>
+                    item.type === "dir"
+                      ? navigateToFolder(
+                          currentPath
+                            ? `${currentPath}/${item.name}`
+                            : item.name,
+                        )
+                      : toggleSelection(item.path)
+                  }
+                >
+                  <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
+                    {item.type === "dir" ? (
+                      <Icon
+                        icon="mdi:folder"
+                        className="text-3xl text-neutral-400"
+                      />
+                    ) : item.downloadUrl ? (
+                      <img
+                        src={item.downloadUrl}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Icon
+                        icon="mdi:file-outline"
+                        className="text-3xl text-neutral-400"
+                      />
                     )}
                   </div>
+
+                  <div className="p-1.5">
+                    <p
+                      className="text-xs text-neutral-700 truncate"
+                      title={item.name}
+                    >
+                      {item.name}
+                    </p>
+                    {item.type === "file" && (
+                      <p className="text-xs text-neutral-400">
+                        {formatFileSize(item.size)}
+                      </p>
+                    )}
+                  </div>
+
+                  {item.type === "file" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(item.publicPath);
+                      }}
+                      className={cn([
+                        "absolute top-1 right-1 p-1 rounded",
+                        "bg-white/90 shadow-sm",
+                        "opacity-0 group-hover:opacity-100 transition-opacity",
+                        "hover:bg-white",
+                      ])}
+                      title="Copy path"
+                    >
+                      <Icon
+                        icon="mdi:content-copy"
+                        className="text-neutral-600 text-xs"
+                      />
+                    </button>
+                  )}
+
+                  {selectedItems.has(item.path) && (
+                    <div className="absolute top-1 left-1">
+                      <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                        <Icon icon="mdi:check" className="text-white text-xs" />
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => {
-                      setShowRenameDialog(false);
-                      setRenameItem(null);
-                      setNewName("");
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleRename}
-                    disabled={renameMutation.isPending || !newName.trim()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {renameMutation.isPending ? "Renaming..." : "Rename"}
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
           )}
         </div>

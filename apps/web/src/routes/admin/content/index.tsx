@@ -39,9 +39,7 @@ async function fetchFolderContents(folderPath: string): Promise<ContentItem[]> {
     const errorText = await response.text();
     try {
       const errorData = JSON.parse(errorText);
-      throw new Error(
-        errorData.error || `Failed to fetch: ${response.status}`,
-      );
+      throw new Error(errorData.error || `Failed to fetch: ${response.status}`);
     } catch {
       throw new Error(`Failed to fetch: ${response.status}`);
     }

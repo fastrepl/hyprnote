@@ -47,7 +47,9 @@ interface ImportParams {
   slug?: string;
 }
 
-async function importFromGoogleDocs(params: ImportParams): Promise<ImportResult> {
+async function importFromGoogleDocs(
+  params: ImportParams,
+): Promise<ImportResult> {
   const response = await fetch("/api/admin/import/google-docs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -69,7 +71,9 @@ async function importFromGoogleDocs(params: ImportParams): Promise<ImportResult>
         errorData.error || `Import failed with status ${response.status}`,
       );
     } catch {
-      throw new Error(`Import failed: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Import failed: ${response.status} ${response.statusText}`,
+      );
     }
   }
 

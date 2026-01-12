@@ -78,14 +78,12 @@ pub async fn require_pro(
 
     sentry::configure_scope(|scope| {
         scope.set_user(Some(sentry::User {
-            id: Some(claims.sub.clone()),
+            id: device_fingerprint,
             email: claims.email.clone(),
+            username: Some(claims.sub.clone()),
             ..Default::default()
         }));
         scope.set_tag("user.id", &claims.sub);
-        if let Some(ref fingerprint) = device_fingerprint {
-            scope.set_tag("device.fingerprint", fingerprint);
-        }
     });
 
     Ok(next.run(request).await)

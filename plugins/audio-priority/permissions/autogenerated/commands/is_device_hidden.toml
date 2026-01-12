@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-is-device-hidden"
+description = "Enables the is_device_hidden command without any pre-configured scope."
+commands.allow = ["is_device_hidden"]
+
+[[permission]]
+identifier = "deny-is-device-hidden"
+description = "Denies the is_device_hidden command without any pre-configured scope."
+commands.deny = ["is_device_hidden"]

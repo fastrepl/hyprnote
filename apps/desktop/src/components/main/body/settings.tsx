@@ -4,6 +4,7 @@ import {
   HardDriveIcon,
   LanguagesIcon,
   LockIcon,
+  MicIcon,
   SettingsIcon,
   SmartphoneIcon,
 } from "lucide-react";
@@ -64,6 +65,7 @@ type SettingsSection =
   | "language"
   | "notifications"
   | "permissions"
+  | "audio"
   | "data"
   | "lab";
 
@@ -76,6 +78,7 @@ const SECTIONS: {
   { id: "language", label: "Language", icon: LanguagesIcon },
   { id: "notifications", label: "Notifications", icon: BellIcon },
   { id: "permissions", label: "Permissions", icon: LockIcon },
+  { id: "audio", label: "Audio", icon: MicIcon },
   { id: "data", label: "Data", icon: HardDriveIcon },
   { id: "lab", label: "Lab", icon: FlaskConical },
 ];
@@ -102,6 +105,9 @@ function SettingsView() {
       },
       permissions: (el: HTMLDivElement | null) => {
         sectionRefs.current.set("permissions", el);
+      },
+      audio: (el: HTMLDivElement | null) => {
+        sectionRefs.current.set("audio", el);
       },
       data: (el: HTMLDivElement | null) => {
         sectionRefs.current.set("data", el);
@@ -223,6 +229,7 @@ function SettingsView() {
             languageRef={refCallbacks.language}
             notificationsRef={refCallbacks.notifications}
             permissionsRef={refCallbacks.permissions}
+            audioRef={refCallbacks.audio}
             activeSection={activeSection}
           />
 

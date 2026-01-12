@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-speaker-priorities"
+description = "Enables the get_speaker_priorities command without any pre-configured scope."
+commands.allow = ["get_speaker_priorities"]
+
+[[permission]]
+identifier = "deny-get-speaker-priorities"
+description = "Denies the get_speaker_priorities command without any pre-configured scope."
+commands.deny = ["get_speaker_priorities"]

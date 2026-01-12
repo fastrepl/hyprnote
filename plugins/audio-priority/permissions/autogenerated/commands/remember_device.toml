@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-remember-device"
+description = "Enables the remember_device command without any pre-configured scope."
+commands.allow = ["remember_device"]
+
+[[permission]]
+identifier = "deny-remember-device"
+description = "Denies the remember_device command without any pre-configured scope."
+commands.deny = ["remember_device"]

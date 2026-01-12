@@ -18,7 +18,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::ping::<tauri::Wry>,
             commands::list_devices::<tauri::Wry>,
             commands::list_input_devices::<tauri::Wry>,
             commands::list_output_devices::<tauri::Wry>,

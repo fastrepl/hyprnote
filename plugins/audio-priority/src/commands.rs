@@ -5,12 +5,6 @@ use hypr_audio_priority::{
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn ping<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
-    app.audio_priority().ping().map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
 pub(crate) async fn list_devices<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<AudioDevice>, String> {

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-known-devices"
+description = "Enables the get_known_devices command without any pre-configured scope."
+commands.allow = ["get_known_devices"]
+
+[[permission]]
+identifier = "deny-get-known-devices"
+description = "Denies the get_known_devices command without any pre-configured scope."
+commands.deny = ["get_known_devices"]

@@ -295,22 +295,358 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the forget_device command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
+          "const": "allow-forget-device",
+          "markdownDescription": "Enables the forget_device command without any pre-configured scope."
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the forget_device command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
+          "const": "deny-forget-device",
+          "markdownDescription": "Denies the forget_device command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",
+          "description": "Enables the get_current_mode command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-current-mode",
+          "markdownDescription": "Enables the get_current_mode command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_current_mode command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-current-mode",
+          "markdownDescription": "Denies the get_current_mode command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_default_input_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-default-input-device",
+          "markdownDescription": "Enables the get_default_input_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_default_input_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-default-input-device",
+          "markdownDescription": "Denies the get_default_input_device command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_default_output_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-default-output-device",
+          "markdownDescription": "Enables the get_default_output_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_default_output_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-default-output-device",
+          "markdownDescription": "Denies the get_default_output_device command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_device_category command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-device-category",
+          "markdownDescription": "Enables the get_device_category command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_device_category command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-device-category",
+          "markdownDescription": "Denies the get_device_category command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_headphone_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-headphone-priorities",
+          "markdownDescription": "Enables the get_headphone_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_headphone_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-headphone-priorities",
+          "markdownDescription": "Denies the get_headphone_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_input_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-input-priorities",
+          "markdownDescription": "Enables the get_input_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_input_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-input-priorities",
+          "markdownDescription": "Denies the get_input_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_known_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-known-devices",
+          "markdownDescription": "Enables the get_known_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_known_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-known-devices",
+          "markdownDescription": "Denies the get_known_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_speaker_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-speaker-priorities",
+          "markdownDescription": "Enables the get_speaker_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_speaker_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-speaker-priorities",
+          "markdownDescription": "Denies the get_speaker_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the hide_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-hide-device",
+          "markdownDescription": "Enables the hide_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the hide_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-hide-device",
+          "markdownDescription": "Denies the hide_device command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the is_custom_mode command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-custom-mode",
+          "markdownDescription": "Enables the is_custom_mode command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the is_custom_mode command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-custom-mode",
+          "markdownDescription": "Denies the is_custom_mode command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the is_device_hidden command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-device-hidden",
+          "markdownDescription": "Enables the is_device_hidden command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the is_device_hidden command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-device-hidden",
+          "markdownDescription": "Denies the is_device_hidden command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the is_headphone command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-headphone",
+          "markdownDescription": "Enables the is_headphone command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the is_headphone command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-headphone",
+          "markdownDescription": "Denies the is_headphone command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-devices",
+          "markdownDescription": "Enables the list_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-devices",
+          "markdownDescription": "Denies the list_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_input_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-input-devices",
+          "markdownDescription": "Enables the list_input_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_input_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-input-devices",
+          "markdownDescription": "Denies the list_input_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_output_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-output-devices",
+          "markdownDescription": "Enables the list_output_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_output_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-output-devices",
+          "markdownDescription": "Denies the list_output_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the load_state command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-load-state",
+          "markdownDescription": "Enables the load_state command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the load_state command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-load-state",
+          "markdownDescription": "Denies the load_state command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the move_device_to_top command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-move-device-to-top",
+          "markdownDescription": "Enables the move_device_to_top command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the move_device_to_top command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-move-device-to-top",
+          "markdownDescription": "Denies the move_device_to_top command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the remember_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-remember-device",
+          "markdownDescription": "Enables the remember_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the remember_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-remember-device",
+          "markdownDescription": "Denies the remember_device command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the save_headphone_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-save-headphone-priorities",
+          "markdownDescription": "Enables the save_headphone_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the save_headphone_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-save-headphone-priorities",
+          "markdownDescription": "Denies the save_headphone_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the save_input_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-save-input-priorities",
+          "markdownDescription": "Enables the save_input_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the save_input_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-save-input-priorities",
+          "markdownDescription": "Denies the save_input_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the save_speaker_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-save-speaker-priorities",
+          "markdownDescription": "Enables the save_speaker_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the save_speaker_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-save-speaker-priorities",
+          "markdownDescription": "Denies the save_speaker_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the save_state command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-save-state",
+          "markdownDescription": "Enables the save_state command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the save_state command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-save-state",
+          "markdownDescription": "Denies the save_state command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_current_mode command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-current-mode",
+          "markdownDescription": "Enables the set_current_mode command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_current_mode command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-current-mode",
+          "markdownDescription": "Denies the set_current_mode command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_custom_mode command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-custom-mode",
+          "markdownDescription": "Enables the set_custom_mode command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_custom_mode command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-custom-mode",
+          "markdownDescription": "Denies the set_custom_mode command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_default_input_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-default-input-device",
+          "markdownDescription": "Enables the set_default_input_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_default_input_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-default-input-device",
+          "markdownDescription": "Denies the set_default_input_device command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_default_output_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-default-output-device",
+          "markdownDescription": "Enables the set_default_output_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_default_output_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-default-output-device",
+          "markdownDescription": "Denies the set_default_output_device command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_device_category command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-device-category",
+          "markdownDescription": "Enables the set_device_category command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_device_category command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-device-category",
+          "markdownDescription": "Denies the set_device_category command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the unhide_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-unhide-device",
+          "markdownDescription": "Enables the unhide_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the unhide_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-unhide-device",
+          "markdownDescription": "Denies the unhide_device command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-devices`\n- `allow-list-input-devices`\n- `allow-list-output-devices`\n- `allow-get-default-input-device`\n- `allow-get-default-output-device`\n- `allow-set-default-input-device`\n- `allow-set-default-output-device`\n- `allow-is-headphone`\n- `allow-load-state`\n- `allow-save-state`\n- `allow-get-input-priorities`\n- `allow-get-speaker-priorities`\n- `allow-get-headphone-priorities`\n- `allow-save-input-priorities`\n- `allow-save-speaker-priorities`\n- `allow-save-headphone-priorities`\n- `allow-move-device-to-top`\n- `allow-get-device-category`\n- `allow-set-device-category`\n- `allow-get-current-mode`\n- `allow-set-current-mode`\n- `allow-is-custom-mode`\n- `allow-set-custom-mode`\n- `allow-get-known-devices`\n- `allow-remember-device`\n- `allow-forget-device`\n- `allow-is-device-hidden`\n- `allow-hide-device`\n- `allow-unhide-device`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-devices`\n- `allow-list-input-devices`\n- `allow-list-output-devices`\n- `allow-get-default-input-device`\n- `allow-get-default-output-device`\n- `allow-set-default-input-device`\n- `allow-set-default-output-device`\n- `allow-is-headphone`\n- `allow-load-state`\n- `allow-save-state`\n- `allow-get-input-priorities`\n- `allow-get-speaker-priorities`\n- `allow-get-headphone-priorities`\n- `allow-save-input-priorities`\n- `allow-save-speaker-priorities`\n- `allow-save-headphone-priorities`\n- `allow-move-device-to-top`\n- `allow-get-device-category`\n- `allow-set-device-category`\n- `allow-get-current-mode`\n- `allow-set-current-mode`\n- `allow-is-custom-mode`\n- `allow-set-custom-mode`\n- `allow-get-known-devices`\n- `allow-remember-device`\n- `allow-forget-device`\n- `allow-is-device-hidden`\n- `allow-hide-device`\n- `allow-unhide-device`"
         }
       ]
     }

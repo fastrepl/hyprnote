@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-device-category"
+description = "Enables the set_device_category command without any pre-configured scope."
+commands.allow = ["set_device_category"]
+
+[[permission]]
+identifier = "deny-set-device-category"
+description = "Denies the set_device_category command without any pre-configured scope."
+commands.deny = ["set_device_category"]

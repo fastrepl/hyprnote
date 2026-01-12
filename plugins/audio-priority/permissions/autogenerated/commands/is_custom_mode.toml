@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-is-custom-mode"
+description = "Enables the is_custom_mode command without any pre-configured scope."
+commands.allow = ["is_custom_mode"]
+
+[[permission]]
+identifier = "deny-is-custom-mode"
+description = "Denies the is_custom_mode command without any pre-configured scope."
+commands.deny = ["is_custom_mode"]

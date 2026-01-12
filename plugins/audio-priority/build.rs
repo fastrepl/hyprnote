@@ -1,4 +1,34 @@
-const COMMANDS: &[&str] = &["ping"];
+const COMMANDS: &[&str] = &[
+    "list_devices",
+    "list_input_devices",
+    "list_output_devices",
+    "get_default_input_device",
+    "get_default_output_device",
+    "set_default_input_device",
+    "set_default_output_device",
+    "is_headphone",
+    "load_state",
+    "save_state",
+    "get_input_priorities",
+    "get_speaker_priorities",
+    "get_headphone_priorities",
+    "save_input_priorities",
+    "save_speaker_priorities",
+    "save_headphone_priorities",
+    "move_device_to_top",
+    "get_device_category",
+    "set_device_category",
+    "get_current_mode",
+    "set_current_mode",
+    "is_custom_mode",
+    "set_custom_mode",
+    "get_known_devices",
+    "remember_device",
+    "forget_device",
+    "is_device_hidden",
+    "hide_device",
+    "unhide_device",
+];
 
 fn main() {
     tauri_plugin::Builder::new(COMMANDS).build();

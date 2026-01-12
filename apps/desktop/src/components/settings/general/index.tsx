@@ -9,6 +9,7 @@ import { useConfigValues } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/store/settings";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
+import { Audio } from "./audio";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
@@ -19,6 +20,7 @@ type SettingsSection =
   | "language"
   | "notifications"
   | "permissions"
+  | "audio"
   | "data"
   | "lab";
 
@@ -27,11 +29,13 @@ export function SettingsGeneral({
   languageRef,
   notificationsRef,
   permissionsRef,
+  audioRef,
 }: {
   appRef?: React.Ref<HTMLDivElement>;
   languageRef?: React.Ref<HTMLDivElement>;
   notificationsRef?: React.Ref<HTMLDivElement>;
   permissionsRef?: React.Ref<HTMLDivElement>;
+  audioRef?: React.Ref<HTMLDivElement>;
   activeSection?: SettingsSection;
 } = {}) {
   const value = useConfigValues([
@@ -190,6 +194,10 @@ export function SettingsGeneral({
 
       <div ref={permissionsRef}>
         <Permissions />
+      </div>
+
+      <div ref={audioRef}>
+        <Audio />
       </div>
     </div>
   );

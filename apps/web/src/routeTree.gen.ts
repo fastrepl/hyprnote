@@ -42,7 +42,7 @@ import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/com
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as AdminMediaIndexRouteImport } from './routes/admin/media/index'
 import { Route as AdminImportIndexRouteImport } from './routes/admin/import/index'
-import { Route as AdminContentIndexRouteImport } from './routes/admin/content/index'
+import { Route as AdminCollectionsIndexRouteImport } from './routes/admin/collections/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
 import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts/index'
 import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
@@ -280,9 +280,9 @@ const AdminImportIndexRoute = AdminImportIndexRouteImport.update({
   path: '/import/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const AdminContentIndexRoute = AdminContentIndexRouteImport.update({
-  id: '/content/',
-  path: '/content/',
+const AdminCollectionsIndexRoute = AdminCollectionsIndexRouteImport.update({
+  id: '/collections/',
+  path: '/collections/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const ViewTemplatesIndexRoute = ViewTemplatesIndexRouteImport.update({
@@ -744,7 +744,7 @@ export interface FileRoutesByFullPath {
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
-  '/admin/content': typeof AdminContentIndexRoute
+  '/admin/collections': typeof AdminCollectionsIndexRoute
   '/admin/import': typeof AdminImportIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
@@ -846,7 +846,7 @@ export interface FileRoutesByTo {
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
-  '/admin/content': typeof AdminContentIndexRoute
+  '/admin/collections': typeof AdminCollectionsIndexRoute
   '/admin/import': typeof AdminImportIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
@@ -954,7 +954,7 @@ export interface FileRoutesById {
   '/_view/roadmap/': typeof ViewRoadmapIndexRoute
   '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
-  '/admin/content/': typeof AdminContentIndexRoute
+  '/admin/collections/': typeof AdminCollectionsIndexRoute
   '/admin/import/': typeof AdminImportIndexRoute
   '/admin/media/': typeof AdminMediaIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
@@ -1062,7 +1062,7 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
-    | '/admin/content'
+    | '/admin/collections'
     | '/admin/import'
     | '/admin/media'
     | '/gallery/$type/$slug'
@@ -1164,7 +1164,7 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
-    | '/admin/content'
+    | '/admin/collections'
     | '/admin/import'
     | '/admin/media'
     | '/gallery/$type/$slug'
@@ -1271,7 +1271,7 @@ export interface FileRouteTypes {
     | '/_view/roadmap/'
     | '/_view/shortcuts/'
     | '/_view/templates/'
-    | '/admin/content/'
+    | '/admin/collections/'
     | '/admin/import/'
     | '/admin/media/'
     | '/_view/gallery/$type/$slug'
@@ -1548,11 +1548,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImportIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
-    '/admin/content/': {
-      id: '/admin/content/'
-      path: '/content'
-      fullPath: '/admin/content'
-      preLoaderRoute: typeof AdminContentIndexRouteImport
+    '/admin/collections/': {
+      id: '/admin/collections/'
+      path: '/collections'
+      fullPath: '/admin/collections'
+      preLoaderRoute: typeof AdminCollectionsIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/_view/templates/': {
@@ -2249,14 +2249,14 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
 
 interface AdminRouteRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
-  AdminContentIndexRoute: typeof AdminContentIndexRoute
+  AdminCollectionsIndexRoute: typeof AdminCollectionsIndexRoute
   AdminImportIndexRoute: typeof AdminImportIndexRoute
   AdminMediaIndexRoute: typeof AdminMediaIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
-  AdminContentIndexRoute: AdminContentIndexRoute,
+  AdminCollectionsIndexRoute: AdminCollectionsIndexRoute,
   AdminImportIndexRoute: AdminImportIndexRoute,
   AdminMediaIndexRoute: AdminMediaIndexRoute,
 }

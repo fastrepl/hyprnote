@@ -269,7 +269,12 @@ const copyToClipboard = async (text: string) => {
             multiple
             accept="image/*,video/*"
             className="hidden"
-            onChange={(e) => e.target.files && handleUpload(e.target.files)}
+            onChange={(e) => {
+              if (e.target.files) {
+                handleUpload(e.target.files);
+                e.target.value = ''; // Clear the input
+              }
+            }}
           />
         </div>
       </div>

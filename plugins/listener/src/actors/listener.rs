@@ -88,23 +88,25 @@ impl Actor for ListenerActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
+        let session_id = args.session_id.clone();
+
         if let Err(error) = (SessionProgressEvent::Connecting {
-            session_id: args.session_id.clone(),
+            session_id: session_id.clone(),
         })
         .emit(&args.app)
         {
-            tracing::error!(?error, "failed_to_emit_connecting");
+            tracing::error!(session_id = %session_id, ?error, "failed_to_emit_connecting");
         }
 
         let (tx, rx_task, shutdown_tx, adapter_name) = spawn_rx_task(args.clone(), myself).await?;
 
         if let Err(error) = (SessionProgressEvent::Connected {
-            session_id: args.session_id.clone(),
+            session_id: session_id.clone(),
             adapter: adapter_name,
         })
         .emit(&args.app)
         {
-            tracing::error!(?error, "failed_to_emit_connected");
+            tracing::error!(session_id = %session_id, ?error, "failed_to_emit_connected");
         }
 
         let state = ListenerState {
@@ -156,6 +158,7 @@ impl Actor for ListenerActor {
                 } = &response
                 {
                     tracing::error!(
+                        session_id = %state.args.session_id,
                         ?error_code,
                         %error_message,
                         %provider,
@@ -193,22 +196,22 @@ impl Actor for ListenerActor {
                 })
                 .emit(&state.args.app)
                 {
-                    tracing::error!(?error, "stream_response_emit_failed");
+                    tracing::error!(session_id = %state.args.session_id, ?error, "stream_response_emit_failed");
                 }
             }
 
             ListenerMsg::StreamError(error) => {
-                tracing::info!("listen_stream_error: {}", error);
+                tracing::info!(session_id = %state.args.session_id, "listen_stream_error: {}", error);
                 myself.stop(None);
             }
 
             ListenerMsg::StreamEnded => {
-                tracing::info!("listen_stream_ended");
+                tracing::info!(session_id = %state.args.session_id, "listen_stream_ended");
                 myself.stop(None);
             }
 
             ListenerMsg::StreamTimeout(elapsed) => {
-                tracing::info!("listen_stream_timeout: {}", elapsed);
+                tracing::info!(session_id = %state.args.session_id, "listen_stream_timeout: {}", elapsed);
                 myself.stop(None);
             }
         }
@@ -219,9 +222,9 @@ impl Actor for ListenerActor {
         &self,
         myself: ActorRef<Self::Msg>,
         message: SupervisionEvent,
-        _state: &mut Self::State,
+        state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        tracing::info!("supervisor_event: {:?}", message);
+        tracing::info!(session_id = %state.args.session_id, "supervisor_event: {:?}", message);
 
         match message {
             SupervisionEvent::ActorStarted(_) | SupervisionEvent::ProcessGroupChanged(_) => {}
@@ -370,6 +373,7 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
     let (listen_stream, handle) = match connect_result {
         Err(_elapsed) => {
             tracing::error!(
+                session_id = %args.session_id,
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
                 "listen_ws_connect_timeout(single)"
             );
@@ -381,7 +385,7 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
-            tracing::error!(error = ?e, "listen_ws_connect_failed(single)");
+            tracing::error!(session_id = %args.session_id, error = ?e, "listen_ws_connect_failed(single)");
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),
@@ -440,6 +444,7 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
     let (listen_stream, handle) = match connect_result {
         Err(_elapsed) => {
             tracing::error!(
+                session_id = %args.session_id,
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
                 "listen_ws_connect_timeout(dual)"
             );
@@ -451,7 +456,7 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
-            tracing::error!(error = ?e, "listen_ws_connect_failed(dual)");
+            tracing::error!(session_id = %args.session_id, error = ?e, "listen_ws_connect_failed(dual)");
             let _ = (SessionErrorEvent::ConnectionError {
                 session_id: args.session_id.clone(),
                 error: format!("listen_ws_connect_failed: {:?}", e),

@@ -172,10 +172,10 @@ async fn run_batch_with_adapter<A: BatchSttAdapter>(
         .params(listen_params)
         .build();
 
-    tracing::debug!("transcribing file: {}", params.file_path);
+    tracing::debug!(session_id = %params.session_id, "transcribing file: {}", params.file_path);
     let response = client.transcribe_file(&params.file_path).await?;
 
-    tracing::info!("batch transcription completed");
+    tracing::info!(session_id = %params.session_id, "batch transcription completed");
 
     BatchEvent::BatchResponse {
         session_id: params.session_id.clone(),
@@ -209,7 +209,7 @@ async fn run_batch_am(
 
     match spawn_batch_actor(args).await {
         Ok(_) => {
-            tracing::info!("batch actor spawned successfully");
+            tracing::info!(session_id = %params.session_id, "batch actor spawned successfully");
             BatchEvent::BatchStarted {
                 session_id: params.session_id.clone(),
             }
@@ -217,7 +217,7 @@ async fn run_batch_am(
             .unwrap();
         }
         Err(e) => {
-            tracing::error!("batch supervisor spawn failed: {:?}", e);
+            tracing::error!(session_id = %params.session_id, "batch supervisor spawn failed: {:?}", e);
             if let Ok(mut notifier) = start_notifier.lock()
                 && let Some(tx) = notifier.take()
             {
@@ -230,11 +230,11 @@ async fn run_batch_am(
     match start_rx.await {
         Ok(Ok(())) => Ok(()),
         Ok(Err(error)) => {
-            tracing::error!("batch actor reported start failure: {}", error);
+            tracing::error!(session_id = %params.session_id, "batch actor reported start failure: {}", error);
             Err(crate::Error::BatchStartFailed(error))
         }
         Err(_) => {
-            tracing::error!("batch actor start notifier dropped before reporting result");
+            tracing::error!(session_id = %params.session_id, "batch actor start notifier dropped before reporting result");
             Err(crate::Error::BatchStartFailed(
                 "batch stream start cancelled unexpectedly".to_string(),
             ))

@@ -102,12 +102,14 @@ impl Actor for SourceActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
+        let session_id = args.session_id.clone();
+
         if let Err(error) = (SessionProgressEvent::AudioInitializing {
-            session_id: args.session_id.clone(),
+            session_id: session_id.clone(),
         })
         .emit(&args.app)
         {
-            tracing::error!(?error, "failed_to_emit_audio_initializing");
+            tracing::error!(session_id = %session_id, ?error, "failed_to_emit_audio_initializing");
         }
 
         let device_watcher = DeviceChangeWatcher::spawn(myself.clone());
@@ -116,7 +118,7 @@ impl Actor for SourceActor {
         let mic_device = args
             .mic_device
             .or_else(|| Some(AudioInput::get_default_device_name()));
-        tracing::info!(mic_device = ?mic_device);
+        tracing::info!(session_id = %session_id, mic_device = ?mic_device);
 
         let pipeline = Pipeline::new(args.app.clone(), args.session_id.clone());
 
@@ -167,7 +169,7 @@ impl Actor for SourceActor {
                 st.pipeline.flush(st.current_mode);
             }
             SourceMsg::StreamFailed(reason) => {
-                tracing::error!(%reason, "source_stream_failed_stopping");
+                tracing::error!(session_id = %st.session_id, %reason, "source_stream_failed_stopping");
                 let _ = (SessionErrorEvent::AudioError {
                     session_id: st.session_id.clone(),
                     error: reason.clone(),

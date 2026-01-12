@@ -5,6 +5,7 @@ import {
   type DeletionMarkerStore,
   type TableConfigEntry,
 } from "../shared/deletion-marker";
+import type { LoadResult } from "../shared/load-result";
 import { getDataDir } from "../shared/paths";
 import type { ChangedTables, SaveResult, TablesContent } from "../shared/types";
 import { toContent, toPersistedChanges } from "../shared/utils";
@@ -24,8 +25,11 @@ export type MultiTableDirConfig<
   entityParser: (path: string) => string | null;
   tables: TableConfigEntry<Schemas, TLoadedData>[];
   cleanup: (tables: TablesContent) => OrphanCleanupConfig[];
-  loadAll: (dataDir: string) => Promise<TLoadedData>;
-  loadSingle: (dataDir: string, entityId: string) => Promise<TLoadedData>;
+  loadAll: (dataDir: string) => Promise<LoadResult<TLoadedData>>;
+  loadSingle: (
+    dataDir: string,
+    entityId: string,
+  ) => Promise<LoadResult<TLoadedData>>;
   save: (
     store: MergeableStore<Schemas>,
     tables: TablesContent,
@@ -73,8 +77,17 @@ export function createMultiTableDirPersister<
     loadSingle: async (entityId: string) => {
       try {
         const dataDir = await getDataDir();
-        const data = await loadSingle(dataDir, entityId);
-        const result = deletionMarker.markForEntity(data, entityId);
+        const loadResult = await loadSingle(dataDir, entityId);
+
+        if (loadResult.status === "error") {
+          console.error(
+            `[${label}] loadSingle error for ${entityId}:`,
+            loadResult.error,
+          );
+          return undefined;
+        }
+
+        const result = deletionMarker.markForEntity(loadResult.data, entityId);
 
         if (!hasChanges(result, tableNames)) {
           return undefined;
@@ -90,8 +103,14 @@ export function createMultiTableDirPersister<
     load: async () => {
       try {
         const dataDir = await getDataDir();
-        const data = await loadAll(dataDir);
-        const result = deletionMarker.markAll(data);
+        const loadResult = await loadAll(dataDir);
+
+        if (loadResult.status === "error") {
+          console.error(`[${label}] load error:`, loadResult.error);
+          return undefined;
+        }
+
+        const result = deletionMarker.markAll(loadResult.data);
 
         if (!hasChanges(result, tableNames)) {
           return undefined;

@@ -30,6 +30,9 @@ import {
 } from "../shared/types";
 import { extractChangedTables } from "../shared/utils";
 
+const CLEANUP_SAFEGUARD_MIN_DISK_COUNT = 5;
+const CLEANUP_SAFEGUARD_MIN_KEEP_RATIO = 0.5;
+
 type LoadSingleFn<Schemas extends OptionalSchemas> = (
   entityId: string,
 ) => Promise<
@@ -243,12 +246,65 @@ async function deleteFiles(paths: string[], label: string): Promise<void> {
   }
 }
 
+async function countItemsOnDisk(config: OrphanCleanupConfig): Promise<number> {
+  try {
+    const dataDir = await getDataDir();
+    const subdir = [dataDir, config.subdir].join("/");
+
+    if (config.type === "dirs") {
+      const result = await fsSyncCommands.scanAndRead(
+        subdir,
+        [config.markerFile],
+        true,
+      );
+      if (result.status === "ok") {
+        return result.data.dirs.length;
+      }
+    } else if (config.type === "files") {
+      const result = await fsSyncCommands.scanAndRead(
+        subdir,
+        [`*.${config.extension}`],
+        false,
+      );
+      if (result.status === "ok") {
+        return Object.keys(result.data.files).length;
+      }
+    } else if (config.type === "filesRecursive") {
+      const result = await fsSyncCommands.scanAndRead(
+        subdir,
+        [`*.${config.extension}`],
+        true,
+      );
+      if (result.status === "ok") {
+        return Object.keys(result.data.files).length;
+      }
+    }
+  } catch {
+    // Ignore counting errors - we'll proceed with cleanup
+  }
+  return 0;
+}
+
 async function runOrphanCleanup(
   configs: OrphanCleanupConfig[],
   label: string,
 ): Promise<void> {
   for (const config of configs) {
     if (config.keepIds.length === 0) {
+      continue;
+    }
+
+    const diskCount = await countItemsOnDisk(config);
+    const keepRatio = config.keepIds.length / Math.max(diskCount, 1);
+
+    if (
+      diskCount > CLEANUP_SAFEGUARD_MIN_DISK_COUNT &&
+      keepRatio < CLEANUP_SAFEGUARD_MIN_KEEP_RATIO
+    ) {
+      console.warn(
+        `[${label}] Skipping ${config.type} cleanup: keeping ${config.keepIds.length}/${diskCount} ` +
+          `(${(keepRatio * 100).toFixed(0)}%) - possible load failure`,
+      );
       continue;
     }
 

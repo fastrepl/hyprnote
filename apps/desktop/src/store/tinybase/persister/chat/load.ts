@@ -3,7 +3,14 @@ import { readTextFile } from "@tauri-apps/plugin-fs";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
-import { CHAT_MESSAGES_FILE, isFileNotFoundError } from "../shared";
+import {
+  CHAT_MESSAGES_FILE,
+  err,
+  isDirectoryNotFoundError,
+  isFileNotFoundError,
+  type LoadResult,
+  ok,
+} from "../shared";
 import type { ChatJson, LoadedChatData } from "./types";
 
 export type { LoadedChatData } from "./types";
@@ -50,7 +57,7 @@ export function createEmptyLoadedChatData(): LoadedChatData {
 
 export async function loadAllChatGroups(
   dataDir: string,
-): Promise<LoadedChatData> {
+): Promise<LoadResult<LoadedChatData>> {
   const chatsDir = [dataDir, "chats"].join(sep());
 
   const scanResult = await fsSyncCommands.scanAndRead(
@@ -60,8 +67,11 @@ export async function loadAllChatGroups(
   );
 
   if (scanResult.status === "error") {
+    if (isDirectoryNotFoundError(scanResult.error)) {
+      return ok(createEmptyLoadedChatData());
+    }
     console.error(`[${LABEL}] scan error:`, scanResult.error);
-    return createEmptyLoadedChatData();
+    return err(scanResult.error);
   }
 
   const { files } = scanResult.data;
@@ -77,23 +87,24 @@ export async function loadAllChatGroups(
     }
   }
 
-  return mergeLoadedData(items);
+  return ok(mergeLoadedData(items));
 }
 
 export async function loadSingleChatGroup(
   dataDir: string,
   groupId: string,
-): Promise<LoadedChatData> {
+): Promise<LoadResult<LoadedChatData>> {
   const filePath = [dataDir, "chats", groupId, CHAT_MESSAGES_FILE].join(sep());
 
   try {
     const content = await readTextFile(filePath);
     const json = JSON.parse(content) as ChatJson;
-    return chatJsonToData(json);
+    return ok(chatJsonToData(json));
   } catch (error) {
-    if (!isFileNotFoundError(error)) {
-      console.error(`[${LABEL}] Failed to load chat group ${groupId}:`, error);
+    if (isFileNotFoundError(error)) {
+      return ok(createEmptyLoadedChatData());
     }
-    return createEmptyLoadedChatData();
+    console.error(`[${LABEL}] Failed to load chat group ${groupId}:`, error);
+    return err(String(error));
   }
 }

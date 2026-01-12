@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import { ok } from "../shared/load-result";
 import { createTestMainStore } from "../testing/mocks";
 import { createMultiTableDirPersister } from "./multi-table-dir";
 
@@ -43,8 +44,8 @@ describe("createMultiTableDirPersister", () => {
       entityParser: () => null,
       tables: [{ tableName: "sessions", isPrimary: true }],
       cleanup: () => [],
-      loadAll: async () => ({ sessions: {} }),
-      loadSingle: async () => ({ sessions: {} }),
+      loadAll: async () => ok({ sessions: {} }),
+      loadSingle: async () => ok({ sessions: {} }),
       save: () => ({ operations: [] }),
     });
 

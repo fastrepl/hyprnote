@@ -18,7 +18,15 @@ export function isFileNotFoundError(error: unknown): boolean {
   const errorStr = String(error);
   return (
     errorStr.includes("No such file or directory") ||
-    errorStr.includes("ENOENT") ||
-    errorStr.includes("not found")
+    errorStr.includes("ENOENT")
+  );
+}
+
+export function isDirectoryNotFoundError(error: string): boolean {
+  return (
+    error.includes("No such file or directory") ||
+    error.includes("ENOENT") ||
+    error.includes("path does not exist") ||
+    error.includes("directory not found")
   );
 }

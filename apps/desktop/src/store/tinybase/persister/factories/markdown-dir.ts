@@ -11,7 +11,8 @@ import {
   createDeletionMarker,
   type DeletionMarkerStore,
 } from "../shared/deletion-marker";
-import { isFileNotFoundError } from "../shared/fs";
+import { isDirectoryNotFoundError, isFileNotFoundError } from "../shared/fs";
+import { err, type LoadResult, ok } from "../shared/load-result";
 import {
   buildEntityFilePath,
   buildEntityPath,
@@ -45,13 +46,16 @@ type LoadedData<TStorage extends Record<string, unknown>> = {
 async function loadMarkdownDir<TStorage extends Record<string, unknown>>(
   dataDir: string,
   config: MarkdownDirPersisterConfig<TStorage>,
-): Promise<Record<string, TStorage>> {
+): Promise<LoadResult<Record<string, TStorage>>> {
   const { dirName, fromFrontmatter } = config;
   const dir = buildEntityPath(dataDir, dirName);
   const result = await fsSyncCommands.readDocumentBatch(dir);
 
   if (result.status === "error") {
-    return {};
+    if (isDirectoryNotFoundError(result.error)) {
+      return ok({});
+    }
+    return err(result.error);
   }
 
   const entities: Record<string, TStorage> = {};
@@ -63,7 +67,7 @@ async function loadMarkdownDir<TStorage extends Record<string, unknown>>(
       );
     }
   }
-  return entities;
+  return ok(entities);
 }
 
 function collectMarkdownWriteOps<TStorage extends Record<string, unknown>>(
@@ -217,9 +221,14 @@ export function createMarkdownDirPersister<
     },
     load: async () => {
       const dataDir = await getDataDir();
-      const entities = await loadMarkdownDir(dataDir, config);
+      const loadResult = await loadMarkdownDir(dataDir, config);
 
-      const loaded = { [tableName]: entities } as LoadedData<TStorage>;
+      if (loadResult.status === "error") {
+        console.error(`[${label}] load error:`, loadResult.error);
+        return undefined;
+      }
+
+      const loaded = { [tableName]: loadResult.data } as LoadedData<TStorage>;
       const result = deletionMarker.markAll(loaded);
 
       if (Object.keys(result[tableName] ?? {}).length === 0) {

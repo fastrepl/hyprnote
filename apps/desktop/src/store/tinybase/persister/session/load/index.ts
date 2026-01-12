@@ -7,6 +7,12 @@ import {
   SESSION_NOTE_EXTENSION,
   SESSION_TRANSCRIPT_FILE,
 } from "../../shared";
+import {
+  err,
+  isDirectoryNotFoundError,
+  type LoadResult,
+  ok,
+} from "../../shared";
 import { processMetaFile } from "./meta";
 import { processMdFile } from "./note";
 import { processTranscriptFile } from "./transcript";
@@ -47,7 +53,7 @@ async function processFiles(
 
 export async function loadAllSessionData(
   dataDir: string,
-): Promise<LoadedSessionData> {
+): Promise<LoadResult<LoadedSessionData>> {
   const result = createEmptyLoadedSessionData();
   const sessionsDir = [dataDir, "sessions"].join(sep());
 
@@ -58,18 +64,21 @@ export async function loadAllSessionData(
   );
 
   if (scanResult.status === "error") {
+    if (isDirectoryNotFoundError(scanResult.error)) {
+      return ok(result);
+    }
     console.error(`[${LABEL}] scan error:`, scanResult.error);
-    return result;
+    return err(scanResult.error);
   }
 
   await processFiles(scanResult.data.files, result);
-  return result;
+  return ok(result);
 }
 
 export async function loadSingleSession(
   dataDir: string,
   sessionId: string,
-): Promise<LoadedSessionData> {
+): Promise<LoadResult<LoadedSessionData>> {
   const result = createEmptyLoadedSessionData();
   const sessionDir = [dataDir, "sessions", sessionId].join(sep());
 
@@ -80,10 +89,13 @@ export async function loadSingleSession(
   );
 
   if (scanResult.status === "error") {
+    if (isDirectoryNotFoundError(scanResult.error)) {
+      return ok(result);
+    }
     console.error(`loadSingleSession scan error:`, scanResult.error);
-    return result;
+    return err(scanResult.error);
   }
 
   await processFiles(scanResult.data.files, result);
-  return result;
+  return ok(result);
 }

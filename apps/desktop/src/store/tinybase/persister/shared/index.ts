@@ -5,3 +5,4 @@ export * from "./fs";
 export * from "./utils";
 export * from "./deletion-marker";
 export * from "./listener";
+export * from "./load-result";

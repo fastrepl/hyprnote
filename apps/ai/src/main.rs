@@ -9,9 +9,12 @@ use sentry::integrations::tower::{NewSentryLayer, SentryHttpLayer};
 use tower::ServiceBuilder;
 use tower_http::trace::{DefaultOnResponse, TraceLayer};
 use tracing::Level;
+use tracing_subscriber::prelude::*;
 
 use auth::AuthState;
 use env::env;
+
+pub use auth::DEVICE_FINGERPRINT_HEADER;
 
 fn app() -> Router {
     let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key);
@@ -69,17 +72,22 @@ fn main() -> std::io::Result<()> {
             .into(),
         ),
         traces_sample_rate: 1.0,
+        sample_rate: 1.0,
         send_default_pii: true,
         auto_session_tracking: true,
         session_mode: sentry::SessionMode::Request,
+        attach_stacktrace: true,
+        max_breadcrumbs: 100,
         ..Default::default()
     });
 
-    tracing_subscriber::fmt()
-        .with_env_filter(
+    tracing_subscriber::registry()
+        .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| "info,tower_http=debug".into()),
         )
+        .with(tracing_subscriber::fmt::layer())
+        .with(sentry::integrations::tracing::layer())
         .init();
 
     env.log_configured_providers();

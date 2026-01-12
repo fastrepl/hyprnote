@@ -22,9 +22,12 @@ import {
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands } from "@hypr/plugin-auth";
+import { commands as miscCommands } from "@hypr/plugin-misc";
 
 import { env } from "./env";
 import { getScheme } from "./utils";
+
+export const DEVICE_FINGERPRINT_HEADER = "x-device-fingerprint";
 
 const isLocalAuthServer = (url: string | undefined): boolean => {
   if (!url) return false;
@@ -105,6 +108,16 @@ const AuthContext = createContext<{
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [serverReachable, setServerReachable] = useState(true);
+  const [fingerprint, setFingerprint] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isIframeContext) return;
+    miscCommands.getFingerprint().then((result) => {
+      if (result.status === "ok") {
+        setFingerprint(result.data);
+      }
+    });
+  }, []);
 
   const setSessionFromTokens = useCallback(
     async (accessToken: string, refreshToken: string) => {
@@ -308,10 +321,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return null;
     }
 
-    return {
+    const headers: Record<string, string> = {
       Authorization: `${session.token_type} ${session.access_token}`,
     };
-  }, [session]);
+
+    if (fingerprint) {
+      headers[DEVICE_FINGERPRINT_HEADER] = fingerprint;
+    }
+
+    return headers;
+  }, [session, fingerprint]);
 
   const getAvatarUrl = useCallback(async () => {
     const email = session?.user.email;

@@ -359,7 +359,7 @@ function MediaLibrary() {
             "hover:bg-neutral-100 transition-colors",
             isSelected && "bg-neutral-100",
           ])}
-          style={{ paddingLeft: `${depth * 16 + 8}px` }}
+          style={{ paddingLeft: `${depth * 16 + 16}px` }}
           onClick={async () => {
             if (isFolder) {
               selectFolder(node.path);
@@ -367,9 +367,6 @@ function MediaLibrary() {
             }
           }}
         >
-          {depth > 0 && (
-            <span className="text-neutral-300 text-xs mr-0.5">│</span>
-          )}
           {isLoading ? (
             <Icon
               icon="mdi:loading"
@@ -390,7 +387,7 @@ function MediaLibrary() {
           <span className="truncate text-neutral-700">{node.name}</span>
         </div>
         {node.expanded && node.children.length > 0 && (
-          <div>
+          <div className="ml-[22px] border-l border-neutral-200">
             {node.children.map((child) => renderTreeNode(child, depth + 1))}
           </div>
         )}

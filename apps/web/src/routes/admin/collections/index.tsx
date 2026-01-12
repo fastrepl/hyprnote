@@ -238,19 +238,15 @@ function CollectionsPage() {
                   </span>
                 </div>
                 {isExpanded && collection.items.length > 0 && (
-                  <div>
+                  <div className="ml-[22px] border-l border-neutral-200">
                     {collection.items.slice(0, 10).map((item) => (
                       <div
                         key={item.path}
                         className={cn([
-                          "flex items-center gap-1.5 py-1 pr-2 cursor-pointer text-sm",
+                          "flex items-center gap-1.5 py-1 pl-3 pr-2 cursor-pointer text-sm",
                           "hover:bg-neutral-50 transition-colors",
                         ])}
-                        style={{ paddingLeft: "24px" }}
                       >
-                        <span className="text-neutral-300 text-xs mr-0.5">
-                          │
-                        </span>
                         <Icon
                           icon="mdi:file-document-outline"
                           className="text-neutral-400 text-sm"
@@ -261,13 +257,7 @@ function CollectionsPage() {
                       </div>
                     ))}
                     {collection.items.length > 10 && (
-                      <div
-                        className="flex items-center gap-1.5 text-xs text-neutral-400 py-1"
-                        style={{ paddingLeft: "24px" }}
-                      >
-                        <span className="text-neutral-300 text-xs mr-0.5">
-                          │
-                        </span>
+                      <div className="flex items-center gap-1.5 text-xs text-neutral-400 py-1 pl-3">
                         +{collection.items.length - 10} more
                       </div>
                     )}

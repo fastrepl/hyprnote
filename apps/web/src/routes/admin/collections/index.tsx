@@ -1264,8 +1264,11 @@ function FileEditor({
     return (
       <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
         <ResizablePanel defaultSize={50} minSize={30}>
-          <div className="h-full overflow-y-auto">
-            <div key={filePath} className="border-b border-neutral-100 text-sm">
+          <div className="flex flex-col h-full">
+            <div
+              key={filePath}
+              className="shrink-0 border-b border-neutral-100 text-sm"
+            >
               <div className="flex border-b border-neutral-100">
                 <button
                   onClick={() => setIsTitleExpanded(!isTitleExpanded)}
@@ -1383,7 +1386,7 @@ function FileEditor({
                 </div>
               </div>
             </div>
-            <div className="p-6">
+            <div className="flex-1 min-h-0 overflow-y-auto p-6">
               <BlogEditor content={content} onChange={setContent} />
             </div>
           </div>
@@ -1435,8 +1438,11 @@ function FileEditor({
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <div key={filePath} className="border-b border-neutral-100 text-sm">
+      <div className="flex-1 flex flex-col min-h-0">
+        <div
+          key={filePath}
+          className="shrink-0 border-b border-neutral-100 text-sm"
+        >
           <div className="flex border-b border-neutral-100">
             <button
               onClick={() => setIsTitleExpanded(!isTitleExpanded)}
@@ -1554,7 +1560,7 @@ function FileEditor({
             </div>
           </div>
         </div>
-        <div className="p-6">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
           <BlogEditor content={content} onChange={setContent} />
         </div>
       </div>

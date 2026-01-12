@@ -35,7 +35,6 @@ export type TranscriptJson = {
 export type NoteFrontmatter = {
   id: string;
   session_id: string;
-  type: "enhanced_note" | "memo";
   template_id?: string;
   position?: number;
   title?: string;

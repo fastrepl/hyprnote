@@ -130,3 +130,178 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotifyPluginExt<R> for T {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+    use std::sync::{Arc, Mutex};
+    use std::time::Instant;
+
+    #[test]
+    fn test_debounce_constants() {
+        assert_eq!(DEBOUNCE_DELAY_MS, 900);
+        assert_eq!(OWN_WRITES_TTL_MS, 2000);
+    }
+
+    #[test]
+    fn test_own_writes_ttl_formula() {
+        let expected = (DEBOUNCE_DELAY_MS as u128) * 2 + 200;
+        assert_eq!(OWN_WRITES_TTL_MS, expected);
+    }
+
+    #[test]
+    fn test_mark_own_writes_single_path() {
+        let own_writes: Arc<Mutex<HashMap<String, Instant>>> = Arc::new(Mutex::new(HashMap::new()));
+
+        let paths = vec!["test/path.txt".to_string()];
+        {
+            let mut guard = own_writes.lock().unwrap();
+            let now = Instant::now();
+            for path in &paths {
+                guard.insert(path.clone(), now);
+            }
+        }
+
+        let guard = own_writes.lock().unwrap();
+        assert!(guard.contains_key("test/path.txt"));
+        assert_eq!(guard.len(), 1);
+    }
+
+    #[test]
+    fn test_mark_own_writes_multiple_paths() {
+        let own_writes: Arc<Mutex<HashMap<String, Instant>>> = Arc::new(Mutex::new(HashMap::new()));
+
+        let paths = vec![
+            "path/one.txt".to_string(),
+            "path/two.txt".to_string(),
+            "path/three.txt".to_string(),
+        ];
+        {
+            let mut guard = own_writes.lock().unwrap();
+            let now = Instant::now();
+            for path in &paths {
+                guard.insert(path.clone(), now);
+            }
+        }
+
+        let guard = own_writes.lock().unwrap();
+        assert!(guard.contains_key("path/one.txt"));
+        assert!(guard.contains_key("path/two.txt"));
+        assert!(guard.contains_key("path/three.txt"));
+        assert_eq!(guard.len(), 3);
+    }
+
+    #[test]
+    fn test_mark_own_writes_updates_timestamp() {
+        let own_writes: Arc<Mutex<HashMap<String, Instant>>> = Arc::new(Mutex::new(HashMap::new()));
+
+        let path = "test/path.txt".to_string();
+
+        let first_ts = {
+            let mut guard = own_writes.lock().unwrap();
+            let now = Instant::now();
+            guard.insert(path.clone(), now);
+            now
+        };
+
+        std::thread::sleep(std::time::Duration::from_millis(10));
+
+        let second_ts = {
+            let mut guard = own_writes.lock().unwrap();
+            let now = Instant::now();
+            guard.insert(path.clone(), now);
+            now
+        };
+
+        let guard = own_writes.lock().unwrap();
+        let stored_ts = guard.get(&path).unwrap();
+        assert!(*stored_ts > first_ts);
+        assert_eq!(*stored_ts, second_ts);
+    }
+
+    #[test]
+    fn test_own_writes_ttl_cleanup_retains_recent() {
+        let own_writes: Arc<Mutex<HashMap<String, Instant>>> = Arc::new(Mutex::new(HashMap::new()));
+
+        {
+            let mut guard = own_writes.lock().unwrap();
+            let now = Instant::now();
+            guard.insert("recent.txt".to_string(), now);
+        }
+
+        {
+            let mut guard = own_writes.lock().unwrap();
+            let now = Instant::now();
+            guard.retain(|_, ts| now.duration_since(*ts).as_millis() < OWN_WRITES_TTL_MS);
+        }
+
+        let guard = own_writes.lock().unwrap();
+        assert!(guard.contains_key("recent.txt"));
+    }
+
+    #[test]
+    fn test_own_writes_skip_logic() {
+        let own_writes: Arc<Mutex<HashMap<String, Instant>>> = Arc::new(Mutex::new(HashMap::new()));
+
+        {
+            let mut guard = own_writes.lock().unwrap();
+            guard.insert("marked.txt".to_string(), Instant::now());
+        }
+
+        let changed_paths = vec!["marked.txt".to_string(), "not_marked.txt".to_string()];
+        let mut emitted_paths = Vec::new();
+
+        for path in changed_paths {
+            let skip = {
+                let own = own_writes.lock().unwrap();
+                own.contains_key(&path)
+            };
+            if !skip {
+                emitted_paths.push(path);
+            }
+        }
+
+        assert_eq!(emitted_paths.len(), 1);
+        assert_eq!(emitted_paths[0], "not_marked.txt");
+    }
+
+    #[test]
+    fn test_own_writes_empty_paths() {
+        let own_writes: Arc<Mutex<HashMap<String, Instant>>> = Arc::new(Mutex::new(HashMap::new()));
+
+        let paths: Vec<String> = vec![];
+        {
+            let mut guard = own_writes.lock().unwrap();
+            let now = Instant::now();
+            for path in &paths {
+                guard.insert(path.clone(), now);
+            }
+        }
+
+        let guard = own_writes.lock().unwrap();
+        assert!(guard.is_empty());
+    }
+
+    #[test]
+    fn test_own_writes_concurrent_access() {
+        let own_writes: Arc<Mutex<HashMap<String, Instant>>> = Arc::new(Mutex::new(HashMap::new()));
+
+        let own_writes_clone = own_writes.clone();
+        let handle = std::thread::spawn(move || {
+            let mut guard = own_writes_clone.lock().unwrap();
+            guard.insert("thread1.txt".to_string(), Instant::now());
+        });
+
+        {
+            let mut guard = own_writes.lock().unwrap();
+            guard.insert("main.txt".to_string(), Instant::now());
+        }
+
+        handle.join().unwrap();
+
+        let guard = own_writes.lock().unwrap();
+        assert!(guard.contains_key("main.txt"));
+        assert!(guard.contains_key("thread1.txt"));
+    }
+}

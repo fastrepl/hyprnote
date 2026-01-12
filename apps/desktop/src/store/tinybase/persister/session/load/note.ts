@@ -1,6 +1,7 @@
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { md2json } from "@hypr/tiptap/shared";
 
+import { SESSION_MEMO_FILE } from "../../shared";
 import type { NoteFrontmatter } from "../types";
 import type { LoadedSessionData } from "./types";
 
@@ -25,18 +26,18 @@ export async function processMdFile(
     const { frontmatter, content: markdownBody } = parseResult.data;
     const fm = frontmatter as NoteFrontmatter;
 
-    if (!fm.id || !fm.session_id || !fm.type) {
+    if (!fm.id || !fm.session_id) {
       return;
     }
 
     const tiptapJson = md2json(markdownBody);
     const tiptapContent = JSON.stringify(tiptapJson);
 
-    if (fm.type === "memo") {
+    if (path.endsWith(SESSION_MEMO_FILE)) {
       if (result.sessions[fm.session_id]) {
         result.sessions[fm.session_id].raw_md = tiptapContent;
       }
-    } else if (fm.type === "enhanced_note") {
+    } else {
       result.enhanced_notes[fm.id] = {
         user_id: "",
         session_id: fm.session_id,

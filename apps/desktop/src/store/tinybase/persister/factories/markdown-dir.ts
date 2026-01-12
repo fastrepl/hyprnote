@@ -1,13 +1,5 @@
 import { readTextFile } from "@tauri-apps/plugin-fs";
-import type {
-  PersistedChanges,
-  Persists,
-} from "tinybase/persisters/with-schemas";
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import {
   commands as fsSyncCommands,
@@ -26,7 +18,7 @@ import {
   getDataDir,
 } from "../shared/paths";
 import { type ChangedTables, type WriteOperation } from "../shared/types";
-import { asTablesChanges } from "../shared/utils";
+import { toContent, toPersistedChanges } from "../shared/utils";
 import { createCollectorPersister } from "./collector";
 
 export interface MarkdownDirPersisterConfig<
@@ -126,24 +118,16 @@ async function loadSingleEntity<
       parseResult.data.content.trim(),
     );
 
-    return asTablesChanges({
+    return toPersistedChanges<Schemas>({
       [tableName]: { [entityId]: entity as Record<string, unknown> },
-    }) as unknown as PersistedChanges<Schemas, Persists.StoreOrMergeableStore>;
+    });
   } catch (error) {
     if (isFileNotFoundError(error)) {
       const loaded = { [tableName]: {} } as LoadedData<TStorage>;
       const result = deletionMarker.markForEntity(loaded, entityId);
 
       if (Object.keys(result[tableName] ?? {}).length > 0) {
-        return asTablesChanges(
-          result as Record<
-            string,
-            Record<string, Record<string, unknown> | undefined>
-          >,
-        ) as unknown as PersistedChanges<
-          Schemas,
-          Persists.StoreOrMergeableStore
-        >;
+        return toPersistedChanges<Schemas>(result);
       }
     }
     return undefined;
@@ -242,12 +226,7 @@ export function createMarkdownDirPersister<
         return undefined;
       }
 
-      return asTablesChanges(
-        result as Record<
-          string,
-          Record<string, Record<string, unknown> | undefined>
-        >,
-      ) as unknown as Content<Schemas>;
+      return toContent<Schemas>(result);
     },
   });
 }

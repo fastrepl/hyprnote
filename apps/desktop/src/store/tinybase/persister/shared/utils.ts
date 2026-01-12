@@ -2,9 +2,14 @@ import type {
   PersistedChanges,
   Persists,
 } from "tinybase/persisters/with-schemas";
-import type { OptionalSchemas } from "tinybase/with-schemas";
+import type { Content, OptionalSchemas } from "tinybase/with-schemas";
 
 import type { ChangedTables, TablesContent } from "./types";
+
+type TablesInput = Record<
+  string,
+  Record<string, Record<string, unknown> | undefined> | undefined
+>;
 
 type TableRowType<K extends keyof TablesContent> =
   NonNullable<TablesContent[K]> extends Record<string, infer R> ? R : never;
@@ -138,12 +143,26 @@ function unwrapMergeableCells(
 // - Delete row: { tableId: { rowId: undefined } }
 // - Delete table: { tableId: undefined }
 export function asTablesChanges(
-  tables: Record<
-    string,
-    Record<string, Record<string, unknown> | undefined> | undefined
-  >,
+  tables: TablesInput,
 ): [Record<string, unknown>, Record<string, unknown>, 1] {
   return [tables, {}, 1];
+}
+
+export function toPersistedChanges<Schemas extends OptionalSchemas>(
+  tables: TablesInput,
+): PersistedChanges<Schemas, Persists.StoreOrMergeableStore> {
+  return asTablesChanges(tables) as PersistedChanges<
+    Schemas,
+    Persists.StoreOrMergeableStore
+  >;
+}
+
+export function toContent<Schemas extends OptionalSchemas>(
+  tables: TablesInput,
+): Content<Schemas> {
+  // We intentionally return 3-element tuple ([tables, {}, 1]) to use applyChanges
+  // semantics, but Content type expects 2 elements - type cast is required.
+  return asTablesChanges(tables) as unknown as Content<Schemas>;
 }
 
 export function iterateTableRows<K extends keyof TablesContent>(

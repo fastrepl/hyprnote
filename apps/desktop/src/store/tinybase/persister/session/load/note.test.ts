@@ -22,7 +22,7 @@ describe("processMdFile", () => {
     vi.clearAllMocks();
   });
 
-  test("processes memo type and sets raw_md on existing session", async () => {
+  test("processes memo file and sets raw_md on existing session", async () => {
     result.sessions["session-1"] = {
       user_id: "user-1",
       created_at: "2024-01-01T00:00:00Z",
@@ -38,27 +38,25 @@ describe("processMdFile", () => {
         frontmatter: {
           id: "note-1",
           session_id: "session-1",
-          type: "memo",
         },
         content: "# Hello",
       },
     });
 
-    await processMdFile("/path/to/note.md", "---\n---\n# Hello", result);
+    await processMdFile("/path/to/_memo.md", "---\n---\n# Hello", result);
 
     expect(result.sessions["session-1"].raw_md).toBe(
       JSON.stringify({ type: "doc", content: [] }),
     );
   });
 
-  test("processes enhanced_note type and creates entry", async () => {
+  test("processes enhanced note file and creates entry", async () => {
     fsSyncMocks.deserialize.mockResolvedValue({
       status: "ok",
       data: {
         frontmatter: {
           id: "enhanced-1",
           session_id: "session-1",
-          type: "enhanced_note",
           template_id: "template-1",
           position: 2,
           title: "My Note",
@@ -67,7 +65,7 @@ describe("processMdFile", () => {
       },
     });
 
-    await processMdFile("/path/to/note.md", "---\n---\n# Content", result);
+    await processMdFile("/path/to/_summary.md", "---\n---\n# Content", result);
 
     expect(result.enhanced_notes["enhanced-1"]).toMatchObject({
       session_id: "session-1",

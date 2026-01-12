@@ -334,10 +334,7 @@ function CollectionsPage() {
     }) || [];
 
   return (
-    <ResizablePanelGroup
-      direction="horizontal"
-      className="h-[calc(100vh-64px)]"
-    >
+    <ResizablePanelGroup direction="horizontal" className="h-full">
       <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
         <Sidebar
           collections={filteredCollections}
@@ -395,7 +392,7 @@ function Sidebar({
   onClipboardChange: (item: ClipboardItem | null) => void;
 }) {
   return (
-    <div className="h-full border-r border-neutral-100 bg-white flex flex-col">
+    <div className="h-full border-r border-neutral-100 bg-white flex flex-col min-h-0">
       <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-100">
         <div className="relative w-full flex items-center gap-1.5">
           <Icon
@@ -436,18 +433,17 @@ function Sidebar({
         })}
       </div>
 
-      <div className="p-2 border-t border-neutral-100">
-        <Link
-          to="/admin/import"
-          className={cn([
-            "w-full py-2 text-sm font-medium rounded flex items-center justify-center",
-            "bg-neutral-900 text-white",
-            "hover:bg-neutral-800 transition-colors",
-          ])}
-        >
-          + Import
-        </Link>
-      </div>
+      <Link
+        to="/admin/import"
+        className={cn([
+          "h-10 px-4 flex items-center gap-2 text-sm",
+          "text-neutral-600 hover:bg-neutral-50 transition-colors",
+          "border-t border-neutral-100",
+        ])}
+      >
+        <Icon icon="mdi:plus" className="text-base" />
+        Import
+      </Link>
     </div>
   );
 }

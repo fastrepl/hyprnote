@@ -50,9 +50,9 @@ function AdminLayout() {
   const { user } = Route.useRouteContext();
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="h-screen bg-white flex flex-col">
       <AdminHeader user={user} />
-      <main className="flex-1">
+      <main className="flex-1 min-h-0">
         <Outlet />
       </main>
     </div>

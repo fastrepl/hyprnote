@@ -1,12 +1,19 @@
+use std::collections::BTreeMap;
 use std::time::{Instant, SystemTime};
 
 use ractor::{Actor, ActorCell, ActorProcessingErr, ActorRef, RpcReplyPort, SupervisionEvent};
 use tauri::Manager;
 use tauri::path::BaseDirectory;
 use tauri_specta::Event;
+use tracing::Instrument;
 
 use crate::SessionLifecycleEvent;
 use crate::actors::{SessionContext, SessionParams, spawn_session_supervisor};
+
+/// Creates a tracing span with session context that child events will inherit
+pub(crate) fn session_span(session_id: &str) -> tracing::Span {
+    tracing::info_span!("session", session_id = %session_id)
+}
 
 pub enum RootMsg {
     StartSession(SessionParams, RpcReplyPort<bool>),
@@ -92,8 +99,10 @@ impl Actor for RootActor {
             SupervisionEvent::ActorTerminated(cell, _, reason) => {
                 if let Some(supervisor) = &state.supervisor {
                     if cell.get_id() == supervisor.get_id() {
-                        tracing::info!(?reason, "session_supervisor_terminated");
                         let session_id = state.session_id.take().unwrap_or_default();
+                        let span = session_span(&session_id);
+                        let _guard = span.enter();
+                        tracing::info!(?reason, "session_supervisor_terminated");
                         state.supervisor = None;
                         state.finalizing = false;
                         emit_session_ended(&state.app, &session_id, None);
@@ -103,8 +112,10 @@ impl Actor for RootActor {
             SupervisionEvent::ActorFailed(cell, error) => {
                 if let Some(supervisor) = &state.supervisor {
                     if cell.get_id() == supervisor.get_id() {
-                        tracing::warn!(?error, "session_supervisor_failed");
                         let session_id = state.session_id.take().unwrap_or_default();
+                        let span = session_span(&session_id);
+                        let _guard = span.enter();
+                        tracing::warn!(?error, "session_supervisor_failed");
                         state.supervisor = None;
                         state.finalizing = false;
                         emit_session_ended(&state.app, &session_id, Some(format!("{:?}", error)));
@@ -121,62 +132,98 @@ async fn start_session_impl(
     params: SessionParams,
     state: &mut RootState,
 ) -> bool {
-    if state.supervisor.is_some() {
-        tracing::warn!("session_already_running");
-        return false;
-    }
+    let session_id = params.session_id.clone();
+    let span = session_span(&session_id);
 
-    let app_dir = match state
-        .app
-        .path()
-        .resolve("hyprnote/sessions", BaseDirectory::Data)
-    {
-        Ok(dir) => dir,
-        Err(e) => {
-            tracing::error!(error = ?e, "failed_to_resolve_app_dir");
+    async {
+        if state.supervisor.is_some() {
+            tracing::warn!("session_already_running");
             return false;
         }
-    };
 
-    {
-        use tauri_plugin_tray::TrayPluginExt;
-        let _ = state.app.tray().set_start_disabled(true);
-    }
+        configure_sentry_session_context(&params);
 
-    let ctx = SessionContext {
-        app: state.app.clone(),
-        params: params.clone(),
-        app_dir,
-        started_at_instant: Instant::now(),
-        started_at_system: SystemTime::now(),
-    };
-
-    match spawn_session_supervisor(ctx).await {
-        Ok((supervisor_cell, _handle)) => {
-            supervisor_cell.link(root_cell);
-
-            state.session_id = Some(params.session_id.clone());
-            state.supervisor = Some(supervisor_cell);
-
-            if let Err(error) = (SessionLifecycleEvent::Active {
-                session_id: params.session_id,
-            })
-            .emit(&state.app)
-            {
-                tracing::error!(?error, "failed_to_emit_active");
+        let app_dir = match state
+            .app
+            .path()
+            .resolve("hyprnote/sessions", BaseDirectory::Data)
+        {
+            Ok(dir) => dir,
+            Err(e) => {
+                tracing::error!(error = ?e, "failed_to_resolve_app_dir");
+                clear_sentry_session_context();
+                return false;
             }
+        };
 
-            tracing::info!("session_started");
-            true
-        }
-        Err(e) => {
-            tracing::error!(error = ?e, "failed_to_start_session");
-
+        {
             use tauri_plugin_tray::TrayPluginExt;
-            let _ = state.app.tray().set_start_disabled(false);
-            false
+            let _ = state.app.tray().set_start_disabled(true);
+        }
+
+        let ctx = SessionContext {
+            app: state.app.clone(),
+            params: params.clone(),
+            app_dir,
+            started_at_instant: Instant::now(),
+            started_at_system: SystemTime::now(),
+        };
+
+        match spawn_session_supervisor(ctx).await {
+            Ok((supervisor_cell, _handle)) => {
+                supervisor_cell.link(root_cell);
+
+                state.session_id = Some(params.session_id.clone());
+                state.supervisor = Some(supervisor_cell);
+
+                if let Err(error) = (SessionLifecycleEvent::Active {
+                    session_id: params.session_id,
+                })
+                .emit(&state.app)
+                {
+                    tracing::error!(?error, "failed_to_emit_active");
+                }
+
+                tracing::info!("session_started");
+                true
+            }
+            Err(e) => {
+                tracing::error!(error = ?e, "failed_to_start_session");
+                clear_sentry_session_context();
+
+                use tauri_plugin_tray::TrayPluginExt;
+                let _ = state.app.tray().set_start_disabled(false);
+                false
+            }
         }
     }
+    .instrument(span)
+    .await
+}
+
+fn configure_sentry_session_context(params: &SessionParams) {
+    sentry::configure_scope(|scope| {
+        scope.set_tag("session_id", &params.session_id);
+        scope.set_tag(
+            "session_type",
+            if params.onboarding {
+                "onboarding"
+            } else {
+                "production"
+            },
+        );
+
+        let mut session_context = BTreeMap::new();
+        session_context.insert("session_id".to_string(), params.session_id.clone().into());
+        session_context.insert("model".to_string(), params.model.clone().into());
+        session_context.insert("record_enabled".to_string(), params.record_enabled.into());
+        session_context.insert("onboarding".to_string(), params.onboarding.into());
+        session_context.insert(
+            "languages".to_string(),
+            format!("{:?}", params.languages).into(),
+        );
+        scope.set_context("session", sentry::protocol::Context::Other(session_context));
+    });
 }
 
 fn stop_session_impl(state: &mut RootState) {
@@ -184,6 +231,10 @@ fn stop_session_impl(state: &mut RootState) {
         state.finalizing = true;
 
         if let Some(session_id) = &state.session_id {
+            let span = session_span(session_id);
+            let _guard = span.enter();
+            tracing::info!("session_finalizing");
+
             if let Err(error) = (SessionLifecycleEvent::Finalizing {
                 session_id: session_id.clone(),
             })
@@ -198,6 +249,9 @@ fn stop_session_impl(state: &mut RootState) {
 }
 
 fn emit_session_ended(app: &tauri::AppHandle, session_id: &str, failure_reason: Option<String>) {
+    let span = session_span(session_id);
+    let _guard = span.enter();
+
     {
         use tauri_plugin_tray::TrayPluginExt;
         let _ = app.tray().set_start_disabled(false);
@@ -205,12 +259,26 @@ fn emit_session_ended(app: &tauri::AppHandle, session_id: &str, failure_reason: 
 
     if let Err(error) = (SessionLifecycleEvent::Inactive {
         session_id: session_id.to_string(),
-        error: failure_reason,
+        error: failure_reason.clone(),
     })
     .emit(app)
     {
         tracing::error!(?error, "failed_to_emit_inactive");
     }
 
-    tracing::info!("session_stopped");
+    if let Some(reason) = failure_reason {
+        tracing::info!(failure_reason = %reason, "session_stopped");
+    } else {
+        tracing::info!("session_stopped");
+    }
+
+    clear_sentry_session_context();
+}
+
+fn clear_sentry_session_context() {
+    sentry::configure_scope(|scope| {
+        scope.remove_tag("session_id");
+        scope.remove_tag("session_type");
+        scope.remove_context("session");
+    });
 }

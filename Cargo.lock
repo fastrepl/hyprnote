@@ -18443,6 +18443,7 @@ dependencies = [
  "ractor",
  "ractor-supervisor",
  "rodio",
+ "sentry",
  "serde",
  "serde_json",
  "specta",

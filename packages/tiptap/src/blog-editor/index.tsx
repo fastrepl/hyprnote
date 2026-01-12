@@ -51,6 +51,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
         extensions,
         editable,
         content,
+        contentType: "markdown",
         onCreate: ({ editor }) => {
           editor.view.dom.setAttribute("spellcheck", "false");
         },
@@ -72,7 +73,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
         const json = editor.getJSON();
         const currentMarkdown = (editor as any).markdown?.serialize(json) || "";
         if (currentMarkdown !== content) {
-          editor.commands.setContent(content);
+          editor.commands.setContent(content, { contentType: "markdown" });
         }
       }
     }, [editor, content]);

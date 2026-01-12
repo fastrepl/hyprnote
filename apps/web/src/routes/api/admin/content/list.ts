@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { env } from "@/env";
 import { fetchAdminUser } from "@/functions/admin";
 
 export const Route = createFileRoute("/api/admin/content/list")({
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/api/admin/content/list")({
           const branch = "main";
           const contentPath = `apps/web/content/${path}`;
 
-          const token = process.env.GITHUB_TOKEN;
+          const token = env.YUJONGLEE_GITHUB_TOKEN_REPO;
           if (!token) {
             return new Response(
               JSON.stringify({

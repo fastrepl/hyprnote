@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { env } from "@/env";
 import { fetchAdminUser } from "@/functions/admin";
 
 interface SaveRequest {
@@ -72,7 +73,7 @@ export const Route = createFileRoute("/api/admin/import/save")({
           const path = `apps/web/content/${folder}/${safeFilename}`;
           const branch = "main";
 
-          const token = process.env.GITHUB_TOKEN;
+          const token = env.YUJONGLEE_GITHUB_TOKEN_REPO;
           if (!token) {
             return new Response(
               JSON.stringify({

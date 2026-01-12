@@ -14,7 +14,9 @@ export const buildDeepgramUrl = (incomingUrl: URL) => {
     }
   });
 
-  target.searchParams.set("model", "nova-3-general");
+  if (!target.searchParams.has("model")) {
+    target.searchParams.set("model", "nova-3");
+  }
   target.searchParams.set("mip_opt_out", "false");
 
   return target;

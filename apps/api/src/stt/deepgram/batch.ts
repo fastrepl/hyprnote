@@ -10,7 +10,7 @@ export const transcribeWithDeepgram = async (
 ): Promise<BatchResponse> => {
   const url = new URL(DEEPGRAM_BATCH_URL);
 
-  url.searchParams.set("model", params.model ?? "nova-3-general");
+  url.searchParams.set("model", params.model ?? "nova-3");
   url.searchParams.set("smart_format", "true");
   url.searchParams.set("diarize", "true");
   url.searchParams.set("punctuate", "true");

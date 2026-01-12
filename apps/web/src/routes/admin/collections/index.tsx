@@ -149,7 +149,7 @@ function CollectionsPage() {
 
   return (
     <div className="flex h-[calc(100vh-64px)]">
-      <div className="w-56 flex-shrink-0 border-r border-neutral-100 bg-white flex flex-col">
+      <div className="w-56 shrink-0 border-r border-neutral-100 bg-white flex flex-col">
         <div className="h-10 px-3 flex items-center border-b border-neutral-100">
           <div className="relative w-full">
             <Icon

@@ -74,7 +74,7 @@ function LeftSidebar() {
     <aside className="hidden md:block w-64 shrink-0">
       <div
         ref={scrollContainerRef}
-        className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6"
+        className="sticky top-17.25 max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6"
       >
         <SidebarNavigation
           sections={handbooksBySection.sections}

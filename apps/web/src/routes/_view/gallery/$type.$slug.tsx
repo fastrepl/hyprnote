@@ -93,7 +93,7 @@ function LeftSidebar({
 }) {
   return (
     <aside className="hidden lg:block w-64 shrink-0">
-      <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto px-4 pt-6 pb-18 scrollbar-hide">
+      <div className="sticky top-17.25 max-h-[calc(100vh-69px)] overflow-y-auto px-4 pt-6 pb-18 scrollbar-hide">
         <Link
           to="/gallery"
           search={{ type }}
@@ -350,7 +350,7 @@ function RightSidebar({
 
   return (
     <aside className="hidden sm:block w-80 shrink-0">
-      <div className="sticky top-[69px] space-y-4 px-4 py-6">
+      <div className="sticky top-17.25 space-y-4 px-4 py-6">
         <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-6 text-center">
           <h3 className="font-serif text-lg text-stone-600 mb-3">
             Use this {isTemplate ? "template" : "shortcut"}

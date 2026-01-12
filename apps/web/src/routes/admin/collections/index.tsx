@@ -10,7 +10,7 @@ import {
   allLegals,
   allTemplates,
 } from "content-collections";
-import { EyeIcon, PencilIcon } from "lucide-react";
+import { ChevronRightIcon, EyeIcon, PencilIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -66,6 +66,7 @@ interface FileContent {
   collection: string;
   slug: string;
   title?: string;
+  meta_description?: string;
   author?: string;
   date?: string;
   coverImage?: string;
@@ -81,6 +82,7 @@ function getAllContent(): Map<string, FileContent> {
       collection: "articles",
       slug: a.slug,
       title: a.title,
+      meta_description: a.meta_description,
       author: a.author,
       date: a.date,
       coverImage: a.coverImage,
@@ -1194,6 +1196,7 @@ function FileEditor({
 }) {
   const fileContent = contentMap.get(filePath);
   const [content, setContent] = useState(fileContent?.content || "");
+  const [isTitleExpanded, setIsTitleExpanded] = useState(false);
 
   useEffect(() => {
     setContent(fileContent?.content || "");
@@ -1225,34 +1228,130 @@ function FileEditor({
       <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="h-full overflow-y-auto">
-            <div className="p-6 space-y-4">
-              <div className="space-y-3 pb-4 border-b border-neutral-100">
+            <div className="border-b border-neutral-100 text-sm">
+              <div className="flex border-b border-neutral-100">
+                <button
+                  onClick={() => setIsTitleExpanded(!isTitleExpanded)}
+                  className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
+                >
+                  <span className="absolute left-1 text-red-400">*</span>
+                  Title
+                  <ChevronRightIcon
+                    className={cn([
+                      "size-3 transition-transform",
+                      isTitleExpanded && "rotate-90",
+                    ])}
+                  />
+                </button>
                 <input
                   type="text"
                   defaultValue={fileContent.title || ""}
-                  placeholder="Title"
-                  className="w-full text-2xl font-serif text-stone-600 bg-transparent border-none outline-none placeholder:text-neutral-300"
+                  placeholder="Display title"
+                  className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
                 />
-                <div className="flex items-center gap-4 text-sm">
+              </div>
+              {isTitleExpanded && (
+                <div className="flex border-b border-neutral-100 bg-neutral-50">
+                  <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
+                    <span className="absolute left-1 text-red-400">*</span>
+                    <span className="text-neutral-300">└</span>
+                    Meta
+                  </span>
                   <input
                     type="text"
-                    defaultValue={fileContent.author || ""}
-                    placeholder="Author"
-                    className="bg-transparent border-none outline-none text-neutral-600 placeholder:text-neutral-300"
-                  />
-                  <input
-                    type="text"
-                    defaultValue={fileContent.date || ""}
-                    placeholder="Date (YYYY-MM-DD)"
-                    className="bg-transparent border-none outline-none text-neutral-500 font-mono text-xs placeholder:text-neutral-300"
+                    defaultValue={fileContent.title || ""}
+                    placeholder="SEO meta title"
+                    className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
                   />
                 </div>
+              )}
+              <div className="flex border-b border-neutral-100">
+                <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+                  <span className="absolute left-1 text-red-400">*</span>
+                  Author
+                </span>
+                <select
+                  defaultValue={fileContent.author || ""}
+                  className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+                >
+                  <option value="">Select author</option>
+                  <option value="John Jeong">John Jeong</option>
+                  <option value="Harshika">Harshika</option>
+                  <option value="Yujong Lee">Yujong Lee</option>
+                </select>
               </div>
+              <div className="flex border-b border-neutral-100">
+                <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+                  <span className="absolute left-1 text-red-400">*</span>
+                  Date
+                </span>
+                <input
+                  type="date"
+                  defaultValue={fileContent.date || ""}
+                  className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+                />
+              </div>
+              <div className="flex border-b border-neutral-100">
+                <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+                  <span className="absolute left-1 text-red-400">*</span>
+                  Description
+                </span>
+                <input
+                  type="text"
+                  defaultValue={fileContent.meta_description || ""}
+                  placeholder="Meta description for SEO"
+                  className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+                />
+              </div>
+              <div className="flex border-b border-neutral-100">
+                <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
+                  Cover
+                </span>
+                <div className="flex-1 flex items-center gap-2 px-2 py-2">
+                  <input
+                    type="text"
+                    defaultValue={fileContent.coverImage || ""}
+                    placeholder="/api/images/blog/slug/cover.png"
+                    className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+                  />
+                  <button
+                    type="button"
+                    className="px-2 py-1 text-xs text-neutral-600 bg-neutral-100 rounded hover:bg-neutral-200"
+                  >
+                    Choose
+                  </button>
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
+                  Options
+                </span>
+                <div className="flex-1 flex items-center gap-6 px-2 py-2">
+                  <label className="flex items-center gap-2 text-neutral-700">
+                    <input
+                      type="checkbox"
+                      defaultChecked={false}
+                      className="rounded"
+                    />
+                    Featured
+                  </label>
+                  <label className="flex items-center gap-2 text-neutral-700">
+                    <input
+                      type="checkbox"
+                      defaultChecked={false}
+                      className="rounded"
+                    />
+                    Published
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
               <BlogEditor content={content} onChange={setContent} />
             </div>
           </div>
         </ResizablePanel>
-        <ResizableHandle className="w-0" />
+        <ResizableHandle className="w-px bg-neutral-100" />
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="h-full overflow-y-auto bg-white">
             <header className="py-12 text-center max-w-3xl mx-auto px-6">
@@ -1300,29 +1399,125 @@ function FileEditor({
   return (
     <div className="flex-1 overflow-hidden flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="p-6 space-y-4">
-          <div className="space-y-3 pb-4 border-b border-neutral-100">
+        <div className="border-b border-neutral-100 text-sm">
+          <div className="flex border-b border-neutral-100">
+            <button
+              onClick={() => setIsTitleExpanded(!isTitleExpanded)}
+              className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
+            >
+              <span className="absolute left-1 text-red-400">*</span>
+              Title
+              <ChevronRightIcon
+                className={cn([
+                  "size-3 transition-transform",
+                  isTitleExpanded && "rotate-90",
+                ])}
+              />
+            </button>
             <input
               type="text"
               defaultValue={fileContent.title || ""}
-              placeholder="Title"
-              className="w-full text-2xl font-serif text-stone-600 bg-transparent border-none outline-none placeholder:text-neutral-300"
+              placeholder="Display title"
+              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
             />
-            <div className="flex items-center gap-4 text-sm">
+          </div>
+          {isTitleExpanded && (
+            <div className="flex border-b border-neutral-100 bg-neutral-50">
+              <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
+                <span className="absolute left-1 text-red-400">*</span>
+                <span className="text-neutral-300">└</span>
+                Meta
+              </span>
               <input
                 type="text"
-                defaultValue={fileContent.author || ""}
-                placeholder="Author"
-                className="bg-transparent border-none outline-none text-neutral-600 placeholder:text-neutral-300"
-              />
-              <input
-                type="text"
-                defaultValue={fileContent.date || ""}
-                placeholder="Date (YYYY-MM-DD)"
-                className="bg-transparent border-none outline-none text-neutral-500 font-mono text-xs placeholder:text-neutral-300"
+                defaultValue={fileContent.title || ""}
+                placeholder="SEO meta title"
+                className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
               />
             </div>
+          )}
+          <div className="flex border-b border-neutral-100">
+            <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+              <span className="absolute left-1 text-red-400">*</span>
+              Author
+            </span>
+            <select
+              defaultValue={fileContent.author || ""}
+              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+            >
+              <option value="">Select author</option>
+              <option value="John Jeong">John Jeong</option>
+              <option value="Harshika">Harshika</option>
+              <option value="Yujong Lee">Yujong Lee</option>
+            </select>
           </div>
+          <div className="flex border-b border-neutral-100">
+            <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+              <span className="absolute left-1 text-red-400">*</span>
+              Date
+            </span>
+            <input
+              type="date"
+              defaultValue={fileContent.date || ""}
+              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+            />
+          </div>
+          <div className="flex border-b border-neutral-100">
+            <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+              <span className="absolute left-1 text-red-400">*</span>
+              Description
+            </span>
+            <input
+              type="text"
+              defaultValue={fileContent.meta_description || ""}
+              placeholder="Meta description for SEO"
+              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+            />
+          </div>
+          <div className="flex border-b border-neutral-100">
+            <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
+              Cover
+            </span>
+            <div className="flex-1 flex items-center gap-2 px-2 py-2">
+              <input
+                type="text"
+                defaultValue={fileContent.coverImage || ""}
+                placeholder="/api/images/blog/slug/cover.png"
+                className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+              />
+              <button
+                type="button"
+                className="px-2 py-1 text-xs text-neutral-600 bg-neutral-100 rounded hover:bg-neutral-200"
+              >
+                Choose
+              </button>
+            </div>
+          </div>
+          <div className="flex">
+            <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
+              Options
+            </span>
+            <div className="flex-1 flex items-center gap-6 px-2 py-2">
+              <label className="flex items-center gap-2 text-neutral-700">
+                <input
+                  type="checkbox"
+                  defaultChecked={false}
+                  className="rounded"
+                />
+                Featured
+              </label>
+              <label className="flex items-center gap-2 text-neutral-700">
+                <input
+                  type="checkbox"
+                  defaultChecked={false}
+                  className="rounded"
+                />
+                Published
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
           <BlogEditor content={content} onChange={setContent} />
         </div>
       </div>

@@ -15,11 +15,13 @@ interface MediaItem {
   downloadUrl: string | null;
 }
 
-interface FolderTreeItem {
+interface TreeNode {
   path: string;
   name: string;
-  children: FolderTreeItem[];
+  type: "file" | "dir";
   expanded: boolean;
+  loaded: boolean;
+  children: TreeNode[];
 }
 
 async function fetchMediaItems(path: string): Promise<MediaItem[]> {
@@ -65,73 +67,162 @@ async function deleteFiles(paths: string[]) {
   return data;
 }
 
-async function buildFolderTree(
-  path: string,
-  depth: number,
-): Promise<FolderTreeItem[]> {
-  if (depth > 3) return [];
-  try {
-    const response = await fetch(
-      `/api/admin/media/list?path=${encodeURIComponent(path)}`,
-    );
-    const data = await response.json();
-    if (!response.ok) return [];
-
-    const folders = data.items.filter((item: MediaItem) => item.type === "dir");
-    const result: FolderTreeItem[] = [];
-
-    for (const folder of folders) {
-      const folderPath = path ? `${path}/${folder.name}` : folder.name;
-      const children = await buildFolderTree(folderPath, depth + 1);
-      result.push({
-        path: folderPath,
-        name: folder.name,
-        children,
-        expanded: false,
-      });
-    }
-    return result;
-  } catch {
-    return [];
-  }
-}
-
 export const Route = createFileRoute("/admin/media/")({
   component: MediaLibrary,
 });
 
 type TabType = "all" | "images" | "videos" | "documents";
 
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+function getFileExtension(filename: string): string {
+  const parts = filename.split(".");
+  return parts.length > 1 ? parts.pop()?.toLowerCase() || "" : "";
+}
+
+function getRelativePath(fullPath: string): string {
+  return fullPath.replace(/^apps\/web\/public\/images\/?/, "");
+}
+
 function MediaLibrary() {
   const queryClient = useQueryClient();
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const [currentPath, setCurrentPath] = useState("");
+  const [selectedPath, setSelectedPath] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("all");
-  const [folderTree, setFolderTree] = useState<FolderTreeItem[]>([]);
+  const [treeNodes, setTreeNodes] = useState<TreeNode[]>([]);
+  const [rootExpanded, setRootExpanded] = useState(true);
+  const [rootLoaded, setRootLoaded] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [dragOver, setDragOver] = useState(false);
+  const [loadingPath, setLoadingPath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-  const itemsQuery = useQuery({
-    queryKey: ["mediaItems", currentPath],
-    queryFn: () => fetchMediaItems(currentPath),
-  });
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-  const folderTreeQuery = useQuery({
-    queryKey: ["folderTree"],
-    queryFn: () => buildFolderTree("", 0),
+  const rootQuery = useQuery({
+    queryKey: ["mediaItems", ""],
+    queryFn: () => fetchMediaItems(""),
+    enabled: isMounted,
   });
 
   useEffect(() => {
-    if (folderTreeQuery.data) {
-      setFolderTree(folderTreeQuery.data);
+    if (rootQuery.data && !rootLoaded) {
+      const children: TreeNode[] = rootQuery.data.map((item) => ({
+        path: getRelativePath(item.path),
+        name: item.name,
+        type: item.type,
+        expanded: false,
+        loaded: false,
+        children: [],
+      }));
+      setTreeNodes(children);
+      setRootLoaded(true);
     }
-  }, [folderTreeQuery.data]);
+  }, [rootQuery.data, rootLoaded]);
+
+  const selectedFolderQuery = useQuery({
+    queryKey: ["mediaItems", selectedPath],
+    queryFn: () => fetchMediaItems(selectedPath),
+    enabled: isMounted && selectedPath !== "",
+  });
+
+  const loadFolderContents = async (path: string) => {
+    setLoadingPath(path);
+    try {
+      const items = await fetchMediaItems(path);
+      const children: TreeNode[] = items.map((item) => ({
+        path: getRelativePath(item.path),
+        name: item.name,
+        type: item.type,
+        expanded: false,
+        loaded: false,
+        children: [],
+      }));
+
+      if (path === "") {
+        setTreeNodes(children);
+        setRootLoaded(true);
+      } else {
+        setTreeNodes((prev) => updateTreeNode(prev, path, children));
+      }
+    } finally {
+      setLoadingPath(null);
+    }
+  };
+
+  const updateTreeNode = (
+    nodes: TreeNode[],
+    targetPath: string,
+    children: TreeNode[],
+  ): TreeNode[] => {
+    return nodes.map((node) => {
+      if (node.path === targetPath) {
+        return { ...node, children, loaded: true };
+      }
+      if (node.children.length > 0) {
+        return {
+          ...node,
+          children: updateTreeNode(node.children, targetPath, children),
+        };
+      }
+      return node;
+    });
+  };
+
+  const toggleNodeExpanded = async (path: string) => {
+    if (path === "") {
+      const willExpand = !rootExpanded;
+      if (willExpand && !rootLoaded) {
+        await loadFolderContents("");
+      }
+      setRootExpanded(willExpand);
+      return;
+    }
+
+    const node = findNode(treeNodes, path);
+    if (!node) return;
+
+    const willExpand = !node.expanded;
+    if (willExpand && !node.loaded && node.type === "dir") {
+      await loadFolderContents(path);
+    }
+    setTreeNodes((prev) => toggleExpanded(prev, path));
+  };
+
+  const findNode = (nodes: TreeNode[], path: string): TreeNode | null => {
+    for (const node of nodes) {
+      if (node.path === path) return node;
+      if (node.children.length > 0) {
+        const found = findNode(node.children, path);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const toggleExpanded = (nodes: TreeNode[], path: string): TreeNode[] => {
+    return nodes.map((node) => {
+      if (node.path === path) {
+        return { ...node, expanded: !node.expanded };
+      }
+      if (node.children.length > 0) {
+        return { ...node, children: toggleExpanded(node.children, path) };
+      }
+      return node;
+    });
+  };
 
   const uploadMutation = useMutation({
     mutationFn: async (files: FileList) => {
-      const targetPath = selectedPath ?? currentPath;
       for (const file of Array.from(files)) {
         const reader = new FileReader();
         const content = await new Promise<string>((resolve, reject) => {
@@ -146,13 +237,13 @@ function MediaLibrary() {
         await uploadFile({
           filename: file.name,
           content,
-          folder: targetPath,
+          folder: selectedPath,
         });
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
-      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
+      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
+      loadFolderContents(selectedPath);
     },
   });
 
@@ -160,8 +251,8 @@ function MediaLibrary() {
     mutationFn: (paths: string[]) => deleteFiles(paths),
     onSuccess: () => {
       setSelectedItems(new Set());
-      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
-      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
+      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
+      loadFolderContents(selectedPath);
     },
   });
 
@@ -178,8 +269,7 @@ function MediaLibrary() {
     deleteMutation.mutate(Array.from(selectedItems));
   };
 
-  const navigateToFolder = (path: string) => {
-    setCurrentPath(path);
+  const selectFolder = (path: string) => {
     setSelectedPath(path);
     setSelectedItems(new Set());
   };
@@ -194,21 +284,6 @@ function MediaLibrary() {
     setSelectedItems(newSelection);
   };
 
-  const toggleFolderExpanded = (path: string) => {
-    const updateTree = (items: FolderTreeItem[]): FolderTreeItem[] => {
-      return items.map((item) => {
-        if (item.path === path) {
-          return { ...item, expanded: !item.expanded };
-        }
-        if (item.children.length > 0) {
-          return { ...item, children: updateTree(item.children) };
-        }
-        return item;
-      });
-    };
-    setFolderTree(updateTree(folderTree));
-  };
-
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
@@ -219,11 +294,6 @@ function MediaLibrary() {
     if (e.dataTransfer.files.length > 0) {
       handleUpload(e.dataTransfer.files);
     }
-  };
-
-  const getFileExtension = (filename: string): string => {
-    const parts = filename.split(".");
-    return parts.length > 1 ? parts.pop()?.toLowerCase() || "" : "";
   };
 
   const matchesFileTypeFilter = (item: MediaItem): boolean => {
@@ -247,31 +317,29 @@ function MediaLibrary() {
     }
   };
 
-  const filterFolderTree = (
-    items: FolderTreeItem[],
-    query: string,
-  ): FolderTreeItem[] => {
-    if (!query) return items;
+  const filterTreeNodes = (nodes: TreeNode[], query: string): TreeNode[] => {
+    if (!query) return nodes;
     const lowerQuery = query.toLowerCase();
 
-    return items
-      .map((item) => {
-        const matchesName = item.name.toLowerCase().includes(lowerQuery);
-        const filteredChildren = filterFolderTree(item.children, query);
+    return nodes
+      .map((node) => {
+        const matchesName = node.name.toLowerCase().includes(lowerQuery);
+        const filteredChildren = filterTreeNodes(node.children, query);
 
         if (matchesName || filteredChildren.length > 0) {
-          return {
-            ...item,
-            children: filteredChildren,
-            expanded: query.length > 0,
-          };
+          return { ...node, children: filteredChildren, expanded: true };
         }
         return null;
       })
-      .filter((item): item is FolderTreeItem => item !== null);
+      .filter((node): node is TreeNode => node !== null);
   };
 
-  const items = itemsQuery.data || [];
+  const currentItems =
+    selectedPath === "" ? rootQuery.data : selectedFolderQuery.data;
+  const items = (currentItems || []).map((item) => ({
+    ...item,
+    relativePath: getRelativePath(item.path),
+  }));
   const filteredItems = items.filter((item) => {
     const matchesSearch =
       searchQuery === "" ||
@@ -280,7 +348,7 @@ function MediaLibrary() {
     return matchesSearch && matchesType;
   });
 
-  const filteredFolderTree = filterFolderTree(folderTree, searchQuery);
+  const filteredTreeNodes = filterTreeNodes(treeNodes, searchQuery);
 
   const tabs: { id: TabType; label: string }[] = [
     { id: "all", label: "All" },
@@ -289,292 +357,568 @@ function MediaLibrary() {
     { id: "documents", label: "Documents" },
   ];
 
-  const renderFolderTree = (
-    items: FolderTreeItem[],
-    depth: number = 0,
-  ): React.ReactNode => {
-    return items.map((item) => {
-      const isSelected = selectedPath === item.path;
-      const hasChildren = item.children.length > 0;
-
-      return (
-        <div key={item.path}>
-          <div
-            className={cn([
-              "flex items-center gap-1 py-1 pr-2 cursor-pointer text-sm",
-              "hover:bg-neutral-100 transition-colors",
-              isSelected && "bg-neutral-100",
-            ])}
-            style={{ paddingLeft: `${depth * 16 + 8}px` }}
-            onClick={() => {
-              setSelectedPath(item.path);
-              navigateToFolder(item.path);
-            }}
-          >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (hasChildren) {
-                  toggleFolderExpanded(item.path);
-                }
-              }}
-              className={cn([
-                "w-4 h-4 flex items-center justify-center",
-                !hasChildren && "invisible",
-              ])}
-            >
-              <Icon
-                icon={item.expanded ? "mdi:chevron-down" : "mdi:chevron-right"}
-                className="text-neutral-400 text-xs"
-              />
-            </button>
-            <Icon
-              icon={item.expanded ? "mdi:folder-open" : "mdi:folder"}
-              className="text-neutral-400 text-sm"
-            />
-            <span className="truncate text-neutral-700">{item.name}</span>
-          </div>
-          {item.expanded && hasChildren && (
-            <div>{renderFolderTree(item.children, depth + 1)}</div>
-          )}
-        </div>
-      );
-    });
-  };
+  const isLoading =
+    selectedPath === "" ? rootQuery.isLoading : selectedFolderQuery.isLoading;
+  const error =
+    selectedPath === "" ? rootQuery.error : selectedFolderQuery.error;
 
   return (
     <div className="flex h-[calc(100vh-64px)]">
-      <div className="w-56 flex-shrink-0 border-r border-neutral-200 bg-white flex flex-col">
-        <div className="h-10 px-3 flex items-center border-b border-neutral-200">
-          <div className="relative w-full">
-            <Icon
-              icon="mdi:magnify"
-              className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-sm"
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className={cn([
-                "w-full pl-7 pr-2 py-1 text-sm",
-                "border border-neutral-200 rounded",
-                "focus:outline-none focus:border-neutral-400",
-                "placeholder:text-neutral-400",
-              ])}
-            />
-          </div>
-        </div>
+      <Sidebar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedPath={selectedPath}
+        rootExpanded={rootExpanded}
+        loadingPath={loadingPath}
+        filteredTreeNodes={filteredTreeNodes}
+        onSelectFolder={selectFolder}
+        onToggleNodeExpanded={toggleNodeExpanded}
+        uploadPending={uploadMutation.isPending}
+        fileInputRef={fileInputRef}
+        onUpload={handleUpload}
+      />
+      <ContentPanel
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        selectedItems={selectedItems}
+        onDelete={handleDelete}
+        onClearSelection={() => setSelectedItems(new Set())}
+        deletePending={deleteMutation.isPending}
+        dragOver={dragOver}
+        onDrop={handleDrop}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        isLoading={isLoading}
+        error={error}
+        filteredItems={filteredItems}
+        onSelectFolder={selectFolder}
+        onToggleSelection={toggleSelection}
+        onCopyToClipboard={copyToClipboard}
+      />
+    </div>
+  );
+}
 
-        <div className="flex-1 overflow-y-auto">
-          <div
+function Sidebar({
+  searchQuery,
+  onSearchChange,
+  selectedPath,
+  rootExpanded,
+  loadingPath,
+  filteredTreeNodes,
+  onSelectFolder,
+  onToggleNodeExpanded,
+  uploadPending,
+  fileInputRef,
+  onUpload,
+}: {
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  selectedPath: string;
+  rootExpanded: boolean;
+  loadingPath: string | null;
+  filteredTreeNodes: TreeNode[];
+  onSelectFolder: (path: string) => void;
+  onToggleNodeExpanded: (path: string) => Promise<void>;
+  uploadPending: boolean;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onUpload: (files: FileList) => void;
+}) {
+  return (
+    <div className="w-56 shrink-0 border-r border-neutral-200 bg-white flex flex-col">
+      <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-200">
+        <div className="relative w-full flex items-center gap-1.5">
+          <Icon
+            icon="mdi:magnify"
+            className="text-neutral-400 text-sm shrink-0"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search..."
             className={cn([
-              "flex items-center gap-1 py-1 px-2 cursor-pointer text-sm",
-              "hover:bg-neutral-100 transition-colors",
-              (selectedPath === "" || selectedPath === null) &&
-                "bg-neutral-100",
+              "w-full py-1 text-sm",
+              "bg-transparent",
+              "focus:outline-none",
+              "placeholder:text-neutral-400",
             ])}
-            onClick={() => {
-              setSelectedPath("");
-              navigateToFolder("");
-            }}
-          >
-            <span className="w-4" />
-            <Icon icon="mdi:folder" className="text-neutral-400 text-sm" />
-            <span className="text-neutral-700">images</span>
-          </div>
-          {renderFolderTree(filteredFolderTree)}
+          />
         </div>
-
-        {selectedPath !== null && (
-          <div className="p-2 border-t border-neutral-200">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadMutation.isPending}
-              className={cn([
-                "w-full py-2 text-sm font-medium rounded",
-                "bg-neutral-900 text-white",
-                "hover:bg-neutral-800 transition-colors",
-                "disabled:opacity-50",
-              ])}
-            >
-              {uploadMutation.isPending ? "Uploading..." : "+ Add"}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              className="hidden"
-              onChange={(e) => e.target.files && handleUpload(e.target.files)}
-            />
-          </div>
-        )}
       </div>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="h-10 flex items-stretch border-b border-neutral-200">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn([
-                "px-4 text-sm font-medium transition-colors",
-                "border-r border-neutral-200",
-                activeTab === tab.id
-                  ? "bg-neutral-100 text-neutral-900"
-                  : "bg-white text-neutral-600 hover:bg-neutral-50",
-              ])}
-            >
-              {tab.label}
-            </button>
+      <div className="flex-1 overflow-y-auto">
+        <RootFolderItem
+          selectedPath={selectedPath}
+          rootExpanded={rootExpanded}
+          loadingPath={loadingPath}
+          onSelect={onSelectFolder}
+          onToggle={onToggleNodeExpanded}
+        />
+        {rootExpanded &&
+          filteredTreeNodes.map((node) => (
+            <TreeNodeItem
+              key={node.path}
+              node={node}
+              depth={1}
+              selectedPath={selectedPath}
+              loadingPath={loadingPath}
+              onSelect={onSelectFolder}
+              onToggle={onToggleNodeExpanded}
+            />
           ))}
-          <div className="flex-1" />
-          {selectedItems.size > 0 && (
-            <div className="flex items-center gap-2 px-3">
-              <span className="text-sm text-neutral-600">
-                {selectedItems.size} selected
-              </span>
-              <button
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending}
-                className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => setSelectedItems(new Set())}
-                className="px-2 py-1 text-xs text-neutral-500 hover:bg-neutral-100 rounded"
-              >
-                Clear
-              </button>
-            </div>
-          )}
-        </div>
+      </div>
 
-        <div
+      <div className="p-2 border-t border-neutral-200">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploadPending}
           className={cn([
-            "flex-1 overflow-y-auto p-4",
-            dragOver && "bg-blue-50",
+            "w-full py-2 text-sm font-medium rounded",
+            "bg-neutral-900 text-white",
+            "hover:bg-neutral-800 transition-colors",
+            "disabled:opacity-50",
           ])}
-          onDrop={handleDrop}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
         >
-          {itemsQuery.isLoading ? (
-            <div className="flex items-center justify-center h-64 text-neutral-500">
-              <Icon icon="mdi:loading" className="animate-spin text-2xl mr-2" />
-              Loading...
-            </div>
-          ) : filteredItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
-              <Icon icon="mdi:folder-open-outline" className="text-4xl mb-3" />
-              <p className="text-sm">No files found</p>
-              <p className="text-xs mt-1">
-                Drag and drop files here or select a folder and click Add
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-              {filteredItems.map((item) => (
-                <div
-                  key={item.path}
-                  className={cn([
-                    "group relative rounded border overflow-hidden cursor-pointer transition-all",
-                    selectedItems.has(item.path)
-                      ? "border-blue-500 ring-1 ring-blue-500"
-                      : "border-neutral-200 hover:border-neutral-300",
-                  ])}
-                  onClick={() =>
-                    item.type === "dir"
-                      ? navigateToFolder(
-                          currentPath
-                            ? `${currentPath}/${item.name}`
-                            : item.name,
-                        )
-                      : toggleSelection(item.path)
-                  }
-                >
-                  <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
-                    {item.type === "dir" ? (
-                      <Icon
-                        icon="mdi:folder"
-                        className="text-3xl text-neutral-400"
-                      />
-                    ) : item.downloadUrl ? (
-                      <img
-                        src={item.downloadUrl}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <Icon
-                        icon="mdi:file-outline"
-                        className="text-3xl text-neutral-400"
-                      />
-                    )}
-                  </div>
-
-                  <div className="p-1.5">
-                    <p
-                      className="text-xs text-neutral-700 truncate"
-                      title={item.name}
-                    >
-                      {item.name}
-                    </p>
-                    {item.type === "file" && (
-                      <p className="text-xs text-neutral-400">
-                        {formatFileSize(item.size)}
-                      </p>
-                    )}
-                  </div>
-
-                  {item.type === "file" && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyToClipboard(item.publicPath);
-                      }}
-                      className={cn([
-                        "absolute top-1 right-1 p-1 rounded",
-                        "bg-white/90 shadow-sm",
-                        "opacity-0 group-hover:opacity-100 transition-opacity",
-                        "hover:bg-white",
-                      ])}
-                      title="Copy path"
-                    >
-                      <Icon
-                        icon="mdi:content-copy"
-                        className="text-neutral-600 text-xs"
-                      />
-                    </button>
-                  )}
-
-                  {selectedItems.has(item.path) && (
-                    <div className="absolute top-1 left-1">
-                      <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                        <Icon icon="mdi:check" className="text-white text-xs" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+          {uploadPending ? "Uploading..." : "+ Add"}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*,video/*"
+          className="hidden"
+          onChange={(e) => e.target.files && onUpload(e.target.files)}
+        />
       </div>
     </div>
   );
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+function RootFolderItem({
+  selectedPath,
+  rootExpanded,
+  loadingPath,
+  onSelect,
+  onToggle,
+}: {
+  selectedPath: string;
+  rootExpanded: boolean;
+  loadingPath: string | null;
+  onSelect: (path: string) => void;
+  onToggle: (path: string) => Promise<void>;
+}) {
+  return (
+    <div
+      className={cn([
+        "flex items-center gap-1.5 py-1 pl-4 pr-2 cursor-pointer text-sm",
+        "hover:bg-neutral-100 transition-colors",
+        selectedPath === "" && "bg-neutral-100",
+      ])}
+      onClick={async () => {
+        onSelect("");
+        await onToggle("");
+      }}
+    >
+      {loadingPath === "" ? (
+        <Icon
+          icon="mdi:loading"
+          className="text-neutral-400 text-sm animate-spin"
+        />
+      ) : (
+        <Icon
+          icon={rootExpanded ? "mdi:folder-open" : "mdi:folder"}
+          className="text-neutral-400 text-sm"
+        />
+      )}
+      <span className="text-neutral-700">images</span>
+    </div>
+  );
+}
+
+function TreeNodeItem({
+  node,
+  depth,
+  selectedPath,
+  loadingPath,
+  onSelect,
+  onToggle,
+}: {
+  node: TreeNode;
+  depth: number;
+  selectedPath: string;
+  loadingPath: string | null;
+  onSelect: (path: string) => void;
+  onToggle: (path: string) => Promise<void>;
+}) {
+  const isSelected = selectedPath === node.path;
+  const isFolder = node.type === "dir";
+  const isLoading = loadingPath === node.path;
+
+  return (
+    <div>
+      <div
+        className={cn([
+          "flex items-center gap-1.5 py-1 pr-2 cursor-pointer text-sm",
+          "hover:bg-neutral-100 transition-colors",
+          isSelected && "bg-neutral-100",
+        ])}
+        style={{ paddingLeft: `${depth * 16 + 16}px` }}
+        onClick={async () => {
+          if (isFolder) {
+            onSelect(node.path);
+            await onToggle(node.path);
+          }
+        }}
+      >
+        {isLoading ? (
+          <Icon
+            icon="mdi:loading"
+            className="text-neutral-400 text-sm animate-spin"
+          />
+        ) : (
+          <Icon
+            icon={
+              isFolder
+                ? node.expanded
+                  ? "mdi:folder-open"
+                  : "mdi:folder"
+                : "mdi:file-outline"
+            }
+            className="text-neutral-400 text-sm"
+          />
+        )}
+        <span className="truncate text-neutral-700">{node.name}</span>
+      </div>
+      {node.expanded && node.children.length > 0 && (
+        <div className="ml-5.5 border-l border-neutral-200">
+          {node.children.map((child) => (
+            <TreeNodeItem
+              key={child.path}
+              node={child}
+              depth={depth + 1}
+              selectedPath={selectedPath}
+              loadingPath={loadingPath}
+              onSelect={onSelect}
+              onToggle={onToggle}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ContentPanel({
+  tabs,
+  activeTab,
+  onTabChange,
+  selectedItems,
+  onDelete,
+  onClearSelection,
+  deletePending,
+  dragOver,
+  onDrop,
+  onDragOver,
+  onDragLeave,
+  isLoading,
+  error,
+  filteredItems,
+  onSelectFolder,
+  onToggleSelection,
+  onCopyToClipboard,
+}: {
+  tabs: { id: TabType; label: string }[];
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
+  selectedItems: Set<string>;
+  onDelete: () => void;
+  onClearSelection: () => void;
+  deletePending: boolean;
+  dragOver: boolean;
+  onDrop: (e: React.DragEvent) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragLeave: () => void;
+  isLoading: boolean;
+  error: Error | null;
+  filteredItems: (MediaItem & { relativePath: string })[];
+  onSelectFolder: (path: string) => void;
+  onToggleSelection: (path: string) => void;
+  onCopyToClipboard: (text: string) => void;
+}) {
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <TabBar
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+        selectedItems={selectedItems}
+        onDelete={onDelete}
+        onClearSelection={onClearSelection}
+        deletePending={deletePending}
+      />
+      <MediaGrid
+        dragOver={dragOver}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        isLoading={isLoading}
+        error={error}
+        filteredItems={filteredItems}
+        selectedItems={selectedItems}
+        onSelectFolder={onSelectFolder}
+        onToggleSelection={onToggleSelection}
+        onCopyToClipboard={onCopyToClipboard}
+      />
+    </div>
+  );
+}
+
+function TabBar({
+  tabs,
+  activeTab,
+  onTabChange,
+  selectedItems,
+  onDelete,
+  onClearSelection,
+  deletePending,
+}: {
+  tabs: { id: TabType; label: string }[];
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
+  selectedItems: Set<string>;
+  onDelete: () => void;
+  onClearSelection: () => void;
+  deletePending: boolean;
+}) {
+  return (
+    <div className="h-10 flex items-stretch border-b border-neutral-200">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => onTabChange(tab.id)}
+          className={cn([
+            "px-4 text-sm font-medium transition-colors",
+            "border-r border-neutral-200",
+            activeTab === tab.id
+              ? "bg-neutral-100 text-neutral-900"
+              : "bg-white text-neutral-600 hover:bg-neutral-50",
+          ])}
+        >
+          {tab.label}
+        </button>
+      ))}
+      <div className="flex-1" />
+      {selectedItems.size > 0 && (
+        <SelectionActions
+          count={selectedItems.size}
+          onDelete={onDelete}
+          onClear={onClearSelection}
+          deletePending={deletePending}
+        />
+      )}
+    </div>
+  );
+}
+
+function SelectionActions({
+  count,
+  onDelete,
+  onClear,
+  deletePending,
+}: {
+  count: number;
+  onDelete: () => void;
+  onClear: () => void;
+  deletePending: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2 px-3">
+      <span className="text-sm text-neutral-600">{count} selected</span>
+      <button
+        onClick={onDelete}
+        disabled={deletePending}
+        className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded"
+      >
+        Delete
+      </button>
+      <button
+        onClick={onClear}
+        className="px-2 py-1 text-xs text-neutral-500 hover:bg-neutral-100 rounded"
+      >
+        Clear
+      </button>
+    </div>
+  );
+}
+
+function MediaGrid({
+  dragOver,
+  onDrop,
+  onDragOver,
+  onDragLeave,
+  isLoading,
+  error,
+  filteredItems,
+  selectedItems,
+  onSelectFolder,
+  onToggleSelection,
+  onCopyToClipboard,
+}: {
+  dragOver: boolean;
+  onDrop: (e: React.DragEvent) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragLeave: () => void;
+  isLoading: boolean;
+  error: Error | null;
+  filteredItems: (MediaItem & { relativePath: string })[];
+  selectedItems: Set<string>;
+  onSelectFolder: (path: string) => void;
+  onToggleSelection: (path: string) => void;
+  onCopyToClipboard: (text: string) => void;
+}) {
+  return (
+    <div
+      className={cn(["flex-1 overflow-y-auto p-4", dragOver && "bg-blue-50"])}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+    >
+      {isLoading ? (
+        <LoadingState />
+      ) : error ? (
+        <ErrorState message={error.message} />
+      ) : filteredItems.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+          {filteredItems.map((item) => (
+            <MediaItemCard
+              key={item.path}
+              item={item}
+              isSelected={selectedItems.has(item.path)}
+              onSelect={() =>
+                item.type === "dir"
+                  ? onSelectFolder(item.relativePath)
+                  : onToggleSelection(item.path)
+              }
+              onCopyPath={() => onCopyToClipboard(item.publicPath)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LoadingState() {
+  return (
+    <div className="flex items-center justify-center h-64 text-neutral-500">
+      <Icon icon="mdi:loading" className="animate-spin text-2xl mr-2" />
+      Loading...
+    </div>
+  );
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
+      <Icon
+        icon="mdi:alert-circle-outline"
+        className="text-4xl mb-3 text-red-400"
+      />
+      <p className="text-sm text-red-600">Failed to load media</p>
+      <p className="text-xs mt-1 text-neutral-400">{message}</p>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
+      <Icon icon="mdi:folder-open-outline" className="text-4xl mb-3" />
+      <p className="text-sm">No files found</p>
+      <p className="text-xs mt-1">Drag and drop files here or click Add</p>
+    </div>
+  );
+}
+
+function MediaItemCard({
+  item,
+  isSelected,
+  onSelect,
+  onCopyPath,
+}: {
+  item: MediaItem & { relativePath: string };
+  isSelected: boolean;
+  onSelect: () => void;
+  onCopyPath: () => void;
+}) {
+  return (
+    <div
+      className={cn([
+        "group relative rounded border overflow-hidden cursor-pointer transition-all",
+        isSelected
+          ? "border-blue-500 ring-1 ring-blue-500"
+          : "border-neutral-200 hover:border-neutral-300",
+      ])}
+      onClick={onSelect}
+    >
+      <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
+        {item.type === "dir" ? (
+          <Icon icon="mdi:folder" className="text-3xl text-neutral-400" />
+        ) : item.downloadUrl ? (
+          <img
+            src={item.downloadUrl}
+            alt={item.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <Icon icon="mdi:file-outline" className="text-3xl text-neutral-400" />
+        )}
+      </div>
+
+      <div className="p-1.5">
+        <p className="text-xs text-neutral-700 truncate" title={item.name}>
+          {item.name}
+        </p>
+        {item.type === "file" && (
+          <p className="text-xs text-neutral-400">
+            {formatFileSize(item.size)}
+          </p>
+        )}
+      </div>
+
+      {item.type === "file" && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onCopyPath();
+          }}
+          className={cn([
+            "absolute top-1 right-1 p-1 rounded",
+            "bg-white/90 shadow-sm",
+            "opacity-0 group-hover:opacity-100 transition-opacity",
+            "hover:bg-white",
+          ])}
+          title="Copy path"
+        >
+          <Icon icon="mdi:content-copy" className="text-neutral-600 text-xs" />
+        </button>
+      )}
+
+      {isSelected && (
+        <div className="absolute top-1 left-1">
+          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+            <Icon icon="mdi:check" className="text-white text-xs" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

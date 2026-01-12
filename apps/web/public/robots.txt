@@ -8,6 +8,9 @@ Allow: /
 Disallow: /_view/app/
 Disallow: /app/
 
+# Block admin routes
+Disallow: /admin/
+
 # Block authentication and callback routes
 Disallow: /auth
 Disallow: /_view/callback/

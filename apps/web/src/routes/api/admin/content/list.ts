@@ -1,17 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { env } from "@/env";
 import { fetchAdminUser } from "@/functions/admin";
 
 export const Route = createFileRoute("/api/admin/content/list")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const user = await fetchAdminUser();
-        if (!user?.isAdmin) {
-          return new Response(JSON.stringify({ error: "Unauthorized" }), {
-            status: 401,
-            headers: { "Content-Type": "application/json" },
-          });
+        const isDev = process.env.NODE_ENV === "development";
+        if (!isDev) {
+          const user = await fetchAdminUser();
+          if (!user?.isAdmin) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
         }
 
         try {
@@ -23,7 +27,7 @@ export const Route = createFileRoute("/api/admin/content/list")({
           const branch = "main";
           const contentPath = `apps/web/content/${path}`;
 
-          const token = process.env.GITHUB_TOKEN;
+          const token = env.YUJONGLEE_GITHUB_TOKEN_REPO;
           if (!token) {
             return new Response(
               JSON.stringify({

@@ -77,10 +77,12 @@ type FileListenerResult<TConfig extends FileListenerConfig> = TConfig extends {
   mode: "entity";
 }
   ? {
+      mode: "entity";
       addListener: (listener: EntityListener) => NotifyListenerHandle;
       delListener: (handle: NotifyListenerHandle) => void;
     }
   : {
+      mode: "simple";
       addListener: (listener: SimpleListener) => NotifyListenerHandle;
       delListener: (handle: NotifyListenerHandle) => void;
     };
@@ -101,6 +103,7 @@ export function createFileListener<TConfig extends FileListenerConfig>(
       debounceMs = DEFAULT_DEBOUNCE_MS,
     } = config;
     return {
+      mode: "entity",
       addListener: (listener: EntityListener) => {
         const handle: NotifyListenerHandle = {
           unlisten: null,
@@ -143,6 +146,7 @@ export function createFileListener<TConfig extends FileListenerConfig>(
 
   const { pathMatcher, fallbackIntervalMs = FALLBACK_POLL_INTERVAL } = config;
   return {
+    mode: "simple",
     addListener: (listener: SimpleListener) => {
       const handle: NotifyListenerHandle = { unlisten: null, interval: null };
 

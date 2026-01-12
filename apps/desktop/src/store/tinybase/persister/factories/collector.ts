@@ -130,10 +130,10 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
 
     try {
       const dataDir = await getDataDir();
-      const tables = store.getTables() as TablesContent | undefined;
+      const tables = store.getTables();
       const result = options.save(
         store,
-        tables ?? {},
+        tables,
         dataDir,
         changedTables ?? undefined,
       );
@@ -175,15 +175,8 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
     (listener) => {
       if (!fileListener) return null;
 
-      if (useEntityMode && options.loadSingle) {
-        const entityFileListener = fileListener as ReturnType<
-          typeof createFileListener<{
-            mode: "entity";
-            pathMatcher: typeof pathMatcher;
-            entityParser: NonNullable<typeof options.entityParser>;
-          }>
-        >;
-        return entityFileListener.addListener(async ({ entityId }) => {
+      if (fileListener.mode === "entity") {
+        return fileListener.addListener(async ({ entityId }) => {
           try {
             const changes = await options.loadSingle!(entityId);
             if (changes) {
@@ -199,13 +192,7 @@ export function createCollectorPersister<Schemas extends OptionalSchemas>(
         });
       }
 
-      const simpleFileListener = fileListener as ReturnType<
-        typeof createFileListener<{
-          mode: "simple";
-          pathMatcher: typeof pathMatcher;
-        }>
-      >;
-      return simpleFileListener.addListener(() => listener());
+      return fileListener.addListener(() => listener());
     },
     (handle: NotifyListenerHandle | null) => {
       if (handle && fileListener) {

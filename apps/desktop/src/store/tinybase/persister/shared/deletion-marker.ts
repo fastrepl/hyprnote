@@ -54,9 +54,12 @@ export type DeletionMarkerResult<TData extends Record<string, Table>> = {
   [K in keyof TData]: Record<string, Row | undefined>;
 };
 
-export function createDeletionMarker<TData extends Record<string, Table>>(
+export function createDeletionMarker<
+  TData extends Record<string, Table>,
+  TConfig extends RuntimeTableConfig = RuntimeTableConfig,
+>(
   store: DeletionMarkerStore,
-  tableConfigs: RuntimeTableConfig[],
+  tableConfigs: TConfig[],
 ): {
   markAll: (loaded: TData) => DeletionMarkerResult<TData>;
   markForEntity: (

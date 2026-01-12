@@ -10,7 +10,10 @@ const path2Mocks = vi.hoisted(() => ({
 const fsMocks = vi.hoisted(() => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
   readTextFile: vi.fn(),
-  writeTextFile: vi.fn().mockResolvedValue(undefined),
+}));
+
+const fsSyncMocks = vi.hoisted(() => ({
+  writeJsonBatch: vi.fn().mockResolvedValue({ status: "ok" }),
 }));
 
 const notifyMocks = vi.hoisted(() => ({
@@ -21,6 +24,7 @@ const notifyMocks = vi.hoisted(() => ({
 
 vi.mock("@hypr/plugin-path2", () => ({ commands: path2Mocks }));
 vi.mock("@tauri-apps/plugin-fs", () => fsMocks);
+vi.mock("@hypr/plugin-fs-sync", () => ({ commands: fsSyncMocks }));
 vi.mock("@hypr/plugin-notify", () => ({ events: notifyMocks }));
 
 describe("createJsonFilePersister", () => {
@@ -119,15 +123,12 @@ describe("createJsonFilePersister", () => {
       });
       await persister.save();
 
-      expect(fsMocks.writeTextFile).toHaveBeenCalledWith(
-        `${MOCK_DATA_DIR}/test.json`,
-        expect.any(String),
-      );
+      expect(fsSyncMocks.writeJsonBatch).toHaveBeenCalledWith([
+        [expect.any(Object), `${MOCK_DATA_DIR}/test.json`],
+      ]);
 
-      const writtenContent = fsMocks.writeTextFile.mock.calls[0][1];
-      const parsed = JSON.parse(writtenContent);
-
-      expect(parsed["item-1"].title).toBe("Test Event");
+      const writtenData = fsSyncMocks.writeJsonBatch.mock.calls[0][0][0][0];
+      expect(writtenData["item-1"].title).toBe("Test Event");
     });
 
     test("writes empty object when table is empty", async () => {
@@ -138,10 +139,9 @@ describe("createJsonFilePersister", () => {
       });
       await persister.save();
 
-      expect(fsMocks.writeTextFile).toHaveBeenCalledWith(
-        `${MOCK_DATA_DIR}/test.json`,
-        "{}",
-      );
+      expect(fsSyncMocks.writeJsonBatch).toHaveBeenCalledWith([
+        [{}, `${MOCK_DATA_DIR}/test.json`],
+      ]);
     });
   });
 });

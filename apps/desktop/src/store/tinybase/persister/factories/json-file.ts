@@ -26,10 +26,17 @@ type ListenerHandle = {
   interval: ReturnType<typeof setInterval> | null;
 };
 
-export function createJsonFilePersister<Schemas extends OptionalSchemas>(
+type TablesSchemaOf<S extends OptionalSchemas> = S extends [infer T, unknown]
+  ? T
+  : never;
+
+export function createJsonFilePersister<
+  Schemas extends OptionalSchemas,
+  TName extends keyof TablesSchemaOf<Schemas> & string,
+>(
   store: MergeableStore<Schemas>,
   options: {
-    tableName: string;
+    tableName: TName;
     filename: string;
     label: string;
     listenMode?: ListenMode;
@@ -48,7 +55,7 @@ export function createJsonFilePersister<Schemas extends OptionalSchemas>(
     store,
     async () => loadContent(filename, tableName, label),
     async (_, changes) =>
-      saveContent(store, changes, tableName, filename, label),
+      saveContent<Schemas, TName>(store, changes, tableName, filename, label),
     (listener) =>
       addListener(
         listener,
@@ -67,15 +74,21 @@ export function createJsonFilePersister<Schemas extends OptionalSchemas>(
 async function loadContent(filename: string, tableName: string, label: string) {
   const data = await loadTableData(filename, label);
   if (!data) return undefined;
+  // Return 3-tuple to use applyChanges() semantics (TinyBase checks content[2] === 1)
   return asTablesChanges({ [tableName]: data }) as any;
 }
 
-async function saveContent<Schemas extends OptionalSchemas>(
+type TableId<S extends OptionalSchemas> = keyof TablesSchemaOf<S> & string;
+
+async function saveContent<
+  Schemas extends OptionalSchemas,
+  TName extends TableId<Schemas>,
+>(
   store: MergeableStore<Schemas>,
   changes:
     | PersistedChanges<Schemas, Persists.StoreOrMergeableStore>
     | undefined,
-  tableName: string,
+  tableName: TName,
   filename: string,
   label: string,
 ) {
@@ -88,7 +101,7 @@ async function saveContent<Schemas extends OptionalSchemas>(
 
   try {
     const base = await path2Commands.base();
-    const data = (store.getTable(tableName as any) ?? {}) as JsonValue;
+    const data = (store.getTable(tableName) ?? {}) as JsonValue;
     const path = [base, filename].join(sep());
     const result = await fsSyncCommands.writeJsonBatch([[data, path]]);
     if (result.status === "error") {
@@ -112,6 +125,7 @@ function addListener(
   const onFileChange = async () => {
     const data = await loadTableData(filename, label);
     if (data) {
+      // Pass as changes (second param) with 3-tuple format for applyChanges() semantics
       listener(undefined, asTablesChanges({ [tableName]: data }) as any);
     }
   };

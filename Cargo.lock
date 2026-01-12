@@ -18454,6 +18454,7 @@ dependencies = [
  "tauri-plugin-fs-sync",
  "tauri-plugin-hooks",
  "tauri-plugin-local-stt",
+ "tauri-plugin-path2",
  "tauri-plugin-tray",
  "tauri-specta",
  "thiserror 2.0.17",

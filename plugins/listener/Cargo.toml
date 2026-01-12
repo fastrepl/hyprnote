@@ -40,6 +40,7 @@ owhisper-interface = { workspace = true }
 
 tauri-plugin-hooks = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
+tauri-plugin-path2 = { workspace = true }
 tauri-plugin-tray = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }

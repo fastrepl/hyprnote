@@ -23,6 +23,7 @@ import {
 import { commands as path2Commands } from "@hypr/plugin-path2";
 
 import { fromResult } from "../../../effect";
+import { buildSessionPath } from "../../tinybase/persister/shared/paths";
 import type { BatchActions, BatchState } from "./batch";
 import type { HandlePersistCallback, TranscriptActions } from "./transcript";
 
@@ -326,7 +327,7 @@ export const createGeneralSlice = <
         catch: (error) => error,
       });
 
-      const sessionPath = `${dataDirPath}/hyprnote/sessions/${targetSessionId}`;
+      const sessionPath = buildSessionPath(dataDirPath, targetSessionId);
       const app_meeting = micUsingApps?.[0] ?? null;
 
       yield* Effect.tryPromise({
@@ -408,7 +409,7 @@ export const createGeneralSlice = <
               getIdentifier().catch(() => "com.hyprnote.stable"),
             ])
               .then(([dataDirPath, bundleId]) => {
-                const sessionPath = `${dataDirPath}/hyprnote/sessions/${sessionId}`;
+                const sessionPath = buildSessionPath(dataDirPath, sessionId);
                 return hooksCommands.runEventHooks({
                   afterListeningStopped: {
                     args: {

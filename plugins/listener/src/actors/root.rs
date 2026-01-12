@@ -3,7 +3,7 @@ use std::time::{Instant, SystemTime};
 
 use ractor::{Actor, ActorCell, ActorProcessingErr, ActorRef, RpcReplyPort, SupervisionEvent};
 use tauri::Manager;
-use tauri::path::BaseDirectory;
+use tauri_plugin_path2::Path2PluginExt;
 use tauri_specta::Event;
 use tracing::Instrument;
 
@@ -143,14 +143,10 @@ async fn start_session_impl(
 
         configure_sentry_session_context(&params);
 
-        let app_dir = match state
-            .app
-            .path()
-            .resolve("hyprnote/sessions", BaseDirectory::Data)
-        {
-            Ok(dir) => dir,
+        let app_dir = match state.app.path2().base() {
+            Ok(base) => base.join("sessions"),
             Err(e) => {
-                tracing::error!(error = ?e, "failed_to_resolve_app_dir");
+                tracing::error!(error = ?e, "failed_to_resolve_sessions_base_dir");
                 clear_sentry_session_context();
                 return false;
             }

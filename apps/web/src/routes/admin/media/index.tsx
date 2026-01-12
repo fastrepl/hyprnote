@@ -358,8 +358,8 @@ function MediaLibrary() {
               placeholder="Search..."
               className={cn([
                 "w-full pl-7 pr-2 py-1 text-sm",
-                "border border-neutral-100 rounded",
-                "focus:outline-none focus:border-neutral-400",
+                "bg-transparent",
+                "focus:outline-none",
                 "placeholder:text-neutral-400",
               ])}
             />

@@ -88,7 +88,6 @@ describe("TinyBase hooks", () => {
       });
 
       expect(result.current).toHaveProperty("name");
-      expect(result.current).toHaveProperty("createdAt");
     });
   });
 
@@ -103,7 +102,6 @@ describe("TinyBase hooks", () => {
       expect(result.current).toHaveProperty("title");
       expect(result.current).toHaveProperty("description");
       expect(result.current).toHaveProperty("sections");
-      expect(result.current).toHaveProperty("createdAt");
     });
   });
 

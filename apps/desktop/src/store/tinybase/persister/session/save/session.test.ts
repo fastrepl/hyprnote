@@ -65,7 +65,6 @@ describe("tablesToSessionMetaMap", () => {
     expect(sessionMeta?.meta.participants).toContainEqual({
       id: "participant-1",
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       session_id: "session-1",
       human_id: "human-1",
       source: "manual",

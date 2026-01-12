@@ -170,7 +170,6 @@ describe("processMetaFile", () => {
 
     expect(result.mapping_session_participant["participant-1"]).toEqual({
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       session_id: "session-1",
       human_id: "human-1",
       source: "manual",

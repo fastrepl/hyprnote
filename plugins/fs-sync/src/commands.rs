@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use rayon::prelude::*;
 use serde_json::Value;
+use tauri_plugin_notify::NotifyPluginExt;
 use tauri_plugin_path2::Path2PluginExt;
 
 use crate::FsSyncPluginExt;
@@ -34,7 +35,24 @@ pub(crate) async fn deserialize(input: String) -> Result<ParsedDocument, String>
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn write_json_batch(items: Vec<(Value, String)>) -> Result<(), String> {
+pub(crate) async fn write_json_batch<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    items: Vec<(Value, String)>,
+) -> Result<(), String> {
+    let base = app.path2().base().map_err(|e| e.to_string())?;
+
+    let relative_paths: Vec<String> = items
+        .iter()
+        .filter_map(|(_, path)| {
+            std::path::Path::new(path)
+                .strip_prefix(&base)
+                .ok()
+                .map(|p| p.to_string_lossy().to_string())
+        })
+        .collect();
+
+    app.notify().mark_own_writes(&relative_paths);
+
     spawn_blocking!({
         items.into_par_iter().try_for_each(|(json, path)| {
             let path = std::path::Path::new(&path);
@@ -49,9 +67,24 @@ pub(crate) async fn write_json_batch(items: Vec<(Value, String)>) -> Result<(), 
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn write_document_batch(
+pub(crate) async fn write_document_batch<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
     items: Vec<(ParsedDocument, String)>,
 ) -> Result<(), String> {
+    let base = app.path2().base().map_err(|e| e.to_string())?;
+
+    let relative_paths: Vec<String> = items
+        .iter()
+        .filter_map(|(_, path)| {
+            std::path::Path::new(path)
+                .strip_prefix(&base)
+                .ok()
+                .map(|p| p.to_string_lossy().to_string())
+        })
+        .collect();
+
+    app.notify().mark_own_writes(&relative_paths);
+
     spawn_blocking!({
         items.into_par_iter().try_for_each(|(doc, path)| {
             let path = std::path::Path::new(&path);

@@ -2,7 +2,9 @@ mod error;
 mod events;
 mod ext;
 
-use std::sync::Mutex;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 use notify::RecommendedWatcher;
 use notify_debouncer_full::{Debouncer, RecommendedCache};
@@ -16,6 +18,7 @@ const PLUGIN_NAME: &str = "notify";
 
 pub struct WatcherState {
     pub(crate) debouncer: Mutex<Option<Debouncer<RecommendedWatcher, RecommendedCache>>>,
+    pub(crate) own_writes: Arc<Mutex<HashMap<String, Instant>>>,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -34,6 +37,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             app.manage(WatcherState {
                 debouncer: Mutex::new(None),
+                own_writes: Arc::new(Mutex::new(HashMap::new())),
             });
 
             Ok(())

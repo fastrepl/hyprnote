@@ -8,6 +8,7 @@ use tauri_specta::Event;
 use crate::{FileChanged, WatcherState};
 
 const DEBOUNCE_DELAY_MS: u64 = 900;
+const OWN_WRITES_TTL_MS: u128 = (DEBOUNCE_DELAY_MS as u128) * 2 + 200;
 
 pub struct Notify<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -26,6 +27,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
         let base = self.manager.app_handle().path2().base()?;
         let app_handle = self.manager.app_handle().clone();
         let base_for_closure = base.clone();
+        let own_writes = state.own_writes.clone();
 
         let mut debouncer = new_debouncer(
             Duration::from_millis(DEBOUNCE_DELAY_MS),
@@ -67,7 +69,20 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                         }
                     }
 
+                    {
+                        let mut own = own_writes.lock().unwrap();
+                        let now = std::time::Instant::now();
+                        own.retain(|_, ts| now.duration_since(*ts).as_millis() < OWN_WRITES_TTL_MS);
+                    }
+
                     for path in changed_paths {
+                        let skip = {
+                            let own = own_writes.lock().unwrap();
+                            own.contains_key(&path)
+                        };
+                        if skip {
+                            continue;
+                        }
                         tracing::info!("file_changed: {:?}", path);
                         let _ = FileChanged { path }.emit(&app_handle);
                     }
@@ -86,6 +101,15 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
         let mut guard = state.debouncer.lock().unwrap();
         *guard = None;
         Ok(())
+    }
+
+    pub fn mark_own_writes(&self, paths: &[String]) {
+        let state = self.manager.state::<WatcherState>();
+        let mut guard = state.own_writes.lock().unwrap();
+        let now = std::time::Instant::now();
+        for path in paths {
+            guard.insert(path.clone(), now);
+        }
     }
 }
 

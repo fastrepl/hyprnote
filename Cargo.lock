@@ -18299,6 +18299,7 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-notify",
  "tauri-plugin-opener",
  "tauri-plugin-path2",
  "tauri-specta",

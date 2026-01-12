@@ -28,8 +28,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::deserialize,
-            commands::write_json_batch,
-            commands::write_document_batch,
+            commands::write_json_batch::<tauri::Wry>,
+            commands::write_document_batch::<tauri::Wry>,
             commands::read_document_batch,
             commands::list_folders::<tauri::Wry>,
             commands::move_session::<tauri::Wry>,

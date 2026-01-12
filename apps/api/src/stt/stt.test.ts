@@ -183,14 +183,14 @@ describe("buildDeepgramUrl", () => {
   test("sets default model and mip_opt_out", () => {
     const incoming = new URL("wss://example.com/stt");
     const result = buildDeepgramUrl(incoming);
-    expect(result.searchParams.get("model")).toBe("nova-3-general");
+    expect(result.searchParams.get("model")).toBe("nova-3");
     expect(result.searchParams.get("mip_opt_out")).toBe("false");
   });
 
-  test("overrides model param with default", () => {
+  test("preserves client model param if provided", () => {
     const incoming = new URL("wss://example.com/stt?model=custom");
     const result = buildDeepgramUrl(incoming);
-    expect(result.searchParams.get("model")).toBe("nova-3-general");
+    expect(result.searchParams.get("model")).toBe("custom");
   });
 });
 

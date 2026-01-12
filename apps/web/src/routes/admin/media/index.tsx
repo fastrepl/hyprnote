@@ -85,10 +85,16 @@ function MediaLibrary() {
   const [dragOver, setDragOver] = useState(false);
   const [loadingPath, setLoadingPath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const rootQuery = useQuery({
     queryKey: ["mediaItems", ""],
     queryFn: () => fetchMediaItems(""),
+    enabled: isMounted,
   });
 
   const getRelativePath = (fullPath: string): string => {
@@ -113,7 +119,7 @@ function MediaLibrary() {
   const selectedFolderQuery = useQuery({
     queryKey: ["mediaItems", selectedPath],
     queryFn: () => fetchMediaItems(selectedPath),
-    enabled: selectedPath !== "",
+    enabled: isMounted && selectedPath !== "",
   });
 
   const loadFolderContents = async (path: string) => {

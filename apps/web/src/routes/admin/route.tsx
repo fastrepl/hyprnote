@@ -8,6 +8,16 @@ import {
 import { fetchAdminUser } from "@/functions/admin";
 
 export const Route = createFileRoute("/admin")({
+  head: () => ({
+    meta: [
+      { title: "Content Admin - Hyprnote" },
+      {
+        name: "description",
+        content: "Manage content and media for Hyprnote.",
+      },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   beforeLoad: async () => {
     if (import.meta.env.DEV) {
       return { user: { email: "dev@local", isAdmin: true } };

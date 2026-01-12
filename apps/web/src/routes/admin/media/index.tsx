@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -15,11 +15,13 @@ interface MediaItem {
   downloadUrl: string | null;
 }
 
-interface FolderTreeItem {
+interface TreeNode {
   path: string;
   name: string;
-  children: FolderTreeItem[];
+  type: "file" | "dir";
   expanded: boolean;
+  loaded: boolean;
+  children: TreeNode[];
 }
 
 async function fetchMediaItems(path: string): Promise<MediaItem[]> {
@@ -65,37 +67,6 @@ async function deleteFiles(paths: string[]) {
   return data;
 }
 
-async function buildFolderTree(
-  path: string,
-  depth: number,
-): Promise<FolderTreeItem[]> {
-  if (depth > 3) return [];
-  try {
-    const response = await fetch(
-      `/api/admin/media/list?path=${encodeURIComponent(path)}`,
-    );
-    const data = await response.json();
-    if (!response.ok) return [];
-
-    const folders = data.items.filter((item: MediaItem) => item.type === "dir");
-    const result: FolderTreeItem[] = [];
-
-    for (const folder of folders) {
-      const folderPath = path ? `${path}/${folder.name}` : folder.name;
-      const children = await buildFolderTree(folderPath, depth + 1);
-      result.push({
-        path: folderPath,
-        name: folder.name,
-        children,
-        expanded: false,
-      });
-    }
-    return result;
-  } catch {
-    return [];
-  }
-}
-
 export const Route = createFileRoute("/admin/media/")({
   component: MediaLibrary,
 });
@@ -104,34 +75,113 @@ type TabType = "all" | "images" | "videos" | "documents";
 
 function MediaLibrary() {
   const queryClient = useQueryClient();
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const [currentPath, setCurrentPath] = useState("");
+  const [selectedPath, setSelectedPath] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("all");
-  const [folderTree, setFolderTree] = useState<FolderTreeItem[]>([]);
+  const [treeNodes, setTreeNodes] = useState<TreeNode[]>([]);
+  const [rootExpanded, setRootExpanded] = useState(true);
+  const [rootLoaded, setRootLoaded] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [dragOver, setDragOver] = useState(false);
+  const [loadingPath, setLoadingPath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const itemsQuery = useQuery({
-    queryKey: ["mediaItems", currentPath],
-    queryFn: () => fetchMediaItems(currentPath),
+  const rootQuery = useQuery({
+    queryKey: ["mediaItems", ""],
+    queryFn: () => fetchMediaItems(""),
   });
 
-  const folderTreeQuery = useQuery({
-    queryKey: ["folderTree"],
-    queryFn: () => buildFolderTree("", 0),
+  const selectedFolderQuery = useQuery({
+    queryKey: ["mediaItems", selectedPath],
+    queryFn: () => fetchMediaItems(selectedPath),
+    enabled: selectedPath !== "",
   });
 
-  useEffect(() => {
-    if (folderTreeQuery.data) {
-      setFolderTree(folderTreeQuery.data);
+  const loadFolderContents = async (path: string) => {
+    setLoadingPath(path);
+    try {
+      const items = await fetchMediaItems(path);
+      const children: TreeNode[] = items.map((item) => ({
+        path: item.path,
+        name: item.name,
+        type: item.type,
+        expanded: false,
+        loaded: false,
+        children: [],
+      }));
+
+      if (path === "") {
+        setTreeNodes(children);
+        setRootLoaded(true);
+      } else {
+        setTreeNodes((prev) => updateTreeNode(prev, path, children));
+      }
+    } finally {
+      setLoadingPath(null);
     }
-  }, [folderTreeQuery.data]);
+  };
+
+  const updateTreeNode = (
+    nodes: TreeNode[],
+    targetPath: string,
+    children: TreeNode[],
+  ): TreeNode[] => {
+    return nodes.map((node) => {
+      if (node.path === targetPath) {
+        return { ...node, children, loaded: true, expanded: true };
+      }
+      if (node.children.length > 0) {
+        return {
+          ...node,
+          children: updateTreeNode(node.children, targetPath, children),
+        };
+      }
+      return node;
+    });
+  };
+
+  const toggleNodeExpanded = async (path: string) => {
+    if (path === "") {
+      if (!rootLoaded) {
+        await loadFolderContents("");
+      }
+      setRootExpanded(!rootExpanded);
+      return;
+    }
+
+    const node = findNode(treeNodes, path);
+    if (node && !node.loaded && node.type === "dir") {
+      await loadFolderContents(path);
+    } else {
+      setTreeNodes((prev) => toggleExpanded(prev, path));
+    }
+  };
+
+  const findNode = (nodes: TreeNode[], path: string): TreeNode | null => {
+    for (const node of nodes) {
+      if (node.path === path) return node;
+      if (node.children.length > 0) {
+        const found = findNode(node.children, path);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const toggleExpanded = (nodes: TreeNode[], path: string): TreeNode[] => {
+    return nodes.map((node) => {
+      if (node.path === path) {
+        return { ...node, expanded: !node.expanded };
+      }
+      if (node.children.length > 0) {
+        return { ...node, children: toggleExpanded(node.children, path) };
+      }
+      return node;
+    });
+  };
 
   const uploadMutation = useMutation({
     mutationFn: async (files: FileList) => {
-      const targetPath = selectedPath ?? currentPath;
       for (const file of Array.from(files)) {
         const reader = new FileReader();
         const content = await new Promise<string>((resolve, reject) => {
@@ -146,13 +196,13 @@ function MediaLibrary() {
         await uploadFile({
           filename: file.name,
           content,
-          folder: targetPath,
+          folder: selectedPath,
         });
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
-      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
+      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
+      loadFolderContents(selectedPath);
     },
   });
 
@@ -160,8 +210,8 @@ function MediaLibrary() {
     mutationFn: (paths: string[]) => deleteFiles(paths),
     onSuccess: () => {
       setSelectedItems(new Set());
-      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
-      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
+      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
+      loadFolderContents(selectedPath);
     },
   });
 
@@ -178,8 +228,7 @@ function MediaLibrary() {
     deleteMutation.mutate(Array.from(selectedItems));
   };
 
-  const navigateToFolder = (path: string) => {
-    setCurrentPath(path);
+  const selectFolder = (path: string) => {
     setSelectedPath(path);
     setSelectedItems(new Set());
   };
@@ -192,21 +241,6 @@ function MediaLibrary() {
       newSelection.add(path);
     }
     setSelectedItems(newSelection);
-  };
-
-  const toggleFolderExpanded = (path: string) => {
-    const updateTree = (items: FolderTreeItem[]): FolderTreeItem[] => {
-      return items.map((item) => {
-        if (item.path === path) {
-          return { ...item, expanded: !item.expanded };
-        }
-        if (item.children.length > 0) {
-          return { ...item, children: updateTree(item.children) };
-        }
-        return item;
-      });
-    };
-    setFolderTree(updateTree(folderTree));
   };
 
   const copyToClipboard = (text: string) => {
@@ -247,31 +281,26 @@ function MediaLibrary() {
     }
   };
 
-  const filterFolderTree = (
-    items: FolderTreeItem[],
-    query: string,
-  ): FolderTreeItem[] => {
-    if (!query) return items;
+  const filterTreeNodes = (nodes: TreeNode[], query: string): TreeNode[] => {
+    if (!query) return nodes;
     const lowerQuery = query.toLowerCase();
 
-    return items
-      .map((item) => {
-        const matchesName = item.name.toLowerCase().includes(lowerQuery);
-        const filteredChildren = filterFolderTree(item.children, query);
+    return nodes
+      .map((node) => {
+        const matchesName = node.name.toLowerCase().includes(lowerQuery);
+        const filteredChildren = filterTreeNodes(node.children, query);
 
         if (matchesName || filteredChildren.length > 0) {
-          return {
-            ...item,
-            children: filteredChildren,
-            expanded: query.length > 0,
-          };
+          return { ...node, children: filteredChildren, expanded: true };
         }
         return null;
       })
-      .filter((item): item is FolderTreeItem => item !== null);
+      .filter((node): node is TreeNode => node !== null);
   };
 
-  const items = itemsQuery.data || [];
+  const currentItems =
+    selectedPath === "" ? rootQuery.data : selectedFolderQuery.data;
+  const items = currentItems || [];
   const filteredItems = items.filter((item) => {
     const matchesSearch =
       searchQuery === "" ||
@@ -280,7 +309,7 @@ function MediaLibrary() {
     return matchesSearch && matchesType;
   });
 
-  const filteredFolderTree = filterFolderTree(folderTree, searchQuery);
+  const filteredTreeNodes = filterTreeNodes(treeNodes, searchQuery);
 
   const tabs: { id: TabType; label: string }[] = [
     { id: "all", label: "All" },
@@ -289,57 +318,73 @@ function MediaLibrary() {
     { id: "documents", label: "Documents" },
   ];
 
-  const renderFolderTree = (
-    items: FolderTreeItem[],
+  const renderTreeNode = (
+    node: TreeNode,
     depth: number = 0,
   ): React.ReactNode => {
-    return items.map((item) => {
-      const isSelected = selectedPath === item.path;
-      const hasChildren = item.children.length > 0;
+    const isSelected = selectedPath === node.path;
+    const isFolder = node.type === "dir";
+    const isLoading = loadingPath === node.path;
 
-      return (
-        <div key={item.path}>
-          <div
-            className={cn([
-              "flex items-center gap-1 py-1 pr-2 cursor-pointer text-sm",
-              "hover:bg-neutral-100 transition-colors",
-              isSelected && "bg-neutral-100",
-            ])}
-            style={{ paddingLeft: `${depth * 16 + 8}px` }}
-            onClick={() => {
-              setSelectedPath(item.path);
-              navigateToFolder(item.path);
-            }}
-          >
+    return (
+      <div key={node.path}>
+        <div
+          className={cn([
+            "flex items-center gap-1 py-1 pr-2 cursor-pointer text-sm",
+            "hover:bg-neutral-100 transition-colors",
+            isSelected && "bg-neutral-100",
+          ])}
+          style={{ paddingLeft: `${depth * 16 + 8}px` }}
+          onClick={() => {
+            if (isFolder) {
+              selectFolder(node.path);
+            }
+          }}
+        >
+          {isFolder ? (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (hasChildren) {
-                  toggleFolderExpanded(item.path);
-                }
+                toggleNodeExpanded(node.path);
               }}
-              className={cn([
-                "w-4 h-4 flex items-center justify-center",
-                !hasChildren && "invisible",
-              ])}
+              className="w-4 h-4 flex items-center justify-center"
             >
-              <Icon
-                icon={item.expanded ? "mdi:chevron-down" : "mdi:chevron-right"}
-                className="text-neutral-400 text-xs"
-              />
+              {isLoading ? (
+                <Icon
+                  icon="mdi:loading"
+                  className="text-neutral-400 text-xs animate-spin"
+                />
+              ) : (
+                <Icon
+                  icon={
+                    node.expanded ? "mdi:chevron-down" : "mdi:chevron-right"
+                  }
+                  className="text-neutral-400 text-xs"
+                />
+              )}
             </button>
-            <Icon
-              icon={item.expanded ? "mdi:folder-open" : "mdi:folder"}
-              className="text-neutral-400 text-sm"
-            />
-            <span className="truncate text-neutral-700">{item.name}</span>
-          </div>
-          {item.expanded && hasChildren && (
-            <div>{renderFolderTree(item.children, depth + 1)}</div>
+          ) : (
+            <span className="w-4" />
           )}
+          <Icon
+            icon={
+              isFolder
+                ? node.expanded
+                  ? "mdi:folder-open"
+                  : "mdi:folder"
+                : "mdi:file-outline"
+            }
+            className="text-neutral-400 text-sm"
+          />
+          <span className="truncate text-neutral-700">{node.name}</span>
         </div>
-      );
-    });
+        {node.expanded && node.children.length > 0 && (
+          <div>
+            {node.children.map((child) => renderTreeNode(child, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -371,45 +416,61 @@ function MediaLibrary() {
             className={cn([
               "flex items-center gap-1 py-1 px-2 cursor-pointer text-sm",
               "hover:bg-neutral-100 transition-colors",
-              (selectedPath === "" || selectedPath === null) &&
-                "bg-neutral-100",
+              selectedPath === "" && "bg-neutral-100",
             ])}
-            onClick={() => {
-              setSelectedPath("");
-              navigateToFolder("");
-            }}
+            onClick={() => selectFolder("")}
           >
-            <span className="w-4" />
-            <Icon icon="mdi:folder" className="text-neutral-400 text-sm" />
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleNodeExpanded("");
+              }}
+              className="w-4 h-4 flex items-center justify-center"
+            >
+              {loadingPath === "" ? (
+                <Icon
+                  icon="mdi:loading"
+                  className="text-neutral-400 text-xs animate-spin"
+                />
+              ) : (
+                <Icon
+                  icon={rootExpanded ? "mdi:chevron-down" : "mdi:chevron-right"}
+                  className="text-neutral-400 text-xs"
+                />
+              )}
+            </button>
+            <Icon
+              icon={rootExpanded ? "mdi:folder-open" : "mdi:folder"}
+              className="text-neutral-400 text-sm"
+            />
             <span className="text-neutral-700">images</span>
           </div>
-          {renderFolderTree(filteredFolderTree)}
+          {rootExpanded &&
+            filteredTreeNodes.map((node) => renderTreeNode(node, 1))}
         </div>
 
-        {selectedPath !== null && (
-          <div className="p-2 border-t border-neutral-100">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadMutation.isPending}
-              className={cn([
-                "w-full py-2 text-sm font-medium rounded",
-                "bg-neutral-900 text-white",
-                "hover:bg-neutral-800 transition-colors",
-                "disabled:opacity-50",
-              ])}
-            >
-              {uploadMutation.isPending ? "Uploading..." : "+ Add"}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              className="hidden"
-              onChange={(e) => e.target.files && handleUpload(e.target.files)}
-            />
-          </div>
-        )}
+        <div className="p-2 border-t border-neutral-100">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadMutation.isPending}
+            className={cn([
+              "w-full py-2 text-sm font-medium rounded",
+              "bg-neutral-900 text-white",
+              "hover:bg-neutral-800 transition-colors",
+              "disabled:opacity-50",
+            ])}
+          >
+            {uploadMutation.isPending ? "Uploading..." : "+ Add"}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,video/*"
+            className="hidden"
+            onChange={(e) => e.target.files && handleUpload(e.target.files)}
+          />
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -464,7 +525,11 @@ function MediaLibrary() {
           }}
           onDragLeave={() => setDragOver(false)}
         >
-          {itemsQuery.isLoading ? (
+          {(
+            selectedPath === ""
+              ? rootQuery.isLoading
+              : selectedFolderQuery.isLoading
+          ) ? (
             <div className="flex items-center justify-center h-64 text-neutral-500">
               <Icon icon="mdi:loading" className="animate-spin text-2xl mr-2" />
               Loading...
@@ -474,7 +539,7 @@ function MediaLibrary() {
               <Icon icon="mdi:folder-open-outline" className="text-4xl mb-3" />
               <p className="text-sm">No files found</p>
               <p className="text-xs mt-1">
-                Drag and drop files here or select a folder and click Add
+                Drag and drop files here or click Add
               </p>
             </div>
           ) : (
@@ -490,11 +555,7 @@ function MediaLibrary() {
                   ])}
                   onClick={() =>
                     item.type === "dir"
-                      ? navigateToFolder(
-                          currentPath
-                            ? `${currentPath}/${item.name}`
-                            : item.name,
-                        )
+                      ? selectFolder(item.path)
                       : toggleSelection(item.path)
                   }
                 >

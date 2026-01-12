@@ -28,6 +28,7 @@ pub fn is_builtin_display_inactive() -> bool {
     false
 }
 
+#[cfg(target_os = "macos")]
 pub fn hw_model() -> std::io::Result<String> {
     use libc::{c_void, size_t};
     use std::ffi::CString;
@@ -65,6 +66,14 @@ pub fn hw_model() -> std::io::Result<String> {
 
         Ok(String::from_utf8_lossy(&buf).into_owned())
     }
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn hw_model() -> std::io::Result<String> {
+    Err(std::io::Error::new(
+        std::io::ErrorKind::Unsupported,
+        "hw_model is only supported on macOS",
+    ))
 }
 
 #[derive(strum::Display)]

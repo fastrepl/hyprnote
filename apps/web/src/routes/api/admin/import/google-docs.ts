@@ -204,21 +204,32 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
             );
           }
 
+          let html: string;
+          let response: Response;
+
           const publishedUrl = `https://docs.google.com/document/d/${docId}/pub`;
-          const response = await fetch(publishedUrl);
+          response = await fetch(publishedUrl);
 
           if (!response.ok) {
-            return new Response(
-              JSON.stringify({
-                success: false,
-                error:
-                  "Failed to fetch document. Make sure it is published to the web.",
-              }),
-              { status: 400, headers: { "Content-Type": "application/json" } },
-            );
+            const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=html`;
+            response = await fetch(exportUrl);
+
+            if (!response.ok) {
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  error:
+                    "Failed to fetch document. Make sure it is either published to the web (File > Share > Publish to web) or shared with 'Anyone with the link can view' permissions.",
+                }),
+                {
+                  status: 400,
+                  headers: { "Content-Type": "application/json" },
+                },
+              );
+            }
           }
 
-          const html = await response.text();
+          html = await response.text();
           const extractedTitle = extractTitle(html) || "Untitled";
           const finalTitle = title || extractedTitle;
           const finalSlug = slug || generateSlug(finalTitle);

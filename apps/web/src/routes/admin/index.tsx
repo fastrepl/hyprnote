@@ -177,17 +177,15 @@ function MediaLibrary() {
     setSelectedItems(newSelection);
   };
 
-
-const copyToClipboard = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    // Optionally show success feedback
-  } catch (error) {
-    console.error('Failed to copy to clipboard:', error);
-    // Fallback or user notification
-  }
-};
-
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // Optionally show success feedback
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+      // Fallback or user notification
+    }
+  };
 
   const breadcrumbs = currentPath ? currentPath.split("/").filter(Boolean) : [];
   const items = itemsQuery.data || [];
@@ -272,7 +270,7 @@ const copyToClipboard = async (text: string) => {
             onChange={(e) => {
               if (e.target.files) {
                 handleUpload(e.target.files);
-                e.target.value = ''; // Clear the input
+                e.target.value = ""; // Clear the input
               }
             }}
           />

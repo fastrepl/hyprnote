@@ -15,9 +15,9 @@ use ringbuf::{
     traits::{Consumer, Producer, Split},
 };
 
+use super::{BUFFER_SIZE, CHUNK_SIZE};
+
 const SAMPLE_RATE: u32 = 48000;
-const CHUNK_SIZE: usize = 256;
-const BUFFER_SIZE: usize = CHUNK_SIZE * 4;
 
 pub struct SpeakerInput {
     sample_rate: u32,

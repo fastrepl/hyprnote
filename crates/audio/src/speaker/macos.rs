@@ -47,7 +47,7 @@ struct Ctx {
     current_sample_rate: Arc<AtomicU32>,
 }
 
-const CHUNK_SIZE: usize = 256;
+use super::{BUFFER_SIZE, CHUNK_SIZE};
 
 impl SpeakerInput {
     pub fn new() -> Result<Self> {
@@ -167,8 +167,7 @@ impl SpeakerInput {
 
         let format = av::AudioFormat::with_asbd(&asbd).unwrap();
 
-        let buffer_size = CHUNK_SIZE * 4;
-        let rb = HeapRb::<f32>::new(buffer_size);
+        let rb = HeapRb::<f32>::new(BUFFER_SIZE);
         let (producer, consumer) = rb.split();
 
         let waker_state = Arc::new(Mutex::new(WakerState {

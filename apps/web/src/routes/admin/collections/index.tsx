@@ -71,7 +71,8 @@ interface FileContent {
   mdx: string;
   collection: string;
   slug: string;
-  title?: string;
+  meta_title?: string;
+  display_title?: string;
   meta_description?: string;
   author?: string;
   date?: string;
@@ -88,7 +89,8 @@ function getAllContent(): Map<string, FileContent> {
       mdx: a.mdx,
       collection: "articles",
       slug: a.slug,
-      title: a.title,
+      meta_title: a.meta_title,
+      display_title: a.display_title,
       meta_description: a.meta_description,
       author: a.author,
       date: a.date,
@@ -954,14 +956,14 @@ function EditorHeader({
         </div>
 
         {currentTab.type === "file" && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <button
               onClick={onTogglePreview}
               className={cn([
                 "cursor-pointer p-1.5 rounded transition-colors",
                 isPreviewMode
-                  ? "bg-neutral-100 text-neutral-700"
-                  : "text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50",
+                  ? "text-neutral-700"
+                  : "text-neutral-400 hover:text-neutral-600",
               ])}
               title={isPreviewMode ? "Edit mode" : "Preview mode"}
             >
@@ -974,7 +976,7 @@ function EditorHeader({
             <button
               type="button"
               className={cn([
-                "px-3 py-1 text-xs font-medium font-mono rounded-sm flex items-center gap-1.5",
+                "px-2 py-1.5 text-xs font-medium font-mono rounded-sm flex items-center gap-1.5",
                 isPublished
                   ? "text-white bg-green-600 hover:bg-green-700"
                   : "text-white bg-neutral-900 hover:bg-neutral-800",
@@ -982,12 +984,12 @@ function EditorHeader({
             >
               {isPublished ? (
                 <>
-                  <CheckIcon className="size-3" />
+                  <CheckIcon className="size-4" />
                   Published
                 </>
               ) : (
                 <>
-                  <SendIcon className="size-3" />
+                  <SendIcon className="size-4" />
                   Publish
                 </>
               )}
@@ -1222,6 +1224,90 @@ function FileList({
   );
 }
 
+const AUTHORS = [
+  { name: "John Jeong", avatar: "/api/images/team/john.png" },
+  { name: "Harshika", avatar: "/api/images/team/harshika.jpeg" },
+  { name: "Yujong Lee", avatar: "/api/images/team/yujong.png" },
+];
+
+function AuthorSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedAuthor = AUTHORS.find((a) => a.name === value);
+
+  return (
+    <div ref={ref} className="relative flex-1">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer"
+      >
+        {selectedAuthor ? (
+          <>
+            <img
+              src={selectedAuthor.avatar}
+              alt={selectedAuthor.name}
+              className="size-5 rounded-full object-cover"
+            />
+            {selectedAuthor.name}
+          </>
+        ) : (
+          <span className="text-neutral-400">Select author</span>
+        )}
+        <ChevronRightIcon
+          className={cn([
+            "size-3 ml-auto transition-transform text-neutral-400",
+            isOpen && "rotate-90",
+          ])}
+        />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-neutral-200 rounded-sm shadow-lg z-50">
+          {AUTHORS.map((author) => (
+            <button
+              key={author.name}
+              type="button"
+              onClick={() => {
+                onChange(author.name);
+                setIsOpen(false);
+              }}
+              className={cn([
+                "w-full flex items-center gap-2 px-3 py-2 text-sm text-left cursor-pointer",
+                "hover:bg-neutral-100 transition-colors",
+                value === author.name && "bg-neutral-50",
+              ])}
+            >
+              <img
+                src={author.avatar}
+                alt={author.name}
+                className="size-5 rounded-full object-cover"
+              />
+              {author.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FileEditor({
   filePath,
   contentMap,
@@ -1233,6 +1319,7 @@ function FileEditor({
 }) {
   const fileContent = contentMap.get(filePath);
   const [content, setContent] = useState(fileContent?.content || "");
+  const [author, setAuthor] = useState(fileContent?.author || "");
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
   const [isMetadataVisible, setIsMetadataVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -1271,15 +1358,8 @@ function FileEditor({
     );
   }
 
-  const AUTHOR_AVATARS: Record<string, string> = {
-    "John Jeong": "/api/images/team/john.png",
-    Harshika: "/api/images/team/harshika.jpeg",
-    "Yujong Lee": "/api/images/team/yujong.png",
-  };
-
-  const avatarUrl = fileContent.author
-    ? AUTHOR_AVATARS[fileContent.author]
-    : undefined;
+  const selectedAuthor = AUTHORS.find((a) => a.name === author);
+  const avatarUrl = selectedAuthor?.avatar;
 
   if (isPreviewMode) {
     return (
@@ -1309,22 +1389,21 @@ function FileEditor({
                 </button>
                 <input
                   type="text"
-                  defaultValue={fileContent.title || ""}
-                  placeholder="Display title"
+                  defaultValue={fileContent.meta_title || ""}
+                  placeholder="SEO meta title"
                   className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
                 />
               </div>
               {isTitleExpanded && (
                 <div className="flex border-b border-neutral-200 bg-neutral-50">
                   <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
-                    <span className="absolute left-1 text-red-400">*</span>
                     <span className="text-neutral-300">└</span>
-                    Meta
+                    Display
                   </span>
                   <input
                     type="text"
-                    defaultValue={fileContent.title || ""}
-                    placeholder="SEO meta title"
+                    defaultValue={fileContent.display_title || ""}
+                    placeholder="Display title (optional)"
                     className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
                   />
                 </div>
@@ -1334,15 +1413,9 @@ function FileEditor({
                   <span className="absolute left-1 text-red-400">*</span>
                   Author
                 </span>
-                <select
-                  defaultValue={fileContent.author || ""}
-                  className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-                >
-                  <option value="">Select author</option>
-                  <option value="John Jeong">John Jeong</option>
-                  <option value="Harshika">Harshika</option>
-                  <option value="Yujong Lee">Yujong Lee</option>
-                </select>
+                <div className="flex-1 px-2 py-2">
+                  <AuthorSelect value={author} onChange={setAuthor} />
+                </div>
               </div>
               <div className="flex border-b border-neutral-200">
                 <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
@@ -1352,7 +1425,7 @@ function FileEditor({
                 <input
                   type="date"
                   defaultValue={fileContent.date || ""}
-                  className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+                  className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
                 />
               </div>
               <div className="flex border-b border-neutral-200">
@@ -1420,20 +1493,20 @@ function FileEditor({
           <div className="h-full overflow-y-auto bg-white">
             <header className="py-12 text-center max-w-3xl mx-auto px-6">
               <h1 className="text-3xl font-serif text-stone-600 mb-6">
-                {fileContent.title || "Untitled"}
+                {fileContent.display_title ||
+                  fileContent.meta_title ||
+                  "Untitled"}
               </h1>
-              {fileContent.author && (
+              {author && (
                 <div className="flex items-center justify-center gap-3 mb-2">
                   {avatarUrl && (
                     <img
                       src={avatarUrl}
-                      alt={fileContent.author}
+                      alt={author}
                       className="w-8 h-8 rounded-full object-cover"
                     />
                   )}
-                  <p className="text-base text-neutral-600">
-                    {fileContent.author}
-                  </p>
+                  <p className="text-base text-neutral-600">{author}</p>
                 </div>
               )}
               {fileContent.date && (
@@ -1486,22 +1559,21 @@ function FileEditor({
             </button>
             <input
               type="text"
-              defaultValue={fileContent.title || ""}
-              placeholder="Display title"
+              defaultValue={fileContent.meta_title || ""}
+              placeholder="SEO meta title"
               className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
             />
           </div>
           {isTitleExpanded && (
             <div className="flex border-b border-neutral-200 bg-neutral-50">
               <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
-                <span className="absolute left-1 text-red-400">*</span>
                 <span className="text-neutral-300">└</span>
-                Meta
+                Display
               </span>
               <input
                 type="text"
-                defaultValue={fileContent.title || ""}
-                placeholder="SEO meta title"
+                defaultValue={fileContent.display_title || ""}
+                placeholder="Display title (optional)"
                 className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
               />
             </div>
@@ -1511,15 +1583,9 @@ function FileEditor({
               <span className="absolute left-1 text-red-400">*</span>
               Author
             </span>
-            <select
-              defaultValue={fileContent.author || ""}
-              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-            >
-              <option value="">Select author</option>
-              <option value="John Jeong">John Jeong</option>
-              <option value="Harshika">Harshika</option>
-              <option value="Yujong Lee">Yujong Lee</option>
-            </select>
+            <div className="flex-1 px-2 py-2">
+              <AuthorSelect value={author} onChange={setAuthor} />
+            </div>
           </div>
           <div className="flex border-b border-neutral-200">
             <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
@@ -1529,7 +1595,7 @@ function FileEditor({
             <input
               type="date"
               defaultValue={fileContent.date || ""}
-              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+              className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
             />
           </div>
           <div className="flex border-b border-neutral-200">

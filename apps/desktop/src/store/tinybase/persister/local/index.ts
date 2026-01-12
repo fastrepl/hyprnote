@@ -1,5 +1,6 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
 
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { type Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
@@ -125,10 +126,11 @@ export function useLocalPersister(store: Store) {
 
       await persister.load();
 
-      const migrated = migrateWordsAndHintsToTranscripts(store as Store);
-
-      if (migrated) {
-        await persister.save();
+      if (getCurrentWebviewWindowLabel() === "main") {
+        const migrated = migrateWordsAndHintsToTranscripts(store as Store);
+        if (migrated) {
+          await persister.save();
+        }
       }
 
       return persister;

@@ -1,5 +1,5 @@
 import { sep } from "@tauri-apps/api/path";
-import { mkdir, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type {
   PersistedChanges,
@@ -7,6 +7,10 @@ import type {
 } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
+import {
+  commands as fsSyncCommands,
+  type JsonValue,
+} from "@hypr/plugin-fs-sync";
 import { events as notifyEvents } from "@hypr/plugin-notify";
 import { commands as path2Commands } from "@hypr/plugin-path2";
 
@@ -84,15 +88,12 @@ async function saveContent<Schemas extends OptionalSchemas>(
 
   try {
     const base = await path2Commands.base();
-    await mkdir(base, { recursive: true });
-    const data = (store.getTable(tableName as any) ?? {}) as Record<
-      string,
-      unknown
-    >;
-    await writeTextFile(
-      [base, filename].join(sep()),
-      JSON.stringify(data, null, 2),
-    );
+    const data = (store.getTable(tableName as any) ?? {}) as JsonValue;
+    const path = [base, filename].join(sep());
+    const result = await fsSyncCommands.writeJsonBatch([[data, path]]);
+    if (result.status === "error") {
+      throw new Error(result.error);
+    }
   } catch (error) {
     console.error(`[${label}] save error:`, error);
   }

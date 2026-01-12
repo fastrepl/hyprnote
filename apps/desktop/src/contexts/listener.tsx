@@ -6,6 +6,7 @@ import { useShallow } from "zustand/shallow";
 import { events as detectEvents } from "@hypr/plugin-detect";
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 
+import { useConfigValue } from "../config/use-config";
 import {
   createListenerStore,
   type ListenerStore,
@@ -51,6 +52,12 @@ export const useListener = <T,>(
 const useHandleDetectEvents = (store: ListenerStore) => {
   const stop = useStore(store, (state) => state.stop);
   const setMuted = useStore(store, (state) => state.setMuted);
+  const notificationDetect = useConfigValue("notification_detect");
+  const notificationDetectRef = useRef(notificationDetect);
+
+  useEffect(() => {
+    notificationDetectRef.current = notificationDetect;
+  }, [notificationDetect]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -60,6 +67,10 @@ const useHandleDetectEvents = (store: ListenerStore) => {
     detectEvents.detectEvent
       .listen(({ payload }) => {
         if (payload.type === "micStarted") {
+          if (!notificationDetectRef.current) {
+            return;
+          }
+
           void getCurrentWindow()
             .isFocused()
             .then((isFocused) => {

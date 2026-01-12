@@ -1,10 +1,15 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { fetchUser } from "@/functions/auth";
+import { fetchBillingAccess } from "@/functions/billing-access";
 
 export const Route = createFileRoute("/_view/app")({
   beforeLoad: async ({ location }) => {
-    const user = await fetchUser();
+    const [user, billingAccess] = await Promise.all([
+      fetchUser(),
+      fetchBillingAccess(),
+    ]);
+
     if (!user) {
       const searchStr =
         Object.keys(location.search).length > 0
@@ -18,6 +23,7 @@ export const Route = createFileRoute("/_view/app")({
         },
       });
     }
-    return { user };
+
+    return { user, billingAccess };
   },
 });

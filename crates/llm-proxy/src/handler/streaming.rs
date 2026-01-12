@@ -89,6 +89,12 @@ pub(super) async fn handle_stream_response(
     let api_key = state.config.api_key.clone();
     let client = state.client.clone();
 
+    tracing::info!(
+        http_status = %http_status,
+        streaming = true,
+        "llm completion response"
+    );
+
     let upstream = response.bytes_stream();
 
     let output_stream = stream! {

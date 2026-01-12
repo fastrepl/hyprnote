@@ -4,11 +4,13 @@ date: 2026-01-11T00:00:00.000Z
 
 ## Data & Storage
 
-- Replaced `sqlite` based persisters with `json` and `markdown` based persisters.
+- Replaced `sqlite` based persisters with `json` and `markdown` based persisters
+- Avoid accidental data loss on load failure
 
 ## Audio & Devices
 
 - Fix listen mode heuristic around headphones with wrong terminal type
+- Increase speaker buffer size and centralize audio constants
 
 ## Authentication
 
@@ -21,10 +23,13 @@ date: 2026-01-11T00:00:00.000Z
 - Force pin listening tab with fixed left section
 - Scroll left sidebar to 'now' indicator on initial load
 - Add 'coming soon' tooltips to unimplemented features
+- Show chat coming soon indicator for desktop
+- Avoid zoom watcher warnings when permission is not granted
 
 ## AI
 
 - Add display name for Hyprnote auto model
+- Add toast notification for logged-out users with Pro models configured
 
 ## Calendar
 
@@ -35,3 +40,4 @@ date: 2026-01-11T00:00:00.000Z
 - Optimize scroll fade performance and memoize overlay
 - Improve title input with local state management
 - Reduce delay for toast appearance
+- Move amplitude observation to ingest time for faster visualization

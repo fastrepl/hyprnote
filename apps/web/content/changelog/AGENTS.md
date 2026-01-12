@@ -1,6 +1,7 @@
 # Instruction
 
 - Read through the commits, and most of the diffs, but only keep the desktop-related thing to the changelog.
+- All changelogs should "worth reading" for app users. No internal changes or infra updates.
 
 # Scripts
 

@@ -261,7 +261,7 @@ function CollectionsPage() {
         onCollectionDoubleClick={(collection) =>
           openTab("collection", collection.label, collection.name)
         }
-        onFileDoubleClick={(item) => openTab("file", item.name, item.path)}
+        onFileClick={(item) => openTab("file", item.name, item.path)}
         clipboard={clipboard}
         onClipboardChange={setClipboard}
       />
@@ -288,7 +288,7 @@ function Sidebar({
   onSearchChange,
   onCollectionClick,
   onCollectionDoubleClick,
-  onFileDoubleClick,
+  onFileClick,
   clipboard,
   onClipboardChange,
 }: {
@@ -298,7 +298,7 @@ function Sidebar({
   onSearchChange: (query: string) => void;
   onCollectionClick: (name: string) => void;
   onCollectionDoubleClick: (collection: CollectionInfo) => void;
-  onFileDoubleClick: (item: ContentItem) => void;
+  onFileClick: (item: ContentItem) => void;
   clipboard: ClipboardItem | null;
   onClipboardChange: (item: ClipboardItem | null) => void;
 }) {
@@ -336,7 +336,7 @@ function Sidebar({
               isExpanded={isExpanded}
               onClick={() => onCollectionClick(collection.name)}
               onDoubleClick={() => onCollectionDoubleClick(collection)}
-              onFileDoubleClick={onFileDoubleClick}
+              onFileClick={onFileClick}
               clipboard={clipboard}
               onClipboardChange={onClipboardChange}
             />
@@ -365,7 +365,7 @@ function CollectionItem({
   isExpanded,
   onClick,
   onDoubleClick,
-  onFileDoubleClick,
+  onFileClick,
   clipboard,
   onClipboardChange,
 }: {
@@ -373,7 +373,7 @@ function CollectionItem({
   isExpanded: boolean;
   onClick: () => void;
   onDoubleClick: () => void;
-  onFileDoubleClick: (item: ContentItem) => void;
+  onFileClick: (item: ContentItem) => void;
   clipboard: ClipboardItem | null;
   onClipboardChange: (item: ClipboardItem | null) => void;
 }) {
@@ -457,7 +457,7 @@ function CollectionItem({
             <FileItemSidebar
               key={item.path}
               item={item}
-              onDoubleClick={() => onFileDoubleClick(item)}
+              onClick={() => onFileClick(item)}
               clipboard={clipboard}
               onClipboardChange={onClipboardChange}
             />
@@ -475,12 +475,12 @@ function CollectionItem({
 
 function FileItemSidebar({
   item,
-  onDoubleClick,
+  onClick,
   clipboard,
   onClipboardChange,
 }: {
   item: ContentItem;
-  onDoubleClick: () => void;
+  onClick: () => void;
   clipboard: ClipboardItem | null;
   onClipboardChange: (item: ClipboardItem | null) => void;
 }) {
@@ -502,7 +502,7 @@ function FileItemSidebar({
         "flex items-center gap-1.5 py-1 pl-3 pr-2 cursor-pointer text-sm",
         "hover:bg-neutral-50 transition-colors",
       ])}
-      onDoubleClick={onDoubleClick}
+      onClick={onClick}
       onContextMenu={handleContextMenu}
     >
       <Icon
@@ -518,7 +518,7 @@ function FileItemSidebar({
           onClose={closeContextMenu}
           isFolder={false}
           canPaste={clipboard !== null}
-          onOpenInNewTab={onDoubleClick}
+          onOpenInNewTab={onClick}
           onDownload={() => {
             window.open(
               `https://github.com/fastrepl/hyprnote/blob/main/apps/web/content/${item.path}`,

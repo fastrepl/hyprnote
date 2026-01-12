@@ -12,6 +12,7 @@ import {
 } from "content-collections";
 import {
   CheckIcon,
+  ChevronDownIcon,
   ChevronRightIcon,
   EyeIcon,
   PencilIcon,
@@ -1308,6 +1309,156 @@ function AuthorSelect({
   );
 }
 
+function MetadataPanel({
+  fileContent,
+  author,
+  onAuthorChange,
+  isExpanded,
+  onToggleExpanded,
+}: {
+  fileContent: FileContent;
+  author: string;
+  onAuthorChange: (value: string) => void;
+  isExpanded: boolean;
+  onToggleExpanded: () => void;
+}) {
+  const [isTitleExpanded, setIsTitleExpanded] = useState(false);
+
+  return (
+    <div className="shrink-0 relative">
+      <div
+        className={cn([
+          "border-b border-neutral-200 text-sm transition-all duration-200 overflow-hidden",
+          isExpanded ? "max-h-96" : "max-h-0",
+        ])}
+      >
+        <div className="flex border-b border-neutral-200">
+          <button
+            onClick={() => setIsTitleExpanded(!isTitleExpanded)}
+            className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
+          >
+            <span className="absolute left-1 text-red-400">*</span>
+            Title
+            <ChevronRightIcon
+              className={cn([
+                "size-3 transition-transform",
+                isTitleExpanded && "rotate-90",
+              ])}
+            />
+          </button>
+          <input
+            type="text"
+            defaultValue={fileContent.meta_title || ""}
+            placeholder="SEO meta title"
+            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+          />
+        </div>
+        {isTitleExpanded && (
+          <div className="flex border-b border-neutral-200 bg-neutral-50">
+            <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
+              <span className="text-neutral-300">└</span>
+              Display
+            </span>
+            <input
+              type="text"
+              defaultValue={fileContent.display_title || ""}
+              placeholder="Display title (optional)"
+              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+            />
+          </div>
+        )}
+        <div className="flex border-b border-neutral-200">
+          <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+            <span className="absolute left-1 text-red-400">*</span>
+            Author
+          </span>
+          <div className="flex-1 px-2 py-2">
+            <AuthorSelect value={author} onChange={onAuthorChange} />
+          </div>
+        </div>
+        <div className="flex border-b border-neutral-200">
+          <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+            <span className="absolute left-1 text-red-400">*</span>
+            Date
+          </span>
+          <input
+            type="date"
+            defaultValue={fileContent.date || ""}
+            className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+          />
+        </div>
+        <div className="flex border-b border-neutral-200">
+          <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+            <span className="absolute left-1 text-red-400">*</span>
+            Description
+          </span>
+          <textarea
+            ref={(el) => {
+              if (el) {
+                el.style.height = "auto";
+                el.style.height = `${el.scrollHeight}px`;
+              }
+            }}
+            defaultValue={fileContent.meta_description || ""}
+            placeholder="Meta description for SEO"
+            rows={1}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = "auto";
+              target.style.height = `${target.scrollHeight}px`;
+            }}
+            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
+          />
+        </div>
+        <div className="flex border-b border-neutral-200">
+          <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
+            Cover
+          </span>
+          <div className="flex-1 flex items-center gap-2 px-2 py-2">
+            <input
+              type="text"
+              defaultValue={fileContent.coverImage || ""}
+              placeholder="/api/images/blog/slug/cover.png"
+              className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+            />
+            <button
+              type="button"
+              className="px-2 py-1 text-xs text-neutral-600 bg-neutral-100 rounded hover:bg-neutral-200"
+            >
+              Choose
+            </button>
+          </div>
+        </div>
+        <div className="flex">
+          <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
+            Featured
+          </span>
+          <div className="flex-1 flex items-center px-2 py-2">
+            <input type="checkbox" defaultChecked={false} className="rounded" />
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={onToggleExpanded}
+        className={cn([
+          "absolute left-1/2 -translate-x-1/2 -bottom-3 z-10",
+          "flex items-center justify-center",
+          "w-6 h-6 rounded-full bg-white border border-neutral-200 shadow-sm",
+          "text-neutral-400 hover:text-neutral-600 hover:border-neutral-300",
+          "transition-colors",
+        ])}
+      >
+        <ChevronDownIcon
+          className={cn([
+            "size-3.5 transition-transform duration-200",
+            !isExpanded && "rotate-180",
+          ])}
+        />
+      </button>
+    </div>
+  );
+}
+
 function FileEditor({
   filePath,
   contentMap,
@@ -1320,32 +1471,11 @@ function FileEditor({
   const fileContent = contentMap.get(filePath);
   const [content, setContent] = useState(fileContent?.content || "");
   const [author, setAuthor] = useState(fileContent?.author || "");
-  const [isTitleExpanded, setIsTitleExpanded] = useState(false);
-  const [isMetadataVisible, setIsMetadataVisible] = useState(true);
-  const lastScrollY = useRef(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
 
   useEffect(() => {
     setContent(fileContent?.content || "");
   }, [filePath, fileContent?.content]);
-
-  useEffect(() => {
-    const scrollEl = scrollRef.current;
-    if (!scrollEl) return;
-
-    const handleScroll = () => {
-      const currentScrollY = scrollEl.scrollTop;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
-        setIsMetadataVisible(false);
-      } else if (currentScrollY < lastScrollY.current) {
-        setIsMetadataVisible(true);
-      }
-      lastScrollY.current = currentScrollY;
-    };
-
-    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
-    return () => scrollEl.removeEventListener("scroll", handleScroll);
-  }, []);
 
   if (!fileContent) {
     return (
@@ -1366,124 +1496,16 @@ function FileEditor({
       <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full">
-            <div
-              key={filePath}
-              className={cn([
-                "shrink-0 border-b border-neutral-200 text-sm transition-all duration-200 overflow-hidden",
-                isMetadataVisible ? "max-h-96" : "max-h-0 border-b-0",
-              ])}
-            >
-              <div className="flex border-b border-neutral-200">
-                <button
-                  onClick={() => setIsTitleExpanded(!isTitleExpanded)}
-                  className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
-                >
-                  <span className="absolute left-1 text-red-400">*</span>
-                  Title
-                  <ChevronRightIcon
-                    className={cn([
-                      "size-3 transition-transform",
-                      isTitleExpanded && "rotate-90",
-                    ])}
-                  />
-                </button>
-                <input
-                  type="text"
-                  defaultValue={fileContent.meta_title || ""}
-                  placeholder="SEO meta title"
-                  className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-                />
-              </div>
-              {isTitleExpanded && (
-                <div className="flex border-b border-neutral-200 bg-neutral-50">
-                  <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
-                    <span className="text-neutral-300">└</span>
-                    Display
-                  </span>
-                  <input
-                    type="text"
-                    defaultValue={fileContent.display_title || ""}
-                    placeholder="Display title (optional)"
-                    className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-                  />
-                </div>
-              )}
-              <div className="flex border-b border-neutral-200">
-                <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
-                  <span className="absolute left-1 text-red-400">*</span>
-                  Author
-                </span>
-                <div className="flex-1 px-2 py-2">
-                  <AuthorSelect value={author} onChange={setAuthor} />
-                </div>
-              </div>
-              <div className="flex border-b border-neutral-200">
-                <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
-                  <span className="absolute left-1 text-red-400">*</span>
-                  Date
-                </span>
-                <input
-                  type="date"
-                  defaultValue={fileContent.date || ""}
-                  className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-                />
-              </div>
-              <div className="flex border-b border-neutral-200">
-                <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
-                  <span className="absolute left-1 text-red-400">*</span>
-                  Description
-                </span>
-                <textarea
-                  ref={(el) => {
-                    if (el) {
-                      el.style.height = "auto";
-                      el.style.height = `${el.scrollHeight}px`;
-                    }
-                  }}
-                  defaultValue={fileContent.meta_description || ""}
-                  placeholder="Meta description for SEO"
-                  rows={1}
-                  onInput={(e) => {
-                    const target = e.target as HTMLTextAreaElement;
-                    target.style.height = "auto";
-                    target.style.height = `${target.scrollHeight}px`;
-                  }}
-                  className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
-                />
-              </div>
-              <div className="flex border-b border-neutral-200">
-                <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
-                  Cover
-                </span>
-                <div className="flex-1 flex items-center gap-2 px-2 py-2">
-                  <input
-                    type="text"
-                    defaultValue={fileContent.coverImage || ""}
-                    placeholder="/api/images/blog/slug/cover.png"
-                    className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-                  />
-                  <button
-                    type="button"
-                    className="px-2 py-1 text-xs text-neutral-600 bg-neutral-100 rounded hover:bg-neutral-200"
-                  >
-                    Choose
-                  </button>
-                </div>
-              </div>
-              <div className="flex">
-                <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
-                  Featured
-                </span>
-                <div className="flex-1 flex items-center px-2 py-2">
-                  <input
-                    type="checkbox"
-                    defaultChecked={false}
-                    className="rounded"
-                  />
-                </div>
-              </div>
-            </div>
-            <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto p-6">
+            <MetadataPanel
+              fileContent={fileContent}
+              author={author}
+              onAuthorChange={setAuthor}
+              isExpanded={isMetadataExpanded}
+              onToggleExpanded={() =>
+                setIsMetadataExpanded(!isMetadataExpanded)
+              }
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto p-6">
               <BlogEditor content={content} onChange={setContent} />
             </div>
           </div>
@@ -1536,124 +1558,14 @@ function FileEditor({
   return (
     <div className="flex-1 overflow-hidden flex flex-col min-h-0">
       <div className="flex-1 flex flex-col min-h-0">
-        <div
-          key={filePath}
-          className={cn([
-            "shrink-0 border-b border-neutral-200 text-sm transition-all duration-200 overflow-hidden",
-            isMetadataVisible ? "max-h-96" : "max-h-0 border-b-0",
-          ])}
-        >
-          <div className="flex border-b border-neutral-200">
-            <button
-              onClick={() => setIsTitleExpanded(!isTitleExpanded)}
-              className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
-            >
-              <span className="absolute left-1 text-red-400">*</span>
-              Title
-              <ChevronRightIcon
-                className={cn([
-                  "size-3 transition-transform",
-                  isTitleExpanded && "rotate-90",
-                ])}
-              />
-            </button>
-            <input
-              type="text"
-              defaultValue={fileContent.meta_title || ""}
-              placeholder="SEO meta title"
-              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-            />
-          </div>
-          {isTitleExpanded && (
-            <div className="flex border-b border-neutral-200 bg-neutral-50">
-              <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
-                <span className="text-neutral-300">└</span>
-                Display
-              </span>
-              <input
-                type="text"
-                defaultValue={fileContent.display_title || ""}
-                placeholder="Display title (optional)"
-                className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-              />
-            </div>
-          )}
-          <div className="flex border-b border-neutral-200">
-            <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
-              <span className="absolute left-1 text-red-400">*</span>
-              Author
-            </span>
-            <div className="flex-1 px-2 py-2">
-              <AuthorSelect value={author} onChange={setAuthor} />
-            </div>
-          </div>
-          <div className="flex border-b border-neutral-200">
-            <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
-              <span className="absolute left-1 text-red-400">*</span>
-              Date
-            </span>
-            <input
-              type="date"
-              defaultValue={fileContent.date || ""}
-              className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-            />
-          </div>
-          <div className="flex border-b border-neutral-200">
-            <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
-              <span className="absolute left-1 text-red-400">*</span>
-              Description
-            </span>
-            <textarea
-              ref={(el) => {
-                if (el) {
-                  el.style.height = "auto";
-                  el.style.height = `${el.scrollHeight}px`;
-                }
-              }}
-              defaultValue={fileContent.meta_description || ""}
-              placeholder="Meta description for SEO"
-              rows={1}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = "auto";
-                target.style.height = `${target.scrollHeight}px`;
-              }}
-              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
-            />
-          </div>
-          <div className="flex border-b border-neutral-200">
-            <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
-              Cover
-            </span>
-            <div className="flex-1 flex items-center gap-2 px-2 py-2">
-              <input
-                type="text"
-                defaultValue={fileContent.coverImage || ""}
-                placeholder="/api/images/blog/slug/cover.png"
-                className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-              />
-              <button
-                type="button"
-                className="px-2 py-1 text-xs text-neutral-600 bg-neutral-100 rounded hover:bg-neutral-200"
-              >
-                Choose
-              </button>
-            </div>
-          </div>
-          <div className="flex">
-            <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
-              Featured
-            </span>
-            <div className="flex-1 flex items-center px-2 py-2">
-              <input
-                type="checkbox"
-                defaultChecked={false}
-                className="rounded"
-              />
-            </div>
-          </div>
-        </div>
-        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto p-6">
+        <MetadataPanel
+          fileContent={fileContent}
+          author={author}
+          onAuthorChange={setAuthor}
+          isExpanded={isMetadataExpanded}
+          onToggleExpanded={() => setIsMetadataExpanded(!isMetadataExpanded)}
+        />
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
           <BlogEditor content={content} onChange={setContent} />
         </div>
       </div>

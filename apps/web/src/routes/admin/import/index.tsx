@@ -206,8 +206,9 @@ function ImportPage() {
           Step 1: Enter Google Docs URL
         </h2>
         <p className="text-sm text-neutral-600 mb-4">
-          The document must be published to the web. Go to File &gt; Share &gt;
-          Publish to web in Google Docs.
+          The document must be either published to the web (File &gt; Share &gt;
+          Publish to web) or shared with "Anyone with the link can view"
+          permissions (Share button).
         </p>
 
         <div className="space-y-4">

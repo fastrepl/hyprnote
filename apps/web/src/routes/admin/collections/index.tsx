@@ -1,5 +1,4 @@
 import { MDXContent } from "@content-collections/mdx/react";
-import { Icon } from "@iconify-icon/react";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -14,9 +13,29 @@ import {
   CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  ClipboardIcon,
+  CopyIcon,
+  CopyPlusIcon,
+  DownloadIcon,
   EyeIcon,
+  FilePlusIcon,
+  FileTextIcon,
+  FileWarningIcon,
+  FolderIcon,
+  FolderOpenIcon,
+  FolderPlusIcon,
+  GithubIcon,
+  type LucideIcon,
   PencilIcon,
+  PinIcon,
+  PinOffIcon,
+  PlusIcon,
+  ScissorsIcon,
+  SearchIcon,
   SendIcon,
+  SquareArrowOutUpRightIcon,
+  Trash2Icon,
+  XIcon,
 } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -312,7 +331,7 @@ function CollectionsPage() {
 
   const pinTab = useCallback((tabId: string) => {
     setTabs((prev) =>
-      prev.map((t) => (t.id === tabId ? { ...t, pinned: true } : t)),
+      prev.map((t) => (t.id === tabId ? { ...t, pinned: !t.pinned } : t)),
     );
   }, []);
 
@@ -432,10 +451,7 @@ function Sidebar({
     <div className="h-full border-r border-neutral-200 bg-white flex flex-col min-h-0">
       <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-200">
         <div className="relative w-full flex items-center gap-1.5">
-          <Icon
-            icon="mdi:magnify"
-            className="text-neutral-400 text-sm shrink-0"
-          />
+          <SearchIcon className="size-4 text-neutral-400 shrink-0" />
           <input
             type="text"
             value={searchQuery}
@@ -478,7 +494,7 @@ function Sidebar({
           "border-t border-neutral-200",
         ])}
       >
-        <Icon icon="mdi:plus" className="text-base" />
+        <PlusIcon className="size-4" />
         Import
       </button>
     </div>
@@ -525,10 +541,11 @@ function CollectionItem({
         onDoubleClick={onDoubleClick}
         onContextMenu={handleContextMenu}
       >
-        <Icon
-          icon={isExpanded ? "mdi:folder-open" : "mdi:folder"}
-          className="text-neutral-400 text-sm"
-        />
+        {isExpanded ? (
+          <FolderOpenIcon className="size-4 text-neutral-400" />
+        ) : (
+          <FolderIcon className="size-4 text-neutral-400" />
+        )}
         <span className="truncate text-neutral-700">{collection.label}</span>
         <span className="ml-auto text-xs text-neutral-400">
           {collection.items.length}
@@ -630,10 +647,7 @@ function FileItemSidebar({
       onClick={onClick}
       onContextMenu={handleContextMenu}
     >
-      <Icon
-        icon="mdi:file-document-outline"
-        className="text-neutral-400 text-sm"
-      />
+      <FileTextIcon className="size-4 text-neutral-400" />
       <span className="truncate text-neutral-600 text-xs">{item.name}</span>
 
       {contextMenu && (
@@ -731,7 +745,7 @@ function ContextMenu({
         style={{ left: x, top: y }}
       >
         <ContextMenuItem
-          icon="mdi:tab-plus"
+          icon={SquareArrowOutUpRightIcon}
           label="Open in new tab"
           onClick={() => {
             onOpenInNewTab();
@@ -739,7 +753,7 @@ function ContextMenu({
           }}
         />
         <ContextMenuItem
-          icon="mdi:download"
+          icon={DownloadIcon}
           label="Download"
           onClick={onDownload}
         />
@@ -749,12 +763,12 @@ function ContextMenu({
         {isFolder && (
           <>
             <ContextMenuItem
-              icon="mdi:file-plus-outline"
+              icon={FilePlusIcon}
               label="New file"
               onClick={onNewFile}
             />
             <ContextMenuItem
-              icon="mdi:folder-plus-outline"
+              icon={FolderPlusIcon}
               label="New folder"
               onClick={onNewFolder}
             />
@@ -762,19 +776,15 @@ function ContextMenu({
           </>
         )}
 
-        <ContextMenuItem icon="mdi:content-cut" label="Cut" onClick={onCut} />
+        <ContextMenuItem icon={ScissorsIcon} label="Cut" onClick={onCut} />
+        <ContextMenuItem icon={CopyIcon} label="Copy" onClick={onCopy} />
         <ContextMenuItem
-          icon="mdi:content-copy"
-          label="Copy"
-          onClick={onCopy}
-        />
-        <ContextMenuItem
-          icon="mdi:content-duplicate"
+          icon={CopyPlusIcon}
           label="Duplicate"
           onClick={onDuplicate}
         />
         <ContextMenuItem
-          icon="mdi:content-paste"
+          icon={ClipboardIcon}
           label="Paste"
           onClick={onPaste}
           disabled={!canPaste}
@@ -782,9 +792,9 @@ function ContextMenu({
 
         <div className="my-1 border-t border-neutral-200" />
 
-        <ContextMenuItem icon="mdi:rename" label="Rename" onClick={onRename} />
+        <ContextMenuItem icon={PencilIcon} label="Rename" onClick={onRename} />
         <ContextMenuItem
-          icon="mdi:delete-outline"
+          icon={Trash2Icon}
           label="Delete"
           onClick={onDelete}
           danger
@@ -795,13 +805,13 @@ function ContextMenu({
 }
 
 function ContextMenuItem({
-  icon,
+  icon: Icon,
   label,
   onClick,
   disabled,
   danger,
 }: {
-  icon: string;
+  icon: LucideIcon;
   label: string;
   onClick: () => void;
   disabled?: boolean;
@@ -818,7 +828,7 @@ function ContextMenuItem({
         danger && "text-red-600 hover:bg-red-50",
       ])}
     >
-      <Icon icon={icon} className="text-base" />
+      <Icon className="size-4" />
       {label}
     </button>
   );
@@ -882,13 +892,13 @@ function ContentPanel({
           )}
         </>
       ) : (
-        <>
+        <div className="flex-1 flex flex-col">
           <div className="h-10 border-b border-neutral-200" />
           <EmptyState
-            icon="mdi:folder-open-outline"
+            icon={FolderOpenIcon}
             message="Double-click a collection or click a file to open"
           />
-        </>
+        </div>
       )}
     </div>
   );
@@ -941,7 +951,7 @@ function EditorHeader({
           {breadcrumbs.map((crumb, index) => (
             <span key={index} className="flex items-center gap-1">
               {index > 0 && (
-                <Icon icon="mdi:chevron-right" className="text-neutral-300" />
+                <ChevronRightIcon className="size-4 text-neutral-300" />
               )}
               <span
                 className={cn([
@@ -1094,14 +1104,11 @@ function TabItem({
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
       >
-        <Icon
-          icon={
-            tab.type === "collection"
-              ? "mdi:folder"
-              : "mdi:file-document-outline"
-          }
-          className="text-neutral-400 text-sm"
-        />
+        {tab.type === "collection" ? (
+          <FolderIcon className="size-4 text-neutral-400" />
+        ) : (
+          <FileTextIcon className="size-4 text-neutral-400" />
+        )}
         <span className={cn(["truncate max-w-30", !tab.pinned && "italic"])}>
           {tab.name}
         </span>
@@ -1112,7 +1119,7 @@ function TabItem({
           }}
           className="p-0.5 hover:bg-neutral-200 rounded transition-colors"
         >
-          <Icon icon="mdi:close" className="text-xs text-neutral-500" />
+          <XIcon className="size-3 text-neutral-500" />
         </button>
       </div>
 
@@ -1162,7 +1169,7 @@ function TabContextMenu({
         style={{ left: x, top: y }}
       >
         <ContextMenuItem
-          icon="mdi:close"
+          icon={XIcon}
           label="Close"
           onClick={() => {
             onCloseTab();
@@ -1170,7 +1177,7 @@ function TabContextMenu({
           }}
         />
         <ContextMenuItem
-          icon="mdi:close-box-multiple-outline"
+          icon={XIcon}
           label="Close others"
           onClick={() => {
             onCloseOthers();
@@ -1178,7 +1185,7 @@ function TabContextMenu({
           }}
         />
         <ContextMenuItem
-          icon="mdi:close-box-outline"
+          icon={XIcon}
           label="Close all"
           onClick={() => {
             onCloseAll();
@@ -1187,7 +1194,7 @@ function TabContextMenu({
         />
         <div className="my-1 border-t border-neutral-200" />
         <ContextMenuItem
-          icon={isPinned ? "mdi:pin-off" : "mdi:pin"}
+          icon={isPinned ? PinOffIcon : PinIcon}
           label={isPinned ? "Unpin tab" : "Pin tab"}
           onClick={() => {
             onPinTab();
@@ -1206,21 +1213,21 @@ function FileList({
   filteredItems: ContentItem[];
   onFileClick: (item: ContentItem) => void;
 }) {
+  if (filteredItems.length === 0) {
+    return <EmptyState icon={FileTextIcon} message="No files found" />;
+  }
+
   return (
     <div className="flex-1 overflow-y-auto p-4">
-      {filteredItems.length === 0 ? (
-        <EmptyState icon="mdi:file-document-outline" message="No files found" />
-      ) : (
-        <div className="space-y-1">
-          {filteredItems.map((item) => (
-            <FileItem
-              key={item.path}
-              item={item}
-              onClick={() => onFileClick(item)}
-            />
-          ))}
-        </div>
-      )}
+      <div className="space-y-1">
+        {filteredItems.map((item) => (
+          <FileItem
+            key={item.path}
+            item={item}
+            onClick={() => onFileClick(item)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -1325,10 +1332,15 @@ function MetadataPanel({
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
 
   return (
-    <div className="shrink-0 relative">
+    <div
+      className={cn([
+        "shrink-0 relative",
+        isExpanded && "border-b border-neutral-200",
+      ])}
+    >
       <div
         className={cn([
-          "border-b border-neutral-200 text-sm transition-all duration-200 overflow-hidden",
+          "text-sm transition-all duration-200 overflow-hidden",
           isExpanded ? "max-h-96" : "max-h-0",
         ])}
       >
@@ -1441,17 +1453,17 @@ function MetadataPanel({
       <button
         onClick={onToggleExpanded}
         className={cn([
-          "absolute left-1/2 -translate-x-1/2 -bottom-3 z-10",
+          "absolute left-1/2 -translate-x-1/2 top-full z-10",
           "flex items-center justify-center",
-          "w-6 h-6 rounded-full bg-white border border-neutral-200 shadow-sm",
-          "text-neutral-400 hover:text-neutral-600 hover:border-neutral-300",
-          "transition-colors",
+          "w-10 h-4 bg-white border border-t-0 border-neutral-200 rounded-b-md",
+          "text-neutral-400 hover:text-neutral-600",
+          "transition-colors cursor-pointer",
         ])}
       >
         <ChevronDownIcon
           className={cn([
-            "size-3.5 transition-transform duration-200",
-            !isExpanded && "rotate-180",
+            "size-3 transition-transform duration-200",
+            isExpanded && "rotate-180",
           ])}
         />
       </button>
@@ -1481,7 +1493,7 @@ function FileEditor({
     return (
       <div className="flex-1 flex items-center justify-center text-neutral-500">
         <div className="text-center">
-          <Icon icon="mdi:file-alert-outline" className="text-4xl mb-3" />
+          <FileWarningIcon className="size-10 mb-3" />
           <p className="text-sm">File not found</p>
         </div>
       </div>
@@ -1573,10 +1585,16 @@ function FileEditor({
   );
 }
 
-function EmptyState({ icon, message }: { icon: string; message: string }) {
+function EmptyState({
+  icon: Icon,
+  message,
+}: {
+  icon: LucideIcon;
+  message: string;
+}) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center h-64 text-neutral-500">
-      <Icon icon={icon} className="text-4xl mb-3" />
+    <div className="flex-1 flex flex-col items-center justify-center text-neutral-500">
+      <Icon className="size-10 mb-3" />
       <p className="text-sm">{message}</p>
     </div>
   );
@@ -1599,7 +1617,7 @@ function FileItem({
       onClick={onClick}
     >
       <div className="flex items-center gap-2">
-        <Icon icon="mdi:file-document-outline" className="text-neutral-400" />
+        <FileTextIcon className="size-4 text-neutral-400" />
         <span className="text-sm text-neutral-700">{item.name}</span>
         <span className="text-xs text-neutral-400 px-1.5 py-0.5 bg-neutral-100 rounded">
           {getFileExtension(item.name).toUpperCase()}
@@ -1612,7 +1630,7 @@ function FileItem({
         className="text-xs text-neutral-500 hover:text-neutral-700"
         onClick={(e) => e.stopPropagation()}
       >
-        <Icon icon="mdi:github" className="text-base" />
+        <GithubIcon className="size-4" />
       </a>
     </div>
   );

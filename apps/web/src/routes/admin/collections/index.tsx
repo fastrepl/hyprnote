@@ -9,11 +9,18 @@ import {
   allLegals,
   allTemplates,
 } from "content-collections";
+import { EyeIcon, PencilIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
 import { cn } from "@hypr/utils";
 
+import { CtaCard } from "@/components/cta-card";
 import { createMDXComponents } from "@/components/mdx";
 
 interface ContentItem {
@@ -910,17 +917,18 @@ function EditorHeader({
           <button
             onClick={onTogglePreview}
             className={cn([
-              "p-1.5 rounded transition-colors",
+              "cursor-pointer p-1.5 rounded transition-colors",
               isPreviewMode
                 ? "bg-neutral-100 text-neutral-700"
                 : "text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50",
             ])}
             title={isPreviewMode ? "Edit mode" : "Preview mode"}
           >
-            <Icon
-              icon={isPreviewMode ? "mdi:pencil" : "mdi:eye"}
-              className="text-base"
-            />
+            {isPreviewMode ? (
+              <PencilIcon className="size-4" />
+            ) : (
+              <EyeIcon className="size-4" />
+            )}
           </button>
         )}
       </div>
@@ -1176,16 +1184,36 @@ function FileEditor({
 
   if (isPreviewMode) {
     return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-6 py-8">
-          <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:my-8 max-w-none">
-            <MDXContent
-              code={fileContent.mdx}
-              components={createMDXComponents()}
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        <ResizablePanel defaultSize={50} minSize={30}>
+          <div className="h-full overflow-y-auto">
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className={cn([
+                "w-full h-full p-6 resize-none",
+                "font-mono text-sm leading-relaxed",
+                "focus:outline-none",
+                "bg-white",
+              ])}
+              spellCheck={false}
             />
-          </article>
-        </div>
-      </div>
+          </div>
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel defaultSize={50} minSize={30}>
+          <div className="h-full overflow-y-auto">
+            <div className="max-w-3xl mx-auto px-6 py-8">
+              <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:my-8 max-w-none">
+                <MDXContent
+                  code={fileContent.mdx}
+                  components={createMDXComponents({ CtaCard })}
+                />
+              </article>
+            </div>
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     );
   }
 

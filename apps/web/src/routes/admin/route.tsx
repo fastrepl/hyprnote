@@ -84,7 +84,7 @@ function AdminHeader({ user }: { user: { email: string } }) {
           </span>
           <Link
             to="/"
-            className="px-4 h-8 flex items-center text-sm text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 rounded-full transition-all"
+            className="px-4 h-8 flex items-center text-sm text-red-600 bg-gradient-to-b from-white to-red-50 border border-red-200 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
           >
             Sign out
           </Link>

@@ -4,11 +4,7 @@ import type {
 } from "tinybase/persisters/with-schemas";
 import type { OptionalSchemas } from "tinybase/with-schemas";
 
-import { SCHEMA } from "@hypr/store";
-
 import type { ChangedTables, TablesContent } from "./types";
-
-type TableNames = keyof typeof SCHEMA.table;
 
 type TableRowType<K extends keyof TablesContent> =
   NonNullable<TablesContent[K]> extends Record<string, infer R> ? R : never;

@@ -59,6 +59,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                         }
 
                         for path in &event.paths {
+                            if path.file_name().is_some_and(|name| name == ".DS_Store") {
+                                continue;
+                            }
+
                             let relative_path = path
                                 .strip_prefix(&base_for_closure)
                                 .unwrap_or(path)

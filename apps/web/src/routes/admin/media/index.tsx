@@ -595,7 +595,7 @@ function TreeNodeItem({
         <span className="truncate text-neutral-700">{node.name}</span>
       </div>
       {node.expanded && node.children.length > 0 && (
-        <div className="ml-[22px] border-l border-neutral-200">
+        <div className="ml-5.5 border-l border-neutral-200">
           {node.children.map((child) => (
             <TreeNodeItem
               key={child.path}

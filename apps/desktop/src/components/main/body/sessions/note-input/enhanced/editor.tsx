@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import { forwardRef, useMemo } from "react";
 
 import { type JSONContent, TiptapEditor } from "@hypr/tiptap/editor";
 import NoteEditor from "@hypr/tiptap/editor";
@@ -10,29 +10,25 @@ export const EnhancedEditor = forwardRef<
   { editor: TiptapEditor | null },
   { sessionId: string; enhancedNoteId: string; onNavigateToTitle?: () => void }
 >(({ enhancedNoteId, onNavigateToTitle }, ref) => {
-  const store = main.UI.useStore(main.STORE_ID);
-  const [initialContent, setInitialContent] =
-    useState<JSONContent>(EMPTY_TIPTAP_DOC);
+  const content = main.UI.useCell(
+    "enhanced_notes",
+    enhancedNoteId,
+    "content",
+    main.STORE_ID,
+  );
 
-  useEffect(() => {
-    if (store) {
-      const value = store.getCell("enhanced_notes", enhancedNoteId, "content");
-      if (value && typeof value === "string" && value.trim()) {
-        try {
-          const parsed = JSON.parse(value);
-          if (isValidTiptapContent(parsed)) {
-            setInitialContent(parsed);
-          } else {
-            setInitialContent(EMPTY_TIPTAP_DOC);
-          }
-        } catch {
-          setInitialContent(EMPTY_TIPTAP_DOC);
-        }
-      } else {
-        setInitialContent(EMPTY_TIPTAP_DOC);
-      }
+  const initialContent = useMemo<JSONContent>(() => {
+    if (typeof content !== "string" || !content.trim()) {
+      return EMPTY_TIPTAP_DOC;
     }
-  }, [store, enhancedNoteId]);
+
+    try {
+      const parsed = JSON.parse(content);
+      return isValidTiptapContent(parsed) ? parsed : EMPTY_TIPTAP_DOC;
+    } catch {
+      return EMPTY_TIPTAP_DOC;
+    }
+  }, [content]);
 
   const handleChange = main.UI.useSetPartialRowCallback(
     "enhanced_notes",

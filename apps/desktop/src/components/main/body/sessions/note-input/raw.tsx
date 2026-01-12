@@ -1,11 +1,4 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useRef } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import NoteEditor, {
@@ -24,30 +17,20 @@ export const RawEditor = forwardRef<
   { editor: TiptapEditor | null },
   { sessionId: string; onNavigateToTitle?: () => void }
 >(({ sessionId, onNavigateToTitle }, ref) => {
-  const store = main.UI.useStore(main.STORE_ID);
+  const rawMd = main.UI.useCell("sessions", sessionId, "raw_md", main.STORE_ID);
 
-  const [initialContent, setInitialContent] =
-    useState<JSONContent>(EMPTY_TIPTAP_DOC);
-
-  useEffect(() => {
-    if (store) {
-      const value = store.getCell("sessions", sessionId, "raw_md");
-      if (value && typeof value === "string" && value.trim()) {
-        try {
-          const parsed = JSON.parse(value);
-          if (isValidTiptapContent(parsed)) {
-            setInitialContent(parsed);
-          } else {
-            setInitialContent(EMPTY_TIPTAP_DOC);
-          }
-        } catch {
-          setInitialContent(EMPTY_TIPTAP_DOC);
-        }
-      } else {
-        setInitialContent(EMPTY_TIPTAP_DOC);
-      }
+  const initialContent = useMemo<JSONContent>(() => {
+    if (typeof rawMd !== "string" || !rawMd.trim()) {
+      return EMPTY_TIPTAP_DOC;
     }
-  }, [store, sessionId]);
+
+    try {
+      const parsed = JSON.parse(rawMd);
+      return isValidTiptapContent(parsed) ? parsed : EMPTY_TIPTAP_DOC;
+    } catch {
+      return EMPTY_TIPTAP_DOC;
+    }
+  }, [rawMd]);
 
   const persistChange = main.UI.useSetPartialRowCallback(
     "sessions",

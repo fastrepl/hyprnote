@@ -7,14 +7,14 @@ use std::sync::{
     mpsc::{self, Receiver},
 };
 
-use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort, registry};
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
 
 use crate::{
     SessionErrorEvent, SessionProgressEvent,
     actors::root::session_span,
-    actors::{AudioChunk, ChannelMode},
+    actors::{AudioChunk, ChannelMode, RecorderActor},
 };
 use hypr_audio::AudioInput;
 use tauri_specta::Event;
@@ -139,6 +139,16 @@ impl Actor for SourceActor {
                 current_mode: ChannelMode::MicAndSpeaker,
                 pipeline,
             };
+
+            let timeout = tokio::time::Duration::from_secs(5);
+            let start = tokio::time::Instant::now();
+            while registry::where_is(RecorderActor::name()).is_none() {
+                if start.elapsed() > timeout {
+                    tracing::debug!("recorder_actor_not_found_continuing_without_recording");
+                    break;
+                }
+                tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+            }
 
             start_source_loop(&myself, &mut st).await?;
             Ok(st)

@@ -1,6 +1,5 @@
 import type { Content } from "tinybase/with-schemas";
 
-import { CONFIG_REGISTRY, type ConfigKey } from "../../../../config/registry";
 import type { Schemas, Store } from "../../store/settings";
 import { SETTINGS_MAPPING } from "../../store/settings";
 
@@ -78,13 +77,6 @@ function settingsToStoreValues(settings: unknown): Record<string, unknown> {
         value = getByPath(settings, ["general", "ai_language"]);
       } else if (key === "spoken_languages") {
         value = getByPath(settings, ["general", "spoken_languages"]);
-      }
-    }
-
-    if (value === undefined && key in CONFIG_REGISTRY) {
-      const defaultValue = CONFIG_REGISTRY[key as ConfigKey].default;
-      if (defaultValue !== undefined) {
-        value = defaultValue;
       }
     }
 

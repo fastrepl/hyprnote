@@ -149,8 +149,8 @@ function CollectionsPage() {
 
   return (
     <div className="flex h-[calc(100vh-64px)]">
-      <div className="w-56 flex-shrink-0 border-r border-neutral-200 bg-white flex flex-col">
-        <div className="h-10 px-3 flex items-center border-b border-neutral-200">
+      <div className="w-56 flex-shrink-0 border-r border-neutral-100 bg-white flex flex-col">
+        <div className="h-10 px-3 flex items-center border-b border-neutral-100">
           <div className="relative w-full">
             <Icon
               icon="mdi:magnify"
@@ -163,7 +163,7 @@ function CollectionsPage() {
               placeholder="Search..."
               className={cn([
                 "w-full pl-7 pr-2 py-1 text-sm",
-                "border border-neutral-200 rounded",
+                "border border-neutral-100 rounded",
                 "focus:outline-none focus:border-neutral-400",
                 "placeholder:text-neutral-400",
               ])}
@@ -215,7 +215,7 @@ function CollectionsPage() {
         </div>
 
         {selectedFolder && (
-          <div className="p-2 border-t border-neutral-200">
+          <div className="p-2 border-t border-neutral-100">
             <Link
               to="/admin/import"
               className={cn([
@@ -231,14 +231,14 @@ function CollectionsPage() {
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="h-10 flex items-stretch border-b border-neutral-200">
+        <div className="h-10 flex items-stretch border-b border-neutral-100">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn([
                 "px-4 text-sm font-medium transition-colors",
-                "border-r border-neutral-200",
+                "border-r border-neutral-100",
                 activeTab === tab.id
                   ? "bg-neutral-100 text-neutral-900"
                   : "bg-white text-neutral-600 hover:bg-neutral-50",
@@ -277,7 +277,7 @@ function CollectionsPage() {
                   className={cn([
                     "flex items-center justify-between px-3 py-2 rounded",
                     "hover:bg-neutral-50 transition-colors",
-                    "border border-transparent hover:border-neutral-200",
+                    "border border-transparent hover:border-neutral-100",
                   ])}
                 >
                   <div className="flex items-center gap-2">

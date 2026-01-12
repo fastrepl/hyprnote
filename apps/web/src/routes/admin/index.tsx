@@ -177,9 +177,17 @@ function MediaLibrary() {
     setSelectedItems(newSelection);
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
+
+const copyToClipboard = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    // Optionally show success feedback
+  } catch (error) {
+    console.error('Failed to copy to clipboard:', error);
+    // Fallback or user notification
+  }
+};
+
 
   const breadcrumbs = currentPath ? currentPath.split("/").filter(Boolean) : [];
   const items = itemsQuery.data || [];

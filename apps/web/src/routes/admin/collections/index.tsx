@@ -426,8 +426,8 @@ function Sidebar({
   onImportClick: () => void;
 }) {
   return (
-    <div className="h-full border-r border-neutral-100 bg-white flex flex-col min-h-0">
-      <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-100">
+    <div className="h-full border-r border-neutral-200 bg-white flex flex-col min-h-0">
+      <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-200">
         <div className="relative w-full flex items-center gap-1.5">
           <Icon
             icon="mdi:magnify"
@@ -472,7 +472,7 @@ function Sidebar({
         className={cn([
           "h-10 px-4 flex items-center gap-2 text-sm w-full",
           "text-neutral-600 hover:bg-neutral-50 transition-colors",
-          "border-t border-neutral-100",
+          "border-t border-neutral-200",
         ])}
       >
         <Icon icon="mdi:plus" className="text-base" />
@@ -741,7 +741,7 @@ function ContextMenu({
           onClick={onDownload}
         />
 
-        <div className="my-1 border-t border-neutral-100" />
+        <div className="my-1 border-t border-neutral-200" />
 
         {isFolder && (
           <>
@@ -755,7 +755,7 @@ function ContextMenu({
               label="New folder"
               onClick={onNewFolder}
             />
-            <div className="my-1 border-t border-neutral-100" />
+            <div className="my-1 border-t border-neutral-200" />
           </>
         )}
 
@@ -777,7 +777,7 @@ function ContextMenu({
           disabled={!canPaste}
         />
 
-        <div className="my-1 border-t border-neutral-100" />
+        <div className="my-1 border-t border-neutral-200" />
 
         <ContextMenuItem icon="mdi:rename" label="Rename" onClick={onRename} />
         <ContextMenuItem
@@ -880,7 +880,7 @@ function ContentPanel({
         </>
       ) : (
         <>
-          <div className="h-10 border-b border-neutral-100" />
+          <div className="h-10 border-b border-neutral-200" />
           <EmptyState
             icon="mdi:folder-open-outline"
             message="Double-click a collection or click a file to open"
@@ -930,10 +930,10 @@ function EditorHeader({
           onPinTab={onPinTab}
           onReorderTabs={onReorderTabs}
         />
-        <div className="flex-1 border-b border-neutral-100" />
+        <div className="flex-1 border-b border-neutral-200" />
       </div>
 
-      <div className="h-10 flex items-center justify-between px-4 border-b border-neutral-100">
+      <div className="h-10 flex items-center justify-between px-4 border-b border-neutral-200">
         <div className="flex items-center gap-1 text-sm text-neutral-500">
           {breadcrumbs.map((crumb, index) => (
             <span key={index} className="flex items-center gap-1">
@@ -1082,7 +1082,7 @@ function TabItem({
       <div
         className={cn([
           "h-10 px-3 flex items-center gap-2 cursor-pointer text-sm transition-colors",
-          "border-r border-b border-neutral-100",
+          "border-r border-b border-neutral-200",
           tab.active
             ? "bg-white text-neutral-900 border-b-transparent"
             : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100",
@@ -1182,7 +1182,7 @@ function TabContextMenu({
             onClose();
           }}
         />
-        <div className="my-1 border-t border-neutral-100" />
+        <div className="my-1 border-t border-neutral-200" />
         <ContextMenuItem
           icon={isPinned ? "mdi:pin-off" : "mdi:pin"}
           label={isPinned ? "Unpin tab" : "Pin tab"}
@@ -1289,11 +1289,11 @@ function FileEditor({
             <div
               key={filePath}
               className={cn([
-                "shrink-0 border-b border-neutral-100 text-sm transition-all duration-200 overflow-hidden",
+                "shrink-0 border-b border-neutral-200 text-sm transition-all duration-200 overflow-hidden",
                 isMetadataVisible ? "max-h-96" : "max-h-0 border-b-0",
               ])}
             >
-              <div className="flex border-b border-neutral-100">
+              <div className="flex border-b border-neutral-200">
                 <button
                   onClick={() => setIsTitleExpanded(!isTitleExpanded)}
                   className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
@@ -1315,7 +1315,7 @@ function FileEditor({
                 />
               </div>
               {isTitleExpanded && (
-                <div className="flex border-b border-neutral-100 bg-neutral-50">
+                <div className="flex border-b border-neutral-200 bg-neutral-50">
                   <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
                     <span className="absolute left-1 text-red-400">*</span>
                     <span className="text-neutral-300">└</span>
@@ -1329,7 +1329,7 @@ function FileEditor({
                   />
                 </div>
               )}
-              <div className="flex border-b border-neutral-100">
+              <div className="flex border-b border-neutral-200">
                 <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
                   <span className="absolute left-1 text-red-400">*</span>
                   Author
@@ -1344,7 +1344,7 @@ function FileEditor({
                   <option value="Yujong Lee">Yujong Lee</option>
                 </select>
               </div>
-              <div className="flex border-b border-neutral-100">
+              <div className="flex border-b border-neutral-200">
                 <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
                   <span className="absolute left-1 text-red-400">*</span>
                   Date
@@ -1355,19 +1355,30 @@ function FileEditor({
                   className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
                 />
               </div>
-              <div className="flex border-b border-neutral-100">
+              <div className="flex border-b border-neutral-200">
                 <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
                   <span className="absolute left-1 text-red-400">*</span>
                   Description
                 </span>
-                <input
-                  type="text"
+                <textarea
+                  ref={(el) => {
+                    if (el) {
+                      el.style.height = "auto";
+                      el.style.height = `${el.scrollHeight}px`;
+                    }
+                  }}
                   defaultValue={fileContent.meta_description || ""}
                   placeholder="Meta description for SEO"
-                  className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+                  rows={1}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = "auto";
+                    target.style.height = `${target.scrollHeight}px`;
+                  }}
+                  className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
                 />
               </div>
-              <div className="flex border-b border-neutral-100">
+              <div className="flex border-b border-neutral-200">
                 <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
                   Cover
                 </span>
@@ -1388,25 +1399,14 @@ function FileEditor({
               </div>
               <div className="flex">
                 <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
-                  Options
+                  Featured
                 </span>
-                <div className="flex-1 flex items-center gap-6 px-2 py-2">
-                  <label className="flex items-center gap-2 text-neutral-700">
-                    <input
-                      type="checkbox"
-                      defaultChecked={false}
-                      className="rounded"
-                    />
-                    Featured
-                  </label>
-                  <label className="flex items-center gap-2 text-neutral-700">
-                    <input
-                      type="checkbox"
-                      defaultChecked={false}
-                      className="rounded"
-                    />
-                    Published
-                  </label>
+                <div className="flex-1 flex items-center px-2 py-2">
+                  <input
+                    type="checkbox"
+                    defaultChecked={false}
+                    className="rounded"
+                  />
                 </div>
               </div>
             </div>
@@ -1415,7 +1415,7 @@ function FileEditor({
             </div>
           </div>
         </ResizablePanel>
-        <ResizableHandle className="w-px bg-neutral-100" />
+        <ResizableHandle className="w-px bg-neutral-200" />
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="h-full overflow-y-auto bg-white">
             <header className="py-12 text-center max-w-3xl mx-auto px-6">
@@ -1466,11 +1466,11 @@ function FileEditor({
         <div
           key={filePath}
           className={cn([
-            "shrink-0 border-b border-neutral-100 text-sm transition-all duration-200 overflow-hidden",
+            "shrink-0 border-b border-neutral-200 text-sm transition-all duration-200 overflow-hidden",
             isMetadataVisible ? "max-h-96" : "max-h-0 border-b-0",
           ])}
         >
-          <div className="flex border-b border-neutral-100">
+          <div className="flex border-b border-neutral-200">
             <button
               onClick={() => setIsTitleExpanded(!isTitleExpanded)}
               className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
@@ -1492,7 +1492,7 @@ function FileEditor({
             />
           </div>
           {isTitleExpanded && (
-            <div className="flex border-b border-neutral-100 bg-neutral-50">
+            <div className="flex border-b border-neutral-200 bg-neutral-50">
               <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
                 <span className="absolute left-1 text-red-400">*</span>
                 <span className="text-neutral-300">└</span>
@@ -1506,7 +1506,7 @@ function FileEditor({
               />
             </div>
           )}
-          <div className="flex border-b border-neutral-100">
+          <div className="flex border-b border-neutral-200">
             <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
               <span className="absolute left-1 text-red-400">*</span>
               Author
@@ -1521,7 +1521,7 @@ function FileEditor({
               <option value="Yujong Lee">Yujong Lee</option>
             </select>
           </div>
-          <div className="flex border-b border-neutral-100">
+          <div className="flex border-b border-neutral-200">
             <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
               <span className="absolute left-1 text-red-400">*</span>
               Date
@@ -1532,19 +1532,30 @@ function FileEditor({
               className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
             />
           </div>
-          <div className="flex border-b border-neutral-100">
+          <div className="flex border-b border-neutral-200">
             <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
               <span className="absolute left-1 text-red-400">*</span>
               Description
             </span>
-            <input
-              type="text"
+            <textarea
+              ref={(el) => {
+                if (el) {
+                  el.style.height = "auto";
+                  el.style.height = `${el.scrollHeight}px`;
+                }
+              }}
               defaultValue={fileContent.meta_description || ""}
               placeholder="Meta description for SEO"
-              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+              rows={1}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = "auto";
+                target.style.height = `${target.scrollHeight}px`;
+              }}
+              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
             />
           </div>
-          <div className="flex border-b border-neutral-100">
+          <div className="flex border-b border-neutral-200">
             <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
               Cover
             </span>
@@ -1565,25 +1576,14 @@ function FileEditor({
           </div>
           <div className="flex">
             <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
-              Options
+              Featured
             </span>
-            <div className="flex-1 flex items-center gap-6 px-2 py-2">
-              <label className="flex items-center gap-2 text-neutral-700">
-                <input
-                  type="checkbox"
-                  defaultChecked={false}
-                  className="rounded"
-                />
-                Featured
-              </label>
-              <label className="flex items-center gap-2 text-neutral-700">
-                <input
-                  type="checkbox"
-                  defaultChecked={false}
-                  className="rounded"
-                />
-                Published
-              </label>
+            <div className="flex-1 flex items-center px-2 py-2">
+              <input
+                type="checkbox"
+                defaultChecked={false}
+                className="rounded"
+              />
             </div>
           </div>
         </div>
@@ -1616,7 +1616,7 @@ function FileItem({
       className={cn([
         "flex items-center justify-between px-3 py-2 rounded cursor-pointer",
         "hover:bg-neutral-50 transition-colors",
-        "border border-transparent hover:border-neutral-100",
+        "border border-transparent hover:border-neutral-200",
       ])}
       onClick={onClick}
     >

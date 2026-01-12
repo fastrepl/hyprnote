@@ -429,8 +429,8 @@ function Sidebar({
   onUpload: (files: FileList) => void;
 }) {
   return (
-    <div className="w-56 shrink-0 border-r border-neutral-100 bg-white flex flex-col">
-      <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-100">
+    <div className="w-56 shrink-0 border-r border-neutral-200 bg-white flex flex-col">
+      <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-200">
         <div className="relative w-full flex items-center gap-1.5">
           <Icon
             icon="mdi:magnify"
@@ -473,7 +473,7 @@ function Sidebar({
           ))}
       </div>
 
-      <div className="p-2 border-t border-neutral-100">
+      <div className="p-2 border-t border-neutral-200">
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadPending}
@@ -696,14 +696,14 @@ function TabBar({
   deletePending: boolean;
 }) {
   return (
-    <div className="h-10 flex items-stretch border-b border-neutral-100">
+    <div className="h-10 flex items-stretch border-b border-neutral-200">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={cn([
             "px-4 text-sm font-medium transition-colors",
-            "border-r border-neutral-100",
+            "border-r border-neutral-200",
             activeTab === tab.id
               ? "bg-neutral-100 text-neutral-900"
               : "bg-white text-neutral-600 hover:bg-neutral-50",
@@ -864,7 +864,7 @@ function MediaItemCard({
         "group relative rounded border overflow-hidden cursor-pointer transition-all",
         isSelected
           ? "border-blue-500 ring-1 ring-blue-500"
-          : "border-neutral-100 hover:border-neutral-300",
+          : "border-neutral-200 hover:border-neutral-300",
       ])}
       onClick={onSelect}
     >

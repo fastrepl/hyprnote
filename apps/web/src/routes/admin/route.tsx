@@ -64,7 +64,7 @@ function AdminHeader({ user }: { user: { email: string } }) {
   const displayName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
 
   return (
-    <header className="h-16 border-b border-neutral-100 bg-white">
+    <header className="h-16 border-b border-neutral-200 bg-white">
       <div className="h-full px-6 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <span className="font-serif2 italic text-stone-600 text-2xl">

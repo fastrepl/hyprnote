@@ -13,8 +13,8 @@ use tracing::Instrument;
 
 use crate::{
     SessionErrorEvent, SessionProgressEvent,
-    actors::{AudioChunk, ChannelMode},
     actors::root::session_span,
+    actors::{AudioChunk, ChannelMode},
 };
 use hypr_audio::AudioInput;
 use tauri_specta::Event;

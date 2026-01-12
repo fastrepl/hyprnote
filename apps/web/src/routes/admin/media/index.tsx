@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -91,6 +91,25 @@ function MediaLibrary() {
     queryFn: () => fetchMediaItems(""),
   });
 
+  const getRelativePath = (fullPath: string): string => {
+    return fullPath.replace(/^apps\/web\/public\/images\/?/, "");
+  };
+
+  useEffect(() => {
+    if (rootQuery.data && !rootLoaded) {
+      const children: TreeNode[] = rootQuery.data.map((item) => ({
+        path: getRelativePath(item.path),
+        name: item.name,
+        type: item.type,
+        expanded: false,
+        loaded: false,
+        children: [],
+      }));
+      setTreeNodes(children);
+      setRootLoaded(true);
+    }
+  }, [rootQuery.data, rootLoaded]);
+
   const selectedFolderQuery = useQuery({
     queryKey: ["mediaItems", selectedPath],
     queryFn: () => fetchMediaItems(selectedPath),
@@ -102,7 +121,7 @@ function MediaLibrary() {
     try {
       const items = await fetchMediaItems(path);
       const children: TreeNode[] = items.map((item) => ({
-        path: item.path,
+        path: getRelativePath(item.path),
         name: item.name,
         type: item.type,
         expanded: false,
@@ -128,7 +147,7 @@ function MediaLibrary() {
   ): TreeNode[] => {
     return nodes.map((node) => {
       if (node.path === targetPath) {
-        return { ...node, children, loaded: true, expanded: true };
+        return { ...node, children, loaded: true };
       }
       if (node.children.length > 0) {
         return {
@@ -142,19 +161,22 @@ function MediaLibrary() {
 
   const toggleNodeExpanded = async (path: string) => {
     if (path === "") {
-      if (!rootLoaded) {
+      const willExpand = !rootExpanded;
+      if (willExpand && !rootLoaded) {
         await loadFolderContents("");
       }
-      setRootExpanded(!rootExpanded);
+      setRootExpanded(willExpand);
       return;
     }
 
     const node = findNode(treeNodes, path);
-    if (node && !node.loaded && node.type === "dir") {
+    if (!node) return;
+
+    const willExpand = !node.expanded;
+    if (willExpand && !node.loaded && node.type === "dir") {
       await loadFolderContents(path);
-    } else {
-      setTreeNodes((prev) => toggleExpanded(prev, path));
     }
+    setTreeNodes((prev) => toggleExpanded(prev, path));
   };
 
   const findNode = (nodes: TreeNode[], path: string): TreeNode | null => {
@@ -300,7 +322,10 @@ function MediaLibrary() {
 
   const currentItems =
     selectedPath === "" ? rootQuery.data : selectedFolderQuery.data;
-  const items = currentItems || [];
+  const items = (currentItems || []).map((item) => ({
+    ...item,
+    relativePath: getRelativePath(item.path),
+  }));
   const filteredItems = items.filter((item) => {
     const matchesSearch =
       searchQuery === "" ||
@@ -335,20 +360,15 @@ function MediaLibrary() {
             isSelected && "bg-neutral-100",
           ])}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
-          onClick={() => {
+          onClick={async () => {
             if (isFolder) {
               selectFolder(node.path);
+              await toggleNodeExpanded(node.path);
             }
           }}
         >
           {isFolder ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleNodeExpanded(node.path);
-              }}
-              className="w-4 h-4 flex items-center justify-center"
-            >
+            <div className="w-4 h-4 flex items-center justify-center">
               {isLoading ? (
                 <Icon
                   icon="mdi:loading"
@@ -362,7 +382,7 @@ function MediaLibrary() {
                   className="text-neutral-400 text-xs"
                 />
               )}
-            </button>
+            </div>
           ) : (
             <span className="w-4" />
           )}
@@ -418,15 +438,12 @@ function MediaLibrary() {
               "hover:bg-neutral-100 transition-colors",
               selectedPath === "" && "bg-neutral-100",
             ])}
-            onClick={() => selectFolder("")}
+            onClick={async () => {
+              selectFolder("");
+              await toggleNodeExpanded("");
+            }}
           >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleNodeExpanded("");
-              }}
-              className="w-4 h-4 flex items-center justify-center"
-            >
+            <div className="w-4 h-4 flex items-center justify-center">
               {loadingPath === "" ? (
                 <Icon
                   icon="mdi:loading"
@@ -438,7 +455,7 @@ function MediaLibrary() {
                   className="text-neutral-400 text-xs"
                 />
               )}
-            </button>
+            </div>
             <Icon
               icon={rootExpanded ? "mdi:folder-open" : "mdi:folder"}
               className="text-neutral-400 text-sm"
@@ -534,6 +551,24 @@ function MediaLibrary() {
               <Icon icon="mdi:loading" className="animate-spin text-2xl mr-2" />
               Loading...
             </div>
+          ) : (
+              selectedPath === "" ? rootQuery.error : selectedFolderQuery.error
+            ) ? (
+            <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
+              <Icon
+                icon="mdi:alert-circle-outline"
+                className="text-4xl mb-3 text-red-400"
+              />
+              <p className="text-sm text-red-600">Failed to load media</p>
+              <p className="text-xs mt-1 text-neutral-400">
+                {
+                  (selectedPath === ""
+                    ? rootQuery.error
+                    : selectedFolderQuery.error
+                  )?.message
+                }
+              </p>
+            </div>
           ) : filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
               <Icon icon="mdi:folder-open-outline" className="text-4xl mb-3" />
@@ -555,7 +590,7 @@ function MediaLibrary() {
                   ])}
                   onClick={() =>
                     item.type === "dir"
-                      ? selectFolder(item.path)
+                      ? selectFolder(item.relativePath)
                       : toggleSelection(item.path)
                   }
                 >

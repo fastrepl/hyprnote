@@ -1,6 +1,13 @@
 import { Icon } from "@iconify-icon/react";
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  allArticles,
+  allChangelogs,
+  allDocs,
+  allHandbooks,
+  allLegals,
+  allTemplates,
+} from "content-collections";
 import { useState } from "react";
 
 import { cn } from "@hypr/utils";
@@ -8,46 +15,86 @@ import { cn } from "@hypr/utils";
 interface ContentItem {
   name: string;
   path: string;
-  type: "file" | "dir";
-  sha: string;
-  url: string;
+  slug: string;
+  type: "file";
+  collection: string;
 }
 
-interface FolderTreeItem {
-  path: string;
+interface CollectionInfo {
   name: string;
   label: string;
-  children: ContentItem[];
-  expanded: boolean;
-  loaded: boolean;
+  items: ContentItem[];
 }
 
-const CONTENT_FOLDERS = [
-  { name: "articles", label: "Articles" },
-  { name: "changelog", label: "Changelog" },
-  { name: "docs", label: "Documentation" },
-  { name: "handbook", label: "Handbook" },
-  { name: "legal", label: "Legal" },
-  { name: "templates", label: "Templates" },
-];
-
-async function fetchFolderContents(folderPath: string): Promise<ContentItem[]> {
-  const response = await fetch(
-    `/api/admin/content/list?path=${encodeURIComponent(folderPath)}`,
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    try {
-      const errorData = JSON.parse(errorText);
-      throw new Error(errorData.error || `Failed to fetch: ${response.status}`);
-    } catch {
-      throw new Error(`Failed to fetch: ${response.status}`);
-    }
-  }
-
-  const data = await response.json();
-  return data.items || [];
+function getCollections(): CollectionInfo[] {
+  return [
+    {
+      name: "articles",
+      label: "Articles",
+      items: allArticles.map((a) => ({
+        name: a._meta.fileName,
+        path: `articles/${a._meta.fileName}`,
+        slug: a.slug,
+        type: "file" as const,
+        collection: "articles",
+      })),
+    },
+    {
+      name: "changelog",
+      label: "Changelog",
+      items: allChangelogs.map((c) => ({
+        name: c._meta.fileName,
+        path: `changelog/${c._meta.fileName}`,
+        slug: c.slug,
+        type: "file" as const,
+        collection: "changelog",
+      })),
+    },
+    {
+      name: "docs",
+      label: "Documentation",
+      items: allDocs.map((d) => ({
+        name: d._meta.fileName,
+        path: `docs/${d._meta.path}`,
+        slug: d.slug,
+        type: "file" as const,
+        collection: "docs",
+      })),
+    },
+    {
+      name: "handbook",
+      label: "Handbook",
+      items: allHandbooks.map((h) => ({
+        name: h._meta.fileName,
+        path: `handbook/${h._meta.path}`,
+        slug: h.slug,
+        type: "file" as const,
+        collection: "handbook",
+      })),
+    },
+    {
+      name: "legal",
+      label: "Legal",
+      items: allLegals.map((l) => ({
+        name: l._meta.fileName,
+        path: `legal/${l._meta.fileName}`,
+        slug: l.slug,
+        type: "file" as const,
+        collection: "legal",
+      })),
+    },
+    {
+      name: "templates",
+      label: "Templates",
+      items: allTemplates.map((t) => ({
+        name: t._meta.fileName,
+        path: `templates/${t._meta.fileName}`,
+        slug: t.slug,
+        type: "file" as const,
+        collection: "templates",
+      })),
+    },
+  ];
 }
 
 export const Route = createFileRoute("/admin/collections/")({
@@ -57,39 +104,31 @@ export const Route = createFileRoute("/admin/collections/")({
 type TabType = "all" | "mdx" | "md";
 
 function CollectionsPage() {
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const collections = getCollections();
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(
+    null,
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("all");
-  const [folders, setFolders] = useState<FolderTreeItem[]>(
-    CONTENT_FOLDERS.map((f) => ({
-      path: f.name,
-      name: f.name,
-      label: f.label,
-      children: [],
-      expanded: false,
-      loaded: false,
-    })),
+  const [expandedCollections, setExpandedCollections] = useState<Set<string>>(
+    new Set(),
   );
 
-  const contentQuery = useQuery({
-    queryKey: ["content", selectedFolder],
-    queryFn: () => fetchFolderContents(selectedFolder!),
-    enabled: !!selectedFolder,
-  });
-
-  const handleFolderClick = (folderPath: string) => {
-    setSelectedFolder(folderPath);
-    setFolders((prev) =>
-      prev.map((f) => (f.path === folderPath ? { ...f, expanded: true } : f)),
-    );
+  const toggleCollectionExpanded = (name: string) => {
+    setExpandedCollections((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
   };
 
-  const toggleFolderExpanded = (folderPath: string) => {
-    setFolders((prev) =>
-      prev.map((f) =>
-        f.path === folderPath ? { ...f, expanded: !f.expanded } : f,
-      ),
-    );
+  const handleCollectionClick = (name: string) => {
+    setSelectedCollection(name);
+    setExpandedCollections((prev) => new Set(prev).add(name));
   };
 
   const getFileExtension = (filename: string): string => {
@@ -98,7 +137,6 @@ function CollectionsPage() {
   };
 
   const matchesFileTypeFilter = (item: ContentItem): boolean => {
-    if (item.type === "dir") return false;
     if (activeTab === "all") return true;
 
     const ext = getFileExtension(item.name);
@@ -112,25 +150,28 @@ function CollectionsPage() {
     }
   };
 
-  const filterFolders = (
-    items: FolderTreeItem[],
+  const filterCollections = (
+    items: CollectionInfo[],
     query: string,
-  ): FolderTreeItem[] => {
+  ): CollectionInfo[] => {
     if (!query) return items;
     const lowerQuery = query.toLowerCase();
 
     return items.filter(
       (item) =>
         item.label.toLowerCase().includes(lowerQuery) ||
-        item.name.toLowerCase().includes(lowerQuery),
+        item.name.toLowerCase().includes(lowerQuery) ||
+        item.items.some((i) => i.name.toLowerCase().includes(lowerQuery)),
     );
   };
 
-  const filteredFolders = filterFolders(folders, searchQuery);
+  const filteredCollections = filterCollections(collections, searchQuery);
 
-  const items = contentQuery.data || [];
+  const selectedCollectionData = collections.find(
+    (c) => c.name === selectedCollection,
+  );
+  const items = selectedCollectionData?.items || [];
   const filteredItems = items.filter((item) => {
-    if (item.type === "dir") return false;
     const matchesSearch =
       searchQuery === "" ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -169,49 +210,81 @@ function CollectionsPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {filteredFolders.map((folder) => {
-            const isSelected = selectedFolder === folder.path;
+          {filteredCollections.map((collection) => {
+            const isSelected = selectedCollection === collection.name;
+            const isExpanded = expandedCollections.has(collection.name);
 
             return (
-              <div key={folder.path}>
+              <div key={collection.name}>
                 <div
                   className={cn([
                     "flex items-center gap-1 py-1.5 px-2 cursor-pointer text-sm",
                     "hover:bg-neutral-100 transition-colors",
                     isSelected && "bg-neutral-100",
                   ])}
-                  onClick={() => handleFolderClick(folder.path)}
+                  onClick={() => handleCollectionClick(collection.name)}
                 >
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleFolderExpanded(folder.path);
+                      toggleCollectionExpanded(collection.name);
                     }}
                     className="w-4 h-4 flex items-center justify-center"
                   >
                     <Icon
                       icon={
-                        folder.expanded
-                          ? "mdi:chevron-down"
-                          : "mdi:chevron-right"
+                        isExpanded ? "mdi:chevron-down" : "mdi:chevron-right"
                       }
                       className="text-neutral-400 text-xs"
                     />
                   </button>
                   <Icon
-                    icon={folder.expanded ? "mdi:folder-open" : "mdi:folder"}
+                    icon={isExpanded ? "mdi:folder-open" : "mdi:folder"}
                     className="text-neutral-400 text-sm"
                   />
                   <span className="truncate text-neutral-700">
-                    {folder.label}
+                    {collection.label}
+                  </span>
+                  <span className="ml-auto text-xs text-neutral-400">
+                    {collection.items.length}
                   </span>
                 </div>
+                {isExpanded && collection.items.length > 0 && (
+                  <div>
+                    {collection.items.slice(0, 10).map((item) => (
+                      <div
+                        key={item.path}
+                        className={cn([
+                          "flex items-center gap-1 py-1 pr-2 cursor-pointer text-sm",
+                          "hover:bg-neutral-50 transition-colors",
+                        ])}
+                        style={{ paddingLeft: "32px" }}
+                      >
+                        <Icon
+                          icon="mdi:file-document-outline"
+                          className="text-neutral-400 text-sm"
+                        />
+                        <span className="truncate text-neutral-600 text-xs">
+                          {item.name}
+                        </span>
+                      </div>
+                    ))}
+                    {collection.items.length > 10 && (
+                      <div
+                        className="text-xs text-neutral-400 py-1"
+                        style={{ paddingLeft: "32px" }}
+                      >
+                        +{collection.items.length - 10} more
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
 
-        {selectedFolder && (
+        {selectedCollection && (
           <div className="p-2 border-t border-neutral-100">
             <Link
               to="/admin/import"
@@ -248,15 +321,10 @@ function CollectionsPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
-          {!selectedFolder ? (
+          {!selectedCollection ? (
             <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
               <Icon icon="mdi:folder-open-outline" className="text-4xl mb-3" />
               <p className="text-sm">Select a collection to view files</p>
-            </div>
-          ) : contentQuery.isLoading ? (
-            <div className="flex items-center justify-center h-64 text-neutral-500">
-              <Icon icon="mdi:loading" className="animate-spin text-2xl mr-2" />
-              Loading...
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-neutral-500">

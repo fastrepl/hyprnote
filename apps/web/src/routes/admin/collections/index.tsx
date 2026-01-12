@@ -65,6 +65,10 @@ interface FileContent {
   mdx: string;
   collection: string;
   slug: string;
+  title?: string;
+  author?: string;
+  date?: string;
+  coverImage?: string;
 }
 
 function getAllContent(): Map<string, FileContent> {
@@ -76,6 +80,10 @@ function getAllContent(): Map<string, FileContent> {
       mdx: a.mdx,
       collection: "articles",
       slug: a.slug,
+      title: a.title,
+      author: a.author,
+      date: a.date,
+      coverImage: a.coverImage,
     });
   });
 
@@ -1202,21 +1210,81 @@ function FileEditor({
     );
   }
 
+  const AUTHOR_AVATARS: Record<string, string> = {
+    "John Jeong": "/api/images/team/john.png",
+    Harshika: "/api/images/team/harshika.jpeg",
+    "Yujong Lee": "/api/images/team/yujong.png",
+  };
+
+  const avatarUrl = fileContent.author
+    ? AUTHOR_AVATARS[fileContent.author]
+    : undefined;
+
   if (isPreviewMode) {
     return (
       <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="h-full overflow-y-auto">
-            <div className="p-6">
+            <div className="p-6 space-y-4">
+              <div className="space-y-3 pb-4 border-b border-neutral-100">
+                <input
+                  type="text"
+                  defaultValue={fileContent.title || ""}
+                  placeholder="Title"
+                  className="w-full text-2xl font-serif text-stone-600 bg-transparent border-none outline-none placeholder:text-neutral-300"
+                />
+                <div className="flex items-center gap-4 text-sm">
+                  <input
+                    type="text"
+                    defaultValue={fileContent.author || ""}
+                    placeholder="Author"
+                    className="bg-transparent border-none outline-none text-neutral-600 placeholder:text-neutral-300"
+                  />
+                  <input
+                    type="text"
+                    defaultValue={fileContent.date || ""}
+                    placeholder="Date (YYYY-MM-DD)"
+                    className="bg-transparent border-none outline-none text-neutral-500 font-mono text-xs placeholder:text-neutral-300"
+                  />
+                </div>
+              </div>
               <BlogEditor content={content} onChange={setContent} />
             </div>
           </div>
         </ResizablePanel>
-        <ResizableHandle />
+        <ResizableHandle className="w-0" />
         <ResizablePanel defaultSize={50} minSize={30}>
-          <div className="h-full overflow-y-auto">
-            <div className="max-w-3xl mx-auto px-6 py-8">
-              <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:my-8 max-w-none">
+          <div className="h-full overflow-y-auto bg-white">
+            <header className="py-12 text-center max-w-3xl mx-auto px-6">
+              <h1 className="text-3xl font-serif text-stone-600 mb-6">
+                {fileContent.title || "Untitled"}
+              </h1>
+              {fileContent.author && (
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  {avatarUrl && (
+                    <img
+                      src={avatarUrl}
+                      alt={fileContent.author}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  )}
+                  <p className="text-base text-neutral-600">
+                    {fileContent.author}
+                  </p>
+                </div>
+              )}
+              {fileContent.date && (
+                <time className="text-xs font-mono text-neutral-500">
+                  {new Date(fileContent.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </time>
+              )}
+            </header>
+            <div className="max-w-3xl mx-auto px-6 pb-8">
+              <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
                 <MDXContent
                   code={fileContent.mdx}
                   components={createMDXComponents({ CtaCard })}
@@ -1232,7 +1300,29 @@ function FileEditor({
   return (
     <div className="flex-1 overflow-hidden flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="p-6">
+        <div className="p-6 space-y-4">
+          <div className="space-y-3 pb-4 border-b border-neutral-100">
+            <input
+              type="text"
+              defaultValue={fileContent.title || ""}
+              placeholder="Title"
+              className="w-full text-2xl font-serif text-stone-600 bg-transparent border-none outline-none placeholder:text-neutral-300"
+            />
+            <div className="flex items-center gap-4 text-sm">
+              <input
+                type="text"
+                defaultValue={fileContent.author || ""}
+                placeholder="Author"
+                className="bg-transparent border-none outline-none text-neutral-600 placeholder:text-neutral-300"
+              />
+              <input
+                type="text"
+                defaultValue={fileContent.date || ""}
+                placeholder="Date (YYYY-MM-DD)"
+                className="bg-transparent border-none outline-none text-neutral-500 font-mono text-xs placeholder:text-neutral-300"
+              />
+            </div>
+          </div>
           <BlogEditor content={content} onChange={setContent} />
         </div>
       </div>

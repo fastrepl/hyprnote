@@ -3,6 +3,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use futures_util::StreamExt;
 use tokio::time::error::Elapsed;
+use tracing::Instrument;
 
 use owhisper_client::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FinalizeHandle,
@@ -13,6 +14,7 @@ use owhisper_interface::{ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
 use tauri_specta::Event;
 
+use super::root::session_span;
 use crate::{SessionDataEvent, SessionErrorEvent, SessionProgressEvent};
 
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
@@ -89,34 +91,40 @@ impl Actor for ListenerActor {
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
         let session_id = args.session_id.clone();
+        let span = session_span(&session_id);
 
-        if let Err(error) = (SessionProgressEvent::Connecting {
-            session_id: session_id.clone(),
-        })
-        .emit(&args.app)
-        {
-            tracing::error!(session_id = %session_id, ?error, "failed_to_emit_connecting");
+        async {
+            if let Err(error) = (SessionProgressEvent::Connecting {
+                session_id: session_id.clone(),
+            })
+            .emit(&args.app)
+            {
+                tracing::error!(?error, "failed_to_emit_connecting");
+            }
+
+            let (tx, rx_task, shutdown_tx, adapter_name) =
+                spawn_rx_task(args.clone(), myself).await?;
+
+            if let Err(error) = (SessionProgressEvent::Connected {
+                session_id: session_id.clone(),
+                adapter: adapter_name,
+            })
+            .emit(&args.app)
+            {
+                tracing::error!(?error, "failed_to_emit_connected");
+            }
+
+            let state = ListenerState {
+                args,
+                tx,
+                rx_task,
+                shutdown_tx: Some(shutdown_tx),
+            };
+
+            Ok(state)
         }
-
-        let (tx, rx_task, shutdown_tx, adapter_name) = spawn_rx_task(args.clone(), myself).await?;
-
-        if let Err(error) = (SessionProgressEvent::Connected {
-            session_id: session_id.clone(),
-            adapter: adapter_name,
-        })
-        .emit(&args.app)
-        {
-            tracing::error!(session_id = %session_id, ?error, "failed_to_emit_connected");
-        }
-
-        let state = ListenerState {
-            args,
-            tx,
-            rx_task,
-            shutdown_tx: Some(shutdown_tx),
-        };
-
-        Ok(state)
+        .instrument(span)
+        .await
     }
 
     async fn post_stop(
@@ -137,6 +145,9 @@ impl Actor for ListenerActor {
         message: Self::Msg,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
+        let span = session_span(&state.args.session_id);
+        let _guard = span.enter();
+
         match message {
             ListenerMsg::AudioSingle(audio) => {
                 if let ChannelSender::Single(tx) = &state.tx {
@@ -158,7 +169,6 @@ impl Actor for ListenerActor {
                 } = &response
                 {
                     tracing::error!(
-                        session_id = %state.args.session_id,
                         ?error_code,
                         %error_message,
                         %provider,
@@ -196,22 +206,22 @@ impl Actor for ListenerActor {
                 })
                 .emit(&state.args.app)
                 {
-                    tracing::error!(session_id = %state.args.session_id, ?error, "stream_response_emit_failed");
+                    tracing::error!(?error, "stream_response_emit_failed");
                 }
             }
 
             ListenerMsg::StreamError(error) => {
-                tracing::info!(session_id = %state.args.session_id, "listen_stream_error: {}", error);
+                tracing::info!("listen_stream_error: {}", error);
                 myself.stop(None);
             }
 
             ListenerMsg::StreamEnded => {
-                tracing::info!(session_id = %state.args.session_id, "listen_stream_ended");
+                tracing::info!("listen_stream_ended");
                 myself.stop(None);
             }
 
             ListenerMsg::StreamTimeout(elapsed) => {
-                tracing::info!(session_id = %state.args.session_id, "listen_stream_timeout: {}", elapsed);
+                tracing::info!("listen_stream_timeout: {}", elapsed);
                 myself.stop(None);
             }
         }
@@ -224,7 +234,9 @@ impl Actor for ListenerActor {
         message: SupervisionEvent,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        tracing::info!(session_id = %state.args.session_id, "supervisor_event: {:?}", message);
+        let span = session_span(&state.args.session_id);
+        let _guard = span.enter();
+        tracing::info!("supervisor_event: {:?}", message);
 
         match message {
             SupervisionEvent::ActorStarted(_) | SupervisionEvent::ProcessGroupChanged(_) => {}

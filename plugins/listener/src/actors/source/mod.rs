@@ -9,10 +9,12 @@ use std::sync::{
 
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 use tokio_util::sync::CancellationToken;
+use tracing::Instrument;
 
 use crate::{
     SessionErrorEvent, SessionProgressEvent,
     actors::{AudioChunk, ChannelMode},
+    actors::root::session_span,
 };
 use hypr_audio::AudioInput;
 use tauri_specta::Event;
@@ -103,41 +105,46 @@ impl Actor for SourceActor {
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
         let session_id = args.session_id.clone();
+        let span = session_span(&session_id);
 
-        if let Err(error) = (SessionProgressEvent::AudioInitializing {
-            session_id: session_id.clone(),
-        })
-        .emit(&args.app)
-        {
-            tracing::error!(session_id = %session_id, ?error, "failed_to_emit_audio_initializing");
+        async {
+            if let Err(error) = (SessionProgressEvent::AudioInitializing {
+                session_id: session_id.clone(),
+            })
+            .emit(&args.app)
+            {
+                tracing::error!(?error, "failed_to_emit_audio_initializing");
+            }
+
+            let device_watcher = DeviceChangeWatcher::spawn(myself.clone());
+
+            let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
+            let mic_device = args
+                .mic_device
+                .or_else(|| Some(AudioInput::get_default_device_name()));
+            tracing::info!(mic_device = ?mic_device);
+
+            let pipeline = Pipeline::new(args.app.clone(), args.session_id.clone());
+
+            let mut st = SourceState {
+                app: args.app,
+                session_id: args.session_id,
+                mic_device,
+                onboarding: args.onboarding,
+                mic_muted: Arc::new(AtomicBool::new(false)),
+                run_task: None,
+                stream_cancel_token: None,
+                _device_watcher: Some(device_watcher),
+                _silence_stream_tx: silence_stream_tx,
+                current_mode: ChannelMode::MicAndSpeaker,
+                pipeline,
+            };
+
+            start_source_loop(&myself, &mut st).await?;
+            Ok(st)
         }
-
-        let device_watcher = DeviceChangeWatcher::spawn(myself.clone());
-
-        let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
-        let mic_device = args
-            .mic_device
-            .or_else(|| Some(AudioInput::get_default_device_name()));
-        tracing::info!(session_id = %session_id, mic_device = ?mic_device);
-
-        let pipeline = Pipeline::new(args.app.clone(), args.session_id.clone());
-
-        let mut st = SourceState {
-            app: args.app,
-            session_id: args.session_id,
-            mic_device,
-            onboarding: args.onboarding,
-            mic_muted: Arc::new(AtomicBool::new(false)),
-            run_task: None,
-            stream_cancel_token: None,
-            _device_watcher: Some(device_watcher),
-            _silence_stream_tx: silence_stream_tx,
-            current_mode: ChannelMode::MicAndSpeaker,
-            pipeline,
-        };
-
-        start_source_loop(&myself, &mut st).await?;
-        Ok(st)
+        .instrument(span)
+        .await
     }
 
     async fn handle(
@@ -146,6 +153,9 @@ impl Actor for SourceActor {
         msg: Self::Msg,
         st: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
+        let span = session_span(&st.session_id);
+        let _guard = span.enter();
+
         match msg {
             SourceMsg::SetMicMute(muted) => {
                 st.mic_muted.store(muted, Ordering::Relaxed);
@@ -169,7 +179,7 @@ impl Actor for SourceActor {
                 st.pipeline.flush(st.current_mode);
             }
             SourceMsg::StreamFailed(reason) => {
-                tracing::error!(session_id = %st.session_id, %reason, "source_stream_failed_stopping");
+                tracing::error!(%reason, "source_stream_failed_stopping");
                 let _ = (SessionErrorEvent::AudioError {
                     session_id: st.session_id.clone(),
                     error: reason.clone(),

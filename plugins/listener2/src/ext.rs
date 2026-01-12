@@ -2,9 +2,15 @@ use std::sync::{Arc, Mutex};
 
 use owhisper_client::BatchSttAdapter;
 use tauri_specta::Event;
+use tracing::Instrument;
 
 use crate::BatchEvent;
 use crate::batch::{BatchArgs, spawn_batch_actor};
+
+/// Creates a tracing span with session context that child events will inherit
+fn session_span(session_id: &str) -> tracing::Span {
+    tracing::info_span!("session", session_id = %session_id)
+}
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
@@ -158,35 +164,41 @@ async fn run_batch_with_adapter<A: BatchSttAdapter>(
     params: BatchParams,
     listen_params: owhisper_interface::ListenParams,
 ) -> Result<(), crate::Error> {
-    BatchEvent::BatchStarted {
-        session_id: params.session_id.clone(),
+    let span = session_span(&params.session_id);
+
+    async {
+        BatchEvent::BatchStarted {
+            session_id: params.session_id.clone(),
+        }
+        .emit(&app)
+        .map_err(|e| {
+            crate::Error::BatchStartFailed(format!("failed to emit BatchStarted event: {e}"))
+        })?;
+
+        let client = owhisper_client::BatchClient::<A>::builder()
+            .api_base(params.base_url.clone())
+            .api_key(params.api_key.clone())
+            .params(listen_params)
+            .build();
+
+        tracing::debug!("transcribing file: {}", params.file_path);
+        let response = client.transcribe_file(&params.file_path).await?;
+
+        tracing::info!("batch transcription completed");
+
+        BatchEvent::BatchResponse {
+            session_id: params.session_id.clone(),
+            response,
+        }
+        .emit(&app)
+        .map_err(|e| {
+            crate::Error::BatchStartFailed(format!("failed to emit BatchResponse event: {e}"))
+        })?;
+
+        Ok(())
     }
-    .emit(&app)
-    .map_err(|e| {
-        crate::Error::BatchStartFailed(format!("failed to emit BatchStarted event: {e}"))
-    })?;
-
-    let client = owhisper_client::BatchClient::<A>::builder()
-        .api_base(params.base_url.clone())
-        .api_key(params.api_key.clone())
-        .params(listen_params)
-        .build();
-
-    tracing::debug!(session_id = %params.session_id, "transcribing file: {}", params.file_path);
-    let response = client.transcribe_file(&params.file_path).await?;
-
-    tracing::info!(session_id = %params.session_id, "batch transcription completed");
-
-    BatchEvent::BatchResponse {
-        session_id: params.session_id.clone(),
-        response,
-    }
-    .emit(&app)
-    .map_err(|e| {
-        crate::Error::BatchStartFailed(format!("failed to emit BatchResponse event: {e}"))
-    })?;
-
-    Ok(())
+    .instrument(span)
+    .await
 }
 
 async fn run_batch_am(
@@ -194,50 +206,57 @@ async fn run_batch_am(
     params: BatchParams,
     listen_params: owhisper_interface::ListenParams,
 ) -> Result<(), crate::Error> {
-    let (start_tx, start_rx) = tokio::sync::oneshot::channel::<std::result::Result<(), String>>();
-    let start_notifier = Arc::new(Mutex::new(Some(start_tx)));
+    let span = session_span(&params.session_id);
 
-    let args = BatchArgs {
-        app: app.clone(),
-        file_path: params.file_path.clone(),
-        base_url: params.base_url.clone(),
-        api_key: params.api_key.clone(),
-        listen_params: listen_params.clone(),
-        start_notifier: start_notifier.clone(),
-        session_id: params.session_id.clone(),
-    };
+    async {
+        let (start_tx, start_rx) =
+            tokio::sync::oneshot::channel::<std::result::Result<(), String>>();
+        let start_notifier = Arc::new(Mutex::new(Some(start_tx)));
 
-    match spawn_batch_actor(args).await {
-        Ok(_) => {
-            tracing::info!(session_id = %params.session_id, "batch actor spawned successfully");
-            BatchEvent::BatchStarted {
-                session_id: params.session_id.clone(),
+        let args = BatchArgs {
+            app: app.clone(),
+            file_path: params.file_path.clone(),
+            base_url: params.base_url.clone(),
+            api_key: params.api_key.clone(),
+            listen_params: listen_params.clone(),
+            start_notifier: start_notifier.clone(),
+            session_id: params.session_id.clone(),
+        };
+
+        match spawn_batch_actor(args).await {
+            Ok(_) => {
+                tracing::info!("batch actor spawned successfully");
+                BatchEvent::BatchStarted {
+                    session_id: params.session_id.clone(),
+                }
+                .emit(&app)
+                .unwrap();
             }
-            .emit(&app)
-            .unwrap();
+            Err(e) => {
+                tracing::error!("batch supervisor spawn failed: {:?}", e);
+                if let Ok(mut notifier) = start_notifier.lock()
+                    && let Some(tx) = notifier.take()
+                {
+                    let _ = tx.send(Err(format!("failed to spawn batch supervisor: {e:?}")));
+                }
+                return Err(e.into());
+            }
         }
-        Err(e) => {
-            tracing::error!(session_id = %params.session_id, "batch supervisor spawn failed: {:?}", e);
-            if let Ok(mut notifier) = start_notifier.lock()
-                && let Some(tx) = notifier.take()
-            {
-                let _ = tx.send(Err(format!("failed to spawn batch supervisor: {e:?}")));
+
+        match start_rx.await {
+            Ok(Ok(())) => Ok(()),
+            Ok(Err(error)) => {
+                tracing::error!("batch actor reported start failure: {}", error);
+                Err(crate::Error::BatchStartFailed(error))
             }
-            return Err(e.into());
+            Err(_) => {
+                tracing::error!("batch actor start notifier dropped before reporting result");
+                Err(crate::Error::BatchStartFailed(
+                    "batch stream start cancelled unexpectedly".to_string(),
+                ))
+            }
         }
     }
-
-    match start_rx.await {
-        Ok(Ok(())) => Ok(()),
-        Ok(Err(error)) => {
-            tracing::error!(session_id = %params.session_id, "batch actor reported start failure: {}", error);
-            Err(crate::Error::BatchStartFailed(error))
-        }
-        Err(_) => {
-            tracing::error!(session_id = %params.session_id, "batch actor start notifier dropped before reporting result");
-            Err(crate::Error::BatchStartFailed(
-                "batch stream start cancelled unexpectedly".to_string(),
-            ))
-        }
-    }
+    .instrument(span)
+    .await
 }

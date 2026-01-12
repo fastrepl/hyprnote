@@ -15,7 +15,7 @@ assert_fs = "1"
 hypr-data = { workspace = true }
 predicates = "3"
 specta-typescript = { workspace = true }
-tempfile = "3"
+tempfile = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]

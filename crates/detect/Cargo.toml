@@ -37,6 +37,7 @@ objc2-app-kit = { workspace = true }
 objc2 = { workspace = true }
 objc2-core-foundation = { workspace = true }
 objc2-application-services = { workspace = true }
+macos-accessibility-client = { workspace = true }
 
 [target."cfg(target_os = \"linux\")".dependencies]
 libpulse-binding = "2.30"

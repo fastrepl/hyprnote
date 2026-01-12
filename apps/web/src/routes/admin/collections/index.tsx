@@ -1,5 +1,5 @@
 import { Icon } from "@iconify-icon/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -57,7 +57,6 @@ export const Route = createFileRoute("/admin/collections/")({
 type TabType = "all" | "mdx" | "md";
 
 function CollectionsPage() {
-  const queryClient = useQueryClient();
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("all");
@@ -71,8 +70,6 @@ function CollectionsPage() {
       loaded: false,
     })),
   );
-
-  const selectedFolderData = folders.find((f) => f.path === selectedFolder);
 
   const contentQuery = useQuery({
     queryKey: ["content", selectedFolder],

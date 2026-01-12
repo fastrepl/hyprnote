@@ -1,12 +1,4 @@
-import type {
-  PersistedChanges,
-  Persists,
-} from "tinybase/persisters/with-schemas";
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import {
   createDeletionMarker,
@@ -15,7 +7,7 @@ import {
 } from "../shared/deletion-marker";
 import { getDataDir } from "../shared/paths";
 import type { ChangedTables, SaveResult, TablesContent } from "../shared/types";
-import { asTablesChanges } from "../shared/utils";
+import { toContent, toPersistedChanges } from "../shared/utils";
 import {
   createCollectorPersister,
   type OrphanCleanupConfig,
@@ -88,15 +80,7 @@ export function createMultiTableDirPersister<
           return undefined;
         }
 
-        return asTablesChanges(
-          result as Record<
-            string,
-            Record<string, Record<string, unknown> | undefined> | undefined
-          >,
-        ) as unknown as PersistedChanges<
-          Schemas,
-          Persists.StoreOrMergeableStore
-        >;
+        return toPersistedChanges<Schemas>(result);
       } catch (error) {
         console.error(`[${label}] loadSingle error for ${entityId}:`, error);
         return undefined;
@@ -113,12 +97,7 @@ export function createMultiTableDirPersister<
           return undefined;
         }
 
-        return asTablesChanges(
-          result as Record<
-            string,
-            Record<string, Record<string, unknown> | undefined> | undefined
-          >,
-        ) as unknown as Content<Schemas>;
+        return toContent<Schemas>(result);
       } catch (error) {
         console.error(`[${label}] load error:`, error);
         return undefined;

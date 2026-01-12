@@ -31,6 +31,7 @@ hypr-language = { workspace = true }
 
 plist = "1.7"
 cidre = { workspace = true }
+macos-accessibility-client = "0.0.1"
 
 objc2-foundation = { workspace = true, features = ["NSLocale", "NSArray", "NSString"] }
 objc2-app-kit = { workspace = true }

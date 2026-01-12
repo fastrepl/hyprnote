@@ -97,6 +97,13 @@ impl crate::Observer for ZoomMuteWatcher {
             return;
         }
 
+        if !macos_accessibility_client::accessibility::application_is_trusted() {
+            tracing::warn!(
+                "accessibility permissions not granted, zoom mute watcher will not start"
+            );
+            return;
+        }
+
         self.background.start(|running, mut rx| async move {
             let mut state = WatcherState::new();
 

@@ -18,7 +18,7 @@ import {
   SendIcon,
 } from "lucide-react";
 import { Reorder } from "motion/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import BlogEditor from "@hypr/tiptap/blog-editor";
 import "@hypr/tiptap/styles.css";
@@ -1234,10 +1234,31 @@ function FileEditor({
   const fileContent = contentMap.get(filePath);
   const [content, setContent] = useState(fileContent?.content || "");
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
+  const [isMetadataVisible, setIsMetadataVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setContent(fileContent?.content || "");
   }, [filePath, fileContent?.content]);
+
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) return;
+
+    const handleScroll = () => {
+      const currentScrollY = scrollEl.scrollTop;
+      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+        setIsMetadataVisible(false);
+      } else if (currentScrollY < lastScrollY.current) {
+        setIsMetadataVisible(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
+    return () => scrollEl.removeEventListener("scroll", handleScroll);
+  }, []);
 
   if (!fileContent) {
     return (
@@ -1267,7 +1288,10 @@ function FileEditor({
           <div className="flex flex-col h-full">
             <div
               key={filePath}
-              className="shrink-0 border-b border-neutral-100 text-sm"
+              className={cn([
+                "shrink-0 border-b border-neutral-100 text-sm transition-all duration-200 overflow-hidden",
+                isMetadataVisible ? "max-h-96" : "max-h-0 border-b-0",
+              ])}
             >
               <div className="flex border-b border-neutral-100">
                 <button
@@ -1386,7 +1410,7 @@ function FileEditor({
                 </div>
               </div>
             </div>
-            <div className="flex-1 min-h-0 overflow-y-auto p-6">
+            <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto p-6">
               <BlogEditor content={content} onChange={setContent} />
             </div>
           </div>
@@ -1441,7 +1465,10 @@ function FileEditor({
       <div className="flex-1 flex flex-col min-h-0">
         <div
           key={filePath}
-          className="shrink-0 border-b border-neutral-100 text-sm"
+          className={cn([
+            "shrink-0 border-b border-neutral-100 text-sm transition-all duration-200 overflow-hidden",
+            isMetadataVisible ? "max-h-96" : "max-h-0 border-b-0",
+          ])}
         >
           <div className="flex border-b border-neutral-100">
             <button
@@ -1560,7 +1587,7 @@ function FileEditor({
             </div>
           </div>
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto p-6">
+        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto p-6">
           <BlogEditor content={content} onChange={setContent} />
         </div>
       </div>

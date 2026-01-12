@@ -13,6 +13,8 @@ import { EyeIcon, PencilIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import BlogEditor from "@hypr/tiptap/blog-editor";
+import "@hypr/tiptap/styles.css";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -285,12 +287,6 @@ function CollectionsPage() {
     );
   }, []);
 
-  const unpinTab = useCallback((tabId: string) => {
-    setTabs((prev) =>
-      prev.map((t) => (t.id === tabId ? { ...t, pinned: false } : t)),
-    );
-  }, []);
-
   const reorderTabs = useCallback((newTabs: Tab[]) => {
     setTabs(newTabs);
   }, []);
@@ -338,34 +334,42 @@ function CollectionsPage() {
     }) || [];
 
   return (
-    <div className="flex h-[calc(100vh-64px)]">
-      <Sidebar
-        collections={filteredCollections}
-        expandedCollections={expandedCollections}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onCollectionClick={(name) => toggleCollectionExpanded(name)}
-        onCollectionDoubleClick={(collection) =>
-          openTab("collection", collection.label, collection.name)
-        }
-        onFileClick={(item) => openTab("file", item.name, item.path)}
-        clipboard={clipboard}
-        onClipboardChange={setClipboard}
-      />
-      <ContentPanel
-        tabs={tabs}
-        currentTab={currentTab}
-        onSelectTab={selectTab}
-        onCloseTab={closeTab}
-        onCloseOtherTabs={closeOtherTabs}
-        onCloseAllTabs={closeAllTabs}
-        onPinTab={pinTab}
-        onReorderTabs={reorderTabs}
-        filteredItems={filteredItems}
-        onFileClick={(item) => openTab("file", item.name, item.path)}
-        contentMap={contentMap}
-      />
-    </div>
+    <ResizablePanelGroup
+      direction="horizontal"
+      className="h-[calc(100vh-64px)]"
+    >
+      <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+        <Sidebar
+          collections={filteredCollections}
+          expandedCollections={expandedCollections}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onCollectionClick={(name) => toggleCollectionExpanded(name)}
+          onCollectionDoubleClick={(collection) =>
+            openTab("collection", collection.label, collection.name)
+          }
+          onFileClick={(item) => openTab("file", item.name, item.path)}
+          clipboard={clipboard}
+          onClipboardChange={setClipboard}
+        />
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel defaultSize={80} minSize={50}>
+        <ContentPanel
+          tabs={tabs}
+          currentTab={currentTab}
+          onSelectTab={selectTab}
+          onCloseTab={closeTab}
+          onCloseOtherTabs={closeOtherTabs}
+          onCloseAllTabs={closeAllTabs}
+          onPinTab={pinTab}
+          onReorderTabs={reorderTabs}
+          filteredItems={filteredItems}
+          onFileClick={(item) => openTab("file", item.name, item.path)}
+          contentMap={contentMap}
+        />
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }
 
@@ -391,7 +395,7 @@ function Sidebar({
   onClipboardChange: (item: ClipboardItem | null) => void;
 }) {
   return (
-    <div className="w-56 shrink-0 border-r border-neutral-100 bg-white flex flex-col">
+    <div className="h-full border-r border-neutral-100 bg-white flex flex-col">
       <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-100">
         <div className="relative w-full flex items-center gap-1.5">
           <Icon
@@ -1186,18 +1190,8 @@ function FileEditor({
     return (
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel defaultSize={50} minSize={30}>
-          <div className="h-full overflow-y-auto">
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className={cn([
-                "w-full h-full p-6 resize-none",
-                "font-mono text-sm leading-relaxed",
-                "focus:outline-none",
-                "bg-white",
-              ])}
-              spellCheck={false}
-            />
+          <div className="h-full overflow-y-auto p-6">
+            <BlogEditor content={content} onChange={setContent} />
           </div>
         </ResizablePanel>
         <ResizableHandle />
@@ -1219,18 +1213,8 @@ function FileEditor({
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
-      <div className="flex-1 overflow-y-auto">
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className={cn([
-            "w-full h-full p-6 resize-none",
-            "font-mono text-sm leading-relaxed",
-            "focus:outline-none",
-            "bg-white",
-          ])}
-          spellCheck={false}
-        />
+      <div className="flex-1 overflow-y-auto p-6">
+        <BlogEditor content={content} onChange={setContent} />
       </div>
     </div>
   );

@@ -87,12 +87,18 @@ describe("extractChangedTables", () => {
   });
 
   describe("MergeableChanges format: [[changedTables, hlc?], [changedValues, hlc?], 1]", () => {
-    test("extracts changed tables from mergeable changes", () => {
+    test("extracts changed tables from mergeable changes with cell-level stamps", () => {
+      // TinyBase wraps cells in stamps: [value, hlc?, hash?]
       const changes = [
         [
           {
             sessions: [
-              { "session-1": [{ title: "Test" }, "hlc-row"] },
+              {
+                "session-1": [
+                  { title: ["Test", "hlc-cell"] }, // Cell is stamped
+                  "hlc-row",
+                ],
+              },
               "hlc-table",
             ],
           },
@@ -110,8 +116,9 @@ describe("extractChangedTables", () => {
     });
 
     test("handles mergeable changes without HLC timestamps", () => {
+      // Even without HLC, cells are wrapped in arrays: [value]
       const changes = [
-        [{ sessions: [{ "session-1": [{ title: "Test" }] }] }],
+        [{ sessions: [{ "session-1": [{ title: ["Test"] }] }] }],
         [{}],
         1,
       ] as any;
@@ -127,8 +134,8 @@ describe("extractChangedTables", () => {
       const changes = [
         [
           {
-            sessions: [{ "session-1": [{ title: "Test" }] }],
-            humans: [{ "human-1": [{ name: "John" }] }],
+            sessions: [{ "session-1": [{ title: ["Test", "hlc-cell"] }] }],
+            humans: [{ "human-1": [{ name: ["John", "hlc-cell"] }] }],
           },
         ],
         [{}],
@@ -143,7 +150,37 @@ describe("extractChangedTables", () => {
       });
     });
 
-    test("handles deletion markers in mergeable changes", () => {
+    test("handles multiple cells in a row", () => {
+      const changes = [
+        [
+          {
+            sessions: [
+              {
+                "session-1": [
+                  {
+                    title: ["Test", "hlc-cell-1"],
+                    created_at: ["2024-01-01", "hlc-cell-2"],
+                  },
+                  "hlc-row",
+                ],
+              },
+              "hlc-table",
+            ],
+          },
+          "hlc-outer",
+        ],
+        [{}, "hlc-values"],
+        1,
+      ] as any;
+
+      const result = extractChangedTables(changes);
+
+      expect(result).toEqual({
+        sessions: { "session-1": { title: "Test", created_at: "2024-01-01" } },
+      });
+    });
+
+    test("handles row-level deletion markers in mergeable changes", () => {
       const changes = [
         [{ sessions: [{ "session-1": undefined }] }],
         [{}],
@@ -154,6 +191,32 @@ describe("extractChangedTables", () => {
 
       expect(result).toEqual({
         sessions: { "session-1": undefined },
+      });
+    });
+
+    test("handles cell-level deletion markers in mergeable changes", () => {
+      // Cell deletion is represented as [undefined, hlc]
+      const changes = [
+        [
+          {
+            sessions: [
+              {
+                "session-1": [
+                  { title: [undefined, "hlc-cell"] }, // Cell deleted
+                  "hlc-row",
+                ],
+              },
+            ],
+          },
+        ],
+        [{}],
+        1,
+      ] as any;
+
+      const result = extractChangedTables(changes);
+
+      expect(result).toEqual({
+        sessions: { "session-1": { title: undefined } },
       });
     });
 

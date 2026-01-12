@@ -102,9 +102,37 @@ function unwrapMergeableRows(
 
     // MergeableChanges wraps each row in [cells, hlc?]
     if (Array.isArray(rowValue) && rowValue.length >= 1) {
-      result[rowId] = rowValue[0];
+      const cells = rowValue[0];
+      if (cells && typeof cells === "object") {
+        result[rowId] = unwrapMergeableCells(cells as Record<string, unknown>);
+      } else {
+        result[rowId] = cells;
+      }
     } else {
       result[rowId] = rowValue;
+    }
+  }
+
+  return result;
+}
+
+function unwrapMergeableCells(
+  cells: Record<string, unknown>,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+
+  for (const [cellId, cellValue] of Object.entries(cells)) {
+    if (cellValue === undefined) {
+      result[cellId] = undefined;
+      continue;
+    }
+
+    // MergeableChanges wraps each cell in [value, hlc?, hash?]
+    if (Array.isArray(cellValue) && cellValue.length >= 1) {
+      result[cellId] = cellValue[0];
+    } else {
+      // Fallback: treat as raw value
+      result[cellId] = cellValue;
     }
   }
 

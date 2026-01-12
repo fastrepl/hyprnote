@@ -10,7 +10,13 @@ import {
   allLegals,
   allTemplates,
 } from "content-collections";
-import { ChevronRightIcon, EyeIcon, PencilIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  EyeIcon,
+  PencilIcon,
+  SendIcon,
+} from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -70,6 +76,7 @@ interface FileContent {
   author?: string;
   date?: string;
   coverImage?: string;
+  published?: boolean;
 }
 
 function getAllContent(): Map<string, FileContent> {
@@ -86,6 +93,7 @@ function getAllContent(): Map<string, FileContent> {
       author: a.author,
       date: a.date,
       coverImage: a.coverImage,
+      published: a.published,
     });
   });
 
@@ -840,6 +848,9 @@ function ContentPanel({
 }) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
+  const currentFileContent =
+    currentTab?.type === "file" ? contentMap.get(currentTab.path) : undefined;
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {currentTab ? (
@@ -855,6 +866,7 @@ function ContentPanel({
             onReorderTabs={onReorderTabs}
             isPreviewMode={isPreviewMode}
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
+            isPublished={currentFileContent?.published}
           />
           {currentTab.type === "collection" ? (
             <FileList filteredItems={filteredItems} onFileClick={onFileClick} />
@@ -890,6 +902,7 @@ function EditorHeader({
   onReorderTabs,
   isPreviewMode,
   onTogglePreview,
+  isPublished,
 }: {
   tabs: Tab[];
   currentTab: Tab;
@@ -901,6 +914,7 @@ function EditorHeader({
   onReorderTabs: (tabs: Tab[]) => void;
   isPreviewMode: boolean;
   onTogglePreview: () => void;
+  isPublished?: boolean;
 }) {
   const breadcrumbs = currentTab.path.split("/");
 
@@ -940,22 +954,45 @@ function EditorHeader({
         </div>
 
         {currentTab.type === "file" && (
-          <button
-            onClick={onTogglePreview}
-            className={cn([
-              "cursor-pointer p-1.5 rounded transition-colors",
-              isPreviewMode
-                ? "bg-neutral-100 text-neutral-700"
-                : "text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50",
-            ])}
-            title={isPreviewMode ? "Edit mode" : "Preview mode"}
-          >
-            {isPreviewMode ? (
-              <PencilIcon className="size-4" />
-            ) : (
-              <EyeIcon className="size-4" />
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onTogglePreview}
+              className={cn([
+                "cursor-pointer p-1.5 rounded transition-colors",
+                isPreviewMode
+                  ? "bg-neutral-100 text-neutral-700"
+                  : "text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50",
+              ])}
+              title={isPreviewMode ? "Edit mode" : "Preview mode"}
+            >
+              {isPreviewMode ? (
+                <PencilIcon className="size-4" />
+              ) : (
+                <EyeIcon className="size-4" />
+              )}
+            </button>
+            <button
+              type="button"
+              className={cn([
+                "px-3 py-1 text-xs font-medium font-mono rounded-sm flex items-center gap-1.5",
+                isPublished
+                  ? "text-white bg-green-600 hover:bg-green-700"
+                  : "text-white bg-neutral-900 hover:bg-neutral-800",
+              ])}
+            >
+              {isPublished ? (
+                <>
+                  <CheckIcon className="size-3" />
+                  Published
+                </>
+              ) : (
+                <>
+                  <SendIcon className="size-3" />
+                  Publish
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -1228,7 +1265,7 @@ function FileEditor({
       <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="h-full overflow-y-auto">
-            <div className="border-b border-neutral-100 text-sm">
+            <div key={filePath} className="border-b border-neutral-100 text-sm">
               <div className="flex border-b border-neutral-100">
                 <button
                   onClick={() => setIsTitleExpanded(!isTitleExpanded)}
@@ -1399,7 +1436,7 @@ function FileEditor({
   return (
     <div className="flex-1 overflow-hidden flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="border-b border-neutral-100 text-sm">
+        <div key={filePath} className="border-b border-neutral-100 text-sm">
           <div className="flex border-b border-neutral-100">
             <button
               onClick={() => setIsTitleExpanded(!isTitleExpanded)}

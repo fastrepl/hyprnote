@@ -27,7 +27,8 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
         if (!editor.isInitialized || !onChange) {
           return;
         }
-        const markdown = editor.storage.markdown.getMarkdown();
+        const json = editor.getJSON();
+        const markdown = (editor as any).markdown.serialize(json);
         onChange(markdown);
       },
       300,
@@ -68,7 +69,8 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
 
     useEffect(() => {
       if (editor && !editor.isFocused && content !== undefined) {
-        const currentMarkdown = editor.storage.markdown?.getMarkdown() || "";
+        const json = editor.getJSON();
+        const currentMarkdown = (editor as any).markdown?.serialize(json) || "";
         if (currentMarkdown !== content) {
           editor.commands.setContent(content);
         }

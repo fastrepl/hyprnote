@@ -4,13 +4,18 @@ use tauri_plugin_path2::Path2PluginExt;
 mod commands;
 mod error;
 mod ext;
+mod priority;
 mod state;
 
 pub use error::{Error, Result};
 pub use ext::*;
+pub use priority::*;
 pub use state::*;
 
-pub use hypr_audio_priority::*;
+pub use hypr_audio_device::{
+    AudioDevice, AudioDeviceBackend, AudioDirection, DeviceId, OutputCategory, TransportType,
+    backend,
+};
 
 const PLUGIN_NAME: &str = "audio-priority";
 

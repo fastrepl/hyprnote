@@ -1,9 +1,8 @@
 use std::path::PathBuf;
 use tokio::sync::RwLock;
 
-use hypr_audio_priority::PriorityState;
-
 use crate::Error;
+use crate::PriorityState;
 use crate::ext::FILENAME;
 
 pub struct AudioPriorityState {

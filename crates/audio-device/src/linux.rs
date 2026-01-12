@@ -1,5 +1,3 @@
-//! Linux PulseAudio backend for audio device management.
-
 use crate::{AudioDevice, AudioDeviceBackend, AudioDirection, DeviceId, Error, TransportType};
 use libpulse_binding as pulse;
 use pulse::context::{Context, FlagSet as ContextFlagSet};
@@ -24,7 +22,7 @@ impl PulseConnection {
             Error::AudioSystemError("Failed to create PulseAudio mainloop".into())
         })?;
 
-        let context = Context::new(&mainloop, "hyprnote-audio-priority")
+        let context = Context::new(&mainloop, "hyprnote-audio-device")
             .ok_or_else(|| Error::AudioSystemError("Failed to create PulseAudio context".into()))?;
 
         Ok(Self { mainloop, context })
@@ -88,6 +86,30 @@ fn wait_for_done(done: &AtomicBool, timeout: Duration) {
     }
 }
 
+fn wait_for_context(mainloop: &mut Mainloop, context: &Context, timeout: Duration) -> bool {
+    let start = std::time::Instant::now();
+
+    loop {
+        if start.elapsed() > timeout {
+            tracing::debug!("pulseaudio_connect_timeout");
+            return false;
+        }
+
+        mainloop.lock();
+        let state = context.get_state();
+        mainloop.unlock();
+
+        match state {
+            pulse::context::State::Ready => return true,
+            pulse::context::State::Failed | pulse::context::State::Terminated => {
+                tracing::debug!("pulseaudio_context_connection_failed");
+                return false;
+            }
+            _ => std::thread::sleep(Duration::from_millis(10)),
+        }
+    }
+}
+
 fn transport_type_from_bus(bus: Option<&str>) -> TransportType {
     match bus {
         Some(b) if b.contains("usb") => TransportType::Usb,
@@ -107,7 +129,6 @@ impl AudioDeviceBackend for LinuxBackend {
         let default_sink = Arc::new(Mutex::new(None::<String>));
         let default_source = Arc::new(Mutex::new(None::<String>));
 
-        // Get server info for default devices
         {
             let default_sink = default_sink.clone();
             let default_source = default_source.clone();
@@ -137,7 +158,6 @@ impl AudioDeviceBackend for LinuxBackend {
         let default_sink_name = default_sink.lock().ok().and_then(|d| d.clone());
         let default_source_name = default_source.lock().ok().and_then(|d| d.clone());
 
-        // Get sinks (output devices)
         {
             let devices = devices.clone();
             let default_sink_name = default_sink_name.clone();
@@ -191,7 +211,6 @@ impl AudioDeviceBackend for LinuxBackend {
             wait_for_done(&done, QUERY_TIMEOUT);
         }
 
-        // Get sources (input devices)
         {
             let devices = devices.clone();
             let default_source_name = default_source_name.clone();
@@ -203,7 +222,6 @@ impl AudioDeviceBackend for LinuxBackend {
             introspector.get_source_info_list(move |list_result| {
                 if let pulse::callbacks::ListResult::Item(source_info) = list_result {
                     if let Some(name) = source_info.name.as_ref() {
-                        // Skip monitor sources (they mirror sinks)
                         if name.ends_with(".monitor") {
                             return;
                         }
@@ -540,6 +558,62 @@ impl AudioDeviceBackend for LinuxBackend {
     }
 }
 
+pub fn is_headphone_from_default_output_device() -> Option<bool> {
+    let mut mainloop = Mainloop::new()?;
+
+    let mut context = Context::new(&mainloop, "hyprnote-headphone-check")?;
+
+    if context
+        .connect(None, ContextFlagSet::NOFLAGS, None)
+        .is_err()
+    {
+        tracing::debug!("failed_to_connect_to_pulseaudio");
+        return None;
+    }
+
+    if mainloop.start().is_err() {
+        tracing::debug!("failed_to_start_mainloop");
+        return None;
+    }
+
+    if !wait_for_context(&mut mainloop, &context, CONNECT_TIMEOUT) {
+        mainloop.stop();
+        return None;
+    }
+
+    let result = Arc::new(Mutex::new(None));
+    let done = Arc::new(AtomicBool::new(false));
+
+    {
+        let result = result.clone();
+        let done = done.clone();
+
+        mainloop.lock();
+        let introspector = context.introspect();
+        introspector.get_sink_info_by_name("@DEFAULT_SINK@", move |list_result| {
+            if let pulse::callbacks::ListResult::Item(sink_info) = list_result {
+                if let Some(active_port) = &sink_info.active_port {
+                    if let Some(name) = active_port.name.as_ref() {
+                        let name_lower = name.to_lowercase();
+                        let is_headphone =
+                            name_lower.contains("headphone") || name_lower.contains("headset");
+                        if let Ok(mut r) = result.lock() {
+                            *r = if is_headphone { Some(true) } else { None };
+                        }
+                    }
+                }
+            }
+            done.store(true, Ordering::Release);
+        });
+        mainloop.unlock();
+    }
+
+    wait_for_done(&done, QUERY_TIMEOUT);
+    mainloop.stop();
+
+    result.lock().ok().and_then(|r| *r)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -575,7 +649,7 @@ mod tests {
                 println!("No default input device");
             }
             Err(e) => {
-                println!("Error: {}", e);
+                println!("Error getting default input: {}", e);
             }
         }
 
@@ -588,8 +662,14 @@ mod tests {
                 println!("No default output device");
             }
             Err(e) => {
-                println!("Error: {}", e);
+                println!("Error getting default output: {}", e);
             }
         }
+    }
+
+    #[test]
+    fn test_is_headphone_from_default_output_device() {
+        let result = is_headphone_from_default_output_device();
+        println!("is_headphone_from_default_output_device={:?}", result);
     }
 }

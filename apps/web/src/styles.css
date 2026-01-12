@@ -1,12 +1,41 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap&family=Instrument+Serif:ital@1&display=swap");
+
+@font-face {
+  font-family: "SF Pro";
+  src: url("/fonts/SF-Pro-Text-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "SF Pro";
+  src: url("/fonts/SF-Pro-Text-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "SF Pro";
+  src: url("/fonts/SF-Pro-Text-Semibold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "SF Pro";
+  src: url("/fonts/SF-Pro-Text-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
 
 @import "tailwindcss";
 @import "tailwind-scrollbar-hide/v4";
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: "SF Pro", system-ui, -apple-system, sans-serif;
   --font-serif: "Lora", Georgia, serif;
+  --font-serif2: "Instrument Serif", serif;
   --breakpoint-laptop: 72rem;
 }
 

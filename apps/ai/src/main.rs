@@ -39,10 +39,22 @@ fn app() -> Router {
                 .layer(
                     TraceLayer::new_for_http()
                         .make_span_with(|request: &Request<Body>| {
+                            let path = request.uri().path();
+                            let method = request.method();
+                            let (service, span_op) = match path {
+                                p if p.starts_with("/llm") => ("llm", "http.server.llm"),
+                                p if p.starts_with("/stt") => ("stt", "http.server.stt"),
+                                "/health" => ("health", "http.server.health"),
+                                _ => ("unknown", "http.server"),
+                            };
+
                             tracing::info_span!(
                                 "request",
-                                method = %request.method(),
-                                uri = %request.uri(),
+                                method = %method,
+                                http.route = %path,
+                                service = %service,
+                                otel.name = %format!("{} {}", method, path),
+                                span.op = %span_op,
                             )
                         })
                         .on_request(|request: &Request<Body>, _span: &tracing::Span| {

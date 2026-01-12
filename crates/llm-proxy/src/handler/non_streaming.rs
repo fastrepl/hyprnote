@@ -18,6 +18,12 @@ pub(super) async fn handle_non_stream_response(
     let status = response.status();
     let http_status = status.as_u16();
 
+    tracing::info!(
+        http_status = %http_status,
+        streaming = false,
+        "llm completion response"
+    );
+
     let body_bytes = match response.bytes().await {
         Ok(b) => b,
         Err(e) => return ProxyError::BodyRead(e).into_response(),

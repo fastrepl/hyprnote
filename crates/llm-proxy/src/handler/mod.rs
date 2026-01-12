@@ -107,6 +107,14 @@ async fn completions_handler(
 
     let stream = request.stream.unwrap_or(false);
 
+    tracing::info!(
+        stream = %stream,
+        has_tools = %needs_tool_calling,
+        message_count = %request.messages.len(),
+        model_count = %models.len(),
+        "llm completion request"
+    );
+
     let openrouter_request = OpenRouterRequest {
         messages: request.messages,
         tools: request.tools,

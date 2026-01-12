@@ -34,17 +34,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
       300,
     );
 
-    const extensions = useMemo(
-      () => [
-        ...shared.getExtensions(),
-        Markdown.configure({
-          html: true,
-          transformPastedText: true,
-          transformCopiedText: true,
-        }),
-      ],
-      [],
-    );
+    const extensions = useMemo(() => [...shared.getExtensions(), Markdown], []);
 
     const editor = useEditor(
       {

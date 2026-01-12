@@ -13,9 +13,11 @@ RUN mkdir -p apps/ai/src && echo "fn main() {}" > apps/ai/src/main.rs
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM rust:${RUST_VERSION}-bookworm AS build
+ARG APP_VERSION
 RUN cargo install cargo-chef sccache --locked
 ENV RUSTC_WRAPPER=sccache \
-    SCCACHE_DIR=/sccache
+    SCCACHE_DIR=/sccache \
+    APP_VERSION=${APP_VERSION}
 WORKDIR /app
 COPY --from=planner /app/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \

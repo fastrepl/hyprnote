@@ -62,7 +62,7 @@ fn main() -> std::io::Result<()> {
 
     let _guard = sentry::init(sentry::ClientOptions {
         dsn: env.sentry_dsn.as_ref().and_then(|s| s.parse().ok()),
-        release: sentry::release_name!(),
+        release: option_env!("APP_VERSION").map(|v| format!("hyprnote-ai@{}", v).into()),
         environment: Some(
             if cfg!(debug_assertions) {
                 "development"

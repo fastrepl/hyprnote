@@ -7,14 +7,12 @@ describe("frontmatterToPrompt", () => {
     const result = frontmatterToPrompt(
       {
         user_id: "user-1",
-        created_at: "2024-01-01T00:00:00Z",
         task_type: "summary",
       },
       "Generate a summary",
     );
     expect(result).toEqual({
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       task_type: "summary",
       content: "Generate a summary",
     });
@@ -24,7 +22,6 @@ describe("frontmatterToPrompt", () => {
     const result = frontmatterToPrompt({}, "Content only");
     expect(result).toEqual({
       user_id: "",
-      created_at: "",
       task_type: "",
       content: "Content only",
     });
@@ -35,14 +32,12 @@ describe("promptToFrontmatter", () => {
   test("converts prompt storage to frontmatter and body", () => {
     const result = promptToFrontmatter({
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       task_type: "summary",
       content: "Generate a summary",
     });
     expect(result).toEqual({
       frontmatter: {
         user_id: "user-1",
-        created_at: "2024-01-01T00:00:00Z",
         task_type: "summary",
       },
       body: "Generate a summary",
@@ -52,7 +47,6 @@ describe("promptToFrontmatter", () => {
   test("handles empty content", () => {
     const result = promptToFrontmatter({
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       task_type: "summary",
       content: "",
     });

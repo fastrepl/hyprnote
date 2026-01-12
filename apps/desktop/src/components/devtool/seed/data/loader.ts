@@ -41,7 +41,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     organizations[orgId] = {
       user_id: DEFAULT_USER_ID,
       name: org.name,
-      created_at: new Date().toISOString(),
     };
   });
 
@@ -56,7 +55,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       job_title: person.job_title,
       linkedin_username: person.linkedin_username,
       org_id: orgId,
-      created_at: new Date().toISOString(),
     };
   });
 
@@ -76,7 +74,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     tags[tagId] = {
       user_id: DEFAULT_USER_ID,
       name: tag.name,
-      created_at: new Date().toISOString(),
     };
   });
 
@@ -88,7 +85,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       title: template.title,
       description: template.description,
       sections: JSON.stringify(template.sections),
-      created_at: new Date().toISOString(),
     };
   });
 
@@ -134,7 +130,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
           user_id: DEFAULT_USER_ID,
           session_id: sessionId,
           human_id: participantId,
-          created_at: new Date().toISOString(),
         };
       }
     });
@@ -147,7 +142,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
           user_id: DEFAULT_USER_ID,
           tag_id: tagId,
           session_id: sessionId,
-          created_at: new Date().toISOString(),
         };
       }
     });
@@ -236,7 +230,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
         position: note.position,
         template_id: templateId,
         title: note.title,
-        created_at: new Date().toISOString(),
       };
     }
   });
@@ -246,7 +239,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     chat_shortcuts[shortcutId] = {
       user_id: DEFAULT_USER_ID,
       content: shortcut.content,
-      created_at: new Date().toISOString(),
     };
   });
 

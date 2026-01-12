@@ -27,7 +27,6 @@ function frontmatterToStore(
 ): HumanFrontmatter {
   return {
     user_id: String(frontmatter.user_id ?? ""),
-    created_at: String(frontmatter.created_at ?? ""),
     name: String(frontmatter.name ?? ""),
     email: emailsToStore(frontmatter),
     org_id: String(frontmatter.org_id ?? ""),
@@ -41,7 +40,6 @@ function storeToFrontmatter(
 ): Record<string, JsonValue> {
   return {
     user_id: store.user_id ?? "",
-    created_at: store.created_at ?? "",
     name: store.name ?? "",
     emails: emailToFrontmatter(store.email),
     org_id: store.org_id ?? "",

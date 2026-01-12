@@ -20,12 +20,11 @@ const LABEL = "SessionPersister";
 async function processFiles(
   files: Partial<Record<string, string>>,
   result: LoadedSessionData,
-  now: string,
 ): Promise<void> {
   for (const [path, content] of Object.entries(files)) {
     if (!content) continue;
     if (path.endsWith(SESSION_META_FILE)) {
-      processMetaFile(path, content, result, now);
+      processMetaFile(path, content, result);
     }
   }
 
@@ -51,7 +50,6 @@ export async function loadAllSessionData(
 ): Promise<LoadedSessionData> {
   const result = createEmptyLoadedSessionData();
   const sessionsDir = [dataDir, "sessions"].join(sep());
-  const now = new Date().toISOString();
 
   const scanResult = await fsSyncCommands.scanAndRead(
     sessionsDir,
@@ -64,7 +62,7 @@ export async function loadAllSessionData(
     return result;
   }
 
-  await processFiles(scanResult.data.files, result, now);
+  await processFiles(scanResult.data.files, result);
   return result;
 }
 
@@ -74,7 +72,6 @@ export async function loadSingleSession(
 ): Promise<LoadedSessionData> {
   const result = createEmptyLoadedSessionData();
   const sessionDir = [dataDir, "sessions", sessionId].join(sep());
-  const now = new Date().toISOString();
 
   const scanResult = await fsSyncCommands.scanAndRead(
     sessionDir,
@@ -87,6 +84,6 @@ export async function loadSingleSession(
     return result;
   }
 
-  await processFiles(scanResult.data.files, result, now);
+  await processFiles(scanResult.data.files, result);
   return result;
 }

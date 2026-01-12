@@ -49,7 +49,6 @@ describe("frontmatterToHuman", () => {
     const result = frontmatterToHuman(
       {
         user_id: "user-1",
-        created_at: "2024-01-01T00:00:00Z",
         name: "John Doe",
         emails: ["john@example.com"],
         org_id: "org-1",
@@ -60,7 +59,6 @@ describe("frontmatterToHuman", () => {
     );
     expect(result).toEqual({
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       name: "John Doe",
       email: "john@example.com",
       org_id: "org-1",
@@ -75,7 +73,6 @@ describe("humanToFrontmatter", () => {
   test("splits comma-separated string into array", () => {
     const result = humanToFrontmatter({
       user_id: "",
-      created_at: "",
       name: "",
       email: "a@example.com,b@example.com",
       org_id: "",
@@ -92,7 +89,6 @@ describe("humanToFrontmatter", () => {
   test("returns empty array for empty string", () => {
     const result = humanToFrontmatter({
       user_id: "",
-      created_at: "",
       name: "",
       email: "",
       org_id: "",
@@ -106,7 +102,6 @@ describe("humanToFrontmatter", () => {
   test("trims whitespace and filters empty values", () => {
     const result = humanToFrontmatter({
       user_id: "",
-      created_at: "",
       name: "",
       email: "  a@example.com  , , b@example.com  ",
       org_id: "",
@@ -123,7 +118,6 @@ describe("humanToFrontmatter", () => {
   test("handles single email", () => {
     const result = humanToFrontmatter({
       user_id: "",
-      created_at: "",
       name: "",
       email: "a@example.com",
       org_id: "",
@@ -137,7 +131,6 @@ describe("humanToFrontmatter", () => {
   test("extracts memo as body", () => {
     const result = humanToFrontmatter({
       user_id: "",
-      created_at: "",
       name: "",
       email: "",
       org_id: "",
@@ -151,7 +144,6 @@ describe("humanToFrontmatter", () => {
   test("converts all fields correctly", () => {
     const result = humanToFrontmatter({
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       name: "John Doe",
       email: "john@example.com",
       org_id: "org-1",
@@ -162,7 +154,6 @@ describe("humanToFrontmatter", () => {
     expect(result).toEqual({
       frontmatter: {
         user_id: "user-1",
-        created_at: "2024-01-01T00:00:00Z",
         name: "John Doe",
         emails: ["john@example.com"],
         org_id: "org-1",

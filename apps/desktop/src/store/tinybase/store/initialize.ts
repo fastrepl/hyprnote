@@ -22,7 +22,9 @@ function initializeStore(store: Store): void {
     if (!store.hasRow("humans", userId)) {
       store.setRow("humans", userId, {
         user_id: userId,
-        created_at: new Date().toISOString(),
+        name: "",
+        email: "",
+        org_id: "",
       });
     }
 

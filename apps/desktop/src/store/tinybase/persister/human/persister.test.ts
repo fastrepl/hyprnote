@@ -121,7 +121,6 @@ describe("createHumanPersister", () => {
     test("saves multiple emails as array", async () => {
       store.setRow("humans", TEST_UUID_1, {
         user_id: "user-1",
-        created_at: "2024-01-01T00:00:00Z",
         name: "John Doe",
         email: "john@example.com,john.doe@work.com",
         org_id: "org-1",

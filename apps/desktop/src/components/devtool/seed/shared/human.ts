@@ -36,7 +36,6 @@ export const createHuman = (org_id: string) => {
       linkedin_username: faker.datatype.boolean({ probability: 0.7 })
         ? `${firstName.toLowerCase()}${lastName.toLowerCase()}`
         : undefined,
-      created_at: faker.date.past({ years: 1 }).toISOString(),
       org_id,
     } satisfies Human,
   };

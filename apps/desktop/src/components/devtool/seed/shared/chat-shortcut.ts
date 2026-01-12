@@ -14,7 +14,6 @@ export const createChatShortcut = (): {
       user_id: DEFAULT_USER_ID,
       title: faker.lorem.words({ min: 2, max: 4 }),
       content: faker.lorem.sentence({ min: 3, max: 8 }),
-      created_at: faker.date.past({ years: 1 }).toISOString(),
     },
   };
 };

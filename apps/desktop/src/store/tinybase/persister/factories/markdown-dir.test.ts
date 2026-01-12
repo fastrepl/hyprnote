@@ -75,7 +75,6 @@ describe("createMarkdownDirPersister", () => {
           [TEST_UUID_1]: {
             frontmatter: {
               user_id: "user-1",
-              created_at: "2024-01-01T00:00:00Z",
               name: "John Doe",
               email: "john@example.com",
               org_id: "",
@@ -95,7 +94,6 @@ describe("createMarkdownDirPersister", () => {
       const entities = store.getTable("humans");
       expect(entities[TEST_UUID_1]).toEqual({
         user_id: "user-1",
-        created_at: "2024-01-01T00:00:00Z",
         name: "John Doe",
         email: "john@example.com",
         org_id: "",
@@ -109,7 +107,6 @@ describe("createMarkdownDirPersister", () => {
           [TEST_UUID_1]: {
             frontmatter: {
               user_id: "user-1",
-              created_at: "2024-01-01T00:00:00Z",
               name: "John Doe",
               email: "john@example.com",
               org_id: "",
@@ -119,7 +116,6 @@ describe("createMarkdownDirPersister", () => {
           [TEST_UUID_2]: {
             frontmatter: {
               user_id: "user-1",
-              created_at: "2024-01-02T00:00:00Z",
               name: "Jane Doe",
               email: "jane@example.com",
               org_id: "",
@@ -155,7 +151,6 @@ describe("createMarkdownDirPersister", () => {
     test("saves entity to markdown file via batch write", async () => {
       store.setRow("humans", TEST_UUID_1, {
         user_id: "user-1",
-        created_at: "2024-01-01T00:00:00Z",
         name: "John Doe",
         email: "john@example.com",
         org_id: "",
@@ -169,7 +164,6 @@ describe("createMarkdownDirPersister", () => {
           {
             frontmatter: {
               user_id: "user-1",
-              created_at: "2024-01-01T00:00:00Z",
               name: "John Doe",
               email: "john@example.com",
               org_id: "",
@@ -191,7 +185,6 @@ describe("createMarkdownDirPersister", () => {
     test("saves multiple entities in single batch call", async () => {
       store.setRow("humans", TEST_UUID_1, {
         user_id: "user-1",
-        created_at: "2024-01-01T00:00:00Z",
         name: "John Doe",
         email: "john@example.com",
         org_id: "",
@@ -199,7 +192,6 @@ describe("createMarkdownDirPersister", () => {
 
       store.setRow("humans", TEST_UUID_2, {
         user_id: "user-1",
-        created_at: "2024-01-02T00:00:00Z",
         name: "Jane Doe",
         email: "jane@example.com",
         org_id: "",

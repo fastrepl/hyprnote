@@ -34,7 +34,6 @@ export function useCreateEnhancedNote() {
       if (existingId) return existingId;
 
       const enhancedNoteId = crypto.randomUUID();
-      const now = new Date().toISOString();
       const userId = store.getValue("user_id");
       const nextPosition = existingNoteIds.length + 1;
 
@@ -52,7 +51,6 @@ export function useCreateEnhancedNote() {
 
       store.setRow("enhanced_notes", enhancedNoteId, {
         user_id: userId || "",
-        created_at: now,
         session_id: sessionId,
         content: initialContent || "",
         position: nextPosition,

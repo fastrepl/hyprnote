@@ -305,7 +305,6 @@ describe("iterateTableRows", () => {
       humans: {
         "human-1": {
           user_id: "user-1",
-          created_at: "2024-01-01",
           name: "John Doe",
           email: "john@example.com",
           org_id: "",

@@ -47,14 +47,12 @@ describe("tablesToSessionMetaMap", () => {
     });
     store.setRow("mapping_session_participant", "participant-1", {
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       session_id: "session-1",
       human_id: "human-1",
       source: "manual",
     });
     store.setRow("mapping_session_participant", "participant-2", {
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       session_id: "session-1",
       human_id: "human-2",
       source: "auto",
@@ -86,23 +84,19 @@ describe("tablesToSessionMetaMap", () => {
     });
     store.setRow("tags", "tag-1", {
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       name: "work",
     });
     store.setRow("tags", "tag-2", {
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       name: "important",
     });
     store.setRow("mapping_tag_session", "mapping-1", {
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       tag_id: "tag-1",
       session_id: "session-1",
     });
     store.setRow("mapping_tag_session", "mapping-2", {
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       tag_id: "tag-2",
       session_id: "session-1",
     });
@@ -150,7 +144,6 @@ describe("tablesToSessionMetaMap", () => {
     });
     store.setRow("mapping_session_participant", "participant-1", {
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       session_id: "session-1",
       human_id: "human-1",
       source: "manual",
@@ -175,7 +168,6 @@ describe("tablesToSessionMetaMap", () => {
     });
     store.setRow("mapping_session_participant", "orphan-participant", {
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       session_id: "",
       human_id: "human-1",
       source: "manual",
@@ -198,12 +190,10 @@ describe("tablesToSessionMetaMap", () => {
     });
     store.setRow("tags", "tag-1", {
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       name: "",
     });
     store.setRow("mapping_tag_session", "mapping-1", {
       user_id: "user-1",
-      created_at: "2024-01-01T00:00:00Z",
       tag_id: "tag-1",
       session_id: "session-1",
     });

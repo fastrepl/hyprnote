@@ -108,7 +108,6 @@ function buildParticipantMap(
     list.push({
       id: p.id,
       user_id: p.user_id,
-      created_at: p.created_at,
       session_id: p.session_id,
       human_id: p.human_id,
       source: p.source,

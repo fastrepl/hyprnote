@@ -22,7 +22,6 @@ export function setCustomPrompt(
 
   store.setRow("prompts", taskType, {
     user_id: userId,
-    created_at: new Date().toISOString(),
     task_type: taskType,
     content,
   } satisfies PromptStorage);

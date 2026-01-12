@@ -143,14 +143,12 @@ export const StoreComponent = () => {
           select("org_id");
           select("job_title");
           select("linkedin_username");
-          select("created_at");
         })
         .setQueryDefinition(
           QUERIES.visibleOrganizations,
           "organizations",
           ({ select }) => {
             select("name");
-            select("created_at");
           },
         )
         .setQueryDefinition(
@@ -160,7 +158,6 @@ export const StoreComponent = () => {
             select("title");
             select("description");
             select("sections");
-            select("created_at");
           },
         )
         .setQueryDefinition(
@@ -170,7 +167,6 @@ export const StoreComponent = () => {
             select("user_id");
             select("title");
             select("content");
-            select("created_at");
           },
         )
         .setQueryDefinition(
@@ -179,7 +175,6 @@ export const StoreComponent = () => {
           ({ select, join }) => {
             select("session_id");
             select("human_id");
-            select("created_at");
 
             join("humans", "human_id").as("human");
             select("human", "name").as("human_name");
@@ -314,7 +309,7 @@ export const StoreComponent = () => {
         INDEXES.enhancedNotesByTemplate,
         "enhanced_notes",
         "template_id",
-        "created_at",
+        "position",
       ),
   );
 

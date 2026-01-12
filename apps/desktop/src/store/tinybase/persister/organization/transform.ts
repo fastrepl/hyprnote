@@ -7,7 +7,6 @@ export function frontmatterToOrganization(
 ): OrganizationStorage {
   return {
     user_id: String(frontmatter.user_id ?? ""),
-    created_at: String(frontmatter.created_at ?? ""),
     name: String(frontmatter.name ?? ""),
   };
 }
@@ -18,7 +17,6 @@ export function organizationToFrontmatter(org: OrganizationStorage): {
 } {
   return {
     frontmatter: {
-      created_at: org.created_at ?? "",
       name: org.name ?? "",
       user_id: org.user_id ?? "",
     },

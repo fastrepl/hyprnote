@@ -39,7 +39,6 @@ export async function processMdFile(
     } else if (fm.type === "enhanced_note") {
       result.enhanced_notes[fm.id] = {
         user_id: "",
-        created_at: new Date().toISOString(),
         session_id: fm.session_id,
         content: tiptapContent,
         template_id: fm.template_id ?? "",

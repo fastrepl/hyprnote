@@ -24,7 +24,6 @@ export function processMetaFile(
   path: string,
   content: string,
   result: LoadedSessionData,
-  now: string,
 ): void {
   const { sessionId, folderPath } = extractSessionIdAndFolder(path);
   if (!sessionId) return;
@@ -44,7 +43,6 @@ export function processMetaFile(
     for (const participant of meta.participants) {
       result.mapping_session_participant[participant.id] = {
         user_id: participant.user_id,
-        created_at: participant.created_at,
         session_id: sessionId,
         human_id: participant.human_id,
         source: participant.source,
@@ -56,7 +54,6 @@ export function processMetaFile(
         if (!result.tags[tagName]) {
           result.tags[tagName] = {
             user_id: meta.user_id,
-            created_at: now,
             name: tagName,
           };
         }
@@ -64,7 +61,6 @@ export function processMetaFile(
         const mappingId = `${sessionId}:${tagName}`;
         result.mapping_tag_session[mappingId] = {
           user_id: meta.user_id,
-          created_at: now,
           tag_id: tagName,
           session_id: sessionId,
         };

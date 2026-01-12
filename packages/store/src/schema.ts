@@ -5,7 +5,6 @@ import { InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 
 export const humanSchema = z.object({
   user_id: z.string(),
-  created_at: z.string(),
   name: z.string(),
   email: z.string(),
   org_id: z.string(),
@@ -52,7 +51,6 @@ export const calendarSchema = z.object({
 
 export const organizationSchema = z.object({
   user_id: z.string(),
-  created_at: z.string(),
   name: z.string(),
 });
 
@@ -80,7 +78,6 @@ export type ParticipantSource = z.infer<typeof participantSourceSchema>;
 
 export const mappingSessionParticipantSchema = z.object({
   user_id: z.string(),
-  created_at: z.string(),
   session_id: z.string(),
   human_id: z.string(),
   source: z.preprocess(
@@ -91,13 +88,11 @@ export const mappingSessionParticipantSchema = z.object({
 
 export const tagSchema = z.object({
   user_id: z.string(),
-  created_at: z.string(),
   name: z.string(),
 });
 
 export const mappingTagSessionSchema = z.object({
   user_id: z.string(),
-  created_at: z.string(),
   tag_id: z.string(),
   session_id: z.string(),
 });
@@ -109,7 +104,6 @@ export const templateSectionSchema = z.object({
 
 export const templateSchema = z.object({
   user_id: z.string(),
-  created_at: z.string(),
   title: z.string(),
   description: z.string(),
   category: z.preprocess((val) => val ?? undefined, z.string().optional()),
@@ -138,14 +132,12 @@ export const chatMessageSchema = z.object({
 
 export const chatShortcutSchema = z.object({
   user_id: z.string(),
-  created_at: z.string(),
   title: z.string(),
   content: z.string(),
 });
 
 export const enhancedNoteSchema = z.object({
   user_id: z.string(),
-  created_at: z.string(),
   session_id: z.string(),
   content: z.string(),
   template_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
@@ -155,7 +147,6 @@ export const enhancedNoteSchema = z.object({
 
 export const promptSchema = z.object({
   user_id: z.string(),
-  created_at: z.string(),
   task_type: z.string(),
   content: z.string(),
 });
@@ -308,7 +299,6 @@ export const tableSchemaForTinybase = {
   } as const satisfies InferTinyBaseSchema<typeof speakerHintSchema>,
   humans: {
     user_id: { type: "string" },
-    created_at: { type: "string" },
     name: { type: "string" },
     email: { type: "string" },
     org_id: { type: "string" },
@@ -318,7 +308,6 @@ export const tableSchemaForTinybase = {
   } as const satisfies InferTinyBaseSchema<typeof humanSchema>,
   organizations: {
     user_id: { type: "string" },
-    created_at: { type: "string" },
     name: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof organizationSchema>,
   calendars: {
@@ -348,7 +337,6 @@ export const tableSchemaForTinybase = {
   } as const satisfies InferTinyBaseSchema<typeof eventSchema>,
   mapping_session_participant: {
     user_id: { type: "string" },
-    created_at: { type: "string" },
     session_id: { type: "string" },
     human_id: { type: "string" },
     source: { type: "string" },
@@ -357,18 +345,15 @@ export const tableSchemaForTinybase = {
   >,
   tags: {
     user_id: { type: "string" },
-    created_at: { type: "string" },
     name: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof tagSchema>,
   mapping_tag_session: {
     user_id: { type: "string" },
-    created_at: { type: "string" },
     tag_id: { type: "string" },
     session_id: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof mappingTagSessionSchema>,
   templates: {
     user_id: { type: "string" },
-    created_at: { type: "string" },
     title: { type: "string" },
     description: { type: "string" },
     sections: { type: "string" },
@@ -389,7 +374,6 @@ export const tableSchemaForTinybase = {
   } as const satisfies InferTinyBaseSchema<typeof chatMessageSchema>,
   enhanced_notes: {
     user_id: { type: "string" },
-    created_at: { type: "string" },
     session_id: { type: "string" },
     content: { type: "string" },
     template_id: { type: "string" },
@@ -398,13 +382,11 @@ export const tableSchemaForTinybase = {
   } as const satisfies InferTinyBaseSchema<typeof enhancedNoteSchema>,
   prompts: {
     user_id: { type: "string" },
-    created_at: { type: "string" },
     task_type: { type: "string" },
     content: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof promptSchema>,
   chat_shortcuts: {
     user_id: { type: "string" },
-    created_at: { type: "string" },
     title: { type: "string" },
     content: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof chatShortcutSchema>,

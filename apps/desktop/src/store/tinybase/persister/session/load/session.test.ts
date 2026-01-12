@@ -122,7 +122,6 @@ describe("extractSessionIdAndFolder", () => {
 
 describe("processMetaFile", () => {
   let result: LoadedSessionData;
-  const now = "2024-01-15T00:00:00Z";
 
   beforeEach(() => {
     result = createEmptyLoadedSessionData();
@@ -138,12 +137,7 @@ describe("processMetaFile", () => {
       participants: [],
     });
 
-    processMetaFile(
-      "/data/sessions/session-1/_meta.json",
-      content,
-      result,
-      now,
-    );
+    processMetaFile("/data/sessions/session-1/_meta.json", content, result);
 
     expect(result.sessions["session-1"]).toEqual({
       user_id: "user-1",
@@ -172,12 +166,7 @@ describe("processMetaFile", () => {
       ],
     });
 
-    processMetaFile(
-      "/data/sessions/session-1/_meta.json",
-      content,
-      result,
-      now,
-    );
+    processMetaFile("/data/sessions/session-1/_meta.json", content, result);
 
     expect(result.mapping_session_participant["participant-1"]).toEqual({
       user_id: "user-1",
@@ -198,26 +187,18 @@ describe("processMetaFile", () => {
       tags: ["work", "important"],
     });
 
-    processMetaFile(
-      "/data/sessions/session-1/_meta.json",
-      content,
-      result,
-      now,
-    );
+    processMetaFile("/data/sessions/session-1/_meta.json", content, result);
 
     expect(result.tags["work"]).toEqual({
       user_id: "user-1",
-      created_at: now,
       name: "work",
     });
     expect(result.tags["important"]).toEqual({
       user_id: "user-1",
-      created_at: now,
       name: "important",
     });
     expect(result.mapping_tag_session["session-1:work"]).toEqual({
       user_id: "user-1",
-      created_at: now,
       tag_id: "work",
       session_id: "session-1",
     });
@@ -230,7 +211,6 @@ describe("processMetaFile", () => {
       "/data/sessions/session-1/_meta.json",
       "invalid json",
       result,
-      now,
     );
 
     expect(Object.keys(result.sessions)).toHaveLength(0);

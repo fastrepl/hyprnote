@@ -9,6 +9,5 @@ export const createOrganization = () => ({
   data: {
     user_id: DEFAULT_USER_ID,
     name: faker.company.name(),
-    created_at: faker.date.past({ years: 2 }).toISOString(),
   } satisfies Organization,
 });

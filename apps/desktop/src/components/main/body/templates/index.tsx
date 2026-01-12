@@ -114,7 +114,6 @@ export function useUserTemplates(): UserTemplate[] {
           select("title");
           select("description");
           select("sections");
-          select("created_at");
           select("user_id");
           where("user_id", user_id ?? "");
         },
@@ -149,7 +148,6 @@ function normalizeTemplatePayload(template: unknown): Template {
 
   return {
     user_id: typeof record.user_id === "string" ? record.user_id : "",
-    created_at: typeof record.created_at === "string" ? record.created_at : "",
     title: typeof record.title === "string" ? record.title : "",
     description:
       typeof record.description === "string" ? record.description : "",
@@ -258,7 +256,6 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
     }) =>
       ({
         user_id: p.user_id,
-        created_at: p.created_at,
         title: p.title,
         description: p.description,
         sections: JSON.stringify(p.sections),
@@ -368,7 +365,7 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
   );
 }
 
-type SortOption = "alphabetical" | "reverse-alphabetical" | "oldest" | "newest";
+type SortOption = "alphabetical" | "reverse-alphabetical";
 
 function TemplatesHomepage({
   webTemplates,
@@ -589,7 +586,7 @@ function TemplateListColumn({
   onCreateTemplate: () => void;
 }) {
   const [search, setSearch] = useState("");
-  const [sortOption, setSortOption] = useState<SortOption>("newest");
+  const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
 
   const sortedUserTemplates = useMemo(() => {
     const sorted = [...userTemplates];
@@ -599,19 +596,9 @@ function TemplateListColumn({
           (a.title || "").localeCompare(b.title || ""),
         );
       case "reverse-alphabetical":
+      default:
         return sorted.sort((a, b) =>
           (b.title || "").localeCompare(a.title || ""),
-        );
-      case "oldest":
-        return sorted.sort(
-          (a, b) =>
-            new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-        );
-      case "newest":
-      default:
-        return sorted.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         );
     }
   }, [userTemplates, sortOption]);
@@ -657,12 +644,6 @@ function TemplateListColumn({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setSortOption("newest")}>
-                  Newest first
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOption("oldest")}>
-                  Oldest first
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setSortOption("alphabetical")}>
                   A to Z
                 </DropdownMenuItem>

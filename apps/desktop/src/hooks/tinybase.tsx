@@ -87,14 +87,8 @@ export function useHuman(humanId: string) {
 
 export function useOrganization(orgId: string) {
   const name = main.UI.useCell("organizations", orgId, "name", main.STORE_ID);
-  const createdAt = main.UI.useCell(
-    "organizations",
-    orgId,
-    "created_at",
-    main.STORE_ID,
-  );
 
-  return useMemo(() => ({ name, createdAt }), [name, createdAt]);
+  return useMemo(() => ({ name }), [name]);
 }
 
 export function useEvent(eventId: string | undefined) {
@@ -186,16 +180,9 @@ export function useTemplate(templateId: string) {
     "sections",
     main.STORE_ID,
   );
-  const createdAt = main.UI.useCell(
-    "templates",
-    templateId,
-    "created_at",
-    main.STORE_ID,
-  );
-
   return useMemo(
-    () => ({ title, description, sections, createdAt }),
-    [title, description, sections, createdAt],
+    () => ({ title, description, sections }),
+    [title, description, sections],
   );
 }
 
@@ -326,7 +313,6 @@ export function TinyBaseTestWrapper({
           select("org_id");
           select("job_title");
           select("linkedin_username");
-          select("created_at");
         },
       )
       .setQueryDefinition(
@@ -334,7 +320,6 @@ export function TinyBaseTestWrapper({
         "organizations",
         ({ select }) => {
           select("name");
-          select("created_at");
         },
       )
       .setQueryDefinition(
@@ -344,7 +329,6 @@ export function TinyBaseTestWrapper({
           select("title");
           select("description");
           select("sections");
-          select("created_at");
         },
       ),
   );

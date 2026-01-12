@@ -9,6 +9,7 @@ mod ext;
 mod folder;
 mod frontmatter;
 mod json;
+mod migrations;
 mod path;
 mod scan;
 mod session;
@@ -55,7 +56,13 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|_app, _api| Ok(()))
+        .setup(|app, _api| {
+            use tauri_plugin_path2::Path2PluginExt;
+            if let Ok(base_dir) = app.path2().base() {
+                migrations::move_uuid_folders_to_sessions(&base_dir)?;
+            }
+            Ok(())
+        })
         .build()
 }
 

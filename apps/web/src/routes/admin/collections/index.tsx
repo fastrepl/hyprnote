@@ -128,7 +128,6 @@ function CollectionsPage() {
 
   const handleCollectionClick = (name: string) => {
     setSelectedCollection(name);
-    setExpandedCollections((prev) => new Set(prev).add(name));
   };
 
   const getFileExtension = (filename: string): string => {
@@ -188,11 +187,11 @@ function CollectionsPage() {
   return (
     <div className="flex h-[calc(100vh-64px)]">
       <div className="w-56 shrink-0 border-r border-neutral-100 bg-white flex flex-col">
-        <div className="h-10 px-3 flex items-center border-b border-neutral-100">
-          <div className="relative w-full">
+        <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-100">
+          <div className="relative w-full flex items-center gap-1.5">
             <Icon
               icon="mdi:magnify"
-              className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-sm"
+              className="text-neutral-400 text-sm shrink-0"
             />
             <input
               type="text"
@@ -200,7 +199,7 @@ function CollectionsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search..."
               className={cn([
-                "w-full pl-7 pr-2 py-1 text-sm",
+                "w-full py-1 text-sm",
                 "bg-transparent",
                 "focus:outline-none",
                 "placeholder:text-neutral-400",
@@ -218,26 +217,15 @@ function CollectionsPage() {
               <div key={collection.name}>
                 <div
                   className={cn([
-                    "flex items-center gap-1 py-1.5 px-2 cursor-pointer text-sm",
+                    "flex items-center gap-1.5 py-1.5 pl-4 pr-2 cursor-pointer text-sm",
                     "hover:bg-neutral-100 transition-colors",
                     isSelected && "bg-neutral-100",
                   ])}
-                  onClick={() => handleCollectionClick(collection.name)}
+                  onClick={() => {
+                    handleCollectionClick(collection.name);
+                    toggleCollectionExpanded(collection.name);
+                  }}
                 >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleCollectionExpanded(collection.name);
-                    }}
-                    className="w-4 h-4 flex items-center justify-center"
-                  >
-                    <Icon
-                      icon={
-                        isExpanded ? "mdi:chevron-down" : "mdi:chevron-right"
-                      }
-                      className="text-neutral-400 text-xs"
-                    />
-                  </button>
                   <Icon
                     icon={isExpanded ? "mdi:folder-open" : "mdi:folder"}
                     className="text-neutral-400 text-sm"
@@ -255,11 +243,14 @@ function CollectionsPage() {
                       <div
                         key={item.path}
                         className={cn([
-                          "flex items-center gap-1 py-1 pr-2 cursor-pointer text-sm",
+                          "flex items-center gap-1.5 py-1 pr-2 cursor-pointer text-sm",
                           "hover:bg-neutral-50 transition-colors",
                         ])}
-                        style={{ paddingLeft: "32px" }}
+                        style={{ paddingLeft: "24px" }}
                       >
+                        <span className="text-neutral-300 text-xs mr-0.5">
+                          │
+                        </span>
                         <Icon
                           icon="mdi:file-document-outline"
                           className="text-neutral-400 text-sm"
@@ -271,9 +262,12 @@ function CollectionsPage() {
                     ))}
                     {collection.items.length > 10 && (
                       <div
-                        className="text-xs text-neutral-400 py-1"
-                        style={{ paddingLeft: "32px" }}
+                        className="flex items-center gap-1.5 text-xs text-neutral-400 py-1"
+                        style={{ paddingLeft: "24px" }}
                       >
+                        <span className="text-neutral-300 text-xs mr-0.5">
+                          │
+                        </span>
                         +{collection.items.length - 10} more
                       </div>
                     )}

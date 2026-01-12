@@ -1,3 +1,4 @@
+import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -9,9 +10,11 @@ import {
   allTemplates,
 } from "content-collections";
 import { Reorder } from "motion/react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
+
+import { createMDXComponents } from "@/components/mdx";
 
 interface ContentItem {
   name: string;
@@ -39,6 +42,73 @@ interface Tab {
 interface ClipboardItem {
   item: ContentItem | CollectionInfo;
   operation: "cut" | "copy";
+}
+
+interface FileContent {
+  content: string;
+  mdx: string;
+  collection: string;
+  slug: string;
+}
+
+function getAllContent(): Map<string, FileContent> {
+  const contentMap = new Map<string, FileContent>();
+
+  allArticles.forEach((a) => {
+    contentMap.set(`articles/${a._meta.fileName}`, {
+      content: a.content,
+      mdx: a.mdx,
+      collection: "articles",
+      slug: a.slug,
+    });
+  });
+
+  allChangelogs.forEach((c) => {
+    contentMap.set(`changelog/${c._meta.fileName}`, {
+      content: c.content,
+      mdx: c.mdx,
+      collection: "changelog",
+      slug: c.slug,
+    });
+  });
+
+  allDocs.forEach((d) => {
+    contentMap.set(`docs/${d._meta.path}`, {
+      content: d.content,
+      mdx: d.mdx,
+      collection: "docs",
+      slug: d.slug,
+    });
+  });
+
+  allHandbooks.forEach((h) => {
+    contentMap.set(`handbook/${h._meta.path}`, {
+      content: h.content,
+      mdx: h.mdx,
+      collection: "handbook",
+      slug: h.slug,
+    });
+  });
+
+  allLegals.forEach((l) => {
+    contentMap.set(`legal/${l._meta.fileName}`, {
+      content: l.content,
+      mdx: l.mdx,
+      collection: "legal",
+      slug: l.slug,
+    });
+  });
+
+  allTemplates.forEach((t) => {
+    contentMap.set(`templates/${t._meta.fileName}`, {
+      content: t.content,
+      mdx: t.mdx,
+      collection: "templates",
+      slug: t.slug,
+    });
+  });
+
+  return contentMap;
 }
 
 function getCollections(): CollectionInfo[] {
@@ -123,6 +193,7 @@ function getFileExtension(filename: string): string {
 
 function CollectionsPage() {
   const collections = getCollections();
+  const contentMap = useMemo(() => getAllContent(), []);
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedCollections, setExpandedCollections] = useState<Set<string>>(
     new Set(),
@@ -146,6 +217,8 @@ function CollectionsPage() {
         if (existingIndex !== -1) {
           return prev.map((t, i) => ({ ...t, active: i === existingIndex }));
         }
+
+        const unpinnedIndex = prev.findIndex((t) => !t.pinned);
         const newTab: Tab = {
           id: `${type}-${path}-${Date.now()}`,
           type,
@@ -154,6 +227,13 @@ function CollectionsPage() {
           pinned,
           active: true,
         };
+
+        if (unpinnedIndex !== -1) {
+          return prev.map((t, i) =>
+            i === unpinnedIndex ? newTab : { ...t, active: false },
+          );
+        }
+
         return [...prev.map((t) => ({ ...t, active: false })), newTab];
       });
     },
@@ -275,7 +355,8 @@ function CollectionsPage() {
         onPinTab={pinTab}
         onReorderTabs={reorderTabs}
         filteredItems={filteredItems}
-        onFileDoubleClick={(item) => openTab("file", item.name, item.path)}
+        onFileClick={(item) => openTab("file", item.name, item.path)}
+        contentMap={contentMap}
       />
     </div>
   );
@@ -452,7 +533,7 @@ function CollectionItem({
       )}
 
       {isExpanded && collection.items.length > 0 && (
-        <div className="ml-[22px] border-l border-neutral-200">
+        <div className="ml-5.5 border-l border-neutral-200">
           {collection.items.slice(0, 10).map((item) => (
             <FileItemSidebar
               key={item.path}
@@ -600,8 +681,8 @@ function ContextMenu({
       <div
         ref={menuRef}
         className={cn([
-          "fixed z-50 min-w-[160px] py-1",
-          "bg-white border border-neutral-200 rounded-lg shadow-lg",
+          "fixed z-50 min-w-40 py-1",
+          "bg-white border border-neutral-200 rounded-sm shadow-lg",
         ])}
         style={{ left: x, top: y }}
       >
@@ -709,7 +790,8 @@ function ContentPanel({
   onPinTab,
   onReorderTabs,
   filteredItems,
-  onFileDoubleClick,
+  onFileClick,
+  contentMap,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -720,34 +802,128 @@ function ContentPanel({
   onPinTab: (tabId: string) => void;
   onReorderTabs: (tabs: Tab[]) => void;
   filteredItems: ContentItem[];
-  onFileDoubleClick: (item: ContentItem) => void;
+  onFileClick: (item: ContentItem) => void;
+  contentMap: Map<string, FileContent>;
 }) {
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <TabBar
-        tabs={tabs}
-        onSelectTab={onSelectTab}
-        onCloseTab={onCloseTab}
-        onCloseOtherTabs={onCloseOtherTabs}
-        onCloseAllTabs={onCloseAllTabs}
-        onPinTab={onPinTab}
-        onReorderTabs={onReorderTabs}
-      />
       {currentTab ? (
-        currentTab.type === "collection" ? (
-          <FileList
-            filteredItems={filteredItems}
-            onFileDoubleClick={onFileDoubleClick}
+        <>
+          <EditorHeader
+            tabs={tabs}
+            currentTab={currentTab}
+            onSelectTab={onSelectTab}
+            onCloseTab={onCloseTab}
+            onCloseOtherTabs={onCloseOtherTabs}
+            onCloseAllTabs={onCloseAllTabs}
+            onPinTab={onPinTab}
+            onReorderTabs={onReorderTabs}
+            isPreviewMode={isPreviewMode}
+            onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
           />
-        ) : (
-          <FileViewer filePath={currentTab.path} />
-        )
+          {currentTab.type === "collection" ? (
+            <FileList filteredItems={filteredItems} onFileClick={onFileClick} />
+          ) : (
+            <FileEditor
+              filePath={currentTab.path}
+              contentMap={contentMap}
+              isPreviewMode={isPreviewMode}
+            />
+          )}
+        </>
       ) : (
-        <EmptyState
-          icon="mdi:folder-open-outline"
-          message="Double-click a collection or file to open"
-        />
+        <>
+          <div className="h-10 border-b border-neutral-100" />
+          <EmptyState
+            icon="mdi:folder-open-outline"
+            message="Double-click a collection or click a file to open"
+          />
+        </>
       )}
+    </div>
+  );
+}
+
+function EditorHeader({
+  tabs,
+  currentTab,
+  onSelectTab,
+  onCloseTab,
+  onCloseOtherTabs,
+  onCloseAllTabs,
+  onPinTab,
+  onReorderTabs,
+  isPreviewMode,
+  onTogglePreview,
+}: {
+  tabs: Tab[];
+  currentTab: Tab;
+  onSelectTab: (tabId: string) => void;
+  onCloseTab: (tabId: string) => void;
+  onCloseOtherTabs: (tabId: string) => void;
+  onCloseAllTabs: () => void;
+  onPinTab: (tabId: string) => void;
+  onReorderTabs: (tabs: Tab[]) => void;
+  isPreviewMode: boolean;
+  onTogglePreview: () => void;
+}) {
+  const breadcrumbs = currentTab.path.split("/");
+
+  return (
+    <div>
+      <div className="flex items-end">
+        <TabBar
+          tabs={tabs}
+          onSelectTab={onSelectTab}
+          onCloseTab={onCloseTab}
+          onCloseOtherTabs={onCloseOtherTabs}
+          onCloseAllTabs={onCloseAllTabs}
+          onPinTab={onPinTab}
+          onReorderTabs={onReorderTabs}
+        />
+        <div className="flex-1 border-b border-neutral-100" />
+      </div>
+
+      <div className="h-10 flex items-center justify-between px-4 border-b border-neutral-100">
+        <div className="flex items-center gap-1 text-sm text-neutral-500">
+          {breadcrumbs.map((crumb, index) => (
+            <span key={index} className="flex items-center gap-1">
+              {index > 0 && (
+                <Icon icon="mdi:chevron-right" className="text-neutral-300" />
+              )}
+              <span
+                className={cn([
+                  index === breadcrumbs.length - 1
+                    ? "text-neutral-700 font-medium"
+                    : "hover:text-neutral-700 cursor-pointer",
+                ])}
+              >
+                {crumb}
+              </span>
+            </span>
+          ))}
+        </div>
+
+        {currentTab.type === "file" && (
+          <button
+            onClick={onTogglePreview}
+            className={cn([
+              "p-1.5 rounded transition-colors",
+              isPreviewMode
+                ? "bg-neutral-100 text-neutral-700"
+                : "text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50",
+            ])}
+            title={isPreviewMode ? "Edit mode" : "Preview mode"}
+          >
+            <Icon
+              icon={isPreviewMode ? "mdi:pencil" : "mdi:eye"}
+              className="text-base"
+            />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -770,20 +946,20 @@ function TabBar({
   onReorderTabs: (tabs: Tab[]) => void;
 }) {
   if (tabs.length === 0) {
-    return <div className="h-10 border-b border-neutral-100" />;
+    return null;
   }
 
   return (
-    <div className="h-10 flex items-stretch border-b border-neutral-100 overflow-x-auto">
+    <div className="flex items-end overflow-x-auto">
       <Reorder.Group
         as="div"
         axis="x"
         values={tabs}
         onReorder={onReorderTabs}
-        className="flex h-full"
+        className="flex items-end"
       >
         {tabs.map((tab) => (
-          <Reorder.Item key={tab.id} value={tab} as="div" className="h-full">
+          <Reorder.Item key={tab.id} value={tab} as="div">
             <TabItem
               tab={tab}
               onSelect={() => onSelectTab(tab.id)}
@@ -795,7 +971,6 @@ function TabBar({
           </Reorder.Item>
         ))}
       </Reorder.Group>
-      <div className="flex-1" />
     </div>
   );
 }
@@ -835,11 +1010,11 @@ function TabItem({
     <>
       <div
         className={cn([
-          "h-full px-3 flex items-center gap-2 cursor-pointer text-sm",
-          "border-r border-neutral-100 transition-colors",
+          "h-10 px-3 flex items-center gap-2 cursor-pointer text-sm transition-colors",
+          "border-r border-b border-neutral-100",
           tab.active
-            ? "bg-neutral-100 text-neutral-900"
-            : "bg-white text-neutral-600 hover:bg-neutral-50",
+            ? "bg-white text-neutral-900 border-b-transparent"
+            : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100",
         ])}
         onClick={onSelect}
         onDoubleClick={handleDoubleClick}
@@ -853,9 +1028,7 @@ function TabItem({
           }
           className="text-neutral-400 text-sm"
         />
-        <span
-          className={cn(["truncate max-w-[120px]", !tab.pinned && "italic"])}
-        >
+        <span className={cn(["truncate max-w-30", !tab.pinned && "italic"])}>
           {tab.name}
         </span>
         <button
@@ -909,8 +1082,8 @@ function TabContextMenu({
       <div className="fixed inset-0 z-40" onClick={onClose} />
       <div
         className={cn([
-          "fixed z-50 min-w-[140px] py-1",
-          "bg-white border border-neutral-200 rounded-lg shadow-lg",
+          "fixed z-50 min-w-35 py-1",
+          "bg-white border border-neutral-200 rounded-sm shadow-lg",
         ])}
         style={{ left: x, top: y }}
       >
@@ -954,10 +1127,10 @@ function TabContextMenu({
 
 function FileList({
   filteredItems,
-  onFileDoubleClick,
+  onFileClick,
 }: {
   filteredItems: ContentItem[];
-  onFileDoubleClick: (item: ContentItem) => void;
+  onFileClick: (item: ContentItem) => void;
 }) {
   return (
     <div className="flex-1 overflow-y-auto p-4">
@@ -969,7 +1142,7 @@ function FileList({
             <FileItem
               key={item.path}
               item={item}
-              onDoubleClick={() => onFileDoubleClick(item)}
+              onClick={() => onFileClick(item)}
             />
           ))}
         </div>
@@ -978,21 +1151,58 @@ function FileList({
   );
 }
 
-function FileViewer({ filePath }: { filePath: string }) {
+function FileEditor({
+  filePath,
+  contentMap,
+  isPreviewMode,
+}: {
+  filePath: string;
+  contentMap: Map<string, FileContent>;
+  isPreviewMode: boolean;
+}) {
+  const fileContent = contentMap.get(filePath);
+  const [content, setContent] = useState(fileContent?.content || "");
+
+  if (!fileContent) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-neutral-500">
+        <div className="text-center">
+          <Icon icon="mdi:file-alert-outline" className="text-4xl mb-3" />
+          <p className="text-sm">File not found</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isPreviewMode) {
+    return (
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto px-6 py-8">
+          <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:my-8 max-w-none">
+            <MDXContent
+              code={fileContent.mdx}
+              components={createMDXComponents()}
+            />
+          </article>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex-1 overflow-y-auto p-4">
-      <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
-        <Icon icon="mdi:file-document-outline" className="text-4xl mb-3" />
-        <p className="text-sm font-medium">{filePath}</p>
-        <a
-          href={`https://github.com/fastrepl/hyprnote/blob/main/apps/web/content/${filePath}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 text-xs text-blue-600 hover:underline flex items-center gap-1"
-        >
-          <Icon icon="mdi:github" className="text-base" />
-          View on GitHub
-        </a>
+    <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="flex-1 overflow-y-auto">
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className={cn([
+            "w-full h-full p-6 resize-none",
+            "font-mono text-sm leading-relaxed",
+            "focus:outline-none",
+            "bg-white",
+          ])}
+          spellCheck={false}
+        />
       </div>
     </div>
   );
@@ -1009,10 +1219,10 @@ function EmptyState({ icon, message }: { icon: string; message: string }) {
 
 function FileItem({
   item,
-  onDoubleClick,
+  onClick,
 }: {
   item: ContentItem;
-  onDoubleClick: () => void;
+  onClick: () => void;
 }) {
   return (
     <div
@@ -1021,7 +1231,7 @@ function FileItem({
         "hover:bg-neutral-50 transition-colors",
         "border border-transparent hover:border-neutral-100",
       ])}
-      onDoubleClick={onDoubleClick}
+      onClick={onClick}
     >
       <div className="flex items-center gap-2">
         <Icon icon="mdi:file-document-outline" className="text-neutral-400" />

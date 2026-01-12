@@ -55,12 +55,15 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
-  scripts: () => [
-    {
-      id: "ze-snippet",
-      src: "https://static.zdassets.com/ekr/snippet.js?key=15949e47-ed5a-4e52-846e-200dd0b8f4b9",
-    },
-  ],
+  scripts: () =>
+    import.meta.env.DEV
+      ? []
+      : [
+          {
+            id: "ze-snippet",
+            src: "https://static.zdassets.com/ekr/snippet.js?key=15949e47-ed5a-4e52-846e-200dd0b8f4b9",
+          },
+        ],
   shellComponent: RootDocument,
   notFoundComponent: NotFoundDocument,
 });

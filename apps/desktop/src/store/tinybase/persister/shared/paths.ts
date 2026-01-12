@@ -5,6 +5,7 @@ import { commands as path2Commands } from "@hypr/plugin-path2";
 export const SESSION_META_FILE = "_meta.json";
 export const SESSION_TRANSCRIPT_FILE = "transcript.json";
 export const SESSION_NOTE_EXTENSION = ".md";
+export const SESSION_MEMO_FILE = "_memo.md";
 export const CHAT_MESSAGES_FILE = "messages.json";
 
 export async function getDataDir(): Promise<string> {

@@ -8,6 +8,7 @@ import {
   buildSessionPath,
   iterateTableRows,
   sanitizeFilename,
+  SESSION_MEMO_FILE,
   type TablesContent,
   type WriteOperation,
 } from "../../shared";
@@ -61,7 +62,6 @@ function collectEnhancedNotes(ctx: BuildContext): DocumentItem[] {
       const frontmatter: NoteFrontmatter = {
         id: note.id,
         session_id: note.session_id!,
-        type: "enhanced_note",
         template_id: note.template_id || undefined,
         position: note.position,
         title: note.title || undefined,
@@ -88,7 +88,7 @@ function collectMemos(ctx: BuildContext): {
       session.id,
       session.folder_id ?? "",
     );
-    const memoPath = [sessionDir, "_memo.md"].join(sep());
+    const memoPath = [sessionDir, SESSION_MEMO_FILE].join(sep());
 
     const markdown = session.raw_md
       ? tryParseAndConvertToMarkdown(session.raw_md)
@@ -101,7 +101,6 @@ function collectMemos(ctx: BuildContext): {
     const frontmatter: NoteFrontmatter = {
       id: session.id,
       session_id: session.id,
-      type: "memo",
     };
 
     items.push([{ frontmatter, content: markdown }, memoPath]);

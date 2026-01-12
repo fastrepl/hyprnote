@@ -17,6 +17,7 @@ use crate::{SessionDataEvent, SessionErrorEvent, SessionProgressEvent};
 
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 const LISTEN_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
+const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 
 pub enum ListenerMsg {
     AudioSingle(Bytes),
@@ -359,6 +360,7 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
         .api_base(args.base_url.clone())
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
+        .extra_header(DEVICE_FINGERPRINT_HEADER, hypr_host::fingerprint())
         .build_single()
         .await;
 
@@ -429,6 +431,7 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
         .api_base(args.base_url.clone())
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
+        .extra_header(DEVICE_FINGERPRINT_HEADER, hypr_host::fingerprint())
         .build_dual()
         .await;
 

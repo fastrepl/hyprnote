@@ -27,6 +27,7 @@ pub struct ListenClientBuilder<A: RealtimeSttAdapter = DeepgramAdapter> {
     api_base: Option<String>,
     api_key: Option<String>,
     params: Option<owhisper_interface::ListenParams>,
+    extra_headers: Vec<(String, String)>,
     _marker: PhantomData<A>,
 }
 
@@ -36,6 +37,7 @@ impl Default for ListenClientBuilder {
             api_base: None,
             api_key: None,
             params: None,
+            extra_headers: Vec::new(),
             _marker: PhantomData,
         }
     }
@@ -57,11 +59,17 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
         self
     }
 
+    pub fn extra_header(mut self, name: impl Into<String>, value: impl Into<String>) -> Self {
+        self.extra_headers.push((name.into(), value.into()));
+        self
+    }
+
     pub fn adapter<B: RealtimeSttAdapter>(self) -> ListenClientBuilder<B> {
         ListenClientBuilder {
             api_base: self.api_base,
             api_key: self.api_key,
             params: self.params,
+            extra_headers: self.extra_headers,
             _marker: PhantomData,
         }
     }
@@ -93,6 +101,9 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
         if is_hyprnote_proxy(original_api_base) {
             if let Some(api_key) = self.api_key.as_deref() {
                 request = request.with_header("Authorization", format!("Bearer {}", api_key));
+            }
+            for (name, value) in &self.extra_headers {
+                request = request.with_header(name, value);
             }
         } else if let Some((header_name, header_value)) =
             adapter.build_auth_header(self.api_key.as_deref())

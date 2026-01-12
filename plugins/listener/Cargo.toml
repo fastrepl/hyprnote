@@ -27,6 +27,7 @@ hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
 hypr-device-heuristic = { workspace = true }
 hypr-device-monitor = { workspace = true }
+hypr-host = { workspace = true }
 hypr-intercept = { workspace = true }
 hypr-language = { workspace = true }
 hypr-llm = { workspace = true }

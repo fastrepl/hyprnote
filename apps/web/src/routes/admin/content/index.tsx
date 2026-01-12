@@ -1,5 +1,6 @@
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 export const Route = createFileRoute("/admin/content/")({
   component: ContentManagementPage,
@@ -17,7 +18,6 @@ interface ContentFolder {
   name: string;
   path: string;
   items: ContentItem[];
-  loading: boolean;
   expanded: boolean;
 }
 
@@ -30,57 +30,54 @@ const CONTENT_FOLDERS = [
   { name: "Templates", path: "templates" },
 ];
 
+async function fetchFolderContents(folderPath: string): Promise<ContentItem[]> {
+  const response = await fetch(
+    `/api/admin/content/list?path=${encodeURIComponent(folderPath)}`,
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    try {
+      const errorData = JSON.parse(errorText);
+      throw new Error(errorData.error || `Failed to fetch: ${response.status}`);
+    } catch {
+      throw new Error(`Failed to fetch: ${response.status}`);
+    }
+  }
+
+  const data = await response.json();
+  return data.items || [];
+}
+
 function ContentManagementPage() {
   const [folders, setFolders] = useState<ContentFolder[]>(
     CONTENT_FOLDERS.map((f) => ({
       name: f.name,
       path: f.path,
       items: [],
-      loading: false,
       expanded: false,
     })),
   );
-  const [error, setError] = useState<string | null>(null);
+  const [loadingFolder, setLoadingFolder] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchFolderContents = useCallback(async (folderPath: string) => {
-    setFolders((prev) =>
-      prev.map((f) => (f.path === folderPath ? { ...f, loading: true } : f)),
-    );
-
-    try {
-      const response = await fetch(
-        `/api/admin/content/list?path=${encodeURIComponent(folderPath)}`,
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        try {
-          const errorData = JSON.parse(errorText);
-          throw new Error(
-            errorData.error || `Failed to fetch: ${response.status}`,
-          );
-        } catch {
-          throw new Error(`Failed to fetch: ${response.status}`);
-        }
-      }
-
-      const data = await response.json();
-
+  const fetchMutation = useMutation({
+    mutationFn: fetchFolderContents,
+    onMutate: (folderPath) => {
+      setLoadingFolder(folderPath);
+    },
+    onSuccess: (items, folderPath) => {
       setFolders((prev) =>
         prev.map((f) =>
-          f.path === folderPath
-            ? { ...f, items: data.items || [], loading: false, expanded: true }
-            : f,
+          f.path === folderPath ? { ...f, items, expanded: true } : f,
         ),
       );
-    } catch (err) {
-      setError((err as Error).message);
-      setFolders((prev) =>
-        prev.map((f) => (f.path === folderPath ? { ...f, loading: false } : f)),
-      );
-    }
-  }, []);
+      setLoadingFolder(null);
+    },
+    onError: () => {
+      setLoadingFolder(null);
+    },
+  });
 
   const toggleFolder = (folderPath: string) => {
     const folder = folders.find((f) => f.path === folderPath);
@@ -93,7 +90,7 @@ function ContentManagementPage() {
         ),
       );
     } else if (folder.items.length === 0) {
-      fetchFolderContents(folderPath);
+      fetchMutation.mutate(folderPath);
     } else {
       setFolders((prev) =>
         prev.map((f) => (f.path === folderPath ? { ...f, expanded: true } : f)),
@@ -144,11 +141,13 @@ function ContentManagementPage() {
         />
       </div>
 
-      {error && (
+      {fetchMutation.error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
+          {fetchMutation.error instanceof Error
+            ? fetchMutation.error.message
+            : "An error occurred"}
           <button
-            onClick={() => setError(null)}
+            onClick={() => fetchMutation.reset()}
             className="ml-2 text-red-500 hover:text-red-700"
           >
             Dismiss
@@ -207,7 +206,7 @@ function ContentManagementPage() {
                   </span>
                 )}
               </div>
-              {folder.loading && (
+              {loadingFolder === folder.path && (
                 <span className="text-sm text-neutral-500">Loading...</span>
               )}
             </button>
@@ -256,7 +255,7 @@ function ContentManagementPage() {
 
             {folder.expanded &&
               folder.items.length === 0 &&
-              !folder.loading && (
+              loadingFolder !== folder.path && (
                 <div className="px-4 py-3 pl-12 text-sm text-neutral-500 bg-neutral-50 border-t border-neutral-100">
                   No files found
                 </div>

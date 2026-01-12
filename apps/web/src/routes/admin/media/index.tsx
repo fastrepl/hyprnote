@@ -1,5 +1,6 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface MediaItem {
   name: string;
@@ -26,16 +27,145 @@ interface FolderTreeItem {
 
 type FileTypeFilter = "all" | "images" | "videos" | "documents";
 
+async function fetchMediaItems(path: string): Promise<MediaItem[]> {
+  const response = await fetch(
+    `/api/admin/media/list?path=${encodeURIComponent(path)}`,
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to fetch media");
+  }
+  return data.items;
+}
+
+async function uploadFile(params: {
+  filename: string;
+  content: string;
+  folder: string;
+}) {
+  const response = await fetch("/api/admin/media/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || "Upload failed");
+  }
+  return response.json();
+}
+
+async function deleteFiles(paths: string[]) {
+  const response = await fetch("/api/admin/media/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ paths }),
+  });
+
+  const data = await response.json();
+  if (data.errors && data.errors.length > 0) {
+    throw new Error(`Some files failed to delete: ${data.errors.join(", ")}`);
+  }
+  return data;
+}
+
+async function moveFile(fromPath: string, toPath: string) {
+  const response = await fetch("/api/admin/media/move", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fromPath, toPath }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || "Move failed");
+  }
+  return response.json();
+}
+
+async function createFolder(name: string, parentFolder: string) {
+  const response = await fetch("/api/admin/media/create-folder", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, parentFolder }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || "Failed to create folder");
+  }
+  return response.json();
+}
+
+async function buildFolderTree(
+  path: string,
+  depth: number,
+): Promise<FolderTreeItem[]> {
+  if (depth > 3) return [];
+  try {
+    const response = await fetch(
+      `/api/admin/media/list?path=${encodeURIComponent(path)}`,
+    );
+    const data = await response.json();
+    if (!response.ok) return [];
+
+    const folders = data.items.filter((item: MediaItem) => item.type === "dir");
+    const result: FolderTreeItem[] = [];
+
+    for (const folder of folders) {
+      const folderPath = path ? `${path}/${folder.name}` : folder.name;
+      const children = await buildFolderTree(folderPath, depth + 1);
+      result.push({
+        path: folderPath,
+        name: folder.name,
+        children,
+        expanded: false,
+      });
+    }
+    return result;
+  } catch {
+    return [];
+  }
+}
+
+async function fetchFolderOptionsRecursive(
+  path: string,
+  depth: number,
+  folders: FolderOption[],
+): Promise<void> {
+  if (depth > 2) return;
+  try {
+    const response = await fetch(
+      `/api/admin/media/list?path=${encodeURIComponent(path)}`,
+    );
+    const data = await response.json();
+    if (response.ok) {
+      const subfolders = data.items.filter(
+        (item: MediaItem) => item.type === "dir",
+      );
+      for (const folder of subfolders) {
+        const folderPath = path ? `${path}/${folder.name}` : folder.name;
+        folders.push({
+          path: folderPath,
+          name: folder.name,
+          depth: depth + 1,
+        });
+        await fetchFolderOptionsRecursive(folderPath, depth + 1, folders);
+      }
+    }
+  } catch {
+    // Ignore errors when fetching folder structure
+  }
+}
+
 export const Route = createFileRoute("/admin/media/")({
   component: MediaLibrary,
 });
 
 function MediaLibrary() {
-  const [items, setItems] = useState<MediaItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [currentPath, setCurrentPath] = useState("");
-  const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [showCreateFolder, setShowCreateFolder] = useState(false);
@@ -43,7 +173,6 @@ function MediaLibrary() {
   const [showMoveDialog, setShowMoveDialog] = useState(false);
   const [moveDestination, setMoveDestination] = useState("");
   const [folderOptions, setFolderOptions] = useState<FolderOption[]>([]);
-  const [moving, setMoving] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -53,39 +182,30 @@ function MediaLibrary() {
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [renameItem, setRenameItem] = useState<MediaItem | null>(null);
   const [newName, setNewName] = useState("");
-  const [renaming, setRenaming] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [fileTypeFilter, setFileTypeFilter] = useState<FileTypeFilter>("all");
   const [folderTree, setFolderTree] = useState<FolderTreeItem[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchItems = useCallback(async (path: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(
-        `/api/admin/media/list?path=${encodeURIComponent(path)}`,
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch media");
-      }
-      setItems(data.items);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const itemsQuery = useQuery({
+    queryKey: ["mediaItems", currentPath],
+    queryFn: () => fetchMediaItems(currentPath),
+  });
+
+  const folderTreeQuery = useQuery({
+    queryKey: ["folderTree"],
+    queryFn: () => buildFolderTree("", 0),
+  });
 
   useEffect(() => {
-    fetchItems(currentPath);
-  }, [currentPath, fetchItems]);
+    if (folderTreeQuery.data) {
+      setFolderTree(folderTreeQuery.data);
+    }
+  }, [folderTreeQuery.data]);
 
-  const handleUpload = async (files: FileList) => {
-    setUploading(true);
-    try {
+  const uploadMutation = useMutation({
+    mutationFn: async (files: FileList) => {
       for (const file of Array.from(files)) {
         const reader = new FileReader();
         const content = await new Promise<string>((resolve, reject) => {
@@ -97,55 +217,42 @@ function MediaLibrary() {
           reader.readAsDataURL(file);
         });
 
-        const response = await fetch("/api/admin/media/upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            filename: file.name,
-            content,
-            folder: currentPath,
-          }),
+        await uploadFile({
+          filename: file.name,
+          content,
+          folder: currentPath,
         });
-
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || "Upload failed");
-        }
       }
-      await fetchItems(currentPath);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setUploading(false);
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
+    },
+  });
+
+  const handleUpload = (files: FileList) => {
+    uploadMutation.mutate(files);
   };
 
-  const handleDelete = async () => {
+  const deleteMutation = useMutation({
+    mutationFn: (paths: string[]) => deleteFiles(paths),
+    onSuccess: () => {
+      setSelectedItems(new Set());
+      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
+    },
+  });
+
+  const handleDelete = () => {
     if (selectedItems.size === 0) return;
     if (
       !confirm(`Are you sure you want to delete ${selectedItems.size} item(s)?`)
     )
       return;
 
-    try {
-      const response = await fetch("/api/admin/media/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paths: Array.from(selectedItems) }),
-      });
-
-      const data = await response.json();
-      if (data.errors && data.errors.length > 0) {
-        setError(`Some files failed to delete: ${data.errors.join(", ")}`);
-      }
-      setSelectedItems(new Set());
-      await fetchItems(currentPath);
-    } catch (err) {
-      setError((err as Error).message);
-    }
+    deleteMutation.mutate(Array.from(selectedItems));
   };
 
   const handleSelectAll = () => {
+    const items = itemsQuery.data || [];
     const fileItems = items.filter((item) => item.type === "file");
     if (selectedItems.size === fileItems.length) {
       setSelectedItems(new Set());
@@ -159,6 +266,7 @@ function MediaLibrary() {
     setDownloading(true);
 
     const errors: string[] = [];
+    const items = itemsQuery.data || [];
     const selectedFiles = items.filter(
       (item) => selectedItems.has(item.path) && item.downloadUrl,
     );
@@ -188,9 +296,6 @@ function MediaLibrary() {
       }
     }
 
-    if (errors.length > 0) {
-      setError(`Some files failed to download: ${errors.join(", ")}`);
-    }
     setDownloading(false);
   };
 
@@ -198,38 +303,7 @@ function MediaLibrary() {
     const folders: FolderOption[] = [
       { path: "", name: "images (root)", depth: 0 },
     ];
-
-    const fetchFoldersRecursive = async (
-      path: string,
-      depth: number,
-    ): Promise<void> => {
-      try {
-        const response = await fetch(
-          `/api/admin/media/list?path=${encodeURIComponent(path)}`,
-        );
-        const data = await response.json();
-        if (response.ok) {
-          const subfolders = data.items.filter(
-            (item: MediaItem) => item.type === "dir",
-          );
-          for (const folder of subfolders) {
-            const folderPath = path ? `${path}/${folder.name}` : folder.name;
-            folders.push({
-              path: folderPath,
-              name: folder.name,
-              depth: depth + 1,
-            });
-            if (depth < 2) {
-              await fetchFoldersRecursive(folderPath, depth + 1);
-            }
-          }
-        }
-      } catch {
-        // Ignore errors when fetching folder structure
-      }
-    };
-
-    await fetchFoldersRecursive("", 0);
+    await fetchFolderOptionsRecursive("", 0, folders);
     setFolderOptions(folders);
   };
 
@@ -240,10 +314,37 @@ function MediaLibrary() {
     setShowMoveDialog(true);
   };
 
-  const handleMove = async () => {
+  const moveMutation = useMutation({
+    mutationFn: async (params: { paths: string[]; destination: string }) => {
+      const errors: string[] = [];
+      for (const sourcePath of params.paths) {
+        const fileName = sourcePath.split("/").pop() || "";
+        const toPath = params.destination
+          ? `${params.destination}/${fileName}`
+          : fileName;
+
+        try {
+          await moveFile(sourcePath, toPath);
+        } catch (err) {
+          errors.push(`${fileName}: ${(err as Error).message}`);
+        }
+      }
+
+      if (errors.length > 0) {
+        throw new Error(`Some files failed to move: ${errors.join(", ")}`);
+      }
+    },
+    onSuccess: () => {
+      setSelectedItems(new Set());
+      setShowMoveDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
+      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
+    },
+  });
+
+  const handleMove = () => {
     if (selectedItems.size === 0) return;
 
-    // Check if any files would be moved to their current location
     const wouldMoveToSelf = Array.from(selectedItems).some((sourcePath) => {
       const sourceFolder =
         sourcePath.substring(0, sourcePath.lastIndexOf("/")) || "";
@@ -251,70 +352,33 @@ function MediaLibrary() {
     });
 
     if (wouldMoveToSelf) {
-      setError("Cannot move files to their current location");
       return;
     }
 
-    setMoving(true);
-
-    try {
-      const errors: string[] = [];
-      for (const sourcePath of selectedItems) {
-        const fileName = sourcePath.split("/").pop() || "";
-        const toPath = moveDestination
-          ? `${moveDestination}/${fileName}`
-          : fileName;
-
-        const response = await fetch("/api/admin/media/move", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fromPath: sourcePath, toPath }),
-        });
-
-        if (!response.ok) {
-          const data = await response.json();
-          errors.push(`${fileName}: ${data.error || "Move failed"}`);
-        }
-      }
-
-      if (errors.length > 0) {
-        setError(`Some files failed to move: ${errors.join(", ")}`);
-      }
-
-      setSelectedItems(new Set());
-      setShowMoveDialog(false);
-      await fetchItems(currentPath);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setMoving(false);
-    }
+    moveMutation.mutate({
+      paths: Array.from(selectedItems),
+      destination: moveDestination,
+    });
   };
 
-  const handleCreateFolder = async () => {
-    if (!newFolderName.trim()) return;
-
-    try {
-      const response = await fetch("/api/admin/media/create-folder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newFolderName.trim(),
-          parentFolder: currentPath,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to create folder");
-      }
-
+  const createFolderMutation = useMutation({
+    mutationFn: (params: { name: string; parentFolder: string }) =>
+      createFolder(params.name, params.parentFolder),
+    onSuccess: () => {
       setNewFolderName("");
       setShowCreateFolder(false);
-      await fetchItems(currentPath);
-    } catch (err) {
-      setError((err as Error).message);
-    }
+      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
+      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
+    },
+  });
+
+  const handleCreateFolder = () => {
+    if (!newFolderName.trim()) return;
+
+    createFolderMutation.mutate({
+      name: newFolderName.trim(),
+      parentFolder: currentPath,
+    });
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -365,25 +429,11 @@ function MediaLibrary() {
     setContextMenu(null);
   };
 
-  const handleContextDelete = async (item: MediaItem) => {
+  const handleContextDelete = (item: MediaItem) => {
     closeContextMenu();
     if (!confirm(`Are you sure you want to delete "${item.name}"?`)) return;
 
-    try {
-      const response = await fetch("/api/admin/media/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paths: [item.path] }),
-      });
-
-      const data = await response.json();
-      if (data.errors && data.errors.length > 0) {
-        setError(`Failed to delete: ${data.errors.join(", ")}`);
-      }
-      await fetchItems(currentPath);
-    } catch (err) {
-      setError((err as Error).message);
-    }
+    deleteMutation.mutate([item.path]);
   };
 
   const handleContextDownload = async (item: MediaItem) => {
@@ -402,7 +452,7 @@ function MediaLibrary() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
-      setError((err as Error).message);
+      console.error("Failed to download file:", err);
     }
   };
 
@@ -422,7 +472,7 @@ function MediaLibrary() {
         new ClipboardItem({ [blob.type]: blob }),
       ]);
     } catch (err) {
-      setError("Failed to copy image to clipboard");
+      console.error("Failed to copy image to clipboard:", err);
     }
   };
 
@@ -436,38 +486,30 @@ function MediaLibrary() {
     setShowRenameDialog(true);
   };
 
-  const handleRename = async () => {
-    if (!renameItem || !newName.trim()) return;
-    setRenaming(true);
-
-    try {
-      const ext = renameItem.name.includes(".")
-        ? "." + renameItem.name.split(".").pop()
+  const renameMutation = useMutation({
+    mutationFn: async (params: { item: MediaItem; newName: string }) => {
+      const ext = params.item.name.includes(".")
+        ? "." + params.item.name.split(".").pop()
         : "";
-      const newFileName = newName.trim() + ext;
-      const parentPath = renameItem.path.split("/").slice(0, -1).join("/");
+      const newFileName = params.newName.trim() + ext;
+      const parentPath = params.item.path.split("/").slice(0, -1).join("/");
       const toPath = parentPath ? `${parentPath}/${newFileName}` : newFileName;
 
-      const response = await fetch("/api/admin/media/move", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fromPath: renameItem.path, toPath }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Rename failed");
-      }
-
+      await moveFile(params.item.path, toPath);
+    },
+    onSuccess: () => {
       setShowRenameDialog(false);
       setRenameItem(null);
       setNewName("");
-      await fetchItems(currentPath);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setRenaming(false);
-    }
+      queryClient.invalidateQueries({ queryKey: ["mediaItems", currentPath] });
+      queryClient.invalidateQueries({ queryKey: ["folderTree"] });
+    },
+  });
+
+  const handleRename = () => {
+    if (!renameItem || !newName.trim()) return;
+
+    renameMutation.mutate({ item: renameItem, newName });
   };
 
   const openContextMoveDialog = async (item: MediaItem) => {
@@ -478,47 +520,29 @@ function MediaLibrary() {
     setShowMoveDialog(true);
   };
 
-  const fetchFolderTree = useCallback(async () => {
-    const buildTree = async (
-      path: string,
-      depth: number,
-    ): Promise<FolderTreeItem[]> => {
-      if (depth > 3) return [];
-      try {
-        const response = await fetch(
-          `/api/admin/media/list?path=${encodeURIComponent(path)}`,
-        );
-        const data = await response.json();
-        if (!response.ok) return [];
+  const errorMessage =
+    (itemsQuery.error instanceof Error ? itemsQuery.error.message : null) ??
+    (uploadMutation.error instanceof Error
+      ? uploadMutation.error.message
+      : null) ??
+    (deleteMutation.error instanceof Error
+      ? deleteMutation.error.message
+      : null) ??
+    (moveMutation.error instanceof Error ? moveMutation.error.message : null) ??
+    (createFolderMutation.error instanceof Error
+      ? createFolderMutation.error.message
+      : null) ??
+    (renameMutation.error instanceof Error
+      ? renameMutation.error.message
+      : null);
 
-        const folders = data.items.filter(
-          (item: MediaItem) => item.type === "dir",
-        );
-        const result: FolderTreeItem[] = [];
-
-        for (const folder of folders) {
-          const folderPath = path ? `${path}/${folder.name}` : folder.name;
-          const children = await buildTree(folderPath, depth + 1);
-          result.push({
-            path: folderPath,
-            name: folder.name,
-            children,
-            expanded: false,
-          });
-        }
-        return result;
-      } catch {
-        return [];
-      }
-    };
-
-    const tree = await buildTree("", 0);
-    setFolderTree(tree);
-  }, []);
-
-  useEffect(() => {
-    fetchFolderTree();
-  }, [fetchFolderTree]);
+  const clearErrors = () => {
+    uploadMutation.reset();
+    deleteMutation.reset();
+    moveMutation.reset();
+    createFolderMutation.reset();
+    renameMutation.reset();
+  };
 
   const toggleFolderExpanded = (path: string) => {
     const updateTree = (items: FolderTreeItem[]): FolderTreeItem[] => {
@@ -561,6 +585,7 @@ function MediaLibrary() {
     }
   };
 
+  const items = itemsQuery.data || [];
   const filteredItems = items.filter((item) => {
     const matchesSearch =
       searchQuery === "" ||
@@ -785,10 +810,10 @@ function MediaLibrary() {
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
+                disabled={uploadMutation.isPending}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                {uploading ? "Uploading..." : "Upload"}
+                {uploadMutation.isPending ? "Uploading..." : "Upload"}
               </button>
               <input
                 ref={fileInputRef}
@@ -899,11 +924,11 @@ function MediaLibrary() {
             </div>
           )}
 
-          {error && (
+          {errorMessage && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-              {error}
+              {errorMessage}
               <button
-                onClick={() => setError(null)}
+                onClick={clearErrors}
                 className="ml-2 text-red-500 hover:text-red-700"
               >
                 Dismiss
@@ -921,7 +946,7 @@ function MediaLibrary() {
                 : "border-neutral-200"
             } min-h-[400px] transition-colors`}
           >
-            {loading ? (
+            {itemsQuery.isLoading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-neutral-500">Loading...</div>
               </div>
@@ -1062,10 +1087,10 @@ function MediaLibrary() {
                   </button>
                   <button
                     onClick={handleMove}
-                    disabled={moving}
+                    disabled={moveMutation.isPending}
                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {moving ? "Moving..." : "Move"}
+                    {moveMutation.isPending ? "Moving..." : "Move"}
                   </button>
                 </div>
               </div>
@@ -1239,10 +1264,10 @@ function MediaLibrary() {
                   </button>
                   <button
                     onClick={handleRename}
-                    disabled={renaming || !newName.trim()}
+                    disabled={renameMutation.isPending || !newName.trim()}
                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {renaming ? "Renaming..." : "Rename"}
+                    {renameMutation.isPending ? "Renaming..." : "Rename"}
                   </button>
                 </div>
               </div>

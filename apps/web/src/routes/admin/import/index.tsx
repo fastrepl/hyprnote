@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -37,6 +38,88 @@ const CONTENT_FOLDERS = [
   { value: "templates", label: "Templates" },
 ];
 
+interface ImportParams {
+  url: string;
+  title?: string;
+  author?: string;
+  description?: string;
+  coverImage?: string;
+  slug?: string;
+}
+
+async function importFromGoogleDocs(params: ImportParams): Promise<ImportResult> {
+  const response = await fetch("/api/admin/import/google-docs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      url: params.url,
+      title: params.title || undefined,
+      author: params.author || undefined,
+      description: params.description || undefined,
+      coverImage: params.coverImage || undefined,
+      slug: params.slug || undefined,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    try {
+      const errorData = JSON.parse(errorText);
+      throw new Error(
+        errorData.error || `Import failed with status ${response.status}`,
+      );
+    } catch {
+      throw new Error(`Import failed: ${response.status} ${response.statusText}`);
+    }
+  }
+
+  const data: ImportResult = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.error || "Import failed");
+  }
+
+  return data;
+}
+
+interface SaveParams {
+  content: string;
+  filename: string;
+  folder: string;
+}
+
+async function saveToRepository(params: SaveParams): Promise<SaveResult> {
+  const response = await fetch("/api/admin/import/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      content: params.content,
+      filename: params.filename,
+      folder: params.folder,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    try {
+      const errorData = JSON.parse(errorText);
+      throw new Error(
+        errorData.error || `Save failed with status ${response.status}`,
+      );
+    } catch {
+      throw new Error(`Save failed: ${response.status} ${response.statusText}`);
+    }
+  }
+
+  const data: SaveResult = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.error || "Save failed");
+  }
+
+  return data;
+}
+
 function ImportPage() {
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
@@ -45,123 +128,55 @@ function ImportPage() {
   const [coverImage, setCoverImage] = useState("");
   const [slug, setSlug] = useState("");
   const [folder, setFolder] = useState("articles");
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ImportResult | null>(null);
   const [editedMdx, setEditedMdx] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
 
-  const handleImport = async () => {
-    if (!url) {
-      setError("Please enter a Google Docs URL");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    setSaveResult(null);
-
-    try {
-      const response = await fetch("/api/admin/import/google-docs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url,
-          title: title || undefined,
-          author: author || undefined,
-          description: description || undefined,
-          coverImage: coverImage || undefined,
-          slug: slug || undefined,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        try {
-          const errorData = JSON.parse(errorText);
-          setError(
-            errorData.error || `Import failed with status ${response.status}`,
-          );
-        } catch {
-          setError(`Import failed: ${response.status} ${response.statusText}`);
-        }
-        return;
-      }
-
-      const data: ImportResult = await response.json();
-
-      if (!data.success) {
-        setError(data.error || "Import failed");
-        return;
-      }
-
-      setResult(data);
+  const importMutation = useMutation({
+    mutationFn: importFromGoogleDocs,
+    onSuccess: (data) => {
       setEditedMdx(data.mdx || "");
-
       if (data.frontmatter) {
         if (!title) setTitle(data.frontmatter.meta_title);
         if (!author) setAuthor(data.frontmatter.author);
         if (!description) setDescription(data.frontmatter.meta_description);
       }
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
-  const handleSave = async () => {
-    if (!editedMdx || !slug) {
-      setError("Please provide content and a filename slug");
+  const saveMutation = useMutation({
+    mutationFn: saveToRepository,
+  });
+
+  const handleImport = () => {
+    if (!url) {
       return;
     }
+    saveMutation.reset();
+    importMutation.mutate({
+      url,
+      title: title || undefined,
+      author: author || undefined,
+      description: description || undefined,
+      coverImage: coverImage || undefined,
+      slug: slug || undefined,
+    });
+  };
 
-    setSaving(true);
-    setError(null);
-    setSaveResult(null);
-
-    try {
-      const filename = slug.endsWith(".mdx") ? slug : `${slug}.mdx`;
-
-      const response = await fetch("/api/admin/import/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: editedMdx,
-          filename,
-          folder,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        try {
-          const errorData = JSON.parse(errorText);
-          setError(
-            errorData.error || `Save failed with status ${response.status}`,
-          );
-        } catch {
-          setError(`Save failed: ${response.status} ${response.statusText}`);
-        }
-        return;
-      }
-
-      const data: SaveResult = await response.json();
-
-      if (!data.success) {
-        setError(data.error || "Save failed");
-        return;
-      }
-
-      setSaveResult(data);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setSaving(false);
+  const handleSave = () => {
+    if (!editedMdx || !slug) {
+      return;
     }
+    const filename = slug.endsWith(".mdx") ? slug : `${slug}.mdx`;
+    saveMutation.mutate({
+      content: editedMdx,
+      filename,
+      folder,
+    });
+  };
+
+  const error = importMutation.error || saveMutation.error;
+  const clearError = () => {
+    importMutation.reset();
+    saveMutation.reset();
   };
 
   const generateSlugFromTitle = () => {
@@ -284,19 +299,19 @@ function ImportPage() {
 
           <button
             onClick={handleImport}
-            disabled={loading || !url}
+            disabled={importMutation.isPending || !url}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? "Importing..." : "Import Document"}
+            {importMutation.isPending ? "Importing..." : "Import Document"}
           </button>
         </div>
       </div>
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
+          {error instanceof Error ? error.message : "An error occurred"}
           <button
-            onClick={() => setError(null)}
+            onClick={clearError}
             className="ml-2 text-red-500 hover:text-red-700"
           >
             Dismiss
@@ -304,7 +319,7 @@ function ImportPage() {
         </div>
       )}
 
-      {result && result.success && (
+      {importMutation.data && (
         <div className="bg-white rounded-lg border border-neutral-200 p-6 mb-6">
           <h2 className="text-lg font-medium text-neutral-900 mb-4">
             Step 2: Review & Edit MDX
@@ -361,25 +376,27 @@ function ImportPage() {
 
           <button
             onClick={handleSave}
-            disabled={saving || !editedMdx || !slug}
+            disabled={saveMutation.isPending || !editedMdx || !slug}
             className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save to Repository"}
+            {saveMutation.isPending ? "Saving..." : "Save to Repository"}
           </button>
         </div>
       )}
 
-      {saveResult && saveResult.success && (
+      {saveMutation.data && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
           <p className="font-medium">File saved successfully!</p>
           <p className="text-sm mt-1">
             Path:{" "}
-            <code className="bg-green-100 px-1 rounded">{saveResult.path}</code>
+            <code className="bg-green-100 px-1 rounded">
+              {saveMutation.data.path}
+            </code>
           </p>
-          {saveResult.url && (
+          {saveMutation.data.url && (
             <p className="text-sm mt-1">
               <a
-                href={saveResult.url}
+                href={saveMutation.data.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-green-600 hover:text-green-800 underline"

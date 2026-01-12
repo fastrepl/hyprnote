@@ -41,6 +41,8 @@ import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as AdminMediaIndexRouteImport } from './routes/admin/media/index'
+import { Route as AdminImportIndexRouteImport } from './routes/admin/import/index'
+import { Route as AdminContentIndexRouteImport } from './routes/admin/content/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
 import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts/index'
 import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
@@ -107,6 +109,9 @@ import { Route as ApiAdminMediaMoveRouteImport } from './routes/api/admin/media/
 import { Route as ApiAdminMediaListRouteImport } from './routes/api/admin/media/list'
 import { Route as ApiAdminMediaDeleteRouteImport } from './routes/api/admin/media/delete'
 import { Route as ApiAdminMediaCreateFolderRouteImport } from './routes/api/admin/media/create-folder'
+import { Route as ApiAdminImportSaveRouteImport } from './routes/api/admin/import/save'
+import { Route as ApiAdminImportGoogleDocsRouteImport } from './routes/api/admin/import/google-docs'
+import { Route as ApiAdminContentListRouteImport } from './routes/api/admin/content/list'
 import { Route as ViewIntegrationsCategorySlugRouteImport } from './routes/_view/integrations/$category.$slug'
 import { Route as ViewGalleryTypeSlugRouteImport } from './routes/_view/gallery/$type.$slug'
 
@@ -268,6 +273,16 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
 const AdminMediaIndexRoute = AdminMediaIndexRouteImport.update({
   id: '/media/',
   path: '/media/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminImportIndexRoute = AdminImportIndexRouteImport.update({
+  id: '/import/',
+  path: '/import/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminContentIndexRoute = AdminContentIndexRouteImport.update({
+  id: '/content/',
+  path: '/content/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const ViewTemplatesIndexRoute = ViewTemplatesIndexRouteImport.update({
@@ -609,6 +624,22 @@ const ApiAdminMediaCreateFolderRoute =
     path: '/api/admin/media/create-folder',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminImportSaveRoute = ApiAdminImportSaveRouteImport.update({
+  id: '/api/admin/import/save',
+  path: '/api/admin/import/save',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminImportGoogleDocsRoute =
+  ApiAdminImportGoogleDocsRouteImport.update({
+    id: '/api/admin/import/google-docs',
+    path: '/api/admin/import/google-docs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminContentListRoute = ApiAdminContentListRouteImport.update({
+  id: '/api/admin/content/list',
+  path: '/api/admin/content/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViewIntegrationsCategorySlugRoute =
   ViewIntegrationsCategorySlugRouteImport.update({
     id: '/integrations/$category/$slug',
@@ -713,9 +744,14 @@ export interface FileRoutesByFullPath {
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
+  '/admin/content': typeof AdminContentIndexRoute
+  '/admin/import': typeof AdminImportIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
+  '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
   '/api/admin/media/delete': typeof ApiAdminMediaDeleteRoute
   '/api/admin/media/list': typeof ApiAdminMediaListRoute
@@ -810,9 +846,14 @@ export interface FileRoutesByTo {
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
+  '/admin/content': typeof AdminContentIndexRoute
+  '/admin/import': typeof AdminImportIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
+  '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
   '/api/admin/media/delete': typeof ApiAdminMediaDeleteRoute
   '/api/admin/media/list': typeof ApiAdminMediaListRoute
@@ -913,9 +954,14 @@ export interface FileRoutesById {
   '/_view/roadmap/': typeof ViewRoadmapIndexRoute
   '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
+  '/admin/content/': typeof AdminContentIndexRoute
+  '/admin/import/': typeof AdminImportIndexRoute
   '/admin/media/': typeof AdminMediaIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
+  '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
   '/api/admin/media/delete': typeof ApiAdminMediaDeleteRoute
   '/api/admin/media/list': typeof ApiAdminMediaListRoute
@@ -1016,9 +1062,14 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
+    | '/admin/content'
+    | '/admin/import'
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
+    | '/api/admin/content/list'
+    | '/api/admin/import/google-docs'
+    | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
     | '/api/admin/media/delete'
     | '/api/admin/media/list'
@@ -1113,9 +1164,14 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
+    | '/admin/content'
+    | '/admin/import'
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
+    | '/api/admin/content/list'
+    | '/api/admin/import/google-docs'
+    | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
     | '/api/admin/media/delete'
     | '/api/admin/media/list'
@@ -1215,9 +1271,14 @@ export interface FileRouteTypes {
     | '/_view/roadmap/'
     | '/_view/shortcuts/'
     | '/_view/templates/'
+    | '/admin/content/'
+    | '/admin/import/'
     | '/admin/media/'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
+    | '/api/admin/content/list'
+    | '/api/admin/import/google-docs'
+    | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
     | '/api/admin/media/delete'
     | '/api/admin/media/list'
@@ -1244,6 +1305,9 @@ export interface RootRouteChildren {
   WebhookNangoRoute: typeof WebhookNangoRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
+  ApiAdminContentListRoute: typeof ApiAdminContentListRoute
+  ApiAdminImportGoogleDocsRoute: typeof ApiAdminImportGoogleDocsRoute
+  ApiAdminImportSaveRoute: typeof ApiAdminImportSaveRoute
   ApiAdminMediaCreateFolderRoute: typeof ApiAdminMediaCreateFolderRoute
   ApiAdminMediaDeleteRoute: typeof ApiAdminMediaDeleteRoute
   ApiAdminMediaListRoute: typeof ApiAdminMediaListRoute
@@ -1475,6 +1539,20 @@ declare module '@tanstack/react-router' {
       path: '/media'
       fullPath: '/admin/media'
       preLoaderRoute: typeof AdminMediaIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/import/': {
+      id: '/admin/import/'
+      path: '/import'
+      fullPath: '/admin/import'
+      preLoaderRoute: typeof AdminImportIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/content/': {
+      id: '/admin/content/'
+      path: '/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AdminContentIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/_view/templates/': {
@@ -1939,6 +2017,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminMediaCreateFolderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/import/save': {
+      id: '/api/admin/import/save'
+      path: '/api/admin/import/save'
+      fullPath: '/api/admin/import/save'
+      preLoaderRoute: typeof ApiAdminImportSaveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/import/google-docs': {
+      id: '/api/admin/import/google-docs'
+      path: '/api/admin/import/google-docs'
+      fullPath: '/api/admin/import/google-docs'
+      preLoaderRoute: typeof ApiAdminImportGoogleDocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/list': {
+      id: '/api/admin/content/list'
+      path: '/api/admin/content/list'
+      fullPath: '/api/admin/content/list'
+      preLoaderRoute: typeof ApiAdminContentListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_view/integrations/$category/$slug': {
       id: '/_view/integrations/$category/$slug'
       path: '/integrations/$category/$slug'
@@ -2150,11 +2249,15 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
 
 interface AdminRouteRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminContentIndexRoute: typeof AdminContentIndexRoute
+  AdminImportIndexRoute: typeof AdminImportIndexRoute
   AdminMediaIndexRoute: typeof AdminMediaIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminContentIndexRoute: AdminContentIndexRoute,
+  AdminImportIndexRoute: AdminImportIndexRoute,
   AdminMediaIndexRoute: AdminMediaIndexRoute,
 }
 
@@ -2181,6 +2284,9 @@ const rootRouteChildren: RootRouteChildren = {
   WebhookNangoRoute: WebhookNangoRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
+  ApiAdminContentListRoute: ApiAdminContentListRoute,
+  ApiAdminImportGoogleDocsRoute: ApiAdminImportGoogleDocsRoute,
+  ApiAdminImportSaveRoute: ApiAdminImportSaveRoute,
   ApiAdminMediaCreateFolderRoute: ApiAdminMediaCreateFolderRoute,
   ApiAdminMediaDeleteRoute: ApiAdminMediaDeleteRoute,
   ApiAdminMediaListRoute: ApiAdminMediaListRoute,

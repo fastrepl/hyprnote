@@ -20,6 +20,7 @@ import {
   PROVIDERS,
 } from "../components/settings/ai/llm/shared";
 import {
+  type ConfigField,
   getProviderSelectionBlockers,
   type ProviderEligibilityContext,
 } from "../components/settings/ai/shared/eligibility";
@@ -44,7 +45,7 @@ export type LLMConnectionStatus =
       status: "error";
       reason: "missing_config";
       providerId: ProviderId;
-      missing: Array<"base_url" | "api_key">;
+      missing: ConfigField[];
     }
   | { status: "success"; providerId: ProviderId; isHosted: boolean };
 

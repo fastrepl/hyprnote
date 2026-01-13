@@ -95,7 +95,7 @@ function settingsToStoreValues(settings: unknown): Record<string, unknown> {
   return values;
 }
 
-function toCredentialsJson(data: LegacyProviderData): string {
+function toCredentialsJson(data: LegacyProviderData): string | null {
   if (data.access_key_id && data.secret_access_key && data.region) {
     return JSON.stringify({
       type: "aws",
@@ -104,10 +104,13 @@ function toCredentialsJson(data: LegacyProviderData): string {
       region: data.region,
     });
   }
+  if (!data.api_key) {
+    return null;
+  }
   return JSON.stringify({
     type: "api_key",
     base_url: data.base_url || undefined,
-    api_key: data.api_key || "",
+    api_key: data.api_key,
   });
 }
 
@@ -126,10 +129,13 @@ function settingsToProviderRows(
     >;
     for (const [id, data] of Object.entries(providers)) {
       if (data) {
-        rows[id] = {
-          type: providerType,
-          credentials: toCredentialsJson(data),
-        };
+        const credentials = toCredentialsJson(data);
+        if (credentials) {
+          rows[id] = {
+            type: providerType,
+            credentials,
+          };
+        }
       }
     }
   }

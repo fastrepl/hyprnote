@@ -205,11 +205,20 @@ export const generalSchema = z.object({
 export const aiProviderSchema = z
   .object({
     type: z.enum(["stt", "llm"]),
-    base_url: z.url().min(1),
-    api_key: z.string(),
+    base_url: z.url().min(1).optional(),
+    api_key: z.string().optional(),
+    access_key_id: z.string().optional(),
+    secret_access_key: z.string().optional(),
+    region: z.string().optional(),
   })
   .refine(
-    (data) => !data.base_url.startsWith("https:") || data.api_key.length > 0,
+    (data) => {
+      if (!data.base_url) return true;
+      return (
+        !data.base_url.startsWith("https:") ||
+        (data.api_key && data.api_key.length > 0)
+      );
+    },
     {
       message: "API key is required for HTTPS URLs",
       path: ["api_key"],

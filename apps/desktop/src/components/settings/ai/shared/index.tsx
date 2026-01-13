@@ -64,12 +64,21 @@ function useIsProviderConfigured(
 
   const baseUrl = String(config?.base_url || providerDef.baseUrl || "").trim();
   const apiKey = String(config?.api_key || "").trim();
+  const accessKeyId = String(config?.access_key_id || "").trim();
+  const secretAccessKey = String(config?.secret_access_key || "").trim();
+  const region = String(config?.region || "").trim();
 
   return (
     getProviderSelectionBlockers(providerDef.requirements, {
       isAuthenticated: true,
       isPro: billing.isPro,
-      config: { base_url: baseUrl, api_key: apiKey },
+      config: {
+        base_url: baseUrl,
+        api_key: apiKey,
+        access_key_id: accessKeyId,
+        secret_access_key: secretAccessKey,
+        region: region,
+      },
     }).length === 0
   );
 }
@@ -98,6 +107,9 @@ export function NonHyprProviderCard({
   const requiredFields = getRequiredConfigFields(config.requirements);
   const showApiKey = requiredFields.includes("api_key");
   const showBaseUrl = requiredFields.includes("base_url");
+  const showAccessKeyId = requiredFields.includes("access_key_id");
+  const showSecretAccessKey = requiredFields.includes("secret_access_key");
+  const showRegion = requiredFields.includes("region");
 
   const form = useForm({
     onSubmit: ({ value }) => {
@@ -113,6 +125,9 @@ export function NonHyprProviderCard({
         type: providerType,
         base_url: config.baseUrl ?? "",
         api_key: "",
+        access_key_id: "",
+        secret_access_key: "",
+        region: "",
       } satisfies AIProvider),
     listeners: {
       onChange: ({ formApi }) => {
@@ -174,6 +189,40 @@ export function NonHyprProviderCard({
                   label="API Key"
                   placeholder="Enter your API key"
                   type="password"
+                />
+              )}
+            </form.Field>
+          )}
+          {showAccessKeyId && (
+            <form.Field name="access_key_id">
+              {(field) => (
+                <FormField
+                  field={field}
+                  label="Access Key ID"
+                  placeholder="Enter your AWS Access Key ID"
+                />
+              )}
+            </form.Field>
+          )}
+          {showSecretAccessKey && (
+            <form.Field name="secret_access_key">
+              {(field) => (
+                <FormField
+                  field={field}
+                  label="Secret Access Key"
+                  placeholder="Enter your AWS Secret Access Key"
+                  type="password"
+                />
+              )}
+            </form.Field>
+          )}
+          {showRegion && (
+            <form.Field name="region">
+              {(field) => (
+                <FormField
+                  field={field}
+                  label="Region"
+                  placeholder="e.g., us-east-1"
                 />
               )}
             </form.Field>

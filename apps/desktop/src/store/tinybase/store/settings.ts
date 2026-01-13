@@ -72,6 +72,9 @@ export const SETTINGS_MAPPING = {
         type: { type: "string" },
         base_url: { type: "string" },
         api_key: { type: "string" },
+        access_key_id: { type: "string" },
+        secret_access_key: { type: "string" },
+        region: { type: "string" },
       },
     },
   },
@@ -159,6 +162,9 @@ export const StoreComponent = () => {
           select("type");
           select("base_url");
           select("api_key");
+          select("access_key_id");
+          select("secret_access_key");
+          select("region");
           where((getCell) => getCell("type") === "llm");
         },
       )
@@ -169,6 +175,9 @@ export const StoreComponent = () => {
           select("type");
           select("base_url");
           select("api_key");
+          select("access_key_id");
+          select("secret_access_key");
+          select("region");
           where((getCell) => getCell("type") === "stt");
         },
       ),

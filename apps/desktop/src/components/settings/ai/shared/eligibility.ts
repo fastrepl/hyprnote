@@ -1,4 +1,9 @@
-export type ConfigField = "base_url" | "api_key";
+export type ConfigField =
+  | "base_url"
+  | "api_key"
+  | "access_key_id"
+  | "secret_access_key"
+  | "region";
 
 export type ProviderRequirement =
   | { kind: "requires_auth" }
@@ -34,7 +39,13 @@ export function getRequiredConfigFields(
 export type ProviderEligibilityContext = {
   isAuthenticated: boolean;
   isPro: boolean;
-  config?: { base_url?: string; api_key?: string };
+  config?: {
+    base_url?: string;
+    api_key?: string;
+    access_key_id?: string;
+    secret_access_key?: string;
+    region?: string;
+  };
 };
 
 export function getProviderSelectionBlockers(
@@ -84,7 +95,7 @@ export type EligibilityBlocker =
   | { code: "provider_disabled" }
   | { code: "requires_auth" }
   | { code: "requires_entitlement"; entitlement: "pro" }
-  | { code: "missing_config"; fields: Array<"base_url" | "api_key"> }
+  | { code: "missing_config"; fields: ConfigField[] }
   | { code: "model_not_downloaded"; modelId: string }
   | { code: "unsupported_platform"; required: "apple_silicon" };
 

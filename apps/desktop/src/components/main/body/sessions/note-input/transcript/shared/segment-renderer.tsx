@@ -26,8 +26,9 @@ export const SegmentRenderer = memo(
     sessionId?: string;
     speakerLabelManager?: SpeakerLabelManager;
   }) => {
-    const { time, seek, start, audioExists } = useAudioPlayer();
+    const { time, seek, start, audioExists, state } = useAudioPlayer();
     const currentMs = time.current * 1000;
+    const isPlaying = state === "playing";
 
     const seekAndPlay = useCallback(
       (word: SegmentWord) => {
@@ -59,8 +60,8 @@ export const SegmentRenderer = memo(
             const wordEndMs = offsetMs + word.end_ms;
 
             const highlightState = getWordHighlightState({
-              editable,
               audioExists,
+              isPlaying,
               currentMs,
               wordStartMs,
               wordEndMs,

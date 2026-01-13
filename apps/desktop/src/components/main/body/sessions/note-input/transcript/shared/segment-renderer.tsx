@@ -59,7 +59,6 @@ export const SegmentRenderer = memo(
             const wordEndMs = offsetMs + word.end_ms;
 
             const highlightState = getWordHighlightState({
-              editable,
               audioExists,
               currentMs,
               wordStartMs,

@@ -1900,12 +1900,19 @@ function MetadataPanel({
         />
       </MetadataRow>
       <MetadataRow label="Section" required>
-        <input
-          type="text"
+        <select
           defaultValue={fileContent.section || ""}
-          placeholder="Section name"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+        >
+          <option value="">Select section</option>
+          <option value="About">About</option>
+          <option value="Calendar">Calendar</option>
+          <option value="Developers">Developers</option>
+          <option value="FAQ">FAQ</option>
+          <option value="Getting Started">Getting Started</option>
+          <option value="Guides">Guides</option>
+          <option value="Pro">Pro</option>
+        </select>
       </MetadataRow>
       <MetadataRow label="Summary">
         <textarea
@@ -1963,12 +1970,18 @@ function MetadataPanel({
         />
       </MetadataRow>
       <MetadataRow label="Section" required>
-        <input
-          type="text"
+        <select
           defaultValue={fileContent.section || ""}
-          placeholder="Section name"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+        >
+          <option value="">Select section</option>
+          <option value="About">About</option>
+          <option value="Beliefs">Beliefs</option>
+          <option value="Communication">Communication</option>
+          <option value="Go To Market">Go To Market</option>
+          <option value="How We Work">How We Work</option>
+          <option value="Who We Want">Who We Want</option>
+        </select>
       </MetadataRow>
       <MetadataRow label="Summary">
         <textarea

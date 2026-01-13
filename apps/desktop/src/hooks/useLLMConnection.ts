@@ -1,3 +1,4 @@
+import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -33,6 +34,10 @@ type LLMConnectionInfo = {
   modelId: string;
   baseUrl: string;
   apiKey: string;
+  // Bedrock-specific credentials
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  region?: string;
 };
 
 export type LLMConnectionStatus =
@@ -145,11 +150,20 @@ const resolveLLMConnection = (params: {
     providerDefinition.baseUrl?.trim() ||
     "";
   const apiKey = providerConfig?.api_key?.trim() || "";
+  const accessKeyId = providerConfig?.access_key_id?.trim() || "";
+  const secretAccessKey = providerConfig?.secret_access_key?.trim() || "";
+  const region = providerConfig?.region?.trim() || "";
 
   const context: ProviderEligibilityContext = {
     isAuthenticated: !!session,
     isPro,
-    config: { base_url: baseUrl, api_key: apiKey },
+    config: {
+      base_url: baseUrl,
+      api_key: apiKey,
+      access_key_id: accessKeyId,
+      secret_access_key: secretAccessKey,
+      region: region,
+    },
   };
 
   const blockers = getProviderSelectionBlockers(
@@ -197,7 +211,15 @@ const resolveLLMConnection = (params: {
   }
 
   return {
-    conn: { providerId, modelId, baseUrl, apiKey },
+    conn: {
+      providerId,
+      modelId,
+      baseUrl,
+      apiKey,
+      accessKeyId,
+      secretAccessKey,
+      region,
+    },
     status: { status: "success", providerId, isHosted: false },
   };
 };
@@ -265,6 +287,15 @@ const createLanguageModel = (
       const provider = createOpenAI({
         fetch: tauriFetch,
         apiKey: conn.apiKey,
+      });
+      return wrapWithThinkingMiddleware(provider(conn.modelId));
+    }
+
+    case "amazon_bedrock": {
+      const provider = createAmazonBedrock({
+        region: conn.region || "us-east-1",
+        accessKeyId: conn.accessKeyId,
+        secretAccessKey: conn.secretAccessKey,
       });
       return wrapWithThinkingMiddleware(provider(conn.modelId));
     }

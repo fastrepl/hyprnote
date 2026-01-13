@@ -55,6 +55,14 @@ vi.mock("@hypr/plugin-settings", () => ({
   },
 }));
 
+vi.mock("@hypr/plugin-detect", () => ({
+  commands: {
+    getPreferredLanguages: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: [] }),
+  },
+}));
+
 describe("settingsPersister roundtrip", () => {
   test("settings -> store -> settings preserves all data", () => {
     const original = {

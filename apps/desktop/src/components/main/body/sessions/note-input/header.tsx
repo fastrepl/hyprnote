@@ -383,7 +383,7 @@ export function Header({
   const showProgress =
     currentTab.type === "transcript" && !isLiveProcessing && isBatchProcessing;
   const showEditingControls =
-    currentTab.type === "transcript" && isLiveProcessing && !isBatchProcessing;
+    currentTab.type === "transcript" && !isBatchProcessing;
 
   return (
     <div className="flex flex-col">

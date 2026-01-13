@@ -18,20 +18,46 @@ interface ImportResponse {
   error?: string;
 }
 
-function extractGoogleDocsId(url: string): string | null {
-  const patterns = [
+interface ParsedGoogleDocsUrl {
+  docId: string;
+  tabParam: string | null;
+}
+
+function parseGoogleDocsUrl(url: string): ParsedGoogleDocsUrl | null {
+  const docIdPatterns = [
     /docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)/,
     /docs\.google\.com\/document\/u\/\d+\/d\/([a-zA-Z0-9_-]+)/,
     /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/,
   ];
 
-  for (const pattern of patterns) {
+  let docId: string | null = null;
+  for (const pattern of docIdPatterns) {
     const match = url.match(pattern);
     if (match) {
-      return match[1];
+      docId = match[1];
+      break;
     }
   }
-  return null;
+
+  if (!docId) {
+    return null;
+  }
+
+  let tabParam: string | null = null;
+  try {
+    const urlObj = new URL(url);
+    const tabValue = urlObj.searchParams.get("tab");
+    if (tabValue) {
+      tabParam = tabValue;
+    }
+  } catch {
+    const tabMatch = url.match(/[?&]tab=([^&#]+)/);
+    if (tabMatch) {
+      tabParam = tabMatch[1];
+    }
+  }
+
+  return { docId, tabParam };
 }
 
 function htmlToMarkdown(html: string): string {
@@ -178,50 +204,19 @@ function extractTitle(html: string): string | null {
   return null;
 }
 
-function extractFirstTabContent(html: string): string {
-  const tabDividerPatterns = [
-    /<hr[^>]*class="[^"]*tab-divider[^"]*"[^>]*>/i,
-    /<div[^>]*class="[^"]*tab-content[^"]*"[^>]*id="[^"]*tab-[^0][^"]*"[^>]*>/i,
-    /<h1[^>]*class="[^"]*tab-title[^"]*"[^>]*>/i,
-  ];
-
-  for (const pattern of tabDividerPatterns) {
-    const match = html.match(pattern);
-    if (match && match.index !== undefined) {
-      return html.substring(0, match.index);
-    }
-  }
-
+function removeTabTitleFromContent(html: string): string {
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  if (bodyMatch) {
-    const bodyContent = bodyMatch[1];
-
-    const hrParts = bodyContent.split(/<hr[^>]*\/?>/i);
-    if (hrParts.length > 1) {
-      const firstPart = hrParts[0];
-      const hasH1BeforeContent = /<h1[^>]*>[\s\S]*?<\/h1>/i.test(firstPart);
-
-      if (hasH1BeforeContent && hrParts.length >= 2) {
-        const h1Match = firstPart.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-        if (h1Match) {
-          const firstH1Text = h1Match[1].replace(/<[^>]+>/g, "").trim();
-
-          for (let i = 1; i < hrParts.length; i++) {
-            const partH1Match = hrParts[i].match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-            if (partH1Match) {
-              const partH1Text = partH1Match[1].replace(/<[^>]+>/g, "").trim();
-              if (partH1Text !== firstH1Text && partH1Text.length > 0) {
-                const beforeSecondTab = hrParts.slice(0, i).join("<hr>");
-                return html.replace(bodyContent, beforeSecondTab);
-              }
-            }
-          }
-        }
-      }
-    }
+  if (!bodyMatch) {
+    return html;
   }
 
-  return html;
+  let bodyContent = bodyMatch[1];
+
+  const tabTitlePattern =
+    /<p[^>]+class="[^"]*title[^"]*"[^>]*><span[^>]*>[^<]+<\/span><\/p>/gi;
+  bodyContent = bodyContent.replace(tabTitlePattern, "");
+
+  return html.replace(bodyMatch[1], bodyContent);
 }
 
 function generateMdx(
@@ -275,8 +270,8 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
             );
           }
 
-          const docId = extractGoogleDocsId(url);
-          if (!docId) {
+          const parsedUrl = parseGoogleDocsUrl(url);
+          if (!parsedUrl) {
             return new Response(
               JSON.stringify({
                 success: false,
@@ -286,14 +281,17 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
             );
           }
 
+          const { docId, tabParam } = parsedUrl;
+          const tabQueryParam = tabParam || "t.0";
+
           let html: string;
           let response: Response;
 
-          const publishedUrl = `https://docs.google.com/document/d/${docId}/pub?tab=t.0`;
+          const publishedUrl = `https://docs.google.com/document/d/${docId}/pub?tab=${tabQueryParam}`;
           response = await fetch(publishedUrl);
 
           if (!response.ok) {
-            const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=html&tab=t.0`;
+            const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=html&tab=${tabQueryParam}`;
             response = await fetch(exportUrl);
 
             if (!response.ok) {
@@ -313,7 +311,7 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
 
           html = await response.text();
 
-          html = extractFirstTabContent(html);
+          html = removeTabTitleFromContent(html);
           const extractedTitle = extractTitle(html) || "Untitled";
           const finalTitle = title || extractedTitle;
 

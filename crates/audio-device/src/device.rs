@@ -25,6 +25,9 @@ pub enum AudioDirection {
     Output,
 }
 
+/// Transport type for audio devices.
+///
+/// Used to determine device type and priority.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum TransportType {
     BuiltIn,
@@ -34,15 +37,6 @@ pub enum TransportType {
     Pci,
     Virtual,
     Unknown,
-}
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize, specta::Type,
-)]
-pub enum OutputCategory {
-    #[default]
-    Speaker,
-    Headphone,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]

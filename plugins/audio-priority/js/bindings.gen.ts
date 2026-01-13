@@ -6,14 +6,6 @@
 
 
 export const commands = {
-async listDevices() : Promise<Result<AudioDevice[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|list_devices") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async listInputDevices() : Promise<Result<AudioDevice[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|list_input_devices") };
@@ -25,22 +17,6 @@ async listInputDevices() : Promise<Result<AudioDevice[], string>> {
 async listOutputDevices() : Promise<Result<AudioDevice[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|list_output_devices") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async getDefaultInputDevice() : Promise<Result<AudioDevice | null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|get_default_input_device") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async getDefaultOutputDevice() : Promise<Result<AudioDevice | null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|get_default_output_device") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -62,30 +38,6 @@ async setDefaultOutputDevice(deviceId: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async isHeadphone(device: AudioDevice) : Promise<Result<boolean, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|is_headphone", { device }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async loadState() : Promise<Result<PriorityState, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|load_state") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async saveState(state: PriorityState) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|save_state", { state }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async getInputPriorities() : Promise<Result<string[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|get_input_priorities") };
@@ -94,17 +46,9 @@ async getInputPriorities() : Promise<Result<string[], string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async getSpeakerPriorities() : Promise<Result<string[], string>> {
+async getOutputPriorities() : Promise<Result<string[], string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|get_speaker_priorities") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async getHeadphonePriorities() : Promise<Result<string[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|get_headphone_priorities") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|get_output_priorities") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -118,121 +62,9 @@ async saveInputPriorities(priorities: string[]) : Promise<Result<null, string>> 
     else return { status: "error", error: e  as any };
 }
 },
-async saveSpeakerPriorities(priorities: string[]) : Promise<Result<null, string>> {
+async saveOutputPriorities(priorities: string[]) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|save_speaker_priorities", { priorities }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async saveHeadphonePriorities(priorities: string[]) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|save_headphone_priorities", { priorities }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async moveDeviceToTop(deviceId: string, direction: AudioDirection, category: OutputCategory | null) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|move_device_to_top", { deviceId, direction, category }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async getDeviceCategory(deviceId: string) : Promise<Result<OutputCategory, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|get_device_category", { deviceId }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async setDeviceCategory(deviceId: string, category: OutputCategory) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|set_device_category", { deviceId, category }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async getCurrentMode() : Promise<Result<OutputCategory, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|get_current_mode") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async setCurrentMode(mode: OutputCategory) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|set_current_mode", { mode }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async isCustomMode() : Promise<Result<boolean, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|is_custom_mode") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async setCustomMode(enabled: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|set_custom_mode", { enabled }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async getKnownDevices() : Promise<Result<StoredDevice[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|get_known_devices") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async rememberDevice(uid: string, name: string, isInput: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|remember_device", { uid, name, isInput }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async forgetDevice(uid: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|forget_device", { uid }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async isDeviceHidden(deviceId: string, direction: AudioDirection) : Promise<Result<boolean, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|is_device_hidden", { deviceId, direction }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async hideDevice(deviceId: string, direction: AudioDirection) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|hide_device", { deviceId, direction }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async unhideDevice(deviceId: string, direction: AudioDirection) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|unhide_device", { deviceId, direction }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:audio-priority|save_output_priorities", { priorities }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -250,112 +82,15 @@ async unhideDevice(deviceId: string, direction: AudioDirection) : Promise<Result
 
 /** user-defined types **/
 
-/**
- * Represents an audio device with stable identification.
- */
-export type AudioDevice = { 
-/**
- * Stable, platform-specific device identifier
- */
-id: DeviceId; 
-/**
- * Human-readable device name
- */
-name: string; 
-/**
- * Device direction (input/output)
- */
-direction: AudioDirection; 
-/**
- * Transport type (USB, Bluetooth, etc.)
- */
-transport_type: TransportType; 
-/**
- * Whether this device is currently the system default
- */
-is_default: boolean; 
-/**
- * Volume level (0.0 to 1.0), if available
- */
-volume?: number | null; 
-/**
- * Whether the device is muted, if available
- */
-is_muted?: boolean | null }
-/**
- * Audio device direction (input or output).
- */
-export type AudioDirection = 
-/**
- * Input device (microphone)
- */
-"Input" | 
-/**
- * Output device (speaker/headphone)
- */
-"Output"
-/**
- * A stable, platform-specific device identifier.
- * 
- * On macOS: CoreAudio device UID (e.g., "BuiltInMicrophoneDevice")
- * On Linux: PulseAudio source/sink name (e.g., "alsa_input.pci-0000_00_1f.3.analog-stereo")
- * On Windows: IMMDevice endpoint ID
- */
+export type AudioDevice = { id: DeviceId; name: string; direction: AudioDirection; transport_type: TransportType; is_default: boolean; volume?: number | null; is_muted?: boolean | null }
+export type AudioDirection = "Input" | "Output"
 export type DeviceId = string
-/**
- * Output device category for priority management.
- */
-export type OutputCategory = 
-/**
- * Speaker devices (external speakers, built-in speakers)
- */
-"Speaker" | 
-/**
- * Headphone/headset devices
- */
-"Headphone"
-/**
- * Persistent state for priority management.
- */
-export type PriorityState = { input_priorities: string[]; speaker_priorities: string[]; headphone_priorities: string[]; device_categories: Partial<{ [key in string]: OutputCategory }>; hidden_mics: string[]; hidden_speakers: string[]; hidden_headphones: string[]; known_devices: StoredDevice[]; current_mode: OutputCategory; is_custom_mode: boolean }
-/**
- * A stored device with metadata for persistence.
- */
-export type StoredDevice = { uid: string; name: string; is_input: boolean; last_seen: number }
 /**
  * Transport type for audio devices.
  * 
- * Used to determine device category (headphone vs speaker) and priority.
+ * Used to determine device type and priority.
  */
-export type TransportType = 
-/**
- * Built-in device (internal speakers, internal mic)
- */
-"BuiltIn" | 
-/**
- * USB audio device
- */
-"Usb" | 
-/**
- * Bluetooth audio device
- */
-"Bluetooth" | 
-/**
- * HDMI/DisplayPort audio
- */
-"Hdmi" | 
-/**
- * PCI audio device
- */
-"Pci" | 
-/**
- * Virtual/aggregate device
- */
-"Virtual" | 
-/**
- * Unknown transport type
- */
-"Unknown"
+export type TransportType = "BuiltIn" | "Usb" | "Bluetooth" | "Hdmi" | "Pci" | "Virtual" | "Unknown"
 
 /** tauri-specta globals **/
 

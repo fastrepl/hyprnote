@@ -401,19 +401,21 @@ function CollectionsPage() {
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel defaultSize={80} minSize={50}>
-        <ContentPanel
-          tabs={tabs}
-          currentTab={currentTab}
-          onSelectTab={selectTab}
-          onCloseTab={closeTab}
-          onCloseOtherTabs={closeOtherTabs}
-          onCloseAllTabs={closeAllTabs}
-          onPinTab={pinTab}
-          onReorderTabs={reorderTabs}
-          filteredItems={filteredItems}
-          onFileClick={(item) => openTab("file", item.name, item.path)}
-          contentMap={contentMap}
-        />
+        <div className="h-full flex flex-col">
+          <ContentPanel
+            tabs={tabs}
+            currentTab={currentTab}
+            onSelectTab={selectTab}
+            onCloseTab={closeTab}
+            onCloseOtherTabs={closeOtherTabs}
+            onCloseAllTabs={closeAllTabs}
+            onPinTab={pinTab}
+            onReorderTabs={reorderTabs}
+            filteredItems={filteredItems}
+            onFileClick={(item) => openTab("file", item.name, item.path)}
+            contentMap={contentMap}
+          />
+        </div>
       </ResizablePanel>
 
       <ImportModal
@@ -867,7 +869,7 @@ function ContentPanel({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {currentTab ? (
-        <>
+        <div className="flex-1 flex flex-col min-h-0">
           <EditorHeader
             tabs={tabs}
             currentTab={currentTab}
@@ -890,7 +892,7 @@ function ContentPanel({
               isPreviewMode={isPreviewMode}
             />
           )}
-        </>
+        </div>
       ) : (
         <div className="flex-1 flex flex-col">
           <div className="h-10 border-b border-neutral-200" />

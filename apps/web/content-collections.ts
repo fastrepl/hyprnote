@@ -187,9 +187,6 @@ const docs = defineCollection({
     title: z.string(),
     section: z.string(),
     summary: z.string().optional(),
-    category: z.string().optional(),
-    author: z.string().optional(),
-    date: z.string().optional(),
   }),
   transform: async (document, context) => {
     const processedContent = await embedGithubCode(document.content);
@@ -614,8 +611,6 @@ const handbook = defineCollection({
     title: z.string(),
     section: z.string(),
     summary: z.string().optional(),
-    author: z.string().optional(),
-    date: z.string().optional(),
   }),
   transform: async (document, context) => {
     const toc = extractToc(document.content);

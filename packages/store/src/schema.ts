@@ -223,6 +223,19 @@ export const credentialsSchema = z.discriminatedUnion("type", [
   awsCredentialsSchema,
 ]);
 
+export function parseCredentials(
+  credentialsJson: string | undefined,
+): Credentials | null {
+  if (!credentialsJson) return null;
+  try {
+    const parsed = JSON.parse(credentialsJson);
+    const result = credentialsSchema.safeParse(parsed);
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
+}
+
 export const aiProviderSchema = z.object({
   type: z.enum(["stt", "llm"]),
   credentials: jsonObject(credentialsSchema),

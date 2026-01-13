@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMemo } from "react";
 
-import { credentialsSchema } from "@hypr/store";
+import { parseCredentials } from "@hypr/store";
 import {
   Select,
   SelectContent,
@@ -200,18 +200,9 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
     return Object.fromEntries(
       PROVIDERS.map((provider) => {
         const config = configuredProviders[provider.id];
-        const credentialsJson = config?.credentials as string | undefined;
-        const credentials = credentialsJson
-          ? (() => {
-              try {
-                const parsed = JSON.parse(credentialsJson);
-                const result = credentialsSchema.safeParse(parsed);
-                return result.success ? result.data : null;
-              } catch {
-                return null;
-              }
-            })()
-          : null;
+        const credentials = parseCredentials(
+          config?.credentials as string | undefined,
+        );
 
         const baseUrl =
           credentials?.type === "api_key"

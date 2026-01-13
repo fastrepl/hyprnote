@@ -5,7 +5,7 @@ import { Streamdown } from "streamdown";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { AIProvider, Credentials } from "@hypr/store";
-import { credentialsSchema } from "@hypr/store";
+import { parseCredentials } from "@hypr/store";
 import {
   AccordionContent,
   AccordionItem,
@@ -39,19 +39,6 @@ type ProviderConfig = {
   disabled?: boolean;
   requirements: ProviderRequirement[];
 };
-
-function parseCredentials(
-  credentialsJson: string | undefined,
-): Credentials | null {
-  if (!credentialsJson) return null;
-  try {
-    const parsed = JSON.parse(credentialsJson);
-    const result = credentialsSchema.safeParse(parsed);
-    return result.success ? result.data : null;
-  } catch {
-    return null;
-  }
-}
 
 function useIsProviderConfigured(
   providerId: string,

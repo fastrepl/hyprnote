@@ -20,6 +20,7 @@
     "@ai-sdk/azure": "^2.0.90",
     "@ai-sdk/google": "^2.0.51",
     "@ai-sdk/google-vertex": "^3.0.96",
+    "@ai-sdk/mistral": "^3.0.6",
     "@ai-sdk/openai": "^2.0.88",
     "@ai-sdk/openai-compatible": "^1.0.29",
     "@ai-sdk/react": "^2.0.118",

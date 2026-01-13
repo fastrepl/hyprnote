@@ -2,6 +2,7 @@ import { Icon } from "@iconify-icon/react";
 import {
   Anthropic,
   LmStudio,
+  Mistral,
   Ollama,
   OpenAI,
   OpenRouter,
@@ -75,6 +76,14 @@ const _PROVIDERS = [
     badge: null,
     icon: <Anthropic size={16} />,
     baseUrl: "https://api.anthropic.com/v1",
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+  },
+  {
+    id: "mistral",
+    displayName: "Mistral",
+    badge: null,
+    icon: <Mistral size={16} />,
+    baseUrl: "https://api.mistral.ai/v1",
     requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {

@@ -326,13 +326,11 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
           const finalAuthor = author || "Unknown";
           const finalDescription = description || "";
 
-          const defaultCoverImage = `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(finalTitle)}${finalAuthor ? `&author=${encodeURIComponent(finalAuthor)}` : ""}${today ? `&date=${encodeURIComponent(new Date(today).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}&v=1`;
-
           const mdx = generateMdx(markdown, {
             title: finalTitle,
             author: finalAuthor,
             description: finalDescription,
-            coverImage: coverImage || defaultCoverImage,
+            coverImage: coverImage || "",
           });
 
           const frontmatter = {
@@ -340,7 +338,7 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
             display_title: finalTitle,
             meta_description: finalDescription,
             author: finalAuthor,
-            coverImage: coverImage || defaultCoverImage,
+            coverImage: coverImage || "",
             featured: false,
             published: false,
             date: today,

@@ -94,6 +94,7 @@ const articles = defineCollection({
     category: z
       .enum([
         "Case Study",
+        "Products In-depth",
         "Hyprnote Weekly",
         "Productivity Hack",
         "Engineering",

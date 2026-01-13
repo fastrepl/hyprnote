@@ -35,7 +35,6 @@ interface ImportResult {
     author: string;
     coverImage: string;
     featured: boolean;
-    published: boolean;
     date: string;
   };
   error?: string;
@@ -56,6 +55,7 @@ const AUTHORS = [
 
 const CATEGORIES = [
   "Case Study",
+  "Products In-depth",
   "Hyprnote Weekly",
   "Productivity Hack",
   "Engineering",
@@ -63,7 +63,37 @@ const CATEGORIES = [
 
 const remarkPlugins = [remarkGfm];
 
-const PreviewPanel = memo(function PreviewPanel({
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+const MarkdownPreview = memo(function MarkdownPreview({
+  mdxContent,
+}: {
+  mdxContent: string;
+}) {
+  const debouncedContent = useDebouncedValue(mdxContent, 300);
+
+  if (!debouncedContent) {
+    return (
+      <p className="text-neutral-400 text-center">Preview will appear here</p>
+    );
+  }
+  return (
+    <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 prose-table:border-collapse prose-table:w-full prose-th:border prose-th:border-neutral-200 prose-th:bg-neutral-50 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-medium prose-td:border prose-td:border-neutral-200 prose-td:px-3 prose-td:py-2 max-w-none">
+      <Markdown remarkPlugins={remarkPlugins}>{debouncedContent}</Markdown>
+    </article>
+  );
+});
+
+function PreviewPanel({
   displayTitle,
   metaTitle,
   author,
@@ -107,19 +137,11 @@ const PreviewPanel = memo(function PreviewPanel({
         )}
       </header>
       <div className="max-w-3xl mx-auto px-6 pb-8">
-        {mdxContent ? (
-          <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 prose-table:border-collapse prose-table:w-full prose-th:border prose-th:border-neutral-200 prose-th:bg-neutral-50 prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:font-medium prose-td:border prose-td:border-neutral-200 prose-td:px-3 prose-td:py-2 max-w-none">
-            <Markdown remarkPlugins={remarkPlugins}>{mdxContent}</Markdown>
-          </article>
-        ) : (
-          <p className="text-neutral-400 text-center">
-            Preview will appear here
-          </p>
-        )}
+        <MarkdownPreview mdxContent={mdxContent} />
       </div>
     </div>
   );
-});
+}
 
 const AuthorSelect = memo(function AuthorSelect({
   value,
@@ -216,7 +238,6 @@ function buildFrontmatter(metadata: {
   coverImage: string;
   category: string;
   featured: boolean;
-  published: boolean;
 }): string {
   const obj: Record<string, unknown> = {};
 
@@ -229,7 +250,7 @@ function buildFrontmatter(metadata: {
   if (metadata.coverImage) obj.coverImage = metadata.coverImage;
   if (metadata.category) obj.category = metadata.category;
   obj.featured = metadata.featured;
-  obj.published = metadata.published;
+  obj.published = true;
 
   return `---\n${yaml.dump(obj)}---`;
 }
@@ -257,7 +278,7 @@ function MetadataRow({
         showValidation && isInvalid && "bg-red-50",
       ])}
     >
-      <span className="w-24 shrink-0 pl-6 pr-4 py-2 text-neutral-500 flex items-center relative">
+      <span className="w-28 shrink-0 pl-6 pr-4 py-2 text-neutral-500 flex items-center relative">
         {required && <span className="absolute left-3 text-red-400">*</span>}
         {label}
       </span>
@@ -285,8 +306,6 @@ const MetadataPanel = memo(function MetadataPanel({
   setCategory,
   slug,
   setSlug,
-  published,
-  setPublished,
   featured,
   setFeatured,
   generateSlugFromTitle,
@@ -310,8 +329,6 @@ const MetadataPanel = memo(function MetadataPanel({
   setCategory: (v: string) => void;
   slug: string;
   setSlug: (v: string) => void;
-  published: boolean;
-  setPublished: (v: boolean) => void;
   featured: boolean;
   setFeatured: (v: boolean) => void;
   generateSlugFromTitle: () => void;
@@ -340,13 +357,13 @@ const MetadataPanel = memo(function MetadataPanel({
         >
           <button
             onClick={() => setIsTitleExpanded(!isTitleExpanded)}
-            className="w-24 shrink-0 pl-6 pr-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
+            className="w-28 shrink-0 pl-6 pr-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
           >
             <span className="absolute left-3 text-red-400">*</span>
             Title
             <ChevronRightIcon
               className={cn([
-                "size-3 transition-transform",
+                "size-4 transition-transform",
                 isTitleExpanded && "rotate-90",
               ])}
             />
@@ -369,21 +386,34 @@ const MetadataPanel = memo(function MetadataPanel({
               type="text"
               value={displayTitle}
               onChange={(e) => setDisplayTitle(e.target.value)}
-              placeholder="Display title (optional)"
+              placeholder={metaTitle || "Display title (optional)"}
               className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
             />
           </div>
         )}
-        <MetadataRow label="Author" required>
-          <AuthorSelect value={author} onChange={setAuthor} />
-        </MetadataRow>
-        <MetadataRow label="Date" required>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-          />
+        <MetadataRow
+          label="Slug"
+          required
+          showValidation={showValidation}
+          isInvalid={!slug}
+        >
+          <div className="flex-1 flex items-center">
+            <span className="text-neutral-400 text-xs">hyprnote.com/blog/</span>
+            <input
+              type="text"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              placeholder="article-slug"
+              className="flex-1 px-1 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+            />
+            <button
+              type="button"
+              onClick={generateSlugFromTitle}
+              className="p-1.5 text-neutral-400 hover:text-neutral-600"
+            >
+              <SparklesIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </MetadataRow>
         <MetadataRow
           label="Description"
@@ -410,6 +440,17 @@ const MetadataPanel = memo(function MetadataPanel({
             className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
           />
         </MetadataRow>
+        <MetadataRow label="Author" required>
+          <AuthorSelect value={author} onChange={setAuthor} />
+        </MetadataRow>
+        <MetadataRow label="Date" required>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+          />
+        </MetadataRow>
         <MetadataRow label="Category">
           <select
             value={category}
@@ -432,40 +473,6 @@ const MetadataPanel = memo(function MetadataPanel({
             placeholder="/api/images/blog/slug/cover.png"
             className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
           />
-        </MetadataRow>
-        <MetadataRow
-          label="Slug"
-          required
-          showValidation={showValidation}
-          isInvalid={!slug}
-        >
-          <div className="flex-1 flex items-center">
-            <span className="text-neutral-400 text-xs">hyprnote.com/blog/</span>
-            <input
-              type="text"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="article-slug"
-              className="flex-1 px-1 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-            />
-            <button
-              type="button"
-              onClick={generateSlugFromTitle}
-              className="p-1.5 text-neutral-400 hover:text-neutral-600"
-            >
-              <SparklesIcon className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </MetadataRow>
-        <MetadataRow label="Published">
-          <div className="flex-1 flex items-center px-2 py-2">
-            <input
-              type="checkbox"
-              checked={published}
-              onChange={(e) => setPublished(e.target.checked)}
-              className="rounded"
-            />
-          </div>
         </MetadataRow>
         <MetadataRow label="Featured" noBorder>
           <div className="flex-1 flex items-center px-2 py-2">
@@ -511,9 +518,7 @@ function AdminIndexPage() {
   const [coverImage, setCoverImage] = useState("");
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
   const [featured, setFeatured] = useState(false);
-  const [published, setPublished] = useState(false);
   const [slug, setSlug] = useState("");
-  const [parsedUrl, setParsedUrl] = useState("");
   const [isPreviewMode, setIsPreviewMode] = useState(true);
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
   const [showValidation, setShowValidation] = useState(false);
@@ -531,8 +536,7 @@ function AdminIndexPage() {
       }
       return response.json();
     },
-    onSuccess: (data, variables) => {
-      setParsedUrl(variables);
+    onSuccess: (data) => {
       if (data.mdx) {
         setMdxContent(stripFrontmatter(data.mdx));
       }
@@ -562,7 +566,6 @@ function AdminIndexPage() {
         coverImage,
         category,
         featured,
-        published,
       });
       const fullContent = `${frontmatter}\n\n${mdxContent}`;
       const filename = slug.endsWith(".mdx") ? slug : `${slug}.mdx`;
@@ -584,16 +587,19 @@ function AdminIndexPage() {
     },
   });
 
+  const { reset: resetSaveMutation, mutate: mutateSave } = saveMutation;
+  const { mutate: mutateParse } = parseMutation;
+
   const handleParse = useCallback(() => {
     if (!url) return;
-    saveMutation.reset();
-    parseMutation.mutate(url);
-  }, [url, saveMutation, parseMutation]);
+    resetSaveMutation();
+    mutateParse(url);
+  }, [url, resetSaveMutation, mutateParse]);
 
   const handleSave = useCallback(() => {
     if (!mdxContent || !slug || !metaTitle || !metaDescription) return;
-    saveMutation.mutate();
-  }, [mdxContent, slug, metaTitle, metaDescription, saveMutation]);
+    mutateSave();
+  }, [mdxContent, slug, metaTitle, metaDescription, mutateSave]);
 
   const generateSlugFromTitle = useCallback(() => {
     if (metaTitle) {
@@ -608,7 +614,6 @@ function AdminIndexPage() {
   }, [metaTitle]);
 
   const error = parseMutation.error || saveMutation.error;
-  const urlChanged = url !== parsedUrl;
 
   const handleContentChange = useCallback((newContent: string) => {
     setMdxContent(newContent);
@@ -643,10 +648,10 @@ function AdminIndexPage() {
       />
       <button
         onClick={handleParse}
-        disabled={parseMutation.isPending || !url || !urlChanged}
+        disabled={parseMutation.isPending || !url}
         className={cn([
           "p-1.5 disabled:opacity-30",
-          urlChanged ? "text-blue-600 hover:text-blue-700" : "text-neutral-400",
+          url ? "text-blue-600 hover:text-blue-700" : "text-neutral-400",
         ])}
       >
         {parseMutation.isPending ? (
@@ -693,7 +698,7 @@ function AdminIndexPage() {
             }
             className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 disabled:opacity-50"
           >
-            {saveMutation.isPending ? "Saving..." : "Save"}
+            {saveMutation.isPending ? "Publishing..." : "Publish"}
           </button>
         </>
       )}
@@ -796,8 +801,6 @@ function AdminIndexPage() {
                 setCategory={setCategory}
                 slug={slug}
                 setSlug={setSlug}
-                published={published}
-                setPublished={setPublished}
                 featured={featured}
                 setFeatured={setFeatured}
                 generateSlugFromTitle={generateSlugFromTitle}
@@ -845,8 +848,6 @@ function AdminIndexPage() {
             setCategory={setCategory}
             slug={slug}
             setSlug={setSlug}
-            published={published}
-            setPublished={setPublished}
             featured={featured}
             setFeatured={setFeatured}
             generateSlugFromTitle={generateSlugFromTitle}

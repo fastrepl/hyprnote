@@ -1531,7 +1531,7 @@ function MetadataPanel({
       <div
         className={cn([
           "text-sm transition-all duration-200 overflow-hidden",
-          isExpanded ? "max-h-[500px]" : "max-h-0",
+          isExpanded ? "max-h-125" : "max-h-0",
         ])}
       >
         <div className="flex border-b border-neutral-200">

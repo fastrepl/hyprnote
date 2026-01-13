@@ -15,11 +15,6 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@codemirror/autocomplete": "^6.20.0",
-    "@codemirror/lang-jinja": "^6.0.0",
-    "@codemirror/lint": "^6.9.2",
-    "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.39.4",
     "@floating-ui/dom": "^1.7.4",
     "@hypr/ui": "workspace:^",
     "@remixicon/react": "^4.7.0",
@@ -43,9 +38,7 @@
     "@tiptap/react": "^3.15.3",
     "@tiptap/starter-kit": "^3.15.3",
     "@tiptap/suggestion": "^3.15.3",
-    "@uiw/react-codemirror": "^4.25.4",
     "clsx": "^2.1.1",
-    "codemirror-readonly-ranges": "0.1.0-alpha.2",
     "lucide-react": "^0.544.0",
     "prosemirror-commands": "^1.7.1",
     "prosemirror-model": "^1.25.4",
@@ -61,6 +54,13 @@
     "vitest": "^3.2.4"
   },
   "peerDependencies": {
+    "@codemirror/autocomplete": "^6.20.0",
+    "@codemirror/lang-jinja": "^6.0.0",
+    "@codemirror/lint": "^6.9.2",
+    "@codemirror/state": "^6.5.3",
+    "@codemirror/view": "^6.39.9",
+    "@uiw/react-codemirror": "^4.25.4",
+    "codemirror-readonly-ranges": "0.1.0-alpha.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   }

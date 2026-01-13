@@ -17,12 +17,23 @@ const PLUGIN_NAME: &str = "detect";
 
 pub type SharedState = Mutex<State>;
 
-#[derive(Default)]
 pub struct State {
     #[allow(dead_code)]
     pub(crate) detector: hypr_detect::Detector,
     pub(crate) ignored_bundle_ids: Vec<String>,
     pub(crate) respect_do_not_disturb: bool,
+    pub(crate) enabled: bool,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            detector: Default::default(),
+            ignored_bundle_ids: Default::default(),
+            respect_do_not_disturb: Default::default(),
+            enabled: true,
+        }
+    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -35,6 +46,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::list_mic_using_applications::<tauri::Wry>,
             commands::set_respect_do_not_disturb::<tauri::Wry>,
             commands::set_ignored_bundle_ids::<tauri::Wry>,
+            commands::set_enabled::<tauri::Wry>,
             commands::list_default_ignored_bundle_ids::<tauri::Wry>,
             commands::get_preferred_languages::<tauri::Wry>,
             commands::get_current_locale_identifier::<tauri::Wry>,

@@ -81,6 +81,16 @@ pub(crate) async fn set_respect_do_not_disturb<R: tauri::Runtime>(
     Ok(())
 }
 
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn set_enabled<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    enabled: bool,
+) -> Result<(), String> {
+    app.detect().set_enabled(enabled).await;
+    Ok(())
+}
+
 #[cfg(target_os = "macos")]
 #[tauri::command]
 #[specta::specta]

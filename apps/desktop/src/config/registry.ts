@@ -50,6 +50,9 @@ export const CONFIG_REGISTRY = {
   notification_detect: {
     key: "notification_detect",
     default: true,
+    sideEffect: async (value: boolean, _) => {
+      await detectCommands.setEnabled(value);
+    },
   },
 
   notification_event: {

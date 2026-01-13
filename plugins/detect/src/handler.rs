@@ -65,6 +65,11 @@ pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::er
             hypr_detect::DetectEvent::MicStarted(apps) => {
                 let state_guard = state.blocking_lock();
 
+                if !state_guard.enabled {
+                    tracing::info!(reason = "detection_disabled", "skip_notification");
+                    return;
+                }
+
                 if state_guard.respect_do_not_disturb && dnd::is_do_not_disturb() {
                     tracing::info!(reason = "respect_do_not_disturb", "skip_notification");
                     return;
@@ -88,6 +93,11 @@ pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::er
             }
             hypr_detect::DetectEvent::MicStopped(apps) => {
                 let state_guard = state.blocking_lock();
+
+                if !state_guard.enabled {
+                    tracing::info!(reason = "detection_disabled", "skip_mic_stopped");
+                    return;
+                }
 
                 if state_guard.respect_do_not_disturb && dnd::is_do_not_disturb() {
                     tracing::info!(reason = "respect_do_not_disturb", "skip_mic_stopped");

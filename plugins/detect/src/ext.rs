@@ -27,6 +27,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Detect<'a, R, M> {
         let mut state_guard = state.lock().await;
         state_guard.respect_do_not_disturb = enabled;
     }
+
+    pub async fn set_enabled(&self, enabled: bool) {
+        let state = self.manager.state::<crate::SharedState>();
+        let mut state_guard = state.lock().await;
+        state_guard.enabled = enabled;
+    }
 }
 
 pub trait DetectPluginExt<R: tauri::Runtime> {

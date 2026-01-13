@@ -7,5 +7,6 @@ permissions = [
     "allow-list-mic-using-applications",
     "allow-set-respect-do-not-disturb",
     "allow-set-ignored-bundle-ids",
+    "allow-set-enabled",
     "allow-list-default-ignored-bundle-ids",
 ]

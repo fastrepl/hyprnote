@@ -8,6 +8,7 @@ const COMMANDS: &[&str] = &[
     "stop_session",
     "get_state",
     "run_batch",
+    "is_supported_languages",
 ];
 
 fn main() {

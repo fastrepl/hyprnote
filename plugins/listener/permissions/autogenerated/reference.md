@@ -13,6 +13,7 @@ Default permissions for the plugin
 - `allow-set-mic-muted`
 - `allow-get-state`
 - `allow-run-batch`
+- `allow-is-supported-languages`
 
 ## Permission Table
 
@@ -123,6 +124,32 @@ Enables the get_timeline command without any pre-configured scope.
 <td>
 
 Denies the get_timeline command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-is-supported-languages`
+
+</td>
+<td>
+
+Enables the is_supported_languages command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-is-supported-languages`
+
+</td>
+<td>
+
+Denies the is_supported_languages command without any pre-configured scope.
 
 </td>
 </tr>

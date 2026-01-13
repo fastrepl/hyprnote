@@ -190,14 +190,20 @@ pub fn append_provider_param(base_url: &str, provider: &str) -> String {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString)]
 pub enum AdapterKind {
+    #[strum(serialize = "argmax")]
     Argmax,
+    #[strum(serialize = "soniox")]
     Soniox,
+    #[strum(serialize = "fireworks")]
     Fireworks,
     Deepgram,
+    #[strum(serialize = "assemblyai")]
     AssemblyAI,
+    #[strum(serialize = "openai")]
     OpenAI,
+    #[strum(serialize = "gladia")]
     Gladia,
 }
 
@@ -224,6 +230,22 @@ impl AdapterKind {
         Provider::from_url(base_url)
             .map(Self::from)
             .unwrap_or(Self::Deepgram)
+    }
+
+    pub fn is_supported_languages(
+        &self,
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> bool {
+        match self {
+            Self::Deepgram => DeepgramAdapter::is_supported_languages(languages, model),
+            Self::Soniox => SonioxAdapter::is_supported_languages(languages),
+            Self::AssemblyAI => AssemblyAIAdapter::is_supported_languages(languages),
+            Self::Gladia => GladiaAdapter::is_supported_languages(languages),
+            Self::OpenAI => OpenAIAdapter::is_supported_languages(languages),
+            Self::Fireworks => FireworksAdapter::is_supported_languages(languages),
+            Self::Argmax => ArgmaxAdapter::is_supported_languages(languages),
+        }
     }
 }
 

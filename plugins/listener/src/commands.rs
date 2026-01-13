@@ -1,3 +1,6 @@
+use owhisper_client::AdapterKind;
+use std::str::FromStr;
+
 use crate::{ListenerPluginExt, actors::SessionParams};
 
 #[tauri::command]
@@ -61,4 +64,27 @@ pub async fn get_state<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<crate::fsm::State, String> {
     Ok(app.listener().get_state().await)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn is_supported_languages<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+    provider: String,
+    model: Option<String>,
+    languages: Vec<String>,
+) -> Result<bool, String> {
+    if provider == "custom" || provider == "hyprnote" {
+        return Ok(true);
+    }
+
+    let languages_parsed = languages
+        .iter()
+        .map(|s| hypr_language::Language::from_str(s))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| format!("unknown_language: {}", e))?;
+    let adapter_kind =
+        AdapterKind::from_str(&provider).map_err(|_| format!("unknown_provider: {}", provider))?;
+
+    Ok(adapter_kind.is_supported_languages(&languages_parsed, model.as_deref()))
 }

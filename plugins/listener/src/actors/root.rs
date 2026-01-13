@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::time::{Instant, SystemTime};
 
 use ractor::{Actor, ActorCell, ActorProcessingErr, ActorRef, RpcReplyPort, SupervisionEvent};
-use tauri::Manager;
 use tauri_plugin_path2::Path2PluginExt;
 use tauri_specta::Event;
 use tracing::Instrument;

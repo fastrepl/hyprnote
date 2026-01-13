@@ -773,6 +773,12 @@ importers:
       '@iconify-icon/react':
         specifier: ^3.0.3
         version: 3.0.3(react@19.2.3)
+      '@mdx-js/mdx':
+        specifier: ^3.1.1
+        version: 3.1.1
+      '@mdx-js/react':
+        specifier: ^3.1.1
+        version: 3.1.1(@types/react@19.2.7)(react@19.2.3)
       '@mux/mux-player-react':
         specifier: ^3.10.2
         version: 3.10.2(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -847,7 +853,7 @@ importers:
         version: 1.11.19
       drizzle-orm:
         specifier: ^0.44.7
-        version: 0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.8.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7)
+        version: 0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7)
       exa-js:
         specifier: ^1.10.2
         version: 1.10.2(ws@8.18.3)
@@ -881,6 +887,9 @@ importers:
       react-dom:
         specifier: ^19.2.3
         version: 19.2.3(react@19.2.3)
+      react-markdown:
+        specifier: ^10.1.0
+        version: 10.1.0(@types/react@19.2.7)(react@19.2.3)
       react-tweet:
         specifier: ^3.3.0
         version: 3.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -26206,10 +26215,10 @@ snapshots:
 
   dotenv@17.2.3: {}
 
-  drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.8.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7):
+  drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251221.0)(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(bun-types@1.3.5)(pg@8.16.3)(postgres@3.4.7):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20251221.0
-      '@opentelemetry/api': 1.8.0
+      '@opentelemetry/api': 1.9.0
       '@types/pg': 8.16.0
       bun-types: 1.3.5
       pg: 8.16.3

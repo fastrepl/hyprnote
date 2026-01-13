@@ -465,6 +465,93 @@ export async function deleteContentFile(
   }
 }
 
+export async function updateContentFile(
+  filePath: string,
+  content: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (isDev()) {
+    try {
+      const localPath = path.join(getLocalContentPath(), filePath);
+      if (!fs.existsSync(localPath)) {
+        return { success: false, error: `File not found: ${filePath}` };
+      }
+      fs.writeFileSync(localPath, content);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to update file locally: ${(error as Error).message}`,
+      };
+    }
+  }
+
+  const githubToken = getGitHubToken();
+  if (!githubToken) {
+    return { success: false, error: "GitHub token not configured" };
+  }
+
+  const fullPath = filePath.startsWith("apps/web/content")
+    ? filePath
+    : `${CONTENT_PATH}/${filePath}`;
+
+  try {
+    const getResponse = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${fullPath}?ref=${GITHUB_BRANCH}`,
+      {
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+
+    if (!getResponse.ok) {
+      return {
+        success: false,
+        error: `File not found: ${getResponse.status}`,
+      };
+    }
+
+    const fileData = await getResponse.json();
+    const sha = fileData.sha;
+
+    const contentBase64 = Buffer.from(content).toString("base64");
+
+    const updateResponse = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${fullPath}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/vnd.github.v3+json",
+        },
+        body: JSON.stringify({
+          message: `Update ${filePath} via admin`,
+          content: contentBase64,
+          sha,
+          branch: GITHUB_BRANCH,
+        }),
+      },
+    );
+
+    if (!updateResponse.ok) {
+      const error = await updateResponse.json();
+      return {
+        success: false,
+        error: `Failed to update: ${error.message || updateResponse.status}`,
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Update failed: ${(error as Error).message}`,
+    };
+  }
+}
+
 export async function duplicateContentFile(
   sourcePath: string,
   newFilename?: string,

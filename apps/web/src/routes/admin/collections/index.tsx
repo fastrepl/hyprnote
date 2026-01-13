@@ -113,6 +113,23 @@ interface FileContent {
   category?: string;
 }
 
+interface ArticleMetadata {
+  meta_title: string;
+  display_title: string;
+  meta_description: string;
+  author: string;
+  date: string;
+  coverImage: string;
+  published: boolean;
+  featured: boolean;
+  category: string;
+}
+
+interface EditorData {
+  content: string;
+  metadata: ArticleMetadata;
+}
+
 function getFileContent(path: string): FileContent | undefined {
   const [collection, ...rest] = path.split("/");
   const filePath = rest.join("/");
@@ -932,11 +949,15 @@ function ContentPanel({
   onFileClick: (item: ContentItem) => void;
 }) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [editorContent, setEditorContent] = useState("");
+  const [editorData, setEditorData] = useState<EditorData | null>(null);
   const fileEditorRef = useRef<{ save: () => void } | null>(null);
 
   const { mutate: saveContent, isPending: isSaving } = useMutation({
-    mutationFn: async (params: { path: string; content: string }) => {
+    mutationFn: async (params: {
+      path: string;
+      content: string;
+      metadata: ArticleMetadata;
+    }) => {
       const response = await fetch("/api/admin/content/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -951,10 +972,14 @@ function ContentPanel({
   });
 
   const handleSave = useCallback(() => {
-    if (currentTab?.type === "file" && editorContent) {
-      saveContent({ path: currentTab.path, content: editorContent });
+    if (currentTab?.type === "file" && editorData) {
+      saveContent({
+        path: currentTab.path,
+        content: editorData.content,
+        metadata: editorData.metadata,
+      });
     }
-  }, [currentTab, editorContent, saveContent]);
+  }, [currentTab, editorData, saveContent]);
 
   const currentFileContent = useMemo(
     () =>
@@ -988,7 +1013,7 @@ function ContentPanel({
               ref={fileEditorRef}
               filePath={currentTab.path}
               isPreviewMode={isPreviewMode}
-              onContentChange={setEditorContent}
+              onDataChange={setEditorData}
               onSave={handleSave}
               isSaving={isSaving}
             />
@@ -1462,23 +1487,43 @@ function MetadataRow({
   );
 }
 
-function MetadataPanel({
-  fileContent,
-  author,
-  onAuthorChange,
-  isExpanded,
-  onToggleExpanded,
-}: {
-  fileContent: FileContent;
+interface MetadataHandlers {
+  metaTitle: string;
+  onMetaTitleChange: (value: string) => void;
+  displayTitle: string;
+  onDisplayTitleChange: (value: string) => void;
+  metaDescription: string;
+  onMetaDescriptionChange: (value: string) => void;
   author: string;
   onAuthorChange: (value: string) => void;
+  date: string;
+  onDateChange: (value: string) => void;
+  coverImage: string;
+  onCoverImageChange: (value: string) => void;
+  published: boolean;
+  onPublishedChange: (value: boolean) => void;
+  featured: boolean;
+  onFeaturedChange: (value: boolean) => void;
+  category: string;
+  onCategoryChange: (value: string) => void;
+}
+
+function MetadataPanel({
+  isExpanded,
+  onToggleExpanded,
+  filePath,
+  handlers,
+}: {
   isExpanded: boolean;
   onToggleExpanded: () => void;
+  filePath: string;
+  handlers: MetadataHandlers;
 }) {
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
 
   return (
     <div
+      key={filePath}
       className={cn([
         "shrink-0 relative",
         isExpanded && "border-b border-neutral-200",
@@ -1506,7 +1551,8 @@ function MetadataPanel({
           </button>
           <input
             type="text"
-            defaultValue={fileContent.meta_title || ""}
+            value={handlers.metaTitle}
+            onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
             placeholder="SEO meta title"
             className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
           />
@@ -1519,7 +1565,8 @@ function MetadataPanel({
             </span>
             <input
               type="text"
-              defaultValue={fileContent.display_title || ""}
+              value={handlers.displayTitle}
+              onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
               placeholder="Display title (optional)"
               className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
             />
@@ -1527,13 +1574,17 @@ function MetadataPanel({
         )}
         <MetadataRow label="Author" required>
           <div className="flex-1 px-2 py-2">
-            <AuthorSelect value={author} onChange={onAuthorChange} />
+            <AuthorSelect
+              value={handlers.author}
+              onChange={handlers.onAuthorChange}
+            />
           </div>
         </MetadataRow>
         <MetadataRow label="Date" required>
           <input
             type="date"
-            defaultValue={fileContent.date || ""}
+            value={handlers.date}
+            onChange={(e) => handlers.onDateChange(e.target.value)}
             className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
           />
         </MetadataRow>
@@ -1545,7 +1596,8 @@ function MetadataPanel({
                 el.style.height = `${el.scrollHeight}px`;
               }
             }}
-            defaultValue={fileContent.meta_description || ""}
+            value={handlers.metaDescription}
+            onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
             placeholder="Meta description for SEO"
             rows={1}
             onInput={(e) => {
@@ -1558,7 +1610,8 @@ function MetadataPanel({
         </MetadataRow>
         <MetadataRow label="Category">
           <select
-            defaultValue={fileContent.category || ""}
+            value={handlers.category}
+            onChange={(e) => handlers.onCategoryChange(e.target.value)}
             className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
           >
             <option value="">Select category</option>
@@ -1572,7 +1625,8 @@ function MetadataPanel({
           <div className="flex-1 flex items-center gap-2 px-2 py-2">
             <input
               type="text"
-              defaultValue={fileContent.coverImage || ""}
+              value={handlers.coverImage}
+              onChange={(e) => handlers.onCoverImageChange(e.target.value)}
               placeholder="/api/images/blog/slug/cover.png"
               className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
             />
@@ -1582,7 +1636,8 @@ function MetadataPanel({
           <div className="flex-1 flex items-center px-2 py-2">
             <input
               type="checkbox"
-              defaultChecked={fileContent.published || false}
+              checked={handlers.published}
+              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
               className="rounded"
             />
           </div>
@@ -1591,7 +1646,8 @@ function MetadataPanel({
           <div className="flex-1 flex items-center px-2 py-2">
             <input
               type="checkbox"
-              defaultChecked={fileContent.featured || false}
+              checked={handlers.featured}
+              onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
               className="rounded"
             />
           </div>
@@ -1618,111 +1674,221 @@ function MetadataPanel({
   );
 }
 
-function MetadataSidePanel({
-  fileContent,
-  author,
-  onAuthorChange,
-}: {
-  fileContent: FileContent;
+interface CommitInfo {
+  sha: string;
+  message: string;
   author: string;
-  onAuthorChange: (value: string) => void;
+  date: string;
+  url: string;
+}
+
+function GitHistory({ filePath }: { filePath: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [commits, setCommits] = useState<CommitInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchHistory = useCallback(async () => {
+    if (!filePath) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `/api/admin/content/history?path=${encodeURIComponent(filePath)}`,
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCommits(data.commits || []);
+      }
+    } catch {
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filePath]);
+
+  useEffect(() => {
+    if (isExpanded && commits.length === 0) {
+      fetchHistory();
+    }
+  }, [isExpanded, commits.length, fetchHistory]);
+
+  return (
+    <div className="border-t border-neutral-200">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-50"
+      >
+        <span className="flex items-center gap-2">
+          <GithubIcon className="size-4" />
+          Git History
+        </span>
+        <ChevronDownIcon
+          className={cn([
+            "size-4 transition-transform",
+            isExpanded && "rotate-180",
+          ])}
+        />
+      </button>
+      {isExpanded && (
+        <div className="px-4 pb-4 space-y-2">
+          {isLoading ? (
+            <p className="text-xs text-neutral-400">Loading...</p>
+          ) : commits.length === 0 ? (
+            <p className="text-xs text-neutral-400">No commit history</p>
+          ) : (
+            commits.map((commit) => (
+              <a
+                key={commit.sha}
+                href={commit.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block p-2 rounded hover:bg-neutral-50 border border-neutral-100"
+              >
+                <div className="flex items-center gap-2 text-xs">
+                  <code className="text-neutral-500 bg-neutral-100 px-1 rounded">
+                    {commit.sha}
+                  </code>
+                  <span className="text-neutral-400">
+                    {new Date(commit.date).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-700 mt-1 truncate">
+                  {commit.message}
+                </p>
+              </a>
+            ))
+          )}
+          {commits.length > 0 && (
+            <button
+              onClick={fetchHistory}
+              className="text-xs text-neutral-500 hover:text-neutral-700 flex items-center gap-1"
+            >
+              <RefreshCwIcon className="size-3" />
+              Refresh
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MetadataSidePanel({
+  filePath,
+  handlers,
+}: {
+  filePath: string;
+  handlers: MetadataHandlers;
 }) {
   return (
-    <div className="p-4 space-y-4 text-sm">
-      <div>
-        <label className="block text-neutral-500 mb-1">
-          <span className="text-red-400">*</span> Title
-        </label>
-        <input
-          type="text"
-          defaultValue={fileContent.meta_title || ""}
-          placeholder="SEO meta title"
-          className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
-        />
-      </div>
-
-      <div>
-        <label className="block text-neutral-500 mb-1">Display Title</label>
-        <input
-          type="text"
-          defaultValue={fileContent.display_title || ""}
-          placeholder="Display title (optional)"
-          className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
-        />
-      </div>
-
-      <div>
-        <label className="block text-neutral-500 mb-1">
-          <span className="text-red-400">*</span> Author
-        </label>
-        <AuthorSelect value={author} onChange={onAuthorChange} />
-      </div>
-
-      <div>
-        <label className="block text-neutral-500 mb-1">
-          <span className="text-red-400">*</span> Date
-        </label>
-        <input
-          type="date"
-          defaultValue={fileContent.date || ""}
-          className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
-        />
-      </div>
-
-      <div>
-        <label className="block text-neutral-500 mb-1">
-          <span className="text-red-400">*</span> Description
-        </label>
-        <textarea
-          defaultValue={fileContent.meta_description || ""}
-          placeholder="Meta description for SEO"
-          rows={3}
-          className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none focus:border-neutral-400"
-        />
-      </div>
-
-      <div>
-        <label className="block text-neutral-500 mb-1">Category</label>
-        <select
-          defaultValue={fileContent.category || ""}
-          className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
-        >
-          <option value="">Select category</option>
-          <option value="Case Study">Case Study</option>
-          <option value="Hyprnote Weekly">Hyprnote Weekly</option>
-          <option value="Productivity Hack">Productivity Hack</option>
-          <option value="Engineering">Engineering</option>
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-neutral-500 mb-1">Cover Image</label>
-        <input
-          type="text"
-          defaultValue={fileContent.coverImage || ""}
-          placeholder="/api/images/blog/slug/cover.png"
-          className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
-        />
-      </div>
-
-      <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 text-neutral-600">
+    <div className="text-sm" key={filePath}>
+      <div className="p-4 space-y-4">
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Title
+          </label>
           <input
-            type="checkbox"
-            defaultChecked={fileContent.published || false}
-            className="rounded"
+            type="text"
+            value={handlers.metaTitle}
+            onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
+            placeholder="SEO meta title"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
           />
-          Published
-        </label>
-        <label className="flex items-center gap-2 text-neutral-600">
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">Display Title</label>
           <input
-            type="checkbox"
-            defaultChecked={fileContent.featured || false}
-            className="rounded"
+            type="text"
+            value={handlers.displayTitle}
+            onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
+            placeholder="Display title (optional)"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
           />
-          Featured
-        </label>
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Author
+          </label>
+          <AuthorSelect
+            value={handlers.author}
+            onChange={handlers.onAuthorChange}
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Date
+          </label>
+          <input
+            type="date"
+            value={handlers.date}
+            onChange={(e) => handlers.onDateChange(e.target.value)}
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Description
+          </label>
+          <textarea
+            value={handlers.metaDescription}
+            onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
+            placeholder="Meta description for SEO"
+            rows={3}
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none focus:border-neutral-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">Category</label>
+          <select
+            value={handlers.category}
+            onChange={(e) => handlers.onCategoryChange(e.target.value)}
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
+          >
+            <option value="">Select category</option>
+            <option value="Case Study">Case Study</option>
+            <option value="Hyprnote Weekly">Hyprnote Weekly</option>
+            <option value="Productivity Hack">Productivity Hack</option>
+            <option value="Engineering">Engineering</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">Cover Image</label>
+          <input
+            type="text"
+            value={handlers.coverImage}
+            onChange={(e) => handlers.onCoverImageChange(e.target.value)}
+            placeholder="/api/images/blog/slug/cover.png"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+          />
+        </div>
+
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-neutral-600">
+            <input
+              type="checkbox"
+              checked={handlers.published}
+              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
+              className="rounded"
+            />
+            Published
+          </label>
+          <label className="flex items-center gap-2 text-neutral-600">
+            <input
+              type="checkbox"
+              checked={handlers.featured}
+              onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
+              className="rounded"
+            />
+            Featured
+          </label>
+        </div>
       </div>
+
+      <GitHistory filePath={filePath} />
     </div>
   );
 }
@@ -1732,62 +1898,117 @@ const FileEditor = React.forwardRef<
   {
     filePath: string;
     isPreviewMode: boolean;
-    onContentChange: (content: string) => void;
+    onDataChange: (data: EditorData) => void;
     onSave: () => void;
     isSaving: boolean;
   }
->(function FileEditor(
-  { filePath, isPreviewMode, onContentChange, onSave },
-  _ref,
-) {
+>(function FileEditor({ filePath, isPreviewMode, onDataChange, onSave }, _ref) {
   const fileContent = useMemo(() => getFileContent(filePath), [filePath]);
+
   const [content, setContent] = useState(fileContent?.content || "");
+  const [metaTitle, setMetaTitle] = useState(fileContent?.meta_title || "");
+  const [displayTitle, setDisplayTitle] = useState(
+    fileContent?.display_title || "",
+  );
+  const [metaDescription, setMetaDescription] = useState(
+    fileContent?.meta_description || "",
+  );
   const [author, setAuthor] = useState(fileContent?.author || "");
+  const [date, setDate] = useState(fileContent?.date || "");
+  const [coverImage, setCoverImage] = useState(fileContent?.coverImage || "");
+  const [published, setPublished] = useState(fileContent?.published || false);
+  const [featured, setFeatured] = useState(fileContent?.featured || false);
+  const [category, setCategory] = useState(fileContent?.category || "");
+
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const lastSavedContentRef = useRef(fileContent?.content || "");
+
+  const getMetadata = useCallback(
+    (): ArticleMetadata => ({
+      meta_title: metaTitle,
+      display_title: displayTitle,
+      meta_description: metaDescription,
+      author,
+      date,
+      coverImage,
+      published,
+      featured,
+      category,
+    }),
+    [
+      metaTitle,
+      displayTitle,
+      metaDescription,
+      author,
+      date,
+      coverImage,
+      published,
+      featured,
+      category,
+    ],
+  );
 
   useEffect(() => {
     setContent(fileContent?.content || "");
-    onContentChange(fileContent?.content || "");
-  }, [filePath, fileContent?.content, onContentChange]);
+    setMetaTitle(fileContent?.meta_title || "");
+    setDisplayTitle(fileContent?.display_title || "");
+    setMetaDescription(fileContent?.meta_description || "");
+    setAuthor(fileContent?.author || "");
+    setDate(fileContent?.date || "");
+    setCoverImage(fileContent?.coverImage || "");
+    setPublished(fileContent?.published || false);
+    setFeatured(fileContent?.featured || false);
+    setCategory(fileContent?.category || "");
+    lastSavedContentRef.current = fileContent?.content || "";
+    setHasUnsavedChanges(false);
+  }, [filePath, fileContent]);
 
-  const handleContentChange = useCallback(
-    (newContent: string) => {
-      setContent(newContent);
-      onContentChange(newContent);
+  useEffect(() => {
+    onDataChange({ content, metadata: getMetadata() });
+  }, [
+    content,
+    metaTitle,
+    displayTitle,
+    metaDescription,
+    author,
+    date,
+    coverImage,
+    published,
+    featured,
+    category,
+    onDataChange,
+    getMetadata,
+  ]);
 
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      saveTimeoutRef.current = setTimeout(() => {
-        onSave();
-      }, 5000);
-    },
-    [onContentChange, onSave],
-  );
+  const handleContentChange = useCallback((newContent: string) => {
+    setContent(newContent);
+    setHasUnsavedChanges(newContent !== lastSavedContentRef.current);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-          saveTimeoutRef.current = null;
-        }
         onSave();
+        lastSavedContentRef.current = content;
+        setHasUnsavedChanges(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onSave]);
+  }, [onSave, content]);
 
   useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        return "";
       }
     };
-  }, []);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   if (!fileContent) {
     return (
@@ -1802,6 +2023,27 @@ const FileEditor = React.forwardRef<
 
   const selectedAuthor = AUTHORS.find((a) => a.name === author);
   const avatarUrl = selectedAuthor?.avatar;
+
+  const metadataHandlers: MetadataHandlers = {
+    metaTitle,
+    onMetaTitleChange: setMetaTitle,
+    displayTitle,
+    onDisplayTitleChange: setDisplayTitle,
+    metaDescription,
+    onMetaDescriptionChange: setMetaDescription,
+    author,
+    onAuthorChange: setAuthor,
+    date,
+    onDateChange: setDate,
+    coverImage,
+    onCoverImageChange: setCoverImage,
+    published,
+    onPublishedChange: setPublished,
+    featured,
+    onFeaturedChange: setFeatured,
+    category,
+    onCategoryChange: setCategory,
+  };
 
   const renderPreview = () => (
     <div className="h-full overflow-y-auto bg-white">
@@ -1835,7 +2077,7 @@ const FileEditor = React.forwardRef<
         <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
           <MDXContent
             code={fileContent.mdx}
-            components={createMDXComponents({ CtaCard })}
+            components={defaultMDXComponents}
           />
         </article>
       </div>
@@ -1848,13 +2090,12 @@ const FileEditor = React.forwardRef<
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full">
             <MetadataPanel
-              fileContent={fileContent}
-              author={author}
-              onAuthorChange={setAuthor}
               isExpanded={isMetadataExpanded}
               onToggleExpanded={() =>
                 setIsMetadataExpanded(!isMetadataExpanded)
               }
+              filePath={filePath}
+              handlers={metadataHandlers}
             />
             <div className="flex-1 min-h-0 overflow-y-auto p-6">
               <BlogEditor content={content} onChange={handleContentChange} />
@@ -1879,11 +2120,7 @@ const FileEditor = React.forwardRef<
       <ResizableHandle className="w-px bg-neutral-200" />
       <ResizablePanel defaultSize={30} minSize={20}>
         <div className="h-full overflow-y-auto">
-          <MetadataSidePanel
-            fileContent={fileContent}
-            author={author}
-            onAuthorChange={setAuthor}
-          />
+          <MetadataSidePanel filePath={filePath} handlers={metadataHandlers} />
         </div>
       </ResizablePanel>
     </ResizablePanelGroup>

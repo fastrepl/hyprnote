@@ -1,12 +1,26 @@
 mod batch;
 mod live;
 
+// https://www.assemblyai.com/docs/pre-recorded-audio/supported-languages
+const SUPPORTED_LANGUAGES: &[&str] = &[
+    // High
+    "en", "es", "fr", "de", "id", "it", "ja", "nl", "pl", "pt", "ru", "tr", "uk", "ca",
+    // Good
+    "ar", "az", "bg", "bs", "zh", "cs", "da", "el", "et", "fi", "gl", "hi", "hr", "hu", "ko", "mk",
+    "ms", "no", "ro", "sk", "sv", "th", "ur", "vi", // Moderate accuracy
+    "af", "be", "cy", "fa", "he", "hy", "is", "kk", "lt", "lv", "mi", "mr", "sl", "sw", "ta",
+    // Fair
+    "am", "bn", "gu", "ka", "km", "kn", "lo", "ml", "mn", "mt", "my", "ne", "pa", "ps", "so", "sr",
+    "te", "uz",
+];
+
 #[derive(Clone, Default)]
 pub struct AssemblyAIAdapter;
 
 impl AssemblyAIAdapter {
-    pub fn is_supported_languages(_languages: &[hypr_language::Language]) -> bool {
-        true
+    pub fn is_supported_languages(languages: &[hypr_language::Language]) -> bool {
+        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
+        SUPPORTED_LANGUAGES.contains(&primary_lang)
     }
 }
 

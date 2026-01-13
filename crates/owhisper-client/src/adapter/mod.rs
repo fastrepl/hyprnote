@@ -190,11 +190,15 @@ pub enum AdapterKind {
 }
 
 impl AdapterKind {
-    pub fn from_url_and_languages(base_url: &str, languages: &[hypr_language::Language]) -> Self {
+    pub fn from_url_and_languages(
+        base_url: &str,
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> Self {
         use owhisper_providers::Provider;
 
         if is_hyprnote_proxy(base_url) {
-            if DeepgramAdapter::is_supported_languages(languages) {
+            if DeepgramAdapter::is_supported_languages(languages, model) {
                 return Self::Deepgram;
             } else {
                 return Self::Soniox;
@@ -254,30 +258,95 @@ mod tests {
     fn test_adapter_kind_from_url_and_languages() {
         let en = vec![hypr_language::ISO639::En.into()];
         let ar = vec![hypr_language::ISO639::Ar.into()];
+        let zh = vec![hypr_language::ISO639::Zh.into()];
 
         assert_eq!(
-            AdapterKind::from_url_and_languages("https://api.hyprnote.com/stt", &en),
+            AdapterKind::from_url_and_languages("https://api.hyprnote.com/stt", &en, None),
             AdapterKind::Deepgram
         );
 
         assert_eq!(
-            AdapterKind::from_url_and_languages("https://api.hyprnote.com/stt", &ar),
+            AdapterKind::from_url_and_languages("https://api.hyprnote.com/stt", &ar, None),
             AdapterKind::Soniox
         );
 
         assert_eq!(
-            AdapterKind::from_url_and_languages("http://localhost:3001/stt", &en),
+            AdapterKind::from_url_and_languages("http://localhost:3001/stt", &en, None),
             AdapterKind::Deepgram
         );
 
         assert_eq!(
-            AdapterKind::from_url_and_languages("http://localhost:3001/stt", &ar),
+            AdapterKind::from_url_and_languages("http://localhost:3001/stt", &ar, None),
             AdapterKind::Soniox
         );
 
         assert_eq!(
-            AdapterKind::from_url_and_languages("http://localhost:50060/v1", &en),
+            AdapterKind::from_url_and_languages("http://localhost:50060/v1", &en, None),
             AdapterKind::Argmax
+        );
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages(
+                "https://api.hyprnote.com/stt",
+                &zh,
+                Some("nova-3")
+            ),
+            AdapterKind::Soniox
+        );
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages(
+                "https://api.hyprnote.com/stt",
+                &zh,
+                Some("nova-2")
+            ),
+            AdapterKind::Deepgram
+        );
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages(
+                "https://api.hyprnote.com/stt",
+                &zh,
+                Some("nova-2-general")
+            ),
+            AdapterKind::Deepgram
+        );
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages(
+                "https://api.hyprnote.com/stt",
+                &zh,
+                Some("nova-2-meeting")
+            ),
+            AdapterKind::Soniox
+        );
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages(
+                "https://api.hyprnote.com/stt",
+                &zh,
+                Some("nova-3-medical")
+            ),
+            AdapterKind::Soniox
+        );
+
+        let ja = vec![hypr_language::ISO639::Ja.into()];
+        assert_eq!(
+            AdapterKind::from_url_and_languages(
+                "https://api.hyprnote.com/stt",
+                &ja,
+                Some("nova-3-medical")
+            ),
+            AdapterKind::Soniox
+        );
+
+        assert_eq!(
+            AdapterKind::from_url_and_languages(
+                "https://api.hyprnote.com/stt",
+                &ja,
+                Some("nova-3")
+            ),
+            AdapterKind::Deepgram
         );
     }
 

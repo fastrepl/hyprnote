@@ -1,12 +1,21 @@
 mod batch;
 mod live;
 
+// https://soniox.com/docs/stt/concepts/supported-languages
+const SUPPORTED_LANGUAGES: &[&str] = &[
+    "af", "sq", "ar", "az", "eu", "be", "bn", "bs", "bg", "ca", "zh", "hr", "cs", "da", "nl", "en",
+    "et", "fi", "fr", "gl", "de", "el", "gu", "he", "hi", "hu", "id", "it", "ja", "kn", "kk", "ko",
+    "lv", "lt", "mk", "ms", "ml", "mr", "no", "fa", "pl", "pt", "pa", "ro", "ru", "sr", "sk", "sl",
+    "es", "sw", "sv", "tl", "ta", "te", "th", "tr", "uk", "ur", "vi", "cy",
+];
+
 #[derive(Clone, Default)]
 pub struct SonioxAdapter;
 
 impl SonioxAdapter {
-    pub fn is_supported_languages(_languages: &[hypr_language::Language]) -> bool {
-        true
+    pub fn is_supported_languages(languages: &[hypr_language::Language]) -> bool {
+        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
+        SUPPORTED_LANGUAGES.contains(&primary_lang)
     }
 
     pub(crate) fn api_host(api_base: &str) -> String {

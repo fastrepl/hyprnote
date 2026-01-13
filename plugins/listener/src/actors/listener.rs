@@ -262,7 +262,8 @@ async fn spawn_rx_task(
     ),
     ActorProcessingErr,
 > {
-    let adapter_kind = AdapterKind::from_url_and_languages(&args.base_url, &args.languages);
+    let adapter_kind =
+        AdapterKind::from_url_and_languages(&args.base_url, &args.languages, Some(&args.model));
     let is_dual = matches!(args.mode, crate::actors::ChannelMode::MicAndSpeaker);
 
     let adapter_name = match adapter_kind {

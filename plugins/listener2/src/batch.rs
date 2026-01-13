@@ -204,8 +204,11 @@ async fn spawn_batch_task(
     ),
     ActorProcessingErr,
 > {
-    let adapter_kind =
-        AdapterKind::from_url_and_languages(&args.base_url, &args.listen_params.languages);
+    let adapter_kind = AdapterKind::from_url_and_languages(
+        &args.base_url,
+        &args.listen_params.languages,
+        args.listen_params.model.as_deref(),
+    );
 
     match adapter_kind {
         AdapterKind::Argmax => spawn_argmax_streaming_batch_task(args, myself).await,

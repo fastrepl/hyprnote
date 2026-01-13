@@ -6,9 +6,11 @@ import { cn } from "@hypr/utils";
 export function ChatTrigger({
   onClick,
   isCaretNearBottom = false,
+  showTimeline = false,
 }: {
   onClick: () => void;
   isCaretNearBottom?: boolean;
+  showTimeline?: boolean;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [isMouseNearButton, setIsMouseNearButton] = useState(false);
@@ -49,7 +51,11 @@ export function ChatTrigger({
         "flex items-center justify-center",
         "transition-all duration-200 ease-out",
         "hover:scale-105",
-        shouldHide ? "bottom-0 translate-y-[85%]" : "bottom-4",
+        shouldHide
+          ? "bottom-0 translate-y-[85%]"
+          : showTimeline
+            ? "bottom-[62px]"
+            : "bottom-4",
       ])}
     >
       <img

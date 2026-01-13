@@ -195,6 +195,7 @@ function TabContentNoteInner({
       <StandardTabWrapper
         afterBorder={showTimeline && <AudioPlayer.Timeline />}
         floatingButton={<FloatingActionButton tab={tab} />}
+        showTimeline={showTimeline}
       >
         <div className="flex flex-col h-full">
           <div className="pl-2 pr-1">

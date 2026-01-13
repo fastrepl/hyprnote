@@ -126,18 +126,27 @@ describe("settingsPersister roundtrip", () => {
       ai_providers: {
         openai: {
           type: "llm",
-          base_url: "https://api.openai.com",
-          api_key: "sk-123",
+          credentials: JSON.stringify({
+            type: "api_key",
+            base_url: "https://api.openai.com",
+            api_key: "sk-123",
+          }),
         },
         anthropic: {
           type: "llm",
-          base_url: "https://api.anthropic.com",
-          api_key: "sk-456",
+          credentials: JSON.stringify({
+            type: "api_key",
+            base_url: "https://api.anthropic.com",
+            api_key: "sk-456",
+          }),
         },
         deepgram: {
           type: "stt",
-          base_url: "https://api.deepgram.com",
-          api_key: "dg-789",
+          credentials: JSON.stringify({
+            type: "api_key",
+            base_url: "https://api.deepgram.com",
+            api_key: "dg-789",
+          }),
         },
       },
     };

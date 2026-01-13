@@ -1,14 +1,7 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  allArticles,
-  allChangelogs,
-  allDocs,
-  allHandbooks,
-  allLegals,
-  allTemplates,
-} from "content-collections";
+import { allArticles } from "content-collections";
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -29,6 +22,7 @@ import {
   PinIcon,
   PinOffIcon,
   PlusIcon,
+  RefreshCwIcon,
   ScissorsIcon,
   SearchIcon,
   SendIcon,
@@ -37,7 +31,13 @@ import {
   XIcon,
 } from "lucide-react";
 import { Reorder } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import BlogEditor from "@hypr/tiptap/blog-editor";
 import "@hypr/tiptap/styles.css";
@@ -54,8 +54,7 @@ import {
 } from "@hypr/ui/components/ui/resizable";
 import { cn } from "@hypr/utils";
 
-import { CtaCard } from "@/components/cta-card";
-import { createMDXComponents } from "@/components/mdx";
+import { defaultMDXComponents } from "@/components/mdx";
 
 interface ContentItem {
   name: string;
@@ -102,7 +101,6 @@ interface FileContent {
   mdx: string;
   collection: string;
   slug: string;
-  // articles
   meta_title?: string;
   display_title?: string;
   meta_description?: string;
@@ -112,169 +110,65 @@ interface FileContent {
   published?: boolean;
   featured?: boolean;
   category?: string;
-  // docs/handbook
-  title?: string;
-  section?: string;
-  summary?: string;
-  // legal
-  // templates
-  description?: string;
-  targets?: string[];
-  banner?: string;
-  sections?: Array<{ title: string; description?: string }>;
 }
 
-function getAllContent(): Map<string, FileContent> {
-  const contentMap = new Map<string, FileContent>();
+interface ArticleMetadata {
+  meta_title: string;
+  display_title: string;
+  meta_description: string;
+  author: string;
+  date: string;
+  coverImage: string;
+  published: boolean;
+  featured: boolean;
+  category: string;
+}
 
-  allArticles.forEach((a) => {
-    contentMap.set(`articles/${a._meta.fileName}`, {
-      content: a.content,
-      mdx: a.mdx,
-      collection: "articles",
-      slug: a.slug,
-      meta_title: a.meta_title,
-      display_title: a.display_title,
-      meta_description: a.meta_description,
-      author: a.author,
-      date: a.date,
-      coverImage: a.coverImage,
-      published: a.published,
-      featured: a.featured,
-      category: a.category,
-    });
-  });
+interface EditorData {
+  content: string;
+  metadata: ArticleMetadata;
+}
 
-  allChangelogs.forEach((c) => {
-    contentMap.set(`changelog/${c._meta.fileName}`, {
-      content: c.content,
-      mdx: c.mdx,
-      collection: "changelog",
-      slug: c.slug,
-      date: c.date,
-    });
-  });
+function getFileContent(path: string): FileContent | undefined {
+  const [collection, ...rest] = path.split("/");
+  const filePath = rest.join("/");
 
-  allDocs.forEach((d) => {
-    contentMap.set(`docs/${d._meta.path}`, {
-      content: d.content,
-      mdx: d.mdx,
-      collection: "docs",
-      slug: d.slug,
-      title: d.title,
-      section: d.section,
-      summary: d.summary,
-    });
-  });
+  if (collection !== "articles") return undefined;
 
-  allHandbooks.forEach((h) => {
-    contentMap.set(`handbook/${h._meta.path}`, {
-      content: h.content,
-      mdx: h.mdx,
-      collection: "handbook",
-      slug: h.slug,
-      title: h.title,
-      section: h.section,
-      summary: h.summary,
-    });
-  });
-
-  allLegals.forEach((l) => {
-    contentMap.set(`legal/${l._meta.fileName}`, {
-      content: l.content,
-      mdx: l.mdx,
-      collection: "legal",
-      slug: l.slug,
-      title: l.title,
-      summary: l.summary,
-      date: l.date,
-    });
-  });
-
-  allTemplates.forEach((t) => {
-    contentMap.set(`templates/${t._meta.fileName}`, {
-      content: t.content,
-      mdx: t.mdx,
-      collection: "templates",
-      slug: t.slug,
-      title: t.title,
-      description: t.description,
-      category: t.category,
-      targets: t.targets,
-      banner: t.banner,
-      sections: t.sections,
-    });
-  });
-
-  return contentMap;
+  const a = allArticles.find((a) => a._meta.fileName === filePath);
+  if (!a) return undefined;
+  return {
+    content: a.content,
+    mdx: a.mdx,
+    collection: "articles",
+    slug: a.slug,
+    meta_title: a.meta_title,
+    display_title: a.display_title,
+    meta_description: a.meta_description,
+    author: a.author,
+    date: a.date,
+    coverImage: a.coverImage,
+    published: a.published,
+    featured: a.featured,
+    category: a.category,
+  };
 }
 
 function getCollections(): CollectionInfo[] {
+  const sortedArticles = [...allArticles].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+
   return [
     {
       name: "articles",
       label: "Articles",
-      items: allArticles.map((a) => ({
+      items: sortedArticles.map((a) => ({
         name: a._meta.fileName,
         path: `articles/${a._meta.fileName}`,
         slug: a.slug,
         type: "file" as const,
         collection: "articles",
-      })),
-    },
-    {
-      name: "changelog",
-      label: "Changelog",
-      items: allChangelogs.map((c) => ({
-        name: c._meta.fileName,
-        path: `changelog/${c._meta.fileName}`,
-        slug: c.slug,
-        type: "file" as const,
-        collection: "changelog",
-      })),
-    },
-    {
-      name: "docs",
-      label: "Documentation",
-      items: allDocs.map((d) => ({
-        name: d._meta.fileName,
-        path: `docs/${d._meta.path}`,
-        slug: d.slug,
-        type: "file" as const,
-        collection: "docs",
-      })),
-    },
-    {
-      name: "handbook",
-      label: "Handbook",
-      items: allHandbooks.map((h) => ({
-        name: h._meta.fileName,
-        path: `handbook/${h._meta.path}`,
-        slug: h.slug,
-        type: "file" as const,
-        collection: "handbook",
-      })),
-    },
-    {
-      name: "legal",
-      label: "Legal",
-      items: allLegals.map((l) => ({
-        name: l._meta.fileName,
-        path: `legal/${l._meta.fileName}`,
-        slug: l.slug,
-        type: "file" as const,
-        collection: "legal",
-      })),
-    },
-    {
-      name: "templates",
-      label: "Templates",
-      items: allTemplates.map((t) => ({
-        name: t._meta.fileName,
-        path: `templates/${t._meta.fileName}`,
-        slug: t.slug,
-        type: "file" as const,
-        collection: "templates",
       })),
     },
   ];
@@ -290,12 +184,8 @@ function getFileExtension(filename: string): string {
 }
 
 function CollectionsPage() {
-  const collections = getCollections();
-  const contentMap = useMemo(() => getAllContent(), []);
+  const collections = useMemo(() => getCollections(), []);
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedCollections, setExpandedCollections] = useState<Set<string>>(
-    new Set(),
-  );
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -460,18 +350,6 @@ function CollectionsPage() {
     setTabs(newTabs);
   }, []);
 
-  const toggleCollectionExpanded = (name: string) => {
-    setExpandedCollections((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) {
-        next.delete(name);
-      } else {
-        next.add(name);
-      }
-      return next;
-    });
-  };
-
   const filterCollections = (
     items: CollectionInfo[],
     query: string,
@@ -507,22 +385,14 @@ function CollectionsPage() {
       <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
         <Sidebar
           collections={filteredCollections}
-          expandedCollections={expandedCollections}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onCollectionClick={(name) => toggleCollectionExpanded(name)}
-          onCollectionDoubleClick={(collection) =>
-            openTab("collection", collection.label, collection.name)
-          }
           onFileClick={(item) => openTab("file", item.name, item.path)}
           clipboard={clipboard}
           onClipboardChange={setClipboard}
           onImportClick={() => setIsImportModalOpen(true)}
           editingItem={editingItem}
           onEditingItemChange={setEditingItem}
-          onCreateItem={(folder, name, type) =>
-            createMutation.mutate({ folder, name, type })
-          }
           onRenameItem={(fromPath, toPath) =>
             renameMutation.mutate({ fromPath, toPath })
           }
@@ -532,22 +402,6 @@ function CollectionsPage() {
           onDuplicateItem={(sourcePath) =>
             duplicateMutation.mutate({ sourcePath })
           }
-          onPasteItem={(targetCollection) => {
-            if (!clipboard) return;
-            if (clipboard.operation === "cut") {
-              const newPath = `${targetCollection}/${clipboard.item.name}`;
-              renameMutation.mutate({
-                fromPath: clipboard.item.path,
-                toPath: newPath,
-              });
-            } else {
-              duplicateMutation.mutate({
-                sourcePath: clipboard.item.path,
-                newFilename: clipboard.item.name,
-              });
-            }
-            setClipboard(null);
-          }}
           isLoading={
             createMutation.isPending ||
             renameMutation.isPending ||
@@ -571,7 +425,6 @@ function CollectionsPage() {
             onReorderTabs={reorderTabs}
             filteredItems={filteredItems}
             onFileClick={(item) => openTab("file", item.name, item.path)}
-            contentMap={contentMap}
           />
         </div>
       </ResizablePanel>
@@ -629,42 +482,32 @@ function CollectionsPage() {
 
 function Sidebar({
   collections,
-  expandedCollections,
   searchQuery,
   onSearchChange,
-  onCollectionClick,
-  onCollectionDoubleClick,
   onFileClick,
   clipboard,
   onClipboardChange,
   onImportClick,
   editingItem,
   onEditingItemChange,
-  onCreateItem,
   onRenameItem,
   onDeleteItem,
   onDuplicateItem,
-  onPasteItem,
   isLoading,
   selectedPath,
 }: {
   collections: CollectionInfo[];
-  expandedCollections: Set<string>;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  onCollectionClick: (name: string) => void;
-  onCollectionDoubleClick: (collection: CollectionInfo) => void;
   onFileClick: (item: ContentItem) => void;
   clipboard: ClipboardItem | null;
   onClipboardChange: (item: ClipboardItem | null) => void;
   onImportClick: () => void;
   editingItem: EditingItem | null;
   onEditingItemChange: (item: EditingItem | null) => void;
-  onCreateItem: (folder: string, name: string, type: "file" | "folder") => void;
   onRenameItem: (fromPath: string, toPath: string) => void;
   onDeleteItem: (item: ContentItem, collectionName: string) => void;
   onDuplicateItem: (sourcePath: string) => void;
-  onPasteItem: (targetCollection: string) => void;
   isLoading: boolean;
   selectedPath: string | null;
 }) {
@@ -689,31 +532,23 @@ function Sidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {collections.map((collection) => {
-          const isExpanded = expandedCollections.has(collection.name);
-
-          return (
-            <CollectionItem
-              key={collection.name}
-              collection={collection}
-              isExpanded={isExpanded}
-              onClick={() => onCollectionClick(collection.name)}
-              onDoubleClick={() => onCollectionDoubleClick(collection)}
-              onFileClick={onFileClick}
-              clipboard={clipboard}
-              onClipboardChange={onClipboardChange}
-              editingItem={editingItem}
-              onEditingItemChange={onEditingItemChange}
-              onCreateItem={onCreateItem}
-              onRenameItem={onRenameItem}
-              onDeleteItem={onDeleteItem}
-              onDuplicateItem={onDuplicateItem}
-              onPasteItem={onPasteItem}
-              isLoading={isLoading}
-              selectedPath={selectedPath}
-            />
-          );
-        })}
+        {collections[0]?.items.map((item) => (
+          <FileItemSidebar
+            key={item.path}
+            item={item}
+            onClick={() => onFileClick(item)}
+            clipboard={clipboard}
+            onClipboardChange={onClipboardChange}
+            editingItem={editingItem}
+            onEditingItemChange={onEditingItemChange}
+            onRenameItem={onRenameItem}
+            onDeleteItem={onDeleteItem}
+            onDuplicateItem={onDuplicateItem}
+            collectionName="articles"
+            isLoading={isLoading}
+            isSelected={selectedPath === item.path}
+          />
+        ))}
       </div>
 
       <button
@@ -727,157 +562,6 @@ function Sidebar({
         <PlusIcon className="size-4" />
         Import
       </button>
-    </div>
-  );
-}
-
-function CollectionItem({
-  collection,
-  isExpanded,
-  onClick,
-  onDoubleClick,
-  onFileClick,
-  clipboard,
-  onClipboardChange,
-  editingItem,
-  onEditingItemChange,
-  onCreateItem,
-  onRenameItem,
-  onDeleteItem,
-  onDuplicateItem,
-  onPasteItem,
-  isLoading,
-  selectedPath,
-}: {
-  collection: CollectionInfo;
-  isExpanded: boolean;
-  onClick: () => void;
-  onDoubleClick: () => void;
-  onFileClick: (item: ContentItem) => void;
-  clipboard: ClipboardItem | null;
-  onClipboardChange: (item: ClipboardItem | null) => void;
-  editingItem: EditingItem | null;
-  onEditingItemChange: (item: EditingItem | null) => void;
-  onCreateItem: (folder: string, name: string, type: "file" | "folder") => void;
-  onRenameItem: (fromPath: string, toPath: string) => void;
-  onDeleteItem: (item: ContentItem, collectionName: string) => void;
-  onDuplicateItem: (sourcePath: string) => void;
-  onPasteItem: (targetCollection: string) => void;
-  isLoading: boolean;
-  selectedPath: string | null;
-}) {
-  const [contextMenu, setContextMenu] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
-
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY });
-  };
-
-  const closeContextMenu = () => setContextMenu(null);
-
-  const isCreatingInThisCollection =
-    editingItem?.collectionName === collection.name &&
-    (editingItem?.type === "new-file" || editingItem?.type === "new-folder");
-
-  return (
-    <div>
-      <div
-        className={cn([
-          "flex items-center gap-1.5 py-1.5 pl-4 pr-2 cursor-pointer text-sm",
-          "hover:bg-neutral-100 transition-colors",
-        ])}
-        onClick={onClick}
-        onDoubleClick={onDoubleClick}
-        onContextMenu={handleContextMenu}
-      >
-        {isExpanded ? (
-          <FolderOpenIcon className="size-4 text-neutral-400" />
-        ) : (
-          <FolderIcon className="size-4 text-neutral-400" />
-        )}
-        <span className="truncate text-neutral-700">{collection.label}</span>
-        <span className="ml-auto text-xs text-neutral-400">
-          {collection.items.length}
-        </span>
-      </div>
-
-      {contextMenu && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          onClose={closeContextMenu}
-          isFolder
-          canPaste={clipboard !== null}
-          onOpenInNewTab={() => {
-            onDoubleClick();
-            closeContextMenu();
-          }}
-          onNewFile={() => {
-            onEditingItemChange({
-              collectionName: collection.name,
-              type: "new-file",
-            });
-            if (!isExpanded) onClick();
-            closeContextMenu();
-          }}
-          onNewFolder={() => {
-            onEditingItemChange({
-              collectionName: collection.name,
-              type: "new-folder",
-            });
-            if (!isExpanded) onClick();
-            closeContextMenu();
-          }}
-          onPaste={() => {
-            onPasteItem(collection.name);
-            closeContextMenu();
-          }}
-        />
-      )}
-
-      {isExpanded && (
-        <div className="ml-5.5 border-l border-neutral-200">
-          {isCreatingInThisCollection && (
-            <InlineInput
-              type={editingItem.type === "new-file" ? "file" : "folder"}
-              onSubmit={(name) => {
-                onCreateItem(
-                  collection.name,
-                  name,
-                  editingItem.type === "new-file" ? "file" : "folder",
-                );
-              }}
-              onCancel={() => onEditingItemChange(null)}
-              isLoading={isLoading}
-            />
-          )}
-          {collection.items.slice(0, 10).map((item) => (
-            <FileItemSidebar
-              key={item.path}
-              item={item}
-              onClick={() => onFileClick(item)}
-              clipboard={clipboard}
-              onClipboardChange={onClipboardChange}
-              editingItem={editingItem}
-              onEditingItemChange={onEditingItemChange}
-              onRenameItem={onRenameItem}
-              onDeleteItem={onDeleteItem}
-              onDuplicateItem={onDuplicateItem}
-              collectionName={collection.name}
-              isLoading={isLoading}
-              isSelected={selectedPath === item.path}
-            />
-          ))}
-          {collection.items.length > 10 && (
-            <div className="flex items-center gap-1.5 text-xs text-neutral-400 py-1 pl-3">
-              +{collection.items.length - 10} more
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -945,16 +629,16 @@ function FileItemSidebar({
   return (
     <div
       className={cn([
-        "flex items-center gap-1.5 py-1 pl-3 pr-2 cursor-pointer text-sm",
+        "flex items-center gap-1.5 py-1.5 pl-4 pr-2 cursor-pointer text-sm",
         "hover:bg-neutral-50 transition-colors",
         isCut && "opacity-50",
-        isSelected && "bg-neutral-100",
+        (isSelected || contextMenu) && "bg-neutral-100",
       ])}
       onClick={onClick}
       onContextMenu={handleContextMenu}
     >
       <FileTextIcon className="size-4 text-neutral-400" />
-      <span className="truncate text-neutral-600 text-xs">{item.name}</span>
+      <span className="truncate text-neutral-600">{item.name}</span>
 
       {contextMenu && (
         <ContextMenu
@@ -1105,9 +789,13 @@ function ContextMenu({
     <>
       <div
         className="fixed inset-0 z-40"
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
         onContextMenu={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           onClose();
         }}
       />
@@ -1247,7 +935,6 @@ function ContentPanel({
   onReorderTabs,
   filteredItems,
   onFileClick,
-  contentMap,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -1259,12 +946,45 @@ function ContentPanel({
   onReorderTabs: (tabs: Tab[]) => void;
   filteredItems: ContentItem[];
   onFileClick: (item: ContentItem) => void;
-  contentMap: Map<string, FileContent>;
 }) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [editorData, setEditorData] = useState<EditorData | null>(null);
+  const fileEditorRef = useRef<{ save: () => void } | null>(null);
 
-  const currentFileContent =
-    currentTab?.type === "file" ? contentMap.get(currentTab.path) : undefined;
+  const { mutate: saveContent, isPending: isSaving } = useMutation({
+    mutationFn: async (params: {
+      path: string;
+      content: string;
+      metadata: ArticleMetadata;
+    }) => {
+      const response = await fetch("/api/admin/content/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to save");
+      }
+      return response.json();
+    },
+  });
+
+  const handleSave = useCallback(() => {
+    if (currentTab?.type === "file" && editorData) {
+      saveContent({
+        path: currentTab.path,
+        content: editorData.content,
+        metadata: editorData.metadata,
+      });
+    }
+  }, [currentTab, editorData, saveContent]);
+
+  const currentFileContent = useMemo(
+    () =>
+      currentTab?.type === "file" ? getFileContent(currentTab.path) : undefined,
+    [currentTab?.type, currentTab?.path],
+  );
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -1281,15 +1001,20 @@ function ContentPanel({
             onReorderTabs={onReorderTabs}
             isPreviewMode={isPreviewMode}
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
+            onSave={handleSave}
+            isSaving={isSaving}
             isPublished={currentFileContent?.published}
           />
           {currentTab.type === "collection" ? (
             <FileList filteredItems={filteredItems} onFileClick={onFileClick} />
           ) : (
             <FileEditor
+              ref={fileEditorRef}
               filePath={currentTab.path}
-              contentMap={contentMap}
               isPreviewMode={isPreviewMode}
+              onDataChange={setEditorData}
+              onSave={handleSave}
+              isSaving={isSaving}
             />
           )}
         </div>
@@ -1317,6 +1042,8 @@ function EditorHeader({
   onReorderTabs,
   isPreviewMode,
   onTogglePreview,
+  onSave,
+  isSaving,
   isPublished,
 }: {
   tabs: Tab[];
@@ -1329,6 +1056,8 @@ function EditorHeader({
   onReorderTabs: (tabs: Tab[]) => void;
   isPreviewMode: boolean;
   onTogglePreview: () => void;
+  onSave: () => void;
+  isSaving: boolean;
   isPublished?: boolean;
 }) {
   const breadcrumbs = currentTab.path.split("/");
@@ -1385,6 +1114,16 @@ function EditorHeader({
               ) : (
                 <EyeIcon className="size-4" />
               )}
+            </button>
+            <button
+              onClick={onSave}
+              disabled={isSaving}
+              className="cursor-pointer p-1.5 rounded transition-colors text-neutral-400 hover:text-neutral-600 disabled:cursor-not-allowed"
+              title="Save (⌘S)"
+            >
+              <RefreshCwIcon
+                className={cn(["size-4", isSaving && "animate-spin"])}
+              />
             </button>
             <button
               type="button"
@@ -1747,356 +1486,43 @@ function MetadataRow({
   );
 }
 
-function MetadataPanel({
-  fileContent,
-  author,
-  onAuthorChange,
-  isExpanded,
-  onToggleExpanded,
-}: {
-  fileContent: FileContent;
+interface MetadataHandlers {
+  metaTitle: string;
+  onMetaTitleChange: (value: string) => void;
+  displayTitle: string;
+  onDisplayTitleChange: (value: string) => void;
+  metaDescription: string;
+  onMetaDescriptionChange: (value: string) => void;
   author: string;
   onAuthorChange: (value: string) => void;
+  date: string;
+  onDateChange: (value: string) => void;
+  coverImage: string;
+  onCoverImageChange: (value: string) => void;
+  published: boolean;
+  onPublishedChange: (value: boolean) => void;
+  featured: boolean;
+  onFeaturedChange: (value: boolean) => void;
+  category: string;
+  onCategoryChange: (value: string) => void;
+}
+
+function MetadataPanel({
+  isExpanded,
+  onToggleExpanded,
+  filePath,
+  handlers,
+}: {
   isExpanded: boolean;
   onToggleExpanded: () => void;
+  filePath: string;
+  handlers: MetadataHandlers;
 }) {
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
-  const collection = fileContent.collection;
-
-  const renderArticlesMetadata = () => (
-    <>
-      <div className="flex border-b border-neutral-200">
-        <button
-          onClick={() => setIsTitleExpanded(!isTitleExpanded)}
-          className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
-        >
-          <span className="absolute left-1 text-red-400">*</span>
-          Title
-          <ChevronRightIcon
-            className={cn([
-              "size-3 transition-transform",
-              isTitleExpanded && "rotate-90",
-            ])}
-          />
-        </button>
-        <input
-          type="text"
-          defaultValue={fileContent.meta_title || ""}
-          placeholder="SEO meta title"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </div>
-      {isTitleExpanded && (
-        <div className="flex border-b border-neutral-200 bg-neutral-50">
-          <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
-            <span className="text-neutral-300">└</span>
-            Display
-          </span>
-          <input
-            type="text"
-            defaultValue={fileContent.display_title || ""}
-            placeholder="Display title (optional)"
-            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-          />
-        </div>
-      )}
-      <MetadataRow label="Author" required>
-        <div className="flex-1 px-2 py-2">
-          <AuthorSelect value={author} onChange={onAuthorChange} />
-        </div>
-      </MetadataRow>
-      <MetadataRow label="Date" required>
-        <input
-          type="date"
-          defaultValue={fileContent.date || ""}
-          className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-        />
-      </MetadataRow>
-      <MetadataRow label="Description" required>
-        <textarea
-          ref={(el) => {
-            if (el) {
-              el.style.height = "auto";
-              el.style.height = `${el.scrollHeight}px`;
-            }
-          }}
-          defaultValue={fileContent.meta_description || ""}
-          placeholder="Meta description for SEO"
-          rows={1}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = "auto";
-            target.style.height = `${target.scrollHeight}px`;
-          }}
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
-        />
-      </MetadataRow>
-      <MetadataRow label="Category">
-        <select
-          defaultValue={fileContent.category || ""}
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-        >
-          <option value="">Select category</option>
-          <option value="Case Study">Case Study</option>
-          <option value="Hyprnote Weekly">Hyprnote Weekly</option>
-          <option value="Productivity Hack">Productivity Hack</option>
-          <option value="Engineering">Engineering</option>
-        </select>
-      </MetadataRow>
-      <MetadataRow label="Cover">
-        <div className="flex-1 flex items-center gap-2 px-2 py-2">
-          <input
-            type="text"
-            defaultValue={fileContent.coverImage || ""}
-            placeholder="/api/images/blog/slug/cover.png"
-            className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-          />
-        </div>
-      </MetadataRow>
-      <MetadataRow label="Published">
-        <div className="flex-1 flex items-center px-2 py-2">
-          <input
-            type="checkbox"
-            defaultChecked={fileContent.published || false}
-            className="rounded"
-          />
-        </div>
-      </MetadataRow>
-      <MetadataRow label="Featured" noBorder>
-        <div className="flex-1 flex items-center px-2 py-2">
-          <input
-            type="checkbox"
-            defaultChecked={fileContent.featured || false}
-            className="rounded"
-          />
-        </div>
-      </MetadataRow>
-    </>
-  );
-
-  const renderChangelogMetadata = () => (
-    <MetadataRow label="Date" required noBorder>
-      <input
-        type="date"
-        defaultValue={fileContent.date || ""}
-        className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-      />
-    </MetadataRow>
-  );
-
-  const renderDocsMetadata = () => (
-    <>
-      <MetadataRow label="Title" required>
-        <input
-          type="text"
-          defaultValue={fileContent.title || ""}
-          placeholder="Document title"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </MetadataRow>
-      <MetadataRow label="Section" required>
-        <select
-          defaultValue={fileContent.section || ""}
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-        >
-          <option value="">Select section</option>
-          <option value="About">About</option>
-          <option value="Calendar">Calendar</option>
-          <option value="Developers">Developers</option>
-          <option value="FAQ">FAQ</option>
-          <option value="Getting Started">Getting Started</option>
-          <option value="Guides">Guides</option>
-          <option value="Pro">Pro</option>
-        </select>
-      </MetadataRow>
-      <MetadataRow label="Summary" noBorder>
-        <textarea
-          ref={(el) => {
-            if (el) {
-              el.style.height = "auto";
-              el.style.height = `${el.scrollHeight}px`;
-            }
-          }}
-          defaultValue={fileContent.summary || ""}
-          placeholder="Brief summary"
-          rows={1}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = "auto";
-            target.style.height = `${target.scrollHeight}px`;
-          }}
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
-        />
-      </MetadataRow>
-    </>
-  );
-
-  const renderHandbookMetadata = () => (
-    <>
-      <MetadataRow label="Title" required>
-        <input
-          type="text"
-          defaultValue={fileContent.title || ""}
-          placeholder="Document title"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </MetadataRow>
-      <MetadataRow label="Section" required>
-        <select
-          defaultValue={fileContent.section || ""}
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-        >
-          <option value="">Select section</option>
-          <option value="About">About</option>
-          <option value="Beliefs">Beliefs</option>
-          <option value="Communication">Communication</option>
-          <option value="Go To Market">Go To Market</option>
-          <option value="How We Work">How We Work</option>
-          <option value="Who We Want">Who We Want</option>
-        </select>
-      </MetadataRow>
-      <MetadataRow label="Summary" noBorder>
-        <textarea
-          ref={(el) => {
-            if (el) {
-              el.style.height = "auto";
-              el.style.height = `${el.scrollHeight}px`;
-            }
-          }}
-          defaultValue={fileContent.summary || ""}
-          placeholder="Brief summary"
-          rows={1}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = "auto";
-            target.style.height = `${target.scrollHeight}px`;
-          }}
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
-        />
-      </MetadataRow>
-    </>
-  );
-
-  const renderLegalMetadata = () => (
-    <>
-      <MetadataRow label="Title" required>
-        <input
-          type="text"
-          defaultValue={fileContent.title || ""}
-          placeholder="Document title"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </MetadataRow>
-      <MetadataRow label="Summary" required>
-        <textarea
-          ref={(el) => {
-            if (el) {
-              el.style.height = "auto";
-              el.style.height = `${el.scrollHeight}px`;
-            }
-          }}
-          defaultValue={fileContent.summary || ""}
-          placeholder="Brief summary"
-          rows={1}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = "auto";
-            target.style.height = `${target.scrollHeight}px`;
-          }}
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
-        />
-      </MetadataRow>
-      <MetadataRow label="Date" required noBorder>
-        <input
-          type="date"
-          defaultValue={fileContent.date || ""}
-          className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-        />
-      </MetadataRow>
-    </>
-  );
-
-  const renderTemplatesMetadata = () => (
-    <>
-      <MetadataRow label="Title" required>
-        <input
-          type="text"
-          defaultValue={fileContent.title || ""}
-          placeholder="Template title"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </MetadataRow>
-      <MetadataRow label="Description" required>
-        <textarea
-          ref={(el) => {
-            if (el) {
-              el.style.height = "auto";
-              el.style.height = `${el.scrollHeight}px`;
-            }
-          }}
-          defaultValue={fileContent.description || ""}
-          placeholder="Template description"
-          rows={1}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = "auto";
-            target.style.height = `${target.scrollHeight}px`;
-          }}
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
-        />
-      </MetadataRow>
-      <MetadataRow label="Category" required>
-        <input
-          type="text"
-          defaultValue={fileContent.category || ""}
-          placeholder="Category"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </MetadataRow>
-      <MetadataRow label="Targets" required>
-        <input
-          type="text"
-          defaultValue={fileContent.targets?.join(", ") || ""}
-          placeholder="target1, target2, ..."
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </MetadataRow>
-      <MetadataRow label="Banner" noBorder>
-        <input
-          type="text"
-          defaultValue={fileContent.banner || ""}
-          placeholder="Banner image path (optional)"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </MetadataRow>
-    </>
-  );
-
-  const renderMetadataContent = () => {
-    switch (collection) {
-      case "articles":
-        return renderArticlesMetadata();
-      case "changelog":
-        return renderChangelogMetadata();
-      case "docs":
-        return renderDocsMetadata();
-      case "handbook":
-        return renderHandbookMetadata();
-      case "legal":
-        return renderLegalMetadata();
-      case "templates":
-        return renderTemplatesMetadata();
-      default:
-        return (
-          <div className="px-4 py-2 text-neutral-400 text-sm">
-            No metadata fields for this collection
-          </div>
-        );
-    }
-  };
 
   return (
     <div
+      key={filePath}
       className={cn([
         "shrink-0 relative",
         isExpanded && "border-b border-neutral-200",
@@ -2105,10 +1531,126 @@ function MetadataPanel({
       <div
         className={cn([
           "text-sm transition-all duration-200 overflow-hidden",
-          isExpanded ? "max-h-[500px]" : "max-h-0",
+          isExpanded ? "max-h-125" : "max-h-0",
         ])}
       >
-        {renderMetadataContent()}
+        <div className="flex border-b border-neutral-200">
+          <button
+            onClick={() => setIsTitleExpanded(!isTitleExpanded)}
+            className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
+          >
+            <span className="absolute left-1 text-red-400">*</span>
+            Title
+            <ChevronRightIcon
+              className={cn([
+                "size-3 transition-transform",
+                isTitleExpanded && "rotate-90",
+              ])}
+            />
+          </button>
+          <input
+            type="text"
+            value={handlers.metaTitle}
+            onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
+            placeholder="SEO meta title"
+            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+          />
+        </div>
+        {isTitleExpanded && (
+          <div className="flex border-b border-neutral-200 bg-neutral-50">
+            <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
+              <span className="text-neutral-300">└</span>
+              Display
+            </span>
+            <input
+              type="text"
+              value={handlers.displayTitle}
+              onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
+              placeholder="Display title (optional)"
+              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+            />
+          </div>
+        )}
+        <MetadataRow label="Author" required>
+          <div className="flex-1 px-2 py-2">
+            <AuthorSelect
+              value={handlers.author}
+              onChange={handlers.onAuthorChange}
+            />
+          </div>
+        </MetadataRow>
+        <MetadataRow label="Date" required>
+          <input
+            type="date"
+            value={handlers.date}
+            onChange={(e) => handlers.onDateChange(e.target.value)}
+            className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+          />
+        </MetadataRow>
+        <MetadataRow label="Description" required>
+          <textarea
+            ref={(el) => {
+              if (el) {
+                el.style.height = "auto";
+                el.style.height = `${el.scrollHeight}px`;
+              }
+            }}
+            value={handlers.metaDescription}
+            onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
+            placeholder="Meta description for SEO"
+            rows={1}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = "auto";
+              target.style.height = `${target.scrollHeight}px`;
+            }}
+            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
+          />
+        </MetadataRow>
+        <MetadataRow label="Category">
+          <select
+            value={handlers.category}
+            onChange={(e) => handlers.onCategoryChange(e.target.value)}
+            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+          >
+            <option value="">Select category</option>
+            <option value="Case Study">Case Study</option>
+            <option value="Hyprnote Weekly">Hyprnote Weekly</option>
+            <option value="Productivity Hack">Productivity Hack</option>
+            <option value="Engineering">Engineering</option>
+          </select>
+        </MetadataRow>
+        <MetadataRow label="Cover">
+          <div className="flex-1 flex items-center gap-2 px-2 py-2">
+            <input
+              type="text"
+              value={handlers.coverImage}
+              onChange={(e) => handlers.onCoverImageChange(e.target.value)}
+              placeholder="/api/images/blog/slug/cover.png"
+              className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+            />
+          </div>
+        </MetadataRow>
+        <MetadataRow label="Published">
+          <div className="flex-1 flex items-center px-2 py-2">
+            <input
+              type="checkbox"
+              checked={handlers.published}
+              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
+              className="rounded"
+            />
+          </div>
+        </MetadataRow>
+        <MetadataRow label="Featured" noBorder>
+          <div className="flex-1 flex items-center px-2 py-2">
+            <input
+              type="checkbox"
+              checked={handlers.featured}
+              onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
+              className="rounded"
+            />
+          </div>
+        </MetadataRow>
       </div>
       <button
         onClick={onToggleExpanded}
@@ -2131,23 +1673,341 @@ function MetadataPanel({
   );
 }
 
-function FileEditor({
+interface CommitInfo {
+  sha: string;
+  message: string;
+  author: string;
+  date: string;
+  url: string;
+}
+
+function GitHistory({ filePath }: { filePath: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [commits, setCommits] = useState<CommitInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchHistory = useCallback(async () => {
+    if (!filePath) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `/api/admin/content/history?path=${encodeURIComponent(filePath)}`,
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCommits(data.commits || []);
+      }
+    } catch {
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filePath]);
+
+  useEffect(() => {
+    if (isExpanded && commits.length === 0) {
+      fetchHistory();
+    }
+  }, [isExpanded, commits.length, fetchHistory]);
+
+  return (
+    <div className="border-t border-neutral-200">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-50"
+      >
+        <span className="flex items-center gap-2">
+          <GithubIcon className="size-4" />
+          Git History
+        </span>
+        <ChevronDownIcon
+          className={cn([
+            "size-4 transition-transform",
+            isExpanded && "rotate-180",
+          ])}
+        />
+      </button>
+      {isExpanded && (
+        <div className="px-4 pb-4 space-y-2">
+          {isLoading ? (
+            <p className="text-xs text-neutral-400">Loading...</p>
+          ) : commits.length === 0 ? (
+            <p className="text-xs text-neutral-400">No commit history</p>
+          ) : (
+            commits.map((commit) => (
+              <a
+                key={commit.sha}
+                href={commit.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block p-2 rounded hover:bg-neutral-50 border border-neutral-100"
+              >
+                <div className="flex items-center gap-2 text-xs">
+                  <code className="text-neutral-500 bg-neutral-100 px-1 rounded">
+                    {commit.sha}
+                  </code>
+                  <span className="text-neutral-400">
+                    {new Date(commit.date).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-700 mt-1 truncate">
+                  {commit.message}
+                </p>
+              </a>
+            ))
+          )}
+          {commits.length > 0 && (
+            <button
+              onClick={fetchHistory}
+              className="text-xs text-neutral-500 hover:text-neutral-700 flex items-center gap-1"
+            >
+              <RefreshCwIcon className="size-3" />
+              Refresh
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MetadataSidePanel({
   filePath,
-  contentMap,
-  isPreviewMode,
+  handlers,
 }: {
   filePath: string;
-  contentMap: Map<string, FileContent>;
-  isPreviewMode: boolean;
+  handlers: MetadataHandlers;
 }) {
-  const fileContent = contentMap.get(filePath);
+  return (
+    <div className="text-sm" key={filePath}>
+      <div className="p-4 space-y-4">
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Title
+          </label>
+          <input
+            type="text"
+            value={handlers.metaTitle}
+            onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
+            placeholder="SEO meta title"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">Display Title</label>
+          <input
+            type="text"
+            value={handlers.displayTitle}
+            onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
+            placeholder="Display title (optional)"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Author
+          </label>
+          <AuthorSelect
+            value={handlers.author}
+            onChange={handlers.onAuthorChange}
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Date
+          </label>
+          <input
+            type="date"
+            value={handlers.date}
+            onChange={(e) => handlers.onDateChange(e.target.value)}
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Description
+          </label>
+          <textarea
+            value={handlers.metaDescription}
+            onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
+            placeholder="Meta description for SEO"
+            rows={3}
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none focus:border-neutral-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">Category</label>
+          <select
+            value={handlers.category}
+            onChange={(e) => handlers.onCategoryChange(e.target.value)}
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
+          >
+            <option value="">Select category</option>
+            <option value="Case Study">Case Study</option>
+            <option value="Hyprnote Weekly">Hyprnote Weekly</option>
+            <option value="Productivity Hack">Productivity Hack</option>
+            <option value="Engineering">Engineering</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">Cover Image</label>
+          <input
+            type="text"
+            value={handlers.coverImage}
+            onChange={(e) => handlers.onCoverImageChange(e.target.value)}
+            placeholder="/api/images/blog/slug/cover.png"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+          />
+        </div>
+
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-neutral-600">
+            <input
+              type="checkbox"
+              checked={handlers.published}
+              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
+              className="rounded"
+            />
+            Published
+          </label>
+          <label className="flex items-center gap-2 text-neutral-600">
+            <input
+              type="checkbox"
+              checked={handlers.featured}
+              onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
+              className="rounded"
+            />
+            Featured
+          </label>
+        </div>
+      </div>
+
+      <GitHistory filePath={filePath} />
+    </div>
+  );
+}
+
+const FileEditor = React.forwardRef<
+  { save: () => void },
+  {
+    filePath: string;
+    isPreviewMode: boolean;
+    onDataChange: (data: EditorData) => void;
+    onSave: () => void;
+    isSaving: boolean;
+  }
+>(function FileEditor({ filePath, isPreviewMode, onDataChange, onSave }, _ref) {
+  const fileContent = useMemo(() => getFileContent(filePath), [filePath]);
+
   const [content, setContent] = useState(fileContent?.content || "");
+  const [metaTitle, setMetaTitle] = useState(fileContent?.meta_title || "");
+  const [displayTitle, setDisplayTitle] = useState(
+    fileContent?.display_title || "",
+  );
+  const [metaDescription, setMetaDescription] = useState(
+    fileContent?.meta_description || "",
+  );
   const [author, setAuthor] = useState(fileContent?.author || "");
+  const [date, setDate] = useState(fileContent?.date || "");
+  const [coverImage, setCoverImage] = useState(fileContent?.coverImage || "");
+  const [published, setPublished] = useState(fileContent?.published || false);
+  const [featured, setFeatured] = useState(fileContent?.featured || false);
+  const [category, setCategory] = useState(fileContent?.category || "");
+
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const lastSavedContentRef = useRef(fileContent?.content || "");
+
+  const getMetadata = useCallback(
+    (): ArticleMetadata => ({
+      meta_title: metaTitle,
+      display_title: displayTitle,
+      meta_description: metaDescription,
+      author,
+      date,
+      coverImage,
+      published,
+      featured,
+      category,
+    }),
+    [
+      metaTitle,
+      displayTitle,
+      metaDescription,
+      author,
+      date,
+      coverImage,
+      published,
+      featured,
+      category,
+    ],
+  );
 
   useEffect(() => {
     setContent(fileContent?.content || "");
-  }, [filePath, fileContent?.content]);
+    setMetaTitle(fileContent?.meta_title || "");
+    setDisplayTitle(fileContent?.display_title || "");
+    setMetaDescription(fileContent?.meta_description || "");
+    setAuthor(fileContent?.author || "");
+    setDate(fileContent?.date || "");
+    setCoverImage(fileContent?.coverImage || "");
+    setPublished(fileContent?.published || false);
+    setFeatured(fileContent?.featured || false);
+    setCategory(fileContent?.category || "");
+    lastSavedContentRef.current = fileContent?.content || "";
+    setHasUnsavedChanges(false);
+  }, [filePath, fileContent]);
+
+  useEffect(() => {
+    onDataChange({ content, metadata: getMetadata() });
+  }, [
+    content,
+    metaTitle,
+    displayTitle,
+    metaDescription,
+    author,
+    date,
+    coverImage,
+    published,
+    featured,
+    category,
+    onDataChange,
+    getMetadata,
+  ]);
+
+  const handleContentChange = useCallback((newContent: string) => {
+    setContent(newContent);
+    setHasUnsavedChanges(newContent !== lastSavedContentRef.current);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        onSave();
+        lastSavedContentRef.current = content;
+        setHasUnsavedChanges(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onSave, content]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        return "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   if (!fileContent) {
     return (
@@ -2163,7 +2023,28 @@ function FileEditor({
   const selectedAuthor = AUTHORS.find((a) => a.name === author);
   const avatarUrl = selectedAuthor?.avatar;
 
-  const renderArticlePreview = () => (
+  const metadataHandlers: MetadataHandlers = {
+    metaTitle,
+    onMetaTitleChange: setMetaTitle,
+    displayTitle,
+    onDisplayTitleChange: setDisplayTitle,
+    metaDescription,
+    onMetaDescriptionChange: setMetaDescription,
+    author,
+    onAuthorChange: setAuthor,
+    date,
+    onDateChange: setDate,
+    coverImage,
+    onCoverImageChange: setCoverImage,
+    published,
+    onPublishedChange: setPublished,
+    featured,
+    onFeaturedChange: setFeatured,
+    category,
+    onCategoryChange: setCategory,
+  };
+
+  const renderPreview = () => (
     <div className="h-full overflow-y-auto bg-white">
       <header className="py-12 text-center max-w-3xl mx-auto px-6">
         <h1 className="text-3xl font-serif text-stone-600 mb-6">
@@ -2195,163 +2076,12 @@ function FileEditor({
         <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
           <MDXContent
             code={fileContent.mdx}
-            components={createMDXComponents({ CtaCard })}
+            components={defaultMDXComponents}
           />
         </article>
       </div>
     </div>
   );
-
-  const renderChangelogPreview = () => (
-    <div className="h-full overflow-y-auto bg-white">
-      <header className="py-8 max-w-3xl mx-auto px-6 border-b border-neutral-200">
-        <div className="flex items-center gap-3">
-          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
-            v{fileContent.slug}
-          </span>
-          {fileContent.date && (
-            <time className="text-sm text-neutral-500">
-              {new Date(fileContent.date).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </time>
-          )}
-        </div>
-      </header>
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <article className="prose prose-stone prose-headings:font-semibold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-ul:my-4 prose-li:my-1 max-w-none">
-          <MDXContent
-            code={fileContent.mdx}
-            components={createMDXComponents({ CtaCard })}
-          />
-        </article>
-      </div>
-    </div>
-  );
-
-  const renderDocsPreview = () => (
-    <div className="h-full overflow-y-auto bg-white">
-      <header className="py-8 max-w-3xl mx-auto px-6 border-b border-neutral-200">
-        <div className="text-xs text-neutral-500 mb-2">
-          {fileContent.section}
-        </div>
-        <h1 className="text-2xl font-semibold text-neutral-900">
-          {fileContent.title || "Untitled"}
-        </h1>
-        {fileContent.summary && (
-          <p className="mt-2 text-neutral-600">{fileContent.summary}</p>
-        )}
-      </header>
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <article className="prose prose-stone prose-headings:font-semibold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-pre:bg-stone-900 prose-pre:text-stone-100 max-w-none">
-          <MDXContent
-            code={fileContent.mdx}
-            components={createMDXComponents({ CtaCard })}
-          />
-        </article>
-      </div>
-    </div>
-  );
-
-  const renderLegalPreview = () => (
-    <div className="h-full overflow-y-auto bg-white">
-      <header className="py-8 max-w-3xl mx-auto px-6 border-b border-neutral-200">
-        <h1 className="text-2xl font-semibold text-neutral-900">
-          {fileContent.title || "Untitled"}
-        </h1>
-        {fileContent.date && (
-          <p className="mt-2 text-sm text-neutral-500">
-            Last updated:{" "}
-            {new Date(fileContent.date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
-        )}
-        {fileContent.summary && (
-          <p className="mt-2 text-neutral-600">{fileContent.summary}</p>
-        )}
-      </header>
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <article className="prose prose-stone prose-headings:font-semibold max-w-none">
-          <MDXContent
-            code={fileContent.mdx}
-            components={createMDXComponents({ CtaCard })}
-          />
-        </article>
-      </div>
-    </div>
-  );
-
-  const renderTemplatePreview = () => (
-    <div className="h-full overflow-y-auto bg-white">
-      <header className="py-8 max-w-3xl mx-auto px-6 border-b border-neutral-200">
-        <div className="text-xs text-neutral-500 mb-2">
-          {fileContent.category}
-        </div>
-        <h1 className="text-2xl font-semibold text-neutral-900">
-          {fileContent.title || "Untitled"}
-        </h1>
-        {fileContent.description && (
-          <p className="mt-2 text-neutral-600">{fileContent.description}</p>
-        )}
-        {fileContent.targets && fileContent.targets.length > 0 && (
-          <div className="flex gap-2 mt-3">
-            {fileContent.targets.map((target) => (
-              <span
-                key={target}
-                className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded"
-              >
-                {target}
-              </span>
-            ))}
-          </div>
-        )}
-      </header>
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <article className="prose prose-stone prose-headings:font-semibold max-w-none">
-          <MDXContent
-            code={fileContent.mdx}
-            components={createMDXComponents({ CtaCard })}
-          />
-        </article>
-      </div>
-    </div>
-  );
-
-  const renderDefaultPreview = () => (
-    <div className="h-full overflow-y-auto bg-white">
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <article className="prose prose-stone prose-headings:font-semibold max-w-none">
-          <MDXContent
-            code={fileContent.mdx}
-            components={createMDXComponents({ CtaCard })}
-          />
-        </article>
-      </div>
-    </div>
-  );
-
-  const renderPreview = () => {
-    switch (fileContent.collection) {
-      case "articles":
-        return renderArticlePreview();
-      case "changelog":
-        return renderChangelogPreview();
-      case "docs":
-      case "handbook":
-        return renderDocsPreview();
-      case "legal":
-        return renderLegalPreview();
-      case "templates":
-        return renderTemplatePreview();
-      default:
-        return renderDefaultPreview();
-    }
-  };
 
   if (isPreviewMode) {
     return (
@@ -2359,16 +2089,15 @@ function FileEditor({
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full">
             <MetadataPanel
-              fileContent={fileContent}
-              author={author}
-              onAuthorChange={setAuthor}
               isExpanded={isMetadataExpanded}
               onToggleExpanded={() =>
                 setIsMetadataExpanded(!isMetadataExpanded)
               }
+              filePath={filePath}
+              handlers={metadataHandlers}
             />
             <div className="flex-1 min-h-0 overflow-y-auto p-6">
-              <BlogEditor content={content} onChange={setContent} />
+              <BlogEditor content={content} onChange={handleContentChange} />
             </div>
           </div>
         </ResizablePanel>
@@ -2381,22 +2110,21 @@ function FileEditor({
   }
 
   return (
-    <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-      <div className="flex-1 flex flex-col min-h-0">
-        <MetadataPanel
-          fileContent={fileContent}
-          author={author}
-          onAuthorChange={setAuthor}
-          isExpanded={isMetadataExpanded}
-          onToggleExpanded={() => setIsMetadataExpanded(!isMetadataExpanded)}
-        />
-        <div className="flex-1 min-h-0 overflow-y-auto p-6">
-          <BlogEditor content={content} onChange={setContent} />
+    <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
+      <ResizablePanel defaultSize={70} minSize={50}>
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 h-full">
+          <BlogEditor content={content} onChange={handleContentChange} />
         </div>
-      </div>
-    </div>
+      </ResizablePanel>
+      <ResizableHandle className="w-px bg-neutral-200" />
+      <ResizablePanel defaultSize={30} minSize={20}>
+        <div className="h-full overflow-y-auto">
+          <MetadataSidePanel filePath={filePath} handlers={metadataHandlers} />
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
-}
+});
 
 function EmptyState({
   icon: Icon,
@@ -2449,14 +2177,7 @@ function FileItem({
   );
 }
 
-const CONTENT_FOLDERS = [
-  { value: "articles", label: "Articles (Blog)" },
-  { value: "changelog", label: "Changelog" },
-  { value: "docs", label: "Documentation" },
-  { value: "handbook", label: "Handbook" },
-  { value: "legal", label: "Legal" },
-  { value: "templates", label: "Templates" },
-];
+const CONTENT_FOLDERS = [{ value: "articles", label: "Articles (Blog)" }];
 
 interface ImportResult {
   success: boolean;

@@ -41,7 +41,6 @@ import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as AdminMediaIndexRouteImport } from './routes/admin/media/index'
-import { Route as AdminImportIndexRouteImport } from './routes/admin/import/index'
 import { Route as AdminCollectionsIndexRouteImport } from './routes/admin/collections/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
 import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts/index'
@@ -111,8 +110,10 @@ import { Route as ApiAdminMediaDeleteRouteImport } from './routes/api/admin/medi
 import { Route as ApiAdminMediaCreateFolderRouteImport } from './routes/api/admin/media/create-folder'
 import { Route as ApiAdminImportSaveRouteImport } from './routes/api/admin/import/save'
 import { Route as ApiAdminImportGoogleDocsRouteImport } from './routes/api/admin/import/google-docs'
+import { Route as ApiAdminContentSaveRouteImport } from './routes/api/admin/content/save'
 import { Route as ApiAdminContentRenameRouteImport } from './routes/api/admin/content/rename'
 import { Route as ApiAdminContentListRouteImport } from './routes/api/admin/content/list'
+import { Route as ApiAdminContentHistoryRouteImport } from './routes/api/admin/content/history'
 import { Route as ApiAdminContentDuplicateRouteImport } from './routes/api/admin/content/duplicate'
 import { Route as ApiAdminContentDeleteRouteImport } from './routes/api/admin/content/delete'
 import { Route as ApiAdminContentCreateRouteImport } from './routes/api/admin/content/create'
@@ -277,11 +278,6 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
 const AdminMediaIndexRoute = AdminMediaIndexRouteImport.update({
   id: '/media/',
   path: '/media/',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminImportIndexRoute = AdminImportIndexRouteImport.update({
-  id: '/import/',
-  path: '/import/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCollectionsIndexRoute = AdminCollectionsIndexRouteImport.update({
@@ -639,6 +635,11 @@ const ApiAdminImportGoogleDocsRoute =
     path: '/api/admin/import/google-docs',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminContentSaveRoute = ApiAdminContentSaveRouteImport.update({
+  id: '/api/admin/content/save',
+  path: '/api/admin/content/save',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminContentRenameRoute = ApiAdminContentRenameRouteImport.update({
   id: '/api/admin/content/rename',
   path: '/api/admin/content/rename',
@@ -647,6 +648,11 @@ const ApiAdminContentRenameRoute = ApiAdminContentRenameRouteImport.update({
 const ApiAdminContentListRoute = ApiAdminContentListRouteImport.update({
   id: '/api/admin/content/list',
   path: '/api/admin/content/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminContentHistoryRoute = ApiAdminContentHistoryRouteImport.update({
+  id: '/api/admin/content/history',
+  path: '/api/admin/content/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminContentDuplicateRoute =
@@ -770,15 +776,16 @@ export interface FileRoutesByFullPath {
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
   '/admin/collections': typeof AdminCollectionsIndexRoute
-  '/admin/import': typeof AdminImportIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
   '/api/admin/content/create': typeof ApiAdminContentCreateRoute
   '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
+  '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
+  '/api/admin/content/save': typeof ApiAdminContentSaveRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
   '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
@@ -876,15 +883,16 @@ export interface FileRoutesByTo {
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
   '/admin/collections': typeof AdminCollectionsIndexRoute
-  '/admin/import': typeof AdminImportIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
   '/api/admin/content/create': typeof ApiAdminContentCreateRoute
   '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
+  '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
+  '/api/admin/content/save': typeof ApiAdminContentSaveRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
   '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
@@ -988,15 +996,16 @@ export interface FileRoutesById {
   '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
   '/admin/collections/': typeof AdminCollectionsIndexRoute
-  '/admin/import/': typeof AdminImportIndexRoute
   '/admin/media/': typeof AdminMediaIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
   '/api/admin/content/create': typeof ApiAdminContentCreateRoute
   '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
+  '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
+  '/api/admin/content/save': typeof ApiAdminContentSaveRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
   '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
@@ -1100,15 +1109,16 @@ export interface FileRouteTypes {
     | '/shortcuts'
     | '/templates'
     | '/admin/collections'
-    | '/admin/import'
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
     | '/api/admin/content/create'
     | '/api/admin/content/delete'
     | '/api/admin/content/duplicate'
+    | '/api/admin/content/history'
     | '/api/admin/content/list'
     | '/api/admin/content/rename'
+    | '/api/admin/content/save'
     | '/api/admin/import/google-docs'
     | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
@@ -1206,15 +1216,16 @@ export interface FileRouteTypes {
     | '/shortcuts'
     | '/templates'
     | '/admin/collections'
-    | '/admin/import'
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
     | '/api/admin/content/create'
     | '/api/admin/content/delete'
     | '/api/admin/content/duplicate'
+    | '/api/admin/content/history'
     | '/api/admin/content/list'
     | '/api/admin/content/rename'
+    | '/api/admin/content/save'
     | '/api/admin/import/google-docs'
     | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
@@ -1317,15 +1328,16 @@ export interface FileRouteTypes {
     | '/_view/shortcuts/'
     | '/_view/templates/'
     | '/admin/collections/'
-    | '/admin/import/'
     | '/admin/media/'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
     | '/api/admin/content/create'
     | '/api/admin/content/delete'
     | '/api/admin/content/duplicate'
+    | '/api/admin/content/history'
     | '/api/admin/content/list'
     | '/api/admin/content/rename'
+    | '/api/admin/content/save'
     | '/api/admin/import/google-docs'
     | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
@@ -1357,8 +1369,10 @@ export interface RootRouteChildren {
   ApiAdminContentCreateRoute: typeof ApiAdminContentCreateRoute
   ApiAdminContentDeleteRoute: typeof ApiAdminContentDeleteRoute
   ApiAdminContentDuplicateRoute: typeof ApiAdminContentDuplicateRoute
+  ApiAdminContentHistoryRoute: typeof ApiAdminContentHistoryRoute
   ApiAdminContentListRoute: typeof ApiAdminContentListRoute
   ApiAdminContentRenameRoute: typeof ApiAdminContentRenameRoute
+  ApiAdminContentSaveRoute: typeof ApiAdminContentSaveRoute
   ApiAdminImportGoogleDocsRoute: typeof ApiAdminImportGoogleDocsRoute
   ApiAdminImportSaveRoute: typeof ApiAdminImportSaveRoute
   ApiAdminMediaCreateFolderRoute: typeof ApiAdminMediaCreateFolderRoute
@@ -1592,13 +1606,6 @@ declare module '@tanstack/react-router' {
       path: '/media'
       fullPath: '/admin/media'
       preLoaderRoute: typeof AdminMediaIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/import/': {
-      id: '/admin/import/'
-      path: '/import'
-      fullPath: '/admin/import'
-      preLoaderRoute: typeof AdminImportIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/collections/': {
@@ -2084,6 +2091,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminImportGoogleDocsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/content/save': {
+      id: '/api/admin/content/save'
+      path: '/api/admin/content/save'
+      fullPath: '/api/admin/content/save'
+      preLoaderRoute: typeof ApiAdminContentSaveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/content/rename': {
       id: '/api/admin/content/rename'
       path: '/api/admin/content/rename'
@@ -2096,6 +2110,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/content/list'
       fullPath: '/api/admin/content/list'
       preLoaderRoute: typeof ApiAdminContentListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/history': {
+      id: '/api/admin/content/history'
+      path: '/api/admin/content/history'
+      fullPath: '/api/admin/content/history'
+      preLoaderRoute: typeof ApiAdminContentHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/content/duplicate': {
@@ -2331,14 +2352,12 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
 interface AdminRouteRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminCollectionsIndexRoute: typeof AdminCollectionsIndexRoute
-  AdminImportIndexRoute: typeof AdminImportIndexRoute
   AdminMediaIndexRoute: typeof AdminMediaIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminCollectionsIndexRoute: AdminCollectionsIndexRoute,
-  AdminImportIndexRoute: AdminImportIndexRoute,
   AdminMediaIndexRoute: AdminMediaIndexRoute,
 }
 
@@ -2368,8 +2387,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminContentCreateRoute: ApiAdminContentCreateRoute,
   ApiAdminContentDeleteRoute: ApiAdminContentDeleteRoute,
   ApiAdminContentDuplicateRoute: ApiAdminContentDuplicateRoute,
+  ApiAdminContentHistoryRoute: ApiAdminContentHistoryRoute,
   ApiAdminContentListRoute: ApiAdminContentListRoute,
   ApiAdminContentRenameRoute: ApiAdminContentRenameRoute,
+  ApiAdminContentSaveRoute: ApiAdminContentSaveRoute,
   ApiAdminImportGoogleDocsRoute: ApiAdminImportGoogleDocsRoute,
   ApiAdminImportSaveRoute: ApiAdminImportSaveRoute,
   ApiAdminMediaCreateFolderRoute: ApiAdminMediaCreateFolderRoute,

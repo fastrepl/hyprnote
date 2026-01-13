@@ -1,8 +1,19 @@
+import * as fs from "fs";
+import * as path from "path";
+
 import { env } from "@/env";
 
 const GITHUB_REPO = "fastrepl/hyprnote";
 const GITHUB_BRANCH = "main";
 const CONTENT_PATH = "apps/web/content";
+
+function isDev(): boolean {
+  return process.env.NODE_ENV === "development";
+}
+
+function getLocalContentPath(): string {
+  return path.resolve(process.cwd(), "content");
+}
 
 const VALID_FOLDERS = [
   "articles",
@@ -94,11 +105,6 @@ export async function createContentFile(
   filename: string,
   content: string = "",
 ): Promise<{ success: boolean; path?: string; error?: string }> {
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
-    return { success: false, error: "GitHub token not configured" };
-  }
-
   if (!VALID_FOLDERS.includes(folder)) {
     return {
       success: false,
@@ -111,13 +117,41 @@ export async function createContentFile(
     safeFilename = `${safeFilename}.mdx`;
   }
 
-  const path = getFullPath(folder, safeFilename);
-
   const defaultContent = content || getDefaultFrontmatter(folder);
+
+  if (isDev()) {
+    try {
+      const localPath = path.join(getLocalContentPath(), folder, safeFilename);
+      if (fs.existsSync(localPath)) {
+        return {
+          success: false,
+          error: `File already exists: ${safeFilename}`,
+        };
+      }
+      const dir = path.dirname(localPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(localPath, defaultContent);
+      return { success: true, path: `${folder}/${safeFilename}` };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to create file locally: ${(error as Error).message}`,
+      };
+    }
+  }
+
+  const githubToken = getGitHubToken();
+  if (!githubToken) {
+    return { success: false, error: "GitHub token not configured" };
+  }
+
+  const filePath = getFullPath(folder, safeFilename);
 
   try {
     const checkResponse = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`,
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}?ref=${GITHUB_BRANCH}`,
       {
         headers: {
           Authorization: `Bearer ${githubToken}`,
@@ -133,7 +167,7 @@ export async function createContentFile(
     const contentBase64 = Buffer.from(defaultContent).toString("base64");
 
     const createResponse = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}`,
       {
         method: "PUT",
         headers: {
@@ -157,7 +191,7 @@ export async function createContentFile(
       };
     }
 
-    return { success: true, path };
+    return { success: true, path: `${folder}/${safeFilename}` };
   } catch (error) {
     return {
       success: false,
@@ -170,11 +204,6 @@ export async function createContentFolder(
   parentFolder: string,
   folderName: string,
 ): Promise<{ success: boolean; path?: string; error?: string }> {
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
-    return { success: false, error: "GitHub token not configured" };
-  }
-
   if (!VALID_FOLDERS.includes(parentFolder)) {
     return {
       success: false,
@@ -186,11 +215,42 @@ export async function createContentFolder(
     .replace(/[^a-zA-Z0-9-_]/g, "-")
     .toLowerCase();
 
-  const path = `${CONTENT_PATH}/${parentFolder}/${sanitizedFolderName}/.gitkeep`;
+  if (isDev()) {
+    try {
+      const localPath = path.join(
+        getLocalContentPath(),
+        parentFolder,
+        sanitizedFolderName,
+      );
+      if (fs.existsSync(localPath)) {
+        return {
+          success: false,
+          error: `Folder already exists: ${sanitizedFolderName}`,
+        };
+      }
+      fs.mkdirSync(localPath, { recursive: true });
+      return {
+        success: true,
+        path: `${parentFolder}/${sanitizedFolderName}`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to create folder locally: ${(error as Error).message}`,
+      };
+    }
+  }
+
+  const githubToken = getGitHubToken();
+  if (!githubToken) {
+    return { success: false, error: "GitHub token not configured" };
+  }
+
+  const folderPath = `${CONTENT_PATH}/${parentFolder}/${sanitizedFolderName}/.gitkeep`;
 
   try {
     const response = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${folderPath}`,
       {
         method: "PUT",
         headers: {
@@ -216,7 +276,7 @@ export async function createContentFolder(
 
     return {
       success: true,
-      path: `${CONTENT_PATH}/${parentFolder}/${sanitizedFolderName}`,
+      path: `${parentFolder}/${sanitizedFolderName}`,
     };
   } catch (error) {
     return {
@@ -323,16 +383,32 @@ export async function renameContentFile(
 }
 
 export async function deleteContentFile(
-  path: string,
+  filePath: string,
 ): Promise<{ success: boolean; error?: string }> {
+  if (isDev()) {
+    try {
+      const localPath = path.join(getLocalContentPath(), filePath);
+      if (!fs.existsSync(localPath)) {
+        return { success: false, error: `File not found: ${filePath}` };
+      }
+      fs.unlinkSync(localPath);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to delete file locally: ${(error as Error).message}`,
+      };
+    }
+  }
+
   const githubToken = getGitHubToken();
   if (!githubToken) {
     return { success: false, error: "GitHub token not configured" };
   }
 
-  const fullPath = path.startsWith("apps/web/content")
-    ? path
-    : `${CONTENT_PATH}/${path}`;
+  const fullPath = filePath.startsWith("apps/web/content")
+    ? filePath
+    : `${CONTENT_PATH}/${filePath}`;
 
   try {
     const getResponse = await fetch(
@@ -365,7 +441,7 @@ export async function deleteContentFile(
           Accept: "application/vnd.github.v3+json",
         },
         body: JSON.stringify({
-          message: `Delete ${path} via admin`,
+          message: `Delete ${filePath} via admin`,
           sha,
           branch: GITHUB_BRANCH,
         }),
@@ -385,6 +461,93 @@ export async function deleteContentFile(
     return {
       success: false,
       error: `Delete failed: ${(error as Error).message}`,
+    };
+  }
+}
+
+export async function updateContentFile(
+  filePath: string,
+  content: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (isDev()) {
+    try {
+      const localPath = path.join(getLocalContentPath(), filePath);
+      if (!fs.existsSync(localPath)) {
+        return { success: false, error: `File not found: ${filePath}` };
+      }
+      fs.writeFileSync(localPath, content);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to update file locally: ${(error as Error).message}`,
+      };
+    }
+  }
+
+  const githubToken = getGitHubToken();
+  if (!githubToken) {
+    return { success: false, error: "GitHub token not configured" };
+  }
+
+  const fullPath = filePath.startsWith("apps/web/content")
+    ? filePath
+    : `${CONTENT_PATH}/${filePath}`;
+
+  try {
+    const getResponse = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${fullPath}?ref=${GITHUB_BRANCH}`,
+      {
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+
+    if (!getResponse.ok) {
+      return {
+        success: false,
+        error: `File not found: ${getResponse.status}`,
+      };
+    }
+
+    const fileData = await getResponse.json();
+    const sha = fileData.sha;
+
+    const contentBase64 = Buffer.from(content).toString("base64");
+
+    const updateResponse = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${fullPath}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/vnd.github.v3+json",
+        },
+        body: JSON.stringify({
+          message: `Update ${filePath} via admin`,
+          content: contentBase64,
+          sha,
+          branch: GITHUB_BRANCH,
+        }),
+      },
+    );
+
+    if (!updateResponse.ok) {
+      const error = await updateResponse.json();
+      return {
+        success: false,
+        error: `Failed to update: ${error.message || updateResponse.status}`,
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Update failed: ${(error as Error).message}`,
     };
   }
 }

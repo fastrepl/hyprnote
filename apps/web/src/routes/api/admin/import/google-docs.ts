@@ -104,6 +104,48 @@ function htmlToMarkdown(html: string): string {
 
   markdown = markdown.replace(/<span[^>]*>([\s\S]*?)<\/span>/gi, "$1");
 
+  markdown = markdown.replace(
+    /<table[^>]*>([\s\S]*?)<\/table>/gi,
+    (_, tableContent) => {
+      const rows: string[][] = [];
+      const rowMatches = tableContent.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || [];
+
+      for (const row of rowMatches) {
+        const cells: string[] = [];
+        const cellMatches =
+          row.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi) || [];
+        for (const cell of cellMatches) {
+          const cellContent = cell
+            .replace(/<t[dh][^>]*>/gi, "")
+            .replace(/<\/t[dh]>/gi, "")
+            .replace(/<[^>]+>/g, "")
+            .replace(/\n/g, " ")
+            .trim();
+          cells.push(cellContent);
+        }
+        if (cells.length > 0) {
+          rows.push(cells);
+        }
+      }
+
+      if (rows.length === 0) return "";
+
+      const colCount = Math.max(...rows.map((r) => r.length));
+      const normalizedRows = rows.map((r) => {
+        while (r.length < colCount) r.push("");
+        return r;
+      });
+
+      let mdTable = "\n";
+      mdTable += "| " + normalizedRows[0].join(" | ") + " |\n";
+      mdTable += "| " + normalizedRows[0].map(() => "---").join(" | ") + " |\n";
+      for (let i = 1; i < normalizedRows.length; i++) {
+        mdTable += "| " + normalizedRows[i].join(" | ") + " |\n";
+      }
+      return mdTable + "\n";
+    },
+  );
+
   markdown = markdown.replace(/<[^>]+>/g, "");
 
   markdown = markdown.replace(/&nbsp;/g, " ");
@@ -136,13 +178,50 @@ function extractTitle(html: string): string | null {
   return null;
 }
 
-function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+function extractFirstTabContent(html: string): string {
+  const tabDividerPatterns = [
+    /<hr[^>]*class="[^"]*tab-divider[^"]*"[^>]*>/i,
+    /<div[^>]*class="[^"]*tab-content[^"]*"[^>]*id="[^"]*tab-[^0][^"]*"[^>]*>/i,
+    /<h1[^>]*class="[^"]*tab-title[^"]*"[^>]*>/i,
+  ];
+
+  for (const pattern of tabDividerPatterns) {
+    const match = html.match(pattern);
+    if (match && match.index !== undefined) {
+      return html.substring(0, match.index);
+    }
+  }
+
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (bodyMatch) {
+    const bodyContent = bodyMatch[1];
+
+    const hrParts = bodyContent.split(/<hr[^>]*\/?>/i);
+    if (hrParts.length > 1) {
+      const firstPart = hrParts[0];
+      const hasH1BeforeContent = /<h1[^>]*>[\s\S]*?<\/h1>/i.test(firstPart);
+
+      if (hasH1BeforeContent && hrParts.length >= 2) {
+        const h1Match = firstPart.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+        if (h1Match) {
+          const firstH1Text = h1Match[1].replace(/<[^>]+>/g, "").trim();
+
+          for (let i = 1; i < hrParts.length; i++) {
+            const partH1Match = hrParts[i].match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+            if (partH1Match) {
+              const partH1Text = partH1Match[1].replace(/<[^>]+>/g, "").trim();
+              if (partH1Text !== firstH1Text && partH1Text.length > 0) {
+                const beforeSecondTab = hrParts.slice(0, i).join("<hr>");
+                return html.replace(bodyContent, beforeSecondTab);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return html;
 }
 
 function generateMdx(
@@ -187,7 +266,7 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
 
         try {
           const body: ImportRequest = await request.json();
-          const { url, title, author, description, coverImage, slug } = body;
+          const { url, title, author, description, coverImage } = body;
 
           if (!url) {
             return new Response(
@@ -210,11 +289,11 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
           let html: string;
           let response: Response;
 
-          const publishedUrl = `https://docs.google.com/document/d/${docId}/pub`;
+          const publishedUrl = `https://docs.google.com/document/d/${docId}/pub?tab=t.0`;
           response = await fetch(publishedUrl);
 
           if (!response.ok) {
-            const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=html`;
+            const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=html&tab=t.0`;
             response = await fetch(exportUrl);
 
             if (!response.ok) {
@@ -233,31 +312,36 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
           }
 
           html = await response.text();
+
+          html = extractFirstTabContent(html);
           const extractedTitle = extractTitle(html) || "Untitled";
           const finalTitle = title || extractedTitle;
-          const finalSlug = slug || generateSlug(finalTitle);
 
           const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
           const bodyContent = bodyMatch ? bodyMatch[1] : html;
 
           const markdown = htmlToMarkdown(bodyContent);
 
+          const today = new Date().toISOString().split("T")[0];
+          const finalAuthor = author || "Unknown";
+          const finalDescription = description || "";
+
           const mdx = generateMdx(markdown, {
             title: finalTitle,
-            author: author || "Unknown",
-            description: description || "",
-            coverImage: coverImage || `/api/images/blog/${finalSlug}/cover.png`,
+            author: finalAuthor,
+            description: finalDescription,
+            coverImage: coverImage || "",
           });
 
           const frontmatter = {
             meta_title: finalTitle,
             display_title: finalTitle,
-            meta_description: description || "",
-            author: author || "Unknown",
-            coverImage: coverImage || `/api/images/blog/${finalSlug}/cover.png`,
+            meta_description: finalDescription,
+            author: finalAuthor,
+            coverImage: coverImage || "",
             featured: false,
             published: false,
-            date: new Date().toISOString().split("T")[0],
+            date: today,
           };
 
           const result: ImportResponse = {

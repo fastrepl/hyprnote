@@ -408,6 +408,7 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
 
 function getAuthorAvatar(author: string): string {
   const authorMap: Record<string, string> = {
+    "Harshika": "https://hyprnote.com/api/images/team/harshika.jpeg",
     "John Jeong": "https://hyprnote.com/api/images/team/john.png",
     "Yujong Lee": "https://hyprnote.com/api/images/team/yujong.png",
   };
@@ -689,31 +690,31 @@ export default async function handler(req: Request) {
       params.type === "shortcuts";
     const fonts = needsCustomFonts
       ? [
-          {
-            name: "Lora",
-            data: await fetch(
-              "https://fonts.gstatic.com/s/lora/v37/0QI6MX1D_JOuGQbT0gvTJPa787z5vCJG.ttf",
-            ).then((res) => res.arrayBuffer()),
-            weight: 700 as const,
-            style: "normal" as const,
-          },
-          {
-            name: "Lora",
-            data: await fetch(
-              "https://fonts.gstatic.com/s/lora/v37/0QI6MX1D_JOuGQbT0gvTJPa787weuyJGmKxemMeZ.ttf",
-            ).then((res) => res.arrayBuffer()),
-            weight: 400 as const,
-            style: "normal" as const,
-          },
-          {
-            name: "IBM Plex Mono",
-            data: await fetch(
-              "https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n5ig.ttf",
-            ).then((res) => res.arrayBuffer()),
-            weight: 400 as const,
-            style: "normal" as const,
-          },
-        ]
+        {
+          name: "Lora",
+          data: await fetch(
+            "https://fonts.gstatic.com/s/lora/v37/0QI6MX1D_JOuGQbT0gvTJPa787z5vCJG.ttf",
+          ).then((res) => res.arrayBuffer()),
+          weight: 700 as const,
+          style: "normal" as const,
+        },
+        {
+          name: "Lora",
+          data: await fetch(
+            "https://fonts.gstatic.com/s/lora/v37/0QI6MX1D_JOuGQbT0gvTJPa787weuyJGmKxemMeZ.ttf",
+          ).then((res) => res.arrayBuffer()),
+          weight: 400 as const,
+          style: "normal" as const,
+        },
+        {
+          name: "IBM Plex Mono",
+          data: await fetch(
+            "https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n5ig.ttf",
+          ).then((res) => res.arrayBuffer()),
+          weight: 400 as const,
+          style: "normal" as const,
+        },
+      ]
       : undefined;
 
     const imageResponse = new ImageResponse(response, { fonts });

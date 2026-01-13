@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@codemirror/lang-jinja": "^6.0.0",
-    "@codemirror/language": "^6.11.3",
-    "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.39.4",
+    "@codemirror/language": "^6.12.1",
+    "@codemirror/state": "^6.5.3",
+    "@codemirror/view": "^6.39.9",
     "@lezer/highlight": "^1.2.3",
     "@uiw/react-codemirror": "^4.25.4"
   },

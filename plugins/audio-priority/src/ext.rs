@@ -2,10 +2,8 @@ use std::path::PathBuf;
 
 use tauri_plugin_path2::Path2PluginExt;
 
-use hypr_audio_priority::{
-    AudioDevice, AudioDeviceBackend, AudioDirection, DeviceId, OutputCategory, PriorityState,
-    StoredDevice, backend,
-};
+use crate::{OutputCategory, PriorityState, StoredDevice};
+use hypr_audio_device::{AudioDevice, AudioDeviceBackend, AudioDirection, DeviceId, backend};
 
 pub const FILENAME: &str = "audio.json";
 

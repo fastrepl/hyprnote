@@ -1,5 +1,3 @@
-//! Error types for audio-priority crate.
-
 use thiserror::Error;
 
 #[derive(Error, Debug)]

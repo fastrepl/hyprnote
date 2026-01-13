@@ -1,8 +1,3 @@
-//! Windows WASAPI backend for audio device management.
-//!
-//! Uses the Windows Audio Session API (WASAPI) for device enumeration
-//! and the undocumented IPolicyConfig interface for setting default devices.
-
 use crate::{AudioDevice, AudioDeviceBackend, AudioDirection, DeviceId, Error, TransportType};
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
@@ -19,11 +14,9 @@ use windows::core::{GUID, Interface, PCWSTR, PWSTR};
 
 pub struct WindowsBackend;
 
-// IPolicyConfig GUID - undocumented but widely used interface for setting default audio devices
 const CLSID_POLICY_CONFIG: GUID = GUID::from_u128(0x870af99c_171d_4f9e_af0d_e63df40c2bc9);
 const IID_IPOLICY_CONFIG: GUID = GUID::from_u128(0xf8679f50_850a_41cf_9c72_430f290290c8);
 
-// IPolicyConfig interface definition
 #[windows::core::interface("f8679f50-850a-41cf-9c72-430f290290c8")]
 unsafe trait IPolicyConfig: windows::core::IUnknown {
     unsafe fn GetMixFormat(
@@ -179,7 +172,6 @@ impl AudioDeviceBackend for WindowsBackend {
 
             let mut devices = Vec::new();
 
-            // Get default devices for comparison
             let default_input_id = enumerator
                 .GetDefaultAudioEndpoint(eCapture, eConsole)
                 .ok()
@@ -190,7 +182,6 @@ impl AudioDeviceBackend for WindowsBackend {
                 .ok()
                 .and_then(|d| get_device_id(&d).ok());
 
-            // Enumerate all active endpoints
             let collection = enumerator
                 .EnumAudioEndpoints(eAll, DEVICE_STATE_ACTIVE)
                 .map_err(|e| {
@@ -217,7 +208,6 @@ impl AudioDeviceBackend for WindowsBackend {
                     Err(_) => continue,
                 };
 
-                // Determine direction from endpoint
                 let endpoint: windows::Win32::Media::Audio::IMMEndpoint = match device.cast() {
                     Ok(e) => e,
                     Err(_) => continue,
@@ -362,8 +352,6 @@ impl AudioDeviceBackend for WindowsBackend {
                 .chain(std::iter::once(0))
                 .collect();
 
-            // eConsole = 0, eMultimedia = 1, eCommunications = 2
-            // Set for all roles
             for role in 0..3u32 {
                 policy_config
                     .SetDefaultEndpoint(PCWSTR(device_id_wide.as_ptr()), role)
@@ -377,7 +365,6 @@ impl AudioDeviceBackend for WindowsBackend {
     }
 
     fn set_default_output_device(&self, device_id: &DeviceId) -> Result<(), Error> {
-        // Same implementation as input - IPolicyConfig handles both
         self.set_default_input_device(device_id)
     }
 
@@ -386,8 +373,6 @@ impl AudioDeviceBackend for WindowsBackend {
             return false;
         }
 
-        // On Windows, we primarily rely on device name heuristics
-        // since there's no reliable API for terminal type detection
         is_headphone_from_name(&device.name) || device.transport_type == TransportType::Bluetooth
     }
 
@@ -513,7 +498,7 @@ impl AudioDeviceBackend for WindowsBackend {
                 })?;
 
             volume_control
-                .SetMute(muted, std::ptr::null())
+                .SetMute(muted.into(), std::ptr::null())
                 .map_err(|e| Error::AudioSystemError(format!("Failed to set mute state: {}", e)))?;
 
             Ok(())
@@ -530,16 +515,16 @@ mod tests {
         let backend = WindowsBackend;
         match backend.list_devices() {
             Ok(devices) => {
-                println!("Found {} devices", devices.len());
+                println!("Found {} devices:", devices.len());
                 for device in &devices {
                     println!(
-                        "  {} ({:?}, {:?}, id={})",
+                        "  - {} ({:?}, {:?}, id={})",
                         device.name, device.direction, device.transport_type, device.id.0
                     );
                 }
             }
             Err(e) => {
-                println!("Error: {}", e);
+                println!("Error listing devices: {}", e);
             }
         }
     }
@@ -556,7 +541,7 @@ mod tests {
                 println!("No default input device");
             }
             Err(e) => {
-                println!("Error: {}", e);
+                println!("Error getting default input: {}", e);
             }
         }
 
@@ -569,7 +554,7 @@ mod tests {
                 println!("No default output device");
             }
             Err(e) => {
-                println!("Error: {}", e);
+                println!("Error getting default output: {}", e);
             }
         }
     }

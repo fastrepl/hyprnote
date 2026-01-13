@@ -1,7 +1,5 @@
 use crate::AudioPriorityPluginExt;
-use hypr_audio_priority::{
-    AudioDevice, AudioDirection, OutputCategory, PriorityState, StoredDevice,
-};
+use crate::{AudioDevice, AudioDirection, OutputCategory, PriorityState, StoredDevice};
 
 #[tauri::command]
 #[specta::specta]

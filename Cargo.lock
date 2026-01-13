@@ -1147,16 +1147,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "audio-interface"
-version = "0.1.0"
-dependencies = [
- "dasp",
- "futures-util",
- "rodio",
-]
-
-[[package]]
-name = "audio-priority"
+name = "audio-device"
 version = "0.1.0"
 dependencies = [
  "cidre",
@@ -1168,6 +1159,15 @@ dependencies = [
  "tokio",
  "tracing",
  "windows 0.58.0",
+]
+
+[[package]]
+name = "audio-interface"
+version = "0.1.0"
+dependencies = [
+ "dasp",
+ "futures-util",
+ "rodio",
 ]
 
 [[package]]
@@ -4808,23 +4808,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "abd57806937c9cc163efc8ea3910e00a62e2aeb0b8119f1793a978088f8f6b04"
 
 [[package]]
-name = "device-heuristic"
-version = "0.1.0"
-dependencies = [
- "cidre",
- "libc",
- "libpulse-binding",
- "mac 0.1.0",
- "objc2-core-graphics",
- "tracing",
-]
-
-[[package]]
 name = "device-monitor"
 version = "0.1.0"
 dependencies = [
+ "audio-device",
  "cidre",
- "device-heuristic",
  "libpulse-binding",
  "tracing",
 ]
@@ -10782,6 +10770,7 @@ name = "mac"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "objc2-core-graphics",
  "strum 0.26.3",
 ]
 
@@ -18047,7 +18036,7 @@ dependencies = [
 name = "tauri-plugin-audio-priority"
 version = "0.1.0"
 dependencies = [
- "audio-priority",
+ "audio-device",
  "serde",
  "serde_json",
  "specta",
@@ -18420,12 +18409,12 @@ dependencies = [
  "aec",
  "agc",
  "audio",
+ "audio-device",
  "audio-utils",
  "bytes",
  "chrono",
  "codes-iso-639",
  "data",
- "device-heuristic",
  "device-monitor",
  "dirs 6.0.0",
  "futures-util",
@@ -18435,6 +18424,7 @@ dependencies = [
  "intercept",
  "language",
  "llm",
+ "mac 0.1.0",
  "ordered-float",
  "owhisper-client",
  "owhisper-interface",

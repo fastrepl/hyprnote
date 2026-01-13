@@ -1,5 +1,5 @@
 [package]
-name = "audio-priority"
+name = "audio-device"
 version = "0.1.0"
 edition = "2021"
 

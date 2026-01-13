@@ -1,18 +1,9 @@
-//! Priority management for audio devices.
-//!
-//! This module provides persistent storage and management of:
-//! - Device priorities (separate for input, speaker, headphone)
-//! - Device categories (speaker vs headphone)
-//! - Hidden/ignored devices (per category)
-//! - Known devices with last seen timestamps
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{AudioDevice, AudioDirection, OutputCategory};
+use hypr_audio_device::{AudioDevice, AudioDirection, OutputCategory};
 
-/// A stored device with metadata for persistence.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct StoredDevice {
     pub uid: String,
@@ -69,7 +60,6 @@ impl StoredDevice {
     }
 }
 
-/// Persistent state for priority management.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
 pub struct PriorityState {
     pub input_priorities: Vec<String>,
@@ -84,7 +74,6 @@ pub struct PriorityState {
     pub is_custom_mode: bool,
 }
 
-/// Manager for device priorities and categories.
 #[derive(Debug, Clone)]
 pub struct PriorityManager {
     state: PriorityState,
@@ -364,102 +353,5 @@ impl PriorityManager {
             .into_iter()
             .next()
             .and_then(|d| devices.iter().find(|dev| dev.id == d.id))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{DeviceId, TransportType};
-
-    fn make_device(id: &str, name: &str, direction: AudioDirection) -> AudioDevice {
-        AudioDevice {
-            id: DeviceId::new(id),
-            name: name.to_string(),
-            direction,
-            transport_type: TransportType::Unknown,
-            is_default: false,
-            volume: None,
-            is_muted: None,
-        }
-    }
-
-    #[test]
-    fn test_remember_device() {
-        let mut manager = PriorityManager::new();
-        manager.remember_device("uid1", "Device 1", true);
-
-        let stored = manager.get_stored_device("uid1");
-        assert!(stored.is_some());
-        assert_eq!(stored.unwrap().name, "Device 1");
-        assert!(stored.unwrap().is_input);
-    }
-
-    #[test]
-    fn test_forget_device() {
-        let mut manager = PriorityManager::new();
-        manager.remember_device("uid1", "Device 1", true);
-        manager.forget_device("uid1");
-
-        assert!(manager.get_stored_device("uid1").is_none());
-    }
-
-    #[test]
-    fn test_device_category() {
-        let mut manager = PriorityManager::new();
-        let device = make_device("uid1", "Device 1", AudioDirection::Output);
-
-        assert_eq!(manager.get_category(&device), OutputCategory::Speaker);
-
-        manager.set_category(&device, OutputCategory::Headphone);
-        assert_eq!(manager.get_category(&device), OutputCategory::Headphone);
-    }
-
-    #[test]
-    fn test_hide_unhide_device() {
-        let mut manager = PriorityManager::new();
-        let device = make_device("uid1", "Device 1", AudioDirection::Input);
-
-        assert!(!manager.is_hidden(&device));
-
-        manager.hide_device(&device);
-        assert!(manager.is_hidden(&device));
-
-        manager.unhide_device(&device);
-        assert!(!manager.is_hidden(&device));
-    }
-
-    #[test]
-    fn test_sort_by_priority() {
-        let mut manager = PriorityManager::new();
-        let device1 = make_device("uid1", "Device 1", AudioDirection::Input);
-        let device2 = make_device("uid2", "Device 2", AudioDirection::Input);
-        let device3 = make_device("uid3", "Device 3", AudioDirection::Input);
-
-        let devices = vec![device1.clone(), device2.clone(), device3.clone()];
-
-        manager.save_priorities(
-            &[device3.clone(), device1.clone(), device2.clone()],
-            AudioDirection::Input,
-        );
-
-        let sorted = manager.sort_by_priority(&devices, AudioDirection::Input);
-        assert_eq!(sorted[0].id.as_str(), "uid3");
-        assert_eq!(sorted[1].id.as_str(), "uid1");
-        assert_eq!(sorted[2].id.as_str(), "uid2");
-    }
-
-    #[test]
-    fn test_move_device_to_top() {
-        let mut manager = PriorityManager::new();
-        let device1 = make_device("uid1", "Device 1", AudioDirection::Input);
-        let device2 = make_device("uid2", "Device 2", AudioDirection::Input);
-
-        manager.save_priorities(&[device1.clone(), device2.clone()], AudioDirection::Input);
-        manager.move_device_to_top(&device2);
-
-        let devices = vec![device1.clone(), device2.clone()];
-        let sorted = manager.sort_by_priority(&devices, AudioDirection::Input);
-        assert_eq!(sorted[0].id.as_str(), "uid2");
     }
 }

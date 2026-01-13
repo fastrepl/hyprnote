@@ -1,9 +1,37 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use crate::Error;
 use crate::path::is_uuid;
 
-pub fn move_uuid_folders_to_sessions(base_dir: &PathBuf) -> Result<(), Error> {
+pub fn rename_transcript(base_dir: &Path) -> Result<(), Error> {
+    if !base_dir.exists() {
+        return Ok(());
+    }
+
+    fn rename_recursively(dir: &Path) -> Result<(), Error> {
+        let entries = std::fs::read_dir(dir)?;
+
+        for entry in entries {
+            let entry = entry?;
+            let path = entry.path();
+
+            if path.is_dir() {
+                rename_recursively(&path)?;
+            } else if path.file_name().and_then(|n| n.to_str()) == Some("_transcript.json") {
+                let target = path.with_file_name("transcript.json");
+                if !target.exists() {
+                    std::fs::rename(&path, &target)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    rename_recursively(base_dir)
+}
+
+pub fn move_uuid_folders_to_sessions(base_dir: &Path) -> Result<(), Error> {
     let sessions_dir = base_dir.join("sessions");
 
     if !base_dir.exists() {

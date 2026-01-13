@@ -60,6 +60,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             use tauri_plugin_path2::Path2PluginExt;
             if let Ok(base_dir) = app.path2().base() {
                 migrations::move_uuid_folders_to_sessions(&base_dir)?;
+                migrations::rename_transcript(&base_dir)?;
             }
             Ok(())
         })

@@ -111,7 +111,11 @@ import { Route as ApiAdminMediaDeleteRouteImport } from './routes/api/admin/medi
 import { Route as ApiAdminMediaCreateFolderRouteImport } from './routes/api/admin/media/create-folder'
 import { Route as ApiAdminImportSaveRouteImport } from './routes/api/admin/import/save'
 import { Route as ApiAdminImportGoogleDocsRouteImport } from './routes/api/admin/import/google-docs'
+import { Route as ApiAdminContentRenameRouteImport } from './routes/api/admin/content/rename'
 import { Route as ApiAdminContentListRouteImport } from './routes/api/admin/content/list'
+import { Route as ApiAdminContentDuplicateRouteImport } from './routes/api/admin/content/duplicate'
+import { Route as ApiAdminContentDeleteRouteImport } from './routes/api/admin/content/delete'
+import { Route as ApiAdminContentCreateRouteImport } from './routes/api/admin/content/create'
 import { Route as ViewIntegrationsCategorySlugRouteImport } from './routes/_view/integrations/$category.$slug'
 import { Route as ViewGalleryTypeSlugRouteImport } from './routes/_view/gallery/$type.$slug'
 
@@ -635,9 +639,30 @@ const ApiAdminImportGoogleDocsRoute =
     path: '/api/admin/import/google-docs',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminContentRenameRoute = ApiAdminContentRenameRouteImport.update({
+  id: '/api/admin/content/rename',
+  path: '/api/admin/content/rename',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminContentListRoute = ApiAdminContentListRouteImport.update({
   id: '/api/admin/content/list',
   path: '/api/admin/content/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminContentDuplicateRoute =
+  ApiAdminContentDuplicateRouteImport.update({
+    id: '/api/admin/content/duplicate',
+    path: '/api/admin/content/duplicate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminContentDeleteRoute = ApiAdminContentDeleteRouteImport.update({
+  id: '/api/admin/content/delete',
+  path: '/api/admin/content/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminContentCreateRoute = ApiAdminContentCreateRouteImport.update({
+  id: '/api/admin/content/create',
+  path: '/api/admin/content/create',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ViewIntegrationsCategorySlugRoute =
@@ -749,7 +774,11 @@ export interface FileRoutesByFullPath {
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/content/create': typeof ApiAdminContentCreateRoute
+  '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
+  '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
   '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
@@ -851,7 +880,11 @@ export interface FileRoutesByTo {
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/content/create': typeof ApiAdminContentCreateRoute
+  '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
+  '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
   '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
@@ -959,7 +992,11 @@ export interface FileRoutesById {
   '/admin/media/': typeof AdminMediaIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/content/create': typeof ApiAdminContentCreateRoute
+  '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
+  '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
   '/api/admin/import/save': typeof ApiAdminImportSaveRoute
   '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
@@ -1067,7 +1104,11 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
+    | '/api/admin/content/create'
+    | '/api/admin/content/delete'
+    | '/api/admin/content/duplicate'
     | '/api/admin/content/list'
+    | '/api/admin/content/rename'
     | '/api/admin/import/google-docs'
     | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
@@ -1169,7 +1210,11 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
+    | '/api/admin/content/create'
+    | '/api/admin/content/delete'
+    | '/api/admin/content/duplicate'
     | '/api/admin/content/list'
+    | '/api/admin/content/rename'
     | '/api/admin/import/google-docs'
     | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
@@ -1276,7 +1321,11 @@ export interface FileRouteTypes {
     | '/admin/media/'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
+    | '/api/admin/content/create'
+    | '/api/admin/content/delete'
+    | '/api/admin/content/duplicate'
     | '/api/admin/content/list'
+    | '/api/admin/content/rename'
     | '/api/admin/import/google-docs'
     | '/api/admin/import/save'
     | '/api/admin/media/create-folder'
@@ -1305,7 +1354,11 @@ export interface RootRouteChildren {
   WebhookNangoRoute: typeof WebhookNangoRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
+  ApiAdminContentCreateRoute: typeof ApiAdminContentCreateRoute
+  ApiAdminContentDeleteRoute: typeof ApiAdminContentDeleteRoute
+  ApiAdminContentDuplicateRoute: typeof ApiAdminContentDuplicateRoute
   ApiAdminContentListRoute: typeof ApiAdminContentListRoute
+  ApiAdminContentRenameRoute: typeof ApiAdminContentRenameRoute
   ApiAdminImportGoogleDocsRoute: typeof ApiAdminImportGoogleDocsRoute
   ApiAdminImportSaveRoute: typeof ApiAdminImportSaveRoute
   ApiAdminMediaCreateFolderRoute: typeof ApiAdminMediaCreateFolderRoute
@@ -2031,11 +2084,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminImportGoogleDocsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/content/rename': {
+      id: '/api/admin/content/rename'
+      path: '/api/admin/content/rename'
+      fullPath: '/api/admin/content/rename'
+      preLoaderRoute: typeof ApiAdminContentRenameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/content/list': {
       id: '/api/admin/content/list'
       path: '/api/admin/content/list'
       fullPath: '/api/admin/content/list'
       preLoaderRoute: typeof ApiAdminContentListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/duplicate': {
+      id: '/api/admin/content/duplicate'
+      path: '/api/admin/content/duplicate'
+      fullPath: '/api/admin/content/duplicate'
+      preLoaderRoute: typeof ApiAdminContentDuplicateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/delete': {
+      id: '/api/admin/content/delete'
+      path: '/api/admin/content/delete'
+      fullPath: '/api/admin/content/delete'
+      preLoaderRoute: typeof ApiAdminContentDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/create': {
+      id: '/api/admin/content/create'
+      path: '/api/admin/content/create'
+      fullPath: '/api/admin/content/create'
+      preLoaderRoute: typeof ApiAdminContentCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_view/integrations/$category/$slug': {
@@ -2284,7 +2365,11 @@ const rootRouteChildren: RootRouteChildren = {
   WebhookNangoRoute: WebhookNangoRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
+  ApiAdminContentCreateRoute: ApiAdminContentCreateRoute,
+  ApiAdminContentDeleteRoute: ApiAdminContentDeleteRoute,
+  ApiAdminContentDuplicateRoute: ApiAdminContentDuplicateRoute,
   ApiAdminContentListRoute: ApiAdminContentListRoute,
+  ApiAdminContentRenameRoute: ApiAdminContentRenameRoute,
   ApiAdminImportGoogleDocsRoute: ApiAdminImportGoogleDocsRoute,
   ApiAdminImportSaveRoute: ApiAdminImportSaveRoute,
   ApiAdminMediaCreateFolderRoute: ApiAdminMediaCreateFolderRoute,

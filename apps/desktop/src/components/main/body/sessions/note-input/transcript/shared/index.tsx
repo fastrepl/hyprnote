@@ -125,10 +125,14 @@ export function TranscriptContainer({
               editable={editable}
               transcriptId={transcriptId}
               partialWords={
-                index === transcriptIds.length - 1 ? partialWords : []
+                index === transcriptIds.length - 1 && currentActive
+                  ? partialWords
+                  : []
               }
               partialHints={
-                index === transcriptIds.length - 1 ? partialHints : []
+                index === transcriptIds.length - 1 && currentActive
+                  ? partialHints
+                  : []
               }
               operations={operations}
             />

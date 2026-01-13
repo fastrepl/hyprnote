@@ -104,7 +104,7 @@ function credentialsToFormValues(
 ): FormValues {
   const requiredFields = getRequiredConfigFields(providerRequirements);
   const requiresAws = requiredFields.some((f) =>
-    ["access_key_id", "secret_access_key", "region"].includes(f)
+    ["access_key_id", "secret_access_key", "region"].includes(f),
   );
 
   if (!credentials) {

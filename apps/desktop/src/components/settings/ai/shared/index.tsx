@@ -99,12 +99,18 @@ type FormValues = {
 function credentialsToFormValues(
   credentials: Credentials | null,
   providerType: ProviderType,
+  providerRequirements: readonly ProviderRequirement[],
   defaultBaseUrl?: string,
 ): FormValues {
+  const requiredFields = getRequiredConfigFields(providerRequirements);
+  const requiresAws = requiredFields.some((f) =>
+    ["access_key_id", "secret_access_key", "region"].includes(f)
+  );
+
   if (!credentials) {
     return {
       type: providerType,
-      credentials_type: "api_key",
+      credentials_type: requiresAws ? "aws" : "api_key",
       base_url: defaultBaseUrl ?? "",
       api_key: "",
       access_key_id: "",
@@ -195,6 +201,7 @@ export function NonHyprProviderCard({
     defaultValues: credentialsToFormValues(
       credentials,
       providerType,
+      config.requirements,
       config.baseUrl,
     ),
     listeners: {

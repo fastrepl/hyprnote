@@ -102,6 +102,7 @@ interface FileContent {
   mdx: string;
   collection: string;
   slug: string;
+  // articles
   meta_title?: string;
   display_title?: string;
   meta_description?: string;
@@ -109,6 +110,18 @@ interface FileContent {
   date?: string;
   coverImage?: string;
   published?: boolean;
+  featured?: boolean;
+  category?: string;
+  // docs/handbook
+  title?: string;
+  section?: string;
+  summary?: string;
+  // legal
+  // templates
+  description?: string;
+  targets?: string[];
+  banner?: string;
+  sections?: Array<{ title: string; description?: string }>;
 }
 
 function getAllContent(): Map<string, FileContent> {
@@ -127,6 +140,8 @@ function getAllContent(): Map<string, FileContent> {
       date: a.date,
       coverImage: a.coverImage,
       published: a.published,
+      featured: a.featured,
+      category: a.category,
     });
   });
 
@@ -136,6 +151,7 @@ function getAllContent(): Map<string, FileContent> {
       mdx: c.mdx,
       collection: "changelog",
       slug: c.slug,
+      date: c.date,
     });
   });
 
@@ -145,6 +161,12 @@ function getAllContent(): Map<string, FileContent> {
       mdx: d.mdx,
       collection: "docs",
       slug: d.slug,
+      title: d.title,
+      section: d.section,
+      summary: d.summary,
+      category: d.category,
+      author: d.author,
+      date: d.date,
     });
   });
 
@@ -154,6 +176,11 @@ function getAllContent(): Map<string, FileContent> {
       mdx: h.mdx,
       collection: "handbook",
       slug: h.slug,
+      title: h.title,
+      section: h.section,
+      summary: h.summary,
+      author: h.author,
+      date: h.date,
     });
   });
 
@@ -163,6 +190,9 @@ function getAllContent(): Map<string, FileContent> {
       mdx: l.mdx,
       collection: "legal",
       slug: l.slug,
+      title: l.title,
+      summary: l.summary,
+      date: l.date,
     });
   });
 
@@ -172,6 +202,12 @@ function getAllContent(): Map<string, FileContent> {
       mdx: t.mdx,
       collection: "templates",
       slug: t.slug,
+      title: t.title,
+      description: t.description,
+      category: t.category,
+      targets: t.targets,
+      banner: t.banner,
+      sections: t.sections,
     });
   });
 
@@ -523,6 +559,7 @@ function CollectionsPage() {
             deleteMutation.isPending ||
             duplicateMutation.isPending
           }
+          selectedPath={currentTab?.type === "file" ? currentTab.path : null}
         />
       </ResizablePanel>
       <ResizableHandle />
@@ -614,6 +651,7 @@ function Sidebar({
   onDuplicateItem,
   onPasteItem,
   isLoading,
+  selectedPath,
 }: {
   collections: CollectionInfo[];
   expandedCollections: Set<string>;
@@ -633,6 +671,7 @@ function Sidebar({
   onDuplicateItem: (sourcePath: string) => void;
   onPasteItem: (targetCollection: string) => void;
   isLoading: boolean;
+  selectedPath: string | null;
 }) {
   return (
     <div className="h-full border-r border-neutral-200 bg-white flex flex-col min-h-0">
@@ -676,6 +715,7 @@ function Sidebar({
               onDuplicateItem={onDuplicateItem}
               onPasteItem={onPasteItem}
               isLoading={isLoading}
+              selectedPath={selectedPath}
             />
           );
         })}
@@ -712,6 +752,7 @@ function CollectionItem({
   onDuplicateItem,
   onPasteItem,
   isLoading,
+  selectedPath,
 }: {
   collection: CollectionInfo;
   isExpanded: boolean;
@@ -728,6 +769,7 @@ function CollectionItem({
   onDuplicateItem: (sourcePath: string) => void;
   onPasteItem: (targetCollection: string) => void;
   isLoading: boolean;
+  selectedPath: string | null;
 }) {
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -831,6 +873,7 @@ function CollectionItem({
               onDuplicateItem={onDuplicateItem}
               collectionName={collection.name}
               isLoading={isLoading}
+              isSelected={selectedPath === item.path}
             />
           ))}
           {collection.items.length > 10 && (
@@ -856,6 +899,7 @@ function FileItemSidebar({
   onDuplicateItem,
   collectionName,
   isLoading,
+  isSelected,
 }: {
   item: ContentItem;
   onClick: () => void;
@@ -868,6 +912,7 @@ function FileItemSidebar({
   onDuplicateItem: (sourcePath: string) => void;
   collectionName: string;
   isLoading: boolean;
+  isSelected: boolean;
 }) {
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -908,6 +953,7 @@ function FileItemSidebar({
         "flex items-center gap-1.5 py-1 pl-3 pr-2 cursor-pointer text-sm",
         "hover:bg-neutral-50 transition-colors",
         isCut && "opacity-50",
+        isSelected && "bg-neutral-100",
       ])}
       onClick={onClick}
       onContextMenu={handleContextMenu}
@@ -1062,7 +1108,14 @@ function ContextMenu({
 
   return (
     <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div
+        className="fixed inset-0 z-40"
+        onClick={onClose}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          onClose();
+        }}
+      />
       <div
         ref={menuRef}
         className={cn([
@@ -1514,7 +1567,14 @@ function TabContextMenu({
 }) {
   return (
     <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div
+        className="fixed inset-0 z-40"
+        onClick={onClose}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          onClose();
+        }}
+      />
       <div
         className={cn([
           "fixed z-50 min-w-35 py-1",
@@ -1670,6 +1730,28 @@ function AuthorSelect({
   );
 }
 
+function MetadataRow({
+  label,
+  required,
+  children,
+  noBorder,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+  noBorder?: boolean;
+}) {
+  return (
+    <div className={cn(["flex", !noBorder && "border-b border-neutral-200"])}>
+      <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+        {required && <span className="absolute left-1 text-red-400">*</span>}
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
+
 function MetadataPanel({
   fileContent,
   author,
@@ -1684,6 +1766,364 @@ function MetadataPanel({
   onToggleExpanded: () => void;
 }) {
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
+  const collection = fileContent.collection;
+
+  const renderArticlesMetadata = () => (
+    <>
+      <div className="flex border-b border-neutral-200">
+        <button
+          onClick={() => setIsTitleExpanded(!isTitleExpanded)}
+          className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
+        >
+          <span className="absolute left-1 text-red-400">*</span>
+          Title
+          <ChevronRightIcon
+            className={cn([
+              "size-3 transition-transform",
+              isTitleExpanded && "rotate-90",
+            ])}
+          />
+        </button>
+        <input
+          type="text"
+          defaultValue={fileContent.meta_title || ""}
+          placeholder="SEO meta title"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </div>
+      {isTitleExpanded && (
+        <div className="flex border-b border-neutral-200 bg-neutral-50">
+          <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
+            <span className="text-neutral-300">└</span>
+            Display
+          </span>
+          <input
+            type="text"
+            defaultValue={fileContent.display_title || ""}
+            placeholder="Display title (optional)"
+            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+          />
+        </div>
+      )}
+      <MetadataRow label="Author" required>
+        <div className="flex-1 px-2 py-2">
+          <AuthorSelect value={author} onChange={onAuthorChange} />
+        </div>
+      </MetadataRow>
+      <MetadataRow label="Date" required>
+        <input
+          type="date"
+          defaultValue={fileContent.date || ""}
+          className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+        />
+      </MetadataRow>
+      <MetadataRow label="Description" required>
+        <textarea
+          ref={(el) => {
+            if (el) {
+              el.style.height = "auto";
+              el.style.height = `${el.scrollHeight}px`;
+            }
+          }}
+          defaultValue={fileContent.meta_description || ""}
+          placeholder="Meta description for SEO"
+          rows={1}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = "auto";
+            target.style.height = `${target.scrollHeight}px`;
+          }}
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
+        />
+      </MetadataRow>
+      <MetadataRow label="Category">
+        <select
+          defaultValue={fileContent.category || ""}
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+        >
+          <option value="">Select category</option>
+          <option value="Case Study">Case Study</option>
+          <option value="Hyprnote Weekly">Hyprnote Weekly</option>
+          <option value="Productivity Hack">Productivity Hack</option>
+          <option value="Engineering">Engineering</option>
+        </select>
+      </MetadataRow>
+      <MetadataRow label="Cover">
+        <div className="flex-1 flex items-center gap-2 px-2 py-2">
+          <input
+            type="text"
+            defaultValue={fileContent.coverImage || ""}
+            placeholder="/api/images/blog/slug/cover.png"
+            className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+          />
+        </div>
+      </MetadataRow>
+      <MetadataRow label="Published">
+        <div className="flex-1 flex items-center px-2 py-2">
+          <input
+            type="checkbox"
+            defaultChecked={fileContent.published || false}
+            className="rounded"
+          />
+        </div>
+      </MetadataRow>
+      <MetadataRow label="Featured" noBorder>
+        <div className="flex-1 flex items-center px-2 py-2">
+          <input
+            type="checkbox"
+            defaultChecked={fileContent.featured || false}
+            className="rounded"
+          />
+        </div>
+      </MetadataRow>
+    </>
+  );
+
+  const renderChangelogMetadata = () => (
+    <MetadataRow label="Date" required noBorder>
+      <input
+        type="date"
+        defaultValue={fileContent.date || ""}
+        className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+      />
+    </MetadataRow>
+  );
+
+  const renderDocsMetadata = () => (
+    <>
+      <MetadataRow label="Title" required>
+        <input
+          type="text"
+          defaultValue={fileContent.title || ""}
+          placeholder="Document title"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Section" required>
+        <input
+          type="text"
+          defaultValue={fileContent.section || ""}
+          placeholder="Section name"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Summary">
+        <textarea
+          ref={(el) => {
+            if (el) {
+              el.style.height = "auto";
+              el.style.height = `${el.scrollHeight}px`;
+            }
+          }}
+          defaultValue={fileContent.summary || ""}
+          placeholder="Brief summary"
+          rows={1}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = "auto";
+            target.style.height = `${target.scrollHeight}px`;
+          }}
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
+        />
+      </MetadataRow>
+      <MetadataRow label="Category">
+        <input
+          type="text"
+          defaultValue={fileContent.category || ""}
+          placeholder="Category (optional)"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Author">
+        <input
+          type="text"
+          defaultValue={fileContent.author || ""}
+          placeholder="Author (optional)"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Date" noBorder>
+        <input
+          type="date"
+          defaultValue={fileContent.date || ""}
+          className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+        />
+      </MetadataRow>
+    </>
+  );
+
+  const renderHandbookMetadata = () => (
+    <>
+      <MetadataRow label="Title" required>
+        <input
+          type="text"
+          defaultValue={fileContent.title || ""}
+          placeholder="Document title"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Section" required>
+        <input
+          type="text"
+          defaultValue={fileContent.section || ""}
+          placeholder="Section name"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Summary">
+        <textarea
+          ref={(el) => {
+            if (el) {
+              el.style.height = "auto";
+              el.style.height = `${el.scrollHeight}px`;
+            }
+          }}
+          defaultValue={fileContent.summary || ""}
+          placeholder="Brief summary"
+          rows={1}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = "auto";
+            target.style.height = `${target.scrollHeight}px`;
+          }}
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
+        />
+      </MetadataRow>
+      <MetadataRow label="Author">
+        <input
+          type="text"
+          defaultValue={fileContent.author || ""}
+          placeholder="Author (optional)"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Date" noBorder>
+        <input
+          type="date"
+          defaultValue={fileContent.date || ""}
+          className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+        />
+      </MetadataRow>
+    </>
+  );
+
+  const renderLegalMetadata = () => (
+    <>
+      <MetadataRow label="Title" required>
+        <input
+          type="text"
+          defaultValue={fileContent.title || ""}
+          placeholder="Document title"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Summary" required>
+        <textarea
+          ref={(el) => {
+            if (el) {
+              el.style.height = "auto";
+              el.style.height = `${el.scrollHeight}px`;
+            }
+          }}
+          defaultValue={fileContent.summary || ""}
+          placeholder="Brief summary"
+          rows={1}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = "auto";
+            target.style.height = `${target.scrollHeight}px`;
+          }}
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
+        />
+      </MetadataRow>
+      <MetadataRow label="Date" required noBorder>
+        <input
+          type="date"
+          defaultValue={fileContent.date || ""}
+          className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+        />
+      </MetadataRow>
+    </>
+  );
+
+  const renderTemplatesMetadata = () => (
+    <>
+      <MetadataRow label="Title" required>
+        <input
+          type="text"
+          defaultValue={fileContent.title || ""}
+          placeholder="Template title"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Description" required>
+        <textarea
+          ref={(el) => {
+            if (el) {
+              el.style.height = "auto";
+              el.style.height = `${el.scrollHeight}px`;
+            }
+          }}
+          defaultValue={fileContent.description || ""}
+          placeholder="Template description"
+          rows={1}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = "auto";
+            target.style.height = `${target.scrollHeight}px`;
+          }}
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
+        />
+      </MetadataRow>
+      <MetadataRow label="Category" required>
+        <input
+          type="text"
+          defaultValue={fileContent.category || ""}
+          placeholder="Category"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Targets" required>
+        <input
+          type="text"
+          defaultValue={fileContent.targets?.join(", ") || ""}
+          placeholder="target1, target2, ..."
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+      <MetadataRow label="Banner" noBorder>
+        <input
+          type="text"
+          defaultValue={fileContent.banner || ""}
+          placeholder="Banner image path (optional)"
+          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+        />
+      </MetadataRow>
+    </>
+  );
+
+  const renderMetadataContent = () => {
+    switch (collection) {
+      case "articles":
+        return renderArticlesMetadata();
+      case "changelog":
+        return renderChangelogMetadata();
+      case "docs":
+        return renderDocsMetadata();
+      case "handbook":
+        return renderHandbookMetadata();
+      case "legal":
+        return renderLegalMetadata();
+      case "templates":
+        return renderTemplatesMetadata();
+      default:
+        return (
+          <div className="px-4 py-2 text-neutral-400 text-sm">
+            No metadata fields for this collection
+          </div>
+        );
+    }
+  };
 
   return (
     <div
@@ -1695,114 +2135,10 @@ function MetadataPanel({
       <div
         className={cn([
           "text-sm transition-all duration-200 overflow-hidden",
-          isExpanded ? "max-h-96" : "max-h-0",
+          isExpanded ? "max-h-[500px]" : "max-h-0",
         ])}
       >
-        <div className="flex border-b border-neutral-200">
-          <button
-            onClick={() => setIsTitleExpanded(!isTitleExpanded)}
-            className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
-          >
-            <span className="absolute left-1 text-red-400">*</span>
-            Title
-            <ChevronRightIcon
-              className={cn([
-                "size-3 transition-transform",
-                isTitleExpanded && "rotate-90",
-              ])}
-            />
-          </button>
-          <input
-            type="text"
-            defaultValue={fileContent.meta_title || ""}
-            placeholder="SEO meta title"
-            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-          />
-        </div>
-        {isTitleExpanded && (
-          <div className="flex border-b border-neutral-200 bg-neutral-50">
-            <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
-              <span className="text-neutral-300">└</span>
-              Display
-            </span>
-            <input
-              type="text"
-              defaultValue={fileContent.display_title || ""}
-              placeholder="Display title (optional)"
-              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-            />
-          </div>
-        )}
-        <div className="flex border-b border-neutral-200">
-          <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
-            <span className="absolute left-1 text-red-400">*</span>
-            Author
-          </span>
-          <div className="flex-1 px-2 py-2">
-            <AuthorSelect value={author} onChange={onAuthorChange} />
-          </div>
-        </div>
-        <div className="flex border-b border-neutral-200">
-          <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
-            <span className="absolute left-1 text-red-400">*</span>
-            Date
-          </span>
-          <input
-            type="date"
-            defaultValue={fileContent.date || ""}
-            className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
-          />
-        </div>
-        <div className="flex border-b border-neutral-200">
-          <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
-            <span className="absolute left-1 text-red-400">*</span>
-            Description
-          </span>
-          <textarea
-            ref={(el) => {
-              if (el) {
-                el.style.height = "auto";
-                el.style.height = `${el.scrollHeight}px`;
-              }
-            }}
-            defaultValue={fileContent.meta_description || ""}
-            placeholder="Meta description for SEO"
-            rows={1}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = "auto";
-              target.style.height = `${target.scrollHeight}px`;
-            }}
-            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
-          />
-        </div>
-        <div className="flex border-b border-neutral-200">
-          <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
-            Cover
-          </span>
-          <div className="flex-1 flex items-center gap-2 px-2 py-2">
-            <input
-              type="text"
-              defaultValue={fileContent.coverImage || ""}
-              placeholder="/api/images/blog/slug/cover.png"
-              className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-            />
-            <button
-              type="button"
-              className="px-2 py-1 text-xs text-neutral-600 bg-neutral-100 rounded hover:bg-neutral-200"
-            >
-              Choose
-            </button>
-          </div>
-        </div>
-        <div className="flex">
-          <span className="w-24 shrink-0 px-4 py-2 text-neutral-500">
-            Featured
-          </span>
-          <div className="flex-1 flex items-center px-2 py-2">
-            <input type="checkbox" defaultChecked={false} className="rounded" />
-          </div>
-        </div>
+        {renderMetadataContent()}
       </div>
       <button
         onClick={onToggleExpanded}
@@ -1857,6 +2193,196 @@ function FileEditor({
   const selectedAuthor = AUTHORS.find((a) => a.name === author);
   const avatarUrl = selectedAuthor?.avatar;
 
+  const renderArticlePreview = () => (
+    <div className="h-full overflow-y-auto bg-white">
+      <header className="py-12 text-center max-w-3xl mx-auto px-6">
+        <h1 className="text-3xl font-serif text-stone-600 mb-6">
+          {fileContent.display_title || fileContent.meta_title || "Untitled"}
+        </h1>
+        {author && (
+          <div className="flex items-center justify-center gap-3 mb-2">
+            {avatarUrl && (
+              <img
+                src={avatarUrl}
+                alt={author}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            )}
+            <p className="text-base text-neutral-600">{author}</p>
+          </div>
+        )}
+        {fileContent.date && (
+          <time className="text-xs font-mono text-neutral-500">
+            {new Date(fileContent.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </time>
+        )}
+      </header>
+      <div className="max-w-3xl mx-auto px-6 pb-8">
+        <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
+          <MDXContent
+            code={fileContent.mdx}
+            components={createMDXComponents({ CtaCard })}
+          />
+        </article>
+      </div>
+    </div>
+  );
+
+  const renderChangelogPreview = () => (
+    <div className="h-full overflow-y-auto bg-white">
+      <header className="py-8 max-w-3xl mx-auto px-6 border-b border-neutral-200">
+        <div className="flex items-center gap-3">
+          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+            v{fileContent.slug}
+          </span>
+          {fileContent.date && (
+            <time className="text-sm text-neutral-500">
+              {new Date(fileContent.date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </time>
+          )}
+        </div>
+      </header>
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <article className="prose prose-stone prose-headings:font-semibold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-ul:my-4 prose-li:my-1 max-w-none">
+          <MDXContent
+            code={fileContent.mdx}
+            components={createMDXComponents({ CtaCard })}
+          />
+        </article>
+      </div>
+    </div>
+  );
+
+  const renderDocsPreview = () => (
+    <div className="h-full overflow-y-auto bg-white">
+      <header className="py-8 max-w-3xl mx-auto px-6 border-b border-neutral-200">
+        <div className="text-xs text-neutral-500 mb-2">
+          {fileContent.section}
+        </div>
+        <h1 className="text-2xl font-semibold text-neutral-900">
+          {fileContent.title || "Untitled"}
+        </h1>
+        {fileContent.summary && (
+          <p className="mt-2 text-neutral-600">{fileContent.summary}</p>
+        )}
+      </header>
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <article className="prose prose-stone prose-headings:font-semibold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-pre:bg-stone-900 prose-pre:text-stone-100 max-w-none">
+          <MDXContent
+            code={fileContent.mdx}
+            components={createMDXComponents({ CtaCard })}
+          />
+        </article>
+      </div>
+    </div>
+  );
+
+  const renderLegalPreview = () => (
+    <div className="h-full overflow-y-auto bg-white">
+      <header className="py-8 max-w-3xl mx-auto px-6 border-b border-neutral-200">
+        <h1 className="text-2xl font-semibold text-neutral-900">
+          {fileContent.title || "Untitled"}
+        </h1>
+        {fileContent.date && (
+          <p className="mt-2 text-sm text-neutral-500">
+            Last updated:{" "}
+            {new Date(fileContent.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+        )}
+        {fileContent.summary && (
+          <p className="mt-2 text-neutral-600">{fileContent.summary}</p>
+        )}
+      </header>
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <article className="prose prose-stone prose-headings:font-semibold max-w-none">
+          <MDXContent
+            code={fileContent.mdx}
+            components={createMDXComponents({ CtaCard })}
+          />
+        </article>
+      </div>
+    </div>
+  );
+
+  const renderTemplatePreview = () => (
+    <div className="h-full overflow-y-auto bg-white">
+      <header className="py-8 max-w-3xl mx-auto px-6 border-b border-neutral-200">
+        <div className="text-xs text-neutral-500 mb-2">
+          {fileContent.category}
+        </div>
+        <h1 className="text-2xl font-semibold text-neutral-900">
+          {fileContent.title || "Untitled"}
+        </h1>
+        {fileContent.description && (
+          <p className="mt-2 text-neutral-600">{fileContent.description}</p>
+        )}
+        {fileContent.targets && fileContent.targets.length > 0 && (
+          <div className="flex gap-2 mt-3">
+            {fileContent.targets.map((target) => (
+              <span
+                key={target}
+                className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded"
+              >
+                {target}
+              </span>
+            ))}
+          </div>
+        )}
+      </header>
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <article className="prose prose-stone prose-headings:font-semibold max-w-none">
+          <MDXContent
+            code={fileContent.mdx}
+            components={createMDXComponents({ CtaCard })}
+          />
+        </article>
+      </div>
+    </div>
+  );
+
+  const renderDefaultPreview = () => (
+    <div className="h-full overflow-y-auto bg-white">
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <article className="prose prose-stone prose-headings:font-semibold max-w-none">
+          <MDXContent
+            code={fileContent.mdx}
+            components={createMDXComponents({ CtaCard })}
+          />
+        </article>
+      </div>
+    </div>
+  );
+
+  const renderPreview = () => {
+    switch (fileContent.collection) {
+      case "articles":
+        return renderArticlePreview();
+      case "changelog":
+        return renderChangelogPreview();
+      case "docs":
+      case "handbook":
+        return renderDocsPreview();
+      case "legal":
+        return renderLegalPreview();
+      case "templates":
+        return renderTemplatePreview();
+      default:
+        return renderDefaultPreview();
+    }
+  };
+
   if (isPreviewMode) {
     return (
       <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
@@ -1878,44 +2404,7 @@ function FileEditor({
         </ResizablePanel>
         <ResizableHandle className="w-px bg-neutral-200" />
         <ResizablePanel defaultSize={50} minSize={30}>
-          <div className="h-full overflow-y-auto bg-white">
-            <header className="py-12 text-center max-w-3xl mx-auto px-6">
-              <h1 className="text-3xl font-serif text-stone-600 mb-6">
-                {fileContent.display_title ||
-                  fileContent.meta_title ||
-                  "Untitled"}
-              </h1>
-              {author && (
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  {avatarUrl && (
-                    <img
-                      src={avatarUrl}
-                      alt={author}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  )}
-                  <p className="text-base text-neutral-600">{author}</p>
-                </div>
-              )}
-              {fileContent.date && (
-                <time className="text-xs font-mono text-neutral-500">
-                  {new Date(fileContent.date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </time>
-              )}
-            </header>
-            <div className="max-w-3xl mx-auto px-6 pb-8">
-              <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
-                <MDXContent
-                  code={fileContent.mdx}
-                  components={createMDXComponents({ CtaCard })}
-                />
-              </article>
-            </div>
-          </div>
+          {renderPreview()}
         </ResizablePanel>
       </ResizablePanelGroup>
     );

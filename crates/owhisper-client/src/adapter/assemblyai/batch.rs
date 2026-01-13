@@ -21,6 +21,14 @@ use crate::polling::{PollingConfig, PollingResult, poll_until};
 // https://www.assemblyai.com/docs/pre-recorded-audio/select-the-speech-model.md
 // https://www.assemblyai.com/docs/pre-recorded-audio/supported-languages.md
 impl BatchSttAdapter for AssemblyAIAdapter {
+    fn is_supported_languages(
+        &self,
+        languages: &[hypr_language::Language],
+        _model: Option<&str>,
+    ) -> bool {
+        AssemblyAIAdapter::is_supported_languages(languages)
+    }
+
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
         client: &'a ClientWithMiddleware,

@@ -54,8 +54,7 @@ import {
 } from "@hypr/ui/components/ui/resizable";
 import { cn } from "@hypr/utils";
 
-import { CtaCard } from "@/components/cta-card";
-import { createMDXComponents } from "@/components/mdx";
+import { defaultMDXComponents } from "@/components/mdx";
 
 interface ContentItem {
   name: string;

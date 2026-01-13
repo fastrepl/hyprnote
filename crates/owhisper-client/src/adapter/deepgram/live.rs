@@ -19,6 +19,9 @@ impl RealtimeSttAdapter for DeepgramAdapter {
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
+        if languages.is_empty() {
+            return false;
+        }
         DeepgramAdapter::is_supported_languages(languages, model)
     }
 

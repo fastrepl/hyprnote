@@ -7,7 +7,7 @@ const SUPPORTED_LANGUAGES: &[&str] = &[
     "en", "es", "fr", "de", "id", "it", "ja", "nl", "pl", "pt", "ru", "tr", "uk", "ca",
     // Good
     "ar", "az", "bg", "bs", "zh", "cs", "da", "el", "et", "fi", "gl", "hi", "hr", "hu", "ko", "mk",
-    "ms", "no", "ro", "sk", "sv", "th", "ur", "vi", // Moderate accuracy
+    "ms", "no", "ro", "sk", "sv", "th", "ur", "vi", // Moderate
     "af", "be", "cy", "fa", "he", "hy", "is", "kk", "lt", "lv", "mi", "mr", "sl", "sw", "ta",
     // Fair
     "am", "bn", "gu", "ka", "km", "kn", "lo", "ml", "mn", "mt", "my", "ne", "pa", "ps", "so", "sr",

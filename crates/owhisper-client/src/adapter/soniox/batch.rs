@@ -105,6 +105,8 @@ impl SonioxAdapter {
             file_id: &'a str,
             #[serde(skip_serializing_if = "Vec::is_empty")]
             language_hints: Vec<String>,
+            #[serde(skip_serializing_if = "std::ops::Not::not")]
+            language_hints_strict: bool,
             enable_speaker_diarization: bool,
             enable_language_identification: bool,
             #[serde(skip_serializing_if = "Option::is_none")]
@@ -127,7 +129,7 @@ impl SonioxAdapter {
             })
         };
 
-        let language_hints = params
+        let language_hints: Vec<String> = params
             .languages
             .iter()
             .map(|lang| lang.iso639().code().to_string())
@@ -136,6 +138,7 @@ impl SonioxAdapter {
         let request = CreateTranscriptionRequest {
             model,
             file_id,
+            language_hints_strict: !language_hints.is_empty(),
             language_hints,
             enable_speaker_diarization: true,
             enable_language_identification: true,

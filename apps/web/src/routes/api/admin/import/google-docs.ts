@@ -1,4 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { Element, Root, Text } from "hast";
+import rehypeParse from "rehype-parse";
+import rehypeRemark from "rehype-remark";
+import remarkGfm from "remark-gfm";
+import remarkStringify from "remark-stringify";
+import { unified } from "unified";
+import { visit } from "unist-util-visit";
+import { visitParents } from "unist-util-visit-parents";
 
 import { fetchAdminUser } from "@/functions/admin";
 
@@ -60,138 +68,480 @@ function parseGoogleDocsUrl(url: string): ParsedGoogleDocsUrl | null {
   return { docId, tabParam };
 }
 
-function htmlToMarkdown(html: string): string {
-  let markdown = html;
+function parseCssPropertyList(text: string): Record<string, string> {
+  const properties: Record<string, string> = {};
+  const parts = text.split(";");
+  for (const part of parts) {
+    const match = part.match(/^\s*([^:]+):\s*(.+?)\s*$/);
+    if (match) {
+      properties[match[1].toLowerCase()] = match[2];
+    }
+  }
+  return properties;
+}
 
-  markdown = markdown.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
-  markdown = markdown.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
+function resolveNodeStyle(
+  node: Element,
+  ancestors: Element[],
+): Record<string, string> {
+  const allStyles: Record<string, string>[] = [];
+  const ancestorChain = [...ancestors, node];
 
-  markdown = markdown.replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, "\n# $1\n");
-  markdown = markdown.replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, "\n## $1\n");
-  markdown = markdown.replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, "\n### $1\n");
-  markdown = markdown.replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, "\n#### $1\n");
-  markdown = markdown.replace(/<h5[^>]*>([\s\S]*?)<\/h5>/gi, "\n##### $1\n");
-  markdown = markdown.replace(/<h6[^>]*>([\s\S]*?)<\/h6>/gi, "\n###### $1\n");
+  for (const ancestor of ancestorChain) {
+    if (
+      ancestor.type === "element" &&
+      ancestor.properties?.style &&
+      typeof ancestor.properties.style === "string"
+    ) {
+      allStyles.push(parseCssPropertyList(ancestor.properties.style));
+    }
+  }
 
-  markdown = markdown.replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, "**$1**");
-  markdown = markdown.replace(/<b[^>]*>([\s\S]*?)<\/b>/gi, "**$1**");
-  markdown = markdown.replace(/<em[^>]*>([\s\S]*?)<\/em>/gi, "*$1*");
-  markdown = markdown.replace(/<i[^>]*>([\s\S]*?)<\/i>/gi, "*$1*");
-  markdown = markdown.replace(/<u[^>]*>([\s\S]*?)<\/u>/gi, "_$1_");
-  markdown = markdown.replace(/<s[^>]*>([\s\S]*?)<\/s>/gi, "~~$1~~");
-  markdown = markdown.replace(/<strike[^>]*>([\s\S]*?)<\/strike>/gi, "~~$1~~");
-  markdown = markdown.replace(/<del[^>]*>([\s\S]*?)<\/del>/gi, "~~$1~~");
+  return Object.assign({}, ...allStyles);
+}
 
-  markdown = markdown.replace(/<code[^>]*>([\s\S]*?)<\/code>/gi, "`$1`");
-  markdown = markdown.replace(
-    /<pre[^>]*>([\s\S]*?)<\/pre>/gi,
-    "\n```\n$1\n```\n",
+function isElement(node: unknown): node is Element {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    "type" in node &&
+    node.type === "element"
   );
+}
 
-  markdown = markdown.replace(
-    /<a[^>]*href=["']([^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi,
-    "[$2]($1)",
+function isText(node: unknown): node is Text {
+  return (
+    typeof node === "object" &&
+    node !== null &&
+    "type" in node &&
+    node.type === "text"
   );
+}
 
-  markdown = markdown.replace(
-    /<img[^>]*src=["']([^"']*)["'][^>]*alt=["']([^"']*)["'][^>]*\/?>/gi,
-    "![$2]($1)",
-  );
-  markdown = markdown.replace(
-    /<img[^>]*alt=["']([^"']*)["'][^>]*src=["']([^"']*)["'][^>]*\/?>/gi,
-    "![$1]($2)",
-  );
-  markdown = markdown.replace(
-    /<img[^>]*src=["']([^"']*)["'][^>]*\/?>/gi,
-    "![]($1)",
-  );
+function isList(node: unknown): node is Element {
+  return isElement(node) && (node.tagName === "ul" || node.tagName === "ol");
+}
 
-  markdown = markdown.replace(/<ul[^>]*>/gi, "\n");
-  markdown = markdown.replace(/<\/ul>/gi, "\n");
-  markdown = markdown.replace(/<ol[^>]*>/gi, "\n");
-  markdown = markdown.replace(/<\/ol>/gi, "\n");
-  markdown = markdown.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, "- $1\n");
+function isBlock(node: Element): boolean {
+  const blockTags = [
+    "div",
+    "p",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "blockquote",
+    "pre",
+    "ul",
+    "ol",
+    "li",
+    "table",
+    "tr",
+    "td",
+    "th",
+  ];
+  return blockTags.includes(node.tagName);
+}
 
-  markdown = markdown.replace(
-    /<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi,
-    (_, content) => {
-      return content
-        .split("\n")
-        .map((line: string) => `> ${line}`)
+function isSpaceSensitive(node: Element): boolean {
+  return ["em", "strong", "ins", "del", "code"].includes(node.tagName);
+}
+
+function containsReplacedElement(node: Element): boolean {
+  if (node.tagName === "img") return true;
+  if (node.children) {
+    for (const child of node.children) {
+      if (isElement(child) && containsReplacedElement(child)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function wrapChildren(node: Element, wrapper: Element): void {
+  wrapper.children = node.children;
+  node.children = [wrapper];
+}
+
+function convertInlineStylesToElements() {
+  return (tree: Root) => {
+    visitParents(
+      tree,
+      (node): node is Element => {
+        if (!isElement(node)) return false;
+        if (isBlock(node)) return false;
+        return node.properties?.style !== undefined;
+      },
+      (node, ancestors) => {
+        const style = resolveNodeStyle(
+          node,
+          ancestors.filter((a) => isElement(a)) as Element[],
+        );
+
+        if (style["font-style"] === "italic") {
+          wrapChildren(node, {
+            type: "element",
+            tagName: "em",
+            properties: {},
+            children: [],
+          });
+        }
+
+        const weight = style["font-weight"];
+        if (weight === "bold" || weight === "700" || parseInt(weight) >= 700) {
+          wrapChildren(node, {
+            type: "element",
+            tagName: "strong",
+            properties: {},
+            children: [],
+          });
+        }
+
+        const verticalAlign = style["vertical-align"];
+        if (verticalAlign === "super") {
+          wrapChildren(node, {
+            type: "element",
+            tagName: "sup",
+            properties: {},
+            children: [],
+          });
+        } else if (verticalAlign === "sub") {
+          wrapChildren(node, {
+            type: "element",
+            tagName: "sub",
+            properties: {},
+            children: [],
+          });
+        }
+
+        const decorationLine =
+          style["text-decoration"] || style["text-decoration-line"];
+        if (decorationLine?.startsWith("line-through")) {
+          wrapChildren(node, {
+            type: "element",
+            tagName: "del",
+            properties: {},
+            children: [],
+          });
+        }
+
+        const fontFamily = style["font-family"];
+        if (
+          fontFamily &&
+          /,\s*monospace/.test(fontFamily) &&
+          !containsReplacedElement(node)
+        ) {
+          wrapChildren(node, {
+            type: "element",
+            tagName: "code",
+            properties: {},
+            children: [],
+          });
+        }
+      },
+    );
+  };
+}
+
+function fixNestedLists() {
+  return (tree: Root) => {
+    visit(tree, isList, (node, index, parent): number | void => {
+      if (parent && index !== null && index !== undefined && isList(parent)) {
+        const previous = parent.children[index - 1];
+        if (previous && isElement(previous) && previous.tagName === "li") {
+          previous.children.push(node);
+          parent.children.splice(index, 1);
+          return index;
+        }
+      }
+    });
+  };
+}
+
+function isAllTextCode(node: Element): boolean | null {
+  if (!node.children?.length) return null;
+
+  let hasText = false;
+  for (const child of node.children) {
+    if (isElement(child)) {
+      if (containsReplacedElement(child)) return false;
+
+      if (child.tagName === "code") {
+        hasText = true;
+        continue;
+      } else {
+        const childResult = isAllTextCode(child);
+        if (childResult === false) return false;
+        else if (childResult === true) hasText = true;
+      }
+    } else if (isText(child)) {
+      if (child.value.trim().length > 0) {
+        return false;
+      }
+    }
+  }
+  return hasText ? true : null;
+}
+
+function createCodeBlocks() {
+  return (tree: Root) => {
+    if (!tree.children) return;
+
+    const codeBlocks: Array<{ start: number; end: number }> = [];
+    let activeCodeBlock: { start: number; end: number } | null = null;
+
+    for (let i = 0; i < tree.children.length; i++) {
+      const child = tree.children[i];
+      if (!isElement(child)) continue;
+      if (child.tagName === "code" || child.tagName === "pre") continue;
+
+      if (isBlock(child)) {
+        if (isAllTextCode(child) && !containsReplacedElement(child)) {
+          if (!activeCodeBlock) {
+            activeCodeBlock = { start: i, end: i + 1 };
+            codeBlocks.push(activeCodeBlock);
+          } else {
+            activeCodeBlock.end = i + 1;
+          }
+        } else {
+          activeCodeBlock = null;
+        }
+      }
+    }
+
+    for (const block of codeBlocks.reverse()) {
+      const codeLines = tree.children.slice(block.start, block.end);
+      const codeContent = codeLines
+        .map((node: unknown) => {
+          if (!isElement(node)) return "";
+          return extractTextContent(node);
+        })
         .join("\n");
-    },
-  );
 
-  markdown = markdown.replace(/<hr[^>]*\/?>/gi, "\n---\n");
+      const preNode: Element = {
+        type: "element",
+        tagName: "pre",
+        properties: {},
+        children: [
+          {
+            type: "element",
+            tagName: "code",
+            properties: {},
+            children: [{ type: "text", value: codeContent }],
+          },
+        ],
+      };
 
-  markdown = markdown.replace(/<br[^>]*\/?>/gi, "\n");
-  markdown = markdown.replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, "\n$1\n");
-  markdown = markdown.replace(/<div[^>]*>([\s\S]*?)<\/div>/gi, "\n$1\n");
+      tree.children.splice(block.start, block.end - block.start, preNode);
+    }
+  };
+}
 
-  markdown = markdown.replace(/<span[^>]*>([\s\S]*?)<\/span>/gi, "$1");
-
-  markdown = markdown.replace(
-    /<table[^>]*>([\s\S]*?)<\/table>/gi,
-    (_, tableContent) => {
-      const rows: string[][] = [];
-      const rowMatches = tableContent.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || [];
-
-      for (const row of rowMatches) {
-        const cells: string[] = [];
-        const cellMatches =
-          row.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi) || [];
-        for (const cell of cellMatches) {
-          const cellContent = cell
-            .replace(/<t[dh][^>]*>/gi, "")
-            .replace(/<\/t[dh]>/gi, "")
-            .replace(/<[^>]+>/g, "")
-            .replace(/\n/g, " ")
-            .trim();
-          cells.push(cellContent);
+function extractTextContent(node: Element): string {
+  let text = "";
+  if (node.children) {
+    for (const child of node.children) {
+      if (isText(child)) {
+        text += child.value;
+      } else if (isElement(child)) {
+        if (child.tagName === "code") {
+          text += extractTextContent(child);
+        } else {
+          text += extractTextContent(child);
         }
-        if (cells.length > 0) {
-          rows.push(cells);
+      }
+    }
+  }
+  return text;
+}
+
+function detectTableColumnAlignment() {
+  return (tree: Root) => {
+    visit(
+      tree,
+      (node): node is Element => {
+        if (!isElement(node)) return false;
+        return node.tagName === "table";
+      },
+      (tableNode) => {
+        visit(
+          tableNode,
+          (node): node is Element => {
+            if (!isElement(node)) return false;
+            return node.tagName === "td" || node.tagName === "th";
+          },
+          (node) => {
+            if (!node.properties) {
+              node.properties = {};
+            }
+
+            if (!node.properties.align) {
+              let alignment: string | null = null;
+
+              const style = node.properties.style
+                ? parseCssPropertyList(node.properties.style as string)
+                : {};
+              const textAlign = style["text-align"];
+              if (textAlign && /^(left|center|right)/.test(textAlign)) {
+                alignment = textAlign.match(/^(left|center|right)/)![1];
+              }
+
+              if (!alignment && node.children) {
+                for (let i = 0; i < node.children.length; i++) {
+                  const child = node.children[i];
+                  if (!isElement(child)) continue;
+
+                  const childStyle = child.properties?.style
+                    ? parseCssPropertyList(child.properties.style as string)
+                    : {};
+                  const childAlign = childStyle["text-align"];
+                  const childAlignMatch =
+                    childAlign?.match(/^(left|center|right)/);
+
+                  if (i === 0) {
+                    alignment = childAlignMatch?.[1] || null;
+                  } else if (
+                    childAlignMatch?.[1] !== alignment ||
+                    !childAlignMatch
+                  ) {
+                    alignment = null;
+                    break;
+                  }
+                }
+              }
+
+              if (alignment) {
+                node.properties.align = alignment;
+              }
+            }
+          },
+        );
+      },
+    );
+  };
+}
+
+function moveSpaceOutsideSensitiveChildren() {
+  return (tree: Root) => {
+    const spaceAtStartPattern = /^(\s+)/;
+    const spaceAtEndPattern = /(\s+)$/;
+
+    function extractInvalidSpace(node: Element, side: "start" | "end"): string {
+      let totalSpace = "";
+
+      const children =
+        side === "start" ? node.children : [...node.children].reverse();
+
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+
+        if (isText(child)) {
+          const pattern =
+            side === "start" ? spaceAtStartPattern : spaceAtEndPattern;
+          const spaceMatch = child.value.match(pattern);
+
+          if (spaceMatch) {
+            const space = spaceMatch[1];
+            const body =
+              side === "start"
+                ? child.value.slice(space.length)
+                : child.value.slice(0, -space.length);
+
+            totalSpace =
+              side === "start" ? totalSpace + space : space + totalSpace;
+
+            if (body.length) {
+              child.value = body;
+              break;
+            } else {
+              const actualIndex =
+                side === "start" ? i : node.children.length - 1 - i;
+              node.children.splice(actualIndex, 1);
+              i--;
+            }
+          } else {
+            break;
+          }
+        } else if (isElement(child) && isSpaceSensitive(child)) {
+          const nestedSpace = extractInvalidSpace(child, side);
+          totalSpace =
+            side === "start"
+              ? totalSpace + nestedSpace
+              : nestedSpace + totalSpace;
+        } else {
+          break;
         }
       }
 
-      if (rows.length === 0) return "";
+      return totalSpace;
+    }
 
-      const colCount = Math.max(...rows.map((r) => r.length));
-      const normalizedRows = rows.map((r) => {
-        while (r.length < colCount) r.push("");
-        return r;
-      });
+    visit(
+      tree,
+      (node): node is Element => isElement(node) && isSpaceSensitive(node),
+      (node, index, parent) => {
+        if (!parent || index === null || index === undefined) {
+          return;
+        }
 
-      let mdTable = "\n";
-      mdTable += "| " + normalizedRows[0].join(" | ") + " |\n";
-      mdTable += "| " + normalizedRows[0].map(() => "---").join(" | ") + " |\n";
-      for (let i = 1; i < normalizedRows.length; i++) {
-        mdTable += "| " + normalizedRows[i].join(" | ") + " |\n";
+        const startSpace = extractInvalidSpace(node, "start");
+        if (startSpace) {
+          parent.children.splice(index, 0, {
+            type: "text",
+            value: startSpace,
+          });
+          return index + 2;
+        }
+
+        const endSpace = extractInvalidSpace(node, "end");
+        if (endSpace) {
+          parent.children.splice(index + 1, 0, {
+            type: "text",
+            value: endSpace,
+          });
+          return index + 2;
+        }
+      },
+    );
+  };
+}
+
+function removeUnnecessaryElements() {
+  return (tree: Root) => {
+    visit(tree, isElement, (node, index, parent) => {
+      if (!parent || index === null || index === undefined) return;
+
+      if (node.tagName === "span" && !node.properties?.className) {
+        parent.children.splice(index, 1, ...node.children);
+        return index;
       }
-      return mdTable + "\n";
-    },
-  );
+    });
+  };
+}
 
-  markdown = markdown.replace(/<[^>]+>/g, "");
+function htmlToMarkdown(html: string): string {
+  const processor = unified()
+    .use(rehypeParse, { fragment: true })
+    .use(convertInlineStylesToElements)
+    .use(removeUnnecessaryElements)
+    .use(createCodeBlocks)
+    .use(fixNestedLists)
+    .use(detectTableColumnAlignment)
+    .use(moveSpaceOutsideSensitiveChildren)
+    .use(rehypeRemark)
+    .use(remarkGfm)
+    .use(remarkStringify, {
+      bullet: "-",
+      fence: "`",
+      fences: true,
+      incrementListMarker: false,
+    });
 
-  markdown = markdown.replace(/&nbsp;/g, " ");
-  markdown = markdown.replace(/&amp;/g, "&");
-  markdown = markdown.replace(/&lt;/g, "<");
-  markdown = markdown.replace(/&gt;/g, ">");
-  markdown = markdown.replace(/&quot;/g, '"');
-  markdown = markdown.replace(/&#39;/g, "'");
-  markdown = markdown.replace(/&rsquo;/g, "'");
-  markdown = markdown.replace(/&lsquo;/g, "'");
-  markdown = markdown.replace(/&rdquo;/g, '"');
-  markdown = markdown.replace(/&ldquo;/g, '"');
-  markdown = markdown.replace(/&mdash;/g, "—");
-  markdown = markdown.replace(/&ndash;/g, "–");
-  markdown = markdown.replace(/&hellip;/g, "...");
-
-  markdown = markdown.replace(/\n{3,}/g, "\n\n");
-  markdown = markdown.trim();
-
-  return markdown;
+  const result = processor.processSync(html);
+  return String(result);
 }
 
 function extractTitle(html: string): string | null {

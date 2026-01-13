@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import yaml from "js-yaml";
 
 import { fetchAdminUser } from "@/functions/admin";
 import { updateContentFile } from "@/functions/github-content";
@@ -22,38 +23,20 @@ interface SaveRequest {
 }
 
 function buildFrontmatter(metadata: ArticleMetadata): string {
-  const lines: string[] = ["---"];
+  const obj: Record<string, unknown> = {};
 
-  if (metadata.meta_title) {
-    lines.push(`meta_title: "${metadata.meta_title}"`);
-  }
-  if (metadata.display_title) {
-    lines.push(`display_title: "${metadata.display_title}"`);
-  }
-  if (metadata.meta_description) {
-    lines.push(`meta_description: "${metadata.meta_description}"`);
-  }
-  if (metadata.author) {
-    lines.push(`author: "${metadata.author}"`);
-  }
-  if (metadata.coverImage) {
-    lines.push(`coverImage: "${metadata.coverImage}"`);
-  }
-  if (metadata.published !== undefined) {
-    lines.push(`published: ${metadata.published}`);
-  }
-  if (metadata.featured !== undefined) {
-    lines.push(`featured: ${metadata.featured}`);
-  }
-  if (metadata.date) {
-    lines.push(`date: "${metadata.date}"`);
-  }
-  if (metadata.category) {
-    lines.push(`category: "${metadata.category}"`);
-  }
+  if (metadata.meta_title) obj.meta_title = metadata.meta_title;
+  if (metadata.display_title) obj.display_title = metadata.display_title;
+  if (metadata.meta_description)
+    obj.meta_description = metadata.meta_description;
+  if (metadata.author) obj.author = metadata.author;
+  if (metadata.coverImage) obj.coverImage = metadata.coverImage;
+  if (metadata.published !== undefined) obj.published = metadata.published;
+  if (metadata.featured !== undefined) obj.featured = metadata.featured;
+  if (metadata.date) obj.date = metadata.date;
+  if (metadata.category) obj.category = metadata.category;
 
-  lines.push("---");
-  return lines.join("\n");
+  return `---\n${yaml.dump(obj)}---`;
 }
 
 export const Route = createFileRoute("/api/admin/content/save")({

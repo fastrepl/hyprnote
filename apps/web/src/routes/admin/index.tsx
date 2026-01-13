@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import yaml from "js-yaml";
 import { useState } from "react";
 
 export const Route = createFileRoute("/admin/")({
@@ -56,20 +57,20 @@ function buildFrontmatter(metadata: {
   featured: boolean;
   published: boolean;
 }): string {
-  const lines: string[] = ["---"];
-  if (metadata.meta_title) lines.push(`meta_title: "${metadata.meta_title}"`);
-  if (metadata.display_title)
-    lines.push(`display_title: "${metadata.display_title}"`);
+  const obj: Record<string, unknown> = {};
+
+  if (metadata.meta_title) obj.meta_title = metadata.meta_title;
+  if (metadata.display_title) obj.display_title = metadata.display_title;
   if (metadata.meta_description)
-    lines.push(`meta_description: "${metadata.meta_description}"`);
-  if (metadata.author) lines.push(`author: "${metadata.author}"`);
-  if (metadata.date) lines.push(`date: "${metadata.date}"`);
-  if (metadata.coverImage) lines.push(`coverImage: "${metadata.coverImage}"`);
-  if (metadata.category) lines.push(`category: "${metadata.category}"`);
-  lines.push(`featured: ${metadata.featured}`);
-  lines.push(`published: ${metadata.published}`);
-  lines.push("---");
-  return lines.join("\n");
+    obj.meta_description = metadata.meta_description;
+  if (metadata.author) obj.author = metadata.author;
+  if (metadata.date) obj.date = metadata.date;
+  if (metadata.coverImage) obj.coverImage = metadata.coverImage;
+  if (metadata.category) obj.category = metadata.category;
+  obj.featured = metadata.featured;
+  obj.published = metadata.published;
+
+  return `---\n${yaml.dump(obj)}---`;
 }
 
 function AdminIndexPage() {

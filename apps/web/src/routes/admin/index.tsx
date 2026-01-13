@@ -304,7 +304,6 @@ const MetadataPanel = memo(function MetadataPanel({
   date,
   setDate,
   coverImage,
-  setCoverImage,
   category,
   setCategory,
   slug,
@@ -328,7 +327,6 @@ const MetadataPanel = memo(function MetadataPanel({
   date: string;
   setDate: (v: string) => void;
   coverImage: string;
-  setCoverImage: (v: string) => void;
   category: string;
   setCategory: (v: string) => void;
   slug: string;
@@ -807,7 +805,6 @@ function AdminIndexPage() {
                 date={date}
                 setDate={setDate}
                 coverImage={coverImage}
-                setCoverImage={setCoverImage}
                 category={category}
                 setCategory={setCategory}
                 slug={slug}
@@ -855,7 +852,6 @@ function AdminIndexPage() {
             date={date}
             setDate={setDate}
             coverImage={coverImage}
-            setCoverImage={setCoverImage}
             category={category}
             setCategory={setCategory}
             slug={slug}

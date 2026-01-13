@@ -9,6 +9,7 @@ const COMMANDS: &[&str] = &[
     "get_state",
     "run_batch",
     "is_supported_languages",
+    "suggest_providers_for_languages",
 ];
 
 fn main() {

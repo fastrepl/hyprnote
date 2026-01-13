@@ -164,9 +164,6 @@ function getAllContent(): Map<string, FileContent> {
       title: d.title,
       section: d.section,
       summary: d.summary,
-      category: d.category,
-      author: d.author,
-      date: d.date,
     });
   });
 
@@ -179,8 +176,6 @@ function getAllContent(): Map<string, FileContent> {
       title: h.title,
       section: h.section,
       summary: h.summary,
-      author: h.author,
-      date: h.date,
     });
   });
 
@@ -1914,7 +1909,7 @@ function MetadataPanel({
           <option value="Pro">Pro</option>
         </select>
       </MetadataRow>
-      <MetadataRow label="Summary">
+      <MetadataRow label="Summary" noBorder>
         <textarea
           ref={(el) => {
             if (el) {
@@ -1931,29 +1926,6 @@ function MetadataPanel({
             target.style.height = `${target.scrollHeight}px`;
           }}
           className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
-        />
-      </MetadataRow>
-      <MetadataRow label="Category">
-        <input
-          type="text"
-          defaultValue={fileContent.category || ""}
-          placeholder="Category (optional)"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </MetadataRow>
-      <MetadataRow label="Author">
-        <input
-          type="text"
-          defaultValue={fileContent.author || ""}
-          placeholder="Author (optional)"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </MetadataRow>
-      <MetadataRow label="Date" noBorder>
-        <input
-          type="date"
-          defaultValue={fileContent.date || ""}
-          className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
         />
       </MetadataRow>
     </>
@@ -1983,7 +1955,7 @@ function MetadataPanel({
           <option value="Who We Want">Who We Want</option>
         </select>
       </MetadataRow>
-      <MetadataRow label="Summary">
+      <MetadataRow label="Summary" noBorder>
         <textarea
           ref={(el) => {
             if (el) {
@@ -2000,21 +1972,6 @@ function MetadataPanel({
             target.style.height = `${target.scrollHeight}px`;
           }}
           className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
-        />
-      </MetadataRow>
-      <MetadataRow label="Author">
-        <input
-          type="text"
-          defaultValue={fileContent.author || ""}
-          placeholder="Author (optional)"
-          className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-        />
-      </MetadataRow>
-      <MetadataRow label="Date" noBorder>
-        <input
-          type="date"
-          defaultValue={fileContent.date || ""}
-          className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
         />
       </MetadataRow>
     </>

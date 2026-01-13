@@ -54,6 +54,7 @@ const getStripeCustomerIdForUser = async (
 
 const createCheckoutSessionInput = z.object({
   period: z.enum(["monthly", "yearly"]),
+  scheme: z.string().optional(),
 });
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
@@ -119,9 +120,14 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         ? env.STRIPE_YEARLY_PRICE_ID
         : env.STRIPE_MONTHLY_PRICE_ID;
 
+    const successParams = new URLSearchParams({ success: "true" });
+    if (data.scheme) {
+      successParams.set("scheme", data.scheme);
+    }
+
     const checkout = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
-      success_url: `${env.VITE_APP_URL}/app/account?success=true`,
+      success_url: `${env.VITE_APP_URL}/app/account?${successParams.toString()}`,
       cancel_url: `${env.VITE_APP_URL}/app/account`,
       line_items: [
         {
@@ -236,69 +242,80 @@ export const canStartTrial = createServerFn({ method: "POST" }).handler(
   },
 );
 
+const createTrialCheckoutSessionInput = z.object({
+  scheme: z.string().optional(),
+});
+
 export const createTrialCheckoutSession = createServerFn({
   method: "POST",
-}).handler(async () => {
-  const supabase = getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+})
+  .inputValidator(createTrialCheckoutSessionInput)
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user?.id) {
-    throw new Error("Unauthorized");
-  }
+    if (!user?.id) {
+      throw new Error("Unauthorized");
+    }
 
-  const stripe = getStripeClient();
+    const stripe = getStripeClient();
 
-  let stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
-    id: user.id,
-    user_metadata: user.user_metadata,
-  });
-
-  if (!stripeCustomerId) {
-    const newCustomer = await stripe.customers.create({
-      email: user.email,
-      metadata: {
-        userId: user.id,
-      },
+    let stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
+      id: user.id,
+      user_metadata: user.user_metadata,
     });
 
-    await Promise.all([
-      supabase.auth.updateUser({
-        data: {
-          stripe_customer_id: newCustomer.id,
+    if (!stripeCustomerId) {
+      const newCustomer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          userId: user.id,
         },
-      }),
-      supabase
-        .from("profiles")
-        .update({ stripe_customer_id: newCustomer.id })
-        .eq("id", user.id),
-    ]);
+      });
 
-    stripeCustomerId = newCustomer.id;
-  }
+      await Promise.all([
+        supabase.auth.updateUser({
+          data: {
+            stripe_customer_id: newCustomer.id,
+          },
+        }),
+        supabase
+          .from("profiles")
+          .update({ stripe_customer_id: newCustomer.id })
+          .eq("id", user.id),
+      ]);
 
-  const checkout = await stripe.checkout.sessions.create({
-    customer: stripeCustomerId,
-    mode: "subscription",
-    payment_method_collection: "if_required",
-    line_items: [
-      {
-        price: env.STRIPE_MONTHLY_PRICE_ID,
-        quantity: 1,
-      },
-    ],
-    subscription_data: {
-      trial_period_days: 14,
-      trial_settings: {
-        end_behavior: {
-          missing_payment_method: "cancel",
+      stripeCustomerId = newCustomer.id;
+    }
+
+    const successParams = new URLSearchParams({ trial: "started" });
+    if (data.scheme) {
+      successParams.set("scheme", data.scheme);
+    }
+
+    const checkout = await stripe.checkout.sessions.create({
+      customer: stripeCustomerId,
+      mode: "subscription",
+      payment_method_collection: "if_required",
+      line_items: [
+        {
+          price: env.STRIPE_MONTHLY_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      subscription_data: {
+        trial_period_days: 14,
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: "cancel",
+          },
         },
       },
-    },
-    success_url: `${env.VITE_APP_URL}/app/account?trial=started`,
-    cancel_url: `${env.VITE_APP_URL}/app/account`,
+      success_url: `${env.VITE_APP_URL}/app/account?${successParams.toString()}`,
+      cancel_url: `${env.VITE_APP_URL}/app/account`,
+    });
+
+    return { url: checkout.url };
   });
-
-  return { url: checkout.url };
-});

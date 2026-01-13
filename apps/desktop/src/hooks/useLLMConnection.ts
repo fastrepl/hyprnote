@@ -254,7 +254,10 @@ const createLanguageModel = (
         fetch: tauriFetch,
         apiKey: conn.apiKey,
       });
-      return wrapWithThinkingMiddleware(provider(conn.modelId));
+      // Type cast needed due to @ai-sdk/mistral using @ai-sdk/provider@3.x while @openrouter uses @2.x
+      return wrapWithThinkingMiddleware(
+        provider(conn.modelId) as Exclude<LanguageModel, string>,
+      );
     }
 
     case "openai": {

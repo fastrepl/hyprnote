@@ -3,6 +3,10 @@ import type { ExistingEvent, IncomingEvent } from "../../fetch/types";
 import { getSessionForEvent, isSessionEmpty } from "../utils";
 import type { EventsSyncInput, EventsSyncOutput } from "./types";
 
+function getEventKey(trackingId: string, startedAt?: string): string {
+  return startedAt ? `${trackingId}::${startedAt}` : trackingId;
+}
+
 export function syncEvents(
   ctx: Ctx,
   { incoming, existing }: EventsSyncInput,
@@ -14,9 +18,9 @@ export function syncEvents(
   };
 
   const incomingEventMap = new Map(
-    incoming.map((e) => [e.tracking_id_event, e]),
+    incoming.map((e) => [getEventKey(e.tracking_id_event, e.started_at), e]),
   );
-  const handledTrackingIds = new Set<string>();
+  const handledEventKeys = new Set<string>();
 
   for (const storeEvent of existing) {
     const sessionId = getSessionForEvent(ctx.store, storeEvent.id);
@@ -31,11 +35,14 @@ export function syncEvents(
     }
 
     const trackingId = storeEvent.tracking_id_event;
-    const matchingIncomingEvent = trackingId
-      ? incomingEventMap.get(trackingId)
+    const eventKey = trackingId
+      ? getEventKey(trackingId, storeEvent.started_at ?? undefined)
+      : undefined;
+    const matchingIncomingEvent = eventKey
+      ? incomingEventMap.get(eventKey)
       : undefined;
 
-    if (matchingIncomingEvent && trackingId) {
+    if (matchingIncomingEvent && trackingId && eventKey) {
       out.toUpdate.push({
         ...storeEvent,
         ...matchingIncomingEvent,
@@ -45,7 +52,7 @@ export function syncEvents(
         created_at: storeEvent.created_at,
         calendar_id: storeEvent.calendar_id,
       });
-      handledTrackingIds.add(matchingIncomingEvent.tracking_id_event);
+      handledEventKeys.add(eventKey);
       continue;
     }
 
@@ -54,10 +61,17 @@ export function syncEvents(
     }
 
     const rescheduledEvent = findRescheduledEvent(ctx, storeEvent, incoming);
+    const rescheduledEventKey = rescheduledEvent
+      ? getEventKey(
+          rescheduledEvent.tracking_id_event,
+          rescheduledEvent.started_at,
+        )
+      : undefined;
 
     if (
       rescheduledEvent &&
-      !handledTrackingIds.has(rescheduledEvent.tracking_id_event)
+      rescheduledEventKey &&
+      !handledEventKeys.has(rescheduledEventKey)
     ) {
       out.toUpdate.push({
         ...storeEvent,
@@ -68,7 +82,7 @@ export function syncEvents(
         created_at: storeEvent.created_at,
         calendar_id: storeEvent.calendar_id,
       });
-      handledTrackingIds.add(rescheduledEvent.tracking_id_event);
+      handledEventKeys.add(rescheduledEventKey);
       continue;
     }
 
@@ -76,7 +90,11 @@ export function syncEvents(
   }
 
   for (const incomingEvent of incoming) {
-    if (!handledTrackingIds.has(incomingEvent.tracking_id_event)) {
+    const incomingEventKey = getEventKey(
+      incomingEvent.tracking_id_event,
+      incomingEvent.started_at,
+    );
+    if (!handledEventKeys.has(incomingEventKey)) {
       out.toAdd.push(incomingEvent);
     }
   }

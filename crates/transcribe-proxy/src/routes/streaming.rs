@@ -46,7 +46,11 @@ pub async fn handler(
                 let url = match init_session(&state, &selected, header_name, &params).await {
                     Ok(url) => url,
                     Err(e) => {
-                        tracing::error!(error = %e, "failed to init session");
+                        tracing::error!(
+                            error = %e,
+                            provider = ?selected.provider(),
+                            "session_init_failed"
+                        );
                         return (StatusCode::BAD_GATEWAY, e).into_response();
                     }
                 };
@@ -62,7 +66,11 @@ pub async fn handler(
     match proxy {
         Ok(p) => p.handle_upgrade(ws).await.into_response(),
         Err(e) => {
-            tracing::error!(error = ?e, "failed to build proxy");
+            tracing::error!(
+                error = ?e,
+                provider = ?provider,
+                "proxy_build_failed"
+            );
             (StatusCode::BAD_REQUEST, format!("{}", e)).into_response()
         }
     }
@@ -113,7 +121,11 @@ async fn init_session(
         .await
         .map_err(|e| format!("session init parse failed: {}", e))?;
 
-    tracing::debug!(session_id = %init.id, url = %init.url, "session_initialized");
+    tracing::debug!(
+        session_id = %init.id,
+        provider = ?provider,
+        "session_initialized"
+    );
 
     Ok(init.url)
 }

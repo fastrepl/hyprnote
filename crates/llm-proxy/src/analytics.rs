@@ -78,8 +78,9 @@ pub async fn fetch_generation_metadata(
 
     if !response.status().is_success() {
         tracing::warn!(
-            status = %response.status(),
-            "failed to fetch generation metadata"
+            http_status = %response.status().as_u16(),
+            generation_id = %generation_id,
+            "generation_metadata_fetch_failed"
         );
         return None;
     }

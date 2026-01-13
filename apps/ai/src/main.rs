@@ -4,11 +4,10 @@ mod env;
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use axum::{Router, body::Body, http::Request, middleware};
+use axum::{Router, body::Body, extract::MatchedPath, http::Request, middleware};
 use sentry::integrations::tower::{NewSentryLayer, SentryHttpLayer};
 use tower::ServiceBuilder;
-use tower_http::trace::{DefaultOnResponse, TraceLayer};
-use tracing::Level;
+use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
 use tracing_subscriber::prelude::*;
 
 use auth::AuthState;
@@ -40,31 +39,73 @@ fn app() -> Router {
                     TraceLayer::new_for_http()
                         .make_span_with(|request: &Request<Body>| {
                             let path = request.uri().path();
+
+                            if path == "/health" {
+                                return tracing::Span::none();
+                            }
+
                             let method = request.method();
+                            let matched_path = request
+                                .extensions()
+                                .get::<MatchedPath>()
+                                .map(MatchedPath::as_str)
+                                .unwrap_or(path);
                             let (service, span_op) = match path {
                                 p if p.starts_with("/llm") => ("llm", "http.server.llm"),
                                 p if p.starts_with("/stt") => ("stt", "http.server.stt"),
-                                "/health" => ("health", "http.server.health"),
                                 _ => ("unknown", "http.server"),
                             };
 
                             tracing::info_span!(
-                                "request",
+                                "http_request",
                                 method = %method,
-                                http.route = %path,
+                                http.route = %matched_path,
                                 service = %service,
-                                otel.name = %format!("{} {}", method, path),
+                                otel.name = %format!("{} {}", method, matched_path),
                                 span.op = %span_op,
                             )
                         })
                         .on_request(|request: &Request<Body>, _span: &tracing::Span| {
+                            // Skip logging for health checks
+                            if request.uri().path() == "/health" {
+                                return;
+                            }
                             tracing::info!(
                                 method = %request.method(),
-                                uri = %request.uri(),
-                                "incoming request"
+                                path = %request.uri().path(),
+                                "http_request_started"
                             );
                         })
-                        .on_response(DefaultOnResponse::new().level(Level::INFO)),
+                        .on_response(
+                            |response: &axum::http::Response<axum::body::Body>,
+                             latency: std::time::Duration,
+                             span: &tracing::Span| {
+                                if span.is_disabled() {
+                                    return;
+                                }
+                                tracing::info!(
+                                    parent: span,
+                                    http_status = %response.status().as_u16(),
+                                    latency_ms = %latency.as_millis(),
+                                    "http_request_finished"
+                                );
+                            },
+                        )
+                        .on_failure(
+                            |failure_class: ServerErrorsFailureClass,
+                             latency: std::time::Duration,
+                             span: &tracing::Span| {
+                                if span.is_disabled() {
+                                    return;
+                                }
+                                tracing::error!(
+                                    parent: span,
+                                    failure_class = ?failure_class,
+                                    latency_ms = %latency.as_millis(),
+                                    "http_request_failed"
+                                );
+                            },
+                        ),
                 ),
         )
 }
@@ -109,7 +150,7 @@ fn main() -> std::io::Result<()> {
         .build()?
         .block_on(async {
             let addr = SocketAddr::from(([0, 0, 0, 0], env.port));
-            tracing::info!("listening on {}", addr);
+            tracing::info!(addr = %addr, "server_listening");
 
             let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
             axum::serve(listener, app())
@@ -129,5 +170,5 @@ async fn shutdown_signal() {
     tokio::signal::ctrl_c()
         .await
         .expect("failed to install CTRL+C signal handler");
-    tracing::info!("shutting down");
+    tracing::info!("shutdown_signal_received");
 }

@@ -53,14 +53,18 @@ pub async fn handler(
     tracing::info!(
         provider = ?selected.provider(),
         content_type = %content_type,
-        body_size = body.len(),
-        "batch transcription request received"
+        body_size_bytes = %body.len(),
+        "batch_transcription_request_received"
     );
 
     match transcribe_with_provider(&selected, listen_params, body, content_type).await {
         Ok(response) => Json(response).into_response(),
         Err(e) => {
-            tracing::error!(error = %e, "batch transcription failed");
+            tracing::error!(
+                error = %e,
+                provider = ?selected.provider(),
+                "batch_transcription_failed"
+            );
             (
                 StatusCode::BAD_GATEWAY,
                 Json(serde_json::json!({

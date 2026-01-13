@@ -56,10 +56,10 @@ impl Env {
     pub fn log_configured_providers(&self) {
         let providers: Vec<_> = self.configured_providers();
         if providers.is_empty() {
-            tracing::warn!("no STT providers configured");
+            tracing::warn!("no_stt_providers_configured");
         } else {
             let names: Vec<_> = providers.iter().map(|p| format!("{:?}", p)).collect();
-            tracing::info!(providers = ?names, "STT providers configured");
+            tracing::info!(providers = ?names, "stt_providers_configured");
         }
     }
 }

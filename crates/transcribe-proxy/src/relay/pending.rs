@@ -57,7 +57,11 @@ impl PendingState {
                 match String::from_utf8(queued.data) {
                     Ok(s) => TungsteniteMessage::Text(s.into()),
                     Err(e) => {
-                        tracing::warn!("invalid_utf8_in_text_message: {:?}", e);
+                        tracing::warn!(
+                            error = ?e,
+                            invalid_bytes_len = %e.as_bytes().len(),
+                            "invalid_utf8_in_text_message"
+                        );
                         // Reset state since we failed
                         self.bytes = 0;
                         return Err(FlushError::InvalidUtf8);

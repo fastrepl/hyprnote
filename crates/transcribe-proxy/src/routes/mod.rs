@@ -28,7 +28,11 @@ impl AppState {
             .and_then(|s| s.parse::<Provider>().ok());
 
         self.selector.select(requested).map_err(|e| {
-            tracing::warn!(error = %e, "provider_selection_failed");
+            tracing::warn!(
+                error = %e,
+                requested_provider = ?requested,
+                "provider_selection_failed"
+            );
             (StatusCode::BAD_REQUEST, e.to_string()).into_response()
         })
     }

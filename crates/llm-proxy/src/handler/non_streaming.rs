@@ -17,11 +17,13 @@ pub(super) async fn handle_non_stream_response(
 ) -> Response {
     let status = response.status();
     let http_status = status.as_u16();
+    let latency_ms = start_time.elapsed().as_millis();
 
     tracing::info!(
         http_status = %http_status,
         streaming = false,
-        "llm completion response"
+        latency_ms = %latency_ms,
+        "llm_completion_response_received"
     );
 
     let body_bytes = match response.bytes().await {

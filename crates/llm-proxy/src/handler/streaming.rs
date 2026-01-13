@@ -85,6 +85,7 @@ pub(super) async fn handle_stream_response(
 ) -> Response {
     let status = response.status();
     let http_status = status.as_u16();
+    let latency_ms = start_time.elapsed().as_millis();
     let analytics = state.config.analytics.clone();
     let api_key = state.config.api_key.clone();
     let client = state.client.clone();
@@ -92,7 +93,8 @@ pub(super) async fn handle_stream_response(
     tracing::info!(
         http_status = %http_status,
         streaming = true,
-        "llm completion response"
+        latency_ms = %latency_ms,
+        "llm_completion_stream_started"
     );
 
     let upstream = response.bytes_stream();

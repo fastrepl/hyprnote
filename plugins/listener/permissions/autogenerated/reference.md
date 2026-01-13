@@ -14,6 +14,7 @@ Default permissions for the plugin
 - `allow-get-state`
 - `allow-run-batch`
 - `allow-is-supported-languages`
+- `allow-suggest-providers-for-languages`
 
 ## Permission Table
 
@@ -306,6 +307,32 @@ Enables the stop_session command without any pre-configured scope.
 <td>
 
 Denies the stop_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-suggest-providers-for-languages`
+
+</td>
+<td>
+
+Enables the suggest_providers_for_languages command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-suggest-providers-for-languages`
+
+</td>
+<td>
+
+Denies the suggest_providers_for_languages command without any pre-configured scope.
 
 </td>
 </tr>

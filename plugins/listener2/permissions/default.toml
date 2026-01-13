@@ -5,4 +5,5 @@ permissions = [
     "allow-parse-subtitle",
     "allow-export-to-vtt",
     "allow-is-supported-languages",
+    "allow-suggest-providers-for-languages",
 ]

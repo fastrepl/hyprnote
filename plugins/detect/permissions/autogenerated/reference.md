@@ -10,6 +10,7 @@ Default permissions for the plugin
 - `allow-list-mic-using-applications`
 - `allow-set-respect-do-not-disturb`
 - `allow-set-ignored-bundle-ids`
+- `allow-set-enabled`
 - `allow-list-default-ignored-bundle-ids`
 
 ## Permission Table
@@ -121,6 +122,32 @@ Enables the reset_quit_handler command without any pre-configured scope.
 <td>
 
 Denies the reset_quit_handler command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:allow-set-enabled`
+
+</td>
+<td>
+
+Enables the set_enabled command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:deny-set-enabled`
+
+</td>
+<td>
+
+Denies the set_enabled command without any pre-configured scope.
 
 </td>
 </tr>

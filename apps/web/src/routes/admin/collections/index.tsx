@@ -16,7 +16,6 @@ import {
   ClipboardIcon,
   CopyIcon,
   CopyPlusIcon,
-  DownloadIcon,
   EyeIcon,
   FilePlusIcon,
   FileTextIcon,
@@ -82,8 +81,20 @@ interface Tab {
 }
 
 interface ClipboardItem {
-  item: ContentItem | CollectionInfo;
+  item: ContentItem;
   operation: "cut" | "copy";
+}
+
+interface EditingItem {
+  collectionName: string;
+  type: "new-file" | "new-folder" | "rename";
+  itemPath?: string;
+  itemName?: string;
+}
+
+interface DeleteConfirmation {
+  item: ContentItem;
+  collectionName: string;
 }
 
 interface FileContent {
@@ -257,6 +268,85 @@ function CollectionsPage() {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<EditingItem | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] =
+    useState<DeleteConfirmation | null>(null);
+
+  const createMutation = useMutation({
+    mutationFn: async (params: {
+      folder: string;
+      name: string;
+      type: "file" | "folder";
+    }) => {
+      const response = await fetch("/api/admin/content/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setEditingItem(null);
+    },
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: async (params: { fromPath: string; toPath: string }) => {
+      const response = await fetch("/api/admin/content/rename", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to rename");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setEditingItem(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (params: { path: string }) => {
+      const response = await fetch("/api/admin/content/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setDeleteConfirmation(null);
+    },
+  });
+
+  const duplicateMutation = useMutation({
+    mutationFn: async (params: {
+      sourcePath: string;
+      newFilename?: string;
+    }) => {
+      const response = await fetch("/api/admin/content/duplicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to duplicate");
+      }
+      return response.json();
+    },
+  });
 
   const currentTab = tabs.find((t) => t.active);
 
@@ -397,6 +487,42 @@ function CollectionsPage() {
           clipboard={clipboard}
           onClipboardChange={setClipboard}
           onImportClick={() => setIsImportModalOpen(true)}
+          editingItem={editingItem}
+          onEditingItemChange={setEditingItem}
+          onCreateItem={(folder, name, type) =>
+            createMutation.mutate({ folder, name, type })
+          }
+          onRenameItem={(fromPath, toPath) =>
+            renameMutation.mutate({ fromPath, toPath })
+          }
+          onDeleteItem={(item, collectionName) =>
+            setDeleteConfirmation({ item, collectionName })
+          }
+          onDuplicateItem={(sourcePath) =>
+            duplicateMutation.mutate({ sourcePath })
+          }
+          onPasteItem={(targetCollection) => {
+            if (!clipboard) return;
+            if (clipboard.operation === "cut") {
+              const newPath = `${targetCollection}/${clipboard.item.name}`;
+              renameMutation.mutate({
+                fromPath: clipboard.item.path,
+                toPath: newPath,
+              });
+            } else {
+              duplicateMutation.mutate({
+                sourcePath: clipboard.item.path,
+                newFilename: clipboard.item.name,
+              });
+            }
+            setClipboard(null);
+          }}
+          isLoading={
+            createMutation.isPending ||
+            renameMutation.isPending ||
+            deleteMutation.isPending ||
+            duplicateMutation.isPending
+          }
         />
       </ResizablePanel>
       <ResizableHandle />
@@ -422,6 +548,49 @@ function CollectionsPage() {
         open={isImportModalOpen}
         onOpenChange={setIsImportModalOpen}
       />
+
+      <Dialog
+        open={deleteConfirmation !== null}
+        onOpenChange={(open) => !open && setDeleteConfirmation(null)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete File</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-neutral-600">
+              Are you sure you want to delete{" "}
+              <span className="font-medium text-neutral-900">
+                {deleteConfirmation?.item.name}
+              </span>
+              ? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmation(null)}
+                className="px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (deleteConfirmation) {
+                    deleteMutation.mutate({
+                      path: deleteConfirmation.item.path,
+                    });
+                  }
+                }}
+                disabled={deleteMutation.isPending}
+                className="px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
+              >
+                {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </ResizablePanelGroup>
   );
 }
@@ -437,6 +606,14 @@ function Sidebar({
   clipboard,
   onClipboardChange,
   onImportClick,
+  editingItem,
+  onEditingItemChange,
+  onCreateItem,
+  onRenameItem,
+  onDeleteItem,
+  onDuplicateItem,
+  onPasteItem,
+  isLoading,
 }: {
   collections: CollectionInfo[];
   expandedCollections: Set<string>;
@@ -448,6 +625,14 @@ function Sidebar({
   clipboard: ClipboardItem | null;
   onClipboardChange: (item: ClipboardItem | null) => void;
   onImportClick: () => void;
+  editingItem: EditingItem | null;
+  onEditingItemChange: (item: EditingItem | null) => void;
+  onCreateItem: (folder: string, name: string, type: "file" | "folder") => void;
+  onRenameItem: (fromPath: string, toPath: string) => void;
+  onDeleteItem: (item: ContentItem, collectionName: string) => void;
+  onDuplicateItem: (sourcePath: string) => void;
+  onPasteItem: (targetCollection: string) => void;
+  isLoading: boolean;
 }) {
   return (
     <div className="h-full border-r border-neutral-200 bg-white flex flex-col min-h-0">
@@ -483,6 +668,14 @@ function Sidebar({
               onFileClick={onFileClick}
               clipboard={clipboard}
               onClipboardChange={onClipboardChange}
+              editingItem={editingItem}
+              onEditingItemChange={onEditingItemChange}
+              onCreateItem={onCreateItem}
+              onRenameItem={onRenameItem}
+              onDeleteItem={onDeleteItem}
+              onDuplicateItem={onDuplicateItem}
+              onPasteItem={onPasteItem}
+              isLoading={isLoading}
             />
           );
         })}
@@ -511,6 +704,14 @@ function CollectionItem({
   onFileClick,
   clipboard,
   onClipboardChange,
+  editingItem,
+  onEditingItemChange,
+  onCreateItem,
+  onRenameItem,
+  onDeleteItem,
+  onDuplicateItem,
+  onPasteItem,
+  isLoading,
 }: {
   collection: CollectionInfo;
   isExpanded: boolean;
@@ -519,6 +720,14 @@ function CollectionItem({
   onFileClick: (item: ContentItem) => void;
   clipboard: ClipboardItem | null;
   onClipboardChange: (item: ClipboardItem | null) => void;
+  editingItem: EditingItem | null;
+  onEditingItemChange: (item: EditingItem | null) => void;
+  onCreateItem: (folder: string, name: string, type: "file" | "folder") => void;
+  onRenameItem: (fromPath: string, toPath: string) => void;
+  onDeleteItem: (item: ContentItem, collectionName: string) => void;
+  onDuplicateItem: (sourcePath: string) => void;
+  onPasteItem: (targetCollection: string) => void;
+  isLoading: boolean;
 }) {
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -531,6 +740,10 @@ function CollectionItem({
   };
 
   const closeContextMenu = () => setContextMenu(null);
+
+  const isCreatingInThisCollection =
+    editingItem?.collectionName === collection.name &&
+    (editingItem?.type === "new-file" || editingItem?.type === "new-folder");
 
   return (
     <div>
@@ -561,42 +774,49 @@ function CollectionItem({
           onClose={closeContextMenu}
           isFolder
           canPaste={clipboard !== null}
-          onOpenInNewTab={onDoubleClick}
-          onDownload={() => {
+          onOpenInNewTab={() => {
+            onDoubleClick();
             closeContextMenu();
           }}
           onNewFile={() => {
+            onEditingItemChange({
+              collectionName: collection.name,
+              type: "new-file",
+            });
+            if (!isExpanded) onClick();
             closeContextMenu();
           }}
           onNewFolder={() => {
-            closeContextMenu();
-          }}
-          onCut={() => {
-            onClipboardChange({ item: collection, operation: "cut" });
-            closeContextMenu();
-          }}
-          onCopy={() => {
-            onClipboardChange({ item: collection, operation: "copy" });
-            closeContextMenu();
-          }}
-          onDuplicate={() => {
+            onEditingItemChange({
+              collectionName: collection.name,
+              type: "new-folder",
+            });
+            if (!isExpanded) onClick();
             closeContextMenu();
           }}
           onPaste={() => {
-            onClipboardChange(null);
-            closeContextMenu();
-          }}
-          onRename={() => {
-            closeContextMenu();
-          }}
-          onDelete={() => {
+            onPasteItem(collection.name);
             closeContextMenu();
           }}
         />
       )}
 
-      {isExpanded && collection.items.length > 0 && (
+      {isExpanded && (
         <div className="ml-5.5 border-l border-neutral-200">
+          {isCreatingInThisCollection && (
+            <InlineInput
+              type={editingItem.type === "new-file" ? "file" : "folder"}
+              onSubmit={(name) => {
+                onCreateItem(
+                  collection.name,
+                  name,
+                  editingItem.type === "new-file" ? "file" : "folder",
+                );
+              }}
+              onCancel={() => onEditingItemChange(null)}
+              isLoading={isLoading}
+            />
+          )}
           {collection.items.slice(0, 10).map((item) => (
             <FileItemSidebar
               key={item.path}
@@ -604,6 +824,13 @@ function CollectionItem({
               onClick={() => onFileClick(item)}
               clipboard={clipboard}
               onClipboardChange={onClipboardChange}
+              editingItem={editingItem}
+              onEditingItemChange={onEditingItemChange}
+              onRenameItem={onRenameItem}
+              onDeleteItem={onDeleteItem}
+              onDuplicateItem={onDuplicateItem}
+              collectionName={collection.name}
+              isLoading={isLoading}
             />
           ))}
           {collection.items.length > 10 && (
@@ -622,11 +849,25 @@ function FileItemSidebar({
   onClick,
   clipboard,
   onClipboardChange,
+  editingItem,
+  onEditingItemChange,
+  onRenameItem,
+  onDeleteItem,
+  onDuplicateItem,
+  collectionName,
+  isLoading,
 }: {
   item: ContentItem;
   onClick: () => void;
   clipboard: ClipboardItem | null;
   onClipboardChange: (item: ClipboardItem | null) => void;
+  editingItem: EditingItem | null;
+  onEditingItemChange: (item: EditingItem | null) => void;
+  onRenameItem: (fromPath: string, toPath: string) => void;
+  onDeleteItem: (item: ContentItem, collectionName: string) => void;
+  onDuplicateItem: (sourcePath: string) => void;
+  collectionName: string;
+  isLoading: boolean;
 }) {
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -640,11 +881,33 @@ function FileItemSidebar({
 
   const closeContextMenu = () => setContextMenu(null);
 
+  const isRenaming =
+    editingItem?.type === "rename" && editingItem?.itemPath === item.path;
+
+  const isCut =
+    clipboard?.operation === "cut" && clipboard?.item.path === item.path;
+
+  if (isRenaming) {
+    return (
+      <InlineInput
+        type="file"
+        defaultValue={item.name.replace(/\.mdx$/, "")}
+        onSubmit={(newName) => {
+          const newPath = `${collectionName}/${newName}.mdx`;
+          onRenameItem(item.path, newPath);
+        }}
+        onCancel={() => onEditingItemChange(null)}
+        isLoading={isLoading}
+      />
+    );
+  }
+
   return (
     <div
       className={cn([
         "flex items-center gap-1.5 py-1 pl-3 pr-2 cursor-pointer text-sm",
         "hover:bg-neutral-50 transition-colors",
+        isCut && "opacity-50",
       ])}
       onClick={onClick}
       onContextMenu={handleContextMenu}
@@ -659,18 +922,8 @@ function FileItemSidebar({
           onClose={closeContextMenu}
           isFolder={false}
           canPaste={clipboard !== null}
-          onOpenInNewTab={onClick}
-          onDownload={() => {
-            window.open(
-              `https://github.com/fastrepl/hyprnote/blob/main/apps/web/content/${item.path}`,
-              "_blank",
-            );
-            closeContextMenu();
-          }}
-          onNewFile={() => {
-            closeContextMenu();
-          }}
-          onNewFolder={() => {
+          onOpenInNewTab={() => {
+            onClick();
             closeContextMenu();
           }}
           onCut={() => {
@@ -682,19 +935,93 @@ function FileItemSidebar({
             closeContextMenu();
           }}
           onDuplicate={() => {
-            closeContextMenu();
-          }}
-          onPaste={() => {
-            onClipboardChange(null);
+            onDuplicateItem(item.path);
             closeContextMenu();
           }}
           onRename={() => {
+            onEditingItemChange({
+              collectionName,
+              type: "rename",
+              itemPath: item.path,
+              itemName: item.name,
+            });
             closeContextMenu();
           }}
           onDelete={() => {
+            onDeleteItem(item, collectionName);
             closeContextMenu();
           }}
         />
+      )}
+    </div>
+  );
+}
+
+function InlineInput({
+  type,
+  defaultValue = "",
+  onSubmit,
+  onCancel,
+  isLoading,
+}: {
+  type: "file" | "folder";
+  defaultValue?: string;
+  onSubmit: (value: string) => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}) {
+  const [value, setValue] = useState(defaultValue);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && value.trim()) {
+      onSubmit(value.trim());
+    } else if (e.key === "Escape") {
+      onCancel();
+    }
+  };
+
+  const handleBlur = () => {
+    if (value.trim()) {
+      onSubmit(value.trim());
+    } else {
+      onCancel();
+    }
+  };
+
+  return (
+    <div
+      className={cn([
+        "flex items-center gap-1.5 py-1 pl-3 pr-2 text-sm",
+        "bg-blue-50 border-l-2 border-blue-400",
+      ])}
+    >
+      {type === "file" ? (
+        <FileTextIcon className="size-4 text-neutral-400" />
+      ) : (
+        <FolderIcon className="size-4 text-neutral-400" />
+      )}
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        disabled={isLoading}
+        placeholder={type === "file" ? "filename" : "folder name"}
+        className={cn([
+          "flex-1 text-xs bg-transparent outline-none",
+          "text-neutral-700 placeholder:text-neutral-400",
+        ])}
+      />
+      {type === "file" && (
+        <span className="text-xs text-neutral-400">.mdx</span>
       )}
     </div>
   );
@@ -707,7 +1034,6 @@ function ContextMenu({
   isFolder,
   canPaste,
   onOpenInNewTab,
-  onDownload,
   onNewFile,
   onNewFolder,
   onCut,
@@ -723,15 +1049,14 @@ function ContextMenu({
   isFolder: boolean;
   canPaste: boolean;
   onOpenInNewTab: () => void;
-  onDownload: () => void;
-  onNewFile: () => void;
-  onNewFolder: () => void;
-  onCut: () => void;
-  onCopy: () => void;
-  onDuplicate: () => void;
-  onPaste: () => void;
-  onRename: () => void;
-  onDelete: () => void;
+  onNewFile?: () => void;
+  onNewFolder?: () => void;
+  onCut?: () => void;
+  onCopy?: () => void;
+  onDuplicate?: () => void;
+  onPaste?: () => void;
+  onRename?: () => void;
+  onDelete?: () => void;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -754,53 +1079,80 @@ function ContextMenu({
             onClose();
           }}
         />
-        <ContextMenuItem
-          icon={DownloadIcon}
-          label="Download"
-          onClick={onDownload}
-        />
-
-        <div className="my-1 border-t border-neutral-200" />
 
         {isFolder && (
           <>
-            <ContextMenuItem
-              icon={FilePlusIcon}
-              label="New file"
-              onClick={onNewFile}
-            />
-            <ContextMenuItem
-              icon={FolderPlusIcon}
-              label="New folder"
-              onClick={onNewFolder}
-            />
             <div className="my-1 border-t border-neutral-200" />
+            {onNewFile && (
+              <ContextMenuItem
+                icon={FilePlusIcon}
+                label="New file"
+                onClick={onNewFile}
+              />
+            )}
+            {onNewFolder && (
+              <ContextMenuItem
+                icon={FolderPlusIcon}
+                label="New folder"
+                onClick={onNewFolder}
+              />
+            )}
           </>
         )}
 
-        <ContextMenuItem icon={ScissorsIcon} label="Cut" onClick={onCut} />
-        <ContextMenuItem icon={CopyIcon} label="Copy" onClick={onCopy} />
-        <ContextMenuItem
-          icon={CopyPlusIcon}
-          label="Duplicate"
-          onClick={onDuplicate}
-        />
-        <ContextMenuItem
-          icon={ClipboardIcon}
-          label="Paste"
-          onClick={onPaste}
-          disabled={!canPaste}
-        />
+        {!isFolder && (
+          <>
+            <div className="my-1 border-t border-neutral-200" />
 
-        <div className="my-1 border-t border-neutral-200" />
+            {onCut && (
+              <ContextMenuItem
+                icon={ScissorsIcon}
+                label="Cut"
+                onClick={onCut}
+              />
+            )}
+            {onCopy && (
+              <ContextMenuItem icon={CopyIcon} label="Copy" onClick={onCopy} />
+            )}
+            {onDuplicate && (
+              <ContextMenuItem
+                icon={CopyPlusIcon}
+                label="Duplicate"
+                onClick={onDuplicate}
+              />
+            )}
 
-        <ContextMenuItem icon={PencilIcon} label="Rename" onClick={onRename} />
-        <ContextMenuItem
-          icon={Trash2Icon}
-          label="Delete"
-          onClick={onDelete}
-          danger
-        />
+            <div className="my-1 border-t border-neutral-200" />
+
+            {onRename && (
+              <ContextMenuItem
+                icon={PencilIcon}
+                label="Rename"
+                onClick={onRename}
+              />
+            )}
+            {onDelete && (
+              <ContextMenuItem
+                icon={Trash2Icon}
+                label="Delete"
+                onClick={onDelete}
+                danger
+              />
+            )}
+          </>
+        )}
+
+        {isFolder && onPaste && (
+          <>
+            <div className="my-1 border-t border-neutral-200" />
+            <ContextMenuItem
+              icon={ClipboardIcon}
+              label="Paste"
+              onClick={onPaste}
+              disabled={!canPaste}
+            />
+          </>
+        )}
       </div>
     </>
   );

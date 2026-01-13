@@ -552,8 +552,10 @@ function ContentWrapper({ tab }: { tab: Tab }) {
 
 function TabChatButton({
   isCaretNearBottom = false,
+  showTimeline = false,
 }: {
   isCaretNearBottom?: boolean;
+  showTimeline?: boolean;
 }) {
   const { chat } = useShell();
   const currentTab = useTabs((state) => state.currentTab);
@@ -566,35 +568,51 @@ function TabChatButton({
     return null;
   }
 
-  return <ChatFloatingButton isCaretNearBottom={isCaretNearBottom} />;
+  return (
+    <ChatFloatingButton
+      isCaretNearBottom={isCaretNearBottom}
+      showTimeline={showTimeline}
+    />
+  );
 }
 
 export function StandardTabWrapper({
   children,
   afterBorder,
   floatingButton,
+  showTimeline = false,
 }: {
   children: React.ReactNode;
   afterBorder?: React.ReactNode;
   floatingButton?: React.ReactNode;
+  showTimeline?: boolean;
 }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col rounded-xl border border-neutral-200 flex-1 overflow-hidden relative">
         {children}
         {floatingButton}
-        <StandardTabChatButton />
+        <StandardTabChatButton showTimeline={showTimeline} />
       </div>
       {afterBorder}
     </div>
   );
 }
 
-function StandardTabChatButton() {
+function StandardTabChatButton({
+  showTimeline = false,
+}: {
+  showTimeline?: boolean;
+}) {
   const caretPosition = useCaretPosition();
   const isCaretNearBottom = caretPosition?.isCaretNearBottom ?? false;
 
-  return <TabChatButton isCaretNearBottom={isCaretNearBottom} />;
+  return (
+    <TabChatButton
+      isCaretNearBottom={isCaretNearBottom}
+      showTimeline={showTimeline}
+    />
+  );
 }
 
 function useHasSpaceForSearch() {

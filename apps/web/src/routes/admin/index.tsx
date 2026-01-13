@@ -7,6 +7,7 @@ import {
   CornerDownLeft,
   EyeIcon,
   EyeOffIcon,
+  FolderOpenIcon,
   Loader2,
   SparklesIcon,
 } from "lucide-react";
@@ -20,6 +21,8 @@ import {
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
 import { cn } from "@hypr/utils";
+
+import { MediaSelectorModal } from "../../components/admin/media-selector-modal";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminIndexPage,
@@ -310,6 +313,7 @@ const MetadataPanel = memo(function MetadataPanel({
   setFeatured,
   generateSlugFromTitle,
   showValidation,
+  onOpenMediaModal,
 }: {
   isExpanded: boolean;
   onToggleExpanded: () => void;
@@ -333,6 +337,7 @@ const MetadataPanel = memo(function MetadataPanel({
   setFeatured: (v: boolean) => void;
   generateSlugFromTitle: () => void;
   showValidation: boolean;
+  onOpenMediaModal: () => void;
 }) {
   const [isTitleExpanded, setIsTitleExpanded] = useState(false);
 
@@ -466,13 +471,18 @@ const MetadataPanel = memo(function MetadataPanel({
           </select>
         </MetadataRow>
         <MetadataRow label="Cover">
-          <input
-            type="text"
-            value={coverImage}
-            onChange={(e) => setCoverImage(e.target.value)}
-            placeholder="/api/images/blog/slug/cover.png"
-            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-          />
+          <button
+            type="button"
+            onClick={onOpenMediaModal}
+            className="flex-1 flex items-center gap-2 px-2 py-2 text-left hover:bg-neutral-50 transition-colors cursor-pointer"
+          >
+            {coverImage ? (
+              <span className="text-neutral-900 truncate">{coverImage}</span>
+            ) : (
+              <span className="text-neutral-300">/api/images/blog/...</span>
+            )}
+            <FolderOpenIcon className="w-4 h-4 text-neutral-400 ml-auto shrink-0" />
+          </button>
         </MetadataRow>
         <MetadataRow label="Featured" noBorder>
           <div className="flex-1 flex items-center px-2 py-2">
@@ -522,6 +532,7 @@ function AdminIndexPage() {
   const [isPreviewMode, setIsPreviewMode] = useState(true);
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
   const [showValidation, setShowValidation] = useState(false);
+  const [mediaModalOpen, setMediaModalOpen] = useState(false);
 
   const parseMutation = useMutation({
     mutationFn: async (docUrl: string): Promise<ImportResult> => {
@@ -805,6 +816,7 @@ function AdminIndexPage() {
                 setFeatured={setFeatured}
                 generateSlugFromTitle={generateSlugFromTitle}
                 showValidation={showValidation}
+                onOpenMediaModal={() => setMediaModalOpen(true)}
               />
               <div className="flex-1 min-h-0 overflow-y-auto pt-4">
                 <textarea
@@ -852,6 +864,7 @@ function AdminIndexPage() {
             setFeatured={setFeatured}
             generateSlugFromTitle={generateSlugFromTitle}
             showValidation={showValidation}
+            onOpenMediaModal={() => setMediaModalOpen(true)}
           />
           <div className="flex-1 min-h-0 overflow-y-auto pt-4">
             <textarea
@@ -862,6 +875,13 @@ function AdminIndexPage() {
           </div>
         </div>
       )}
+
+      <MediaSelectorModal
+        open={mediaModalOpen}
+        onOpenChange={setMediaModalOpen}
+        onSelect={setCoverImage}
+        selectionMode="single"
+      />
     </div>
   );
 }

@@ -43,8 +43,15 @@ function ViewerWordSpan({
         audioExists && "cursor-pointer",
         audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
         !word.isFinal && ["opacity-60", "italic"],
-        highlightState === "current" && !hasMatch && "bg-blue-200/70",
-        highlightState === "buffer" && !hasMatch && "bg-blue-200/30",
+        highlightState === "current" &&
+          !hasMatch && [
+            "bg-blue-100",
+            "ring-1",
+            "ring-blue-400",
+            "rounded-sm",
+            "px-0.5",
+            "-mx-0.5",
+          ],
       ]),
     [audioExists, highlightState, word.isFinal, hasMatch],
   );
@@ -78,8 +85,15 @@ function EditorWordSpan({
         audioExists && "cursor-pointer",
         audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
         !word.isFinal && ["opacity-60", "italic"],
-        highlightState === "current" && !hasMatch && "bg-blue-200/70",
-        highlightState === "buffer" && !hasMatch && "bg-blue-200/30",
+        highlightState === "current" &&
+          !hasMatch && [
+            "bg-blue-100",
+            "ring-1",
+            "ring-blue-400",
+            "rounded-sm",
+            "px-0.5",
+            "-mx-0.5",
+          ],
       ]),
     [audioExists, highlightState, word.isFinal, hasMatch],
   );

@@ -28,6 +28,67 @@ function getFullPath(folder: string, filename: string): string {
   return `${CONTENT_PATH}/${folder}/${filename}`;
 }
 
+function getDefaultFrontmatter(folder: string): string {
+  const today = new Date().toISOString().split("T")[0];
+
+  switch (folder) {
+    case "articles":
+      return `---
+meta_title: ""
+meta_description: ""
+author: "John Jeong"
+date: "${today}"
+published: false
+---
+
+`;
+    case "changelog":
+      return `---
+date: "${today}"
+---
+
+`;
+    case "docs":
+      return `---
+title: ""
+section: ""
+---
+
+`;
+    case "handbook":
+      return `---
+title: ""
+section: ""
+---
+
+`;
+    case "legal":
+      return `---
+title: ""
+summary: ""
+date: "${today}"
+---
+
+`;
+    case "templates":
+      return `---
+title: ""
+description: ""
+category: ""
+targets: []
+sections: []
+---
+
+`;
+    default:
+      return `---
+title: ""
+---
+
+`;
+  }
+}
+
 export async function createContentFile(
   folder: string,
   filename: string,
@@ -52,20 +113,7 @@ export async function createContentFile(
 
   const path = getFullPath(folder, safeFilename);
 
-  const defaultContent =
-    content ||
-    `---
-meta_title: ""
-display_title: ""
-meta_description: ""
-author: ""
-date: "${new Date().toISOString().split("T")[0]}"
-coverImage: ""
-featured: false
-published: false
----
-
-`;
+  const defaultContent = content || getDefaultFrontmatter(folder);
 
   try {
     const checkResponse = await fetch(

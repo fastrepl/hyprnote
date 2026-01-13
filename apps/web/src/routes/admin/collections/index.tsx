@@ -124,97 +124,126 @@ interface FileContent {
   sections?: Array<{ title: string; description?: string }>;
 }
 
-function getAllContent(): Map<string, FileContent> {
-  const contentMap = new Map<string, FileContent>();
+function getFileContent(path: string): FileContent | undefined {
+  const [collection, ...rest] = path.split("/");
+  const filePath = rest.join("/");
 
-  allArticles.forEach((a) => {
-    contentMap.set(`articles/${a._meta.fileName}`, {
-      content: a.content,
-      mdx: a.mdx,
-      collection: "articles",
-      slug: a.slug,
-      meta_title: a.meta_title,
-      display_title: a.display_title,
-      meta_description: a.meta_description,
-      author: a.author,
-      date: a.date,
-      coverImage: a.coverImage,
-      published: a.published,
-      featured: a.featured,
-      category: a.category,
-    });
-  });
-
-  allChangelogs.forEach((c) => {
-    contentMap.set(`changelog/${c._meta.fileName}`, {
-      content: c.content,
-      mdx: c.mdx,
-      collection: "changelog",
-      slug: c.slug,
-      date: c.date,
-    });
-  });
-
-  allDocs.forEach((d) => {
-    contentMap.set(`docs/${d._meta.path}`, {
-      content: d.content,
-      mdx: d.mdx,
-      collection: "docs",
-      slug: d.slug,
-      title: d.title,
-      section: d.section,
-      summary: d.summary,
-    });
-  });
-
-  allHandbooks.forEach((h) => {
-    contentMap.set(`handbook/${h._meta.path}`, {
-      content: h.content,
-      mdx: h.mdx,
-      collection: "handbook",
-      slug: h.slug,
-      title: h.title,
-      section: h.section,
-      summary: h.summary,
-    });
-  });
-
-  allLegals.forEach((l) => {
-    contentMap.set(`legal/${l._meta.fileName}`, {
-      content: l.content,
-      mdx: l.mdx,
-      collection: "legal",
-      slug: l.slug,
-      title: l.title,
-      summary: l.summary,
-      date: l.date,
-    });
-  });
-
-  allTemplates.forEach((t) => {
-    contentMap.set(`templates/${t._meta.fileName}`, {
-      content: t.content,
-      mdx: t.mdx,
-      collection: "templates",
-      slug: t.slug,
-      title: t.title,
-      description: t.description,
-      category: t.category,
-      targets: t.targets,
-      banner: t.banner,
-      sections: t.sections,
-    });
-  });
-
-  return contentMap;
+  switch (collection) {
+    case "articles": {
+      const a = allArticles.find((a) => a._meta.fileName === filePath);
+      if (!a) return undefined;
+      return {
+        content: a.content,
+        mdx: a.mdx,
+        collection: "articles",
+        slug: a.slug,
+        meta_title: a.meta_title,
+        display_title: a.display_title,
+        meta_description: a.meta_description,
+        author: a.author,
+        date: a.date,
+        coverImage: a.coverImage,
+        published: a.published,
+        featured: a.featured,
+        category: a.category,
+      };
+    }
+    case "changelog": {
+      const c = allChangelogs.find((c) => c._meta.fileName === filePath);
+      if (!c) return undefined;
+      return {
+        content: c.content,
+        mdx: c.mdx,
+        collection: "changelog",
+        slug: c.slug,
+        date: c.date,
+      };
+    }
+    case "docs": {
+      const d = allDocs.find((d) => d._meta.path === filePath);
+      if (!d) return undefined;
+      return {
+        content: d.content,
+        mdx: d.mdx,
+        collection: "docs",
+        slug: d.slug,
+        title: d.title,
+        section: d.section,
+        summary: d.summary,
+      };
+    }
+    case "handbook": {
+      const h = allHandbooks.find((h) => h._meta.path === filePath);
+      if (!h) return undefined;
+      return {
+        content: h.content,
+        mdx: h.mdx,
+        collection: "handbook",
+        slug: h.slug,
+        title: h.title,
+        section: h.section,
+        summary: h.summary,
+      };
+    }
+    case "legal": {
+      const l = allLegals.find((l) => l._meta.fileName === filePath);
+      if (!l) return undefined;
+      return {
+        content: l.content,
+        mdx: l.mdx,
+        collection: "legal",
+        slug: l.slug,
+        title: l.title,
+        summary: l.summary,
+        date: l.date,
+      };
+    }
+    case "templates": {
+      const t = allTemplates.find((t) => t._meta.fileName === filePath);
+      if (!t) return undefined;
+      return {
+        content: t.content,
+        mdx: t.mdx,
+        collection: "templates",
+        slug: t.slug,
+        title: t.title,
+        description: t.description,
+        category: t.category,
+        targets: t.targets,
+        banner: t.banner,
+        sections: t.sections,
+      };
+    }
+    default:
+      return undefined;
+  }
 }
 
 function getCollections(): CollectionInfo[] {
+  const sortedArticles = [...allArticles].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+  const sortedChangelogs = [...allChangelogs].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+  const sortedDocs = [...allDocs].sort((a, b) =>
+    a.title.localeCompare(b.title),
+  );
+  const sortedHandbooks = [...allHandbooks].sort((a, b) =>
+    a.title.localeCompare(b.title),
+  );
+  const sortedLegals = [...allLegals].sort((a, b) =>
+    a.title.localeCompare(b.title),
+  );
+  const sortedTemplates = [...allTemplates].sort((a, b) =>
+    a.title.localeCompare(b.title),
+  );
+
   return [
     {
       name: "articles",
       label: "Articles",
-      items: allArticles.map((a) => ({
+      items: sortedArticles.map((a) => ({
         name: a._meta.fileName,
         path: `articles/${a._meta.fileName}`,
         slug: a.slug,
@@ -225,7 +254,7 @@ function getCollections(): CollectionInfo[] {
     {
       name: "changelog",
       label: "Changelog",
-      items: allChangelogs.map((c) => ({
+      items: sortedChangelogs.map((c) => ({
         name: c._meta.fileName,
         path: `changelog/${c._meta.fileName}`,
         slug: c.slug,
@@ -236,7 +265,7 @@ function getCollections(): CollectionInfo[] {
     {
       name: "docs",
       label: "Documentation",
-      items: allDocs.map((d) => ({
+      items: sortedDocs.map((d) => ({
         name: d._meta.fileName,
         path: `docs/${d._meta.path}`,
         slug: d.slug,
@@ -247,7 +276,7 @@ function getCollections(): CollectionInfo[] {
     {
       name: "handbook",
       label: "Handbook",
-      items: allHandbooks.map((h) => ({
+      items: sortedHandbooks.map((h) => ({
         name: h._meta.fileName,
         path: `handbook/${h._meta.path}`,
         slug: h.slug,
@@ -258,7 +287,7 @@ function getCollections(): CollectionInfo[] {
     {
       name: "legal",
       label: "Legal",
-      items: allLegals.map((l) => ({
+      items: sortedLegals.map((l) => ({
         name: l._meta.fileName,
         path: `legal/${l._meta.fileName}`,
         slug: l.slug,
@@ -269,7 +298,7 @@ function getCollections(): CollectionInfo[] {
     {
       name: "templates",
       label: "Templates",
-      items: allTemplates.map((t) => ({
+      items: sortedTemplates.map((t) => ({
         name: t._meta.fileName,
         path: `templates/${t._meta.fileName}`,
         slug: t.slug,
@@ -290,8 +319,7 @@ function getFileExtension(filename: string): string {
 }
 
 function CollectionsPage() {
-  const collections = getCollections();
-  const contentMap = useMemo(() => getAllContent(), []);
+  const collections = useMemo(() => getCollections(), []);
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedCollections, setExpandedCollections] = useState<Set<string>>(
     new Set(),
@@ -571,7 +599,6 @@ function CollectionsPage() {
             onReorderTabs={reorderTabs}
             filteredItems={filteredItems}
             onFileClick={(item) => openTab("file", item.name, item.path)}
-            contentMap={contentMap}
           />
         </div>
       </ResizablePanel>
@@ -1247,7 +1274,6 @@ function ContentPanel({
   onReorderTabs,
   filteredItems,
   onFileClick,
-  contentMap,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -1259,12 +1285,14 @@ function ContentPanel({
   onReorderTabs: (tabs: Tab[]) => void;
   filteredItems: ContentItem[];
   onFileClick: (item: ContentItem) => void;
-  contentMap: Map<string, FileContent>;
 }) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
-  const currentFileContent =
-    currentTab?.type === "file" ? contentMap.get(currentTab.path) : undefined;
+  const currentFileContent = useMemo(
+    () =>
+      currentTab?.type === "file" ? getFileContent(currentTab.path) : undefined,
+    [currentTab?.type, currentTab?.path],
+  );
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -1288,7 +1316,6 @@ function ContentPanel({
           ) : (
             <FileEditor
               filePath={currentTab.path}
-              contentMap={contentMap}
               isPreviewMode={isPreviewMode}
             />
           )}
@@ -2133,14 +2160,12 @@ function MetadataPanel({
 
 function FileEditor({
   filePath,
-  contentMap,
   isPreviewMode,
 }: {
   filePath: string;
-  contentMap: Map<string, FileContent>;
   isPreviewMode: boolean;
 }) {
-  const fileContent = contentMap.get(filePath);
+  const fileContent = useMemo(() => getFileContent(filePath), [filePath]);
   const [content, setContent] = useState(fileContent?.content || "");
   const [author, setAuthor] = useState(fileContent?.author || "");
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);

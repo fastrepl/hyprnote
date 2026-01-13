@@ -70,17 +70,26 @@ describe("settingsPersister roundtrip", () => {
         llm: {
           openai: {
             base_url: "https://api.openai.com",
-            api_key: "sk-123",
+            credentials: {
+              type: "api_key",
+              api_key: "sk-123",
+            },
           },
           anthropic: {
             base_url: "https://api.anthropic.com",
-            api_key: "sk-456",
+            credentials: {
+              type: "api_key",
+              api_key: "sk-456",
+            },
           },
         },
         stt: {
           deepgram: {
             base_url: "https://api.deepgram.com",
-            api_key: "dg-789",
+            credentials: {
+              type: "api_key",
+              api_key: "dg-789",
+            },
           },
         },
         current_llm_provider: "openai",
@@ -117,6 +126,59 @@ describe("settingsPersister roundtrip", () => {
     expect(result).toEqual(original);
   });
 
+  test("migrates legacy provider config to credentials format", () => {
+    const legacy = {
+      ai: {
+        llm: {
+          openai: {
+            base_url: "https://api.openai.com",
+            api_key: "sk-123",
+          },
+        },
+        stt: {
+          deepgram: {
+            base_url: "https://api.deepgram.com",
+            api_key: "dg-789",
+          },
+        },
+      },
+    };
+
+    const [tables, values] = settingsToContent(legacy);
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
+    store.setTables(tables);
+    store.setValues(values);
+    const result = storeToSettings(store);
+
+    expect(result).toEqual({
+      ai: {
+        llm: {
+          openai: {
+            base_url: "https://api.openai.com",
+            credentials: {
+              type: "api_key",
+              api_key: "sk-123",
+            },
+          },
+        },
+        stt: {
+          deepgram: {
+            base_url: "https://api.deepgram.com",
+            credentials: {
+              type: "api_key",
+              api_key: "dg-789",
+            },
+          },
+        },
+      },
+      notification: {},
+      general: {},
+      language: {},
+    });
+  });
+
   test("store -> settings -> store preserves all data", () => {
     const store = createMergeableStore()
       .setTablesSchema(SCHEMA.table)
@@ -126,25 +188,25 @@ describe("settingsPersister roundtrip", () => {
       ai_providers: {
         openai: {
           type: "llm",
+          base_url: "https://api.openai.com",
           credentials: JSON.stringify({
             type: "api_key",
-            base_url: "https://api.openai.com",
             api_key: "sk-123",
           }),
         },
         anthropic: {
           type: "llm",
+          base_url: "https://api.anthropic.com",
           credentials: JSON.stringify({
             type: "api_key",
-            base_url: "https://api.anthropic.com",
             api_key: "sk-456",
           }),
         },
         deepgram: {
           type: "stt",
+          base_url: "https://api.deepgram.com",
           credentials: JSON.stringify({
             type: "api_key",
-            base_url: "https://api.deepgram.com",
             api_key: "dg-789",
           }),
         },
@@ -203,7 +265,10 @@ describe("settingsPersister roundtrip", () => {
         llm: {
           openai: {
             base_url: "https://api.openai.com",
-            api_key: "sk-123",
+            credentials: {
+              type: "api_key",
+              api_key: "sk-123",
+            },
           },
         },
         stt: {},

@@ -70,6 +70,7 @@ export const SETTINGS_MAPPING = {
     ai_providers: {
       schema: {
         type: { type: "string" },
+        base_url: { type: "string" },
         credentials: { type: "string" },
       },
     },
@@ -156,6 +157,7 @@ export const StoreComponent = () => {
         "ai_providers",
         ({ select, where }) => {
           select("type");
+          select("base_url");
           select("credentials");
           where((getCell) => getCell("type") === "llm");
         },
@@ -165,6 +167,7 @@ export const StoreComponent = () => {
         "ai_providers",
         ({ select, where }) => {
           select("type");
+          select("base_url");
           select("credentials");
           where((getCell) => getCell("type") === "stt");
         },

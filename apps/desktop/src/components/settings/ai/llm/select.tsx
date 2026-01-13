@@ -204,10 +204,8 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
           config?.credentials as string | undefined,
         );
 
-        const baseUrl =
-          credentials?.type === "api_key"
-            ? credentials.base_url || provider.baseUrl || ""
-            : provider.baseUrl || "";
+        const configuredBaseUrl = (config?.base_url as string) || "";
+        const baseUrl = configuredBaseUrl || provider.baseUrl || "";
         const apiKey =
           credentials?.type === "api_key" ? credentials.api_key : "";
 
@@ -218,6 +216,7 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
           getProviderSelectionBlockers(provider.requirements, {
             isAuthenticated: !!auth?.session,
             isPro: billing.isPro,
+            baseUrl: configuredBaseUrl,
             credentials,
           }).length === 0;
 

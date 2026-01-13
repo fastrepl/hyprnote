@@ -1,18 +1,24 @@
 import type { Content } from "tinybase/with-schemas";
 
 import type { Credentials } from "@hypr/store";
+import { parseCredentials } from "@hypr/store";
 
 import type { Schemas, Store } from "../../store/settings";
 import { SETTINGS_MAPPING } from "../../store/settings";
 
-type LegacyProviderData = {
+type ProviderSettingsData = {
   base_url?: string;
+  credentials?: unknown;
   api_key?: string;
   access_key_id?: string;
   secret_access_key?: string;
   region?: string;
 };
-type ProviderRow = { type: "llm" | "stt"; credentials: string };
+type ProviderRow = {
+  type: "llm" | "stt";
+  base_url?: string;
+  credentials: string;
+};
 
 const JSON_ARRAY_FIELDS = new Set([
   "spoken_languages",
@@ -75,6 +81,38 @@ function fromStoreValue(key: string, value: unknown): unknown {
   return value;
 }
 
+function normalizeBaseUrl(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      new URL(trimmed);
+      return trimmed;
+    } catch {
+      return undefined;
+    }
+  }
+
+  const isProbablyLocal =
+    trimmed.startsWith("localhost") ||
+    trimmed.startsWith("127.") ||
+    trimmed.startsWith("0.0.0.0") ||
+    trimmed.startsWith("[::1]") ||
+    trimmed.endsWith(".local") ||
+    // host:port (very common for local LLM servers)
+    /^[^/]+:\d+/.test(trimmed);
+
+  const withScheme = `${isProbablyLocal ? "http" : "https"}://${trimmed}`;
+  try {
+    new URL(withScheme);
+    return withScheme;
+  } catch {
+    return undefined;
+  }
+}
+
 function settingsToStoreValues(settings: unknown): Record<string, unknown> {
   const values: Record<string, unknown> = {};
   for (const [key, config] of Object.entries(SETTINGS_MAPPING.values)) {
@@ -95,22 +133,35 @@ function settingsToStoreValues(settings: unknown): Record<string, unknown> {
   return values;
 }
 
-function toCredentialsJson(data: LegacyProviderData): string | null {
+function toCredentialsJson(data: ProviderSettingsData): string | null {
+  if (data.credentials !== undefined) {
+    const maybeJson =
+      typeof data.credentials === "string"
+        ? data.credentials
+        : JSON.stringify(data.credentials);
+    const creds = parseCredentials(maybeJson);
+    if (creds) {
+      return JSON.stringify(creds);
+    }
+  }
+
   if (data.access_key_id && data.secret_access_key && data.region) {
     return JSON.stringify({
       type: "aws",
-      access_key_id: data.access_key_id,
-      secret_access_key: data.secret_access_key,
-      region: data.region,
+      access_key_id: data.access_key_id.trim(),
+      secret_access_key: data.secret_access_key.trim(),
+      region: data.region.trim(),
     });
   }
-  if (!data.api_key) {
+
+  const apiKey = typeof data.api_key === "string" ? data.api_key.trim() : "";
+  if (!apiKey) {
     return null;
   }
+
   return JSON.stringify({
     type: "api_key",
-    base_url: data.base_url || undefined,
-    api_key: data.api_key,
+    api_key: apiKey,
   });
 }
 
@@ -125,16 +176,21 @@ function settingsToProviderRows(
   for (const providerType of ["llm", "stt"] as const) {
     const providers = (ai?.[providerType] ?? {}) as Record<
       string,
-      LegacyProviderData
+      ProviderSettingsData
     >;
     for (const [id, data] of Object.entries(providers)) {
       if (data) {
         const credentials = toCredentialsJson(data);
         if (credentials) {
-          rows[id] = {
+          const row: ProviderRow = {
             type: providerType,
             credentials,
           };
+          const baseUrl = normalizeBaseUrl(data.base_url);
+          if (baseUrl) {
+            row.base_url = baseUrl;
+          }
+          rows[id] = row;
         }
       }
     }
@@ -162,40 +218,27 @@ export function storeValuesToSettings(
   return result;
 }
 
-function credentialsToSettingsFormat(
-  credentialsJson: string,
-): Record<string, string> {
-  try {
-    const creds = JSON.parse(credentialsJson) as Credentials;
-    if (creds.type === "aws") {
-      return {
-        access_key_id: creds.access_key_id,
-        secret_access_key: creds.secret_access_key,
-        region: creds.region,
-      };
-    }
-    const result: Record<string, string> = {};
-    if (creds.api_key) result.api_key = creds.api_key;
-    if (creds.base_url) result.base_url = creds.base_url;
-    return result;
-  } catch {
-    return {};
-  }
-}
-
 function providerRowsToSettings(rows: Record<string, ProviderRow>): {
-  llm: Record<string, Record<string, string>>;
-  stt: Record<string, Record<string, string>>;
+  llm: Record<string, { base_url?: string; credentials: Credentials }>;
+  stt: Record<string, { base_url?: string; credentials: Credentials }>;
 } {
   const result = {
-    llm: {} as Record<string, Record<string, string>>,
-    stt: {} as Record<string, Record<string, string>>,
+    llm: {} as Record<string, { base_url?: string; credentials: Credentials }>,
+    stt: {} as Record<string, { base_url?: string; credentials: Credentials }>,
   };
 
   for (const [rowId, row] of Object.entries(rows)) {
-    const { type, credentials } = row;
+    const { type, base_url, credentials } = row;
     if (type === "llm" || type === "stt") {
-      result[type][rowId] = credentialsToSettingsFormat(credentials);
+      const parsed = parseCredentials(credentials);
+      if (!parsed) continue;
+      const entry: { base_url?: string; credentials: Credentials } = {
+        credentials: parsed,
+      };
+      if (base_url) {
+        entry.base_url = base_url;
+      }
+      result[type][rowId] = entry;
     }
   }
 

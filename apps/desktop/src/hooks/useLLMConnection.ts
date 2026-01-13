@@ -147,15 +147,15 @@ const resolveLLMConnection = (params: {
   }
 
   const credentials = parseCredentials(providerConfig?.credentials);
+  const configuredBaseUrl = providerConfig?.base_url?.trim() || "";
 
-  let baseUrl = providerDefinition.baseUrl?.trim() || "";
+  let baseUrl = configuredBaseUrl || providerDefinition.baseUrl?.trim() || "";
   let apiKey = "";
   let accessKeyId = "";
   let secretAccessKey = "";
   let region = "";
 
   if (credentials?.type === "api_key") {
-    baseUrl = credentials.base_url?.trim() || baseUrl;
     apiKey = credentials.api_key?.trim() || "";
   } else if (credentials?.type === "aws") {
     accessKeyId = credentials.access_key_id?.trim() || "";
@@ -166,6 +166,7 @@ const resolveLLMConnection = (params: {
   const context: ProviderEligibilityContext = {
     isAuthenticated: !!session,
     isPro,
+    baseUrl: configuredBaseUrl,
     credentials,
   };
 

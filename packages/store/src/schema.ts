@@ -204,10 +204,6 @@ export const generalSchema = z.object({
 
 const apiKeyCredentialsSchema = z.object({
   type: z.literal("api_key"),
-  base_url: z.preprocess(
-    (v) => (v === "" ? undefined : v),
-    z.string().url().optional(),
-  ),
   api_key: z.string().min(1),
 });
 
@@ -238,6 +234,10 @@ export function parseCredentials(
 
 export const aiProviderSchema = z.object({
   type: z.enum(["stt", "llm"]),
+  base_url: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().url().optional(),
+  ),
   credentials: jsonObject(credentialsSchema),
 });
 

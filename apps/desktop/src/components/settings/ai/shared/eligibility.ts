@@ -41,17 +41,19 @@ export function getRequiredConfigFields(
 export type ProviderEligibilityContext = {
   isAuthenticated: boolean;
   isPro: boolean;
+  baseUrl?: string;
   credentials?: Credentials | null;
 };
 
-function getCredentialValue(
-  credentials: Credentials | null | undefined,
+function getConfigValue(
+  context: ProviderEligibilityContext,
   field: ConfigField,
 ): string | undefined {
+  const { credentials, baseUrl } = context;
+  if (field === "base_url") return baseUrl;
   if (!credentials) return undefined;
   if (credentials.type === "api_key") {
     if (field === "api_key") return credentials.api_key;
-    if (field === "base_url") return credentials.base_url;
     return undefined;
   }
   if (credentials.type === "aws") {
@@ -83,7 +85,7 @@ export function getProviderSelectionBlockers(
         break;
       case "requires_config": {
         const missingFields = req.fields.filter((field) => {
-          const value = getCredentialValue(context.credentials, field);
+          const value = getConfigValue(context, field);
           return !value || value.trim() === "";
         });
         if (missingFields.length > 0) {

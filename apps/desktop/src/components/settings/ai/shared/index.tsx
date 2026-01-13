@@ -63,11 +63,13 @@ function useIsProviderConfigured(
   }
 
   const credentials = parseCredentials(config?.credentials as string);
+  const baseUrl = (config?.base_url as string) || "";
 
   return (
     getProviderSelectionBlockers(providerDef.requirements, {
       isAuthenticated: true,
       isPro: billing.isPro,
+      baseUrl,
       credentials,
     }).length === 0
   );
@@ -83,10 +85,41 @@ type FormValues = {
   region: string;
 };
 
+function normalizeBaseUrl(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      new URL(trimmed);
+      return trimmed;
+    } catch {
+      return undefined;
+    }
+  }
+
+  const isProbablyLocal =
+    trimmed.startsWith("localhost") ||
+    trimmed.startsWith("127.") ||
+    trimmed.startsWith("0.0.0.0") ||
+    trimmed.startsWith("[::1]") ||
+    trimmed.endsWith(".local") ||
+    /^[^/]+:\d+/.test(trimmed);
+
+  const withScheme = `${isProbablyLocal ? "http" : "https"}://${trimmed}`;
+  try {
+    new URL(withScheme);
+    return withScheme;
+  } catch {
+    return undefined;
+  }
+}
+
 function credentialsToFormValues(
   credentials: Credentials | null,
   providerType: ProviderType,
   providerRequirements: readonly ProviderRequirement[],
+  configuredBaseUrl?: string,
   defaultBaseUrl?: string,
 ): FormValues {
   const requiredFields = getRequiredConfigFields(providerRequirements);
@@ -98,7 +131,7 @@ function credentialsToFormValues(
     return {
       type: providerType,
       credentials_type: requiresAws ? "aws" : "api_key",
-      base_url: defaultBaseUrl ?? "",
+      base_url: configuredBaseUrl ?? defaultBaseUrl ?? "",
       api_key: "",
       access_key_id: "",
       secret_access_key: "",
@@ -119,7 +152,7 @@ function credentialsToFormValues(
   return {
     type: providerType,
     credentials_type: "api_key",
-    base_url: credentials.base_url ?? defaultBaseUrl ?? "",
+    base_url: configuredBaseUrl ?? defaultBaseUrl ?? "",
     api_key: credentials.api_key,
     access_key_id: "",
     secret_access_key: "",
@@ -127,24 +160,38 @@ function credentialsToFormValues(
   };
 }
 
-function formValuesToProvider(values: FormValues): AIProvider {
+function formValuesToProvider(
+  values: FormValues,
+  defaultBaseUrl?: string,
+): AIProvider {
   if (values.credentials_type === "aws") {
     return {
       type: values.type,
       credentials: {
         type: "aws",
-        access_key_id: values.access_key_id,
-        secret_access_key: values.secret_access_key,
-        region: values.region,
+        access_key_id: values.access_key_id.trim(),
+        secret_access_key: values.secret_access_key.trim(),
+        region: values.region.trim(),
       },
     };
   }
+
+  const normalizedBaseUrl = normalizeBaseUrl(values.base_url);
+  const normalizedDefaultBaseUrl = defaultBaseUrl
+    ? normalizeBaseUrl(defaultBaseUrl)
+    : undefined;
+
+  const shouldStoreBaseUrl =
+    normalizedBaseUrl &&
+    (!normalizedDefaultBaseUrl ||
+      normalizedBaseUrl !== normalizedDefaultBaseUrl);
+
   return {
     type: values.type,
+    base_url: shouldStoreBaseUrl ? normalizedBaseUrl : undefined,
     credentials: {
       type: "api_key",
-      base_url: values.base_url || undefined,
-      api_key: values.api_key,
+      api_key: values.api_key.trim(),
     },
   };
 }
@@ -161,7 +208,10 @@ export function NonHyprProviderCard({
   providerContext?: ReactNode;
 }) {
   const billing = useBillingAccess();
-  const [credentials, setProvider] = useProvider(config.id, providerType);
+  const [credentials, configuredBaseUrl, setProvider] = useProvider(
+    config.id,
+    providerType,
+  );
   const locked =
     requiresEntitlement(config.requirements, "pro") && !billing.isPro;
   const isConfigured = useIsProviderConfigured(
@@ -183,12 +233,13 @@ export function NonHyprProviderCard({
         event: "ai_provider_configured",
         provider: value.type,
       });
-      setProvider(formValuesToProvider(value));
+      setProvider(formValuesToProvider(value, config.baseUrl));
     },
     defaultValues: credentialsToFormValues(
       credentials,
       providerType,
       config.requirements,
+      configuredBaseUrl,
       config.baseUrl,
     ),
     listeners: {
@@ -352,21 +403,23 @@ function useProvider(id: string, providerType: ProviderType) {
   const setRow = settings.UI.useSetRowCallback(
     "ai_providers",
     id,
-    (row: { type: string; credentials: string }) => row,
+    (row: { type: string; base_url: string; credentials: string }) => row,
     [id],
     settings.STORE_ID,
   );
 
   const credentials = parseCredentials(providerRow?.credentials as string);
+  const baseUrl = (providerRow?.base_url as string) || undefined;
 
   const setProvider = (provider: AIProvider) => {
     setRow({
       type: providerType,
+      base_url: provider.base_url ?? "",
       credentials: JSON.stringify(provider.credentials),
     });
   };
 
-  return [credentials, setProvider] as const;
+  return [credentials, baseUrl, setProvider] as const;
 }
 
 function FormField({

@@ -79,8 +79,7 @@ export const useSTTConnection = () => {
     providerConfig?.credentials as string | undefined,
   );
 
-  const baseUrl =
-    credentials?.type === "api_key" ? credentials.base_url?.trim() : undefined;
+  const baseUrl = (providerConfig?.base_url as string)?.trim() || undefined;
   const apiKey =
     credentials?.type === "api_key" ? credentials.api_key?.trim() : undefined;
 

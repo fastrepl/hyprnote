@@ -2,20 +2,9 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { Link } from "@tanstack/react-router";
 import { allHandbooks } from "content-collections";
 
-import {
-  Accordion,
-  Card,
-  Columns,
-  Info,
-  Note,
-  Step,
-  Steps,
-  Tip,
-} from "@hypr/ui/docs";
 import { cn } from "@hypr/utils";
 
-import { Image } from "@/components/image";
-import { CodeBlock, MDXLink } from "@/components/mdx";
+import { defaultMDXComponents } from "@/components/mdx";
 
 export function HandbookLayout({
   doc,
@@ -102,23 +91,7 @@ function ArticleHeader({
 function ArticleContent({ doc }: { doc: any }) {
   return (
     <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:my-8 max-w-none">
-      <MDXContent
-        code={doc.mdx}
-        components={{
-          a: MDXLink,
-          Accordion,
-          Card,
-          Columns,
-          Image,
-          img: Image,
-          Info,
-          Note,
-          pre: CodeBlock,
-          Step,
-          Steps,
-          Tip,
-        }}
-      />
+      <MDXContent code={doc.mdx} components={defaultMDXComponents} />
     </article>
   );
 }
@@ -130,7 +103,7 @@ function RightSidebar({
 }) {
   return (
     <aside className="hidden lg:block w-64 shrink-0">
-      <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto space-y-6 px-4 py-6">
+      <div className="sticky top-17.25 max-h-[calc(100vh-69px)] overflow-y-auto space-y-6 px-4 py-6">
         {toc.length > 0 && (
           <nav className="space-y-1">
             <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3">

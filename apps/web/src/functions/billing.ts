@@ -75,6 +75,22 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       user_metadata: user.user_metadata,
     });
 
+    if (stripeCustomerId) {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: stripeCustomerId,
+        status: "all",
+        limit: 1,
+      });
+
+      const activeSubscription = subscriptions.data.find((sub) =>
+        ["active", "trialing"].includes(sub.status),
+      );
+
+      if (activeSubscription) {
+        return { url: null };
+      }
+    }
+
     if (!stripeCustomerId) {
       const newCustomer = await stripe.customers.create({
         email: user.email,

@@ -204,6 +204,34 @@ function ChangelogHeader({
   );
 }
 
+async function fetchChangelogFromGitHub(
+  version: string,
+): Promise<string | null> {
+  const url = `https://raw.githubusercontent.com/fastrepl/hyprnote/main/apps/web/content/changelog/${version}.mdx`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return null;
+    }
+    return await response.text();
+  } catch {
+    return null;
+  }
+}
+
+function processChangelogContent(raw: string): {
+  content: ReturnType<typeof md2json>;
+  date: string | null;
+} {
+  const { date, body } = parseFrontmatter(raw);
+  const markdown = fixImageUrls(body);
+  const json = md2json(markdown);
+  return {
+    content: addEmptyParagraphsBeforeHeaders(json),
+    date,
+  };
+}
+
 function useChangelogContent(version: string) {
   const [content, setContent] = useState<ReturnType<typeof md2json> | null>(
     null,
@@ -212,29 +240,46 @@ function useChangelogContent(version: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const key = Object.keys(changelogFiles).find((k) =>
-      k.endsWith(`/${version}.mdx`),
-    );
+    let cancelled = false;
 
-    if (!key) {
-      setLoading(false);
-      return;
-    }
+    async function loadChangelog() {
+      const key = Object.keys(changelogFiles).find((k) =>
+        k.endsWith(`/${version}.mdx`),
+      );
 
-    changelogFiles[key]()
-      .then((raw) => {
-        const { date: parsedDate, body } = parseFrontmatter(raw as string);
-        const markdown = fixImageUrls(body);
-        const json = md2json(markdown);
-        setContent(addEmptyParagraphsBeforeHeaders(json));
+      if (key) {
+        try {
+          const raw = (await changelogFiles[key]()) as string;
+          if (cancelled) return;
+          const { content: parsed, date: parsedDate } =
+            processChangelogContent(raw);
+          setContent(parsed);
+          setDate(parsedDate);
+          setLoading(false);
+          return;
+        } catch {}
+      }
+
+      const raw = await fetchChangelogFromGitHub(version);
+      if (cancelled) return;
+
+      if (raw) {
+        const { content: parsed, date: parsedDate } =
+          processChangelogContent(raw);
+        setContent(parsed);
         setDate(parsedDate);
-        setLoading(false);
-      })
-      .catch(() => {
+      } else {
         setContent(null);
         setDate(null);
-        setLoading(false);
-      });
+      }
+      setLoading(false);
+    }
+
+    loadChangelog();
+
+    return () => {
+      cancelled = true;
+    };
   }, [version]);
 
   return { content, date, loading };

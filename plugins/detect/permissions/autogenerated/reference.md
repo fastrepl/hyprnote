@@ -11,6 +11,8 @@ Default permissions for the plugin
 - `allow-set-respect-do-not-disturb`
 - `allow-set-ignored-bundle-ids`
 - `allow-list-default-ignored-bundle-ids`
+- `allow-get-preferred-languages`
+- `allow-get-current-locale-identifier`
 
 ## Permission Table
 
@@ -20,6 +22,58 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`detect:allow-get-current-locale-identifier`
+
+</td>
+<td>
+
+Enables the get_current_locale_identifier command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:deny-get-current-locale-identifier`
+
+</td>
+<td>
+
+Denies the get_current_locale_identifier command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:allow-get-preferred-languages`
+
+</td>
+<td>
+
+Enables the get_preferred_languages command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:deny-get-preferred-languages`
+
+</td>
+<td>
+
+Denies the get_preferred_languages command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>

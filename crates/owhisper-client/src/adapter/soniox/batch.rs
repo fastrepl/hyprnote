@@ -363,6 +363,14 @@ impl SonioxAdapter {
 }
 
 impl BatchSttAdapter for SonioxAdapter {
+    fn is_supported_languages(
+        &self,
+        languages: &[hypr_language::Language],
+        _model: Option<&str>,
+    ) -> bool {
+        SonioxAdapter::is_supported_languages(languages)
+    }
+
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
         client: &'a ClientWithMiddleware,

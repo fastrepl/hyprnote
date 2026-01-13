@@ -39,6 +39,12 @@ pub type BatchFuture<'a> = Pin<Box<dyn Future<Output = Result<BatchResponse, Err
 pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
     fn provider_name(&self) -> &'static str;
 
+    fn is_supported_languages(
+        &self,
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> bool;
+
     fn supports_native_multichannel(&self) -> bool;
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, channels: u8) -> url::Url;
@@ -77,6 +83,12 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
 }
 
 pub trait BatchSttAdapter: Clone + Default + Send + Sync + 'static {
+    fn is_supported_languages(
+        &self,
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> bool;
+
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
         client: &'a ClientWithMiddleware,

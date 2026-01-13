@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 import type { AIProviderStorage } from "@hypr/store";
+import { credentialsSchema } from "@hypr/store";
 import { Input } from "@hypr/ui/components/ui/input";
 import {
   Select,
@@ -338,14 +339,24 @@ function useConfiguredMapping(): Record<
       const config = configuredProviders[provider.id] as
         | AIProviderStorage
         | undefined;
-      const baseUrl = String(config?.base_url || provider.baseUrl || "").trim();
-      const apiKey = String(config?.api_key || "").trim();
+      const credentialsJson = config?.credentials as string | undefined;
+      const credentials = credentialsJson
+        ? (() => {
+            try {
+              const parsed = JSON.parse(credentialsJson);
+              const result = credentialsSchema.safeParse(parsed);
+              return result.success ? result.data : null;
+            } catch {
+              return null;
+            }
+          })()
+        : null;
 
       const eligible =
         getProviderSelectionBlockers(provider.requirements, {
           isAuthenticated: true,
           isPro: billing.isPro,
-          config: { base_url: baseUrl, api_key: apiKey },
+          credentials,
         }).length === 0;
 
       if (!eligible) {

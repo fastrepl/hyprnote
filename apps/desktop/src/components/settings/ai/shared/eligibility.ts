@@ -1,3 +1,5 @@
+import type { Credentials } from "@hypr/store";
+
 export type ConfigField =
   | "base_url"
   | "api_key"
@@ -39,14 +41,27 @@ export function getRequiredConfigFields(
 export type ProviderEligibilityContext = {
   isAuthenticated: boolean;
   isPro: boolean;
-  config?: {
-    base_url?: string;
-    api_key?: string;
-    access_key_id?: string;
-    secret_access_key?: string;
-    region?: string;
-  };
+  credentials?: Credentials | null;
 };
+
+function getCredentialValue(
+  credentials: Credentials | null | undefined,
+  field: ConfigField,
+): string | undefined {
+  if (!credentials) return undefined;
+  if (credentials.type === "api_key") {
+    if (field === "api_key") return credentials.api_key;
+    if (field === "base_url") return credentials.base_url;
+    return undefined;
+  }
+  if (credentials.type === "aws") {
+    if (field === "access_key_id") return credentials.access_key_id;
+    if (field === "secret_access_key") return credentials.secret_access_key;
+    if (field === "region") return credentials.region;
+    return undefined;
+  }
+  return undefined;
+}
 
 export function getProviderSelectionBlockers(
   requirements: readonly ProviderRequirement[],
@@ -68,7 +83,7 @@ export function getProviderSelectionBlockers(
         break;
       case "requires_config": {
         const missingFields = req.fields.filter((field) => {
-          const value = context.config?.[field];
+          const value = getCredentialValue(context.credentials, field);
           return !value || value.trim() === "";
         });
         if (missingFields.length > 0) {

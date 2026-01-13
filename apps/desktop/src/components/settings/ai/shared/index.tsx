@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import type { AIProvider } from "@hypr/store";
-import { aiProviderSchema } from "@hypr/store";
+import type { AIProvider, Credentials } from "@hypr/store";
+import { credentialsSchema } from "@hypr/store";
 import {
   AccordionContent,
   AccordionItem,
@@ -40,6 +40,19 @@ type ProviderConfig = {
   requirements: ProviderRequirement[];
 };
 
+function parseCredentials(
+  credentialsJson: string | undefined,
+): Credentials | null {
+  if (!credentialsJson) return null;
+  try {
+    const parsed = JSON.parse(credentialsJson);
+    const result = credentialsSchema.safeParse(parsed);
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
+}
+
 function useIsProviderConfigured(
   providerId: string,
   providerType: ProviderType,
@@ -62,25 +75,85 @@ function useIsProviderConfigured(
     return false;
   }
 
-  const baseUrl = String(config?.base_url || providerDef.baseUrl || "").trim();
-  const apiKey = String(config?.api_key || "").trim();
-  const accessKeyId = String(config?.access_key_id || "").trim();
-  const secretAccessKey = String(config?.secret_access_key || "").trim();
-  const region = String(config?.region || "").trim();
+  const credentials = parseCredentials(config?.credentials as string);
 
   return (
     getProviderSelectionBlockers(providerDef.requirements, {
       isAuthenticated: true,
       isPro: billing.isPro,
-      config: {
-        base_url: baseUrl,
-        api_key: apiKey,
-        access_key_id: accessKeyId,
-        secret_access_key: secretAccessKey,
-        region: region,
-      },
+      credentials,
     }).length === 0
   );
+}
+
+type FormValues = {
+  type: "stt" | "llm";
+  credentials_type: "api_key" | "aws";
+  base_url: string;
+  api_key: string;
+  access_key_id: string;
+  secret_access_key: string;
+  region: string;
+};
+
+function credentialsToFormValues(
+  credentials: Credentials | null,
+  providerType: ProviderType,
+  defaultBaseUrl?: string,
+): FormValues {
+  if (!credentials) {
+    return {
+      type: providerType,
+      credentials_type: "api_key",
+      base_url: defaultBaseUrl ?? "",
+      api_key: "",
+      access_key_id: "",
+      secret_access_key: "",
+      region: "",
+    };
+  }
+  if (credentials.type === "aws") {
+    return {
+      type: providerType,
+      credentials_type: "aws",
+      base_url: "",
+      api_key: "",
+      access_key_id: credentials.access_key_id,
+      secret_access_key: credentials.secret_access_key,
+      region: credentials.region,
+    };
+  }
+  return {
+    type: providerType,
+    credentials_type: "api_key",
+    base_url: credentials.base_url ?? defaultBaseUrl ?? "",
+    api_key: credentials.api_key,
+    access_key_id: "",
+    secret_access_key: "",
+    region: "",
+  };
+}
+
+function formValuesToProvider(values: FormValues): AIProvider {
+  if (values.credentials_type === "aws") {
+    return {
+      type: values.type,
+      credentials: {
+        type: "aws",
+        access_key_id: values.access_key_id,
+        secret_access_key: values.secret_access_key,
+        region: values.region,
+      },
+    };
+  }
+  return {
+    type: values.type,
+    credentials: {
+      type: "api_key",
+      base_url: values.base_url || undefined,
+      api_key: values.api_key,
+    },
+  };
 }
 
 export function NonHyprProviderCard({
@@ -95,7 +168,7 @@ export function NonHyprProviderCard({
   providerContext?: ReactNode;
 }) {
   const billing = useBillingAccess();
-  const [provider, setProvider] = useProvider(config.id);
+  const [credentials, setProvider] = useProvider(config.id, providerType);
   const locked =
     requiresEntitlement(config.requirements, "pro") && !billing.isPro;
   const isConfigured = useIsProviderConfigured(
@@ -117,18 +190,13 @@ export function NonHyprProviderCard({
         event: "ai_provider_configured",
         provider: value.type,
       });
-      setProvider(value);
+      setProvider(formValuesToProvider(value));
     },
-    defaultValues:
-      provider ??
-      ({
-        type: providerType,
-        base_url: config.baseUrl ?? "",
-        api_key: "",
-        access_key_id: "",
-        secret_access_key: "",
-        region: "",
-      } satisfies AIProvider),
+    defaultValues: credentialsToFormValues(
+      credentials,
+      providerType,
+      config.baseUrl,
+    ),
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {
@@ -136,7 +204,6 @@ export function NonHyprProviderCard({
         });
       },
     },
-    validators: { onChange: aiProviderSchema },
   });
 
   return (
@@ -286,18 +353,26 @@ export function StyledStreamdown({
   );
 }
 
-function useProvider(id: string) {
+function useProvider(id: string, providerType: ProviderType) {
   const providerRow = settings.UI.useRow("ai_providers", id, settings.STORE_ID);
-  const setProvider = settings.UI.useSetPartialRowCallback(
+  const setRow = settings.UI.useSetRowCallback(
     "ai_providers",
     id,
-    (row: Partial<AIProvider>) => row,
+    (row: { type: string; credentials: string }) => row,
     [id],
     settings.STORE_ID,
-  ) as (row: Partial<AIProvider>) => void;
+  );
 
-  const { data } = aiProviderSchema.safeParse(providerRow);
-  return [data, setProvider] as const;
+  const credentials = parseCredentials(providerRow?.credentials as string);
+
+  const setProvider = (provider: AIProvider) => {
+    setRow({
+      type: providerType,
+      credentials: JSON.stringify(provider.credentials),
+    });
+  };
+
+  return [credentials, setProvider] as const;
 }
 
 function FormField({

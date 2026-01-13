@@ -202,28 +202,31 @@ export const generalSchema = z.object({
   current_stt_model: z.string().optional(),
 });
 
-export const aiProviderSchema = z
-  .object({
-    type: z.enum(["stt", "llm"]),
-    base_url: z.url().min(1).optional(),
-    api_key: z.string().optional(),
-    access_key_id: z.string().optional(),
-    secret_access_key: z.string().optional(),
-    region: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      if (!data.base_url) return true;
-      return (
-        !data.base_url.startsWith("https:") ||
-        (data.api_key && data.api_key.length > 0)
-      );
-    },
-    {
-      message: "API key is required for HTTPS URLs",
-      path: ["api_key"],
-    },
-  );
+const apiKeyCredentialsSchema = z.object({
+  type: z.literal("api_key"),
+  base_url: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().url().optional(),
+  ),
+  api_key: z.string().min(1),
+});
+
+const awsCredentialsSchema = z.object({
+  type: z.literal("aws"),
+  access_key_id: z.string().min(1),
+  secret_access_key: z.string().min(1),
+  region: z.string().min(1),
+});
+
+export const credentialsSchema = z.discriminatedUnion("type", [
+  apiKeyCredentialsSchema,
+  awsCredentialsSchema,
+]);
+
+export const aiProviderSchema = z.object({
+  type: z.enum(["stt", "llm"]),
+  credentials: jsonObject(credentialsSchema),
+});
 
 export type ProviderSpeakerIndexHint = z.infer<
   typeof providerSpeakerIndexSchema
@@ -251,6 +254,9 @@ export type ChatShortcut = z.infer<typeof chatShortcutSchema>;
 export type EnhancedNote = z.infer<typeof enhancedNoteSchema>;
 export type Prompt = z.infer<typeof promptSchema>;
 export type AIProvider = z.infer<typeof aiProviderSchema>;
+export type Credentials = z.infer<typeof credentialsSchema>;
+export type ApiKeyCredentials = z.infer<typeof apiKeyCredentialsSchema>;
+export type AwsCredentials = z.infer<typeof awsCredentialsSchema>;
 export type General = z.infer<typeof generalSchema>;
 
 export type SessionStorage = ToStorageType<typeof sessionSchema>;

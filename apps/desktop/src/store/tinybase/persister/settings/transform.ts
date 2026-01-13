@@ -1,10 +1,18 @@
 import type { Content } from "tinybase/with-schemas";
 
+import type { Credentials } from "@hypr/store";
+
 import type { Schemas, Store } from "../../store/settings";
 import { SETTINGS_MAPPING } from "../../store/settings";
 
-type ProviderData = { base_url: string; api_key: string };
-type ProviderRow = { type: "llm" | "stt"; base_url: string; api_key: string };
+type LegacyProviderData = {
+  base_url?: string;
+  api_key?: string;
+  access_key_id?: string;
+  secret_access_key?: string;
+  region?: string;
+};
+type ProviderRow = { type: "llm" | "stt"; credentials: string };
 
 const JSON_ARRAY_FIELDS = new Set([
   "spoken_languages",
@@ -87,6 +95,22 @@ function settingsToStoreValues(settings: unknown): Record<string, unknown> {
   return values;
 }
 
+function toCredentialsJson(data: LegacyProviderData): string {
+  if (data.access_key_id && data.secret_access_key && data.region) {
+    return JSON.stringify({
+      type: "aws",
+      access_key_id: data.access_key_id,
+      secret_access_key: data.secret_access_key,
+      region: data.region,
+    });
+  }
+  return JSON.stringify({
+    type: "api_key",
+    base_url: data.base_url || undefined,
+    api_key: data.api_key || "",
+  });
+}
+
 function settingsToProviderRows(
   settings: unknown,
 ): Record<string, ProviderRow> {
@@ -98,14 +122,13 @@ function settingsToProviderRows(
   for (const providerType of ["llm", "stt"] as const) {
     const providers = (ai?.[providerType] ?? {}) as Record<
       string,
-      ProviderData
+      LegacyProviderData
     >;
     for (const [id, data] of Object.entries(providers)) {
       if (data) {
         rows[id] = {
           type: providerType,
-          base_url: data.base_url ?? "",
-          api_key: data.api_key ?? "",
+          credentials: toCredentialsJson(data),
         };
       }
     }
@@ -133,19 +156,40 @@ export function storeValuesToSettings(
   return result;
 }
 
+function credentialsToSettingsFormat(
+  credentialsJson: string,
+): Record<string, string> {
+  try {
+    const creds = JSON.parse(credentialsJson) as Credentials;
+    if (creds.type === "aws") {
+      return {
+        access_key_id: creds.access_key_id,
+        secret_access_key: creds.secret_access_key,
+        region: creds.region,
+      };
+    }
+    const result: Record<string, string> = {};
+    if (creds.api_key) result.api_key = creds.api_key;
+    if (creds.base_url) result.base_url = creds.base_url;
+    return result;
+  } catch {
+    return {};
+  }
+}
+
 function providerRowsToSettings(rows: Record<string, ProviderRow>): {
-  llm: Record<string, ProviderData>;
-  stt: Record<string, ProviderData>;
+  llm: Record<string, Record<string, string>>;
+  stt: Record<string, Record<string, string>>;
 } {
   const result = {
-    llm: {} as Record<string, ProviderData>,
-    stt: {} as Record<string, ProviderData>,
+    llm: {} as Record<string, Record<string, string>>,
+    stt: {} as Record<string, Record<string, string>>,
   };
 
   for (const [rowId, row] of Object.entries(rows)) {
-    const { type, base_url, api_key } = row;
+    const { type, credentials } = row;
     if (type === "llm" || type === "stt") {
-      result[type][rowId] = { base_url, api_key };
+      result[type][rowId] = credentialsToSettingsFormat(credentials);
     }
   }
 

@@ -12,7 +12,8 @@ import {
 } from "ai";
 import { useMemo } from "react";
 
-import type { AIProviderStorage } from "@hypr/store";
+import type { AIProviderStorage, Credentials } from "@hypr/store";
+import { credentialsSchema } from "@hypr/store";
 
 import { useAuth } from "../auth";
 import { useBillingAccess } from "../billing";
@@ -101,6 +102,19 @@ export const useLLMConnectionStatus = (): LLMConnectionStatus => {
   return status;
 };
 
+function parseCredentials(
+  credentialsJson: string | undefined,
+): Credentials | null {
+  if (!credentialsJson) return null;
+  try {
+    const parsed = JSON.parse(credentialsJson);
+    const result = credentialsSchema.safeParse(parsed);
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
+}
+
 const resolveLLMConnection = (params: {
   providerId: string | undefined;
   modelId: string | undefined;
@@ -145,25 +159,27 @@ const resolveLLMConnection = (params: {
     };
   }
 
-  const baseUrl =
-    providerConfig?.base_url?.trim() ||
-    providerDefinition.baseUrl?.trim() ||
-    "";
-  const apiKey = providerConfig?.api_key?.trim() || "";
-  const accessKeyId = providerConfig?.access_key_id?.trim() || "";
-  const secretAccessKey = providerConfig?.secret_access_key?.trim() || "";
-  const region = providerConfig?.region?.trim() || "";
+  const credentials = parseCredentials(providerConfig?.credentials);
+
+  let baseUrl = providerDefinition.baseUrl?.trim() || "";
+  let apiKey = "";
+  let accessKeyId = "";
+  let secretAccessKey = "";
+  let region = "";
+
+  if (credentials?.type === "api_key") {
+    baseUrl = credentials.base_url?.trim() || baseUrl;
+    apiKey = credentials.api_key?.trim() || "";
+  } else if (credentials?.type === "aws") {
+    accessKeyId = credentials.access_key_id?.trim() || "";
+    secretAccessKey = credentials.secret_access_key?.trim() || "";
+    region = credentials.region?.trim() || "";
+  }
 
   const context: ProviderEligibilityContext = {
     isAuthenticated: !!session,
     isPro,
-    config: {
-      base_url: baseUrl,
-      api_key: apiKey,
-      access_key_id: accessKeyId,
-      secret_access_key: secretAccessKey,
-      region: region,
-    },
+    credentials,
   };
 
   const blockers = getProviderSelectionBlockers(
@@ -203,7 +219,7 @@ const resolveLLMConnection = (params: {
       conn: {
         providerId,
         modelId,
-        baseUrl: baseUrl ?? new URL("/llm", env.VITE_AI_URL).toString(),
+        baseUrl: baseUrl || new URL("/llm", env.VITE_AI_URL).toString(),
         apiKey: session.access_token,
       },
       status: { status: "success", providerId, isHosted: true },

@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMemo } from "react";
 
+import { credentialsSchema } from "@hypr/store";
 import {
   Select,
   SelectContent,
@@ -199,10 +200,25 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
     return Object.fromEntries(
       PROVIDERS.map((provider) => {
         const config = configuredProviders[provider.id];
-        const baseUrl = String(
-          config?.base_url || provider.baseUrl || "",
-        ).trim();
-        const apiKey = String(config?.api_key || "").trim();
+        const credentialsJson = config?.credentials as string | undefined;
+        const credentials = credentialsJson
+          ? (() => {
+              try {
+                const parsed = JSON.parse(credentialsJson);
+                const result = credentialsSchema.safeParse(parsed);
+                return result.success ? result.data : null;
+              } catch {
+                return null;
+              }
+            })()
+          : null;
+
+        const baseUrl =
+          credentials?.type === "api_key"
+            ? credentials.base_url || provider.baseUrl || ""
+            : provider.baseUrl || "";
+        const apiKey =
+          credentials?.type === "api_key" ? credentials.api_key : "";
 
         const proLocked =
           requiresEntitlement(provider.requirements, "pro") && !billing.isPro;
@@ -211,7 +227,7 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
           getProviderSelectionBlockers(provider.requirements, {
             isAuthenticated: !!auth?.session,
             isPro: billing.isPro,
-            config: { base_url: baseUrl, api_key: apiKey },
+            credentials,
           }).length === 0;
 
         if (!eligible) {

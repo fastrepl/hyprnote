@@ -259,6 +259,7 @@
     "misc:default",
     "fs-sync:default",
     "os:default",
+    "opener2:default",
     "detect:default",
     "permissions:default",
     "settings:default",

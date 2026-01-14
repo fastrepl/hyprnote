@@ -1,5 +1,6 @@
-import { CornerDownLeft } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import { CornerDownLeft, Pin } from "lucide-react";
+import { Reorder } from "motion/react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -17,10 +18,11 @@ export function PeopleColumn({
 }) {
   const [showNewPerson, setShowNewPerson] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const { humanIds, sortOption, setSortOption } =
+  const { humanIds, pinnedIds, unpinnedIds, sortOption, setSortOption } =
     useSortedHumanIds(currentOrgId);
 
   const allHumans = main.UI.useTable("humans", main.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
 
   const filteredHumanIds = useMemo(() => {
     if (!searchValue.trim()) {
@@ -35,6 +37,32 @@ export function PeopleColumn({
       return name.includes(q) || email.includes(q);
     });
   }, [humanIds, searchValue, allHumans]);
+
+  const filteredPinnedIds = useMemo(() => {
+    if (!searchValue.trim()) {
+      return pinnedIds;
+    }
+    return pinnedIds.filter((id) => filteredHumanIds.includes(id));
+  }, [pinnedIds, filteredHumanIds, searchValue]);
+
+  const filteredUnpinnedIds = useMemo(() => {
+    if (!searchValue.trim()) {
+      return unpinnedIds;
+    }
+    return unpinnedIds.filter((id) => filteredHumanIds.includes(id));
+  }, [unpinnedIds, filteredHumanIds, searchValue]);
+
+  const handleReorderPinned = useCallback(
+    (newOrder: string[]) => {
+      if (!store) return;
+      store.transaction(() => {
+        newOrder.forEach((id, index) => {
+          store.setCell("humans", id, "pin_order", index);
+        });
+      });
+    },
+    [store],
+  );
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -58,7 +86,25 @@ export function PeopleColumn({
               onCancel={() => setShowNewPerson(false)}
             />
           )}
-          {filteredHumanIds.map((humanId) => (
+          {filteredPinnedIds.length > 0 && (
+            <Reorder.Group
+              axis="y"
+              values={filteredPinnedIds}
+              onReorder={handleReorderPinned}
+              className="flex flex-col"
+            >
+              {filteredPinnedIds.map((humanId) => (
+                <Reorder.Item key={humanId} value={humanId}>
+                  <PersonItem
+                    active={currentHumanId === humanId}
+                    humanId={humanId}
+                    setSelectedPerson={setSelectedPerson}
+                  />
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
+          )}
+          {filteredUnpinnedIds.map((humanId) => (
             <PersonItem
               key={humanId}
               active={currentHumanId === humanId}
@@ -74,7 +120,6 @@ export function PeopleColumn({
 
 export function useSortedHumanIds(currentOrgId?: string | null) {
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
-  const currentUserId = main.UI.useValue("user_id", main.STORE_ID);
 
   const allAlphabeticalIds = main.UI.useResultSortedRowIds(
     main.QUERIES.visibleHumans,
@@ -115,6 +160,8 @@ export function useSortedHumanIds(currentOrgId?: string | null) {
     main.STORE_ID,
   );
 
+  const allHumans = main.UI.useTable("humans", main.STORE_ID);
+
   const sortedIds = currentOrgId
     ? (sortOption === "alphabetical"
         ? allAlphabeticalIds
@@ -132,14 +179,26 @@ export function useSortedHumanIds(currentOrgId?: string | null) {
           ? allNewestIds
           : allOldestIds;
 
-  const humanIds = useMemo(() => {
-    if (!currentUserId || !sortedIds.includes(currentUserId)) {
-      return sortedIds;
-    }
-    return [currentUserId, ...sortedIds.filter((id) => id !== currentUserId)];
-  }, [sortedIds, currentUserId]);
+  const { humanIds, pinnedIds, unpinnedIds } = useMemo(() => {
+    const pinned = sortedIds.filter((id) => allHumans[id]?.pinned);
+    const unpinned = sortedIds.filter((id) => !allHumans[id]?.pinned);
 
-  return { humanIds, sortOption, setSortOption };
+    const sortedPinned = [...pinned].sort((a, b) => {
+      const orderA =
+        (allHumans[a]?.pin_order as number | undefined) ?? Infinity;
+      const orderB =
+        (allHumans[b]?.pin_order as number | undefined) ?? Infinity;
+      return orderA - orderB;
+    });
+
+    return {
+      humanIds: [...sortedPinned, ...unpinned],
+      pinnedIds: sortedPinned,
+      unpinnedIds: unpinned,
+    };
+  }, [sortedIds, allHumans]);
+
+  return { humanIds, pinnedIds, unpinnedIds, sortOption, setSortOption };
 }
 
 function PersonItem({
@@ -152,37 +211,71 @@ function PersonItem({
   setSelectedPerson: (id: string | null) => void;
 }) {
   const person = main.UI.useRow("humans", humanId, main.STORE_ID);
-  const currentUserId = main.UI.useValue("user_id", main.STORE_ID);
-  const isCurrentUser = humanId === currentUserId;
+  const isPinned = Boolean(person.pinned);
+  const personName = String(person.name ?? "");
+  const personEmail = String(person.email ?? "");
+
+  const store = main.UI.useStore(main.STORE_ID);
+
+  const handleTogglePin = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!store) return;
+
+      const currentPinned = store.getCell("humans", humanId, "pinned");
+      if (currentPinned) {
+        store.setPartialRow("humans", humanId, {
+          pinned: false,
+          pin_order: undefined,
+        });
+      } else {
+        const allHumans = store.getTable("humans");
+        const maxOrder = Object.values(allHumans).reduce((max, h) => {
+          const order = (h.pin_order as number | undefined) ?? 0;
+          return Math.max(max, order);
+        }, 0);
+        store.setPartialRow("humans", humanId, {
+          pinned: true,
+          pin_order: maxOrder + 1,
+        });
+      }
+    },
+    [store, humanId],
+  );
 
   return (
     <button
       onClick={() => setSelectedPerson(humanId)}
       className={cn([
-        "w-full text-left px-3 py-2 rounded-md text-sm  border hover:bg-neutral-100 transition-colors flex items-center gap-2",
+        "group w-full text-left px-3 py-2 rounded-md text-sm border hover:bg-neutral-100 transition-colors flex items-center gap-2 bg-white",
         active ? "border-neutral-500 bg-neutral-100" : "border-transparent",
       ])}
     >
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
         <span className="text-xs font-medium text-neutral-600">
-          {getInitials(person.name || person.email)}
+          {getInitials(personName || personEmail)}
         </span>
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-medium truncate flex items-center gap-1">
-          {person.name || person.email || "Unnamed"}
-          {isCurrentUser && (
-            <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
-              Me
-            </span>
-          )}
+          {personName || personEmail || "Unnamed"}
         </div>
-        {person.email && person.name && (
-          <div className="text-xs text-neutral-500 truncate">
-            {person.email}
-          </div>
+        {personEmail && personName && (
+          <div className="text-xs text-neutral-500 truncate">{personEmail}</div>
         )}
       </div>
+      <button
+        onClick={handleTogglePin}
+        className={cn([
+          "flex-shrink-0 p-1 rounded transition-colors",
+          isPinned
+            ? "text-blue-600 hover:text-blue-700"
+            : "text-neutral-300 opacity-0 group-hover:opacity-100 hover:text-neutral-500",
+        ])}
+        aria-label={isPinned ? "Unpin contact" : "Pin contact"}
+      >
+        <Pin className="size-3.5" fill={isPinned ? "currentColor" : "none"} />
+      </button>
     </button>
   );
 }
@@ -211,6 +304,7 @@ function NewPersonForm({
       job_title: "",
       linkedin_username: "",
       memo: "",
+      pinned: false,
     }),
     [userId, currentOrgId],
     main.STORE_ID,

@@ -37,6 +37,7 @@ export const createHuman = (org_id: string) => {
         ? `${firstName.toLowerCase()}${lastName.toLowerCase()}`
         : undefined,
       org_id,
+      pinned: false,
     } satisfies Human,
   };
 };

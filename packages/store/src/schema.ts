@@ -14,6 +14,8 @@ export const humanSchema = z.object({
     z.string().optional(),
   ),
   memo: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  pinned: z.preprocess((val) => val ?? false, z.boolean()),
+  pin_order: z.preprocess((val) => val ?? undefined, z.number().optional()),
 });
 
 export const eventSchema = z.object({
@@ -305,6 +307,8 @@ export const tableSchemaForTinybase = {
     job_title: { type: "string" },
     linkedin_username: { type: "string" },
     memo: { type: "string" },
+    pinned: { type: "boolean" },
+    pin_order: { type: "number" },
   } as const satisfies InferTinyBaseSchema<typeof humanSchema>,
   organizations: {
     user_id: { type: "string" },

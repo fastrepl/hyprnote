@@ -3,6 +3,7 @@ import type { StoreApi } from "zustand";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
 import { id } from "../../../utils";
+import { listenerStore } from "../listener/instance";
 import type { LifecycleState } from "./lifecycle";
 import type { NavigationState, TabHistory } from "./navigation";
 import { pushHistory } from "./navigation";
@@ -38,7 +39,14 @@ export const createBasicSlice = <
   openCurrent: (tab) => {
     const { tabs, history } = get();
     const currentActiveTab = tabs.find((t) => t.active);
-    if (currentActiveTab?.pinned) {
+
+    const isCurrentTabListening =
+      currentActiveTab?.type === "sessions" &&
+      currentActiveTab.id === listenerStore.getState().live.sessionId &&
+      (listenerStore.getState().live.status === "active" ||
+        listenerStore.getState().live.status === "finalizing");
+
+    if (currentActiveTab?.pinned || isCurrentTabListening) {
       set(openTab(tabs, tab, history, false));
     } else {
       set(openTab(tabs, tab, history, true));

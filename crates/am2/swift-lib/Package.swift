@@ -17,7 +17,7 @@ let package = Package(
       revision: "01980f981bc642a6da382cc0788f18fdd4cde6df"),
     .package(
       id: "argmaxinc.argmax-sdk-swift",
-      exact: "1.9.3"),
+      exact: "1.11.4"),
   ],
   targets: [
     .target(

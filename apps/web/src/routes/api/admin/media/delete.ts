@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
-import { deleteMediaFiles } from "@/functions/github-media";
+import { deleteMediaFiles } from "@/functions/supabase-media";
 
 export const Route = createFileRoute("/api/admin/media/delete")({
   server: {

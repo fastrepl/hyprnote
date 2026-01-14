@@ -8,11 +8,13 @@ import { cn } from "@hypr/utils";
 interface MediaItem {
   name: string;
   path: string;
-  publicPath: string;
-  sha: string;
+  publicUrl: string;
+  id: string;
   size: number;
   type: "file" | "dir";
-  downloadUrl: string | null;
+  mimeType: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 interface TreeNode {
@@ -87,7 +89,7 @@ function getFileExtension(filename: string): string {
 }
 
 function getRelativePath(fullPath: string): string {
-  return fullPath.replace(/^apps\/web\/public\/images\/?/, "");
+  return fullPath;
 }
 
 function MediaLibrary() {
@@ -806,7 +808,7 @@ function MediaGrid({
                   ? onSelectFolder(item.relativePath)
                   : onToggleSelection(item.path)
               }
-              onCopyPath={() => onCopyToClipboard(item.publicPath)}
+              onCopyPath={() => onCopyToClipboard(item.publicUrl)}
             />
           ))}
         </div>
@@ -871,9 +873,9 @@ function MediaItemCard({
       <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
         {item.type === "dir" ? (
           <Icon icon="mdi:folder" className="text-3xl text-neutral-400" />
-        ) : item.downloadUrl ? (
+        ) : item.publicUrl ? (
           <img
-            src={item.downloadUrl}
+            src={item.publicUrl}
             alt={item.name}
             className="w-full h-full object-cover"
             loading="lazy"

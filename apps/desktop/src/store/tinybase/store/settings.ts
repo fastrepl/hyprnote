@@ -18,6 +18,7 @@ export const STORE_ID = "settings";
 
 export const SETTINGS_MAPPING = {
   values: {
+    content_base: { type: "string", path: ["storage", "content_base"] },
     autostart: { type: "boolean", path: ["general", "autostart"] },
     save_recordings: {
       type: "boolean",

@@ -1,6 +1,7 @@
 import { sep } from "@tauri-apps/api/path";
 
 import { commands as path2Commands } from "@hypr/plugin-path2";
+import { commands as settingsCommands } from "@hypr/plugin-settings";
 
 export const SESSION_META_FILE = "_meta.json";
 export const SESSION_TRANSCRIPT_FILE = "transcript.json";
@@ -10,6 +11,10 @@ export const CHAT_MESSAGES_FILE = "messages.json";
 
 export async function getDataDir(): Promise<string> {
   return path2Commands.base();
+}
+
+export async function getContentDir(): Promise<string> {
+  return settingsCommands.getContentBase();
 }
 
 export function buildSessionPath(

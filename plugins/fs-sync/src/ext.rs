@@ -24,8 +24,14 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
             .map_err(|e| crate::Error::Path(e.to_string()))
     }
 
+    fn content_base_dir(&self) -> PathBuf {
+        self.manager.app_handle().path2().content_base()
+    }
+
     fn sessions_dir(&self) -> Result<PathBuf, crate::Error> {
-        Ok(self.base_dir()?.join("sessions"))
+        let content_base = self.content_base_dir();
+        std::fs::create_dir_all(&content_base)?;
+        Ok(content_base.join("sessions"))
     }
 
     pub fn list_folders(&self) -> Result<ListFoldersResult, crate::Error> {
@@ -167,6 +173,18 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
         Ok(false)
     }
 
+    fn resolve_subdir(&self, subdir: &str) -> Result<PathBuf, crate::Error> {
+        if subdir == "sessions"
+            || subdir.starts_with("sessions/")
+            || subdir == "chats"
+            || subdir.starts_with("chats/")
+        {
+            Ok(self.content_base_dir().join(subdir))
+        } else {
+            Ok(self.base_dir()?.join(subdir))
+        }
+    }
+
     pub fn cleanup_orphan(
         &self,
         target: CleanupTarget,
@@ -176,14 +194,14 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
 
         match target {
             CleanupTarget::Files { subdir, extension } => {
-                let dir = self.base_dir()?.join(&subdir);
+                let dir = self.resolve_subdir(&subdir)?;
                 Ok(cleanup_files_in_dir(&dir, &extension, &valid_set)?)
             }
             CleanupTarget::Dirs {
                 subdir,
                 marker_file,
             } => {
-                let dir = self.base_dir()?.join(&subdir);
+                let dir = self.resolve_subdir(&subdir)?;
                 Ok(cleanup_dirs_recursive(&dir, &marker_file, &valid_set)?)
             }
             CleanupTarget::FilesRecursive {
@@ -191,7 +209,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
                 marker_file,
                 extension,
             } => {
-                let dir = self.base_dir()?.join(&subdir);
+                let dir = self.resolve_subdir(&subdir)?;
                 Ok(cleanup_files_recursive(
                     &dir,
                     &marker_file,

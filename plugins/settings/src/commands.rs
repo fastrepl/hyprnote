@@ -11,6 +11,12 @@ pub(crate) fn path<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) fn get_content_base<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> String {
+    app.settings().content_base().to_string_lossy().to_string()
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn load<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<serde_json::Value, String> {

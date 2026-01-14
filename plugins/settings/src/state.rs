@@ -4,7 +4,10 @@ use tokio::sync::RwLock;
 use crate::Error;
 use crate::ext::FILENAME;
 
+const DEFAULT_CONTENT_SUBDIR: &str = "meetings";
+
 pub struct SettingsState {
+    base: PathBuf,
     path: PathBuf,
     lock: RwLock<()>,
 }
@@ -13,6 +16,7 @@ impl SettingsState {
     pub fn new(base: PathBuf) -> Self {
         let path = base.join(FILENAME);
         Self {
+            base: base.clone(),
             path,
             lock: RwLock::new(()),
         }
@@ -20,6 +24,24 @@ impl SettingsState {
 
     pub fn path(&self) -> &PathBuf {
         &self.path
+    }
+
+    pub fn content_base(&self) -> PathBuf {
+        let content = std::fs::read_to_string(&self.path)
+            .ok()
+            .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
+            .and_then(|v| {
+                v.get("storage")?
+                    .get("content_base")?
+                    .as_str()
+                    .map(String::from)
+            })
+            .map(PathBuf::from);
+
+        match content {
+            Some(path) if path.exists() => path,
+            _ => self.base.join(DEFAULT_CONTENT_SUBDIR),
+        }
     }
 
     async fn read_or_default(&self) -> crate::Result<serde_json::Value> {

@@ -6,7 +6,7 @@ import {
   type TableConfigEntry,
 } from "../shared/deletion-marker";
 import type { LoadResult } from "../shared/load-result";
-import { getDataDir } from "../shared/paths";
+import { getContentDir } from "../shared/paths";
 import type { ChangedTables, SaveResult, TablesContent } from "../shared/types";
 import { toContent, toPersistedChanges } from "../shared/utils";
 import {
@@ -76,7 +76,7 @@ export function createMultiTableDirPersister<
     entityParser,
     loadSingle: async (entityId: string) => {
       try {
-        const dataDir = await getDataDir();
+        const dataDir = await getContentDir();
         const loadResult = await loadSingle(dataDir, entityId);
 
         if (loadResult.status === "error") {
@@ -102,7 +102,7 @@ export function createMultiTableDirPersister<
     save,
     load: async () => {
       try {
-        const dataDir = await getDataDir();
+        const dataDir = await getContentDir();
         const loadResult = await loadAll(dataDir);
 
         if (loadResult.status === "error") {

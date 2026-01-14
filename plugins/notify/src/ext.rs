@@ -7,6 +7,8 @@ use tauri_specta::Event;
 
 use crate::{FileChanged, WatcherState};
 
+const SETTINGS_FILENAME: &str = "settings.json";
+
 const DEBOUNCE_DELAY_MS: u64 = 900;
 const OWN_WRITES_TTL_MS: u128 = (DEBOUNCE_DELAY_MS as u128) * 2 + 200;
 
@@ -25,7 +27,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
         }
 
         let base = self.manager.app_handle().path2().base()?;
+        let content_base = self.manager.app_handle().path2().content_base();
         let app_handle = self.manager.app_handle().clone();
+        let content_base_for_closure = content_base.clone();
         let base_for_closure = base.clone();
         let own_writes = state.own_writes.clone();
 
@@ -64,10 +68,19 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                             }
 
                             let relative_path = path
-                                .strip_prefix(&base_for_closure)
+                                .strip_prefix(&content_base_for_closure)
+                                .or_else(|_| path.strip_prefix(&base_for_closure))
                                 .unwrap_or(path)
                                 .to_string_lossy()
                                 .to_string();
+
+                            if relative_path == SETTINGS_FILENAME {
+                                let _ = FileChanged {
+                                    path: relative_path,
+                                }
+                                .emit(&app_handle);
+                                continue;
+                            }
 
                             changed_paths.insert(relative_path);
                         }
@@ -94,7 +107,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
             },
         )?;
 
-        debouncer.watch(&base, RecursiveMode::Recursive)?;
+        debouncer.watch(&content_base, RecursiveMode::Recursive)?;
+        debouncer.watch(&base.join(SETTINGS_FILENAME), RecursiveMode::NonRecursive)?;
         *guard = Some(debouncer);
 
         Ok(())

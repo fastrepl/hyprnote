@@ -119,7 +119,8 @@ function credentialsToFormValues(
   configuredBaseUrl?: string,
   defaultBaseUrl?: string,
 ): FormValues {
-  const defaultCredentialsType = getDefaultCredentialsType(providerRequirements);
+  const defaultCredentialsType =
+    getDefaultCredentialsType(providerRequirements);
 
   if (!credentials) {
     return {
@@ -335,7 +336,8 @@ export function NonHyprProviderCard({
             {(credentialsType) => (
               <>
                 {showApiKey &&
-                  (!hasMultipleAuthOptions || credentialsType === "api_key") && (
+                  (!hasMultipleAuthOptions ||
+                    credentialsType === "api_key") && (
                     <form.Field name="api_key">
                       {(field) => (
                         <FormField

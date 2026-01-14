@@ -15,6 +15,16 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Er
         .await?;
     let db = UserDatabase::from(db);
 
+    // Older Hyprnote DBs can have `sessions.words` as NULL/empty, but db-user's
+    // `Session::from_row` expects a non-null JSON string.
+    let conn = db.conn()?;
+    conn.execute(
+        "UPDATE sessions SET words = '[]' WHERE words IS NULL OR words = ''",
+        (),
+    )
+    .await
+    .map_err(hypr_db_user::Error::from)?;
+
     let sessions = db.list_sessions(None).await?;
 
     let mut notes = Vec::new();

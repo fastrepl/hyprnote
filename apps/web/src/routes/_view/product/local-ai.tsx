@@ -88,7 +88,7 @@ function HeroSection() {
             Download for free
           </Link>
           <Link
-            to="/product/self-hosting"
+            to="/product/self-hosting/"
             className={cn([
               "px-6 py-3 text-base font-medium rounded-full",
               "border border-neutral-300 text-stone-600",

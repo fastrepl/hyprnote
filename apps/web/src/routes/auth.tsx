@@ -24,7 +24,7 @@ export const Route = createFileRoute("/auth")({
 
     if (user) {
       if (search.flow === "web") {
-        throw redirect({ href: search.redirect || "/app/account" });
+        throw redirect({ to: search.redirect || "/app/account/" } as any);
       }
 
       if (search.flow === "desktop") {
@@ -32,15 +32,15 @@ export const Route = createFileRoute("/auth")({
         const { data } = await supabase.auth.getSession();
 
         if (data.session) {
-          throw redirect({
-            to: "/callback/auth",
-            search: {
-              flow: "desktop",
-              scheme: search.scheme,
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token,
-            },
-          });
+                    throw redirect({
+                      to: "/callback/auth/",
+                      search: {
+                        flow: "desktop",
+                        scheme: search.scheme,
+                        access_token: data.session.access_token,
+                        refresh_token: data.session.refresh_token,
+                      },
+                    });
         }
       }
     }

@@ -1,14 +1,7 @@
-import {
-  Building2,
-  CircleMinus,
-  FileText,
-  SearchIcon,
-  Users,
-} from "lucide-react";
+import { Building2, CircleMinus, FileText, SearchIcon } from "lucide-react";
 import React, { useCallback, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { Card } from "@hypr/ui/components/ui/card";
 import { Input } from "@hypr/ui/components/ui/input";
 import {
   Popover,
@@ -192,60 +185,49 @@ export function DetailsColumn({
 
           {duplicatesWithData.length > 0 && (
             <div className="px-6 py-4 border-b border-neutral-200 bg-amber-50">
-              <Card className="border-amber-200 bg-white">
-                <div className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-0.5">
-                      <Users className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-amber-900 mb-1">
-                        Duplicate Contact
-                        {duplicatesWithData.length > 1 ? "s" : ""} Found
-                      </h4>
-                      <p className="text-sm text-amber-800 mb-3">
-                        {duplicatesWithData.length > 1
-                          ? `${duplicatesWithData.length} contacts`
-                          : "Another contact"}{" "}
-                        with the same email address{" "}
-                        {duplicatesWithData.length > 1 ? "exist" : "exists"}.
-                        Merge to consolidate all related notes and information.
-                      </p>
-                      <div className="space-y-2">
-                        {duplicatesWithData.map((dup) => (
-                          <div
-                            key={dup.id}
-                            className="flex items-center justify-between p-2 bg-neutral-50 rounded-md border border-neutral-200"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
-                                <span className="text-xs font-medium text-neutral-600">
-                                  {getInitials(dup.name || dup.email)}
-                                </span>
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-neutral-900">
-                                  {dup.name || "Unnamed Contact"}
-                                </div>
-                                <div className="text-xs text-neutral-500">
-                                  {dup.email}
-                                </div>
-                              </div>
-                            </div>
-                            <Button
-                              onClick={() => handleMergeContacts(dup.id)}
-                              size="sm"
-                              variant="default"
-                            >
-                              Merge
-                            </Button>
-                          </div>
-                        ))}
+              <h4 className="text-sm font-semibold text-amber-900 mb-1">
+                Duplicate Contact
+                {duplicatesWithData.length > 1 ? "s" : ""} Found
+              </h4>
+              <p className="text-sm text-amber-800 mb-3">
+                {duplicatesWithData.length > 1
+                  ? `${duplicatesWithData.length} contacts`
+                  : "Another contact"}{" "}
+                with the same email address{" "}
+                {duplicatesWithData.length > 1 ? "exist" : "exists"}. Merge to
+                consolidate all related notes and information.
+              </p>
+              <div className="space-y-2">
+                {duplicatesWithData.map((dup) => (
+                  <div
+                    key={dup.id}
+                    className="flex items-center justify-between p-2 bg-neutral-50 rounded-md border border-neutral-200"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+                        <span className="text-xs font-medium text-neutral-600">
+                          {getInitials(dup.name || dup.email)}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-neutral-900">
+                          {dup.name || "Unnamed Contact"}
+                        </div>
+                        <div className="text-xs text-neutral-500">
+                          {dup.email}
+                        </div>
                       </div>
                     </div>
+                    <Button
+                      onClick={() => handleMergeContacts(dup.id)}
+                      size="sm"
+                      variant="default"
+                    >
+                      Merge
+                    </Button>
                   </div>
-                </div>
-              </Card>
+                ))}
+              </div>
             </div>
           )}
 

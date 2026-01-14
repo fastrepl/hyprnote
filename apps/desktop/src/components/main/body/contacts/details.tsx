@@ -128,18 +128,31 @@ export function DetailsColumn({
 
         if (duplicateData && primaryData) {
           const mergedFields: Record<string, any> = {};
-          if (!primaryData.job_title && duplicateData.job_title) {
-            mergedFields.job_title = duplicateData.job_title;
+
+          if (duplicateData.job_title) {
+            if (primaryData.job_title) {
+              mergedFields.job_title = `${primaryData.job_title}, ${duplicateData.job_title}`;
+            } else {
+              mergedFields.job_title = duplicateData.job_title;
+            }
           }
-          if (
-            !primaryData.linkedin_username &&
-            duplicateData.linkedin_username
-          ) {
-            mergedFields.linkedin_username = duplicateData.linkedin_username;
+
+          if (duplicateData.linkedin_username) {
+            if (primaryData.linkedin_username) {
+              mergedFields.linkedin_username = `${primaryData.linkedin_username}, ${duplicateData.linkedin_username}`;
+            } else {
+              mergedFields.linkedin_username = duplicateData.linkedin_username;
+            }
           }
-          if (!primaryData.memo && duplicateData.memo) {
-            mergedFields.memo = duplicateData.memo;
+
+          if (duplicateData.memo) {
+            if (primaryData.memo) {
+              mergedFields.memo = `${primaryData.memo}, ${duplicateData.memo}`;
+            } else {
+              mergedFields.memo = duplicateData.memo;
+            }
           }
+
           if (!primaryData.org_id && duplicateData.org_id) {
             mergedFields.org_id = duplicateData.org_id;
           }
@@ -185,12 +198,12 @@ export function DetailsColumn({
 
           <div className="flex-1 overflow-y-auto">
             {duplicatesWithData.length > 0 && (
-              <div className="px-6 py-4 border-b border-neutral-200 bg-amber-50">
-                <h4 className="text-sm font-semibold text-amber-900 mb-1">
+              <div className="px-6 py-4 border-b border-neutral-200 bg-red-50">
+                <h4 className="text-sm font-semibold text-red-900 mb-1">
                   Duplicate Contact
                   {duplicatesWithData.length > 1 ? "s" : ""} Found
                 </h4>
-                <p className="text-sm text-amber-800 mb-3">
+                <p className="text-sm text-red-800 mb-3">
                   {duplicatesWithData.length > 1
                     ? `${duplicatesWithData.length} contacts`
                     : "Another contact"}{" "}
@@ -199,108 +212,35 @@ export function DetailsColumn({
                   consolidate all related notes and information.
                 </p>
                 <div className="space-y-2">
-                  {duplicatesWithData.map((dup) => {
-                    const conflicts = [];
-                    if (
-                      selectedPersonData.name &&
-                      dup.name &&
-                      selectedPersonData.name !== dup.name
-                    ) {
-                      conflicts.push({ field: "Name", value: dup.name });
-                    }
-                    if (
-                      selectedPersonData.job_title &&
-                      dup.job_title &&
-                      selectedPersonData.job_title !== dup.job_title
-                    ) {
-                      conflicts.push({
-                        field: "Job Title",
-                        value: dup.job_title,
-                      });
-                    }
-                    if (
-                      selectedPersonData.linkedin_username &&
-                      dup.linkedin_username &&
-                      selectedPersonData.linkedin_username !==
-                        dup.linkedin_username
-                    ) {
-                      conflicts.push({
-                        field: "LinkedIn",
-                        value: dup.linkedin_username,
-                      });
-                    }
-                    if (
-                      selectedPersonData.org_id &&
-                      dup.org_id &&
-                      selectedPersonData.org_id !== dup.org_id
-                    ) {
-                      const dupOrg = allHumans[dup.id]?.org_id
-                        ? store?.getRow("organizations", dup.org_id as string)
-                        : null;
-                      if (dupOrg) {
-                        conflicts.push({
-                          field: "Company",
-                          value: dupOrg.name,
-                        });
-                      }
-                    }
-                    if (
-                      selectedPersonData.memo &&
-                      dup.memo &&
-                      selectedPersonData.memo !== dup.memo
-                    ) {
-                      conflicts.push({ field: "Notes", value: dup.memo });
-                    }
-
-                    return (
-                      <div
-                        key={dup.id}
-                        className="p-2 bg-neutral-50 rounded-md border border-neutral-200"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
-                              <span className="text-xs font-medium text-neutral-600">
-                                {getInitials(dup.name || dup.email)}
-                              </span>
-                            </div>
-                            <div>
-                              <div className="text-sm font-medium text-neutral-900">
-                                {dup.name || "Unnamed Contact"}
-                              </div>
-                              <div className="text-xs text-neutral-500">
-                                {dup.email}
-                              </div>
-                            </div>
-                          </div>
-                          <Button
-                            onClick={() => handleMergeContacts(dup.id)}
-                            size="sm"
-                            variant="default"
-                          >
-                            Merge
-                          </Button>
+                  {duplicatesWithData.map((dup) => (
+                    <div
+                      key={dup.id}
+                      className="flex items-center justify-between p-2 bg-neutral-50 rounded-md border border-neutral-200"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+                          <span className="text-xs font-medium text-neutral-600">
+                            {getInitials(dup.name || dup.email)}
+                          </span>
                         </div>
-                        {conflicts.length > 0 && (
-                          <div className="mt-2 pt-2 border-t border-neutral-200 space-y-1">
-                            {conflicts.map((conflict, idx) => (
-                              <div
-                                key={idx}
-                                className="text-xs text-amber-700 flex gap-1"
-                              >
-                                <span className="font-medium">
-                                  {conflict.field}:
-                                </span>
-                                <span className="truncate">
-                                  {conflict.value}
-                                </span>
-                              </div>
-                            ))}
+                        <div>
+                          <div className="text-sm font-medium text-neutral-900">
+                            {dup.name || "Unnamed Contact"}
                           </div>
-                        )}
+                          <div className="text-xs text-neutral-500">
+                            {dup.email}
+                          </div>
+                        </div>
                       </div>
-                    );
-                  })}
+                      <Button
+                        onClick={() => handleMergeContacts(dup.id)}
+                        size="sm"
+                        variant="default"
+                      >
+                        Merge
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

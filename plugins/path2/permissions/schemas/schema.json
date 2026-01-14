@@ -307,10 +307,34 @@
           "markdownDescription": "Denies the base command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the path2 plugin\n#### This default permission set includes:\n\n- `allow-base`",
+          "description": "Enables the obsidian_vaults command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-obsidian-vaults",
+          "markdownDescription": "Enables the obsidian_vaults command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the obsidian_vaults command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-obsidian-vaults",
+          "markdownDescription": "Denies the obsidian_vaults command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the sanitize command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-sanitize",
+          "markdownDescription": "Enables the sanitize command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the sanitize command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-sanitize",
+          "markdownDescription": "Denies the sanitize command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the path2 plugin\n#### This default permission set includes:\n\n- `allow-base`\n- `allow-obsidian_vaults`\n- `allow-sanitize`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the path2 plugin\n#### This default permission set includes:\n\n- `allow-base`"
+          "markdownDescription": "Default permissions for the path2 plugin\n#### This default permission set includes:\n\n- `allow-base`\n- `allow-obsidian_vaults`\n- `allow-sanitize`"
         }
       ]
     }

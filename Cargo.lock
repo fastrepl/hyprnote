@@ -18745,6 +18745,7 @@ version = "0.1.0"
 dependencies = [
  "sanitize-filename",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",

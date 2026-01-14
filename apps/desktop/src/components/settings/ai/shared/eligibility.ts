@@ -11,6 +11,7 @@ export type ProviderRequirement =
   | { kind: "requires_auth" }
   | { kind: "requires_entitlement"; entitlement: "pro" }
   | { kind: "requires_config"; fields: ConfigField[] }
+  | { kind: "requires_config_one_of"; fieldSets: ConfigField[][] }
   | { kind: "requires_platform"; platform: "apple_silicon" };
 
 export function requiresEntitlement(
@@ -36,6 +37,13 @@ export function getRequiredConfigFields(
 ): ConfigField[] {
   const req = requirements.find((r) => r.kind === "requires_config");
   return req?.kind === "requires_config" ? req.fields : [];
+}
+
+export function getRequiredConfigFieldSets(
+  requirements: readonly ProviderRequirement[],
+): ConfigField[][] | null {
+  const req = requirements.find((r) => r.kind === "requires_config_one_of");
+  return req?.kind === "requires_config_one_of" ? req.fieldSets : null;
 }
 
 export type ProviderEligibilityContext = {
@@ -90,6 +98,19 @@ export function getProviderSelectionBlockers(
         });
         if (missingFields.length > 0) {
           blockers.push({ code: "missing_config", fields: missingFields });
+        }
+        break;
+      }
+      case "requires_config_one_of": {
+        const hasCompleteFieldSet = req.fieldSets.some((fieldSet) => {
+          return fieldSet.every((field) => {
+            const value = getConfigValue(context, field);
+            return value && value.trim() !== "";
+          });
+        });
+        if (!hasCompleteFieldSet) {
+          const allFields = req.fieldSets.flat();
+          blockers.push({ code: "missing_config", fields: allFields });
         }
         break;
       }

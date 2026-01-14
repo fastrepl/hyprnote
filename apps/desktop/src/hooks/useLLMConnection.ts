@@ -296,11 +296,16 @@ const createLanguageModel = (
     }
 
     case "amazon_bedrock": {
-      const provider = createAmazonBedrock({
-        region: conn.region || "us-east-1",
-        accessKeyId: conn.accessKeyId,
-        secretAccessKey: conn.secretAccessKey,
-      });
+      const provider = conn.apiKey
+        ? createAmazonBedrock({
+            apiKey: conn.apiKey,
+            region: conn.region || "us-east-1",
+          })
+        : createAmazonBedrock({
+            region: conn.region || "us-east-1",
+            accessKeyId: conn.accessKeyId,
+            secretAccessKey: conn.secretAccessKey,
+          });
       return wrapWithThinkingMiddleware(provider(conn.modelId));
     }
 

@@ -103,8 +103,11 @@ const _PROVIDERS = [
     baseUrl: undefined,
     requirements: [
       {
-        kind: "requires_config",
-        fields: ["access_key_id", "secret_access_key", "region"],
+        kind: "requires_config_one_of",
+        fieldSets: [
+          ["api_key"],
+          ["access_key_id", "secret_access_key", "region"],
+        ],
       },
     ],
   },

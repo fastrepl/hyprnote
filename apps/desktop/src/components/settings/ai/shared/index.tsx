@@ -20,8 +20,10 @@ import { cn } from "@hypr/utils";
 import { useBillingAccess } from "../../../../billing";
 import * as settings from "../../../../store/tinybase/store/settings";
 import {
+  type ConfigField,
   getProviderSelectionBlockers,
   getRequiredConfigFields,
+  getRequiredConfigFieldSets,
   type ProviderRequirement,
   requiresEntitlement,
 } from "./eligibility";
@@ -85,6 +87,31 @@ type FormValues = {
   region: string;
 };
 
+function getDefaultCredentialsType(
+  providerRequirements: readonly ProviderRequirement[],
+): "api_key" | "aws" {
+  const requiredFields = getRequiredConfigFields(providerRequirements);
+  if (requiredFields.length > 0) {
+    return requiredFields.some((f) =>
+      ["access_key_id", "secret_access_key", "region"].includes(f),
+    )
+      ? "aws"
+      : "api_key";
+  }
+
+  const fieldSets = getRequiredConfigFieldSets(providerRequirements);
+  if (fieldSets && fieldSets.length > 0) {
+    const firstSet = fieldSets[0];
+    return firstSet.some((f) =>
+      ["access_key_id", "secret_access_key", "region"].includes(f),
+    )
+      ? "aws"
+      : "api_key";
+  }
+
+  return "api_key";
+}
+
 function credentialsToFormValues(
   credentials: Credentials | null,
   providerType: ProviderType,
@@ -92,15 +119,12 @@ function credentialsToFormValues(
   configuredBaseUrl?: string,
   defaultBaseUrl?: string,
 ): FormValues {
-  const requiredFields = getRequiredConfigFields(providerRequirements);
-  const requiresAws = requiredFields.some((f) =>
-    ["access_key_id", "secret_access_key", "region"].includes(f),
-  );
+  const defaultCredentialsType = getDefaultCredentialsType(providerRequirements);
 
   if (!credentials) {
     return {
       type: providerType,
-      credentials_type: requiresAws ? "aws" : "api_key",
+      credentials_type: defaultCredentialsType,
       base_url: configuredBaseUrl ?? defaultBaseUrl ?? "",
       api_key: "",
       access_key_id: "",
@@ -191,11 +215,18 @@ export function NonHyprProviderCard({
   );
 
   const requiredFields = getRequiredConfigFields(config.requirements);
-  const showApiKey = requiredFields.includes("api_key");
-  const showBaseUrl = requiredFields.includes("base_url");
-  const showAccessKeyId = requiredFields.includes("access_key_id");
-  const showSecretAccessKey = requiredFields.includes("secret_access_key");
-  const showRegion = requiredFields.includes("region");
+  const fieldSets = getRequiredConfigFieldSets(config.requirements);
+  const hasMultipleAuthOptions = fieldSets !== null && fieldSets.length > 1;
+
+  const allRequiredFields: ConfigField[] = hasMultipleAuthOptions
+    ? fieldSets.flat()
+    : requiredFields;
+
+  const showApiKey = allRequiredFields.includes("api_key");
+  const showBaseUrl = allRequiredFields.includes("base_url");
+  const showAccessKeyId = allRequiredFields.includes("access_key_id");
+  const showSecretAccessKey = allRequiredFields.includes("secret_access_key");
+  const showRegion = allRequiredFields.includes("region");
 
   const form = useForm({
     onSubmit: ({ value }) => {
@@ -258,57 +289,104 @@ export function NonHyprProviderCard({
             e.stopPropagation();
           }}
         >
+          {hasMultipleAuthOptions && (
+            <form.Field name="credentials_type">
+              {(field) => (
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium">
+                    Authentication Method
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => field.handleChange("api_key")}
+                      className={cn([
+                        "flex-1 px-3 py-2 text-sm rounded-lg border transition-colors",
+                        field.state.value === "api_key"
+                          ? "bg-neutral-900 text-white border-neutral-900"
+                          : "bg-white text-neutral-700 border-neutral-300 hover:border-neutral-400",
+                      ])}
+                    >
+                      API Key
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => field.handleChange("aws")}
+                      className={cn([
+                        "flex-1 px-3 py-2 text-sm rounded-lg border transition-colors",
+                        field.state.value === "aws"
+                          ? "bg-neutral-900 text-white border-neutral-900"
+                          : "bg-white text-neutral-700 border-neutral-300 hover:border-neutral-400",
+                      ])}
+                    >
+                      AWS Credentials
+                    </button>
+                  </div>
+                </div>
+              )}
+            </form.Field>
+          )}
           {showBaseUrl && (
             <form.Field name="base_url">
               {(field) => <FormField field={field} label="Base URL" />}
             </form.Field>
           )}
-          {showApiKey && (
-            <form.Field name="api_key">
-              {(field) => (
-                <FormField
-                  field={field}
-                  label="API Key"
-                  placeholder="Enter your API key"
-                  type="password"
-                />
-              )}
-            </form.Field>
-          )}
-          {showAccessKeyId && (
-            <form.Field name="access_key_id">
-              {(field) => (
-                <FormField
-                  field={field}
-                  label="Access Key ID"
-                  placeholder="Enter your AWS Access Key ID"
-                />
-              )}
-            </form.Field>
-          )}
-          {showSecretAccessKey && (
-            <form.Field name="secret_access_key">
-              {(field) => (
-                <FormField
-                  field={field}
-                  label="Secret Access Key"
-                  placeholder="Enter your AWS Secret Access Key"
-                  type="password"
-                />
-              )}
-            </form.Field>
-          )}
-          {showRegion && (
-            <form.Field name="region">
-              {(field) => (
-                <FormField
-                  field={field}
-                  label="Region"
-                  placeholder="e.g., us-east-1"
-                />
-              )}
-            </form.Field>
-          )}
+          <form.Subscribe selector={(state) => state.values.credentials_type}>
+            {(credentialsType) => (
+              <>
+                {showApiKey &&
+                  (!hasMultipleAuthOptions || credentialsType === "api_key") && (
+                    <form.Field name="api_key">
+                      {(field) => (
+                        <FormField
+                          field={field}
+                          label="API Key"
+                          placeholder="Enter your API key"
+                          type="password"
+                        />
+                      )}
+                    </form.Field>
+                  )}
+                {showAccessKeyId &&
+                  (!hasMultipleAuthOptions || credentialsType === "aws") && (
+                    <form.Field name="access_key_id">
+                      {(field) => (
+                        <FormField
+                          field={field}
+                          label="Access Key ID"
+                          placeholder="Enter your AWS Access Key ID"
+                        />
+                      )}
+                    </form.Field>
+                  )}
+                {showSecretAccessKey &&
+                  (!hasMultipleAuthOptions || credentialsType === "aws") && (
+                    <form.Field name="secret_access_key">
+                      {(field) => (
+                        <FormField
+                          field={field}
+                          label="Secret Access Key"
+                          placeholder="Enter your AWS Secret Access Key"
+                          type="password"
+                        />
+                      )}
+                    </form.Field>
+                  )}
+                {showRegion &&
+                  (!hasMultipleAuthOptions || credentialsType === "aws") && (
+                    <form.Field name="region">
+                      {(field) => (
+                        <FormField
+                          field={field}
+                          label="Region"
+                          placeholder="e.g., us-east-1"
+                        />
+                      )}
+                    </form.Field>
+                  )}
+              </>
+            )}
+          </form.Subscribe>
           {!showBaseUrl && config.baseUrl && (
             <details className="space-y-4 pt-2">
               <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">

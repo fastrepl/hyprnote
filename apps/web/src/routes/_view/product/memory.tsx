@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_view/product/memory")({
         content:
           "Your memory layer that connects all your meetings and conversations. Coming soon.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 });

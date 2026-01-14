@@ -25,7 +25,7 @@ const NOVA3_MEDICAL_LANGUAGES: &[&str] = &[
 
 const ENGLISH_ONLY: &[&str] = &["en", "en-US"];
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, strum::EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, strum::EnumString, strum::AsRefStr)]
 pub enum DeepgramModel {
     #[default]
     #[strum(serialize = "nova-3", serialize = "nova-3-general")]
@@ -50,10 +50,6 @@ pub enum DeepgramModel {
 }
 
 impl DeepgramModel {
-    pub fn from_model_str(model: Option<&str>) -> Self {
-        model.and_then(|m| m.parse().ok()).unwrap_or_default()
-    }
-
     fn supported_languages(&self) -> &'static [&'static str] {
         match self {
             Self::Nova3General => NOVA3_GENERAL_LANGUAGES,
@@ -61,6 +57,16 @@ impl DeepgramModel {
             Self::Nova2General => NOVA2_GENERAL_LANGUAGES,
             Self::Nova2Specialized => ENGLISH_ONLY,
         }
+    }
+
+    pub fn best_for_languages(languages: &[hypr_language::Language]) -> Option<Self> {
+        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
+        for model in [Self::Nova3General, Self::Nova2General] {
+            if model.supported_languages().contains(&primary_lang) {
+                return Some(model);
+            }
+        }
+        None
     }
 }
 
@@ -84,11 +90,14 @@ impl DeepgramAdapter {
 
     fn is_supported_languages_impl(
         languages: &[hypr_language::Language],
-        model: Option<&str>,
+        _model: Option<&str>,
     ) -> bool {
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        let deepgram_model = DeepgramModel::from_model_str(model);
-        deepgram_model.supported_languages().contains(&primary_lang)
+        if languages.len() >= 2 {
+            return language::can_use_multi(DeepgramModel::Nova3General.as_ref(), languages)
+                || language::can_use_multi(DeepgramModel::Nova2General.as_ref(), languages);
+        }
+
+        DeepgramModel::best_for_languages(languages).is_some()
     }
 }
 

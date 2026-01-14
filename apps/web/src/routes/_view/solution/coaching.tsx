@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/coaching")({
         content:
           "Capture coaching sessions, client progress, and breakthrough moments with AI-powered meeting notes. Focus on your clients with Hyprnote.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Coaches - Hyprnote",

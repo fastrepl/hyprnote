@@ -5,10 +5,12 @@ use futures_util::{Stream, StreamExt};
 use hypr_audio_interface::AsyncSource;
 
 mod error;
+mod pcm;
 mod resampler;
 mod vorbis;
 
 pub use error::*;
+pub use pcm::*;
 pub use resampler::*;
 pub use vorbis::*;
 

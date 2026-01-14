@@ -335,98 +335,89 @@ mod tests {
 
     #[test]
     fn test_adapter_kind_from_url_and_languages() {
-        let en = vec![hypr_language::ISO639::En.into()];
-        let ar = vec![hypr_language::ISO639::Ar.into()];
-        let zh = vec![hypr_language::ISO639::Zh.into()];
+        use hypr_language::ISO639::*;
 
-        assert_eq!(
-            AdapterKind::from_url_and_languages("https://api.hyprnote.com/stt", &en, None),
-            AdapterKind::Deepgram
-        );
-
-        assert_eq!(
-            AdapterKind::from_url_and_languages("https://api.hyprnote.com/stt", &ar, None),
-            AdapterKind::Soniox
-        );
-
-        assert_eq!(
-            AdapterKind::from_url_and_languages("http://localhost:3001/stt", &en, None),
-            AdapterKind::Deepgram
-        );
-
-        assert_eq!(
-            AdapterKind::from_url_and_languages("http://localhost:3001/stt", &ar, None),
-            AdapterKind::Soniox
-        );
-
-        assert_eq!(
-            AdapterKind::from_url_and_languages("http://localhost:50060/v1", &en, None),
-            AdapterKind::Argmax
-        );
-
-        assert_eq!(
-            AdapterKind::from_url_and_languages(
+        let cases: &[(&str, &[hypr_language::ISO639], Option<&str>, AdapterKind)] = &[
+            // HyprnoteCloud - single language (model is ignored for adapter selection)
+            (
                 "https://api.hyprnote.com/stt",
-                &zh,
-                Some("nova-3")
+                &[En],
+                None,
+                AdapterKind::Deepgram,
             ),
-            AdapterKind::Soniox
-        );
-
-        assert_eq!(
-            AdapterKind::from_url_and_languages(
+            (
                 "https://api.hyprnote.com/stt",
-                &zh,
-                Some("nova-2")
+                &[En],
+                Some("cloud"),
+                AdapterKind::Deepgram,
             ),
-            AdapterKind::Deepgram
-        );
-
-        assert_eq!(
-            AdapterKind::from_url_and_languages(
+            (
                 "https://api.hyprnote.com/stt",
-                &zh,
-                Some("nova-2-general")
+                &[Zh],
+                None,
+                AdapterKind::Deepgram,
             ),
-            AdapterKind::Deepgram
-        );
-
-        assert_eq!(
-            AdapterKind::from_url_and_languages(
+            (
                 "https://api.hyprnote.com/stt",
-                &zh,
-                Some("nova-2-meeting")
+                &[Ja],
+                None,
+                AdapterKind::Deepgram,
             ),
-            AdapterKind::Soniox
-        );
-
-        assert_eq!(
-            AdapterKind::from_url_and_languages(
+            (
                 "https://api.hyprnote.com/stt",
-                &zh,
-                Some("nova-3-medical")
+                &[Ar],
+                None,
+                AdapterKind::Soniox,
             ),
-            AdapterKind::Soniox
-        );
-
-        let ja = vec![hypr_language::ISO639::Ja.into()];
-        assert_eq!(
-            AdapterKind::from_url_and_languages(
+            // HyprnoteCloud - multi-language
+            (
                 "https://api.hyprnote.com/stt",
-                &ja,
-                Some("nova-3-medical")
+                &[En, Es],
+                None,
+                AdapterKind::Deepgram,
             ),
-            AdapterKind::Soniox
-        );
-
-        assert_eq!(
-            AdapterKind::from_url_and_languages(
+            (
                 "https://api.hyprnote.com/stt",
-                &ja,
-                Some("nova-3")
+                &[En, Ko],
+                None,
+                AdapterKind::Soniox,
             ),
-            AdapterKind::Deepgram
-        );
+            (
+                "https://api.hyprnote.com/stt",
+                &[Ko, En],
+                None,
+                AdapterKind::Soniox,
+            ),
+            // localhost proxy
+            (
+                "http://localhost:3001/stt",
+                &[En],
+                None,
+                AdapterKind::Deepgram,
+            ),
+            (
+                "http://localhost:3001/stt",
+                &[Ar],
+                None,
+                AdapterKind::Soniox,
+            ),
+            // localhost argmax
+            (
+                "http://localhost:50060/v1",
+                &[En],
+                None,
+                AdapterKind::Argmax,
+            ),
+        ];
+
+        for (url, langs, model, expected) in cases {
+            let langs: Vec<hypr_language::Language> = langs.iter().map(|l| (*l).into()).collect();
+            assert_eq!(
+                AdapterKind::from_url_and_languages(url, &langs, *model),
+                *expected,
+                "url={url}, langs={langs:?}, model={model:?}"
+            );
+        }
     }
 
     #[test]

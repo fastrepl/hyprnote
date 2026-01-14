@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_view/press-kit/")({
         name: "description",
         content: DESCRIPTION,
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: TITLE,

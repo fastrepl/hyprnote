@@ -36,89 +36,8 @@ export function getSitemap(): Sitemap<TRoutes> {
         changeFrequency: "weekly",
       },
 
-      "/product/ai-assistant": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
-      "/product/ai-notetaking": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
-      "/product/api": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
-      "/product/bot": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
-      "/product/extensions": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
-      "/product/local-ai": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
-      "/product/memory": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
-      "/product/mini-apps": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
-      "/product/notepad": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
       "/opensource": {
         priority: 0.8,
-        changeFrequency: "monthly",
-      },
-      "/product/self-hosting": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
-      "/product/integrations": {
-        priority: 0.8,
-        changeFrequency: "monthly",
-      },
-
-      "/solution/customer-success": {
-        priority: 0.7,
-        changeFrequency: "monthly",
-      },
-      "/solution/field-engineering": {
-        priority: 0.7,
-        changeFrequency: "monthly",
-      },
-      "/solution/government": {
-        priority: 0.7,
-        changeFrequency: "monthly",
-      },
-      "/solution/healthcare": {
-        priority: 0.7,
-        changeFrequency: "monthly",
-      },
-      "/solution/legal": {
-        priority: 0.7,
-        changeFrequency: "monthly",
-      },
-      "/solution/media": {
-        priority: 0.7,
-        changeFrequency: "monthly",
-      },
-      "/solution/project-management": {
-        priority: 0.7,
-        changeFrequency: "monthly",
-      },
-      "/solution/recruiting": {
-        priority: 0.7,
-        changeFrequency: "monthly",
-      },
-      "/solution/sales": {
-        priority: 0.7,
         changeFrequency: "monthly",
       },
 
@@ -150,10 +69,6 @@ export function getSitemap(): Sitemap<TRoutes> {
         priority: 0.6,
         changeFrequency: "monthly",
       },
-      "/press-kit": {
-        priority: 0.5,
-        changeFrequency: "monthly",
-      },
       "/roadmap": {
         priority: 0.7,
         changeFrequency: "weekly",
@@ -161,14 +76,6 @@ export function getSitemap(): Sitemap<TRoutes> {
       "/security": {
         priority: 0.6,
         changeFrequency: "monthly",
-      },
-      "/templates": {
-        priority: 0.7,
-        changeFrequency: "weekly",
-      },
-      "/shortcuts": {
-        priority: 0.7,
-        changeFrequency: "weekly",
       },
 
       "/download": {
@@ -291,52 +198,6 @@ export function getSitemap(): Sitemap<TRoutes> {
         }
       },
 
-      "/templates/$slug": async () => {
-        try {
-          const path = await import("path");
-          const url = await import("url");
-          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
-          const modulePath = path.resolve(
-            __dirname,
-            "../../.content-collections/generated/allTemplates.js",
-          );
-          const imported = await import(modulePath);
-          const allTemplates = imported.default ?? imported.allTemplates ?? [];
-          if (!Array.isArray(allTemplates)) return [];
-          return allTemplates.map((template: any) => ({
-            path: `/templates/${template.slug}`,
-            priority: 0.7,
-            changeFrequency: "weekly" as const,
-          }));
-        } catch (error) {
-          console.warn("Failed to load templates for sitemap:", error);
-          return [];
-        }
-      },
-
-      "/shortcuts/$slug": async () => {
-        try {
-          const path = await import("path");
-          const url = await import("url");
-          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
-          const modulePath = path.resolve(
-            __dirname,
-            "../../.content-collections/generated/allShortcuts.js",
-          );
-          const imported = await import(modulePath);
-          const allShortcuts = imported.default ?? imported.allShortcuts ?? [];
-          if (!Array.isArray(allShortcuts)) return [];
-          return allShortcuts.map((shortcut: any) => ({
-            path: `/shortcuts/${shortcut.slug}`,
-            priority: 0.7,
-            changeFrequency: "weekly" as const,
-          }));
-        } catch (error) {
-          console.warn("Failed to load shortcuts for sitemap:", error);
-          return [];
-        }
-      },
-
       "/roadmap/$slug": async () => {
         try {
           const path = await import("path");
@@ -357,29 +218,6 @@ export function getSitemap(): Sitemap<TRoutes> {
           }));
         } catch (error) {
           console.warn("Failed to load roadmap items for sitemap:", error);
-          return [];
-        }
-      },
-
-      "/vs/$slug": async () => {
-        try {
-          const path = await import("path");
-          const url = await import("url");
-          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
-          const modulePath = path.resolve(
-            __dirname,
-            "../../.content-collections/generated/allVs.js",
-          );
-          const imported = await import(modulePath);
-          const allVs = imported.default ?? imported.allVs ?? [];
-          if (!Array.isArray(allVs)) return [];
-          return allVs.map((vs: any) => ({
-            path: `/vs/${vs.slug}`,
-            priority: 0.7,
-            changeFrequency: "monthly" as const,
-          }));
-        } catch (error) {
-          console.warn("Failed to load vs pages for sitemap:", error);
           return [];
         }
       },

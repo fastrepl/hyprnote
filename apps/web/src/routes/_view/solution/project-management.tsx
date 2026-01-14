@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/project-management")({
         content:
           "Capture every project meeting with AI-powered notes. Track decisions, action items, and stakeholder discussions. Keep projects on track with Hyprnote.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Project Management - Hyprnote",

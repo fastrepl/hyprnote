@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/research")({
         content:
           "Capture interviews, observations, and research insights with AI-powered meeting notes. Analyze faster with Hyprnote.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Researchers - Hyprnote",

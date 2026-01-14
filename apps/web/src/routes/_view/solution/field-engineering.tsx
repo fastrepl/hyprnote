@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/field-engineering")({
         content:
           "Capture technical discussions and customer meetings on the go with AI-powered meeting notes. Document implementations, troubleshooting, and field visits with Hyprnote.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Field Engineering - Hyprnote",

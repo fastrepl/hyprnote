@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLinkIcon } from "lucide-react";
 import {
   type ReactNode,
@@ -13,6 +12,7 @@ import { useResizeObserver } from "usehooks-ts";
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
@@ -40,7 +40,7 @@ export function AccountSettings() {
   }, [isAuthenticated]);
 
   const handleOpenAccount = useCallback(() => {
-    void openUrl(`${WEB_APP_BASE_URL}/app/account`);
+    void openerCommands.openUrl(`${WEB_APP_BASE_URL}/app/account`, null);
   }, []);
 
   const handleSignIn = useCallback(async () => {
@@ -229,11 +229,14 @@ function BillingButton() {
       event: "upgrade_clicked",
       plan: "pro",
     });
-    void openUrl(`${WEB_APP_BASE_URL}/app/checkout?period=monthly`);
+    void openerCommands.openUrl(
+      `${WEB_APP_BASE_URL}/app/checkout?period=monthly`,
+      null,
+    );
   }, []);
 
   const handleOpenAccount = useCallback(() => {
-    void openUrl(`${WEB_APP_BASE_URL}/app/account`);
+    void openerCommands.openUrl(`${WEB_APP_BASE_URL}/app/account`, null);
   }, []);
 
   if (isPro) {

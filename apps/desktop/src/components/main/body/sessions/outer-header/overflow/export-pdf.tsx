@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { save } from "@tauri-apps/plugin-dialog";
-import { openPath } from "@tauri-apps/plugin-opener";
 import { FileTextIcon, Loader2Icon } from "lucide-react";
 import { useMemo } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { commands as pdfCommands, type TranscriptItem } from "@hypr/plugin-pdf";
 import { json2md } from "@hypr/tiptap/shared";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
@@ -185,7 +185,7 @@ export function ExportPDF({
             currentView.type === "enhanced" && !!enhancedNoteContent,
           has_memo: currentView.type === "raw" && !!rawMd,
         });
-        void openPath(path);
+        void openerCommands.openPath(path, null);
       }
     },
     onError: console.error,

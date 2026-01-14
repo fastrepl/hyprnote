@@ -1,7 +1,7 @@
-import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { memo, useCallback, useMemo } from "react";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import {
   Tooltip,
@@ -252,7 +252,7 @@ const SessionItem = memo(
       await save();
       const result = await fsSyncCommands.sessionDir(sessionId);
       if (result.status === "ok") {
-        await revealItemInDir(result.data);
+        await openerCommands.revealItemInDir(result.data);
       }
     }, [sessionId]);
 

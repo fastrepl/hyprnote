@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { openPath } from "@tauri-apps/plugin-opener";
 import { FileTextIcon, Loader2Icon } from "lucide-react";
 import { useMemo } from "react";
 
@@ -8,6 +7,7 @@ import {
   commands as listener2Commands,
   type VttWord,
 } from "@hypr/plugin-listener2";
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 
 import * as main from "../../../../../../store/tinybase/store/main";
@@ -65,7 +65,7 @@ export function ExportTranscript({ sessionId }: { sessionId: string }) {
         format: "vtt",
         word_count: words.length,
       });
-      openPath(path);
+      openerCommands.openPath(path, null);
     },
   });
 

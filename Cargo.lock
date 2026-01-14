@@ -4747,6 +4747,7 @@ dependencies = [
  "tauri-plugin-notification",
  "tauri-plugin-notify",
  "tauri-plugin-opener",
+ "tauri-plugin-opener2",
  "tauri-plugin-os",
  "tauri-plugin-overlay",
  "tauri-plugin-path2",
@@ -18688,6 +18689,21 @@ dependencies = [
  "url",
  "windows 0.61.3",
  "zbus",
+]
+
+[[package]]
+name = "tauri-plugin-opener2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-opener",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
 ]
 
 [[package]]

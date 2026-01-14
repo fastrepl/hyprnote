@@ -1,8 +1,8 @@
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { format } from "date-fns";
 import { CalendarIcon, ExternalLinkIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import NoteEditor from "@hypr/tiptap/editor";
 import { md2json } from "@hypr/tiptap/shared";
 import {
@@ -193,7 +193,9 @@ function ChangelogHeader({
             size="sm"
             variant="ghost"
             className="gap-1.5 text-neutral-600 hover:text-black"
-            onClick={() => openUrl("https://hyprnote.com/changelog")}
+            onClick={() =>
+              openerCommands.openUrl("https://hyprnote.com/changelog", null)
+            }
           >
             <ExternalLinkIcon size={14} className="-mt-0.5" />
             <span>See all</span>

@@ -58,6 +58,7 @@
     "@hypr/plugin-network": "workspace:*",
     "@hypr/plugin-notification": "workspace:*",
     "@hypr/plugin-notify": "workspace:*",
+    "@hypr/plugin-opener2": "workspace:*",
     "@hypr/plugin-overlay": "workspace:*",
     "@hypr/plugin-path2": "workspace:*",
     "@hypr/plugin-pdf": "workspace:*",

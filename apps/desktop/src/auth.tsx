@@ -10,7 +10,6 @@ import {
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   createContext,
   useCallback,
@@ -23,6 +22,7 @@ import {
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands } from "@hypr/plugin-auth";
 import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 
 import { env } from "./env";
 import { getScheme } from "./utils";
@@ -268,7 +268,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = useCallback(async () => {
     const base = env.VITE_APP_URL ?? "http://localhost:3000";
     const scheme = await getScheme();
-    await openUrl(`${base}/auth?flow=desktop&scheme=${scheme}`);
+    await openerCommands.openUrl(
+      `${base}/auth?flow=desktop&scheme=${scheme}`,
+      null,
+    );
   }, []);
 
   const signOut = useCallback(async () => {

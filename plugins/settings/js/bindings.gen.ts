@@ -6,8 +6,16 @@
 
 
 export const commands = {
-async path() : Promise<string> {
-    return await TAURI_INVOKE("plugin:settings|path");
+async path() : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|path") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getContentBase() : Promise<string> {
+    return await TAURI_INVOKE("plugin:settings|get_content_base");
 },
 async load() : Promise<Result<JsonValue, string>> {
     try {

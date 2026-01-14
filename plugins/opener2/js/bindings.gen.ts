@@ -6,17 +6,17 @@
 
 
 export const commands = {
-async openUrl(url: string, with: string | null) : Promise<Result<null, string>> {
+async openUrl(url: string, openWith: string | null) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:opener2|open_url", { url, with }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:opener2|open_url", { url, openWith }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async openPath(path: string, with: string | null) : Promise<Result<null, string>> {
+async openPath(path: string, openWith: string | null) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:opener2|open_path", { path, with }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:opener2|open_path", { path, openWith }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

@@ -96,29 +96,29 @@ impl Actor for RootActor {
         match message {
             SupervisionEvent::ActorStarted(_) | SupervisionEvent::ProcessGroupChanged(_) => {}
             SupervisionEvent::ActorTerminated(cell, _, reason) => {
-                if let Some(supervisor) = &state.supervisor {
-                    if cell.get_id() == supervisor.get_id() {
-                        let session_id = state.session_id.take().unwrap_or_default();
-                        let span = session_span(&session_id);
-                        let _guard = span.enter();
-                        tracing::info!(?reason, "session_supervisor_terminated");
-                        state.supervisor = None;
-                        state.finalizing = false;
-                        emit_session_ended(&state.app, &session_id, None);
-                    }
+                if let Some(supervisor) = &state.supervisor
+                    && cell.get_id() == supervisor.get_id()
+                {
+                    let session_id = state.session_id.take().unwrap_or_default();
+                    let span = session_span(&session_id);
+                    let _guard = span.enter();
+                    tracing::info!(?reason, "session_supervisor_terminated");
+                    state.supervisor = None;
+                    state.finalizing = false;
+                    emit_session_ended(&state.app, &session_id, None);
                 }
             }
             SupervisionEvent::ActorFailed(cell, error) => {
-                if let Some(supervisor) = &state.supervisor {
-                    if cell.get_id() == supervisor.get_id() {
-                        let session_id = state.session_id.take().unwrap_or_default();
-                        let span = session_span(&session_id);
-                        let _guard = span.enter();
-                        tracing::warn!(?error, "session_supervisor_failed");
-                        state.supervisor = None;
-                        state.finalizing = false;
-                        emit_session_ended(&state.app, &session_id, Some(format!("{:?}", error)));
-                    }
+                if let Some(supervisor) = &state.supervisor
+                    && cell.get_id() == supervisor.get_id()
+                {
+                    let session_id = state.session_id.take().unwrap_or_default();
+                    let span = session_span(&session_id);
+                    let _guard = span.enter();
+                    tracing::warn!(?error, "session_supervisor_failed");
+                    state.supervisor = None;
+                    state.finalizing = false;
+                    emit_session_ended(&state.app, &session_id, Some(format!("{:?}", error)));
                 }
             }
         }

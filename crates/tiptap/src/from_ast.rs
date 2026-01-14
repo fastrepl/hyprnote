@@ -79,10 +79,11 @@ fn inject_task_checkboxes(md: &str, task_items: &[Option<bool>]) -> String {
             while chars.peek().is_some_and(|c| c.is_ascii_digit()) {
                 chars.next();
             }
-            if chars.next() == Some('.') && chars.next() == Some(' ') {
-                if task_index < task_items.len() {
-                    task_index += 1;
-                }
+            if chars.next() == Some('.')
+                && chars.next() == Some(' ')
+                && task_index < task_items.len()
+            {
+                task_index += 1;
             }
             result.push_str(line);
         } else {

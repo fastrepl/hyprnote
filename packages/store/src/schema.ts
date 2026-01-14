@@ -220,9 +220,9 @@ export const credentialsSchema = z.discriminatedUnion("type", [
 ]);
 
 export function parseCredentials(
-  credentialsJson: string | undefined,
+  credentialsJson: unknown,
 ): Credentials | null {
-  if (!credentialsJson) return null;
+  if (typeof credentialsJson !== "string" || !credentialsJson) return null;
   try {
     const parsed = JSON.parse(credentialsJson);
     const result = credentialsSchema.safeParse(parsed);

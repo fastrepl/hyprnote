@@ -64,7 +64,7 @@ function useIsProviderConfigured(
     return false;
   }
 
-  const credentials = parseCredentials(config?.credentials as string);
+  const credentials = parseCredentials(config?.credentials);
   const baseUrl = (config?.base_url as string) || "";
 
   return (
@@ -155,6 +155,56 @@ function credentialsToFormValues(
   };
 }
 
+function isFormValid(
+  values: FormValues,
+  requiredFields: ConfigField[],
+  fieldSets: ConfigField[][] | null,
+): boolean {
+  const hasMultipleAuthOptions = fieldSets !== null && fieldSets.length > 1;
+
+  if (hasMultipleAuthOptions) {
+    // For providers with multiple auth options, check if at least one complete set is filled
+    const relevantFieldSets =
+      values.credentials_type === "aws"
+        ? fieldSets.filter((set) =>
+            set.some((f) =>
+              ["access_key_id", "secret_access_key", "region"].includes(f),
+            ),
+          )
+        : fieldSets.filter((set) => set.includes("api_key"));
+
+    return relevantFieldSets.some((fieldSet) =>
+      fieldSet.every((field) => {
+        const value = getFormFieldValue(values, field);
+        return value && value.trim() !== "";
+      }),
+    );
+  }
+
+  // For providers with single auth requirement, check all required fields
+  return requiredFields.every((field) => {
+    const value = getFormFieldValue(values, field);
+    return value && value.trim() !== "";
+  });
+}
+
+function getFormFieldValue(values: FormValues, field: ConfigField): string {
+  switch (field) {
+    case "base_url":
+      return values.base_url;
+    case "api_key":
+      return values.api_key;
+    case "access_key_id":
+      return values.access_key_id;
+    case "secret_access_key":
+      return values.secret_access_key;
+    case "region":
+      return values.region;
+    default:
+      return "";
+  }
+}
+
 function formValuesToProvider(
   values: FormValues,
   defaultBaseUrl?: string,
@@ -231,6 +281,10 @@ export function NonHyprProviderCard({
 
   const form = useForm({
     onSubmit: ({ value }) => {
+      // Only submit if form values are valid
+      if (!isFormValid(value, requiredFields, fieldSets)) {
+        return;
+      }
       void analyticsCommands.event({
         event: "ai_provider_configured",
         provider: value.type,
@@ -458,7 +512,7 @@ function useProvider(id: string, providerType: ProviderType) {
     settings.STORE_ID,
   );
 
-  const credentials = parseCredentials(providerRow?.credentials as string);
+  const credentials = parseCredentials(providerRow?.credentials);
   const baseUrl = (providerRow?.base_url as string) || undefined;
 
   const setProvider = (provider: AIProvider) => {

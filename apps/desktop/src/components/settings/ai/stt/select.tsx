@@ -339,9 +339,7 @@ function useConfiguredMapping(): Record<
       const config = configuredProviders[provider.id] as
         | AIProviderStorage
         | undefined;
-      const credentials = parseCredentials(
-        config?.credentials as string | undefined,
-      );
+      const credentials = parseCredentials(config?.credentials);
       const configuredBaseUrl = (config?.base_url as string) || "";
 
       const eligible =

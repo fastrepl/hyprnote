@@ -157,12 +157,15 @@ function settingsToProviderRows(
     for (const [id, data] of Object.entries(providers)) {
       if (data) {
         const credentials = toCredentialsJson(data);
-        if (credentials) {
+        const baseUrl = normalizeBaseUrl(data.base_url);
+
+        // Only create a row if we have either credentials or a base_url
+        // This preserves provider configs that have base_url but no credentials
+        if (credentials || baseUrl) {
           const row: ProviderRow = {
             type: providerType,
-            credentials,
+            credentials: credentials ?? JSON.stringify({ type: "api_key", api_key: "" }),
           };
-          const baseUrl = normalizeBaseUrl(data.base_url);
           if (baseUrl) {
             row.base_url = baseUrl;
           }

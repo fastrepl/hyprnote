@@ -200,9 +200,7 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
     return Object.fromEntries(
       PROVIDERS.map((provider) => {
         const config = configuredProviders[provider.id];
-        const credentials = parseCredentials(
-          config?.credentials as string | undefined,
-        );
+        const credentials = parseCredentials(config?.credentials);
 
         const configuredBaseUrl = (config?.base_url as string) || "";
         const baseUrl = configuredBaseUrl || provider.baseUrl || "";

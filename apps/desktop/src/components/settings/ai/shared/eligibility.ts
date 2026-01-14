@@ -109,8 +109,11 @@ export function getProviderSelectionBlockers(
           });
         });
         if (!hasCompleteFieldSet) {
-          const allFields = req.fieldSets.flat();
-          blockers.push({ code: "missing_config", fields: allFields });
+          // Report the field sets as alternatives, not as all required
+          blockers.push({
+            code: "missing_config_one_of",
+            fieldSets: req.fieldSets,
+          });
         }
         break;
       }
@@ -134,6 +137,7 @@ export type EligibilityBlocker =
   | { code: "requires_auth" }
   | { code: "requires_entitlement"; entitlement: "pro" }
   | { code: "missing_config"; fields: ConfigField[] }
+  | { code: "missing_config_one_of"; fieldSets: ConfigField[][] }
   | { code: "model_not_downloaded"; modelId: string }
   | { code: "unsupported_platform"; required: "apple_silicon" };
 
@@ -153,6 +157,7 @@ export function getActionForBlocker(
     case "requires_entitlement":
       return { kind: "upgrade_to_pro" };
     case "missing_config":
+    case "missing_config_one_of":
       return providerId ? { kind: "open_provider_settings", providerId } : null;
     case "model_not_downloaded":
       return { kind: "download_model", modelId: blocker.modelId };

@@ -75,9 +75,7 @@ export const useSTTConnection = () => {
     },
   });
 
-  const credentials = parseCredentials(
-    providerConfig?.credentials as string | undefined,
-  );
+  const credentials = parseCredentials(providerConfig?.credentials);
 
   const baseUrl = (providerConfig?.base_url as string)?.trim() || undefined;
   const apiKey =

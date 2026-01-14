@@ -66,8 +66,12 @@ export function createToastRegistry({
     {
       toast: {
         id: "local-stt-loading",
-        title: "Starting local transcription",
-        description: "The local speech-to-text model is starting up...",
+        description: (
+          <>
+            <strong className="font-mono">Local transcription</strong> is
+            starting up...
+          </>
+        ),
         dismissible: false,
       },
       condition: () =>

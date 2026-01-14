@@ -21,6 +21,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
         settings_path(self.manager.app_handle())
     }
 
+    pub fn content_base(&self) -> PathBuf {
+        let state = self.manager.state::<crate::state::SettingsState>();
+        state.content_base()
+    }
+
     pub async fn load(&self) -> crate::Result<serde_json::Value> {
         let state = self.manager.state::<crate::state::SettingsState>();
         state.load().await

@@ -17,6 +17,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::path::<tauri::Wry>,
+            commands::get_content_base::<tauri::Wry>,
             commands::load::<tauri::Wry>,
             commands::save::<tauri::Wry>,
         ])

@@ -2,6 +2,7 @@ use std::{collections::HashMap, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
+use tauri_plugin_settings::SettingsPluginExt;
 
 pub struct Path2<'a, R: tauri::Runtime, M: Manager<R>> {
     manager: &'a M,
@@ -36,6 +37,10 @@ impl<'a, R: tauri::Runtime, M: Manager<R>> Path2<'a, R, M> {
         let path = data_dir.join(app_folder);
         std::fs::create_dir_all(&path)?;
         Ok(path)
+    }
+
+    pub fn content_base(&self) -> PathBuf {
+        self.manager.app_handle().settings().content_base()
     }
 
     pub fn obsidian_vaults(&self) -> Result<Vec<ObsidianVault>, crate::Error> {

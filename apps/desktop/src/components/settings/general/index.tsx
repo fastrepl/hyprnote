@@ -12,6 +12,7 @@ import * as settings from "../../../store/tinybase/store/settings";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
 import { Audio } from "./audio";
+import { DataLocationView } from "./data-location";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
@@ -225,6 +226,10 @@ export function SettingsGeneral({
 
       <div ref={audioRef}>
         <Audio />
+      </div>
+
+      <div>
+        <DataLocationView />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { sep } from "@tauri-apps/api/path";
-import { readTextFile } from "@tauri-apps/plugin-fs";
 
+import { commands as fs2Commands } from "@hypr/plugin-fs2";
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import {
@@ -96,15 +96,26 @@ export async function loadSingleChatGroup(
 ): Promise<LoadResult<LoadedChatData>> {
   const filePath = [dataDir, "chats", groupId, CHAT_MESSAGES_FILE].join(sep());
 
-  try {
-    const content = await readTextFile(filePath);
-    const json = JSON.parse(content) as ChatJson;
-    return ok(chatJsonToData(json));
-  } catch (error) {
-    if (isFileNotFoundError(error)) {
+  const result = await fs2Commands.readTextFile(filePath);
+  if (result.status === "error") {
+    if (isFileNotFoundError(result.error)) {
       return ok(createEmptyLoadedChatData());
     }
-    console.error(`[${LABEL}] Failed to load chat group ${groupId}:`, error);
+    console.error(
+      `[${LABEL}] Failed to load chat group ${groupId}:`,
+      result.error,
+    );
+    return err(result.error);
+  }
+
+  try {
+    const json = JSON.parse(result.data) as ChatJson;
+    return ok(chatJsonToData(json));
+  } catch (error) {
+    console.error(
+      `[${LABEL}] Failed to parse chat JSON for ${groupId}:`,
+      error,
+    );
     return err(String(error));
   }
 }

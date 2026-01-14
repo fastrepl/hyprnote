@@ -69,6 +69,17 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                                 .to_string_lossy()
                                 .to_string();
 
+                            if relative_path == "store.json" {
+                                continue;
+                            }
+
+                            if path
+                                .extension()
+                                .is_some_and(|ext| ext == "wav" || ext == "ogg")
+                            {
+                                continue;
+                            }
+
                             changed_paths.insert(relative_path);
                         }
                     }

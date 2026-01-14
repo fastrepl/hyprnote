@@ -187,8 +187,6 @@ fn is_local_argmax(base_url: &str) -> bool {
 }
 
 pub fn build_proxy_ws_url(api_base: &str) -> Option<(url::Url, Vec<(String, String)>)> {
-    const PROXY_PATH: &str = "/listen";
-
     if api_base.is_empty() {
         return None;
     }
@@ -203,7 +201,7 @@ pub fn build_proxy_ws_url(api_base: &str) -> Option<(url::Url, Vec<(String, Stri
     let existing_params = extract_query_params(&parsed);
     let mut url = parsed;
     url.set_query(None);
-    url.set_path(PROXY_PATH);
+    append_path_if_missing(&mut url, "listen");
     set_scheme_from_host(&mut url);
 
     Some((url, existing_params))
@@ -429,38 +427,44 @@ mod tests {
             ("https://api.fireworks.ai", None),
             ("https://api.assemblyai.com", None),
             (
-                "https://api.hyprnote.com?provider=soniox",
+                "https://api.hyprnote.com/stt?provider=soniox",
                 Some((
-                    "wss://api.hyprnote.com/listen",
+                    "wss://api.hyprnote.com/stt/listen",
                     vec![("provider", "soniox")],
                 )),
             ),
             (
-                "https://api.hyprnote.com/listen?provider=deepgram",
+                "https://api.hyprnote.com/stt/listen?provider=deepgram",
                 Some((
-                    "wss://api.hyprnote.com/listen",
+                    "wss://api.hyprnote.com/stt/listen",
                     vec![("provider", "deepgram")],
                 )),
             ),
             (
-                "https://api.hyprnote.com/some/path?provider=fireworks",
+                "https://api.hyprnote.com/stt/some/path?provider=fireworks",
                 Some((
-                    "wss://api.hyprnote.com/listen",
+                    "wss://api.hyprnote.com/stt/some/path/listen",
                     vec![("provider", "fireworks")],
                 )),
             ),
             (
-                "http://localhost:8787?provider=soniox",
-                Some(("ws://localhost:8787/listen", vec![("provider", "soniox")])),
-            ),
-            (
-                "http://localhost:8787/listen?provider=deepgram",
-                Some(("ws://localhost:8787/listen", vec![("provider", "deepgram")])),
-            ),
-            (
-                "http://127.0.0.1:8787?provider=assemblyai",
+                "http://localhost:8787/stt?provider=soniox",
                 Some((
-                    "ws://127.0.0.1:8787/listen",
+                    "ws://localhost:8787/stt/listen",
+                    vec![("provider", "soniox")],
+                )),
+            ),
+            (
+                "http://localhost:8787/stt/listen?provider=deepgram",
+                Some((
+                    "ws://localhost:8787/stt/listen",
+                    vec![("provider", "deepgram")],
+                )),
+            ),
+            (
+                "http://127.0.0.1:8787/stt?provider=assemblyai",
+                Some((
+                    "ws://127.0.0.1:8787/stt/listen",
                     vec![("provider", "assemblyai")],
                 )),
             ),

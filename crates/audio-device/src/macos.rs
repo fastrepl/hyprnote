@@ -113,6 +113,8 @@ impl MacOSBackend {
     }
 }
 
+const TAP_DEVICE_NAME: &str = "hypr-audio-tap";
+
 impl AudioDeviceBackend for MacOSBackend {
     fn list_devices(&self) -> Result<Vec<AudioDevice>, Error> {
         let ca_devices =
@@ -124,6 +126,12 @@ impl AudioDeviceBackend for MacOSBackend {
         let mut devices = Vec::new();
 
         for ca_device in ca_devices {
+            if let Ok(name) = ca_device.name() {
+                if name.to_string().contains(TAP_DEVICE_NAME) {
+                    continue;
+                }
+            }
+
             if let Some(input_device) =
                 Self::create_audio_device(&ca_device, AudioDirection::Input, default_input_id)
             {

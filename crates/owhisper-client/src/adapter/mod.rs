@@ -338,10 +338,28 @@ mod tests {
         use hypr_language::ISO639::*;
 
         let cases: &[(&str, &[hypr_language::ISO639], Option<&str>, AdapterKind)] = &[
-            // api.hyprnote.com - single language
+            // HyprnoteCloud - single language (model is ignored for adapter selection)
             (
                 "https://api.hyprnote.com/stt",
                 &[En],
+                None,
+                AdapterKind::Deepgram,
+            ),
+            (
+                "https://api.hyprnote.com/stt",
+                &[En],
+                Some("cloud"),
+                AdapterKind::Deepgram,
+            ),
+            (
+                "https://api.hyprnote.com/stt",
+                &[Zh],
+                None,
+                AdapterKind::Deepgram,
+            ),
+            (
+                "https://api.hyprnote.com/stt",
+                &[Ja],
                 None,
                 AdapterKind::Deepgram,
             ),
@@ -351,63 +369,7 @@ mod tests {
                 None,
                 AdapterKind::Soniox,
             ),
-            (
-                "https://api.hyprnote.com/stt",
-                &[Zh],
-                None,
-                AdapterKind::Deepgram,
-            ),
-            // api.hyprnote.com - zh with model variants
-            (
-                "https://api.hyprnote.com/stt",
-                &[Zh],
-                Some("cloud"),
-                AdapterKind::Deepgram,
-            ),
-            (
-                "https://api.hyprnote.com/stt",
-                &[Zh],
-                Some("nova-2"),
-                AdapterKind::Deepgram,
-            ),
-            (
-                "https://api.hyprnote.com/stt",
-                &[Zh],
-                Some("nova-2-general"),
-                AdapterKind::Deepgram,
-            ),
-            (
-                "https://api.hyprnote.com/stt",
-                &[Zh],
-                Some("nova-2-meeting"),
-                AdapterKind::Deepgram,
-            ),
-            (
-                "https://api.hyprnote.com/stt",
-                &[Zh],
-                Some("nova-3"),
-                AdapterKind::Deepgram,
-            ),
-            (
-                "https://api.hyprnote.com/stt",
-                &[Zh],
-                Some("nova-3-medical"),
-                AdapterKind::Deepgram,
-            ),
-            // api.hyprnote.com - ja with model variants
-            (
-                "https://api.hyprnote.com/stt",
-                &[Ja],
-                Some("nova-3"),
-                AdapterKind::Deepgram,
-            ),
-            (
-                "https://api.hyprnote.com/stt",
-                &[Ja],
-                Some("nova-3-medical"),
-                AdapterKind::Deepgram,
-            ),
-            // api.hyprnote.com - multi-language
+            // HyprnoteCloud - multi-language
             (
                 "https://api.hyprnote.com/stt",
                 &[En, Es],
@@ -420,7 +382,13 @@ mod tests {
                 None,
                 AdapterKind::Soniox,
             ),
-            // localhost - proxy
+            (
+                "https://api.hyprnote.com/stt",
+                &[Ko, En],
+                None,
+                AdapterKind::Soniox,
+            ),
+            // localhost proxy
             (
                 "http://localhost:3001/stt",
                 &[En],
@@ -433,7 +401,7 @@ mod tests {
                 None,
                 AdapterKind::Soniox,
             ),
-            // localhost - argmax
+            // localhost argmax
             (
                 "http://localhost:50060/v1",
                 &[En],

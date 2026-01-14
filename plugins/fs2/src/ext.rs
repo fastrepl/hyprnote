@@ -8,10 +8,6 @@ pub struct Fs2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Fs2<'a, R, M> {
-    pub fn ping(&self) -> Result<String, crate::Error> {
-        Ok("pong".to_string())
-    }
-
     fn base(&self) -> Result<PathBuf, crate::Error> {
         self.manager
             .path2()

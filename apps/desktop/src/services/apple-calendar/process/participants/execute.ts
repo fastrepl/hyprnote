@@ -26,6 +26,7 @@ export function executeForParticipantsSync(
         job_title: "",
         linkedin_username: "",
         memo: "",
+        pinned: false,
       } satisfies HumanStorage);
     }
 

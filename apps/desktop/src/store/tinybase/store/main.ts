@@ -143,6 +143,8 @@ export const StoreComponent = () => {
           select("org_id");
           select("job_title");
           select("linkedin_username");
+          select("pinned");
+          select("pin_order");
         })
         .setQueryDefinition(
           QUERIES.visibleOrganizations,

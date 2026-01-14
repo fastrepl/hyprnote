@@ -65,6 +65,7 @@ describe("frontmatterToHuman", () => {
       job_title: "Engineer",
       linkedin_username: "johndoe",
       memo: "Notes",
+      pinned: false,
     });
   });
 });
@@ -79,6 +80,7 @@ describe("humanToFrontmatter", () => {
       job_title: "",
       linkedin_username: "",
       memo: "",
+      pinned: false,
     });
     expect(result.frontmatter.emails).toEqual([
       "a@example.com",
@@ -95,6 +97,7 @@ describe("humanToFrontmatter", () => {
       job_title: "",
       linkedin_username: "",
       memo: "",
+      pinned: false,
     });
     expect(result.frontmatter.emails).toEqual([]);
   });
@@ -108,6 +111,7 @@ describe("humanToFrontmatter", () => {
       job_title: "",
       linkedin_username: "",
       memo: "",
+      pinned: false,
     });
     expect(result.frontmatter.emails).toEqual([
       "a@example.com",
@@ -124,6 +128,7 @@ describe("humanToFrontmatter", () => {
       job_title: "",
       linkedin_username: "",
       memo: "",
+      pinned: false,
     });
     expect(result.frontmatter.emails).toEqual(["a@example.com"]);
   });
@@ -137,6 +142,7 @@ describe("humanToFrontmatter", () => {
       job_title: "",
       linkedin_username: "",
       memo: "Some notes",
+      pinned: false,
     });
     expect(result.body).toBe("Some notes");
   });
@@ -150,6 +156,7 @@ describe("humanToFrontmatter", () => {
       job_title: "Engineer",
       linkedin_username: "johndoe",
       memo: "Notes",
+      pinned: false,
     });
     expect(result).toEqual({
       frontmatter: {
@@ -159,6 +166,7 @@ describe("humanToFrontmatter", () => {
         org_id: "org-1",
         job_title: "Engineer",
         linkedin_username: "johndoe",
+        pinned: false,
       },
       body: "Notes",
     });

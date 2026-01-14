@@ -1,4 +1,10 @@
-import { Building2, CircleMinus, FileText, SearchIcon } from "lucide-react";
+import {
+  Building2,
+  CircleMinus,
+  FileText,
+  Pin,
+  SearchIcon,
+} from "lucide-react";
 import React, { useCallback, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -27,8 +33,7 @@ export function DetailsColumn({
     selectedHumanId ?? "",
     main.STORE_ID,
   );
-  const currentUserId = main.UI.useValue("user_id", main.STORE_ID);
-  const isCurrentUser = selectedHumanId === currentUserId;
+  const isPinned = selectedPersonData.pinned as boolean | undefined;
 
   const mappingIdsByHuman = main.UI.useSliceRowIds(
     main.INDEXES.sessionsByHuman,
@@ -104,6 +109,28 @@ export function DetailsColumn({
   }, [duplicates, allHumans]);
 
   const store = main.UI.useStore(main.STORE_ID);
+
+  const handleTogglePin = useCallback(() => {
+    if (!store || !selectedHumanId) return;
+
+    const currentPinned = store.getCell("humans", selectedHumanId, "pinned");
+    if (currentPinned) {
+      store.setPartialRow("humans", selectedHumanId, {
+        pinned: false,
+        pin_order: undefined,
+      });
+    } else {
+      const allHumans = store.getTable("humans");
+      const maxOrder = Object.values(allHumans).reduce((max, h) => {
+        const order = (h.pin_order as number | undefined) ?? 0;
+        return Math.max(max, order);
+      }, 0);
+      store.setPartialRow("humans", selectedHumanId, {
+        pinned: true,
+        pin_order: maxOrder + 1,
+      });
+    }
+  }, [store, selectedHumanId]);
 
   const handleMergeContacts = useCallback(
     (duplicateId: string) => {
@@ -185,11 +212,20 @@ export function DetailsColumn({
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <EditablePersonNameField personId={selectedHumanId} />
-                    {isCurrentUser && (
-                      <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                        Me
-                      </span>
-                    )}
+                    <Button
+                      onClick={handleTogglePin}
+                      variant="ghost"
+                      size="sm"
+                      className={
+                        isPinned ? "text-blue-600" : "text-neutral-400"
+                      }
+                      aria-label={isPinned ? "Unpin contact" : "Pin contact"}
+                    >
+                      <Pin
+                        className="size-4"
+                        fill={isPinned ? "currentColor" : "none"}
+                      />
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -314,40 +350,38 @@ export function DetailsColumn({
               </div>
             </div>
 
-            {!isCurrentUser && (
-              <div className="p-6">
-                <div className="border border-red-200 rounded-lg overflow-hidden">
-                  <div className="bg-red-50 px-4 py-3 border-b border-red-200">
-                    <h3 className="text-sm font-semibold text-red-900">
-                      Danger Zone
-                    </h3>
-                  </div>
-                  <div className="bg-white p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-neutral-900">
-                          Delete this contact
-                        </p>
-                        <p className="text-xs text-neutral-500 mt-1">
-                          This action cannot be undone
-                        </p>
-                      </div>
-                      <Button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleDeletePerson(selectedHumanId);
-                        }}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        Delete Contact
-                      </Button>
+            <div className="p-6">
+              <div className="border border-red-200 rounded-lg overflow-hidden">
+                <div className="bg-red-50 px-4 py-3 border-b border-red-200">
+                  <h3 className="text-sm font-semibold text-red-900">
+                    Danger Zone
+                  </h3>
+                </div>
+                <div className="bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-neutral-900">
+                        Delete this contact
+                      </p>
+                      <p className="text-xs text-neutral-500 mt-1">
+                        This action cannot be undone
+                      </p>
                     </div>
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDeletePerson(selectedHumanId);
+                      }}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      Delete Contact
+                    </Button>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
             <div className="pb-96" />
           </div>

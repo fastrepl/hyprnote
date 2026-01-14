@@ -32,6 +32,7 @@ function frontmatterToStore(
     org_id: String(frontmatter.org_id ?? ""),
     job_title: String(frontmatter.job_title ?? ""),
     linkedin_username: String(frontmatter.linkedin_username ?? ""),
+    pinned: Boolean(frontmatter.pinned ?? false),
   };
 }
 
@@ -45,6 +46,7 @@ function storeToFrontmatter(
     org_id: store.org_id ?? "",
     job_title: store.job_title ?? "",
     linkedin_username: store.linkedin_username ?? "",
+    pinned: store.pinned ?? false,
   };
 }
 

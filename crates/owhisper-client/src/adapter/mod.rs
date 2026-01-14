@@ -244,7 +244,7 @@ impl AdapterKind {
             Self::Gladia => GladiaAdapter::is_supported_languages(languages),
             Self::OpenAI => OpenAIAdapter::is_supported_languages(languages),
             Self::Fireworks => FireworksAdapter::is_supported_languages(languages),
-            Self::Argmax => ArgmaxAdapter::is_supported_languages(languages),
+            Self::Argmax => ArgmaxAdapter::is_supported_languages(languages, model),
         }
     }
 }

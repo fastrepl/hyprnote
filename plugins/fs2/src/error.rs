@@ -6,6 +6,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error("path forbidden: {0}")]
+    PathForbidden(std::path::PathBuf),
+    #[error("path error: {0}")]
+    Path(String),
 }
 
 impl Serialize for Error {

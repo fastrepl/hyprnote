@@ -2,7 +2,7 @@
 name = "tauri-plugin-fs2"
 version = "0.1.0"
 authors = ["You"]
-edition = "2024"
+edition = "2021"
 exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-fs2"
 description = ""
@@ -15,7 +15,7 @@ specta-typescript = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
-tauri-plugin-fs = { workspace = true }
+tauri-plugin-path2 = { path = "../path2" }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }

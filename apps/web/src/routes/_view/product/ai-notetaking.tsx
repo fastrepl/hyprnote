@@ -160,7 +160,7 @@ function HeroSection() {
           </p>
           <div className="mt-8">
             <Link
-              to="/download"
+              to="/download/"
               className={cn([
                 "inline-block px-8 py-3 text-base font-medium rounded-full",
                 "bg-linear-to-t from-stone-600 to-stone-500 text-white",
@@ -1110,7 +1110,7 @@ function SearchSection() {
                 />
               </div>
               <Link
-                to="/product/mini-apps"
+                to="/product/mini-apps/"
                 hash="advanced-search"
                 className="hidden sm:inline-flex px-5 h-10 items-center justify-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all shrink-0"
               >
@@ -1119,7 +1119,7 @@ function SearchSection() {
               </Link>
             </div>
             <Link
-              to="/product/mini-apps"
+              to="/product/mini-apps/"
               hash="advanced-search"
               className="sm:hidden w-full px-4 h-10 inline-flex items-center justify-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md active:scale-[98%] transition-all"
             >
@@ -2526,7 +2526,7 @@ function CTASection() {
         </p>
         <div className="pt-6">
           <Link
-            to="/download"
+            to="/download/"
             className={cn([
               "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",

@@ -11,6 +11,6 @@ export const Route = createFileRoute("/founders")({
     const url = search.source ? `${baseUrl}&source=${search.source}` : baseUrl;
     throw redirect({
       href: url,
-    });
+    } as any);
   },
 });

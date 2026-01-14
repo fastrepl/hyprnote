@@ -24,7 +24,7 @@ export const Route = createFileRoute("/auth")({
 
     if (user) {
       if (search.flow === "web") {
-        throw redirect({ href: search.redirect || "/app/account" });
+        throw redirect({ to: search.redirect || "/app/account/" } as any);
       }
 
       if (search.flow === "desktop") {
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/auth")({
 
         if (data.session) {
           throw redirect({
-            to: "/callback/auth",
+            to: "/callback/auth/",
             search: {
               flow: "desktop",
               scheme: search.scheme,

@@ -1,5 +1,4 @@
 import { sep } from "@tauri-apps/api/path";
-import { readTextFile } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type {
   PersistedChanges,
@@ -7,6 +6,7 @@ import type {
 } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
+import { commands as fs2Commands } from "@hypr/plugin-fs2";
 import {
   commands as fsSyncCommands,
   type JsonValue,
@@ -159,14 +159,21 @@ async function loadTableData(
   filename: string,
   label: string,
 ): Promise<Record<string, Record<string, unknown>> | undefined> {
-  try {
-    const base = await path2Commands.base();
-    const content = await readTextFile([base, filename].join(sep()));
-    return JSON.parse(content);
-  } catch (error) {
-    if (!isFileNotFoundError(error)) {
-      console.error(`[${label}] load error:`, error);
+  const base = await path2Commands.base();
+  const path = [base, filename].join(sep());
+  const result = await fs2Commands.readTextFile(path);
+
+  if (result.status === "error") {
+    if (!isFileNotFoundError(result.error)) {
+      console.error(`[${label}] load error:`, result.error);
     }
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(result.data);
+  } catch (error) {
+    console.error(`[${label}] JSON parse error:`, error);
     return undefined;
   }
 }

@@ -81,7 +81,7 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-x border-neutral-100 bg-white">
         <Link
-          to="/roadmap"
+          to="/roadmap/"
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8 font-serif"
         >
           <Icon icon="mdi:arrow-left" className="text-base" />

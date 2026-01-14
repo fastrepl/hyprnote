@@ -1,4 +1,3 @@
-import { remove } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type {
   PersistedChanges,
@@ -11,6 +10,7 @@ import type {
   OptionalSchemas,
 } from "tinybase/with-schemas";
 
+import { commands as fs2Commands } from "@hypr/plugin-fs2";
 import {
   commands as fsSyncCommands,
   type ParsedDocument,
@@ -235,12 +235,11 @@ async function deleteFiles(paths: string[], label: string): Promise<void> {
   if (paths.length === 0) return;
 
   for (const path of paths) {
-    try {
-      await remove(path);
-    } catch (error) {
-      const errorStr = String(error);
+    const result = await fs2Commands.remove(path);
+    if (result.status === "error") {
+      const errorStr = result.error;
       if (!errorStr.includes("No such file") && !errorStr.includes("ENOENT")) {
-        console.error(`[${label}] Failed to delete file ${path}:`, error);
+        console.error(`[${label}] Failed to delete file ${path}:`, errorStr);
       }
     }
   }

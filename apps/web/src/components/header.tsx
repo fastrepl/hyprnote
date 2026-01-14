@@ -342,25 +342,25 @@ function NavLinks() {
   return (
     <>
       <Link
-        to="/docs"
+        to="/docs/"
         className="hidden md:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
       >
         Docs
       </Link>
       <Link
-        to="/blog"
+        to="/blog/"
         className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
       >
         Blog
       </Link>
       <Link
-        to="/pricing"
+        to="/pricing/"
         className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
       >
         Pricing
       </Link>
       <Link
-        to="/enterprise"
+        to="/enterprise/"
         className="hidden md:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
       >
         Enterprise
@@ -528,28 +528,28 @@ function MobileMenuLinks({
         setIsMenuOpen={setIsMenuOpen}
       />
       <Link
-        to="/docs"
+        to="/docs/"
         onClick={() => setIsMenuOpen(false)}
         className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
       >
         Docs
       </Link>
       <Link
-        to="/blog"
+        to="/blog/"
         onClick={() => setIsMenuOpen(false)}
         className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
       >
         Blog
       </Link>
       <Link
-        to="/pricing"
+        to="/pricing/"
         onClick={() => setIsMenuOpen(false)}
         className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
       >
         Pricing
       </Link>
       <Link
-        to="/enterprise"
+        to="/enterprise/"
         onClick={() => setIsMenuOpen(false)}
         className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
       >
@@ -657,7 +657,7 @@ function MobileMenuCTAs({
   return (
     <div className="space-y-3">
       <Link
-        to="/auth"
+        to="/auth/"
         onClick={() => setIsMenuOpen(false)}
         className="block w-full px-4 py-3 text-center text-sm text-neutral-700 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
       >

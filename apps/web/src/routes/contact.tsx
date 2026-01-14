@@ -4,6 +4,6 @@ export const Route = createFileRoute("/contact")({
   beforeLoad: () => {
     throw redirect({
       href: "mailto:support@hyprnote.com",
-    });
+    } as any);
   },
 });

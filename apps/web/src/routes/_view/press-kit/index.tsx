@@ -72,17 +72,17 @@ function Component() {
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                     <FinderFolder
-                      to="/press-kit/app"
+                      to="/press-kit/app/"
                       folderImage="/api/images/icons/macos-folder-blue.png"
                       label="App"
                     />
                     <FinderFolder
-                      to="/brand"
+                      to="/brand/"
                       folderImage="/api/images/icons/macos-folder-red.png"
                       label="Brand"
                     />
                     <FinderFolder
-                      to="/about"
+                      to="/about/"
                       folderImage="/api/images/icons/macos-folder-purple.png"
                       label="Team"
                     />

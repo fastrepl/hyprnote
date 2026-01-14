@@ -75,7 +75,7 @@ function Component() {
           {(error as Error)?.message || "Report not found"}
         </p>
         <Link
-          to="/k6-reports"
+          to="/k6-reports/"
           className="text-blue-600 hover:underline mt-4 inline-block"
         >
           ← Back to reports
@@ -88,7 +88,7 @@ function Component() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
-      <Link to="/k6-reports" className="text-blue-600 hover:underline text-sm">
+      <Link to="/k6-reports/" className="text-blue-600 hover:underline text-sm">
         ← Back to reports
       </Link>
 

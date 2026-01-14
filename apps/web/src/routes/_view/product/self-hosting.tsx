@@ -81,7 +81,7 @@ function HeroSection() {
         <div className="flex flex-col sm:flex-row gap-4 pt-6 items-center">
           <GithubStars />
           <Link
-            to="/opensource"
+            to="/opensource/"
             className={cn([
               "px-6 h-12 flex items-center justify-center text-base font-medium rounded-full",
               "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",

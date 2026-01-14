@@ -95,7 +95,7 @@ function LeftSidebar({
     <aside className="hidden lg:block w-64 shrink-0">
       <div className="sticky top-17.25 max-h-[calc(100vh-69px)] overflow-y-auto px-4 pt-6 pb-18 scrollbar-hide">
         <Link
-          to="/gallery"
+          to="/gallery/"
           search={{ type }}
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-6 font-serif"
         >
@@ -125,7 +125,7 @@ function LeftSidebar({
               Category
             </h3>
             <Link
-              to="/gallery"
+              to="/gallery/"
               search={{ type, category: item.category }}
               className="text-sm text-stone-600 hover:text-stone-800 transition-colors"
             >
@@ -163,7 +163,7 @@ function MainContent({
     <main className="flex-1 min-w-0 pb-6 px-4 lg:px-8 py-6">
       <div className="lg:hidden mb-6">
         <Link
-          to="/gallery"
+          to="/gallery/"
           search={{ type }}
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors font-serif"
         >
@@ -305,7 +305,7 @@ function SuggestedItems({
         {suggestedItems.map((t) => (
           <Link
             key={t.slug}
-            to="/gallery/$type/$slug"
+            to="/gallery/$type/$slug/"
             params={{ type, slug: t.slug }}
             className="group p-4 border border-neutral-200 rounded-sm bg-white hover:shadow-md hover:border-neutral-300 transition-all"
           >
@@ -326,7 +326,7 @@ function ItemFooter({ type }: { type: GalleryType }) {
   return (
     <footer className="mt-12 pt-8 border-t border-neutral-100">
       <Link
-        to="/gallery"
+        to="/gallery/"
         search={{ type }}
         className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors font-medium"
       >

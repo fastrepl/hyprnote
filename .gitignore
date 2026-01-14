@@ -20,3 +20,5 @@ internal
 
 # Local Netlify folder
 .netlify
+
+store.json

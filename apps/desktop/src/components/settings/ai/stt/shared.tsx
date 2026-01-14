@@ -1,5 +1,5 @@
 import { Icon } from "@iconify-icon/react";
-import { AssemblyAI, Fireworks, OpenAI } from "@lobehub/icons";
+import { AssemblyAI, ElevenLabs, Fireworks, OpenAI } from "@lobehub/icons";
 import type { ReactNode } from "react";
 
 import type {
@@ -44,6 +44,10 @@ export const displayModelId = (model: string) => {
 
   if (model === "solaria-1") {
     return "Solaria 1";
+  }
+
+  if (model === "scribe_v2") {
+    return "Scribe V2";
   }
 
   if (model === "whisper-1") {
@@ -168,6 +172,16 @@ const _PROVIDERS = [
     ),
     baseUrl: "https://api.soniox.com",
     models: ["stt-v3"],
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+  },
+  {
+    disabled: false,
+    id: "elevenlabs",
+    displayName: "ElevenLabs",
+    badge: "Beta",
+    icon: <ElevenLabs size={16} />,
+    baseUrl: "https://api.elevenlabs.io",
+    models: ["scribe_v2"],
     requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {

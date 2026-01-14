@@ -24,6 +24,9 @@ on:
       openai:
         type: boolean
         default: false
+      elevenlabs:
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -50,6 +53,7 @@ jobs:
       gladia: ${{ steps.filter.outputs.gladia }}
       fireworks: ${{ steps.filter.outputs.fireworks }}
       openai: ${{ steps.filter.outputs.openai }}
+      elevenlabs: ${{ steps.filter.outputs.elevenlabs }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -72,6 +76,8 @@ jobs:
               - 'crates/owhisper-client/src/adapter/fireworks/**'
             openai:
               - 'crates/owhisper-client/src/adapter/openai/**'
+            elevenlabs:
+              - 'crates/owhisper-client/src/adapter/elevenlabs/**'
 
   setup:
     runs-on: ubuntu-latest
@@ -93,6 +99,7 @@ jobs:
             if [ "${{ inputs.gladia }}" == "true" ]; then providers+=("gladia"); fi
             if [ "${{ inputs.fireworks }}" == "true" ]; then providers+=("fireworks"); fi
             if [ "${{ inputs.openai }}" == "true" ]; then providers+=("openai"); fi
+            if [ "${{ inputs.elevenlabs }}" == "true" ]; then providers+=("elevenlabs"); fi
 
             if [ "${{ inputs.adapter-or-proxy }}" == "proxy" ]; then
               echo "run-proxy=true" >> $GITHUB_OUTPUT
@@ -108,10 +115,11 @@ jobs:
             if [ "${{ needs.detect-changes.outputs.gladia }}" == "true" ]; then providers+=("gladia"); fi
             if [ "${{ needs.detect-changes.outputs.fireworks }}" == "true" ]; then providers+=("fireworks"); fi
             if [ "${{ needs.detect-changes.outputs.openai }}" == "true" ]; then providers+=("openai"); fi
+            if [ "${{ needs.detect-changes.outputs.elevenlabs }}" == "true" ]; then providers+=("elevenlabs"); fi
 
             # Run all providers when proxy changes but no specific provider changed
             if [ "${{ needs.detect-changes.outputs.proxy }}" == "true" ] && [ ${#providers[@]} -eq 0 ]; then
-              providers+=("deepgram" "assemblyai" "soniox" "gladia" "fireworks" "openai")
+              providers+=("deepgram" "assemblyai" "soniox" "gladia" "fireworks" "openai" "elevenlabs")
             fi
 
             echo "run-proxy=${{ needs.detect-changes.outputs.proxy }}" >> $GITHUB_OUTPUT

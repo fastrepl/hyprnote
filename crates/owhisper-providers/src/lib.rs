@@ -72,16 +72,19 @@ pub enum Provider {
     OpenAI,
     #[strum(serialize = "gladia")]
     Gladia,
+    #[strum(serialize = "elevenlabs")]
+    ElevenLabs,
 }
 
 impl Provider {
-    const ALL: [Provider; 6] = [
+    const ALL: [Provider; 7] = [
         Self::Deepgram,
         Self::AssemblyAI,
         Self::Soniox,
         Self::Fireworks,
         Self::OpenAI,
         Self::Gladia,
+        Self::ElevenLabs,
     ];
 
     pub fn from_host(host: &str) -> Option<Self> {
@@ -112,6 +115,10 @@ impl Provider {
             Self::Soniox => Auth::FirstMessage {
                 field_name: "api_key",
             },
+            Self::ElevenLabs => Auth::Header {
+                name: "xi-api-key",
+                prefix: None,
+            },
         }
     }
 
@@ -131,6 +138,7 @@ impl Provider {
             Self::Fireworks => "api.fireworks.ai",
             Self::OpenAI => "api.openai.com",
             Self::Gladia => "api.gladia.io",
+            Self::ElevenLabs => "api.elevenlabs.io",
         }
     }
 
@@ -142,6 +150,7 @@ impl Provider {
             Self::Fireworks => "audio-streaming-v2.api.fireworks.ai",
             Self::OpenAI => "api.openai.com",
             Self::Gladia => "api.gladia.io",
+            Self::ElevenLabs => "api.elevenlabs.io",
         }
     }
 
@@ -153,6 +162,7 @@ impl Provider {
             Self::Fireworks => "/v1/audio/transcriptions/streaming",
             Self::OpenAI => "/v1/realtime",
             Self::Gladia => "/v2/live",
+            Self::ElevenLabs => "/v1/speech-to-text/realtime",
         }
     }
 
@@ -164,6 +174,7 @@ impl Provider {
             Self::Fireworks => None,
             Self::OpenAI => None,
             Self::Gladia => Some("https://api.gladia.io/v2"),
+            Self::ElevenLabs => Some("https://api.elevenlabs.io/v1"),
         }
     }
 
@@ -175,6 +186,7 @@ impl Provider {
             Self::Fireworks => "https://api.fireworks.ai",
             Self::OpenAI => "https://api.openai.com/v1",
             Self::Gladia => "https://api.gladia.io",
+            Self::ElevenLabs => "https://api.elevenlabs.io",
         }
     }
 
@@ -186,6 +198,7 @@ impl Provider {
             Self::Fireworks => "fireworks.ai",
             Self::OpenAI => "openai.com",
             Self::Gladia => "gladia.io",
+            Self::ElevenLabs => "elevenlabs.io",
         }
     }
 
@@ -215,6 +228,7 @@ impl Provider {
             Self::Fireworks => "FIREWORKS_API_KEY",
             Self::OpenAI => "OPENAI_API_KEY",
             Self::Gladia => "GLADIA_API_KEY",
+            Self::ElevenLabs => "ELEVENLABS_API_KEY",
         }
     }
 
@@ -226,6 +240,7 @@ impl Provider {
             Self::Fireworks => "whisper-v3-turbo",
             Self::OpenAI => "gpt-4o-transcribe",
             Self::Gladia => "solaria-1",
+            Self::ElevenLabs => "scribe_v2_realtime",
         }
     }
 
@@ -237,6 +252,7 @@ impl Provider {
             Self::Fireworks => "whisper-v3-turbo",
             Self::OpenAI => "whisper-1",
             Self::Gladia => "solaria-1",
+            Self::ElevenLabs => "scribe_v2",
         }
     }
 
@@ -255,6 +271,7 @@ impl Provider {
             Self::Fireworks => &[],
             Self::OpenAI => &[],
             Self::Gladia => &[],
+            Self::ElevenLabs => &["commit"],
         }
     }
 

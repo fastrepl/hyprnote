@@ -3,11 +3,15 @@ import {
   NotFoundRouteComponent,
   useNavigate,
 } from "@tanstack/react-router";
+import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { AlertTriangle, Home, RotateCw, Search } from "lucide-react";
+import { AlertTriangle, Bug, Home, RotateCw, Search } from "lucide-react";
 import { motion } from "motion/react";
 
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Button } from "@hypr/ui/components/ui/button";
+
+import { env } from "../env";
 
 export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
   const handleRestart = async () => {
@@ -16,6 +20,42 @@ export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
     } catch (err) {
       console.error("Failed to restart app:", err);
     }
+  };
+
+  const handleReportIssue = () => {
+    const deviceInfo = [
+      `**Platform:** ${platform()}`,
+      `**Architecture:** ${arch()}`,
+      `**OS Version:** ${osVersion()}`,
+      `**App Version:** ${env.VITE_APP_VERSION ?? "unknown"}`,
+    ].join("\n");
+
+    const errorInfo = [
+      `**Error Message:** ${error.message || "Unknown error"}`,
+      error.stack ? `**Stack Trace:**\n\`\`\`\n${error.stack}\n\`\`\`` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const body = `## Description
+<!-- Please describe what you were doing when this error occurred -->
+
+## Error Details
+${errorInfo}
+
+## Device Information
+${deviceInfo}
+`;
+
+    const url = new URL("https://github.com/fastrepl/hyprnote/issues/new");
+    url.searchParams.set(
+      "title",
+      `[Bug] ${error.message || "Application Error"}`,
+    );
+    url.searchParams.set("body", body);
+    url.searchParams.set("labels", "bug");
+
+    void openerCommands.openUrl(url.toString(), null);
   };
 
   return (
@@ -56,10 +96,14 @@ export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
                 </p>
               </div>
 
-              <div className="pt-2">
+              <div className="flex gap-2 pt-2">
                 <Button size="sm" onClick={handleRestart}>
                   <RotateCw className="mr-1.5 h-3.5 w-3.5" />
                   Restart App
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleReportIssue}>
+                  <Bug className="mr-1.5 h-3.5 w-3.5" />
+                  Report Issue
                 </Button>
               </div>
             </div>

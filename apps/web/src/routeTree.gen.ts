@@ -41,7 +41,6 @@ import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as AdminMediaIndexRouteImport } from './routes/admin/media/index'
-import { Route as AdminLoginIndexRouteImport } from './routes/admin/login/index'
 import { Route as AdminCollectionsIndexRouteImport } from './routes/admin/collections/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
 import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts/index'
@@ -280,11 +279,6 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
 const AdminMediaIndexRoute = AdminMediaIndexRouteImport.update({
   id: '/media/',
   path: '/media/',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminLoginIndexRoute = AdminLoginIndexRouteImport.update({
-  id: '/login/',
-  path: '/login/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCollectionsIndexRoute = AdminCollectionsIndexRouteImport.update({
@@ -789,7 +783,6 @@ export interface FileRoutesByFullPath {
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
   '/admin/collections': typeof AdminCollectionsIndexRoute
-  '/admin/login': typeof AdminLoginIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
@@ -898,7 +891,6 @@ export interface FileRoutesByTo {
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
   '/admin/collections': typeof AdminCollectionsIndexRoute
-  '/admin/login': typeof AdminLoginIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
@@ -1013,7 +1005,6 @@ export interface FileRoutesById {
   '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
   '/admin/collections/': typeof AdminCollectionsIndexRoute
-  '/admin/login/': typeof AdminLoginIndexRoute
   '/admin/media/': typeof AdminMediaIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
@@ -1128,7 +1119,6 @@ export interface FileRouteTypes {
     | '/shortcuts'
     | '/templates'
     | '/admin/collections'
-    | '/admin/login'
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
@@ -1237,7 +1227,6 @@ export interface FileRouteTypes {
     | '/shortcuts'
     | '/templates'
     | '/admin/collections'
-    | '/admin/login'
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
@@ -1351,7 +1340,6 @@ export interface FileRouteTypes {
     | '/_view/shortcuts/'
     | '/_view/templates/'
     | '/admin/collections/'
-    | '/admin/login/'
     | '/admin/media/'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
@@ -1630,13 +1618,6 @@ declare module '@tanstack/react-router' {
       path: '/media'
       fullPath: '/admin/media'
       preLoaderRoute: typeof AdminMediaIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/login/': {
-      id: '/admin/login/'
-      path: '/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/collections/': {
@@ -2391,7 +2372,6 @@ interface AdminRouteRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminCollectionsSlugRoute: typeof AdminCollectionsSlugRoute
   AdminCollectionsIndexRoute: typeof AdminCollectionsIndexRoute
-  AdminLoginIndexRoute: typeof AdminLoginIndexRoute
   AdminMediaIndexRoute: typeof AdminMediaIndexRoute
 }
 
@@ -2399,7 +2379,6 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminCollectionsSlugRoute: AdminCollectionsSlugRoute,
   AdminCollectionsIndexRoute: AdminCollectionsIndexRoute,
-  AdminLoginIndexRoute: AdminLoginIndexRoute,
   AdminMediaIndexRoute: AdminMediaIndexRoute,
 }
 

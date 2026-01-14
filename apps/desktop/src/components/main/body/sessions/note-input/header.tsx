@@ -1,7 +1,8 @@
-import { AlertCircleIcon, PlusIcon, RefreshCcwIcon, XIcon } from "lucide-react";
+import { AlertCircleIcon, PlusIcon, RefreshCwIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { md2json } from "@hypr/tiptap/shared";
 import {
   Popover,
@@ -11,6 +12,7 @@ import {
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
+import { useAudioPlayer } from "../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../contexts/listener";
 import { useAITaskTask } from "../../../../../hooks/useAITaskTask";
 import {
@@ -21,6 +23,7 @@ import {
   useLanguageModel,
   useLLMConnectionStatus,
 } from "../../../../../hooks/useLLMConnection";
+import { useRunBatch } from "../../../../../hooks/useRunBatch";
 import * as main from "../../../../../store/tinybase/store/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { type TaskStepInfo } from "../../../../../store/zustand/ai-task/tasks";
@@ -72,6 +75,116 @@ function TruncatedTitle({
     >
       {title}
     </span>
+  );
+}
+
+function HeaderTabTranscript({
+  isActive,
+  onClick = () => {},
+  sessionId,
+}: {
+  isActive: boolean;
+  onClick?: () => void;
+  sessionId: string;
+}) {
+  const { audioExists } = useAudioPlayer();
+  const isBatchProcessing = useListener((state) => sessionId in state.batch);
+  const store = main.UI.useStore(main.STORE_ID);
+  const runBatch = useRunBatch(sessionId);
+  const [isRedoing, setIsRedoing] = useState(false);
+
+  const handleRefreshClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+
+      if (!audioExists || isBatchProcessing || !store) {
+        return;
+      }
+
+      setIsRedoing(true);
+
+      try {
+        const transcriptIds: string[] = [];
+        store.forEachRow("transcripts", (transcriptId, _forEachCell) => {
+          const session = store.getCell(
+            "transcripts",
+            transcriptId,
+            "session_id",
+          );
+          if (session === sessionId) {
+            transcriptIds.push(transcriptId);
+          }
+        });
+
+        if (transcriptIds.length > 0) {
+          store.transaction(() => {
+            transcriptIds.forEach((transcriptId) => {
+              store.delRow("transcripts", transcriptId);
+            });
+          });
+        }
+
+        const result = await fsSyncCommands.audioPath(sessionId);
+        if (result.status === "error") {
+          console.error(
+            "[redo_transcript] failed to retrieve audio path",
+            result.error,
+          );
+          return;
+        }
+
+        const audioPath = result.data;
+        if (!audioPath) {
+          console.error("[redo_transcript] audio path not available");
+          return;
+        }
+
+        await runBatch(audioPath);
+      } catch (error) {
+        console.error("[redo_transcript] failed", error);
+      } finally {
+        setIsRedoing(false);
+      }
+    },
+    [audioExists, isBatchProcessing, runBatch, sessionId, store],
+  );
+
+  const showRefreshButton = audioExists && isActive;
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn([
+        "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200 flex-shrink-0",
+        isActive
+          ? ["border-neutral-900", "text-neutral-900"]
+          : [
+              "border-transparent",
+              "text-neutral-600",
+              "hover:text-neutral-800",
+            ],
+      ])}
+    >
+      <span className="flex items-center gap-1 h-5">
+        Transcript
+        {showRefreshButton && (
+          <span
+            onClick={handleRefreshClick}
+            className={cn([
+              "inline-flex h-5 w-5 items-center justify-center rounded transition-colors cursor-pointer",
+              "hover:bg-neutral-200 focus-visible:bg-neutral-200",
+              (isBatchProcessing || isRedoing) && "pointer-events-none",
+            ])}
+          >
+            {isBatchProcessing || isRedoing ? (
+              <Spinner size={12} />
+            ) : (
+              <RefreshCwIcon size={12} />
+            )}
+          </span>
+        )}
+      </span>
+    </button>
   );
 }
 
@@ -179,7 +292,7 @@ function HeaderTabEnhanced({
           className="pointer-events-none absolute inset-0 m-auto transition-opacity duration-200 group-hover:opacity-0 group-focus-visible:opacity-0"
         />
       )}
-      <RefreshCcwIcon
+      <RefreshCwIcon
         size={12}
         className={cn([
           "pointer-events-none absolute inset-0 m-auto transition-opacity duration-200",
@@ -404,6 +517,17 @@ export function Header({
                       currentTab.type === "enhanced" &&
                       currentTab.id === view.id
                     }
+                    onClick={() => handleTabChange(view)}
+                  />
+                );
+              }
+
+              if (view.type === "transcript") {
+                return (
+                  <HeaderTabTranscript
+                    key={view.type}
+                    sessionId={sessionId}
+                    isActive={currentTab.type === view.type}
                     onClick={() => handleTabChange(view)}
                   />
                 );

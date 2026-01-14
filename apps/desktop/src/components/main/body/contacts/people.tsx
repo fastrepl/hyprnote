@@ -1,4 +1,4 @@
-import { CornerDownLeft } from "lucide-react";
+import { CornerDownLeft, Pin } from "lucide-react";
 import React, { useMemo, useState } from "react";
 
 import { cn } from "@hypr/utils";
@@ -74,7 +74,7 @@ export function PeopleColumn({
 
 export function useSortedHumanIds(currentOrgId?: string | null) {
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
-  const currentUserId = main.UI.useValue("user_id", main.STORE_ID);
+  const allHumans = main.UI.useTable("humans", main.STORE_ID);
 
   const allAlphabeticalIds = main.UI.useResultSortedRowIds(
     main.QUERIES.visibleHumans,
@@ -133,11 +133,12 @@ export function useSortedHumanIds(currentOrgId?: string | null) {
           : allOldestIds;
 
   const humanIds = useMemo(() => {
-    if (!currentUserId || !sortedIds.includes(currentUserId)) {
-      return sortedIds;
-    }
-    return [currentUserId, ...sortedIds.filter((id) => id !== currentUserId)];
-  }, [sortedIds, currentUserId]);
+    const pinnedIds = sortedIds.filter((id) => allHumans[id]?.pinned === true);
+    const unpinnedIds = sortedIds.filter(
+      (id) => allHumans[id]?.pinned !== true,
+    );
+    return [...pinnedIds, ...unpinnedIds];
+  }, [sortedIds, allHumans]);
 
   return { humanIds, sortOption, setSortOption };
 }
@@ -152,14 +153,27 @@ function PersonItem({
   setSelectedPerson: (id: string | null) => void;
 }) {
   const person = main.UI.useRow("humans", humanId, main.STORE_ID);
-  const currentUserId = main.UI.useValue("user_id", main.STORE_ID);
-  const isCurrentUser = humanId === currentUserId;
+  const isPinned = person.pinned === true;
+
+  const togglePin = main.UI.useSetCellCallback(
+    "humans",
+    humanId,
+    "pinned",
+    () => !isPinned,
+    [isPinned],
+    main.STORE_ID,
+  );
+
+  const handlePinClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    togglePin(e);
+  };
 
   return (
     <button
       onClick={() => setSelectedPerson(humanId)}
       className={cn([
-        "w-full text-left px-3 py-2 rounded-md text-sm  border hover:bg-neutral-100 transition-colors flex items-center gap-2",
+        "w-full text-left px-3 py-2 rounded-md text-sm  border hover:bg-neutral-100 transition-colors flex items-center gap-2 group",
         active ? "border-neutral-500 bg-neutral-100" : "border-transparent",
       ])}
     >
@@ -171,11 +185,6 @@ function PersonItem({
       <div className="flex-1 min-w-0">
         <div className="font-medium truncate flex items-center gap-1">
           {person.name || person.email || "Unnamed"}
-          {isCurrentUser && (
-            <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
-              Me
-            </span>
-          )}
         </div>
         {person.email && person.name && (
           <div className="text-xs text-neutral-500 truncate">
@@ -183,6 +192,18 @@ function PersonItem({
           </div>
         )}
       </div>
+      <button
+        onClick={handlePinClick}
+        className={cn([
+          "flex-shrink-0 p-1 rounded hover:bg-neutral-200 transition-colors",
+          isPinned
+            ? "text-blue-600"
+            : "text-neutral-400 opacity-0 group-hover:opacity-100",
+        ])}
+        aria-label={isPinned ? "Unpin contact" : "Pin contact"}
+      >
+        <Pin className="size-4" fill={isPinned ? "currentColor" : "none"} />
+      </button>
     </button>
   );
 }
@@ -211,6 +232,7 @@ function NewPersonForm({
       job_title: "",
       linkedin_username: "",
       memo: "",
+      pinned: false,
     }),
     [userId, currentOrgId],
     main.STORE_ID,

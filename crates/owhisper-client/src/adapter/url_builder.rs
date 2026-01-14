@@ -1,6 +1,8 @@
 use owhisper_interface::ListenParams;
 use owhisper_providers::{Provider, is_meta_model};
 
+use super::deepgram::DeepgramModel;
+
 #[derive(Default)]
 pub struct QueryParamBuilder {
     params: Vec<(String, String)>,
@@ -25,12 +27,11 @@ impl QueryParamBuilder {
     }
 
     pub fn add_common_listen_params(&mut self, params: &ListenParams, channels: u8) -> &mut Self {
-        let default = Provider::Deepgram.default_live_model();
-        let model = match params.model.as_deref() {
-            Some(m) if is_meta_model(m) => default,
-            Some(m) => m,
-            None => default,
-        };
+        let model = resolve_model_for_languages(
+            params.model.as_deref(),
+            &params.languages,
+            Provider::Deepgram.default_live_model(),
+        );
         self.add("model", model)
             .add("channels", channels)
             .add("sample_rate", params.sample_rate)
@@ -53,6 +54,24 @@ impl QueryParamBuilder {
     #[cfg(test)]
     pub fn build(&self) -> Vec<(String, String)> {
         self.params.clone()
+    }
+}
+
+pub fn resolve_model_for_languages<'a>(
+    model: Option<&'a str>,
+    languages: &[hypr_language::Language],
+    default: &'a str,
+) -> &'a str {
+    match model {
+        Some(m) if !is_meta_model(m) => m,
+        _ => DeepgramModel::best_for_languages(languages)
+            .map(|m| match m {
+                DeepgramModel::Nova3General => "nova-3",
+                DeepgramModel::Nova2General => "nova-2",
+                DeepgramModel::Nova3Medical => "nova-3-medical",
+                DeepgramModel::Nova2Specialized => "nova-2-meeting",
+            })
+            .unwrap_or(default),
     }
 }
 
@@ -191,7 +210,25 @@ mod tests {
         let result = builder.build();
         assert!(
             result.iter().any(|(k, v)| k == "model" && v == "nova-3"),
-            "cloud should be resolved to default nova-3"
+            "cloud with default (en) should resolve to nova-3"
+        );
+    }
+
+    #[test]
+    fn test_add_common_listen_params_with_cloud_model_chinese() {
+        let mut builder = QueryParamBuilder::new();
+        let params = ListenParams {
+            model: Some("cloud".to_string()),
+            languages: vec![hypr_language::ISO639::Zh.into()],
+            sample_rate: 16000,
+            ..Default::default()
+        };
+        builder.add_common_listen_params(&params, 1);
+
+        let result = builder.build();
+        assert!(
+            result.iter().any(|(k, v)| k == "model" && v == "nova-2"),
+            "cloud with zh should resolve to nova-2 (nova-3 doesn't support zh)"
         );
     }
 }

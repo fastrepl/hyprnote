@@ -58,6 +58,16 @@ impl DeepgramModel {
             Self::Nova2Specialized => ENGLISH_ONLY,
         }
     }
+
+    pub fn best_for_languages(languages: &[hypr_language::Language]) -> Option<Self> {
+        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
+        for model in [Self::Nova3General, Self::Nova2General] {
+            if model.supported_languages().contains(&primary_lang) {
+                return Some(model);
+            }
+        }
+        None
+    }
 }
 
 #[derive(Clone, Default)]
@@ -80,17 +90,14 @@ impl DeepgramAdapter {
 
     fn is_supported_languages_impl(
         languages: &[hypr_language::Language],
-        model: Option<&str>,
+        _model: Option<&str>,
     ) -> bool {
-        let deepgram_model: DeepgramModel = model.and_then(|m| m.parse().ok()).unwrap_or_default();
-
         if languages.len() >= 2 {
-            let model_str = model.unwrap_or_else(|| deepgram_model.as_ref());
-            return language::can_use_multi(model_str, languages);
+            return language::can_use_multi(DeepgramModel::Nova3General.as_ref(), languages)
+                || language::can_use_multi(DeepgramModel::Nova2General.as_ref(), languages);
         }
 
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        deepgram_model.supported_languages().contains(&primary_lang)
+        DeepgramModel::best_for_languages(languages).is_some()
     }
 }
 

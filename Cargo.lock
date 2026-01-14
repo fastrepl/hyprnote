@@ -4733,6 +4733,7 @@ dependencies = [
  "tauri-plugin-extensions",
  "tauri-plugin-fs",
  "tauri-plugin-fs-sync",
+ "tauri-plugin-fs2",
  "tauri-plugin-hooks",
  "tauri-plugin-http",
  "tauri-plugin-icon",
@@ -18299,6 +18300,21 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "tauri-plugin-fs2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-path2",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
 ]
 
 [[package]]

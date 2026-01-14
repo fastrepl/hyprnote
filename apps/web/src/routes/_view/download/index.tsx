@@ -332,7 +332,7 @@ function CTASection() {
         </p>
         <div className="pt-6">
           <Link
-            to="/founders"
+            to="/founders/"
             search={{ source: "download" }}
             className="px-6 h-12 flex items-center justify-center text-base sm:text-lg bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >

@@ -156,7 +156,7 @@ function HeroSection() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            to="/download"
+            to="/download/"
             className={cn([
               "inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-medium rounded-full",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white",
@@ -167,7 +167,7 @@ function HeroSection() {
             Download Free
           </Link>
           <Link
-            to="/product/ai-notetaking"
+            to="/product/ai-notetaking/"
             className={cn([
               "inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-medium rounded-full",
               "border border-neutral-300 text-neutral-700",
@@ -360,7 +360,7 @@ function OpenSourceSection() {
                 View on GitHub
               </a>
               <Link
-                to="/product/self-hosting"
+                to="/product/self-hosting/"
                 className={cn([
                   "inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full",
                   "border border-neutral-300 text-neutral-700",
@@ -413,7 +413,7 @@ function CTASection() {
           signup required.
         </p>
         <Link
-          to="/download"
+          to="/download/"
           className={cn([
             "inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-medium rounded-full",
             "bg-linear-to-t from-stone-600 to-stone-500 text-white",

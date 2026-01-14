@@ -4,6 +4,6 @@ export const Route = createFileRoute("/github")({
   beforeLoad: () => {
     throw redirect({
       href: "https://github.com/fastrepl/hyprnote",
-    });
+    } as any);
   },
 });

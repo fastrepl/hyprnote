@@ -245,7 +245,7 @@ function HeroSection({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
-                    to="/templates"
+                    to="/templates/"
                     className="underline decoration-dotted underline-offset-2 cursor-pointer inline-flex items-center gap-0.5 hover:text-stone-800 transition-colors"
                   >
                     templates
@@ -262,7 +262,7 @@ function HeroSection({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
-                    to="/shortcuts"
+                    to="/shortcuts/"
                     className="underline decoration-dotted underline-offset-2 cursor-pointer inline-flex items-center gap-0.5 hover:text-stone-800 transition-colors"
                   >
                     shortcuts

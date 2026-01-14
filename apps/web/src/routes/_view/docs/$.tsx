@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_view/docs/$")({
 
     if (docsStructure.defaultPages[normalizedSplat]) {
       throw redirect({
-        to: "/docs/$",
+        to: "/docs/$/",
         params: { _splat: docsStructure.defaultPages[normalizedSplat] },
       });
     }
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_view/docs/$")({
         return;
       }
       throw redirect({
-        to: "/docs/$",
+        to: "/docs/$/",
         params: { _splat: "about/hello-world" },
       });
     }

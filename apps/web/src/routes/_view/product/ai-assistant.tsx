@@ -58,7 +58,7 @@ function HeroSection() {
         </p>
         <div className="mt-8">
           <Link
-            to="/download"
+            to="/download/"
             className={cn([
               "inline-block px-8 py-3 text-base font-medium rounded-full",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white",
@@ -216,7 +216,7 @@ function DuringMeetingSection() {
             <h3 className="text-xl font-serif text-stone-600 mb-3">
               Realtime insights via{" "}
               <Link
-                to="/product/extensions"
+                to="/product/extensions/"
                 className="text-stone-600 hover:text-stone-800 underline decoration-dotted underline-offset-2"
               >
                 extensions
@@ -279,7 +279,7 @@ function DuringMeetingSection() {
 
             <div className="mt-6 text-center">
               <Link
-                to="/product/extensions"
+                to="/product/extensions/"
                 className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 font-medium"
               >
                 Learn more about extensions
@@ -423,7 +423,7 @@ function CTASection() {
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link
-            to="/download"
+            to="/download/"
             className={cn([
               "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
@@ -448,7 +448,7 @@ function CTASection() {
             </svg>
           </Link>
           <Link
-            to="/product/ai-notetaking"
+            to="/product/ai-notetaking/"
             className={cn([
               "px-6 h-12 flex items-center justify-center text-base sm:text-lg",
               "border border-neutral-300 text-stone-600 rounded-full",

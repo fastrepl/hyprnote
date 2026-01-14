@@ -124,7 +124,7 @@ function ChangelogSection({ changelog }: { changelog: ChangelogWithMeta }) {
         </article>
 
         <Link
-          to="/changelog/$slug"
+          to="/changelog/$slug/"
           params={{ slug: changelog.slug }}
           className="inline-flex items-center gap-1 text-sm text-stone-600 hover:text-stone-900 transition-colors mt-4"
         >

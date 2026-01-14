@@ -87,7 +87,7 @@ function MobileDocsDrawer({
   onClose: () => void;
 }) {
   const matchRoute = useMatchRoute();
-  const match = matchRoute({ to: "/docs/$", fuzzy: true });
+  const match = matchRoute({ to: "/docs/$/", fuzzy: true });
 
   const currentSlug = (
     match && typeof match !== "boolean" ? match._splat : undefined
@@ -121,7 +121,7 @@ function MobileDocsDrawer({
             currentSlug={currentSlug}
             onLinkClick={onClose}
             scrollContainerRef={scrollContainerRef}
-            linkTo="/docs/$"
+            linkTo="/docs/$/"
           />
         </div>
       </div>
@@ -137,7 +137,7 @@ function MobileHandbookDrawer({
   onClose: () => void;
 }) {
   const matchRoute = useMatchRoute();
-  const match = matchRoute({ to: "/company-handbook/$", fuzzy: true });
+  const match = matchRoute({ to: "/company-handbook/$/", fuzzy: true });
 
   const currentSlug = (
     match && typeof match !== "boolean" ? match._splat : undefined
@@ -207,7 +207,7 @@ function MobileHandbookDrawer({
             currentSlug={currentSlug}
             onLinkClick={onClose}
             scrollContainerRef={scrollContainerRef}
-            linkTo="/company-handbook/$"
+            linkTo="/company-handbook/$/"
           />
         </div>
       </div>

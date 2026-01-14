@@ -68,7 +68,21 @@ impl DeepgramModel {
 pub struct DeepgramAdapter;
 
 impl DeepgramAdapter {
-    pub fn is_supported_languages(
+    pub fn is_supported_languages_live(
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> bool {
+        Self::is_supported_languages_impl(languages, model)
+    }
+
+    pub fn is_supported_languages_batch(
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> bool {
+        Self::is_supported_languages_impl(languages, model)
+    }
+
+    fn is_supported_languages_impl(
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
@@ -76,4 +90,13 @@ impl DeepgramAdapter {
         let deepgram_model = DeepgramModel::from_model_str(model);
         deepgram_model.supported_languages().contains(&primary_lang)
     }
+}
+
+pub(super) fn documented_language_codes() -> Vec<&'static str> {
+    let mut codes = Vec::new();
+    codes.extend_from_slice(NOVA3_GENERAL_LANGUAGES);
+    codes.extend_from_slice(NOVA2_GENERAL_LANGUAGES);
+    codes.extend_from_slice(NOVA3_MEDICAL_LANGUAGES);
+    codes.extend_from_slice(ENGLISH_ONLY);
+    codes
 }

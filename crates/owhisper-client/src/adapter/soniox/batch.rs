@@ -371,7 +371,7 @@ impl BatchSttAdapter for SonioxAdapter {
         languages: &[hypr_language::Language],
         _model: Option<&str>,
     ) -> bool {
-        SonioxAdapter::is_supported_languages(languages)
+        SonioxAdapter::is_supported_languages_batch(languages)
     }
 
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(

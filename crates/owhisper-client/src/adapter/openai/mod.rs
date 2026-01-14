@@ -7,7 +7,11 @@ use owhisper_providers::Provider;
 pub struct OpenAIAdapter;
 
 impl OpenAIAdapter {
-    pub fn is_supported_languages(_languages: &[hypr_language::Language]) -> bool {
+    pub fn is_supported_languages_live(_languages: &[hypr_language::Language]) -> bool {
+        true
+    }
+
+    pub fn is_supported_languages_batch(_languages: &[hypr_language::Language]) -> bool {
         true
     }
 

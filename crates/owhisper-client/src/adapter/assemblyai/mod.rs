@@ -2,15 +2,29 @@ mod batch;
 mod live;
 
 use batch::SUPPORTED_LANGUAGES;
+use live::STREAMING_LANGUAGES;
 
 #[derive(Clone, Default)]
 pub struct AssemblyAIAdapter;
 
 impl AssemblyAIAdapter {
-    pub fn is_supported_languages(languages: &[hypr_language::Language]) -> bool {
+    pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {
+        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
+        STREAMING_LANGUAGES.contains(&primary_lang)
+    }
+
+    pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
         let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
         SUPPORTED_LANGUAGES.contains(&primary_lang)
     }
+}
+
+pub(super) fn documented_language_codes_live() -> &'static [&'static str] {
+    STREAMING_LANGUAGES
+}
+
+pub(super) fn documented_language_codes_batch() -> &'static [&'static str] {
+    SUPPORTED_LANGUAGES
 }
 
 impl AssemblyAIAdapter {

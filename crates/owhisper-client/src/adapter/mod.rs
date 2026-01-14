@@ -21,6 +21,7 @@ pub use gladia::*;
 pub use openai::*;
 pub use soniox::*;
 
+use std::collections::BTreeSet;
 use std::future::Future;
 use std::path::Path;
 use std::pin::Pin;
@@ -35,6 +36,34 @@ use crate::error::Error;
 pub use reqwest_middleware::ClientWithMiddleware;
 
 pub type BatchFuture<'a> = Pin<Box<dyn Future<Output = Result<BatchResponse, Error>> + Send + 'a>>;
+
+pub fn documented_language_codes_live() -> Vec<String> {
+    let mut set: BTreeSet<&'static str> = BTreeSet::new();
+
+    set.extend(deepgram::documented_language_codes());
+    set.extend(soniox::documented_language_codes().iter().copied());
+    set.extend(gladia::documented_language_codes().iter().copied());
+    set.extend(assemblyai::documented_language_codes_live().iter().copied());
+    set.extend(argmax::PARAKEET_V3_LANGS.iter().copied());
+
+    set.into_iter().map(str::to_string).collect()
+}
+
+pub fn documented_language_codes_batch() -> Vec<String> {
+    let mut set: BTreeSet<&'static str> = BTreeSet::new();
+
+    set.extend(deepgram::documented_language_codes());
+    set.extend(soniox::documented_language_codes().iter().copied());
+    set.extend(gladia::documented_language_codes().iter().copied());
+    set.extend(
+        assemblyai::documented_language_codes_batch()
+            .iter()
+            .copied(),
+    );
+    set.extend(argmax::PARAKEET_V3_LANGS.iter().copied());
+
+    set.into_iter().map(str::to_string).collect()
+}
 
 pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
     fn provider_name(&self) -> &'static str;
@@ -216,7 +245,7 @@ impl AdapterKind {
         use owhisper_providers::Provider;
 
         if is_hyprnote_proxy(base_url) {
-            if DeepgramAdapter::is_supported_languages(languages, model) {
+            if DeepgramAdapter::is_supported_languages_live(languages, model) {
                 return Self::Deepgram;
             } else {
                 return Self::Soniox;
@@ -232,19 +261,35 @@ impl AdapterKind {
             .unwrap_or(Self::Deepgram)
     }
 
-    pub fn is_supported_languages(
+    pub fn is_supported_languages_live(
         &self,
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
         match self {
-            Self::Deepgram => DeepgramAdapter::is_supported_languages(languages, model),
-            Self::Soniox => SonioxAdapter::is_supported_languages(languages),
-            Self::AssemblyAI => AssemblyAIAdapter::is_supported_languages(languages),
-            Self::Gladia => GladiaAdapter::is_supported_languages(languages),
-            Self::OpenAI => OpenAIAdapter::is_supported_languages(languages),
-            Self::Fireworks => FireworksAdapter::is_supported_languages(languages),
-            Self::Argmax => ArgmaxAdapter::is_supported_languages(languages, model),
+            Self::Deepgram => DeepgramAdapter::is_supported_languages_live(languages, model),
+            Self::Soniox => SonioxAdapter::is_supported_languages_live(languages),
+            Self::AssemblyAI => AssemblyAIAdapter::is_supported_languages_live(languages),
+            Self::Gladia => GladiaAdapter::is_supported_languages_live(languages),
+            Self::OpenAI => OpenAIAdapter::is_supported_languages_live(languages),
+            Self::Fireworks => FireworksAdapter::is_supported_languages_live(languages),
+            Self::Argmax => ArgmaxAdapter::is_supported_languages_live(languages, model),
+        }
+    }
+
+    pub fn is_supported_languages_batch(
+        &self,
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> bool {
+        match self {
+            Self::Deepgram => DeepgramAdapter::is_supported_languages_batch(languages, model),
+            Self::Soniox => SonioxAdapter::is_supported_languages_batch(languages),
+            Self::AssemblyAI => AssemblyAIAdapter::is_supported_languages_batch(languages),
+            Self::Gladia => GladiaAdapter::is_supported_languages_batch(languages),
+            Self::OpenAI => OpenAIAdapter::is_supported_languages_batch(languages),
+            Self::Fireworks => FireworksAdapter::is_supported_languages_batch(languages),
+            Self::Argmax => ArgmaxAdapter::is_supported_languages_batch(languages, model),
         }
     }
 }

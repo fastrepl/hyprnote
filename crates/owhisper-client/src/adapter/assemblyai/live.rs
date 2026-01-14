@@ -8,7 +8,7 @@ use crate::adapter::RealtimeSttAdapter;
 use crate::adapter::parsing::{WordBuilder, calculate_time_span, ms_to_secs};
 
 // https://www.assemblyai.com/docs/universal-streaming/multilingual-transcription
-const STREAMING_LANGUAGES: &[&str] = &["en", "es", "fr", "de", "it", "pt"];
+pub(super) const STREAMING_LANGUAGES: &[&str] = &["en", "es", "fr", "de", "it", "pt"];
 
 // https://www.assemblyai.com/docs/api-reference/streaming-api/streaming-api.md
 impl RealtimeSttAdapter for AssemblyAIAdapter {

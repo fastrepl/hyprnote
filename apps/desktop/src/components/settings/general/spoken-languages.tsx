@@ -1,4 +1,3 @@
-import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -6,17 +5,12 @@ import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
+import { getLanguageDisplayName } from "../../../utils/language";
 
 interface SpokenLanguagesViewProps {
   value: string[];
   onChange: (value: string[]) => void;
-  supportedLanguages: ISO_639_1_CODE[];
-}
-
-function getLanguageName(code: string): string {
-  const lang = LANGUAGES_ISO_639_1[code as ISO_639_1_CODE];
-  return lang?.name ?? code;
+  supportedLanguages: readonly string[];
 }
 
 export function SpokenLanguagesView({
@@ -34,7 +28,7 @@ export function SpokenLanguagesView({
     }
     const query = languageSearchQuery.toLowerCase();
     return supportedLanguages.filter((langCode) => {
-      const langName = LANGUAGES_ISO_639_1[langCode].name;
+      const langName = getLanguageDisplayName(langCode);
       return (
         !value.includes(langCode) && langName.toLowerCase().includes(query)
       );
@@ -100,7 +94,7 @@ export function SpokenLanguagesView({
               variant="secondary"
               className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
             >
-              {getLanguageName(code)}
+              {getLanguageDisplayName(code)}
               <Button
                 type="button"
                 variant="ghost"
@@ -173,7 +167,7 @@ export function SpokenLanguagesView({
                   ])}
                 >
                   <span className="font-medium truncate">
-                    {getLanguageName(langCode)}
+                    {getLanguageDisplayName(langCode)}
                   </span>
                 </button>
               ))

@@ -105,7 +105,9 @@ function ProviderContext({
               ? "We filter out models from the combobox based on heuristics like **input modalities** and **tool support**."
               : providerId === "google_generative_ai"
                 ? "Visit [AI Studio](https://aistudio.google.com/api-keys) to create an API key."
-                : "";
+                : providerId === "amazon_bedrock"
+                  ? "Generate an API key in the [AWS Console](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_bedrock.html?icmpid=docs_iam_console)."
+                  : "";
 
   if (providerId === "hyprnote" && !isPro) {
     return (

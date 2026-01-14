@@ -1,3 +1,4 @@
+import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -264,6 +265,14 @@ const createLanguageModel = (
       const provider = createOpenAI({
         fetch: tauriFetch,
         apiKey: conn.apiKey,
+      });
+      return wrapWithThinkingMiddleware(provider(conn.modelId));
+    }
+
+    case "amazon_bedrock": {
+      const provider = createAmazonBedrock({
+        apiKey: conn.apiKey,
+        region: "us-east-1",
       });
       return wrapWithThinkingMiddleware(provider(conn.modelId));
     }

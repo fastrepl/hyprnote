@@ -1,6 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import {
   Anthropic,
+  Aws,
   LmStudio,
   Mistral,
   Ollama,
@@ -92,6 +93,14 @@ const _PROVIDERS = [
     badge: null,
     icon: <Icon icon="simple-icons:googlegemini" width={16} />,
     baseUrl: "https://generativelanguage.googleapis.com/v1beta",
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+  },
+  {
+    id: "amazon_bedrock",
+    displayName: "Amazon Bedrock",
+    badge: null,
+    icon: <Aws size={16} />,
+    baseUrl: undefined,
     requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {

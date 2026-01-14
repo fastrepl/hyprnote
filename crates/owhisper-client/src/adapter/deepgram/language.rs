@@ -7,7 +7,7 @@ use crate::adapter::deepgram_compat::{
 const NOVA2_MULTI_LANGS: &[&str] = &["en", "es"];
 const NOVA3_MULTI_LANGS: &[&str] = &["en", "es", "fr", "de", "hi", "ru", "pt", "ja", "it", "nl"];
 
-fn can_use_multi(model: &str, languages: &[hypr_language::Language]) -> bool {
+pub fn can_use_multi(model: &str, languages: &[hypr_language::Language]) -> bool {
     if languages.len() < 2 {
         return false;
     }

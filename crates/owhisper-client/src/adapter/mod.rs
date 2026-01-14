@@ -427,6 +427,24 @@ mod tests {
             ),
             AdapterKind::Deepgram
         );
+
+        let en_ko = vec![
+            hypr_language::ISO639::En.into(),
+            hypr_language::ISO639::Ko.into(),
+        ];
+        assert_eq!(
+            AdapterKind::from_url_and_languages("https://api.hyprnote.com/stt", &en_ko, None),
+            AdapterKind::Soniox
+        );
+
+        let en_es = vec![
+            hypr_language::ISO639::En.into(),
+            hypr_language::ISO639::Es.into(),
+        ];
+        assert_eq!(
+            AdapterKind::from_url_and_languages("https://api.hyprnote.com/stt", &en_es, None),
+            AdapterKind::Deepgram
+        );
     }
 
     #[test]

@@ -1,7 +1,8 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
+import { createMergeableStore } from "tinybase/with-schemas";
 
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { type Schemas } from "@hypr/store";
+import { SCHEMA, type Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { STORE_ID } from "../../store/main";
@@ -115,45 +116,64 @@ function migrateWordsAndHintsToTranscripts(store: Store): boolean {
   return true;
 }
 
-function cleanupSessionsFromLocal(store: Store): boolean {
-  const sessionIds = store.getRowIds("sessions");
+async function cleanupSessionsFromSqlite(): Promise<void> {
+  const tempStore = createMergeableStore()
+    .setTablesSchema(SCHEMA.table)
+    .setValuesSchema(SCHEMA.value) as Store;
+
+  const tempPersister = createLocalPersister(tempStore, {
+    storeTableName: STORE_ID,
+    storeIdColumnName: "id",
+  });
+
+  await tempPersister.load();
+
+  const sessionIds = tempStore.getRowIds("sessions");
   if (sessionIds.length === 0) {
-    return false;
+    tempPersister.destroy();
+    return;
   }
 
-  store.transaction(() => {
+  tempStore.transaction(() => {
     for (const sessionId of sessionIds) {
-      store.delRow("sessions", sessionId);
+      tempStore.delRow("sessions", sessionId);
     }
 
-    for (const mappingId of store.getRowIds("mapping_session_participant")) {
-      store.delRow("mapping_session_participant", mappingId);
+    for (const mappingId of tempStore.getRowIds(
+      "mapping_session_participant",
+    )) {
+      tempStore.delRow("mapping_session_participant", mappingId);
     }
 
-    for (const tagId of store.getRowIds("tags")) {
-      store.delRow("tags", tagId);
+    for (const tagId of tempStore.getRowIds("tags")) {
+      tempStore.delRow("tags", tagId);
     }
 
-    for (const mappingId of store.getRowIds("mapping_tag_session")) {
-      store.delRow("mapping_tag_session", mappingId);
+    for (const mappingId of tempStore.getRowIds("mapping_tag_session")) {
+      tempStore.delRow("mapping_tag_session", mappingId);
     }
 
-    for (const transcriptId of store.getRowIds("transcripts")) {
-      store.delRow("transcripts", transcriptId);
+    for (const transcriptId of tempStore.getRowIds("transcripts")) {
+      tempStore.delRow("transcripts", transcriptId);
     }
 
-    for (const noteId of store.getRowIds("enhanced_notes")) {
-      store.delRow("enhanced_notes", noteId);
+    for (const noteId of tempStore.getRowIds("enhanced_notes")) {
+      tempStore.delRow("enhanced_notes", noteId);
     }
   });
 
-  return true;
+  await tempPersister.save();
+  tempPersister.destroy();
 }
 
 export function useLocalPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
+      if (getCurrentWebviewWindowLabel() === "main") {
+        await cleanupSessionsFromSqlite();
+      }
+
       const persister = createLocalPersister(store as Store, {
         storeTableName: STORE_ID,
         storeIdColumnName: "id",
@@ -162,17 +182,7 @@ export function useLocalPersister(store: Store) {
       await persister.load();
 
       if (getCurrentWebviewWindowLabel() === "main") {
-        let shouldSave = false;
-
         if (migrateWordsAndHintsToTranscripts(store as Store)) {
-          shouldSave = true;
-        }
-
-        if (cleanupSessionsFromLocal(store as Store)) {
-          shouldSave = true;
-        }
-
-        if (shouldSave) {
           await persister.save();
         }
       }

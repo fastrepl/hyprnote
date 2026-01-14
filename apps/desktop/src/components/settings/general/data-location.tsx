@@ -45,7 +45,9 @@ export function DataLocationView() {
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium mb-1">Content Storage Location</h3>
+            <h3 className="text-sm font-medium mb-1">
+              Content Storage Location
+            </h3>
             <p className="text-xs text-neutral-600 mb-2">
               Choose where your sessions, chats, and recordings are stored.
             </p>
@@ -66,7 +68,8 @@ export function DataLocationView() {
           </Button>
         </div>
         <p className="text-xs text-neutral-500">
-          Note: Changing this location will not move existing data. You may need to restart the app for changes to take effect.
+          Note: Changing this location will not move existing data. You may need
+          to restart the app for changes to take effect.
         </p>
       </div>
     </div>

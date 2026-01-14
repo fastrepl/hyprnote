@@ -1,5 +1,4 @@
-import { openUrl } from "@tauri-apps/plugin-opener";
-
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import {
   AccordionContent,
   AccordionItem,
@@ -64,7 +63,7 @@ export function AppleCalendarProviderCard() {
             contacts permissions.
           </StyledStreamdown>
           <button
-            onClick={() => openUrl(config.docsPath)}
+            onClick={() => openerCommands.openUrl(config.docsPath, null)}
             className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
           >
             Docs ↗

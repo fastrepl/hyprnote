@@ -1,8 +1,8 @@
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { differenceInDays, format, startOfDay } from "date-fns";
 import { CalendarIcon, MapPinIcon, VideoIcon } from "lucide-react";
 import { forwardRef, useState } from "react";
 
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Popover,
@@ -102,7 +102,7 @@ function EventDisplay({
 }) {
   const handleJoinMeeting = () => {
     if (event.meetingLink) {
-      void openUrl(event.meetingLink);
+      void openerCommands.openUrl(event.meetingLink, null);
     }
   };
 

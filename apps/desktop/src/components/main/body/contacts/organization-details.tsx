@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { Building2, Mail } from "lucide-react";
 
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
@@ -102,7 +102,10 @@ export function OrganizationDetailsColumn({
                                   size="icon"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    void openUrl(`mailto:${human.email}`);
+                                    void openerCommands.openUrl(
+                                      `mailto:${human.email}`,
+                                      null,
+                                    );
                                   }}
                                   title="Send email"
                                 >
@@ -121,7 +124,7 @@ export function OrganizationDetailsColumn({
                                     const href = /^https?:\/\//i.test(v)
                                       ? v
                                       : `https://www.linkedin.com/in/${v.replace(/^@/, "")}`;
-                                    void openUrl(href);
+                                    void openerCommands.openUrl(href, null);
                                   }}
                                   title="View LinkedIn profile"
                                 >

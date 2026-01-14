@@ -22,7 +22,7 @@ inputs:
   idempotent:
     description: Whether the session is idempotent
     required: false
-    default: "true"
+    default: "false"
   tags:
     description: JSON array of tags
     required: false

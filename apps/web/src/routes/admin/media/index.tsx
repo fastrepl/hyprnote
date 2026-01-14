@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 interface MediaItem {
@@ -525,10 +526,7 @@ function RootFolderItem({
       }}
     >
       {loadingPath === "" ? (
-        <Icon
-          icon="mdi:loading"
-          className="text-neutral-400 text-sm animate-spin"
-        />
+        <Spinner size={14} color="currentColor" className="text-neutral-400" />
       ) : (
         <Icon
           icon={rootExpanded ? "mdi:folder-open" : "mdi:folder"}
@@ -576,9 +574,10 @@ function TreeNodeItem({
         }}
       >
         {isLoading ? (
-          <Icon
-            icon="mdi:loading"
-            className="text-neutral-400 text-sm animate-spin"
+          <Spinner
+            size={14}
+            color="currentColor"
+            className="text-neutral-400"
           />
         ) : (
           <Icon
@@ -818,7 +817,7 @@ function MediaGrid({
 function LoadingState() {
   return (
     <div className="flex items-center justify-center h-64 text-neutral-500">
-      <Icon icon="mdi:loading" className="animate-spin text-2xl mr-2" />
+      <Spinner size={24} color="currentColor" className="mr-2" />
       Loading...
     </div>
   );

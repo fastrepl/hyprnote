@@ -11,6 +11,7 @@ import {
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 import * as main from "../../../../store/tinybase/store/main";
+import { toSafeDate } from "../../../../store/tinybase/store/utils";
 import { getInitials } from "./shared";
 
 export function DetailsColumn({
@@ -156,7 +157,7 @@ export function DetailsColumn({
                       )}
                       {session.created_at && (
                         <div className="text-xs text-neutral-500 mt-1">
-                          {new Date(session.created_at).toLocaleDateString()}
+                          {toSafeDate(session.created_at)?.toLocaleDateString()}
                         </div>
                       )}
                     </button>

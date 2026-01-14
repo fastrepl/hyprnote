@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 
 import * as main from "../../../../../../store/tinybase/store/main";
+import { toSafeDate } from "../../../../../../store/tinybase/store/utils";
 
 export function DateDisplay({ sessionId }: { sessionId: string }) {
   const createdAt = main.UI.useCell(
@@ -11,8 +12,9 @@ export function DateDisplay({ sessionId }: { sessionId: string }) {
   );
   const { startedAt, endedAt } = useSessionRecordingTimes(sessionId);
 
+  const createdAtDate = toSafeDate(createdAt);
   const displayDate = !startedAt
-    ? format(createdAt ? new Date(createdAt) : new Date(), "MMM d, yyyy")
+    ? format(createdAtDate ?? new Date(), "MMM d, yyyy")
     : !endedAt
       ? format(new Date(startedAt), "MMM d, yyyy h:mm a")
       : `${format(new Date(startedAt), "MMM d, yyyy h:mm a")} - ${format(new Date(endedAt), "MMM d, yyyy h:mm a")}`;

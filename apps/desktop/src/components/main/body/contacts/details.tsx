@@ -1,7 +1,14 @@
-import { Building2, CircleMinus, FileText, SearchIcon } from "lucide-react";
-import React, { useState } from "react";
+import {
+  Building2,
+  CircleMinus,
+  FileText,
+  SearchIcon,
+  Users,
+} from "lucide-react";
+import React, { useCallback, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
+import { Card } from "@hypr/ui/components/ui/card";
 import { Input } from "@hypr/ui/components/ui/input";
 import {
   Popover,
@@ -50,7 +57,7 @@ export function DetailsColumn({
     return mappingIdsByHuman
       .map((mappingId: string) => {
         const mapping = allMappings[mappingId];
-        if (!mapping || !mapping.session_id) {
+        if (!mapping || !mapping.session_id || mapping.source === "excluded") {
           return null;
         }
 
@@ -70,6 +77,90 @@ export function DetailsColumn({
           session !== null,
       );
   }, [mappingIdsByHuman, allMappings, allSessions]);
+
+  const email = main.UI.useCell(
+    "humans",
+    selectedHumanId ?? "",
+    "email",
+    main.STORE_ID,
+  ) as string | undefined;
+
+  const duplicateHumanIds = main.UI.useSliceRowIds(
+    main.INDEXES.humansByEmail,
+    email ?? "",
+    main.STORE_ID,
+  );
+
+  const duplicates = React.useMemo(() => {
+    if (!email || !duplicateHumanIds || duplicateHumanIds.length <= 1) {
+      return [];
+    }
+    return duplicateHumanIds.filter((id) => id !== selectedHumanId);
+  }, [email, duplicateHumanIds, selectedHumanId]);
+
+  const allHumans = main.UI.useTable("humans", main.STORE_ID);
+
+  const duplicatesWithData = React.useMemo(() => {
+    return duplicates
+      .map((id) => {
+        const data = allHumans[id];
+        if (!data) return null;
+        return { id, ...data };
+      })
+      .filter((dup): dup is NonNullable<typeof dup> => dup !== null);
+  }, [duplicates, allHumans]);
+
+  const store = main.UI.useStore(main.STORE_ID);
+
+  const handleMergeContacts = useCallback(
+    (duplicateId: string) => {
+      if (!store || !selectedHumanId) return;
+
+      const duplicateData = store.getRow("humans", duplicateId);
+      const primaryData = store.getRow("humans", selectedHumanId);
+
+      store.transaction(() => {
+        const allMappingIds = store.getRowIds("mapping_session_participant");
+        allMappingIds.forEach((mappingId) => {
+          const mapping = store.getRow(
+            "mapping_session_participant",
+            mappingId,
+          );
+          if (mapping.human_id === duplicateId) {
+            store.setPartialRow("mapping_session_participant", mappingId, {
+              human_id: selectedHumanId,
+            });
+          }
+        });
+
+        if (duplicateData && primaryData) {
+          const mergedFields: Record<string, any> = {};
+          if (!primaryData.job_title && duplicateData.job_title) {
+            mergedFields.job_title = duplicateData.job_title;
+          }
+          if (
+            !primaryData.linkedin_username &&
+            duplicateData.linkedin_username
+          ) {
+            mergedFields.linkedin_username = duplicateData.linkedin_username;
+          }
+          if (!primaryData.memo && duplicateData.memo) {
+            mergedFields.memo = duplicateData.memo;
+          }
+          if (!primaryData.org_id && duplicateData.org_id) {
+            mergedFields.org_id = duplicateData.org_id;
+          }
+
+          if (Object.keys(mergedFields).length > 0) {
+            store.setPartialRow("humans", selectedHumanId, mergedFields);
+          }
+        }
+
+        store.delRow("humans", duplicateId);
+      });
+    },
+    [store, selectedHumanId],
+  );
 
   return (
     <div className="flex-1 flex flex-col h-full">
@@ -98,6 +189,65 @@ export function DetailsColumn({
               </div>
             </div>
           </div>
+
+          {duplicatesWithData.length > 0 && (
+            <div className="px-6 py-4 border-b border-neutral-200 bg-amber-50">
+              <Card className="border-amber-200 bg-white">
+                <div className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-0.5">
+                      <Users className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-amber-900 mb-1">
+                        Duplicate Contact
+                        {duplicatesWithData.length > 1 ? "s" : ""} Found
+                      </h4>
+                      <p className="text-sm text-amber-800 mb-3">
+                        {duplicatesWithData.length > 1
+                          ? `${duplicatesWithData.length} contacts`
+                          : "Another contact"}{" "}
+                        with the same email address{" "}
+                        {duplicatesWithData.length > 1 ? "exist" : "exists"}.
+                        Merge to consolidate all related notes and information.
+                      </p>
+                      <div className="space-y-2">
+                        {duplicatesWithData.map((dup) => (
+                          <div
+                            key={dup.id}
+                            className="flex items-center justify-between p-2 bg-neutral-50 rounded-md border border-neutral-200"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+                                <span className="text-xs font-medium text-neutral-600">
+                                  {getInitials(dup.name || dup.email)}
+                                </span>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-neutral-900">
+                                  {dup.name || "Unnamed Contact"}
+                                </div>
+                                <div className="text-xs text-neutral-500">
+                                  {dup.email}
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => handleMergeContacts(dup.id)}
+                              size="sm"
+                              variant="default"
+                            >
+                              Merge
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto">
             <div className="border-b border-neutral-200">

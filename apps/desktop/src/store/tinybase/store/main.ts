@@ -216,6 +216,7 @@ export const StoreComponent = () => {
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
       .setIndexDefinition(INDEXES.humansByOrg, "humans", "org_id", "name")
+      .setIndexDefinition(INDEXES.humansByEmail, "humans", "email")
       .setIndexDefinition(
         INDEXES.sessionParticipantsBySession,
         "mapping_session_participant",
@@ -360,6 +361,7 @@ export const METRICS = {
 
 export const INDEXES = {
   humansByOrg: "humansByOrg",
+  humansByEmail: "humansByEmail",
   sessionParticipantsBySession: "sessionParticipantsBySession",
   sessionsByFolder: "sessionsByFolder",
   transcriptBySession: "transcriptBySession",

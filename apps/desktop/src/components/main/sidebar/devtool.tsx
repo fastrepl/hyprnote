@@ -69,7 +69,9 @@ export function DevtoolView() {
 
       if (seed.calendarFixtureBase) {
         try {
-          await appleCalendarCommands.resetFixture();
+          if ("resetFixture" in appleCalendarCommands) {
+            await (appleCalendarCommands as any).resetFixture();
+          }
           const result = await appleCalendarCommands.listCalendars();
           if (result.status === "ok") {
             fixtureCalendars = result.data;
@@ -147,8 +149,10 @@ function CalendarMockCard() {
   useEffect(() => {
     const loadFixtureInfo = async () => {
       try {
-        const info = await appleCalendarCommands.getFixtureInfo();
-        setFixtureInfo(info);
+        if ("getFixtureInfo" in appleCalendarCommands) {
+          const info = await (appleCalendarCommands as any).getFixtureInfo();
+          setFixtureInfo(info);
+        }
       } catch {
         // fixture feature not enabled
       }
@@ -159,8 +163,10 @@ function CalendarMockCard() {
   const handleAdvance = useCallback(async () => {
     setIsLoading(true);
     try {
-      const info = await appleCalendarCommands.advanceFixture();
-      setFixtureInfo(info);
+      if ("advanceFixture" in appleCalendarCommands) {
+        const info = await (appleCalendarCommands as any).advanceFixture();
+        setFixtureInfo(info);
+      }
     } catch {
       // fixture feature not enabled
     } finally {

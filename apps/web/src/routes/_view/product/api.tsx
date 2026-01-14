@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/product/api")({
         name: "description",
         content: "Hyprnote API for developers. Coming soon.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 });

@@ -119,7 +119,6 @@ tauri-plugin-autostart = "2.5"
 tauri-plugin-clipboard-manager = "2.3"
 tauri-plugin-deep-link = "2.4"
 tauri-plugin-dialog = "2.3"
-tauri-plugin-fs = "2.4"
 tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
 tauri-plugin-opener = "2.5"
 tauri-plugin-os = "2.3"
@@ -143,6 +142,7 @@ tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }
 tauri-plugin-detect = { path = "plugins/detect" }
 tauri-plugin-extensions = { path = "plugins/extensions" }
 tauri-plugin-fs-sync = { path = "plugins/fs-sync" }
+tauri-plugin-fs2 = { path = "plugins/fs2" }
 tauri-plugin-hooks = { path = "plugins/hooks" }
 tauri-plugin-icon = { path = "plugins/icon" }
 tauri-plugin-importer = { path = "plugins/importer" }
@@ -155,6 +155,7 @@ tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-network = { path = "plugins/network" }
 tauri-plugin-notification = { path = "plugins/notification" }
 tauri-plugin-notify = { path = "plugins/notify" }
+tauri-plugin-opener2 = { path = "plugins/opener2" }
 tauri-plugin-overlay = { path = "plugins/overlay" }
 tauri-plugin-path2 = { path = "plugins/path2" }
 tauri-plugin-pdf = { path = "plugins/pdf" }

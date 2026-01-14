@@ -57,7 +57,7 @@ export function SelectProviderAndModel() {
       spoken_languages,
     ],
     queryFn: async () => {
-      const result = await listenerCommands.isSupportedLanguages(
+      const result = await listenerCommands.isSupportedLanguagesLive(
         current_stt_provider!,
         current_stt_model ?? null,
         spoken_languages ?? [],

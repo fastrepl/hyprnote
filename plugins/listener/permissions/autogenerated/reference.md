@@ -13,8 +13,9 @@ Default permissions for the plugin
 - `allow-set-mic-muted`
 - `allow-get-state`
 - `allow-run-batch`
-- `allow-is-supported-languages`
-- `allow-suggest-providers-for-languages`
+- `allow-is-supported-languages-live`
+- `allow-suggest-providers-for-languages-live`
+- `allow-list-documented-language-codes-live`
 
 ## Permission Table
 
@@ -132,12 +133,12 @@ Denies the get_timeline command without any pre-configured scope.
 <tr>
 <td>
 
-`listener:allow-is-supported-languages`
+`listener:allow-is-supported-languages-live`
 
 </td>
 <td>
 
-Enables the is_supported_languages command without any pre-configured scope.
+Enables the is_supported_languages_live command without any pre-configured scope.
 
 </td>
 </tr>
@@ -145,12 +146,38 @@ Enables the is_supported_languages command without any pre-configured scope.
 <tr>
 <td>
 
-`listener:deny-is-supported-languages`
+`listener:deny-is-supported-languages-live`
 
 </td>
 <td>
 
-Denies the is_supported_languages command without any pre-configured scope.
+Denies the is_supported_languages_live command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-list-documented-language-codes-live`
+
+</td>
+<td>
+
+Enables the list_documented_language_codes_live command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-list-documented-language-codes-live`
+
+</td>
+<td>
+
+Denies the list_documented_language_codes_live command without any pre-configured scope.
 
 </td>
 </tr>
@@ -314,12 +341,12 @@ Denies the stop_session command without any pre-configured scope.
 <tr>
 <td>
 
-`listener:allow-suggest-providers-for-languages`
+`listener:allow-suggest-providers-for-languages-live`
 
 </td>
 <td>
 
-Enables the suggest_providers_for_languages command without any pre-configured scope.
+Enables the suggest_providers_for_languages_live command without any pre-configured scope.
 
 </td>
 </tr>
@@ -327,12 +354,12 @@ Enables the suggest_providers_for_languages command without any pre-configured s
 <tr>
 <td>
 
-`listener:deny-suggest-providers-for-languages`
+`listener:deny-suggest-providers-for-languages-live`
 
 </td>
 <td>
 
-Denies the suggest_providers_for_languages command without any pre-configured scope.
+Denies the suggest_providers_for_languages_live command without any pre-configured scope.
 
 </td>
 </tr>

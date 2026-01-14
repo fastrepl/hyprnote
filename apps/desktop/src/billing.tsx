@@ -1,4 +1,3 @@
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { jwtDecode } from "jwt-decode";
 import {
   createContext,
@@ -7,6 +6,8 @@ import {
   useContext,
   useMemo,
 } from "react";
+
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 
 import { useAuth } from "./auth";
 import { env } from "./env";
@@ -48,8 +49,9 @@ export function BillingProvider({ children }: { children: ReactNode }) {
 
   const upgradeToPro = useCallback(async () => {
     const scheme = await getScheme();
-    void openUrl(
+    void openerCommands.openUrl(
       `${env.VITE_APP_URL}/app/checkout?period=monthly&scheme=${scheme}`,
+      null,
     );
   }, []);
 

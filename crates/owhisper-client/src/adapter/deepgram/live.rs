@@ -22,7 +22,7 @@ impl RealtimeSttAdapter for DeepgramAdapter {
         if languages.is_empty() {
             return false;
         }
-        DeepgramAdapter::is_supported_languages(languages, model)
+        DeepgramAdapter::is_supported_languages_live(languages, model)
     }
 
     fn supports_native_multichannel(&self) -> bool {

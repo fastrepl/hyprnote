@@ -17,7 +17,7 @@ impl BatchSttAdapter for DeepgramAdapter {
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
-        DeepgramAdapter::is_supported_languages(languages, model)
+        DeepgramAdapter::is_supported_languages_batch(languages, model)
     }
 
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(

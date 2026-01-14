@@ -1,10 +1,21 @@
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
+use serde::{Deserialize, Serialize};
 use tauri::Manager;
 
 pub struct Path2<'a, R: tauri::Runtime, M: Manager<R>> {
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
+}
+
+#[derive(Debug, Deserialize, specta::Type)]
+pub struct ObsidianConfig {
+    vaults: HashMap<String, ObsidianVault>,
+}
+
+#[derive(Debug, Deserialize, Serialize, specta::Type)]
+pub struct ObsidianVault {
+    pub path: PathBuf,
 }
 
 impl<'a, R: tauri::Runtime, M: Manager<R>> Path2<'a, R, M> {
@@ -25,6 +36,20 @@ impl<'a, R: tauri::Runtime, M: Manager<R>> Path2<'a, R, M> {
         let path = data_dir.join(app_folder);
         std::fs::create_dir_all(&path)?;
         Ok(path)
+    }
+
+    pub fn obsidian_vaults(&self) -> Result<Vec<ObsidianVault>, crate::Error> {
+        let data_dir = self
+            .manager
+            .path()
+            .data_dir()
+            .map_err(|e| crate::Error::Path(e.to_string()))?;
+
+        let config_path = data_dir.join("obsidian").join("obsidian.json");
+        let content = std::fs::read_to_string(&config_path)?;
+        let config: ObsidianConfig = serde_json::from_str(&content)?;
+
+        Ok(config.vaults.into_values().collect())
     }
 }
 

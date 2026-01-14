@@ -18,6 +18,7 @@ export const Route = createFileRoute("/_view/product/self-hosting")({
         content:
           "Deploy Hyprnote on your own infrastructure. Complete control over your meeting data with on-premises deployment, air-gapped environments, and full data sovereignty.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       { property: "og:title", content: "Self-Hosting - Hyprnote" },
       {
         property: "og:description",

@@ -7,9 +7,9 @@ const path2Mocks = vi.hoisted(() => ({
   base: vi.fn().mockResolvedValue("/mock/data/dir/hyprnote"),
 }));
 
-const fsMocks = vi.hoisted(() => ({
-  mkdir: vi.fn().mockResolvedValue(undefined),
+const fs2Mocks = vi.hoisted(() => ({
   readTextFile: vi.fn(),
+  remove: vi.fn(),
 }));
 
 const fsSyncMocks = vi.hoisted(() => ({
@@ -23,7 +23,7 @@ const notifyMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@hypr/plugin-path2", () => ({ commands: path2Mocks }));
-vi.mock("@tauri-apps/plugin-fs", () => fsMocks);
+vi.mock("@hypr/plugin-fs2", () => ({ commands: fs2Mocks }));
 vi.mock("@hypr/plugin-fs-sync", () => ({ commands: fsSyncMocks }));
 vi.mock("@hypr/plugin-notify", () => ({ events: notifyMocks }));
 
@@ -67,7 +67,10 @@ describe("createJsonFilePersister", () => {
           recurrence_series_id: "",
         },
       };
-      fsMocks.readTextFile.mockResolvedValue(JSON.stringify(mockData));
+      fs2Mocks.readTextFile.mockResolvedValue({
+        status: "ok",
+        data: JSON.stringify(mockData),
+      });
 
       const persister = createJsonFilePersister(store, {
         tableName: "events",
@@ -76,16 +79,17 @@ describe("createJsonFilePersister", () => {
       });
       await persister.load();
 
-      expect(fsMocks.readTextFile).toHaveBeenCalledWith(
+      expect(fs2Mocks.readTextFile).toHaveBeenCalledWith(
         `${MOCK_DATA_DIR}/test.json`,
       );
       expect(store.getTable("events")).toEqual(mockData);
     });
 
     test("handles file not found gracefully", async () => {
-      fsMocks.readTextFile.mockRejectedValue(
-        new Error("No such file or directory"),
-      );
+      fs2Mocks.readTextFile.mockResolvedValue({
+        status: "error",
+        error: "No such file or directory",
+      });
 
       const persister = createJsonFilePersister(store, {
         tableName: "events",

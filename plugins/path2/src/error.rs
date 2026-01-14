@@ -8,6 +8,8 @@ pub enum Error {
     Path(String),
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("json error: {0}")]
+    Json(#[from] serde_json::Error),
 }
 
 impl Serialize for Error {

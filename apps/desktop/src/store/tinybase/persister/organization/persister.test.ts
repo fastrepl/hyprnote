@@ -15,18 +15,14 @@ const fsSyncMocks = vi.hoisted(() => ({
   cleanupOrphan: vi.fn().mockResolvedValue({ status: "ok", data: 0 }),
 }));
 
-const fsMocks = vi.hoisted(() => ({
-  mkdir: vi.fn().mockResolvedValue(undefined),
-  readDir: vi.fn(),
+const fs2Mocks = vi.hoisted(() => ({
   readTextFile: vi.fn(),
-  writeTextFile: vi.fn().mockResolvedValue(undefined),
-  exists: vi.fn(),
-  remove: vi.fn().mockResolvedValue(undefined),
+  remove: vi.fn(),
 }));
 
 vi.mock("@hypr/plugin-path2", () => ({ commands: path2Mocks }));
 vi.mock("@hypr/plugin-fs-sync", () => ({ commands: fsSyncMocks }));
-vi.mock("@tauri-apps/plugin-fs", () => fsMocks);
+vi.mock("@hypr/plugin-fs2", () => ({ commands: fs2Mocks }));
 
 describe("createOrganizationPersister", () => {
   let store: ReturnType<typeof createTestMainStore>;

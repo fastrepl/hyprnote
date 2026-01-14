@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/consulting")({
         content:
           "Capture client conversations, project details, and strategic insights with AI-powered meeting notes. Deliver better recommendations with Hyprnote.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Consultants - Hyprnote",

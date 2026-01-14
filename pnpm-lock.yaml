@@ -245,9 +245,6 @@ importers:
       '@floating-ui/react':
         specifier: ^0.27.16
         version: 0.27.16(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@huggingface/languages':
-        specifier: ^1.0.0
-        version: 1.0.0
       '@hypr/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
@@ -287,6 +284,9 @@ importers:
       '@hypr/plugin-fs-sync':
         specifier: workspace:*
         version: link:../../plugins/fs-sync
+      '@hypr/plugin-fs2':
+        specifier: workspace:*
+        version: link:../../plugins/fs2
       '@hypr/plugin-hooks':
         specifier: workspace:*
         version: link:../../plugins/hooks
@@ -320,6 +320,9 @@ importers:
       '@hypr/plugin-notify':
         specifier: workspace:*
         version: link:../../plugins/notify
+      '@hypr/plugin-opener2':
+        specifier: workspace:*
+        version: link:../../plugins/opener2
       '@hypr/plugin-overlay':
         specifier: workspace:*
         version: link:../../plugins/overlay
@@ -416,9 +419,6 @@ importers:
       '@tauri-apps/plugin-dialog':
         specifier: ^2.4.2
         version: 2.4.2
-      '@tauri-apps/plugin-fs':
-        specifier: ^2.4.4
-        version: 2.4.4
       '@tauri-apps/plugin-http':
         specifier: ^2.5.4
         version: 2.5.4
@@ -1544,6 +1544,12 @@ importers:
         specifier: ^2.9.1
         version: 2.9.1
 
+  plugins/fs2:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
   plugins/hooks:
     dependencies:
       '@tauri-apps/api':
@@ -1611,6 +1617,12 @@ importers:
         version: 2.9.1
 
   plugins/notify:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/opener2:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1
@@ -3405,9 +3417,6 @@ packages:
     resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
     peerDependencies:
       react-hook-form: ^7.55.0
-
-  '@huggingface/languages@1.0.0':
-    resolution: {integrity: sha512-EtU6RwSRyiKiRHsdalP84vOV7Wrde6IbPums6XeOOD8peq8ttWfSdXIq00OF5T5OH9aCUf/pbOtg6Pxpus9vfw==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -7494,9 +7503,6 @@ packages:
 
   '@tauri-apps/plugin-dialog@2.4.2':
     resolution: {integrity: sha512-lNIn5CZuw8WZOn8zHzmFmDSzg5zfohWoa3mdULP0YFh/VogVdMVWZPcWSHlydsiJhRQYaTNSYKN7RmZKE2lCYQ==}
-
-  '@tauri-apps/plugin-fs@2.4.4':
-    resolution: {integrity: sha512-MTorXxIRmOnOPT1jZ3w96vjSuScER38ryXY88vl5F0uiKdnvTKKTtaEjTEo8uPbl4e3gnUtfsDVwC7h77GQLvQ==}
 
   '@tauri-apps/plugin-http@2.5.4':
     resolution: {integrity: sha512-/i4U/9za3mrytTgfRn5RHneKubZE/dwRmshYwyMvNRlkWjvu1m4Ma72kcbVJMZFGXpkbl+qLyWMGrihtWB76Zg==}
@@ -18117,8 +18123,6 @@ snapshots:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.69.0(react@19.2.3)
 
-  '@huggingface/languages@1.0.0': {}
-
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.7':
@@ -23287,10 +23291,6 @@ snapshots:
       '@tauri-apps/api': 2.9.1
 
   '@tauri-apps/plugin-dialog@2.4.2':
-    dependencies:
-      '@tauri-apps/api': 2.9.1
-
-  '@tauri-apps/plugin-fs@2.4.4':
     dependencies:
       '@tauri-apps/api': 2.9.1
 

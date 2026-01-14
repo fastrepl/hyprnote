@@ -36,7 +36,7 @@ pub async fn export_to_vtt<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn is_supported_languages<R: tauri::Runtime>(
+pub async fn is_supported_languages_batch<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
     provider: String,
     model: Option<String>,
@@ -54,12 +54,12 @@ pub async fn is_supported_languages<R: tauri::Runtime>(
     let adapter_kind =
         AdapterKind::from_str(&provider).map_err(|_| format!("unknown_provider: {}", provider))?;
 
-    Ok(adapter_kind.is_supported_languages(&languages_parsed, model.as_deref()))
+    Ok(adapter_kind.is_supported_languages_batch(&languages_parsed, model.as_deref()))
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn suggest_providers_for_languages<R: tauri::Runtime>(
+pub async fn suggest_providers_for_languages_batch<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
     languages: Vec<String>,
 ) -> Result<Vec<String>, String> {
@@ -81,9 +81,17 @@ pub async fn suggest_providers_for_languages<R: tauri::Runtime>(
 
     let supported: Vec<String> = all_providers
         .iter()
-        .filter(|kind| kind.is_supported_languages(&languages_parsed, None))
+        .filter(|kind| kind.is_supported_languages_batch(&languages_parsed, None))
         .map(|kind| format!("{:?}", kind).to_lowercase())
         .collect();
 
     Ok(supported)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_documented_language_codes_batch<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    Ok(owhisper_client::documented_language_codes_batch())
 }

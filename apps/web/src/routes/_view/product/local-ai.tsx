@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_view/product/local-ai")({
         content:
           "Powerful AI processing that runs entirely on your device. Private, fast, and offline-capable meeting transcription and summarization with local Whisper and LLM models.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       { property: "og:title", content: "Local AI - Hyprnote" },
       {
         property: "og:description",

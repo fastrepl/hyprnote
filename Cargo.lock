@@ -4731,8 +4731,8 @@ dependencies = [
  "tauri-plugin-detect",
  "tauri-plugin-dialog",
  "tauri-plugin-extensions",
- "tauri-plugin-fs",
  "tauri-plugin-fs-sync",
+ "tauri-plugin-fs2",
  "tauri-plugin-hooks",
  "tauri-plugin-http",
  "tauri-plugin-icon",
@@ -4746,6 +4746,7 @@ dependencies = [
  "tauri-plugin-notification",
  "tauri-plugin-notify",
  "tauri-plugin-opener",
+ "tauri-plugin-opener2",
  "tauri-plugin-os",
  "tauri-plugin-overlay",
  "tauri-plugin-path2",
@@ -18302,6 +18303,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-fs2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-path2",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
+]
+
+[[package]]
 name = "tauri-plugin-hooks"
 version = "0.1.0"
 dependencies = [
@@ -18675,6 +18691,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-opener2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-opener",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
+]
+
+[[package]]
 name = "tauri-plugin-os"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -18713,6 +18744,7 @@ version = "0.1.0"
 dependencies = [
  "sanitize-filename",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",

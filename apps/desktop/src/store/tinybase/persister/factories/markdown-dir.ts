@@ -1,6 +1,6 @@
-import { readTextFile } from "@tauri-apps/plugin-fs";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
+import { commands as fs2Commands } from "@hypr/plugin-fs2";
 import {
   commands as fsSyncCommands,
   type JsonValue,
@@ -109,24 +109,9 @@ async function loadSingleEntity<
   const dataDir = await getDataDir();
   const filePath = buildEntityFilePath(dataDir, dirName, entityId);
 
-  try {
-    const content = await readTextFile(filePath);
-    const parseResult = await fsSyncCommands.deserialize(content);
-
-    if (parseResult.status === "error") {
-      return undefined;
-    }
-
-    const entity = fromFrontmatter(
-      parseResult.data.frontmatter as Record<string, unknown>,
-      parseResult.data.content.trim(),
-    );
-
-    return toPersistedChanges<Schemas>({
-      [tableName]: { [entityId]: entity as Record<string, unknown> },
-    });
-  } catch (error) {
-    if (isFileNotFoundError(error)) {
+  const readResult = await fs2Commands.readTextFile(filePath);
+  if (readResult.status === "error") {
+    if (isFileNotFoundError(readResult.error)) {
       const loaded = { [tableName]: {} } as LoadedData<TStorage>;
       const result = deletionMarker.markForEntity(loaded, entityId);
 
@@ -136,6 +121,21 @@ async function loadSingleEntity<
     }
     return undefined;
   }
+
+  const parseResult = await fsSyncCommands.deserialize(readResult.data);
+
+  if (parseResult.status === "error") {
+    return undefined;
+  }
+
+  const entity = fromFrontmatter(
+    parseResult.data.frontmatter as Record<string, unknown>,
+    parseResult.data.content.trim(),
+  );
+
+  return toPersistedChanges<Schemas>({
+    [tableName]: { [entityId]: entity as Record<string, unknown> },
+  });
 }
 
 export function createMarkdownDirPersister<

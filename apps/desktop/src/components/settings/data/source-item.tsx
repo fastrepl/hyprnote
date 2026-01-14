@@ -1,7 +1,7 @@
-import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { CheckIcon, Loader2Icon } from "lucide-react";
 
 import { type ImportSourceInfo } from "@hypr/plugin-importer";
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Button } from "@hypr/ui/components/ui/button";
 
 export function SourceItem({
@@ -25,7 +25,7 @@ export function SourceItem({
           Import data from `
           <button
             type="button"
-            onClick={() => revealItemInDir(source.revealPath)}
+            onClick={() => openerCommands.revealItemInDir(source.revealPath)}
             className="underline hover:text-neutral-900 cursor-pointer"
           >
             {source.path}

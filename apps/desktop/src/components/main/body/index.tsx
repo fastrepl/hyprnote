@@ -594,7 +594,7 @@ export function StandardTabWrapper({
         {floatingButton}
         <StandardTabChatButton showTimeline={showTimeline} />
       </div>
-      {afterBorder}
+      {afterBorder && <div className="mt-1">{afterBorder}</div>}
     </div>
   );
 }

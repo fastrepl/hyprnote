@@ -21,6 +21,8 @@ fn app() -> Router {
     let auth_state = AuthState::new(&env().supabase_url);
 
     let protected_routes = Router::new()
+        .merge(hypr_transcribe_proxy::listen_router(stt_config.clone()))
+        .merge(hypr_llm_proxy::chat_completions_router(llm_config.clone()))
         .nest("/stt", hypr_transcribe_proxy::router(stt_config))
         .nest("/llm", hypr_llm_proxy::router(llm_config))
         .route_layer(middleware::from_fn_with_state(
@@ -51,8 +53,14 @@ fn app() -> Router {
                                 .map(MatchedPath::as_str)
                                 .unwrap_or(path);
                             let (service, span_op) = match path {
-                                p if p.starts_with("/llm") => ("llm", "http.server.llm"),
-                                p if p.starts_with("/stt") => ("stt", "http.server.stt"),
+                                p if p.starts_with("/llm")
+                                    || p.starts_with("/chat/completions") =>
+                                {
+                                    ("llm", "http.server.llm")
+                                }
+                                p if p.starts_with("/stt") || p.starts_with("/listen") => {
+                                    ("stt", "http.server.stt")
+                                }
                                 _ => ("unknown", "http.server"),
                             };
 

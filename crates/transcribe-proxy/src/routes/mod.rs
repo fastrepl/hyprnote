@@ -38,19 +38,39 @@ impl AppState {
     }
 }
 
-pub fn router(config: SttProxyConfig) -> Router {
+fn make_state(config: SttProxyConfig) -> AppState {
     let selector = config.provider_selector();
-    let state = AppState {
+    AppState {
         config,
         selector,
         client: reqwest::Client::new(),
-    };
+    }
+}
 
-    Router::new()
-        .route("/", get(streaming::handler))
-        .route("/", post(batch::handler))
-        .route("/listen", get(streaming::handler))
-        .route("/listen", post(batch::handler))
-        .layer(DefaultBodyLimit::max(100 * 1024 * 1024))
-        .with_state(state)
+fn with_common_layers(router: Router) -> Router {
+    router.layer(DefaultBodyLimit::max(100 * 1024 * 1024))
+}
+
+pub fn router(config: SttProxyConfig) -> Router {
+    let state = make_state(config);
+
+    with_common_layers(
+        Router::new()
+            .route("/", get(streaming::handler))
+            .route("/", post(batch::handler))
+            .route("/listen", get(streaming::handler))
+            .route("/listen", post(batch::handler))
+            .with_state(state),
+    )
+}
+
+pub fn listen_router(config: SttProxyConfig) -> Router {
+    let state = make_state(config);
+
+    with_common_layers(
+        Router::new()
+            .route("/listen", get(streaming::handler))
+            .route("/listen", post(batch::handler))
+            .with_state(state),
+    )
 }

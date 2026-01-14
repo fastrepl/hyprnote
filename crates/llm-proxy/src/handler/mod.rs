@@ -106,6 +106,17 @@ pub fn router(config: LlmProxyConfig) -> Router {
         .with_state(state)
 }
 
+pub fn chat_completions_router(config: LlmProxyConfig) -> Router {
+    let state = AppState {
+        config,
+        client: Client::new(),
+    };
+
+    Router::new()
+        .route("/chat/completions", post(completions_handler))
+        .with_state(state)
+}
+
 async fn completions_handler(
     State(state): State<AppState>,
     Json(request): Json<ChatCompletionRequest>,

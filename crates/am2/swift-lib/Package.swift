@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
   name: "am2-swift",
-  platforms: [.macOS("13.0")],
+  platforms: [.macOS("14.0")],
   products: [
     .library(
       name: "am2-swift",

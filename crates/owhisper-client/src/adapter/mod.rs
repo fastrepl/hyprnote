@@ -4,6 +4,7 @@ mod assemblyai;
 pub mod audio;
 mod deepgram;
 mod deepgram_compat;
+mod elevenlabs;
 mod fireworks;
 mod gladia;
 pub mod http;
@@ -16,6 +17,7 @@ mod url_builder;
 pub use argmax::*;
 pub use assemblyai::*;
 pub use deepgram::*;
+pub use elevenlabs::*;
 pub use fireworks::*;
 pub use gladia::*;
 pub use openai::*;
@@ -44,6 +46,7 @@ pub fn documented_language_codes_live() -> Vec<String> {
     set.extend(soniox::documented_language_codes().iter().copied());
     set.extend(gladia::documented_language_codes().iter().copied());
     set.extend(assemblyai::documented_language_codes_live().iter().copied());
+    set.extend(elevenlabs::documented_language_codes().iter().copied());
     set.extend(argmax::PARAKEET_V3_LANGS.iter().copied());
 
     set.into_iter().map(str::to_string).collect()
@@ -60,6 +63,7 @@ pub fn documented_language_codes_batch() -> Vec<String> {
             .iter()
             .copied(),
     );
+    set.extend(elevenlabs::documented_language_codes().iter().copied());
     set.extend(argmax::PARAKEET_V3_LANGS.iter().copied());
 
     set.into_iter().map(str::to_string).collect()
@@ -232,6 +236,8 @@ pub enum AdapterKind {
     OpenAI,
     #[strum(serialize = "gladia")]
     Gladia,
+    #[strum(serialize = "elevenlabs")]
+    ElevenLabs,
 }
 
 impl AdapterKind {
@@ -271,6 +277,7 @@ impl AdapterKind {
             Self::Gladia => GladiaAdapter::is_supported_languages_live(languages),
             Self::OpenAI => OpenAIAdapter::is_supported_languages_live(languages),
             Self::Fireworks => FireworksAdapter::is_supported_languages_live(languages),
+            Self::ElevenLabs => ElevenLabsAdapter::is_supported_languages_live(languages),
             Self::Argmax => ArgmaxAdapter::is_supported_languages_live(languages, model),
         }
     }
@@ -287,6 +294,7 @@ impl AdapterKind {
             Self::Gladia => GladiaAdapter::is_supported_languages_batch(languages),
             Self::OpenAI => OpenAIAdapter::is_supported_languages_batch(languages),
             Self::Fireworks => FireworksAdapter::is_supported_languages_batch(languages),
+            Self::ElevenLabs => ElevenLabsAdapter::is_supported_languages_batch(languages),
             Self::Argmax => ArgmaxAdapter::is_supported_languages_batch(languages, model),
         }
     }
@@ -302,6 +310,7 @@ impl From<owhisper_providers::Provider> for AdapterKind {
             Provider::Fireworks => Self::Fireworks,
             Provider::OpenAI => Self::OpenAI,
             Provider::Gladia => Self::Gladia,
+            Provider::ElevenLabs => Self::ElevenLabs,
         }
     }
 }

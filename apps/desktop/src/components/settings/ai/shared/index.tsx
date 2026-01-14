@@ -5,7 +5,7 @@ import { Streamdown } from "streamdown";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { AIProvider, Credentials } from "@hypr/store";
-import { parseCredentials } from "@hypr/store";
+import { normalizeBaseUrl, parseCredentials } from "@hypr/store";
 import {
   AccordionContent,
   AccordionItem,
@@ -84,36 +84,6 @@ type FormValues = {
   secret_access_key: string;
   region: string;
 };
-
-function normalizeBaseUrl(value: string): string | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-
-  if (/^https?:\/\//i.test(trimmed)) {
-    try {
-      new URL(trimmed);
-      return trimmed;
-    } catch {
-      return undefined;
-    }
-  }
-
-  const isProbablyLocal =
-    trimmed.startsWith("localhost") ||
-    trimmed.startsWith("127.") ||
-    trimmed.startsWith("0.0.0.0") ||
-    trimmed.startsWith("[::1]") ||
-    trimmed.endsWith(".local") ||
-    /^[^/]+:\d+/.test(trimmed);
-
-  const withScheme = `${isProbablyLocal ? "http" : "https"}://${trimmed}`;
-  try {
-    new URL(withScheme);
-    return withScheme;
-  } catch {
-    return undefined;
-  }
-}
 
 function credentialsToFormValues(
   credentials: Credentials | null,

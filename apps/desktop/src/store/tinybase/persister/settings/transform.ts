@@ -1,7 +1,10 @@
 import type { Content } from "tinybase/with-schemas";
 
 import type { Credentials } from "@hypr/store";
-import { parseCredentials } from "@hypr/store";
+import {
+  normalizeBaseUrl as normalizeBaseUrlShared,
+  parseCredentials,
+} from "@hypr/store";
 
 import type { Schemas, Store } from "../../store/settings";
 import { SETTINGS_MAPPING } from "../../store/settings";
@@ -83,34 +86,7 @@ function fromStoreValue(key: string, value: unknown): unknown {
 
 function normalizeBaseUrl(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-
-  if (/^https?:\/\//i.test(trimmed)) {
-    try {
-      new URL(trimmed);
-      return trimmed;
-    } catch {
-      return undefined;
-    }
-  }
-
-  const isProbablyLocal =
-    trimmed.startsWith("localhost") ||
-    trimmed.startsWith("127.") ||
-    trimmed.startsWith("0.0.0.0") ||
-    trimmed.startsWith("[::1]") ||
-    trimmed.endsWith(".local") ||
-    // host:port (very common for local LLM servers)
-    /^[^/]+:\d+/.test(trimmed);
-
-  const withScheme = `${isProbablyLocal ? "http" : "https"}://${trimmed}`;
-  try {
-    new URL(withScheme);
-    return withScheme;
-  } catch {
-    return undefined;
-  }
+  return normalizeBaseUrlShared(value);
 }
 
 function settingsToStoreValues(settings: unknown): Record<string, unknown> {

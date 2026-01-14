@@ -232,6 +232,36 @@ export function parseCredentials(
   }
 }
 
+export function normalizeBaseUrl(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      new URL(trimmed);
+      return trimmed;
+    } catch {
+      return undefined;
+    }
+  }
+
+  const isProbablyLocal =
+    trimmed.startsWith("localhost") ||
+    trimmed.startsWith("127.") ||
+    trimmed.startsWith("0.0.0.0") ||
+    trimmed.startsWith("[::1]") ||
+    trimmed.endsWith(".local") ||
+    /^[^/]+:\d+/.test(trimmed);
+
+  const withScheme = `${isProbablyLocal ? "http" : "https"}://${trimmed}`;
+  try {
+    new URL(withScheme);
+    return withScheme;
+  } catch {
+    return undefined;
+  }
+}
+
 export const aiProviderSchema = z.object({
   type: z.enum(["stt", "llm"]),
   base_url: z.preprocess(

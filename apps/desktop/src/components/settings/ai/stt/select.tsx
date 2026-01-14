@@ -342,11 +342,13 @@ function useConfiguredMapping(): Record<
       const credentials = parseCredentials(
         config?.credentials as string | undefined,
       );
+      const configuredBaseUrl = (config?.base_url as string) || "";
 
       const eligible =
         getProviderSelectionBlockers(provider.requirements, {
           isAuthenticated: true,
           isPro: billing.isPro,
+          baseUrl: configuredBaseUrl,
           credentials,
         }).length === 0;
 

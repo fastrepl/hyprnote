@@ -179,6 +179,93 @@ describe("settingsPersister roundtrip", () => {
     });
   });
 
+  test("handles AWS credentials for Bedrock provider", () => {
+    const original = {
+      ai: {
+        llm: {
+          amazon_bedrock: {
+            credentials: {
+              type: "aws",
+              access_key_id: "AKIAIOSFODNN7EXAMPLE",
+              secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+              region: "us-east-1",
+            },
+          },
+        },
+        stt: {},
+      },
+    };
+
+    const [tables, values] = settingsToContent(original);
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
+    store.setTables(tables);
+    store.setValues(values);
+    const result = storeToSettings(store);
+
+    expect(result).toEqual({
+      ai: {
+        llm: {
+          amazon_bedrock: {
+            credentials: {
+              type: "aws",
+              access_key_id: "AKIAIOSFODNN7EXAMPLE",
+              secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+              region: "us-east-1",
+            },
+          },
+        },
+        stt: {},
+      },
+      notification: {},
+      general: {},
+      language: {},
+    });
+  });
+
+  test("migrates legacy AWS credentials to new format", () => {
+    const legacy = {
+      ai: {
+        llm: {
+          amazon_bedrock: {
+            access_key_id: "AKIAIOSFODNN7EXAMPLE",
+            secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+            region: "us-west-2",
+          },
+        },
+        stt: {},
+      },
+    };
+
+    const [tables, values] = settingsToContent(legacy);
+    const store = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
+    store.setTables(tables);
+    store.setValues(values);
+    const result = storeToSettings(store);
+
+    expect(result).toEqual({
+      ai: {
+        llm: {
+          amazon_bedrock: {
+            credentials: {
+              type: "aws",
+              access_key_id: "AKIAIOSFODNN7EXAMPLE",
+              secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+              region: "us-west-2",
+            },
+          },
+        },
+        stt: {},
+      },
+      notification: {},
+      general: {},
+      language: {},
+    });
+  });
+
   test("store -> settings -> store preserves all data", () => {
     const store = createMergeableStore()
       .setTablesSchema(SCHEMA.table)

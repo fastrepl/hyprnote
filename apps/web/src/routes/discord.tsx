@@ -4,6 +4,6 @@ export const Route = createFileRoute("/discord")({
   beforeLoad: () => {
     throw redirect({
       href: "https://discord.gg/CX8gTH2tj9",
-    });
+    } as any);
   },
 });

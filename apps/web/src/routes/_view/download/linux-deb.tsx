@@ -4,6 +4,6 @@ export const Route = createFileRoute("/_view/download/linux-deb")({
   beforeLoad: async () => {
     throw redirect({
       href: "https://desktop2.hyprnote.com/download/latest/deb-x86_64?channel=stable",
-    });
+    } as any);
   },
 });

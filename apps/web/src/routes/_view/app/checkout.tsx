@@ -15,9 +15,9 @@ export const Route = createFileRoute("/_view/app/checkout")({
     });
 
     if (url) {
-      throw redirect({ href: url });
+      throw redirect({ href: url } as any);
     }
 
-    throw redirect({ to: "/app/account" });
+    throw redirect({ to: "/app/account/" });
   },
 });

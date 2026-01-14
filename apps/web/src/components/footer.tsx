@@ -70,7 +70,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
       <p className="text-sm text-neutral-600 mb-3">
         Are you in back-to-back meetings?{" "}
         <Link
-          to="/auth"
+          to="/auth/"
           className="text-neutral-600 hover:text-stone-600 transition-colors underline decoration-solid"
         >
           Get started
@@ -78,7 +78,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
       </p>
       <p className="text-sm text-neutral-500">
         <Link
-          to="/legal/$slug"
+          to="/legal/$slug/"
           params={{ slug: "terms" }}
           className="hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
         >
@@ -86,7 +86,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
         </Link>
         {" · "}
         <Link
-          to="/legal/$slug"
+          to="/legal/$slug/"
           params={{ slug: "privacy" }}
           className="hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
         >
@@ -118,7 +118,7 @@ function ProductLinks() {
       <ul className="space-y-3">
         <li>
           <Link
-            to="/download"
+            to="/download/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Download
@@ -126,7 +126,7 @@ function ProductLinks() {
         </li>
         <li>
           <Link
-            to="/changelog"
+            to="/changelog/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Changelog
@@ -134,7 +134,7 @@ function ProductLinks() {
         </li>
         <li>
           <Link
-            to="/roadmap"
+            to="/roadmap/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Roadmap
@@ -142,7 +142,7 @@ function ProductLinks() {
         </li>
         <li>
           <Link
-            to="/docs"
+            to="/docs/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Docs
@@ -194,7 +194,7 @@ function ResourcesLinks() {
       <ul className="space-y-3">
         <li>
           <Link
-            to="/pricing"
+            to="/pricing/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Pricing
@@ -210,7 +210,7 @@ function ResourcesLinks() {
         </li>
         <li>
           <Link
-            to="/company-handbook"
+            to="/company-handbook/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Company Handbook
@@ -218,7 +218,7 @@ function ResourcesLinks() {
         </li>
         <li>
           <Link
-            to="/gallery"
+            to="/gallery/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Prompt Gallery
@@ -268,7 +268,7 @@ function ResourcesLinks() {
         </li>
         <li>
           <Link
-            to="/vs/$slug"
+            to="/vs/$slug/"
             params={{ slug: currentVs.slug }}
             className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
             aria-label={`Versus ${currentVs.name}`}
@@ -306,7 +306,7 @@ function CompanyLinks() {
       <ul className="space-y-3">
         <li>
           <Link
-            to="/blog"
+            to="/blog/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Blog
@@ -314,7 +314,7 @@ function CompanyLinks() {
         </li>
         <li>
           <Link
-            to="/about"
+            to="/about/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             About us
@@ -322,7 +322,7 @@ function CompanyLinks() {
         </li>
         <li>
           <Link
-            to="/brand"
+            to="/brand/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Brand
@@ -330,7 +330,7 @@ function CompanyLinks() {
         </li>
         <li>
           <Link
-            to="/press-kit"
+            to="/press-kit/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Press Kit
@@ -338,7 +338,7 @@ function CompanyLinks() {
         </li>
         <li>
           <Link
-            to="/opensource"
+            to="/opensource/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Open Source
@@ -358,7 +358,7 @@ function ToolsLinks() {
       <ul className="space-y-3">
         <li>
           <Link
-            to="/eval"
+            to="/eval/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             AI Eval
@@ -366,7 +366,7 @@ function ToolsLinks() {
         </li>
         <li>
           <Link
-            to="/file-transcription"
+            to="/file-transcription/"
             search={{ id: undefined }}
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
@@ -375,7 +375,7 @@ function ToolsLinks() {
         </li>
         <li>
           <Link
-            to="/oss-friends"
+            to="/oss-friends/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             OSS Navigator

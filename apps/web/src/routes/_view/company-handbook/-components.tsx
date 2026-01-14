@@ -159,7 +159,7 @@ function RightSidebar({
             Try Hyprnote for yourself
           </h3>
           <Link
-            to="/download"
+            to="/download/"
             className={cn([
               "group px-4 h-9 flex items-center justify-center text-sm w-full",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",

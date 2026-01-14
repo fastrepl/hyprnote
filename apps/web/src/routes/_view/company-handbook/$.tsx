@@ -11,12 +11,12 @@ export const Route = createFileRoute("/_view/company-handbook/$")({
     const normalizedSplat = splat.replace(/\/$/, "");
 
     if (handbookStructure.defaultPages[normalizedSplat]) {
-      throw redirect({
-        to: "/company-handbook/$",
-        params: {
-          _splat: handbookStructure.defaultPages[normalizedSplat],
-        },
-      });
+            throw redirect({
+              to: "/company-handbook/$/",
+              params: {
+                _splat: handbookStructure.defaultPages[normalizedSplat],
+              },
+            });
     }
 
     let doc = allHandbooks.find((doc) => doc.slug === normalizedSplat);
@@ -28,10 +28,10 @@ export const Route = createFileRoute("/_view/company-handbook/$")({
       if (normalizedSplat === "about/what-hyprnote-is") {
         return;
       }
-      throw redirect({
-        to: "/company-handbook/$",
-        params: { _splat: "about/what-hyprnote-is" },
-      });
+            throw redirect({
+              to: "/company-handbook/$/",
+              params: { _splat: "about/what-hyprnote-is" },
+            });
     }
   },
   loader: async ({ params }) => {

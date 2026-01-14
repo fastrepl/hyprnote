@@ -479,7 +479,7 @@ function Component() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                to="/founders"
+                to="/founders/"
                 search={{ source: "self-hosting" }}
                 className={cn([
                   "px-8 py-3 text-base font-medium rounded-full",
@@ -490,7 +490,7 @@ function Component() {
                 Contact sales
               </Link>
               <Link
-                to="/product/local-ai"
+                to="/product/local-ai/"
                 className={cn([
                   "px-6 py-3 text-base font-medium rounded-full",
                   "border border-neutral-300 text-stone-600",

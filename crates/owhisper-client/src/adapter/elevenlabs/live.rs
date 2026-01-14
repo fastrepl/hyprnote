@@ -78,7 +78,10 @@ impl RealtimeSttAdapter for ElevenLabsAdapter {
     fn audio_to_message(&self, audio: bytes::Bytes) -> Message {
         let chunk = AudioChunk {
             message_type: "input_audio_chunk",
-            audio_chunk: base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &audio),
+            audio_base_64: base64::Engine::encode(
+                &base64::engine::general_purpose::STANDARD,
+                &audio,
+            ),
         };
         let json = serde_json::to_string(&chunk).unwrap();
         Message::Text(json.into())
@@ -142,7 +145,7 @@ impl RealtimeSttAdapter for ElevenLabsAdapter {
 #[derive(Serialize)]
 struct AudioChunk<'a> {
     message_type: &'a str,
-    audio_chunk: String,
+    audio_base_64: String,
 }
 
 #[derive(Debug, Deserialize)]

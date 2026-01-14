@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { GithubIcon } from "lucide-react";
 import { z } from "zod";
 
@@ -46,7 +46,6 @@ export const Route = createFileRoute("/admin/login/")({
 });
 
 function AdminLoginPage() {
-  const navigate = useNavigate();
   const { redirectTo } = Route.useRouteContext();
 
   const authMutation = useMutation({

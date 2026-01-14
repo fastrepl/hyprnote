@@ -98,6 +98,7 @@ export function DevtoolView() {
         <SeedCard onSeed={handleSeed} />
         <CalendarMockCard key={fixtureKey} />
         <ModalsCard />
+        <ErrorTestCard />
       </div>
     </div>
   );
@@ -363,6 +364,32 @@ function ModalsCard() {
           ])}
         >
           Trial Expired
+        </button>
+      </div>
+    </DevtoolCard>
+  );
+}
+
+function ErrorTestCard() {
+  const handleTriggerError = useCallback(() => {
+    throw new Error("Test error triggered from devtools");
+  }, []);
+
+  return (
+    <DevtoolCard title="Error Testing">
+      <div className="flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={handleTriggerError}
+          className={cn([
+            "w-full px-2.5 py-1.5 rounded-md",
+            "text-xs font-medium text-left",
+            "border border-red-200 text-red-700 bg-red-50",
+            "cursor-pointer transition-colors",
+            "hover:bg-red-100 hover:border-red-300",
+          ])}
+        >
+          Trigger Error
         </button>
       </div>
     </DevtoolCard>

@@ -1,11 +1,17 @@
-use std::sync::{Arc, Mutex};
-
 use owhisper_client::BatchSttAdapter;
 use tauri_specta::Event;
 use tracing::Instrument;
 
 use crate::BatchEvent;
+
+#[cfg(target_os = "macos")]
+use std::sync::{Arc, Mutex};
+
+#[cfg(not(target_os = "macos"))]
 use crate::batch::{BatchArgs, spawn_batch_actor};
+
+#[cfg(not(target_os = "macos"))]
+use std::sync::{Arc, Mutex};
 
 /// Creates a tracing span with session context that child events will inherit
 fn session_span(session_id: &str) -> tracing::Span {
@@ -201,6 +207,108 @@ async fn run_batch_with_adapter<A: BatchSttAdapter>(
     .await
 }
 
+#[cfg(target_os = "macos")]
+async fn run_batch_am(
+    app: tauri::AppHandle,
+    params: BatchParams,
+    _listen_params: owhisper_interface::ListenParams,
+) -> Result<(), crate::Error> {
+    let span = session_span(&params.session_id);
+
+    async {
+        BatchEvent::BatchStarted {
+            session_id: params.session_id.clone(),
+        }
+        .emit(&app)
+        .map_err(|e| {
+            crate::Error::BatchStartFailed(format!("failed to emit BatchStarted event: {e}"))
+        })?;
+
+        let model_path = params
+            .model
+            .clone()
+            .ok_or_else(|| crate::Error::BatchStartFailed("model path is required".to_string()))?;
+
+        let file_path = params.file_path.clone();
+        let session_id = params.session_id.clone();
+        let app_for_progress = app.clone();
+
+        let result = tokio::task::spawn_blocking(move || {
+            hypr_am2::init();
+
+            if !hypr_am2::transcribe::init(&model_path) {
+                return Err(crate::Error::BatchStartFailed(
+                    "failed to initialize transcription model".to_string(),
+                ));
+            }
+
+            let progress_session_id = session_id.clone();
+            let progress_app = app_for_progress.clone();
+            hypr_am2::transcribe::setup_progress_handler(move |fraction| {
+                let _ = BatchEvent::BatchResponseStreamed {
+                    session_id: progress_session_id.clone(),
+                    response: owhisper_interface::stream::StreamResponse::TranscriptResponse {
+                        start: 0.0,
+                        duration: 0.0,
+                        is_final: false,
+                        from_finalize: false,
+                        speech_final: false,
+                        channel: owhisper_interface::stream::Channel {
+                            alternatives: vec![],
+                        },
+                    },
+                    percentage: fraction as f64,
+                }
+                .emit(&progress_app);
+                true
+            });
+
+            let transcribe_result = hypr_am2::transcribe::transcribe_file_with_progress(&file_path);
+
+            if !transcribe_result.success {
+                return Err(crate::Error::BatchStartFailed(
+                    "transcription failed".to_string(),
+                ));
+            }
+
+            Ok(transcribe_result.text)
+        })
+        .await
+        .map_err(|e| crate::Error::BatchStartFailed(format!("transcription task failed: {e}")))?;
+
+        let text = result?;
+
+        let response = owhisper_interface::batch::Response {
+            metadata: serde_json::json!({}),
+            results: owhisper_interface::batch::Results {
+                channels: vec![owhisper_interface::batch::Channel {
+                    alternatives: vec![owhisper_interface::batch::Alternatives {
+                        transcript: text,
+                        confidence: 1.0,
+                        words: vec![],
+                    }],
+                }],
+            },
+        };
+
+        tracing::info!("batch transcription completed");
+
+        BatchEvent::BatchResponse {
+            session_id: params.session_id.clone(),
+            response,
+        }
+        .emit(&app)
+        .map_err(|e| {
+            crate::Error::BatchStartFailed(format!("failed to emit BatchResponse event: {e}"))
+        })?;
+
+        Ok(())
+    }
+    .instrument(span)
+    .await
+}
+
+#[cfg(not(target_os = "macos"))]
 async fn run_batch_am(
     app: tauri::AppHandle,
     params: BatchParams,

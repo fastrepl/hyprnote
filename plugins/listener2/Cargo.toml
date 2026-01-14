@@ -29,6 +29,7 @@ specta = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
+serde_json = { workspace = true }
 thiserror = { workspace = true }
 
 ractor = { workspace = true, features = ["async-trait"] }
@@ -39,3 +40,6 @@ tokio-stream = { workspace = true }
 tracing = { workspace = true }
 
 aspasia = "0.2.1"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+hypr-am2 = { workspace = true }

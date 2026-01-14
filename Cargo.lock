@@ -18464,6 +18464,7 @@ dependencies = [
 name = "tauri-plugin-listener2"
 version = "0.1.0"
 dependencies = [
+ "am2",
  "aspasia",
  "audio-utils",
  "futures-util",
@@ -18473,6 +18474,7 @@ dependencies = [
  "owhisper-interface",
  "ractor",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",

@@ -18,7 +18,7 @@ inputs:
   unlisted:
     description: Whether the session is unlisted
     required: false
-    default: "true"
+    default: "false"
   idempotent:
     description: Whether the session is idempotent
     required: false

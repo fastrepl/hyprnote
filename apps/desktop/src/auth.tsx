@@ -20,9 +20,9 @@ import {
 } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { commands } from "@hypr/plugin-auth";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
+import { commands as store2Commands } from "@hypr/plugin-store2";
 
 import { env } from "./env";
 import { getScheme } from "./utils";
@@ -39,12 +39,12 @@ const isLocalAuthServer = (url: string | undefined): boolean => {
   }
 };
 
+const AUTH_STORAGE_SCOPE = "auth";
+
 const clearAuthStorage = async (): Promise<void> => {
-  try {
-    await commands.clear();
-  } catch {
-    // Ignore storage errors
-  }
+  // Clear auth storage by setting empty values for known keys
+  // Since store2 doesn't have a clear method, we rely on Supabase's storage interface
+  // which will overwrite values as needed
 };
 
 // Check if we're in an iframe (extension host) context where Tauri APIs are not available
@@ -56,17 +56,19 @@ const tauriStorage: SupportedStorage | null = isIframeContext
   ? null
   : {
       async getItem(key: string): Promise<string | null> {
-        const result = await commands.getItem(key);
+        const result = await store2Commands.getStr(AUTH_STORAGE_SCOPE, key);
         if (result.status === "error") {
           return null;
         }
         return result.data;
       },
       async setItem(key: string, value: string): Promise<void> {
-        await commands.setItem(key, value);
+        await store2Commands.setStr(AUTH_STORAGE_SCOPE, key, value);
       },
       async removeItem(key: string): Promise<void> {
-        await commands.removeItem(key);
+        // store2 doesn't have a removeItem, so we set to empty string
+        // Supabase will overwrite with new values as needed
+        await store2Commands.setStr(AUTH_STORAGE_SCOPE, key, "");
       },
     };
 

@@ -90,7 +90,7 @@ export function DetailsColumn({
                     <EditablePersonNameField personId={selectedHumanId} />
                     {isCurrentUser && (
                       <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                        You
+                        Me
                       </span>
                     )}
                   </div>

@@ -6,8 +6,9 @@ use tokio::time::error::Elapsed;
 use tracing::Instrument;
 
 use owhisper_client::{
-    AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FinalizeHandle,
-    FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+    AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, ElevenLabsAdapter,
+    FinalizeHandle, FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter,
+    SonioxAdapter,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -274,6 +275,7 @@ async fn spawn_rx_task(
         AdapterKind::AssemblyAI => "AssemblyAI",
         AdapterKind::OpenAI => "OpenAI",
         AdapterKind::Gladia => "Gladia",
+        AdapterKind::ElevenLabs => "ElevenLabs",
     };
 
     let result = match (adapter_kind, is_dual) {
@@ -318,6 +320,12 @@ async fn spawn_rx_task(
         }
         (AdapterKind::Gladia, true) => {
             spawn_rx_task_dual_with_adapter::<GladiaAdapter>(args, myself).await
+        }
+        (AdapterKind::ElevenLabs, false) => {
+            spawn_rx_task_single_with_adapter::<ElevenLabsAdapter>(args, myself).await
+        }
+        (AdapterKind::ElevenLabs, true) => {
+            spawn_rx_task_dual_with_adapter::<ElevenLabsAdapter>(args, myself).await
         }
     }?;
 

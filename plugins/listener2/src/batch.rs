@@ -4,8 +4,8 @@ use std::time::Duration;
 
 use futures_util::StreamExt;
 use owhisper_client::{
-    AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FireworksAdapter,
-    GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+    AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, ElevenLabsAdapter,
+    FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
 };
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -224,6 +224,9 @@ async fn spawn_batch_task(
         }
         AdapterKind::OpenAI => spawn_batch_task_with_adapter::<OpenAIAdapter>(args, myself).await,
         AdapterKind::Gladia => spawn_batch_task_with_adapter::<GladiaAdapter>(args, myself).await,
+        AdapterKind::ElevenLabs => {
+            spawn_batch_task_with_adapter::<ElevenLabsAdapter>(args, myself).await
+        }
     }
 }
 

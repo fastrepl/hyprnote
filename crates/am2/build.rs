@@ -25,7 +25,7 @@ fn main() {
             arch => arch,
         };
 
-        let swift_target = format!("{}-apple-macosx13.0", arch);
+        let swift_target = format!("{}-apple-macosx14.0", arch);
         let framework_search_path = build_path
             .join(format!("{}-apple-macosx", arch))
             .join(configuration);

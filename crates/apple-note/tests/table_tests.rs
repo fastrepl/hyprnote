@@ -1,3 +1,10 @@
+//! Table tests
+//!
+//! These tests correspond to the table tests in the apple_cloud_notes_parser Ruby implementation:
+//! https://github.com/threeplanetssoftware/apple_cloud_notes_parser/blob/master/spec/embedded_objects/tables.rb
+//!
+//! Tests cover table parsing, reconstruction, row ordering, RTL table support, and output generation.
+
 use apple_note::{parse_mergable_data_proto, table::Table, table::parse_table};
 use std::fs;
 

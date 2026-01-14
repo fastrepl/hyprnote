@@ -1,5 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { z } from "zod";
 
 import { signOutFn } from "@/functions/auth";
 import {
@@ -9,13 +11,37 @@ import {
   syncAfterSuccess,
 } from "@/functions/billing";
 
+const VALID_SCHEMES = [
+  "hyprnote",
+  "hyprnote-nightly",
+  "hyprnote-staging",
+  "hypr",
+] as const;
+
+const validateSearch = z.object({
+  success: z.enum(["true"]).optional(),
+  trial: z.enum(["started"]).optional(),
+  scheme: z.enum(VALID_SCHEMES).optional(),
+});
+
 export const Route = createFileRoute("/_view/app/account")({
+  validateSearch,
   component: Component,
   loader: async ({ context }) => ({ user: context.user }),
 });
 
 function Component() {
   const { user } = Route.useLoaderData();
+  const search = Route.useSearch();
+
+  useEffect(() => {
+    if (
+      (search.success === "true" || search.trial === "started") &&
+      search.scheme
+    ) {
+      window.location.href = `${search.scheme}://billing/refresh`;
+    }
+  }, [search.success, search.trial, search.scheme]);
 
   return (
     <div className="min-h-[calc(100vh-200px)]">
@@ -74,7 +100,7 @@ function AccountSettingsCard() {
 
   const startTrialMutation = useMutation({
     mutationFn: async () => {
-      const { url } = await createTrialCheckoutSession();
+      const { url } = await createTrialCheckoutSession({ data: {} });
       if (url) {
         window.location.href = url;
       }

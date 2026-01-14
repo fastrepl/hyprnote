@@ -3,12 +3,24 @@ mod live;
 
 use owhisper_providers::Provider;
 
+// https://docs.gladia.io/chapters/language/supported-languages
+const SUPPORTED_LANGUAGES: &[&str] = &[
+    "af", "sq", "am", "ar", "hy", "as", "az", "ba", "eu", "be", "bn", "bs", "br", "bg", "ca", "zh",
+    "hr", "cs", "da", "nl", "en", "et", "fo", "fi", "fr", "gl", "ka", "de", "el", "gu", "ht", "ha",
+    "he", "hi", "hu", "is", "id", "it", "ja", "jw", "kn", "kk", "km", "ko", "lo", "la", "lv", "ln",
+    "lt", "lb", "mk", "mg", "ms", "ml", "mt", "mi", "mr", "mn", "my", "ne", "no", "nn", "oc", "ps",
+    "fa", "pl", "pt", "pa", "ro", "ru", "sa", "sr", "sn", "sd", "si", "sk", "sl", "so", "es", "su",
+    "sw", "sv", "tl", "tg", "ta", "tt", "te", "th", "bo", "tr", "tk", "uk", "ur", "uz", "vi", "cy",
+    "wo", "yi", "yo",
+];
+
 #[derive(Clone, Default)]
 pub struct GladiaAdapter;
 
 impl GladiaAdapter {
-    pub fn is_supported_languages(_languages: &[hypr_language::Language]) -> bool {
-        true
+    pub fn is_supported_languages(languages: &[hypr_language::Language]) -> bool {
+        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
+        SUPPORTED_LANGUAGES.contains(&primary_lang)
     }
 
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {

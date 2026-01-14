@@ -33,7 +33,7 @@ import {
   useTranscriptSearch,
 } from "./note-input/transcript/search-context";
 import { OuterHeader } from "./outer-header";
-import { useCurrentNoteTab } from "./shared";
+import { useCurrentNoteTab, useHasTranscript } from "./shared";
 import { TitleInput } from "./title-input";
 
 const SIDEBAR_WIDTH = 280;
@@ -158,6 +158,7 @@ function TabContentNoteInner({
 
   const currentView = useCurrentNoteTab(tab);
   const { generateTitle } = useTitleGeneration(tab);
+  const hasTranscript = useHasTranscript(tab.id);
 
   const sessionId = tab.id;
   const { skipReason } = useAutoEnhance(tab);
@@ -194,6 +195,7 @@ function TabContentNoteInner({
       <StandardTabWrapper
         afterBorder={showTimeline && <AudioPlayer.Timeline />}
         floatingButton={<FloatingActionButton tab={tab} />}
+        showTimeline={showTimeline}
       >
         <div className="flex flex-col h-full">
           <div className="pl-2 pr-1">
@@ -208,7 +210,7 @@ function TabContentNoteInner({
               ref={titleInputRef}
               tab={tab}
               onNavigateToEditor={focusEditor}
-              onGenerateTitle={generateTitle}
+              onGenerateTitle={hasTranscript ? generateTitle : undefined}
             />
           </div>
           <div className="mt-2 px-2 flex-1 min-h-0">

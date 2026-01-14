@@ -1,15 +1,15 @@
-mod commands;
 mod error;
 mod events;
 mod ext;
 
-use std::sync::Mutex;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 use notify::RecommendedWatcher;
 use notify_debouncer_full::{Debouncer, RecommendedCache};
 use tauri::Manager;
 
-pub use commands::*;
 pub use error::*;
 pub use events::*;
 pub use ext::*;
@@ -18,17 +18,13 @@ const PLUGIN_NAME: &str = "notify";
 
 pub struct WatcherState {
     pub(crate) debouncer: Mutex<Option<Debouncer<RecommendedWatcher, RecommendedCache>>>,
+    pub(crate) own_writes: Arc<Mutex<HashMap<String, Instant>>>,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![
-            commands::start::<tauri::Wry>,
-            commands::stop::<tauri::Wry>,
-        ])
         .events(tauri_specta::collect_events![FileChanged,])
-        .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
 pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
@@ -41,8 +37,20 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             app.manage(WatcherState {
                 debouncer: Mutex::new(None),
+                own_writes: Arc::new(Mutex::new(HashMap::new())),
             });
+
             Ok(())
+        })
+        .on_webview_ready(|webview| {
+            if let Err(e) = webview.app_handle().notify().start() {
+                tracing::error!("failed_to_start_watcher: {}", e);
+            }
+        })
+        .on_drop(|app| {
+            if let Err(e) = app.notify().stop() {
+                tracing::error!("failed_to_stop_watcher: {}", e);
+            }
         })
         .build()
 }

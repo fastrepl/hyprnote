@@ -97,6 +97,10 @@ impl crate::Observer for ZoomMuteWatcher {
             return;
         }
 
+        if !macos_accessibility_client::accessibility::application_is_trusted() {
+            return;
+        }
+
         self.background.start(|running, mut rx| async move {
             let mut state = WatcherState::new();
 

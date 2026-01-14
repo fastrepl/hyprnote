@@ -5,6 +5,7 @@ use std::time::Duration;
 use owhisper_providers::Provider;
 
 use crate::analytics::SttAnalyticsReporter;
+use crate::provider_selector::ProviderSelector;
 
 pub const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 5000;
 
@@ -48,11 +49,11 @@ impl SttProxyConfig {
         self
     }
 
-    pub fn api_key_for(&self, provider: Provider) -> Option<&str> {
-        self.api_keys.get(&provider).map(|s| s.as_str())
-    }
-
-    pub fn upstream_url_for(&self, provider: Provider) -> Option<&str> {
-        self.upstream_urls.get(&provider).map(|s| s.as_str())
+    pub fn provider_selector(&self) -> ProviderSelector {
+        ProviderSelector::new(
+            self.api_keys.clone(),
+            self.default_provider,
+            self.upstream_urls.clone(),
+        )
     }
 }

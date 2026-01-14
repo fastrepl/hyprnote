@@ -1,19 +1,26 @@
+#[cfg(test)]
+mod test_fixtures;
+
 mod audio;
+mod cleanup;
 mod commands;
 mod error;
 mod ext;
 mod folder;
 mod frontmatter;
 mod json;
-mod migration;
+mod migrations;
+mod path;
 mod scan;
+mod session;
 mod types;
 
 pub use types::*;
 
 pub use error::{Error, Result};
 pub use ext::*;
-pub use folder::{find_session_dir, is_uuid};
+pub use path::is_uuid;
+pub use session::find_session_dir;
 
 const PLUGIN_NAME: &str = "fs-sync";
 
@@ -22,23 +29,22 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::deserialize,
-            commands::write_json_batch,
-            commands::write_document_batch,
+            commands::write_json_batch::<tauri::Wry>,
+            commands::write_document_batch::<tauri::Wry>,
             commands::read_document_batch,
             commands::list_folders::<tauri::Wry>,
             commands::move_session::<tauri::Wry>,
             commands::create_folder::<tauri::Wry>,
             commands::rename_folder::<tauri::Wry>,
             commands::delete_folder::<tauri::Wry>,
-            commands::cleanup_orphan_files::<tauri::Wry>,
-            commands::cleanup_orphan_dirs::<tauri::Wry>,
+            commands::cleanup_orphan::<tauri::Wry>,
             commands::audio_exist::<tauri::Wry>,
             commands::audio_delete::<tauri::Wry>,
             commands::audio_import::<tauri::Wry>,
             commands::audio_path::<tauri::Wry>,
             commands::session_dir::<tauri::Wry>,
             commands::delete_session_folder::<tauri::Wry>,
-            commands::scan_and_read,
+            commands::scan_and_read::<tauri::Wry>,
             commands::chat_dir::<tauri::Wry>,
             commands::entity_dir::<tauri::Wry>,
         ])
@@ -52,8 +58,10 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             use tauri_plugin_path2::Path2PluginExt;
-            let base = app.path2().base().unwrap();
-            migration::run(&base);
+            if let Ok(base_dir) = app.path2().base() {
+                migrations::move_uuid_folders_to_sessions(&base_dir)?;
+                migrations::rename_transcript(&base_dir)?;
+            }
             Ok(())
         })
         .build()

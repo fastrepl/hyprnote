@@ -3,6 +3,7 @@ import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { createMarkdownDirPersister } from "../factories";
+import { parseOrganizationIdFromPath } from "./changes";
 import {
   frontmatterToOrganization,
   organizationToFrontmatter,
@@ -13,7 +14,7 @@ export function createOrganizationPersister(store: Store) {
     tableName: "organizations",
     dirName: "organizations",
     label: "OrganizationPersister",
-    legacyJsonPath: "organizations.json",
+    entityParser: parseOrganizationIdFromPath,
     toFrontmatter: organizationToFrontmatter,
     fromFrontmatter: frontmatterToOrganization,
   });

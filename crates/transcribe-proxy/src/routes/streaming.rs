@@ -7,10 +7,11 @@ use owhisper_providers::{Auth, Provider};
 
 use crate::analytics::SttEvent;
 use crate::config::SttProxyConfig;
+use crate::provider_selector::SelectedProvider;
 use crate::query_params::QueryParams;
 use crate::relay::WebSocketProxy;
 
-use super::{AppState, ResolvedProvider};
+use super::AppState;
 
 #[derive(serde::Deserialize)]
 struct InitResponse {
@@ -30,30 +31,34 @@ pub async fn handler(
     ws: WebSocketUpgrade,
     mut params: QueryParams,
 ) -> Response {
-    let resolved = match state.resolve_provider(&mut params) {
+    let selected = match state.resolve_provider(&mut params) {
         Ok(v) => v,
         Err(resp) => return resp,
     };
 
-    let provider = resolved.provider();
+    let provider = selected.provider();
 
-    let proxy = if let Some(custom_url) = state.config.upstream_url_for(provider) {
-        build_proxy_with_url(&resolved, custom_url, &state.config)
+    let proxy = if let Some(custom_url) = selected.upstream_url() {
+        build_proxy_with_url(&selected, custom_url, &state.config)
     } else {
         match provider.auth() {
             Auth::SessionInit { header_name } => {
-                let url = match init_session(&state, &resolved, header_name, &params).await {
+                let url = match init_session(&state, &selected, header_name, &params).await {
                     Ok(url) => url,
                     Err(e) => {
-                        tracing::error!(error = %e, "failed to init session");
+                        tracing::error!(
+                            error = %e,
+                            provider = ?selected.provider(),
+                            "session_init_failed"
+                        );
                         return (StatusCode::BAD_GATEWAY, e).into_response();
                     }
                 };
-                build_proxy_with_url(&resolved, &url, &state.config)
+                build_proxy_with_url(&selected, &url, &state.config)
             }
             _ => {
                 let base = url::Url::parse(&provider.default_ws_url()).unwrap();
-                build_proxy_with_components(&resolved, base, params, &state.config)
+                build_proxy_with_components(&selected, base, params, &state.config)
             }
         }
     };
@@ -61,7 +66,11 @@ pub async fn handler(
     match proxy {
         Ok(p) => p.handle_upgrade(ws).await.into_response(),
         Err(e) => {
-            tracing::error!(error = ?e, "failed to build proxy");
+            tracing::error!(
+                error = ?e,
+                provider = ?provider,
+                "proxy_build_failed"
+            );
             (StatusCode::BAD_REQUEST, format!("{}", e)).into_response()
         }
     }
@@ -80,11 +89,11 @@ fn build_session_config(
 
 async fn init_session(
     state: &AppState,
-    resolved: &ResolvedProvider,
+    selected: &SelectedProvider,
     header_name: &'static str,
     params: &QueryParams,
 ) -> Result<String, String> {
-    let provider = resolved.provider();
+    let provider = selected.provider();
     let init_url = provider
         .default_api_url()
         .ok_or_else(|| format!("{:?} does not support session init", provider))?;
@@ -94,7 +103,7 @@ async fn init_session(
     let resp = state
         .client
         .post(init_url)
-        .header(header_name, resolved.api_key())
+        .header(header_name, selected.api_key())
         .header("Content-Type", "application/json")
         .json(&config)
         .send()
@@ -112,7 +121,11 @@ async fn init_session(
         .await
         .map_err(|e| format!("session init parse failed: {}", e))?;
 
-    tracing::debug!(session_id = %init.id, url = %init.url, "session_initialized");
+    tracing::debug!(
+        session_id = %init.id,
+        provider = ?provider,
+        "session_initialized"
+    );
 
     Ok(init.url)
 }
@@ -144,32 +157,32 @@ macro_rules! finalize_proxy_builder {
 }
 
 fn build_proxy_with_url(
-    resolved: &ResolvedProvider,
+    selected: &SelectedProvider,
     upstream_url: &str,
     config: &SttProxyConfig,
 ) -> Result<WebSocketProxy, crate::ProxyError> {
-    let provider = resolved.provider();
+    let provider = selected.provider();
     let builder = WebSocketProxy::builder()
         .upstream_url(upstream_url)
         .connect_timeout(config.connect_timeout)
         .control_message_types(provider.control_message_types())
-        .apply_auth(resolved);
+        .apply_auth(selected);
 
     finalize_proxy_builder!(builder, provider, config)
 }
 
 fn build_proxy_with_components(
-    resolved: &ResolvedProvider,
+    selected: &SelectedProvider,
     base_url: url::Url,
     client_params: QueryParams,
     config: &SttProxyConfig,
 ) -> Result<WebSocketProxy, crate::ProxyError> {
-    let provider = resolved.provider();
+    let provider = selected.provider();
     let builder = WebSocketProxy::builder()
         .upstream_url_from_components(base_url, client_params, provider.default_query_params())
         .connect_timeout(config.connect_timeout)
         .control_message_types(provider.control_message_types())
-        .apply_auth(resolved);
+        .apply_auth(selected);
 
     finalize_proxy_builder!(builder, provider, config)
 }

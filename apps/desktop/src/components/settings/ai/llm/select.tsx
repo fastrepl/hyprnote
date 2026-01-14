@@ -25,6 +25,7 @@ import {
 } from "../shared/list-common";
 import { listGoogleModels } from "../shared/list-google";
 import { listLMStudioModels } from "../shared/list-lmstudio";
+import { listMistralModels } from "../shared/list-mistral";
 import { listOllamaModels } from "../shared/list-ollama";
 import { listGenericModels, listOpenAIModels } from "../shared/list-openai";
 import { listOpenRouterModels } from "../shared/list-openrouter";
@@ -244,6 +245,9 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
             break;
           case "google_generative_ai":
             listModelsFunc = () => listGoogleModels(baseUrl, apiKey);
+            break;
+          case "mistral":
+            listModelsFunc = () => listMistralModels(baseUrl, apiKey);
             break;
           case "ollama":
             listModelsFunc = () => listOllamaModels(baseUrl, apiKey);

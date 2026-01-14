@@ -17,6 +17,7 @@ specta-typescript = { workspace = true }
 tauri-plugin-path2 = { workspace = true }
 
 hypr-audio-utils = { workspace = true }
+hypr-host = { workspace = true }
 hypr-language = { workspace = true }
 
 owhisper-client = { workspace = true, features = ["argmax"] }

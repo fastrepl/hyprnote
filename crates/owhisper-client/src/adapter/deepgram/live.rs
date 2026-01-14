@@ -14,6 +14,17 @@ impl RealtimeSttAdapter for DeepgramAdapter {
         "deepgram"
     }
 
+    fn is_supported_languages(
+        &self,
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> bool {
+        if languages.is_empty() {
+            return false;
+        }
+        DeepgramAdapter::is_supported_languages(languages, model)
+    }
+
     fn supports_native_multichannel(&self) -> bool {
         true
     }

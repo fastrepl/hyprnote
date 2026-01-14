@@ -1,5 +1,3 @@
-import { faker } from "@faker-js/faker/locale/en";
-
 import type { MappingSessionParticipant, MappingTagSession } from "@hypr/store";
 
 import { DEFAULT_USER_ID, id } from "../../../../utils";
@@ -13,7 +11,6 @@ export const createMappingSessionParticipant = (
     user_id: DEFAULT_USER_ID,
     session_id,
     human_id,
-    created_at: faker.date.recent({ days: 30 }).toISOString(),
   } satisfies MappingSessionParticipant,
 });
 
@@ -26,6 +23,5 @@ export const createMappingTagSession = (
     user_id: DEFAULT_USER_ID,
     tag_id,
     session_id,
-    created_at: faker.date.recent({ days: 30 }).toISOString(),
   } satisfies MappingTagSession,
 });

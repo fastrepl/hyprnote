@@ -12,6 +12,8 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 insta = { workspace = true }
+quickcheck = { workspace = true }
+quickcheck_macros = { workspace = true }
 rodio = { workspace = true, features = ["wav"] }
 serde_json = { workspace = true }
 specta-typescript = { workspace = true }
@@ -21,13 +23,15 @@ uuid = { workspace = true }
 hypr-aec = { workspace = true }
 hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
+hypr-audio-device = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
-hypr-device-heuristic = { workspace = true }
 hypr-device-monitor = { workspace = true }
+hypr-host = { workspace = true }
 hypr-intercept = { workspace = true }
 hypr-language = { workspace = true }
 hypr-llm = { workspace = true }
+hypr-mac = { workspace = true }
 hypr-vad-ext = { workspace = true }
 hypr-vad2 = { workspace = true }
 tauri-plugin-fs-sync = { workspace = true }
@@ -37,6 +41,7 @@ owhisper-interface = { workspace = true }
 
 tauri-plugin-hooks = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
+tauri-plugin-path2 = { workspace = true }
 tauri-plugin-tray = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }
@@ -67,3 +72,5 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-stream = { workspace = true }
 tokio-util = { workspace = true }
 tracing = { workspace = true }
+
+sentry = { workspace = true }

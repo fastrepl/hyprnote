@@ -1,3 +1,18 @@
+//! Parser tests
+//!
+//! These tests correspond to the AppleNote tests in the apple_cloud_notes_parser Ruby implementation:
+//! https://github.com/threeplanetssoftware/apple_cloud_notes_parser/blob/master/spec/base_classes/apple_note.rb
+//!
+//! Tests cover:
+//! - Note parsing (simple notes, compressed/uncompressed)
+//! - Text decorations (bold, italic, underline, strikethrough)
+//! - Block quotes and list indents
+//! - URL/link formatting
+//! - Color formatting
+//! - Emoji and wide character handling
+//! - HTML content escaping
+//! - Various heading and style types
+
 use apple_note::{note_to_markdown, parse_note_store_proto};
 use std::fs;
 

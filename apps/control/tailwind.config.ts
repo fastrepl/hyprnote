@@ -6,7 +6,7 @@ const config = {
     extend: {
       fontFamily: {
         serif: ["Lora", "Georgia", "serif"],
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        sans: ["SF Pro", "system-ui", "-apple-system", "sans-serif"],
       },
     },
   },

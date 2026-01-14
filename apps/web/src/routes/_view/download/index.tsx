@@ -89,6 +89,7 @@ function Component() {
                   downloadUrl="/download/linux-appimage"
                   available={true}
                   platform="linux-appimage"
+                  beta={true}
                 />
                 <DownloadCard
                   iconName="simple-icons:linux"
@@ -96,6 +97,7 @@ function Component() {
                   downloadUrl="/download/linux-deb"
                   available={true}
                   platform="linux-deb"
+                  beta={true}
                 />
               </div>
             </div>
@@ -200,12 +202,14 @@ function DownloadCard({
   downloadUrl,
   available,
   platform,
+  beta = false,
 }: {
   iconName: string;
   spec: string;
   downloadUrl: string;
   available: boolean;
   platform: string;
+  beta?: boolean;
 }) {
   const { track } = useAnalytics();
 
@@ -223,18 +227,26 @@ function DownloadCard({
       <p className="text-sm text-neutral-600 mb-6 text-center">{spec}</p>
 
       {available ? (
-        <a
-          href={downloadUrl}
-          download
-          onClick={handleClick}
-          className="group w-full px-4 h-11 flex items-center justify-center bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all text-base font-medium"
-        >
-          Download
-          <Icon
-            icon="ph:arrow-circle-right"
-            className="text-xl ml-2 group-hover:translate-x-1 transition-transform"
-          />
-        </a>
+        <div className="relative w-full group/tooltip">
+          <a
+            href={downloadUrl}
+            download
+            onClick={handleClick}
+            className="group gap-2 w-full px-4 h-11 flex items-center justify-center bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all text-base font-medium"
+          >
+            {beta ? (
+              <>
+                Download <span className="font-mono">Beta</span>
+              </>
+            ) : (
+              "Download"
+            )}
+            <Icon
+              icon="ph:arrow-circle-right"
+              className="text-xl group-hover:translate-x-1 transition-transform"
+            />
+          </a>
+        </div>
       ) : (
         <button
           disabled

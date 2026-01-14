@@ -258,7 +258,7 @@ function AboutContentSection({
             )
           }
         >
-          <div className="h-[480px] relative">
+          <div className="h-120 relative">
             {!selectedItem ? (
               <AboutGridView setSelectedItem={setSelectedItem} />
             ) : isMobile ? (
@@ -295,7 +295,7 @@ function AboutGridView({
   setSelectedItem: (item: SelectedItem) => void;
 }) {
   return (
-    <div className="p-8 overflow-y-auto h-[480px]">
+    <div className="p-8 overflow-y-auto h-120">
       <OurStoryGrid setSelectedItem={setSelectedItem} />
       <FoundersGrid setSelectedItem={setSelectedItem} />
       <TeamPhotosGrid setSelectedItem={setSelectedItem} />
@@ -417,7 +417,7 @@ function AboutDetailView({
   setSelectedItem: (item: SelectedItem | null) => void;
 }) {
   return (
-    <ResizablePanelGroup direction="horizontal" className="h-[480px]">
+    <ResizablePanelGroup direction="horizontal" className="h-120">
       <AboutSidebar
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}

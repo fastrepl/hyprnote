@@ -3,10 +3,11 @@ use std::path::PathBuf;
 
 use tauri_plugin_path2::Path2PluginExt;
 
-use crate::folder::{
-    cleanup_dirs_recursive, cleanup_files_in_dir, find_session_dir, is_uuid,
-    scan_directory_recursive,
-};
+use crate::cleanup::{cleanup_dirs_recursive, cleanup_files_in_dir, cleanup_files_recursive};
+use crate::folder::scan_directory_recursive;
+use crate::path::is_uuid;
+use crate::session::find_session_dir;
+use crate::types::CleanupTarget;
 use crate::types::ListFoldersResult;
 
 pub struct FsSync<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
@@ -129,7 +130,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
             return Ok(());
         }
 
-        // Safety check: refuse to delete folder containing sessions
         if self.folder_contains_sessions(&folder)? {
             return Err(crate::Error::Path(
                 "Cannot delete folder containing sessions. Move or delete sessions first."
@@ -142,7 +142,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
         Ok(())
     }
 
-    /// Check if a folder contains any sessions (UUID-named directories with _meta.json)
     fn folder_contains_sessions(&self, folder: &PathBuf) -> Result<bool, crate::Error> {
         let entries = std::fs::read_dir(folder)?;
 
@@ -156,12 +155,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
                 continue;
             };
 
-            // Check if this is a session directory (UUID with _meta.json)
             if is_uuid(name) && path.join("_meta.json").exists() {
                 return Ok(true);
             }
 
-            // Recursively check subdirectories (non-UUID folders)
             if !is_uuid(name) && self.folder_contains_sessions(&path)? {
                 return Ok(true);
             }
@@ -170,26 +167,39 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
         Ok(false)
     }
 
-    pub fn cleanup_orphan_files(
+    pub fn cleanup_orphan(
         &self,
-        subdir: &str,
-        extension: &str,
+        target: CleanupTarget,
         valid_ids: Vec<String>,
     ) -> Result<u32, crate::Error> {
-        let dir = self.base_dir()?.join(subdir);
         let valid_set: HashSet<String> = valid_ids.into_iter().collect();
-        Ok(cleanup_files_in_dir(&dir, extension, &valid_set)?)
-    }
 
-    pub fn cleanup_orphan_dirs(
-        &self,
-        subdir: &str,
-        marker_file: &str,
-        valid_ids: Vec<String>,
-    ) -> Result<u32, crate::Error> {
-        let dir = self.base_dir()?.join(subdir);
-        let valid_set: HashSet<String> = valid_ids.into_iter().collect();
-        Ok(cleanup_dirs_recursive(&dir, marker_file, &valid_set)?)
+        match target {
+            CleanupTarget::Files { subdir, extension } => {
+                let dir = self.base_dir()?.join(&subdir);
+                Ok(cleanup_files_in_dir(&dir, &extension, &valid_set)?)
+            }
+            CleanupTarget::Dirs {
+                subdir,
+                marker_file,
+            } => {
+                let dir = self.base_dir()?.join(&subdir);
+                Ok(cleanup_dirs_recursive(&dir, &marker_file, &valid_set)?)
+            }
+            CleanupTarget::FilesRecursive {
+                subdir,
+                marker_file,
+                extension,
+            } => {
+                let dir = self.base_dir()?.join(&subdir);
+                Ok(cleanup_files_recursive(
+                    &dir,
+                    &marker_file,
+                    &extension,
+                    &valid_set,
+                )?)
+            }
+        }
     }
 }
 

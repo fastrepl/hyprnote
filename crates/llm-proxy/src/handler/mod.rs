@@ -53,15 +53,31 @@ impl IntoResponse for ProxyError {
     fn into_response(self) -> Response {
         let (status, message) = match self {
             Self::UpstreamRequest(e) => {
-                tracing::error!(error = %e, "upstream request failed");
+                let status_code = e.status().map(|s| s.as_u16());
+                let is_timeout = e.is_timeout();
+                let is_connect = e.is_connect();
+                tracing::error!(
+                    error = %e,
+                    upstream_status = ?status_code,
+                    is_timeout = %is_timeout,
+                    is_connect = %is_connect,
+                    "upstream_request_failed"
+                );
                 (StatusCode::BAD_GATEWAY, e.to_string())
             }
             Self::Timeout => {
-                tracing::error!("upstream request timeout");
+                tracing::error!("upstream_request_timeout");
                 (StatusCode::GATEWAY_TIMEOUT, "Request timeout".to_string())
             }
             Self::BodyRead(e) => {
-                tracing::error!(error = %e, "failed to read response body");
+                let is_timeout = e.is_timeout();
+                let is_decode = e.is_decode();
+                tracing::error!(
+                    error = %e,
+                    is_timeout = %is_timeout,
+                    is_decode = %is_decode,
+                    "response_body_read_failed"
+                );
                 (
                     StatusCode::BAD_GATEWAY,
                     "Failed to read response".to_string(),
@@ -106,6 +122,14 @@ async fn completions_handler(
     };
 
     let stream = request.stream.unwrap_or(false);
+
+    tracing::info!(
+        stream = %stream,
+        has_tools = %needs_tool_calling,
+        message_count = %request.messages.len(),
+        model_count = %models.len(),
+        "llm_completion_request_received"
+    );
 
     let openrouter_request = OpenRouterRequest {
         messages: request.messages,

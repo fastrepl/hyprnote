@@ -12,6 +12,14 @@ use super::{
 };
 
 impl BatchSttAdapter for DeepgramAdapter {
+    fn is_supported_languages(
+        &self,
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> bool {
+        DeepgramAdapter::is_supported_languages(languages, model)
+    }
+
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
         client: &'a ClientWithMiddleware,

@@ -1,3 +1,13 @@
+//! Text extraction tests
+//!
+//! These tests correspond to the content extraction tests in the apple_cloud_notes_parser Ruby implementation:
+//! https://github.com/threeplanetssoftware/apple_cloud_notes_parser/blob/master/spec/base_classes/apple_note.rb
+//!
+//! Tests cover:
+//! - Plaintext extraction from notes
+//! - Text span extraction with formatting attributes
+//! - Handling of attachments during extraction
+
 use apple_note::{
     AttributeRun, Note, ParagraphStyle,
     extract::{TextSpan, extract_plaintext, extract_text_spans},

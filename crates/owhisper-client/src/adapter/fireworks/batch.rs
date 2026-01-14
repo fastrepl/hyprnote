@@ -13,6 +13,14 @@ use crate::error::Error;
 
 // https://docs.fireworks.ai/api-reference/audio-transcriptions
 impl BatchSttAdapter for FireworksAdapter {
+    fn is_supported_languages(
+        &self,
+        languages: &[hypr_language::Language],
+        _model: Option<&str>,
+    ) -> bool {
+        FireworksAdapter::is_supported_languages(languages)
+    }
+
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
         client: &'a ClientWithMiddleware,

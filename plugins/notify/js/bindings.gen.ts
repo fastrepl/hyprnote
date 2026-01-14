@@ -6,22 +6,7 @@
 
 
 export const commands = {
-async start() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:notify|start") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async stop() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:notify|stop") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-}
+
 }
 
 /** user-defined events **/
@@ -39,8 +24,7 @@ fileChanged: "plugin:notify:file-changed"
 
 /** user-defined types **/
 
-export type ChangeKind = "created" | "modified" | "removed" | "renamed" | "access" | "any" | "other"
-export type FileChanged = { path: string; kind: ChangeKind }
+export type FileChanged = { path: string }
 
 /** tauri-specta globals **/
 

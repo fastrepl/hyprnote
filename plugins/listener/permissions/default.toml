@@ -10,4 +10,6 @@ permissions = [
     "allow-set-mic-muted",
     "allow-get-state",
     "allow-run-batch",
+    "allow-is-supported-languages",
+    "allow-suggest-providers-for-languages",
 ]

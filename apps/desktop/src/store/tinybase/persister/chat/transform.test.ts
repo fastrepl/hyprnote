@@ -2,13 +2,12 @@ import { describe, expect, test } from "vitest";
 
 import type { TablesContent } from "../shared";
 import {
-  type ChatJson,
   chatJsonToData,
-  createEmptyLoadedData,
-  type LoadedChatData,
+  createEmptyLoadedChatData,
   mergeLoadedData,
-  tablesToChatJsonList,
-} from "./transform";
+} from "./load";
+import { tablesToChatJsonList } from "./save";
+import type { ChatJson, LoadedChatData } from "./types";
 
 describe("chatJsonToData", () => {
   test("converts ChatJson to LoadedChatData", () => {
@@ -388,9 +387,9 @@ describe("roundtrip", () => {
   });
 });
 
-describe("createEmptyLoadedData", () => {
+describe("createEmptyLoadedChatData", () => {
   test("returns empty LoadedChatData", () => {
-    const empty = createEmptyLoadedData();
+    const empty = createEmptyLoadedChatData();
 
     expect(empty.chat_groups).toEqual({});
     expect(empty.chat_messages).toEqual({});

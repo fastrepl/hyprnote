@@ -135,7 +135,7 @@ common_derives! {
         pub channels: u8,
         pub sample_rate: u32,
         // https://docs.rs/axum-extra/0.10.1/axum_extra/extract/struct.Query.html#example-1
-        #[serde(default)]
+        #[serde(default, alias = "language")]
         pub languages: Vec<hypr_language::Language>,
         #[serde(default)]
         pub keywords: Vec<String>,

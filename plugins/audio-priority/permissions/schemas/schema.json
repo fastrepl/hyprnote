@@ -295,22 +295,106 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the get_input_priorities command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
+          "const": "allow-get-input-priorities",
+          "markdownDescription": "Enables the get_input_priorities command without any pre-configured scope."
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the get_input_priorities command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
+          "const": "deny-get-input-priorities",
+          "markdownDescription": "Denies the get_input_priorities command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",
+          "description": "Enables the get_output_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-output-priorities",
+          "markdownDescription": "Enables the get_output_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_output_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-output-priorities",
+          "markdownDescription": "Denies the get_output_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_input_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-input-devices",
+          "markdownDescription": "Enables the list_input_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_input_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-input-devices",
+          "markdownDescription": "Denies the list_input_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_output_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-output-devices",
+          "markdownDescription": "Enables the list_output_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_output_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-output-devices",
+          "markdownDescription": "Denies the list_output_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the save_input_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-save-input-priorities",
+          "markdownDescription": "Enables the save_input_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the save_input_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-save-input-priorities",
+          "markdownDescription": "Denies the save_input_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the save_output_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-save-output-priorities",
+          "markdownDescription": "Enables the save_output_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the save_output_priorities command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-save-output-priorities",
+          "markdownDescription": "Denies the save_output_priorities command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_default_input_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-default-input-device",
+          "markdownDescription": "Enables the set_default_input_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_default_input_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-default-input-device",
+          "markdownDescription": "Denies the set_default_input_device command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_default_output_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-default-output-device",
+          "markdownDescription": "Enables the set_default_output_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_default_output_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-default-output-device",
+          "markdownDescription": "Denies the set_default_output_device command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-input-devices`\n- `allow-list-output-devices`\n- `allow-set-default-input-device`\n- `allow-set-default-output-device`\n- `allow-get-input-priorities`\n- `allow-get-output-priorities`\n- `allow-save-input-priorities`\n- `allow-save-output-priorities`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-input-devices`\n- `allow-list-output-devices`\n- `allow-set-default-input-device`\n- `allow-set-default-output-device`\n- `allow-get-input-priorities`\n- `allow-get-output-priorities`\n- `allow-save-input-priorities`\n- `allow-save-output-priorities`"
         }
       ]
     }

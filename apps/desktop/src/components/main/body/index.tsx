@@ -14,6 +14,7 @@ import { useShallow } from "zustand/shallow";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { useListener } from "../../../contexts/listener";
 import { useNotifications } from "../../../contexts/notifications";
 import { useShell } from "../../../contexts/shell";
 import {
@@ -105,15 +106,31 @@ function Header({ tabs }: { tabs: Tab[] }) {
       unpin: state.unpin,
     })),
   );
+
+  const liveSessionId = useListener((state) => state.live.sessionId);
+  const liveStatus = useListener((state) => state.live.status);
+  const isListening = liveStatus === "active" || liveStatus === "finalizing";
+
+  const listeningTab =
+    isListening && liveSessionId
+      ? tabs.find((t) => t.type === "sessions" && t.id === liveSessionId)
+      : null;
+  const regularTabs = listeningTab
+    ? tabs.filter((t) => !(t.type === "sessions" && t.id === liveSessionId))
+    : tabs;
+
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const handleNewEmptyTab = useNewEmptyTab();
   const [isSearchManuallyExpanded, setIsSearchManuallyExpanded] =
     useState(false);
   const { ref: rightContainerRef, hasSpace: hasSpaceForSearch } =
     useHasSpaceForSearch();
-  const scrollState = useScrollState(tabsScrollContainerRef, [tabs]);
+  const scrollState = useScrollState(
+    tabsScrollContainerRef,
+    regularTabs.length,
+  );
 
-  const setTabRef = useScrollActiveTabIntoView(tabs);
+  const setTabRef = useScrollActiveTabIntoView(regularTabs);
   useTabsShortcuts();
 
   return (
@@ -158,6 +175,21 @@ function Header({ tabs }: { tabs: Tab[] }) {
         </Button>
       </div>
 
+      {listeningTab && (
+        <div className="flex items-center h-full shrink-0 mr-1">
+          <TabItem
+            tab={listeningTab}
+            handleClose={close}
+            handleSelect={select}
+            handleCloseOthersCallback={closeOthers}
+            handleCloseAll={closeAll}
+            handlePin={pin}
+            handleUnpin={unpin}
+            tabIndex={1}
+          />
+        </div>
+      )}
+
       <div className="relative h-full min-w-0">
         <div
           ref={tabsScrollContainerRef}
@@ -171,14 +203,23 @@ function Header({ tabs }: { tabs: Tab[] }) {
             key={leftsidebar.expanded ? "expanded" : "collapsed"}
             as="div"
             axis="x"
-            values={tabs}
+            values={regularTabs}
             onReorder={reorder}
             className="flex w-max gap-1 h-full"
           >
-            {tabs.map((tab, index) => {
-              const isLastTab = index === tabs.length - 1;
-              const shortcutIndex =
-                index < 8 ? index + 1 : isLastTab ? 9 : undefined;
+            {regularTabs.map((tab, index) => {
+              const isLastTab = index === regularTabs.length - 1;
+              const shortcutIndex = listeningTab
+                ? index < 7
+                  ? index + 2
+                  : isLastTab
+                    ? 9
+                    : undefined
+                : index < 8
+                  ? index + 1
+                  : isLastTab
+                    ? 9
+                    : undefined;
 
               return (
                 <Reorder.Item
@@ -511,8 +552,10 @@ function ContentWrapper({ tab }: { tab: Tab }) {
 
 function TabChatButton({
   isCaretNearBottom = false,
+  showTimeline = false,
 }: {
   isCaretNearBottom?: boolean;
+  showTimeline?: boolean;
 }) {
   const { chat } = useShell();
   const currentTab = useTabs((state) => state.currentTab);
@@ -525,35 +568,51 @@ function TabChatButton({
     return null;
   }
 
-  return <ChatFloatingButton isCaretNearBottom={isCaretNearBottom} />;
+  return (
+    <ChatFloatingButton
+      isCaretNearBottom={isCaretNearBottom}
+      showTimeline={showTimeline}
+    />
+  );
 }
 
 export function StandardTabWrapper({
   children,
   afterBorder,
   floatingButton,
+  showTimeline = false,
 }: {
   children: React.ReactNode;
   afterBorder?: React.ReactNode;
   floatingButton?: React.ReactNode;
+  showTimeline?: boolean;
 }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col rounded-xl border border-neutral-200 flex-1 overflow-hidden relative">
         {children}
         {floatingButton}
-        <StandardTabChatButton />
+        <StandardTabChatButton showTimeline={showTimeline} />
       </div>
       {afterBorder}
     </div>
   );
 }
 
-function StandardTabChatButton() {
+function StandardTabChatButton({
+  showTimeline = false,
+}: {
+  showTimeline?: boolean;
+}) {
   const caretPosition = useCaretPosition();
   const isCaretNearBottom = caretPosition?.isCaretNearBottom ?? false;
 
-  return <TabChatButton isCaretNearBottom={isCaretNearBottom} />;
+  return (
+    <TabChatButton
+      isCaretNearBottom={isCaretNearBottom}
+      showTimeline={showTimeline}
+    />
+  );
 }
 
 function useHasSpaceForSearch() {
@@ -566,7 +625,7 @@ function useHasSpaceForSearch() {
 
 function useScrollState(
   ref: React.RefObject<HTMLDivElement | null>,
-  deps: unknown[] = [],
+  tabCount: number,
 ) {
   const [scrollState, setScrollState] = useState({
     atStart: true,
@@ -578,9 +637,15 @@ function useScrollState(
     if (!container) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
-    setScrollState({
+    const newState = {
       atStart: scrollLeft <= 1,
       atEnd: scrollLeft + clientWidth >= scrollWidth - 1,
+    };
+    setScrollState((prev) => {
+      if (prev.atStart === newState.atStart && prev.atEnd === newState.atEnd) {
+        return prev;
+      }
+      return newState;
     });
   }, [ref]);
 
@@ -599,19 +664,19 @@ function useScrollState(
     return () => {
       container.removeEventListener("scroll", updateScrollState);
     };
-  }, [updateScrollState, ...deps]);
+  }, [updateScrollState, tabCount]);
 
   return scrollState;
 }
 
 function useScrollActiveTabIntoView(tabs: Tab[]) {
   const tabRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
+  const activeTab = tabs.find((tab) => tab.active);
+  const activeTabKey = activeTab ? uniqueIdfromTab(activeTab) : null;
 
   useEffect(() => {
-    const activeTab = tabs.find((tab) => tab.active);
-    if (activeTab) {
-      const tabKey = uniqueIdfromTab(activeTab);
-      const tabElement = tabRefsMap.current.get(tabKey);
+    if (activeTabKey) {
+      const tabElement = tabRefsMap.current.get(activeTabKey);
       if (tabElement) {
         tabElement.scrollIntoView({
           behavior: "smooth",
@@ -620,7 +685,7 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
         });
       }
     }
-  }, [tabs]);
+  }, [activeTabKey]);
 
   const setTabRef = useCallback((tab: Tab, el: HTMLDivElement | null) => {
     if (el) {

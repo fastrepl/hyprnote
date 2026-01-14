@@ -7,7 +7,6 @@ export function frontmatterToPrompt(
 ): PromptStorage {
   return {
     user_id: String(frontmatter.user_id ?? ""),
-    created_at: String(frontmatter.created_at ?? ""),
     task_type: String(frontmatter.task_type ?? ""),
     content: body,
   };
@@ -21,7 +20,6 @@ export function promptToFrontmatter(prompt: PromptStorage): {
   return {
     frontmatter: {
       user_id: frontmatterFields.user_id ?? "",
-      created_at: frontmatterFields.created_at ?? "",
       task_type: frontmatterFields.task_type ?? "",
     },
     body: content ?? "",

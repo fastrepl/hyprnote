@@ -51,7 +51,7 @@ impl Language {
         self.region.as_deref()
     }
 
-    pub fn bcp47(&self) -> String {
+    pub fn bcp47_code(&self) -> String {
         match &self.region {
             Some(region) => format!("{}-{}", self.iso639.code(), region),
             None => self.iso639.code().to_string(),
@@ -125,7 +125,7 @@ impl serde::Serialize for Language {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&self.bcp47())
+        serializer.serialize_str(&self.bcp47_code())
     }
 }
 
@@ -148,7 +148,7 @@ mod tests {
         let lang: Language = "en".parse().unwrap();
         assert_eq!(lang.iso639(), ISO639::En);
         assert_eq!(lang.region(), None);
-        assert_eq!(lang.bcp47(), "en");
+        assert_eq!(lang.bcp47_code(), "en");
     }
 
     #[test]
@@ -156,7 +156,7 @@ mod tests {
         let lang: Language = "en-US".parse().unwrap();
         assert_eq!(lang.iso639(), ISO639::En);
         assert_eq!(lang.region(), Some("US"));
-        assert_eq!(lang.bcp47(), "en-US");
+        assert_eq!(lang.bcp47_code(), "en-US");
     }
 
     #[test]
@@ -164,7 +164,7 @@ mod tests {
         let lang: Language = "ja_JP".parse().unwrap();
         assert_eq!(lang.iso639(), ISO639::Ja);
         assert_eq!(lang.region(), Some("JP"));
-        assert_eq!(lang.bcp47(), "ja-JP");
+        assert_eq!(lang.bcp47_code(), "ja-JP");
     }
 
     #[test]
@@ -172,7 +172,7 @@ mod tests {
         let lang: Language = "zh-Hans-CN".parse().unwrap();
         assert_eq!(lang.iso639(), ISO639::Zh);
         assert_eq!(lang.region(), Some("CN"));
-        assert_eq!(lang.bcp47(), "zh-CN");
+        assert_eq!(lang.bcp47_code(), "zh-CN");
     }
 
     #[test]
@@ -180,7 +180,7 @@ mod tests {
         let lang: Language = "ko-US".parse().unwrap();
         assert_eq!(lang.iso639(), ISO639::Ko);
         assert_eq!(lang.region(), Some("US"));
-        assert_eq!(lang.bcp47(), "ko-US");
+        assert_eq!(lang.bcp47_code(), "ko-US");
     }
 
     #[test]
@@ -205,6 +205,6 @@ mod tests {
         let lang: Language = ISO639::En.into();
         assert_eq!(lang.iso639(), ISO639::En);
         assert_eq!(lang.region(), None);
-        assert_eq!(lang.bcp47(), "en");
+        assert_eq!(lang.bcp47_code(), "en");
     }
 }

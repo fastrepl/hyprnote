@@ -21,7 +21,6 @@ export const createTemplate = (): { id: string; data: TemplateStorage } => {
       title: faker.lorem.words({ min: 2, max: 5 }),
       description: faker.lorem.sentence(),
       sections: JSON.stringify(sections),
-      created_at: faker.date.past({ years: 1 }).toISOString(),
     },
   };
 };

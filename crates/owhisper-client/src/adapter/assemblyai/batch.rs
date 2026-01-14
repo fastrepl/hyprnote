@@ -9,6 +9,7 @@ use owhisper_interface::batch::{
 use serde::{Deserialize, Serialize};
 
 use super::AssemblyAIAdapter;
+use crate::adapter::http::ensure_success;
 use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 use crate::polling::{PollingConfig, PollingResult, poll_until};
@@ -20,6 +21,14 @@ use crate::polling::{PollingConfig, PollingResult, poll_until};
 // https://www.assemblyai.com/docs/pre-recorded-audio/select-the-speech-model.md
 // https://www.assemblyai.com/docs/pre-recorded-audio/supported-languages.md
 impl BatchSttAdapter for AssemblyAIAdapter {
+    fn is_supported_languages(
+        &self,
+        languages: &[hypr_language::Language],
+        _model: Option<&str>,
+    ) -> bool {
+        AssemblyAIAdapter::is_supported_languages(languages)
+    }
+
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
         client: &'a ClientWithMiddleware,
@@ -134,14 +143,7 @@ impl AssemblyAIAdapter {
             .send()
             .await?;
 
-        let upload_status = upload_response.status();
-        if !upload_status.is_success() {
-            return Err(Error::UnexpectedStatus {
-                status: upload_status,
-                body: upload_response.text().await.unwrap_or_default(),
-            });
-        }
-
+        let upload_response = ensure_success(upload_response).await?;
         let upload_result: UploadResponse = upload_response.json().await?;
 
         let language_code = params
@@ -172,14 +174,7 @@ impl AssemblyAIAdapter {
             .send()
             .await?;
 
-        let create_status = create_response.status();
-        if !create_status.is_success() {
-            return Err(Error::UnexpectedStatus {
-                status: create_status,
-                body: create_response.text().await.unwrap_or_default(),
-            });
-        }
-
+        let create_response = ensure_success(create_response).await?;
         let create_result: TranscriptResponse = create_response.json().await?;
         let transcript_id = create_result.id;
 
@@ -197,14 +192,7 @@ impl AssemblyAIAdapter {
                     .send()
                     .await?;
 
-                let poll_status = poll_response.status();
-                if !poll_status.is_success() {
-                    return Err(Error::UnexpectedStatus {
-                        status: poll_status,
-                        body: poll_response.text().await.unwrap_or_default(),
-                    });
-                }
-
+                let poll_response = ensure_success(poll_response).await?;
                 let result: TranscriptResponse = poll_response.json().await?;
 
                 match result.status.as_str() {

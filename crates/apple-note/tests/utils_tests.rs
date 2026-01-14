@@ -1,3 +1,13 @@
+//! Utility function tests
+//!
+//! These tests correspond to the helper tests in the apple_cloud_notes_parser Ruby implementation:
+//! https://github.com/threeplanetssoftware/apple_cloud_notes_parser/blob/master/spec/base_classes/apple_note.rb
+//!
+//! Tests cover:
+//! - Core time to Unix time conversion (convert_core_time in Ruby)
+//! - GZIP detection (is_gzip in Ruby)
+//! - GZIP decompression
+
 use apple_note::utils::{core_time_to_unix, decompress_gzip, is_gzip};
 use std::fs;
 

@@ -1,9 +1,17 @@
+import { Columns, Info } from "lucide-react";
 import type { ComponentType } from "react";
 
+import { Accordion, Card, Note, Step, Steps, Tip } from "@hypr/ui/docs";
+
+import { CtaCard } from "@/components/cta-card";
 import { Image } from "@/components/image";
 
+import { DeeplinksList } from "../deeplinks-list";
+import { HooksList } from "../hooks-list";
+import { OpenAPIDocs } from "../openapi-docs";
 import { Callout } from "./callout";
 import { CodeBlock } from "./code-block";
+import { GithubEmbed } from "./github-embed";
 import { MDXLink } from "./link";
 import { Mermaid } from "./mermaid";
 import { Tweet } from "./tweet";
@@ -14,12 +22,25 @@ export type MDXComponents = {
 
 export const defaultMDXComponents: MDXComponents = {
   a: MDXLink,
+  Accordion,
+  Card,
   Callout,
+  Columns,
+  CtaCard,
+  DeeplinksList,
+  GithubEmbed,
+  HooksList,
   Image,
   img: Image,
+  Info,
   mermaid: Mermaid,
   Mermaid,
+  Note,
+  OpenAPIDocs,
   pre: CodeBlock,
+  Step,
+  Steps,
+  Tip,
   Tweet,
 };
 

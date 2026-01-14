@@ -10,6 +10,7 @@ import {
 
 import { useAuth } from "./auth";
 import { env } from "./env";
+import { getScheme } from "./utils";
 
 export function getEntitlementsFromToken(accessToken: string): string[] {
   try {
@@ -45,8 +46,11 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     [entitlements],
   );
 
-  const upgradeToPro = useCallback(() => {
-    void openUrl(`${env.VITE_APP_URL}/app/checkout?period=monthly`);
+  const upgradeToPro = useCallback(async () => {
+    const scheme = await getScheme();
+    void openUrl(
+      `${env.VITE_APP_URL}/app/checkout?period=monthly&scheme=${scheme}`,
+    );
   }, []);
 
   const value = useMemo<BillingContextValue>(

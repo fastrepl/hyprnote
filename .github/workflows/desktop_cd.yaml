@@ -38,7 +38,7 @@ jobs:
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
             VERSION=$(doxxer --config doxxer.desktop.toml next dev)
           elif [[ "${{ inputs.channel }}" == "nightly" ]]; then
-            LATEST_TAG=$(git tag -l 'desktop_v*' --sort=-v:refname | head -n1)
+            LATEST_TAG=$(git tag -l 'desktop_v*' --sort=-creatordate | head -n1)
             if [[ "$LATEST_TAG" == *"-nightly"* ]]; then
               VERSION=$(doxxer --config doxxer.desktop.toml next prerelease)
             else

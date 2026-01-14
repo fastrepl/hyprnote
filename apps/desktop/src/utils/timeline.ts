@@ -232,7 +232,7 @@ export function buildTimelineBuckets({
   >();
 
   items.forEach((item) => {
-    const itemDate = new Date(item.date);
+    const itemDate = new Date(item.date + "T00:00:00");
     const bucket = getBucketInfo(itemDate);
 
     if (!bucketMap.has(bucket.label)) {

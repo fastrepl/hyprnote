@@ -9,8 +9,8 @@ use super::handler::WebSocketProxy;
 use super::params::transform_client_params;
 use super::types::{FirstMessageTransformer, OnCloseCallback};
 use crate::config::DEFAULT_CONNECT_TIMEOUT_MS;
+use crate::provider_selector::SelectedProvider;
 use crate::query_params::QueryParams;
-use crate::routes::ResolvedProvider;
 use crate::upstream_url::UpstreamUrlBuilder;
 
 pub struct NoUpstream;
@@ -144,9 +144,9 @@ impl WebSocketProxyBuilder<WithUrl> {
         self
     }
 
-    pub fn apply_auth(self, resolved: &ResolvedProvider) -> Self {
-        let provider = resolved.provider();
-        let api_key = resolved.api_key();
+    pub fn apply_auth(self, selected: &SelectedProvider) -> Self {
+        let provider = selected.provider();
+        let api_key = selected.api_key();
 
         match provider.auth() {
             Auth::Header { .. } => match provider.build_auth_header(api_key) {
@@ -195,9 +195,9 @@ impl WebSocketProxyBuilder<WithUrlComponents> {
         self
     }
 
-    pub fn apply_auth(self, resolved: &ResolvedProvider) -> Self {
-        let provider = resolved.provider();
-        let api_key = resolved.api_key();
+    pub fn apply_auth(self, selected: &SelectedProvider) -> Self {
+        let provider = selected.provider();
+        let api_key = selected.api_key();
 
         match provider.auth() {
             Auth::Header { .. } => match provider.build_auth_header(api_key) {

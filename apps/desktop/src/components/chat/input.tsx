@@ -15,6 +15,11 @@ import {
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../contexts/shell";
@@ -104,17 +109,11 @@ export function ChatMessageInput({
     };
   }, [chat]);
 
-  const handleAttachFile = useCallback(() => {
-    console.log("Attach file clicked");
-  }, []);
+  const handleAttachFile = useCallback(() => {}, []);
 
-  const handleTakeScreenshot = useCallback(() => {
-    console.log("Take screenshot clicked");
-  }, []);
+  const handleTakeScreenshot = useCallback(() => {}, []);
 
-  const handleVoiceInput = useCallback(() => {
-    console.log("Voice input clicked");
-  }, []);
+  const handleVoiceInput = useCallback(() => {}, []);
 
   const slashCommandConfig: SlashCommandConfig = useMemo(
     () => ({
@@ -178,36 +177,57 @@ export function ChatMessageInput({
 
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Button
-              onClick={handleAttachFile}
-              disabled={disabled}
-              size="icon"
-              variant="ghost"
-              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-            >
-              <PaperclipIcon size={16} />
-            </Button>
-            <Button
-              onClick={handleTakeScreenshot}
-              disabled={disabled}
-              size="icon"
-              variant="ghost"
-              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-            >
-              <FullscreenIcon size={16} />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleAttachFile}
+                  disabled={true}
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
+                >
+                  <PaperclipIcon size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <span>Coming soon</span>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleTakeScreenshot}
+                  disabled={true}
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
+                >
+                  <FullscreenIcon size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <span>Coming soon</span>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           <div className="flex items-center">
-            <Button
-              onClick={handleVoiceInput}
-              disabled={disabled}
-              size="icon"
-              variant="ghost"
-              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
-            >
-              <MicIcon size={16} />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleVoiceInput}
+                  disabled={true}
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-neutral-400 cursor-not-allowed"
+                >
+                  <MicIcon size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <span>Coming soon</span>
+              </TooltipContent>
+            </Tooltip>
             {isStreaming ? (
               <Button
                 onClick={onStop}

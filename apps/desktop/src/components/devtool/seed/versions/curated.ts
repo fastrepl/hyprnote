@@ -7,7 +7,7 @@ export const curatedSeed: SeedDefinition = {
   id: "curated",
   label: "Curated",
   calendarFixtureBase: "default",
-  run: async (store: MainStore) => {
+  run: async (store: MainStore, _fixtureCalendars) => {
     const validated = CuratedDataSchema.parse(curatedData);
     const tables = loadCuratedData(validated);
     await new Promise((r) => setTimeout(r, 0));

@@ -7,6 +7,8 @@ Default permissions for the plugin
 - `allow-run-batch`
 - `allow-parse-subtitle`
 - `allow-export-to-vtt`
+- `allow-is-supported-languages`
+- `allow-suggest-providers-for-languages`
 
 ## Permission Table
 
@@ -39,6 +41,32 @@ Enables the export_to_vtt command without any pre-configured scope.
 <td>
 
 Denies the export_to_vtt command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener2:allow-is-supported-languages`
+
+</td>
+<td>
+
+Enables the is_supported_languages command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener2:deny-is-supported-languages`
+
+</td>
+<td>
+
+Denies the is_supported_languages command without any pre-configured scope.
 
 </td>
 </tr>
@@ -91,6 +119,32 @@ Enables the run_batch command without any pre-configured scope.
 <td>
 
 Denies the run_batch command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener2:allow-suggest-providers-for-languages`
+
+</td>
+<td>
+
+Enables the suggest_providers_for_languages command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener2:deny-suggest-providers-for-languages`
+
+</td>
+<td>
+
+Denies the suggest_providers_for_languages command without any pre-configured scope.
 
 </td>
 </tr>

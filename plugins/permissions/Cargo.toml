@@ -37,4 +37,4 @@ objc2-av-foundation = { workspace = true }
 objc2-contacts = { workspace = true, features = ["CNContactStore", "block2"] }
 objc2-event-kit = { workspace = true, features = ["EKEventStore", "EKTypes", "block2"] }
 objc2-foundation = { workspace = true }
-macos-accessibility-client = "0.0.1"
+macos-accessibility-client = { workspace = true }

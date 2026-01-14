@@ -1,185 +1,87 @@
-import type { Content } from "tinybase/with-schemas";
-
-import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
-import { createCollectorPersister } from "../factories";
+import { createMultiTableDirPersister } from "../factories";
+import { SESSION_META_FILE, SESSION_NOTE_EXTENSION } from "../shared";
+import { getChangedSessionIds, parseSessionIdFromPath } from "./changes";
 import {
-  asTablesChanges,
-  type ChangedTables,
-  type CollectorResult,
-  getDataDir,
-  type TablesContent,
-} from "../shared";
+  loadAllSessionData,
+  type LoadedSessionData,
+  loadSingleSession,
+} from "./load/index";
 import {
-  collectNoteWriteOps,
-  collectSessionWriteOps,
-  collectTranscriptWriteOps,
-  type SessionCollectorResult,
-} from "./collect";
-import { loadAllSessionData } from "./load";
-
-function getChangedSessionIds(
-  tables: TablesContent,
-  changedTables: ChangedTables,
-): Set<string> | undefined {
-  const changedSessionIds = new Set<string>();
-
-  const changedSessions = changedTables.sessions;
-  if (changedSessions) {
-    for (const id of Object.keys(changedSessions)) {
-      changedSessionIds.add(id);
-    }
-  }
-
-  const changedParticipants = changedTables.mapping_session_participant;
-  if (changedParticipants) {
-    for (const id of Object.keys(changedParticipants)) {
-      const sessionId = tables.mapping_session_participant?.[id]?.session_id;
-      if (sessionId) {
-        changedSessionIds.add(sessionId);
-      }
-    }
-  }
-
-  const changedTranscripts = changedTables.transcripts;
-  if (changedTranscripts) {
-    for (const id of Object.keys(changedTranscripts)) {
-      const transcript = tables.transcripts?.[id];
-      if (transcript?.session_id) {
-        changedSessionIds.add(transcript.session_id);
-      }
-    }
-  }
-
-  const changedWords = changedTables.words;
-  if (changedWords) {
-    for (const id of Object.keys(changedWords)) {
-      const word = tables.words?.[id];
-      if (word?.transcript_id) {
-        const transcript = tables.transcripts?.[word.transcript_id];
-        if (transcript?.session_id) {
-          changedSessionIds.add(transcript.session_id);
-        }
-      }
-    }
-  }
-
-  const changedSpeakerHints = changedTables.speaker_hints;
-  if (changedSpeakerHints) {
-    for (const id of Object.keys(changedSpeakerHints)) {
-      const hint = tables.speaker_hints?.[id];
-      if (hint?.transcript_id) {
-        const transcript = tables.transcripts?.[hint.transcript_id];
-        if (transcript?.session_id) {
-          changedSessionIds.add(transcript.session_id);
-        }
-      }
-    }
-  }
-
-  const changedEnhancedNotes = changedTables.enhanced_notes;
-  if (changedEnhancedNotes) {
-    for (const id of Object.keys(changedEnhancedNotes)) {
-      const note = tables.enhanced_notes?.[id];
-      if (note?.session_id) {
-        changedSessionIds.add(note.session_id);
-      }
-    }
-  }
-
-  if (changedSessionIds.size === 0) {
-    return undefined;
-  }
-
-  return changedSessionIds;
-}
+  buildNoteSaveOps,
+  buildSessionSaveOps,
+  buildTranscriptSaveOps,
+} from "./save/index";
 
 export function createSessionPersister(store: Store) {
-  return createCollectorPersister(store, {
+  return createMultiTableDirPersister<Schemas, LoadedSessionData>(store, {
     label: "SessionPersister",
-    collect: (store, tables, dataDir, changedTables) => {
+    dirName: "sessions",
+    entityParser: parseSessionIdFromPath,
+    tables: [
+      { tableName: "sessions", isPrimary: true },
+      { tableName: "mapping_session_participant", foreignKey: "session_id" },
+      { tableName: "tags" },
+      { tableName: "mapping_tag_session", foreignKey: "session_id" },
+      { tableName: "transcripts", foreignKey: "session_id" },
+      { tableName: "enhanced_notes", foreignKey: "session_id" },
+    ],
+    cleanup: (tables) => [
+      {
+        type: "dirs",
+        subdir: "sessions",
+        markerFile: SESSION_META_FILE,
+        keepIds: Object.keys(tables.sessions ?? {}),
+      },
+      {
+        type: "filesRecursive",
+        subdir: "sessions",
+        markerFile: SESSION_META_FILE,
+        extension: SESSION_NOTE_EXTENSION.slice(1),
+        keepIds: Object.keys(tables.enhanced_notes ?? {}),
+      },
+    ],
+    loadAll: loadAllSessionData,
+    loadSingle: loadSingleSession,
+    save: (store, tables, dataDir, changedTables) => {
       let changedSessionIds: Set<string> | undefined;
 
       if (changedTables) {
-        changedSessionIds = getChangedSessionIds(tables, changedTables);
-        if (!changedSessionIds) {
-          return {
-            operations: [],
-            validSessionIds: new Set(),
-          };
+        const changeResult = getChangedSessionIds(tables, changedTables);
+        if (!changeResult) {
+          return { operations: [] };
+        }
+
+        if (changeResult.hasUnresolvedDeletions) {
+          changedSessionIds = undefined;
+        } else {
+          changedSessionIds = changeResult.changedSessionIds;
         }
       }
 
-      const sessionResult = collectSessionWriteOps(
-        store,
-        tables,
-        dataDir,
-        changedSessionIds,
-      ) as SessionCollectorResult;
-      const transcriptResult = collectTranscriptWriteOps(
+      const sessionOps = buildSessionSaveOps(
         store,
         tables,
         dataDir,
         changedSessionIds,
       );
-      const noteResult = collectNoteWriteOps(
+      const transcriptOps = buildTranscriptSaveOps(
+        tables,
+        dataDir,
+        changedSessionIds,
+      );
+      const noteOps = buildNoteSaveOps(
         store,
         tables,
         dataDir,
         changedSessionIds,
       );
-
-      const operations = [
-        ...sessionResult.operations,
-        ...transcriptResult.operations,
-        ...noteResult.operations,
-      ];
 
       return {
-        operations,
-        validSessionIds: changedSessionIds
-          ? new Set<string>()
-          : sessionResult.validSessionIds,
+        operations: [...sessionOps, ...transcriptOps, ...noteOps],
       };
-    },
-    load: async () => {
-      try {
-        const dataDir = await getDataDir();
-        const data = await loadAllSessionData(dataDir);
-
-        const hasData =
-          Object.keys(data.sessions).length > 0 ||
-          Object.keys(data.transcripts).length > 0 ||
-          Object.keys(data.enhanced_notes).length > 0;
-
-        if (!hasData) {
-          return undefined;
-        }
-
-        return asTablesChanges({
-          sessions: data.sessions,
-          mapping_session_participant: data.mapping_session_participant,
-          tags: data.tags,
-          mapping_tag_session: data.mapping_tag_session,
-          transcripts: data.transcripts,
-          enhanced_notes: data.enhanced_notes,
-        }) as unknown as Content<Schemas>;
-      } catch (error) {
-        console.error("[SessionPersister] load error:", error);
-        return undefined;
-      }
-    },
-    postSave: async (_dataDir, result) => {
-      const { validSessionIds } = result as CollectorResult & {
-        validSessionIds: Set<string>;
-      };
-      await fsSyncCommands.cleanupOrphanDirs(
-        "sessions",
-        "_meta.json",
-        Array.from(validSessionIds),
-      );
     },
   });
 }

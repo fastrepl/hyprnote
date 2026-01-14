@@ -14,6 +14,14 @@ impl RealtimeSttAdapter for SonioxAdapter {
         "soniox"
     }
 
+    fn is_supported_languages(
+        &self,
+        languages: &[hypr_language::Language],
+        _model: Option<&str>,
+    ) -> bool {
+        SonioxAdapter::is_supported_languages(languages)
+    }
+
     fn supports_native_multichannel(&self) -> bool {
         false
     }
@@ -64,7 +72,7 @@ impl RealtimeSttAdapter for SonioxAdapter {
             })
         };
 
-        let language_hints = params
+        let language_hints: Vec<String> = params
             .languages
             .iter()
             .map(|lang| lang.iso639().code().to_string())
@@ -76,6 +84,7 @@ impl RealtimeSttAdapter for SonioxAdapter {
             audio_format: "pcm_s16le",
             num_channels: channels,
             sample_rate: params.sample_rate,
+            language_hints_strict: !language_hints.is_empty(),
             language_hints,
             enable_endpoint_detection: true,
             enable_speaker_diarization: true,
@@ -167,6 +176,8 @@ struct SonioxConfig<'a> {
     sample_rate: u32,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     language_hints: Vec<String>,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    language_hints_strict: bool,
     enable_endpoint_detection: bool,
     enable_speaker_diarization: bool,
     #[serde(skip_serializing_if = "Option::is_none")]

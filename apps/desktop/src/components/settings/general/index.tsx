@@ -1,14 +1,17 @@
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as listenerCommands } from "@hypr/plugin-listener";
 import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
 import * as settings from "../../../store/tinybase/store/settings";
 import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
+import { Audio } from "./audio";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
@@ -19,6 +22,7 @@ type SettingsSection =
   | "language"
   | "notifications"
   | "permissions"
+  | "audio"
   | "data"
   | "lab";
 
@@ -27,11 +31,13 @@ export function SettingsGeneral({
   languageRef,
   notificationsRef,
   permissionsRef,
+  audioRef,
 }: {
   appRef?: React.Ref<HTMLDivElement>;
   languageRef?: React.Ref<HTMLDivElement>;
   notificationsRef?: React.Ref<HTMLDivElement>;
   permissionsRef?: React.Ref<HTMLDivElement>;
+  audioRef?: React.Ref<HTMLDivElement>;
   activeSection?: SettingsSection;
 } = {}) {
   const value = useConfigValues([
@@ -41,7 +47,26 @@ export function SettingsGeneral({
     "telemetry_consent",
     "ai_language",
     "spoken_languages",
+    "current_stt_provider",
   ] as const);
+
+  const suggestedProviders = useQuery({
+    enabled: !!value.spoken_languages?.length,
+    queryKey: ["suggested-stt-providers", value.spoken_languages],
+    queryFn: async () => {
+      const result = await listenerCommands.suggestProvidersForLanguages(
+        value.spoken_languages ?? [],
+      );
+
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+
+      return result.data.filter(
+        (provider) => !["fireworks", "openai"].includes(provider),
+      );
+    },
+  });
 
   const setPartialValues = settings.UI.useSetPartialValuesCallback(
     (row: Partial<General>) =>
@@ -173,11 +198,17 @@ export function SettingsGeneral({
           </form.Field>
           <form.Field name="spoken_languages">
             {(field) => (
-              <SpokenLanguagesView
-                value={field.state.value}
-                onChange={(val) => field.handleChange(val)}
-                supportedLanguages={SUPPORTED_LANGUAGES}
-              />
+              <>
+                <SpokenLanguagesView
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val)}
+                  supportedLanguages={SUPPORTED_LANGUAGES}
+                />
+                <span className="text-xs text-neutral-500">
+                  Providers outside {suggestedProviders.data?.join(", ")} may
+                  not work properly.
+                </span>
+              </>
             )}
           </form.Field>
         </div>
@@ -190,6 +221,10 @@ export function SettingsGeneral({
 
       <div ref={permissionsRef}>
         <Permissions />
+      </div>
+
+      <div ref={audioRef}>
+        <Audio />
       </div>
     </div>
   );

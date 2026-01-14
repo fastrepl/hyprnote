@@ -7,6 +7,7 @@ use axum::{
 use hypr_supabase_auth::{Error as SupabaseAuthError, SupabaseAuth};
 
 const PRO_ENTITLEMENT: &str = "hyprnote_pro";
+pub const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 
 #[derive(Clone)]
 pub struct AuthState {
@@ -61,13 +62,29 @@ pub async fn require_pro(
         .and_then(|h| h.to_str().ok())
         .ok_or(SupabaseAuthError::MissingAuthHeader)?;
 
+    let device_fingerprint = request
+        .headers()
+        .get(DEVICE_FINGERPRINT_HEADER)
+        .and_then(|h| h.to_str().ok())
+        .map(String::from);
+
     let token =
         SupabaseAuth::extract_token(auth_header).ok_or(SupabaseAuthError::InvalidAuthHeader)?;
 
-    state
+    let claims = state
         .inner
         .require_entitlement(token, PRO_ENTITLEMENT)
         .await?;
+
+    sentry::configure_scope(|scope| {
+        scope.set_user(Some(sentry::User {
+            id: device_fingerprint,
+            email: claims.email.clone(),
+            username: Some(claims.sub.clone()),
+            ..Default::default()
+        }));
+        scope.set_tag("user.id", &claims.sub);
+    });
 
     Ok(next.run(request).await)
 }

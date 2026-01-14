@@ -89,7 +89,7 @@ pub(crate) async fn get_preferred_languages<R: tauri::Runtime>(
 ) -> Result<Vec<String>, String> {
     Ok(hypr_detect::get_preferred_languages()
         .into_iter()
-        .map(|l| l.bcp47())
+        .map(|l| l.bcp47_code())
         .collect())
 }
 

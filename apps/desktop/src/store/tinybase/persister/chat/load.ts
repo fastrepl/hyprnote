@@ -1,33 +1,77 @@
 import { sep } from "@tauri-apps/api/path";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import {
-  type ChatJson,
-  chatJsonToData,
-  createEmptyLoadedData,
-  type LoadedChatData,
-  mergeLoadedData,
-} from "./transform";
+  CHAT_MESSAGES_FILE,
+  err,
+  isDirectoryNotFoundError,
+  isFileNotFoundError,
+  type LoadResult,
+  ok,
+} from "../shared";
+import type { ChatJson, LoadedChatData } from "./types";
 
-export type { LoadedChatData } from "./transform";
+export type { LoadedChatData } from "./types";
 
 const LABEL = "ChatPersister";
 
-export async function loadAllChatData(
+export function chatJsonToData(json: ChatJson): LoadedChatData {
+  const result: LoadedChatData = {
+    chat_groups: {},
+    chat_messages: {},
+  };
+
+  const { id: groupId, ...chatGroupData } = json.chat_group;
+  result.chat_groups[groupId] = chatGroupData;
+
+  for (const message of json.messages) {
+    const { id: messageId, ...messageData } = message;
+    result.chat_messages[messageId] = messageData;
+  }
+
+  return result;
+}
+
+export function mergeLoadedData(items: LoadedChatData[]): LoadedChatData {
+  const result: LoadedChatData = {
+    chat_groups: {},
+    chat_messages: {},
+  };
+
+  for (const item of items) {
+    Object.assign(result.chat_groups, item.chat_groups);
+    Object.assign(result.chat_messages, item.chat_messages);
+  }
+
+  return result;
+}
+
+export function createEmptyLoadedChatData(): LoadedChatData {
+  return {
+    chat_groups: {},
+    chat_messages: {},
+  };
+}
+
+export async function loadAllChatGroups(
   dataDir: string,
-): Promise<LoadedChatData> {
+): Promise<LoadResult<LoadedChatData>> {
   const chatsDir = [dataDir, "chats"].join(sep());
 
   const scanResult = await fsSyncCommands.scanAndRead(
     chatsDir,
-    ["_messages.json"],
+    [CHAT_MESSAGES_FILE],
     false,
   );
 
   if (scanResult.status === "error") {
+    if (isDirectoryNotFoundError(scanResult.error)) {
+      return ok(createEmptyLoadedChatData());
+    }
     console.error(`[${LABEL}] scan error:`, scanResult.error);
-    return createEmptyLoadedData();
+    return err(scanResult.error);
   }
 
   const { files } = scanResult.data;
@@ -43,5 +87,24 @@ export async function loadAllChatData(
     }
   }
 
-  return mergeLoadedData(items);
+  return ok(mergeLoadedData(items));
+}
+
+export async function loadSingleChatGroup(
+  dataDir: string,
+  groupId: string,
+): Promise<LoadResult<LoadedChatData>> {
+  const filePath = [dataDir, "chats", groupId, CHAT_MESSAGES_FILE].join(sep());
+
+  try {
+    const content = await readTextFile(filePath);
+    const json = JSON.parse(content) as ChatJson;
+    return ok(chatJsonToData(json));
+  } catch (error) {
+    if (isFileNotFoundError(error)) {
+      return ok(createEmptyLoadedChatData());
+    }
+    console.error(`[${LABEL}] Failed to load chat group ${groupId}:`, error);
+    return err(String(error));
+  }
 }

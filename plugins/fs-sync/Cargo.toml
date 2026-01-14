@@ -11,9 +11,11 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+assert_fs = "1"
 hypr-data = { workspace = true }
+predicates = "3"
 specta-typescript = { workspace = true }
-tempfile = "3"
+tempfile = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
@@ -22,6 +24,7 @@ hypr-frontmatter = { workspace = true }
 hypr-tiptap = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-notify = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-path2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }

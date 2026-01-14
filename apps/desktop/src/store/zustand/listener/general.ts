@@ -23,6 +23,7 @@ import {
 import { commands as path2Commands } from "@hypr/plugin-path2";
 
 import { fromResult } from "../../../effect";
+import { buildSessionPath } from "../../tinybase/persister/shared/paths";
 import type { BatchActions, BatchState } from "./batch";
 import type { HandlePersistCallback, TranscriptActions } from "./transcript";
 
@@ -48,6 +49,7 @@ export type GeneralState = {
     sessionId: string | null;
     muted: boolean;
     lastError: string | null;
+    device: string | null;
   };
 };
 
@@ -75,6 +77,7 @@ const initialState: GeneralState = {
     sessionId: null,
     muted: false,
     lastError: null,
+    device: null,
   },
 };
 
@@ -205,6 +208,7 @@ export const createGeneralSlice = <
             draft.live.sessionId = null;
             draft.live.eventUnlisteners = undefined;
             draft.live.lastError = payload.error ?? null;
+            draft.live.device = null;
           }),
         );
 
@@ -228,6 +232,7 @@ export const createGeneralSlice = <
         set((state) =>
           mutate(state, (draft) => {
             draft.live.loadingPhase = "audio_ready";
+            draft.live.device = payload.device;
           }),
         );
       } else if (payload.type === "connecting") {
@@ -322,7 +327,7 @@ export const createGeneralSlice = <
         catch: (error) => error,
       });
 
-      const sessionPath = `${dataDirPath}/hyprnote/sessions/${targetSessionId}`;
+      const sessionPath = buildSessionPath(dataDirPath, targetSessionId);
       const app_meeting = micUsingApps?.[0] ?? null;
 
       yield* Effect.tryPromise({
@@ -372,6 +377,7 @@ export const createGeneralSlice = <
               draft.live.sessionId = null;
               draft.live.muted = initialState.live.muted;
               draft.live.lastError = null;
+              draft.live.device = null;
             }),
           );
         },
@@ -403,7 +409,7 @@ export const createGeneralSlice = <
               getIdentifier().catch(() => "com.hyprnote.stable"),
             ])
               .then(([dataDirPath, bundleId]) => {
-                const sessionPath = `${dataDirPath}/hyprnote/sessions/${sessionId}`;
+                const sessionPath = buildSessionPath(dataDirPath, sessionId);
                 return hooksCommands.runEventHooks({
                   afterListeningStopped: {
                     args: {

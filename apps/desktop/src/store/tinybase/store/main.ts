@@ -32,7 +32,6 @@ const {
   useProvideMetrics,
   useCreateIndexes,
   useCreateMetrics,
-  useProvidePersister,
   useProvideQueries,
   useProvideSynchronizer,
   useCreateCheckpoints,
@@ -66,8 +65,7 @@ export const StoreComponent = () => {
       .setValuesSchema(SCHEMA.value),
   );
 
-  const { localPersister, sessionPersister, humanPersister } =
-    useMainPersisters(store as Store);
+  useMainPersisters(store as Store);
 
   const synchronizer = useCreateSynchronizer(store, async (store) =>
     createBroadcastChannelSynchronizer(
@@ -145,14 +143,12 @@ export const StoreComponent = () => {
           select("org_id");
           select("job_title");
           select("linkedin_username");
-          select("created_at");
         })
         .setQueryDefinition(
           QUERIES.visibleOrganizations,
           "organizations",
           ({ select }) => {
             select("name");
-            select("created_at");
           },
         )
         .setQueryDefinition(
@@ -162,7 +158,6 @@ export const StoreComponent = () => {
             select("title");
             select("description");
             select("sections");
-            select("created_at");
           },
         )
         .setQueryDefinition(
@@ -172,7 +167,6 @@ export const StoreComponent = () => {
             select("user_id");
             select("title");
             select("content");
-            select("created_at");
           },
         )
         .setQueryDefinition(
@@ -181,7 +175,6 @@ export const StoreComponent = () => {
           ({ select, join }) => {
             select("session_id");
             select("human_id");
-            select("created_at");
 
             join("humans", "human_id").as("human");
             select("human", "name").as("human_name");
@@ -316,7 +309,7 @@ export const StoreComponent = () => {
         INDEXES.enhancedNotesByTemplate,
         "enhanced_notes",
         "template_id",
-        "created_at",
+        "position",
       ),
   );
 
@@ -340,9 +333,6 @@ export const StoreComponent = () => {
   useProvideQueries(STORE_ID, queries!);
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
-  useProvidePersister(STORE_ID, localPersister);
-  useProvidePersister("session", sessionPersister);
-  useProvidePersister("human", humanPersister);
   useProvideSynchronizer(STORE_ID, synchronizer);
   useProvideCheckpoints(STORE_ID, checkpoints!);
 

@@ -3,16 +3,14 @@ use std::path::PathBuf;
 
 use rayon::prelude::*;
 use serde_json::Value;
+use tauri_plugin_notify::NotifyPluginExt;
 use tauri_plugin_path2::Path2PluginExt;
 
 use crate::FsSyncPluginExt;
-use crate::folder::find_session_dir;
 use crate::frontmatter::ParsedDocument;
-use crate::types::{ListFoldersResult, ScanResult};
+use crate::session::find_session_dir;
+use crate::types::{CleanupTarget, ListFoldersResult, ScanResult};
 
-/// For batch I/O on many small files, sync I/O with rayon parallelism
-/// is more efficient than async I/O (avoids per-file async task overhead).
-/// This macro wraps sync work to prevent blocking Tauri's invoke handler.
 macro_rules! spawn_blocking {
     ($body:expr) => {
         tokio::task::spawn_blocking(move || $body)
@@ -37,7 +35,24 @@ pub(crate) async fn deserialize(input: String) -> Result<ParsedDocument, String>
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn write_json_batch(items: Vec<(Value, String)>) -> Result<(), String> {
+pub(crate) async fn write_json_batch<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    items: Vec<(Value, String)>,
+) -> Result<(), String> {
+    let base = app.path2().base().map_err(|e| e.to_string())?;
+
+    let relative_paths: Vec<String> = items
+        .iter()
+        .filter_map(|(_, path)| {
+            std::path::Path::new(path)
+                .strip_prefix(&base)
+                .ok()
+                .map(|p| p.to_string_lossy().to_string())
+        })
+        .collect();
+
+    app.notify().mark_own_writes(&relative_paths);
+
     spawn_blocking!({
         items.into_par_iter().try_for_each(|(json, path)| {
             let path = std::path::Path::new(&path);
@@ -52,9 +67,24 @@ pub(crate) async fn write_json_batch(items: Vec<(Value, String)>) -> Result<(), 
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn write_document_batch(
+pub(crate) async fn write_document_batch<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
     items: Vec<(ParsedDocument, String)>,
 ) -> Result<(), String> {
+    let base = app.path2().base().map_err(|e| e.to_string())?;
+
+    let relative_paths: Vec<String> = items
+        .iter()
+        .filter_map(|(_, path)| {
+            std::path::Path::new(path)
+                .strip_prefix(&base)
+                .ok()
+                .map(|p| p.to_string_lossy().to_string())
+        })
+        .collect();
+
+    app.notify().mark_own_writes(&relative_paths);
+
     spawn_blocking!({
         items.into_par_iter().try_for_each(|(doc, path)| {
             let path = std::path::Path::new(&path);
@@ -73,7 +103,16 @@ pub(crate) async fn read_document_batch(
     dir_path: String,
 ) -> Result<HashMap<String, ParsedDocument>, String> {
     spawn_blocking!({
-        crate::frontmatter::read_document_from_dir(&dir_path).map_err(|e| e.to_string())
+        let files = crate::session::list_uuid_files(&PathBuf::from(&dir_path), "md");
+        let results: HashMap<_, _> = files
+            .into_par_iter()
+            .filter_map(|(id, path)| {
+                let content = std::fs::read_to_string(&path).ok()?;
+                let doc = crate::frontmatter::deserialize(&content).ok()?;
+                Some((id, doc))
+            })
+            .collect();
+        Ok(results)
     })
 }
 
@@ -133,27 +172,13 @@ pub(crate) async fn delete_folder<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn cleanup_orphan_files<R: tauri::Runtime>(
+pub(crate) async fn cleanup_orphan<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    subdir: String,
-    extension: String,
+    target: CleanupTarget,
     valid_ids: Vec<String>,
 ) -> Result<u32, String> {
     app.fs_sync()
-        .cleanup_orphan_files(&subdir, &extension, valid_ids)
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub(crate) async fn cleanup_orphan_dirs<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    subdir: String,
-    marker_file: String,
-    valid_ids: Vec<String>,
-) -> Result<u32, String> {
-    app.fs_sync()
-        .cleanup_orphan_dirs(&subdir, &marker_file, valid_ids)
+        .cleanup_orphan(target, valid_ids)
         .map_err(|e| e.to_string())
 }
 
@@ -218,19 +243,22 @@ pub(crate) async fn delete_session_folder<R: tauri::Runtime>(
     session_id: String,
 ) -> Result<(), String> {
     let session_dir = resolve_session_dir(&app, &session_id)?;
-    crate::folder::delete_session_dir(&session_dir).map_err(|e| e.to_string())
+    crate::session::delete_session_dir(&session_dir).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn scan_and_read(
-    base_dir: String,
+pub(crate) async fn scan_and_read<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    scan_dir: String,
     file_patterns: Vec<String>,
     recursive: bool,
 ) -> Result<ScanResult, String> {
+    let base = app.path2().base().map_err(|e| e.to_string())?;
     spawn_blocking!({
         Ok(crate::scan::scan_and_read(
-            &PathBuf::from(&base_dir),
+            &PathBuf::from(&scan_dir),
+            &base,
             &file_patterns,
             recursive,
         ))

@@ -14,9 +14,11 @@ use tauri_specta::Event;
 use tokio_stream::{self as tokio_stream, StreamExt as TokioStreamExt};
 
 use crate::BatchEvent;
+
 const BATCH_STREAM_TIMEOUT_SECS: u64 = 30;
 const DEFAULT_CHUNK_MS: u64 = 500;
 const DEFAULT_DELAY_MS: u64 = 20;
+const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 
 pub enum BatchMsg {
     StreamResponse {
@@ -202,8 +204,11 @@ async fn spawn_batch_task(
     ),
     ActorProcessingErr,
 > {
-    let adapter_kind =
-        AdapterKind::from_url_and_languages(&args.base_url, &args.listen_params.languages);
+    let adapter_kind = AdapterKind::from_url_and_languages(
+        &args.base_url,
+        &args.listen_params.languages,
+        args.listen_params.model.as_deref(),
+    );
 
     match adapter_kind {
         AdapterKind::Argmax => spawn_argmax_streaming_batch_task(args, myself).await,
@@ -392,6 +397,7 @@ async fn spawn_batch_task_with_adapter<A: RealtimeSttAdapter>(
             .api_base(args.base_url)
             .api_key(args.api_key)
             .params(listen_params)
+            .extra_header(DEVICE_FINGERPRINT_HEADER, hypr_host::fingerprint())
             .build_with_channels(channel_count)
             .await;
 

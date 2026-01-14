@@ -1,6 +1,6 @@
 import yaml from "js-yaml";
 
-import { createMdxFormatter } from "../public/admin/mdx-format-core.js";
+import { createMdxFormatter } from "./mdx-format-core.js";
 
 const { format } = createMdxFormatter(yaml);
 

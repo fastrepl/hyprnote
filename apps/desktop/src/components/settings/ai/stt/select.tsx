@@ -4,6 +4,7 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { arch } from "@tauri-apps/plugin-os";
 import { useEffect } from "react";
 
+import { commands as listenerCommands } from "@hypr/plugin-listener";
 import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 import type { AIProviderStorage } from "@hypr/store";
 import { Input } from "@hypr/ui/components/ui/input";
@@ -34,10 +35,12 @@ import {
 } from "./shared";
 
 export function SelectProviderAndModel() {
-  const { current_stt_provider, current_stt_model } = useConfigValues([
-    "current_stt_provider",
-    "current_stt_model",
-  ] as const);
+  const { current_stt_provider, current_stt_model, spoken_languages } =
+    useConfigValues([
+      "current_stt_provider",
+      "current_stt_model",
+      "spoken_languages",
+    ] as const);
   const billing = useBillingAccess();
   const configuredProviders = useConfiguredMapping();
   const { startDownload, startTrial } = useSttSettings();
@@ -45,6 +48,27 @@ export function SelectProviderAndModel() {
 
   const isConfigured = !!(current_stt_provider && current_stt_model);
   const hasError = isConfigured && health.status === "error";
+
+  const languageSupport = useQuery({
+    queryKey: [
+      "stt-language-support",
+      current_stt_provider,
+      current_stt_model,
+      spoken_languages,
+    ],
+    queryFn: async () => {
+      const result = await listenerCommands.isSupportedLanguages(
+        current_stt_provider!,
+        current_stt_model ?? null,
+        spoken_languages ?? [],
+      );
+      return result.status === "ok" ? result.data : true;
+    },
+    enabled: !!(current_stt_provider && spoken_languages?.length),
+  });
+
+  const hasLanguageWarning =
+    isConfigured && languageSupport.data === false && !hasError;
 
   const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_stt_provider",
@@ -120,7 +144,11 @@ export function SelectProviderAndModel() {
         className={cn([
           "flex flex-col gap-4",
           "p-4 rounded-xl border border-neutral-200",
-          !isConfigured || hasError ? "bg-red-50" : "bg-neutral-50",
+          !isConfigured || hasError
+            ? "bg-red-50"
+            : hasLanguageWarning
+              ? "bg-amber-50"
+              : "bg-neutral-50",
         ])}
       >
         <div className="flex flex-row items-center gap-4">
@@ -260,6 +288,13 @@ export function SelectProviderAndModel() {
         {hasError && health.message && (
           <div className="flex items-center gap-2 pt-2 border-t border-red-200">
             <span className="text-sm text-red-600">{health.message}</span>
+          </div>
+        )}
+        {hasLanguageWarning && (
+          <div className="flex items-center gap-2 pt-2 border-t border-amber-200">
+            <span className="text-sm text-amber-600">
+              Selected model may not support all your spoken languages.
+            </span>
           </div>
         )}
       </div>

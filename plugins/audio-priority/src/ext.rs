@@ -2,10 +2,8 @@ use std::path::PathBuf;
 
 use tauri_plugin_path2::Path2PluginExt;
 
-use hypr_audio_priority::{
-    AudioDevice, AudioDeviceBackend, AudioDirection, DeviceId, OutputCategory, PriorityState,
-    StoredDevice, backend,
-};
+use crate::{PriorityState, StoredDevice};
+use hypr_audio_device::{AudioDevice, AudioDeviceBackend, AudioDirection, DeviceId, backend};
 
 pub const FILENAME: &str = "audio.json";
 
@@ -22,10 +20,6 @@ pub struct AudioPriority<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
-    pub fn ping(&self) -> Result<String, crate::Error> {
-        Ok("pong".to_string())
-    }
-
     pub fn path(&self) -> Result<PathBuf, crate::Error> {
         audio_priority_path(self.manager.app_handle())
     }
@@ -89,14 +83,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
         Ok(state.input_priorities)
     }
 
-    pub async fn get_speaker_priorities(&self) -> crate::Result<Vec<String>> {
+    pub async fn get_output_priorities(&self) -> crate::Result<Vec<String>> {
         let state = self.load_state().await?;
-        Ok(state.speaker_priorities)
-    }
-
-    pub async fn get_headphone_priorities(&self) -> crate::Result<Vec<String>> {
-        let state = self.load_state().await?;
-        Ok(state.headphone_priorities)
+        Ok(state.output_priorities)
     }
 
     pub async fn save_input_priorities(&self, priorities: Vec<String>) -> crate::Result<()> {
@@ -105,15 +94,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
         self.save_state(state).await
     }
 
-    pub async fn save_speaker_priorities(&self, priorities: Vec<String>) -> crate::Result<()> {
+    pub async fn save_output_priorities(&self, priorities: Vec<String>) -> crate::Result<()> {
         let mut state = self.load_state().await?;
-        state.speaker_priorities = priorities;
-        self.save_state(state).await
-    }
-
-    pub async fn save_headphone_priorities(&self, priorities: Vec<String>) -> crate::Result<()> {
-        let mut state = self.load_state().await?;
-        state.headphone_priorities = priorities;
+        state.output_priorities = priorities;
         self.save_state(state).await
     }
 
@@ -121,80 +104,17 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
         &self,
         device_id: &str,
         direction: AudioDirection,
-        category: Option<OutputCategory>,
     ) -> crate::Result<()> {
         let mut state = self.load_state().await?;
         let uid = device_id.to_string();
 
-        match direction {
-            AudioDirection::Input => {
-                state.input_priorities.retain(|u| u != &uid);
-                state.input_priorities.insert(0, uid);
-            }
-            AudioDirection::Output => {
-                let cat = category.unwrap_or_else(|| {
-                    state
-                        .device_categories
-                        .get(device_id)
-                        .copied()
-                        .unwrap_or(OutputCategory::Speaker)
-                });
-                match cat {
-                    OutputCategory::Speaker => {
-                        state.speaker_priorities.retain(|u| u != &uid);
-                        state.speaker_priorities.insert(0, uid);
-                    }
-                    OutputCategory::Headphone => {
-                        state.headphone_priorities.retain(|u| u != &uid);
-                        state.headphone_priorities.insert(0, uid);
-                    }
-                }
-            }
-        }
+        let priorities = match direction {
+            AudioDirection::Input => &mut state.input_priorities,
+            AudioDirection::Output => &mut state.output_priorities,
+        };
+        priorities.retain(|u| u != &uid);
+        priorities.insert(0, uid);
 
-        self.save_state(state).await
-    }
-
-    pub async fn get_device_category(&self, device_id: &str) -> crate::Result<OutputCategory> {
-        let state = self.load_state().await?;
-        Ok(state
-            .device_categories
-            .get(device_id)
-            .copied()
-            .unwrap_or(OutputCategory::Speaker))
-    }
-
-    pub async fn set_device_category(
-        &self,
-        device_id: &str,
-        category: OutputCategory,
-    ) -> crate::Result<()> {
-        let mut state = self.load_state().await?;
-        state
-            .device_categories
-            .insert(device_id.to_string(), category);
-        self.save_state(state).await
-    }
-
-    pub async fn get_current_mode(&self) -> crate::Result<OutputCategory> {
-        let state = self.load_state().await?;
-        Ok(state.current_mode)
-    }
-
-    pub async fn set_current_mode(&self, mode: OutputCategory) -> crate::Result<()> {
-        let mut state = self.load_state().await?;
-        state.current_mode = mode;
-        self.save_state(state).await
-    }
-
-    pub async fn is_custom_mode(&self) -> crate::Result<bool> {
-        let state = self.load_state().await?;
-        Ok(state.is_custom_mode)
-    }
-
-    pub async fn set_custom_mode(&self, enabled: bool) -> crate::Result<()> {
-        let mut state = self.load_state().await?;
-        state.is_custom_mode = enabled;
         self.save_state(state).await
     }
 
@@ -227,12 +147,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
         let mut state = self.load_state().await?;
         state.known_devices.retain(|d| d.uid != uid);
         state.input_priorities.retain(|u| u != uid);
-        state.speaker_priorities.retain(|u| u != uid);
-        state.headphone_priorities.retain(|u| u != uid);
-        state.hidden_mics.retain(|u| u != uid);
-        state.hidden_speakers.retain(|u| u != uid);
-        state.hidden_headphones.retain(|u| u != uid);
-        state.device_categories.remove(uid);
+        state.output_priorities.retain(|u| u != uid);
+        state.hidden_inputs.retain(|u| u != uid);
+        state.hidden_outputs.retain(|u| u != uid);
         self.save_state(state).await
     }
 
@@ -245,18 +162,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
         let uid = device_id.to_string();
 
         match direction {
-            AudioDirection::Input => Ok(state.hidden_mics.contains(&uid)),
-            AudioDirection::Output => {
-                let category = state
-                    .device_categories
-                    .get(device_id)
-                    .copied()
-                    .unwrap_or(OutputCategory::Speaker);
-                match category {
-                    OutputCategory::Speaker => Ok(state.hidden_speakers.contains(&uid)),
-                    OutputCategory::Headphone => Ok(state.hidden_headphones.contains(&uid)),
-                }
-            }
+            AudioDirection::Input => Ok(state.hidden_inputs.contains(&uid)),
+            AudioDirection::Output => Ok(state.hidden_outputs.contains(&uid)),
         }
     }
 
@@ -268,31 +175,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
         let mut state = self.load_state().await?;
         let uid = device_id.to_string();
 
-        match direction {
-            AudioDirection::Input => {
-                if !state.hidden_mics.contains(&uid) {
-                    state.hidden_mics.push(uid);
-                }
-            }
-            AudioDirection::Output => {
-                let category = state
-                    .device_categories
-                    .get(device_id)
-                    .copied()
-                    .unwrap_or(OutputCategory::Speaker);
-                match category {
-                    OutputCategory::Speaker => {
-                        if !state.hidden_speakers.contains(&uid) {
-                            state.hidden_speakers.push(uid);
-                        }
-                    }
-                    OutputCategory::Headphone => {
-                        if !state.hidden_headphones.contains(&uid) {
-                            state.hidden_headphones.push(uid);
-                        }
-                    }
-                }
-            }
+        let hidden_list = match direction {
+            AudioDirection::Input => &mut state.hidden_inputs,
+            AudioDirection::Output => &mut state.hidden_outputs,
+        };
+        if !hidden_list.contains(&uid) {
+            hidden_list.push(uid);
         }
 
         self.save_state(state).await
@@ -304,28 +192,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> AudioPriority<'a, R, M> {
         direction: AudioDirection,
     ) -> crate::Result<()> {
         let mut state = self.load_state().await?;
-        let uid = device_id;
 
-        match direction {
-            AudioDirection::Input => {
-                state.hidden_mics.retain(|u| u != uid);
-            }
-            AudioDirection::Output => {
-                let category = state
-                    .device_categories
-                    .get(device_id)
-                    .copied()
-                    .unwrap_or(OutputCategory::Speaker);
-                match category {
-                    OutputCategory::Speaker => {
-                        state.hidden_speakers.retain(|u| u != uid);
-                    }
-                    OutputCategory::Headphone => {
-                        state.hidden_headphones.retain(|u| u != uid);
-                    }
-                }
-            }
-        }
+        let hidden_list = match direction {
+            AudioDirection::Input => &mut state.hidden_inputs,
+            AudioDirection::Output => &mut state.hidden_outputs,
+        };
+        hidden_list.retain(|u| u != device_id);
 
         self.save_state(state).await
     }

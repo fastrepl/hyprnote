@@ -18,11 +18,14 @@ import { Route as DiscordRouteImport } from './routes/discord'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BountiesRouteImport } from './routes/bounties'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
+import { Route as ApiMediaUploadRouteImport } from './routes/api/media-upload'
 import { Route as ApiK6ReportsRouteImport } from './routes/api/k6-reports'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewPrivacyRouteImport } from './routes/_view/privacy'
@@ -37,6 +40,8 @@ import { Route as ViewAboutRouteImport } from './routes/_view/about'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
+import { Route as AdminMediaIndexRouteImport } from './routes/admin/media/index'
+import { Route as AdminCollectionsIndexRouteImport } from './routes/admin/collections/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
 import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts/index'
 import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
@@ -87,10 +92,8 @@ import { Route as ViewK6ReportsIdRouteImport } from './routes/_view/k6-reports/$
 import { Route as ViewDownloadWindowsRouteImport } from './routes/_view/download/windows'
 import { Route as ViewDownloadLinuxDebRouteImport } from './routes/_view/download/linux-deb'
 import { Route as ViewDownloadLinuxAppimageRouteImport } from './routes/_view/download/linux-appimage'
-import { Route as ViewDownloadLinuxRouteImport } from './routes/_view/download/linux'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
-import { Route as ViewDownloadAppleRouteImport } from './routes/_view/download/apple'
 import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
 import { Route as ViewCompanyHandbookSplatRouteImport } from './routes/_view/company-handbook/$'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
@@ -100,6 +103,20 @@ import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integ
 import { Route as ViewAppFileTranscriptionRouteImport } from './routes/_view/app/file-transcription'
 import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
+import { Route as ApiAdminMediaUploadRouteImport } from './routes/api/admin/media/upload'
+import { Route as ApiAdminMediaMoveRouteImport } from './routes/api/admin/media/move'
+import { Route as ApiAdminMediaListRouteImport } from './routes/api/admin/media/list'
+import { Route as ApiAdminMediaDeleteRouteImport } from './routes/api/admin/media/delete'
+import { Route as ApiAdminMediaCreateFolderRouteImport } from './routes/api/admin/media/create-folder'
+import { Route as ApiAdminImportSaveRouteImport } from './routes/api/admin/import/save'
+import { Route as ApiAdminImportGoogleDocsRouteImport } from './routes/api/admin/import/google-docs'
+import { Route as ApiAdminContentSaveRouteImport } from './routes/api/admin/content/save'
+import { Route as ApiAdminContentRenameRouteImport } from './routes/api/admin/content/rename'
+import { Route as ApiAdminContentListRouteImport } from './routes/api/admin/content/list'
+import { Route as ApiAdminContentHistoryRouteImport } from './routes/api/admin/content/history'
+import { Route as ApiAdminContentDuplicateRouteImport } from './routes/api/admin/content/duplicate'
+import { Route as ApiAdminContentDeleteRouteImport } from './routes/api/admin/content/delete'
+import { Route as ApiAdminContentCreateRouteImport } from './routes/api/admin/content/create'
 import { Route as ViewIntegrationsCategorySlugRouteImport } from './routes/_view/integrations/$category.$slug'
 import { Route as ViewGalleryTypeSlugRouteImport } from './routes/_view/gallery/$type.$slug'
 
@@ -148,9 +165,19 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViewRouteRoute = ViewRouteRouteImport.update({
   id: '/_view',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const ViewIndexRoute = ViewIndexRouteImport.update({
   id: '/',
@@ -170,6 +197,11 @@ const ApiTemplatesRoute = ApiTemplatesRouteImport.update({
 const ApiShortcutsRoute = ApiShortcutsRouteImport.update({
   id: '/api/shortcuts',
   path: '/api/shortcuts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMediaUploadRoute = ApiMediaUploadRouteImport.update({
+  id: '/api/media-upload',
+  path: '/api/media-upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiK6ReportsRoute = ApiK6ReportsRouteImport.update({
@@ -242,6 +274,16 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => ViewRouteRoute,
+} as any)
+const AdminMediaIndexRoute = AdminMediaIndexRouteImport.update({
+  id: '/media/',
+  path: '/media/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminCollectionsIndexRoute = AdminCollectionsIndexRouteImport.update({
+  id: '/collections/',
+  path: '/collections/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const ViewTemplatesIndexRoute = ViewTemplatesIndexRouteImport.update({
   id: '/templates/',
@@ -498,11 +540,6 @@ const ViewDownloadLinuxAppimageRoute =
     path: '/download/linux-appimage',
     getParentRoute: () => ViewRouteRoute,
   } as any)
-const ViewDownloadLinuxRoute = ViewDownloadLinuxRouteImport.update({
-  id: '/download/linux',
-  path: '/download/linux',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewDownloadAppleSiliconRoute =
   ViewDownloadAppleSiliconRouteImport.update({
     id: '/download/apple-silicon',
@@ -512,11 +549,6 @@ const ViewDownloadAppleSiliconRoute =
 const ViewDownloadAppleIntelRoute = ViewDownloadAppleIntelRouteImport.update({
   id: '/download/apple-intel',
   path: '/download/apple-intel',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewDownloadAppleRoute = ViewDownloadAppleRouteImport.update({
-  id: '/download/apple',
-  path: '/download/apple',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewDocsSplatRoute = ViewDocsSplatRouteImport.update({
@@ -566,6 +598,79 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
+const ApiAdminMediaUploadRoute = ApiAdminMediaUploadRouteImport.update({
+  id: '/api/admin/media/upload',
+  path: '/api/admin/media/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminMediaMoveRoute = ApiAdminMediaMoveRouteImport.update({
+  id: '/api/admin/media/move',
+  path: '/api/admin/media/move',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminMediaListRoute = ApiAdminMediaListRouteImport.update({
+  id: '/api/admin/media/list',
+  path: '/api/admin/media/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminMediaDeleteRoute = ApiAdminMediaDeleteRouteImport.update({
+  id: '/api/admin/media/delete',
+  path: '/api/admin/media/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminMediaCreateFolderRoute =
+  ApiAdminMediaCreateFolderRouteImport.update({
+    id: '/api/admin/media/create-folder',
+    path: '/api/admin/media/create-folder',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminImportSaveRoute = ApiAdminImportSaveRouteImport.update({
+  id: '/api/admin/import/save',
+  path: '/api/admin/import/save',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminImportGoogleDocsRoute =
+  ApiAdminImportGoogleDocsRouteImport.update({
+    id: '/api/admin/import/google-docs',
+    path: '/api/admin/import/google-docs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminContentSaveRoute = ApiAdminContentSaveRouteImport.update({
+  id: '/api/admin/content/save',
+  path: '/api/admin/content/save',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminContentRenameRoute = ApiAdminContentRenameRouteImport.update({
+  id: '/api/admin/content/rename',
+  path: '/api/admin/content/rename',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminContentListRoute = ApiAdminContentListRouteImport.update({
+  id: '/api/admin/content/list',
+  path: '/api/admin/content/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminContentHistoryRoute = ApiAdminContentHistoryRouteImport.update({
+  id: '/api/admin/content/history',
+  path: '/api/admin/content/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminContentDuplicateRoute =
+  ApiAdminContentDuplicateRouteImport.update({
+    id: '/api/admin/content/duplicate',
+    path: '/api/admin/content/duplicate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminContentDeleteRoute = ApiAdminContentDeleteRouteImport.update({
+  id: '/api/admin/content/delete',
+  path: '/api/admin/content/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminContentCreateRoute = ApiAdminContentCreateRouteImport.update({
+  id: '/api/admin/content/create',
+  path: '/api/admin/content/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViewIntegrationsCategorySlugRoute =
   ViewIntegrationsCategorySlugRouteImport.update({
     id: '/integrations/$category/$slug',
@@ -579,6 +684,7 @@ const ViewGalleryTypeSlugRoute = ViewGalleryTypeSlugRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/admin': typeof AdminRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bounties': typeof BountiesRoute
   '/contact': typeof ContactRoute
@@ -602,10 +708,12 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
+  '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/': typeof ViewIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/checkout': typeof ViewAppCheckoutRoute
   '/app/file-transcription': typeof ViewAppFileTranscriptionRoute
@@ -615,10 +723,8 @@ export interface FileRoutesByFullPath {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
-  '/download/apple': typeof ViewDownloadAppleRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/download/linux': typeof ViewDownloadLinuxRoute
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
@@ -669,8 +775,24 @@ export interface FileRoutesByFullPath {
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
+  '/admin/collections': typeof AdminCollectionsIndexRoute
+  '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/content/create': typeof ApiAdminContentCreateRoute
+  '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
+  '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
+  '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
+  '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
+  '/api/admin/content/save': typeof ApiAdminContentSaveRoute
+  '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
+  '/api/admin/import/save': typeof ApiAdminImportSaveRoute
+  '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
+  '/api/admin/media/delete': typeof ApiAdminMediaDeleteRoute
+  '/api/admin/media/list': typeof ApiAdminMediaListRoute
+  '/api/admin/media/move': typeof ApiAdminMediaMoveRoute
+  '/api/admin/media/upload': typeof ApiAdminMediaUploadRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -693,10 +815,12 @@ export interface FileRoutesByTo {
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
+  '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/': typeof ViewIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/checkout': typeof ViewAppCheckoutRoute
   '/app/file-transcription': typeof ViewAppFileTranscriptionRoute
@@ -706,10 +830,8 @@ export interface FileRoutesByTo {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
-  '/download/apple': typeof ViewDownloadAppleRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/download/linux': typeof ViewDownloadLinuxRoute
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
@@ -760,12 +882,29 @@ export interface FileRoutesByTo {
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
+  '/admin/collections': typeof AdminCollectionsIndexRoute
+  '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/content/create': typeof ApiAdminContentCreateRoute
+  '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
+  '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
+  '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
+  '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
+  '/api/admin/content/save': typeof ApiAdminContentSaveRoute
+  '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
+  '/api/admin/import/save': typeof ApiAdminImportSaveRoute
+  '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
+  '/api/admin/media/delete': typeof ApiAdminMediaDeleteRoute
+  '/api/admin/media/list': typeof ApiAdminMediaListRoute
+  '/api/admin/media/move': typeof ApiAdminMediaMoveRoute
+  '/api/admin/media/upload': typeof ApiAdminMediaUploadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_view': typeof ViewRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bounties': typeof BountiesRoute
   '/contact': typeof ContactRoute
@@ -789,10 +928,12 @@ export interface FileRoutesById {
   '/_view/privacy': typeof ViewPrivacyRoute
   '/_view/security': typeof ViewSecurityRoute
   '/api/k6-reports': typeof ApiK6ReportsRoute
+  '/api/media-upload': typeof ApiMediaUploadRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/_view/': typeof ViewIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/_view/app/account': typeof ViewAppAccountRoute
   '/_view/app/checkout': typeof ViewAppCheckoutRoute
   '/_view/app/file-transcription': typeof ViewAppFileTranscriptionRoute
@@ -802,10 +943,8 @@ export interface FileRoutesById {
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
   '/_view/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/_view/docs/$': typeof ViewDocsSplatRoute
-  '/_view/download/apple': typeof ViewDownloadAppleRoute
   '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/_view/download/linux': typeof ViewDownloadLinuxRoute
   '/_view/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/_view/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/_view/download/windows': typeof ViewDownloadWindowsRoute
@@ -856,12 +995,29 @@ export interface FileRoutesById {
   '/_view/roadmap/': typeof ViewRoadmapIndexRoute
   '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
+  '/admin/collections/': typeof AdminCollectionsIndexRoute
+  '/admin/media/': typeof AdminMediaIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/content/create': typeof ApiAdminContentCreateRoute
+  '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
+  '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
+  '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
+  '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
+  '/api/admin/content/save': typeof ApiAdminContentSaveRoute
+  '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
+  '/api/admin/import/save': typeof ApiAdminImportSaveRoute
+  '/api/admin/media/create-folder': typeof ApiAdminMediaCreateFolderRoute
+  '/api/admin/media/delete': typeof ApiAdminMediaDeleteRoute
+  '/api/admin/media/list': typeof ApiAdminMediaListRoute
+  '/api/admin/media/move': typeof ApiAdminMediaMoveRoute
+  '/api/admin/media/upload': typeof ApiAdminMediaUploadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/admin'
     | '/auth'
     | '/bounties'
     | '/contact'
@@ -885,10 +1041,12 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/security'
     | '/api/k6-reports'
+    | '/api/media-upload'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
     | '/'
+    | '/admin/'
     | '/app/account'
     | '/app/checkout'
     | '/app/file-transcription'
@@ -898,10 +1056,8 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/company-handbook/$'
     | '/docs/$'
-    | '/download/apple'
     | '/download/apple-intel'
     | '/download/apple-silicon'
-    | '/download/linux'
     | '/download/linux-appimage'
     | '/download/linux-deb'
     | '/download/windows'
@@ -952,8 +1108,24 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
+    | '/admin/collections'
+    | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
+    | '/api/admin/content/create'
+    | '/api/admin/content/delete'
+    | '/api/admin/content/duplicate'
+    | '/api/admin/content/history'
+    | '/api/admin/content/list'
+    | '/api/admin/content/rename'
+    | '/api/admin/content/save'
+    | '/api/admin/import/google-docs'
+    | '/api/admin/import/save'
+    | '/api/admin/media/create-folder'
+    | '/api/admin/media/delete'
+    | '/api/admin/media/list'
+    | '/api/admin/media/move'
+    | '/api/admin/media/upload'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -976,10 +1148,12 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/security'
     | '/api/k6-reports'
+    | '/api/media-upload'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
     | '/'
+    | '/admin'
     | '/app/account'
     | '/app/checkout'
     | '/app/file-transcription'
@@ -989,10 +1163,8 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/company-handbook/$'
     | '/docs/$'
-    | '/download/apple'
     | '/download/apple-intel'
     | '/download/apple-silicon'
-    | '/download/linux'
     | '/download/linux-appimage'
     | '/download/linux-deb'
     | '/download/windows'
@@ -1043,11 +1215,28 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
+    | '/admin/collections'
+    | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
+    | '/api/admin/content/create'
+    | '/api/admin/content/delete'
+    | '/api/admin/content/duplicate'
+    | '/api/admin/content/history'
+    | '/api/admin/content/list'
+    | '/api/admin/content/rename'
+    | '/api/admin/content/save'
+    | '/api/admin/import/google-docs'
+    | '/api/admin/import/save'
+    | '/api/admin/media/create-folder'
+    | '/api/admin/media/delete'
+    | '/api/admin/media/list'
+    | '/api/admin/media/move'
+    | '/api/admin/media/upload'
   id:
     | '__root__'
     | '/_view'
+    | '/admin'
     | '/auth'
     | '/bounties'
     | '/contact'
@@ -1071,10 +1260,12 @@ export interface FileRouteTypes {
     | '/_view/privacy'
     | '/_view/security'
     | '/api/k6-reports'
+    | '/api/media-upload'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
     | '/_view/'
+    | '/admin/'
     | '/_view/app/account'
     | '/_view/app/checkout'
     | '/_view/app/file-transcription'
@@ -1084,10 +1275,8 @@ export interface FileRouteTypes {
     | '/_view/changelog/$slug'
     | '/_view/company-handbook/$'
     | '/_view/docs/$'
-    | '/_view/download/apple'
     | '/_view/download/apple-intel'
     | '/_view/download/apple-silicon'
-    | '/_view/download/linux'
     | '/_view/download/linux-appimage'
     | '/_view/download/linux-deb'
     | '/_view/download/windows'
@@ -1138,12 +1327,29 @@ export interface FileRouteTypes {
     | '/_view/roadmap/'
     | '/_view/shortcuts/'
     | '/_view/templates/'
+    | '/admin/collections/'
+    | '/admin/media/'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
+    | '/api/admin/content/create'
+    | '/api/admin/content/delete'
+    | '/api/admin/content/duplicate'
+    | '/api/admin/content/history'
+    | '/api/admin/content/list'
+    | '/api/admin/content/rename'
+    | '/api/admin/content/save'
+    | '/api/admin/import/google-docs'
+    | '/api/admin/import/save'
+    | '/api/admin/media/create-folder'
+    | '/api/admin/media/delete'
+    | '/api/admin/media/list'
+    | '/api/admin/media/move'
+    | '/api/admin/media/upload'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BountiesRoute: typeof BountiesRoute
   ContactRoute: typeof ContactRoute
@@ -1154,11 +1360,26 @@ export interface RootRouteChildren {
   XRoute: typeof XRoute
   YoutubeRoute: typeof YoutubeRoute
   ApiK6ReportsRoute: typeof ApiK6ReportsRoute
+  ApiMediaUploadRoute: typeof ApiMediaUploadRoute
   ApiShortcutsRoute: typeof ApiShortcutsRoute
   ApiTemplatesRoute: typeof ApiTemplatesRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
+  ApiAdminContentCreateRoute: typeof ApiAdminContentCreateRoute
+  ApiAdminContentDeleteRoute: typeof ApiAdminContentDeleteRoute
+  ApiAdminContentDuplicateRoute: typeof ApiAdminContentDuplicateRoute
+  ApiAdminContentHistoryRoute: typeof ApiAdminContentHistoryRoute
+  ApiAdminContentListRoute: typeof ApiAdminContentListRoute
+  ApiAdminContentRenameRoute: typeof ApiAdminContentRenameRoute
+  ApiAdminContentSaveRoute: typeof ApiAdminContentSaveRoute
+  ApiAdminImportGoogleDocsRoute: typeof ApiAdminImportGoogleDocsRoute
+  ApiAdminImportSaveRoute: typeof ApiAdminImportSaveRoute
+  ApiAdminMediaCreateFolderRoute: typeof ApiAdminMediaCreateFolderRoute
+  ApiAdminMediaDeleteRoute: typeof ApiAdminMediaDeleteRoute
+  ApiAdminMediaListRoute: typeof ApiAdminMediaListRoute
+  ApiAdminMediaMoveRoute: typeof ApiAdminMediaMoveRoute
+  ApiAdminMediaUploadRoute: typeof ApiAdminMediaUploadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1226,12 +1447,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_view': {
       id: '/_view'
       path: ''
       fullPath: ''
       preLoaderRoute: typeof ViewRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/_view/': {
       id: '/_view/'
@@ -1259,6 +1494,13 @@ declare module '@tanstack/react-router' {
       path: '/api/shortcuts'
       fullPath: '/api/shortcuts'
       preLoaderRoute: typeof ApiShortcutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/media-upload': {
+      id: '/api/media-upload'
+      path: '/api/media-upload'
+      fullPath: '/api/media-upload'
+      preLoaderRoute: typeof ApiMediaUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/k6-reports': {
@@ -1358,6 +1600,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app'
       preLoaderRoute: typeof ViewAppRouteRouteImport
       parentRoute: typeof ViewRouteRoute
+    }
+    '/admin/media/': {
+      id: '/admin/media/'
+      path: '/media'
+      fullPath: '/admin/media'
+      preLoaderRoute: typeof AdminMediaIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/collections/': {
+      id: '/admin/collections/'
+      path: '/collections'
+      fullPath: '/admin/collections'
+      preLoaderRoute: typeof AdminCollectionsIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/_view/templates/': {
       id: '/_view/templates/'
@@ -1709,13 +1965,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDownloadLinuxAppimageRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/download/linux': {
-      id: '/_view/download/linux'
-      path: '/download/linux'
-      fullPath: '/download/linux'
-      preLoaderRoute: typeof ViewDownloadLinuxRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/download/apple-silicon': {
       id: '/_view/download/apple-silicon'
       path: '/download/apple-silicon'
@@ -1728,13 +1977,6 @@ declare module '@tanstack/react-router' {
       path: '/download/apple-intel'
       fullPath: '/download/apple-intel'
       preLoaderRoute: typeof ViewDownloadAppleIntelRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/apple': {
-      id: '/_view/download/apple'
-      path: '/download/apple'
-      fullPath: '/download/apple'
-      preLoaderRoute: typeof ViewDownloadAppleRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/docs/$': {
@@ -1799,6 +2041,104 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/account'
       preLoaderRoute: typeof ViewAppAccountRouteImport
       parentRoute: typeof ViewAppRouteRoute
+    }
+    '/api/admin/media/upload': {
+      id: '/api/admin/media/upload'
+      path: '/api/admin/media/upload'
+      fullPath: '/api/admin/media/upload'
+      preLoaderRoute: typeof ApiAdminMediaUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/media/move': {
+      id: '/api/admin/media/move'
+      path: '/api/admin/media/move'
+      fullPath: '/api/admin/media/move'
+      preLoaderRoute: typeof ApiAdminMediaMoveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/media/list': {
+      id: '/api/admin/media/list'
+      path: '/api/admin/media/list'
+      fullPath: '/api/admin/media/list'
+      preLoaderRoute: typeof ApiAdminMediaListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/media/delete': {
+      id: '/api/admin/media/delete'
+      path: '/api/admin/media/delete'
+      fullPath: '/api/admin/media/delete'
+      preLoaderRoute: typeof ApiAdminMediaDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/media/create-folder': {
+      id: '/api/admin/media/create-folder'
+      path: '/api/admin/media/create-folder'
+      fullPath: '/api/admin/media/create-folder'
+      preLoaderRoute: typeof ApiAdminMediaCreateFolderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/import/save': {
+      id: '/api/admin/import/save'
+      path: '/api/admin/import/save'
+      fullPath: '/api/admin/import/save'
+      preLoaderRoute: typeof ApiAdminImportSaveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/import/google-docs': {
+      id: '/api/admin/import/google-docs'
+      path: '/api/admin/import/google-docs'
+      fullPath: '/api/admin/import/google-docs'
+      preLoaderRoute: typeof ApiAdminImportGoogleDocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/save': {
+      id: '/api/admin/content/save'
+      path: '/api/admin/content/save'
+      fullPath: '/api/admin/content/save'
+      preLoaderRoute: typeof ApiAdminContentSaveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/rename': {
+      id: '/api/admin/content/rename'
+      path: '/api/admin/content/rename'
+      fullPath: '/api/admin/content/rename'
+      preLoaderRoute: typeof ApiAdminContentRenameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/list': {
+      id: '/api/admin/content/list'
+      path: '/api/admin/content/list'
+      fullPath: '/api/admin/content/list'
+      preLoaderRoute: typeof ApiAdminContentListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/history': {
+      id: '/api/admin/content/history'
+      path: '/api/admin/content/history'
+      fullPath: '/api/admin/content/history'
+      preLoaderRoute: typeof ApiAdminContentHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/duplicate': {
+      id: '/api/admin/content/duplicate'
+      path: '/api/admin/content/duplicate'
+      fullPath: '/api/admin/content/duplicate'
+      preLoaderRoute: typeof ApiAdminContentDuplicateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/delete': {
+      id: '/api/admin/content/delete'
+      path: '/api/admin/content/delete'
+      fullPath: '/api/admin/content/delete'
+      preLoaderRoute: typeof ApiAdminContentDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/create': {
+      id: '/api/admin/content/create'
+      path: '/api/admin/content/create'
+      fullPath: '/api/admin/content/create'
+      preLoaderRoute: typeof ApiAdminContentCreateRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_view/integrations/$category/$slug': {
       id: '/_view/integrations/$category/$slug'
@@ -1885,10 +2225,8 @@ interface ViewRouteRouteChildren {
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
-  ViewDownloadAppleRoute: typeof ViewDownloadAppleRoute
   ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
-  ViewDownloadLinuxRoute: typeof ViewDownloadLinuxRoute
   ViewDownloadLinuxAppimageRoute: typeof ViewDownloadLinuxAppimageRoute
   ViewDownloadLinuxDebRoute: typeof ViewDownloadLinuxDebRoute
   ViewDownloadWindowsRoute: typeof ViewDownloadWindowsRoute
@@ -1956,10 +2294,8 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
-  ViewDownloadAppleRoute: ViewDownloadAppleRoute,
   ViewDownloadAppleIntelRoute: ViewDownloadAppleIntelRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
-  ViewDownloadLinuxRoute: ViewDownloadLinuxRoute,
   ViewDownloadLinuxAppimageRoute: ViewDownloadLinuxAppimageRoute,
   ViewDownloadLinuxDebRoute: ViewDownloadLinuxDebRoute,
   ViewDownloadWindowsRoute: ViewDownloadWindowsRoute,
@@ -2013,8 +2349,25 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
   ViewRouteRouteChildren,
 )
 
+interface AdminRouteRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminCollectionsIndexRoute: typeof AdminCollectionsIndexRoute
+  AdminMediaIndexRoute: typeof AdminMediaIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminCollectionsIndexRoute: AdminCollectionsIndexRoute,
+  AdminMediaIndexRoute: AdminMediaIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BountiesRoute: BountiesRoute,
   ContactRoute: ContactRoute,
@@ -2025,11 +2378,26 @@ const rootRouteChildren: RootRouteChildren = {
   XRoute: XRoute,
   YoutubeRoute: YoutubeRoute,
   ApiK6ReportsRoute: ApiK6ReportsRoute,
+  ApiMediaUploadRoute: ApiMediaUploadRoute,
   ApiShortcutsRoute: ApiShortcutsRoute,
   ApiTemplatesRoute: ApiTemplatesRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
+  ApiAdminContentCreateRoute: ApiAdminContentCreateRoute,
+  ApiAdminContentDeleteRoute: ApiAdminContentDeleteRoute,
+  ApiAdminContentDuplicateRoute: ApiAdminContentDuplicateRoute,
+  ApiAdminContentHistoryRoute: ApiAdminContentHistoryRoute,
+  ApiAdminContentListRoute: ApiAdminContentListRoute,
+  ApiAdminContentRenameRoute: ApiAdminContentRenameRoute,
+  ApiAdminContentSaveRoute: ApiAdminContentSaveRoute,
+  ApiAdminImportGoogleDocsRoute: ApiAdminImportGoogleDocsRoute,
+  ApiAdminImportSaveRoute: ApiAdminImportSaveRoute,
+  ApiAdminMediaCreateFolderRoute: ApiAdminMediaCreateFolderRoute,
+  ApiAdminMediaDeleteRoute: ApiAdminMediaDeleteRoute,
+  ApiAdminMediaListRoute: ApiAdminMediaListRoute,
+  ApiAdminMediaMoveRoute: ApiAdminMediaMoveRoute,
+  ApiAdminMediaUploadRoute: ApiAdminMediaUploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

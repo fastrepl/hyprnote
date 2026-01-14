@@ -1,82 +1,54 @@
-import type { Content } from "tinybase/with-schemas";
-
 import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
-import { createCollectorPersister } from "../factories";
-import { type ChangedTables, getDataDir, type TablesContent } from "../shared";
-import { collectChatWriteOps } from "./collect";
-import { loadAllChatData } from "./load";
-
-function getChangedChatGroupIds(
-  tables: TablesContent,
-  changedTables: ChangedTables,
-): Set<string> | undefined {
-  const changedGroupIds = new Set<string>();
-
-  const changedGroups = changedTables.chat_groups;
-  if (changedGroups) {
-    for (const id of Object.keys(changedGroups)) {
-      changedGroupIds.add(id);
-    }
-  }
-
-  const changedMessages = changedTables.chat_messages;
-  if (changedMessages) {
-    for (const id of Object.keys(changedMessages)) {
-      const message = tables.chat_messages?.[id];
-      if (message?.chat_group_id) {
-        changedGroupIds.add(message.chat_group_id);
-      }
-    }
-  }
-
-  if (changedGroupIds.size === 0) {
-    return undefined;
-  }
-
-  return changedGroupIds;
-}
+import { createMultiTableDirPersister } from "../factories";
+import { CHAT_MESSAGES_FILE } from "../shared";
+import { getChangedChatGroupIds, parseChatGroupIdFromPath } from "./changes";
+import {
+  loadAllChatGroups,
+  type LoadedChatData,
+  loadSingleChatGroup,
+} from "./load";
+import { buildChatSaveOps } from "./save";
 
 export function createChatPersister(store: Store) {
-  return createCollectorPersister(store, {
+  return createMultiTableDirPersister<Schemas, LoadedChatData>(store, {
     label: "ChatPersister",
-    collect: (_store, tables, dataDir, changedTables) => {
+    dirName: "chats",
+    entityParser: parseChatGroupIdFromPath,
+    tables: [
+      { tableName: "chat_groups", isPrimary: true },
+      { tableName: "chat_messages", foreignKey: "chat_group_id" },
+    ],
+    cleanup: (tables) => [
+      {
+        type: "dirs",
+        subdir: "chats",
+        markerFile: CHAT_MESSAGES_FILE,
+        keepIds: Object.keys(tables.chat_groups ?? {}),
+      },
+    ],
+    loadAll: loadAllChatGroups,
+    loadSingle: loadSingleChatGroup,
+    save: (_store, tables, dataDir, changedTables) => {
       let changedGroupIds: Set<string> | undefined;
 
       if (changedTables) {
-        changedGroupIds = getChangedChatGroupIds(tables, changedTables);
-        if (!changedGroupIds) {
-          return {
-            operations: [],
-            validChatGroupIds: new Set(),
-          };
+        const changeResult = getChangedChatGroupIds(tables, changedTables);
+        if (!changeResult) {
+          return { operations: [] };
+        }
+
+        if (changeResult.hasUnresolvedDeletions) {
+          changedGroupIds = undefined;
+        } else {
+          changedGroupIds = changeResult.changedChatGroupIds;
         }
       }
 
-      return collectChatWriteOps(tables, dataDir, changedGroupIds);
-    },
-    load: async () => {
-      try {
-        const dataDir = await getDataDir();
-        const data = await loadAllChatData(dataDir);
-        const hasData =
-          Object.keys(data.chat_groups).length > 0 ||
-          Object.keys(data.chat_messages).length > 0;
-        if (!hasData) {
-          return undefined;
-        }
-        return [
-          {
-            chat_groups: data.chat_groups,
-            chat_messages: data.chat_messages,
-          },
-          {},
-        ] as Content<Schemas>;
-      } catch (error) {
-        console.error("[ChatPersister] load error:", error);
-        return undefined;
-      }
+      return {
+        operations: buildChatSaveOps(tables, dataDir, changedGroupIds),
+      };
     },
   });
 }

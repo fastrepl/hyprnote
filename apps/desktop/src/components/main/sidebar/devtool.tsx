@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useStores } from "tinybase/ui-react";
 
-import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
+import {
+  type AppleCalendar,
+  commands as appleCalendarCommands,
+} from "@hypr/plugin-apple-calendar";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
 
@@ -11,6 +14,7 @@ import {
 } from "../../../store/tinybase/store/main";
 import { useTabs } from "../../../store/zustand/tabs";
 import { type SeedDefinition, seeds } from "../../devtool/seed/index";
+import { useTrialBeginModal } from "../../devtool/trial-begin-modal";
 import { useTrialExpiredModal } from "../../devtool/trial-expired-modal";
 import { getLatestVersion } from "../body/changelog";
 
@@ -60,14 +64,23 @@ export function DevtoolView() {
       if (!persistedStore) {
         return;
       }
-      seed.run(persistedStore);
 
-      try {
-        await appleCalendarCommands.resetFixture();
-        setFixtureKey((k) => k + 1);
-      } catch {
-        // fixture feature not enabled
+      let fixtureCalendars: AppleCalendar[] | undefined;
+
+      if (seed.calendarFixtureBase) {
+        try {
+          await appleCalendarCommands.resetFixture();
+          const result = await appleCalendarCommands.listCalendars();
+          if (result.status === "ok") {
+            fixtureCalendars = result.data;
+          }
+          setFixtureKey((k) => k + 1);
+        } catch {
+          // fixture feature not enabled
+        }
       }
+
+      seed.run(persistedStore, fixtureCalendars);
     },
     [persistedStore],
   );
@@ -313,11 +326,25 @@ function NavigationCard() {
 }
 
 function ModalsCard() {
+  const { open: openTrialBeginModal } = useTrialBeginModal();
   const { open: openTrialExpiredModal } = useTrialExpiredModal();
 
   return (
     <DevtoolCard title="Modals">
       <div className="flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={openTrialBeginModal}
+          className={cn([
+            "w-full px-2.5 py-1.5 rounded-md",
+            "text-xs font-medium text-left",
+            "border border-neutral-200 text-neutral-700",
+            "cursor-pointer transition-colors",
+            "hover:bg-neutral-50 hover:border-neutral-300",
+          ])}
+        >
+          Trial Begin
+        </button>
         <button
           type="button"
           onClick={openTrialExpiredModal}

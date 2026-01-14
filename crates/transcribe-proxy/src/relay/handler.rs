@@ -58,7 +58,7 @@ impl WebSocketProxy {
             .into_client_request()
             .map_err(|e| crate::ProxyError::InvalidRequest(e.to_string()))?;
 
-        tracing::info!("connecting_to_upstream: {:?}", req.uri());
+        tracing::info!("connecting_to_upstream");
 
         let upstream_result = tokio::time::timeout(self.connect_timeout, connect_async(req)).await;
 
@@ -88,7 +88,10 @@ impl WebSocketProxy {
         let proxy = self.clone();
         ws.on_upgrade(move |socket| async move {
             if let Err(e) = proxy.handle(socket).await {
-                tracing::error!("proxy_error: {:?}", e);
+                tracing::error!(
+                    error = ?e,
+                    "websocket_proxy_error"
+                );
             }
         })
         .into_response()
@@ -127,11 +130,15 @@ impl WebSocketProxy {
 
         let _ = tokio::join!(client_to_upstream, upstream_to_client);
 
+        let duration = start_time.elapsed();
         if let Some(on_close) = on_close {
-            on_close(start_time.elapsed()).await;
+            on_close(duration).await;
         }
 
-        tracing::info!("websocket_proxy_connection_closed");
+        tracing::info!(
+            duration_secs = %duration.as_secs_f64(),
+            "websocket_proxy_connection_closed"
+        );
     }
 
     async fn process_data_message(
@@ -149,7 +156,12 @@ impl WebSocketProxy {
         let queued = QueuedPayload { data, is_text };
 
         if let Err(reason) = pending.enqueue(queued, is_control) {
-            tracing::warn!("{}: size={}", reason, size);
+            tracing::warn!(
+                reason = %reason,
+                payload_size_bytes = %size,
+                is_control = %is_control,
+                "pending_queue_enqueue_failed"
+            );
             let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, reason.to_string()));
             return true;
         }
@@ -159,7 +171,11 @@ impl WebSocketProxy {
                 FlushError::SendFailed => "upstream_send_failed",
                 FlushError::InvalidUtf8 => "invalid_utf8_in_message",
             };
-            tracing::error!("flush_failed: {}", reason);
+            tracing::error!(
+                error = %reason,
+                error_kind = ?e,
+                "pending_flush_failed"
+            );
             let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, reason.to_string()));
             return true;
         }
@@ -197,7 +213,10 @@ impl WebSocketProxy {
                     let msg = match msg_result {
                         Ok(m) => m,
                         Err(e) => {
-                            tracing::error!("client_receive_error: {:?}", e);
+                            tracing::error!(
+                                error = ?e,
+                                "client_receive_error"
+                            );
                             let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "client_error".to_string()));
                             break;
                         }
@@ -231,12 +250,18 @@ impl WebSocketProxy {
                         }
                         Message::Ping(data) => {
                             if let Err(e) = upstream_sender.send(TungsteniteMessage::Ping(data.to_vec().into())).await {
-                                tracing::error!("upstream_ping_failed: {:?}", e);
+                                tracing::error!(
+                                    error = ?e,
+                                    "upstream_ping_failed"
+                                );
                             }
                         }
                         Message::Pong(data) => {
                             if let Err(e) = upstream_sender.send(TungsteniteMessage::Pong(data.to_vec().into())).await {
-                                tracing::error!("upstream_pong_failed: {:?}", e);
+                                tracing::error!(
+                                    error = ?e,
+                                    "upstream_pong_failed"
+                                );
                             }
                         }
                         Message::Close(frame) => {
@@ -279,7 +304,10 @@ impl WebSocketProxy {
                     let msg = match msg_result {
                         Ok(m) => m,
                         Err(e) => {
-                            tracing::error!("upstream_receive_error: {:?}", e);
+                            tracing::error!(
+                                error = ?e,
+                                "upstream_receive_error"
+                            );
                             let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, format!("upstream_error: {}", e)));
                             break;
                         }
@@ -291,9 +319,9 @@ impl WebSocketProxy {
 
                             if let Some(upstream_err) = detect_upstream_error(text_bytes) {
                                 tracing::warn!(
-                                    code = upstream_err.code,
+                                    error_code = upstream_err.code,
                                     provider_code = ?upstream_err.provider_code,
-                                    message = %upstream_err.message,
+                                    error_message = %upstream_err.message,
                                     "upstream_error_detected"
                                 );
 
@@ -316,12 +344,18 @@ impl WebSocketProxy {
                         }
                         TungsteniteMessage::Ping(data) => {
                             if let Err(e) = client_sender.send(Message::Ping(data.to_vec().into())).await {
-                                tracing::error!("client_ping_failed: {:?}", e);
+                                tracing::error!(
+                                    error = ?e,
+                                    "client_ping_failed"
+                                );
                             }
                         }
                         TungsteniteMessage::Pong(data) => {
                             if let Err(e) = client_sender.send(Message::Pong(data.to_vec().into())).await {
-                                tracing::error!("client_pong_failed: {:?}", e);
+                                tracing::error!(
+                                    error = ?e,
+                                    "client_pong_failed"
+                                );
                             }
                         }
                         TungsteniteMessage::Close(frame) => {

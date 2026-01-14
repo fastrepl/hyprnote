@@ -1,3 +1,12 @@
+//! Proto type tests
+//!
+//! These tests correspond to the proto_patches tests in the apple_cloud_notes_parser Ruby implementation:
+//! https://github.com/threeplanetssoftware/apple_cloud_notes_parser/blob/master/spec/base_classes/proto_patches.rb
+//!
+//! Tests cover Color hex string generation and AttributeRun style comparison.
+//! Note: Some tests in this file overlap with color_tests.rs and attribute_run_tests.rs
+//! for additional coverage of the proto module types.
+
 use apple_note::proto::{AttributeRun, Color, Font, ParagraphStyle};
 
 #[cfg(test)]

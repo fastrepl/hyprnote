@@ -44,7 +44,6 @@ function normalizeTemplatePayload(template: unknown): Template {
 
   return {
     user_id: typeof record.user_id === "string" ? record.user_id : "",
-    created_at: typeof record.created_at === "string" ? record.created_at : "",
     title: typeof record.title === "string" ? record.title : "",
     description:
       typeof record.description === "string" ? record.description : "",

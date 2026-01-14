@@ -8,8 +8,10 @@ import { ChatView } from "./view";
 
 export function ChatFloatingButton({
   isCaretNearBottom = false,
+  showTimeline = false,
 }: {
   isCaretNearBottom?: boolean;
+  showTimeline?: boolean;
 }) {
   const { chat } = useShell();
   const isOpen = chat.mode === "FloatingOpen";
@@ -28,6 +30,7 @@ export function ChatFloatingButton({
       <ChatTrigger
         onClick={handleClickTrigger}
         isCaretNearBottom={isCaretNearBottom}
+        showTimeline={showTimeline}
       />
     );
   }

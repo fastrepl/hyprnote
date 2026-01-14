@@ -3,7 +3,9 @@ import posthog from "posthog-js";
 
 import { env } from "../env";
 
-if (typeof window !== "undefined" && env.VITE_POSTHOG_API_KEY) {
+const isDev = import.meta.env.DEV;
+
+if (typeof window !== "undefined" && env.VITE_POSTHOG_API_KEY && !isDev) {
   posthog.init(env.VITE_POSTHOG_API_KEY, {
     api_host: env.VITE_POSTHOG_HOST,
     autocapture: true,

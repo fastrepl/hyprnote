@@ -121,7 +121,6 @@ pub async fn main() {
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_store2::init())
-        .plugin(tauri_plugin_notify::init())
         .plugin(tauri_plugin_settings::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_windows::init())
@@ -129,6 +128,7 @@ pub async fn main() {
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_listener2::init())
+        .plugin(tauri_plugin_audio_priority::init())
         .plugin(tauri_plugin_local_stt::init(
             tauri_plugin_local_stt::InitOptions {
                 parent_supervisor: root_supervisor_ctx
@@ -266,6 +266,13 @@ pub async fn main() {
             }
         }
         tauri::RunEvent::Exit => {
+            {
+                use tauri_plugin_store2::Store2PluginExt;
+                if let Ok(store) = app.store2().store() {
+                    let _ = store.save();
+                }
+            }
+
             if let Some(ref ctx) = root_supervisor_ctx_for_run {
                 ctx.mark_exiting();
                 ctx.stop();

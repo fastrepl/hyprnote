@@ -11,8 +11,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::mpsc;
 
-fn is_headphone_from_default_output_device() -> bool {
-    hypr_device_heuristic::linux::is_headphone_from_default_output_device()
+fn is_headphone_from_default_output_device() -> Option<bool> {
+    hypr_audio_device::linux::is_headphone_from_default_output_device()
 }
 
 fn setup_pulseaudio(

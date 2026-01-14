@@ -3,15 +3,23 @@ import { z } from "zod";
 
 import { createCheckoutSession } from "@/functions/billing";
 
+const VALID_SCHEMES = [
+  "hyprnote",
+  "hyprnote-nightly",
+  "hyprnote-staging",
+  "hypr",
+] as const;
+
 const validateSearch = z.object({
   period: z.enum(["monthly", "yearly"]).default("monthly"),
+  scheme: z.enum(VALID_SCHEMES).optional(),
 });
 
 export const Route = createFileRoute("/_view/app/checkout")({
   validateSearch,
   beforeLoad: async ({ search }) => {
     const { url } = await createCheckoutSession({
-      data: { period: search.period },
+      data: { period: search.period, scheme: search.scheme },
     });
 
     if (url) {

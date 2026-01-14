@@ -18,6 +18,9 @@ const JWKS_CACHE_DURATION: Duration = Duration::from_secs(600);
 
 #[derive(Debug, Deserialize)]
 pub struct Claims {
+    pub sub: String,
+    #[serde(default)]
+    pub email: Option<String>,
     #[serde(default)]
     pub entitlements: Vec<String>,
 }

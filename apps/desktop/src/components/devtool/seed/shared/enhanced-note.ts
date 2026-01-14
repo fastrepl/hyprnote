@@ -25,7 +25,6 @@ export const createEnhancedNote = (
       position,
       template_id: templateId,
       title,
-      created_at: faker.date.recent({ days: 30 }).toISOString(),
     },
   };
 };

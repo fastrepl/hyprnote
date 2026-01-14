@@ -1,14 +1,7 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { format } from "date-fns";
 import { CalendarIcon, ExternalLinkIcon, SparklesIcon } from "lucide-react";
-import {
-  type RefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { useResizeObserver } from "usehooks-ts";
+import { useEffect, useRef, useState } from "react";
 
 import NoteEditor from "@hypr/tiptap/editor";
 import { md2json } from "@hypr/tiptap/shared";
@@ -20,9 +13,9 @@ import {
   BreadcrumbSeparator,
 } from "@hypr/ui/components/ui/breadcrumb";
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
 
 import { type Tab } from "../../../../store/zustand/tabs";
+import { ScrollFadeOverlay, useScrollFade } from "../../../ui/scroll-fade";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 
@@ -123,7 +116,8 @@ export function TabContentChangelog({
   const { current } = tab.state;
 
   const { content, date, loading } = useChangelogContent(current);
-  const { scrollRef, atStart, atEnd } = useScrollFade<HTMLDivElement>();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { atStart, atEnd } = useScrollFade(scrollRef);
 
   return (
     <StandardTabWrapper>
@@ -210,6 +204,34 @@ function ChangelogHeader({
   );
 }
 
+async function fetchChangelogFromGitHub(
+  version: string,
+): Promise<string | null> {
+  const url = `https://raw.githubusercontent.com/fastrepl/hyprnote/main/apps/web/content/changelog/${version}.mdx`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return null;
+    }
+    return await response.text();
+  } catch {
+    return null;
+  }
+}
+
+function processChangelogContent(raw: string): {
+  content: ReturnType<typeof md2json>;
+  date: string | null;
+} {
+  const { date, body } = parseFrontmatter(raw);
+  const markdown = fixImageUrls(body);
+  const json = md2json(markdown);
+  return {
+    content: addEmptyParagraphsBeforeHeaders(json),
+    date,
+  };
+}
+
 function useChangelogContent(version: string) {
   const [content, setContent] = useState<ReturnType<typeof md2json> | null>(
     null,
@@ -218,73 +240,47 @@ function useChangelogContent(version: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const key = Object.keys(changelogFiles).find((k) =>
-      k.endsWith(`/${version}.mdx`),
-    );
+    let cancelled = false;
 
-    if (!key) {
-      setLoading(false);
-      return;
-    }
+    async function loadChangelog() {
+      const key = Object.keys(changelogFiles).find((k) =>
+        k.endsWith(`/${version}.mdx`),
+      );
 
-    changelogFiles[key]()
-      .then((raw) => {
-        const { date: parsedDate, body } = parseFrontmatter(raw as string);
-        const markdown = fixImageUrls(body);
-        const json = md2json(markdown);
-        setContent(addEmptyParagraphsBeforeHeaders(json));
+      if (key) {
+        try {
+          const raw = (await changelogFiles[key]()) as string;
+          if (cancelled) return;
+          const { content: parsed, date: parsedDate } =
+            processChangelogContent(raw);
+          setContent(parsed);
+          setDate(parsedDate);
+          setLoading(false);
+          return;
+        } catch {}
+      }
+
+      const raw = await fetchChangelogFromGitHub(version);
+      if (cancelled) return;
+
+      if (raw) {
+        const { content: parsed, date: parsedDate } =
+          processChangelogContent(raw);
+        setContent(parsed);
         setDate(parsedDate);
-        setLoading(false);
-      })
-      .catch(() => {
+      } else {
         setContent(null);
         setDate(null);
-        setLoading(false);
-      });
+      }
+      setLoading(false);
+    }
+
+    loadChangelog();
+
+    return () => {
+      cancelled = true;
+    };
   }, [version]);
 
   return { content, date, loading };
-}
-
-function useScrollFade<T extends HTMLElement>() {
-  const scrollRef = useRef<T>(null);
-  const [state, setState] = useState({ atStart: true, atEnd: true });
-
-  const update = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    setState({
-      atStart: scrollTop <= 1,
-      atEnd: scrollTop + clientHeight >= scrollHeight - 1,
-    });
-  }, []);
-
-  useResizeObserver({ ref: scrollRef as RefObject<T>, onResize: update });
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    update();
-    el.addEventListener("scroll", update);
-    return () => el.removeEventListener("scroll", update);
-  }, [update]);
-
-  return { scrollRef, ...state };
-}
-
-function ScrollFadeOverlay({ position }: { position: "top" | "bottom" }) {
-  return (
-    <div
-      className={cn([
-        "absolute left-0 w-full h-8 z-20 pointer-events-none",
-        position === "top" &&
-          "top-0 bg-gradient-to-b from-white to-transparent",
-        position === "bottom" &&
-          "bottom-0 bg-gradient-to-t from-white to-transparent",
-      ])}
-    />
-  );
 }

@@ -1,81 +1,61 @@
-import { exists, mkdir, readTextFile, remove } from "@tauri-apps/plugin-fs";
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import { readTextFile } from "@tauri-apps/plugin-fs";
+import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import {
   commands as fsSyncCommands,
+  type JsonValue,
   type ParsedDocument,
 } from "@hypr/plugin-fs-sync";
 
+import {
+  createDeletionMarker,
+  type DeletionMarkerStore,
+} from "../shared/deletion-marker";
+import { isDirectoryNotFoundError, isFileNotFoundError } from "../shared/fs";
+import { err, type LoadResult, ok } from "../shared/load-result";
 import {
   buildEntityFilePath,
   buildEntityPath,
   getDataDir,
 } from "../shared/paths";
-import type {
-  ChangedTables,
-  CollectorResult,
-  MarkdownDirPersisterConfig,
-} from "../shared/types";
+import { type ChangedTables, type WriteOperation } from "../shared/types";
+import { toContent, toPersistedChanges } from "../shared/utils";
 import { createCollectorPersister } from "./collector";
 
-async function migrateFromLegacyJson<TStorage>(
-  dataDir: string,
-  config: MarkdownDirPersisterConfig<TStorage>,
-): Promise<void> {
-  const { dirName, legacyJsonPath, toFrontmatter } = config;
-  const jsonPath = [dataDir, legacyJsonPath].join("/");
-  const entityDir = buildEntityPath(dataDir, dirName);
-
-  const jsonExists = await exists(jsonPath);
-  if (!jsonExists) {
-    return;
-  }
-
-  const dirExists = await exists(entityDir);
-  if (dirExists) {
-    return;
-  }
-
-  try {
-    const content = await readTextFile(jsonPath);
-    const entities = JSON.parse(content) as Record<string, TStorage>;
-
-    await mkdir(entityDir, { recursive: true });
-
-    const batchItems: [ParsedDocument, string][] = [];
-    for (const [entityId, entity] of Object.entries(entities)) {
-      const { frontmatter, body } = toFrontmatter(entity);
-      const filePath = buildEntityFilePath(dataDir, dirName, entityId);
-      batchItems.push([{ frontmatter, content: body }, filePath]);
-    }
-
-    if (batchItems.length > 0) {
-      const result = await fsSyncCommands.writeDocumentBatch(batchItems);
-      if (result.status === "error") {
-        throw new Error(`Failed to write document batch: ${result.error}`);
-      }
-    }
-
-    await remove(jsonPath);
-  } catch {
-    // Ignore migration errors
-  }
+export interface MarkdownDirPersisterConfig<
+  TStorage extends Record<string, unknown>,
+> {
+  tableName: string;
+  dirName: string;
+  label: string;
+  entityParser: (path: string) => string | null;
+  toFrontmatter: (entity: TStorage) => {
+    frontmatter: Record<string, JsonValue>;
+    body: string;
+  };
+  fromFrontmatter: (
+    frontmatter: Record<string, unknown>,
+    body: string,
+  ) => TStorage;
 }
 
-async function loadMarkdownDir<TStorage>(
+type LoadedData<TStorage extends Record<string, unknown>> = {
+  [tableName: string]: Record<string, TStorage>;
+};
+
+async function loadMarkdownDir<TStorage extends Record<string, unknown>>(
   dataDir: string,
   config: MarkdownDirPersisterConfig<TStorage>,
-): Promise<Record<string, TStorage>> {
+): Promise<LoadResult<Record<string, TStorage>>> {
   const { dirName, fromFrontmatter } = config;
   const dir = buildEntityPath(dataDir, dirName);
   const result = await fsSyncCommands.readDocumentBatch(dir);
 
   if (result.status === "error") {
-    return {};
+    if (isDirectoryNotFoundError(result.error)) {
+      return ok({});
+    }
+    return err(result.error);
   }
 
   const entities: Record<string, TStorage> = {};
@@ -87,23 +67,20 @@ async function loadMarkdownDir<TStorage>(
       );
     }
   }
-  return entities;
+  return ok(entities);
 }
 
-function collectMarkdownWriteOps<TStorage>(
+function collectMarkdownWriteOps<TStorage extends Record<string, unknown>>(
   tableData: Record<string, TStorage>,
   dataDir: string,
   config: MarkdownDirPersisterConfig<TStorage>,
-): { result: CollectorResult; validIds: Set<string> } {
+): WriteOperation[] {
   const { dirName, toFrontmatter } = config;
-  const operations: CollectorResult["operations"] = [];
-  const validIds = new Set<string>();
+  const operations: WriteOperation[] = [];
 
   const documentItems: [ParsedDocument, string][] = [];
 
   for (const [entityId, entity] of Object.entries(tableData)) {
-    validIds.add(entityId);
-
     const { frontmatter, body } = toFrontmatter(entity);
     const filePath = buildEntityFilePath(dataDir, dirName, entityId);
 
@@ -112,77 +89,153 @@ function collectMarkdownWriteOps<TStorage>(
 
   if (documentItems.length > 0) {
     operations.push({
-      type: "document-batch",
+      type: "write-document-batch",
       items: documentItems,
     });
   }
 
-  return { result: { operations }, validIds };
+  return operations;
+}
+
+async function loadSingleEntity<
+  Schemas extends OptionalSchemas,
+  TStorage extends Record<string, unknown>,
+>(
+  config: MarkdownDirPersisterConfig<TStorage>,
+  entityId: string,
+  deletionMarker: ReturnType<typeof createDeletionMarker<LoadedData<TStorage>>>,
+) {
+  const { tableName, dirName, fromFrontmatter } = config;
+  const dataDir = await getDataDir();
+  const filePath = buildEntityFilePath(dataDir, dirName, entityId);
+
+  try {
+    const content = await readTextFile(filePath);
+    const parseResult = await fsSyncCommands.deserialize(content);
+
+    if (parseResult.status === "error") {
+      return undefined;
+    }
+
+    const entity = fromFrontmatter(
+      parseResult.data.frontmatter as Record<string, unknown>,
+      parseResult.data.content.trim(),
+    );
+
+    return toPersistedChanges<Schemas>({
+      [tableName]: { [entityId]: entity as Record<string, unknown> },
+    });
+  } catch (error) {
+    if (isFileNotFoundError(error)) {
+      const loaded = { [tableName]: {} } as LoadedData<TStorage>;
+      const result = deletionMarker.markForEntity(loaded, entityId);
+
+      if (Object.keys(result[tableName] ?? {}).length > 0) {
+        return toPersistedChanges<Schemas>(result);
+      }
+    }
+    return undefined;
+  }
 }
 
 export function createMarkdownDirPersister<
   Schemas extends OptionalSchemas,
-  TStorage,
+  TStorage extends Record<string, unknown>,
 >(
   store: MergeableStore<Schemas>,
   config: MarkdownDirPersisterConfig<TStorage>,
 ): ReturnType<typeof createCollectorPersister<Schemas>> {
-  const { tableName, dirName, label } = config;
+  const { tableName, dirName, label, entityParser } = config;
+
+  const deletionMarker = createDeletionMarker<LoadedData<TStorage>>(
+    store as DeletionMarkerStore,
+    [{ tableName, isPrimary: true }],
+  );
 
   return createCollectorPersister(store, {
     label,
-    collect: (_store, tables, dataDir, changedTables) => {
+    watchPaths: [`${dirName}/`],
+    cleanup: (tables) => [
+      {
+        type: "files",
+        subdir: dirName,
+        extension: "md",
+        keepIds: Object.keys(
+          (tables as Record<string, Record<string, unknown>>)[tableName] ?? {},
+        ),
+      },
+    ],
+    entityParser,
+    loadSingle: (entityId: string) =>
+      loadSingleEntity(config, entityId, deletionMarker),
+    save: (_store, tables, dataDir, changedTables) => {
       const fullTableData =
         (tables as Record<string, Record<string, TStorage>>)[tableName] ?? {};
 
       if (changedTables) {
         const changedRows = changedTables[tableName as keyof ChangedTables];
+
         if (!changedRows) {
-          return { operations: [], validIds: new Set() };
+          return { operations: [] };
         }
 
         const changedIds = Object.keys(changedRows);
         const filteredTableData: Record<string, TStorage> = {};
+        const deletedIds: string[] = [];
+
         for (const id of changedIds) {
           const row = fullTableData[id];
           if (row) {
             filteredTableData[id] = row;
+          } else {
+            deletedIds.push(id);
           }
         }
 
-        const { result } = collectMarkdownWriteOps(
+        const writeOps = collectMarkdownWriteOps(
           filteredTableData,
           dataDir,
           config,
         );
-        return { ...result, validIds: new Set<string>() };
+
+        const deleteOps: WriteOperation[] =
+          deletedIds.length > 0
+            ? [
+                {
+                  type: "delete",
+                  paths: deletedIds.map((id) =>
+                    buildEntityFilePath(dataDir, dirName, id),
+                  ),
+                },
+              ]
+            : [];
+
+        return {
+          operations: [...writeOps, ...deleteOps],
+        };
       }
 
-      const { result, validIds } = collectMarkdownWriteOps(
-        fullTableData,
-        dataDir,
-        config,
-      );
-      return { ...result, validIds };
+      return {
+        operations: collectMarkdownWriteOps(fullTableData, dataDir, config),
+      };
     },
-    load: async (): Promise<Content<Schemas> | undefined> => {
+    load: async () => {
       const dataDir = await getDataDir();
-      await migrateFromLegacyJson(dataDir, config);
-      const entities = await loadMarkdownDir(dataDir, config);
-      if (Object.keys(entities).length === 0) {
+      const loadResult = await loadMarkdownDir(dataDir, config);
+
+      if (loadResult.status === "error") {
+        console.error(`[${label}] load error:`, loadResult.error);
         return undefined;
       }
-      return [{ [tableName]: entities }, {}] as unknown as Content<Schemas>;
-    },
-    postSave: async (_dataDir, result) => {
-      const { validIds } = result as CollectorResult & {
-        validIds: Set<string>;
-      };
-      await fsSyncCommands.cleanupOrphanFiles(
-        dirName,
-        "md",
-        Array.from(validIds),
-      );
+
+      const loaded = { [tableName]: loadResult.data } as LoadedData<TStorage>;
+      const result = deletionMarker.markAll(loaded);
+
+      if (Object.keys(result[tableName] ?? {}).length === 0) {
+        return undefined;
+      }
+
+      return toContent<Schemas>(result);
     },
   });
 }

@@ -18,6 +18,5 @@ export const createTag = () => ({
       "Follow-up",
       "Review",
     ]),
-    created_at: faker.date.past({ years: 1 }).toISOString(),
   } satisfies Tag,
 });

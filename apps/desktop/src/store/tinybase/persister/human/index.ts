@@ -1,5 +1,6 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
 
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { type Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
@@ -12,7 +13,11 @@ export function useHumanPersister(store: Store) {
     store,
     async (store) => {
       const persister = createHumanPersister(store as Store);
-      await persister.startAutoSave();
+      if (getCurrentWebviewWindowLabel() === "main") {
+        await persister.startAutoPersisting();
+      } else {
+        await persister.startAutoLoad();
+      }
       return persister;
     },
     [],

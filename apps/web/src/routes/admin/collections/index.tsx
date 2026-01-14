@@ -1,0 +1,2549 @@
+import { MDXContent } from "@content-collections/mdx/react";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { allArticles } from "content-collections";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ClipboardIcon,
+  CopyIcon,
+  CopyPlusIcon,
+  EyeIcon,
+  FilePlusIcon,
+  FileTextIcon,
+  FileWarningIcon,
+  FolderIcon,
+  FolderOpenIcon,
+  FolderPlusIcon,
+  GithubIcon,
+  type LucideIcon,
+  PencilIcon,
+  PinIcon,
+  PinOffIcon,
+  PlusIcon,
+  RefreshCwIcon,
+  ScissorsIcon,
+  SearchIcon,
+  SendIcon,
+  SquareArrowOutUpRightIcon,
+  Trash2Icon,
+  XIcon,
+} from "lucide-react";
+import { Reorder } from "motion/react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import BlogEditor from "@hypr/tiptap/blog-editor";
+import "@hypr/tiptap/styles.css";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@hypr/ui/components/ui/dialog";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
+import { cn } from "@hypr/utils";
+
+import { defaultMDXComponents } from "@/components/mdx";
+
+interface ContentItem {
+  name: string;
+  path: string;
+  slug: string;
+  type: "file";
+  collection: string;
+}
+
+interface CollectionInfo {
+  name: string;
+  label: string;
+  items: ContentItem[];
+}
+
+interface Tab {
+  id: string;
+  type: "collection" | "file";
+  name: string;
+  path: string;
+  pinned: boolean;
+  active: boolean;
+}
+
+interface ClipboardItem {
+  item: ContentItem;
+  operation: "cut" | "copy";
+}
+
+interface EditingItem {
+  collectionName: string;
+  type: "new-file" | "new-folder" | "rename";
+  itemPath?: string;
+  itemName?: string;
+}
+
+interface DeleteConfirmation {
+  item: ContentItem;
+  collectionName: string;
+}
+
+interface FileContent {
+  content: string;
+  mdx: string;
+  collection: string;
+  slug: string;
+  meta_title?: string;
+  display_title?: string;
+  meta_description?: string;
+  author?: string;
+  date?: string;
+  coverImage?: string;
+  published?: boolean;
+  featured?: boolean;
+  category?: string;
+}
+
+interface ArticleMetadata {
+  meta_title: string;
+  display_title: string;
+  meta_description: string;
+  author: string;
+  date: string;
+  coverImage: string;
+  published: boolean;
+  featured: boolean;
+  category: string;
+}
+
+interface EditorData {
+  content: string;
+  metadata: ArticleMetadata;
+}
+
+function getFileContent(path: string): FileContent | undefined {
+  const [collection, ...rest] = path.split("/");
+  const filePath = rest.join("/");
+
+  if (collection !== "articles") return undefined;
+
+  const a = allArticles.find((a) => a._meta.fileName === filePath);
+  if (!a) return undefined;
+  return {
+    content: a.content,
+    mdx: a.mdx,
+    collection: "articles",
+    slug: a.slug,
+    meta_title: a.meta_title,
+    display_title: a.display_title,
+    meta_description: a.meta_description,
+    author: a.author,
+    date: a.date,
+    coverImage: a.coverImage,
+    published: a.published,
+    featured: a.featured,
+    category: a.category,
+  };
+}
+
+function getCollections(): CollectionInfo[] {
+  const sortedArticles = [...allArticles].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+
+  return [
+    {
+      name: "articles",
+      label: "Articles",
+      items: sortedArticles.map((a) => ({
+        name: a._meta.fileName,
+        path: `articles/${a._meta.fileName}`,
+        slug: a.slug,
+        type: "file" as const,
+        collection: "articles",
+      })),
+    },
+  ];
+}
+
+export const Route = createFileRoute("/admin/collections/")({
+  component: CollectionsPage,
+});
+
+function getFileExtension(filename: string): string {
+  const parts = filename.split(".");
+  return parts.length > 1 ? parts.pop()?.toLowerCase() || "" : "";
+}
+
+function CollectionsPage() {
+  const collections = useMemo(() => getCollections(), []);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [tabs, setTabs] = useState<Tab[]>([]);
+  const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<EditingItem | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] =
+    useState<DeleteConfirmation | null>(null);
+
+  const createMutation = useMutation({
+    mutationFn: async (params: {
+      folder: string;
+      name: string;
+      type: "file" | "folder";
+    }) => {
+      const response = await fetch("/api/admin/content/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setEditingItem(null);
+    },
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: async (params: { fromPath: string; toPath: string }) => {
+      const response = await fetch("/api/admin/content/rename", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to rename");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setEditingItem(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (params: { path: string }) => {
+      const response = await fetch("/api/admin/content/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setDeleteConfirmation(null);
+    },
+  });
+
+  const duplicateMutation = useMutation({
+    mutationFn: async (params: {
+      sourcePath: string;
+      newFilename?: string;
+    }) => {
+      const response = await fetch("/api/admin/content/duplicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to duplicate");
+      }
+      return response.json();
+    },
+  });
+
+  const currentTab = tabs.find((t) => t.active);
+
+  const openTab = useCallback(
+    (
+      type: "collection" | "file",
+      name: string,
+      path: string,
+      pinned = false,
+    ) => {
+      setTabs((prev) => {
+        const existingIndex = prev.findIndex(
+          (t) => t.type === type && t.path === path,
+        );
+        if (existingIndex !== -1) {
+          return prev.map((t, i) => ({ ...t, active: i === existingIndex }));
+        }
+
+        const unpinnedIndex = prev.findIndex((t) => !t.pinned);
+        const newTab: Tab = {
+          id: `${type}-${path}-${Date.now()}`,
+          type,
+          name,
+          path,
+          pinned,
+          active: true,
+        };
+
+        if (unpinnedIndex !== -1) {
+          return prev.map((t, i) =>
+            i === unpinnedIndex ? newTab : { ...t, active: false },
+          );
+        }
+
+        return [...prev.map((t) => ({ ...t, active: false })), newTab];
+      });
+    },
+    [],
+  );
+
+  const closeTab = useCallback((tabId: string) => {
+    setTabs((prev) => {
+      const index = prev.findIndex((t) => t.id === tabId);
+      if (index === -1) return prev;
+
+      const newTabs = prev.filter((t) => t.id !== tabId);
+      if (newTabs.length === 0) return [];
+
+      if (prev[index].active) {
+        const newActiveIndex = Math.min(index, newTabs.length - 1);
+        return newTabs.map((t, i) => ({ ...t, active: i === newActiveIndex }));
+      }
+      return newTabs;
+    });
+  }, []);
+
+  const closeOtherTabs = useCallback((tabId: string) => {
+    setTabs((prev) => {
+      const tab = prev.find((t) => t.id === tabId);
+      if (!tab) return prev;
+      return [{ ...tab, active: true }];
+    });
+  }, []);
+
+  const closeAllTabs = useCallback(() => {
+    setTabs([]);
+  }, []);
+
+  const selectTab = useCallback((tabId: string) => {
+    setTabs((prev) => prev.map((t) => ({ ...t, active: t.id === tabId })));
+  }, []);
+
+  const pinTab = useCallback((tabId: string) => {
+    setTabs((prev) =>
+      prev.map((t) => (t.id === tabId ? { ...t, pinned: !t.pinned } : t)),
+    );
+  }, []);
+
+  const reorderTabs = useCallback((newTabs: Tab[]) => {
+    setTabs(newTabs);
+  }, []);
+
+  const filterCollections = (
+    items: CollectionInfo[],
+    query: string,
+  ): CollectionInfo[] => {
+    if (!query) return items;
+    const lowerQuery = query.toLowerCase();
+
+    return items.filter(
+      (item) =>
+        item.label.toLowerCase().includes(lowerQuery) ||
+        item.name.toLowerCase().includes(lowerQuery) ||
+        item.items.some((i) => i.name.toLowerCase().includes(lowerQuery)),
+    );
+  };
+
+  const filteredCollections = filterCollections(collections, searchQuery);
+
+  const currentCollection =
+    currentTab?.type === "collection"
+      ? collections.find((c) => c.name === currentTab.path)
+      : null;
+
+  const filteredItems =
+    currentCollection?.items.filter((item) => {
+      return (
+        searchQuery === "" ||
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }) || [];
+
+  return (
+    <ResizablePanelGroup direction="horizontal" className="h-full">
+      <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+        <Sidebar
+          collections={filteredCollections}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onFileClick={(item) => openTab("file", item.name, item.path)}
+          clipboard={clipboard}
+          onClipboardChange={setClipboard}
+          onImportClick={() => setIsImportModalOpen(true)}
+          editingItem={editingItem}
+          onEditingItemChange={setEditingItem}
+          onRenameItem={(fromPath, toPath) =>
+            renameMutation.mutate({ fromPath, toPath })
+          }
+          onDeleteItem={(item, collectionName) =>
+            setDeleteConfirmation({ item, collectionName })
+          }
+          onDuplicateItem={(sourcePath) =>
+            duplicateMutation.mutate({ sourcePath })
+          }
+          isLoading={
+            createMutation.isPending ||
+            renameMutation.isPending ||
+            deleteMutation.isPending ||
+            duplicateMutation.isPending
+          }
+          selectedPath={currentTab?.type === "file" ? currentTab.path : null}
+        />
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel defaultSize={80} minSize={50}>
+        <div className="h-full flex flex-col">
+          <ContentPanel
+            tabs={tabs}
+            currentTab={currentTab}
+            onSelectTab={selectTab}
+            onCloseTab={closeTab}
+            onCloseOtherTabs={closeOtherTabs}
+            onCloseAllTabs={closeAllTabs}
+            onPinTab={pinTab}
+            onReorderTabs={reorderTabs}
+            filteredItems={filteredItems}
+            onFileClick={(item) => openTab("file", item.name, item.path)}
+          />
+        </div>
+      </ResizablePanel>
+
+      <ImportModal
+        open={isImportModalOpen}
+        onOpenChange={setIsImportModalOpen}
+      />
+
+      <Dialog
+        open={deleteConfirmation !== null}
+        onOpenChange={(open) => !open && setDeleteConfirmation(null)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete File</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-neutral-600">
+              Are you sure you want to delete{" "}
+              <span className="font-medium text-neutral-900">
+                {deleteConfirmation?.item.name}
+              </span>
+              ? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmation(null)}
+                className="px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (deleteConfirmation) {
+                    deleteMutation.mutate({
+                      path: deleteConfirmation.item.path,
+                    });
+                  }
+                }}
+                disabled={deleteMutation.isPending}
+                className="px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
+              >
+                {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </ResizablePanelGroup>
+  );
+}
+
+function Sidebar({
+  collections,
+  searchQuery,
+  onSearchChange,
+  onFileClick,
+  clipboard,
+  onClipboardChange,
+  onImportClick,
+  editingItem,
+  onEditingItemChange,
+  onRenameItem,
+  onDeleteItem,
+  onDuplicateItem,
+  isLoading,
+  selectedPath,
+}: {
+  collections: CollectionInfo[];
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  onFileClick: (item: ContentItem) => void;
+  clipboard: ClipboardItem | null;
+  onClipboardChange: (item: ClipboardItem | null) => void;
+  onImportClick: () => void;
+  editingItem: EditingItem | null;
+  onEditingItemChange: (item: EditingItem | null) => void;
+  onRenameItem: (fromPath: string, toPath: string) => void;
+  onDeleteItem: (item: ContentItem, collectionName: string) => void;
+  onDuplicateItem: (sourcePath: string) => void;
+  isLoading: boolean;
+  selectedPath: string | null;
+}) {
+  return (
+    <div className="h-full border-r border-neutral-200 bg-white flex flex-col min-h-0">
+      <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-200">
+        <div className="relative w-full flex items-center gap-1.5">
+          <SearchIcon className="size-4 text-neutral-400 shrink-0" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search..."
+            className={cn([
+              "w-full py-1 text-sm",
+              "bg-transparent",
+              "focus:outline-none",
+              "placeholder:text-neutral-400",
+            ])}
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {collections[0]?.items.map((item) => (
+          <FileItemSidebar
+            key={item.path}
+            item={item}
+            onClick={() => onFileClick(item)}
+            clipboard={clipboard}
+            onClipboardChange={onClipboardChange}
+            editingItem={editingItem}
+            onEditingItemChange={onEditingItemChange}
+            onRenameItem={onRenameItem}
+            onDeleteItem={onDeleteItem}
+            onDuplicateItem={onDuplicateItem}
+            collectionName="articles"
+            isLoading={isLoading}
+            isSelected={selectedPath === item.path}
+          />
+        ))}
+      </div>
+
+      <button
+        onClick={onImportClick}
+        className={cn([
+          "h-10 px-4 flex items-center gap-2 text-sm w-full",
+          "text-neutral-600 hover:bg-neutral-50 transition-colors",
+          "border-t border-neutral-200",
+        ])}
+      >
+        <PlusIcon className="size-4" />
+        Import
+      </button>
+    </div>
+  );
+}
+
+function FileItemSidebar({
+  item,
+  onClick,
+  clipboard,
+  onClipboardChange,
+  editingItem,
+  onEditingItemChange,
+  onRenameItem,
+  onDeleteItem,
+  onDuplicateItem,
+  collectionName,
+  isLoading,
+  isSelected,
+}: {
+  item: ContentItem;
+  onClick: () => void;
+  clipboard: ClipboardItem | null;
+  onClipboardChange: (item: ClipboardItem | null) => void;
+  editingItem: EditingItem | null;
+  onEditingItemChange: (item: EditingItem | null) => void;
+  onRenameItem: (fromPath: string, toPath: string) => void;
+  onDeleteItem: (item: ContentItem, collectionName: string) => void;
+  onDuplicateItem: (sourcePath: string) => void;
+  collectionName: string;
+  isLoading: boolean;
+  isSelected: boolean;
+}) {
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const closeContextMenu = () => setContextMenu(null);
+
+  const isRenaming =
+    editingItem?.type === "rename" && editingItem?.itemPath === item.path;
+
+  const isCut =
+    clipboard?.operation === "cut" && clipboard?.item.path === item.path;
+
+  if (isRenaming) {
+    return (
+      <InlineInput
+        type="file"
+        defaultValue={item.name.replace(/\.mdx$/, "")}
+        onSubmit={(newName) => {
+          const newPath = `${collectionName}/${newName}.mdx`;
+          onRenameItem(item.path, newPath);
+        }}
+        onCancel={() => onEditingItemChange(null)}
+        isLoading={isLoading}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={cn([
+        "flex items-center gap-1.5 py-1.5 pl-4 pr-2 cursor-pointer text-sm",
+        "hover:bg-neutral-50 transition-colors",
+        isCut && "opacity-50",
+        (isSelected || contextMenu) && "bg-neutral-100",
+      ])}
+      onClick={onClick}
+      onContextMenu={handleContextMenu}
+    >
+      <FileTextIcon className="size-4 text-neutral-400" />
+      <span className="truncate text-neutral-600">{item.name}</span>
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={closeContextMenu}
+          isFolder={false}
+          canPaste={clipboard !== null}
+          onOpenInNewTab={() => {
+            onClick();
+            closeContextMenu();
+          }}
+          onCut={() => {
+            onClipboardChange({ item, operation: "cut" });
+            closeContextMenu();
+          }}
+          onCopy={() => {
+            onClipboardChange({ item, operation: "copy" });
+            closeContextMenu();
+          }}
+          onDuplicate={() => {
+            onDuplicateItem(item.path);
+            closeContextMenu();
+          }}
+          onRename={() => {
+            onEditingItemChange({
+              collectionName,
+              type: "rename",
+              itemPath: item.path,
+              itemName: item.name,
+            });
+            closeContextMenu();
+          }}
+          onDelete={() => {
+            onDeleteItem(item, collectionName);
+            closeContextMenu();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function InlineInput({
+  type,
+  defaultValue = "",
+  onSubmit,
+  onCancel,
+  isLoading,
+}: {
+  type: "file" | "folder";
+  defaultValue?: string;
+  onSubmit: (value: string) => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}) {
+  const [value, setValue] = useState(defaultValue);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && value.trim()) {
+      onSubmit(value.trim());
+    } else if (e.key === "Escape") {
+      onCancel();
+    }
+  };
+
+  const handleBlur = () => {
+    if (value.trim()) {
+      onSubmit(value.trim());
+    } else {
+      onCancel();
+    }
+  };
+
+  return (
+    <div
+      className={cn([
+        "flex items-center gap-1.5 py-1 pl-3 pr-2 text-sm",
+        "bg-blue-50 border-l-2 border-blue-400",
+      ])}
+    >
+      {type === "file" ? (
+        <FileTextIcon className="size-4 text-neutral-400" />
+      ) : (
+        <FolderIcon className="size-4 text-neutral-400" />
+      )}
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        disabled={isLoading}
+        placeholder={type === "file" ? "filename" : "folder name"}
+        className={cn([
+          "flex-1 text-xs bg-transparent outline-none",
+          "text-neutral-700 placeholder:text-neutral-400",
+        ])}
+      />
+      {type === "file" && (
+        <span className="text-xs text-neutral-400">.mdx</span>
+      )}
+    </div>
+  );
+}
+
+function ContextMenu({
+  x,
+  y,
+  onClose,
+  isFolder,
+  canPaste,
+  onOpenInNewTab,
+  onNewFile,
+  onNewFolder,
+  onCut,
+  onCopy,
+  onDuplicate,
+  onPaste,
+  onRename,
+  onDelete,
+}: {
+  x: number;
+  y: number;
+  onClose: () => void;
+  isFolder: boolean;
+  canPaste: boolean;
+  onOpenInNewTab: () => void;
+  onNewFile?: () => void;
+  onNewFolder?: () => void;
+  onCut?: () => void;
+  onCopy?: () => void;
+  onDuplicate?: () => void;
+  onPaste?: () => void;
+  onRename?: () => void;
+  onDelete?: () => void;
+}) {
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-40"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }}
+      />
+      <div
+        ref={menuRef}
+        className={cn([
+          "fixed z-50 min-w-40 py-1",
+          "bg-white border border-neutral-200 rounded-sm shadow-lg",
+        ])}
+        style={{ left: x, top: y }}
+      >
+        <ContextMenuItem
+          icon={SquareArrowOutUpRightIcon}
+          label="Open in new tab"
+          onClick={() => {
+            onOpenInNewTab();
+            onClose();
+          }}
+        />
+
+        {isFolder && (
+          <>
+            <div className="my-1 border-t border-neutral-200" />
+            {onNewFile && (
+              <ContextMenuItem
+                icon={FilePlusIcon}
+                label="New file"
+                onClick={onNewFile}
+              />
+            )}
+            {onNewFolder && (
+              <ContextMenuItem
+                icon={FolderPlusIcon}
+                label="New folder"
+                onClick={onNewFolder}
+              />
+            )}
+          </>
+        )}
+
+        {!isFolder && (
+          <>
+            <div className="my-1 border-t border-neutral-200" />
+
+            {onCut && (
+              <ContextMenuItem
+                icon={ScissorsIcon}
+                label="Cut"
+                onClick={onCut}
+              />
+            )}
+            {onCopy && (
+              <ContextMenuItem icon={CopyIcon} label="Copy" onClick={onCopy} />
+            )}
+            {onDuplicate && (
+              <ContextMenuItem
+                icon={CopyPlusIcon}
+                label="Duplicate"
+                onClick={onDuplicate}
+              />
+            )}
+
+            <div className="my-1 border-t border-neutral-200" />
+
+            {onRename && (
+              <ContextMenuItem
+                icon={PencilIcon}
+                label="Rename"
+                onClick={onRename}
+              />
+            )}
+            {onDelete && (
+              <ContextMenuItem
+                icon={Trash2Icon}
+                label="Delete"
+                onClick={onDelete}
+                danger
+              />
+            )}
+          </>
+        )}
+
+        {isFolder && onPaste && (
+          <>
+            <div className="my-1 border-t border-neutral-200" />
+            <ContextMenuItem
+              icon={ClipboardIcon}
+              label="Paste"
+              onClick={onPaste}
+              disabled={!canPaste}
+            />
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+function ContextMenuItem({
+  icon: Icon,
+  label,
+  onClick,
+  disabled,
+  danger,
+}: {
+  icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn([
+        "w-full px-3 py-1.5 text-sm text-left flex items-center gap-2",
+        "hover:bg-neutral-100 transition-colors",
+        disabled && "opacity-40 cursor-not-allowed hover:bg-transparent",
+        danger && "text-red-600 hover:bg-red-50",
+      ])}
+    >
+      <Icon className="size-4" />
+      {label}
+    </button>
+  );
+}
+
+function ContentPanel({
+  tabs,
+  currentTab,
+  onSelectTab,
+  onCloseTab,
+  onCloseOtherTabs,
+  onCloseAllTabs,
+  onPinTab,
+  onReorderTabs,
+  filteredItems,
+  onFileClick,
+}: {
+  tabs: Tab[];
+  currentTab: Tab | undefined;
+  onSelectTab: (tabId: string) => void;
+  onCloseTab: (tabId: string) => void;
+  onCloseOtherTabs: (tabId: string) => void;
+  onCloseAllTabs: () => void;
+  onPinTab: (tabId: string) => void;
+  onReorderTabs: (tabs: Tab[]) => void;
+  filteredItems: ContentItem[];
+  onFileClick: (item: ContentItem) => void;
+}) {
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [editorData, setEditorData] = useState<EditorData | null>(null);
+  const fileEditorRef = useRef<{ save: () => void } | null>(null);
+
+  const { mutate: saveContent, isPending: isSaving } = useMutation({
+    mutationFn: async (params: {
+      path: string;
+      content: string;
+      metadata: ArticleMetadata;
+    }) => {
+      const response = await fetch("/api/admin/content/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to save");
+      }
+      return response.json();
+    },
+  });
+
+  const handleSave = useCallback(() => {
+    if (currentTab?.type === "file" && editorData) {
+      saveContent({
+        path: currentTab.path,
+        content: editorData.content,
+        metadata: editorData.metadata,
+      });
+    }
+  }, [currentTab, editorData, saveContent]);
+
+  const currentFileContent = useMemo(
+    () =>
+      currentTab?.type === "file" ? getFileContent(currentTab.path) : undefined,
+    [currentTab?.type, currentTab?.path],
+  );
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {currentTab ? (
+        <div className="flex-1 flex flex-col min-h-0">
+          <EditorHeader
+            tabs={tabs}
+            currentTab={currentTab}
+            onSelectTab={onSelectTab}
+            onCloseTab={onCloseTab}
+            onCloseOtherTabs={onCloseOtherTabs}
+            onCloseAllTabs={onCloseAllTabs}
+            onPinTab={onPinTab}
+            onReorderTabs={onReorderTabs}
+            isPreviewMode={isPreviewMode}
+            onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
+            onSave={handleSave}
+            isSaving={isSaving}
+            isPublished={currentFileContent?.published}
+          />
+          {currentTab.type === "collection" ? (
+            <FileList filteredItems={filteredItems} onFileClick={onFileClick} />
+          ) : (
+            <FileEditor
+              ref={fileEditorRef}
+              filePath={currentTab.path}
+              isPreviewMode={isPreviewMode}
+              onDataChange={setEditorData}
+              onSave={handleSave}
+              isSaving={isSaving}
+            />
+          )}
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col">
+          <div className="h-10 border-b border-neutral-200" />
+          <EmptyState
+            icon={FolderOpenIcon}
+            message="Double-click a collection or click a file to open"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EditorHeader({
+  tabs,
+  currentTab,
+  onSelectTab,
+  onCloseTab,
+  onCloseOtherTabs,
+  onCloseAllTabs,
+  onPinTab,
+  onReorderTabs,
+  isPreviewMode,
+  onTogglePreview,
+  onSave,
+  isSaving,
+  isPublished,
+}: {
+  tabs: Tab[];
+  currentTab: Tab;
+  onSelectTab: (tabId: string) => void;
+  onCloseTab: (tabId: string) => void;
+  onCloseOtherTabs: (tabId: string) => void;
+  onCloseAllTabs: () => void;
+  onPinTab: (tabId: string) => void;
+  onReorderTabs: (tabs: Tab[]) => void;
+  isPreviewMode: boolean;
+  onTogglePreview: () => void;
+  onSave: () => void;
+  isSaving: boolean;
+  isPublished?: boolean;
+}) {
+  const breadcrumbs = currentTab.path.split("/");
+
+  return (
+    <div>
+      <div className="flex items-end">
+        <TabBar
+          tabs={tabs}
+          onSelectTab={onSelectTab}
+          onCloseTab={onCloseTab}
+          onCloseOtherTabs={onCloseOtherTabs}
+          onCloseAllTabs={onCloseAllTabs}
+          onPinTab={onPinTab}
+          onReorderTabs={onReorderTabs}
+        />
+        <div className="flex-1 border-b border-neutral-200" />
+      </div>
+
+      <div className="h-10 flex items-center justify-between px-4 border-b border-neutral-200">
+        <div className="flex items-center gap-1 text-sm text-neutral-500">
+          {breadcrumbs.map((crumb, index) => (
+            <span key={index} className="flex items-center gap-1">
+              {index > 0 && (
+                <ChevronRightIcon className="size-4 text-neutral-300" />
+              )}
+              <span
+                className={cn([
+                  index === breadcrumbs.length - 1
+                    ? "text-neutral-700 font-medium"
+                    : "hover:text-neutral-700 cursor-pointer",
+                ])}
+              >
+                {crumb}
+              </span>
+            </span>
+          ))}
+        </div>
+
+        {currentTab.type === "file" && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onTogglePreview}
+              className={cn([
+                "cursor-pointer p-1.5 rounded transition-colors",
+                isPreviewMode
+                  ? "text-neutral-700"
+                  : "text-neutral-400 hover:text-neutral-600",
+              ])}
+              title={isPreviewMode ? "Edit mode" : "Preview mode"}
+            >
+              {isPreviewMode ? (
+                <PencilIcon className="size-4" />
+              ) : (
+                <EyeIcon className="size-4" />
+              )}
+            </button>
+            <button
+              onClick={onSave}
+              disabled={isSaving}
+              className="cursor-pointer p-1.5 rounded transition-colors text-neutral-400 hover:text-neutral-600 disabled:cursor-not-allowed"
+              title="Save (⌘S)"
+            >
+              <RefreshCwIcon
+                className={cn(["size-4", isSaving && "animate-spin"])}
+              />
+            </button>
+            <button
+              type="button"
+              className={cn([
+                "px-2 py-1.5 text-xs font-medium font-mono rounded-sm flex items-center gap-1.5",
+                isPublished
+                  ? "text-white bg-green-600 hover:bg-green-700"
+                  : "text-white bg-neutral-900 hover:bg-neutral-800",
+              ])}
+            >
+              {isPublished ? (
+                <>
+                  <CheckIcon className="size-4" />
+                  Published
+                </>
+              ) : (
+                <>
+                  <SendIcon className="size-4" />
+                  Publish
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TabBar({
+  tabs,
+  onSelectTab,
+  onCloseTab,
+  onCloseOtherTabs,
+  onCloseAllTabs,
+  onPinTab,
+  onReorderTabs,
+}: {
+  tabs: Tab[];
+  onSelectTab: (tabId: string) => void;
+  onCloseTab: (tabId: string) => void;
+  onCloseOtherTabs: (tabId: string) => void;
+  onCloseAllTabs: () => void;
+  onPinTab: (tabId: string) => void;
+  onReorderTabs: (tabs: Tab[]) => void;
+}) {
+  if (tabs.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-end overflow-x-auto">
+      <Reorder.Group
+        as="div"
+        axis="x"
+        values={tabs}
+        onReorder={onReorderTabs}
+        className="flex items-end"
+      >
+        {tabs.map((tab) => (
+          <Reorder.Item key={tab.id} value={tab} as="div">
+            <TabItem
+              tab={tab}
+              onSelect={() => onSelectTab(tab.id)}
+              onClose={() => onCloseTab(tab.id)}
+              onCloseOthers={() => onCloseOtherTabs(tab.id)}
+              onCloseAll={onCloseAllTabs}
+              onPin={() => onPinTab(tab.id)}
+            />
+          </Reorder.Item>
+        ))}
+      </Reorder.Group>
+    </div>
+  );
+}
+
+function TabItem({
+  tab,
+  onSelect,
+  onClose,
+  onCloseOthers,
+  onCloseAll,
+  onPin,
+}: {
+  tab: Tab;
+  onSelect: () => void;
+  onClose: () => void;
+  onCloseOthers: () => void;
+  onCloseAll: () => void;
+  onPin: () => void;
+}) {
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleDoubleClick = () => {
+    if (!tab.pinned) {
+      onPin();
+    }
+  };
+
+  return (
+    <>
+      <div
+        className={cn([
+          "h-10 px-3 flex items-center gap-2 cursor-pointer text-sm transition-colors",
+          "border-r border-b border-neutral-200",
+          tab.active
+            ? "bg-white text-neutral-900 border-b-transparent"
+            : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100",
+        ])}
+        onClick={onSelect}
+        onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
+      >
+        {tab.type === "collection" ? (
+          <FolderIcon className="size-4 text-neutral-400" />
+        ) : (
+          <FileTextIcon className="size-4 text-neutral-400" />
+        )}
+        <span className={cn(["truncate max-w-30", !tab.pinned && "italic"])}>
+          {tab.name}
+        </span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="p-0.5 hover:bg-neutral-200 rounded transition-colors"
+        >
+          <XIcon className="size-3 text-neutral-500" />
+        </button>
+      </div>
+
+      {contextMenu && (
+        <TabContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+          onCloseTab={onClose}
+          onCloseOthers={onCloseOthers}
+          onCloseAll={onCloseAll}
+          onPinTab={onPin}
+          isPinned={tab.pinned}
+        />
+      )}
+    </>
+  );
+}
+
+function TabContextMenu({
+  x,
+  y,
+  onClose,
+  onCloseTab,
+  onCloseOthers,
+  onCloseAll,
+  onPinTab,
+  isPinned,
+}: {
+  x: number;
+  y: number;
+  onClose: () => void;
+  onCloseTab: () => void;
+  onCloseOthers: () => void;
+  onCloseAll: () => void;
+  onPinTab: () => void;
+  isPinned: boolean;
+}) {
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-40"
+        onClick={onClose}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          onClose();
+        }}
+      />
+      <div
+        className={cn([
+          "fixed z-50 min-w-35 py-1",
+          "bg-white border border-neutral-200 rounded-sm shadow-lg",
+        ])}
+        style={{ left: x, top: y }}
+      >
+        <ContextMenuItem
+          icon={XIcon}
+          label="Close"
+          onClick={() => {
+            onCloseTab();
+            onClose();
+          }}
+        />
+        <ContextMenuItem
+          icon={XIcon}
+          label="Close others"
+          onClick={() => {
+            onCloseOthers();
+            onClose();
+          }}
+        />
+        <ContextMenuItem
+          icon={XIcon}
+          label="Close all"
+          onClick={() => {
+            onCloseAll();
+            onClose();
+          }}
+        />
+        <div className="my-1 border-t border-neutral-200" />
+        <ContextMenuItem
+          icon={isPinned ? PinOffIcon : PinIcon}
+          label={isPinned ? "Unpin tab" : "Pin tab"}
+          onClick={() => {
+            onPinTab();
+            onClose();
+          }}
+        />
+      </div>
+    </>
+  );
+}
+
+function FileList({
+  filteredItems,
+  onFileClick,
+}: {
+  filteredItems: ContentItem[];
+  onFileClick: (item: ContentItem) => void;
+}) {
+  if (filteredItems.length === 0) {
+    return <EmptyState icon={FileTextIcon} message="No files found" />;
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4">
+      <div className="space-y-1">
+        {filteredItems.map((item) => (
+          <FileItem
+            key={item.path}
+            item={item}
+            onClick={() => onFileClick(item)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const AUTHORS = [
+  { name: "John Jeong", avatar: "/api/images/team/john.png" },
+  { name: "Harshika", avatar: "/api/images/team/harshika.jpeg" },
+  { name: "Yujong Lee", avatar: "/api/images/team/yujong.png" },
+];
+
+function AuthorSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedAuthor = AUTHORS.find((a) => a.name === value);
+
+  return (
+    <div ref={ref} className="relative flex-1">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer"
+      >
+        {selectedAuthor ? (
+          <>
+            <img
+              src={selectedAuthor.avatar}
+              alt={selectedAuthor.name}
+              className="size-5 rounded-full object-cover"
+            />
+            {selectedAuthor.name}
+          </>
+        ) : (
+          <span className="text-neutral-400">Select author</span>
+        )}
+        <ChevronRightIcon
+          className={cn([
+            "size-3 ml-auto transition-transform text-neutral-400",
+            isOpen && "rotate-90",
+          ])}
+        />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-neutral-200 rounded-sm shadow-lg z-50">
+          {AUTHORS.map((author) => (
+            <button
+              key={author.name}
+              type="button"
+              onClick={() => {
+                onChange(author.name);
+                setIsOpen(false);
+              }}
+              className={cn([
+                "w-full flex items-center gap-2 px-3 py-2 text-sm text-left cursor-pointer",
+                "hover:bg-neutral-100 transition-colors",
+                value === author.name && "bg-neutral-50",
+              ])}
+            >
+              <img
+                src={author.avatar}
+                alt={author.name}
+                className="size-5 rounded-full object-cover"
+              />
+              {author.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MetadataRow({
+  label,
+  required,
+  children,
+  noBorder,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+  noBorder?: boolean;
+}) {
+  return (
+    <div className={cn(["flex", !noBorder && "border-b border-neutral-200"])}>
+      <span className="w-24 shrink-0 px-4 py-2 text-neutral-500 relative">
+        {required && <span className="absolute left-1 text-red-400">*</span>}
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+interface MetadataHandlers {
+  metaTitle: string;
+  onMetaTitleChange: (value: string) => void;
+  displayTitle: string;
+  onDisplayTitleChange: (value: string) => void;
+  metaDescription: string;
+  onMetaDescriptionChange: (value: string) => void;
+  author: string;
+  onAuthorChange: (value: string) => void;
+  date: string;
+  onDateChange: (value: string) => void;
+  coverImage: string;
+  onCoverImageChange: (value: string) => void;
+  published: boolean;
+  onPublishedChange: (value: boolean) => void;
+  featured: boolean;
+  onFeaturedChange: (value: boolean) => void;
+  category: string;
+  onCategoryChange: (value: string) => void;
+}
+
+function MetadataPanel({
+  isExpanded,
+  onToggleExpanded,
+  filePath,
+  handlers,
+}: {
+  isExpanded: boolean;
+  onToggleExpanded: () => void;
+  filePath: string;
+  handlers: MetadataHandlers;
+}) {
+  const [isTitleExpanded, setIsTitleExpanded] = useState(false);
+
+  return (
+    <div
+      key={filePath}
+      className={cn([
+        "shrink-0 relative",
+        isExpanded && "border-b border-neutral-200",
+      ])}
+    >
+      <div
+        className={cn([
+          "text-sm transition-all duration-200 overflow-hidden",
+          isExpanded ? "max-h-125" : "max-h-0",
+        ])}
+      >
+        <div className="flex border-b border-neutral-200">
+          <button
+            onClick={() => setIsTitleExpanded(!isTitleExpanded)}
+            className="w-24 shrink-0 px-4 py-2 text-neutral-500 flex items-center justify-between hover:text-neutral-700 relative"
+          >
+            <span className="absolute left-1 text-red-400">*</span>
+            Title
+            <ChevronRightIcon
+              className={cn([
+                "size-3 transition-transform",
+                isTitleExpanded && "rotate-90",
+              ])}
+            />
+          </button>
+          <input
+            type="text"
+            value={handlers.metaTitle}
+            onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
+            placeholder="SEO meta title"
+            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+          />
+        </div>
+        {isTitleExpanded && (
+          <div className="flex border-b border-neutral-200 bg-neutral-50">
+            <span className="w-24 shrink-0 px-4 py-2 text-neutral-400 flex items-center gap-1 relative">
+              <span className="text-neutral-300">└</span>
+              Display
+            </span>
+            <input
+              type="text"
+              value={handlers.displayTitle}
+              onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
+              placeholder="Display title (optional)"
+              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+            />
+          </div>
+        )}
+        <MetadataRow label="Author" required>
+          <div className="flex-1 px-2 py-2">
+            <AuthorSelect
+              value={handlers.author}
+              onChange={handlers.onAuthorChange}
+            />
+          </div>
+        </MetadataRow>
+        <MetadataRow label="Date" required>
+          <input
+            type="date"
+            value={handlers.date}
+            onChange={(e) => handlers.onDateChange(e.target.value)}
+            className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+          />
+        </MetadataRow>
+        <MetadataRow label="Description" required>
+          <textarea
+            ref={(el) => {
+              if (el) {
+                el.style.height = "auto";
+                el.style.height = `${el.scrollHeight}px`;
+              }
+            }}
+            value={handlers.metaDescription}
+            onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
+            placeholder="Meta description for SEO"
+            rows={1}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = "auto";
+              target.style.height = `${target.scrollHeight}px`;
+            }}
+            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
+          />
+        </MetadataRow>
+        <MetadataRow label="Category">
+          <select
+            value={handlers.category}
+            onChange={(e) => handlers.onCategoryChange(e.target.value)}
+            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+          >
+            <option value="">Select category</option>
+            <option value="Case Study">Case Study</option>
+            <option value="Hyprnote Weekly">Hyprnote Weekly</option>
+            <option value="Productivity Hack">Productivity Hack</option>
+            <option value="Engineering">Engineering</option>
+          </select>
+        </MetadataRow>
+        <MetadataRow label="Cover">
+          <div className="flex-1 flex items-center gap-2 px-2 py-2">
+            <input
+              type="text"
+              value={handlers.coverImage}
+              onChange={(e) => handlers.onCoverImageChange(e.target.value)}
+              placeholder="/api/images/blog/slug/cover.png"
+              className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+            />
+          </div>
+        </MetadataRow>
+        <MetadataRow label="Published">
+          <div className="flex-1 flex items-center px-2 py-2">
+            <input
+              type="checkbox"
+              checked={handlers.published}
+              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
+              className="rounded"
+            />
+          </div>
+        </MetadataRow>
+        <MetadataRow label="Featured" noBorder>
+          <div className="flex-1 flex items-center px-2 py-2">
+            <input
+              type="checkbox"
+              checked={handlers.featured}
+              onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
+              className="rounded"
+            />
+          </div>
+        </MetadataRow>
+      </div>
+      <button
+        onClick={onToggleExpanded}
+        className={cn([
+          "absolute left-1/2 -translate-x-1/2 top-full z-10",
+          "flex items-center justify-center",
+          "w-10 h-4 bg-white border border-t-0 border-neutral-200 rounded-b-md",
+          "text-neutral-400 hover:text-neutral-600",
+          "transition-colors cursor-pointer",
+        ])}
+      >
+        <ChevronDownIcon
+          className={cn([
+            "size-3 transition-transform duration-200",
+            isExpanded && "rotate-180",
+          ])}
+        />
+      </button>
+    </div>
+  );
+}
+
+interface CommitInfo {
+  sha: string;
+  message: string;
+  author: string;
+  date: string;
+  url: string;
+}
+
+function GitHistory({ filePath }: { filePath: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [commits, setCommits] = useState<CommitInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchHistory = useCallback(async () => {
+    if (!filePath) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `/api/admin/content/history?path=${encodeURIComponent(filePath)}`,
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCommits(data.commits || []);
+      }
+    } catch {
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filePath]);
+
+  useEffect(() => {
+    if (isExpanded && commits.length === 0) {
+      fetchHistory();
+    }
+  }, [isExpanded, commits.length, fetchHistory]);
+
+  return (
+    <div className="border-t border-neutral-200">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-50"
+      >
+        <span className="flex items-center gap-2">
+          <GithubIcon className="size-4" />
+          Git History
+        </span>
+        <ChevronDownIcon
+          className={cn([
+            "size-4 transition-transform",
+            isExpanded && "rotate-180",
+          ])}
+        />
+      </button>
+      {isExpanded && (
+        <div className="px-4 pb-4 space-y-2">
+          {isLoading ? (
+            <p className="text-xs text-neutral-400">Loading...</p>
+          ) : commits.length === 0 ? (
+            <p className="text-xs text-neutral-400">No commit history</p>
+          ) : (
+            commits.map((commit) => (
+              <a
+                key={commit.sha}
+                href={commit.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block p-2 rounded hover:bg-neutral-50 border border-neutral-100"
+              >
+                <div className="flex items-center gap-2 text-xs">
+                  <code className="text-neutral-500 bg-neutral-100 px-1 rounded">
+                    {commit.sha}
+                  </code>
+                  <span className="text-neutral-400">
+                    {new Date(commit.date).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-700 mt-1 truncate">
+                  {commit.message}
+                </p>
+              </a>
+            ))
+          )}
+          {commits.length > 0 && (
+            <button
+              onClick={fetchHistory}
+              className="text-xs text-neutral-500 hover:text-neutral-700 flex items-center gap-1"
+            >
+              <RefreshCwIcon className="size-3" />
+              Refresh
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MetadataSidePanel({
+  filePath,
+  handlers,
+}: {
+  filePath: string;
+  handlers: MetadataHandlers;
+}) {
+  return (
+    <div className="text-sm" key={filePath}>
+      <div className="p-4 space-y-4">
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Title
+          </label>
+          <input
+            type="text"
+            value={handlers.metaTitle}
+            onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
+            placeholder="SEO meta title"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">Display Title</label>
+          <input
+            type="text"
+            value={handlers.displayTitle}
+            onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
+            placeholder="Display title (optional)"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Author
+          </label>
+          <AuthorSelect
+            value={handlers.author}
+            onChange={handlers.onAuthorChange}
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Date
+          </label>
+          <input
+            type="date"
+            value={handlers.date}
+            onChange={(e) => handlers.onDateChange(e.target.value)}
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">
+            <span className="text-red-400">*</span> Description
+          </label>
+          <textarea
+            value={handlers.metaDescription}
+            onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
+            placeholder="Meta description for SEO"
+            rows={3}
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none focus:border-neutral-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">Category</label>
+          <select
+            value={handlers.category}
+            onChange={(e) => handlers.onCategoryChange(e.target.value)}
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
+          >
+            <option value="">Select category</option>
+            <option value="Case Study">Case Study</option>
+            <option value="Hyprnote Weekly">Hyprnote Weekly</option>
+            <option value="Productivity Hack">Productivity Hack</option>
+            <option value="Engineering">Engineering</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-neutral-500 mb-1">Cover Image</label>
+          <input
+            type="text"
+            value={handlers.coverImage}
+            onChange={(e) => handlers.onCoverImageChange(e.target.value)}
+            placeholder="/api/images/blog/slug/cover.png"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+          />
+        </div>
+
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-neutral-600">
+            <input
+              type="checkbox"
+              checked={handlers.published}
+              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
+              className="rounded"
+            />
+            Published
+          </label>
+          <label className="flex items-center gap-2 text-neutral-600">
+            <input
+              type="checkbox"
+              checked={handlers.featured}
+              onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
+              className="rounded"
+            />
+            Featured
+          </label>
+        </div>
+      </div>
+
+      <GitHistory filePath={filePath} />
+    </div>
+  );
+}
+
+const FileEditor = React.forwardRef<
+  { save: () => void },
+  {
+    filePath: string;
+    isPreviewMode: boolean;
+    onDataChange: (data: EditorData) => void;
+    onSave: () => void;
+    isSaving: boolean;
+  }
+>(function FileEditor({ filePath, isPreviewMode, onDataChange, onSave }, _ref) {
+  const fileContent = useMemo(() => getFileContent(filePath), [filePath]);
+
+  const [content, setContent] = useState(fileContent?.content || "");
+  const [metaTitle, setMetaTitle] = useState(fileContent?.meta_title || "");
+  const [displayTitle, setDisplayTitle] = useState(
+    fileContent?.display_title || "",
+  );
+  const [metaDescription, setMetaDescription] = useState(
+    fileContent?.meta_description || "",
+  );
+  const [author, setAuthor] = useState(fileContent?.author || "");
+  const [date, setDate] = useState(fileContent?.date || "");
+  const [coverImage, setCoverImage] = useState(fileContent?.coverImage || "");
+  const [published, setPublished] = useState(fileContent?.published || false);
+  const [featured, setFeatured] = useState(fileContent?.featured || false);
+  const [category, setCategory] = useState(fileContent?.category || "");
+
+  const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const lastSavedContentRef = useRef(fileContent?.content || "");
+
+  const getMetadata = useCallback(
+    (): ArticleMetadata => ({
+      meta_title: metaTitle,
+      display_title: displayTitle,
+      meta_description: metaDescription,
+      author,
+      date,
+      coverImage,
+      published,
+      featured,
+      category,
+    }),
+    [
+      metaTitle,
+      displayTitle,
+      metaDescription,
+      author,
+      date,
+      coverImage,
+      published,
+      featured,
+      category,
+    ],
+  );
+
+  useEffect(() => {
+    setContent(fileContent?.content || "");
+    setMetaTitle(fileContent?.meta_title || "");
+    setDisplayTitle(fileContent?.display_title || "");
+    setMetaDescription(fileContent?.meta_description || "");
+    setAuthor(fileContent?.author || "");
+    setDate(fileContent?.date || "");
+    setCoverImage(fileContent?.coverImage || "");
+    setPublished(fileContent?.published || false);
+    setFeatured(fileContent?.featured || false);
+    setCategory(fileContent?.category || "");
+    lastSavedContentRef.current = fileContent?.content || "";
+    setHasUnsavedChanges(false);
+  }, [filePath, fileContent]);
+
+  useEffect(() => {
+    onDataChange({ content, metadata: getMetadata() });
+  }, [
+    content,
+    metaTitle,
+    displayTitle,
+    metaDescription,
+    author,
+    date,
+    coverImage,
+    published,
+    featured,
+    category,
+    onDataChange,
+    getMetadata,
+  ]);
+
+  const handleContentChange = useCallback((newContent: string) => {
+    setContent(newContent);
+    setHasUnsavedChanges(newContent !== lastSavedContentRef.current);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        onSave();
+        lastSavedContentRef.current = content;
+        setHasUnsavedChanges(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onSave, content]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        return "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  if (!fileContent) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-neutral-500">
+        <div className="text-center">
+          <FileWarningIcon className="size-10 mb-3" />
+          <p className="text-sm">File not found</p>
+        </div>
+      </div>
+    );
+  }
+
+  const selectedAuthor = AUTHORS.find((a) => a.name === author);
+  const avatarUrl = selectedAuthor?.avatar;
+
+  const metadataHandlers: MetadataHandlers = {
+    metaTitle,
+    onMetaTitleChange: setMetaTitle,
+    displayTitle,
+    onDisplayTitleChange: setDisplayTitle,
+    metaDescription,
+    onMetaDescriptionChange: setMetaDescription,
+    author,
+    onAuthorChange: setAuthor,
+    date,
+    onDateChange: setDate,
+    coverImage,
+    onCoverImageChange: setCoverImage,
+    published,
+    onPublishedChange: setPublished,
+    featured,
+    onFeaturedChange: setFeatured,
+    category,
+    onCategoryChange: setCategory,
+  };
+
+  const renderPreview = () => (
+    <div className="h-full overflow-y-auto bg-white">
+      <header className="py-12 text-center max-w-3xl mx-auto px-6">
+        <h1 className="text-3xl font-serif text-stone-600 mb-6">
+          {fileContent.display_title || fileContent.meta_title || "Untitled"}
+        </h1>
+        {author && (
+          <div className="flex items-center justify-center gap-3 mb-2">
+            {avatarUrl && (
+              <img
+                src={avatarUrl}
+                alt={author}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            )}
+            <p className="text-base text-neutral-600">{author}</p>
+          </div>
+        )}
+        {fileContent.date && (
+          <time className="text-xs font-mono text-neutral-500">
+            {new Date(fileContent.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </time>
+        )}
+      </header>
+      <div className="max-w-3xl mx-auto px-6 pb-8">
+        <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
+          <MDXContent
+            code={fileContent.mdx}
+            components={defaultMDXComponents}
+          />
+        </article>
+      </div>
+    </div>
+  );
+
+  if (isPreviewMode) {
+    return (
+      <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
+        <ResizablePanel defaultSize={50} minSize={30}>
+          <div className="flex flex-col h-full">
+            <MetadataPanel
+              isExpanded={isMetadataExpanded}
+              onToggleExpanded={() =>
+                setIsMetadataExpanded(!isMetadataExpanded)
+              }
+              filePath={filePath}
+              handlers={metadataHandlers}
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto p-6">
+              <BlogEditor content={content} onChange={handleContentChange} />
+            </div>
+          </div>
+        </ResizablePanel>
+        <ResizableHandle className="w-px bg-neutral-200" />
+        <ResizablePanel defaultSize={50} minSize={30}>
+          {renderPreview()}
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    );
+  }
+
+  return (
+    <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
+      <ResizablePanel defaultSize={70} minSize={50}>
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 h-full">
+          <BlogEditor content={content} onChange={handleContentChange} />
+        </div>
+      </ResizablePanel>
+      <ResizableHandle className="w-px bg-neutral-200" />
+      <ResizablePanel defaultSize={30} minSize={20}>
+        <div className="h-full overflow-y-auto">
+          <MetadataSidePanel filePath={filePath} handlers={metadataHandlers} />
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  );
+});
+
+function EmptyState({
+  icon: Icon,
+  message,
+}: {
+  icon: LucideIcon;
+  message: string;
+}) {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center text-neutral-500">
+      <Icon className="size-10 mb-3" />
+      <p className="text-sm">{message}</p>
+    </div>
+  );
+}
+
+function FileItem({
+  item,
+  onClick,
+}: {
+  item: ContentItem;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      className={cn([
+        "flex items-center justify-between px-3 py-2 rounded cursor-pointer",
+        "hover:bg-neutral-50 transition-colors",
+        "border border-transparent hover:border-neutral-200",
+      ])}
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-2">
+        <FileTextIcon className="size-4 text-neutral-400" />
+        <span className="text-sm text-neutral-700">{item.name}</span>
+        <span className="text-xs text-neutral-400 px-1.5 py-0.5 bg-neutral-100 rounded">
+          {getFileExtension(item.name).toUpperCase()}
+        </span>
+      </div>
+      <a
+        href={`https://github.com/fastrepl/hyprnote/blob/main/apps/web/content/${item.path}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-xs text-neutral-500 hover:text-neutral-700"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <GithubIcon className="size-4" />
+      </a>
+    </div>
+  );
+}
+
+const CONTENT_FOLDERS = [{ value: "articles", label: "Articles (Blog)" }];
+
+interface ImportResult {
+  success: boolean;
+  mdx?: string;
+  frontmatter?: {
+    meta_title: string;
+    display_title: string;
+    meta_description: string;
+    author: string;
+    coverImage: string;
+    featured: boolean;
+    published: boolean;
+    date: string;
+  };
+  error?: string;
+}
+
+interface SaveResult {
+  success: boolean;
+  path?: string;
+  url?: string;
+  error?: string;
+}
+
+interface ImportParams {
+  url: string;
+  title?: string;
+  author?: string;
+  description?: string;
+  coverImage?: string;
+  slug?: string;
+}
+
+async function importFromGoogleDocs(
+  params: ImportParams,
+): Promise<ImportResult> {
+  const response = await fetch("/api/admin/import/google-docs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      url: params.url,
+      title: params.title || undefined,
+      author: params.author || undefined,
+      description: params.description || undefined,
+      coverImage: params.coverImage || undefined,
+      slug: params.slug || undefined,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    try {
+      const errorData = JSON.parse(errorText);
+      throw new Error(
+        errorData.error || `Import failed with status ${response.status}`,
+      );
+    } catch {
+      throw new Error(
+        `Import failed: ${response.status} ${response.statusText}`,
+      );
+    }
+  }
+
+  const data: ImportResult = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.error || "Import failed");
+  }
+
+  return data;
+}
+
+interface SaveParams {
+  content: string;
+  filename: string;
+  folder: string;
+}
+
+async function saveToRepository(params: SaveParams): Promise<SaveResult> {
+  const response = await fetch("/api/admin/import/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      content: params.content,
+      filename: params.filename,
+      folder: params.folder,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    try {
+      const errorData = JSON.parse(errorText);
+      throw new Error(
+        errorData.error || `Save failed with status ${response.status}`,
+      );
+    } catch {
+      throw new Error(`Save failed: ${response.status} ${response.statusText}`);
+    }
+  }
+
+  const data: SaveResult = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.error || "Save failed");
+  }
+
+  return data;
+}
+
+function ImportModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [url, setUrl] = useState("");
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [description, setDescription] = useState("");
+  const [coverImage, setCoverImage] = useState("");
+  const [slug, setSlug] = useState("");
+  const [folder, setFolder] = useState("articles");
+  const [editedMdx, setEditedMdx] = useState("");
+
+  const importMutation = useMutation({
+    mutationFn: importFromGoogleDocs,
+    onSuccess: (data) => {
+      setEditedMdx(data.mdx || "");
+      if (data.frontmatter) {
+        if (!title) setTitle(data.frontmatter.meta_title);
+        if (!author) setAuthor(data.frontmatter.author);
+        if (!description) setDescription(data.frontmatter.meta_description);
+      }
+    },
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: saveToRepository,
+    onSuccess: () => {
+      setUrl("");
+      setTitle("");
+      setAuthor("");
+      setDescription("");
+      setCoverImage("");
+      setSlug("");
+      setEditedMdx("");
+      importMutation.reset();
+    },
+  });
+
+  const handleImport = () => {
+    if (!url) return;
+    saveMutation.reset();
+    importMutation.mutate({
+      url,
+      title: title || undefined,
+      author: author || undefined,
+      description: description || undefined,
+      coverImage: coverImage || undefined,
+      slug: slug || undefined,
+    });
+  };
+
+  const handleSave = () => {
+    if (!editedMdx || !slug) return;
+    const filename = slug.endsWith(".mdx") ? slug : `${slug}.mdx`;
+    saveMutation.mutate({ content: editedMdx, filename, folder });
+  };
+
+  const error = importMutation.error || saveMutation.error;
+
+  const generateSlugFromTitle = () => {
+    if (title) {
+      const generatedSlug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+      setSlug(generatedSlug);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Import from Google Docs</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <p className="text-sm text-neutral-600">
+            The document must be either published to the web or shared with
+            "Anyone with the link can view" permissions.
+          </p>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
+              Google Docs URL *
+            </label>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://docs.google.com/document/d/..."
+              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Title (optional)
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Article title"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Author
+              </label>
+              <input
+                type="text"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                placeholder="Author name"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Brief description for SEO"
+              rows={2}
+              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Cover Image Path
+              </label>
+              <input
+                type="text"
+                value={coverImage}
+                onChange={(e) => setCoverImage(e.target.value)}
+                placeholder="/api/images/blog/slug/cover.png"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Filename Slug
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="my-article-slug"
+                  className="flex-1 px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={generateSlugFromTitle}
+                  className="px-3 py-2 text-sm text-neutral-600 bg-neutral-100 rounded-md hover:bg-neutral-200"
+                >
+                  Auto
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleImport}
+            disabled={importMutation.isPending || !url}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+          >
+            {importMutation.isPending ? "Importing..." : "Import Document"}
+          </button>
+
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+              {error instanceof Error ? error.message : "An error occurred"}
+            </div>
+          )}
+
+          {importMutation.data && (
+            <div className="space-y-4 pt-4 border-t">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Generated MDX Content
+                </label>
+                <textarea
+                  value={editedMdx}
+                  onChange={(e) => setEditedMdx(e.target.value)}
+                  rows={12}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                />
+              </div>
+
+              <div className="flex items-end gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                    Folder
+                  </label>
+                  <select
+                    value={folder}
+                    onChange={(e) => setFolder(e.target.value)}
+                    className="px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {CONTENT_FOLDERS.map((f) => (
+                      <option key={f.value} value={f.value}>
+                        {f.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={handleSave}
+                  disabled={saveMutation.isPending || !editedMdx || !slug}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
+                >
+                  {saveMutation.isPending ? "Saving..." : "Save to Repository"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {saveMutation.data && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md text-green-700 text-sm">
+              <p className="font-medium">File saved successfully!</p>
+              <p className="mt-1">
+                Path:{" "}
+                <code className="bg-green-100 px-1 rounded">
+                  {saveMutation.data.path}
+                </code>
+              </p>
+              {saveMutation.data.url && (
+                <a
+                  href={saveMutation.data.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-600 hover:text-green-800 underline"
+                >
+                  View on GitHub
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ExternalLinkIcon, MailIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Image } from "@/components/image";
 
@@ -176,12 +176,13 @@ function ProductLinks() {
 }
 
 function ResourcesLinks() {
-  const [vsIndex, setVsIndex] = useState(() =>
-    Math.floor(Math.random() * vsList.length),
-  );
-  const [useCaseIndex, setUseCaseIndex] = useState(() =>
-    Math.floor(Math.random() * useCasesList.length),
-  );
+  const [vsIndex, setVsIndex] = useState(0);
+  const [useCaseIndex, setUseCaseIndex] = useState(0);
+
+  useEffect(() => {
+    setVsIndex(Math.floor(Math.random() * vsList.length));
+    setUseCaseIndex(Math.floor(Math.random() * useCasesList.length));
+  }, []);
 
   const currentVs = vsList[vsIndex];
   const currentUseCase = useCasesList[useCaseIndex];
@@ -342,6 +343,14 @@ function CompanyLinks() {
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             Open Source
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/bounties"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+          >
+            Bounties
           </Link>
         </li>
       </ul>

@@ -27,7 +27,7 @@ export const Route = createFileRoute("/admin")({
 
     if (!user) {
       throw redirect({
-        to: "/admin/login/",
+        to: "/auth/",
       });
     }
 

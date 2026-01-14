@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_view/product/extensions")({
         content:
           "Connect Hyprnote with your favorite tools and build custom integrations with our API. Extensions coming soon.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 });

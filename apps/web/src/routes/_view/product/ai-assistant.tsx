@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_view/product/ai-assistant")({
         content:
           "AI assistant that helps you before, during, and after meetings. Prepare with research, get realtime insights, and execute workflows—all powered by local AI.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 });

@@ -33,6 +33,7 @@ export const Route = createFileRoute("/_view/shortcuts/$slug")({
       meta: [
         { title: `${shortcut.title} - AI Shortcut - Hyprnote` },
         { name: "description", content: shortcut.description },
+        { name: "robots", content: "noindex, nofollow" },
         {
           property: "og:title",
           content: `${shortcut.title} - AI Shortcut`,

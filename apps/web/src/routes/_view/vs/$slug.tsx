@@ -36,6 +36,7 @@ export const Route = createFileRoute("/_view/vs/$slug")({
       meta: [
         { title: metaTitle },
         { name: "description", content: doc.metaDescription },
+        { name: "robots", content: "noindex, nofollow" },
         { property: "og:title", content: metaTitle },
         { property: "og:description", content: doc.metaDescription },
         { property: "og:type", content: "website" },

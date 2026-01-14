@@ -26,6 +26,7 @@ export const Route = createFileRoute("/_view/product/ai-notetaking")({
         content:
           "Complete AI-powered notetaking solution. Record meetings, transcribe audio, and get intelligent summaries with customizable templates. Works with any video conferencing tool.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       { property: "og:title", content: "AI Notetaking - Hyprnote" },
       {
         property: "og:description",

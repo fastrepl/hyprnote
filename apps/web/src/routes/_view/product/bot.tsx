@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_view/product/bot")({
         name: "description",
         content: "Hyprnote Bot for meeting platforms. Coming soon.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 });

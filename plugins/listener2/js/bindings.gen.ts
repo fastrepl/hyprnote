@@ -37,6 +37,14 @@ async isSupportedLanguages(provider: string, model: string | null, languages: st
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async suggestProvidersForLanguages(languages: string[]) : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener2|suggest_providers_for_languages", { languages }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

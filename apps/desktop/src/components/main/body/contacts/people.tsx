@@ -74,6 +74,7 @@ export function PeopleColumn({
 
 export function useSortedHumanIds(currentOrgId?: string | null) {
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
+  const currentUserId = main.UI.useValue("user_id", main.STORE_ID);
 
   const allAlphabeticalIds = main.UI.useResultSortedRowIds(
     main.QUERIES.visibleHumans,
@@ -114,7 +115,7 @@ export function useSortedHumanIds(currentOrgId?: string | null) {
     main.STORE_ID,
   );
 
-  const humanIds = currentOrgId
+  const sortedIds = currentOrgId
     ? (sortOption === "alphabetical"
         ? allAlphabeticalIds
         : sortOption === "reverse-alphabetical"
@@ -130,6 +131,13 @@ export function useSortedHumanIds(currentOrgId?: string | null) {
         : sortOption === "newest"
           ? allNewestIds
           : allOldestIds;
+
+  const humanIds = useMemo(() => {
+    if (!currentUserId || !sortedIds.includes(currentUserId)) {
+      return sortedIds;
+    }
+    return [currentUserId, ...sortedIds.filter((id) => id !== currentUserId)];
+  }, [sortedIds, currentUserId]);
 
   return { humanIds, sortOption, setSortOption };
 }
@@ -165,7 +173,7 @@ function PersonItem({
           {person.name || person.email || "Unnamed"}
           {isCurrentUser && (
             <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
-              You
+              Me
             </span>
           )}
         </div>

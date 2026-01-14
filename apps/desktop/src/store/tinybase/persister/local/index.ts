@@ -115,6 +115,41 @@ function migrateWordsAndHintsToTranscripts(store: Store): boolean {
   return true;
 }
 
+function cleanupSessionsFromLocal(store: Store): boolean {
+  const sessionIds = store.getRowIds("sessions");
+  if (sessionIds.length === 0) {
+    return false;
+  }
+
+  store.transaction(() => {
+    for (const sessionId of sessionIds) {
+      store.delRow("sessions", sessionId);
+    }
+
+    for (const mappingId of store.getRowIds("mapping_session_participant")) {
+      store.delRow("mapping_session_participant", mappingId);
+    }
+
+    for (const tagId of store.getRowIds("tags")) {
+      store.delRow("tags", tagId);
+    }
+
+    for (const mappingId of store.getRowIds("mapping_tag_session")) {
+      store.delRow("mapping_tag_session", mappingId);
+    }
+
+    for (const transcriptId of store.getRowIds("transcripts")) {
+      store.delRow("transcripts", transcriptId);
+    }
+
+    for (const noteId of store.getRowIds("enhanced_notes")) {
+      store.delRow("enhanced_notes", noteId);
+    }
+  });
+
+  return true;
+}
+
 export function useLocalPersister(store: Store) {
   return useCreatePersister(
     store,
@@ -127,7 +162,17 @@ export function useLocalPersister(store: Store) {
       await persister.load();
 
       if (getCurrentWebviewWindowLabel() === "main") {
+        let shouldSave = false;
+
         if (migrateWordsAndHintsToTranscripts(store as Store)) {
+          shouldSave = true;
+        }
+
+        if (cleanupSessionsFromLocal(store as Store)) {
+          shouldSave = true;
+        }
+
+        if (shouldSave) {
           await persister.save();
         }
       }

@@ -371,9 +371,15 @@ function ModalsCard() {
 }
 
 function ErrorTestCard() {
+  const [shouldThrow, setShouldThrow] = useState(false);
+
   const handleTriggerError = useCallback(() => {
-    throw new Error("Test error triggered from devtools");
+    setShouldThrow(true);
   }, []);
+
+  if (shouldThrow) {
+    throw new Error("Test error triggered from devtools");
+  }
 
   return (
     <DevtoolCard title="Error Testing">

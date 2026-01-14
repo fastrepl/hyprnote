@@ -41,6 +41,7 @@ import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as AdminMediaIndexRouteImport } from './routes/admin/media/index'
+import { Route as AdminLoginIndexRouteImport } from './routes/admin/login/index'
 import { Route as AdminCollectionsIndexRouteImport } from './routes/admin/collections/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
 import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts/index'
@@ -58,6 +59,7 @@ import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
 import { Route as ApiImagesSplatRouteImport } from './routes/api/images.$'
+import { Route as AdminCollectionsSlugRouteImport } from './routes/admin/collections/$slug'
 import { Route as ViewVsSlugRouteImport } from './routes/_view/vs/$slug'
 import { Route as ViewTemplatesSlugRouteImport } from './routes/_view/templates/$slug'
 import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/sales'
@@ -280,6 +282,11 @@ const AdminMediaIndexRoute = AdminMediaIndexRouteImport.update({
   path: '/media/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminLoginIndexRoute = AdminLoginIndexRouteImport.update({
+  id: '/login/',
+  path: '/login/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminCollectionsIndexRoute = AdminCollectionsIndexRouteImport.update({
   id: '/collections/',
   path: '/collections/',
@@ -365,6 +372,11 @@ const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
   id: '/api/images/$',
   path: '/api/images/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCollectionsSlugRoute = AdminCollectionsSlugRouteImport.update({
+  id: '/collections/$slug',
+  path: '/collections/$slug',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const ViewVsSlugRoute = ViewVsSlugRouteImport.update({
   id: '/vs/$slug',
@@ -759,6 +771,7 @@ export interface FileRoutesByFullPath {
   '/solution/sales': typeof ViewSolutionSalesRoute
   '/templates/$slug': typeof ViewTemplatesSlugRoute
   '/vs/$slug': typeof ViewVsSlugRoute
+  '/admin/collections/$slug': typeof AdminCollectionsSlugRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/app/': typeof ViewAppIndexRoute
@@ -776,6 +789,7 @@ export interface FileRoutesByFullPath {
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
   '/admin/collections': typeof AdminCollectionsIndexRoute
+  '/admin/login': typeof AdminLoginIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
@@ -866,6 +880,7 @@ export interface FileRoutesByTo {
   '/solution/sales': typeof ViewSolutionSalesRoute
   '/templates/$slug': typeof ViewTemplatesSlugRoute
   '/vs/$slug': typeof ViewVsSlugRoute
+  '/admin/collections/$slug': typeof AdminCollectionsSlugRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/app': typeof ViewAppIndexRoute
@@ -883,6 +898,7 @@ export interface FileRoutesByTo {
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
   '/admin/collections': typeof AdminCollectionsIndexRoute
+  '/admin/login': typeof AdminLoginIndexRoute
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
@@ -979,6 +995,7 @@ export interface FileRoutesById {
   '/_view/solution/sales': typeof ViewSolutionSalesRoute
   '/_view/templates/$slug': typeof ViewTemplatesSlugRoute
   '/_view/vs/$slug': typeof ViewVsSlugRoute
+  '/admin/collections/$slug': typeof AdminCollectionsSlugRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/_view/app/': typeof ViewAppIndexRoute
@@ -996,6 +1013,7 @@ export interface FileRoutesById {
   '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
   '/admin/collections/': typeof AdminCollectionsIndexRoute
+  '/admin/login/': typeof AdminLoginIndexRoute
   '/admin/media/': typeof AdminMediaIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
@@ -1092,6 +1110,7 @@ export interface FileRouteTypes {
     | '/solution/sales'
     | '/templates/$slug'
     | '/vs/$slug'
+    | '/admin/collections/$slug'
     | '/api/images/$'
     | '/api/tweet/$id'
     | '/app/'
@@ -1109,6 +1128,7 @@ export interface FileRouteTypes {
     | '/shortcuts'
     | '/templates'
     | '/admin/collections'
+    | '/admin/login'
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
@@ -1199,6 +1219,7 @@ export interface FileRouteTypes {
     | '/solution/sales'
     | '/templates/$slug'
     | '/vs/$slug'
+    | '/admin/collections/$slug'
     | '/api/images/$'
     | '/api/tweet/$id'
     | '/app'
@@ -1216,6 +1237,7 @@ export interface FileRouteTypes {
     | '/shortcuts'
     | '/templates'
     | '/admin/collections'
+    | '/admin/login'
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
@@ -1311,6 +1333,7 @@ export interface FileRouteTypes {
     | '/_view/solution/sales'
     | '/_view/templates/$slug'
     | '/_view/vs/$slug'
+    | '/admin/collections/$slug'
     | '/api/images/$'
     | '/api/tweet/$id'
     | '/_view/app/'
@@ -1328,6 +1351,7 @@ export interface FileRouteTypes {
     | '/_view/shortcuts/'
     | '/_view/templates/'
     | '/admin/collections/'
+    | '/admin/login/'
     | '/admin/media/'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
@@ -1608,6 +1632,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMediaIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/login/': {
+      id: '/admin/login/'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/collections/': {
       id: '/admin/collections/'
       path: '/collections'
@@ -1726,6 +1757,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/images/$'
       preLoaderRoute: typeof ApiImagesSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/collections/$slug': {
+      id: '/admin/collections/$slug'
+      path: '/collections/$slug'
+      fullPath: '/admin/collections/$slug'
+      preLoaderRoute: typeof AdminCollectionsSlugRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/_view/vs/$slug': {
       id: '/_view/vs/$slug'
@@ -2351,13 +2389,17 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
 
 interface AdminRouteRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminCollectionsSlugRoute: typeof AdminCollectionsSlugRoute
   AdminCollectionsIndexRoute: typeof AdminCollectionsIndexRoute
+  AdminLoginIndexRoute: typeof AdminLoginIndexRoute
   AdminMediaIndexRoute: typeof AdminMediaIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminCollectionsSlugRoute: AdminCollectionsSlugRoute,
   AdminCollectionsIndexRoute: AdminCollectionsIndexRoute,
+  AdminLoginIndexRoute: AdminLoginIndexRoute,
   AdminMediaIndexRoute: AdminMediaIndexRoute,
 }
 

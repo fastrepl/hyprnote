@@ -26,10 +26,7 @@ let package = Package(
         .product(name: "SwiftRs", package: "swift-rs"),
         .product(name: "Argmax", package: "argmaxinc.argmax-sdk-swift"),
       ],
-      path: "src",
-      swiftSettings: [
-        .swiftLanguageMode(.v5)
-      ]
+      path: "src"
     )
   ]
 )

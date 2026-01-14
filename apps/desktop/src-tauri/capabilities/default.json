@@ -35,21 +35,21 @@
         }
       ]
     },
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
         {
-          "identifier": "opener:allow-open-path",
-          "allow": [
-            {
-              "path": "$DATA/hyprnote/**/*"
-            },
-            {
-              "path": "$APPDATA/**/*"
-            },
-            {
-              "path": "$DOWNLOAD/**/*"
-            }
-          ]
+          "path": "$DATA/hyprnote/**/*"
         },
-        "apple-calendar:default",
+        {
+          "path": "$APPDATA/**/*"
+        },
+        {
+          "path": "$DOWNLOAD/**/*"
+        }
+      ]
+    },
+    "apple-calendar:default",
     "apple-contact:default",
     "audio-priority:default",
     "auth:default",

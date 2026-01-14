@@ -104,6 +104,7 @@ pub async fn main() {
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_deeplink2::init())
         .plugin(tauri_plugin_fs_sync::init())
+        .plugin(tauri_plugin_fs2::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_path2::init())

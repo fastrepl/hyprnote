@@ -8,11 +8,13 @@ import { cn } from "@hypr/utils";
 interface MediaItem {
   name: string;
   path: string;
-  publicPath: string;
-  sha: string;
+  publicUrl: string;
+  id: string;
   size: number;
   type: "file" | "dir";
-  downloadUrl: string | null;
+  mimeType: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 interface TreeNode {
@@ -246,15 +248,15 @@ export function MediaSelectorModal({
     }
   };
 
-  const handleFileSelect = (publicPath: string) => {
+  const handleFileSelect = (publicUrl: string) => {
     if (selectionMode === "single") {
-      setSelectedFile(selectedFile === publicPath ? null : publicPath);
+      setSelectedFile(selectedFile === publicUrl ? null : publicUrl);
     } else {
       const newSelection = new Set(selectedFiles);
-      if (newSelection.has(publicPath)) {
-        newSelection.delete(publicPath);
+      if (newSelection.has(publicUrl)) {
+        newSelection.delete(publicUrl);
       } else {
-        newSelection.add(publicPath);
+        newSelection.add(publicUrl);
       }
       setSelectedFiles(newSelection);
     }
@@ -421,8 +423,8 @@ export function MediaSelectorModal({
                 {filteredItems.map((item) => {
                   const isSelected =
                     selectionMode === "single"
-                      ? selectedFile === item.publicPath
-                      : selectedFiles.has(item.publicPath);
+                      ? selectedFile === item.publicUrl
+                      : selectedFiles.has(item.publicUrl);
                   return (
                     <div
                       key={item.path}
@@ -432,12 +434,12 @@ export function MediaSelectorModal({
                           ? "border-blue-500 ring-1 ring-blue-500"
                           : "border-neutral-200 hover:border-neutral-300",
                       ])}
-                      onClick={() => handleFileSelect(item.publicPath)}
+                      onClick={() => handleFileSelect(item.publicUrl)}
                     >
                       <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
-                        {item.downloadUrl ? (
+                        {item.publicUrl ? (
                           <img
-                            src={item.downloadUrl}
+                            src={item.publicUrl}
                             alt={item.name}
                             className="w-full h-full object-cover"
                             loading="lazy"
@@ -494,6 +496,7 @@ export function MediaSelectorModal({
             ) : (
               <>
                 <button
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadMutation.isPending}
                   className="px-3 py-1.5 text-sm font-medium text-neutral-700 border border-neutral-300 rounded hover:bg-neutral-50 disabled:opacity-50"
@@ -501,6 +504,7 @@ export function MediaSelectorModal({
                   {uploadMutation.isPending ? "Uploading..." : "Upload"}
                 </button>
                 <button
+                  type="button"
                   disabled
                   className="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 rounded opacity-50 cursor-not-allowed"
                 >

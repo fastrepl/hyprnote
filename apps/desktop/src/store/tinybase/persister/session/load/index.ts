@@ -61,6 +61,7 @@ export async function loadAllSessionData(
     sessionsDir,
     [SESSION_META_FILE, SESSION_TRANSCRIPT_FILE, `*${SESSION_NOTE_EXTENSION}`],
     true,
+    null,
   );
 
   if (scanResult.status === "error") {
@@ -86,6 +87,7 @@ export async function loadSingleSession(
     sessionsDir,
     [SESSION_META_FILE, SESSION_TRANSCRIPT_FILE, `*${SESSION_NOTE_EXTENSION}`],
     true,
+    `/${sessionId}/`,
   );
 
   if (scanResult.status === "error") {
@@ -96,14 +98,6 @@ export async function loadSingleSession(
     return err(scanResult.error);
   }
 
-  const sessionPathSegment = `/${sessionId}/`;
-  const filteredFiles: Partial<Record<string, string>> = {};
-  for (const [path, content] of Object.entries(scanResult.data.files)) {
-    if (path.includes(sessionPathSegment)) {
-      filteredFiles[path] = content;
-    }
-  }
-
-  await processFiles(filteredFiles, result);
+  await processFiles(scanResult.data.files, result);
   return ok(result);
 }

@@ -32,32 +32,6 @@ type MigratedHint = {
   value: string;
 };
 
-const SESSION_TABLES = [
-  "sessions",
-  "mapping_session_participant",
-  "tags",
-  "mapping_tag_session",
-  "transcripts",
-  "enhanced_notes",
-] as const;
-
-function deleteSessionsFromSqlite(store: Store): boolean {
-  const sessionIds = store.getRowIds("sessions");
-  if (sessionIds.length === 0) {
-    return false;
-  }
-
-  store.transaction(() => {
-    for (const table of SESSION_TABLES) {
-      for (const rowId of store.getRowIds(table)) {
-        store.delRow(table, rowId);
-      }
-    }
-  });
-
-  return true;
-}
-
 function migrateWordsAndHintsToTranscripts(store: Store): boolean {
   const wordIds = store.getRowIds("words");
   if (wordIds.length === 0) {
@@ -153,17 +127,7 @@ export function useLocalPersister(store: Store) {
       await persister.load();
 
       if (getCurrentWebviewWindowLabel() === "main") {
-        let needsSave = false;
-
         if (migrateWordsAndHintsToTranscripts(store as Store)) {
-          needsSave = true;
-        }
-
-        if (deleteSessionsFromSqlite(store as Store)) {
-          needsSave = true;
-        }
-
-        if (needsSave) {
           await persister.save();
         }
       }

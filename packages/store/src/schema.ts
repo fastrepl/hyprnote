@@ -219,9 +219,7 @@ export const credentialsSchema = z.discriminatedUnion("type", [
   awsCredentialsSchema,
 ]);
 
-export function parseCredentials(
-  credentialsJson: unknown,
-): Credentials | null {
+export function parseCredentials(credentialsJson: unknown): Credentials | null {
   if (typeof credentialsJson !== "string" || !credentialsJson) return null;
   try {
     const parsed = JSON.parse(credentialsJson);

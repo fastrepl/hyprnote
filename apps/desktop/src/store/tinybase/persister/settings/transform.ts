@@ -164,7 +164,8 @@ function settingsToProviderRows(
         if (credentials || baseUrl) {
           const row: ProviderRow = {
             type: providerType,
-            credentials: credentials ?? JSON.stringify({ type: "api_key", api_key: "" }),
+            credentials:
+              credentials ?? JSON.stringify({ type: "api_key", api_key: "" }),
           };
           if (baseUrl) {
             row.base_url = baseUrl;

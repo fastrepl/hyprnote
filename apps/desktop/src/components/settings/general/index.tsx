@@ -1,4 +1,3 @@
-import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
@@ -50,11 +49,24 @@ export function SettingsGeneral({
     "current_stt_provider",
   ] as const);
 
+  const supportedLanguagesQuery = useQuery({
+    queryKey: ["documented-language-codes", "live"],
+    queryFn: async () => {
+      const result = await listenerCommands.listDocumentedLanguageCodesLive();
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+    staleTime: Infinity,
+  });
+  const supportedLanguages = supportedLanguagesQuery.data ?? ["en"];
+
   const suggestedProviders = useQuery({
     enabled: !!value.spoken_languages?.length,
     queryKey: ["suggested-stt-providers", value.spoken_languages],
     queryFn: async () => {
-      const result = await listenerCommands.suggestProvidersForLanguages(
+      const result = await listenerCommands.suggestProvidersForLanguagesLive(
         value.spoken_languages ?? [],
       );
 
@@ -192,7 +204,7 @@ export function SettingsGeneral({
               <MainLanguageView
                 value={field.state.value}
                 onChange={(val) => field.handleChange(val)}
-                supportedLanguages={SUPPORTED_LANGUAGES}
+                supportedLanguages={supportedLanguages}
               />
             )}
           </form.Field>
@@ -202,7 +214,7 @@ export function SettingsGeneral({
                 <SpokenLanguagesView
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
-                  supportedLanguages={SUPPORTED_LANGUAGES}
+                  supportedLanguages={supportedLanguages}
                 />
                 <span className="text-xs text-neutral-500">
                   Providers outside {suggestedProviders.data?.join(", ")} may
@@ -229,51 +241,3 @@ export function SettingsGeneral({
     </div>
   );
 }
-
-type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
-const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
-  "es",
-  "it",
-  "ko",
-  "pt",
-  "en",
-  "pl",
-  "ca",
-  "ja",
-  "de",
-  "ru",
-  "nl",
-  "fr",
-  "id",
-  "uk",
-  "tr",
-  "ms",
-  "sv",
-  "zh",
-  "fi",
-  "no",
-  "ro",
-  "th",
-  "vi",
-  "sk",
-  "ar",
-  "cs",
-  "hr",
-  "el",
-  "sr",
-  "da",
-  "bg",
-  "hu",
-  "tl",
-  "bs",
-  "gl",
-  "mk",
-  "hi",
-  "et",
-  "sl",
-  "ta",
-  "lv",
-  "lt",
-  "az",
-  "he",
-];

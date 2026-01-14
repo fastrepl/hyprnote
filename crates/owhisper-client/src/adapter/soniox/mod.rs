@@ -13,7 +13,15 @@ const SUPPORTED_LANGUAGES: &[&str] = &[
 pub struct SonioxAdapter;
 
 impl SonioxAdapter {
-    pub fn is_supported_languages(languages: &[hypr_language::Language]) -> bool {
+    pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {
+        Self::is_supported_languages_impl(languages)
+    }
+
+    pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
+        Self::is_supported_languages_impl(languages)
+    }
+
+    fn is_supported_languages_impl(languages: &[hypr_language::Language]) -> bool {
         let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
         SUPPORTED_LANGUAGES.contains(&primary_lang)
     }
@@ -72,6 +80,10 @@ impl SonioxAdapter {
         .expect("invalid_ws_url");
         (url, existing_params)
     }
+}
+
+pub(super) fn documented_language_codes() -> &'static [&'static str] {
+    SUPPORTED_LANGUAGES
 }
 
 #[cfg(test)]

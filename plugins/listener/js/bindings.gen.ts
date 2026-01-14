@@ -62,17 +62,25 @@ async getState() : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async isSupportedLanguages(provider: string, model: string | null, languages: string[]) : Promise<Result<boolean, string>> {
+async isSupportedLanguagesLive(provider: string, model: string | null, languages: string[]) : Promise<Result<boolean, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|is_supported_languages", { provider, model, languages }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|is_supported_languages_live", { provider, model, languages }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async suggestProvidersForLanguages(languages: string[]) : Promise<Result<string[], string>> {
+async suggestProvidersForLanguagesLive(languages: string[]) : Promise<Result<string[], string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|suggest_providers_for_languages", { languages }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|suggest_providers_for_languages_live", { languages }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async listDocumentedLanguageCodesLive() : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|list_documented_language_codes_live") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

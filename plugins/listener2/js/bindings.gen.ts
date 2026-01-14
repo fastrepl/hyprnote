@@ -30,17 +30,25 @@ async exportToVtt(sessionId: string, words: VttWord[]) : Promise<Result<string, 
     else return { status: "error", error: e  as any };
 }
 },
-async isSupportedLanguages(provider: string, model: string | null, languages: string[]) : Promise<Result<boolean, string>> {
+async isSupportedLanguagesBatch(provider: string, model: string | null, languages: string[]) : Promise<Result<boolean, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener2|is_supported_languages", { provider, model, languages }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener2|is_supported_languages_batch", { provider, model, languages }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async suggestProvidersForLanguages(languages: string[]) : Promise<Result<string[], string>> {
+async suggestProvidersForLanguagesBatch(languages: string[]) : Promise<Result<string[], string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener2|suggest_providers_for_languages", { languages }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener2|suggest_providers_for_languages_batch", { languages }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async listDocumentedLanguageCodesBatch() : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener2|list_documented_language_codes_batch") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

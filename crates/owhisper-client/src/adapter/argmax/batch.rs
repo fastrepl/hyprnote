@@ -22,7 +22,7 @@ impl BatchSttAdapter for ArgmaxAdapter {
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
-        ArgmaxAdapter::is_supported_languages(languages, model)
+        ArgmaxAdapter::is_supported_languages_batch(languages, model)
     }
 
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(

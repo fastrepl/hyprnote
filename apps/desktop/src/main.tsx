@@ -31,11 +31,10 @@ import {
   StoreComponent as SettingsStoreComponent,
 } from "./store/tinybase/store/settings";
 import { createAITaskStore } from "./store/zustand/ai-task";
-import { createListenerStore } from "./store/zustand/listener";
+import { listenerStore } from "./store/zustand/listener/instance";
 import "./styles/globals.css";
 
 const toolRegistry = createToolRegistry();
-const listenerStore = createListenerStore();
 const queryClient = new QueryClient();
 
 const router = createRouter({

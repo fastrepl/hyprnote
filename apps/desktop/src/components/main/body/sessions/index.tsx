@@ -165,7 +165,7 @@ function TabContentNoteInner({
   const [showConsentBanner, setShowConsentBanner] = useState(false);
 
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const prevSessionMode = useRef<string | null>(null);
+  const prevSessionMode = useRef<string | null>(sessionMode);
 
   useEffect(() => {
     const justStartedListening =

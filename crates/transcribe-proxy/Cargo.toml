@@ -16,7 +16,7 @@ reqwest = { workspace = true, features = ["json"] }
 reqwest-middleware = { workspace = true }
 serde_html_form = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "time", "sync", "macros"] }
-tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"] }
+tokio-tungstenite = { workspace = true, features = ["native-tls"] }
 tower = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }

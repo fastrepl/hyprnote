@@ -3,6 +3,7 @@
 ARG RUST_VERSION=1.92.0
 
 FROM rust:${RUST_VERSION}-bookworm AS planner
+RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN cargo install cargo-chef --locked
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
@@ -14,6 +15,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM rust:${RUST_VERSION}-bookworm AS build
 ARG APP_VERSION
+RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN cargo install cargo-chef sccache --locked
 ENV RUSTC_WRAPPER=sccache \
     SCCACHE_DIR=/sccache \
@@ -34,7 +36,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     cargo build --release -p ai
 
 FROM debian:bookworm-slim AS runtime
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
 RUN groupadd -g 1001 appgroup && \
     useradd -u 1001 -g appgroup -d /nonexistent -s /usr/sbin/nologin -M appuser
 COPY --from=build --chown=appuser:appgroup /app/target/release/ai /usr/local/bin/ai

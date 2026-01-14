@@ -128,7 +128,7 @@ function HeroSection({ article }: { article: any }) {
   return (
     <header className="py-12 lg:py-16 text-center max-w-200 mx-auto px-4">
       <Link
-        to="/blog"
+        to="/blog/"
         className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8"
       >
         <span>←</span>
@@ -188,7 +188,7 @@ function RelatedArticlesSection({
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-serif text-stone-600">More articles</h3>
         <Link
-          to="/blog"
+          to="/blog/"
           className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
         >
           See all
@@ -231,7 +231,7 @@ function CTASection() {
             <DownloadButton />
           ) : (
             <Link
-              to="/download"
+              to="/download/"
               className={cn([
                 "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
                 "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
@@ -280,7 +280,7 @@ function MobileCTA() {
       transition={{ duration: 0.3, ease: "easeInOut" }}
     >
       <Link
-        to="/download"
+        to="/download/"
         className={cn([
           "group px-4 h-12 flex items-center justify-center text-base w-full",
           "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
@@ -315,7 +315,7 @@ function RelatedArticleCard({ article }: { article: any }) {
 
   return (
     <Link
-      to="/blog/$slug"
+      to="/blog/$slug/"
       params={{ slug: article.slug }}
       className="group block border border-neutral-200 rounded-sm hover:border-neutral-200 hover:shadow-sm transition-all bg-white overflow-hidden"
     >

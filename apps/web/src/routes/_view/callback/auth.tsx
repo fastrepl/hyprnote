@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
       const { error } = await supabase.auth.exchangeCodeForSession(search.code);
 
       if (!error) {
-        throw redirect({ href: search.redirect || "/app/account" });
+        throw redirect({ to: search.redirect || "/app/account/" });
       } else {
         console.error(error);
       }
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
 
       if (!error && data.session) {
         throw redirect({
-          to: "/callback/auth",
+          to: "/callback/auth/",
           search: {
             flow: "desktop",
             scheme: search.scheme,
@@ -63,12 +63,12 @@ export const Route = createFileRoute("/_view/callback/auth")({
 
       if (!error && data.session) {
         if (search.flow === "web") {
-          throw redirect({ href: search.redirect || "/app/account" });
+          throw redirect({ to: search.redirect || "/app/account/" });
         }
 
         if (search.flow === "desktop") {
           throw redirect({
-            to: "/callback/auth",
+            to: "/callback/auth/",
             search: {
               flow: "desktop",
               scheme: search.scheme,
@@ -118,7 +118,7 @@ function Component() {
 
   useEffect(() => {
     if (search.flow === "web") {
-      throw redirect({ href: search.redirect || "/app/account" });
+      throw redirect({ to: search.redirect || "/app/account/" });
     }
 
     if (

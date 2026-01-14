@@ -141,7 +141,7 @@ function AccountSettingsCard() {
 
       return (
         <Link
-          to="/app/checkout"
+          to="/app/checkout/"
           search={{ period: "monthly" }}
           className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
         >
@@ -209,7 +209,7 @@ function IntegrationsSettingsCard() {
           connected to Hyprnote
         </div>
         <Link
-          to="/app/integration"
+          to="/app/integration/"
           className="px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
         >
           See all

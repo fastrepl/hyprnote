@@ -27,10 +27,10 @@ export const Route = createFileRoute("/admin")({
 
     if (!user) {
       throw redirect({
-        to: "/auth",
+        to: "/auth/",
         search: {
           flow: "web",
-          redirect: "/admin",
+          redirect: "/admin/",
         },
       });
     }
@@ -68,7 +68,7 @@ function AdminHeader({ user }: { user: { email: string } }) {
       <div className="h-full px-6 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link
-            to="/admin"
+            to="/admin/"
             className="font-serif2 italic text-stone-600 text-2xl"
           >
             Content Admin
@@ -82,7 +82,7 @@ function AdminHeader({ user }: { user: { email: string } }) {
               Articles
             </Link> */}
             <Link
-              to="/admin/media"
+              to="/admin/media/"
               className="relative py-1 text-sm text-neutral-600 hover:text-neutral-900 transition-colors [&.active]:text-neutral-900 font-medium [&.active]:after:absolute [&.active]:after:bottom-0 [&.active]:after:left-1/2 [&.active]:after:-translate-x-1/2 [&.active]:after:w-7 [&.active]:after:h-0.5 [&.active]:after:bg-neutral-900 [&.active]:after:rounded-full"
               activeProps={{ className: "active" }}
             >

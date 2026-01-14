@@ -74,7 +74,7 @@ function LeftSidebar({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
     <aside className="hidden lg:block w-64 shrink-0">
       <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto px-4 pt-6 pb-18 scrollbar-hide">
         <Link
-          to="/shortcuts"
+          to="/shortcuts/"
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-6 font-serif"
         >
           <Icon icon="mdi:arrow-left" className="text-base" />
@@ -87,7 +87,7 @@ function LeftSidebar({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
               Category
             </h3>
             <Link
-              to="/shortcuts"
+              to="/shortcuts/"
               search={{ category: shortcut.category }}
               className="text-sm text-stone-600 hover:text-stone-800 transition-colors"
             >
@@ -119,7 +119,7 @@ function MainContent({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
     <main className="flex-1 min-w-0 pb-6 px-4 lg:px-8 py-6">
       <div className="lg:hidden mb-6">
         <Link
-          to="/shortcuts"
+          to="/shortcuts/"
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors font-serif"
         >
           <Icon icon="mdi:arrow-left" className="text-base" />
@@ -187,7 +187,7 @@ function SuggestedShortcuts({
         {suggestedShortcuts.map((s) => (
           <Link
             key={s.slug}
-            to="/shortcuts/$slug"
+            to="/shortcuts/$slug/"
             params={{ slug: s.slug }}
             className="group p-4 border border-neutral-200 rounded-sm bg-white hover:shadow-md hover:border-neutral-300 transition-all"
           >
@@ -208,7 +208,7 @@ function ShortcutFooter() {
   return (
     <footer className="mt-12 pt-8 border-t border-neutral-100">
       <Link
-        to="/shortcuts"
+        to="/shortcuts/"
         className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors font-medium"
       >
         <span>&larr;</span>

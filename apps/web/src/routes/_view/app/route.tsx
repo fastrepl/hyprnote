@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_view/app")({
           ? `?${new URLSearchParams(location.search as Record<string, string>).toString()}`
           : "";
       throw redirect({
-        to: "/auth",
+        to: "/auth/",
         search: {
           flow: "web",
           redirect: location.pathname + searchStr,

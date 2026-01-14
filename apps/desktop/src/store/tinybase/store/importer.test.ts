@@ -1,16 +1,28 @@
-import { readTextFile, remove } from "@tauri-apps/plugin-fs";
 import { createMergeableStore } from "tinybase/with-schemas";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import { commands as fs2Commands } from "@hypr/plugin-fs2";
+import { commands as path2Commands } from "@hypr/plugin-path2";
 import { SCHEMA } from "@hypr/store";
 
 import { importFromJson } from "./importer";
 import type { Store } from "./main";
 
-vi.mock("@tauri-apps/plugin-fs", () => ({
-  BaseDirectory: { Data: 0 },
-  readTextFile: vi.fn(),
-  remove: vi.fn(),
+vi.mock("@tauri-apps/api/path", () => ({
+  sep: vi.fn(() => "/"),
+}));
+
+vi.mock("@hypr/plugin-path2", () => ({
+  commands: {
+    base: vi.fn().mockResolvedValue("/test/data"),
+  },
+}));
+
+vi.mock("@hypr/plugin-fs2", () => ({
+  commands: {
+    readTextFile: vi.fn(),
+    remove: vi.fn(),
+  },
 }));
 
 function createTestStore(): Store {
@@ -24,14 +36,16 @@ describe("importFromJson", () => {
   let onPersistComplete: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
+    vi.mocked(path2Commands.base).mockResolvedValue("/test/data");
     store = createTestStore();
     onPersistComplete = vi.fn().mockResolvedValue(undefined);
   });
 
   test("successfully imports data", async () => {
-    vi.mocked(readTextFile).mockResolvedValue(
-      JSON.stringify([
+    vi.mocked(fs2Commands.readTextFile).mockResolvedValue({
+      status: "ok",
+      data: JSON.stringify([
         {
           folders: {
             "folder-1": {
@@ -43,8 +57,11 @@ describe("importFromJson", () => {
         },
         {},
       ]),
-    );
-    vi.mocked(remove).mockResolvedValue(undefined);
+    });
+    vi.mocked(fs2Commands.remove).mockResolvedValue({
+      status: "ok",
+      data: null,
+    });
 
     const result = await importFromJson(store, onPersistComplete);
 
@@ -53,15 +70,18 @@ describe("importFromJson", () => {
       rowsImported: 1,
       valuesImported: 0,
     });
-    expect(readTextFile).toHaveBeenCalledWith("hyprnote/import.json", {
-      baseDir: 0,
-    });
+    expect(fs2Commands.readTextFile).toHaveBeenCalledWith(
+      "/test/data/import.json",
+    );
     expect(onPersistComplete).toHaveBeenCalledTimes(1);
-    expect(remove).toHaveBeenCalledWith("hyprnote/import.json", { baseDir: 0 });
+    expect(fs2Commands.remove).toHaveBeenCalledWith("/test/data/import.json");
   });
 
   test("returns error for invalid JSON format - not array", async () => {
-    vi.mocked(readTextFile).mockResolvedValue("{}");
+    vi.mocked(fs2Commands.readTextFile).mockResolvedValue({
+      status: "ok",
+      data: "{}",
+    });
 
     const result = await importFromJson(store, onPersistComplete);
 
@@ -70,11 +90,14 @@ describe("importFromJson", () => {
       "expected [tables, values] array",
     );
     expect(onPersistComplete).not.toHaveBeenCalled();
-    expect(remove).not.toHaveBeenCalled();
+    expect(fs2Commands.remove).not.toHaveBeenCalled();
   });
 
   test("returns error for invalid JSON format - wrong array length", async () => {
-    vi.mocked(readTextFile).mockResolvedValue("[1, 2, 3]");
+    vi.mocked(fs2Commands.readTextFile).mockResolvedValue({
+      status: "ok",
+      data: "[1, 2, 3]",
+    });
 
     const result = await importFromJson(store, onPersistComplete);
 
@@ -85,7 +108,10 @@ describe("importFromJson", () => {
   });
 
   test("returns error when tables is not object or null", async () => {
-    vi.mocked(readTextFile).mockResolvedValue('["invalid", {}]');
+    vi.mocked(fs2Commands.readTextFile).mockResolvedValue({
+      status: "ok",
+      data: '["invalid", {}]',
+    });
 
     const result = await importFromJson(store, onPersistComplete);
 
@@ -96,7 +122,10 @@ describe("importFromJson", () => {
   });
 
   test("returns error when values is not object or null", async () => {
-    vi.mocked(readTextFile).mockResolvedValue('[{}, "invalid"]');
+    vi.mocked(fs2Commands.readTextFile).mockResolvedValue({
+      status: "ok",
+      data: '[{}, "invalid"]',
+    });
 
     const result = await importFromJson(store, onPersistComplete);
 
@@ -107,8 +136,14 @@ describe("importFromJson", () => {
   });
 
   test("handles null tables and values", async () => {
-    vi.mocked(readTextFile).mockResolvedValue("[null, null]");
-    vi.mocked(remove).mockResolvedValue(undefined);
+    vi.mocked(fs2Commands.readTextFile).mockResolvedValue({
+      status: "ok",
+      data: "[null, null]",
+    });
+    vi.mocked(fs2Commands.remove).mockResolvedValue({
+      status: "ok",
+      data: null,
+    });
 
     const result = await importFromJson(store, onPersistComplete);
 
@@ -122,10 +157,14 @@ describe("importFromJson", () => {
   test("merges data into existing store", async () => {
     store.setValues({ current_llm_provider: "existing" });
 
-    vi.mocked(readTextFile).mockResolvedValue(
-      JSON.stringify([{}, { current_stt_provider: "new" }]),
-    );
-    vi.mocked(remove).mockResolvedValue(undefined);
+    vi.mocked(fs2Commands.readTextFile).mockResolvedValue({
+      status: "ok",
+      data: JSON.stringify([{}, { current_stt_provider: "new" }]),
+    });
+    vi.mocked(fs2Commands.remove).mockResolvedValue({
+      status: "ok",
+      data: null,
+    });
 
     const result = await importFromJson(store, onPersistComplete);
 
@@ -135,7 +174,10 @@ describe("importFromJson", () => {
   });
 
   test("handles file read error", async () => {
-    vi.mocked(readTextFile).mockRejectedValue(new Error("File not found"));
+    vi.mocked(fs2Commands.readTextFile).mockResolvedValue({
+      status: "error",
+      error: "File not found",
+    });
 
     const result = await importFromJson(store, onPersistComplete);
 
@@ -145,8 +187,14 @@ describe("importFromJson", () => {
   });
 
   test("remove is called only after onPersistComplete resolves", async () => {
-    vi.mocked(readTextFile).mockResolvedValue("[{}, {}]");
-    vi.mocked(remove).mockResolvedValue(undefined);
+    vi.mocked(fs2Commands.readTextFile).mockResolvedValue({
+      status: "ok",
+      data: "[{}, {}]",
+    });
+    vi.mocked(fs2Commands.remove).mockResolvedValue({
+      status: "ok",
+      data: null,
+    });
 
     let persistCompleted = false;
     const deferredPersist = vi.fn().mockImplementation(async () => {
@@ -154,13 +202,14 @@ describe("importFromJson", () => {
       persistCompleted = true;
     });
 
-    vi.mocked(remove).mockImplementation(async () => {
+    vi.mocked(fs2Commands.remove).mockImplementation(async () => {
       expect(persistCompleted).toBe(true);
+      return { status: "ok", data: null };
     });
 
     await importFromJson(store, deferredPersist);
 
     expect(deferredPersist).toHaveBeenCalledTimes(1);
-    expect(remove).toHaveBeenCalledTimes(1);
+    expect(fs2Commands.remove).toHaveBeenCalledTimes(1);
   });
 });

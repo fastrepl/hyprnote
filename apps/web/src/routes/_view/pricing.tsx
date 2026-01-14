@@ -251,7 +251,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
 
         {plan.price ? (
           <Link
-            to="/auth"
+            to="/auth/"
             className={cn([
               "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
@@ -261,7 +261,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
           </Link>
         ) : (
           <Link
-            to="/download"
+            to="/download/"
             className={cn([
               "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
               "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
@@ -347,7 +347,7 @@ function CTASection() {
         </p>
         <div className="pt-6">
           <Link
-            to="/founders"
+            to="/founders/"
             search={{ source: "team-plan" }}
             className="px-6 h-12 flex items-center justify-center text-base sm:text-lg bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >

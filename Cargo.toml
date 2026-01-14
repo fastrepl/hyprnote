@@ -143,6 +143,7 @@ tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }
 tauri-plugin-detect = { path = "plugins/detect" }
 tauri-plugin-extensions = { path = "plugins/extensions" }
 tauri-plugin-fs-sync = { path = "plugins/fs-sync" }
+tauri-plugin-fs2 = { path = "plugins/fs2" }
 tauri-plugin-hooks = { path = "plugins/hooks" }
 tauri-plugin-icon = { path = "plugins/icon" }
 tauri-plugin-importer = { path = "plugins/importer" }

@@ -25,7 +25,7 @@ function Component() {
 
 function LeftSidebar() {
   const matchRoute = useMatchRoute();
-  const match = matchRoute({ to: "/company-handbook/$", fuzzy: true });
+  const match = matchRoute({ to: "/company-handbook/$/", fuzzy: true });
 
   const currentSlug = (
     match && typeof match !== "boolean" ? match._splat : undefined
@@ -80,7 +80,7 @@ function LeftSidebar() {
           sections={handbooksBySection.sections}
           currentSlug={currentSlug}
           scrollContainerRef={scrollContainerRef}
-          linkTo="/company-handbook/$"
+          linkTo="/company-handbook/$/"
         />
       </div>
     </aside>

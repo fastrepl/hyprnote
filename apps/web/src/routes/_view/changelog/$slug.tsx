@@ -338,7 +338,7 @@ function RelatedReleases({
           return (
             <Link
               key={release.slug}
-              to="/changelog/$slug"
+              to="/changelog/$slug/"
               params={{ slug: release.slug }}
               className={cn([
                 "group block",
@@ -389,7 +389,7 @@ function RelatedReleases({
 
       <div className="text-center mt-8">
         <Link
-          to="/changelog"
+          to="/changelog/"
           className="inline-flex items-center gap-2 px-6 h-12 text-base font-medium bg-linear-to-b from-white to-stone-50 text-neutral-700 border border-neutral-300 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
         >
           View all releases

@@ -1945,7 +1945,7 @@ function BlogSection() {
           return (
             <Link
               key={article._meta.filePath}
-              to="/blog/$slug"
+              to="/blog/$slug/"
               params={{ slug: article.slug }}
               className="group block h-full"
             >
@@ -1992,7 +1992,7 @@ function BlogSection() {
 
       <div className="text-center mt-8">
         <Link
-          to="/blog"
+          to="/blog/"
           className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 font-medium transition-colors"
         >
           View all articles

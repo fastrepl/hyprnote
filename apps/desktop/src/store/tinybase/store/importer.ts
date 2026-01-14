@@ -1,13 +1,14 @@
-import { BaseDirectory, readTextFile, remove } from "@tauri-apps/plugin-fs";
+import { sep } from "@tauri-apps/api/path";
 import { createMergeableStore } from "tinybase/with-schemas";
 
+import { commands as fs2Commands } from "@hypr/plugin-fs2";
+import { commands as path2Commands } from "@hypr/plugin-path2";
 import { SCHEMA } from "@hypr/store";
 import { isValidTiptapContent, md2json } from "@hypr/tiptap/shared";
 
 import type { Store } from "./main";
 
-const IMPORT_PATH = "hyprnote/import.json";
-const BASE_DIR = BaseDirectory.Data;
+const IMPORT_FILENAME = "import.json";
 
 export type ImportResult =
   | { status: "success"; rowsImported: number; valuesImported: number }
@@ -128,12 +129,26 @@ export const importFromJson = async (
   onPersistComplete: () => Promise<void>,
 ): Promise<ImportResult> => {
   try {
-    const content = await readTextFile(IMPORT_PATH, { baseDir: BASE_DIR });
-    const parsed = parseImportContent(content);
+    const base = await path2Commands.base();
+    const importPath = [base, IMPORT_FILENAME].join(sep());
+
+    const readResult = await fs2Commands.readTextFile(importPath);
+    if (readResult.status === "error") {
+      throw new Error(readResult.error);
+    }
+
+    const parsed = parseImportContent(readResult.data);
     const { rowsImported, valuesImported } = mergeImportData(store, parsed);
 
     await onPersistComplete();
-    await remove(IMPORT_PATH, { baseDir: BASE_DIR });
+
+    const removeResult = await fs2Commands.remove(importPath);
+    if (removeResult.status === "error") {
+      console.warn(
+        "[Importer] Failed to remove import file:",
+        removeResult.error,
+      );
+    }
 
     console.log(
       `[Importer] Successfully imported ${rowsImported} rows and ${valuesImported} values`,

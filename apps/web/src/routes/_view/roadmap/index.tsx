@@ -178,7 +178,7 @@ function TableView({ items }: { items: RoadmapItem[] }) {
               >
                 <td className="py-2 px-3 border-y border-neutral-100 whitespace-nowrap">
                   <Link
-                    to="/roadmap/$slug"
+                    to="/roadmap/$slug/"
                     params={{ slug: item.slug }}
                     className="font-medium text-stone-700 hover:text-stone-900 hover:underline"
                   >

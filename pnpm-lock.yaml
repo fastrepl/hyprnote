@@ -287,6 +287,9 @@ importers:
       '@hypr/plugin-fs-sync':
         specifier: workspace:*
         version: link:../../plugins/fs-sync
+      '@hypr/plugin-fs2':
+        specifier: workspace:*
+        version: link:../../plugins/fs2
       '@hypr/plugin-hooks':
         specifier: workspace:*
         version: link:../../plugins/hooks
@@ -1539,6 +1542,12 @@ importers:
         version: 2.9.1
 
   plugins/fs-sync:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/fs2:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

@@ -258,6 +258,7 @@
     },
     "misc:default",
     "fs-sync:default",
+    "fs2:default",
     "os:default",
     "detect:default",
     "permissions:default",

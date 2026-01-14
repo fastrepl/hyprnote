@@ -18,7 +18,7 @@ impl BatchSttAdapter for FireworksAdapter {
         languages: &[hypr_language::Language],
         _model: Option<&str>,
     ) -> bool {
-        FireworksAdapter::is_supported_languages(languages)
+        FireworksAdapter::is_supported_languages_batch(languages)
     }
 
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(

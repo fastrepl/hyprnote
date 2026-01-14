@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/legal")({
         content:
           "Confidential AI meeting notes for legal professionals. Capture client consultations, depositions, and case discussions with privacy-first local AI processing.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Legal Teams - Hyprnote",

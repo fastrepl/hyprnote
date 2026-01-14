@@ -106,9 +106,9 @@ function AppWithTiny() {
     <QueryClientProvider client={queryClient}>
       <TinyTickProvider manager={manager}>
         <TinyBaseProvider>
-          <App />
           <StoreComponent />
           <SettingsStoreComponent />
+          <App />
           {!isIframeContext && <TaskManager />}
           {!isIframeContext && <EventListeners />}
         </TinyBaseProvider>

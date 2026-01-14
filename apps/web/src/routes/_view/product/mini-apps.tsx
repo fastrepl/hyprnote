@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_view/product/mini-apps")({
         content:
           "Built-in mini apps for contacts, calendar, daily notes, and noteshelf. Everything you need to stay organized alongside your meetings.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 });

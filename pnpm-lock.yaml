@@ -245,9 +245,6 @@ importers:
       '@floating-ui/react':
         specifier: ^0.27.16
         version: 0.27.16(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@huggingface/languages':
-        specifier: ^1.0.0
-        version: 1.0.0
       '@hypr/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
@@ -3420,9 +3417,6 @@ packages:
     resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
     peerDependencies:
       react-hook-form: ^7.55.0
-
-  '@huggingface/languages@1.0.0':
-    resolution: {integrity: sha512-EtU6RwSRyiKiRHsdalP84vOV7Wrde6IbPums6XeOOD8peq8ttWfSdXIq00OF5T5OH9aCUf/pbOtg6Pxpus9vfw==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -18128,8 +18122,6 @@ snapshots:
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.69.0(react@19.2.3)
-
-  '@huggingface/languages@1.0.0': {}
 
   '@humanfs/core@0.19.1': {}
 

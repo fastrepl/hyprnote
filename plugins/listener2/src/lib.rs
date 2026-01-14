@@ -29,8 +29,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::run_batch::<tauri::Wry>,
             commands::parse_subtitle::<tauri::Wry>,
             commands::export_to_vtt::<tauri::Wry>,
-            commands::is_supported_languages::<tauri::Wry>,
-            commands::suggest_providers_for_languages::<tauri::Wry>,
+            commands::is_supported_languages_batch::<tauri::Wry>,
+            commands::suggest_providers_for_languages_batch::<tauri::Wry>,
+            commands::list_documented_language_codes_batch::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![BatchEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)

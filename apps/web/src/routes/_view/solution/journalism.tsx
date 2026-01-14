@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/journalism")({
         content:
           "Capture interviews, press briefings, and source conversations with AI-powered meeting notes. Report with confidence using Hyprnote.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Journalists - Hyprnote",

@@ -17,7 +17,7 @@ impl RealtimeSttAdapter for ArgmaxAdapter {
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
-        ArgmaxAdapter::is_supported_languages(languages, model)
+        ArgmaxAdapter::is_supported_languages_live(languages, model)
     }
 
     fn supports_native_multichannel(&self) -> bool {

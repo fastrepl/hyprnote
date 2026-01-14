@@ -1,10 +1,12 @@
 use std::any::TypeId;
-use std::sync::atomic::{AtomicU32, Ordering};
-use std::sync::{Arc, Mutex};
-use std::task::{Poll, Waker};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
+use std::task::Poll;
 
 use anyhow::Result;
 use futures_util::Stream;
+use futures_util::task::AtomicWaker;
+use hypr_audio_utils::{pcm_f32_to_f32, pcm_f64_to_f32, pcm_i16_to_f32, pcm_i32_to_f32};
 
 use ringbuf::{
     HeapCons, HeapProd, HeapRb,
@@ -14,14 +16,11 @@ use ringbuf::{
 use ca::aggregate_device_keys as agg_keys;
 use cidre::{arc, av, cat, cf, core_audio as ca, ns, os};
 
+const MAX_CONVERSION_SAMPLES: usize = 8192;
+
 pub struct SpeakerInput {
     tap: ca::TapGuard,
     agg_desc: arc::Retained<cf::DictionaryOf<cf::String, cf::Type>>,
-}
-
-struct WakerState {
-    waker: Option<Waker>,
-    has_data: bool,
 }
 
 pub struct SpeakerStream {
@@ -29,9 +28,10 @@ pub struct SpeakerStream {
     _device: ca::hardware::StartedDevice<ca::AggregateDevice>,
     _ctx: Box<Ctx>,
     _tap: ca::TapGuard,
-    waker_state: Arc<Mutex<WakerState>>,
+    waker: Arc<AtomicWaker>,
     current_sample_rate: Arc<AtomicU32>,
     read_buffer: Vec<f32>,
+    dropped_samples: Arc<AtomicUsize>,
 }
 
 impl SpeakerStream {
@@ -43,8 +43,10 @@ impl SpeakerStream {
 struct Ctx {
     format: arc::R<av::AudioFormat>,
     producer: HeapProd<f32>,
-    waker_state: Arc<Mutex<WakerState>>,
+    waker: Arc<AtomicWaker>,
     current_sample_rate: Arc<AtomicU32>,
+    dropped_samples: Arc<AtomicUsize>,
+    conversion_buffer: Vec<f32>,
 }
 
 use super::{BUFFER_SIZE, CHUNK_SIZE};
@@ -105,14 +107,13 @@ impl SpeakerInput {
 
             if before != after {
                 ctx.current_sample_rate.store(after, Ordering::Release);
-                tracing::info!(before = before, after = after, "sample_rate",);
             }
 
             if let Some(view) =
                 av::AudioPcmBuf::with_buf_list_no_copy(&ctx.format, input_data, None)
             {
                 if let Some(data) = view.data_f32_at(0) {
-                    process_audio_data(ctx, data);
+                    process_audio_data_rt_safe(ctx, data);
                 }
             } else {
                 let first_buffer = &input_data.buffers[0];
@@ -123,30 +124,16 @@ impl SpeakerInput {
 
                 match ctx.format.common_format() {
                     av::audio::CommonFormat::PcmF32 => {
-                        process_samples(ctx, first_buffer, |sample: f32| sample);
+                        process_samples_rt_safe::<f32>(ctx, first_buffer, pcm_f32_to_f32);
                     }
                     av::audio::CommonFormat::PcmF64 => {
-                        process_samples(ctx, first_buffer, |sample: f64| sample as f32);
+                        process_samples_rt_safe::<f64>(ctx, first_buffer, pcm_f64_to_f32);
                     }
                     av::audio::CommonFormat::PcmI32 => {
-                        let scale = i32::MAX as f32;
-                        process_samples(ctx, first_buffer, move |sample: i32| {
-                            if sample == i32::MIN {
-                                -1.0
-                            } else {
-                                sample as f32 / scale
-                            }
-                        });
+                        process_samples_rt_safe::<i32>(ctx, first_buffer, pcm_i32_to_f32);
                     }
                     av::audio::CommonFormat::PcmI16 => {
-                        let scale = i16::MAX as f32;
-                        process_samples(ctx, first_buffer, move |sample: i16| {
-                            if sample == i16::MIN {
-                                -1.0
-                            } else {
-                                sample as f32 / scale
-                            }
-                        });
+                        process_samples_rt_safe::<i16>(ctx, first_buffer, pcm_i16_to_f32);
                     }
                     _ => {}
                 }
@@ -170,19 +157,19 @@ impl SpeakerInput {
         let rb = HeapRb::<f32>::new(BUFFER_SIZE);
         let (producer, consumer) = rb.split();
 
-        let waker_state = Arc::new(Mutex::new(WakerState {
-            waker: None,
-            has_data: false,
-        }));
-
+        let waker = Arc::new(AtomicWaker::new());
         let current_sample_rate = Arc::new(AtomicU32::new(asbd.sample_rate as u32));
+        let dropped_samples = Arc::new(AtomicUsize::new(0));
+
         tracing::info!(init = asbd.sample_rate, "sample_rate");
 
         let mut ctx = Box::new(Ctx {
             format,
             producer,
-            waker_state: waker_state.clone(),
+            waker: waker.clone(),
             current_sample_rate: current_sample_rate.clone(),
+            dropped_samples: dropped_samples.clone(),
+            conversion_buffer: vec![0.0f32; MAX_CONVERSION_SAMPLES],
         });
 
         let device = self.start_device(&mut ctx).unwrap();
@@ -192,9 +179,10 @@ impl SpeakerInput {
             _device: device,
             _ctx: ctx,
             _tap: self.tap,
-            waker_state,
+            waker,
             current_sample_rate,
             read_buffer: vec![0.0f32; CHUNK_SIZE],
+            dropped_samples,
         }
     }
 }
@@ -214,56 +202,65 @@ fn read_samples<T: Copy>(buffer: &cat::AudioBuf) -> Option<&[T]> {
     Some(unsafe { std::slice::from_raw_parts(buffer.data as *const T, sample_count) })
 }
 
-fn process_samples<T, F>(ctx: &mut Ctx, buffer: &cat::AudioBuf, mut convert: F)
+fn process_samples_rt_safe<T>(ctx: &mut Ctx, buffer: &cat::AudioBuf, convert: fn(T) -> f32)
 where
     T: Copy + 'static,
-    F: FnMut(T) -> f32,
 {
-    if let Some(samples) = read_samples::<T>(buffer) {
-        if samples.is_empty() {
-            return;
+    let Some(samples) = read_samples::<T>(buffer) else {
+        return;
+    };
+
+    if samples.is_empty() {
+        return;
+    }
+
+    if TypeId::of::<T>() == TypeId::of::<f32>() {
+        let data =
+            unsafe { std::slice::from_raw_parts(samples.as_ptr() as *const f32, samples.len()) };
+        process_audio_data_rt_safe(ctx, data);
+        return;
+    }
+
+    let mut offset = 0usize;
+    let chunk_len = ctx.conversion_buffer.len();
+    let mut pushed_any = false;
+
+    while offset < samples.len() {
+        let end = (offset + chunk_len).min(samples.len());
+        let count = end - offset;
+
+        for i in 0..count {
+            ctx.conversion_buffer[i] = convert(samples[offset + i]);
         }
 
-        if TypeId::of::<T>() == TypeId::of::<f32>() {
-            let data = unsafe {
-                std::slice::from_raw_parts(samples.as_ptr() as *const f32, samples.len())
-            };
-            process_audio_data(ctx, data);
-            return;
+        let pushed = ctx.producer.push_slice(&ctx.conversion_buffer[..count]);
+        if pushed < count {
+            ctx.dropped_samples
+                .fetch_add(count - pushed, Ordering::Relaxed);
         }
 
-        let mut converted = Vec::with_capacity(samples.len());
-        for sample in samples {
-            converted.push(convert(*sample));
+        if pushed > 0 {
+            pushed_any = true;
         }
-        if !converted.is_empty() {
-            process_audio_data(ctx, &converted);
-        }
+
+        offset = end;
+    }
+
+    if pushed_any {
+        ctx.waker.wake();
     }
 }
 
-fn process_audio_data(ctx: &mut Ctx, data: &[f32]) {
+fn process_audio_data_rt_safe(ctx: &mut Ctx, data: &[f32]) {
     let pushed = ctx.producer.push_slice(data);
 
     if pushed < data.len() {
         let dropped = data.len() - pushed;
-        tracing::warn!(dropped, "samples_dropped");
+        ctx.dropped_samples.fetch_add(dropped, Ordering::Relaxed);
     }
 
     if pushed > 0 {
-        let should_wake = {
-            let mut waker_state = ctx.waker_state.lock().unwrap();
-            if !waker_state.has_data {
-                waker_state.has_data = true;
-                waker_state.waker.take()
-            } else {
-                None
-            }
-        };
-
-        if let Some(waker) = should_wake {
-            waker.wake();
-        }
+        ctx.waker.wake();
     }
 }
 
@@ -275,16 +272,23 @@ impl Stream for SpeakerStream {
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
         let this = self.as_mut().get_mut();
+
+        let dropped = this.dropped_samples.swap(0, Ordering::Relaxed);
+        if dropped > 0 {
+            tracing::warn!(dropped, "samples_dropped");
+        }
+
         let popped = this.consumer.pop_slice(&mut this.read_buffer);
 
         if popped > 0 {
             return Poll::Ready(Some(this.read_buffer[..popped].to_vec()));
         }
 
-        {
-            let mut state = this.waker_state.lock().unwrap();
-            state.has_data = false;
-            state.waker = Some(cx.waker().clone());
+        this.waker.register(cx.waker());
+
+        let popped = this.consumer.pop_slice(&mut this.read_buffer);
+        if popped > 0 {
+            return Poll::Ready(Some(this.read_buffer[..popped].to_vec()));
         }
 
         Poll::Pending
@@ -292,5 +296,7 @@ impl Stream for SpeakerStream {
 }
 
 impl Drop for SpeakerStream {
-    fn drop(&mut self) {}
+    fn drop(&mut self) {
+        tracing::debug!("SpeakerStream dropping");
+    }
 }

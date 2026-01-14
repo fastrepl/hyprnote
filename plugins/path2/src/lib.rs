@@ -14,6 +14,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::base::<tauri::Wry>,
+            commands::obsidian_vaults::<tauri::Wry>,
             commands::sanitize,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
@@ -59,6 +60,11 @@ mod test {
     async fn test_path2() {
         let app = create_app(tauri::test::mock_builder());
         let result = app.path2().base();
+        assert!(result.is_ok());
+
+        println!("base: {:?}", result.unwrap());
+
+        let result = app.path2().obsidian_vaults();
         assert!(result.is_ok());
     }
 }

@@ -13,18 +13,32 @@ pub use language::PARAKEET_V3_LANGS;
 pub struct ArgmaxAdapter;
 
 impl ArgmaxAdapter {
-    pub fn is_supported_languages(
+    pub fn is_supported_languages_live(
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> bool {
+        Self::is_supported_languages_impl(languages, model)
+    }
+
+    pub fn is_supported_languages_batch(
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> bool {
+        Self::is_supported_languages_impl(languages, model)
+    }
+
+    fn is_supported_languages_impl(
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
         let model = model.unwrap_or("");
 
         if model.contains("parakeet") && model.contains("v2") {
-            languages.iter().all(|lang| lang.iso639().code() == "en")
+            languages.iter().any(|lang| lang.iso639().code() == "en")
         } else if model.contains("parakeet") && model.contains("v3") {
             languages
                 .iter()
-                .all(|lang| PARAKEET_V3_LANGS.contains(&lang.iso639().code()))
+                .any(|lang| PARAKEET_V3_LANGS.contains(&lang.iso639().code()))
         } else {
             true
         }

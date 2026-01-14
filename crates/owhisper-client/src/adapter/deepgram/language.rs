@@ -7,7 +7,7 @@ use crate::adapter::deepgram_compat::{
 const NOVA2_MULTI_LANGS: &[&str] = &["en", "es"];
 const NOVA3_MULTI_LANGS: &[&str] = &["en", "es", "fr", "de", "hi", "ru", "pt", "ja", "it", "nl"];
 
-fn can_use_multi(model: &str, languages: &[hypr_language::Language]) -> bool {
+pub fn can_use_multi(model: &str, languages: &[hypr_language::Language]) -> bool {
     if languages.len() < 2 {
         return false;
     }
@@ -46,22 +46,22 @@ impl LanguageQueryStrategy for DeepgramLanguageStrategy {
             }
             1 => {
                 if let Some(language) = params.languages.first() {
-                    let code = language.iso639().code();
-                    query_pairs.append_pair("language", code);
+                    let code = language.bcp47_code();
+                    query_pairs.append_pair("language", &code);
                 }
             }
             _ => {
                 if can_use_multi(model, &params.languages) {
                     query_pairs.append_pair("language", "multi");
                     for language in &params.languages {
-                        let code = language.iso639().code();
-                        query_pairs.append_pair("languages", code);
+                        let code = language.bcp47_code();
+                        query_pairs.append_pair("languages", &code);
                     }
                 } else if mode == TranscriptionMode::Batch {
                     query_pairs.append_pair("detect_language", "true");
                 } else if let Some(language) = params.languages.first() {
-                    let code = language.iso639().code();
-                    query_pairs.append_pair("language", code);
+                    let code = language.bcp47_code();
+                    query_pairs.append_pair("language", &code);
                 }
             }
         }

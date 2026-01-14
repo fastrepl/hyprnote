@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/recruiting")({
         content:
           "Capture every candidate interview with AI-powered meeting notes. Get structured feedback, compare candidates objectively, and make better hiring decisions with Hyprnote.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Recruiting - Hyprnote",

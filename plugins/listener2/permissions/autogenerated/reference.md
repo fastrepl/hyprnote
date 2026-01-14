@@ -7,8 +7,9 @@ Default permissions for the plugin
 - `allow-run-batch`
 - `allow-parse-subtitle`
 - `allow-export-to-vtt`
-- `allow-is-supported-languages`
-- `allow-suggest-providers-for-languages`
+- `allow-is-supported-languages-batch`
+- `allow-suggest-providers-for-languages-batch`
+- `allow-list-documented-language-codes-batch`
 
 ## Permission Table
 
@@ -48,12 +49,12 @@ Denies the export_to_vtt command without any pre-configured scope.
 <tr>
 <td>
 
-`listener2:allow-is-supported-languages`
+`listener2:allow-is-supported-languages-batch`
 
 </td>
 <td>
 
-Enables the is_supported_languages command without any pre-configured scope.
+Enables the is_supported_languages_batch command without any pre-configured scope.
 
 </td>
 </tr>
@@ -61,12 +62,38 @@ Enables the is_supported_languages command without any pre-configured scope.
 <tr>
 <td>
 
-`listener2:deny-is-supported-languages`
+`listener2:deny-is-supported-languages-batch`
 
 </td>
 <td>
 
-Denies the is_supported_languages command without any pre-configured scope.
+Denies the is_supported_languages_batch command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener2:allow-list-documented-language-codes-batch`
+
+</td>
+<td>
+
+Enables the list_documented_language_codes_batch command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener2:deny-list-documented-language-codes-batch`
+
+</td>
+<td>
+
+Denies the list_documented_language_codes_batch command without any pre-configured scope.
 
 </td>
 </tr>
@@ -126,12 +153,12 @@ Denies the run_batch command without any pre-configured scope.
 <tr>
 <td>
 
-`listener2:allow-suggest-providers-for-languages`
+`listener2:allow-suggest-providers-for-languages-batch`
 
 </td>
 <td>
 
-Enables the suggest_providers_for_languages command without any pre-configured scope.
+Enables the suggest_providers_for_languages_batch command without any pre-configured scope.
 
 </td>
 </tr>
@@ -139,12 +166,12 @@ Enables the suggest_providers_for_languages command without any pre-configured s
 <tr>
 <td>
 
-`listener2:deny-suggest-providers-for-languages`
+`listener2:deny-suggest-providers-for-languages-batch`
 
 </td>
 <td>
 
-Denies the suggest_providers_for_languages command without any pre-configured scope.
+Denies the suggest_providers_for_languages_batch command without any pre-configured scope.
 
 </td>
 </tr>

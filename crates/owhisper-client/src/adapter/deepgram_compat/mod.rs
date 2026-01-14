@@ -9,8 +9,7 @@ pub use url::form_urlencoded::Serializer;
 
 use owhisper_interface::ListenParams;
 
-use super::url_builder::QueryParamBuilder;
-use owhisper_providers::{Provider, is_meta_model};
+use super::url_builder::{QueryParamBuilder, resolve_model_for_languages};
 
 pub fn listen_endpoint_url(api_base: &str) -> (url::Url, Vec<(String, String)>) {
     let mut url: url::Url = api_base.parse().expect("invalid_api_base");
@@ -107,6 +106,8 @@ where
     L: LanguageQueryStrategy,
     K: KeywordQueryStrategy,
 {
+    use owhisper_providers::Provider;
+
     let (mut url, existing_params) = listen_endpoint_url(api_base);
 
     let mut builder = QueryParamBuilder::new();
@@ -114,12 +115,11 @@ where
         builder.add(key, value);
     }
 
-    let default = Provider::Deepgram.default_batch_model();
-    let model = match params.model.as_deref() {
-        Some(m) if is_meta_model(m) => default,
-        Some(m) => m,
-        None => default,
-    };
+    let model = resolve_model_for_languages(
+        params.model.as_deref(),
+        &params.languages,
+        Provider::Deepgram.default_batch_model(),
+    );
     builder
         .add("model", model)
         .add("encoding", "linear16")

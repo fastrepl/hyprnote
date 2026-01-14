@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/sales")({
         content:
           "Capture every sales call detail with AI-powered meeting notes. Get automatic transcriptions, deal insights, and CRM-ready summaries. Close more deals with Hyprnote.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Sales Teams - Hyprnote",

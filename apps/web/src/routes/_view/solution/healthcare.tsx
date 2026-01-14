@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/healthcare")({
         content:
           "HIPAA-ready AI meeting notes for healthcare professionals. Capture patient consultations, clinical meetings, and care coordination with privacy-first local AI processing.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Healthcare - Hyprnote",

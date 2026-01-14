@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/government")({
         content:
           "Secure AI meeting notes for government agencies. Capture public meetings, inter-agency coordination, and policy discussions with privacy-first local AI processing.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Government - Hyprnote",

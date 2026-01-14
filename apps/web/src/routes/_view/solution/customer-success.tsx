@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/solution/customer-success")({
         content:
           "Capture every customer conversation with AI-powered meeting notes. Track health signals, document feedback, and drive retention with Hyprnote.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       {
         property: "og:title",
         content: "AI Meeting Notes for Customer Success - Hyprnote",

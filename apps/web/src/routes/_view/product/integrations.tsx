@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_view/product/integrations")({
         content:
           "Connect Hyprnote with your favorite tools and automate your meeting workflow. Integrations coming soon.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 });

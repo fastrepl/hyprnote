@@ -16,6 +16,7 @@ export const Route = createFileRoute("/_view/product/notepad")({
         content:
           "Private, local-first notepad with no bots. Record meetings directly from your device with AI processing that never leaves your computer.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 });

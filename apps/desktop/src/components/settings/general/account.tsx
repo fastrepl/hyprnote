@@ -20,6 +20,7 @@ import { cn } from "@hypr/utils";
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
 import { env } from "../../../env";
+import * as settings from "../../../store/tinybase/store/settings";
 import { useTrialBeginModal } from "../../devtool/trial-begin-modal";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
@@ -27,6 +28,7 @@ const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 export function AccountSettings() {
   const auth = useAuth();
   const { isPro } = useBillingAccess();
+  const store = settings.UI.useStore(settings.STORE_ID);
 
   const isAuthenticated = !!auth?.session;
   const [isPending, setIsPending] = useState(false);
@@ -56,8 +58,24 @@ export function AccountSettings() {
     void analyticsCommands.event({
       event: "user_signed_out",
     });
+
+    if (store) {
+      const currentSttProvider = store.getValue("current_stt_provider");
+      const currentSttModel = store.getValue("current_stt_model");
+      const currentLlmProvider = store.getValue("current_llm_provider");
+
+      if (currentSttProvider === "hyprnote" && currentSttModel === "cloud") {
+        store.setValue("current_stt_model", "");
+      }
+
+      if (currentLlmProvider === "hyprnote") {
+        store.setValue("current_llm_provider", "");
+        store.setValue("current_llm_model", "");
+      }
+    }
+
     await auth?.signOut();
-  }, [auth]);
+  }, [auth, store]);
 
   if (!isAuthenticated) {
     if (isPending && devMode) {

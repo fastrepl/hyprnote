@@ -2,7 +2,9 @@ use std::{collections::HashMap, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
-use tauri_plugin_settings::SettingsPluginExt;
+
+const DEFAULT_CONTENT_SUBDIR: &str = "meetings";
+const SETTINGS_FILENAME: &str = "settings.json";
 
 pub struct Path2<'a, R: tauri::Runtime, M: Manager<R>> {
     manager: &'a M,
@@ -40,7 +42,27 @@ impl<'a, R: tauri::Runtime, M: Manager<R>> Path2<'a, R, M> {
     }
 
     pub fn content_base(&self) -> PathBuf {
-        self.manager.app_handle().settings().content_base()
+        let base = match self.base() {
+            Ok(b) => b,
+            Err(_) => return PathBuf::from(DEFAULT_CONTENT_SUBDIR),
+        };
+
+        let settings_path = base.join(SETTINGS_FILENAME);
+        let content = std::fs::read_to_string(&settings_path)
+            .ok()
+            .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
+            .and_then(|v| {
+                v.get("storage")?
+                    .get("content_base")?
+                    .as_str()
+                    .map(String::from)
+            })
+            .map(PathBuf::from);
+
+        match content {
+            Some(path) if path.exists() => path,
+            _ => base.join(DEFAULT_CONTENT_SUBDIR),
+        }
     }
 
     pub fn obsidian_vaults(&self) -> Result<Vec<ObsidianVault>, crate::Error> {

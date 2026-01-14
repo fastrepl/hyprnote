@@ -16,7 +16,6 @@ tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-settings = { path = "../settings" }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }

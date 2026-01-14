@@ -4747,6 +4747,7 @@ dependencies = [
  "tauri-plugin-notification",
  "tauri-plugin-notify",
  "tauri-plugin-opener",
+ "tauri-plugin-opener2",
  "tauri-plugin-os",
  "tauri-plugin-overlay",
  "tauri-plugin-path2",

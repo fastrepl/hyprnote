@@ -1,6 +1,5 @@
 import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
-import { openPath } from "@tauri-apps/plugin-opener";
 import { arch, platform } from "@tauri-apps/plugin-os";
 import { useCallback } from "react";
 
@@ -8,6 +7,7 @@ import {
   commands as localSttCommands,
   type SupportedSttModel,
 } from "@hypr/plugin-local-stt";
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import {
   Accordion,
   AccordionContent,
@@ -398,7 +398,7 @@ function HyprProviderLocalRow({
   const handleOpen = () => {
     void localSttCommands.modelsDir().then((result) => {
       if (result.status === "ok") {
-        void openPath(result.data);
+        void openerCommands.openPath(result.data, null);
       }
     });
   };

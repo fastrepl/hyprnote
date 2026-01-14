@@ -295,22 +295,46 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the open_path command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
+          "const": "allow-open-path",
+          "markdownDescription": "Enables the open_path command without any pre-configured scope."
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the open_path command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
+          "const": "deny-open-path",
+          "markdownDescription": "Denies the open_path command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",
+          "description": "Enables the open_url command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-open-url",
+          "markdownDescription": "Enables the open_url command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the open_url command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-open-url",
+          "markdownDescription": "Denies the open_url command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the reveal_item_in_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-reveal-item-in-dir",
+          "markdownDescription": "Enables the reveal_item_in_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the reveal_item_in_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-reveal-item-in-dir",
+          "markdownDescription": "Denies the reveal_item_in_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-url`\n- `allow-open-path`\n- `allow-reveal-item-in-dir`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-url`\n- `allow-open-path`\n- `allow-reveal-item-in-dir`"
         }
       ]
     }

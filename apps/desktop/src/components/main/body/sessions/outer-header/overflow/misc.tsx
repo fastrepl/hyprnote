@@ -1,9 +1,9 @@
 import { Icon } from "@iconify-icon/react";
 import { useMutation } from "@tanstack/react-query";
-import { openPath } from "@tauri-apps/plugin-opener";
 import { FolderIcon, Link2Icon, Loader2Icon } from "lucide-react";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import {
   DropdownMenuItem,
   DropdownMenuSub,
@@ -62,7 +62,7 @@ export function ShowInFinder({ sessionId }: { sessionId: string }) {
       if (result.status === "error") {
         throw new Error(result.error);
       }
-      await openPath(result.data);
+      await openerCommands.openPath(result.data, null);
     },
   });
 

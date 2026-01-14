@@ -20,35 +20,6 @@
     "core:window:allow-set-position",
     "core:window:allow-is-maximized",
     "core:window:allow-toggle-maximize",
-    "opener:default",
-    {
-      "identifier": "opener:allow-open-url",
-      "allow": [
-        {
-          "url": "https://**"
-        },
-        {
-          "url": "mailto:*"
-        },
-        {
-          "url": "obsidian://**"
-        }
-      ]
-    },
-    {
-      "identifier": "opener:allow-open-path",
-      "allow": [
-        {
-          "path": "$DATA/hyprnote/**/*"
-        },
-        {
-          "path": "$APPDATA/**/*"
-        },
-        {
-          "path": "$DOWNLOAD/**/*"
-        }
-      ]
-    },
     "apple-calendar:default",
     "apple-contact:default",
     "audio-priority:default",

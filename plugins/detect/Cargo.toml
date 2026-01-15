@@ -8,9 +8,10 @@ links = "tauri-plugin-detect"
 description = ""
 
 [features]
-default = ["zoom"]
+default = ["zoom", "google-meet"]
 zoom = ["hypr-detect/zoom"]
 language = ["hypr-detect/language"]
+google-meet = ["hypr-detect/google-meet"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }

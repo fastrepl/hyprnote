@@ -19,6 +19,9 @@ pub use utils::BackgroundTask;
 ))]
 mod zoom;
 
+#[cfg(all(feature = "google-meet", feature = "mic"))]
+mod google_meet;
+
 #[cfg(feature = "app")]
 pub use app::*;
 #[cfg(all(target_os = "macos", feature = "language"))]
@@ -36,6 +39,9 @@ pub use mic::*;
 ))]
 pub use zoom::*;
 
+#[cfg(all(feature = "google-meet", feature = "mic"))]
+pub use google_meet::*;
+
 #[cfg(feature = "mic")]
 #[derive(Debug, Clone)]
 pub enum DetectEvent {
@@ -43,6 +49,10 @@ pub enum DetectEvent {
     MicStopped(Vec<InstalledApp>),
     #[cfg(all(target_os = "macos", feature = "zoom"))]
     ZoomMuteStateChanged {
+        value: bool,
+    },
+    #[cfg(feature = "google-meet")]
+    GoogleMeetMuteStateChanged {
         value: bool,
     },
 }
@@ -70,6 +80,8 @@ pub struct Detector {
     mic_detector: MicDetector,
     #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
     zoom_watcher: ZoomMuteWatcher,
+    #[cfg(feature = "google-meet")]
+    google_meet_watcher: GoogleMeetMuteWatcher,
 }
 
 #[cfg(feature = "mic")]
@@ -78,7 +90,10 @@ impl Detector {
         self.mic_detector.start(f.clone());
 
         #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
-        self.zoom_watcher.start(f);
+        self.zoom_watcher.start(f.clone());
+
+        #[cfg(feature = "google-meet")]
+        self.google_meet_watcher.start(f);
     }
 
     pub fn stop(&mut self) {
@@ -86,5 +101,8 @@ impl Detector {
 
         #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
         self.zoom_watcher.stop();
+
+        #[cfg(feature = "google-meet")]
+        self.google_meet_watcher.stop();
     }
 }

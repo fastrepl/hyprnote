@@ -1,0 +1,11 @@
+[package]
+name = "chrome-native-messaging"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dirs = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }

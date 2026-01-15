@@ -196,6 +196,21 @@ pub async fn main() {
                 }
             }
 
+            {
+                let binary_path = std::env::current_exe()
+                    .ok()
+                    .and_then(|p| p.parent().map(|p| p.join("hyprnote-chrome-native-host")))
+                    .and_then(|p| p.to_str().map(String::from));
+
+                if let Some(path) = binary_path {
+                    if let Err(e) =
+                        hypr_chrome_native_messaging::register_native_messaging_host(&path, None)
+                    {
+                        tracing::warn!("failed to register chrome native messaging host: {}", e);
+                    }
+                }
+            }
+
             tokio::spawn(async move {
                 use tauri_plugin_db2::Database2PluginExt;
 

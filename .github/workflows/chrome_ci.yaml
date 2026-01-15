@@ -1,0 +1,46 @@
+name: chrome_ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/chrome/**
+  pull_request:
+    branches-ignore:
+      - "**/graphite-base/**"
+    paths:
+      - apps/chrome/**
+
+jobs:
+  optimize_ci:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check_skip.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check_skip
+        uses: ./.github/actions/graphite_optimizer
+        with:
+          graphite_token: ${{ secrets.GRAPHITE_TOKEN }}
+
+  ci:
+    needs: optimize_ci
+    if: needs.optimize_ci.outputs.skip == 'false'
+    runs-on: depot-ubuntu-24.04-4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/pnpm_install
+      - name: Install dependencies
+        run: pnpm -F @hypr/chrome install
+      - name: Type check
+        run: pnpm -F @hypr/chrome compile
+      - name: Build extension
+        run: pnpm -F @hypr/chrome build
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-extension
+          path: apps/chrome/.output/chrome-mv3/
+          retention-days: 7

@@ -10,8 +10,10 @@ language = []
 list = []
 app = []
 zoom = []
+google-meet = []
 
 [dependencies]
+dirs = { workspace = true }
 isolang = { workspace = true }
 lazy_static = { workspace = true }
 regex = { workspace = true }

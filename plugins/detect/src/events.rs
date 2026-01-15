@@ -35,6 +35,10 @@ impl From<hypr_detect::DetectEvent> for DetectEvent {
             hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {
                 Self::MicMuteStateChanged { value }
             }
+            #[cfg(feature = "google-meet")]
+            hypr_detect::DetectEvent::GoogleMeetMuteStateChanged { value } => {
+                Self::MicMuteStateChanged { value }
+            }
         }
     }
 }

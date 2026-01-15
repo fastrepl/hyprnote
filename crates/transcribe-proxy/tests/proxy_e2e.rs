@@ -118,7 +118,10 @@ async fn run_proxy_batch_test<A: BatchSttAdapter>(
     let url = format!(
         "http://{}/listen?model={}",
         addr,
-        params.model.as_deref().unwrap_or("nova-3")
+        params
+            .model
+            .as_deref()
+            .unwrap_or(provider.default_batch_model())
     );
 
     let response = client
@@ -158,7 +161,7 @@ async fn run_proxy_batch_test<A: BatchSttAdapter>(
 }
 
 macro_rules! proxy_live_test {
-    ($name:ident, $adapter:ty, $provider:expr, $model:expr) => {
+    ($name:ident, $adapter:ty, $provider:expr) => {
         pub mod $name {
             use super::*;
 
@@ -171,7 +174,7 @@ macro_rules! proxy_live_test {
                     run_proxy_live_test::<$adapter>(
                         $provider,
                         owhisper_interface::ListenParams {
-                            model: Some($model.to_string()),
+                            model: Some($provider.default_live_model().to_string()),
                             languages: vec![hypr_language::ISO639::En.into()],
                             ..Default::default()
                         },
@@ -184,7 +187,7 @@ macro_rules! proxy_live_test {
 }
 
 macro_rules! proxy_batch_test {
-    ($name:ident, $adapter:ty, $provider:expr, $model:expr) => {
+    ($name:ident, $adapter:ty, $provider:expr) => {
         pub mod $name {
             use super::*;
 
@@ -197,7 +200,7 @@ macro_rules! proxy_batch_test {
                     run_proxy_batch_test::<$adapter>(
                         $provider,
                         owhisper_interface::ListenParams {
-                            model: Some($model.to_string()),
+                            model: Some($provider.default_batch_model().to_string()),
                             languages: vec![hypr_language::ISO639::En.into()],
                             ..Default::default()
                         },
@@ -209,22 +212,66 @@ macro_rules! proxy_batch_test {
     };
 }
 
-proxy_live_test!(
-    deepgram,
-    owhisper_client::DeepgramAdapter,
-    Provider::Deepgram,
-    "nova-3"
-);
-proxy_live_test!(
-    soniox,
-    owhisper_client::SonioxAdapter,
-    Provider::Soniox,
-    "stt-v3"
-);
+mod proxy_e2e {
+    use super::*;
 
-proxy_batch_test!(
-    deepgram_batch,
-    owhisper_client::DeepgramAdapter,
-    Provider::Deepgram,
-    "nova-3"
-);
+    proxy_live_test!(
+        deepgram,
+        owhisper_client::DeepgramAdapter,
+        Provider::Deepgram
+    );
+    proxy_live_test!(
+        assemblyai,
+        owhisper_client::AssemblyAIAdapter,
+        Provider::AssemblyAI
+    );
+    proxy_live_test!(soniox, owhisper_client::SonioxAdapter, Provider::Soniox);
+    proxy_live_test!(gladia, owhisper_client::GladiaAdapter, Provider::Gladia);
+    proxy_live_test!(
+        fireworks,
+        owhisper_client::FireworksAdapter,
+        Provider::Fireworks
+    );
+    proxy_live_test!(openai, owhisper_client::OpenAIAdapter, Provider::OpenAI);
+    proxy_live_test!(
+        elevenlabs,
+        owhisper_client::ElevenLabsAdapter,
+        Provider::ElevenLabs
+    );
+
+    proxy_batch_test!(
+        deepgram_batch,
+        owhisper_client::DeepgramAdapter,
+        Provider::Deepgram
+    );
+    proxy_batch_test!(
+        assemblyai_batch,
+        owhisper_client::AssemblyAIAdapter,
+        Provider::AssemblyAI
+    );
+    proxy_batch_test!(
+        soniox_batch,
+        owhisper_client::SonioxAdapter,
+        Provider::Soniox
+    );
+    proxy_batch_test!(
+        gladia_batch,
+        owhisper_client::GladiaAdapter,
+        Provider::Gladia
+    );
+    proxy_batch_test!(
+        fireworks_batch,
+        owhisper_client::FireworksAdapter,
+        Provider::Fireworks
+    );
+    proxy_batch_test!(
+        openai_batch,
+        owhisper_client::OpenAIAdapter,
+        Provider::OpenAI
+    );
+    proxy_batch_test!(
+        elevenlabs_batch,
+        owhisper_client::ElevenLabsAdapter,
+        Provider::ElevenLabs
+    );
+}

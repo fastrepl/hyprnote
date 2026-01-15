@@ -6,12 +6,6 @@
 
 
 export const commands = {
-async base() : Promise<string> {
-    return await TAURI_INVOKE("plugin:path2|base");
-},
-async obsidianVaults() : Promise<ObsidianVault[]> {
-    return await TAURI_INVOKE("plugin:path2|obsidian_vaults");
-},
 async sanitize(name: string) : Promise<string> {
     return await TAURI_INVOKE("plugin:path2|sanitize", { name });
 }
@@ -27,7 +21,7 @@ async sanitize(name: string) : Promise<string> {
 
 /** user-defined types **/
 
-export type ObsidianVault = { path: string }
+
 
 /** tauri-specta globals **/
 

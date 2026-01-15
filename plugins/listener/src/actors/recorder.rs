@@ -5,7 +5,8 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use hypr_audio_utils::{
-    VorbisEncodeSettings, decode_vorbis_to_wav_file, encode_wav_to_vorbis_file, mix_audio_f32,
+    VorbisEncodeSettings, decode_vorbis_to_wav_file, encode_wav_to_vorbis_file,
+    interleave_stereo_f32,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_plugin_fs_sync::find_session_dir;
@@ -63,7 +64,7 @@ impl Actor for RecorderActor {
         }
 
         let spec = hound::WavSpec {
-            channels: 1,
+            channels: 2,
             sample_rate: super::SAMPLE_RATE,
             bits_per_sample: 32,
             sample_format: hound::SampleFormat::Float,
@@ -115,7 +116,8 @@ impl Actor for RecorderActor {
         match msg {
             RecMsg::AudioSingle(samples) => {
                 if let Some(ref mut writer) = st.writer {
-                    for s in samples.iter() {
+                    let stereo = interleave_stereo_f32(&samples, &samples);
+                    for s in stereo.iter() {
                         writer.write_sample(*s)?;
                     }
                 }
@@ -123,8 +125,8 @@ impl Actor for RecorderActor {
             }
             RecMsg::AudioDual(mic, spk) => {
                 if let Some(ref mut writer) = st.writer {
-                    let mixed = mix_audio_f32(&mic, &spk);
-                    for sample in mixed {
+                    let stereo = interleave_stereo_f32(&mic, &spk);
+                    for sample in stereo {
                         writer.write_sample(sample)?;
                     }
                 }

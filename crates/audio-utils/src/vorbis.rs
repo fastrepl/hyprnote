@@ -199,3 +199,15 @@ fn deinterleave(samples: &[f32], channels: usize) -> Vec<Vec<f32>> {
     }
     output
 }
+
+pub fn interleave_stereo_f32(left: &[f32], right: &[f32]) -> Vec<f32> {
+    let max_len = left.len().max(right.len());
+    let mut output = Vec::with_capacity(max_len * 2);
+    for i in 0..max_len {
+        let l = left.get(i).copied().unwrap_or(0.0);
+        let r = right.get(i).copied().unwrap_or(0.0);
+        output.push(l);
+        output.push(r);
+    }
+    output
+}

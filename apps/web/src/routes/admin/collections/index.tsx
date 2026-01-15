@@ -1100,6 +1100,7 @@ function ContentPanel({
   onReorderTabs,
   filteredItems,
   onFileClick,
+  onOpenImport,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -1111,6 +1112,7 @@ function ContentPanel({
   onReorderTabs: (tabs: Tab[]) => void;
   filteredItems: ContentItem[];
   onFileClick: (item: ContentItem) => void;
+  onOpenImport: () => void;
 }) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [editorData, setEditorData] = useState<EditorData | null>(null);
@@ -1180,6 +1182,7 @@ function ContentPanel({
               onDataChange={setEditorData}
               onSave={handleSave}
               isSaving={isSaving}
+              onOpenImport={onOpenImport}
             />
           )}
         </div>
@@ -2068,8 +2071,12 @@ const FileEditor = React.forwardRef<
     onDataChange: (data: EditorData) => void;
     onSave: () => void;
     isSaving: boolean;
+    onOpenImport?: () => void;
   }
->(function FileEditor({ filePath, isPreviewMode, onDataChange, onSave }, _ref) {
+>(function FileEditor(
+  { filePath, isPreviewMode, onDataChange, onSave, onOpenImport },
+  _ref,
+) {
   const fileContent = useMemo(() => getFileContent(filePath), [filePath]);
 
   const [content, setContent] = useState(fileContent?.content || "");
@@ -2183,6 +2190,36 @@ const FileEditor = React.forwardRef<
         <div className="text-center">
           <FileWarningIcon className="size-10 mb-3" />
           <p className="text-sm">File not found</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isContentEmpty = !content || content.trim() === "";
+
+  if (isContentEmpty && onOpenImport) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <FileTextIcon className="size-12 mb-4 text-neutral-300 mx-auto" />
+          <h3 className="text-lg font-medium text-neutral-700 mb-2">
+            Empty Article
+          </h3>
+          <p className="text-sm text-neutral-500 mb-6">
+            This article has no content yet. You can start writing or import
+            content from a Google Doc.
+          </p>
+          <button
+            onClick={onOpenImport}
+            className={cn([
+              "px-4 py-2 text-sm font-medium rounded-lg",
+              "bg-blue-600 text-white hover:bg-blue-700",
+              "transition-colors flex items-center gap-2 mx-auto",
+            ])}
+          >
+            <SquareArrowOutUpRightIcon className="size-4" />
+            Import from Google Docs
+          </button>
         </div>
       </div>
     );

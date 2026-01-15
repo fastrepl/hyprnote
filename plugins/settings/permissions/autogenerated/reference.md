@@ -22,6 +22,32 @@ Default permissions for the plugin
 <tr>
 <td>
 
+`settings:allow-base`
+
+</td>
+<td>
+
+Enables the base command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`settings:deny-base`
+
+</td>
+<td>
+
+Denies the base command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `settings:allow-load`
 
 </td>
@@ -41,6 +67,32 @@ Enables the load command without any pre-configured scope.
 <td>
 
 Denies the load command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`settings:allow-obsidian-vaults`
+
+</td>
+<td>
+
+Enables the obsidian_vaults command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`settings:deny-obsidian-vaults`
+
+</td>
+<td>
+
+Denies the obsidian_vaults command without any pre-configured scope.
 
 </td>
 </tr>

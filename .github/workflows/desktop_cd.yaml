@@ -80,10 +80,12 @@ jobs:
             arch: aarch64
             artifact_name: silicon
             include_am: true
+            skip_for_staging: false
           - target: x86_64-apple-darwin
             arch: x86_64
             artifact_name: intel
             include_am: false
+            skip_for_staging: true
     defaults:
       run:
         shell: bash
@@ -93,18 +95,34 @@ jobs:
           lfs: true
           fetch-depth: 0
           fetch-tags: true
-      - run: git fetch --tags --force
-      - uses: ./.github/actions/macos_tcc
-      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
-      - uses: ./.github/actions/install_desktop_deps
+      - name: Check if build should run
+        id: check
+        run: |
+          if [[ "${{ matrix.skip_for_staging }}" == "true" && "${{ inputs.channel }}" == "staging" ]]; then
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "Skipping ${{ matrix.artifact_name }} build for staging channel"
+          else
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          fi
+      - if: ${{ steps.check.outputs.should_run == 'true' }}
+        run: git fetch --tags --force
+      - if: ${{ steps.check.outputs.should_run == 'true' }}
+        uses: ./.github/actions/macos_tcc
+      - if: ${{ steps.check.outputs.should_run == 'true' }}
+        run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - if: ${{ steps.check.outputs.should_run == 'true' }}
+        uses: ./.github/actions/install_desktop_deps
         with:
           target: macos
-      - uses: ./.github/actions/rust_install
+      - if: ${{ steps.check.outputs.should_run == 'true' }}
+        uses: ./.github/actions/rust_install
         with:
           platform: macos
-      - uses: ./.github/actions/pnpm_install
-      - run: pnpm -F ui build
-      - if: ${{ matrix.include_am }}
+      - if: ${{ steps.check.outputs.should_run == 'true' }}
+        uses: ./.github/actions/pnpm_install
+      - if: ${{ steps.check.outputs.should_run == 'true' }}
+        run: pnpm -F ui build
+      - if: ${{ steps.check.outputs.should_run == 'true' && matrix.include_am }}
         run: |
           aws s3 cp s3://argmax/stt apps/desktop/src-tauri/binaries/hyprnote-sidecar-stt-${{ matrix.target }} \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
@@ -112,26 +130,28 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - if: ${{ matrix.include_am }}
+      - if: ${{ steps.check.outputs.should_run == 'true' && matrix.include_am }}
         run: |
           chmod +x ./apps/desktop/src-tauri/binaries/hyprnote-sidecar-stt-${{ matrix.target }}
           ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/hyprnote-sidecar-stt"
       # - run: ./scripts/resource.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/libonnxruntime.dylib"
-      - uses: ./.github/actions/apple_cert
+      - if: ${{ steps.check.outputs.should_run == 'true' }}
+        uses: ./.github/actions/apple_cert
         id: apple-cert
         with:
           apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
           apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
-      - if: ${{ matrix.include_am }}
+      - if: ${{ steps.check.outputs.should_run == 'true' && matrix.include_am }}
         uses: ./.github/actions/argmax_sdk_setup
         env:
           AM_SECRET_TOKEN: ${{ secrets.AM_SECRET_TOKEN }}
-      # - if: ${{ matrix.include_am }}
+      # - if: ${{ steps.check.outputs.should_run == 'true' && matrix.include_am }}
       #   run: cargo test -p am2
       #   env:
       #     AM_API_KEY: ${{ secrets.AM_API_KEY }}
-      - run: |
+      - if: ${{ steps.check.outputs.should_run == 'true' }}
+        run: |
           FEATURES_FLAG=""
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
             FEATURES_FLAG="--features devtools"
@@ -160,12 +180,13 @@ jobs:
           VITE_API_URL: "https://api.hyprnote.com"
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
           VITE_APP_VERSION: ${{ needs.compute-version.outputs.version }}
-      - run: |
+      - if: ${{ steps.check.outputs.should_run == 'true' }}
+        run: |
           mkdir -p target/release/
           find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
         shell: bash
         working-directory: ./apps/desktop/src-tauri
-      - if: ${{ inputs.channel != 'staging' }}
+      - if: ${{ steps.check.outputs.should_run == 'true' && inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:
           cmd: upload
@@ -174,7 +195,7 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
-      - if: ${{ inputs.channel != 'staging' }}
+      - if: ${{ steps.check.outputs.should_run == 'true' && inputs.channel != 'staging' }}
         run: |
           DMG_FILE=$(find "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/" -name "*.dmg" -type f)
           cp "$DMG_FILE" "hyprnote-macos-${{ matrix.arch }}.dmg"
@@ -185,7 +206,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - if: ${{ inputs.channel == 'staging' }}
+      - if: ${{ steps.check.outputs.should_run == 'true' && inputs.channel == 'staging' }}
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-staging-macos-${{ matrix.artifact_name }}

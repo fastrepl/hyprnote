@@ -785,7 +785,7 @@ function ContentPanel({
             deletePending={deletePending}
           />
 
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 overflow-hidden">
             {currentTab.type === "folder" ? (
               <FolderView
                 dragOver={dragOver}
@@ -1429,14 +1429,14 @@ function FilePreview({
           <img
             src={item.publicUrl}
             alt={item.name}
-            className="max-w-full max-h-full object-contain"
+            className="max-w-full max-h-full w-auto h-auto object-contain"
           />
         )}
         {isVideo && (
           <video
             src={item.publicUrl}
             controls
-            className="max-w-full max-h-full object-contain"
+            className="max-w-full max-h-full w-auto h-auto object-contain"
           />
         )}
         {isAudio && (

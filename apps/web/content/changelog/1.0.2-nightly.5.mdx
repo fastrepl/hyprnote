@@ -1,0 +1,51 @@
+---
+date: "2026-01-16"
+---
+
+## AI & Model Selection
+
+- Add ElevenLabs STT adapter support
+  - Use ElevenLabs for speech-to-text transcription
+
+- Improve Deepgram language variant recommendations
+  - Better region-specific language variant suggestions for Deepgram adapter
+
+## Audio
+
+- Fix OGG audio generation and enable stereo output
+  - Improved audio quality with proper stereo encoding
+  - Fixed OGG file generation issues
+
+## Transcript
+
+- Prevent partial words from leaking to inactive session transcripts
+  - Fixes issue where incomplete words could appear in transcripts of inactive sessions
+
+- Prevent active listening session tab from being replaced
+  - Active transcription sessions are now protected from accidental tab replacement
+
+## Data & Storage
+
+- Fix session loading to search recursively in subfolders
+  - Sessions in nested folders are now properly discovered and loaded
+
+- Fix TinyBase stamp leaking issue
+  - Prevents data corruption by properly flushing and syncing after local persister load
+
+## UI
+
+- Fix timeline bucket sorting order in left sidebar
+  - Week and month buckets now display in correct chronological order
+  - Future events properly sorted with weeks before months
+
+- Add pinned contacts with reordering support
+  - Pin frequently used contacts for quick access
+  - Drag and drop to reorder pinned contacts
+
+- Add Report Issue button to error page
+  - Includes device information for easier troubleshooting
+
+## Calendar
+
+- Fix recurring event sync and recurrence series ID population
+  - Recurring events now properly sync and maintain their series relationships

@@ -1,0 +1,160 @@
+project_id = 'hyprnote'
+
+[analytics]
+backend = 'postgres'
+enabled = true
+port = 54327
+
+[api]
+enabled = true
+extra_search_path = ['public', 'extensions']
+max_rows = 1000
+port = 54321
+schemas = ['public', 'graphql_public']
+
+[api.tls]
+enabled = false
+
+[auth]
+additional_redirect_urls = ['http://localhost:3000/callback/auth']
+enable_anonymous_sign_ins = false
+enable_manual_linking = true
+enable_refresh_token_rotation = true
+enable_signup = true
+enabled = true
+jwt_expiry = 3600
+minimum_password_length = 6
+password_requirements = ''
+refresh_token_reuse_interval = 10
+site_url = 'http://localhost:3000'
+
+[auth.email]
+double_confirm_changes = true
+enable_confirmations = false
+enable_signup = true
+max_frequency = '1s'
+otp_expiry = 3600
+otp_length = 6
+secure_password_change = false
+
+[auth.external]
+[auth.external.apple]
+client_id = ''
+email_optional = false
+enabled = false
+redirect_uri = ''
+secret = 'env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)'
+skip_nonce_check = false
+url = ''
+
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.phone]
+enroll_enabled = false
+max_frequency = '5s'
+otp_length = 6
+template = 'Your code is {{ .Code }}'
+verify_enabled = false
+
+[auth.mfa.totp]
+enroll_enabled = false
+verify_enabled = false
+
+[auth.oauth_server]
+allow_dynamic_registration = false
+authorization_url_path = '/oauth/consent'
+enabled = false
+
+[auth.rate_limit]
+anonymous_users = 30
+email_sent = 2
+sign_in_sign_ups = 30
+sms_sent = 30
+token_refresh = 150
+token_verifications = 30
+web3 = 30
+
+[auth.sms]
+enable_confirmations = false
+enable_signup = false
+max_frequency = '5s'
+template = 'Your code is {{ .Code }}'
+
+[auth.sms.twilio]
+account_sid = ''
+auth_token = 'env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)'
+enabled = false
+message_service_sid = ''
+
+[auth.third_party]
+[auth.third_party.auth0]
+enabled = false
+
+[auth.third_party.aws_cognito]
+enabled = false
+
+[auth.third_party.clerk]
+enabled = false
+
+[auth.third_party.firebase]
+enabled = false
+
+[auth.web3]
+[auth.web3.solana]
+enabled = false
+
+[db]
+major_version = 17
+port = 54322
+shadow_port = 54320
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.network_restrictions]
+allowed_cidrs = ['0.0.0.0/0']
+allowed_cidrs_v6 = ['::/0']
+enabled = false
+
+[db.pooler]
+default_pool_size = 20
+enabled = false
+max_client_conn = 100
+pool_mode = 'transaction'
+port = 54329
+
+[db.seed]
+enabled = true
+sql_paths = ['./seed.sql']
+
+[edge_runtime]
+deno_version = 2
+enabled = true
+inspector_port = 8083
+policy = 'per_worker'
+
+[experimental]
+orioledb_version = ''
+s3_access_key = 'env(S3_ACCESS_KEY)'
+s3_host = 'env(S3_HOST)'
+s3_region = 'env(S3_REGION)'
+s3_secret_key = 'env(S3_SECRET_KEY)'
+
+[inbucket]
+enabled = true
+port = 54324
+
+[realtime]
+enabled = true
+
+[storage]
+enabled = true
+file_size_limit = '50MiB'
+
+[studio]
+api_url = 'http://127.0.0.1'
+enabled = true
+openai_api_key = 'env(OPENAI_API_KEY)'
+port = 54323

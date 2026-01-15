@@ -63,6 +63,8 @@ impl Actor for RecorderActor {
             std::fs::remove_file(&ogg_path)?;
         }
 
+        check_and_handle_sample_rate_mismatch(&wav_path, args.sample_rate)?;
+
         let spec = hound::WavSpec {
             channels: 1,
             sample_rate: args.sample_rate,
@@ -79,6 +81,9 @@ impl Actor for RecorderActor {
         let (writer_mic, writer_spk) = if is_debug_mode() {
             let mic_path = dir.join(format!("{}_mic.wav", filename_base));
             let spk_path = dir.join(format!("{}_spk.wav", filename_base));
+
+            check_and_handle_sample_rate_mismatch(&mic_path, args.sample_rate)?;
+            check_and_handle_sample_rate_mismatch(&spk_path, args.sample_rate)?;
 
             let mic_writer = if mic_path.exists() {
                 hound::WavWriter::append(&mic_path)?
@@ -186,6 +191,49 @@ impl Actor for RecorderActor {
 
 fn into_actor_err(err: hypr_audio_utils::Error) -> ActorProcessingErr {
     Box::new(err)
+}
+
+fn check_and_handle_sample_rate_mismatch(
+    wav_path: &std::path::Path,
+    expected_sample_rate: u32,
+) -> std::io::Result<()> {
+    if !wav_path.exists() {
+        return Ok(());
+    }
+
+    let existing_sample_rate = match hound::WavReader::open(wav_path) {
+        Ok(reader) => reader.spec().sample_rate,
+        Err(_) => return Ok(()),
+    };
+
+    if existing_sample_rate == expected_sample_rate {
+        return Ok(());
+    }
+
+    tracing::warn!(
+        existing_sample_rate,
+        expected_sample_rate,
+        "sample_rate_mismatch_renaming_old_file"
+    );
+
+    let stem = wav_path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("audio");
+    let parent = wav_path.parent().unwrap_or(std::path::Path::new("."));
+
+    for i in 1..1000 {
+        let new_name = parent.join(format!("{}_{}.wav", stem, i));
+        if !new_name.exists() {
+            std::fs::rename(wav_path, &new_name)?;
+            tracing::info!(old_path = ?wav_path, new_path = ?new_name, "renamed_old_recording");
+            return Ok(());
+        }
+    }
+
+    std::fs::remove_file(wav_path)?;
+    tracing::warn!("removed_old_recording_too_many_files");
+    Ok(())
 }
 
 fn is_debug_mode() -> bool {

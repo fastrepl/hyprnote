@@ -100,7 +100,7 @@ export const NoteInput = forwardRef<
     if (editorInstance !== editor) {
       setEditor(editorInstance);
     }
-  }, []);
+  }, [currentTab]);
 
   useEffect(() => {
     const handleContentTransfer = (e: Event) => {

@@ -23,11 +23,14 @@ pub fn parse_recurrence_info(
     event: &EKEvent,
     has_recurrence_rules: bool,
 ) -> Option<RecurrenceInfo> {
-    let occurrence_date = unsafe { event.occurrenceDate() };
-
-    if !has_recurrence_rules && occurrence_date.is_none() {
+    // Only return RecurrenceInfo for events that actually have recurrence rules.
+    // Single events may have occurrence_date populated but should not be treated
+    // as recurring events.
+    if !has_recurrence_rules {
         return None;
     }
+
+    let occurrence_date = unsafe { event.occurrenceDate() };
 
     let occurrence = occurrence_date.map(|date| RecurrenceOccurrence {
         original_start: offset_date_time_from(date),

@@ -231,9 +231,65 @@ impl ElevenLabsAdapter {
 
 #[cfg(test)]
 mod tests {
+    use hypr_language::ISO639;
+
     use super::ElevenLabsAdapter;
     use crate::ListenClient;
-    use crate::test_utils::{run_dual_test, run_single_test};
+    use crate::test_utils::{UrlTestCase, run_dual_test, run_single_test, run_url_test_cases};
+
+    const API_BASE: &str = "https://api.elevenlabs.io";
+
+    #[test]
+    fn test_default_params() {
+        run_url_test_cases(
+            &ElevenLabsAdapter::default(),
+            API_BASE,
+            &[UrlTestCase {
+                name: "default_params",
+                model: Some("scribe_v2"),
+                languages: &[ISO639::En],
+                contains: &[
+                    "model_id=",
+                    "audio_format=pcm_16000",
+                    "include_timestamps=true",
+                    "commit_strategy=vad",
+                    "language_code=en",
+                ],
+                not_contains: &[],
+            }],
+        );
+    }
+
+    #[test]
+    fn test_language_urls() {
+        run_url_test_cases(
+            &ElevenLabsAdapter::default(),
+            API_BASE,
+            &[
+                UrlTestCase {
+                    name: "with_language",
+                    model: None,
+                    languages: &[ISO639::Es],
+                    contains: &["language_code=es"],
+                    not_contains: &[],
+                },
+                UrlTestCase {
+                    name: "empty_languages",
+                    model: None,
+                    languages: &[],
+                    contains: &["model_id=", "include_timestamps=true"],
+                    not_contains: &["language_code="],
+                },
+                UrlTestCase {
+                    name: "multi_lang_uses_first",
+                    model: None,
+                    languages: &[ISO639::Fr, ISO639::De],
+                    contains: &["language_code=fr"],
+                    not_contains: &["language_code=de"],
+                },
+            ],
+        );
+    }
 
     macro_rules! single_test {
         ($name:ident, $params:expr) => {

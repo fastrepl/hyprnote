@@ -255,6 +255,7 @@ async function countItemsOnDisk(config: OrphanCleanupConfig): Promise<number> {
         subdir,
         [config.markerFile],
         true,
+        null,
       );
       if (result.status === "ok") {
         return result.data.dirs.length;
@@ -264,6 +265,7 @@ async function countItemsOnDisk(config: OrphanCleanupConfig): Promise<number> {
         subdir,
         [`*.${config.extension}`],
         false,
+        null,
       );
       if (result.status === "ok") {
         return Object.keys(result.data.files).length;
@@ -273,6 +275,7 @@ async function countItemsOnDisk(config: OrphanCleanupConfig): Promise<number> {
         subdir,
         [`*.${config.extension}`],
         true,
+        null,
       );
       if (result.status === "ok") {
         return Object.keys(result.data.files).length;

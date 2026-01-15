@@ -61,6 +61,7 @@ export async function loadAllSessionData(
     sessionsDir,
     [SESSION_META_FILE, SESSION_TRANSCRIPT_FILE, `*${SESSION_NOTE_EXTENSION}`],
     true,
+    null,
   );
 
   if (scanResult.status === "error") {
@@ -80,12 +81,13 @@ export async function loadSingleSession(
   sessionId: string,
 ): Promise<LoadResult<LoadedSessionData>> {
   const result = createEmptyLoadedSessionData();
-  const sessionDir = [dataDir, "sessions", sessionId].join(sep());
+  const sessionsDir = [dataDir, "sessions"].join(sep());
 
   const scanResult = await fsSyncCommands.scanAndRead(
-    sessionDir,
+    sessionsDir,
     [SESSION_META_FILE, SESSION_TRANSCRIPT_FILE, `*${SESSION_NOTE_EXTENSION}`],
-    false,
+    true,
+    `/${sessionId}/`,
   );
 
   if (scanResult.status === "error") {

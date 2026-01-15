@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useResizeObserver } from "usehooks-ts";
 
 import { cn } from "@hypr/utils";
 
@@ -53,11 +52,6 @@ export function useScrollFade<T extends HTMLElement>(
     });
   }, [update]);
 
-  useResizeObserver({
-    ref: ref as RefObject<T>,
-    onResize: update,
-  });
-
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -65,8 +59,12 @@ export function useScrollFade<T extends HTMLElement>(
     update();
     el.addEventListener("scroll", throttledUpdate, { passive: true });
 
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(el);
+
     return () => {
       el.removeEventListener("scroll", throttledUpdate);
+      resizeObserver.disconnect();
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }
@@ -87,7 +85,7 @@ export const ScrollFadeOverlay = memo(function ScrollFadeOverlay({
     <div
       className={cn([
         "absolute z-20 pointer-events-none",
-        isHorizontal ? ["top-0 h-full w-8"] : ["left-0 w-full h-8"],
+        isHorizontal ? ["top-0 h-full w-8"] : ["left-0 w-full h-6"],
         position === "top" &&
           "top-0 bg-linear-to-b from-white to-transparent",
         position === "bottom" &&

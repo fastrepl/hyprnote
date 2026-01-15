@@ -282,10 +282,30 @@ struct GladiaConfig<'a> {
     realtime_processing: Option<RealtimeProcessing>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug, PartialEq)]
 struct LanguageConfig {
     languages: Vec<String>,
     code_switching: bool,
+}
+
+impl GladiaAdapter {
+    #[cfg(test)]
+    fn build_language_config(params: &ListenParams) -> Option<LanguageConfig> {
+        let languages: Vec<String> = params
+            .languages
+            .iter()
+            .map(|l| l.iso639().code().to_string())
+            .collect();
+
+        if languages.is_empty() {
+            None
+        } else {
+            Some(LanguageConfig {
+                code_switching: languages.len() > 1,
+                languages,
+            })
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -487,9 +507,107 @@ impl GladiaAdapter {
 
 #[cfg(test)]
 mod tests {
-    use super::GladiaAdapter;
+    use hypr_language::ISO639;
+
+    use super::{GladiaAdapter, LanguageConfig};
     use crate::ListenClient;
-    use crate::test_utils::{run_dual_test, run_single_test};
+    use crate::test_utils::{UrlTestCase, run_dual_test, run_single_test, run_url_test_cases};
+
+    const API_BASE: &str = "https://api.gladia.io";
+
+    #[test]
+    fn test_base_url() {
+        run_url_test_cases(
+            &GladiaAdapter::default(),
+            API_BASE,
+            &[UrlTestCase {
+                name: "base_url_structure",
+                model: None,
+                languages: &[ISO639::En],
+                contains: &["api.gladia.io"],
+                not_contains: &[],
+            }],
+        );
+    }
+
+    #[test]
+    fn test_build_language_config_single_language() {
+        let params = owhisper_interface::ListenParams {
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        };
+
+        let config = GladiaAdapter::build_language_config(&params).unwrap();
+
+        assert_eq!(config.languages, vec!["en"]);
+        assert!(
+            !config.code_switching,
+            "Single language should have code_switching=false"
+        );
+    }
+
+    #[test]
+    fn test_build_language_config_multi_language() {
+        let params = owhisper_interface::ListenParams {
+            languages: vec![
+                hypr_language::ISO639::En.into(),
+                hypr_language::ISO639::Es.into(),
+            ],
+            ..Default::default()
+        };
+
+        let config = GladiaAdapter::build_language_config(&params).unwrap();
+
+        assert_eq!(config.languages, vec!["en", "es"]);
+        assert!(
+            config.code_switching,
+            "Multi language should have code_switching=true"
+        );
+    }
+
+    #[test]
+    fn test_build_language_config_three_languages() {
+        let params = owhisper_interface::ListenParams {
+            languages: vec![
+                hypr_language::ISO639::En.into(),
+                hypr_language::ISO639::Ko.into(),
+                hypr_language::ISO639::Ja.into(),
+            ],
+            ..Default::default()
+        };
+
+        let config = GladiaAdapter::build_language_config(&params).unwrap();
+
+        assert_eq!(config.languages, vec!["en", "ko", "ja"]);
+        assert!(
+            config.code_switching,
+            "Three languages should have code_switching=true"
+        );
+    }
+
+    #[test]
+    fn test_build_language_config_empty_languages() {
+        let params = owhisper_interface::ListenParams {
+            languages: vec![],
+            ..Default::default()
+        };
+
+        let config = GladiaAdapter::build_language_config(&params);
+
+        assert!(config.is_none(), "Empty languages should return None");
+    }
+
+    #[test]
+    fn test_build_language_config_serialization() {
+        let config = LanguageConfig {
+            languages: vec!["en".to_string(), "fr".to_string()],
+            code_switching: true,
+        };
+
+        let json = serde_json::to_string(&config).unwrap();
+        assert!(json.contains("\"code_switching\":true"));
+        assert!(json.contains("\"languages\":[\"en\",\"fr\"]"));
+    }
 
     macro_rules! single_test {
         ($name:ident, $params:expr) => {

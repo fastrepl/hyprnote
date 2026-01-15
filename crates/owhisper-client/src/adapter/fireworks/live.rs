@@ -241,9 +241,63 @@ struct FireworksWord {
 
 #[cfg(test)]
 mod tests {
+    use hypr_language::ISO639;
+
     use super::FireworksAdapter;
     use crate::ListenClient;
-    use crate::test_utils::{run_dual_test, run_single_test};
+    use crate::test_utils::{UrlTestCase, run_dual_test, run_single_test, run_url_test_cases};
+
+    const API_BASE: &str = "https://api.fireworks.ai";
+
+    #[test]
+    fn test_default_params() {
+        run_url_test_cases(
+            &FireworksAdapter::default(),
+            API_BASE,
+            &[UrlTestCase {
+                name: "default_params",
+                model: None,
+                languages: &[ISO639::En],
+                contains: &[
+                    "response_format=verbose_json",
+                    "timestamp_granularities=word",
+                    "language=en",
+                ],
+                not_contains: &[],
+            }],
+        );
+    }
+
+    #[test]
+    fn test_language_urls() {
+        run_url_test_cases(
+            &FireworksAdapter::default(),
+            API_BASE,
+            &[
+                UrlTestCase {
+                    name: "with_language",
+                    model: None,
+                    languages: &[ISO639::Es],
+                    contains: &["language=es"],
+                    not_contains: &[],
+                },
+                UrlTestCase {
+                    name: "empty_languages",
+                    model: None,
+                    languages: &[],
+                    contains: &["response_format=verbose_json"],
+                    not_contains: &["language="],
+                },
+                UrlTestCase {
+                    name: "multi_lang_uses_first",
+                    model: None,
+                    languages: &[ISO639::Fr, ISO639::De],
+                    contains: &["language=fr"],
+                    not_contains: &["language=de"],
+                },
+            ],
+        );
+    }
 
     #[tokio::test]
     #[ignore]

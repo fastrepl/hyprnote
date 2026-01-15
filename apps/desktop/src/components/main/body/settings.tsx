@@ -11,13 +11,16 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  ScrollFadeOverlay,
+  useScrollFade,
+} from "@hypr/ui/components/ui/scroll-fade";
 import { cn } from "@hypr/utils";
 
 import { type Tab } from "../../../store/zustand/tabs";
 import { Data } from "../../settings/data";
 import { SettingsGeneral } from "../../settings/general";
 import { SettingsLab } from "../../settings/lab";
-import { ScrollFadeOverlay, useScrollFade } from "../../ui/scroll-fade";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
 

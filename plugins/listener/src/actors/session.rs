@@ -41,8 +41,8 @@ pub fn session_supervisor_name(session_id: &str) -> String {
 fn make_supervisor_options() -> SupervisorOptions {
     SupervisorOptions {
         strategy: SupervisorStrategy::RestForOne,
-        max_restarts: 2,
-        max_window: Duration::from_secs(10),
+        max_restarts: 3,
+        max_window: Duration::from_secs(15),
         reset_after: Some(Duration::from_secs(30)),
     }
 }

@@ -64,6 +64,7 @@ export async function loadAllChatGroups(
     chatsDir,
     [CHAT_MESSAGES_FILE],
     false,
+    null,
   );
 
   if (scanResult.status === "error") {

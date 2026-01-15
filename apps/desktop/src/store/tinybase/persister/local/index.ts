@@ -126,6 +126,8 @@ export function useLocalPersister(store: Store) {
 
       await persister.load();
 
+      (store as Store).transaction(() => {});
+
       if (getCurrentWebviewWindowLabel() === "main") {
         const migrated = migrateWordsAndHintsToTranscripts(store as Store);
         if (migrated) {

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import {
   type ErrorRouteComponent,
   NotFoundRouteComponent,
@@ -7,6 +8,7 @@ import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { AlertTriangle, Bug, Home, RotateCw, Search } from "lucide-react";
 import { motion } from "motion/react";
+import { useEffect } from "react";
 
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -14,6 +16,9 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { env } from "../env";
 
 export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
   const handleRestart = async () => {
     try {
       await relaunch();

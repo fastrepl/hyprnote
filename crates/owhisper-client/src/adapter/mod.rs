@@ -80,7 +80,7 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
 
     fn supports_native_multichannel(&self) -> bool;
 
-    fn required_sample_rate(&self) -> u32 {
+    fn sample_rate(&self) -> u32 {
         16000
     }
 
@@ -303,16 +303,16 @@ impl AdapterKind {
         }
     }
 
-    pub fn required_sample_rate(&self) -> u32 {
+    pub fn sample_rate(&self) -> u32 {
         match self {
-            Self::Argmax => ArgmaxAdapter::default().required_sample_rate(),
-            Self::Soniox => SonioxAdapter::default().required_sample_rate(),
-            Self::Fireworks => FireworksAdapter::default().required_sample_rate(),
-            Self::Deepgram => DeepgramAdapter::default().required_sample_rate(),
-            Self::AssemblyAI => AssemblyAIAdapter::default().required_sample_rate(),
-            Self::OpenAI => OpenAIAdapter::default().required_sample_rate(),
-            Self::Gladia => GladiaAdapter::default().required_sample_rate(),
-            Self::ElevenLabs => ElevenLabsAdapter::default().required_sample_rate(),
+            Self::Argmax => ArgmaxAdapter::default().sample_rate(),
+            Self::Soniox => SonioxAdapter::default().sample_rate(),
+            Self::Fireworks => FireworksAdapter::default().sample_rate(),
+            Self::Deepgram => DeepgramAdapter::default().sample_rate(),
+            Self::AssemblyAI => AssemblyAIAdapter::default().sample_rate(),
+            Self::OpenAI => OpenAIAdapter::default().sample_rate(),
+            Self::Gladia => GladiaAdapter::default().sample_rate(),
+            Self::ElevenLabs => ElevenLabsAdapter::default().sample_rate(),
         }
     }
 }

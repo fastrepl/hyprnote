@@ -69,7 +69,7 @@ pub async fn spawn_session_supervisor(
         &ctx.params.languages,
         Some(&ctx.params.model),
     );
-    let sample_rate = adapter_kind.required_sample_rate();
+    let sample_rate = adapter_kind.sample_rate();
 
     let mut child_specs = Vec::new();
 

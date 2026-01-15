@@ -11,7 +11,9 @@ import {
 import { createMarkdownDirPersister } from "./markdown-dir";
 
 const settingsMocks = vi.hoisted(() => ({
-  base: vi.fn().mockResolvedValue({ status: "ok", data: "/mock/data/dir/hyprnote" }),
+  base: vi
+    .fn()
+    .mockResolvedValue({ status: "ok", data: "/mock/data/dir/hyprnote" }),
 }));
 
 const fsSyncMocks = vi.hoisted(() => ({

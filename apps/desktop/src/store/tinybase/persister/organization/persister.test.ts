@@ -4,7 +4,9 @@ import { createTestMainStore, MOCK_DATA_DIR } from "../testing/mocks";
 import { createOrganizationPersister } from "./persister";
 
 const settingsMocks = vi.hoisted(() => ({
-  base: vi.fn().mockResolvedValue({ status: "ok", data: "/mock/data/dir/hyprnote" }),
+  base: vi
+    .fn()
+    .mockResolvedValue({ status: "ok", data: "/mock/data/dir/hyprnote" }),
 }));
 
 const fsSyncMocks = vi.hoisted(() => ({

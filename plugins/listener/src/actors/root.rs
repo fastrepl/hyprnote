@@ -70,7 +70,7 @@ impl Actor for RootActor {
                 let _ = reply.send(success);
             }
             RootMsg::StopSession(reply) => {
-                stop_session_impl(state);
+                stop_session_impl(state).await;
                 let _ = reply.send(());
             }
             RootMsg::GetState(reply) => {
@@ -221,7 +221,7 @@ fn configure_sentry_session_context(params: &SessionParams) {
     });
 }
 
-fn stop_session_impl(state: &mut RootState) {
+async fn stop_session_impl(state: &mut RootState) {
     if let Some(supervisor) = &state.supervisor {
         state.finalizing = true;
 
@@ -239,7 +239,26 @@ fn stop_session_impl(state: &mut RootState) {
             }
         }
 
+        // TO make sure post_stop is called.
+        stop_actor_by_name_and_wait(crate::actors::RecorderActor::name(), "session_stop").await;
+
         supervisor.stop(None);
+    }
+}
+
+async fn stop_actor_by_name_and_wait(actor_name: ractor::ActorName, reason: &str) {
+    if let Some(cell) = ractor::registry::where_is(actor_name.clone()) {
+        cell.stop(Some(reason.to_string()));
+        wait_for_actor_shutdown(actor_name).await;
+    }
+}
+
+async fn wait_for_actor_shutdown(actor_name: ractor::ActorName) {
+    for _ in 0..50 {
+        if ractor::registry::where_is(actor_name.clone()).is_none() {
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     }
 }
 

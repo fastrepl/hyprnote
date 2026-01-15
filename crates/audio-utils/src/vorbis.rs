@@ -108,15 +108,39 @@ pub fn encode_vorbis_mono(
     encode_vorbis_from_channels(&[samples], sample_rate, settings)
 }
 
+#[derive(Clone, Copy)]
+enum DecodeMode {
+    Source,
+    Mono,
+}
+
 pub fn decode_vorbis_to_wav_file(
     ogg_path: impl AsRef<Path>,
     wav_path: impl AsRef<Path>,
+) -> Result<(), Error> {
+    decode_vorbis_to_wav_file_with_mode(ogg_path, wav_path, DecodeMode::Source)
+}
+
+pub fn decode_vorbis_to_mono_wav_file(
+    ogg_path: impl AsRef<Path>,
+    wav_path: impl AsRef<Path>,
+) -> Result<(), Error> {
+    decode_vorbis_to_wav_file_with_mode(ogg_path, wav_path, DecodeMode::Mono)
+}
+
+fn decode_vorbis_to_wav_file_with_mode(
+    ogg_path: impl AsRef<Path>,
+    wav_path: impl AsRef<Path>,
+    mode: DecodeMode,
 ) -> Result<(), Error> {
     let ogg_reader = BufReader::new(File::open(ogg_path)?);
     let mut decoder = VorbisDecoder::new(ogg_reader)?;
 
     let wav_spec = WavSpec {
-        channels: decoder.channels().get() as u16,
+        channels: match mode {
+            DecodeMode::Source => decoder.channels().get() as u16,
+            DecodeMode::Mono => 1,
+        },
         sample_rate: decoder.sampling_frequency().get(),
         bits_per_sample: 32,
         sample_format: SampleFormat::Float,
@@ -137,9 +161,20 @@ pub fn decode_vorbis_to_wav_file(
             }
         }
 
-        for frame in 0..frame_count {
-            for channel in samples.iter() {
-                writer.write_sample(channel[frame])?;
+        match mode {
+            DecodeMode::Source => {
+                for frame in 0..frame_count {
+                    for channel in samples.iter() {
+                        writer.write_sample(channel[frame])?;
+                    }
+                }
+            }
+            DecodeMode::Mono => {
+                let channel_count = samples.len() as f32;
+                for frame in 0..frame_count {
+                    let sum: f32 = samples.iter().map(|channel| channel[frame]).sum();
+                    writer.write_sample(sum / channel_count)?;
+                }
             }
         }
     }
@@ -149,29 +184,71 @@ pub fn decode_vorbis_to_wav_file(
     Ok(())
 }
 
+#[derive(Clone, Copy)]
+enum EncodeWavMode {
+    SourceChannels,
+    MonoAsStereo,
+}
+
 pub fn encode_wav_to_vorbis_file(
     wav_path: impl AsRef<Path>,
     ogg_path: impl AsRef<Path>,
     settings: VorbisEncodeSettings,
 ) -> Result<(), Error> {
+    encode_wav_to_vorbis_file_with_mode(wav_path, ogg_path, settings, EncodeWavMode::SourceChannels)
+}
+
+pub fn encode_wav_to_vorbis_file_mono_as_stereo(
+    wav_path: impl AsRef<Path>,
+    ogg_path: impl AsRef<Path>,
+    settings: VorbisEncodeSettings,
+) -> Result<(), Error> {
+    encode_wav_to_vorbis_file_with_mode(wav_path, ogg_path, settings, EncodeWavMode::MonoAsStereo)
+}
+
+fn encode_wav_to_vorbis_file_with_mode(
+    wav_path: impl AsRef<Path>,
+    ogg_path: impl AsRef<Path>,
+    settings: VorbisEncodeSettings,
+    mode: EncodeWavMode,
+) -> Result<(), Error> {
     let mut reader = WavReader::open(wav_path)?;
     let spec = reader.spec();
 
-    let sample_rate =
-        NonZeroU32::new(spec.sample_rate).ok_or(Error::InvalidSampleRate(spec.sample_rate))?;
-    let channel_count_u8 =
-        u8::try_from(spec.channels).map_err(|_| Error::UnsupportedChannelCount {
-            count: spec.channels,
-        })?;
-    let channel_count = NonZeroU8::new(channel_count_u8).ok_or(Error::UnsupportedChannelCount {
-        count: spec.channels,
-    })?;
-
+    let sample_rate = non_zero_sample_rate(spec.sample_rate)?;
     let samples: Vec<f32> = reader.samples::<f32>().collect::<Result<_, _>>()?;
+
+    let (channel_count, samples) = match mode {
+        EncodeWavMode::SourceChannels => (non_zero_channel_count(spec.channels)?, samples),
+        EncodeWavMode::MonoAsStereo => {
+            if spec.channels == 1 {
+                let mut stereo_samples = Vec::with_capacity(samples.len().saturating_mul(2));
+                for sample in samples {
+                    stereo_samples.push(sample);
+                    stereo_samples.push(sample);
+                }
+                (NonZeroU8::new(2).unwrap(), stereo_samples)
+            } else {
+                (non_zero_channel_count(spec.channels)?, samples)
+            }
+        }
+    };
+
     let encoded = encode_vorbis_from_interleaved(&samples, channel_count, sample_rate, settings)?;
+
     std::fs::write(ogg_path, encoded)?;
 
     Ok(())
+}
+
+fn non_zero_sample_rate(sample_rate: u32) -> Result<NonZeroU32, Error> {
+    NonZeroU32::new(sample_rate).ok_or(Error::InvalidSampleRate(sample_rate))
+}
+
+fn non_zero_channel_count(channels: u16) -> Result<NonZeroU8, Error> {
+    let channel_count_u8 =
+        u8::try_from(channels).map_err(|_| Error::UnsupportedChannelCount { count: channels })?;
+    NonZeroU8::new(channel_count_u8).ok_or(Error::UnsupportedChannelCount { count: channels })
 }
 
 pub fn mix_down_to_mono(samples: &[f32], channels: NonZeroU8) -> Vec<f32> {

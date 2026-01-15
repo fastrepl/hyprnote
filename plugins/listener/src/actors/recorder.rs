@@ -5,7 +5,8 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use hypr_audio_utils::{
-    VorbisEncodeSettings, decode_vorbis_to_wav_file, encode_wav_to_vorbis_file, mix_audio_f32,
+    VorbisEncodeSettings, decode_vorbis_to_mono_wav_file, encode_wav_to_vorbis_file_mono_as_stereo,
+    mix_audio_f32,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_plugin_fs_sync::find_session_dir;
@@ -58,7 +59,7 @@ impl Actor for RecorderActor {
         let ogg_path = dir.join(format!("{}.ogg", filename_base));
 
         if ogg_path.exists() {
-            decode_vorbis_to_wav_file(&ogg_path, &wav_path).map_err(into_actor_err)?;
+            decode_vorbis_to_mono_wav_file(&ogg_path, &wav_path).map_err(into_actor_err)?;
             std::fs::remove_file(&ogg_path)?;
         }
 
@@ -162,7 +163,7 @@ impl Actor for RecorderActor {
         if st.wav_path.exists() {
             let temp_ogg_path = st.ogg_path.with_extension("ogg.tmp");
 
-            match encode_wav_to_vorbis_file(
+            match encode_wav_to_vorbis_file_mono_as_stereo(
                 &st.wav_path,
                 &temp_ogg_path,
                 VorbisEncodeSettings::default(),

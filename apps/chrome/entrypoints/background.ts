@@ -12,9 +12,9 @@ interface NativeMessage {
   muted?: boolean;
 }
 
-let nativePort: browser.Runtime.Port | null = null;
+let nativePort: Browser.runtime.Port | null = null;
 
-function connectToNativeHost(): browser.Runtime.Port | null {
+function connectToNativeHost(): Browser.runtime.Port | null {
   try {
     const port = browser.runtime.connectNative(NATIVE_HOST_NAME);
 

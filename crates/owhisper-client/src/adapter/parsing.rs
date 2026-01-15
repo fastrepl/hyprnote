@@ -98,7 +98,7 @@ impl TranscriptResponseBuilder {
         self
     }
 
-    pub fn is_final(mut self, is_final: bool) -> Self {
+    pub fn set_final(mut self, is_final: bool) -> Self {
         self.is_final = is_final;
         self
     }
@@ -108,7 +108,7 @@ impl TranscriptResponseBuilder {
         self
     }
 
-    pub fn from_finalize(mut self, from_finalize: bool) -> Self {
+    pub fn finalize_flag(mut self, from_finalize: bool) -> Self {
         self.from_finalize = from_finalize;
         self
     }

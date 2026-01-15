@@ -185,6 +185,7 @@ impl ListenClient<DeepgramAdapter> {
 }
 
 impl<A: RealtimeSttAdapter> ListenClient<A> {
+    #[allow(clippy::wrong_self_convention)]
     pub async fn from_realtime_audio(
         self,
         audio_stream: impl Stream<Item = ListenClientInput> + Send + Unpin + 'static,
@@ -233,6 +234,7 @@ type DualOutputStream =
     Pin<Box<dyn Stream<Item = Result<StreamResponse, hypr_ws_client::Error>> + Send>>;
 
 impl<A: RealtimeSttAdapter> ListenClientDual<A> {
+    #[allow(clippy::wrong_self_convention)]
     pub async fn from_realtime_audio(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
@@ -244,6 +246,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
         }
     }
 
+    #[allow(clippy::wrong_self_convention)]
     async fn from_realtime_audio_native(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
@@ -283,6 +286,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
         Ok((Box::pin(mapped_stream), handle))
     }
 
+    #[allow(clippy::wrong_self_convention)]
     async fn from_realtime_audio_split(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,

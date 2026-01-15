@@ -1130,7 +1130,12 @@ function FolderView({
           <p className="text-xs mt-1">Drag and drop files here or click Add</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div
+          className="grid gap-4"
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          }}
+        >
           {items.map((item) => (
             <MediaItemCard
               key={item.path}

@@ -441,6 +441,7 @@ function CollectionsPage() {
             onReorderTabs={reorderTabs}
             filteredItems={filteredItems}
             onFileClick={(item) => openTab("file", item.name, item.path)}
+            onOpenImport={() => setIsImportModalOpen(true)}
           />
         </div>
       </ResizablePanel>

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
+import { uploadMediaFile } from "@/functions/supabase-media";
 
 interface ImportRequest {
   url: string;
@@ -9,6 +10,11 @@ interface ImportRequest {
   description?: string;
   coverImage?: string;
   slug?: string;
+}
+
+interface ImageUploadResult {
+  originalUrl: string;
+  newUrl: string;
 }
 
 interface ImportResponse {
@@ -244,6 +250,100 @@ date: "${today}"
   return `${frontmatter}\n\n${content}`;
 }
 
+function extractImageUrls(html: string): string[] {
+  const imgRegex = /<img[^>]*src=["']([^"']+)["'][^>]*\/?>/gi;
+  const urls: string[] = [];
+  let match;
+
+  while ((match = imgRegex.exec(html)) !== null) {
+    const url = match[1];
+    if (url && !url.startsWith("data:")) {
+      urls.push(url);
+    }
+  }
+
+  return [...new Set(urls)];
+}
+
+async function downloadImage(
+  url: string,
+): Promise<{ buffer: Buffer; mimeType: string; extension: string } | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`Failed to download image: ${url}`);
+      return null;
+    }
+
+    const contentType = response.headers.get("content-type") || "image/png";
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    const extensionMap: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/png": "png",
+      "image/gif": "gif",
+      "image/webp": "webp",
+      "image/svg+xml": "svg",
+      "image/avif": "avif",
+    };
+
+    const extension = extensionMap[contentType] || "png";
+
+    return { buffer, mimeType: contentType, extension };
+  } catch (error) {
+    console.error(`Error downloading image: ${url}`, error);
+    return null;
+  }
+}
+
+async function uploadImagesToSupabase(
+  imageUrls: string[],
+  slug: string,
+): Promise<ImageUploadResult[]> {
+  const results: ImageUploadResult[] = [];
+  const folder = `articles/${slug}`;
+
+  for (let i = 0; i < imageUrls.length; i++) {
+    const url = imageUrls[i];
+    const imageData = await downloadImage(url);
+
+    if (!imageData) continue;
+
+    const filename = `image-${i + 1}.${imageData.extension}`;
+    const base64Content = imageData.buffer.toString("base64");
+
+    const uploadResult = await uploadMediaFile(filename, base64Content, folder);
+
+    if (uploadResult.success && uploadResult.publicUrl) {
+      results.push({
+        originalUrl: url,
+        newUrl: uploadResult.publicUrl,
+      });
+    }
+  }
+
+  return results;
+}
+
+function replaceImageUrls(
+  markdown: string,
+  imageReplacements: ImageUploadResult[],
+): string {
+  let result = markdown;
+
+  for (const replacement of imageReplacements) {
+    const escapedOriginal = replacement.originalUrl.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&",
+    );
+    const regex = new RegExp(escapedOriginal, "g");
+    result = result.replace(regex, replacement.newUrl);
+  }
+
+  return result;
+}
+
 export const Route = createFileRoute("/api/admin/import/google-docs")({
   server: {
     handlers: {
@@ -261,7 +361,7 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
 
         try {
           const body: ImportRequest = await request.json();
-          const { url, title, author, description, coverImage } = body;
+          const { url, title, author, description, coverImage, slug } = body;
 
           if (!url) {
             return new Response(
@@ -318,7 +418,16 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
           const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
           const bodyContent = bodyMatch ? bodyMatch[1] : html;
 
-          const markdown = htmlToMarkdown(bodyContent);
+          let markdown = htmlToMarkdown(bodyContent);
+
+          const imageUrls = extractImageUrls(bodyContent);
+          if (imageUrls.length > 0 && slug) {
+            const imageReplacements = await uploadImagesToSupabase(
+              imageUrls,
+              slug,
+            );
+            markdown = replaceImageUrls(markdown, imageReplacements);
+          }
 
           const today = new Date().toISOString().split("T")[0];
           const finalAuthor = author || "Unknown";

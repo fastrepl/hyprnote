@@ -68,7 +68,7 @@ jobs:
 
   build-macos:
     needs: [compute-version, cn-draft]
-    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
+    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') && !(matrix.skip_for_staging == true && inputs.channel == 'staging') }}
     permissions:
       contents: write
     runs-on: depot-macos-14
@@ -95,34 +95,18 @@ jobs:
           lfs: true
           fetch-depth: 0
           fetch-tags: true
-      - name: Check if build should run
-        id: check
-        run: |
-          if [[ "${{ matrix.skip_for_staging }}" == "true" && "${{ inputs.channel }}" == "staging" ]]; then
-            echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "Skipping ${{ matrix.artifact_name }} build for staging channel"
-          else
-            echo "should_run=true" >> $GITHUB_OUTPUT
-          fi
-      - if: ${{ steps.check.outputs.should_run == 'true' }}
-        run: git fetch --tags --force
-      - if: ${{ steps.check.outputs.should_run == 'true' }}
-        uses: ./.github/actions/macos_tcc
-      - if: ${{ steps.check.outputs.should_run == 'true' }}
-        run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
-      - if: ${{ steps.check.outputs.should_run == 'true' }}
-        uses: ./.github/actions/install_desktop_deps
+      - run: git fetch --tags --force
+      - uses: ./.github/actions/macos_tcc
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - uses: ./.github/actions/install_desktop_deps
         with:
           target: macos
-      - if: ${{ steps.check.outputs.should_run == 'true' }}
-        uses: ./.github/actions/rust_install
+      - uses: ./.github/actions/rust_install
         with:
           platform: macos
-      - if: ${{ steps.check.outputs.should_run == 'true' }}
-        uses: ./.github/actions/pnpm_install
-      - if: ${{ steps.check.outputs.should_run == 'true' }}
-        run: pnpm -F ui build
-      - if: ${{ steps.check.outputs.should_run == 'true' && matrix.include_am }}
+      - uses: ./.github/actions/pnpm_install
+      - run: pnpm -F ui build
+      - if: ${{ matrix.include_am }}
         run: |
           aws s3 cp s3://argmax/stt apps/desktop/src-tauri/binaries/hyprnote-sidecar-stt-${{ matrix.target }} \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
@@ -130,28 +114,26 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - if: ${{ steps.check.outputs.should_run == 'true' && matrix.include_am }}
+      - if: ${{ matrix.include_am }}
         run: |
           chmod +x ./apps/desktop/src-tauri/binaries/hyprnote-sidecar-stt-${{ matrix.target }}
           ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/hyprnote-sidecar-stt"
       # - run: ./scripts/resource.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/libonnxruntime.dylib"
-      - if: ${{ steps.check.outputs.should_run == 'true' }}
-        uses: ./.github/actions/apple_cert
+      - uses: ./.github/actions/apple_cert
         id: apple-cert
         with:
           apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
           apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
-      - if: ${{ steps.check.outputs.should_run == 'true' && matrix.include_am }}
+      - if: ${{ matrix.include_am }}
         uses: ./.github/actions/argmax_sdk_setup
         env:
           AM_SECRET_TOKEN: ${{ secrets.AM_SECRET_TOKEN }}
-      # - if: ${{ steps.check.outputs.should_run == 'true' && matrix.include_am }}
+      # - if: ${{ matrix.include_am }}
       #   run: cargo test -p am2
       #   env:
       #     AM_API_KEY: ${{ secrets.AM_API_KEY }}
-      - if: ${{ steps.check.outputs.should_run == 'true' }}
-        run: |
+      - run: |
           FEATURES_FLAG=""
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
             FEATURES_FLAG="--features devtools"
@@ -180,13 +162,12 @@ jobs:
           VITE_API_URL: "https://api.hyprnote.com"
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
           VITE_APP_VERSION: ${{ needs.compute-version.outputs.version }}
-      - if: ${{ steps.check.outputs.should_run == 'true' }}
-        run: |
+      - run: |
           mkdir -p target/release/
           find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
         shell: bash
         working-directory: ./apps/desktop/src-tauri
-      - if: ${{ steps.check.outputs.should_run == 'true' && inputs.channel != 'staging' }}
+      - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:
           cmd: upload
@@ -195,7 +176,7 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
-      - if: ${{ steps.check.outputs.should_run == 'true' && inputs.channel != 'staging' }}
+      - if: ${{ inputs.channel != 'staging' }}
         run: |
           DMG_FILE=$(find "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/" -name "*.dmg" -type f)
           cp "$DMG_FILE" "hyprnote-macos-${{ matrix.arch }}.dmg"
@@ -206,7 +187,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - if: ${{ steps.check.outputs.should_run == 'true' && inputs.channel == 'staging' }}
+      - if: ${{ inputs.channel == 'staging' }}
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-staging-macos-${{ matrix.artifact_name }}
@@ -215,7 +196,7 @@ jobs:
 
   build-linux:
     needs: [compute-version, cn-draft]
-    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
+    if: ${{ inputs.channel != 'staging' && !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
     permissions:
       contents: write
     runs-on: depot-ubuntu-24.04-8

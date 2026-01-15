@@ -5,7 +5,11 @@ mod handler;
 
 pub use error::{Error, Result};
 pub use ext::*;
-pub use handler::{EarlyCliResult, generate_manpage, handle_cli_args, handle_cli_early};
+pub use handler::{
+    EarlyCliResult, ParsedCli, generate_manpage, handle_cli_args, handle_cli_early,
+    handle_cli_early_with_invocation,
+};
+pub use hyprnote_cli::Invocation;
 
 const PLUGIN_NAME: &str = "cli2";
 

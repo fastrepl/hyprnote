@@ -74,13 +74,26 @@ pub fn test_audio_stream() -> impl futures_util::Stream<
 > + Send
 + Unpin
 + 'static {
+    test_audio_stream_with_rate(16000)
+}
+
+pub fn test_audio_stream_with_rate(
+    sample_rate: u32,
+) -> impl futures_util::Stream<
+    Item = owhisper_interface::MixedMessage<bytes::Bytes, owhisper_interface::ControlMessage>,
+> + Send
++ Unpin
++ 'static {
     use hypr_audio_utils::AudioFormatExt;
+
+    // chunk_samples should be proportional to sample_rate to maintain 100ms chunks
+    let chunk_samples = (sample_rate / 10) as usize;
 
     let audio = rodio::Decoder::new(std::io::BufReader::new(
         std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
     ))
     .unwrap()
-    .to_i16_le_chunks(16000, 1600);
+    .to_i16_le_chunks(sample_rate, chunk_samples);
 
     Box::pin(tokio_stream::StreamExt::throttle(
         audio.map(owhisper_interface::MixedMessage::Audio),

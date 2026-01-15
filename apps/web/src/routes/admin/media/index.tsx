@@ -176,8 +176,16 @@ function MediaLibrary() {
 
   const currentPathQuery = useQuery({
     queryKey: ["mediaItems", currentTab?.path || ""],
-    queryFn: () => fetchMediaItems(currentTab?.path || ""),
-    enabled: isMounted && currentTab?.type === "folder",
+    queryFn: () => {
+      if (currentTab?.type === "file") {
+        const parentPath = currentTab.path.split("/").slice(0, -1).join("/");
+        return fetchMediaItems(parentPath).then((items) =>
+          items.filter((i) => i.path === currentTab.path),
+        );
+      }
+      return fetchMediaItems(currentTab?.path || "");
+    },
+    enabled: isMounted && currentTab !== undefined,
   });
 
   const loadFolderContents = async (path: string) => {

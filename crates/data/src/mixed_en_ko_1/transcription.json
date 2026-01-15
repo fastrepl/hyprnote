@@ -1,0 +1,17 @@
+[
+  { "start": 0, "end": 400, "text": "Hello," },
+  { "start": 400, "end": 1000, "text": " 안녕하세요." },
+  { "start": 1000, "end": 1400, "text": " How" },
+  { "start": 1400, "end": 1700, "text": " are" },
+  { "start": 1700, "end": 2000, "text": " you" },
+  { "start": 2000, "end": 2400, "text": " today?" },
+  { "start": 2400, "end": 2800, "text": " 오늘" },
+  { "start": 2800, "end": 3200, "text": " 날씨가" },
+  { "start": 3200, "end": 3800, "text": " 좋네요." },
+  { "start": 3800, "end": 4200, "text": " Nice" },
+  { "start": 4200, "end": 4500, "text": " to" },
+  { "start": 4500, "end": 4900, "text": " meet" },
+  { "start": 4900, "end": 5300, "text": " you," },
+  { "start": 5300, "end": 5700, "text": " 만나서" },
+  { "start": 5700, "end": 6300, "text": " 반갑습니다." }
+]

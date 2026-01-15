@@ -1,0 +1,16 @@
+[
+  { "start": 0, "end": 300, "text": "Guten" },
+  { "start": 300, "end": 600, "text": " Tag," },
+  { "start": 600, "end": 900, "text": " wie" },
+  { "start": 900, "end": 1200, "text": " geht" },
+  { "start": 1200, "end": 1500, "text": " es" },
+  { "start": 1500, "end": 1800, "text": " Ihnen" },
+  { "start": 1800, "end": 2100, "text": " heute?" },
+  { "start": 2100, "end": 2400, "text": " Ich" },
+  { "start": 2400, "end": 2700, "text": " hoffe," },
+  { "start": 2700, "end": 3000, "text": " Sie" },
+  { "start": 3000, "end": 3300, "text": " haben" },
+  { "start": 3300, "end": 3600, "text": " einen" },
+  { "start": 3600, "end": 3900, "text": " schönen" },
+  { "start": 3900, "end": 4200, "text": " Tag." }
+]

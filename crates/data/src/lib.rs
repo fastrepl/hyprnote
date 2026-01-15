@@ -23,3 +23,8 @@ pub mod english_9;
 
 pub mod korean_1;
 pub mod korean_2;
+
+pub mod german_1;
+pub mod mixed_en_ko_1;
+
+pub mod wer;

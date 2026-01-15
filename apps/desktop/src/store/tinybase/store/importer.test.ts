@@ -14,7 +14,9 @@ vi.mock("@tauri-apps/api/path", () => ({
 
 vi.mock("@hypr/plugin-settings", () => ({
   commands: {
-    base: vi.fn().mockResolvedValue({ status: "ok", data: "/test/data" }),
+    settingsBase: vi
+      .fn()
+      .mockResolvedValue({ status: "ok", data: "/test/data" }),
   },
 }));
 

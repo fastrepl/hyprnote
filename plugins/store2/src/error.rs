@@ -11,7 +11,7 @@ pub enum Error {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
-    Path2Error(#[from] tauri_plugin_path2::Error),
+    SettingsError(#[from] tauri_plugin_settings::Error),
 }
 
 impl Serialize for Error {

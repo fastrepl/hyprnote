@@ -13,7 +13,7 @@ pub enum Error {
     #[error("state: {0}")]
     State(String),
     #[error(transparent)]
-    Path2Error(#[from] tauri_plugin_path2::Error),
+    SettingsError(#[from] tauri_plugin_settings::Error),
 }
 
 impl Serialize for Error {

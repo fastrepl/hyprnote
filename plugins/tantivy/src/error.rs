@@ -13,7 +13,7 @@ pub enum Error {
     #[error(transparent)]
     Tauri(#[from] tauri::Error),
     #[error(transparent)]
-    Path2(#[from] tauri_plugin_path2::Error),
+    Settings(#[from] tauri_plugin_settings::Error),
     #[error("Index not initialized")]
     IndexNotInitialized,
     #[error("Collection not found: {0}")]

@@ -4,6 +4,8 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
+- `allow-base`
+- `allow-obsidian-vaults`
 - `allow-path`
 - `allow-load`
 - `allow-save`

@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
-use tauri_plugin_path2::Path2PluginExt;
+use tauri_plugin_settings::SettingsPluginExt;
 
 use crate::cleanup::{cleanup_dirs_recursive, cleanup_files_in_dir, cleanup_files_recursive};
 use crate::folder::scan_directory_recursive;
@@ -19,7 +19,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
     fn base_dir(&self) -> Result<PathBuf, crate::Error> {
         self.manager
             .app_handle()
-            .path2()
+            .settings()
             .base()
             .map_err(|e| crate::Error::Path(e.to_string()))
     }

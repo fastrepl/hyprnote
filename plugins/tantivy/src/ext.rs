@@ -8,7 +8,7 @@ use tantivy::query::{
 use tantivy::schema::{Facet, IndexRecordOption};
 use tantivy::snippet::SnippetGenerator;
 use tantivy::{Index, ReloadPolicy, TantivyDocument, Term};
-use tauri_plugin_path2::Path2PluginExt;
+use tauri_plugin_settings::SettingsPluginExt;
 
 use crate::query::build_created_at_range_query;
 use crate::schema::{extract_search_document, get_fields};
@@ -79,7 +79,7 @@ pub struct Tantivy<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
     pub async fn register_collection(&self, config: CollectionConfig) -> Result<(), crate::Error> {
-        let base = self.manager.app_handle().path2().base()?;
+        let base = self.manager.app_handle().settings().base()?;
         let index_path = base.join(&config.path);
         let version_path = index_path.join("schema_version");
 

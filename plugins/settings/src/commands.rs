@@ -1,4 +1,21 @@
-use crate::SettingsPluginExt;
+use crate::{ObsidianVault, SettingsPluginExt};
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn base<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
+    app.settings()
+        .base()
+        .map(|p| p.to_string_lossy().to_string())
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn obsidian_vaults<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<ObsidianVault>, String> {
+    app.settings().obsidian_vaults().map_err(|e| e.to_string())
+}
 
 #[tauri::command]
 #[specta::specta]

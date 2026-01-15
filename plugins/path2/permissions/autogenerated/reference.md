@@ -4,8 +4,6 @@ Default permissions for the path2 plugin
 
 #### This default permission set includes the following:
 
-- `allow-base`
-- `allow-obsidian-vaults`
 - `allow-sanitize`
 
 ## Permission Table

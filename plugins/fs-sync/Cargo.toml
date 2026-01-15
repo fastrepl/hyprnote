@@ -26,7 +26,7 @@ hypr-tiptap = { workspace = true }
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-notify = { workspace = true }
 tauri-plugin-opener = { workspace = true }
-tauri-plugin-path2 = { workspace = true }
+tauri-plugin-settings = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }

@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::time::{Instant, SystemTime};
 
 use ractor::{Actor, ActorCell, ActorProcessingErr, ActorRef, RpcReplyPort, SupervisionEvent};
-use tauri_plugin_path2::Path2PluginExt;
+use tauri_plugin_settings::SettingsPluginExt;
 use tauri_specta::Event;
 use tracing::Instrument;
 
@@ -142,7 +142,7 @@ async fn start_session_impl(
 
         configure_sentry_session_context(&params);
 
-        let app_dir = match state.app.path2().base() {
+        let app_dir = match state.app.settings().base() {
             Ok(base) => base.join("sessions"),
             Err(e) => {
                 tracing::error!(error = ?e, "failed_to_resolve_sessions_base_dir");

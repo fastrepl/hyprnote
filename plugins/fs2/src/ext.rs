@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use tauri_plugin_path2::Path2PluginExt;
+use tauri_plugin_settings::SettingsPluginExt;
 
 pub struct Fs2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -10,7 +10,7 @@ pub struct Fs2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Fs2<'a, R, M> {
     fn base(&self) -> Result<PathBuf, crate::Error> {
         self.manager
-            .path2()
+            .settings()
             .base()
             .map_err(|e| crate::Error::Path(e.to_string()))
     }

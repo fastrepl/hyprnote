@@ -83,10 +83,11 @@ export function getBucketInfo(date: Date): {
 
     if (absDays <= 27) {
       const weeks = Math.max(1, Math.round(absDays / 7));
-      const weekStart = startOfDay(
-        new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000),
+      const weekRangeEndDay = Math.max(7, weeks * 7 - 3);
+      const weekRangeEnd = startOfDay(
+        new Date(now.getTime() - weekRangeEndDay * 24 * 60 * 60 * 1000),
       );
-      const weekSortKey = weekStart.getTime();
+      const weekSortKey = weekRangeEnd.getTime();
 
       return {
         label: weeks === 1 ? "a week ago" : `${weeks} weeks ago`,
@@ -102,9 +103,16 @@ export function getBucketInfo(date: Date): {
     const monthStart = startOfDay(
       new Date(targetDay.getFullYear(), targetDay.getMonth(), 1),
     );
+    const lastDayInMonthBucket = startOfDay(
+      new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000),
+    );
+    const monthSortKey = Math.min(
+      monthStart.getTime(),
+      lastDayInMonthBucket.getTime(),
+    );
     return {
       label: months === 1 ? "a month ago" : `${months} months ago`,
-      sortKey: monthStart.getTime(),
+      sortKey: monthSortKey,
       precision: "date",
     };
   }
@@ -115,10 +123,11 @@ export function getBucketInfo(date: Date): {
 
   if (absDays <= 27) {
     const weeks = Math.max(1, Math.round(absDays / 7));
-    const weekStart = startOfDay(
-      new Date(now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000),
+    const weekRangeStartDay = Math.max(7, weeks * 7 - 3);
+    const weekRangeStart = startOfDay(
+      new Date(now.getTime() + weekRangeStartDay * 24 * 60 * 60 * 1000),
     );
-    const weekSortKey = weekStart.getTime();
+    const weekSortKey = weekRangeStart.getTime();
 
     return {
       label: weeks === 1 ? "next week" : `in ${weeks} weeks`,
@@ -134,9 +143,16 @@ export function getBucketInfo(date: Date): {
   const monthStart = startOfDay(
     new Date(targetDay.getFullYear(), targetDay.getMonth(), 1),
   );
+  const firstDayInMonthBucket = startOfDay(
+    new Date(now.getTime() + 28 * 24 * 60 * 60 * 1000),
+  );
+  const monthSortKey = Math.max(
+    monthStart.getTime(),
+    firstDayInMonthBucket.getTime(),
+  );
   return {
     label: months === 1 ? "next month" : `in ${months} months`,
-    sortKey: monthStart.getTime(),
+    sortKey: monthSortKey,
     precision: "date",
   };
 }

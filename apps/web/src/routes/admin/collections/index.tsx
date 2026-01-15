@@ -771,8 +771,8 @@ function InlineInput({
   return (
     <div
       className={cn([
-        "flex items-center gap-1.5 py-1 pl-3 pr-2 text-sm",
-        "bg-blue-50 border-l-2 border-blue-400",
+        "flex items-center gap-1.5 py-1.5 pl-4 pr-2 text-sm",
+        "bg-neutral-100",
       ])}
     >
       {type === "file" ? (
@@ -790,13 +790,10 @@ function InlineInput({
         disabled={isLoading}
         placeholder={type === "file" ? "filename" : "folder name"}
         className={cn([
-          "flex-1 text-xs bg-transparent outline-none",
-          "text-neutral-700 placeholder:text-neutral-400",
+          "flex-1 text-sm bg-transparent outline-none",
+          "text-neutral-600 placeholder:text-neutral-400",
         ])}
       />
-      {type === "file" && (
-        <span className="text-xs text-neutral-400">.mdx</span>
-      )}
     </div>
   );
 }
@@ -885,10 +882,8 @@ function NewPostInlineInput({
     <div>
       <div
         className={cn([
-          "flex items-center gap-1.5 py-1 pl-3 pr-2 text-sm",
-          error
-            ? "bg-red-50 border-l-2 border-red-400"
-            : "bg-blue-50 border-l-2 border-blue-400",
+          "flex items-center gap-1.5 py-1.5 pl-4 pr-2 text-sm",
+          error ? "bg-red-50" : "bg-neutral-100",
         ])}
       >
         <FileTextIcon className="size-4 text-neutral-400 shrink-0" />
@@ -902,17 +897,14 @@ function NewPostInlineInput({
           disabled={isLoading}
           placeholder="enter-slug-here"
           className={cn([
-            "flex-1 text-xs bg-transparent outline-none",
-            error ? "text-red-700" : "text-neutral-700",
+            "flex-1 text-sm bg-transparent outline-none",
+            error ? "text-red-700" : "text-neutral-600",
             "placeholder:text-neutral-400",
           ])}
         />
-        <span className="text-xs text-neutral-400">.mdx</span>
       </div>
       {error && (
-        <div className="px-3 py-1 text-xs text-red-600 bg-red-50 border-l-2 border-red-400">
-          {error}
-        </div>
+        <div className="px-4 py-1 text-xs text-red-600 bg-red-50">{error}</div>
       )}
     </div>
   );

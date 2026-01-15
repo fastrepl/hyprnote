@@ -20,7 +20,7 @@ import {
   commands as listener2Commands,
   events as listener2Events,
 } from "@hypr/plugin-listener2";
-import { commands as path2Commands } from "@hypr/plugin-path2";
+import { commands as settingsCommands } from "@hypr/plugin-settings";
 
 import { fromResult } from "../../../effect";
 import { buildSessionPath } from "../../tinybase/persister/shared/paths";
@@ -316,7 +316,10 @@ export const createGeneralSlice = <
       const [dataDirPath, micUsingApps, bundleId] = yield* Effect.tryPromise({
         try: () =>
           Promise.all([
-            path2Commands.base(),
+            settingsCommands.base().then((r) => {
+              if (r.status === "error") throw new Error(r.error);
+              return r.data;
+            }),
             detectCommands
               .listMicUsingApplications()
               .then((r) =>
@@ -405,7 +408,10 @@ export const createGeneralSlice = <
         onSuccess: () => {
           if (sessionId) {
             void Promise.all([
-              path2Commands.base(),
+              settingsCommands.base().then((r) => {
+                if (r.status === "error") throw new Error(r.error);
+                return r.data;
+              }),
               getIdentifier().catch(() => "com.hyprnote.stable"),
             ])
               .then(([dataDirPath, bundleId]) => {

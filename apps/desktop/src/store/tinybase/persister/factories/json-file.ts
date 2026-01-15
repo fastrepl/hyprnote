@@ -12,7 +12,7 @@ import {
   type JsonValue,
 } from "@hypr/plugin-fs-sync";
 import { events as notifyEvents } from "@hypr/plugin-notify";
-import { commands as path2Commands } from "@hypr/plugin-path2";
+import { commands as settingsCommands } from "@hypr/plugin-settings";
 
 import { StoreOrMergeableStore } from "../../store/shared";
 import { isFileNotFoundError } from "../shared/fs";
@@ -100,7 +100,11 @@ async function saveContent<
   }
 
   try {
-    const base = await path2Commands.base();
+    const baseResult = await settingsCommands.base();
+    if (baseResult.status === "error") {
+      throw new Error(baseResult.error);
+    }
+    const base = baseResult.data;
     const data = (store.getTable(tableName) ?? {}) as JsonValue;
     const path = [base, filename].join(sep());
     const result = await fsSyncCommands.writeJsonBatch([[data, path]]);
@@ -159,7 +163,12 @@ async function loadTableData(
   filename: string,
   label: string,
 ): Promise<Record<string, Record<string, unknown>> | undefined> {
-  const base = await path2Commands.base();
+  const baseResult = await settingsCommands.base();
+  if (baseResult.status === "error") {
+    console.error(`[${label}] base error:`, baseResult.error);
+    return undefined;
+  }
+  const base = baseResult.data;
   const path = [base, filename].join(sep());
   const result = await fs2Commands.readTextFile(path);
 

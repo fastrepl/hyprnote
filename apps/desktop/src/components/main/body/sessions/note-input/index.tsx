@@ -100,7 +100,7 @@ export const NoteInput = forwardRef<
     if (editorInstance !== editor) {
       setEditor(editorInstance);
     }
-  });
+  }, []);
 
   useEffect(() => {
     const handleContentTransfer = (e: Event) => {

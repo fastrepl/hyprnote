@@ -1363,7 +1363,7 @@ function FilePreview({
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex-1 flex items-center justify-center bg-neutral-50 overflow-hidden">
+      <div className="flex-1 flex items-center justify-center bg-neutral-50 overflow-hidden p-4 min-h-0">
         {isImage && (
           <img
             src={item.publicUrl}
@@ -1375,7 +1375,7 @@ function FilePreview({
           <video
             src={item.publicUrl}
             controls
-            className="max-w-full max-h-full"
+            className="max-w-full max-h-full object-contain"
           />
         )}
         {isAudio && (

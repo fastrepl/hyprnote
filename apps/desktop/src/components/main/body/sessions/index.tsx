@@ -112,7 +112,15 @@ export function TabContentNote({
     hasAttemptedAutoStart.current = true;
     startListening();
     updateSessionTabState(tab, { ...tab.state, autoStart: null });
-  }, [tab, listenerStatus, conn, startListening, updateSessionTabState]);
+  }, [
+    tab.id,
+    tab.state,
+    tab.state.autoStart,
+    listenerStatus,
+    conn,
+    startListening,
+    updateSessionTabState,
+  ]);
 
   const { data: audioUrl } = useQuery({
     enabled: listenerStatus === "inactive",

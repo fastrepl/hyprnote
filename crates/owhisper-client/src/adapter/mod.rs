@@ -80,6 +80,10 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
 
     fn supports_native_multichannel(&self) -> bool;
 
+    fn required_sample_rate(&self) -> u32 {
+        16000
+    }
+
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, channels: u8) -> url::Url;
 
     fn build_ws_url_with_api_key(
@@ -296,6 +300,19 @@ impl AdapterKind {
             Self::Fireworks => FireworksAdapter::is_supported_languages_batch(languages),
             Self::ElevenLabs => ElevenLabsAdapter::is_supported_languages_batch(languages),
             Self::Argmax => ArgmaxAdapter::is_supported_languages_batch(languages, model),
+        }
+    }
+
+    pub fn required_sample_rate(&self) -> u32 {
+        match self {
+            Self::Argmax => ArgmaxAdapter::default().required_sample_rate(),
+            Self::Soniox => SonioxAdapter::default().required_sample_rate(),
+            Self::Fireworks => FireworksAdapter::default().required_sample_rate(),
+            Self::Deepgram => DeepgramAdapter::default().required_sample_rate(),
+            Self::AssemblyAI => AssemblyAIAdapter::default().required_sample_rate(),
+            Self::OpenAI => OpenAIAdapter::default().required_sample_rate(),
+            Self::Gladia => GladiaAdapter::default().required_sample_rate(),
+            Self::ElevenLabs => ElevenLabsAdapter::default().required_sample_rate(),
         }
     }
 }

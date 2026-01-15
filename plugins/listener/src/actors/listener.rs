@@ -44,6 +44,7 @@ pub struct ListenerArgs {
     pub session_started_at: Instant,
     pub session_started_at_unix: SystemTime,
     pub session_id: String,
+    pub sample_rate: u32,
 }
 
 pub struct ListenerState {
@@ -337,7 +338,7 @@ fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams 
     owhisper_interface::ListenParams {
         model: Some(args.model.clone()),
         languages: args.languages.clone(),
-        sample_rate: super::SAMPLE_RATE,
+        sample_rate: args.sample_rate,
         keywords: args.keywords.clone(),
         custom_query: Some(std::collections::HashMap::from([(
             "redemption_time_ms".to_string(),

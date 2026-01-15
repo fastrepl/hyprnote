@@ -7,6 +7,8 @@ use ractor_supervisor::SupervisorStrategy;
 use ractor_supervisor::core::{ChildBackoffFn, ChildSpec, Restart, SpawnFn};
 use ractor_supervisor::supervisor::{Supervisor, SupervisorArguments, SupervisorOptions};
 
+use owhisper_client::AdapterKind;
+
 use crate::actors::{
     ChannelMode, ListenerActor, ListenerArgs, RecArgs, RecorderActor, SourceActor, SourceArgs,
 };
@@ -62,6 +64,13 @@ pub async fn spawn_session_supervisor(
 ) -> Result<(ActorCell, tokio::task::JoinHandle<()>), ActorProcessingErr> {
     let supervisor_name = session_supervisor_name(&ctx.params.session_id);
 
+    let adapter_kind = AdapterKind::from_url_and_languages(
+        &ctx.params.base_url,
+        &ctx.params.languages,
+        Some(&ctx.params.model),
+    );
+    let sample_rate = adapter_kind.required_sample_rate();
+
     let mut child_specs = Vec::new();
 
     let ctx_source = ctx.clone();
@@ -79,6 +88,7 @@ pub async fn spawn_session_supervisor(
                         onboarding: ctx.params.onboarding,
                         app: ctx.app.clone(),
                         session_id: ctx.params.session_id.clone(),
+                        sample_rate,
                     },
                     supervisor_cell,
                 )
@@ -114,6 +124,7 @@ pub async fn spawn_session_supervisor(
                         session_started_at: ctx.started_at_instant,
                         session_started_at_unix: ctx.started_at_system,
                         session_id: ctx.params.session_id.clone(),
+                        sample_rate,
                     },
                     supervisor_cell,
                 )

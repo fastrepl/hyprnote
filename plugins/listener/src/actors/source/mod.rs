@@ -38,6 +38,7 @@ pub struct SourceArgs {
     pub onboarding: bool,
     pub app: tauri::AppHandle,
     pub session_id: String,
+    pub sample_rate: u32,
 }
 
 pub struct SourceState {
@@ -45,6 +46,7 @@ pub struct SourceState {
     pub(super) session_id: String,
     pub(super) mic_device: Option<String>,
     pub(super) onboarding: bool,
+    pub(super) sample_rate: u32,
     pub(super) mic_muted: Arc<AtomicBool>,
     pub(super) run_task: Option<tokio::task::JoinHandle<()>>,
     pub(super) stream_cancel_token: Option<CancellationToken>,
@@ -131,6 +133,7 @@ impl Actor for SourceActor {
                 session_id: args.session_id,
                 mic_device,
                 onboarding: args.onboarding,
+                sample_rate: args.sample_rate,
                 mic_muted: Arc::new(AtomicBool::new(false)),
                 run_task: None,
                 stream_cancel_token: None,

@@ -53,6 +53,7 @@ async fn start_streams(
     let myself2 = myself.clone();
     let mic_muted = st.mic_muted.clone();
     let mic_device = st.mic_device.clone();
+    let sample_rate = st.sample_rate;
 
     let stream_cancel_token = CancellationToken::new();
     st.stream_cancel_token = Some(stream_cancel_token.clone());
@@ -63,6 +64,7 @@ async fn start_streams(
             cancel_token: stream_cancel_token,
             mic_muted,
             mic_device,
+            sample_rate,
         };
 
         run_stream_loop(ctx, mode).await;
@@ -77,6 +79,7 @@ struct StreamContext {
     cancel_token: CancellationToken,
     mic_muted: Arc<AtomicBool>,
     mic_device: Option<String>,
+    sample_rate: u32,
 }
 
 impl StreamContext {
@@ -101,7 +104,7 @@ async fn run_stream_loop(ctx: StreamContext, mode: ChannelMode) {
     }
 
     let mic_stream = if mode.uses_mic() {
-        match setup_mic_stream(&ctx) {
+        match setup_mic_stream(&ctx, ctx.sample_rate) {
             Ok(stream) => Some(stream),
             Err(()) => return,
         }
@@ -115,7 +118,7 @@ async fn run_stream_loop(ctx: StreamContext, mode: ChannelMode) {
     }
 
     let spk_stream = if mode.uses_speaker() {
-        match setup_speaker_stream(&ctx) {
+        match setup_speaker_stream(&ctx, ctx.sample_rate) {
             Ok(stream) => Some(stream),
             Err(()) => return,
         }
@@ -145,6 +148,7 @@ async fn run_stream_loop(ctx: StreamContext, mode: ChannelMode) {
 
 fn setup_mic_stream(
     ctx: &StreamContext,
+    sample_rate: u32,
 ) -> Result<impl futures_util::Stream<Item = Result<Vec<f32>, hypr_audio_utils::Error>>, ()> {
     let mut mic_input = match AudioInput::from_mic(ctx.mic_device.clone()) {
         Ok(input) => input,
@@ -155,11 +159,8 @@ fn setup_mic_stream(
         }
     };
 
-    let chunk_size = chunk_size_for_stt(crate::actors::SAMPLE_RATE);
-    match mic_input
-        .stream()
-        .resampled_chunks(crate::actors::SAMPLE_RATE, chunk_size)
-    {
+    let chunk_size = chunk_size_for_stt(sample_rate);
+    match mic_input.stream().resampled_chunks(sample_rate, chunk_size) {
         Ok(stream) => Ok(stream),
         Err(err) => {
             tracing::error!(error = ?err, device = ?ctx.mic_device, "mic_stream_setup_failed");
@@ -171,13 +172,11 @@ fn setup_mic_stream(
 
 fn setup_speaker_stream(
     ctx: &StreamContext,
+    sample_rate: u32,
 ) -> Result<impl futures_util::Stream<Item = Result<Vec<f32>, hypr_audio_utils::Error>>, ()> {
     let mut spk_input = hypr_audio::AudioInput::from_speaker();
-    let chunk_size = chunk_size_for_stt(crate::actors::SAMPLE_RATE);
-    match spk_input
-        .stream()
-        .resampled_chunks(crate::actors::SAMPLE_RATE, chunk_size)
-    {
+    let chunk_size = chunk_size_for_stt(sample_rate);
+    match spk_input.stream().resampled_chunks(sample_rate, chunk_size) {
         Ok(stream) => Ok(stream),
         Err(err) => {
             tracing::error!(error = ?err, "speaker_stream_setup_failed");

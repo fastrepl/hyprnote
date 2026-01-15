@@ -102,6 +102,10 @@ jobs:
             if [ "${{ inputs.openai }}" == "true" ]; then providers+=("openai"); fi
             if [ "${{ inputs.elevenlabs }}" == "true" ]; then providers+=("elevenlabs"); fi
 
+            if [ ${#providers[@]} -eq 0 ]; then
+              providers+=("deepgram" "assemblyai" "soniox" "gladia" "fireworks" "openai" "elevenlabs")
+            fi
+
             if [ "${{ inputs['adapter-or-proxy'] }}" == "proxy" ]; then
               echo "run-proxy=true" >> $GITHUB_OUTPUT
               echo "run-adapter=false" >> $GITHUB_OUTPUT

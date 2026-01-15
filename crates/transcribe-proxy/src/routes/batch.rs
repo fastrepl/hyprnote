@@ -10,7 +10,8 @@ use axum::{
 };
 
 use owhisper_client::{
-    AssemblyAIAdapter, BatchClient, DeepgramAdapter, GladiaAdapter, OpenAIAdapter, SonioxAdapter,
+    AssemblyAIAdapter, BatchClient, DeepgramAdapter, ElevenLabsAdapter, GladiaAdapter,
+    OpenAIAdapter, SonioxAdapter,
 };
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
@@ -164,6 +165,15 @@ async fn transcribe_with_provider(
         }
         Provider::Gladia => {
             BatchClient::<GladiaAdapter>::builder()
+                .api_base(api_base)
+                .api_key(api_key)
+                .params(params)
+                .build()
+                .transcribe_file(file_path)
+                .await
+        }
+        Provider::ElevenLabs => {
+            BatchClient::<ElevenLabsAdapter>::builder()
                 .api_base(api_base)
                 .api_key(api_key)
                 .params(params)

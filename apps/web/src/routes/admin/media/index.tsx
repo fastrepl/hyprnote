@@ -1,12 +1,19 @@
-import { Icon } from "@iconify-icon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  AlertCircleIcon,
+  CheckIcon,
   ChevronRightIcon,
+  CopyIcon,
   DownloadIcon,
+  FileIcon,
+  FolderIcon,
+  FolderOpenIcon,
   HomeIcon,
   PinIcon,
   PinOffIcon,
+  RefreshCwIcon,
+  SearchIcon,
   Trash2Icon,
   XIcon,
 } from "lucide-react";
@@ -551,10 +558,7 @@ function Sidebar({
     <div className="h-full border-r border-neutral-200 bg-white flex flex-col min-h-0">
       <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-200">
         <div className="relative w-full flex items-center gap-1.5">
-          <Icon
-            icon="mdi:magnify"
-            className="text-neutral-400 text-sm shrink-0"
-          />
+          <SearchIcon className="size-4 text-neutral-400 shrink-0" />
           <input
             type="text"
             value={searchQuery}
@@ -660,17 +664,14 @@ function TreeNodeItem({
       >
         {isLoading ? (
           <Spinner size={14} />
+        ) : isFolder ? (
+          node.expanded ? (
+            <FolderOpenIcon className="size-4 text-neutral-400" />
+          ) : (
+            <FolderIcon className="size-4 text-neutral-400" />
+          )
         ) : (
-          <Icon
-            icon={
-              isFolder
-                ? node.expanded
-                  ? "mdi:folder-open"
-                  : "mdi:folder"
-                : "mdi:file-outline"
-            }
-            className="text-neutral-400 text-sm"
-          />
+          <FileIcon className="size-4 text-neutral-400" />
         )}
         <span className="truncate text-neutral-700">{node.name}</span>
       </div>
@@ -792,7 +793,7 @@ function ContentPanel({
       ) : (
         <div className="flex-1 flex items-center justify-center text-neutral-500">
           <div className="text-center">
-            <Icon icon="mdi:folder-open-outline" className="text-4xl mb-3" />
+            <FolderOpenIcon className="size-12 mb-3" />
             <p className="text-sm">
               Double-click a folder or file in the sidebar to open
             </p>
@@ -889,11 +890,10 @@ function TabItem({
       >
         {isHome ? (
           <HomeIcon className="size-4 text-neutral-400" />
+        ) : tab.type === "folder" ? (
+          <FolderIcon className="size-4 text-neutral-400" />
         ) : (
-          <Icon
-            icon={tab.type === "folder" ? "mdi:folder" : "mdi:file-outline"}
-            className="text-neutral-400 text-sm"
-          />
+          <FileIcon className="size-4 text-neutral-400" />
         )}
         <span className={cn(["truncate max-w-30", !tab.pinned && "italic"])}>
           {tab.name}
@@ -1108,16 +1108,13 @@ function FolderView({
         </div>
       ) : error ? (
         <div className="flex flex-col items-center justify-center h-full text-neutral-500">
-          <Icon
-            icon="mdi:alert-circle-outline"
-            className="text-4xl mb-3 text-red-400"
-          />
+          <AlertCircleIcon className="size-12 mb-3 text-red-400" />
           <p className="text-sm text-red-600">Failed to load media</p>
           <p className="text-xs mt-1 text-neutral-400">{error.message}</p>
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-neutral-500">
-          <Icon icon="mdi:folder-open-outline" className="text-4xl mb-3" />
+          <FolderOpenIcon className="size-12 mb-3" />
           <p className="text-sm">No files found</p>
           <p className="text-xs mt-1">Drag and drop files here or click Add</p>
         </div>
@@ -1177,7 +1174,7 @@ function MediaItemCard({
         onClick={onSelect}
       >
         <div className="aspect-square bg-neutral-100 flex items-center justify-center">
-          <Icon icon="mdi:folder" className="text-3xl text-neutral-400" />
+          <FolderIcon className="size-8 text-neutral-400" />
         </div>
         <div className="p-1.5 bg-white">
           <p className="text-xs text-neutral-700 truncate" title={item.name}>
@@ -1207,7 +1204,7 @@ function MediaItemCard({
             loading="lazy"
           />
         ) : (
-          <Icon icon="mdi:file-outline" className="text-3xl text-neutral-400" />
+          <FileIcon className="size-8 text-neutral-400" />
         )}
       </div>
 
@@ -1237,7 +1234,7 @@ function MediaItemCard({
             className="p-1.5 rounded bg-white/90 hover:bg-white transition-colors"
             title="Download"
           >
-            <Icon icon="mdi:download" className="text-neutral-700 text-sm" />
+            <DownloadIcon className="size-4 text-neutral-700" />
           </button>
           <button
             onClick={(e) => {
@@ -1247,17 +1244,14 @@ function MediaItemCard({
             className="p-1.5 rounded bg-white/90 hover:bg-white transition-colors"
             title="Copy path"
           >
-            <Icon
-              icon="mdi:content-copy"
-              className="text-neutral-700 text-sm"
-            />
+            <CopyIcon className="size-4 text-neutral-700" />
           </button>
           <button
             onClick={handleReplace}
             className="p-1.5 rounded bg-white/90 hover:bg-white transition-colors"
             title="Replace"
           >
-            <Icon icon="mdi:refresh" className="text-neutral-700 text-sm" />
+            <RefreshCwIcon className="size-4 text-neutral-700" />
           </button>
         </div>
         <input
@@ -1279,7 +1273,7 @@ function MediaItemCard({
       {isSelected && (
         <div className="absolute top-1 left-1 z-10">
           <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-            <Icon icon="mdi:check" className="text-white text-xs" />
+            <CheckIcon className="size-3 text-white" />
           </div>
         </div>
       )}
@@ -1330,10 +1324,7 @@ function FilePreview({
         )}
         {!isImage && !isVideo && !isAudio && (
           <div className="text-center">
-            <Icon
-              icon="mdi:file-outline"
-              className="text-6xl text-neutral-400 mb-4"
-            />
+            <FileIcon className="size-16 text-neutral-400 mb-4" />
             <p className="text-sm text-neutral-600">{item.name}</p>
             <p className="text-xs text-neutral-400 mt-1">
               {formatFileSize(item.size)}

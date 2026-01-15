@@ -7,9 +7,11 @@ import {
   SupabaseClient,
   type SupportedStorage,
 } from "@supabase/supabase-js";
+import { getVersion } from "@tauri-apps/api/app";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import { version as osVersion, platform } from "@tauri-apps/plugin-os";
 import {
   createContext,
   useCallback,
@@ -256,6 +258,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         void analyticsCommands.event({
           event: "user_signed_in",
         });
+        void (async () => {
+          const appVersion = await getVersion();
+          void analyticsCommands.setProperties({
+            set_once: {
+              account_created_date: new Date().toISOString(),
+            },
+            set: {
+              is_signed_up: true,
+              app_version: appVersion,
+              os_version: osVersion(),
+              platform: platform(),
+            },
+          });
+        })();
       }
       setSession(session);
     });

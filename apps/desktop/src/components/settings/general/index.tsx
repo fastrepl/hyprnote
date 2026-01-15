@@ -134,6 +134,11 @@ export function SettingsGeneral({
         save_recordings: value.save_recordings,
         telemetry_consent: value.telemetry_consent,
       });
+      void analyticsCommands.setProperties({
+        set: {
+          telemetry_opt_out: value.telemetry_consent === false,
+        },
+      });
     },
   });
 

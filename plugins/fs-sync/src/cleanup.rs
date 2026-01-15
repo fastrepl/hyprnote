@@ -48,7 +48,7 @@ pub fn cleanup_files_in_dir(
 }
 
 fn for_each_entity_dir(
-    base_dir: &Path,
+    _base_dir: &Path,
     current_dir: &Path,
     marker_file: &str,
     callback: &mut impl FnMut(&Path, &str),
@@ -72,7 +72,7 @@ fn for_each_entity_dir(
         if has_marker && is_uuid(name) {
             callback(&path, name);
         } else if !has_marker && !is_uuid(name) {
-            for_each_entity_dir(base_dir, &path, marker_file, callback);
+            for_each_entity_dir(_base_dir, &path, marker_file, callback);
         }
     }
 }
@@ -148,11 +148,9 @@ fn cleanup_files_in_entity_dir(
             continue;
         }
 
-        if !valid_ids.contains(stem) {
-            if std::fs::remove_file(&path).is_ok() {
-                tracing::debug!(path = %path.display(), "orphan file removed");
-                removed += 1;
-            }
+        if !valid_ids.contains(stem) && std::fs::remove_file(&path).is_ok() {
+            tracing::debug!(path = %path.display(), "orphan file removed");
+            removed += 1;
         }
     }
 

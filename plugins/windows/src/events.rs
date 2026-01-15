@@ -8,23 +8,19 @@ use crate::AppWindow;
 pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::WindowEvent) {
     let app = window.app_handle();
 
-    match event {
-        tauri::WindowEvent::CloseRequested { api, .. } => {
-            match window.label().parse::<AppWindow>() {
-                Err(e) => tracing::warn!("window_parse_error: {:?}", e),
-                Ok(w) => {
-                    if w == AppWindow::Main && w.hide(&app).is_ok() {
-                        api.prevent_close();
-                    }
-                    if w == AppWindow::Onboarding {
-                        use tauri_plugin_sfx::SfxPluginExt;
-                        app.sfx().stop(tauri_plugin_sfx::AppSounds::BGM);
-                    }
+    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+        match window.label().parse::<AppWindow>() {
+            Err(e) => tracing::warn!("window_parse_error: {:?}", e),
+            Ok(w) => {
+                if w == AppWindow::Main && w.hide(app).is_ok() {
+                    api.prevent_close();
+                }
+                if w == AppWindow::Onboarding {
+                    use tauri_plugin_sfx::SfxPluginExt;
+                    app.sfx().stop(tauri_plugin_sfx::AppSounds::BGM);
                 }
             }
         }
-
-        _ => {}
     }
 }
 

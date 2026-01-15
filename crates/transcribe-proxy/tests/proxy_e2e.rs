@@ -18,10 +18,34 @@ async fn run_proxy_live_test<A: RealtimeSttAdapter>(
         .await
 }
 
+async fn run_proxy_live_test_with_sample_rate<A: RealtimeSttAdapter>(
+    provider: Provider,
+    params: owhisper_interface::ListenParams,
+    sample_rate: u32,
+) {
+    run_proxy_live_test_with_recording_and_sample_rate::<A>(
+        provider,
+        params,
+        RecordingOptions::from_env("normal"),
+        sample_rate,
+    )
+    .await
+}
+
 async fn run_proxy_live_test_with_recording<A: RealtimeSttAdapter>(
     provider: Provider,
     params: owhisper_interface::ListenParams,
     recording_opts: RecordingOptions,
+) {
+    run_proxy_live_test_with_recording_and_sample_rate::<A>(provider, params, recording_opts, 16000)
+        .await
+}
+
+async fn run_proxy_live_test_with_recording_and_sample_rate<A: RealtimeSttAdapter>(
+    provider: Provider,
+    params: owhisper_interface::ListenParams,
+    recording_opts: RecordingOptions,
+    sample_rate: u32,
 ) {
     let _ = tracing_subscriber::fmt::try_init();
 
@@ -43,7 +67,7 @@ async fn run_proxy_live_test_with_recording<A: RealtimeSttAdapter>(
         .await;
 
     let provider_name = format!("proxy:{}", provider);
-    let input = test_audio_stream();
+    let input = test_audio_stream_with_rate(sample_rate);
     let (stream, handle) = client.from_realtime_audio(input).await.unwrap();
     futures_util::pin_mut!(stream);
 
@@ -171,14 +195,16 @@ macro_rules! proxy_live_test {
                 #[ignore]
                 #[tokio::test]
                 async fn test_proxy_live() {
-                    run_proxy_live_test::<$adapter>(
+                    let sample_rate = $provider.default_live_sample_rate();
+                    run_proxy_live_test_with_sample_rate::<$adapter>(
                         $provider,
                         owhisper_interface::ListenParams {
                             model: Some($provider.default_live_model().to_string()),
                             languages: vec![hypr_language::ISO639::En.into()],
-                            sample_rate: $provider.default_live_sample_rate(),
+                            sample_rate,
                             ..Default::default()
                         },
+                        sample_rate,
                     )
                     .await;
                 }

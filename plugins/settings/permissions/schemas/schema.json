@@ -295,6 +295,18 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the base command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-base",
+          "markdownDescription": "Enables the base command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the base command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-base",
+          "markdownDescription": "Denies the base command without any pre-configured scope."
+        },
+        {
           "description": "Enables the load command without any pre-configured scope.",
           "type": "string",
           "const": "allow-load",
@@ -305,6 +317,18 @@
           "type": "string",
           "const": "deny-load",
           "markdownDescription": "Denies the load command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the obsidian_vaults command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-obsidian-vaults",
+          "markdownDescription": "Enables the obsidian_vaults command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the obsidian_vaults command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-obsidian-vaults",
+          "markdownDescription": "Denies the obsidian_vaults command without any pre-configured scope."
         },
         {
           "description": "Enables the path command without any pre-configured scope.",
@@ -331,10 +355,10 @@
           "markdownDescription": "Denies the save command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-path`\n- `allow-load`\n- `allow-save`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-base`\n- `allow-obsidian-vaults`\n- `allow-path`\n- `allow-load`\n- `allow-save`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-path`\n- `allow-load`\n- `allow-save`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-base`\n- `allow-obsidian-vaults`\n- `allow-path`\n- `allow-load`\n- `allow-save`"
         }
       ]
     }

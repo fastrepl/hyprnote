@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use tauri_plugin_path2::Path2PluginExt;
+use tauri_plugin_settings::SettingsPluginExt;
 
 use crate::{PriorityState, StoredDevice};
 use hypr_audio_device::{AudioDevice, AudioDeviceBackend, AudioDirection, DeviceId, backend};
@@ -10,7 +10,7 @@ pub const FILENAME: &str = "audio.json";
 pub fn audio_priority_path<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
 ) -> Result<PathBuf, crate::Error> {
-    let base = app.path2().base()?;
+    let base = app.settings().base()?;
     Ok(base.join(FILENAME))
 }
 

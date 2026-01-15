@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use tauri_plugin_path2::Path2PluginExt;
+use tauri_plugin_settings::SettingsPluginExt;
 
 pub const FILENAME: &str = "store.json";
 
 pub fn store_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, crate::Error> {
-    let store_dir = app.path2().base()?;
+    let store_dir = app.settings().base()?;
     Ok(store_dir.join(FILENAME))
 }
 

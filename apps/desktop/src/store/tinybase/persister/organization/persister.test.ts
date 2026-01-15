@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createTestMainStore, MOCK_DATA_DIR } from "../testing/mocks";
 import { createOrganizationPersister } from "./persister";
 
-const path2Mocks = vi.hoisted(() => ({
-  base: vi.fn().mockResolvedValue("/mock/data/dir/hyprnote"),
+const settingsMocks = vi.hoisted(() => ({
+  base: vi
+    .fn()
+    .mockResolvedValue({ status: "ok", data: "/mock/data/dir/hyprnote" }),
 }));
 
 const fsSyncMocks = vi.hoisted(() => ({
@@ -20,7 +22,7 @@ const fs2Mocks = vi.hoisted(() => ({
   remove: vi.fn(),
 }));
 
-vi.mock("@hypr/plugin-path2", () => ({ commands: path2Mocks }));
+vi.mock("@hypr/plugin-settings", () => ({ commands: settingsMocks }));
 vi.mock("@hypr/plugin-fs-sync", () => ({ commands: fsSyncMocks }));
 vi.mock("@hypr/plugin-fs2", () => ({ commands: fs2Mocks }));
 

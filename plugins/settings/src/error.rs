@@ -10,8 +10,8 @@ pub enum Error {
     SerdeJsonError(#[from] serde_json::Error),
     #[error("settings: {0}")]
     Settings(String),
-    #[error(transparent)]
-    Path2Error(#[from] tauri_plugin_path2::Error),
+    #[error("path error: {0}")]
+    Path(String),
 }
 
 impl Serialize for Error {

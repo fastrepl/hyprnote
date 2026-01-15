@@ -2,7 +2,7 @@ import { sep } from "@tauri-apps/api/path";
 import { createMergeableStore } from "tinybase/with-schemas";
 
 import { commands as fs2Commands } from "@hypr/plugin-fs2";
-import { commands as path2Commands } from "@hypr/plugin-path2";
+import { commands as settingsCommands } from "@hypr/plugin-settings";
 import { SCHEMA } from "@hypr/store";
 import { isValidTiptapContent, md2json } from "@hypr/tiptap/shared";
 
@@ -129,7 +129,11 @@ export const importFromJson = async (
   onPersistComplete: () => Promise<void>,
 ): Promise<ImportResult> => {
   try {
-    const base = await path2Commands.base();
+    const baseResult = await settingsCommands.base();
+    if (baseResult.status === "error") {
+      throw new Error(baseResult.error);
+    }
+    const base = baseResult.data;
     const importPath = [base, IMPORT_FILENAME].join(sep());
 
     const readResult = await fs2Commands.readTextFile(importPath);

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use notify::RecursiveMode;
 use notify_debouncer_full::{DebouncedEvent, new_debouncer};
-use tauri_plugin_path2::Path2PluginExt;
+use tauri_plugin_settings::SettingsPluginExt;
 use tauri_specta::Event;
 
 use crate::{FileChanged, WatcherState};
@@ -24,7 +24,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
             return Ok(());
         }
 
-        let base = self.manager.app_handle().path2().base()?;
+        let base = self.manager.app_handle().settings().base()?;
         let app_handle = self.manager.app_handle().clone();
         let base_for_closure = base.clone();
         let own_writes = state.own_writes.clone();

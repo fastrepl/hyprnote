@@ -107,9 +107,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
         words: Vec<crate::VttWord>,
     ) -> Result<String, String> {
         use aspasia::{Moment, Subtitle, WebVttSubtitle, webvtt::WebVttCue};
-        use tauri_plugin_path2::Path2PluginExt;
+        use tauri_plugin_settings::SettingsPluginExt;
 
-        let base = self.manager.path2().base().map_err(|e| e.to_string())?;
+        let base = self.manager.settings().base().map_err(|e| e.to_string())?;
         let session_dir = base.join("sessions").join(&session_id);
 
         std::fs::create_dir_all(&session_dir).map_err(|e| e.to_string())?;

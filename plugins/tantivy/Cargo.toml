@@ -21,7 +21,7 @@ tantivy = "0.25"
 
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-notify = { workspace = true }
-tauri-plugin-path2 = { workspace = true }
+tauri-plugin-settings = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }

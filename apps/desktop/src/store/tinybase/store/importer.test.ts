@@ -2,7 +2,7 @@ import { createMergeableStore } from "tinybase/with-schemas";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { commands as fs2Commands } from "@hypr/plugin-fs2";
-import { commands as path2Commands } from "@hypr/plugin-path2";
+import { commands as settingsCommands } from "@hypr/plugin-settings";
 import { SCHEMA } from "@hypr/store";
 
 import { importFromJson } from "./importer";
@@ -12,9 +12,9 @@ vi.mock("@tauri-apps/api/path", () => ({
   sep: vi.fn(() => "/"),
 }));
 
-vi.mock("@hypr/plugin-path2", () => ({
+vi.mock("@hypr/plugin-settings", () => ({
   commands: {
-    base: vi.fn().mockResolvedValue("/test/data"),
+    base: vi.fn().mockResolvedValue({ status: "ok", data: "/test/data" }),
   },
 }));
 
@@ -37,7 +37,10 @@ describe("importFromJson", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(path2Commands.base).mockResolvedValue("/test/data");
+    vi.mocked(settingsCommands.base).mockResolvedValue({
+      status: "ok",
+      data: "/test/data",
+    });
     store = createTestStore();
     onPersistComplete = vi.fn().mockResolvedValue(undefined);
   });

@@ -290,6 +290,36 @@ export async function renameContentFile(
   fromPath: string,
   toPath: string,
 ): Promise<{ success: boolean; newPath?: string; error?: string }> {
+  if (isDev()) {
+    try {
+      const localFromPath = path.join(getLocalContentPath(), fromPath);
+      const localToPath = path.join(getLocalContentPath(), toPath);
+
+      if (!fs.existsSync(localFromPath)) {
+        return { success: false, error: `Source file not found: ${fromPath}` };
+      }
+      if (fs.existsSync(localToPath)) {
+        return {
+          success: false,
+          error: `Target file already exists: ${toPath}`,
+        };
+      }
+
+      const dir = path.dirname(localToPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      fs.renameSync(localFromPath, localToPath);
+      return { success: true, newPath: toPath };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to rename file locally: ${(error as Error).message}`,
+      };
+    }
+  }
+
   const githubToken = getGitHubToken();
   if (!githubToken) {
     return { success: false, error: "GitHub token not configured" };
@@ -556,6 +586,54 @@ export async function duplicateContentFile(
   sourcePath: string,
   newFilename?: string,
 ): Promise<{ success: boolean; path?: string; error?: string }> {
+  if (isDev()) {
+    try {
+      const localSourcePath = path.join(getLocalContentPath(), sourcePath);
+
+      if (!fs.existsSync(localSourcePath)) {
+        return {
+          success: false,
+          error: `Source file not found: ${sourcePath}`,
+        };
+      }
+
+      const pathParts = sourcePath.split("/");
+      const originalFilename = pathParts.pop() || "";
+      const folder = pathParts.join("/");
+
+      let targetFilename: string;
+      if (newFilename) {
+        targetFilename = sanitizeFilename(newFilename);
+        if (!targetFilename.endsWith(".mdx")) {
+          targetFilename = `${targetFilename}.mdx`;
+        }
+      } else {
+        const baseName = originalFilename.replace(/\.mdx$/, "");
+        targetFilename = `${baseName}-copy.mdx`;
+      }
+
+      const targetPath = `${folder}/${targetFilename}`;
+      const localTargetPath = path.join(getLocalContentPath(), targetPath);
+
+      if (fs.existsSync(localTargetPath)) {
+        return {
+          success: false,
+          error: `File already exists: ${targetFilename}`,
+        };
+      }
+
+      const content = fs.readFileSync(localSourcePath);
+      fs.writeFileSync(localTargetPath, content);
+
+      return { success: true, path: targetPath };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to duplicate file locally: ${(error as Error).message}`,
+      };
+    }
+  }
+
   const githubToken = getGitHubToken();
   if (!githubToken) {
     return { success: false, error: "GitHub token not configured" };

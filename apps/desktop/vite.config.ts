@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
-import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type UserConfig } from "vite";
 

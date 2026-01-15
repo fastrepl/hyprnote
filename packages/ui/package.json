@@ -10,7 +10,7 @@
     "./globals.css": "./dist/globals.css",
     "./hooks/*": "./src/hooks/*.tsx",
     "./lib/*": "./src/lib/*.ts",
-        "./postcss.config": "./postcss.config.mjs"
+    "./postcss.config": "./postcss.config.mjs"
   },
   "scripts": {
     "build": "npx @tailwindcss/cli -i ./src/styles/globals.css -o ./dist/globals.css --minify"

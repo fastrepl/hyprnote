@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap')
-layer(base);
-@import './scrollbar.css' layer(base);
-@import './scrollbar.utilities.css';
+@import url("https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap")
+  layer(base);
+@import "./scrollbar.css" layer(base);
+@import "./scrollbar.utilities.css";
 
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @source "../../node_modules/streamdown/dist/index.js";
 
@@ -60,29 +60,29 @@ layer(base);
 
 @layer base {
   @font-face {
-    font-family: 'SF Pro';
-    src: url('/fonts/SF-Pro-Text-Regular.otf') format('opentype');
+    font-family: "SF Pro";
+    src: url("/fonts/SF-Pro-Text-Regular.otf") format("opentype");
     font-weight: 400;
     font-style: normal;
   }
 
   @font-face {
-    font-family: 'SF Pro';
-    src: url('/fonts/SF-Pro-Text-Medium.otf') format('opentype');
+    font-family: "SF Pro";
+    src: url("/fonts/SF-Pro-Text-Medium.otf") format("opentype");
     font-weight: 500;
     font-style: normal;
   }
 
   @font-face {
-    font-family: 'SF Pro';
-    src: url('/fonts/SF-Pro-Text-Semibold.otf') format('opentype');
+    font-family: "SF Pro";
+    src: url("/fonts/SF-Pro-Text-Semibold.otf") format("opentype");
     font-weight: 600;
     font-style: normal;
   }
 
   @font-face {
-    font-family: 'SF Pro';
-    src: url('/fonts/SF-Pro-Text-Bold.otf') format('opentype');
+    font-family: "SF Pro";
+    src: url("/fonts/SF-Pro-Text-Bold.otf") format("opentype");
     font-weight: 700;
     font-style: normal;
   }

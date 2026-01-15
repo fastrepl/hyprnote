@@ -421,7 +421,17 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
           let markdown = htmlToMarkdown(bodyContent);
 
           const imageUrls = extractImageUrls(bodyContent);
-          if (imageUrls.length > 0 && slug) {
+          if (imageUrls.length > 0) {
+            if (!slug) {
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  error: "slug is required for image uploads",
+                }),
+                { status: 400 },
+              );
+            }
+
             const imageReplacements = await uploadImagesToSupabase(
               imageUrls,
               slug,

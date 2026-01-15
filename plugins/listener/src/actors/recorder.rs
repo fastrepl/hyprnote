@@ -6,7 +6,7 @@ use std::time::Instant;
 
 use hypr_audio_utils::{
     VorbisEncodeSettings, decode_vorbis_to_wav_file, encode_wav_to_vorbis_file,
-    interleave_stereo_f32,
+    interleave_stereo_f32, mix_audio_f32,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_plugin_fs_sync::find_session_dir;
@@ -80,16 +80,23 @@ impl Actor for RecorderActor {
             let mic_path = dir.join(format!("{}_mic.wav", filename_base));
             let spk_path = dir.join(format!("{}_spk.wav", filename_base));
 
+            let mono_spec = hound::WavSpec {
+                channels: 1,
+                sample_rate: super::SAMPLE_RATE,
+                bits_per_sample: 32,
+                sample_format: hound::SampleFormat::Float,
+            };
+
             let mic_writer = if mic_path.exists() {
                 hound::WavWriter::append(&mic_path)?
             } else {
-                hound::WavWriter::create(&mic_path, spec)?
+                hound::WavWriter::create(&mic_path, mono_spec)?
             };
 
             let spk_writer = if spk_path.exists() {
                 hound::WavWriter::append(&spk_path)?
             } else {
-                hound::WavWriter::create(&spk_path, spec)?
+                hound::WavWriter::create(&spk_path, mono_spec)?
             };
 
             (Some(mic_writer), Some(spk_writer))
@@ -125,7 +132,8 @@ impl Actor for RecorderActor {
             }
             RecMsg::AudioDual(mic, spk) => {
                 if let Some(ref mut writer) = st.writer {
-                    let stereo = interleave_stereo_f32(&mic, &spk);
+                    let mixed = mix_audio_f32(&mic, &spk);
+                    let stereo = interleave_stereo_f32(&mixed, &mixed);
                     for sample in stereo {
                         writer.write_sample(sample)?;
                     }

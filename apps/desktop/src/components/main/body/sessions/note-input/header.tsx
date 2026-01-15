@@ -9,6 +9,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@hypr/ui/components/ui/popover";
+import {
+  ScrollFadeOverlay,
+  useScrollFade,
+} from "@hypr/ui/components/ui/scroll-fade";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
@@ -29,7 +33,6 @@ import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs"
 import { type TaskStepInfo } from "../../../../../store/zustand/ai-task/tasks";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
-import { ScrollFadeOverlay, useScrollFade } from "../../../../ui/scroll-fade";
 import { useHasTranscript } from "../shared";
 import { EditingControls } from "./transcript/editing-controls";
 import { TranscriptionProgress } from "./transcript/progress";

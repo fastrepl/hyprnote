@@ -29,6 +29,10 @@ impl RealtimeSttAdapter for OpenAIAdapter {
         false
     }
 
+    fn sample_rate(&self) -> u32 {
+        24000
+    }
+
     fn build_ws_url(&self, api_base: &str, _params: &ListenParams, _channels: u8) -> url::Url {
         let (mut url, existing_params) = Self::build_ws_url_from_base(api_base);
 

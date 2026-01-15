@@ -5,8 +5,8 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use hypr_audio_utils::{
-    VorbisEncodeSettings, decode_vorbis_to_wav_file, encode_wav_to_vorbis_file,
-    interleave_stereo_f32, mix_audio_f32,
+    VorbisEncodeSettings, convert_mono_wav_to_stereo_in_place, decode_vorbis_to_wav_file,
+    encode_wav_to_vorbis_file, interleave_stereo_f32, mix_audio_f32,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_plugin_fs_sync::find_session_dir;
@@ -61,6 +61,7 @@ impl Actor for RecorderActor {
         if ogg_path.exists() {
             decode_vorbis_to_wav_file(&ogg_path, &wav_path).map_err(into_actor_err)?;
             std::fs::remove_file(&ogg_path)?;
+            convert_mono_wav_to_stereo_in_place(&wav_path).map_err(into_actor_err)?;
         }
 
         let spec = hound::WavSpec {

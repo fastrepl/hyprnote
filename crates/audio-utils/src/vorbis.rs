@@ -211,3 +211,33 @@ pub fn interleave_stereo_f32(left: &[f32], right: &[f32]) -> Vec<f32> {
     }
     output
 }
+
+pub fn convert_mono_wav_to_stereo_in_place(wav_path: impl AsRef<Path>) -> Result<(), Error> {
+    let path = wav_path.as_ref();
+    let mut reader = WavReader::open(path)?;
+    let spec = reader.spec();
+
+    if spec.channels >= 2 {
+        return Ok(());
+    }
+
+    let samples: Vec<f32> = reader.samples::<f32>().collect::<Result<_, _>>()?;
+    drop(reader);
+
+    let stereo_spec = WavSpec {
+        channels: 2,
+        sample_rate: spec.sample_rate,
+        bits_per_sample: spec.bits_per_sample,
+        sample_format: spec.sample_format,
+    };
+
+    let mut writer = WavWriter::create(path, stereo_spec)?;
+    for sample in samples {
+        writer.write_sample(sample)?;
+        writer.write_sample(sample)?;
+    }
+    writer.flush()?;
+    writer.finalize()?;
+
+    Ok(())
+}

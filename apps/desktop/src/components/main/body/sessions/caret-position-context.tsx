@@ -83,7 +83,7 @@ export function useCaretNearBottom({
 
     editor.on("selectionUpdate", checkCaretPosition);
     editor.on("focus", checkCaretPosition);
-    editor.on("blur-sm", handleBlur);
+    editor.on("blur", handleBlur);
     container.addEventListener("scroll", checkCaretPosition);
     window.addEventListener("resize", checkCaretPosition);
 
@@ -92,7 +92,7 @@ export function useCaretNearBottom({
     return () => {
       editor.off("selectionUpdate", checkCaretPosition);
       editor.off("focus", checkCaretPosition);
-      editor.off("blur-sm", handleBlur);
+      editor.off("blur", handleBlur);
       container.removeEventListener("scroll", checkCaretPosition);
       window.removeEventListener("resize", checkCaretPosition);
     };

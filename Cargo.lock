@@ -1337,6 +1337,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "aws-sdk-bedrock"
+version = "1.128.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "793d3212661f68a7a26f8713cd033d4d74f473cacca297126c21abccfae0dc70"
+dependencies = [
+ "aws-credential-types",
+ "aws-runtime",
+ "aws-smithy-async",
+ "aws-smithy-http",
+ "aws-smithy-json",
+ "aws-smithy-runtime",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "fastrand 2.3.0",
+ "http 0.2.12",
+ "regex-lite",
+ "tracing",
+]
+
+[[package]]
 name = "aws-sdk-s3"
 version = "1.119.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4723,6 +4745,7 @@ dependencies = [
  "tauri-plugin-auth",
  "tauri-plugin-automation",
  "tauri-plugin-autostart",
+ "tauri-plugin-bedrock",
  "tauri-plugin-cli2",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-db2",
@@ -18086,6 +18109,22 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "tauri-plugin-bedrock"
+version = "0.1.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-bedrock",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
 ]
 
 [[package]]

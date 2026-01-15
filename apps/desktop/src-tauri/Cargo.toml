@@ -28,6 +28,7 @@ tauri-plugin-apple-contact = { workspace = true }
 tauri-plugin-audio-priority = { workspace = true }
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-autostart = { workspace = true }
+tauri-plugin-bedrock = { workspace = true }
 tauri-plugin-cli2 = { workspace = true }
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-db2 = { workspace = true }

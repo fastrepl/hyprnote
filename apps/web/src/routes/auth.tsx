@@ -14,6 +14,7 @@ const validateSearch = z.object({
   flow: z.enum(["desktop", "web"]).default("web"),
   scheme: z.string().default("hyprnote"),
   redirect: z.string().optional(),
+  provider: z.enum(["github", "google"]).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -48,27 +49,39 @@ export const Route = createFileRoute("/auth")({
 });
 
 function Component() {
-  const { flow, scheme, redirect } = Route.useSearch();
+  const { flow, scheme, redirect, provider } = Route.useSearch();
+
+  const showGoogle = !provider || provider === "google";
+  const showGithub = !provider || provider === "github";
+  const showMagicLink = !provider;
 
   return (
     <Container>
       <Header />
       <div className="space-y-2">
-        <OAuthButton
-          flow={flow}
-          scheme={scheme}
-          redirect={redirect}
-          provider="google"
-        />
-        <OAuthButton
-          flow={flow}
-          scheme={scheme}
-          redirect={redirect}
-          provider="github"
-        />
+        {showGoogle && (
+          <OAuthButton
+            flow={flow}
+            scheme={scheme}
+            redirect={redirect}
+            provider="google"
+          />
+        )}
+        {showGithub && (
+          <OAuthButton
+            flow={flow}
+            scheme={scheme}
+            redirect={redirect}
+            provider="github"
+          />
+        )}
       </div>
-      <Divider />
-      <MagicLinkForm flow={flow} scheme={scheme} redirect={redirect} />
+      {showMagicLink && (
+        <>
+          <Divider />
+          <MagicLinkForm flow={flow} scheme={scheme} redirect={redirect} />
+        </>
+      )}
       <PrivacyPolicy />
     </Container>
   );

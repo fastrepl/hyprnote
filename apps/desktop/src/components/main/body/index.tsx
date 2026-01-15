@@ -6,7 +6,7 @@ import {
   PlusIcon,
 } from "lucide-react";
 import { Reorder } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useResizeObserver } from "usehooks-ts";
 import { useShallow } from "zustand/shallow";
@@ -111,13 +111,20 @@ function Header({ tabs }: { tabs: Tab[] }) {
   const liveStatus = useListener((state) => state.live.status);
   const isListening = liveStatus === "active" || liveStatus === "finalizing";
 
-  const listeningTab =
-    isListening && liveSessionId
-      ? tabs.find((t) => t.type === "sessions" && t.id === liveSessionId)
-      : null;
-  const regularTabs = listeningTab
-    ? tabs.filter((t) => !(t.type === "sessions" && t.id === liveSessionId))
-    : tabs;
+  const listeningTab = useMemo(
+    () =>
+      isListening && liveSessionId
+        ? tabs.find((t) => t.type === "sessions" && t.id === liveSessionId)
+        : null,
+    [isListening, liveSessionId, tabs],
+  );
+  const regularTabs = useMemo(
+    () =>
+      listeningTab
+        ? tabs.filter((t) => !(t.type === "sessions" && t.id === liveSessionId))
+        : tabs,
+    [listeningTab, tabs, liveSessionId],
+  );
 
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const handleNewEmptyTab = useNewEmptyTab();

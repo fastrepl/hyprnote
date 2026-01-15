@@ -2,6 +2,7 @@ mod batch;
 mod live;
 
 use owhisper_providers::Provider;
+use serde::Deserialize;
 
 const SUPPORTED_LANGUAGES: &[&str] = &[
     "af", "sq", "am", "ar", "hy", "as", "az", "ba", "eu", "be", "bn", "bs", "br", "bg", "ca", "zh",
@@ -81,17 +82,22 @@ impl ElevenLabsAdapter {
         }
 
         let parsed: url::Url = api_base.parse().expect("invalid_api_base");
-        let host = parsed
-            .host_str()
-            .unwrap_or(Provider::ElevenLabs.default_api_host());
-        let is_local = super::is_local_host(host);
-        let scheme = if is_local { "http" } else { "https" };
-        let host_with_port = match parsed.port() {
-            Some(port) => format!("{host}:{port}"),
-            None => host.to_string(),
-        };
-        format!("{scheme}://{host_with_port}/v1/speech-to-text")
+        Self::build_url_with_scheme(&parsed, "/v1/speech-to-text", false).to_string()
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct ElevenLabsWord {
+    #[serde(default)]
+    pub text: String,
+    #[serde(default)]
+    pub start: f64,
+    #[serde(default)]
+    pub end: f64,
+    #[serde(default, rename = "type")]
+    pub word_type: Option<String>,
+    #[serde(default)]
+    pub speaker_id: Option<String>,
 }
 
 pub(super) fn documented_language_codes() -> &'static [&'static str] {

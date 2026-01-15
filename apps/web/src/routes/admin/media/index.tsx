@@ -783,6 +783,15 @@ function ContentPanel({
             onDownloadSelected={onDownloadSelected}
             onClearSelection={onClearSelection}
             deletePending={deletePending}
+            currentFile={
+              currentTab.type === "file"
+                ? items.find((i) => i.path === currentTab.path)
+                : undefined
+            }
+            onCopyToClipboard={onCopyToClipboard}
+            onDownload={onDownload}
+            onReplace={onReplace}
+            onDeleteSingle={onDeleteSingle}
           />
 
           <div className="flex-1 min-h-0 overflow-hidden">
@@ -806,8 +815,6 @@ function ContentPanel({
             ) : (
               <FilePreview
                 item={items.find((i) => i.path === currentTab.path)}
-                onDownload={onDownload}
-                onCopyToClipboard={onCopyToClipboard}
               />
             )}
           </div>
@@ -1029,6 +1036,11 @@ function HeaderBar({
   onDownloadSelected,
   onClearSelection,
   deletePending,
+  currentFile,
+  onCopyToClipboard,
+  onDownload,
+  onReplace,
+  onDeleteSingle,
 }: {
   currentTab: Tab;
   selectedItems: Set<string>;
@@ -1036,7 +1048,13 @@ function HeaderBar({
   onDownloadSelected: () => void;
   onClearSelection: () => void;
   deletePending: boolean;
+  currentFile?: MediaItem;
+  onCopyToClipboard: (text: string) => void;
+  onDownload: (publicUrl: string, filename: string) => void;
+  onReplace: (file: File, path: string) => void;
+  onDeleteSingle: (path: string) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const breadcrumbs = currentTab.path ? currentTab.path.split("/") : [];
 
   return (
@@ -1061,6 +1079,11 @@ function HeaderBar({
               </span>
             </span>
           ))
+        )}
+        {currentFile && (
+          <span className="text-xs text-neutral-400 ml-2">
+            {formatFileSize(currentFile.size)} • {currentFile.mimeType}
+          </span>
         )}
       </div>
 
@@ -1091,6 +1114,52 @@ function HeaderBar({
           >
             <XIcon className="size-4" />
           </button>
+        </div>
+      )}
+
+      {currentTab.type === "file" && currentFile && (
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onCopyToClipboard(currentFile.publicUrl)}
+            className="p-1.5 rounded transition-colors text-neutral-400 hover:text-neutral-600"
+            title="Copy URL"
+          >
+            <CopyIcon className="size-4" />
+          </button>
+          <button
+            onClick={() => onDownload(currentFile.publicUrl, currentFile.name)}
+            className="p-1.5 rounded transition-colors text-neutral-400 hover:text-neutral-600"
+            title="Download"
+          >
+            <DownloadIcon className="size-4" />
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="p-1.5 rounded transition-colors text-neutral-400 hover:text-neutral-600"
+            title="Replace"
+          >
+            <RefreshCwIcon className="size-4" />
+          </button>
+          <button
+            onClick={() => onDeleteSingle(currentFile.path)}
+            className="p-1.5 rounded transition-colors text-neutral-400 hover:text-red-600"
+            title="Delete"
+          >
+            <Trash2Icon className="size-4" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*,audio/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                onReplace(file, currentFile.path);
+                e.target.value = "";
+              }
+            }}
+          />
         </div>
       )}
     </div>
@@ -1409,15 +1478,7 @@ function MediaItemCard({
   );
 }
 
-function FilePreview({
-  item,
-  onDownload,
-  onCopyToClipboard,
-}: {
-  item: MediaItem | undefined;
-  onDownload: (publicUrl: string, filename: string) => void;
-  onCopyToClipboard: (text: string) => void;
-}) {
+function FilePreview({ item }: { item: MediaItem | undefined }) {
   if (!item) {
     return (
       <div className="flex items-center justify-center h-full text-neutral-500">
@@ -1431,58 +1492,33 @@ function FilePreview({
   const isAudio = item.mimeType?.startsWith("audio/");
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 bg-neutral-50 p-4 overflow-auto flex items-center justify-center">
-        {isImage && (
-          <img
-            src={item.publicUrl}
-            alt={item.name}
-            className="max-w-full max-h-full object-contain"
-          />
-        )}
-        {isVideo && (
-          <video
-            src={item.publicUrl}
-            controls
-            className="max-w-full max-h-full object-contain"
-          />
-        )}
-        {isAudio && (
-          <audio src={item.publicUrl} controls className="w-full max-w-md" />
-        )}
-        {!isImage && !isVideo && !isAudio && (
-          <div className="text-center">
-            <FileIcon className="size-16 text-neutral-400 mb-4" />
-            <p className="text-sm text-neutral-600">{item.name}</p>
-            <p className="text-xs text-neutral-400 mt-1">
-              {formatFileSize(item.size)}
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="h-16 border-t border-neutral-200 flex items-center justify-between px-4">
-        <div>
-          <p className="text-sm font-medium text-neutral-900">{item.name}</p>
-          <p className="text-xs text-neutral-500">
-            {formatFileSize(item.size)} • {item.mimeType}
+    <div className="h-full bg-neutral-50 p-4 flex items-center justify-center">
+      {isImage && (
+        <img
+          src={item.publicUrl}
+          alt={item.name}
+          className="max-w-full max-h-full object-contain"
+        />
+      )}
+      {isVideo && (
+        <video
+          src={item.publicUrl}
+          controls
+          className="max-w-full max-h-full object-contain"
+        />
+      )}
+      {isAudio && (
+        <audio src={item.publicUrl} controls className="w-full max-w-md" />
+      )}
+      {!isImage && !isVideo && !isAudio && (
+        <div className="text-center">
+          <FileIcon className="size-16 text-neutral-400 mb-4" />
+          <p className="text-sm text-neutral-600">{item.name}</p>
+          <p className="text-xs text-neutral-400 mt-1">
+            {formatFileSize(item.size)}
           </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => onCopyToClipboard(item.publicUrl)}
-            className="px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 rounded transition-colors"
-          >
-            Copy URL
-          </button>
-          <button
-            onClick={() => onDownload(item.publicUrl, item.name)}
-            className="px-3 py-1.5 text-sm text-white bg-neutral-900 hover:bg-neutral-800 rounded transition-colors"
-          >
-            Download
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

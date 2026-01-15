@@ -176,6 +176,7 @@ macro_rules! proxy_live_test {
                         owhisper_interface::ListenParams {
                             model: Some($provider.default_live_model().to_string()),
                             languages: vec![hypr_language::ISO639::En.into()],
+                            sample_rate: $provider.default_live_sample_rate(),
                             ..Default::default()
                         },
                     )

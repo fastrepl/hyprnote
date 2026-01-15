@@ -244,6 +244,14 @@ impl Provider {
         }
     }
 
+    pub fn default_live_sample_rate(&self) -> u32 {
+        match self {
+            Self::OpenAI => 24000,
+            Self::ElevenLabs => 16000,
+            _ => 16000,
+        }
+    }
+
     pub fn default_batch_model(&self) -> &'static str {
         match self {
             Self::Deepgram => "nova-3",
@@ -259,6 +267,7 @@ impl Provider {
     pub fn default_query_params(&self) -> &'static [(&'static str, &'static str)] {
         match self {
             Self::Deepgram => &[("model", "nova-3-general"), ("mip_opt_out", "false")],
+            Self::OpenAI => &[("intent", "transcription")],
             _ => &[],
         }
     }

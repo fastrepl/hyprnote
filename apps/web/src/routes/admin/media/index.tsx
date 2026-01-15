@@ -535,6 +535,7 @@ function MediaLibrary() {
           onDownload={handleDownload}
           onReplace={handleReplace}
           onDeleteSingle={handleDeleteSingle}
+          onOpenPreview={(path, name) => openTab("file", name, path)}
         />
       </ResizablePanel>
     </ResizablePanelGroup>
@@ -733,6 +734,7 @@ function ContentPanel({
   onDownload,
   onReplace,
   onDeleteSingle,
+  onOpenPreview,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -757,6 +759,7 @@ function ContentPanel({
   onDownload: (publicUrl: string, filename: string) => void;
   onReplace: (file: File, path: string) => void;
   onDeleteSingle: (path: string) => void;
+  onOpenPreview: (path: string, name: string) => void;
 }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -798,6 +801,7 @@ function ContentPanel({
                 onDownload={onDownload}
                 onReplace={onReplace}
                 onDeleteSingle={onDeleteSingle}
+                onOpenPreview={onOpenPreview}
               />
             ) : (
               <FilePreview
@@ -1099,6 +1103,7 @@ function FolderView({
   onDownload,
   onReplace,
   onDeleteSingle,
+  onOpenPreview,
 }: {
   dragOver: boolean;
   onDrop: (e: React.DragEvent) => void;
@@ -1113,6 +1118,7 @@ function FolderView({
   onDownload: (publicUrl: string, filename: string) => void;
   onReplace: (file: File, path: string) => void;
   onDeleteSingle: (path: string) => void;
+  onOpenPreview: (path: string, name: string) => void;
 }) {
   return (
     <div
@@ -1155,6 +1161,7 @@ function FolderView({
               onDownload={() => onDownload(item.publicUrl, item.name)}
               onReplace={(file) => onReplace(file, item.path)}
               onDelete={() => onDeleteSingle(item.path)}
+              onOpenPreview={() => onOpenPreview(item.path, item.name)}
             />
           ))}
         </div>
@@ -1171,6 +1178,7 @@ function MediaItemCard({
   onDownload,
   onReplace,
   onDelete,
+  onOpenPreview,
 }: {
   item: MediaItem;
   isSelected: boolean;
@@ -1179,6 +1187,7 @@ function MediaItemCard({
   onDownload: () => void;
   onReplace: (file: File) => void;
   onDelete: () => void;
+  onOpenPreview: () => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showMenu, setShowMenu] = useState(false);
@@ -1268,7 +1277,7 @@ function MediaItemCard({
           ? "border-blue-500 ring-2 ring-blue-500"
           : "border-neutral-200 hover:border-neutral-300 hover:shadow-md",
       ])}
-      onClick={onSelect}
+      onClick={onOpenPreview}
     >
       <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
         {isImage && item.publicUrl ? (

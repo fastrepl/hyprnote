@@ -251,7 +251,7 @@ function PersonItem({
         active ? "border-neutral-500 bg-neutral-100" : "border-transparent",
       ])}
     >
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+      <div className="shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
         <span className="text-xs font-medium text-neutral-600">
           {getInitials(personName || personEmail)}
         </span>
@@ -267,7 +267,7 @@ function PersonItem({
       <button
         onClick={handleTogglePin}
         className={cn([
-          "flex-shrink-0 p-1 rounded transition-colors",
+          "shrink-0 p-1 rounded-sm transition-colors",
           isPinned
             ? "text-blue-600 hover:text-blue-700"
             : "text-neutral-300 opacity-0 group-hover:opacity-100 hover:text-neutral-500",
@@ -339,20 +339,20 @@ function NewPersonForm({
   return (
     <div className="p-2">
       <form onSubmit={handleSubmit}>
-        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
+        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-sm bg-neutral-50 border border-neutral-200">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Add person"
-            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+            className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
             autoFocus
           />
           {name.trim() && (
             <button
               type="submit"
-              className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
+              className="text-neutral-500 hover:text-neutral-700 transition-colors shrink-0"
               aria-label="Add person"
             >
               <CornerDownLeft className="size-4" />

@@ -105,7 +105,7 @@ export function SelectProviderAndModel() {
             }}
           >
             {(field) => (
-              <div className="flex-[2] min-w-0" data-llm-provider-selector>
+              <div className="flex-2 min-w-0" data-llm-provider-selector>
                 <Select
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
@@ -146,7 +146,7 @@ export function SelectProviderAndModel() {
               const status = configuredProviders[providerId];
 
               return (
-                <div className="flex-[3] min-w-0">
+                <div className="flex-3 min-w-0">
                   <ModelCombobox
                     providerId={providerId}
                     value={field.state.value}

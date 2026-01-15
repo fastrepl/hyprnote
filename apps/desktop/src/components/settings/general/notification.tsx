@@ -320,7 +320,7 @@ export function NotificationSettingsView() {
                     <input
                       ref={inputRef}
                       type="text"
-                      className="flex-1 min-w-[120px] bg-transparent outline-none text-sm placeholder:text-muted-foreground"
+                      className="flex-1 min-w-[120px] bg-transparent outline-hidden text-sm placeholder:text-muted-foreground"
                       placeholder={
                         ignoredPlatforms.length === 0
                           ? "Type to add apps..."

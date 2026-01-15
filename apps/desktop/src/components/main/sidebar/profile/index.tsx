@@ -231,7 +231,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="absolute bottom-full left-0 right-0 mb-1"
           >
-            <div className="bg-neutral-50 rounded-xl overflow-hidden shadow-sm border">
+            <div className="bg-neutral-50 rounded-xl overflow-hidden shadow-xs border">
               <div className="pt-1">
                 <AnimatePresence mode="wait">
                   {currentView === "main" ? (
@@ -333,11 +333,11 @@ function ProfileButton({
     >
       <div
         className={cn([
-          "flex size-8 flex-shrink-0 items-center justify-center",
+          "flex size-8 shrink-0 items-center justify-center",
           "overflow-hidden rounded-full",
           "border border-white/60 border-t border-neutral-400",
-          "bg-gradient-to-br from-indigo-400 to-purple-500",
-          "shadow-sm",
+          "bg-linear-to-br from-indigo-400 to-purple-500",
+          "shadow-xs",
           "transition-transform duration-300",
         ])}
       >

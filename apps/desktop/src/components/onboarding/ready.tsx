@@ -20,7 +20,7 @@ export function Ready() {
 
       <button
         onClick={() => void finishOnboarding()}
-        className="w-full py-3 rounded-full bg-gradient-to-t from-neutral-800 to-neutral-700 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
+        className="w-full py-3 rounded-full bg-linear-to-t from-neutral-800 to-neutral-700 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
       >
         Get Started
       </button>

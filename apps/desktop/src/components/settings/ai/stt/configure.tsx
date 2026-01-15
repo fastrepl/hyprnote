@@ -240,16 +240,16 @@ function HyprProviderCloudRow() {
             "px-4 py-1.5 rounded-full text-sm font-medium",
             "transition-all duration-150",
             isPro
-              ? "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm hover:shadow-md"
-              : "bg-gradient-to-t from-stone-600 to-stone-500 text-white shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+              ? "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-xs hover:shadow-md"
+              : "bg-linear-to-t from-stone-600 to-stone-500 text-white shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
           ])}
         >
           {showShimmer && (
             <div
               className={cn([
                 "absolute inset-0 -translate-x-full",
-                "bg-gradient-to-r from-transparent via-white/20 to-transparent",
-                "animate-[shimmer_2s_infinite]",
+                "bg-linear-to-r from-transparent via-white/20 to-transparent",
+                "animate-shimmer",
               ])}
             />
           )}
@@ -289,8 +289,8 @@ function LocalModelAction({
         onClick={onOpen}
         className={cn([
           "px-4 py-1.5 rounded-full text-sm font-medium",
-          "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
-          "shadow-sm hover:shadow-md",
+          "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+          "shadow-xs hover:shadow-md",
           "transition-all duration-150",
           "flex items-center gap-1.5",
         ])}
@@ -307,7 +307,7 @@ function LocalModelAction({
         onClick={onDownload}
         className={cn([
           "px-4 py-1.5 rounded-full text-sm font-medium",
-          "bg-gradient-to-t from-red-600 to-red-500 text-white",
+          "bg-linear-to-t from-red-600 to-red-500 text-white",
           "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
           "transition-all duration-150",
           "flex items-center gap-1.5",
@@ -326,8 +326,8 @@ function LocalModelAction({
         className={cn([
           "relative overflow-hidden group",
           "w-[110px] px-4 py-1.5 rounded-full text-sm font-medium",
-          "bg-gradient-to-t from-neutral-300 to-neutral-200 text-neutral-900",
-          "shadow-sm",
+          "bg-linear-to-t from-neutral-300 to-neutral-200 text-neutral-900",
+          "shadow-xs",
           "transition-all duration-150",
         ])}
       >
@@ -353,8 +353,8 @@ function LocalModelAction({
       className={cn([
         "relative overflow-hidden",
         "px-4 py-1.5 rounded-full text-sm font-medium",
-        "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
-        "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+        "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+        "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
         "transition-all duration-150",
         "flex items-center gap-1.5",
       ])}
@@ -363,8 +363,8 @@ function LocalModelAction({
         <div
           className={cn([
             "absolute inset-0 -translate-x-full",
-            "bg-gradient-to-r from-transparent via-neutral-400/30 to-transparent",
-            "animate-[shimmer_2s_infinite]",
+            "bg-linear-to-r from-transparent via-neutral-400/30 to-transparent",
+            "animate-shimmer",
           ])}
         />
       )}

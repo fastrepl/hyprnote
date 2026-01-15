@@ -74,7 +74,7 @@ function TaskItem({
           <div className="font-medium truncate flex items-center gap-1.5">
             {label}
             {hasCustomPrompt && (
-              <span className="flex items-center gap-0.5 text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+              <span className="flex items-center gap-0.5 text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-sm">
                 <CheckIcon className="w-3 h-3" />
                 Custom
               </span>

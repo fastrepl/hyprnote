@@ -156,7 +156,7 @@ const _PROVIDERS = [
     displayName: "Gladia",
     badge: "Beta",
     icon: (
-      <img src="/assets/gladia.jpeg" alt="Gladia" className="size-4 rounded" />
+      <img src="/assets/gladia.jpeg" alt="Gladia" className="size-4 rounded-sm" />
     ),
     baseUrl: "https://api.gladia.io",
     models: ["solaria-1"],
@@ -168,7 +168,7 @@ const _PROVIDERS = [
     displayName: "Soniox",
     badge: null,
     icon: (
-      <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
+      <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded-sm" />
     ),
     baseUrl: "https://api.soniox.com",
     models: ["stt-v3"],

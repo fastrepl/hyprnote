@@ -50,7 +50,7 @@ export const SegmentRenderer = memo(
 
         <div
           className={cn([
-            "mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere",
+            "mt-1.5 text-sm leading-relaxed wrap-break-word overflow-wrap-anywhere",
             editable && "select-text-deep",
           ])}
         >

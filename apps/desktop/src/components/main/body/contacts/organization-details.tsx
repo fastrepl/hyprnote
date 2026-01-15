@@ -73,11 +73,11 @@ export function OrganizationDetailsColumn({
                       return (
                         <div
                           key={humanId}
-                          className="p-4 rounded-lg border border-neutral-200 hover:shadow-sm transition-all bg-white cursor-pointer"
+                          className="p-4 rounded-lg border border-neutral-200 hover:shadow-xs transition-all bg-white cursor-pointer"
                           onClick={() => onPersonClick?.(humanId)}
                         >
                           <div className="flex flex-col items-center text-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center flex-shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center shrink-0">
                               <span className="text-sm font-medium text-neutral-600">
                                 {getInitials(
                                   (human.name as string) ||

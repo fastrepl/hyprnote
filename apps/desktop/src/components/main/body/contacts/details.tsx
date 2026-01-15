@@ -661,8 +661,8 @@ function OrganizationControl({
 
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col gap-2">
-          <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
-            <span className="text-neutral-500 flex-shrink-0">
+          <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-sm bg-neutral-50 border border-neutral-200">
+            <span className="text-neutral-500 shrink-0">
               <SearchIcon className="size-4" />
             </span>
             <input
@@ -671,12 +671,12 @@ function OrganizationControl({
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search or add company"
-              className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
 
           {searchTerm.trim() && (
-            <div className="flex flex-col w-full rounded border border-neutral-200 overflow-hidden">
+            <div className="flex flex-col w-full rounded-sm border border-neutral-200 overflow-hidden">
               {organizations.map((org: any) => (
                 <button
                   key={org.id}
@@ -684,7 +684,7 @@ function OrganizationControl({
                   className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
                   onClick={() => selectOrganization(org.id)}
                 >
-                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
+                  <span className="shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
                     <Building2 className="size-3" />
                   </span>
                   <span className="font-medium truncate">{org.name}</span>
@@ -697,7 +697,7 @@ function OrganizationControl({
                   className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
                   onClick={() => handleCreateOrganization()}
                 >
-                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
+                  <span className="shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
                     <span className="text-xs">+</span>
                   </span>
                   <span className="flex items-center gap-1 font-medium text-neutral-600">
@@ -712,7 +712,7 @@ function OrganizationControl({
           )}
 
           {!searchTerm.trim() && organizations.length > 0 && (
-            <div className="flex flex-col w-full rounded border border-neutral-200 overflow-hidden max-h-[40vh] overflow-y-auto custom-scrollbar">
+            <div className="flex flex-col w-full rounded-sm border border-neutral-200 overflow-hidden max-h-[40vh] overflow-y-auto custom-scrollbar">
               {organizations.map((org: any) => (
                 <button
                   key={org.id}
@@ -720,7 +720,7 @@ function OrganizationControl({
                   className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
                   onClick={() => selectOrganization(org.id)}
                 >
-                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
+                  <span className="shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
                     <Building2 className="size-3" />
                   </span>
                   <span className="font-medium truncate">{org.name}</span>

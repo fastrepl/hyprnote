@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type UserConfig } from "vite";
 
@@ -8,6 +9,7 @@ const host = process.env.TAURI_DEV_HOST;
 // https://vite.dev/config/
 export default defineConfig(() => ({
   plugins: [
+    tailwindcss(),
     tanstackRouter({ target: "react", autoCodeSplitting: false }),
     react({
       babel: {

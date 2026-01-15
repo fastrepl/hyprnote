@@ -47,7 +47,7 @@ function HeaderTab({
     <button
       onClick={onClick}
       className={cn([
-        "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200 flex-shrink-0",
+        "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200 shrink-0",
         isActive
           ? ["border-neutral-900", "text-neutral-900"]
           : [
@@ -155,7 +155,7 @@ function HeaderTabTranscript({
     <button
       onClick={onClick}
       className={cn([
-        "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200 flex-shrink-0",
+        "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200 shrink-0",
         isActive
           ? ["border-neutral-900", "text-neutral-900"]
           : [
@@ -171,7 +171,7 @@ function HeaderTabTranscript({
           <span
             onClick={handleRefreshClick}
             className={cn([
-              "inline-flex h-5 w-5 items-center justify-center rounded transition-colors cursor-pointer",
+              "inline-flex h-5 w-5 items-center justify-center rounded-sm transition-colors cursor-pointer",
               "hover:bg-neutral-200 focus-visible:bg-neutral-200",
               (isBatchProcessing || isRedoing) && "pointer-events-none",
             ])}
@@ -234,7 +234,7 @@ function HeaderTabEnhanced({
           }
         }}
         className={cn([
-          "group/tab relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 cursor-pointer flex-shrink-0",
+          "group/tab relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 cursor-pointer shrink-0",
           isActive
             ? ["text-neutral-900", "border-neutral-900"]
             : [
@@ -250,7 +250,7 @@ function HeaderTabEnhanced({
             type="button"
             onClick={handleCancelClick}
             className={cn([
-              "inline-flex h-5 w-5 items-center justify-center rounded cursor-pointer hover:bg-neutral-200",
+              "inline-flex h-5 w-5 items-center justify-center rounded-sm cursor-pointer hover:bg-neutral-200",
               !isActive && "opacity-50",
             ])}
             aria-label="Cancel enhancement"
@@ -278,7 +278,7 @@ function HeaderTabEnhanced({
     <span
       onClick={handleRegenerateClick}
       className={cn([
-        "group relative inline-flex h-5 w-5 items-center justify-center rounded transition-colors cursor-pointer",
+        "group relative inline-flex h-5 w-5 items-center justify-center rounded-sm transition-colors cursor-pointer",
         isError
           ? [
               "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",
@@ -308,7 +308,7 @@ function HeaderTabEnhanced({
     <button
       onClick={onClick}
       className={cn([
-        "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 flex-shrink-0",
+        "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2 shrink-0",
         isActive
           ? ["text-neutral-900", "border-neutral-900"]
           : [
@@ -410,7 +410,7 @@ function CreateOtherFormatButton({
       <PopoverTrigger asChild>
         <button
           className={cn([
-            "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap",
+            "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 shrink-0 whitespace-nowrap",
             "text-neutral-600 hover:text-neutral-800",
             "flex items-center gap-1",
             "border-b-2 border-transparent",
@@ -452,7 +452,7 @@ function CreateOtherFormatButton({
                   setOpen(false);
                   openNew({ type: "templates" });
                 }}
-                className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
+                className="px-6 py-2 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
               >
                 Create templates
               </button>

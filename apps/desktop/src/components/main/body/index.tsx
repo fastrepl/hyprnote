@@ -254,10 +254,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
           </Reorder.Group>
         </div>
         {!scrollState.atStart && (
-          <div className="absolute left-0 top-0 h-full w-8 z-20 pointer-events-none bg-gradient-to-r from-white to-transparent" />
+          <div className="absolute left-0 top-0 h-full w-8 z-20 pointer-events-none bg-linear-to-r from-white to-transparent" />
         )}
         {!scrollState.atEnd && (
-          <div className="absolute right-0 top-0 h-full w-8 z-20 pointer-events-none bg-gradient-to-l from-white to-transparent" />
+          <div className="absolute right-0 top-0 h-full w-8 z-20 pointer-events-none bg-linear-to-l from-white to-transparent" />
         )}
       </div>
 

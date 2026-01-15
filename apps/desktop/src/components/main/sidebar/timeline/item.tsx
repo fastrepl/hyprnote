@@ -78,7 +78,7 @@ function ItemBase({
     >
       <div className="flex items-center gap-2">
         {showSpinner && (
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Spinner size={14} />
           </div>
         )}

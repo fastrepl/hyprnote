@@ -141,7 +141,7 @@ export function TabItemBase({
         ])}
       >
         <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
-          <div className="flex-shrink-0 relative w-4 h-4">
+          <div className="shrink-0 relative w-4 h-4">
             <div
               className={cn([
                 "absolute inset-0 flex items-center justify-center transition-opacity duration-200",

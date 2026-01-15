@@ -213,20 +213,20 @@ function NewOrganizationForm({
   return (
     <div className="p-2">
       <form onSubmit={handleSubmit}>
-        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
+        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-sm bg-neutral-50 border border-neutral-200">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Add organization"
-            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+            className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
             autoFocus
           />
           {name.trim() && (
             <button
               type="submit"
-              className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
+              className="text-neutral-500 hover:text-neutral-700 transition-colors shrink-0"
               aria-label="Add organization"
             >
               <CornerDownLeft className="size-4" />

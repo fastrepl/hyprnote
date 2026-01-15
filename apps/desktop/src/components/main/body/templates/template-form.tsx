@@ -135,7 +135,7 @@ export function TemplateForm({
             {value.targets.map((target, index) => (
               <span
                 key={index}
-                className="text-xs text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded"
+                className="text-xs text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-sm"
               >
                 {target}
               </span>

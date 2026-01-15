@@ -103,7 +103,7 @@ function PermissionRow({
         </div>
       </div>
       <Button
-        variant={isAuthorized ? "outline" : "default"}
+        variant={isAuthorized ? "outline-solid" : "default"}
         size="icon"
         onClick={handleButtonClick}
         disabled={isPending}

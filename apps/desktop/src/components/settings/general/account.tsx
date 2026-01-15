@@ -141,7 +141,7 @@ export function AccountSettings() {
         action={
           <button
             onClick={handleSignIn}
-            className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
+            className="px-6 py-2 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
           >
             Get Started
           </button>
@@ -330,7 +330,7 @@ function Container({
             <p className="text-sm text-neutral-600">{description}</p>
           )}
         </div>
-        {action ? <div className="flex-shrink-0">{action}</div> : null}
+        {action ? <div className="shrink-0">{action}</div> : null}
       </div>
       {children}
     </section>

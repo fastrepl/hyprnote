@@ -102,7 +102,7 @@ function NotificationItem({ notification }: { notification: Notification }) {
     >
       <div
         className={cn([
-          "flex-shrink-0 w-8 h-8 rounded-full",
+          "shrink-0 w-8 h-8 rounded-full",
           "flex items-center justify-center",
           notification.type === "message" && "bg-purple-100",
           notification.type === "success" && "bg-green-100",
@@ -130,7 +130,7 @@ function NotificationItem({ notification }: { notification: Notification }) {
             {notification.title}
           </p>
           {!notification.read && (
-            <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500" />
+            <span className="shrink-0 w-2 h-2 rounded-full bg-blue-500" />
           )}
         </div>
         <p className="text-xs text-neutral-600 line-clamp-2 mb-1">

@@ -36,11 +36,11 @@ impl std::fmt::Debug for Error {
 
 impl Error {
     pub fn is_auth_error(&self) -> bool {
-        if let Error::Connection(tungstenite_error) = self {
-            if let tokio_tungstenite::tungstenite::Error::Http(response) = tungstenite_error {
-                let status = response.status().as_u16();
-                return status == 401 || status == 403;
-            }
+        if let Error::Connection(tungstenite_error) = self
+            && let tokio_tungstenite::tungstenite::Error::Http(response) = tungstenite_error
+        {
+            let status = response.status().as_u16();
+            return status == 401 || status == 403;
         }
         false
     }

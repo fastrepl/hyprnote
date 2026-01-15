@@ -61,12 +61,9 @@ impl DeepgramModel {
 
     pub fn best_for_languages(languages: &[hypr_language::Language]) -> Option<Self> {
         let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        for model in [Self::Nova3General, Self::Nova2General] {
-            if model.supported_languages().contains(&primary_lang) {
-                return Some(model);
-            }
-        }
-        None
+        [Self::Nova3General, Self::Nova2General]
+            .into_iter()
+            .find(|&model| model.supported_languages().contains(&primary_lang))
     }
 }
 

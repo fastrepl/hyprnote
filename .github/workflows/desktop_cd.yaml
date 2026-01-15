@@ -68,7 +68,7 @@ jobs:
 
   build-macos:
     needs: [compute-version, cn-draft]
-    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
+    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') && ((matrix.channel_filter == 'staging' && inputs.channel == 'staging') || (matrix.channel_filter == 'non-staging' && inputs.channel != 'staging')) }}
     permissions:
       contents: write
     runs-on: depot-macos-14
@@ -80,10 +80,12 @@ jobs:
             arch: aarch64
             artifact_name: silicon
             include_am: true
+            channel_filter: staging
           - target: x86_64-apple-darwin
             arch: x86_64
             artifact_name: intel
             include_am: false
+            channel_filter: non-staging
     defaults:
       run:
         shell: bash

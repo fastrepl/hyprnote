@@ -92,7 +92,13 @@ if (!isIframeContext && env.VITE_SENTRY_DSN) {
       : undefined,
     environment: import.meta.env.MODE,
     tracePropagationTargets: [env.VITE_API_URL],
-    integrations: [Sentry.browserTracingIntegration()],
+    integrations: [
+      Sentry.tanstackRouterBrowserTracingIntegration(router),
+      Sentry.replayIntegration(),
+    ],
+    tracesSampleRate: 1.0,
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
   });
 }
 

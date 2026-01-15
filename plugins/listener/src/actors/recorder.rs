@@ -127,12 +127,15 @@ impl Actor for RecorderActor {
         _myself: ActorRef<Self::Msg>,
         st: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
+        tracing::info!(wav_path = ?st.wav_path, ogg_path = ?st.ogg_path, "recorder_post_stop_started");
+
         finalize_writer(&mut st.writer)?;
         finalize_writer(&mut st.writer_mic)?;
         finalize_writer(&mut st.writer_spk)?;
 
         if st.wav_path.exists() {
             let temp_ogg_path = st.ogg_path.with_extension("ogg.tmp");
+            tracing::info!(temp_ogg_path = ?temp_ogg_path, "starting_wav_to_ogg_encoding");
 
             match encode_wav_to_vorbis_file_dupe_mono_to_stereo(
                 &st.wav_path,
@@ -140,8 +143,10 @@ impl Actor for RecorderActor {
                 VorbisEncodeSettings::default(),
             ) {
                 Ok(_) => {
+                    tracing::info!("wav_to_ogg_encoding_succeeded");
                     std::fs::rename(&temp_ogg_path, &st.ogg_path)?;
                     std::fs::remove_file(&st.wav_path)?;
+                    tracing::info!("ogg_file_created_wav_removed");
                 }
                 Err(e) => {
                     tracing::error!(error = ?e, "wav_to_ogg_failed_keeping_wav");
@@ -149,6 +154,8 @@ impl Actor for RecorderActor {
                     // Keep WAV as a fallback, but don't cause an actor failure
                 }
             }
+        } else {
+            tracing::warn!(wav_path = ?st.wav_path, "wav_file_does_not_exist_skipping_encoding");
         }
 
         Ok(())

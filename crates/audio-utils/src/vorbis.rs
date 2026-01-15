@@ -166,6 +166,10 @@ pub fn encode_wav_to_vorbis_file_dupe_mono_to_stereo(
     })?;
 
     let samples: Vec<f32> = reader.samples::<f32>().collect::<Result<_, _>>()?;
+    if samples.is_empty() {
+        return Err(Error::EmptySamples);
+    }
+
     let mono = mix_down_to_mono(&samples, channel_count);
     let interleaved = interleave_stereo_f32(&mono, &mono);
     let encoded = encode_vorbis_from_interleaved(

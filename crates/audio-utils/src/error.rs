@@ -22,4 +22,6 @@ pub enum Error {
     EmptyChannelSet,
     #[error("too many channels: {count}")]
     TooManyChannels { count: usize },
+    #[error("wav file contains no audio samples")]
+    EmptySamples,
 }

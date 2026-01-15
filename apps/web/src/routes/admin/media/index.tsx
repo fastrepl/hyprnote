@@ -13,6 +13,15 @@ import {
 import { Reorder } from "motion/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
+import {
+  ScrollFadeOverlay,
+  useScrollFade,
+} from "@hypr/ui/components/ui/scroll-fade";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
@@ -458,47 +467,55 @@ function MediaLibrary() {
   const filteredTreeNodes = filterTreeNodes(treeNodes, searchQuery);
 
   return (
-    <div className="flex h-[calc(100vh-64px)]">
-      <Sidebar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        loadingPath={loadingPath}
-        filteredTreeNodes={filteredTreeNodes}
-        onOpenFolder={(path, name) => openTab("folder", name, path)}
-        onOpenFile={(path, name) => openTab("file", name, path)}
-        onToggleNodeExpanded={toggleNodeExpanded}
-        uploadPending={uploadMutation.isPending}
-        fileInputRef={fileInputRef}
-        onUpload={handleUpload}
-      />
-      <ContentPanel
-        tabs={tabs}
-        currentTab={currentTab}
-        onSelectTab={selectTab}
-        onCloseTab={closeTab}
-        onPinTab={pinTab}
-        onReorderTabs={reorderTabs}
-        selectedItems={selectedItems}
-        onDelete={handleDelete}
-        onDownloadSelected={handleDownloadSelected}
-        onClearSelection={() => setSelectedItems(new Set())}
-        deletePending={deleteMutation.isPending}
-        dragOver={dragOver}
-        onDrop={handleDrop}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragOver(true);
-        }}
-        onDragLeave={() => setDragOver(false)}
-        isLoading={currentPathQuery.isLoading}
-        error={currentPathQuery.error}
-        items={currentPathQuery.data || []}
-        onToggleSelection={toggleSelection}
-        onCopyToClipboard={copyToClipboard}
-        onDownload={handleDownload}
-        onReplace={handleReplace}
-      />
-    </div>
+    <ResizablePanelGroup
+      direction="horizontal"
+      className="h-[calc(100vh-64px)]"
+    >
+      <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+        <Sidebar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          loadingPath={loadingPath}
+          filteredTreeNodes={filteredTreeNodes}
+          onOpenFolder={(path, name) => openTab("folder", name, path)}
+          onOpenFile={(path, name) => openTab("file", name, path)}
+          onToggleNodeExpanded={toggleNodeExpanded}
+          uploadPending={uploadMutation.isPending}
+          fileInputRef={fileInputRef}
+          onUpload={handleUpload}
+        />
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel defaultSize={80} minSize={50}>
+        <ContentPanel
+          tabs={tabs}
+          currentTab={currentTab}
+          onSelectTab={selectTab}
+          onCloseTab={closeTab}
+          onPinTab={pinTab}
+          onReorderTabs={reorderTabs}
+          selectedItems={selectedItems}
+          onDelete={handleDelete}
+          onDownloadSelected={handleDownloadSelected}
+          onClearSelection={() => setSelectedItems(new Set())}
+          deletePending={deleteMutation.isPending}
+          dragOver={dragOver}
+          onDrop={handleDrop}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          isLoading={currentPathQuery.isLoading}
+          error={currentPathQuery.error}
+          items={currentPathQuery.data || []}
+          onToggleSelection={toggleSelection}
+          onCopyToClipboard={copyToClipboard}
+          onDownload={handleDownload}
+          onReplace={handleReplace}
+        />
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }
 
@@ -525,8 +542,13 @@ function Sidebar({
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onUpload: (files: FileList) => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { atStart, atEnd } = useScrollFade(scrollRef, "vertical", [
+    filteredTreeNodes,
+  ]);
+
   return (
-    <div className="w-56 shrink-0 border-r border-neutral-200 bg-white flex flex-col">
+    <div className="h-full border-r border-neutral-200 bg-white flex flex-col min-h-0">
       <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-200">
         <div className="relative w-full flex items-center gap-1.5">
           <Icon
@@ -548,32 +570,36 @@ function Sidebar({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {filteredTreeNodes.map((node) => (
-          <TreeNodeItem
-            key={node.path}
-            node={node}
-            depth={0}
-            loadingPath={loadingPath}
-            onOpenFolder={onOpenFolder}
-            onOpenFile={onOpenFile}
-            onToggle={onToggleNodeExpanded}
-          />
-        ))}
+      <div className="flex-1 relative min-h-0">
+        {!atStart && <ScrollFadeOverlay position="top" />}
+        {!atEnd && <ScrollFadeOverlay position="bottom" />}
+        <div ref={scrollRef} className="h-full overflow-y-auto">
+          {filteredTreeNodes.map((node) => (
+            <TreeNodeItem
+              key={node.path}
+              node={node}
+              depth={0}
+              loadingPath={loadingPath}
+              onOpenFolder={onOpenFolder}
+              onOpenFile={onOpenFile}
+              onToggle={onToggleNodeExpanded}
+            />
+          ))}
+        </div>
       </div>
 
-      <div className="p-2 border-t border-neutral-200">
+      <div className="p-3">
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadPending}
           className={cn([
-            "w-full py-2 text-sm font-medium rounded flex items-center justify-center gap-2",
-            "bg-neutral-900 text-white",
-            "hover:bg-neutral-800 transition-colors",
-            "disabled:opacity-50",
+            "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
+            "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
+            "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+            "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-sm",
           ])}
         >
-          {uploadPending && <Spinner size={14} color="white" />}
+          {uploadPending && <Spinner size={14} />}
           {uploadPending ? "Uploading..." : "+ Add"}
         </button>
         <input

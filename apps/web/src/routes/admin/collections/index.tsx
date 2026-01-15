@@ -52,6 +52,10 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
+import {
+  ScrollFadeOverlay,
+  useScrollFade,
+} from "@hypr/ui/components/ui/scroll-fade";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
@@ -532,6 +536,11 @@ function Sidebar({
   isLoading: boolean;
   selectedPath: string | null;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { atStart, atEnd } = useScrollFade(scrollRef, "vertical", [
+    collections,
+  ]);
+
   return (
     <div className="h-full border-r border-neutral-200 bg-white flex flex-col min-h-0">
       <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-200">
@@ -552,42 +561,49 @@ function Sidebar({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {isCreatingNewPost && (
-          <NewPostInlineInput
-            existingSlugs={collections[0]?.items.map((item) => item.slug) || []}
-            onSubmit={onCreateNewPost}
-            onCancel={onCancelNewPost}
-            isLoading={isLoading}
-          />
-        )}
-        {collections[0]?.items.map((item) => (
-          <FileItemSidebar
-            key={item.path}
-            item={item}
-            onClick={() => onFileClick(item)}
-            clipboard={clipboard}
-            onClipboardChange={onClipboardChange}
-            editingItem={editingItem}
-            onEditingItemChange={onEditingItemChange}
-            onRenameItem={onRenameItem}
-            onDeleteItem={onDeleteItem}
-            onDuplicateItem={onDuplicateItem}
-            collectionName="articles"
-            isLoading={isLoading}
-            isSelected={selectedPath === item.path}
-          />
-        ))}
+      <div className="flex-1 relative min-h-0">
+        {!atStart && <ScrollFadeOverlay position="top" />}
+        {!atEnd && <ScrollFadeOverlay position="bottom" />}
+        <div ref={scrollRef} className="h-full overflow-y-auto">
+          {isCreatingNewPost && (
+            <NewPostInlineInput
+              existingSlugs={
+                collections[0]?.items.map((item) => item.slug) || []
+              }
+              onSubmit={onCreateNewPost}
+              onCancel={onCancelNewPost}
+              isLoading={isLoading}
+            />
+          )}
+          {collections[0]?.items.map((item) => (
+            <FileItemSidebar
+              key={item.path}
+              item={item}
+              onClick={() => onFileClick(item)}
+              clipboard={clipboard}
+              onClipboardChange={onClipboardChange}
+              editingItem={editingItem}
+              onEditingItemChange={onEditingItemChange}
+              onRenameItem={onRenameItem}
+              onDeleteItem={onDeleteItem}
+              onDuplicateItem={onDuplicateItem}
+              collectionName="articles"
+              isLoading={isLoading}
+              isSelected={selectedPath === item.path}
+            />
+          ))}
+        </div>
       </div>
 
-      <div className="border-t border-neutral-200">
+      <div className="p-3">
         <button
           onClick={onNewPostClick}
           disabled={isCreatingNewPost}
           className={cn([
-            "h-10 px-4 flex items-center gap-2 text-sm w-full",
-            "text-white bg-neutral-900 hover:bg-neutral-800 transition-colors",
-            "disabled:opacity-50 disabled:cursor-not-allowed",
+            "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
+            "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
+            "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+            "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm",
           ])}
         >
           <PlusIcon className="size-4" />

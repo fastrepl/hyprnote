@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
-import { uploadMediaFile } from "@/functions/github-media";
+import { uploadMediaFile } from "@/functions/supabase-media";
 
 export const Route = createFileRoute("/api/admin/media/upload")({
   server: {
@@ -55,7 +55,7 @@ export const Route = createFileRoute("/api/admin/media/upload")({
           JSON.stringify({
             success: true,
             path: result.path,
-            publicPath: result.publicPath,
+            publicUrl: result.publicUrl,
           }),
           {
             status: 200,

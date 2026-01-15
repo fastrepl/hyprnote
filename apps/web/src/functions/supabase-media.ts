@@ -1,0 +1,271 @@
+import { createClient } from "@supabase/supabase-js";
+
+import { env } from "@/env";
+
+const BUCKET_NAME = "blog";
+
+export interface MediaItem {
+  name: string;
+  path: string;
+  publicUrl: string;
+  id: string;
+  size: number;
+  type: "file" | "dir";
+  mimeType: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+function getSupabaseClient() {
+  const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+  return createClient(env.SUPABASE_URL, key);
+}
+
+function getPublicUrl(path: string): string {
+  const supabase = getSupabaseClient();
+  const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+export async function listMediaFiles(
+  path: string = "",
+): Promise<{ items: MediaItem[]; error?: string }> {
+  const supabase = getSupabaseClient();
+
+  try {
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .list(path, {
+        limit: 1000,
+        sortBy: { column: "name", order: "asc" },
+      });
+
+    if (error) {
+      return { items: [], error: error.message };
+    }
+
+    if (!data) {
+      return { items: [] };
+    }
+
+    const items: MediaItem[] = data
+      .filter((item) => item.name !== ".emptyFolderPlaceholder")
+      .map((item) => {
+        const fullPath = path ? `${path}/${item.name}` : item.name;
+        const isFolder = item.id === null;
+
+        return {
+          name: item.name,
+          path: fullPath,
+          publicUrl: isFolder ? "" : getPublicUrl(fullPath),
+          id: item.id || "",
+          size: item.metadata?.size || 0,
+          type: isFolder ? "dir" : "file",
+          mimeType: item.metadata?.mimetype || null,
+          createdAt: item.created_at || null,
+          updatedAt: item.updated_at || null,
+        };
+      });
+
+    const folders = items.filter((item) => item.type === "dir");
+    const files = items.filter((item) => item.type === "file");
+    folders.sort((a, b) => a.name.localeCompare(b.name));
+    files.sort((a, b) => a.name.localeCompare(b.name));
+
+    return { items: [...folders, ...files] };
+  } catch (error) {
+    return {
+      items: [],
+      error: `Failed to list files: ${(error as Error).message}`,
+    };
+  }
+}
+
+export async function uploadMediaFile(
+  filename: string,
+  content: string,
+  folder: string = "",
+): Promise<{
+  success: boolean;
+  path?: string;
+  publicUrl?: string;
+  error?: string;
+}> {
+  const supabase = getSupabaseClient();
+
+  const timestamp = Date.now();
+  const sanitizedFilename = `${timestamp}-${filename
+    .replace(/[^a-zA-Z0-9.-]/g, "-")
+    .toLowerCase()}`;
+
+  const allowedExtensions = [
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "svg",
+    "webp",
+    "avif",
+    "mp4",
+    "webm",
+    "mov",
+  ];
+  const ext = sanitizedFilename.toLowerCase().split(".").pop();
+
+  if (!ext || !allowedExtensions.includes(ext)) {
+    return {
+      success: false,
+      error: "Invalid file type. Only images and videos are allowed.",
+    };
+  }
+
+  const path = folder ? `${folder}/${sanitizedFilename}` : sanitizedFilename;
+
+  try {
+    const fileBuffer = Buffer.from(content, "base64");
+
+    const mimeTypes: Record<string, string> = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      gif: "image/gif",
+      svg: "image/svg+xml",
+      webp: "image/webp",
+      avif: "image/avif",
+      mp4: "video/mp4",
+      webm: "video/webm",
+      mov: "video/quicktime",
+    };
+
+    const { error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(path, fileBuffer, {
+        contentType: mimeTypes[ext] || "application/octet-stream",
+        upsert: false,
+      });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      path,
+      publicUrl: getPublicUrl(path),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Upload failed: ${(error as Error).message}`,
+    };
+  }
+}
+
+export async function deleteMediaFiles(
+  paths: string[],
+): Promise<{ success: boolean; deleted: string[]; errors: string[] }> {
+  const supabase = getSupabaseClient();
+
+  const deleted: string[] = [];
+  const errors: string[] = [];
+
+  try {
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .remove(paths);
+
+    if (error) {
+      return {
+        success: false,
+        deleted: [],
+        errors: [error.message],
+      };
+    }
+
+    if (data) {
+      for (const file of data) {
+        deleted.push(file.name);
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      deleted,
+      errors,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      deleted: [],
+      errors: [`Delete failed: ${(error as Error).message}`],
+    };
+  }
+}
+
+export async function createMediaFolder(
+  folderName: string,
+  parentFolder: string = "",
+): Promise<{ success: boolean; path?: string; error?: string }> {
+  const supabase = getSupabaseClient();
+
+  const sanitizedFolderName = folderName
+    .replace(/[^a-zA-Z0-9-_]/g, "-")
+    .toLowerCase();
+
+  const path = parentFolder
+    ? `${parentFolder}/${sanitizedFolderName}/.emptyFolderPlaceholder`
+    : `${sanitizedFolderName}/.emptyFolderPlaceholder`;
+
+  try {
+    const { error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(path, new Uint8Array(0), {
+        contentType: "text/plain",
+      });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    const folderPath = parentFolder
+      ? `${parentFolder}/${sanitizedFolderName}`
+      : sanitizedFolderName;
+
+    return {
+      success: true,
+      path: folderPath,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Failed to create folder: ${(error as Error).message}`,
+    };
+  }
+}
+
+export async function moveMediaFile(
+  fromPath: string,
+  toPath: string,
+): Promise<{ success: boolean; newPath?: string; error?: string }> {
+  const supabase = getSupabaseClient();
+
+  try {
+    const { error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .move(fromPath, toPath);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      newPath: toPath,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Move failed: ${(error as Error).message}`,
+    };
+  }
+}

@@ -8,6 +8,7 @@
   "excludes": [
     ".venv",
     ".drizzle",
+    "**/.wxt",
     "**/*-lock.yaml",
     "**/*-lock.json",
     "**/locales",

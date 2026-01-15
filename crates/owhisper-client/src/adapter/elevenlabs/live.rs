@@ -3,9 +3,9 @@ use owhisper_interface::ListenParams;
 use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use serde::{Deserialize, Serialize};
 
-use super::ElevenLabsAdapter;
+use super::{ElevenLabsAdapter, ElevenLabsWord};
 use crate::adapter::RealtimeSttAdapter;
-use crate::adapter::parsing::WordBuilder;
+use crate::adapter::parsing::{WordBuilder, calculate_time_span};
 
 impl RealtimeSttAdapter for ElevenLabsAdapter {
     fn provider_name(&self) -> &'static str {
@@ -185,18 +185,6 @@ enum ElevenLabsMessage {
     Unknown,
 }
 
-#[derive(Debug, Deserialize)]
-struct ElevenLabsWord {
-    #[serde(default)]
-    text: String,
-    #[serde(default)]
-    start: f64,
-    #[serde(default)]
-    end: f64,
-    #[serde(default, rename = "type")]
-    word_type: Option<String>,
-}
-
 impl ElevenLabsAdapter {
     fn build_response(
         text: &str,
@@ -217,12 +205,7 @@ impl ElevenLabsAdapter {
             })
             .collect();
 
-        let (start, duration) =
-            if let (Some(first), Some(last)) = (parsed_words.first(), parsed_words.last()) {
-                (first.start, last.end - first.start)
-            } else {
-                (0.0, 0.0)
-            };
+        let (start, duration) = calculate_time_span(&parsed_words);
 
         let channel = Channel {
             alternatives: vec![Alternatives {

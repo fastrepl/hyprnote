@@ -7,7 +7,7 @@ use owhisper_interface::batch::{
 };
 use serde::Deserialize;
 
-use super::ElevenLabsAdapter;
+use super::{ElevenLabsAdapter, ElevenLabsWord};
 use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 
@@ -43,19 +43,6 @@ struct TranscriptResponse {
     text: String,
     #[serde(default)]
     words: Vec<ElevenLabsWord>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ElevenLabsWord {
-    text: String,
-    #[serde(default)]
-    start: f64,
-    #[serde(default)]
-    end: f64,
-    #[serde(default, rename = "type")]
-    word_type: Option<String>,
-    #[serde(default)]
-    speaker_id: Option<String>,
 }
 
 impl ElevenLabsAdapter {

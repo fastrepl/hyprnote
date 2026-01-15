@@ -1,4 +1,5 @@
 use tauri::Manager;
+use tokio::sync::OnceCell;
 
 mod commands;
 mod error;
@@ -7,7 +8,30 @@ mod ext;
 pub use error::{Error, Result};
 pub use ext::*;
 
-pub type ManagedState = aws_sdk_bedrock::Client;
+pub struct BedrockState {
+    client: OnceCell<aws_sdk_bedrock::Client>,
+}
+
+impl BedrockState {
+    fn new() -> Self {
+        Self {
+            client: OnceCell::new(),
+        }
+    }
+
+    pub async fn client(&self) -> &aws_sdk_bedrock::Client {
+        self.client
+            .get_or_init(|| async {
+                let config = aws_config::defaults(aws_config::BehaviorVersion::latest())
+                    .load()
+                    .await;
+                aws_sdk_bedrock::Client::new(&config)
+            })
+            .await
+    }
+}
+
+pub type ManagedState = BedrockState;
 
 const PLUGIN_NAME: &str = "bedrock";
 
@@ -26,14 +50,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let client = tokio::task::block_in_place(|| {
-                tokio::runtime::Handle::current().block_on(async {
-                    let config =
-                        aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
-                    aws_sdk_bedrock::Client::new(&config)
-                })
-            });
-            assert!(app.manage(client));
+            assert!(app.manage(BedrockState::new()));
             Ok(())
         })
         .build()

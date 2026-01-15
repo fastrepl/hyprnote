@@ -15,7 +15,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Bedrock<'a, R, M> {
         &self,
         request: ListFoundationModelsRequest,
     ) -> Result<ListFoundationModelsResponse> {
-        let client = self.manager.state::<crate::ManagedState>();
+        let state = self.manager.state::<crate::ManagedState>();
+        let client = state.client().await;
 
         let mut builder = client.list_foundation_models();
 

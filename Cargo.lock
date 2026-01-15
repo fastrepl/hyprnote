@@ -2984,6 +2984,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "58b52a9840ffff5d4d0058ae529fa066a75e794e3125546acfc61c23ad755e49"
 
 [[package]]
+name = "chrome-native-messaging"
+version = "0.1.0"
+dependencies = [
+ "dirs 6.0.0",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tracing",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4726,6 +4737,7 @@ dependencies = [
 name = "desktop"
 version = "0.0.0"
 dependencies = [
+ "chrome-native-messaging",
  "host",
  "pico-args",
  "ractor",
@@ -4804,6 +4816,7 @@ version = "0.1.0"
 dependencies = [
  "bundle",
  "cidre",
+ "dirs 6.0.0",
  "isolang",
  "language",
  "lazy_static",
@@ -4817,6 +4830,7 @@ dependencies = [
  "plist",
  "regex",
  "serde",
+ "serde_json",
  "specta",
  "sysinfo 0.37.2",
  "thiserror 2.0.17",
@@ -9072,6 +9086,16 @@ name = "hypher"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74e25026c579b170c59f8d3ddfc523d7dab0abe079f09eb8edaebd2417044f60"
+
+[[package]]
+name = "hyprnote-chrome-native-host"
+version = "0.1.0"
+dependencies = [
+ "chrome-native-messaging",
+ "dirs 6.0.0",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "iana-time-zone"

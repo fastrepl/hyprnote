@@ -896,6 +896,13 @@ function TabItem({
 
   const isHome = tab.isHome === true;
 
+  const handleAuxClick = (e: React.MouseEvent) => {
+    if (e.button === 1 && !isHome) {
+      e.preventDefault();
+      onClose();
+    }
+  };
+
   return (
     <>
       <div
@@ -909,6 +916,7 @@ function TabItem({
         onClick={onSelect}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
+        onAuxClick={handleAuxClick}
       >
         {isHome ? (
           <HomeIcon className="size-4 text-neutral-400" />
@@ -1423,20 +1431,20 @@ function FilePreview({
   const isAudio = item.mimeType?.startsWith("audio/");
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex-1 flex items-center justify-center bg-neutral-50 overflow-hidden p-4 min-h-0">
+    <div className="h-full flex flex-col">
+      <div className="flex-1 bg-neutral-50 p-4 overflow-auto flex items-center justify-center">
         {isImage && (
           <img
             src={item.publicUrl}
             alt={item.name}
-            className="max-w-full max-h-full w-auto h-auto object-contain"
+            className="max-w-full max-h-full object-contain"
           />
         )}
         {isVideo && (
           <video
             src={item.publicUrl}
             controls
-            className="max-w-full max-h-full w-auto h-auto object-contain"
+            className="max-w-full max-h-full object-contain"
           />
         )}
         {isAudio && (

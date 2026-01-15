@@ -1392,6 +1392,13 @@ function TabItem({
     }
   };
 
+  const handleAuxClick = (e: React.MouseEvent) => {
+    if (e.button === 1) {
+      e.preventDefault();
+      onClose();
+    }
+  };
+
   return (
     <>
       <div
@@ -1405,6 +1412,7 @@ function TabItem({
         onClick={onSelect}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
+        onAuxClick={handleAuxClick}
       >
         {tab.type === "collection" ? (
           <FolderIcon className="size-4 text-neutral-400" />

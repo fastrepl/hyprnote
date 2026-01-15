@@ -15,6 +15,7 @@ const validateSearch = z.object({
   scheme: z.string().default("hyprnote"),
   redirect: z.string().optional(),
   provider: z.enum(["github", "google"]).optional(),
+  rra: z.boolean().optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -49,7 +50,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function Component() {
-  const { flow, scheme, redirect, provider } = Route.useSearch();
+  const { flow, scheme, redirect, provider, rra } = Route.useSearch();
 
   const showGoogle = !provider || provider === "google";
   const showGithub = !provider || provider === "github";
@@ -73,6 +74,7 @@ function Component() {
             scheme={scheme}
             redirect={redirect}
             provider="github"
+            rra={rra}
           />
         )}
       </div>
@@ -247,11 +249,13 @@ function OAuthButton({
   scheme,
   redirect,
   provider,
+  rra,
 }: {
   flow: "desktop" | "web";
   scheme?: string;
   redirect?: string;
   provider: "google" | "github";
+  rra?: boolean;
 }) {
   const oauthMutation = useMutation({
     mutationFn: (provider: "google" | "github") =>
@@ -261,6 +265,7 @@ function OAuthButton({
           flow,
           scheme,
           redirect,
+          rra,
         },
       }),
     onSuccess: (result) => {

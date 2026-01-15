@@ -150,6 +150,7 @@ pub async fn spawn_session_supervisor(
                         RecArgs {
                             app_dir: ctx.app_dir.clone(),
                             session_id: ctx.params.session_id.clone(),
+                            sample_rate,
                         },
                         supervisor_cell,
                     )

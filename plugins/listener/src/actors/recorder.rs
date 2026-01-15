@@ -20,6 +20,7 @@ pub enum RecMsg {
 pub struct RecArgs {
     pub app_dir: PathBuf,
     pub session_id: String,
+    pub sample_rate: u32,
 }
 
 pub struct RecState {
@@ -64,7 +65,7 @@ impl Actor for RecorderActor {
 
         let spec = hound::WavSpec {
             channels: 1,
-            sample_rate: super::SAMPLE_RATE,
+            sample_rate: args.sample_rate,
             bits_per_sample: 32,
             sample_format: hound::SampleFormat::Float,
         };

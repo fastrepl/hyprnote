@@ -9,13 +9,16 @@ import {
 import { useHotkeys } from "react-hotkeys-hook";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
+import {
+  ScrollFadeOverlay,
+  useScrollFade,
+} from "@hypr/ui/components/ui/scroll-fade";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
 import { useScrollPreservation } from "../../../../../hooks/useScrollPreservation";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
-import { ScrollFadeOverlay, useScrollFade } from "../../../../ui/scroll-fade";
 import { useCaretNearBottom } from "../caret-position-context";
 import { useCurrentNoteTab } from "../shared";
 import { Enhanced } from "./enhanced";

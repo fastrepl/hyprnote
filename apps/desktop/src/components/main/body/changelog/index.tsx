@@ -13,9 +13,12 @@ import {
   BreadcrumbSeparator,
 } from "@hypr/ui/components/ui/breadcrumb";
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  ScrollFadeOverlay,
+  useScrollFade,
+} from "@hypr/ui/components/ui/scroll-fade";
 
 import { type Tab } from "../../../../store/zustand/tabs";
-import { ScrollFadeOverlay, useScrollFade } from "../../../ui/scroll-fade";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 

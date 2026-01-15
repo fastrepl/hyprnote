@@ -142,7 +142,7 @@ function MediaLibrary() {
 
       // Auto-open root folder as first tab
       if (children.length > 0) {
-        openTab("folder", "images", "", false);
+        openTab("folder", "blog", "", false);
       }
     }
   }, [rootQuery.data, rootLoaded]);
@@ -547,7 +547,7 @@ function Sidebar({
         <RootFolderItem
           rootExpanded={rootExpanded}
           loadingPath={loadingPath}
-          onOpen={() => onOpenFolder("", "images")}
+          onOpen={() => onOpenFolder("", "blog")}
           onToggle={onToggleNodeExpanded}
         />
         {rootExpanded &&
@@ -619,7 +619,7 @@ function RootFolderItem({
           className="text-neutral-400 text-sm"
         />
       )}
-      <span className="text-neutral-700">images</span>
+      <span className="text-neutral-700">blog</span>
     </div>
   );
 }
@@ -802,7 +802,9 @@ function ContentPanel({
         <div className="flex-1 flex items-center justify-center text-neutral-500">
           <div className="text-center">
             <Icon icon="mdi:folder-open-outline" className="text-4xl mb-3" />
-            <p className="text-sm">Double-click a folder or file to open</p>
+            <p className="text-sm">
+              Double-click a folder or file in the sidebar to open
+            </p>
           </div>
         </div>
       )}
@@ -1006,7 +1008,7 @@ function HeaderBar({
   onClearSelection: () => void;
   deletePending: boolean;
 }) {
-  const breadcrumbs = currentTab.path ? currentTab.path.split("/") : ["images"];
+  const breadcrumbs = currentTab.path ? currentTab.path.split("/") : ["blog"];
 
   return (
     <div className="h-10 flex items-center justify-between px-4 border-b border-neutral-200">
@@ -1023,7 +1025,7 @@ function HeaderBar({
                   : "hover:text-neutral-700 cursor-pointer",
               ])}
             >
-              {crumb || "images"}
+              {crumb || "blog"}
             </span>
           </span>
         ))}

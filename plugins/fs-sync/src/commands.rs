@@ -253,6 +253,7 @@ pub(crate) async fn scan_and_read<R: tauri::Runtime>(
     scan_dir: String,
     file_patterns: Vec<String>,
     recursive: bool,
+    path_filter: Option<String>,
 ) -> Result<ScanResult, String> {
     let base = app.settings().base().map_err(|e| e.to_string())?;
     spawn_blocking!({
@@ -261,6 +262,7 @@ pub(crate) async fn scan_and_read<R: tauri::Runtime>(
             &base,
             &file_patterns,
             recursive,
+            path_filter.as_deref(),
         ))
     })
 }

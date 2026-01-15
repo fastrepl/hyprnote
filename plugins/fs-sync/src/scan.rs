@@ -12,6 +12,7 @@ pub fn scan_and_read(
     relative_to: &Path,
     file_patterns: &[String],
     recursive: bool,
+    path_filter: Option<&str>,
 ) -> ScanResult {
     if !scan_dir.exists() {
         return ScanResult {
@@ -39,6 +40,11 @@ pub fn scan_and_read(
 
     let files: HashMap<String, String> = files
         .into_par_iter()
+        .filter(|(rel_path, _)| {
+            path_filter
+                .map(|filter| rel_path.contains(filter))
+                .unwrap_or(true)
+        })
         .filter_map(|(rel_path, abs_path)| {
             std::fs::read_to_string(&abs_path)
                 .ok()
@@ -97,7 +103,7 @@ mod tests {
         let temp = TempDir::new().unwrap();
         let nonexistent = temp.path().join("does_not_exist");
 
-        let result = scan_and_read(&nonexistent, &nonexistent, &["*.txt".into()], true);
+        let result = scan_and_read(&nonexistent, &nonexistent, &["*.txt".into()], true, None);
 
         assert!(result.files.is_empty());
         assert!(result.dirs.is_empty());
@@ -110,7 +116,7 @@ mod tests {
             .file("data.json", "{}")
             .build();
 
-        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false, None);
 
         assert_eq!(result.files.len(), 1);
         assert_eq!(result.files.get("note.txt"), Some(&"hello".into()));
@@ -125,7 +131,7 @@ mod tests {
             .done()
             .build();
 
-        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], true);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], true, None);
 
         assert_eq!(result.files.len(), 2);
         assert_eq!(result.files.get("root.txt"), Some(&"root".into()));
@@ -141,7 +147,7 @@ mod tests {
             .done()
             .build();
 
-        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false, None);
 
         assert_eq!(result.files.len(), 1);
         assert_eq!(result.files.get("root.txt"), Some(&"root".into()));
@@ -156,7 +162,7 @@ mod tests {
             .done()
             .build();
 
-        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], true);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], true, None);
 
         assert!(result.dirs.contains(&"work".into()));
         assert!(result.dirs.contains(&"personal".into()));
@@ -170,7 +176,7 @@ mod tests {
             .done()
             .build();
 
-        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false);
+        let result = scan_and_read(env.path(), env.path(), &["*.txt".into()], false, None);
 
         assert!(!result.dirs.iter().any(|d| d.contains(UUID_1)));
         assert_eq!(
@@ -188,7 +194,7 @@ mod tests {
             .build();
 
         let scan_dir = env.path().join("sessions").join(UUID_1);
-        let result = scan_and_read(&scan_dir, env.path(), &["*.json".into()], false);
+        let result = scan_and_read(&scan_dir, env.path(), &["*.json".into()], false, None);
 
         assert_eq!(result.files.len(), 1);
         assert_eq!(

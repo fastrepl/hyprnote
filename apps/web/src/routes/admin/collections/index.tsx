@@ -190,7 +190,7 @@ function CollectionsPage() {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
+  const [isCreatingNewPost, setIsCreatingNewPost] = useState(false);
   const [editingItem, setEditingItem] = useState<EditingItem | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] =
     useState<DeleteConfirmation | null>(null);
@@ -392,8 +392,17 @@ function CollectionsPage() {
           onFileClick={(item) => openTab("file", item.name, item.path)}
           clipboard={clipboard}
           onClipboardChange={setClipboard}
-          onImportClick={() => setIsImportModalOpen(true)}
-          onNewPostClick={() => setIsNewPostModalOpen(true)}
+          onNewPostClick={() => setIsCreatingNewPost(true)}
+          isCreatingNewPost={isCreatingNewPost}
+          onCreateNewPost={(slug) => {
+            createMutation.mutate({
+              folder: "articles",
+              name: `${slug}.mdx`,
+              type: "file",
+            });
+            setIsCreatingNewPost(false);
+          }}
+          onCancelNewPost={() => setIsCreatingNewPost(false)}
           editingItem={editingItem}
           onEditingItemChange={setEditingItem}
           onRenameItem={(fromPath, toPath) =>
@@ -435,11 +444,6 @@ function CollectionsPage() {
       <ImportModal
         open={isImportModalOpen}
         onOpenChange={setIsImportModalOpen}
-      />
-
-      <NewPostModal
-        open={isNewPostModalOpen}
-        onOpenChange={setIsNewPostModalOpen}
       />
 
       <Dialog
@@ -498,8 +502,10 @@ function Sidebar({
   onFileClick,
   clipboard,
   onClipboardChange,
-  onImportClick,
   onNewPostClick,
+  isCreatingNewPost,
+  onCreateNewPost,
+  onCancelNewPost,
   editingItem,
   onEditingItemChange,
   onRenameItem,
@@ -514,8 +520,10 @@ function Sidebar({
   onFileClick: (item: ContentItem) => void;
   clipboard: ClipboardItem | null;
   onClipboardChange: (item: ClipboardItem | null) => void;
-  onImportClick: () => void;
   onNewPostClick: () => void;
+  isCreatingNewPost: boolean;
+  onCreateNewPost: (slug: string) => void;
+  onCancelNewPost: () => void;
   editingItem: EditingItem | null;
   onEditingItemChange: (item: EditingItem | null) => void;
   onRenameItem: (fromPath: string, toPath: string) => void;
@@ -545,6 +553,14 @@ function Sidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto">
+        {isCreatingNewPost && (
+          <NewPostInlineInput
+            existingSlugs={collections[0]?.items.map((item) => item.slug) || []}
+            onSubmit={onCreateNewPost}
+            onCancel={onCancelNewPost}
+            isLoading={isLoading}
+          />
+        )}
         {collections[0]?.items.map((item) => (
           <FileItemSidebar
             key={item.path}
@@ -567,24 +583,15 @@ function Sidebar({
       <div className="border-t border-neutral-200">
         <button
           onClick={onNewPostClick}
+          disabled={isCreatingNewPost}
           className={cn([
             "h-10 px-4 flex items-center gap-2 text-sm w-full",
             "text-white bg-neutral-900 hover:bg-neutral-800 transition-colors",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
           ])}
         >
           <PlusIcon className="size-4" />
           New Post
-        </button>
-        <button
-          onClick={onImportClick}
-          className={cn([
-            "h-10 px-4 flex items-center gap-2 text-sm w-full",
-            "text-neutral-600 hover:bg-neutral-50 transition-colors",
-            "border-t border-neutral-200",
-          ])}
-        >
-          <PlusIcon className="size-4" />
-          Import from Docs
         </button>
       </div>
     </div>
@@ -772,6 +779,123 @@ function InlineInput({
       />
       {type === "file" && (
         <span className="text-xs text-neutral-400">.mdx</span>
+      )}
+    </div>
+  );
+}
+
+function NewPostInlineInput({
+  existingSlugs,
+  onSubmit,
+  onCancel,
+  isLoading,
+}: {
+  existingSlugs: string[];
+  onSubmit: (slug: string) => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}) {
+  const [value, setValue] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const validateSlug = (slug: string): string | null => {
+    if (!slug.trim()) {
+      return "Slug cannot be empty";
+    }
+
+    // Check if slug already exists
+    if (existingSlugs.includes(slug.toLowerCase())) {
+      return "Slug already exists";
+    }
+
+    // Validate slug format: lowercase, alphanumeric, hyphens only
+    const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+    if (!slugRegex.test(slug)) {
+      return "Slug must be lowercase, alphanumeric, and hyphens only";
+    }
+
+    return null;
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      const slug = value.trim().toLowerCase();
+      const validationError = validateSlug(slug);
+      if (validationError) {
+        setError(validationError);
+      } else {
+        setError(null);
+        onSubmit(slug);
+      }
+    } else if (e.key === "Escape") {
+      onCancel();
+    }
+  };
+
+  const handleBlur = () => {
+    if (!value.trim()) {
+      onCancel();
+      return;
+    }
+
+    const slug = value.trim().toLowerCase();
+    const validationError = validateSlug(slug);
+    if (validationError) {
+      setError(validationError);
+      // Keep focus if there's an error
+      setTimeout(() => inputRef.current?.focus(), 0);
+    } else {
+      setError(null);
+      onSubmit(slug);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value.toLowerCase();
+    setValue(newValue);
+    // Clear error on change
+    if (error) {
+      setError(null);
+    }
+  };
+
+  return (
+    <div>
+      <div
+        className={cn([
+          "flex items-center gap-1.5 py-1 pl-3 pr-2 text-sm",
+          error
+            ? "bg-red-50 border-l-2 border-red-400"
+            : "bg-blue-50 border-l-2 border-blue-400",
+        ])}
+      >
+        <FileTextIcon className="size-4 text-neutral-400" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          disabled={isLoading}
+          placeholder="enter-slug-here"
+          className={cn([
+            "flex-1 text-xs bg-transparent outline-none",
+            error ? "text-red-700" : "text-neutral-700",
+            "placeholder:text-neutral-400",
+          ])}
+        />
+        <span className="text-xs text-neutral-400">.mdx</span>
+      </div>
+      {error && (
+        <div className="px-3 py-1 text-xs text-red-600 bg-red-50 border-l-2 border-red-400">
+          {error}
+        </div>
       )}
     </div>
   );
@@ -2314,157 +2438,6 @@ async function saveToRepository(params: SaveParams): Promise<SaveResult> {
   }
 
   return data;
-}
-
-function NewPostModal({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [author, setAuthor] = useState("John Jeong");
-
-  const createMutation = useMutation({
-    mutationFn: async (params: {
-      slug: string;
-      title: string;
-      author: string;
-    }) => {
-      const today = new Date().toISOString().split("T")[0];
-      const frontmatter = `---
-meta_title: ${params.title}
-author: ${params.author}
-date: ${today}
-published: false
-featured: false
----
-
-`;
-      const response = await fetch("/api/admin/import/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: frontmatter,
-          filename: `${params.slug}.mdx`,
-          folder: "articles",
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create post");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      setTitle("");
-      setSlug("");
-      setAuthor("John Jeong");
-      onOpenChange(false);
-      window.location.reload();
-    },
-  });
-
-  const generateSlug = () => {
-    if (title) {
-      const generatedSlug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
-      setSlug(generatedSlug);
-    }
-  };
-
-  const handleCreate = () => {
-    if (!title || !slug) return;
-    createMutation.mutate({ title, slug, author });
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create New Post</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1">
-              Title *
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="My Awesome Article"
-              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1">
-              Slug *
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="my-awesome-article"
-                className="flex-1 px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="button"
-                onClick={generateSlug}
-                className="px-3 py-2 text-sm text-neutral-600 bg-neutral-100 rounded-md hover:bg-neutral-200"
-              >
-                Auto
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1">
-              Author *
-            </label>
-            <AuthorSelect value={author} onChange={setAuthor} />
-          </div>
-
-          {createMutation.error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
-              {createMutation.error instanceof Error
-                ? createMutation.error.message
-                : "Failed to create post"}
-            </div>
-          )}
-
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100 rounded transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleCreate}
-              disabled={createMutation.isPending || !title || !slug}
-              className="px-4 py-2 text-sm font-medium text-white bg-neutral-900 rounded-md hover:bg-neutral-800 disabled:opacity-50 flex items-center gap-2"
-            >
-              {createMutation.isPending && <Spinner size={14} color="white" />}
-              {createMutation.isPending ? "Creating..." : "Create Post"}
-            </button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
 }
 
 function ImportModal({

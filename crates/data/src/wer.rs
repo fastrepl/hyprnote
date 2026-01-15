@@ -16,12 +16,23 @@ impl WerResult {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct WerConfig {
     pub case_insensitive: bool,
     pub normalize_unicode: bool,
     pub remove_punctuation: bool,
     pub normalize_whitespace: bool,
+}
+
+impl Default for WerConfig {
+    fn default() -> Self {
+        Self {
+            case_insensitive: true,
+            normalize_unicode: true,
+            remove_punctuation: true,
+            normalize_whitespace: true,
+        }
+    }
 }
 
 impl WerConfig {
@@ -103,10 +114,10 @@ fn levenshtein_distance(reference: &[&str], hypothesis: &[&str]) -> (usize, usiz
     let mut dp = vec![vec![(0usize, 0usize, 0usize); hyp_len + 1]; ref_len + 1];
 
     for i in 0..=ref_len {
-        dp[i][0] = (i, 0, i);
+        dp[i][0] = (0, 0, i);
     }
     for j in 0..=hyp_len {
-        dp[0][j] = (j, j, 0);
+        dp[0][j] = (0, j, 0);
     }
 
     for i in 1..=ref_len {

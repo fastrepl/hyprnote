@@ -39,7 +39,7 @@ enum Commands {
 
 /// Known Tauri-internal arguments that should be filtered out before CLI parsing.
 /// These are passed by Tauri/Sentry and are not user-facing CLI arguments.
-const TAURI_INTERNAL_ARGS: &[&str] = &["--crash-reporter-server", "--onboarding"];
+const TAURI_INTERNAL_ARGS: &[&str] = &["--crash-reporter-server", "--onboarding", "--background"];
 
 /// Filter out Tauri-internal arguments from the argument list.
 /// Handles both `--flag value` and `--flag=value` formats.

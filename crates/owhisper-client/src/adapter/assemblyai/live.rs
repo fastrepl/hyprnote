@@ -296,9 +296,80 @@ impl AssemblyAIAdapter {
 
 #[cfg(test)]
 mod tests {
+    use hypr_language::ISO639;
+
     use super::AssemblyAIAdapter;
     use crate::ListenClient;
-    use crate::test_utils::{run_dual_test, run_single_test};
+    use crate::test_utils::{UrlTestCase, run_dual_test, run_single_test, run_url_test_cases};
+
+    const API_BASE: &str = "https://api.assemblyai.com";
+
+    #[test]
+    fn test_english_urls() {
+        run_url_test_cases(
+            &AssemblyAIAdapter::default(),
+            API_BASE,
+            &[
+                UrlTestCase {
+                    name: "english_only",
+                    model: None,
+                    languages: &[ISO639::En],
+                    contains: &["speech_model=universal-streaming-english", "language=en"],
+                    not_contains: &["language_detection"],
+                },
+                UrlTestCase {
+                    name: "empty_defaults_to_english",
+                    model: None,
+                    languages: &[],
+                    contains: &["speech_model=universal-streaming-english", "language=en"],
+                    not_contains: &["language_detection"],
+                },
+            ],
+        );
+    }
+
+    #[test]
+    fn test_multilingual_urls() {
+        run_url_test_cases(
+            &AssemblyAIAdapter::default(),
+            API_BASE,
+            &[
+                UrlTestCase {
+                    name: "non_english_single",
+                    model: None,
+                    languages: &[ISO639::Es],
+                    contains: &[
+                        "speech_model=universal-streaming-multilingual",
+                        "language=multi",
+                        "language_detection=true",
+                    ],
+                    not_contains: &[],
+                },
+                UrlTestCase {
+                    name: "multi_language",
+                    model: None,
+                    languages: &[ISO639::En, ISO639::Es],
+                    contains: &[
+                        "speech_model=universal-streaming-multilingual",
+                        "language=multi",
+                        "language_detection=true",
+                    ],
+                    not_contains: &[],
+                },
+                UrlTestCase {
+                    name: "explicit_multilingual_model",
+                    model: Some("universal-streaming-multilingual"),
+                    languages: &[ISO639::En],
+                    contains: &[
+                        "speech_model=universal-streaming-multilingual",
+                        "language=multi",
+                        "language_detection=true",
+                    ],
+                    not_contains: &[],
+                },
+            ],
+        );
+    }
 
     macro_rules! single_test {
         ($name:ident, $params:expr) => {

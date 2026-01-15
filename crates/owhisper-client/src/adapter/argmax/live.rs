@@ -87,9 +87,98 @@ struct ArgmaxError {
 
 #[cfg(test)]
 mod tests {
+    use hypr_language::ISO639;
+
     use super::ArgmaxAdapter;
     use crate::ListenClient;
-    use crate::test_utils::{run_dual_test, run_single_test};
+    use crate::test_utils::{UrlTestCase, run_dual_test, run_single_test, run_url_test_cases};
+
+    const API_BASE: &str = "ws://localhost:50060/v1";
+
+    #[test]
+    fn test_single_language_urls() {
+        run_url_test_cases(
+            &ArgmaxAdapter::default(),
+            API_BASE,
+            &[
+                UrlTestCase {
+                    name: "english",
+                    model: None,
+                    languages: &[ISO639::En],
+                    contains: &["language=en"],
+                    not_contains: &["language=multi", "languages="],
+                },
+                UrlTestCase {
+                    name: "empty_defaults_to_english",
+                    model: None,
+                    languages: &[],
+                    contains: &["language=en"],
+                    not_contains: &[],
+                },
+            ],
+        );
+    }
+
+    #[test]
+    fn test_multi_language_urls() {
+        run_url_test_cases(
+            &ArgmaxAdapter::default(),
+            API_BASE,
+            &[UrlTestCase {
+                name: "multi_lang_picks_first",
+                model: None,
+                languages: &[ISO639::De, ISO639::Fr],
+                contains: &["language=de"],
+                not_contains: &["language=multi", "language=fr"],
+            }],
+        );
+    }
+
+    #[test]
+    fn test_parakeet_v2_urls() {
+        run_url_test_cases(
+            &ArgmaxAdapter::default(),
+            API_BASE,
+            &[UrlTestCase {
+                name: "parakeet_v2_always_english",
+                model: Some("parakeet-v2-something"),
+                languages: &[ISO639::De],
+                contains: &["language=en"],
+                not_contains: &["language=de"],
+            }],
+        );
+    }
+
+    #[test]
+    fn test_parakeet_v3_urls() {
+        run_url_test_cases(
+            &ArgmaxAdapter::default(),
+            API_BASE,
+            &[
+                UrlTestCase {
+                    name: "parakeet_v3_supported_language",
+                    model: Some("parakeet-v3-something"),
+                    languages: &[ISO639::De],
+                    contains: &["language=de"],
+                    not_contains: &[],
+                },
+                UrlTestCase {
+                    name: "parakeet_v3_unsupported_fallback",
+                    model: Some("parakeet-v3-something"),
+                    languages: &[ISO639::Ko],
+                    contains: &["language=en"],
+                    not_contains: &["language=ko"],
+                },
+                UrlTestCase {
+                    name: "parakeet_v3_multi_lang_picks_first_supported",
+                    model: Some("parakeet-v3-something"),
+                    languages: &[ISO639::Ko, ISO639::Fr],
+                    contains: &["language=fr"],
+                    not_contains: &[],
+                },
+            ],
+        );
+    }
 
     macro_rules! single_test {
         ($name:ident, $params:expr) => {

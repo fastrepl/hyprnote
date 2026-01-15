@@ -53,10 +53,6 @@ impl LanguageQueryStrategy for DeepgramLanguageStrategy {
             _ => {
                 if can_use_multi(model, &params.languages) {
                     query_pairs.append_pair("language", "multi");
-                    for language in &params.languages {
-                        let code = language.bcp47_code();
-                        query_pairs.append_pair("languages", &code);
-                    }
                 } else if mode == TranscriptionMode::Batch {
                     query_pairs.append_pair("detect_language", "true");
                 } else if let Some(language) = params.languages.first() {

@@ -68,35 +68,139 @@ impl RealtimeSttAdapter for DeepgramAdapter {
 mod tests {
     use std::collections::HashMap;
 
+    use hypr_language::ISO639;
+
     use crate::ListenClient;
     use crate::adapter::RealtimeSttAdapter;
-    use crate::test_utils::{run_dual_test, run_single_test};
+    use crate::test_utils::{UrlTestCase, run_dual_test, run_single_test, run_url_test_cases};
 
     use super::DeepgramAdapter;
 
+    const API_BASE: &str = "https://api.deepgram.com/v1";
+
     #[test]
-    fn test_build_ws_url_without_custom_query() {
-        let adapter = DeepgramAdapter::default();
-        let params = owhisper_interface::ListenParams {
-            model: Some("nova-3".to_string()),
-            languages: vec![hypr_language::ISO639::En.into()],
-            ..Default::default()
-        };
-
-        let url = adapter.build_ws_url("https://api.deepgram.com/v1", &params, 1);
-        let url_str = url.as_str();
-
-        assert!(url_str.contains("model=nova-3"));
-        assert!(url_str.contains("channels=1"));
-        assert!(!url_str.contains("redemption_time_ms="));
+    fn test_single_language_urls() {
+        run_url_test_cases(
+            &DeepgramAdapter::default(),
+            API_BASE,
+            &[
+                UrlTestCase {
+                    name: "english",
+                    model: Some("nova-3"),
+                    languages: &[ISO639::En],
+                    contains: &["language=en"],
+                    not_contains: &["language=multi", "languages=", "detect_language"],
+                },
+                UrlTestCase {
+                    name: "japanese",
+                    model: Some("nova-3"),
+                    languages: &[ISO639::Ja],
+                    contains: &["language=ja"],
+                    not_contains: &["language=multi", "detect_language"],
+                },
+                UrlTestCase {
+                    name: "empty_defaults_to_english",
+                    model: Some("nova-3"),
+                    languages: &[],
+                    contains: &["language=en"],
+                    not_contains: &["detect_language"],
+                },
+            ],
+        );
     }
 
     #[test]
-    fn test_build_ws_url_with_multiple_custom_params() {
+    fn test_multi_language_urls() {
+        run_url_test_cases(
+            &DeepgramAdapter::default(),
+            API_BASE,
+            &[
+                UrlTestCase {
+                    name: "nova3_en_es_supported",
+                    model: Some("nova-3"),
+                    languages: &[ISO639::En, ISO639::Es],
+                    contains: &["language=multi"],
+                    not_contains: &["languages=", "detect_language"],
+                },
+                UrlTestCase {
+                    name: "nova3_en_fr_de_supported",
+                    model: Some("nova-3"),
+                    languages: &[ISO639::En, ISO639::Fr, ISO639::De],
+                    contains: &["language=multi"],
+                    not_contains: &["languages="],
+                },
+                UrlTestCase {
+                    name: "nova2_en_es_supported",
+                    model: Some("nova-2"),
+                    languages: &[ISO639::En, ISO639::Es],
+                    contains: &["language=multi"],
+                    not_contains: &["languages="],
+                },
+            ],
+        );
+    }
+
+    #[test]
+    fn test_unsupported_multi_language_fallback() {
+        run_url_test_cases(
+            &DeepgramAdapter::default(),
+            API_BASE,
+            &[
+                UrlTestCase {
+                    name: "nova3_en_ko_unsupported",
+                    model: Some("nova-3-general"),
+                    languages: &[ISO639::En, ISO639::Ko],
+                    contains: &["language=en"],
+                    not_contains: &["language=multi", "languages=", "detect_language"],
+                },
+                UrlTestCase {
+                    name: "nova2_en_fr_unsupported",
+                    model: Some("nova-2"),
+                    languages: &[ISO639::En, ISO639::Fr],
+                    contains: &["language=en"],
+                    not_contains: &["language=multi", "languages="],
+                },
+            ],
+        );
+    }
+
+    #[test]
+    fn test_detect_language_never_in_live() {
+        run_url_test_cases(
+            &DeepgramAdapter::default(),
+            API_BASE,
+            &[
+                UrlTestCase {
+                    name: "empty_languages",
+                    model: Some("nova-3"),
+                    languages: &[],
+                    contains: &[],
+                    not_contains: &["detect_language"],
+                },
+                UrlTestCase {
+                    name: "single_language",
+                    model: Some("nova-3"),
+                    languages: &[ISO639::En],
+                    contains: &[],
+                    not_contains: &["detect_language"],
+                },
+                UrlTestCase {
+                    name: "unsupported_multi",
+                    model: Some("nova-3"),
+                    languages: &[ISO639::En, ISO639::Ko],
+                    contains: &[],
+                    not_contains: &["detect_language"],
+                },
+            ],
+        );
+    }
+
+    #[test]
+    fn test_custom_query_params() {
         let adapter = DeepgramAdapter::default();
         let params = owhisper_interface::ListenParams {
             model: Some("nova-3".to_string()),
-            languages: vec![hypr_language::ISO639::En.into()],
+            languages: vec![ISO639::En.into()],
             custom_query: Some(HashMap::from([
                 ("redemption_time_ms".to_string(), "400".to_string()),
                 ("custom_param".to_string(), "test_value".to_string()),
@@ -104,7 +208,7 @@ mod tests {
             ..Default::default()
         };
 
-        let url = adapter.build_ws_url("https://api.deepgram.com/v1", &params, 1);
+        let url = adapter.build_ws_url(API_BASE, &params, 1);
         let url_str = url.as_str();
 
         assert!(url_str.contains("redemption_time_ms=400"));
@@ -112,52 +216,35 @@ mod tests {
     }
 
     #[test]
-    fn test_build_ws_url_preserves_provider_from_proxy() {
+    fn test_proxy_preserves_provider_param() {
         let adapter = DeepgramAdapter::default();
         let params = owhisper_interface::ListenParams {
             model: Some("nova-3".to_string()),
-            languages: vec![hypr_language::ISO639::En.into()],
+            languages: vec![ISO639::En.into()],
             ..Default::default()
         };
 
         let url =
             adapter.build_ws_url("https://api.hyprnote.com/stt?provider=deepgram", &params, 1);
-        let url_str = url.as_str();
 
-        assert!(url_str.contains("provider=deepgram"));
+        assert!(url.as_str().contains("provider=deepgram"));
     }
 
     #[test]
-    fn test_build_ws_url_unsupported_multi_lang_falls_back_to_first_language() {
+    fn test_basic_url_params() {
         let adapter = DeepgramAdapter::default();
         let params = owhisper_interface::ListenParams {
-            model: Some("nova-3-general".to_string()),
-            languages: vec![
-                hypr_language::ISO639::En.into(),
-                hypr_language::ISO639::Ko.into(),
-            ],
+            model: Some("nova-3".to_string()),
+            languages: vec![ISO639::En.into()],
             ..Default::default()
         };
 
-        let url = adapter.build_ws_url("https://api.deepgram.com/v1", &params, 1);
+        let url = adapter.build_ws_url(API_BASE, &params, 1);
         let url_str = url.as_str();
 
-        assert!(
-            url_str.contains("language=en"),
-            "URL should fall back to first language (en) for unsupported multi-lang"
-        );
-        assert!(
-            !url_str.contains("languages="),
-            "URL should NOT contain languages= when falling back to single language"
-        );
-        assert!(
-            !url_str.contains("language=multi"),
-            "URL should NOT contain language=multi for unsupported multi-lang"
-        );
-        assert!(
-            !url_str.contains("detect_language"),
-            "URL should NOT contain detect_language (not supported with nova-3 streaming)"
-        );
+        assert!(url_str.contains("model=nova-3"));
+        assert!(url_str.contains("channels=1"));
+        assert!(!url_str.contains("redemption_time_ms="));
     }
 
     macro_rules! single_test {
@@ -180,7 +267,7 @@ mod tests {
         test_single_with_keywords,
         owhisper_interface::ListenParams {
             model: Some("nova-3".to_string()),
-            languages: vec![hypr_language::ISO639::En.into()],
+            languages: vec![ISO639::En.into()],
             keywords: vec!["Hyprnote".to_string(), "transcription".to_string()],
             ..Default::default()
         }
@@ -190,10 +277,7 @@ mod tests {
         test_single_multi_lang_1,
         owhisper_interface::ListenParams {
             model: Some("nova-3".to_string()),
-            languages: vec![
-                hypr_language::ISO639::En.into(),
-                hypr_language::ISO639::Es.into(),
-            ],
+            languages: vec![ISO639::En.into(), ISO639::Es.into()],
             ..Default::default()
         }
     );
@@ -202,10 +286,7 @@ mod tests {
         test_single_multi_lang_2,
         owhisper_interface::ListenParams {
             model: Some("nova-3".to_string()),
-            languages: vec![
-                hypr_language::ISO639::En.into(),
-                hypr_language::ISO639::Ko.into(),
-            ],
+            languages: vec![ISO639::En.into(), ISO639::Ko.into()],
             ..Default::default()
         }
     );
@@ -218,7 +299,7 @@ mod tests {
             .api_key(std::env::var("DEEPGRAM_API_KEY").expect("DEEPGRAM_API_KEY not set"))
             .params(owhisper_interface::ListenParams {
                 model: Some("nova-3".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
+                languages: vec![ISO639::En.into()],
                 ..Default::default()
             })
             .build_dual()

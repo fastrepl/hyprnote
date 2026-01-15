@@ -301,9 +301,123 @@ impl SonioxAdapter {
 
 #[cfg(test)]
 mod tests {
+    use hypr_language::ISO639;
+    use hypr_ws_client::client::Message;
+
     use super::SonioxAdapter;
     use crate::ListenClient;
-    use crate::test_utils::{run_dual_test, run_single_test};
+    use crate::adapter::RealtimeSttAdapter;
+    use crate::test_utils::{UrlTestCase, run_dual_test, run_single_test, run_url_test_cases};
+
+    const API_BASE: &str = "https://api.soniox.com";
+
+    #[test]
+    fn test_base_url() {
+        run_url_test_cases(
+            &SonioxAdapter::default(),
+            API_BASE,
+            &[UrlTestCase {
+                name: "base_url_structure",
+                model: None,
+                languages: &[ISO639::En],
+                contains: &["soniox.com"],
+                not_contains: &[],
+            }],
+        );
+    }
+
+    fn extract_initial_message_json(
+        adapter: &SonioxAdapter,
+        params: &owhisper_interface::ListenParams,
+    ) -> serde_json::Value {
+        let msg = adapter
+            .initial_message(Some("test_key"), params, 1)
+            .unwrap();
+        match msg {
+            Message::Text(text) => serde_json::from_str(&text).unwrap(),
+            _ => panic!("Expected text message"),
+        }
+    }
+
+    #[test]
+    fn test_initial_message_single_language() {
+        let adapter = SonioxAdapter::default();
+        let params = owhisper_interface::ListenParams {
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        };
+
+        let json = extract_initial_message_json(&adapter, &params);
+
+        let hints = json["language_hints"].as_array().unwrap();
+        assert_eq!(hints.len(), 1);
+        assert_eq!(hints[0].as_str().unwrap(), "en");
+        assert_eq!(json["language_hints_strict"].as_bool().unwrap(), true);
+    }
+
+    #[test]
+    fn test_initial_message_multi_language() {
+        let adapter = SonioxAdapter::default();
+        let params = owhisper_interface::ListenParams {
+            languages: vec![
+                hypr_language::ISO639::En.into(),
+                hypr_language::ISO639::Ko.into(),
+            ],
+            ..Default::default()
+        };
+
+        let json = extract_initial_message_json(&adapter, &params);
+
+        let hints = json["language_hints"].as_array().unwrap();
+        assert_eq!(hints.len(), 2);
+        assert_eq!(hints[0].as_str().unwrap(), "en");
+        assert_eq!(hints[1].as_str().unwrap(), "ko");
+        assert_eq!(json["language_hints_strict"].as_bool().unwrap(), true);
+    }
+
+    #[test]
+    fn test_initial_message_empty_languages() {
+        let adapter = SonioxAdapter::default();
+        let params = owhisper_interface::ListenParams {
+            languages: vec![],
+            ..Default::default()
+        };
+
+        let json = extract_initial_message_json(&adapter, &params);
+
+        assert!(
+            json.get("language_hints").is_none()
+                || json["language_hints"].as_array().unwrap().is_empty(),
+            "Empty languages should result in no language_hints"
+        );
+        assert!(
+            json.get("language_hints_strict").is_none()
+                || !json["language_hints_strict"].as_bool().unwrap_or(false),
+            "Empty languages should not have language_hints_strict=true"
+        );
+    }
+
+    #[test]
+    fn test_initial_message_three_languages() {
+        let adapter = SonioxAdapter::default();
+        let params = owhisper_interface::ListenParams {
+            languages: vec![
+                hypr_language::ISO639::En.into(),
+                hypr_language::ISO639::Es.into(),
+                hypr_language::ISO639::Fr.into(),
+            ],
+            ..Default::default()
+        };
+
+        let json = extract_initial_message_json(&adapter, &params);
+
+        let hints = json["language_hints"].as_array().unwrap();
+        assert_eq!(hints.len(), 3);
+        assert_eq!(hints[0].as_str().unwrap(), "en");
+        assert_eq!(hints[1].as_str().unwrap(), "es");
+        assert_eq!(hints[2].as_str().unwrap(), "fr");
+        assert_eq!(json["language_hints_strict"].as_bool().unwrap(), true);
+    }
 
     macro_rules! single_test {
         ($name:ident, $params:expr) => {

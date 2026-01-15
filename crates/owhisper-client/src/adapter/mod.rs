@@ -376,6 +376,12 @@ mod tests {
                 None,
                 AdapterKind::Soniox,
             ),
+            (
+                "https://api.hyprnote.com/stt",
+                &[De],
+                None,
+                AdapterKind::Deepgram,
+            ),
             // HyprnoteCloud - multi-language
             (
                 "https://api.hyprnote.com/stt",
@@ -394,6 +400,12 @@ mod tests {
                 &[Ko, En],
                 None,
                 AdapterKind::Soniox,
+            ),
+            (
+                "https://api.hyprnote.com/stt",
+                &[En, De],
+                None,
+                AdapterKind::Deepgram,
             ),
             // localhost proxy
             (

@@ -376,11 +376,31 @@ impl OpenAIAdapter {
 
 #[cfg(test)]
 mod tests {
+    use hypr_language::ISO639;
+
     use super::OpenAIAdapter;
     use crate::ListenClient;
-    use crate::test_utils::{run_dual_test_with_rate, run_single_test_with_rate};
+    use crate::test_utils::{
+        UrlTestCase, run_dual_test_with_rate, run_single_test_with_rate, run_url_test_cases,
+    };
 
+    const API_BASE: &str = "wss://api.openai.com";
     const OPENAI_SAMPLE_RATE: u32 = 24000;
+
+    #[test]
+    fn test_base_url() {
+        run_url_test_cases(
+            &OpenAIAdapter::default(),
+            API_BASE,
+            &[UrlTestCase {
+                name: "base_url_structure",
+                model: None,
+                languages: &[ISO639::En],
+                contains: &["api.openai.com"],
+                not_contains: &[],
+            }],
+        );
+    }
 
     #[tokio::test]
     #[ignore]

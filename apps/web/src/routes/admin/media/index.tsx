@@ -176,13 +176,12 @@ function MediaLibrary() {
   const currentTab = tabs.find((t) => t.active);
 
   const currentPathQuery = useQuery({
-    queryKey: ["mediaItems", currentTab?.path || ""],
-    queryFn: () => {
+    queryKey: ["mediaItems", currentTab?.path || "", currentTab?.type],
+    queryFn: async () => {
       if (currentTab?.type === "file") {
         const parentPath = currentTab.path.split("/").slice(0, -1).join("/");
-        return fetchMediaItems(parentPath).then((items) =>
-          items.filter((i) => i.path === currentTab.path),
-        );
+        const items = await fetchMediaItems(parentPath);
+        return items.filter((i) => i.path === currentTab.path);
       }
       return fetchMediaItems(currentTab?.path || "");
     },

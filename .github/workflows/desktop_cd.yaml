@@ -68,24 +68,14 @@ jobs:
 
   build-macos:
     needs: [compute-version, cn-draft]
-    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') && !(matrix.skip_for_staging == true && inputs.channel == 'staging') }}
+    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
     permissions:
       contents: write
     runs-on: depot-macos-14
     strategy:
       fail-fast: true
       matrix:
-        include:
-          - target: aarch64-apple-darwin
-            arch: aarch64
-            artifact_name: silicon
-            include_am: true
-            skip_for_staging: false
-          - target: x86_64-apple-darwin
-            arch: x86_64
-            artifact_name: intel
-            include_am: false
-            skip_for_staging: true
+        include: ${{ inputs.channel == 'staging' && fromJSON('[{"target":"aarch64-apple-darwin","arch":"aarch64","artifact_name":"silicon","include_am":true}]') || fromJSON('[{"target":"aarch64-apple-darwin","arch":"aarch64","artifact_name":"silicon","include_am":true},{"target":"x86_64-apple-darwin","arch":"x86_64","artifact_name":"intel","include_am":false}]') }}
     defaults:
       run:
         shell: bash

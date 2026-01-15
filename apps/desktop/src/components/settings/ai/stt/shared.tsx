@@ -166,7 +166,7 @@ const _PROVIDERS = [
     disabled: false,
     id: "soniox",
     displayName: "Soniox",
-    badge: "Beta",
+    badge: null,
     icon: (
       <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
     ),

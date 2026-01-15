@@ -94,9 +94,7 @@ impl GladiaAdapter {
 
     pub(crate) fn batch_api_url(api_base: &str) -> url::Url {
         if api_base.is_empty() {
-            return Provider::Gladia
-                .default_api_url()
-                .unwrap()
+            return "https://api.gladia.io/v2"
                 .parse()
                 .expect("invalid_default_api_url");
         }

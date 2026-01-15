@@ -173,7 +173,7 @@ impl Provider {
             Self::Soniox => None,
             Self::Fireworks => None,
             Self::OpenAI => None,
-            Self::Gladia => Some("https://api.gladia.io/v2"),
+            Self::Gladia => Some("https://api.gladia.io/v2/live"),
             Self::ElevenLabs => Some("https://api.elevenlabs.io/v1"),
         }
     }
@@ -185,7 +185,7 @@ impl Provider {
             Self::Soniox => "https://api.soniox.com",
             Self::Fireworks => "https://api.fireworks.ai",
             Self::OpenAI => "https://api.openai.com/v1",
-            Self::Gladia => "https://api.gladia.io",
+            Self::Gladia => "https://api.gladia.io/v2",
             Self::ElevenLabs => "https://api.elevenlabs.io",
         }
     }

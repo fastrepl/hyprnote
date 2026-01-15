@@ -3,6 +3,7 @@ on:
     inputs:
       adapter-or-proxy:
         type: choice
+        default: proxy
         options:
           - proxy
           - adapter
@@ -101,7 +102,7 @@ jobs:
             if [ "${{ inputs.openai }}" == "true" ]; then providers+=("openai"); fi
             if [ "${{ inputs.elevenlabs }}" == "true" ]; then providers+=("elevenlabs"); fi
 
-            if [ "${{ inputs.adapter-or-proxy }}" == "proxy" ]; then
+            if [ "${{ inputs['adapter-or-proxy'] }}" == "proxy" ]; then
               echo "run-proxy=true" >> $GITHUB_OUTPUT
               echo "run-adapter=false" >> $GITHUB_OUTPUT
             else

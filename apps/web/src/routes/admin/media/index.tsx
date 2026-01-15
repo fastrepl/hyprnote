@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 interface MediaItem {
@@ -290,6 +291,44 @@ function MediaLibrary() {
     navigator.clipboard.writeText(text);
   };
 
+  const handleDownload = (publicUrl: string, filename: string) => {
+    const link = document.createElement("a");
+    link.href = publicUrl;
+    link.download = filename;
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const replaceMutation = useMutation({
+    mutationFn: async (params: { file: File; path: string }) => {
+      const reader = new FileReader();
+      const content = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const base64 = (reader.result as string).split(",")[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(params.file);
+      });
+
+      await uploadFile({
+        filename: params.file.name,
+        content,
+        folder: params.path.split("/").slice(0, -1).join("/"),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
+      loadFolderContents(selectedPath);
+    },
+  });
+
+  const handleReplace = (file: File, path: string) => {
+    replaceMutation.mutate({ file, path });
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
@@ -400,6 +439,8 @@ function MediaLibrary() {
         onSelectFolder={selectFolder}
         onToggleSelection={toggleSelection}
         onCopyToClipboard={copyToClipboard}
+        onDownload={handleDownload}
+        onReplace={handleReplace}
       />
     </div>
   );
@@ -480,12 +521,13 @@ function Sidebar({
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadPending}
           className={cn([
-            "w-full py-2 text-sm font-medium rounded",
+            "w-full py-2 text-sm font-medium rounded flex items-center justify-center gap-2",
             "bg-neutral-900 text-white",
             "hover:bg-neutral-800 transition-colors",
             "disabled:opacity-50",
           ])}
         >
+          {uploadPending && <Spinner size={14} color="white" />}
           {uploadPending ? "Uploading..." : "+ Add"}
         </button>
         <input
@@ -527,10 +569,7 @@ function RootFolderItem({
       }}
     >
       {loadingPath === "" ? (
-        <Icon
-          icon="mdi:loading"
-          className="text-neutral-400 text-sm animate-spin"
-        />
+        <Spinner size={14} />
       ) : (
         <Icon
           icon={rootExpanded ? "mdi:folder-open" : "mdi:folder"}
@@ -578,10 +617,7 @@ function TreeNodeItem({
         }}
       >
         {isLoading ? (
-          <Icon
-            icon="mdi:loading"
-            className="text-neutral-400 text-sm animate-spin"
-          />
+          <Spinner size={14} />
         ) : (
           <Icon
             icon={
@@ -633,6 +669,8 @@ function ContentPanel({
   onSelectFolder,
   onToggleSelection,
   onCopyToClipboard,
+  onDownload,
+  onReplace,
 }: {
   tabs: { id: TabType; label: string }[];
   activeTab: TabType;
@@ -651,6 +689,8 @@ function ContentPanel({
   onSelectFolder: (path: string) => void;
   onToggleSelection: (path: string) => void;
   onCopyToClipboard: (text: string) => void;
+  onDownload: (publicUrl: string, filename: string) => void;
+  onReplace: (file: File, path: string) => void;
 }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -675,6 +715,8 @@ function ContentPanel({
         onSelectFolder={onSelectFolder}
         onToggleSelection={onToggleSelection}
         onCopyToClipboard={onCopyToClipboard}
+        onDownload={onDownload}
+        onReplace={onReplace}
       />
     </div>
   );
@@ -770,6 +812,8 @@ function MediaGrid({
   onSelectFolder,
   onToggleSelection,
   onCopyToClipboard,
+  onDownload,
+  onReplace,
 }: {
   dragOver: boolean;
   onDrop: (e: React.DragEvent) => void;
@@ -782,6 +826,8 @@ function MediaGrid({
   onSelectFolder: (path: string) => void;
   onToggleSelection: (path: string) => void;
   onCopyToClipboard: (text: string) => void;
+  onDownload: (publicUrl: string, filename: string) => void;
+  onReplace: (file: File, path: string) => void;
 }) {
   return (
     <div
@@ -809,6 +855,8 @@ function MediaGrid({
                   : onToggleSelection(item.path)
               }
               onCopyPath={() => onCopyToClipboard(item.publicUrl)}
+              onDownload={() => onDownload(item.publicUrl, item.name)}
+              onReplace={(file) => onReplace(file, item.path)}
             />
           ))}
         </div>
@@ -820,7 +868,7 @@ function MediaGrid({
 function LoadingState() {
   return (
     <div className="flex items-center justify-center h-64 text-neutral-500">
-      <Icon icon="mdi:loading" className="animate-spin text-2xl mr-2" />
+      <Spinner size={24} className="mr-2" />
       Loading...
     </div>
   );
@@ -854,12 +902,36 @@ function MediaItemCard({
   isSelected,
   onSelect,
   onCopyPath,
+  onDownload,
+  onReplace,
 }: {
   item: MediaItem & { relativePath: string };
   isSelected: boolean;
   onSelect: () => void;
   onCopyPath: () => void;
+  onDownload: () => void;
+  onReplace: (file: File) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDownload = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDownload();
+  };
+
+  const handleReplace = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onReplace(file);
+      e.target.value = "";
+    }
+  };
+
   return (
     <div
       className={cn([
@@ -885,7 +957,64 @@ function MediaItemCard({
         )}
       </div>
 
-      <div className="p-1.5">
+      {item.type === "file" && (
+        <div
+          className={cn([
+            "absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity",
+            "flex flex-col items-center justify-center",
+          ])}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex flex-col gap-1 mb-2">
+            <p className="text-xs text-white font-medium px-2 text-center">
+              {item.name}
+            </p>
+            {item.createdAt && (
+              <p className="text-xs text-white/80 px-2 text-center">
+                {new Date(item.createdAt).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-1">
+            <button
+              onClick={handleDownload}
+              className="p-1.5 rounded bg-white/90 hover:bg-white transition-colors"
+              title="Download"
+            >
+              <Icon icon="mdi:download" className="text-neutral-700 text-sm" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCopyPath();
+              }}
+              className="p-1.5 rounded bg-white/90 hover:bg-white transition-colors"
+              title="Copy path"
+            >
+              <Icon
+                icon="mdi:content-copy"
+                className="text-neutral-700 text-sm"
+              />
+            </button>
+            <button
+              onClick={handleReplace}
+              className="p-1.5 rounded bg-white/90 hover:bg-white transition-colors"
+              title="Replace"
+            >
+              <Icon icon="mdi:refresh" className="text-neutral-700 text-sm" />
+            </button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*,audio/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+      )}
+
+      <div className="p-1.5 bg-white">
         <p className="text-xs text-neutral-700 truncate" title={item.name}>
           {item.name}
         </p>
@@ -896,26 +1025,8 @@ function MediaItemCard({
         )}
       </div>
 
-      {item.type === "file" && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onCopyPath();
-          }}
-          className={cn([
-            "absolute top-1 right-1 p-1 rounded",
-            "bg-white/90 shadow-sm",
-            "opacity-0 group-hover:opacity-100 transition-opacity",
-            "hover:bg-white",
-          ])}
-          title="Copy path"
-        >
-          <Icon icon="mdi:content-copy" className="text-neutral-600 text-xs" />
-        </button>
-      )}
-
       {isSelected && (
-        <div className="absolute top-1 left-1">
+        <div className="absolute top-1 left-1 z-10">
           <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
             <Icon icon="mdi:check" className="text-white text-xs" />
           </div>

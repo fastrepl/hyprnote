@@ -5,8 +5,8 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use hypr_audio_utils::{
-    VorbisEncodeSettings, convert_mono_wav_to_stereo_in_place, decode_vorbis_to_wav_file,
-    encode_wav_to_vorbis_file, interleave_stereo_f32, mix_audio_f32,
+    VorbisEncodeSettings, decode_vorbis_to_mono_wav_file,
+    encode_wav_to_vorbis_file_dupe_mono_to_stereo, mix_audio_f32,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_plugin_fs_sync::find_session_dir;
@@ -59,46 +59,17 @@ impl Actor for RecorderActor {
         let ogg_path = dir.join(format!("{}.ogg", filename_base));
 
         if ogg_path.exists() {
-            decode_vorbis_to_wav_file(&ogg_path, &wav_path).map_err(into_actor_err)?;
+            decode_vorbis_to_mono_wav_file(&ogg_path, &wav_path).map_err(into_actor_err)?;
             std::fs::remove_file(&ogg_path)?;
-            convert_mono_wav_to_stereo_in_place(&wav_path).map_err(into_actor_err)?;
         }
 
-        let spec = hound::WavSpec {
-            channels: 2,
-            sample_rate: super::SAMPLE_RATE,
-            bits_per_sample: 32,
-            sample_format: hound::SampleFormat::Float,
-        };
-
-        let writer = if wav_path.exists() {
-            hound::WavWriter::append(&wav_path)?
-        } else {
-            hound::WavWriter::create(&wav_path, spec)?
-        };
+        let writer = create_or_append_wav(&wav_path, 1)?;
 
         let (writer_mic, writer_spk) = if is_debug_mode() {
             let mic_path = dir.join(format!("{}_mic.wav", filename_base));
             let spk_path = dir.join(format!("{}_spk.wav", filename_base));
-
-            let mono_spec = hound::WavSpec {
-                channels: 1,
-                sample_rate: super::SAMPLE_RATE,
-                bits_per_sample: 32,
-                sample_format: hound::SampleFormat::Float,
-            };
-
-            let mic_writer = if mic_path.exists() {
-                hound::WavWriter::append(&mic_path)?
-            } else {
-                hound::WavWriter::create(&mic_path, mono_spec)?
-            };
-
-            let spk_writer = if spk_path.exists() {
-                hound::WavWriter::append(&spk_path)?
-            } else {
-                hound::WavWriter::create(&spk_path, mono_spec)?
-            };
+            let mic_writer = create_or_append_wav(&mic_path, 1)?;
+            let spk_writer = create_or_append_wav(&spk_path, 1)?;
 
             (Some(mic_writer), Some(spk_writer))
         } else {
@@ -124,33 +95,23 @@ impl Actor for RecorderActor {
         match msg {
             RecMsg::AudioSingle(samples) => {
                 if let Some(ref mut writer) = st.writer {
-                    let stereo = interleave_stereo_f32(&samples, &samples);
-                    for s in stereo.iter() {
-                        writer.write_sample(*s)?;
-                    }
+                    write_samples(writer, &samples)?;
                 }
                 flush_if_due(st)?;
             }
             RecMsg::AudioDual(mic, spk) => {
                 if let Some(ref mut writer) = st.writer {
                     let mixed = mix_audio_f32(&mic, &spk);
-                    let stereo = interleave_stereo_f32(&mixed, &mixed);
-                    for sample in stereo {
-                        writer.write_sample(sample)?;
-                    }
+                    write_samples(writer, &mixed)?;
                 }
 
                 if st.writer_mic.is_some() {
                     if let Some(ref mut writer_mic) = st.writer_mic {
-                        for s in mic.iter() {
-                            writer_mic.write_sample(*s)?;
-                        }
+                        write_samples(writer_mic, &mic)?;
                     }
 
                     if let Some(ref mut writer_spk) = st.writer_spk {
-                        for s in spk.iter() {
-                            writer_spk.write_sample(*s)?;
-                        }
+                        write_samples(writer_spk, &spk)?;
                     }
                 }
 
@@ -173,7 +134,7 @@ impl Actor for RecorderActor {
         if st.wav_path.exists() {
             let temp_ogg_path = st.ogg_path.with_extension("ogg.tmp");
 
-            match encode_wav_to_vorbis_file(
+            match encode_wav_to_vorbis_file_dupe_mono_to_stereo(
                 &st.wav_path,
                 &temp_ogg_path,
                 VorbisEncodeSettings::default(),
@@ -203,6 +164,33 @@ fn is_debug_mode() -> bool {
         || std::env::var("HYPRNOTE_DEBUG")
             .map(|v| !v.is_empty() && v != "0" && v != "false")
             .unwrap_or(false)
+}
+
+fn create_or_append_wav(
+    path: &PathBuf,
+    channels: u16,
+) -> Result<hound::WavWriter<BufWriter<File>>, hound::Error> {
+    let spec = hound::WavSpec {
+        channels,
+        sample_rate: super::SAMPLE_RATE,
+        bits_per_sample: 32,
+        sample_format: hound::SampleFormat::Float,
+    };
+    if path.exists() {
+        hound::WavWriter::append(path)
+    } else {
+        hound::WavWriter::create(path, spec)
+    }
+}
+
+fn write_samples(
+    writer: &mut hound::WavWriter<BufWriter<File>>,
+    samples: &[f32],
+) -> Result<(), hound::Error> {
+    for sample in samples {
+        writer.write_sample(*sample)?;
+    }
+    Ok(())
 }
 
 fn flush_if_due(state: &mut RecState) -> Result<(), hound::Error> {

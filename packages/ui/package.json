@@ -10,11 +10,10 @@
     "./globals.css": "./dist/globals.css",
     "./hooks/*": "./src/hooks/*.tsx",
     "./lib/*": "./src/lib/*.ts",
-    "./postcss.config": "./postcss.config.mjs",
-    "./tailwind.config": "./tailwind.config.ts"
+        "./postcss.config": "./postcss.config.mjs"
   },
   "scripts": {
-    "build": "tailwindcss -i ./src/styles/globals.css -o ./dist/globals.css --minify"
+    "build": "npx @tailwindcss/cli -i ./src/styles/globals.css -o ./dist/globals.css --minify"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -51,6 +50,7 @@
     "zod": "^4.2.1"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.1.18",
     "@tailwindcss/postcss": "^4.1.18",
     "@tanstack/react-query": "^5.90.12",
     "@types/node": "^22.19.3",

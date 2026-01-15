@@ -80,12 +80,12 @@ jobs:
             arch: aarch64
             artifact_name: silicon
             include_am: true
-            channel_filter: staging
+            skip_for_staging: false
           - target: x86_64-apple-darwin
             arch: x86_64
             artifact_name: intel
             include_am: false
-            channel_filter: non-staging
+            skip_for_staging: true
     defaults:
       run:
         shell: bash
@@ -98,13 +98,11 @@ jobs:
       - name: Check if build should run
         id: check
         run: |
-          if [[ "${{ matrix.channel_filter }}" == "staging" && "${{ inputs.channel }}" == "staging" ]]; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ matrix.channel_filter }}" == "non-staging" && "${{ inputs.channel }}" != "staging" ]]; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-          else
+          if [[ "${{ matrix.skip_for_staging }}" == "true" && "${{ inputs.channel }}" == "staging" ]]; then
             echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "Skipping ${{ matrix.artifact_name }} build for ${{ inputs.channel }} channel"
+            echo "Skipping ${{ matrix.artifact_name }} build for staging channel"
+          else
+            echo "should_run=true" >> $GITHUB_OUTPUT
           fi
       - if: ${{ steps.check.outputs.should_run == 'true' }}
         run: git fetch --tags --force
@@ -339,6 +337,11 @@ jobs:
       - if: ${{ needs.build-macos.result == 'success' }}
         run: |
           aws s3 cp \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-macos-aarch64.dmg" \
+            "hyprnote-macos-aarch64.dmg" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+          aws s3 cp \
             "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-macos-x86_64.dmg" \
             "hyprnote-macos-x86_64.dmg" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
@@ -370,6 +373,7 @@ jobs:
         uses: ./.github/actions/generate_checksums
         with:
           files: |
+            ${{ needs.build-macos.result == 'success' && 'hyprnote-macos-aarch64.dmg' || '' }}
             ${{ needs.build-macos.result == 'success' && 'hyprnote-macos-x86_64.dmg' || '' }}
             ${{ needs.build-linux.result == 'success' && 'hyprnote-linux-x86_64.AppImage' || '' }}
             ${{ needs.build-linux.result == 'success' && 'hyprnote-linux-x86_64.deb' || '' }}
@@ -377,7 +381,7 @@ jobs:
         run: |
           ARTIFACTS=""
           if [[ "${{ needs.build-macos.result }}" == "success" ]]; then
-            ARTIFACTS="hyprnote-macos-x86_64.dmg"
+            ARTIFACTS="hyprnote-macos-aarch64.dmg,hyprnote-macos-x86_64.dmg"
           fi
           if [[ "${{ needs.build-linux.result }}" == "success" ]]; then
             if [[ -n "$ARTIFACTS" ]]; then

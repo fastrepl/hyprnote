@@ -10,6 +10,7 @@ import {
   FolderIcon,
   FolderOpenIcon,
   HomeIcon,
+  MoreVerticalIcon,
   PinIcon,
   PinOffIcon,
   RefreshCwIcon,
@@ -1180,10 +1181,11 @@ function MediaItemCard({
   onDelete: () => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showMenu, setShowMenu] = useState(false);
 
-  const handleReplace = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleReplace = () => {
     fileInputRef.current?.click();
+    setShowMenu(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1194,10 +1196,30 @@ function MediaItemCard({
     }
   };
 
+  const handleCopyPath = () => {
+    onCopyPath();
+    setShowMenu(false);
+  };
+
+  const handleDownload = () => {
+    onDownload();
+    setShowMenu(false);
+  };
+
+  const handleDelete = () => {
+    onDelete();
+    setShowMenu(false);
+  };
+
   if (item.type === "dir") {
     return (
       <div
-        className="group relative rounded-lg border border-neutral-200 hover:border-neutral-300 overflow-hidden cursor-pointer transition-all"
+        className={cn([
+          "group relative rounded-lg border overflow-hidden cursor-pointer transition-all",
+          isSelected
+            ? "border-blue-500 ring-2 ring-blue-500"
+            : "border-neutral-200 hover:border-neutral-300 hover:shadow-md",
+        ])}
         onClick={onSelect}
       >
         <div className="aspect-square bg-neutral-100 flex items-center justify-center">
@@ -1207,6 +1229,28 @@ function MediaItemCard({
           <p className="text-sm text-neutral-700 truncate" title={item.name}>
             {item.name}
           </p>
+        </div>
+
+        <div
+          className={cn([
+            "absolute top-2 left-2 z-10 transition-opacity",
+            isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+          ])}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect();
+          }}
+        >
+          <div
+            className={cn([
+              "w-5 h-5 rounded flex items-center justify-center shadow-sm cursor-pointer",
+              isSelected
+                ? "bg-blue-500"
+                : "bg-white border-2 border-neutral-300",
+            ])}
+          >
+            {isSelected && <CheckIcon className="size-3 text-white" />}
+          </div>
         </div>
       </div>
     );
@@ -1255,71 +1299,79 @@ function MediaItemCard({
 
       <div
         className={cn([
-          "absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity",
-          "flex flex-col justify-between",
+          "absolute top-2 left-2 z-10 transition-opacity",
+          isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100",
         ])}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect();
+        }}
+      >
+        <div
+          className={cn([
+            "w-5 h-5 rounded flex items-center justify-center shadow-sm cursor-pointer",
+            isSelected ? "bg-blue-500" : "bg-white border-2 border-neutral-300",
+          ])}
+        >
+          {isSelected && <CheckIcon className="size-3 text-white" />}
+        </div>
+      </div>
+
+      <div
+        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-3">
-          <p
-            className="text-sm text-white font-medium truncate"
-            title={item.name}
-          >
-            {item.name}
-          </p>
-          <p className="text-xs text-white/70 mt-0.5">
-            {item.createdAt
-              ? new Date(item.createdAt).toLocaleDateString()
-              : "Unknown date"}
-          </p>
-        </div>
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className="w-6 h-6 rounded bg-white/90 hover:bg-white border border-neutral-200 flex items-center justify-center shadow-sm"
+        >
+          <MoreVerticalIcon className="size-4 text-neutral-700" />
+        </button>
 
-        <div className="p-2 flex items-center justify-center gap-2 bg-black/30">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onCopyPath();
-            }}
-            className="p-2 rounded-lg bg-white/90 hover:bg-white transition-colors"
-            title="Copy URL"
-          >
-            <CopyIcon className="size-4 text-neutral-700" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDownload();
-            }}
-            className="p-2 rounded-lg bg-white/90 hover:bg-white transition-colors"
-            title="Download"
-          >
-            <DownloadIcon className="size-4 text-neutral-700" />
-          </button>
-          <button
-            onClick={handleReplace}
-            className="p-2 rounded-lg bg-white/90 hover:bg-white transition-colors"
-            title="Replace"
-          >
-            <RefreshCwIcon className="size-4 text-neutral-700" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="p-2 rounded-lg bg-white/90 hover:bg-white transition-colors"
-            title="Delete"
-          >
-            <Trash2Icon className="size-4 text-red-600" />
-          </button>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,video/*,audio/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+        {showMenu && (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setShowMenu(false)}
+            />
+            <div
+              className={cn([
+                "absolute top-full right-0 mt-1 z-50 min-w-40 py-1",
+                "bg-white border border-neutral-200 rounded-sm shadow-lg",
+              ])}
+            >
+              <button
+                onClick={handleCopyPath}
+                className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+              >
+                <CopyIcon className="size-4" />
+                Copy URL
+              </button>
+              <button
+                onClick={handleDownload}
+                className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+              >
+                <DownloadIcon className="size-4" />
+                Download
+              </button>
+              <button
+                onClick={handleReplace}
+                className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+              >
+                <RefreshCwIcon className="size-4" />
+                Replace
+              </button>
+              <div className="my-1 border-t border-neutral-200" />
+              <button
+                onClick={handleDelete}
+                className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors text-red-600"
+              >
+                <Trash2Icon className="size-4" />
+                Delete
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="p-2 bg-white">
@@ -1329,13 +1381,13 @@ function MediaItemCard({
         <p className="text-xs text-neutral-400">{formatFileSize(item.size)}</p>
       </div>
 
-      {isSelected && (
-        <div className="absolute top-2 left-2 z-10">
-          <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shadow-sm">
-            <CheckIcon className="size-3 text-white" />
-          </div>
-        </div>
-      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,video/*,audio/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
     </div>
   );
 }

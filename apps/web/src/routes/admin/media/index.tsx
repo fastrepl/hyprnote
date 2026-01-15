@@ -432,6 +432,11 @@ function MediaLibrary() {
     replaceMutation.mutate({ file, path });
   };
 
+  const handleDeleteSingle = (path: string) => {
+    if (!confirm(`Are you sure you want to delete this file?`)) return;
+    deleteMutation.mutate([path]);
+  };
+
   const toggleSelection = (path: string) => {
     const newSelection = new Set(selectedItems);
     if (newSelection.has(path)) {
@@ -520,6 +525,7 @@ function MediaLibrary() {
           onCopyToClipboard={copyToClipboard}
           onDownload={handleDownload}
           onReplace={handleReplace}
+          onDeleteSingle={handleDeleteSingle}
         />
       </ResizablePanel>
     </ResizablePanelGroup>
@@ -717,6 +723,7 @@ function ContentPanel({
   onCopyToClipboard,
   onDownload,
   onReplace,
+  onDeleteSingle,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -740,6 +747,7 @@ function ContentPanel({
   onCopyToClipboard: (text: string) => void;
   onDownload: (publicUrl: string, filename: string) => void;
   onReplace: (file: File, path: string) => void;
+  onDeleteSingle: (path: string) => void;
 }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -780,6 +788,7 @@ function ContentPanel({
                 onCopyToClipboard={onCopyToClipboard}
                 onDownload={onDownload}
                 onReplace={onReplace}
+                onDeleteSingle={onDeleteSingle}
               />
             ) : (
               <FilePreview
@@ -1080,6 +1089,7 @@ function FolderView({
   onCopyToClipboard,
   onDownload,
   onReplace,
+  onDeleteSingle,
 }: {
   dragOver: boolean;
   onDrop: (e: React.DragEvent) => void;
@@ -1093,6 +1103,7 @@ function FolderView({
   onCopyToClipboard: (text: string) => void;
   onDownload: (publicUrl: string, filename: string) => void;
   onReplace: (file: File, path: string) => void;
+  onDeleteSingle: (path: string) => void;
 }) {
   return (
     <div
@@ -1119,7 +1130,7 @@ function FolderView({
           <p className="text-xs mt-1">Drag and drop files here or click Add</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {items.map((item) => (
             <MediaItemCard
               key={item.path}
@@ -1129,6 +1140,7 @@ function FolderView({
               onCopyPath={() => onCopyToClipboard(item.publicUrl)}
               onDownload={() => onDownload(item.publicUrl, item.name)}
               onReplace={(file) => onReplace(file, item.path)}
+              onDelete={() => onDeleteSingle(item.path)}
             />
           ))}
         </div>
@@ -1144,6 +1156,7 @@ function MediaItemCard({
   onCopyPath,
   onDownload,
   onReplace,
+  onDelete,
 }: {
   item: MediaItem;
   isSelected: boolean;
@@ -1151,6 +1164,7 @@ function MediaItemCard({
   onCopyPath: () => void;
   onDownload: () => void;
   onReplace: (file: File) => void;
+  onDelete: () => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1170,14 +1184,14 @@ function MediaItemCard({
   if (item.type === "dir") {
     return (
       <div
-        className="group relative rounded border border-neutral-200 hover:border-neutral-300 overflow-hidden cursor-pointer transition-all"
+        className="group relative rounded-lg border border-neutral-200 hover:border-neutral-300 overflow-hidden cursor-pointer transition-all"
         onClick={onSelect}
       >
         <div className="aspect-square bg-neutral-100 flex items-center justify-center">
-          <FolderIcon className="size-8 text-neutral-400" />
+          <FolderIcon className="size-12 text-neutral-400" />
         </div>
-        <div className="p-1.5 bg-white">
-          <p className="text-xs text-neutral-700 truncate" title={item.name}>
+        <div className="p-2 bg-white">
+          <p className="text-sm text-neutral-700 truncate" title={item.name}>
             {item.name}
           </p>
         </div>
@@ -1185,73 +1199,105 @@ function MediaItemCard({
     );
   }
 
+  const isImage = item.mimeType?.startsWith("image/");
+  const isVideo = item.mimeType?.startsWith("video/");
+  const isAudio = item.mimeType?.startsWith("audio/");
+
   return (
     <div
       className={cn([
-        "group relative rounded border overflow-hidden cursor-pointer transition-all",
+        "group relative rounded-lg border overflow-hidden cursor-pointer transition-all",
         isSelected
-          ? "border-blue-500 ring-1 ring-blue-500"
-          : "border-neutral-200 hover:border-neutral-300",
+          ? "border-blue-500 ring-2 ring-blue-500"
+          : "border-neutral-200 hover:border-neutral-300 hover:shadow-md",
       ])}
       onClick={onSelect}
     >
       <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
-        {item.publicUrl ? (
+        {isImage && item.publicUrl ? (
           <img
             src={item.publicUrl}
             alt={item.name}
             className="w-full h-full object-cover"
             loading="lazy"
           />
+        ) : isVideo ? (
+          <div className="relative w-full h-full bg-neutral-900 flex items-center justify-center">
+            <FileIcon className="size-12 text-neutral-400" />
+            <span className="absolute bottom-2 right-2 text-xs text-white bg-black/60 px-1.5 py-0.5 rounded">
+              Video
+            </span>
+          </div>
+        ) : isAudio ? (
+          <div className="relative w-full h-full bg-neutral-900 flex items-center justify-center">
+            <FileIcon className="size-12 text-neutral-400" />
+            <span className="absolute bottom-2 right-2 text-xs text-white bg-black/60 px-1.5 py-0.5 rounded">
+              Audio
+            </span>
+          </div>
         ) : (
-          <FileIcon className="size-8 text-neutral-400" />
+          <FileIcon className="size-12 text-neutral-400" />
         )}
       </div>
 
       <div
         className={cn([
-          "absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity",
-          "flex flex-col items-center justify-center",
+          "absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity",
+          "flex flex-col justify-between",
         ])}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex flex-col gap-1 mb-2">
-          <p className="text-xs text-white font-medium px-2 text-center">
+        <div className="p-3">
+          <p
+            className="text-sm text-white font-medium truncate"
+            title={item.name}
+          >
             {item.name}
           </p>
-          {item.createdAt && (
-            <p className="text-xs text-white/80 px-2 text-center">
-              {new Date(item.createdAt).toLocaleDateString()}
-            </p>
-          )}
+          <p className="text-xs text-white/70 mt-0.5">
+            {item.createdAt
+              ? new Date(item.createdAt).toLocaleDateString()
+              : "Unknown date"}
+          </p>
         </div>
-        <div className="flex gap-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDownload();
-            }}
-            className="p-1.5 rounded bg-white/90 hover:bg-white transition-colors"
-            title="Download"
-          >
-            <DownloadIcon className="size-4 text-neutral-700" />
-          </button>
+
+        <div className="p-2 flex items-center justify-center gap-2 bg-black/30">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onCopyPath();
             }}
-            className="p-1.5 rounded bg-white/90 hover:bg-white transition-colors"
-            title="Copy path"
+            className="p-2 rounded-lg bg-white/90 hover:bg-white transition-colors"
+            title="Copy URL"
           >
             <CopyIcon className="size-4 text-neutral-700" />
           </button>
           <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDownload();
+            }}
+            className="p-2 rounded-lg bg-white/90 hover:bg-white transition-colors"
+            title="Download"
+          >
+            <DownloadIcon className="size-4 text-neutral-700" />
+          </button>
+          <button
             onClick={handleReplace}
-            className="p-1.5 rounded bg-white/90 hover:bg-white transition-colors"
+            className="p-2 rounded-lg bg-white/90 hover:bg-white transition-colors"
             title="Replace"
           >
             <RefreshCwIcon className="size-4 text-neutral-700" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="p-2 rounded-lg bg-white/90 hover:bg-white transition-colors"
+            title="Delete"
+          >
+            <Trash2Icon className="size-4 text-red-600" />
           </button>
         </div>
         <input
@@ -1263,16 +1309,16 @@ function MediaItemCard({
         />
       </div>
 
-      <div className="p-1.5 bg-white">
-        <p className="text-xs text-neutral-700 truncate" title={item.name}>
+      <div className="p-2 bg-white">
+        <p className="text-sm text-neutral-700 truncate" title={item.name}>
           {item.name}
         </p>
         <p className="text-xs text-neutral-400">{formatFileSize(item.size)}</p>
       </div>
 
       {isSelected && (
-        <div className="absolute top-1 left-1 z-10">
-          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+        <div className="absolute top-2 left-2 z-10">
+          <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shadow-sm">
             <CheckIcon className="size-3 text-white" />
           </div>
         </div>

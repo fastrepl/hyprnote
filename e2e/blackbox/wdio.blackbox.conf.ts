@@ -33,6 +33,7 @@ export const config = {
       maxInstances: 1,
       "tauri:options": {
         application: appPath,
+        args: ["--onboarding", "0"],
       },
     },
   ],

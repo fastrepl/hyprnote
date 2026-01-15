@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   ChevronRightIcon,
   DownloadIcon,
+  HomeIcon,
   PinIcon,
   PinOffIcon,
   Trash2Icon,
@@ -43,6 +44,7 @@ interface Tab {
   path: string;
   pinned: boolean;
   active: boolean;
+  isHome?: boolean;
 }
 
 async function fetchMediaItems(path: string): Promise<MediaItem[]> {
@@ -109,7 +111,6 @@ function MediaLibrary() {
   const [searchQuery, setSearchQuery] = useState("");
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [treeNodes, setTreeNodes] = useState<TreeNode[]>([]);
-  const [rootExpanded, setRootExpanded] = useState(true);
   const [rootLoaded, setRootLoaded] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [dragOver, setDragOver] = useState(false);
@@ -140,10 +141,18 @@ function MediaLibrary() {
       setTreeNodes(children);
       setRootLoaded(true);
 
-      // Auto-open root folder as first tab
-      if (children.length > 0) {
-        openTab("folder", "blog", "", false);
-      }
+      // Add permanent Home tab
+      setTabs([
+        {
+          id: "home",
+          type: "folder",
+          name: "Home",
+          path: "",
+          pinned: true,
+          active: true,
+          isHome: true,
+        },
+      ]);
     }
   }, [rootQuery.data, rootLoaded]);
 
@@ -199,15 +208,6 @@ function MediaLibrary() {
   };
 
   const toggleNodeExpanded = async (path: string) => {
-    if (path === "") {
-      const willExpand = !rootExpanded;
-      if (willExpand && !rootLoaded) {
-        await loadFolderContents("");
-      }
-      setRootExpanded(willExpand);
-      return;
-    }
-
     const node = findNode(treeNodes, path);
     if (!node) return;
 
@@ -244,6 +244,11 @@ function MediaLibrary() {
   const openTab = useCallback(
     (type: "folder" | "file", name: string, path: string, pinned = false) => {
       setTabs((prev) => {
+        // If opening the home/root folder, just activate the Home tab
+        if (type === "folder" && path === "") {
+          return prev.map((t) => ({ ...t, active: t.isHome === true }));
+        }
+
         const existingIndex = prev.findIndex(
           (t) => t.type === type && t.path === path,
         );
@@ -251,7 +256,7 @@ function MediaLibrary() {
           return prev.map((t, i) => ({ ...t, active: i === existingIndex }));
         }
 
-        const unpinnedIndex = prev.findIndex((t) => !t.pinned);
+        const unpinnedIndex = prev.findIndex((t) => !t.pinned && !t.isHome);
         const newTab: Tab = {
           id: `${type}-${path}-${Date.now()}`,
           type,
@@ -278,6 +283,9 @@ function MediaLibrary() {
     setTabs((prev) => {
       const index = prev.findIndex((t) => t.id === tabId);
       if (index === -1) return prev;
+
+      // Don't allow closing the Home tab
+      if (prev[index].isHome) return prev;
 
       const newTabs = prev.filter((t) => t.id !== tabId);
       if (newTabs.length === 0) return [];
@@ -454,7 +462,6 @@ function MediaLibrary() {
       <Sidebar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        rootExpanded={rootExpanded}
         loadingPath={loadingPath}
         filteredTreeNodes={filteredTreeNodes}
         onOpenFolder={(path, name) => openTab("folder", name, path)}
@@ -498,7 +505,6 @@ function MediaLibrary() {
 function Sidebar({
   searchQuery,
   onSearchChange,
-  rootExpanded,
   loadingPath,
   filteredTreeNodes,
   onOpenFolder,
@@ -510,7 +516,6 @@ function Sidebar({
 }: {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  rootExpanded: boolean;
   loadingPath: string | null;
   filteredTreeNodes: TreeNode[];
   onOpenFolder: (path: string, name: string) => void;
@@ -544,24 +549,17 @@ function Sidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <RootFolderItem
-          rootExpanded={rootExpanded}
-          loadingPath={loadingPath}
-          onOpen={() => onOpenFolder("", "blog")}
-          onToggle={onToggleNodeExpanded}
-        />
-        {rootExpanded &&
-          filteredTreeNodes.map((node) => (
-            <TreeNodeItem
-              key={node.path}
-              node={node}
-              depth={1}
-              loadingPath={loadingPath}
-              onOpenFolder={onOpenFolder}
-              onOpenFile={onOpenFile}
-              onToggle={onToggleNodeExpanded}
-            />
-          ))}
+        {filteredTreeNodes.map((node) => (
+          <TreeNodeItem
+            key={node.path}
+            node={node}
+            depth={0}
+            loadingPath={loadingPath}
+            onOpenFolder={onOpenFolder}
+            onOpenFile={onOpenFile}
+            onToggle={onToggleNodeExpanded}
+          />
+        ))}
       </div>
 
       <div className="p-2 border-t border-neutral-200">
@@ -587,39 +585,6 @@ function Sidebar({
           onChange={(e) => e.target.files && onUpload(e.target.files)}
         />
       </div>
-    </div>
-  );
-}
-
-function RootFolderItem({
-  rootExpanded,
-  loadingPath,
-  onOpen,
-  onToggle,
-}: {
-  rootExpanded: boolean;
-  loadingPath: string | null;
-  onOpen: () => void;
-  onToggle: (path: string) => Promise<void>;
-}) {
-  return (
-    <div
-      className={cn([
-        "flex items-center gap-1.5 py-1 pl-4 pr-2 cursor-pointer text-sm",
-        "hover:bg-neutral-100 transition-colors",
-      ])}
-      onDoubleClick={onOpen}
-      onClick={async () => await onToggle("")}
-    >
-      {loadingPath === "" ? (
-        <Spinner size={14} />
-      ) : (
-        <Icon
-          icon={rootExpanded ? "mdi:folder-open" : "mdi:folder"}
-          className="text-neutral-400 text-sm"
-        />
-      )}
-      <span className="text-neutral-700">blog</span>
     </div>
   );
 }
@@ -663,7 +628,7 @@ function TreeNodeItem({
           "flex items-center gap-1.5 py-1 pr-2 cursor-pointer text-sm",
           "hover:bg-neutral-100 transition-colors",
         ])}
-        style={{ paddingLeft: `${depth * 16 + 16}px` }}
+        style={{ paddingLeft: `${depth * 16 + 12}px` }}
         onDoubleClick={handleDoubleClick}
         onClick={handleClick}
       >
@@ -880,12 +845,16 @@ function TabItem({
     }
   };
 
+  const isHome = tab.isHome === true;
+  const showTextLabel = isHome ? tab.active : true;
+
   return (
     <>
       <div
         className={cn([
-          "h-10 px-3 flex items-center gap-2 cursor-pointer text-sm transition-colors",
+          "h-10 flex items-center gap-2 cursor-pointer text-sm transition-colors",
           "border-r border-b border-neutral-200",
+          isHome ? "px-2" : "px-3",
           tab.active
             ? "bg-white text-neutral-900 border-b-transparent"
             : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100",
@@ -894,25 +863,33 @@ function TabItem({
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
       >
-        <Icon
-          icon={tab.type === "folder" ? "mdi:folder" : "mdi:file-outline"}
-          className="text-neutral-400 text-sm"
-        />
-        <span className={cn(["truncate max-w-30", !tab.pinned && "italic"])}>
-          {tab.name}
-        </span>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="p-0.5 hover:bg-neutral-200 rounded transition-colors"
-        >
-          <XIcon className="size-3 text-neutral-500" />
-        </button>
+        {isHome ? (
+          <HomeIcon className="size-4 text-neutral-400" />
+        ) : (
+          <Icon
+            icon={tab.type === "folder" ? "mdi:folder" : "mdi:file-outline"}
+            className="text-neutral-400 text-sm"
+          />
+        )}
+        {showTextLabel && (
+          <span className={cn(["truncate max-w-30", !tab.pinned && "italic"])}>
+            {tab.name}
+          </span>
+        )}
+        {!isHome && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="p-0.5 hover:bg-neutral-200 rounded transition-colors"
+          >
+            <XIcon className="size-3 text-neutral-500" />
+          </button>
+        )}
       </div>
 
-      {contextMenu && (
+      {!isHome && contextMenu && (
         <TabContextMenu
           x={contextMenu.x}
           y={contextMenu.y}
@@ -1008,27 +985,31 @@ function HeaderBar({
   onClearSelection: () => void;
   deletePending: boolean;
 }) {
-  const breadcrumbs = currentTab.path ? currentTab.path.split("/") : ["blog"];
+  const breadcrumbs = currentTab.path ? currentTab.path.split("/") : [];
 
   return (
     <div className="h-10 flex items-center justify-between px-4 border-b border-neutral-200">
       <div className="flex items-center gap-1 text-sm text-neutral-500">
-        {breadcrumbs.map((crumb, index) => (
-          <span key={index} className="flex items-center gap-1">
-            {index > 0 && (
-              <ChevronRightIcon className="size-4 text-neutral-300" />
-            )}
-            <span
-              className={cn([
-                index === breadcrumbs.length - 1
-                  ? "text-neutral-700 font-medium"
-                  : "hover:text-neutral-700 cursor-pointer",
-              ])}
-            >
-              {crumb || "blog"}
+        {breadcrumbs.length === 0 ? (
+          <span className="text-neutral-700 font-medium">Home</span>
+        ) : (
+          breadcrumbs.map((crumb, index) => (
+            <span key={index} className="flex items-center gap-1">
+              {index > 0 && (
+                <ChevronRightIcon className="size-4 text-neutral-300" />
+              )}
+              <span
+                className={cn([
+                  index === breadcrumbs.length - 1
+                    ? "text-neutral-700 font-medium"
+                    : "hover:text-neutral-700 cursor-pointer",
+                ])}
+              >
+                {crumb}
+              </span>
             </span>
-          </span>
-        ))}
+          ))
+        )}
       </div>
 
       {currentTab.type === "folder" && selectedItems.size > 0 && (

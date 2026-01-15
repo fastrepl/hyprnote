@@ -1,4 +1,4 @@
-import { Search, X } from "lucide-react";
+import { Info, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Badge } from "@hypr/ui/components/ui/badge";
@@ -6,6 +6,10 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { getLanguageDisplayName } from "../../../utils/language";
+
+function hasRegionVariant(langCode: string): boolean {
+  return langCode.includes("-");
+}
 
 interface SpokenLanguagesViewProps {
   value: string[];
@@ -34,6 +38,10 @@ export function SpokenLanguagesView({
       );
     });
   }, [languageSearchQuery, value, supportedLanguages]);
+
+  const hasVariantSelected = useMemo(() => {
+    return value.some(hasRegionVariant);
+  }, [value]);
 
   const handleLanguageKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !languageSearchQuery && value.length > 0) {
@@ -179,6 +187,16 @@ export function SpokenLanguagesView({
           </div>
         )}
       </div>
+
+      {hasVariantSelected && (
+        <div className="flex items-start gap-2 mt-3 p-2 rounded-md bg-blue-50 border border-blue-200">
+          <Info className="size-4 text-blue-600 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-blue-700">
+            Deepgram is recommended for region-specific language variants (e.g.,
+            zh-CN, pt-BR) as it provides better accuracy for these dialects.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

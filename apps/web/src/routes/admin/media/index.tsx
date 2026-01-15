@@ -669,15 +669,15 @@ function TreeNodeItem({
         onClick={handleClick}
       >
         {isLoading ? (
-          <Spinner size={14} />
+          <Spinner size={14} className="shrink-0" />
         ) : isFolder ? (
           node.expanded ? (
-            <FolderOpenIcon className="size-4 text-neutral-400" />
+            <FolderOpenIcon className="size-4 text-neutral-400 shrink-0" />
           ) : (
-            <FolderIcon className="size-4 text-neutral-400" />
+            <FolderIcon className="size-4 text-neutral-400 shrink-0" />
           )
         ) : (
-          <FileIcon className="size-4 text-neutral-400" />
+          <FileIcon className="size-4 text-neutral-400 shrink-0" />
         )}
         <span className="truncate text-neutral-700">{node.name}</span>
       </div>

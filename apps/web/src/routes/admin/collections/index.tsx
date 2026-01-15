@@ -686,7 +686,7 @@ function FileItemSidebar({
       onClick={onClick}
       onContextMenu={handleContextMenu}
     >
-      <FileTextIcon className="size-4 text-neutral-400" />
+      <FileTextIcon className="size-4 text-neutral-400 shrink-0" />
       <span className="truncate text-neutral-600">{item.name}</span>
 
       {contextMenu && (
@@ -776,9 +776,9 @@ function InlineInput({
       ])}
     >
       {type === "file" ? (
-        <FileTextIcon className="size-4 text-neutral-400" />
+        <FileTextIcon className="size-4 text-neutral-400 shrink-0" />
       ) : (
-        <FolderIcon className="size-4 text-neutral-400" />
+        <FolderIcon className="size-4 text-neutral-400 shrink-0" />
       )}
       <input
         ref={inputRef}
@@ -891,7 +891,7 @@ function NewPostInlineInput({
             : "bg-blue-50 border-l-2 border-blue-400",
         ])}
       >
-        <FileTextIcon className="size-4 text-neutral-400" />
+        <FileTextIcon className="size-4 text-neutral-400 shrink-0" />
         <input
           ref={inputRef}
           type="text"

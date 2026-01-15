@@ -120,7 +120,7 @@ export default function CalendarExtensionView({
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex-shrink-0">
+        <header className="shrink-0">
           <div className="p-2 flex items-center relative">
             {!sidebarOpen && (
               <Button

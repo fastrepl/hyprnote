@@ -176,4 +176,68 @@ describe("timeline utils", () => {
       "Yesterday",
     ]);
   });
+
+  test("getBucketInfo: future month bucket sorts after all week buckets", () => {
+    // System time is 2024-01-15
+    // Week buckets: absDays <= 27, Month buckets: absDays > 27
+    // "in 4 weeks" = ~25-27 days, "next month" = 28+ days
+    const in4Weeks = getBucketInfo(new Date("2024-02-11T12:00:00.000Z")); // 27 days out (last day of week bucket)
+    const nextMonth = getBucketInfo(new Date("2024-02-13T12:00:00.000Z")); // 29 days out (first day of month bucket)
+
+    expect(in4Weeks.label).toBe("in 4 weeks");
+    expect(nextMonth.label).toBe("next month");
+    expect(nextMonth.sortKey).toBeGreaterThan(in4Weeks.sortKey);
+  });
+
+  test("getBucketInfo: past month bucket sorts before all week buckets", () => {
+    // Week buckets: absDays <= 27, Month buckets: absDays > 27
+    // "4 weeks ago" = ~25-27 days ago, "a month ago" = 28+ days ago
+    const weeksAgo4 = getBucketInfo(new Date("2023-12-19T12:00:00.000Z")); // 27 days ago (last day of week bucket)
+    const monthAgo = getBucketInfo(new Date("2023-12-17T12:00:00.000Z")); // 29 days ago (first day of month bucket)
+
+    expect(weeksAgo4.label).toBe("4 weeks ago");
+    expect(monthAgo.label).toBe("a month ago");
+    expect(monthAgo.sortKey).toBeLessThan(weeksAgo4.sortKey);
+  });
+
+  test("buildTimelineBuckets: future buckets sort correctly (weeks before months)", () => {
+    const sessionsWithMaybeEventTable: SessionsWithMaybeEventTable = {
+      "session-2weeks": {
+        title: "In 2 weeks",
+        event_started_at: "2024-01-29T09:00:00.000Z", // 14 days -> "in 2 weeks"
+        created_at: "2024-01-10T12:00:00.000Z",
+        user_id: "user-1",
+        raw_md: "",
+        transcript: { words: [] },
+      },
+      "session-4weeks": {
+        title: "In 4 weeks",
+        event_started_at: "2024-02-11T09:00:00.000Z", // 27 days -> "in 4 weeks"
+        created_at: "2024-01-10T12:00:00.000Z",
+        user_id: "user-1",
+        raw_md: "",
+        transcript: { words: [] },
+      },
+      "session-nextmonth": {
+        title: "Next month",
+        event_started_at: "2024-02-13T09:00:00.000Z", // 29 days -> "next month"
+        created_at: "2024-01-10T12:00:00.000Z",
+        user_id: "user-1",
+        raw_md: "",
+        transcript: { words: [] },
+      },
+    };
+
+    const buckets = buildTimelineBuckets({
+      eventsWithoutSessionTable: null,
+      sessionsWithMaybeEventTable,
+    });
+
+    // Should be: next month, in 4 weeks, in 2 weeks (furthest future first)
+    expect(buckets.map((b) => b.label)).toEqual([
+      "next month",
+      "in 4 weeks",
+      "in 2 weeks",
+    ]);
+  });
 });

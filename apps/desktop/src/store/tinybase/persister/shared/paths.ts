@@ -9,7 +9,7 @@ export const SESSION_MEMO_FILE = "_memo.md";
 export const CHAT_MESSAGES_FILE = "messages.json";
 
 export async function getDataDir(): Promise<string> {
-  const result = await settingsCommands.base();
+  const result = await settingsCommands.settingsBase();
   if (result.status === "error") {
     throw new Error(result.error);
   }

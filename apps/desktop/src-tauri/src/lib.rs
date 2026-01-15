@@ -188,7 +188,7 @@ pub async fn main() {
 
             {
                 use tauri_plugin_settings::SettingsPluginExt;
-                if let Ok(base) = app_handle.settings().base() {
+                if let Ok(base) = app_handle.settings().settings_base() {
                     if let Err(e) = agents::write_agents_file(&base) {
                         tracing::error!("failed to write AGENTS.md: {}", e);
                     }

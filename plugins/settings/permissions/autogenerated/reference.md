@@ -4,7 +4,9 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-base`
+- `allow-settings-base`
+- `allow-content-base`
+- `allow-change-content-base`
 - `allow-obsidian-vaults`
 - `allow-path`
 - `allow-load`
@@ -22,12 +24,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`settings:allow-base`
+`settings:allow-change-content-base`
 
 </td>
 <td>
 
-Enables the base command without any pre-configured scope.
+Enables the change_content_base command without any pre-configured scope.
 
 </td>
 </tr>
@@ -35,12 +37,38 @@ Enables the base command without any pre-configured scope.
 <tr>
 <td>
 
-`settings:deny-base`
+`settings:deny-change-content-base`
 
 </td>
 <td>
 
-Denies the base command without any pre-configured scope.
+Denies the change_content_base command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`settings:allow-content-base`
+
+</td>
+<td>
+
+Enables the content_base command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`settings:deny-content-base`
+
+</td>
+<td>
+
+Denies the content_base command without any pre-configured scope.
 
 </td>
 </tr>
@@ -145,6 +173,32 @@ Enables the save command without any pre-configured scope.
 <td>
 
 Denies the save command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`settings:allow-settings-base`
+
+</td>
+<td>
+
+Enables the settings_base command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`settings:deny-settings-base`
+
+</td>
+<td>
+
+Denies the settings_base command without any pre-configured scope.
 
 </td>
 </tr>

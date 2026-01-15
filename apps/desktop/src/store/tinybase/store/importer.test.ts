@@ -37,7 +37,7 @@ describe("importFromJson", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(settingsCommands.base).mockResolvedValue({
+    vi.mocked(settingsCommands.settingsBase).mockResolvedValue({
       status: "ok",
       data: "/test/data",
     });

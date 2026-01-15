@@ -251,7 +251,10 @@ export const StoreComponent = () => {
           }
 
           if (Array.isArray(cell)) {
-            console.error("[TinyBase Stamp Leak] eventsByDate received stamped value:", cell);
+            console.error(
+              "[TinyBase Stamp Leak] eventsByDate received stamped value:",
+              cell,
+            );
           }
 
           const d = new Date(cell);
@@ -279,7 +282,10 @@ export const StoreComponent = () => {
           }
 
           if (Array.isArray(cell)) {
-            console.error("[TinyBase Stamp Leak] sessionByDateWithoutEvent received stamped value:", cell);
+            console.error(
+              "[TinyBase Stamp Leak] sessionByDateWithoutEvent received stamped value:",
+              cell,
+            );
           }
 
           const d = new Date(cell);

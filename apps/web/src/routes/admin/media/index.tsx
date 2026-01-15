@@ -610,14 +610,14 @@ function TreeNodeItem({
   const handleDoubleClick = () => {
     if (isFolder) {
       onOpenFolder(node.path, node.name);
-    } else {
-      onOpenFile(node.path, node.name);
     }
   };
 
   const handleClick = async () => {
     if (isFolder) {
       await onToggle(node.path);
+    } else {
+      onOpenFile(node.path, node.name);
     }
   };
 
@@ -846,15 +846,13 @@ function TabItem({
   };
 
   const isHome = tab.isHome === true;
-  const showTextLabel = isHome ? tab.active : true;
 
   return (
     <>
       <div
         className={cn([
-          "h-10 flex items-center gap-2 cursor-pointer text-sm transition-colors",
+          "h-10 px-3 flex items-center gap-2 cursor-pointer text-sm transition-colors",
           "border-r border-b border-neutral-200",
-          isHome ? "px-2" : "px-3",
           tab.active
             ? "bg-white text-neutral-900 border-b-transparent"
             : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100",
@@ -871,11 +869,9 @@ function TabItem({
             className="text-neutral-400 text-sm"
           />
         )}
-        {showTextLabel && (
-          <span className={cn(["truncate max-w-30", !tab.pinned && "italic"])}>
-            {tab.name}
-          </span>
-        )}
+        <span className={cn(["truncate max-w-30", !tab.pinned && "italic"])}>
+          {tab.name}
+        </span>
         {!isHome && (
           <button
             onClick={(e) => {

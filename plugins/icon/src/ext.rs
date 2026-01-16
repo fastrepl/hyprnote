@@ -118,10 +118,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
                     if !show {
                         if let Some(ref original) = *original_icon_guard {
                             unsafe { ns_app.setApplicationIconImage(Some(original)) };
-                        } else {
-                            unsafe { ns_app.setApplicationIconImage(None) };
+                            *original_icon_guard = None;
                         }
-                        *original_icon_guard = None;
                         return;
                     }
 

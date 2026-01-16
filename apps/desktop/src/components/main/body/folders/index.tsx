@@ -235,7 +235,7 @@ function FolderCard({ folderId }: { folderId: string }) {
           autoFocus
           className={cn([
             "text-sm font-medium text-center w-full",
-            "border-none bg-transparent focus:outline-none focus:underline",
+            "border-none bg-transparent focus:outline-hidden focus:underline",
           ])}
         />
       ) : (

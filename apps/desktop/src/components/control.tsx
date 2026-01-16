@@ -77,7 +77,7 @@ ${deviceInfo}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-xs">
             <div className="flex flex-col items-center gap-4 text-center">
               <motion.div
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50"
@@ -136,7 +136,7 @@ export const NotFoundComponent: NotFoundRouteComponent = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-xs">
             <div className="flex flex-col items-center gap-4 text-center">
               <motion.div
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100"

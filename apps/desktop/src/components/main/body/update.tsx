@@ -28,7 +28,7 @@ export function Update() {
       onClick={handleInstallUpdate}
       className={cn([
         "rounded-full px-3",
-        "bg-gradient-to-t from-stone-600 to-stone-500",
+        "bg-linear-to-t from-stone-600 to-stone-500",
         "hover:from-stone-500 hover:to-stone-400",
       ])}
     >

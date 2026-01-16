@@ -417,7 +417,7 @@ function TemplatesHomepage({
             onClick={onCreateTemplate}
             className={cn([
               "px-2 py-1.5 rounded-full",
-              "bg-gradient-to-l from-stone-600 to-stone-500",
+              "bg-linear-to-l from-stone-600 to-stone-500",
               "shadow-[inset_0px_-1px_8px_0px_rgba(41,37,36,1.00)]",
               "shadow-[inset_0px_1px_8px_0px_rgba(120,113,108,1.00)]",
               "flex justify-center items-center gap-1",
@@ -433,8 +433,8 @@ function TemplatesHomepage({
       </div>
 
       <div className="relative flex-1 overflow-y-auto">
-        <div className="absolute top-0 left-0 right-0 h-8 z-10 pointer-events-none bg-gradient-to-b from-white to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-8 z-10 pointer-events-none bg-gradient-to-t from-white to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-8 z-10 pointer-events-none bg-linear-to-b from-white to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-8 z-10 pointer-events-none bg-linear-to-t from-white to-transparent" />
 
         <div className="py-12 px-4 flex flex-col justify-center items-center gap-8">
           <div className="flex flex-col justify-start items-center gap-4 max-w-md">
@@ -458,12 +458,12 @@ function TemplatesHomepage({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search for a template..."
-              className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+              className="flex-1 bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="p-0.5 rounded hover:bg-neutral-100"
+                className="p-0.5 rounded-sm hover:bg-neutral-100"
               >
                 <X className="h-3 w-3 text-neutral-400" />
               </button>
@@ -477,12 +477,12 @@ function TemplatesHomepage({
               {[0, 1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className="rounded border border-stone-100 overflow-hidden animate-pulse"
+                  className="rounded-sm border border-stone-100 overflow-hidden animate-pulse"
                 >
                   <div className="h-20 bg-stone-200" />
                   <div className="p-3 flex flex-col gap-3">
-                    <div className="h-4 w-3/4 rounded bg-stone-200" />
-                    <div className="h-3 w-full rounded bg-stone-100" />
+                    <div className="h-4 w-3/4 rounded-sm bg-stone-200" />
+                    <div className="h-3 w-full rounded-sm bg-stone-100" />
                     <div className="flex gap-2">
                       <div className="h-7 w-16 rounded-3xl bg-stone-100" />
                       <div className="h-7 w-20 rounded-3xl bg-stone-100" />
@@ -533,12 +533,12 @@ function TemplateCard({
     <button
       onClick={onClick}
       className={cn([
-        "w-full text-left rounded border border-stone-100 overflow-hidden",
-        "hover:border-stone-300 hover:shadow-sm transition-all",
+        "w-full text-left rounded-sm border border-stone-100 overflow-hidden",
+        "hover:border-stone-300 hover:shadow-xs transition-all",
         "flex flex-col",
       ])}
     >
-      <div className="h-20 bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center">
+      <div className="h-20 bg-linear-to-br from-stone-100 to-stone-200 flex items-center justify-center">
         <BookText className="w-8 h-8 text-stone-400" />
       </div>
       <div className="p-3 flex flex-col gap-3 flex-1">
@@ -667,12 +667,12 @@ function TemplateListColumn({
                 }
               }}
               placeholder="Search..."
-              className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+              className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="p-1 rounded hover:bg-neutral-100"
+                className="p-1 rounded-sm hover:bg-neutral-100"
               >
                 <X className="h-4 w-4 text-neutral-400" />
               </button>
@@ -769,12 +769,12 @@ function TemplateListColumn({
               }
             }}
             placeholder="Search..."
-            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+            className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
           />
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="p-1 rounded hover:bg-neutral-100"
+              className="p-1 rounded-sm hover:bg-neutral-100"
             >
               <X className="h-4 w-4 text-neutral-400" />
             </button>
@@ -787,8 +787,8 @@ function TemplateListColumn({
           <div className="space-y-2">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="px-3 py-2 rounded-md animate-pulse">
-                <div className="h-4 w-3/4 rounded bg-neutral-200" />
-                <div className="h-3 w-1/2 rounded bg-neutral-100 mt-1.5" />
+                <div className="h-4 w-3/4 rounded-sm bg-neutral-200" />
+                <div className="h-3 w-1/2 rounded-sm bg-neutral-100 mt-1.5" />
               </div>
             ))}
           </div>

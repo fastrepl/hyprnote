@@ -117,7 +117,7 @@ function DevtoolCard({
     <div
       className={cn([
         "rounded-lg border border-neutral-200 bg-white",
-        "shadow-sm",
+        "shadow-xs",
         "overflow-hidden",
         "shrink-0",
       ])}

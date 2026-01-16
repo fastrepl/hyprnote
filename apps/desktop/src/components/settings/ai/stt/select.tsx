@@ -161,7 +161,7 @@ export function SelectProviderAndModel() {
             }}
           >
             {(field) => (
-              <div className="flex-[2] min-w-0" data-stt-provider-selector>
+              <div className="flex-2 min-w-0" data-stt-provider-selector>
                 <Select
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
@@ -222,7 +222,7 @@ export function SelectProviderAndModel() {
               ) as ProviderId;
               if (providerId === "custom") {
                 return (
-                  <div className="flex-[3] min-w-0">
+                  <div className="flex-3 min-w-0">
                     <Input
                       value={field.state.value}
                       onChange={(event) =>
@@ -247,7 +247,7 @@ export function SelectProviderAndModel() {
               });
 
               return (
-                <div className="flex-[3] min-w-0">
+                <div className="flex-3 min-w-0">
                   <Select
                     value={field.state.value}
                     onValueChange={(value) => field.handleChange(value)}
@@ -463,7 +463,7 @@ function ModelSelectItem({
     <div
       className={cn([
         "relative flex items-center justify-between",
-        "rounded-sm px-2 py-1.5 text-sm outline-none",
+        "rounded-xs px-2 py-1.5 text-sm outline-hidden",
         "cursor-pointer select-none",
         "hover:bg-accent hover:text-accent-foreground",
         "group",
@@ -475,7 +475,7 @@ function ModelSelectItem({
           className={cn([
             "px-2 py-0.5 rounded-full text-[11px] font-medium",
             "flex items-center gap-1",
-            "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-500",
+            "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-500",
           ])}
         >
           <Loader2 className="size-3 animate-spin" />
@@ -488,8 +488,8 @@ function ModelSelectItem({
             "opacity-0 group-hover:opacity-100",
             "transition-all duration-150",
             isCloud
-              ? "bg-gradient-to-t from-stone-600 to-stone-500 text-white shadow-sm hover:shadow-md"
-              : "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm hover:shadow-md",
+              ? "bg-linear-to-t from-stone-600 to-stone-500 text-white shadow-xs hover:shadow-md"
+              : "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-xs hover:shadow-md",
           ])}
           onClick={handleAction}
         >

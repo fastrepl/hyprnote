@@ -27,7 +27,7 @@ export function TranscriptionProgress({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="mb-3">
-      <div className="flex w-fit items-center gap-2 rounded-full bg-neutral-900 px-3 py-1 text-xs text-white shadow-sm">
+      <div className="flex w-fit items-center gap-2 rounded-full bg-neutral-900 px-3 py-1 text-xs text-white shadow-xs">
         <Spinner size={12} className="text-white/80" />
         <span>Processing · {statusLabel}</span>
       </div>

@@ -1,112 +1,167 @@
-@import url("https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap");
-@import "./scrollbar.css";
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap')
+layer(base);
+@import './scrollbar.css' layer(base);
+@import './scrollbar.utilities.css';
 
-@font-face {
-  font-family: "SF Pro";
-  src: url("/fonts/SF-Pro-Text-Regular.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "SF Pro";
-  src: url("/fonts/SF-Pro-Text-Medium.otf") format("opentype");
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "SF Pro";
-  src: url("/fonts/SF-Pro-Text-Semibold.otf") format("opentype");
-  font-weight: 600;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "SF Pro";
-  src: url("/fonts/SF-Pro-Text-Bold.otf") format("opentype");
-  font-weight: 700;
-  font-style: normal;
-}
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
 @source "../../node_modules/streamdown/dist/index.js";
 
-/* https://www.joshwcomeau.com/css/custom-css-reset/ */
+@theme {
+  --font-serif: Lora, Georgia, serif;
+  --font-sans: SF Pro, system-ui, -apple-system, sans-serif;
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+  --animate-shimmer: shimmer 2s infinite;
+  --animate-reveal-left: reveal-left 0.5s ease-out forwards;
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes reveal-left {
+    0% {
+      clip-path: inset(0 100% 0 0);
+    }
+    100% {
+      clip-path: inset(0 0 0 0);
+    }
+  }
 }
 
-* {
-  margin: 0;
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
 }
 
-body {
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+@utility select-text-deep {
+  user-select: text !important;
+
+  & * {
+    user-select: text !important;
+  }
 }
 
-img,
-picture,
-video,
-canvas,
-svg {
-  display: block;
-  max-width: 100%;
+@layer base {
+  @font-face {
+    font-family: 'SF Pro';
+    src: url('/fonts/SF-Pro-Text-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'SF Pro';
+    src: url('/fonts/SF-Pro-Text-Medium.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'SF Pro';
+    src: url('/fonts/SF-Pro-Text-Semibold.otf') format('opentype');
+    font-weight: 600;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'SF Pro';
+    src: url('/fonts/SF-Pro-Text-Bold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+  }
 }
 
-input,
-button,
-textarea,
-select {
-  font: inherit;
-}
+@layer utilities {
+  /* https://www.joshwcomeau.com/css/custom-css-reset/ */
 
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  overflow-wrap: break-word;
-}
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 
-p {
-  text-wrap: pretty;
-}
+  * {
+    margin: 0;
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  text-wrap: balance;
-}
+  body {
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
 
-#root,
-#__next {
-  isolation: isolate;
-  height: 100%;
-}
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
 
-/* https://github.com/gitbutlerapp/gitbutler/blob/master/apps/desktop/src/styles/styles.css */
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
 
-html,
-body {
-  height: 100vh;
-  width: 100vw;
-  overflow-y: hidden;
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    overflow-wrap: break-word;
+  }
 
-  user-select: none;
-  overscroll-behavior: none;
+  p {
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  #root,
+  #__next {
+    isolation: isolate;
+    height: 100%;
+  }
+
+  /* https://github.com/gitbutlerapp/gitbutler/blob/master/apps/desktop/src/styles/styles.css */
+
+  html,
+  body {
+    height: 100vh;
+    width: 100vw;
+    overflow-y: hidden;
+
+    user-select: none;
+    overscroll-behavior: none;
+  }
 }
 
 @layer base {
@@ -118,16 +173,6 @@ body {
   textarea,
   [contenteditable="true"] {
     user-select: text;
-  }
-}
-
-@layer utilities {
-  .select-text-deep {
-    user-select: text !important;
-  }
-
-  .select-text-deep * {
-    user-select: text !important;
   }
 }
 

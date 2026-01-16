@@ -194,7 +194,7 @@ function ChatGroupItem({
       className={cn([
         "w-full justify-start h-auto px-2.5 py-1.5 group",
         isActive
-          ? "bg-neutral-100 shadow-sm hover:bg-neutral-100"
+          ? "bg-neutral-100 shadow-xs hover:bg-neutral-100"
           : "hover:bg-neutral-50 active:bg-neutral-100",
       ])}
     >

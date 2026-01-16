@@ -116,8 +116,8 @@ function ProviderContext({
           className={cn([
             "relative overflow-hidden w-fit h-[34px]",
             "px-4 rounded-full text-xs font-mono text-center",
-            "bg-gradient-to-t from-stone-600 to-stone-500 text-white",
-            "shadow-sm hover:shadow-md",
+            "bg-linear-to-t from-stone-600 to-stone-500 text-white",
+            "shadow-xs hover:shadow-md",
             "transition-all duration-150",
             "hover:scale-[102%] active:scale-[98%]",
             "flex items-center justify-center gap-2",
@@ -127,8 +127,8 @@ function ProviderContext({
             <div
               className={cn([
                 "absolute inset-0",
-                "bg-gradient-to-r from-transparent via-white/30 to-transparent",
-                "animate-[shimmer_2s_infinite]",
+                "bg-linear-to-r from-transparent via-white/30 to-transparent",
+                "animate-shimmer",
               ])}
             />
           )}

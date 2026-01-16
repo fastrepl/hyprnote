@@ -138,7 +138,7 @@ export function AccountSettings() {
         action={
           <button
             onClick={handleSignIn}
-            className="px-4 h-[34px] rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-xs font-mono text-center transition-opacity duration-150 hover:opacity-90"
+            className="px-4 h-[34px] rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-xs font-mono text-center transition-opacity duration-150 hover:opacity-90"
           >
             Get Started
           </button>

@@ -64,7 +64,7 @@ function HumanSearchResultItem({
     >
       <div
         className={cn([
-          "flex-shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center",
+          "shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center",
         ])}
       >
         <span className={cn(["text-xs font-medium text-neutral-600"])}>

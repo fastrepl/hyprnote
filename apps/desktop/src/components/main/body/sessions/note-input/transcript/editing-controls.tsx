@@ -98,7 +98,7 @@ export function EditingControls({
       <button
         onClick={handleEdit}
         className={cn([
-          "px-3 py-0.5 pr-8 rounded text-xs",
+          "px-3 py-0.5 pr-8 rounded-sm text-xs",
           "bg-neutral-100 hover:bg-neutral-200 text-neutral-900",
           "transition-colors",
         ])}
@@ -112,7 +112,7 @@ export function EditingControls({
             size="icon"
             className={cn([
               "absolute right-0.5 top-1/2 -translate-y-1/2 z-10",
-              "h-6 w-6 rounded hover:bg-neutral-300/50 transition-colors",
+              "h-6 w-6 rounded-sm hover:bg-neutral-300/50 transition-colors",
               "text-neutral-600 hover:text-neutral-900",
               open ? "bg-neutral-300/50 text-neutral-900" : null,
             ])}
@@ -132,7 +132,7 @@ export function EditingControls({
               onClick={handleRedoClick}
               disabled={isBatchProcessing || isRedoing}
               className={cn([
-                "flex items-center gap-2 h-9 px-3 whitespace-nowrap rounded text-sm",
+                "flex items-center gap-2 h-9 px-3 whitespace-nowrap rounded-sm text-sm",
                 "text-left",
                 isBatchProcessing || isRedoing
                   ? "text-neutral-400 cursor-not-allowed"
@@ -155,7 +155,7 @@ export function EditingControls({
     <button
       onClick={handleEdit}
       className={cn([
-        "px-3 py-0.5 rounded text-xs",
+        "px-3 py-0.5 rounded-sm text-xs",
         "bg-neutral-100 hover:bg-neutral-200 text-neutral-900",
         "transition-colors",
       ])}
@@ -170,7 +170,7 @@ export function EditingControls({
         onClick={handleUndo}
         disabled={!canUndo}
         className={cn([
-          "px-3 py-0.5 rounded text-xs",
+          "px-3 py-0.5 rounded-sm text-xs",
           "transition-colors",
           canUndo
             ? "bg-neutral-100 hover:bg-neutral-200 text-neutral-900"
@@ -183,7 +183,7 @@ export function EditingControls({
         onClick={handleRedo}
         disabled={!canRedo}
         className={cn([
-          "px-3 py-0.5 rounded text-xs",
+          "px-3 py-0.5 rounded-sm text-xs",
           "transition-colors",
           canRedo
             ? "bg-neutral-100 hover:bg-neutral-200 text-neutral-900"
@@ -195,7 +195,7 @@ export function EditingControls({
       <button
         onClick={handleCancel}
         className={cn([
-          "px-3 py-0.5 rounded text-xs",
+          "px-3 py-0.5 rounded-sm text-xs",
           "bg-neutral-100 hover:bg-neutral-200 text-neutral-900",
           "transition-colors",
         ])}
@@ -205,7 +205,7 @@ export function EditingControls({
       <button
         onClick={handleSave}
         className={cn([
-          "px-3 py-0.5 rounded text-xs",
+          "px-3 py-0.5 rounded-sm text-xs",
           "bg-neutral-900 hover:bg-neutral-800 text-white",
           "transition-colors",
         ])}

@@ -164,7 +164,7 @@ function DeviceItem({
           : "bg-neutral-50 border-neutral-200 hover:bg-neutral-100",
       ])}
     >
-      <GripVertical className="h-4 w-4 text-neutral-400 flex-shrink-0" />
+      <GripVertical className="h-4 w-4 text-neutral-400 shrink-0" />
       <span className="text-xs text-neutral-400 w-4">{rank}</span>
       <span className={cn(["text-sm flex-1 truncate", isTop && "font-medium"])}>
         {device.name}

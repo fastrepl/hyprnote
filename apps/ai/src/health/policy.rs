@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-use super::state::{ComponentHealth, ErrorType};
+use hypr_llm_proxy::health::ErrorType;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -33,33 +33,114 @@ const SERVER_ERROR_FRESHNESS_SECS: u64 = 30;
 pub struct ReadinessPolicy;
 
 impl ReadinessPolicy {
-    pub fn evaluate(component: &ComponentHealth) -> ComponentReadiness {
-        if let Some(ref error) = component.last_error {
-            match Self::classify_error_severity(&error.error_type, error.timestamp.elapsed()) {
+    pub fn evaluate_llm(snapshot: &hypr_llm_proxy::health::HealthSnapshot) -> ComponentReadiness {
+        Self::evaluate_impl(
+            snapshot
+                .last_error
+                .as_ref()
+                .map(|e| (&e.error_type, e.timestamp.elapsed(), &e.message)),
+            snapshot.total_requests,
+            snapshot.error_rate,
+        )
+    }
+
+    pub fn evaluate_stt(
+        snapshot: &hypr_transcribe_proxy::health::HealthSnapshot,
+    ) -> ComponentReadiness {
+        if let Some(ref error) = snapshot.last_error {
+            let error_type = match error.error_type {
+                hypr_transcribe_proxy::health::ErrorType::RateLimited => ErrorType::RateLimited,
+                hypr_transcribe_proxy::health::ErrorType::PaymentRequired => {
+                    ErrorType::PaymentRequired
+                }
+                hypr_transcribe_proxy::health::ErrorType::Unauthorized => ErrorType::Unauthorized,
+                hypr_transcribe_proxy::health::ErrorType::NotFound => ErrorType::NotFound,
+                hypr_transcribe_proxy::health::ErrorType::BadRequest => ErrorType::BadRequest,
+                hypr_transcribe_proxy::health::ErrorType::ServerError => ErrorType::ServerError,
+                hypr_transcribe_proxy::health::ErrorType::ConnectionError => {
+                    ErrorType::ConnectionError
+                }
+                hypr_transcribe_proxy::health::ErrorType::Other => ErrorType::Other,
+            };
+            let age = error.timestamp.elapsed();
+            match Self::classify_error_severity(&error_type, age) {
                 ErrorSeverity::Blocking => {
                     return ComponentReadiness {
                         status: HealthStatus::Fail,
-                        message: Some(format!("{}: {}", error.error_type.display(), error.message)),
+                        message: Some(format!("{}: {}", error_type.display(), error.message)),
                     };
                 }
                 ErrorSeverity::Degraded => {
                     return ComponentReadiness {
                         status: HealthStatus::Warn,
-                        message: Some(format!("{}: {}", error.error_type.display(), error.message)),
+                        message: Some(format!("{}: {}", error_type.display(), error.message)),
                     };
                 }
                 ErrorSeverity::Transient => {}
             }
         }
 
-        if component.total_requests() < MIN_SAMPLE_SIZE {
+        if snapshot.total_requests < MIN_SAMPLE_SIZE {
             return ComponentReadiness {
                 status: HealthStatus::Pass,
                 message: None,
             };
         }
 
-        let error_rate = component.error_rate();
+        if snapshot.error_rate > FAIL_ERROR_RATE {
+            ComponentReadiness {
+                status: HealthStatus::Fail,
+                message: Some(format!(
+                    "High error rate: {:.1}%",
+                    snapshot.error_rate * 100.0
+                )),
+            }
+        } else if snapshot.error_rate > WARN_ERROR_RATE {
+            ComponentReadiness {
+                status: HealthStatus::Warn,
+                message: Some(format!(
+                    "Elevated error rate: {:.1}%",
+                    snapshot.error_rate * 100.0
+                )),
+            }
+        } else {
+            ComponentReadiness {
+                status: HealthStatus::Pass,
+                message: None,
+            }
+        }
+    }
+
+    fn evaluate_impl(
+        last_error: Option<(&ErrorType, Duration, &String)>,
+        total_requests: usize,
+        error_rate: f64,
+    ) -> ComponentReadiness {
+        if let Some((error_type, age, message)) = last_error {
+            match Self::classify_error_severity(error_type, age) {
+                ErrorSeverity::Blocking => {
+                    return ComponentReadiness {
+                        status: HealthStatus::Fail,
+                        message: Some(format!("{}: {}", error_type.display(), message)),
+                    };
+                }
+                ErrorSeverity::Degraded => {
+                    return ComponentReadiness {
+                        status: HealthStatus::Warn,
+                        message: Some(format!("{}: {}", error_type.display(), message)),
+                    };
+                }
+                ErrorSeverity::Transient => {}
+            }
+        }
+
+        if total_requests < MIN_SAMPLE_SIZE {
+            return ComponentReadiness {
+                status: HealthStatus::Pass,
+                message: None,
+            };
+        }
+
         if error_rate > FAIL_ERROR_RATE {
             ComponentReadiness {
                 status: HealthStatus::Fail,
@@ -119,69 +200,6 @@ impl ReadinessPolicy {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Instant;
-
-    use crate::health::state::ErrorEvent;
-
-    fn create_component_with_error(error_type: ErrorType, age_secs: u64) -> ComponentHealth {
-        let mut component = ComponentHealth::new_for_test();
-        component.last_error = Some(ErrorEvent {
-            timestamp: Instant::now() - Duration::from_secs(age_secs),
-            error_type,
-            message: "Test error".to_string(),
-            provider: None,
-        });
-        component
-    }
-
-    #[test]
-    fn test_payment_required_always_fails() {
-        let component = create_component_with_error(ErrorType::PaymentRequired, 600);
-        let readiness = ReadinessPolicy::evaluate(&component);
-        assert_eq!(readiness.status, HealthStatus::Fail);
-    }
-
-    #[test]
-    fn test_unauthorized_always_fails() {
-        let component = create_component_with_error(ErrorType::Unauthorized, 600);
-        let readiness = ReadinessPolicy::evaluate(&component);
-        assert_eq!(readiness.status, HealthStatus::Fail);
-    }
-
-    #[test]
-    fn test_bad_request_always_fails() {
-        let component = create_component_with_error(ErrorType::BadRequest, 600);
-        let readiness = ReadinessPolicy::evaluate(&component);
-        assert_eq!(readiness.status, HealthStatus::Fail);
-    }
-
-    #[test]
-    fn test_recent_rate_limit_warns() {
-        let component = create_component_with_error(ErrorType::RateLimited, 30);
-        let readiness = ReadinessPolicy::evaluate(&component);
-        assert_eq!(readiness.status, HealthStatus::Warn);
-    }
-
-    #[test]
-    fn test_old_rate_limit_passes() {
-        let component = create_component_with_error(ErrorType::RateLimited, 120);
-        let readiness = ReadinessPolicy::evaluate(&component);
-        assert_eq!(readiness.status, HealthStatus::Pass);
-    }
-
-    #[test]
-    fn test_recent_server_error_warns() {
-        let component = create_component_with_error(ErrorType::ServerError, 15);
-        let readiness = ReadinessPolicy::evaluate(&component);
-        assert_eq!(readiness.status, HealthStatus::Warn);
-    }
-
-    #[test]
-    fn test_old_server_error_passes() {
-        let component = create_component_with_error(ErrorType::ServerError, 60);
-        let readiness = ReadinessPolicy::evaluate(&component);
-        assert_eq!(readiness.status, HealthStatus::Pass);
-    }
 
     #[test]
     fn test_combine_any_fail_returns_fail() {

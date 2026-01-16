@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::time::Instant;
 
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -7,8 +7,12 @@ use axum::{Json, Router};
 use chrono::Utc;
 use serde::Serialize;
 
+use hypr_llm_proxy::LlmProxyConfig;
+use hypr_llm_proxy::health::HealthSnapshot as LlmHealthSnapshot;
+use hypr_transcribe_proxy::SttProxyConfig;
+use hypr_transcribe_proxy::health::HealthSnapshot as SttHealthSnapshot;
+
 use super::policy::{HealthStatus, ReadinessPolicy};
-use super::state::{ComponentHealth, HealthSnapshot, HealthState};
 
 #[derive(Serialize)]
 struct IetfHealthResponse {
@@ -24,7 +28,20 @@ struct IetfHealthResponse {
     checks: serde_json::Map<String, serde_json::Value>,
 }
 
-pub fn health_router(state: Arc<HealthState>) -> Router {
+#[derive(Clone)]
+pub struct HealthRouterState {
+    pub llm_config: LlmProxyConfig,
+    pub stt_config: SttProxyConfig,
+    pub process_start: Instant,
+}
+
+pub fn health_router(llm_config: LlmProxyConfig, stt_config: SttProxyConfig) -> Router {
+    let state = HealthRouterState {
+        llm_config,
+        stt_config,
+        process_start: Instant::now(),
+    };
+
     Router::new()
         .route("/", get(healthz))
         .route("/livez", get(livez))
@@ -36,11 +53,12 @@ async fn livez() -> &'static str {
     "ok"
 }
 
-async fn readyz(State(state): State<Arc<HealthState>>) -> (StatusCode, Json<IetfHealthResponse>) {
-    let snapshot = state.get_snapshot();
+async fn readyz(State(state): State<HealthRouterState>) -> (StatusCode, Json<IetfHealthResponse>) {
+    let llm_snapshot = state.llm_config.health.snapshot();
+    let stt_snapshot = state.stt_config.health.snapshot();
 
-    let llm_readiness = ReadinessPolicy::evaluate(&snapshot.llm);
-    let stt_readiness = ReadinessPolicy::evaluate(&snapshot.stt);
+    let llm_readiness = ReadinessPolicy::evaluate_llm(&llm_snapshot);
+    let stt_readiness = ReadinessPolicy::evaluate_stt(&stt_snapshot);
 
     let overall_status = ReadinessPolicy::combine(&[llm_readiness.clone(), stt_readiness.clone()]);
 
@@ -49,26 +67,41 @@ async fn readyz(State(state): State<Arc<HealthState>>) -> (StatusCode, Json<Ietf
         HealthStatus::Fail => StatusCode::SERVICE_UNAVAILABLE,
     };
 
-    let response = build_response(snapshot, overall_status, false);
+    let response = build_response(
+        llm_snapshot,
+        stt_snapshot,
+        state.process_start.elapsed(),
+        overall_status,
+        false,
+    );
 
     (http_status, Json(response))
 }
 
-async fn healthz(State(state): State<Arc<HealthState>>) -> Json<IetfHealthResponse> {
-    let snapshot = state.get_snapshot();
+async fn healthz(State(state): State<HealthRouterState>) -> Json<IetfHealthResponse> {
+    let llm_snapshot = state.llm_config.health.snapshot();
+    let stt_snapshot = state.stt_config.health.snapshot();
 
-    let llm_readiness = ReadinessPolicy::evaluate(&snapshot.llm);
-    let stt_readiness = ReadinessPolicy::evaluate(&snapshot.stt);
+    let llm_readiness = ReadinessPolicy::evaluate_llm(&llm_snapshot);
+    let stt_readiness = ReadinessPolicy::evaluate_stt(&stt_snapshot);
 
     let overall_status = ReadinessPolicy::combine(&[llm_readiness, stt_readiness]);
 
-    let response = build_response(snapshot, overall_status, true);
+    let response = build_response(
+        llm_snapshot,
+        stt_snapshot,
+        state.process_start.elapsed(),
+        overall_status,
+        true,
+    );
 
     Json(response)
 }
 
 fn build_response(
-    snapshot: HealthSnapshot,
+    llm_snapshot: LlmHealthSnapshot,
+    stt_snapshot: SttHealthSnapshot,
+    uptime: std::time::Duration,
     overall_status: HealthStatus,
     include_details: bool,
 ) -> IetfHealthResponse {
@@ -83,16 +116,16 @@ fn build_response(
         "uptime".to_string(),
         serde_json::json!([{
             "componentType": "system",
-            "observedValue": snapshot.uptime.as_secs(),
+            "observedValue": uptime.as_secs(),
             "observedUnit": "s",
             "status": "pass",
             "time": now,
         }]),
     );
 
-    let llm_readiness = ReadinessPolicy::evaluate(&snapshot.llm);
+    let llm_readiness = ReadinessPolicy::evaluate_llm(&llm_snapshot);
     let llm_output = if include_details {
-        Some(format_component_output(&snapshot.llm))
+        Some(format_llm_output(&llm_snapshot))
     } else {
         llm_readiness.message.clone()
     };
@@ -102,7 +135,7 @@ fn build_response(
         serde_json::json!([{
             "componentId": "llm-proxy",
             "componentType": "component",
-            "observedValue": snapshot.llm.error_rate(),
+            "observedValue": llm_snapshot.error_rate,
             "observedUnit": "error_rate",
             "status": llm_readiness.status,
             "time": now,
@@ -110,9 +143,9 @@ fn build_response(
         }]),
     );
 
-    let stt_readiness = ReadinessPolicy::evaluate(&snapshot.stt);
+    let stt_readiness = ReadinessPolicy::evaluate_stt(&stt_snapshot);
     let stt_output = if include_details {
-        Some(format_component_output(&snapshot.stt))
+        Some(format_stt_output(&stt_snapshot))
     } else {
         stt_readiness.message.clone()
     };
@@ -122,7 +155,7 @@ fn build_response(
         serde_json::json!([{
             "componentId": "stt-proxy",
             "componentType": "component",
-            "observedValue": snapshot.stt.error_rate(),
+            "observedValue": stt_snapshot.error_rate,
             "observedUnit": "error_rate",
             "status": stt_readiness.status,
             "time": now,
@@ -140,16 +173,37 @@ fn build_response(
     }
 }
 
-fn format_component_output(component: &ComponentHealth) -> String {
+fn format_llm_output(snapshot: &LlmHealthSnapshot) -> String {
     let mut parts = Vec::new();
 
-    if let Some(duration) = component.time_since_success() {
+    if let Some(duration) = snapshot.time_since_success() {
         parts.push(format!("Last success: {}s ago", duration.as_secs()));
     } else {
         parts.push("No successful requests yet".to_string());
     }
 
-    if let Some(ref error) = component.last_error {
+    if let Some(ref error) = snapshot.last_error {
+        let age = error.timestamp.elapsed().as_secs();
+        parts.push(format!(
+            "Last error: {}s ago ({})",
+            age,
+            error.error_type.display()
+        ));
+    }
+
+    parts.join(", ")
+}
+
+fn format_stt_output(snapshot: &SttHealthSnapshot) -> String {
+    let mut parts = Vec::new();
+
+    if let Some(duration) = snapshot.time_since_success() {
+        parts.push(format!("Last success: {}s ago", duration.as_secs()));
+    } else {
+        parts.push("No successful requests yet".to_string());
+    }
+
+    if let Some(ref error) = snapshot.last_error {
         let age = error.timestamp.elapsed().as_secs();
         parts.push(format!(
             "Last error: {}s ago ({})",

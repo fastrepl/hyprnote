@@ -178,39 +178,33 @@ async fn completions_handler(
     let response = match result {
         Ok(Ok(resp)) => resp,
         Ok(Err(e)) => {
-            if let Some(ref health) = state.config.health_reporter {
-                let status_code = e.status().map(|s| s.as_u16()).unwrap_or(502);
-                health.record_error(
-                    status_code,
-                    e.to_string(),
-                    Some(provider.name().to_string()),
-                );
-            }
+            let status_code = e.status().map(|s| s.as_u16()).unwrap_or(502);
+            state.config.health.record_error(
+                status_code,
+                e.to_string(),
+                Some(provider.name().to_string()),
+            );
             return ProxyError::UpstreamRequest(e).into_response();
         }
         Err(_) => {
-            if let Some(ref health) = state.config.health_reporter {
-                health.record_error(
-                    504,
-                    "Request timeout".to_string(),
-                    Some(provider.name().to_string()),
-                );
-            }
+            state.config.health.record_error(
+                504,
+                "Request timeout".to_string(),
+                Some(provider.name().to_string()),
+            );
             return ProxyError::Timeout.into_response();
         }
     };
 
     let http_status = response.status().as_u16();
-    if let Some(ref health) = state.config.health_reporter {
-        if http_status >= 200 && http_status < 300 {
-            health.record_success();
-        } else {
-            health.record_error(
-                http_status,
-                format!("HTTP {}", http_status),
-                Some(provider.name().to_string()),
-            );
-        }
+    if http_status >= 200 && http_status < 300 {
+        state.config.health.record_success();
+    } else {
+        state.config.health.record_error(
+            http_status,
+            format!("HTTP {}", http_status),
+            Some(provider.name().to_string()),
+        );
     }
 
     if stream {

@@ -2,14 +2,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::analytics::AnalyticsReporter;
+use crate::health::LlmHealth;
 use crate::provider::{OpenRouterProvider, Provider};
 
 const DEFAULT_TIMEOUT_MS: u64 = 120_000;
-
-pub trait HealthReporter: Send + Sync {
-    fn record_success(&self);
-    fn record_error(&self, status_code: u16, message: String, provider: Option<String>);
-}
 
 #[derive(Clone)]
 pub struct LlmProxyConfig {
@@ -19,7 +15,7 @@ pub struct LlmProxyConfig {
     pub models_default: Vec<String>,
     pub analytics: Option<Arc<dyn AnalyticsReporter>>,
     pub provider: Arc<dyn Provider>,
-    pub health_reporter: Option<Arc<dyn HealthReporter>>,
+    pub health: LlmHealth,
 }
 
 impl LlmProxyConfig {
@@ -38,7 +34,7 @@ impl LlmProxyConfig {
             ],
             analytics: None,
             provider: Arc::new(OpenRouterProvider::default()),
-            health_reporter: None,
+            health: LlmHealth::new(),
         }
     }
 
@@ -64,11 +60,6 @@ impl LlmProxyConfig {
 
     pub fn with_provider(mut self, provider: Arc<dyn Provider>) -> Self {
         self.provider = provider;
-        self
-    }
-
-    pub fn with_health_reporter(mut self, reporter: Arc<dyn HealthReporter>) -> Self {
-        self.health_reporter = Some(reporter);
         self
     }
 }

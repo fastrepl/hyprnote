@@ -52,9 +52,10 @@ pub async fn handler(
                             provider = ?selected.provider(),
                             "session_init_failed"
                         );
-                        if let Some(ref health) = state.config.health_reporter {
-                            health.record_error(502, e.clone(), Some(provider_name));
-                        }
+                        state
+                            .config
+                            .health
+                            .record_error(502, e.clone(), Some(provider_name));
                         return (StatusCode::BAD_GATEWAY, e).into_response();
                     }
                 };
@@ -75,9 +76,10 @@ pub async fn handler(
                 provider = ?provider,
                 "proxy_build_failed"
             );
-            if let Some(ref health) = state.config.health_reporter {
-                health.record_error(400, format!("{}", e), Some(provider_name));
-            }
+            state
+                .config
+                .health
+                .record_error(400, format!("{}", e), Some(provider_name));
             (StatusCode::BAD_REQUEST, format!("{}", e)).into_response()
         }
     }
@@ -139,18 +141,19 @@ async fn init_session(
 
 macro_rules! finalize_proxy_builder {
     ($builder:expr, $provider:expr, $config:expr) => {{
-        let health_reporter = $config.health_reporter.clone();
+        let health = $config.health.clone();
         let provider_name = format!("{:?}", $provider).to_lowercase();
 
         match &$config.analytics {
             Some(analytics) => {
                 let analytics = analytics.clone();
                 let provider_name_analytics = provider_name.clone();
+                let health_analytics = health.clone();
                 $builder
                     .on_close(move |duration| {
                         let analytics = analytics.clone();
                         let provider_name_analytics = provider_name_analytics.clone();
-                        let health_reporter = health_reporter.clone();
+                        let health = health_analytics.clone();
                         async move {
                             analytics
                                 .report_stt(SttEvent {
@@ -158,20 +161,16 @@ macro_rules! finalize_proxy_builder {
                                     duration,
                                 })
                                 .await;
-                            if let Some(ref health) = health_reporter {
-                                health.record_success();
-                            }
+                            health.record_success();
                         }
                     })
                     .build()
             }
             None => $builder
                 .on_close(move |_duration| {
-                    let health_reporter = health_reporter.clone();
+                    let health = health.clone();
                     async move {
-                        if let Some(ref health) = health_reporter {
-                            health.record_success();
-                        }
+                        health.record_success();
                     }
                 })
                 .build(),

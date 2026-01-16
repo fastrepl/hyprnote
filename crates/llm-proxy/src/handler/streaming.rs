@@ -5,78 +5,8 @@ use axum::{body::Body, response::Response};
 use futures_util::StreamExt;
 
 use crate::analytics::GenerationEvent;
-use crate::types::UsageInfo;
 
 use super::{AppState, report_with_cost};
-
-struct StreamAccumulator {
-    generation_id: Option<String>,
-    model: Option<String>,
-    input_tokens: u32,
-    output_tokens: u32,
-}
-
-impl StreamAccumulator {
-    fn new() -> Self {
-        Self {
-            generation_id: None,
-            model: None,
-            input_tokens: 0,
-            output_tokens: 0,
-        }
-    }
-
-    fn process_chunk(&mut self, chunk: &[u8]) {
-        let Ok(text) = std::str::from_utf8(chunk) else {
-            return;
-        };
-
-        for line in text.lines() {
-            let Some(data) = line.strip_prefix("data: ") else {
-                continue;
-            };
-
-            if data.trim() == "[DONE]" {
-                continue;
-            }
-
-            let Ok(parsed) = serde_json::from_str::<serde_json::Value>(data) else {
-                continue;
-            };
-
-            if self.generation_id.is_none() {
-                self.generation_id = parsed.get("id").and_then(|v| v.as_str()).map(String::from);
-            }
-
-            if self.model.is_none() {
-                self.model = parsed
-                    .get("model")
-                    .and_then(|v| v.as_str())
-                    .map(String::from);
-            }
-
-            if let Some(usage) = parsed
-                .get("usage")
-                .and_then(|u| serde_json::from_value::<UsageInfo>(u.clone()).ok())
-            {
-                self.input_tokens = usage.input_tokens();
-                self.output_tokens = usage.output_tokens();
-            }
-        }
-    }
-
-    fn into_event(self, start_time: Instant, http_status: u16) -> Option<GenerationEvent> {
-        Some(GenerationEvent {
-            generation_id: self.generation_id?,
-            model: self.model.unwrap_or_default(),
-            input_tokens: self.input_tokens,
-            output_tokens: self.output_tokens,
-            latency: start_time.elapsed().as_secs_f64(),
-            http_status,
-            total_cost: None,
-        })
-    }
-}
 
 pub(super) async fn handle_stream_response(
     state: AppState,
@@ -89,6 +19,7 @@ pub(super) async fn handle_stream_response(
     let analytics = state.config.analytics.clone();
     let api_key = state.config.api_key.clone();
     let client = state.client.clone();
+    let provider = state.config.provider.clone();
 
     tracing::info!(
         http_status = %http_status,
@@ -100,7 +31,7 @@ pub(super) async fn handle_stream_response(
     let upstream = response.bytes_stream();
 
     let output_stream = stream! {
-        let mut accumulator = StreamAccumulator::new();
+        let mut accumulator = crate::provider::StreamAccumulator::new();
 
         futures_util::pin_mut!(upstream);
 
@@ -108,7 +39,7 @@ pub(super) async fn handle_stream_response(
             match chunk_result {
                 Ok(chunk) => {
                     if analytics.is_some() {
-                        accumulator.process_chunk(&chunk);
+                        provider.parse_stream_chunk(&chunk, &mut accumulator);
                     }
                     yield Ok::<_, std::io::Error>(chunk);
                 }
@@ -120,8 +51,19 @@ pub(super) async fn handle_stream_response(
         }
 
         if let Some(analytics) = analytics {
-            if let Some(event) = accumulator.into_event(start_time, http_status) {
-                report_with_cost(&*analytics, &client, &api_key, event).await;
+            if let Some(generation_id) = accumulator.generation_id {
+                let event = GenerationEvent {
+                    generation_id,
+                    model: accumulator.model.unwrap_or_default(),
+                    input_tokens: accumulator.input_tokens,
+                    output_tokens: accumulator.output_tokens,
+                    latency: start_time.elapsed().as_secs_f64(),
+                    http_status,
+                    total_cost: None,
+                    provider_name: provider.name().to_string(),
+                    base_url: provider.base_url().to_string(),
+                };
+                report_with_cost(&*analytics, &*provider, &client, &api_key, event).await;
             }
         }
     };

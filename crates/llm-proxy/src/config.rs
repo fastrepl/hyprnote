@@ -2,6 +2,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::analytics::AnalyticsReporter;
+use crate::provider::{OpenRouterProvider, Provider};
+
+#[allow(deprecated)]
 use crate::types::OPENROUTER_URL;
 
 const DEFAULT_TIMEOUT_MS: u64 = 120_000;
@@ -13,11 +16,17 @@ pub struct LlmProxyConfig {
     pub models_tool_calling: Vec<String>,
     pub models_default: Vec<String>,
     pub analytics: Option<Arc<dyn AnalyticsReporter>>,
+    pub provider: Arc<dyn Provider>,
+    #[deprecated(since = "0.1.0", note = "Use provider.base_url() instead")]
     pub base_url: String,
 }
 
 impl LlmProxyConfig {
     pub fn new(api_key: impl Into<String>) -> Self {
+        let provider = Arc::new(OpenRouterProvider::default());
+        #[allow(deprecated)]
+        let base_url = OPENROUTER_URL.to_string();
+
         Self {
             api_key: api_key.into(),
             timeout: Duration::from_millis(DEFAULT_TIMEOUT_MS),
@@ -31,7 +40,8 @@ impl LlmProxyConfig {
                 "openai/gpt-5.1-chat".into(),
             ],
             analytics: None,
-            base_url: OPENROUTER_URL.to_string(),
+            provider,
+            base_url,
         }
     }
 
@@ -55,8 +65,23 @@ impl LlmProxyConfig {
         self
     }
 
+    pub fn with_provider(mut self, provider: Arc<dyn Provider>) -> Self {
+        #[allow(deprecated)]
+        {
+            self.base_url = provider.base_url().to_string();
+        }
+        self.provider = provider;
+        self
+    }
+
+    #[deprecated(since = "0.1.0", note = "Use with_provider instead")]
     pub fn with_base_url(mut self, base_url: impl Into<String>) -> Self {
-        self.base_url = base_url.into();
+        let base_url_str = base_url.into();
+        self.provider = Arc::new(OpenRouterProvider::new(base_url_str.clone()));
+        #[allow(deprecated)]
+        {
+            self.base_url = base_url_str;
+        }
         self
     }
 }

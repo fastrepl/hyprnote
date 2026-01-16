@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
 
+#[deprecated(
+    since = "0.1.0",
+    note = "Use provider::openrouter::OPENROUTER_URL instead"
+)]
 pub const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -11,13 +15,13 @@ pub enum Role {
     Tool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatMessage {
     pub role: Role,
     pub content: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum ToolChoice {
     String(String),
@@ -48,6 +52,10 @@ pub struct ChatCompletionRequest {
     pub extra: serde_json::Map<String, serde_json::Value>,
 }
 
+#[deprecated(
+    since = "0.1.0",
+    note = "Use provider::openrouter module types instead. OpenRouter-specific types are now encapsulated in the provider."
+)]
 #[derive(Serialize)]
 pub struct OpenRouterRequest {
     pub messages: Vec<ChatMessage>,
@@ -66,17 +74,23 @@ pub struct OpenRouterRequest {
     pub extra: serde_json::Map<String, serde_json::Value>,
 }
 
+#[deprecated(
+    since = "0.1.0",
+    note = "OpenRouter-specific types are now in provider::openrouter module"
+)]
 #[derive(Serialize)]
 pub struct Provider {
     sort: &'static str,
 }
 
+#[allow(deprecated)]
 impl Default for Provider {
     fn default() -> Self {
         Self { sort: "latency" }
     }
 }
 
+#[deprecated(since = "0.1.0", note = "Use provider::GenerationMetadata instead")]
 #[derive(Debug, Deserialize)]
 pub struct OpenRouterResponse {
     pub id: String,

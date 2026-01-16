@@ -1,8 +1,4 @@
 use hypr_analytics::{AnalyticsClient, AnalyticsPayload};
-use reqwest::Client;
-use serde::Deserialize;
-
-use crate::types::OPENROUTER_URL;
 
 #[derive(Debug, Clone)]
 pub struct GenerationEvent {
@@ -13,6 +9,8 @@ pub struct GenerationEvent {
     pub latency: f64,
     pub http_status: u16,
     pub total_cost: Option<f64>,
+    pub provider_name: String,
+    pub base_url: String,
 }
 
 pub trait AnalyticsReporter: Send + Sync {
@@ -29,14 +27,14 @@ impl AnalyticsReporter for AnalyticsClient {
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + '_>> {
         Box::pin(async move {
             let payload = AnalyticsPayload::builder("$ai_generation")
-                .with("$ai_provider", "openrouter")
+                .with("$ai_provider", event.provider_name.clone())
                 .with("$ai_model", event.model.clone())
                 .with("$ai_input_tokens", event.input_tokens)
                 .with("$ai_output_tokens", event.output_tokens)
                 .with("$ai_latency", event.latency)
                 .with("$ai_trace_id", event.generation_id.clone())
                 .with("$ai_http_status", event.http_status)
-                .with("$ai_base_url", OPENROUTER_URL);
+                .with("$ai_base_url", event.base_url.clone());
 
             let payload = if let Some(cost) = event.total_cost {
                 payload.with("$ai_total_cost_usd", cost)
@@ -47,44 +45,4 @@ impl AnalyticsReporter for AnalyticsClient {
             let _ = self.event(event.generation_id, payload.build()).await;
         })
     }
-}
-
-pub async fn fetch_generation_metadata(
-    client: &Client,
-    api_key: &str,
-    generation_id: &str,
-) -> Option<f64> {
-    #[derive(Deserialize)]
-    struct OpenRouterGenerationResponse {
-        data: OpenRouterGenerationData,
-    }
-
-    #[derive(Deserialize)]
-    struct OpenRouterGenerationData {
-        total_cost: f64,
-    }
-
-    let url = format!(
-        "https://openrouter.ai/api/v1/generation?id={}",
-        generation_id
-    );
-
-    let response = client
-        .get(&url)
-        .header("Authorization", format!("Bearer {}", api_key))
-        .send()
-        .await
-        .ok()?;
-
-    if !response.status().is_success() {
-        tracing::warn!(
-            http_status = %response.status().as_u16(),
-            generation_id = %generation_id,
-            "generation_metadata_fetch_failed"
-        );
-        return None;
-    }
-
-    let data: OpenRouterGenerationResponse = response.json().await.ok()?;
-    Some(data.data.total_cost)
 }

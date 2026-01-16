@@ -1,10 +1,27 @@
 import type { Content } from "tinybase/with-schemas";
 
+import type { Credentials } from "@hypr/store";
+import {
+  normalizeBaseUrl as normalizeBaseUrlShared,
+  parseCredentials,
+} from "@hypr/store";
+
 import type { Schemas, Store } from "../../store/settings";
 import { SETTINGS_MAPPING } from "../../store/settings";
 
-type ProviderData = { base_url: string; api_key: string };
-type ProviderRow = { type: "llm" | "stt"; base_url: string; api_key: string };
+type ProviderSettingsData = {
+  base_url?: string;
+  credentials?: unknown;
+  api_key?: string;
+  access_key_id?: string;
+  secret_access_key?: string;
+  region?: string;
+};
+type ProviderRow = {
+  type: "llm" | "stt";
+  base_url?: string;
+  credentials: string;
+};
 
 const JSON_ARRAY_FIELDS = new Set([
   "spoken_languages",
@@ -67,6 +84,11 @@ function fromStoreValue(key: string, value: unknown): unknown {
   return value;
 }
 
+function normalizeBaseUrl(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  return normalizeBaseUrlShared(value);
+}
+
 function settingsToStoreValues(settings: unknown): Record<string, unknown> {
   const values: Record<string, unknown> = {};
   for (const [key, config] of Object.entries(SETTINGS_MAPPING.values)) {
@@ -87,6 +109,38 @@ function settingsToStoreValues(settings: unknown): Record<string, unknown> {
   return values;
 }
 
+function toCredentialsJson(data: ProviderSettingsData): string | null {
+  if (data.credentials !== undefined) {
+    const maybeJson =
+      typeof data.credentials === "string"
+        ? data.credentials
+        : JSON.stringify(data.credentials);
+    const creds = parseCredentials(maybeJson);
+    if (creds) {
+      return JSON.stringify(creds);
+    }
+  }
+
+  if (data.access_key_id && data.secret_access_key && data.region) {
+    return JSON.stringify({
+      type: "aws",
+      access_key_id: data.access_key_id.trim(),
+      secret_access_key: data.secret_access_key.trim(),
+      region: data.region.trim(),
+    });
+  }
+
+  const apiKey = typeof data.api_key === "string" ? data.api_key.trim() : "";
+  if (!apiKey) {
+    return null;
+  }
+
+  return JSON.stringify({
+    type: "api_key",
+    api_key: apiKey,
+  });
+}
+
 function settingsToProviderRows(
   settings: unknown,
 ): Record<string, ProviderRow> {
@@ -98,15 +152,26 @@ function settingsToProviderRows(
   for (const providerType of ["llm", "stt"] as const) {
     const providers = (ai?.[providerType] ?? {}) as Record<
       string,
-      ProviderData
+      ProviderSettingsData
     >;
     for (const [id, data] of Object.entries(providers)) {
       if (data) {
-        rows[id] = {
-          type: providerType,
-          base_url: data.base_url ?? "",
-          api_key: data.api_key ?? "",
-        };
+        const credentials = toCredentialsJson(data);
+        const baseUrl = normalizeBaseUrl(data.base_url);
+
+        // Only create a row if we have either credentials or a base_url
+        // This preserves provider configs that have base_url but no credentials
+        if (credentials || baseUrl) {
+          const row: ProviderRow = {
+            type: providerType,
+            credentials:
+              credentials ?? JSON.stringify({ type: "api_key", api_key: "" }),
+          };
+          if (baseUrl) {
+            row.base_url = baseUrl;
+          }
+          rows[id] = row;
+        }
       }
     }
   }
@@ -134,18 +199,26 @@ export function storeValuesToSettings(
 }
 
 function providerRowsToSettings(rows: Record<string, ProviderRow>): {
-  llm: Record<string, ProviderData>;
-  stt: Record<string, ProviderData>;
+  llm: Record<string, { base_url?: string; credentials: Credentials }>;
+  stt: Record<string, { base_url?: string; credentials: Credentials }>;
 } {
   const result = {
-    llm: {} as Record<string, ProviderData>,
-    stt: {} as Record<string, ProviderData>,
+    llm: {} as Record<string, { base_url?: string; credentials: Credentials }>,
+    stt: {} as Record<string, { base_url?: string; credentials: Credentials }>,
   };
 
   for (const [rowId, row] of Object.entries(rows)) {
-    const { type, base_url, api_key } = row;
+    const { type, base_url, credentials } = row;
     if (type === "llm" || type === "stt") {
-      result[type][rowId] = { base_url, api_key };
+      const parsed = parseCredentials(credentials);
+      if (!parsed) continue;
+      const entry: { base_url?: string; credentials: Credentials } = {
+        credentials: parsed,
+      };
+      if (base_url) {
+        entry.base_url = base_url;
+      }
+      result[type][rowId] = entry;
     }
   }
 

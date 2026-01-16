@@ -1,3 +1,4 @@
+import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -12,6 +13,7 @@ import {
 import { useMemo } from "react";
 
 import type { AIProviderStorage } from "@hypr/store";
+import { parseCredentials } from "@hypr/store";
 
 import { useAuth } from "../auth";
 import { useBillingAccess } from "../billing";
@@ -20,6 +22,7 @@ import {
   PROVIDERS,
 } from "../components/settings/ai/llm/shared";
 import {
+  type ConfigField,
   getProviderSelectionBlockers,
   type ProviderEligibilityContext,
 } from "../components/settings/ai/shared/eligibility";
@@ -32,6 +35,10 @@ type LLMConnectionInfo = {
   modelId: string;
   baseUrl: string;
   apiKey: string;
+  // Bedrock-specific credentials
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  region?: string;
 };
 
 export type LLMConnectionStatus =
@@ -44,7 +51,7 @@ export type LLMConnectionStatus =
       status: "error";
       reason: "missing_config";
       providerId: ProviderId;
-      missing: Array<"base_url" | "api_key">;
+      missing: ConfigField[];
     }
   | { status: "success"; providerId: ProviderId; isHosted: boolean };
 
@@ -139,16 +146,28 @@ const resolveLLMConnection = (params: {
     };
   }
 
-  const baseUrl =
-    providerConfig?.base_url?.trim() ||
-    providerDefinition.baseUrl?.trim() ||
-    "";
-  const apiKey = providerConfig?.api_key?.trim() || "";
+  const credentials = parseCredentials(providerConfig?.credentials);
+  const configuredBaseUrl = providerConfig?.base_url?.trim() || "";
+
+  let baseUrl = configuredBaseUrl || providerDefinition.baseUrl?.trim() || "";
+  let apiKey = "";
+  let accessKeyId = "";
+  let secretAccessKey = "";
+  let region = "";
+
+  if (credentials?.type === "api_key") {
+    apiKey = credentials.api_key?.trim() || "";
+  } else if (credentials?.type === "aws") {
+    accessKeyId = credentials.access_key_id?.trim() || "";
+    secretAccessKey = credentials.secret_access_key?.trim() || "";
+    region = credentials.region?.trim() || "";
+  }
 
   const context: ProviderEligibilityContext = {
     isAuthenticated: !!session,
     isPro,
-    config: { base_url: baseUrl, api_key: apiKey },
+    baseUrl: configuredBaseUrl,
+    credentials,
   };
 
   const blockers = getProviderSelectionBlockers(
@@ -188,7 +207,7 @@ const resolveLLMConnection = (params: {
       conn: {
         providerId,
         modelId,
-        baseUrl: baseUrl ?? new URL("/llm", env.VITE_AI_URL).toString(),
+        baseUrl: baseUrl || new URL("/llm", env.VITE_AI_URL).toString(),
         apiKey: session.access_token,
       },
       status: { status: "success", providerId, isHosted: true },
@@ -196,7 +215,15 @@ const resolveLLMConnection = (params: {
   }
 
   return {
-    conn: { providerId, modelId, baseUrl, apiKey },
+    conn: {
+      providerId,
+      modelId,
+      baseUrl,
+      apiKey,
+      accessKeyId,
+      secretAccessKey,
+      region,
+    },
     status: { status: "success", providerId, isHosted: false },
   };
 };
@@ -265,6 +292,20 @@ const createLanguageModel = (
         fetch: tauriFetch,
         apiKey: conn.apiKey,
       });
+      return wrapWithThinkingMiddleware(provider(conn.modelId));
+    }
+
+    case "amazon_bedrock": {
+      const provider = conn.apiKey
+        ? createAmazonBedrock({
+            apiKey: conn.apiKey,
+            region: conn.region || "us-east-1",
+          })
+        : createAmazonBedrock({
+            region: conn.region || "us-east-1",
+            accessKeyId: conn.accessKeyId,
+            secretAccessKey: conn.secretAccessKey,
+          });
       return wrapWithThinkingMiddleware(provider(conn.modelId));
     }
 

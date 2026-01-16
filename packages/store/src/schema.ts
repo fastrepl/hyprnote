@@ -202,19 +202,72 @@ export const generalSchema = z.object({
   current_stt_model: z.string().optional(),
 });
 
-export const aiProviderSchema = z
-  .object({
-    type: z.enum(["stt", "llm"]),
-    base_url: z.url().min(1),
-    api_key: z.string(),
-  })
-  .refine(
-    (data) => !data.base_url.startsWith("https:") || data.api_key.length > 0,
-    {
-      message: "API key is required for HTTPS URLs",
-      path: ["api_key"],
-    },
-  );
+const apiKeyCredentialsSchema = z.object({
+  type: z.literal("api_key"),
+  api_key: z.string().min(1),
+});
+
+const awsCredentialsSchema = z.object({
+  type: z.literal("aws"),
+  access_key_id: z.string().min(1),
+  secret_access_key: z.string().min(1),
+  region: z.string().min(1),
+});
+
+export const credentialsSchema = z.discriminatedUnion("type", [
+  apiKeyCredentialsSchema,
+  awsCredentialsSchema,
+]);
+
+export function parseCredentials(credentialsJson: unknown): Credentials | null {
+  if (typeof credentialsJson !== "string" || !credentialsJson) return null;
+  try {
+    const parsed = JSON.parse(credentialsJson);
+    const result = credentialsSchema.safeParse(parsed);
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
+}
+
+export function normalizeBaseUrl(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      new URL(trimmed);
+      return trimmed;
+    } catch {
+      return undefined;
+    }
+  }
+
+  const isProbablyLocal =
+    trimmed.startsWith("localhost") ||
+    trimmed.startsWith("127.") ||
+    trimmed.startsWith("0.0.0.0") ||
+    trimmed.startsWith("[::1]") ||
+    trimmed.endsWith(".local") ||
+    /^[^/]+:\d+/.test(trimmed);
+
+  const withScheme = `${isProbablyLocal ? "http" : "https"}://${trimmed}`;
+  try {
+    new URL(withScheme);
+    return withScheme;
+  } catch {
+    return undefined;
+  }
+}
+
+export const aiProviderSchema = z.object({
+  type: z.enum(["stt", "llm"]),
+  base_url: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().url().optional(),
+  ),
+  credentials: jsonObject(credentialsSchema),
+});
 
 export type ProviderSpeakerIndexHint = z.infer<
   typeof providerSpeakerIndexSchema
@@ -242,6 +295,9 @@ export type ChatShortcut = z.infer<typeof chatShortcutSchema>;
 export type EnhancedNote = z.infer<typeof enhancedNoteSchema>;
 export type Prompt = z.infer<typeof promptSchema>;
 export type AIProvider = z.infer<typeof aiProviderSchema>;
+export type Credentials = z.infer<typeof credentialsSchema>;
+export type ApiKeyCredentials = z.infer<typeof apiKeyCredentialsSchema>;
+export type AwsCredentials = z.infer<typeof awsCredentialsSchema>;
 export type General = z.infer<typeof generalSchema>;
 
 export type SessionStorage = ToStorageType<typeof sessionSchema>;

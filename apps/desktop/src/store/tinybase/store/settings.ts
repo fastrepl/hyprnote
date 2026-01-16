@@ -71,7 +71,7 @@ export const SETTINGS_MAPPING = {
       schema: {
         type: { type: "string" },
         base_url: { type: "string" },
-        api_key: { type: "string" },
+        credentials: { type: "string" },
       },
     },
   },
@@ -158,7 +158,7 @@ export const StoreComponent = () => {
         ({ select, where }) => {
           select("type");
           select("base_url");
-          select("api_key");
+          select("credentials");
           where((getCell) => getCell("type") === "llm");
         },
       )
@@ -168,7 +168,7 @@ export const StoreComponent = () => {
         ({ select, where }) => {
           select("type");
           select("base_url");
-          select("api_key");
+          select("credentials");
           where((getCell) => getCell("type") === "stt");
         },
       ),

@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import type { AIProvider } from "@hypr/store";
-import { aiProviderSchema } from "@hypr/store";
+import type { AIProvider, Credentials } from "@hypr/store";
+import { normalizeBaseUrl, parseCredentials } from "@hypr/store";
 import {
   AccordionContent,
   AccordionItem,
@@ -20,8 +20,10 @@ import { cn } from "@hypr/utils";
 import { useBillingAccess } from "../../../../billing";
 import * as settings from "../../../../store/tinybase/store/settings";
 import {
+  type ConfigField,
   getProviderSelectionBlockers,
   getRequiredConfigFields,
+  getRequiredConfigFieldSets,
   type ProviderRequirement,
   requiresEntitlement,
 } from "./eligibility";
@@ -62,16 +64,181 @@ function useIsProviderConfigured(
     return false;
   }
 
-  const baseUrl = String(config?.base_url || providerDef.baseUrl || "").trim();
-  const apiKey = String(config?.api_key || "").trim();
+  const credentials = parseCredentials(config?.credentials);
+  const baseUrl = (config?.base_url as string) || "";
 
   return (
     getProviderSelectionBlockers(providerDef.requirements, {
       isAuthenticated: true,
       isPro: billing.isPro,
-      config: { base_url: baseUrl, api_key: apiKey },
+      baseUrl,
+      credentials,
     }).length === 0
   );
+}
+
+type FormValues = {
+  type: "stt" | "llm";
+  credentials_type: "api_key" | "aws";
+  base_url: string;
+  api_key: string;
+  access_key_id: string;
+  secret_access_key: string;
+  region: string;
+};
+
+function getDefaultCredentialsType(
+  providerRequirements: readonly ProviderRequirement[],
+): "api_key" | "aws" {
+  const requiredFields = getRequiredConfigFields(providerRequirements);
+  if (requiredFields.length > 0) {
+    return requiredFields.some((f) =>
+      ["access_key_id", "secret_access_key", "region"].includes(f),
+    )
+      ? "aws"
+      : "api_key";
+  }
+
+  const fieldSets = getRequiredConfigFieldSets(providerRequirements);
+  if (fieldSets && fieldSets.length > 0) {
+    const firstSet = fieldSets[0];
+    return firstSet.some((f) =>
+      ["access_key_id", "secret_access_key", "region"].includes(f),
+    )
+      ? "aws"
+      : "api_key";
+  }
+
+  return "api_key";
+}
+
+function credentialsToFormValues(
+  credentials: Credentials | null,
+  providerType: ProviderType,
+  providerRequirements: readonly ProviderRequirement[],
+  configuredBaseUrl?: string,
+  defaultBaseUrl?: string,
+): FormValues {
+  const defaultCredentialsType =
+    getDefaultCredentialsType(providerRequirements);
+
+  if (!credentials) {
+    return {
+      type: providerType,
+      credentials_type: defaultCredentialsType,
+      base_url: configuredBaseUrl ?? defaultBaseUrl ?? "",
+      api_key: "",
+      access_key_id: "",
+      secret_access_key: "",
+      region: "",
+    };
+  }
+  if (credentials.type === "aws") {
+    return {
+      type: providerType,
+      credentials_type: "aws",
+      base_url: "",
+      api_key: "",
+      access_key_id: credentials.access_key_id,
+      secret_access_key: credentials.secret_access_key,
+      region: credentials.region,
+    };
+  }
+  return {
+    type: providerType,
+    credentials_type: "api_key",
+    base_url: configuredBaseUrl ?? defaultBaseUrl ?? "",
+    api_key: credentials.api_key,
+    access_key_id: "",
+    secret_access_key: "",
+    region: "",
+  };
+}
+
+function isFormValid(
+  values: FormValues,
+  requiredFields: ConfigField[],
+  fieldSets: ConfigField[][] | null,
+): boolean {
+  const hasMultipleAuthOptions = fieldSets !== null && fieldSets.length > 1;
+
+  if (hasMultipleAuthOptions) {
+    // For providers with multiple auth options, check if at least one complete set is filled
+    const relevantFieldSets =
+      values.credentials_type === "aws"
+        ? fieldSets.filter((set) =>
+            set.some((f) =>
+              ["access_key_id", "secret_access_key", "region"].includes(f),
+            ),
+          )
+        : fieldSets.filter((set) => set.includes("api_key"));
+
+    return relevantFieldSets.some((fieldSet) =>
+      fieldSet.every((field) => {
+        const value = getFormFieldValue(values, field);
+        return value && value.trim() !== "";
+      }),
+    );
+  }
+
+  // For providers with single auth requirement, check all required fields
+  return requiredFields.every((field) => {
+    const value = getFormFieldValue(values, field);
+    return value && value.trim() !== "";
+  });
+}
+
+function getFormFieldValue(values: FormValues, field: ConfigField): string {
+  switch (field) {
+    case "base_url":
+      return values.base_url;
+    case "api_key":
+      return values.api_key;
+    case "access_key_id":
+      return values.access_key_id;
+    case "secret_access_key":
+      return values.secret_access_key;
+    case "region":
+      return values.region;
+    default:
+      return "";
+  }
+}
+
+function formValuesToProvider(
+  values: FormValues,
+  defaultBaseUrl?: string,
+): AIProvider {
+  if (values.credentials_type === "aws") {
+    return {
+      type: values.type,
+      credentials: {
+        type: "aws",
+        access_key_id: values.access_key_id.trim(),
+        secret_access_key: values.secret_access_key.trim(),
+        region: values.region.trim(),
+      },
+    };
+  }
+
+  const normalizedBaseUrl = normalizeBaseUrl(values.base_url);
+  const normalizedDefaultBaseUrl = defaultBaseUrl
+    ? normalizeBaseUrl(defaultBaseUrl)
+    : undefined;
+
+  const shouldStoreBaseUrl =
+    normalizedBaseUrl &&
+    (!normalizedDefaultBaseUrl ||
+      normalizedBaseUrl !== normalizedDefaultBaseUrl);
+
+  return {
+    type: values.type,
+    base_url: shouldStoreBaseUrl ? normalizedBaseUrl : undefined,
+    credentials: {
+      type: "api_key",
+      api_key: values.api_key.trim(),
+    },
+  };
 }
 
 export function NonHyprProviderCard({
@@ -86,7 +253,10 @@ export function NonHyprProviderCard({
   providerContext?: ReactNode;
 }) {
   const billing = useBillingAccess();
-  const [provider, setProvider] = useProvider(config.id);
+  const [credentials, configuredBaseUrl, setProvider] = useProvider(
+    config.id,
+    providerType,
+  );
   const locked =
     requiresEntitlement(config.requirements, "pro") && !billing.isPro;
   const isConfigured = useIsProviderConfigured(
@@ -96,24 +266,38 @@ export function NonHyprProviderCard({
   );
 
   const requiredFields = getRequiredConfigFields(config.requirements);
-  const showApiKey = requiredFields.includes("api_key");
-  const showBaseUrl = requiredFields.includes("base_url");
+  const fieldSets = getRequiredConfigFieldSets(config.requirements);
+  const hasMultipleAuthOptions = fieldSets !== null && fieldSets.length > 1;
+
+  const allRequiredFields: ConfigField[] = hasMultipleAuthOptions
+    ? fieldSets.flat()
+    : requiredFields;
+
+  const showApiKey = allRequiredFields.includes("api_key");
+  const showBaseUrl = allRequiredFields.includes("base_url");
+  const showAccessKeyId = allRequiredFields.includes("access_key_id");
+  const showSecretAccessKey = allRequiredFields.includes("secret_access_key");
+  const showRegion = allRequiredFields.includes("region");
 
   const form = useForm({
     onSubmit: ({ value }) => {
+      // Only submit if form values are valid
+      if (!isFormValid(value, requiredFields, fieldSets)) {
+        return;
+      }
       void analyticsCommands.event({
         event: "ai_provider_configured",
         provider: value.type,
       });
-      setProvider(value);
+      setProvider(formValuesToProvider(value, config.baseUrl));
     },
-    defaultValues:
-      provider ??
-      ({
-        type: providerType,
-        base_url: config.baseUrl ?? "",
-        api_key: "",
-      } satisfies AIProvider),
+    defaultValues: credentialsToFormValues(
+      credentials,
+      providerType,
+      config.requirements,
+      configuredBaseUrl,
+      config.baseUrl,
+    ),
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {
@@ -121,7 +305,6 @@ export function NonHyprProviderCard({
         });
       },
     },
-    validators: { onChange: aiProviderSchema },
   });
 
   return (
@@ -161,23 +344,105 @@ export function NonHyprProviderCard({
             e.stopPropagation();
           }}
         >
+          {hasMultipleAuthOptions && (
+            <form.Field name="credentials_type">
+              {(field) => (
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium">
+                    Authentication Method
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => field.handleChange("api_key")}
+                      className={cn([
+                        "flex-1 px-3 py-2 text-sm rounded-lg border transition-colors",
+                        field.state.value === "api_key"
+                          ? "bg-neutral-900 text-white border-neutral-900"
+                          : "bg-white text-neutral-700 border-neutral-300 hover:border-neutral-400",
+                      ])}
+                    >
+                      API Key
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => field.handleChange("aws")}
+                      className={cn([
+                        "flex-1 px-3 py-2 text-sm rounded-lg border transition-colors",
+                        field.state.value === "aws"
+                          ? "bg-neutral-900 text-white border-neutral-900"
+                          : "bg-white text-neutral-700 border-neutral-300 hover:border-neutral-400",
+                      ])}
+                    >
+                      AWS Credentials
+                    </button>
+                  </div>
+                </div>
+              )}
+            </form.Field>
+          )}
           {showBaseUrl && (
             <form.Field name="base_url">
               {(field) => <FormField field={field} label="Base URL" />}
             </form.Field>
           )}
-          {showApiKey && (
-            <form.Field name="api_key">
-              {(field) => (
-                <FormField
-                  field={field}
-                  label="API Key"
-                  placeholder="Enter your API key"
-                  type="password"
-                />
-              )}
-            </form.Field>
-          )}
+          <form.Subscribe selector={(state) => state.values.credentials_type}>
+            {(credentialsType) => (
+              <>
+                {showApiKey &&
+                  (!hasMultipleAuthOptions ||
+                    credentialsType === "api_key") && (
+                    <form.Field name="api_key">
+                      {(field) => (
+                        <FormField
+                          field={field}
+                          label="API Key"
+                          placeholder="Enter your API key"
+                          type="password"
+                        />
+                      )}
+                    </form.Field>
+                  )}
+                {showAccessKeyId &&
+                  (!hasMultipleAuthOptions || credentialsType === "aws") && (
+                    <form.Field name="access_key_id">
+                      {(field) => (
+                        <FormField
+                          field={field}
+                          label="Access Key ID"
+                          placeholder="Enter your AWS Access Key ID"
+                        />
+                      )}
+                    </form.Field>
+                  )}
+                {showSecretAccessKey &&
+                  (!hasMultipleAuthOptions || credentialsType === "aws") && (
+                    <form.Field name="secret_access_key">
+                      {(field) => (
+                        <FormField
+                          field={field}
+                          label="Secret Access Key"
+                          placeholder="Enter your AWS Secret Access Key"
+                          type="password"
+                        />
+                      )}
+                    </form.Field>
+                  )}
+                {showRegion &&
+                  (!hasMultipleAuthOptions || credentialsType === "aws") && (
+                    <form.Field name="region">
+                      {(field) => (
+                        <FormField
+                          field={field}
+                          label="Region"
+                          placeholder="e.g., us-east-1"
+                        />
+                      )}
+                    </form.Field>
+                  )}
+              </>
+            )}
+          </form.Subscribe>
           {!showBaseUrl && config.baseUrl && (
             <details className="space-y-4 pt-2">
               <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
@@ -237,18 +502,28 @@ export function StyledStreamdown({
   );
 }
 
-function useProvider(id: string) {
+function useProvider(id: string, providerType: ProviderType) {
   const providerRow = settings.UI.useRow("ai_providers", id, settings.STORE_ID);
-  const setProvider = settings.UI.useSetPartialRowCallback(
+  const setRow = settings.UI.useSetRowCallback(
     "ai_providers",
     id,
-    (row: Partial<AIProvider>) => row,
+    (row: { type: string; base_url: string; credentials: string }) => row,
     [id],
     settings.STORE_ID,
-  ) as (row: Partial<AIProvider>) => void;
+  );
 
-  const { data } = aiProviderSchema.safeParse(providerRow);
-  return [data, setProvider] as const;
+  const credentials = parseCredentials(providerRow?.credentials);
+  const baseUrl = (providerRow?.base_url as string) || undefined;
+
+  const setProvider = (provider: AIProvider) => {
+    setRow({
+      type: providerType,
+      base_url: provider.base_url ?? "",
+      credentials: JSON.stringify(provider.credentials),
+    });
+  };
+
+  return [credentials, baseUrl, setProvider] as const;
 }
 
 function FormField({

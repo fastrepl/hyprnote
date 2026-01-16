@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMemo } from "react";
 
+import { parseCredentials } from "@hypr/store";
 import {
   Select,
   SelectContent,
@@ -199,10 +200,12 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
     return Object.fromEntries(
       PROVIDERS.map((provider) => {
         const config = configuredProviders[provider.id];
-        const baseUrl = String(
-          config?.base_url || provider.baseUrl || "",
-        ).trim();
-        const apiKey = String(config?.api_key || "").trim();
+        const credentials = parseCredentials(config?.credentials);
+
+        const configuredBaseUrl = (config?.base_url as string) || "";
+        const baseUrl = configuredBaseUrl || provider.baseUrl || "";
+        const apiKey =
+          credentials?.type === "api_key" ? credentials.api_key : "";
 
         const proLocked =
           requiresEntitlement(provider.requirements, "pro") && !billing.isPro;
@@ -211,7 +214,8 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
           getProviderSelectionBlockers(provider.requirements, {
             isAuthenticated: !!auth?.session,
             isPro: billing.isPro,
-            config: { base_url: baseUrl, api_key: apiKey },
+            baseUrl: configuredBaseUrl,
+            credentials,
           }).length === 0;
 
         if (!eligible) {

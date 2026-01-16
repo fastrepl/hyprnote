@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import type { AIProviderStorage } from "@hypr/store";
+import { parseCredentials } from "@hypr/store";
 
 import { useAuth } from "../auth";
 import { useBillingAccess } from "../billing";
@@ -74,8 +75,11 @@ export const useSTTConnection = () => {
     },
   });
 
-  const baseUrl = providerConfig?.base_url?.trim();
-  const apiKey = providerConfig?.api_key?.trim();
+  const credentials = parseCredentials(providerConfig?.credentials);
+
+  const baseUrl = (providerConfig?.base_url as string)?.trim() || undefined;
+  const apiKey =
+    credentials?.type === "api_key" ? credentials.api_key?.trim() : undefined;
 
   const connection = useMemo(() => {
     if (!current_stt_provider || !current_stt_model) {

@@ -1,9 +1,17 @@
-export type ConfigField = "base_url" | "api_key";
+import type { Credentials } from "@hypr/store";
+
+export type ConfigField =
+  | "base_url"
+  | "api_key"
+  | "access_key_id"
+  | "secret_access_key"
+  | "region";
 
 export type ProviderRequirement =
   | { kind: "requires_auth" }
   | { kind: "requires_entitlement"; entitlement: "pro" }
   | { kind: "requires_config"; fields: ConfigField[] }
+  | { kind: "requires_config_one_of"; fieldSets: ConfigField[][] }
   | { kind: "requires_platform"; platform: "apple_silicon" };
 
 export function requiresEntitlement(
@@ -31,11 +39,39 @@ export function getRequiredConfigFields(
   return req?.kind === "requires_config" ? req.fields : [];
 }
 
+export function getRequiredConfigFieldSets(
+  requirements: readonly ProviderRequirement[],
+): ConfigField[][] | null {
+  const req = requirements.find((r) => r.kind === "requires_config_one_of");
+  return req?.kind === "requires_config_one_of" ? req.fieldSets : null;
+}
+
 export type ProviderEligibilityContext = {
   isAuthenticated: boolean;
   isPro: boolean;
-  config?: { base_url?: string; api_key?: string };
+  baseUrl?: string;
+  credentials?: Credentials | null;
 };
+
+function getConfigValue(
+  context: ProviderEligibilityContext,
+  field: ConfigField,
+): string | undefined {
+  const { credentials, baseUrl } = context;
+  if (field === "base_url") return baseUrl;
+  if (!credentials) return undefined;
+  if (credentials.type === "api_key") {
+    if (field === "api_key") return credentials.api_key;
+    return undefined;
+  }
+  if (credentials.type === "aws") {
+    if (field === "access_key_id") return credentials.access_key_id;
+    if (field === "secret_access_key") return credentials.secret_access_key;
+    if (field === "region") return credentials.region;
+    return undefined;
+  }
+  return undefined;
+}
 
 export function getProviderSelectionBlockers(
   requirements: readonly ProviderRequirement[],
@@ -57,11 +93,27 @@ export function getProviderSelectionBlockers(
         break;
       case "requires_config": {
         const missingFields = req.fields.filter((field) => {
-          const value = context.config?.[field];
+          const value = getConfigValue(context, field);
           return !value || value.trim() === "";
         });
         if (missingFields.length > 0) {
           blockers.push({ code: "missing_config", fields: missingFields });
+        }
+        break;
+      }
+      case "requires_config_one_of": {
+        const hasCompleteFieldSet = req.fieldSets.some((fieldSet) => {
+          return fieldSet.every((field) => {
+            const value = getConfigValue(context, field);
+            return value && value.trim() !== "";
+          });
+        });
+        if (!hasCompleteFieldSet) {
+          // Report the field sets as alternatives, not as all required
+          blockers.push({
+            code: "missing_config_one_of",
+            fieldSets: req.fieldSets,
+          });
         }
         break;
       }
@@ -84,7 +136,8 @@ export type EligibilityBlocker =
   | { code: "provider_disabled" }
   | { code: "requires_auth" }
   | { code: "requires_entitlement"; entitlement: "pro" }
-  | { code: "missing_config"; fields: Array<"base_url" | "api_key"> }
+  | { code: "missing_config"; fields: ConfigField[] }
+  | { code: "missing_config_one_of"; fieldSets: ConfigField[][] }
   | { code: "model_not_downloaded"; modelId: string }
   | { code: "unsupported_platform"; required: "apple_silicon" };
 
@@ -104,6 +157,7 @@ export function getActionForBlocker(
     case "requires_entitlement":
       return { kind: "upgrade_to_pro" };
     case "missing_config":
+    case "missing_config_one_of":
       return providerId ? { kind: "open_provider_settings", providerId } : null;
     case "model_not_downloaded":
       return { kind: "download_model", modelId: blocker.modelId };

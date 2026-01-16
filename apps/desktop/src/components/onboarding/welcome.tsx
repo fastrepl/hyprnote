@@ -3,7 +3,7 @@ import { memo, useCallback, useEffect, useMemo } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
-import { usePermissions } from "../../hooks/use-permissions";
+import { usePermissions } from "../../hooks/usePermissions";
 import { Route } from "../../routes/app/onboarding/_layout.index";
 import { commands } from "../../types/tauri.gen";
 import { getNext, type StepProps } from "./config";

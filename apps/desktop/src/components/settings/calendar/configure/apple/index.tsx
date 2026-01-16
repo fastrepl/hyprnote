@@ -5,7 +5,7 @@ import {
   AccordionTrigger,
 } from "@hypr/ui/components/ui/accordion";
 
-import { usePermission } from "../../../../../hooks/use-permissions";
+import { usePermission } from "../../../../../hooks/usePermissions";
 import { StyledStreamdown } from "../../../ai/shared";
 import { PROVIDERS } from "../../shared";
 import { AppleCalendarSelection } from "./calendar-selection";

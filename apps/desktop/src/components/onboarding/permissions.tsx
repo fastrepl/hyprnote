@@ -2,7 +2,7 @@ import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 
 import { cn } from "@hypr/utils";
 
-import { usePermissions } from "../../hooks/use-permissions";
+import { usePermissions } from "../../hooks/usePermissions";
 import { Route } from "../../routes/app/onboarding/_layout.index";
 import { getBack, getNext, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";

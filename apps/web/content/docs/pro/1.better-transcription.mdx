@@ -6,15 +6,35 @@ description: "Pro users get access to higher-quality cloud transcription."
 
 Pro includes access to premium cloud transcription services that offer higher accuracy than local models, especially for accented speech, technical jargon, and noisy environments.
 
+## Pro Curated Models
+
+Pro subscribers get access to curated cloud transcription models that work out of the box with no configuration required. These models are selected for quality and reliability, and API keys are managed automatically.
+
+## Bring Your Own Key (BYOK)
+
+If you want to use a specific transcription provider, you can bring your own API key. Supported providers include:
+
+| Provider | Best For | Languages |
+|----------|----------|-----------|
+| Deepgram | Real-time accuracy, keyword handling | 30+ |
+| AssemblyAI | Speaker diarization, streaming | 20+ |
+| Gladia | Code switching, multi-channel audio | 90+ |
+| OpenAI | Batch transcription, Whisper API | 50+ |
+| Soniox | High accuracy, enterprise features | 70+ |
+
+To use BYOK, go to Settings > Transcription and enter your API key for your preferred provider.
+
 ## How to Enable
 
-1. Activate your Pro license in Settings
+1. Subscribe to Pro or start a free trial
 2. Go to Settings > Transcription
-3. Select a cloud provider (Deepgram or AssemblyAI recommended)
+3. Use the curated Pro models (default) or enter your own API key for a specific provider
 
-The Pro cloud endpoint handles API keys automatically - no additional configuration needed.
+## Language Support
+
+Hyprnote checks if your selected provider supports your configured languages. If there's a mismatch, you'll see a warning with suggestions for compatible providers. Configure your languages in Settings > Language & Vocabulary.
 
 ## When to Use Cloud vs Local
 
-Use cloud transcription when you need maximum accuracy and have internet access. Use local transcription when privacy is paramount or you're offline.
+Use cloud transcription when you need maximum accuracy and have internet access. Use local transcription (Whisper models) when privacy is paramount or you're offline. Local models support 50+ languages and run entirely on your device.
 

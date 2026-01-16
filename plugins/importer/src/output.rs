@@ -41,6 +41,7 @@ struct EnhancedNote {
     created_at: String,
     session_id: String,
     content: String,
+    template_id: String,
     position: i32,
     title: String,
 }
@@ -184,6 +185,7 @@ fn insert_sessions(tables: &mut Map<String, Value>, notes: &[ImportedNote], user
                     created_at: normalize_datetime(&note.created_at),
                     session_id: note.id.clone(),
                     content: enhanced_content.clone(),
+                    template_id: String::new(),
                     position: 1,
                     title: "Summary".to_string(),
                 };

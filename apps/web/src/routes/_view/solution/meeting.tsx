@@ -1,6 +1,13 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@hypr/ui/components/ui/accordion";
 import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/solution/meeting")({
@@ -34,52 +41,65 @@ export const Route = createFileRoute("/_view/solution/meeting")({
 
 const heroFeatures = [
   {
+    icon: "mdi:microphone",
     title: "Real-Time Transcription",
     description:
       "See conversations transcribed as they happen, while you add your own notes.",
   },
   {
+    icon: "mdi:earth",
     title: "45+ Languages",
     description:
       "Multilingual meetings transcribed correctly, without configuration drama.",
   },
   {
+    icon: "mdi:robot-off",
     title: "No Bots",
     description:
       "Captures system audio directly—works with any platform, no bot required.",
   },
 ];
 
-const features = [
+const detailedFeatures = [
   {
+    id: "ai-notes",
+    title: "AI Notes",
     icon: "mdi:note-edit",
-    title: "Enhance Your Manual Notes with AI",
+    heading: "Enhance Your Manual Notes with AI",
     description:
-      "Combine your notes with AI transcription in one interface. Add context while the AI captures what's said. Later, ask AI to generate summaries, action items, or expand on specific topics using both your notes and the transcript.",
+      "Combine your notes with AI transcription in one interface. Add context while the AI captures what's said.",
+    details:
+      "Later, ask AI to generate summaries, action items, or expand on specific topics using both your notes and the transcript. Your manual notes provide context that makes AI summaries more accurate and relevant to your specific needs.",
   },
   {
+    id: "search",
+    title: "Search",
     icon: "mdi:magnify",
-    title: "Search Across All Your Meetings",
+    heading: "Search Across All Your Meetings",
     description:
-      "Every word transcribed is searchable. Find that product decision from three months ago or the exact moment someone mentioned a deadline. Search by keyword, speaker, or date across all your meeting notes.",
+      "Every word transcribed is searchable. Find that product decision from three months ago or the exact moment someone mentioned a deadline.",
+    details:
+      "Search by keyword, speaker, or date across all your meeting notes. Hyprnote indexes every word, making it instant to find specific conversations, decisions, or action items no matter how long ago they occurred.",
   },
   {
+    id: "ai-chat",
+    title: "AI Chat",
     icon: "mdi:chat-processing",
-    title: "Chat with Your Meeting Notes",
+    heading: "Chat with Your Meeting Notes",
     description:
-      '"What were the action items from the product sync?" "When did we discuss the Q4 budget?" "Summarize what the client said about pricing." Ask AI anything about your meeting in natural language—no manual searching required.',
+      "Ask AI anything about your meeting in natural language—no manual searching required.",
+    details:
+      '"What were the action items from the product sync?" "When did we discuss the Q4 budget?" "Summarize what the client said about pricing." Get instant answers from your meeting history without having to remember where or when something was discussed.',
   },
   {
+    id: "templates",
+    title: "Templates",
     icon: "mdi:file-document-multiple",
-    title: "Templates for Every Meeting Type",
+    heading: "Templates for Every Meeting Type",
     description:
-      "Start with pre-built templates for 1:1s, standups, client calls, or interviews. Or create your own structure - action items, decisions, next steps formatted exactly how you want.",
-  },
-  {
-    icon: "mdi:shield-lock",
-    title: "Control Where Your Data Lives",
-    description:
-      "Run fully local with LM Studio or Ollama for offline AI processing. Or connect to cloud providers like Deepgram, AssemblyAI, or OpenAI. You decide where your data goes, not us.",
+      "Start with pre-built templates for 1:1s, standups, client calls, or interviews.",
+    details:
+      "Or create your own structure with action items, decisions, and next steps formatted exactly how you want. Templates help you stay organized and ensure you capture the right information every time, whether it's a recurring standup or a one-off client presentation.",
   },
 ];
 
@@ -119,7 +139,9 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection />
-        <FeaturesSection />
+        <QuickFeaturesSection />
+        <DetailedFeaturesSection />
+        <DataControlSection />
         <FAQSection />
         <CTASection />
       </div>
@@ -169,28 +191,44 @@ function HeroSection() {
             </Link>
           </div>
         </header>
-        <div className="mt-12 grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          {heroFeatures.map((feature) => (
-            <div
-              key={feature.title}
-              className="text-center p-4 rounded-xl bg-white/50 border border-neutral-100"
-            >
-              <h3 className="text-base font-medium text-stone-700 mb-1">
-                {feature.title}
-              </h3>
-              <p className="text-sm text-neutral-600">{feature.description}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
 }
 
-function FeaturesSection() {
+function QuickFeaturesSection() {
   return (
-    <section className="px-6 py-16 border-t border-neutral-100">
-      <div className="max-w-4xl mx-auto">
+    <section className="px-6 py-12 border-t border-neutral-100">
+      <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        {heroFeatures.map((feature) => (
+          <div
+            key={feature.title}
+            className="text-center p-6 rounded-xl bg-stone-50/50 border border-neutral-100"
+          >
+            <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
+              <Icon icon={feature.icon} className="text-2xl text-stone-600" />
+            </div>
+            <h3 className="text-base font-medium text-stone-700 mb-2">
+              {feature.title}
+            </h3>
+            <p className="text-sm text-neutral-600">{feature.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DetailedFeaturesSection() {
+  const [activeFeature, setActiveFeature] = useState(detailedFeatures[0].id);
+
+  const activeFeatureData = detailedFeatures.find(
+    (f) => f.id === activeFeature,
+  );
+
+  return (
+    <section className="border-t border-neutral-100">
+      <div className="px-6 py-16 max-w-4xl mx-auto">
         <h2 className="text-3xl font-serif text-stone-600 text-center mb-4">
           Everything you need for meeting notes
         </h2>
@@ -198,25 +236,84 @@ function FeaturesSection() {
           AI-powered features that help you capture, organize, and act on every
           conversation.
         </p>
-        <div className="space-y-8">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="flex gap-4 p-6 rounded-xl bg-stone-50/50 border border-neutral-100"
-            >
-              <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center shrink-0">
-                <Icon icon={feature.icon} className="text-2xl text-stone-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-stone-700 mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-neutral-600 text-sm leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
+      </div>
+
+      <div className="sticky top-17.25 z-30 bg-white/95 backdrop-blur-sm border-y border-neutral-100">
+        <nav className="px-6 max-w-4xl mx-auto">
+          <div className="flex gap-1 overflow-x-auto">
+            {detailedFeatures.map((feature) => (
+              <button
+                key={feature.id}
+                type="button"
+                onClick={() => setActiveFeature(feature.id)}
+                className={cn([
+                  "flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2",
+                  activeFeature === feature.id
+                    ? ["text-stone-700 border-stone-600", "bg-stone-50/50"]
+                    : [
+                        "text-neutral-600 border-transparent",
+                        "hover:text-stone-700 hover:bg-stone-50/30",
+                      ],
+                ])}
+              >
+                <Icon icon={feature.icon} className="text-lg" />
+                <span>{feature.title}</span>
+              </button>
+            ))}
+          </div>
+        </nav>
+      </div>
+
+      {activeFeatureData && (
+        <div className="px-6 py-12 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 items-start">
+            <div>
+              <h3 className="text-2xl font-serif text-stone-600 mb-4">
+                {activeFeatureData.heading}
+              </h3>
+              <p className="text-neutral-600 mb-4 leading-relaxed">
+                {activeFeatureData.description}
+              </p>
+              <p className="text-neutral-600 text-sm leading-relaxed">
+                {activeFeatureData.details}
+              </p>
             </div>
-          ))}
+            <div className="rounded-xl bg-stone-100/50 border border-neutral-100 aspect-video flex items-center justify-center">
+              <Icon
+                icon={activeFeatureData.icon}
+                className="text-6xl text-stone-400"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function DataControlSection() {
+  return (
+    <section className="px-6 py-16 bg-stone-50/50 border-t border-neutral-100">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex gap-6 p-6 rounded-xl bg-white border border-neutral-100">
+          <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center shrink-0">
+            <Icon icon="mdi:shield-lock" className="text-2xl text-stone-600" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-serif text-stone-600 mb-3">
+              Control Where Your Data Lives
+            </h3>
+            <p className="text-neutral-600 leading-relaxed mb-3">
+              Run fully local with LM Studio or Ollama for offline AI
+              processing. Or connect to cloud providers like Deepgram,
+              AssemblyAI, or OpenAI.
+            </p>
+            <p className="text-neutral-600 text-sm leading-relaxed">
+              You decide where your data goes, not us. All recordings and notes
+              are stored locally on your device by default, and you have full
+              control over which services process your data.
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -225,7 +322,7 @@ function FeaturesSection() {
 
 function FAQSection() {
   return (
-    <section className="px-6 py-16 bg-stone-50/50 border-t border-neutral-100">
+    <section className="px-6 py-16 border-t border-neutral-100">
       <div className="max-w-4xl mx-auto">
         <h2 className="text-3xl font-serif text-stone-600 text-center mb-4">
           Frequently Asked Questions
@@ -233,21 +330,22 @@ function FAQSection() {
         <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
           Common questions about using Hyprnote for meeting notes.
         </p>
-        <div className="space-y-4">
+        <Accordion type="single" collapsible className="space-y-2">
           {faqs.map((faq, index) => (
-            <div
+            <AccordionItem
               key={index}
-              className="bg-white p-6 rounded-xl border border-neutral-100"
+              value={`item-${index}`}
+              className="bg-white rounded-xl border border-neutral-100 px-6 data-[state=open]:shadow-sm"
             >
-              <h3 className="text-lg font-medium text-stone-700 mb-2">
+              <AccordionTrigger className="text-lg font-medium text-stone-700 hover:no-underline hover:text-stone-900">
                 {faq.question}
-              </h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">
+              </AccordionTrigger>
+              <AccordionContent className="text-neutral-600 leading-relaxed">
                 {faq.answer}
-              </p>
-            </div>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </div>
     </section>
   );
@@ -255,12 +353,12 @@ function FAQSection() {
 
 function CTASection() {
   return (
-    <section className="px-6 py-16 border-t border-neutral-100">
+    <section className="px-6 py-16 bg-linear-to-t from-stone-600 to-stone-500 border-t border-stone-500">
       <div className="max-w-2xl mx-auto text-center">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">
+        <h2 className="text-3xl font-serif text-white mb-4">
           Ready to transform your meetings?
         </h2>
-        <p className="text-neutral-600 mb-8">
+        <p className="text-stone-100 mb-8">
           Start capturing every detail with AI-powered meeting notes that
           respect your privacy.
         </p>
@@ -268,7 +366,7 @@ function CTASection() {
           to="/download/"
           className={cn([
             "inline-block px-8 py-3 text-base font-medium rounded-full",
-            "bg-linear-to-t from-stone-600 to-stone-500 text-white",
+            "bg-white text-stone-600",
             "hover:scale-105 active:scale-95 transition-transform",
           ])}
         >

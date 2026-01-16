@@ -32,7 +32,7 @@ const GITHUB_USERNAME_TO_AUTHOR: Record<
   ComputelessComputer: { name: "John Jeong", email: "john@hyprnote.com" },
 };
 
-interface GitHubCredentials {
+export interface GitHubCredentials {
   token: string;
   author?: { name: string; email: string };
 }
@@ -64,7 +64,9 @@ function buildCommitBody(
   return body;
 }
 
-async function getGitHubCredentials(): Promise<GitHubCredentials | undefined> {
+export async function getGitHubCredentials(): Promise<
+  GitHubCredentials | undefined
+> {
   const supabase = getSupabaseServerClient();
   const { data: userData } = await supabase.auth.getUser();
 

@@ -174,7 +174,6 @@ tauri-plugin-webhook = { path = "plugins/webhook" }
 tauri-plugin-windows = { path = "plugins/windows" }
 
 async-stream = "0.3.6"
-async-trait = "0.1"
 futures-channel = "0.3.31"
 futures-core = "0.3.31"
 futures-util = "0.3.31"

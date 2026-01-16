@@ -1,11 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-#[deprecated(
-    since = "0.1.0",
-    note = "Use provider::openrouter::OPENROUTER_URL instead"
-)]
-pub const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Role {
@@ -50,52 +44,6 @@ pub struct ChatCompletionRequest {
     pub max_tokens: Option<u32>,
     #[serde(flatten)]
     pub extra: serde_json::Map<String, serde_json::Value>,
-}
-
-#[deprecated(
-    since = "0.1.0",
-    note = "Use provider::openrouter module types instead. OpenRouter-specific types are now encapsulated in the provider."
-)]
-#[derive(Serialize)]
-pub struct OpenRouterRequest {
-    pub messages: Vec<ChatMessage>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tools: Option<Vec<serde_json::Value>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_choice: Option<ToolChoice>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub temperature: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_tokens: Option<u32>,
-    pub stream: bool,
-    pub models: Vec<String>,
-    pub provider: Provider,
-    #[serde(flatten)]
-    pub extra: serde_json::Map<String, serde_json::Value>,
-}
-
-#[deprecated(
-    since = "0.1.0",
-    note = "OpenRouter-specific types are now in provider::openrouter module"
-)]
-#[derive(Serialize)]
-pub struct Provider {
-    sort: &'static str,
-}
-
-#[allow(deprecated)]
-impl Default for Provider {
-    fn default() -> Self {
-        Self { sort: "latency" }
-    }
-}
-
-#[deprecated(since = "0.1.0", note = "Use provider::GenerationMetadata instead")]
-#[derive(Debug, Deserialize)]
-pub struct OpenRouterResponse {
-    pub id: String,
-    pub model: Option<String>,
-    pub usage: Option<UsageInfo>,
 }
 
 #[derive(Debug, Deserialize)]

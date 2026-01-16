@@ -164,10 +164,14 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
                         if len == 0 {
                             return;
                         }
-                        let bytes = unsafe {
-                            std::slice::from_raw_parts(tiff_data.bytes().cast::<u8>(), len)
+                        let mut bytes = vec![0u8; len];
+                        unsafe {
+                            tiff_data.getBytes_length(
+                                std::ptr::NonNull::new(bytes.as_mut_ptr() as *mut std::ffi::c_void)
+                                    .unwrap(),
+                                len,
+                            );
                         }
-                        .to_vec();
                         recording_indicator_state::set(Some(bytes));
 
                         current

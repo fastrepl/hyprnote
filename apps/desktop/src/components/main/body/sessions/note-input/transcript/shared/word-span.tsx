@@ -9,7 +9,6 @@ import { Operations } from "./operations";
 
 interface WordSpanProps {
   word: SegmentWord;
-  highlightState: "current" | "buffer" | "none";
   audioExists: boolean;
   operations?: Operations;
   onClickWord: (word: SegmentWord) => void;
@@ -28,25 +27,20 @@ export function WordSpan(props: WordSpanProps) {
 
 function ViewerWordSpan({
   word,
-  highlightState,
   audioExists,
   onClickWord,
 }: Omit<WordSpanProps, "operations">) {
   const { segments, isActive } = useTranscriptSearchHighlights(word);
-  const hasMatch = segments.some((segment) => segment.isMatch);
 
   const content = useHighlightedContent(word, segments, isActive);
 
   const className = useMemo(
     () =>
       cn([
-        audioExists && "cursor-pointer",
-        audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
+        audioExists && "cursor-pointer hover:bg-neutral-200/60",
         !word.isFinal && ["opacity-60", "italic"],
-        highlightState === "current" && !hasMatch && "bg-blue-200/70",
-        highlightState === "buffer" && !hasMatch && "bg-blue-200/30",
       ]),
-    [audioExists, highlightState, word.isFinal, hasMatch],
+    [audioExists, word.isFinal],
   );
 
   const handleClick = useCallback(() => {
@@ -62,26 +56,21 @@ function ViewerWordSpan({
 
 function EditorWordSpan({
   word,
-  highlightState,
   audioExists,
   operations,
   onClickWord,
 }: Omit<WordSpanProps, "operations"> & { operations: Operations }) {
   const { segments, isActive } = useTranscriptSearchHighlights(word);
-  const hasMatch = segments.some((segment) => segment.isMatch);
 
   const content = useHighlightedContent(word, segments, isActive);
 
   const className = useMemo(
     () =>
       cn([
-        audioExists && "cursor-pointer",
-        audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
+        audioExists && "cursor-pointer hover:bg-neutral-200/60",
         !word.isFinal && ["opacity-60", "italic"],
-        highlightState === "current" && !hasMatch && "bg-blue-200/70",
-        highlightState === "buffer" && !hasMatch && "bg-blue-200/30",
       ]),
-    [audioExists, highlightState, word.isFinal, hasMatch],
+    [audioExists, word.isFinal],
   );
 
   const handleClick = useCallback(() => {

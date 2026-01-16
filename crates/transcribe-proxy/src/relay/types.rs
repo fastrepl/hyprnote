@@ -10,8 +10,27 @@ use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
 pub const DEFAULT_CLOSE_CODE: u16 = 1011;
 
-pub type OnCloseCallback =
-    Arc<dyn Fn(Duration) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
+/// Information about why a WebSocket connection was closed
+#[derive(Debug, Clone)]
+pub struct CloseReason {
+    pub code: u16,
+    pub message: String,
+}
+
+impl CloseReason {
+    pub fn new(code: u16, message: String) -> Self {
+        Self { code, message }
+    }
+
+    /// Returns true if this close reason indicates an error (4xxx codes)
+    pub fn is_error(&self) -> bool {
+        self.code >= 4000 && self.code < 5000
+    }
+}
+
+pub type OnCloseCallback = Arc<
+    dyn Fn(Duration, Option<CloseReason>) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync,
+>;
 pub type ControlMessageTypes = Arc<HashSet<&'static str>>;
 pub type FirstMessageTransformer = Arc<dyn Fn(String) -> String + Send + Sync>;
 

@@ -14,8 +14,9 @@ use tokio_tungstenite::{
 use super::builder::WebSocketProxyBuilder;
 use super::pending::{FlushError, PendingState, QueuedPayload};
 use super::types::{
-    ClientReceiver, ClientSender, ControlMessageTypes, DEFAULT_CLOSE_CODE, FirstMessageTransformer,
-    OnCloseCallback, UpstreamReceiver, UpstreamSender, convert, is_control_message,
+    ClientReceiver, ClientSender, CloseReason, ControlMessageTypes, DEFAULT_CLOSE_CODE,
+    FirstMessageTransformer, OnCloseCallback, UpstreamReceiver, UpstreamSender, convert,
+    is_control_message,
 };
 use super::upstream_error::detect_upstream_error;
 
@@ -111,6 +112,7 @@ impl WebSocketProxy {
 
         let (shutdown_tx, shutdown_rx) = tokio::sync::broadcast::channel::<(u16, String)>(1);
         let shutdown_rx2 = shutdown_tx.subscribe();
+        let mut shutdown_rx3 = shutdown_tx.subscribe();
 
         let client_to_upstream = Self::run_client_to_upstream(
             client_receiver,
@@ -130,9 +132,19 @@ impl WebSocketProxy {
 
         let _ = tokio::join!(client_to_upstream, upstream_to_client);
 
+        // Capture the close reason from the shutdown channel
+        let close_reason = shutdown_rx3.try_recv().ok().and_then(|(code, message)| {
+            // Only report as error if it's a 4xxx code (upstream error)
+            if code >= 4000 && code < 5000 {
+                Some(CloseReason::new(code, message))
+            } else {
+                None
+            }
+        });
+
         let duration = start_time.elapsed();
         if let Some(on_close) = on_close {
-            on_close(duration).await;
+            on_close(duration, close_reason).await;
         }
 
         tracing::info!(

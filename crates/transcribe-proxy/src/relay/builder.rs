@@ -7,7 +7,7 @@ pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::handler::WebSocketProxy;
 use super::params::transform_client_params;
-use super::types::{FirstMessageTransformer, OnCloseCallback};
+use super::types::{CloseReason, FirstMessageTransformer, OnCloseCallback};
 use crate::config::DEFAULT_CONNECT_TIMEOUT_MS;
 use crate::provider_selector::SelectedProvider;
 use crate::query_params::QueryParams;
@@ -114,11 +114,11 @@ impl<S> WebSocketProxyBuilder<S> {
 
     pub fn on_close<F, Fut>(mut self, callback: F) -> Self
     where
-        F: Fn(Duration) -> Fut + Send + Sync + 'static,
+        F: Fn(Duration, Option<CloseReason>) -> Fut + Send + Sync + 'static,
         Fut: std::future::Future<Output = ()> + Send + 'static,
     {
-        self.on_close = Some(Arc::new(move |duration| {
-            Box::pin(callback(duration))
+        self.on_close = Some(Arc::new(move |duration, close_reason| {
+            Box::pin(callback(duration, close_reason))
                 as std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>
         }));
         self

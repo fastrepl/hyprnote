@@ -149,11 +149,13 @@ macro_rules! finalize_proxy_builder {
                 let analytics = analytics.clone();
                 let provider_name_analytics = provider_name.clone();
                 let health_analytics = health.clone();
+                let provider_name_health = provider_name.clone();
                 $builder
-                    .on_close(move |duration| {
+                    .on_close(move |duration, close_reason| {
                         let analytics = analytics.clone();
                         let provider_name_analytics = provider_name_analytics.clone();
                         let health = health_analytics.clone();
+                        let provider_name_health = provider_name_health.clone();
                         async move {
                             analytics
                                 .report_stt(SttEvent {
@@ -161,19 +163,55 @@ macro_rules! finalize_proxy_builder {
                                     duration,
                                 })
                                 .await;
-                            health.record_success();
+                            if let Some(reason) = close_reason {
+                                // Map WebSocket close codes (4xxx) to HTTP status codes
+                                let status_code = if reason.code >= 4000 && reason.code < 4500 {
+                                    reason.code - 4000
+                                } else if reason.code >= 4500 {
+                                    500
+                                } else {
+                                    reason.code
+                                };
+                                health.record_error(
+                                    status_code,
+                                    reason.message,
+                                    Some(provider_name_health),
+                                );
+                            } else {
+                                health.record_success();
+                            }
                         }
                     })
                     .build()
             }
-            None => $builder
-                .on_close(move |_duration| {
-                    let health = health.clone();
-                    async move {
-                        health.record_success();
-                    }
-                })
-                .build(),
+            None => {
+                let provider_name_health = provider_name.clone();
+                $builder
+                    .on_close(move |_duration, close_reason| {
+                        let health = health.clone();
+                        let provider_name_health = provider_name_health.clone();
+                        async move {
+                            if let Some(reason) = close_reason {
+                                // Map WebSocket close codes (4xxx) to HTTP status codes
+                                let status_code = if reason.code >= 4000 && reason.code < 4500 {
+                                    reason.code - 4000
+                                } else if reason.code >= 4500 {
+                                    500
+                                } else {
+                                    reason.code
+                                };
+                                health.record_error(
+                                    status_code,
+                                    reason.message,
+                                    Some(provider_name_health),
+                                );
+                            } else {
+                                health.record_success();
+                            }
+                        }
+                    })
+                    .build()
+            }
         }
     }};
 }

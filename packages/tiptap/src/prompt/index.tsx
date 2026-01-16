@@ -49,7 +49,7 @@ export function PromptEditor({
   }, [readOnlyRanges]);
 
   const extensions = useMemo(() => {
-    const exts = [jinjaLanguage(variables, filters), jinjaLinter()];
+    const exts = [...jinjaLanguage(variables, filters), jinjaLinter()];
 
     if (!readOnly && readOnlyRanges.length > 0) {
       exts.push(readOnlyRangesExtension(getReadOnlyRanges));

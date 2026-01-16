@@ -16,6 +16,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -109,6 +110,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [serverReachable, setServerReachable] = useState(true);
   const [fingerprint, setFingerprint] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const autoRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const isRefreshingRef = useRef(false);
+
+  const debouncedStartAutoRefresh = useCallback(() => {
+    if (!supabase) return;
+    if (autoRefreshTimeoutRef.current) {
+      clearTimeout(autoRefreshTimeoutRef.current);
+    }
+    autoRefreshTimeoutRef.current = setTimeout(() => {
+      void supabase.auth.startAutoRefresh();
+    }, 100);
+  }, []);
 
   useEffect(() => {
     if (isIframeContext) return;
@@ -136,10 +152,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setSession(res.data.session);
         setServerReachable(true);
-        void supabase.auth.startAutoRefresh();
+        debouncedStartAutoRefresh();
       }
     },
-    [],
+    [debouncedStartAutoRefresh],
   );
 
   const handleAuthCallback = useCallback(
@@ -166,8 +182,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const appWindow = getCurrentWindow();
 
     const unlistenFocus = appWindow.listen("tauri://focus", () => {
-      if (serverReachable) {
-        void supabase.auth.startAutoRefresh();
+      if (serverReachable && isInitialized) {
+        debouncedStartAutoRefresh();
       }
     });
     const unlistenBlur = appWindow.listen("tauri://blur", () => {
@@ -182,7 +198,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       void unlistenFocus.then((fn) => fn());
       void unlistenBlur.then((fn) => fn());
     };
-  }, [serverReachable]);
+  }, [
+    serverReachable,
+    isInitialized,
+    debouncedStartAutoRefresh,
+    handleAuthCallback,
+  ]);
 
   useEffect(() => {
     if (!supabase) {
@@ -216,14 +237,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ) {
               setServerReachable(false);
               setSession(data.session);
-              void supabase.auth.startAutoRefresh();
+              debouncedStartAutoRefresh();
               return;
             }
           }
           if (refreshData.session) {
             setSession(refreshData.session);
             setServerReachable(true);
-            void supabase.auth.startAutoRefresh();
+            debouncedStartAutoRefresh();
           }
         }
       } catch (e) {
@@ -238,32 +259,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ) {
           setServerReachable(false);
         }
+      } finally {
+        setIsInitialized(true);
       }
     };
 
-    void initSession();
+    let subscription: { unsubscribe: () => void } | null = null;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "TOKEN_REFRESHED" && !session) {
-        if (isLocalAuthServer(env.VITE_SUPABASE_URL)) {
-          void clearAuthStorage();
-          setServerReachable(false);
+    const setup = async () => {
+      await initSession();
+
+      const result = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === "TOKEN_REFRESHED" && !session) {
+          if (isLocalAuthServer(env.VITE_SUPABASE_URL)) {
+            void clearAuthStorage();
+            setServerReachable(false);
+          }
         }
-      }
-      if (event === "SIGNED_IN" && session) {
-        void analyticsCommands.event({
-          event: "user_signed_in",
-        });
-      }
-      setSession(session);
-    });
+        if (event === "SIGNED_IN" && session) {
+          void analyticsCommands.event({
+            event: "user_signed_in",
+          });
+        }
+        setSession(session);
+      });
+      subscription = result.data.subscription;
+    };
+
+    void setup();
 
     return () => {
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
-  }, []);
+  }, [debouncedStartAutoRefresh]);
 
   const signIn = useCallback(async () => {
     const base = env.VITE_APP_URL ?? "http://localhost:3000";
@@ -304,19 +332,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshSession = useCallback(async (): Promise<Session | null> => {
-    if (!supabase) {
+    if (!supabase || isRefreshingRef.current) {
       return null;
     }
 
-    const { data, error } = await supabase.auth.refreshSession();
-    if (error) {
+    isRefreshingRef.current = true;
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        return null;
+      }
+      if (data.session) {
+        setSession(data.session);
+        return data.session;
+      }
       return null;
+    } finally {
+      isRefreshingRef.current = false;
     }
-    if (data.session) {
-      setSession(data.session);
-      return data.session;
-    }
-    return null;
   }, []);
 
   const getHeaders = useCallback(() => {

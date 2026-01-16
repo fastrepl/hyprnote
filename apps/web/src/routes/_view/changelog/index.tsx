@@ -156,7 +156,7 @@ function DownloadLinks({ version }: { version: string }) {
                 "flex items-center gap-2 px-4 h-8 text-sm rounded-full transition-all",
                 "bg-linear-to-b from-white to-stone-50 text-neutral-700",
                 "border border-neutral-300",
-                "hover:shadow-sm hover:scale-[102%] active:scale-[98%]",
+                "hover:shadow-xs hover:scale-[102%] active:scale-[98%]",
               ])}
             >
               <Download className="size-3.5 shrink-0" />
@@ -180,7 +180,7 @@ function DownloadLinks({ version }: { version: string }) {
                 "flex items-center gap-2 px-4 h-8 text-sm rounded-full transition-all",
                 "bg-linear-to-b from-white to-stone-50 text-neutral-700",
                 "border border-neutral-300",
-                "hover:shadow-sm hover:scale-[102%] active:scale-[98%]",
+                "hover:shadow-xs hover:scale-[102%] active:scale-[98%]",
               ])}
             >
               <Download className="size-3.5 shrink-0" />

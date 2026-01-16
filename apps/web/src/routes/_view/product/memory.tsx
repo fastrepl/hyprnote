@@ -39,7 +39,7 @@ function Component() {
                 disabled
                 className={cn([
                   "inline-block px-8 py-3 text-base font-medium cursor-not-allowed",
-                  "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm",
+                  "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs",
                 ])}
               >
                 Coming Soon

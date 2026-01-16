@@ -58,7 +58,7 @@ export function SearchBar() {
           placeholder="Search in transcript..."
           className={cn([
             "flex-1 h-full px-2 text-sm",
-            "bg-neutral-100 border border-neutral-200 rounded-sm",
+            "bg-neutral-100 border border-neutral-200 rounded-xs",
             "focus:outline-hidden focus:border-neutral-400",
           ])}
         />
@@ -69,7 +69,7 @@ export function SearchBar() {
           onClick={onPrev}
           disabled={totalMatches === 0}
           className={cn([
-            "p-1.5 rounded-sm transition-colors",
+            "p-1.5 rounded-xs transition-colors",
             totalMatches > 0
               ? "hover:bg-neutral-200 text-neutral-700"
               : "text-neutral-400 cursor-not-allowed",
@@ -82,7 +82,7 @@ export function SearchBar() {
           onClick={onNext}
           disabled={totalMatches === 0}
           className={cn([
-            "p-1.5 rounded-sm transition-colors",
+            "p-1.5 rounded-xs transition-colors",
             totalMatches > 0
               ? "hover:bg-neutral-200 text-neutral-700"
               : "text-neutral-400 cursor-not-allowed",
@@ -93,7 +93,7 @@ export function SearchBar() {
         </button>
         <button
           onClick={close}
-          className="p-1.5 rounded-sm hover:bg-neutral-200 text-neutral-700 transition-colors"
+          className="p-1.5 rounded-xs hover:bg-neutral-200 text-neutral-700 transition-colors"
           title="Close (Escape)"
         >
           <XIcon className="w-4 h-4" />

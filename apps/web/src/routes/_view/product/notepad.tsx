@@ -96,7 +96,7 @@ function Component() {
                 to="/product/ai-notetaking/"
                 className={cn([
                   "inline-block px-8 py-3 text-base font-medium rounded-full",
-                  "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+                  "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
                   "transition-all",
                 ])}
               >

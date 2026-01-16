@@ -32,7 +32,7 @@ export function TranscriptDisplay({
 }) {
   if (status === "error" && error) {
     return (
-      <div className="border border-red-200 bg-red-50 rounded-sm p-8 text-center">
+      <div className="border border-red-200 bg-red-50 rounded-xs p-8 text-center">
         <p className="text-red-600">{error}</p>
       </div>
     );
@@ -46,7 +46,7 @@ export function TranscriptDisplay({
 
   if (isProcessing) {
     return (
-      <div className="border border-neutral-200 rounded-sm p-8 text-center">
+      <div className="border border-neutral-200 rounded-xs p-8 text-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stone-600" />
           <p className="text-neutral-600">{statusMessages[status]}</p>
@@ -57,7 +57,7 @@ export function TranscriptDisplay({
 
   if (status === "uploaded") {
     return (
-      <div className="border border-neutral-200 rounded-sm p-8 text-center">
+      <div className="border border-neutral-200 rounded-xs p-8 text-center">
         <p className="text-neutral-500">
           Click "Start Transcription" to begin processing your audio
         </p>
@@ -67,14 +67,14 @@ export function TranscriptDisplay({
 
   if (!transcript) {
     return (
-      <div className="border border-neutral-200 rounded-sm p-8 text-center">
+      <div className="border border-neutral-200 rounded-xs p-8 text-center">
         <p className="text-neutral-500">{statusMessages.idle}</p>
       </div>
     );
   }
 
   return (
-    <div className="border border-neutral-200 rounded-sm p-6">
+    <div className="border border-neutral-200 rounded-xs p-6">
       <div className="prose prose-sm max-w-none">
         <p className="text-neutral-700 leading-relaxed whitespace-pre-wrap">
           {transcript}
@@ -109,7 +109,7 @@ export function FileInfo({
     <div
       className={cn([
         "flex items-center justify-between",
-        "border border-neutral-200 rounded-sm p-4",
+        "border border-neutral-200 rounded-xs p-4",
         "bg-stone-50/30",
       ])}
     >

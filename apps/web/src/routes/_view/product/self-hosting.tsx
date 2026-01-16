@@ -86,7 +86,7 @@ function HeroSection() {
             className={cn([
               "px-6 h-12 flex items-center justify-center text-base font-medium rounded-full",
               "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
-              "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+              "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
             ])}
           >
             Our open source manifesto

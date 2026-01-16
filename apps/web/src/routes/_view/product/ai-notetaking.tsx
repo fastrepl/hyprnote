@@ -667,7 +667,7 @@ function TranscriptionSection() {
                     Fully on-device
                   </h3>
                 </div>
-                <div className="px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium whitespace-nowrap">
+                <div className="px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs text-xs font-medium whitespace-nowrap">
                   Apple Silicon only
                 </div>
               </div>
@@ -706,7 +706,7 @@ function TranscriptionSection() {
         <div className="sm:hidden">
           <div className="border-b border-neutral-100">
             <div className="p-6">
-              <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium mb-3">
+              <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs text-xs font-medium mb-3">
                 Apple Silicon only
               </div>
               <div className="flex items-center gap-3 mb-3">
@@ -1113,7 +1113,7 @@ function SearchSection() {
               <Link
                 to="/product/mini-apps/"
                 hash="advanced-search"
-                className="hidden sm:inline-flex px-5 h-10 items-center justify-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all shrink-0"
+                className="hidden sm:inline-flex px-5 h-10 items-center justify-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all shrink-0"
               >
                 Go to Advanced Search
                 <ArrowRightIcon className="size-4" />
@@ -1122,7 +1122,7 @@ function SearchSection() {
             <Link
               to="/product/mini-apps/"
               hash="advanced-search"
-              className="sm:hidden w-full px-4 h-10 inline-flex items-center justify-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md active:scale-[98%] transition-all"
+              className="sm:hidden w-full px-4 h-10 inline-flex items-center justify-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md active:scale-[98%] transition-all"
             >
               Go to Advanced Search
               <ArrowRightIcon className="size-4" />
@@ -1222,7 +1222,7 @@ const CollaboratorsCell = memo(() => {
                     duration: 0.5,
                     ease: "easeOut",
                   }}
-                  className="flex items-center gap-3 bg-linear-to-br from-stone-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50"
+                  className="flex items-center gap-3 bg-linear-to-br from-stone-50/80 to-white/80 backdrop-blur-xs rounded-lg p-3 border border-stone-200/50"
                 >
                   <Image
                     src={person.avatar}
@@ -1435,7 +1435,7 @@ const ShareLinksCell = memo(() => {
           animate={linkClicked ? { scale: [1, 0.95, 1] } : {}}
           transition={{ duration: 0.3 }}
           className={cn([
-            "bg-linear-to-br from-purple-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50 flex items-center justify-between gap-3 cursor-pointer overflow-visible relative",
+            "bg-linear-to-br from-purple-50/80 to-white/80 backdrop-blur-xs rounded-lg p-3 border border-stone-200/50 flex items-center justify-between gap-3 cursor-pointer overflow-visible relative",
             showLinkPopover && "z-10",
           ])}
         >
@@ -1533,7 +1533,7 @@ const ShareLinksCell = memo(() => {
           animate={slackClicked ? { scale: [1, 0.95, 1] } : {}}
           transition={{ duration: 0.3 }}
           className={cn([
-            "bg-linear-to-br from-green-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50 flex items-center gap-3 cursor-pointer overflow-visible relative",
+            "bg-linear-to-br from-green-50/80 to-white/80 backdrop-blur-xs rounded-lg p-3 border border-stone-200/50 flex items-center gap-3 cursor-pointer overflow-visible relative",
             showSlackPopover && "z-10",
           ])}
         >
@@ -1612,7 +1612,7 @@ const ShareLinksCell = memo(() => {
         <motion.div
           animate={teamsClicked ? { scale: [1, 0.95, 1] } : {}}
           transition={{ duration: 0.3 }}
-          className="bg-linear-to-br from-indigo-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50 flex items-center gap-3 cursor-pointer overflow-visible relative"
+          className="bg-linear-to-br from-indigo-50/80 to-white/80 backdrop-blur-xs rounded-lg p-3 border border-stone-200/50 flex items-center gap-3 cursor-pointer overflow-visible relative"
         >
           <Icon icon="logos:microsoft-teams" className="w-8" />
           <div className="flex-1 flex items-center justify-between gap-2 relative">
@@ -1689,7 +1689,7 @@ const ShareLinksCell = memo(() => {
         <motion.div
           animate={salesforceClicked ? { scale: [1, 0.95, 1] } : {}}
           transition={{ duration: 0.3 }}
-          className="bg-linear-to-br from-cyan-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50 flex items-center gap-3 cursor-pointer overflow-visible relative"
+          className="bg-linear-to-br from-cyan-50/80 to-white/80 backdrop-blur-xs rounded-lg p-3 border border-stone-200/50 flex items-center gap-3 cursor-pointer overflow-visible relative"
         >
           <Icon icon="logos:salesforce" className="w-8" />
           <div className="flex-1 flex items-center justify-between gap-2 relative">
@@ -1936,7 +1936,7 @@ function SharingSection() {
   return (
     <section id="sharing">
       <div className="text-center py-12 px-4 lg:px-0">
-        <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium mb-4">
+        <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs text-xs font-medium mb-4">
           Coming Soon
         </div>
         <h2 className="text-3xl font-serif text-stone-600 mb-4">Share notes</h2>
@@ -2168,7 +2168,7 @@ function FloatingPanelSection() {
 function FloatingPanelHeader() {
   return (
     <div className="text-center py-12 px-4 lg:px-0">
-      <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium mb-4">
+      <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs text-xs font-medium mb-4">
         Coming Soon
       </div>
       <h2 className="text-3xl font-serif text-stone-600 mb-4">

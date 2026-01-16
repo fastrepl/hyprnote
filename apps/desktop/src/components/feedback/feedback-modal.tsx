@@ -168,7 +168,7 @@ ${deviceInfo}
               <button
                 onClick={() => setType("bug")}
                 className={cn([
-                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm text-sm font-medium transition-colors",
+                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xs text-sm font-medium transition-colors",
                   isBug
                     ? ["bg-white shadow-xs text-black"]
                     : ["text-neutral-600 hover:text-black"],
@@ -180,7 +180,7 @@ ${deviceInfo}
               <button
                 onClick={() => setType("feature")}
                 className={cn([
-                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm text-sm font-medium transition-colors",
+                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xs text-sm font-medium transition-colors",
                   !isBug
                     ? ["bg-white shadow-xs text-black"]
                     : ["text-neutral-600 hover:text-black"],

@@ -150,7 +150,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
   return (
     <div
       className={cn([
-        "border rounded-sm overflow-hidden flex flex-col transition-transform",
+        "border rounded-xs overflow-hidden flex flex-col transition-transform",
         plan.popular
           ? "border-stone-600 shadow-lg relative scale-105"
           : "border-neutral-100",
@@ -264,7 +264,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
             to="/download/"
             className={cn([
               "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
-              "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+              "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
             ])}
           >
             Download for free

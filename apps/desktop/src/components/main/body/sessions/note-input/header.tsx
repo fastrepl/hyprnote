@@ -174,7 +174,7 @@ function HeaderTabTranscript({
           <span
             onClick={handleRefreshClick}
             className={cn([
-              "inline-flex h-5 w-5 items-center justify-center rounded-sm transition-colors cursor-pointer",
+              "inline-flex h-5 w-5 items-center justify-center rounded-xs transition-colors cursor-pointer",
               "hover:bg-neutral-200 focus-visible:bg-neutral-200",
               (isBatchProcessing || isRedoing) && "pointer-events-none",
             ])}
@@ -253,7 +253,7 @@ function HeaderTabEnhanced({
             type="button"
             onClick={handleCancelClick}
             className={cn([
-              "inline-flex h-5 w-5 items-center justify-center rounded-sm cursor-pointer hover:bg-neutral-200",
+              "inline-flex h-5 w-5 items-center justify-center rounded-xs cursor-pointer hover:bg-neutral-200",
               !isActive && "opacity-50",
             ])}
             aria-label="Cancel enhancement"
@@ -281,7 +281,7 @@ function HeaderTabEnhanced({
     <span
       onClick={handleRegenerateClick}
       className={cn([
-        "group relative inline-flex h-5 w-5 items-center justify-center rounded-sm transition-colors cursor-pointer",
+        "group relative inline-flex h-5 w-5 items-center justify-center rounded-xs transition-colors cursor-pointer",
         isError
           ? [
               "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",

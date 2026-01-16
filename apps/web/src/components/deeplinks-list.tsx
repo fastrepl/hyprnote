@@ -43,7 +43,7 @@ export function DeeplinksList() {
                     className="group grid grid-cols-1 gap-1.5 sm:grid-cols-[180px_1fr] sm:gap-4"
                   >
                     <div className="flex flex-col items-start gap-1">
-                      <code className="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-neutral-900 shadow-sm ring-1 ring-neutral-200 font-mono">
+                      <code className="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-neutral-900 shadow-xs ring-1 ring-neutral-200 font-mono">
                         {param.name}
                       </code>
                       <div className="flex items-center gap-1.5 px-0.5 font-mono text-[10px] text-neutral-500">

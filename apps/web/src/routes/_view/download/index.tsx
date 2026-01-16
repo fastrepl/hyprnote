@@ -156,7 +156,7 @@ function HomebrewCard() {
   };
 
   return (
-    <div className="flex flex-col items-center p-6 rounded-sm border border-neutral-100 bg-white">
+    <div className="flex flex-col items-center p-6 rounded-xs border border-neutral-100 bg-white">
       <Icon
         icon="simple-icons:homebrew"
         className="text-5xl text-neutral-700 mb-4"
@@ -222,7 +222,7 @@ function DownloadCard({
   };
 
   return (
-    <div className="flex flex-col items-center p-6 rounded-sm border border-neutral-100 bg-white hover:bg-stone-50 transition-all duration-200">
+    <div className="flex flex-col items-center p-6 rounded-xs border border-neutral-100 bg-white hover:bg-stone-50 transition-all duration-200">
       <Icon icon={iconName} className="text-5xl text-neutral-700 mb-4" />
       <p className="text-sm text-neutral-600 mb-6 text-center">{spec}</p>
 

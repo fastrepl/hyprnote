@@ -262,7 +262,7 @@ function ResourcesLinks() {
             }}
           >
             👍 for{" "}
-            <span className="blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
+            <span className="blur-xs group-hover:blur-none group-focus:blur-none transition-all duration-150">
               {currentUseCase.label}
             </span>
           </Link>
@@ -288,7 +288,7 @@ function ResourcesLinks() {
               className="size-4 rounded border border-neutral-100 inline"
             />{" "}
             vs{" "}
-            <span className="blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
+            <span className="blur-xs group-hover:blur-none group-focus:blur-none transition-all duration-150">
               {currentVs.name}
             </span>
           </Link>

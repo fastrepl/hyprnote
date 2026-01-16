@@ -241,7 +241,7 @@ function ItemContent({
       <h2 className="text-xl font-serif text-stone-700 mb-4">
         {isTemplate ? "Structure" : "Details"}
       </h2>
-      <div className="border border-neutral-200 rounded-sm px-6 lg:px-8 pt-3 lg:pt-4 pb-6 lg:pb-8 bg-white">
+      <div className="border border-neutral-200 rounded-xs px-6 lg:px-8 pt-3 lg:pt-4 pb-6 lg:pb-8 bg-white">
         {isTemplate && "sections" in item && (
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-stone-600 uppercase tracking-wider mb-3">
@@ -307,7 +307,7 @@ function SuggestedItems({
             key={t.slug}
             to="/gallery/$type/$slug/"
             params={{ type, slug: t.slug }}
-            className="group p-4 border border-neutral-200 rounded-sm bg-white hover:shadow-md hover:border-neutral-300 transition-all"
+            className="group p-4 border border-neutral-200 rounded-xs bg-white hover:shadow-md hover:border-neutral-300 transition-all"
           >
             <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
               {t.title}
@@ -351,7 +351,7 @@ function RightSidebar({
   return (
     <aside className="hidden sm:block w-80 shrink-0">
       <div className="sticky top-17.25 space-y-4 px-4 py-6">
-        <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-6 text-center">
+        <div className="border border-neutral-200 rounded-xs overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-6 text-center">
           <h3 className="font-serif text-lg text-stone-600 mb-3">
             Use this {isTemplate ? "template" : "shortcut"}
           </h3>
@@ -369,13 +369,13 @@ function RightSidebar({
           href={rawMdxUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 px-4 py-3 border border-neutral-200 rounded-sm bg-white hover:bg-neutral-50 transition-colors text-sm text-neutral-600 hover:text-neutral-800"
+          className="flex items-center justify-center gap-2 px-4 py-3 border border-neutral-200 rounded-xs bg-white hover:bg-neutral-50 transition-colors text-sm text-neutral-600 hover:text-neutral-800"
         >
           <Icon icon="mdi:file-document-outline" className="text-lg" />
           View raw MDX source
         </a>
 
-        <div className="border border-dashed border-neutral-300 rounded-sm p-6 bg-stone-50/50 text-center">
+        <div className="border border-dashed border-neutral-300 rounded-xs p-6 bg-stone-50/50 text-center">
           <h3 className="font-serif text-lg text-stone-600 mb-3">Contribute</h3>
           <p className="text-sm text-neutral-600 mb-6">
             Have an idea? Submit a PR and help the community.

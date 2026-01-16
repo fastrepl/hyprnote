@@ -463,7 +463,7 @@ function TemplatesHomepage({
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="p-0.5 rounded-sm hover:bg-neutral-100"
+                className="p-0.5 rounded-xs hover:bg-neutral-100"
               >
                 <X className="h-3 w-3 text-neutral-400" />
               </button>
@@ -477,12 +477,12 @@ function TemplatesHomepage({
               {[0, 1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className="rounded-sm border border-stone-100 overflow-hidden animate-pulse"
+                  className="rounded-xs border border-stone-100 overflow-hidden animate-pulse"
                 >
                   <div className="h-20 bg-stone-200" />
                   <div className="p-3 flex flex-col gap-3">
-                    <div className="h-4 w-3/4 rounded-sm bg-stone-200" />
-                    <div className="h-3 w-full rounded-sm bg-stone-100" />
+                    <div className="h-4 w-3/4 rounded-xs bg-stone-200" />
+                    <div className="h-3 w-full rounded-xs bg-stone-100" />
                     <div className="flex gap-2">
                       <div className="h-7 w-16 rounded-3xl bg-stone-100" />
                       <div className="h-7 w-20 rounded-3xl bg-stone-100" />
@@ -533,7 +533,7 @@ function TemplateCard({
     <button
       onClick={onClick}
       className={cn([
-        "w-full text-left rounded-sm border border-stone-100 overflow-hidden",
+        "w-full text-left rounded-xs border border-stone-100 overflow-hidden",
         "hover:border-stone-300 hover:shadow-xs transition-all",
         "flex flex-col",
       ])}
@@ -672,7 +672,7 @@ function TemplateListColumn({
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="p-1 rounded-sm hover:bg-neutral-100"
+                className="p-1 rounded-xs hover:bg-neutral-100"
               >
                 <X className="h-4 w-4 text-neutral-400" />
               </button>
@@ -774,7 +774,7 @@ function TemplateListColumn({
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="p-1 rounded-sm hover:bg-neutral-100"
+              className="p-1 rounded-xs hover:bg-neutral-100"
             >
               <X className="h-4 w-4 text-neutral-400" />
             </button>
@@ -787,8 +787,8 @@ function TemplateListColumn({
           <div className="space-y-2">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="px-3 py-2 rounded-md animate-pulse">
-                <div className="h-4 w-3/4 rounded-sm bg-neutral-200" />
-                <div className="h-3 w-1/2 rounded-sm bg-neutral-100 mt-1.5" />
+                <div className="h-4 w-3/4 rounded-xs bg-neutral-200" />
+                <div className="h-3 w-1/2 rounded-xs bg-neutral-100 mt-1.5" />
               </div>
             ))}
           </div>

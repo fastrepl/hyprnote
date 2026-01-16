@@ -267,7 +267,7 @@ function PersonItem({
       <button
         onClick={handleTogglePin}
         className={cn([
-          "shrink-0 p-1 rounded-sm transition-colors",
+          "shrink-0 p-1 rounded-xs transition-colors",
           isPinned
             ? "text-blue-600 hover:text-blue-700"
             : "text-neutral-300 opacity-0 group-hover:opacity-100 hover:text-neutral-500",
@@ -339,7 +339,7 @@ function NewPersonForm({
   return (
     <div className="p-2">
       <form onSubmit={handleSubmit}>
-        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-sm bg-neutral-50 border border-neutral-200">
+        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-xs bg-neutral-50 border border-neutral-200">
           <input
             type="text"
             value={name}

@@ -232,7 +232,7 @@ function Component() {
 
         {errorMessage && (
           <div className="max-w-6xl mx-auto px-4 pt-8">
-            <div className="border border-red-200 bg-red-50 rounded-sm p-4">
+            <div className="border border-red-200 bg-red-50 rounded-xs p-4">
               <p className="text-sm text-red-600">{errorMessage}</p>
             </div>
           </div>
@@ -250,7 +250,7 @@ function Component() {
                 </p>
               </div>
 
-              <div className="border border-neutral-200 rounded-lg shadow-sm bg-white overflow-hidden">
+              <div className="border border-neutral-200 rounded-lg shadow-xs bg-white overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-100 bg-neutral-50/50">
                   <div className="w-3 h-3 rounded-full bg-red-400" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />
@@ -281,7 +281,7 @@ function Component() {
                           className={cn([
                             "w-full flex items-center justify-center gap-2",
                             "px-4 py-3 rounded-lg",
-                            "bg-gradient-to-t from-stone-600 to-stone-500",
+                            "bg-linear-to-t from-stone-600 to-stone-500",
                             "text-white font-medium",
                             "shadow-md hover:shadow-lg",
                             "hover:scale-[101%] active:scale-[99%]",
@@ -299,7 +299,7 @@ function Component() {
                     <h3 className="text-sm font-medium text-neutral-700 mb-3">
                       Your Notes
                     </h3>
-                    <div className="border border-neutral-200 rounded-sm p-4 min-h-[200px] bg-neutral-50/30">
+                    <div className="border border-neutral-200 rounded-xs p-4 min-h-[200px] bg-neutral-50/30">
                       {isMounted && (
                         <NoteEditor
                           initialContent={noteContent}
@@ -323,7 +323,7 @@ function Component() {
                 </p>
               </div>
 
-              <div className="border border-neutral-200 rounded-lg shadow-sm bg-white overflow-hidden">
+              <div className="border border-neutral-200 rounded-lg shadow-xs bg-white overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-100 bg-neutral-50/50">
                   <div className="w-3 h-3 rounded-full bg-red-400" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />

@@ -28,7 +28,7 @@ export function Toast({
             onClick={onDismiss}
             aria-label="Dismiss toast"
             className={cn([
-              "absolute top-1.5 right-1.5 size-6 flex items-center justify-center rounded-sm",
+              "absolute top-1.5 right-1.5 size-6 flex items-center justify-center rounded-xs",
               "opacity-0 group-hover:opacity-50 hover:opacity-100!",
               "hover:bg-neutral-200",
               "transition-all duration-200",

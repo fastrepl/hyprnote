@@ -142,7 +142,7 @@ class ExtensionErrorBoundary extends Component<
                 The extension "{this.props.extensionId}" encountered an error
               </p>
               {this.state.error && (
-                <p className="text-xs text-neutral-400 font-mono bg-neutral-100 p-2 rounded-sm overflow-auto max-h-24">
+                <p className="text-xs text-neutral-400 font-mono bg-neutral-100 p-2 rounded-xs overflow-auto max-h-24">
                   {this.state.error.message}
                 </p>
               )}

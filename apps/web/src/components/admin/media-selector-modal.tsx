@@ -313,7 +313,7 @@ export function MediaSelectorModal({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search..."
-                className="w-full py-1 text-sm bg-transparent focus:outline-none placeholder:text-neutral-400"
+                className="w-full py-1 text-sm bg-transparent focus:outline-hidden placeholder:text-neutral-400"
               />
             </div>
           </div>

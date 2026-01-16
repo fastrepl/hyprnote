@@ -555,7 +555,7 @@ function Sidebar({
             className={cn([
               "w-full py-1 text-sm",
               "bg-transparent",
-              "focus:outline-none",
+              "focus:outline-hidden",
               "placeholder:text-neutral-400",
             ])}
           />
@@ -603,8 +603,8 @@ function Sidebar({
           className={cn([
             "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
             "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
-            "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
-            "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm",
+            "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+            "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xs",
           ])}
         >
           <PlusIcon className="size-4" />
@@ -790,7 +790,7 @@ function InlineInput({
         disabled={isLoading}
         placeholder={type === "file" ? "filename" : "folder name"}
         className={cn([
-          "flex-1 text-sm bg-transparent outline-none",
+          "flex-1 text-sm bg-transparent outline-hidden",
           "text-neutral-600 placeholder:text-neutral-400",
         ])}
       />
@@ -897,7 +897,7 @@ function NewPostInlineInput({
           disabled={isLoading}
           placeholder="enter-slug-here"
           className={cn([
-            "flex-1 text-sm bg-transparent outline-none",
+            "flex-1 text-sm bg-transparent outline-hidden",
             error ? "text-red-700" : "text-neutral-600",
             "placeholder:text-neutral-400",
           ])}
@@ -961,7 +961,7 @@ function ContextMenu({
         ref={menuRef}
         className={cn([
           "fixed z-50 min-w-40 py-1",
-          "bg-white border border-neutral-200 rounded-sm shadow-lg",
+          "bg-white border border-neutral-200 rounded-xs shadow-lg",
         ])}
         style={{ left: x, top: y }}
       >
@@ -1289,7 +1289,7 @@ function EditorHeader({
             <button
               type="button"
               className={cn([
-                "px-2 py-1.5 text-xs font-medium font-mono rounded-sm flex items-center gap-1.5",
+                "px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
                 isPublished
                   ? "text-white bg-green-600 hover:bg-green-700"
                   : "text-white bg-neutral-900 hover:bg-neutral-800",
@@ -1481,7 +1481,7 @@ function TabContextMenu({
       <div
         className={cn([
           "fixed z-50 min-w-35 py-1",
-          "bg-white border border-neutral-200 rounded-sm shadow-lg",
+          "bg-white border border-neutral-200 rounded-xs shadow-lg",
         ])}
         style={{ left: x, top: y }}
       >
@@ -1604,7 +1604,7 @@ function AuthorSelect({
         />
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-neutral-200 rounded-sm shadow-lg z-50">
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-neutral-200 rounded-xs shadow-lg z-50">
           {AUTHORS.map((author) => (
             <button
               key={author.name}
@@ -1722,7 +1722,7 @@ function MetadataPanel({
             value={handlers.metaTitle}
             onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
             placeholder="SEO meta title"
-            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+            className="flex-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
           />
         </div>
         {isTitleExpanded && (
@@ -1736,7 +1736,7 @@ function MetadataPanel({
               value={handlers.displayTitle}
               onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
               placeholder="Display title (optional)"
-              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+              className="flex-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
             />
           </div>
         )}
@@ -1753,7 +1753,7 @@ function MetadataPanel({
             type="date"
             value={handlers.date}
             onChange={(e) => handlers.onDateChange(e.target.value)}
-            className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+            className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900"
           />
         </MetadataRow>
         <MetadataRow label="Description" required>
@@ -1773,14 +1773,14 @@ function MetadataPanel({
               target.style.height = "auto";
               target.style.height = `${target.scrollHeight}px`;
             }}
-            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
+            className="flex-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 resize-none"
           />
         </MetadataRow>
         <MetadataRow label="Category">
           <select
             value={handlers.category}
             onChange={(e) => handlers.onCategoryChange(e.target.value)}
-            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+            className="flex-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900"
           >
             <option value="">Select category</option>
             <option value="Case Study">Case Study</option>
@@ -1796,7 +1796,7 @@ function MetadataPanel({
               value={handlers.coverImage}
               onChange={(e) => handlers.onCoverImageChange(e.target.value)}
               placeholder="/api/images/blog/slug/cover.png"
-              className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+              className="flex-1 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
             />
           </div>
         </MetadataRow>
@@ -1961,7 +1961,7 @@ function MetadataSidePanel({
             value={handlers.metaTitle}
             onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
             placeholder="SEO meta title"
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
           />
         </div>
 
@@ -1972,7 +1972,7 @@ function MetadataSidePanel({
             value={handlers.displayTitle}
             onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
             placeholder="Display title (optional)"
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
           />
         </div>
 
@@ -1994,7 +1994,7 @@ function MetadataSidePanel({
             type="date"
             value={handlers.date}
             onChange={(e) => handlers.onDateChange(e.target.value)}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 focus:border-neutral-400"
           />
         </div>
 
@@ -2007,7 +2007,7 @@ function MetadataSidePanel({
             onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
             placeholder="Meta description for SEO"
             rows={3}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none focus:border-neutral-400"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 resize-none focus:border-neutral-400"
           />
         </div>
 
@@ -2016,7 +2016,7 @@ function MetadataSidePanel({
           <select
             value={handlers.category}
             onChange={(e) => handlers.onCategoryChange(e.target.value)}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 focus:border-neutral-400"
           >
             <option value="">Select category</option>
             <option value="Case Study">Case Study</option>
@@ -2033,7 +2033,7 @@ function MetadataSidePanel({
             value={handlers.coverImage}
             onChange={(e) => handlers.onCoverImageChange(e.target.value)}
             placeholder="/api/images/blog/slug/cover.png"
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
           />
         </div>
 
@@ -2279,7 +2279,7 @@ const FileEditor = React.forwardRef<
         )}
       </header>
       <div className="max-w-3xl mx-auto px-6 pb-8">
-        <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
+        <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-xs prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-xs prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
           <MDXContent
             code={fileContent.mdx}
             components={defaultMDXComponents}
@@ -2591,7 +2591,7 @@ function ImportModal({
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://docs.google.com/document/d/..."
-              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -2605,7 +2605,7 @@ function ImportModal({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Article title"
-                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -2617,7 +2617,7 @@ function ImportModal({
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 placeholder="Author name"
-                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -2631,7 +2631,7 @@ function ImportModal({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description for SEO"
               rows={2}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -2645,7 +2645,7 @@ function ImportModal({
                 value={coverImage}
                 onChange={(e) => setCoverImage(e.target.value)}
                 placeholder="/api/images/blog/slug/cover.png"
-                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -2658,7 +2658,7 @@ function ImportModal({
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="my-article-slug"
-                  className="flex-1 px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
                 <button
                   type="button"
@@ -2696,7 +2696,7 @@ function ImportModal({
                   value={editedMdx}
                   onChange={(e) => setEditedMdx(e.target.value)}
                   rows={12}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                 />
               </div>
 
@@ -2708,7 +2708,7 @@ function ImportModal({
                   <select
                     value={folder}
                     onChange={(e) => setFolder(e.target.value)}
-                    className="px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   >
                     {CONTENT_FOLDERS.map((f) => (
                       <option key={f.value} value={f.value}>

@@ -213,7 +213,7 @@ function NewOrganizationForm({
   return (
     <div className="p-2">
       <form onSubmit={handleSubmit}>
-        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-sm bg-neutral-50 border border-neutral-200">
+        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-xs bg-neutral-50 border border-neutral-200">
           <input
             type="text"
             value={name}

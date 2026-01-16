@@ -53,7 +53,7 @@ export function SidebarNavigation<T extends { slug: string; title: string }>({
                   params={{ _splat: doc.slug }}
                   onClick={onLinkClick}
                   ref={isActive ? activeLinkRef : undefined}
-                  className={`block pl-5 pr-3 py-1.5 text-sm rounded-sm transition-colors ${
+                  className={`block pl-5 pr-3 py-1.5 text-sm rounded-xs transition-colors ${
                     isActive
                       ? "bg-neutral-100 text-stone-600 font-medium"
                       : "text-neutral-600 hover:text-stone-600 hover:bg-neutral-50"

@@ -127,7 +127,7 @@ function Component() {
             <DownloadLinksHeroMobile version={changelog.version} />
           </div>
 
-          <article className="mt-12 prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-lg prose-img:border prose-img:border-neutral-200 prose-img:my-6 max-w-none">
+          <article className="mt-12 prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-xs prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-lg prose-img:border prose-img:border-neutral-200 prose-img:my-6 max-w-none">
             <MDXContent
               code={changelog.mdx}
               components={defaultMDXComponents}
@@ -191,7 +191,7 @@ function DownloadLinksHero({ version }: { version: string }) {
                 "flex items-center justify-center gap-2 px-4 h-8 text-sm rounded-full transition-all",
                 "bg-linear-to-b from-white to-stone-50 text-neutral-700",
                 "border border-neutral-300",
-                "hover:shadow-sm hover:scale-[102%] active:scale-[98%]",
+                "hover:shadow-xs hover:scale-[102%] active:scale-[98%]",
               ])}
             >
               <Download className="size-3.5 shrink-0" />
@@ -215,7 +215,7 @@ function DownloadLinksHero({ version }: { version: string }) {
                 "flex items-center justify-center gap-2 px-4 h-8 text-sm rounded-full transition-all",
                 "bg-linear-to-b from-white to-stone-50 text-neutral-700",
                 "border border-neutral-300",
-                "hover:shadow-sm hover:scale-[102%] active:scale-[98%]",
+                "hover:shadow-xs hover:scale-[102%] active:scale-[98%]",
               ])}
             >
               <Download className="size-3.5 shrink-0" />
@@ -251,7 +251,7 @@ function DownloadLinksHeroMobile({ version }: { version: string }) {
                     "flex flex-col items-center gap-2 px-6 py-4 rounded-2xl transition-all",
                     "bg-linear-to-b from-white to-stone-50 text-neutral-700",
                     "border border-neutral-300",
-                    "hover:shadow-sm active:scale-[98%]",
+                    "hover:shadow-xs active:scale-[98%]",
                   ])}
                 >
                   <Download className="size-5 shrink-0" />
@@ -390,7 +390,7 @@ function RelatedReleases({
       <div className="text-center mt-8">
         <Link
           to="/changelog/"
-          className="inline-flex items-center gap-2 px-6 h-12 text-base font-medium bg-linear-to-b from-white to-stone-50 text-neutral-700 border border-neutral-300 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+          className="inline-flex items-center gap-2 px-6 h-12 text-base font-medium bg-linear-to-b from-white to-stone-50 text-neutral-700 border border-neutral-300 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
         >
           View all releases
           <Icon icon="mdi:arrow-right" className="text-base" />

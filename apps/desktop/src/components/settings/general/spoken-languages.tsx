@@ -170,7 +170,7 @@ export function SpokenLanguagesView({
           <div
             id="language-options"
             role="listbox"
-            className="absolute top-full left-0 right-0 mt-1 flex flex-col w-full rounded-sm border border-neutral-200 overflow-hidden bg-white shadow-md z-10 max-h-60 overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-1 flex flex-col w-full rounded-xs border border-neutral-200 overflow-hidden bg-white shadow-md z-10 max-h-60 overflow-y-auto"
           >
             {filteredLanguages.length > 0 ? (
               filteredLanguages.map((langCode, index) => (

@@ -149,7 +149,7 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
               <div
                 key={tag.name}
                 className={cn(
-                  "p-3 rounded-sm border",
+                  "p-3 rounded-xs border",
                   TAG_COLORS[tag.name] || "bg-gray-50 border-gray-200",
                 )}
               >
@@ -172,7 +172,7 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
             {endpoints.map(({ path, method, operation }) => (
               <div
                 key={`${method}-${path}`}
-                className="border border-neutral-200 rounded-sm overflow-hidden"
+                className="border border-neutral-200 rounded-xs overflow-hidden"
               >
                 <div className="flex items-center gap-3 p-3 bg-neutral-50">
                   <span

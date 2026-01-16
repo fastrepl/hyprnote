@@ -231,7 +231,7 @@ function StatBadge({
     n > 1000 ? `${(n / 1000).toFixed(1)}k` : n;
 
   return (
-    <div className="flex flex-col gap-1 text-stone-600 h-[84px] w-[84px] items-center justify-center border border-neutral-200 rounded-sm px-4 bg-neutral-100">
+    <div className="flex flex-col gap-1 text-stone-600 h-[84px] w-[84px] items-center justify-center border border-neutral-200 rounded-xs px-4 bg-neutral-100">
       <p className="font-semibold font-serif text-sm">
         {type === "stars" ? "Stars" : "Forks"}
       </p>
@@ -291,7 +291,7 @@ function Avatar({ username, avatar }: { username: string; avatar: string }) {
       href={`https://github.com/${username}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="size-10 rounded-sm overflow-hidden border-2 border-neutral-200 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 transition-all cursor-pointer"
+      className="size-10 rounded-xs overflow-hidden border-2 border-neutral-200 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 transition-all cursor-pointer"
     >
       <img
         src={avatar}

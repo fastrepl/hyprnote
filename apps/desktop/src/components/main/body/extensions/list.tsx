@@ -167,7 +167,7 @@ function ExtensionColumnHeader({
           {searchValue && (
             <button
               onClick={() => onSearchChange("")}
-              className="p-1 rounded-sm hover:bg-neutral-100 transition-colors shrink-0"
+              className="p-1 rounded-xs hover:bg-neutral-100 transition-colors shrink-0"
             >
               <X className="h-4 w-4 text-neutral-400" />
             </button>

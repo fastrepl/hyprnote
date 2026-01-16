@@ -346,7 +346,7 @@ function ShortcutListColumn({
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="p-1 rounded-sm hover:bg-neutral-100"
+                className="p-1 rounded-xs hover:bg-neutral-100"
               >
                 <X className="h-4 w-4 text-neutral-400" />
               </button>
@@ -360,8 +360,8 @@ function ShortcutListColumn({
           <div className="space-y-2">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="px-3 py-2 rounded-md animate-pulse">
-                <div className="h-4 w-3/4 rounded-sm bg-neutral-200" />
-                <div className="h-3 w-1/2 rounded-sm bg-neutral-100 mt-1.5" />
+                <div className="h-4 w-3/4 rounded-xs bg-neutral-200" />
+                <div className="h-3 w-1/2 rounded-xs bg-neutral-100 mt-1.5" />
               </div>
             ))}
           </div>

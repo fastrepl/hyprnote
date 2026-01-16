@@ -661,7 +661,7 @@ function OrganizationControl({
 
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col gap-2">
-          <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-sm bg-neutral-50 border border-neutral-200">
+          <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-xs bg-neutral-50 border border-neutral-200">
             <span className="text-neutral-500 shrink-0">
               <SearchIcon className="size-4" />
             </span>
@@ -676,7 +676,7 @@ function OrganizationControl({
           </div>
 
           {searchTerm.trim() && (
-            <div className="flex flex-col w-full rounded-sm border border-neutral-200 overflow-hidden">
+            <div className="flex flex-col w-full rounded-xs border border-neutral-200 overflow-hidden">
               {organizations.map((org: any) => (
                 <button
                   key={org.id}
@@ -712,7 +712,7 @@ function OrganizationControl({
           )}
 
           {!searchTerm.trim() && organizations.length > 0 && (
-            <div className="flex flex-col w-full rounded-sm border border-neutral-200 overflow-hidden max-h-[40vh] overflow-y-auto custom-scrollbar">
+            <div className="flex flex-col w-full rounded-xs border border-neutral-200 overflow-hidden max-h-[40vh] overflow-y-auto custom-scrollbar">
               {organizations.map((org: any) => (
                 <button
                   key={org.id}

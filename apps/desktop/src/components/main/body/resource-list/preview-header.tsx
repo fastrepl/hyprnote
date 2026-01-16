@@ -44,7 +44,7 @@ export function ResourcePreviewHeader({
           {targets.map((target, index) => (
             <span
               key={index}
-              className="text-xs text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-sm"
+              className="text-xs text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-xs"
             >
               {target}
             </span>

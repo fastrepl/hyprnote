@@ -348,7 +348,7 @@ function HeroSection({
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
                         placeholder={heroCTA.inputPlaceholder}
-                        className="flex-1 px-6 py-4 text-base outline-none bg-white"
+                        className="flex-1 px-6 py-4 text-base outline-hidden bg-white"
                         disabled={mutation.isPending || mutation.isSuccess}
                       />
                       <button
@@ -1242,7 +1242,7 @@ function FeaturesMobileCarousel({
                       {feature.title}
                     </h3>
                     {feature.comingSoon && (
-                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
+                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
                         Coming Soon
                       </span>
                     )}
@@ -1336,7 +1336,7 @@ function FeaturesDesktopGrid() {
                         "bg-stone-100/95 text-stone-800",
                         "hover:bg-stone-200/95 active:bg-stone-400/95",
                         "transition-all duration-150",
-                        "backdrop-blur-sm",
+                        "backdrop-blur-xs",
                       ])}
                     >
                       Learn more
@@ -1361,7 +1361,7 @@ function FeaturesDesktopGrid() {
                 </h3>
               </div>
               {feature.comingSoon && (
-                <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
+                <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
                   Coming Soon
                 </span>
               )}
@@ -1546,7 +1546,7 @@ function DetailsMobileCarousel({
                       {feature.title}
                     </h3>
                     {feature.comingSoon && (
-                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
+                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
                         Coming Soon
                       </span>
                     )}
@@ -1630,7 +1630,7 @@ function DetailsTabletView({
                       {feature.title}
                     </h3>
                     {feature.comingSoon && (
-                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
+                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
                         Coming Soon
                       </span>
                     )}
@@ -1807,7 +1807,7 @@ function DetailsDesktopView() {
                       "bg-stone-100/95 text-stone-800",
                       "hover:bg-stone-200/95 active:bg-stone-400/95",
                       "transition-all duration-150",
-                      "backdrop-blur-sm",
+                      "backdrop-blur-xs",
                     ])}
                   >
                     Learn more
@@ -1838,7 +1838,7 @@ function ManifestoSection() {
           }}
         >
           <div
-            className="bg-stone-50 border border-neutral-200 rounded-sm p-8 sm:p-12"
+            className="bg-stone-50 border border-neutral-200 rounded-xs p-8 sm:p-12"
             style={{
               backgroundImage: "url(/api/images/texture/paper.png)",
             }}
@@ -1949,7 +1949,7 @@ function BlogSection() {
               params={{ slug: article.slug }}
               className="group block h-full"
             >
-              <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
+              <article className="h-full border border-neutral-100 rounded-xs overflow-hidden bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
                 <div className="aspect-40/21 overflow-hidden border-b border-neutral-100 bg-stone-50">
                   <img
                     src={ogImage}

@@ -86,7 +86,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50 h-17.25">
+      <header className="sticky top-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-50 h-17.25">
         <div
           className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 h-full`}
         >
@@ -117,7 +117,7 @@ export function Header() {
 
       {(isDocsPage || isHandbookPage) && (
         <div
-          className={`sticky top-17.25 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-40 md:hidden transition-transform duration-300 ${
+          className={`sticky top-17.25 bg-white/80 backdrop-blur-xs border-b border-neutral-100 z-40 md:hidden transition-transform duration-300 ${
             showMobileSearch ? "translate-y-0" : "-translate-y-full"
           }`}
         >
@@ -200,7 +200,7 @@ function DrawerButton({
           }
           docsDrawer.setIsOpen(!docsDrawer.isOpen);
         }}
-        className="cursor-pointer md:hidden px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+        className="cursor-pointer md:hidden px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
         aria-label={
           docsDrawer.isOpen ? "Close docs navigation" : "Open docs navigation"
         }
@@ -223,7 +223,7 @@ function DrawerButton({
           }
           handbookDrawer.setIsOpen(!handbookDrawer.isOpen);
         }}
-        className="cursor-pointer md:hidden px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+        className="cursor-pointer md:hidden px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
         aria-label={
           handbookDrawer.isOpen
             ? "Close handbook navigation"
@@ -272,7 +272,7 @@ function ProductDropdown({
       </button>
       {isProductOpen && (
         <div className="absolute top-full left-0 pt-2 w-130 z-50">
-          <div className="bg-white border border-neutral-200 rounded-sm shadow-lg py-2">
+          <div className="bg-white border border-neutral-200 rounded-xs shadow-lg py-2">
             <div className="px-3 py-2 grid grid-cols-2 gap-x-6">
               <ProductsList onClose={() => setIsProductOpen(false)} />
               <FeaturesList onClose={() => setIsProductOpen(false)} />
@@ -420,7 +420,7 @@ function MobileNav({
           }
           setIsMenuOpen(!isMenuOpen);
         }}
-        className="cursor-pointer px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+        className="cursor-pointer px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
         aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         aria-expanded={isMenuOpen}
       >
@@ -491,7 +491,7 @@ function MobileMenu({
         className="fixed inset-0 z-40 sm:hidden"
         onClick={() => setIsMenuOpen(false)}
       />
-      <div className="fixed top-17.25 left-0 right-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] z-50 sm:hidden animate-in slide-in-from-top duration-300 max-h-[calc(100vh-69px)] overflow-y-auto">
+      <div className="fixed top-17.25 left-0 right-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] z-50 sm:hidden animate-in slide-in-from-top duration-300 max-h-[calc(100vh-69px)] overflow-y-auto">
         <nav className={`${maxWidthClass} mx-auto px-4 py-6`}>
           <div className="space-y-6">
             <MobileMenuLinks

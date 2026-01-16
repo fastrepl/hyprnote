@@ -144,7 +144,7 @@ export function SettingsIntegrations() {
           </div>
           <ButtonGroup>
             <Button
-              variant={filterStatus === "all" ? "default" : "outline-solid"}
+              variant={filterStatus === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilterStatus("all")}
               className="shadow-none"
@@ -152,7 +152,9 @@ export function SettingsIntegrations() {
               All
             </Button>
             <Button
-              variant={filterStatus === "connected" ? "default" : "outline-solid"}
+              variant={
+                filterStatus === "connected" ? "default" : "outline"
+              }
               size="sm"
               onClick={() => setFilterStatus("connected")}
               className="shadow-none"
@@ -160,7 +162,9 @@ export function SettingsIntegrations() {
               Connected
             </Button>
             <Button
-              variant={filterStatus === "not-connected" ? "default" : "outline-solid"}
+              variant={
+                filterStatus === "not-connected" ? "default" : "outline"
+              }
               size="sm"
               onClick={() => setFilterStatus("not-connected")}
               className="shadow-none"

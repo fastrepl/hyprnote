@@ -161,6 +161,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
                             return;
                         };
                         let len = unsafe { tiff_data.length() };
+                        if len == 0 {
+                            return;
+                        }
                         let bytes = unsafe {
                             std::slice::from_raw_parts(tiff_data.bytes().cast::<u8>(), len)
                         }

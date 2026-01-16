@@ -106,7 +106,7 @@ where
     L: LanguageQueryStrategy,
     K: KeywordQueryStrategy,
 {
-    use owhisper_providers::Provider;
+    use crate::providers::Provider;
 
     let (mut url, existing_params) = listen_endpoint_url(api_base);
 

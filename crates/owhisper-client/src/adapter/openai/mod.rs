@@ -1,7 +1,7 @@
 mod batch;
 mod live;
 
-use owhisper_providers::Provider;
+use crate::providers::Provider;
 
 #[derive(Clone, Default)]
 pub struct OpenAIAdapter;

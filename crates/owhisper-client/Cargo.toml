@@ -13,7 +13,6 @@ hypr-language = { workspace = true }
 hypr-ws-client = { workspace = true }
 
 owhisper-interface = { workspace = true }
-owhisper-providers = { workspace = true }
 
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json", "multipart"] }

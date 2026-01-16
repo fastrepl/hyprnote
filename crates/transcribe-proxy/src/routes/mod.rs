@@ -12,7 +12,7 @@ use axum::{
 use crate::config::SttProxyConfig;
 use crate::provider_selector::{ProviderSelector, SelectedProvider};
 use crate::query_params::QueryParams;
-use owhisper_providers::Provider;
+use owhisper_client::Provider;
 
 #[derive(Clone)]
 pub(crate) struct AppState {

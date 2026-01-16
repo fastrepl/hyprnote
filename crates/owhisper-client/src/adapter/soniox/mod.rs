@@ -27,7 +27,7 @@ impl SonioxAdapter {
     }
 
     pub(crate) fn api_host(api_base: &str) -> String {
-        use owhisper_providers::Provider;
+        use crate::providers::Provider;
 
         let default_host = Provider::Soniox.default_api_host();
 
@@ -40,7 +40,7 @@ impl SonioxAdapter {
     }
 
     pub(crate) fn ws_host(api_base: &str) -> String {
-        use owhisper_providers::Provider;
+        use crate::providers::Provider;
 
         let api_host = Self::api_host(api_base);
 
@@ -52,7 +52,7 @@ impl SonioxAdapter {
     }
 
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
-        use owhisper_providers::Provider;
+        use crate::providers::Provider;
 
         if api_base.is_empty() {
             return (

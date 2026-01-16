@@ -1,4 +1,4 @@
-use owhisper_providers::Provider;
+use owhisper_client::Provider;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ProxyError {

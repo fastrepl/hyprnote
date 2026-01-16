@@ -264,7 +264,7 @@ impl AdapterKind {
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> Self {
-        use owhisper_providers::Provider;
+        use crate::providers::Provider;
 
         if is_hyprnote_proxy(base_url) {
             if DeepgramAdapter::is_supported_languages_live(languages, model) {
@@ -318,9 +318,9 @@ impl AdapterKind {
     }
 }
 
-impl From<owhisper_providers::Provider> for AdapterKind {
-    fn from(p: owhisper_providers::Provider) -> Self {
-        use owhisper_providers::Provider;
+impl From<crate::providers::Provider> for AdapterKind {
+    fn from(p: crate::providers::Provider) -> Self {
+        use crate::providers::Provider;
         match p {
             Provider::Deepgram => Self::Deepgram,
             Provider::AssemblyAI => Self::AssemblyAI,

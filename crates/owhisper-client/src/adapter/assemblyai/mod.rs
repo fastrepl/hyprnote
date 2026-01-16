@@ -29,7 +29,7 @@ pub(super) fn documented_language_codes_batch() -> &'static [&'static str] {
 
 impl AssemblyAIAdapter {
     pub(crate) fn streaming_ws_url(api_base: &str) -> (url::Url, Vec<(String, String)>) {
-        use owhisper_providers::Provider;
+        use crate::providers::Provider;
 
         if api_base.is_empty() {
             return (
@@ -65,7 +65,7 @@ impl AssemblyAIAdapter {
     }
 
     pub(crate) fn batch_api_url(api_base: &str) -> url::Url {
-        use owhisper_providers::Provider;
+        use crate::providers::Provider;
 
         if api_base.is_empty() {
             return Provider::AssemblyAI

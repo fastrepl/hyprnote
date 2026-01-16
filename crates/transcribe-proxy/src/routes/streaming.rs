@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use owhisper_providers::{Auth, Provider};
+use owhisper_client::{Auth, Provider};
 
 use crate::analytics::SttEvent;
 use crate::config::SttProxyConfig;

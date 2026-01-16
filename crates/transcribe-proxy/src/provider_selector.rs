@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fmt;
 
-use owhisper_providers::Provider;
+use owhisper_client::Provider;
 
 use crate::error::SelectionError;
 

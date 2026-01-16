@@ -9,7 +9,7 @@ use crate::error::Error;
 
 use super::OpenAIAdapter;
 
-use owhisper_providers::{Provider, is_meta_model};
+use crate::providers::{Provider, is_meta_model};
 
 const DEFAULT_API_BASE: &str = "https://api.openai.com/v1";
 const RESPONSE_FORMAT_VERBOSE: &str = "verbose_json";

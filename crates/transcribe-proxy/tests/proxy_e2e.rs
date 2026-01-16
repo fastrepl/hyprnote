@@ -6,9 +6,9 @@ use common::*;
 use futures_util::StreamExt;
 use std::time::Duration;
 
+use owhisper_client::Provider;
 use owhisper_client::{BatchSttAdapter, FinalizeHandle, ListenClient, RealtimeSttAdapter};
 use owhisper_interface::stream::StreamResponse;
-use owhisper_providers::Provider;
 
 async fn run_proxy_live_test<A: RealtimeSttAdapter>(
     provider: Provider,

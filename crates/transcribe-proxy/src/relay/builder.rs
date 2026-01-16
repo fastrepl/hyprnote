@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
 
-use owhisper_providers::Auth;
+use owhisper_client::Auth;
 pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::handler::WebSocketProxy;

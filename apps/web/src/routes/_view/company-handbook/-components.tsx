@@ -128,7 +128,7 @@ function RightSidebar({
         )}
 
         <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white p-4">
-          <h3 className="font-serif text-sm text-stone-600 mb-3">
+          <h3 className="font-serif text-sm text-stone-600 mb-3 text-center">
             Try Hyprnote for yourself
           </h3>
           <Link

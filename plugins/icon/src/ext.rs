@@ -3,6 +3,7 @@ mod recording_indicator_state {
     use std::sync::Mutex;
 
     static ORIGINAL_ICON_DATA: Mutex<Option<Vec<u8>>> = Mutex::new(None);
+    static IS_ACTIVE: Mutex<bool> = Mutex::new(false);
 
     pub fn get() -> Option<Vec<u8>> {
         ORIGINAL_ICON_DATA.lock().unwrap().clone()
@@ -14,6 +15,14 @@ mod recording_indicator_state {
 
     pub fn clear() {
         *ORIGINAL_ICON_DATA.lock().unwrap() = None;
+    }
+
+    pub fn is_active() -> bool {
+        *IS_ACTIVE.lock().unwrap()
+    }
+
+    pub fn set_active(active: bool) {
+        *IS_ACTIVE.lock().unwrap() = active;
     }
 }
 
@@ -61,19 +70,71 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
             app_handle
                 .run_on_main_thread(move || {
                     use objc2::AnyThread;
-                    use objc2_app_kit::{NSApplication, NSImage};
-                    use objc2_foundation::{MainThreadMarker, NSString};
-
-                    recording_indicator_state::clear();
+                    use objc2_app_kit::{NSApplication, NSBezierPath, NSColor, NSImage};
+                    use objc2_foundation::{MainThreadMarker, NSPoint, NSRect, NSSize, NSString};
 
                     let mtm =
                         MainThreadMarker::new().expect("run_on_main_thread guarantees main thread");
                     let ns_app = NSApplication::sharedApplication(mtm);
 
                     let path_str = NSString::from_str(&icon_path_str);
-                    let image = NSImage::initWithContentsOfFile(NSImage::alloc(), &path_str);
+                    let Some(image) = NSImage::initWithContentsOfFile(NSImage::alloc(), &path_str)
+                    else {
+                        return;
+                    };
 
-                    if let Some(image) = image {
+                    if recording_indicator_state::is_active() {
+                        let Some(tiff_data) = (unsafe { image.TIFFRepresentation() }) else {
+                            return;
+                        };
+                        let len = unsafe { tiff_data.length() };
+                        if len == 0 {
+                            return;
+                        }
+                        let mut bytes = vec![0u8; len];
+                        unsafe {
+                            tiff_data.getBytes_length(
+                                std::ptr::NonNull::new(bytes.as_mut_ptr() as *mut std::ffi::c_void)
+                                    .unwrap(),
+                                len,
+                            );
+                        }
+                        recording_indicator_state::set(Some(bytes));
+
+                        let size = unsafe { image.size() };
+                        let composite_image =
+                            unsafe { NSImage::initWithSize(NSImage::alloc(), size) };
+
+                        unsafe {
+                            composite_image.lockFocus();
+
+                            image.drawAtPoint_fromRect_operation_fraction(
+                                NSPoint::new(0.0, 0.0),
+                                NSRect::new(NSPoint::new(0.0, 0.0), size),
+                                objc2_app_kit::NSCompositingOperation::Copy,
+                                1.0,
+                            );
+
+                            let dot_size = size.width * 0.25;
+                            let dot_x = size.width - dot_size - (size.width * 0.05);
+                            let dot_y = size.height - dot_size - (size.height * 0.05);
+
+                            let red_color = NSColor::systemRedColor();
+                            red_color.setFill();
+
+                            let dot_rect = NSRect::new(
+                                NSPoint::new(dot_x, dot_y),
+                                NSSize::new(dot_size, dot_size),
+                            );
+                            let dot_path = NSBezierPath::bezierPathWithOvalInRect(dot_rect);
+                            dot_path.fill();
+
+                            composite_image.unlockFocus();
+
+                            ns_app.setApplicationIconImage(Some(&composite_image));
+                        }
+                    } else {
+                        recording_indicator_state::clear();
                         unsafe { ns_app.setApplicationIconImage(Some(&image)) };
                     }
                 })
@@ -95,16 +156,73 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
             let app_handle = self.manager.app_handle();
             app_handle
                 .run_on_main_thread(move || {
-                    use objc2_app_kit::NSApplication;
-                    use objc2_foundation::MainThreadMarker;
-
-                    recording_indicator_state::clear();
+                    use objc2::AnyThread;
+                    use objc2_app_kit::{NSApplication, NSBezierPath, NSColor, NSImage};
+                    use objc2_foundation::{MainThreadMarker, NSPoint, NSRect, NSSize};
 
                     let mtm =
                         MainThreadMarker::new().expect("run_on_main_thread guarantees main thread");
                     let ns_app = NSApplication::sharedApplication(mtm);
 
                     unsafe { ns_app.setApplicationIconImage(None) };
+
+                    if recording_indicator_state::is_active() {
+                        let Some(current) = (unsafe { ns_app.applicationIconImage() }) else {
+                            return;
+                        };
+
+                        let Some(tiff_data) = (unsafe { current.TIFFRepresentation() }) else {
+                            return;
+                        };
+                        let len = unsafe { tiff_data.length() };
+                        if len == 0 {
+                            return;
+                        }
+                        let mut bytes = vec![0u8; len];
+                        unsafe {
+                            tiff_data.getBytes_length(
+                                std::ptr::NonNull::new(bytes.as_mut_ptr() as *mut std::ffi::c_void)
+                                    .unwrap(),
+                                len,
+                            );
+                        }
+                        recording_indicator_state::set(Some(bytes));
+
+                        let size = unsafe { current.size() };
+                        let composite_image =
+                            unsafe { NSImage::initWithSize(NSImage::alloc(), size) };
+
+                        unsafe {
+                            composite_image.lockFocus();
+
+                            current.drawAtPoint_fromRect_operation_fraction(
+                                NSPoint::new(0.0, 0.0),
+                                NSRect::new(NSPoint::new(0.0, 0.0), size),
+                                objc2_app_kit::NSCompositingOperation::Copy,
+                                1.0,
+                            );
+
+                            let dot_size = size.width * 0.25;
+                            let dot_x = size.width - dot_size - (size.width * 0.05);
+                            let dot_y = size.height - dot_size - (size.height * 0.05);
+
+                            let red_color = NSColor::systemRedColor();
+                            red_color.setFill();
+
+                            let dot_rect = NSRect::new(
+                                NSPoint::new(dot_x, dot_y),
+                                NSSize::new(dot_size, dot_size),
+                            );
+                            let dot_path = NSBezierPath::bezierPathWithOvalInRect(dot_rect);
+                            dot_path.fill();
+
+                            composite_image.unlockFocus();
+
+                            ns_app.setApplicationIconImage(Some(&composite_image));
+                        }
+                    } else {
+                        recording_indicator_state::clear();
+                    }
                 })
                 .map_err(crate::Error::Tauri)?;
 
@@ -132,6 +250,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
                     let ns_app = NSApplication::sharedApplication(mtm);
 
                     if !show {
+                        recording_indicator_state::set_active(false);
                         if let Some(original_data) = recording_indicator_state::get() {
                             let ns_data = NSData::with_bytes(&original_data);
                             let original_image =
@@ -143,6 +262,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
                         }
                         return;
                     }
+
+                    recording_indicator_state::set_active(true);
 
                     let base_image = if let Some(original_data) = recording_indicator_state::get() {
                         let ns_data = NSData::with_bytes(&original_data);

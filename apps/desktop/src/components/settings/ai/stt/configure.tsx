@@ -271,6 +271,7 @@ function LocalModelAction({
   onOpen,
   onDownload,
   onCancel,
+  onDelete,
 }: {
   isDownloaded: boolean;
   showProgress: boolean;
@@ -280,24 +281,38 @@ function LocalModelAction({
   onOpen: () => void;
   onDownload: () => void;
   onCancel: () => void;
+  onDelete: () => void;
 }) {
   const showShimmer = highlight && !isDownloaded && !showProgress && !hasError;
 
   if (isDownloaded) {
     return (
-      <button
-        onClick={onOpen}
-        className={cn([
-          "px-4 py-1.5 rounded-full text-sm font-medium",
-          "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
-          "shadow-sm hover:shadow-md",
-          "transition-all duration-150",
-          "flex items-center gap-1.5",
-        ])}
-      >
-        <Icon icon="mdi:folder-open" className="size-4" />
-        <span>Show Model</span>
-      </button>
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={onOpen}
+          title="Show in Finder"
+          className={cn([
+            "p-2 rounded-full",
+            "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+            "shadow-sm hover:shadow-md",
+            "transition-all duration-150",
+          ])}
+        >
+          <Icon icon="mdi:folder-open" className="size-4" />
+        </button>
+        <button
+          onClick={onDelete}
+          title="Delete Model"
+          className={cn([
+            "p-2 rounded-full",
+            "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+            "shadow-sm hover:shadow-md hover:from-red-100 hover:to-red-50 hover:text-red-600",
+            "transition-all duration-150",
+          ])}
+        >
+          <Icon icon="mdi:delete" className="size-4" />
+        </button>
+      </div>
     );
   }
 
@@ -393,6 +408,7 @@ function HyprProviderLocalRow({
     showProgress,
     handleDownload,
     handleCancel,
+    handleDelete,
   } = useLocalModelDownload(model, handleSelectModel);
 
   const handleOpen = () => {
@@ -419,6 +435,7 @@ function HyprProviderLocalRow({
         onOpen={handleOpen}
         onDownload={handleDownload}
         onCancel={handleCancel}
+        onDelete={handleDelete}
       />
     </HyprProviderRow>
   );

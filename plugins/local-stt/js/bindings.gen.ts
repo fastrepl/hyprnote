@@ -41,6 +41,14 @@ async downloadModel(model: SupportedSttModel) : Promise<Result<null, string>> {
 async cancelDownload(model: SupportedSttModel) : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|cancel_download", { model });
 },
+async deleteModel(model: SupportedSttModel) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|delete_model", { model }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async getServers() : Promise<Result<Partial<{ [key in ServerType]: ServerInfo }>, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|get_servers") };

@@ -289,4 +289,152 @@ mod tests {
         };
         assert_eq!(err.to_close_code(), 4000);
     }
+
+    #[test]
+    fn test_soniox_error_string_code() {
+        let data = br#"{"error_code": "INVALID_API_KEY", "error_message": "API key is invalid"}"#;
+        let err = detect_upstream_error(data).unwrap();
+        assert_eq!(err.code, 500);
+        assert_eq!(err.message, "API key is invalid");
+        assert_eq!(err.provider_code, Some("INVALID_API_KEY".to_string()));
+    }
+
+    #[test]
+    fn test_soniox_error_only_message() {
+        let data = br#"{"error_message": "Something went wrong"}"#;
+        let err = detect_upstream_error(data).unwrap();
+        assert_eq!(err.code, 500);
+        assert_eq!(err.message, "Something went wrong");
+        assert_eq!(err.provider_code, None);
+    }
+
+    #[test]
+    fn test_soniox_error_only_code() {
+        let data = br#"{"error_code": 401}"#;
+        let err = detect_upstream_error(data).unwrap();
+        assert_eq!(err.code, 401);
+        assert_eq!(err.message, "Unknown error");
+        assert_eq!(err.provider_code, Some("401".to_string()));
+    }
+
+    #[test]
+    fn test_deepgram_insufficient_permissions() {
+        let data = br#"{"err_code": "INSUFFICIENT_PERMISSIONS", "err_msg": "Access denied"}"#;
+        let err = detect_upstream_error(data).unwrap();
+        assert_eq!(err.code, 401);
+        assert_eq!(err.message, "Access denied");
+        assert_eq!(err.to_close_code(), 4401);
+    }
+
+    #[test]
+    fn test_deepgram_project_not_found() {
+        let data = br#"{"err_code": "PROJECT_NOT_FOUND", "err_msg": "Project not found"}"#;
+        let err = detect_upstream_error(data).unwrap();
+        assert_eq!(err.code, 404);
+        assert_eq!(err.to_close_code(), 4404);
+    }
+
+    #[test]
+    fn test_deepgram_unknown_err_code() {
+        let data = br#"{"err_code": "UNKNOWN_ERROR", "err_msg": "Something happened"}"#;
+        let err = detect_upstream_error(data).unwrap();
+        assert_eq!(err.code, 500);
+        assert_eq!(err.provider_code, Some("UNKNOWN_ERROR".to_string()));
+    }
+
+    #[test]
+    fn test_deepgram_message_with_error_keyword() {
+        let data = br#"{"err_msg": "An error occurred during processing"}"#;
+        let err = detect_upstream_error(data).unwrap();
+        assert_eq!(err.code, 500);
+        assert_eq!(err.message, "An error occurred during processing");
+    }
+
+    #[test]
+    fn test_deepgram_message_without_error_keyword() {
+        let data = br#"{"message": "Processing complete"}"#;
+        assert!(detect_upstream_error(data).is_none());
+    }
+
+    #[test]
+    fn test_close_code_all_mappings() {
+        assert_eq!(
+            UpstreamError {
+                code: 401,
+                message: "".to_string(),
+                provider_code: None
+            }
+            .to_close_code(),
+            4401
+        );
+        assert_eq!(
+            UpstreamError {
+                code: 402,
+                message: "".to_string(),
+                provider_code: None
+            }
+            .to_close_code(),
+            4402
+        );
+        assert_eq!(
+            UpstreamError {
+                code: 403,
+                message: "".to_string(),
+                provider_code: None
+            }
+            .to_close_code(),
+            4403
+        );
+        assert_eq!(
+            UpstreamError {
+                code: 404,
+                message: "".to_string(),
+                provider_code: None
+            }
+            .to_close_code(),
+            4404
+        );
+        assert_eq!(
+            UpstreamError {
+                code: 429,
+                message: "".to_string(),
+                provider_code: None
+            }
+            .to_close_code(),
+            4429
+        );
+        assert_eq!(
+            UpstreamError {
+                code: 599,
+                message: "".to_string(),
+                provider_code: None
+            }
+            .to_close_code(),
+            4500
+        );
+    }
+
+    #[test]
+    fn test_empty_data() {
+        let data = b"";
+        assert!(detect_upstream_error(data).is_none());
+    }
+
+    #[test]
+    fn test_whitespace_only() {
+        let data = b"   ";
+        assert!(detect_upstream_error(data).is_none());
+    }
+
+    #[test]
+    fn test_null_json() {
+        let data = b"null";
+        assert!(detect_upstream_error(data).is_none());
+    }
+
+    #[test]
+    fn test_array_json() {
+        let data = br#"[{"error_code": 400}]"#;
+        assert!(detect_upstream_error(data).is_none());
+    }
 }

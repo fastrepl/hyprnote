@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 hypr-analytics = { workspace = true }
+hypr-health = { workspace = true }
 hypr-language = { workspace = true }
 owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }

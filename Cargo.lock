@@ -8657,6 +8657,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "health"
+version = "0.0.0"
+dependencies = [
+ "serde",
+ "strum 0.26.3",
+]
+
+[[package]]
 name = "heapless"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10691,6 +10699,7 @@ dependencies = [
  "axum 0.8.8",
  "bytes",
  "futures-util",
+ "health",
  "reqwest",
  "serde",
  "serde_json",
@@ -20511,6 +20520,7 @@ dependencies = [
  "bytes",
  "data",
  "futures-util",
+ "health",
  "language",
  "owhisper-client",
  "owhisper-interface",

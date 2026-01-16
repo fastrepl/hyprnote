@@ -60,6 +60,7 @@ hypr-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-granola = { path = "crates/granola", package = "granola" }
+hypr-health = { path = "crates/health", package = "health" }
 hypr-host = { path = "crates/host", package = "host" }
 hypr-intercept = { path = "crates/intercept", package = "intercept" }
 hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }

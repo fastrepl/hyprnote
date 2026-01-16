@@ -184,11 +184,7 @@ fn format_llm_output(snapshot: &LlmHealthSnapshot) -> String {
 
     if let Some(ref error) = snapshot.last_error {
         let age = error.timestamp.elapsed().as_secs();
-        parts.push(format!(
-            "Last error: {}s ago ({})",
-            age,
-            error.error_type.display()
-        ));
+        parts.push(format!("Last error: {}s ago ({})", age, error.error_type));
     }
 
     parts.join(", ")
@@ -205,11 +201,7 @@ fn format_stt_output(snapshot: &SttHealthSnapshot) -> String {
 
     if let Some(ref error) = snapshot.last_error {
         let age = error.timestamp.elapsed().as_secs();
-        parts.push(format!(
-            "Last error: {}s ago ({})",
-            age,
-            error.error_type.display()
-        ));
+        parts.push(format!("Last error: {}s ago ({})", age, error.error_type));
     }
 
     parts.join(", ")

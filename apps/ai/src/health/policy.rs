@@ -47,68 +47,14 @@ impl ReadinessPolicy {
     pub fn evaluate_stt(
         snapshot: &hypr_transcribe_proxy::health::HealthSnapshot,
     ) -> ComponentReadiness {
-        if let Some(ref error) = snapshot.last_error {
-            let error_type = match error.error_type {
-                hypr_transcribe_proxy::health::ErrorType::RateLimited => ErrorType::RateLimited,
-                hypr_transcribe_proxy::health::ErrorType::PaymentRequired => {
-                    ErrorType::PaymentRequired
-                }
-                hypr_transcribe_proxy::health::ErrorType::Unauthorized => ErrorType::Unauthorized,
-                hypr_transcribe_proxy::health::ErrorType::NotFound => ErrorType::NotFound,
-                hypr_transcribe_proxy::health::ErrorType::BadRequest => ErrorType::BadRequest,
-                hypr_transcribe_proxy::health::ErrorType::ServerError => ErrorType::ServerError,
-                hypr_transcribe_proxy::health::ErrorType::ConnectionError => {
-                    ErrorType::ConnectionError
-                }
-                hypr_transcribe_proxy::health::ErrorType::Other => ErrorType::Other,
-            };
-            let age = error.timestamp.elapsed();
-            match Self::classify_error_severity(&error_type, age) {
-                ErrorSeverity::Blocking => {
-                    return ComponentReadiness {
-                        status: HealthStatus::Fail,
-                        message: Some(format!("{}: {}", error_type.display(), error.message)),
-                    };
-                }
-                ErrorSeverity::Degraded => {
-                    return ComponentReadiness {
-                        status: HealthStatus::Warn,
-                        message: Some(format!("{}: {}", error_type.display(), error.message)),
-                    };
-                }
-                ErrorSeverity::Transient => {}
-            }
-        }
-
-        if snapshot.total_requests < MIN_SAMPLE_SIZE {
-            return ComponentReadiness {
-                status: HealthStatus::Pass,
-                message: None,
-            };
-        }
-
-        if snapshot.error_rate > FAIL_ERROR_RATE {
-            ComponentReadiness {
-                status: HealthStatus::Fail,
-                message: Some(format!(
-                    "High error rate: {:.1}%",
-                    snapshot.error_rate * 100.0
-                )),
-            }
-        } else if snapshot.error_rate > WARN_ERROR_RATE {
-            ComponentReadiness {
-                status: HealthStatus::Warn,
-                message: Some(format!(
-                    "Elevated error rate: {:.1}%",
-                    snapshot.error_rate * 100.0
-                )),
-            }
-        } else {
-            ComponentReadiness {
-                status: HealthStatus::Pass,
-                message: None,
-            }
-        }
+        Self::evaluate_impl(
+            snapshot
+                .last_error
+                .as_ref()
+                .map(|e| (&e.error_type, e.timestamp.elapsed(), &e.message)),
+            snapshot.total_requests,
+            snapshot.error_rate,
+        )
     }
 
     fn evaluate_impl(
@@ -121,13 +67,13 @@ impl ReadinessPolicy {
                 ErrorSeverity::Blocking => {
                     return ComponentReadiness {
                         status: HealthStatus::Fail,
-                        message: Some(format!("{}: {}", error_type.display(), message)),
+                        message: Some(format!("{}: {}", error_type, message)),
                     };
                 }
                 ErrorSeverity::Degraded => {
                     return ComponentReadiness {
                         status: HealthStatus::Warn,
-                        message: Some(format!("{}: {}", error_type.display(), message)),
+                        message: Some(format!("{}: {}", error_type, message)),
                     };
                 }
                 ErrorSeverity::Transient => {}

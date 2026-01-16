@@ -52,6 +52,11 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
+import {
+  ScrollFadeOverlay,
+  useScrollFade,
+} from "@hypr/ui/components/ui/scroll-fade";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 import { defaultMDXComponents } from "@/components/mdx";
@@ -189,6 +194,7 @@ function CollectionsPage() {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isCreatingNewPost, setIsCreatingNewPost] = useState(false);
   const [editingItem, setEditingItem] = useState<EditingItem | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] =
     useState<DeleteConfirmation | null>(null);
@@ -390,7 +396,17 @@ function CollectionsPage() {
           onFileClick={(item) => openTab("file", item.name, item.path)}
           clipboard={clipboard}
           onClipboardChange={setClipboard}
-          onImportClick={() => setIsImportModalOpen(true)}
+          onNewPostClick={() => setIsCreatingNewPost(true)}
+          isCreatingNewPost={isCreatingNewPost}
+          onCreateNewPost={(slug) => {
+            createMutation.mutate({
+              folder: "articles",
+              name: `${slug}.mdx`,
+              type: "file",
+            });
+            setIsCreatingNewPost(false);
+          }}
+          onCancelNewPost={() => setIsCreatingNewPost(false)}
           editingItem={editingItem}
           onEditingItemChange={setEditingItem}
           onRenameItem={(fromPath, toPath) =>
@@ -425,6 +441,7 @@ function CollectionsPage() {
             onReorderTabs={reorderTabs}
             filteredItems={filteredItems}
             onFileClick={(item) => openTab("file", item.name, item.path)}
+            onOpenImport={() => setIsImportModalOpen(true)}
           />
         </div>
       </ResizablePanel>
@@ -468,8 +485,11 @@ function CollectionsPage() {
                   }
                 }}
                 disabled={deleteMutation.isPending}
-                className="px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
+                className="px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50 flex items-center gap-2"
               >
+                {deleteMutation.isPending && (
+                  <Spinner size={14} color="white" />
+                )}
                 {deleteMutation.isPending ? "Deleting..." : "Delete"}
               </button>
             </div>
@@ -487,7 +507,10 @@ function Sidebar({
   onFileClick,
   clipboard,
   onClipboardChange,
-  onImportClick,
+  onNewPostClick,
+  isCreatingNewPost,
+  onCreateNewPost,
+  onCancelNewPost,
   editingItem,
   onEditingItemChange,
   onRenameItem,
@@ -502,7 +525,10 @@ function Sidebar({
   onFileClick: (item: ContentItem) => void;
   clipboard: ClipboardItem | null;
   onClipboardChange: (item: ClipboardItem | null) => void;
-  onImportClick: () => void;
+  onNewPostClick: () => void;
+  isCreatingNewPost: boolean;
+  onCreateNewPost: (slug: string) => void;
+  onCancelNewPost: () => void;
   editingItem: EditingItem | null;
   onEditingItemChange: (item: EditingItem | null) => void;
   onRenameItem: (fromPath: string, toPath: string) => void;
@@ -511,6 +537,11 @@ function Sidebar({
   isLoading: boolean;
   selectedPath: string | null;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { atStart, atEnd } = useScrollFade(scrollRef, "vertical", [
+    collections,
+  ]);
+
   return (
     <div className="h-full border-r border-neutral-200 bg-white flex flex-col min-h-0">
       <div className="h-10 pl-4 pr-2 flex items-center border-b border-neutral-200">
@@ -531,37 +562,55 @@ function Sidebar({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {collections[0]?.items.map((item) => (
-          <FileItemSidebar
-            key={item.path}
-            item={item}
-            onClick={() => onFileClick(item)}
-            clipboard={clipboard}
-            onClipboardChange={onClipboardChange}
-            editingItem={editingItem}
-            onEditingItemChange={onEditingItemChange}
-            onRenameItem={onRenameItem}
-            onDeleteItem={onDeleteItem}
-            onDuplicateItem={onDuplicateItem}
-            collectionName="articles"
-            isLoading={isLoading}
-            isSelected={selectedPath === item.path}
-          />
-        ))}
+      <div className="flex-1 relative min-h-0">
+        {!atStart && <ScrollFadeOverlay position="top" />}
+        {!atEnd && <ScrollFadeOverlay position="bottom" />}
+        <div ref={scrollRef} className="h-full overflow-y-auto">
+          {isCreatingNewPost && (
+            <NewPostInlineInput
+              existingSlugs={
+                collections[0]?.items.map((item) => item.slug) || []
+              }
+              onSubmit={onCreateNewPost}
+              onCancel={onCancelNewPost}
+              isLoading={isLoading}
+            />
+          )}
+          {collections[0]?.items.map((item) => (
+            <FileItemSidebar
+              key={item.path}
+              item={item}
+              onClick={() => onFileClick(item)}
+              clipboard={clipboard}
+              onClipboardChange={onClipboardChange}
+              editingItem={editingItem}
+              onEditingItemChange={onEditingItemChange}
+              onRenameItem={onRenameItem}
+              onDeleteItem={onDeleteItem}
+              onDuplicateItem={onDuplicateItem}
+              collectionName="articles"
+              isLoading={isLoading}
+              isSelected={selectedPath === item.path}
+            />
+          ))}
+        </div>
       </div>
 
-      <button
-        onClick={onImportClick}
-        className={cn([
-          "h-10 px-4 flex items-center gap-2 text-sm w-full",
-          "text-neutral-600 hover:bg-neutral-50 transition-colors",
-          "border-t border-neutral-200",
-        ])}
-      >
-        <PlusIcon className="size-4" />
-        Import
-      </button>
+      <div className="p-3">
+        <button
+          onClick={onNewPostClick}
+          disabled={isCreatingNewPost}
+          className={cn([
+            "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
+            "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
+            "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+            "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm",
+          ])}
+        >
+          <PlusIcon className="size-4" />
+          New Post
+        </button>
+      </div>
     </div>
   );
 }
@@ -637,7 +686,7 @@ function FileItemSidebar({
       onClick={onClick}
       onContextMenu={handleContextMenu}
     >
-      <FileTextIcon className="size-4 text-neutral-400" />
+      <FileTextIcon className="size-4 text-neutral-400 shrink-0" />
       <span className="truncate text-neutral-600">{item.name}</span>
 
       {contextMenu && (
@@ -722,14 +771,14 @@ function InlineInput({
   return (
     <div
       className={cn([
-        "flex items-center gap-1.5 py-1 pl-3 pr-2 text-sm",
-        "bg-blue-50 border-l-2 border-blue-400",
+        "flex items-center gap-1.5 py-1.5 pl-4 pr-2 text-sm",
+        "bg-neutral-100",
       ])}
     >
       {type === "file" ? (
-        <FileTextIcon className="size-4 text-neutral-400" />
+        <FileTextIcon className="size-4 text-neutral-400 shrink-0" />
       ) : (
-        <FolderIcon className="size-4 text-neutral-400" />
+        <FolderIcon className="size-4 text-neutral-400 shrink-0" />
       )}
       <input
         ref={inputRef}
@@ -741,12 +790,121 @@ function InlineInput({
         disabled={isLoading}
         placeholder={type === "file" ? "filename" : "folder name"}
         className={cn([
-          "flex-1 text-xs bg-transparent outline-none",
-          "text-neutral-700 placeholder:text-neutral-400",
+          "flex-1 text-sm bg-transparent outline-none",
+          "text-neutral-600 placeholder:text-neutral-400",
         ])}
       />
-      {type === "file" && (
-        <span className="text-xs text-neutral-400">.mdx</span>
+    </div>
+  );
+}
+
+function NewPostInlineInput({
+  existingSlugs,
+  onSubmit,
+  onCancel,
+  isLoading,
+}: {
+  existingSlugs: string[];
+  onSubmit: (slug: string) => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}) {
+  const [value, setValue] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const validateSlug = (slug: string): string | null => {
+    if (!slug.trim()) {
+      return "Slug cannot be empty";
+    }
+
+    // Check if slug already exists
+    if (existingSlugs.includes(slug.toLowerCase())) {
+      return "Slug already exists";
+    }
+
+    // Validate slug format: lowercase, alphanumeric, hyphens only
+    const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+    if (!slugRegex.test(slug)) {
+      return "Slug must be lowercase, alphanumeric, and hyphens only";
+    }
+
+    return null;
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      const slug = value.trim().toLowerCase();
+      const validationError = validateSlug(slug);
+      if (validationError) {
+        setError(validationError);
+      } else {
+        setError(null);
+        onSubmit(slug);
+      }
+    } else if (e.key === "Escape") {
+      onCancel();
+    }
+  };
+
+  const handleBlur = () => {
+    if (!value.trim()) {
+      onCancel();
+      return;
+    }
+
+    const slug = value.trim().toLowerCase();
+    const validationError = validateSlug(slug);
+    if (validationError) {
+      setError(validationError);
+      // Keep focus if there's an error
+      setTimeout(() => inputRef.current?.focus(), 0);
+    } else {
+      setError(null);
+      onSubmit(slug);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value.toLowerCase();
+    setValue(newValue);
+    // Clear error on change
+    if (error) {
+      setError(null);
+    }
+  };
+
+  return (
+    <div>
+      <div
+        className={cn([
+          "flex items-center gap-1.5 py-1.5 pl-4 pr-2 text-sm",
+          error ? "bg-red-50" : "bg-neutral-100",
+        ])}
+      >
+        <FileTextIcon className="size-4 text-neutral-400 shrink-0" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          disabled={isLoading}
+          placeholder="enter-slug-here"
+          className={cn([
+            "flex-1 text-sm bg-transparent outline-none",
+            error ? "text-red-700" : "text-neutral-600",
+            "placeholder:text-neutral-400",
+          ])}
+        />
+      </div>
+      {error && (
+        <div className="px-4 py-1 text-xs text-red-600 bg-red-50">{error}</div>
       )}
     </div>
   );
@@ -935,6 +1093,7 @@ function ContentPanel({
   onReorderTabs,
   filteredItems,
   onFileClick,
+  onOpenImport,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -946,6 +1105,7 @@ function ContentPanel({
   onReorderTabs: (tabs: Tab[]) => void;
   filteredItems: ContentItem[];
   onFileClick: (item: ContentItem) => void;
+  onOpenImport: () => void;
 }) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [editorData, setEditorData] = useState<EditorData | null>(null);
@@ -1015,6 +1175,7 @@ function ContentPanel({
               onDataChange={setEditorData}
               onSave={handleSave}
               isSaving={isSaving}
+              onOpenImport={onOpenImport}
             />
           )}
         </div>
@@ -1231,6 +1392,13 @@ function TabItem({
     }
   };
 
+  const handleAuxClick = (e: React.MouseEvent) => {
+    if (e.button === 1) {
+      e.preventDefault();
+      onClose();
+    }
+  };
+
   return (
     <>
       <div
@@ -1244,6 +1412,7 @@ function TabItem({
         onClick={onSelect}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
+        onAuxClick={handleAuxClick}
       >
         {tab.type === "collection" ? (
           <FolderIcon className="size-4 text-neutral-400" />
@@ -1729,7 +1898,10 @@ function GitHistory({ filePath }: { filePath: string }) {
       {isExpanded && (
         <div className="px-4 pb-4 space-y-2">
           {isLoading ? (
-            <p className="text-xs text-neutral-400">Loading...</p>
+            <div className="flex items-center gap-2 text-xs text-neutral-400">
+              <Spinner size={12} />
+              Loading...
+            </div>
           ) : commits.length === 0 ? (
             <p className="text-xs text-neutral-400">No commit history</p>
           ) : (
@@ -1900,8 +2072,12 @@ const FileEditor = React.forwardRef<
     onDataChange: (data: EditorData) => void;
     onSave: () => void;
     isSaving: boolean;
+    onOpenImport?: () => void;
   }
->(function FileEditor({ filePath, isPreviewMode, onDataChange, onSave }, _ref) {
+>(function FileEditor(
+  { filePath, isPreviewMode, onDataChange, onSave, onOpenImport },
+  _ref,
+) {
   const fileContent = useMemo(() => getFileContent(filePath), [filePath]);
 
   const [content, setContent] = useState(fileContent?.content || "");
@@ -2015,6 +2191,36 @@ const FileEditor = React.forwardRef<
         <div className="text-center">
           <FileWarningIcon className="size-10 mb-3" />
           <p className="text-sm">File not found</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isContentEmpty = !content || content.trim() === "";
+
+  if (isContentEmpty && onOpenImport) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <FileTextIcon className="size-12 mb-4 text-neutral-300 mx-auto" />
+          <h3 className="text-lg font-medium text-neutral-700 mb-2">
+            Empty Article
+          </h3>
+          <p className="text-sm text-neutral-500 mb-6">
+            This article has no content yet. You can start writing or import
+            content from a Google Doc.
+          </p>
+          <button
+            onClick={onOpenImport}
+            className={cn([
+              "px-4 py-2 text-sm font-medium rounded-lg",
+              "bg-blue-600 text-white hover:bg-blue-700",
+              "transition-colors flex items-center gap-2 mx-auto",
+            ])}
+          >
+            <SquareArrowOutUpRightIcon className="size-4" />
+            Import from Google Docs
+          </button>
         </div>
       </div>
     );
@@ -2468,8 +2674,9 @@ function ImportModal({
           <button
             onClick={handleImport}
             disabled={importMutation.isPending || !url}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
           >
+            {importMutation.isPending && <Spinner size={14} color="white" />}
             {importMutation.isPending ? "Importing..." : "Import Document"}
           </button>
 
@@ -2513,8 +2720,11 @@ function ImportModal({
                 <button
                   onClick={handleSave}
                   disabled={saveMutation.isPending || !editedMdx || !slug}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
                 >
+                  {saveMutation.isPending && (
+                    <Spinner size={14} color="white" />
+                  )}
                   {saveMutation.isPending ? "Saving..." : "Save to Repository"}
                 </button>
               </div>

@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { env } from "@/env";
+import { getSupabaseServerClient } from "@/functions/supabase";
 
 const GITHUB_REPO = "fastrepl/hyprnote";
 const GITHUB_BRANCH = "main";
@@ -24,8 +24,69 @@ const VALID_FOLDERS = [
   "templates",
 ];
 
-function getGitHubToken(): string | undefined {
-  return env.YUJONGLEE_GITHUB_TOKEN_REPO;
+const GITHUB_USERNAME_TO_AUTHOR: Record<
+  string,
+  { name: string; email: string }
+> = {
+  yujonglee: { name: "Yujong Lee", email: "yujonglee@hyprnote.com" },
+  ComputelessComputer: { name: "John Jeong", email: "john@hyprnote.com" },
+};
+
+interface GitHubCredentials {
+  token: string;
+  author?: { name: string; email: string };
+}
+
+interface CommitBody {
+  message: string;
+  content?: string;
+  sha?: string;
+  branch: string;
+  author?: { name: string; email: string };
+  committer?: { name: string; email: string };
+}
+
+function buildCommitBody(
+  message: string,
+  author?: { name: string; email: string },
+  options?: { content?: string; sha?: string },
+): CommitBody {
+  const body: CommitBody = {
+    message,
+    branch: GITHUB_BRANCH,
+  };
+  if (options?.content !== undefined) body.content = options.content;
+  if (options?.sha) body.sha = options.sha;
+  if (author) {
+    body.author = author;
+    body.committer = author;
+  }
+  return body;
+}
+
+async function getGitHubCredentials(): Promise<GitHubCredentials | undefined> {
+  const supabase = getSupabaseServerClient();
+  const { data: userData } = await supabase.auth.getUser();
+
+  if (!userData.user?.id) {
+    return undefined;
+  }
+
+  const { data: admin } = await supabase
+    .from("admins")
+    .select("github_token, github_username")
+    .eq("id", userData.user.id)
+    .single();
+
+  if (!admin?.github_token) {
+    return undefined;
+  }
+
+  const author = admin.github_username
+    ? GITHUB_USERNAME_TO_AUTHOR[admin.github_username]
+    : undefined;
+
+  return { token: admin.github_token, author };
 }
 
 function sanitizeFilename(filename: string): string {
@@ -142,10 +203,11 @@ export async function createContentFile(
     }
   }
 
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return { success: false, error: "GitHub token not configured" };
   }
+  const { token: githubToken, author } = credentials;
 
   const filePath = getFullPath(folder, safeFilename);
 
@@ -175,11 +237,15 @@ export async function createContentFile(
           Accept: "application/vnd.github.v3+json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          message: `Create ${folder}/${safeFilename} via admin`,
-          content: contentBase64,
-          branch: GITHUB_BRANCH,
-        }),
+        body: JSON.stringify(
+          buildCommitBody(
+            `Create ${folder}/${safeFilename} via admin`,
+            author,
+            {
+              content: contentBase64,
+            },
+          ),
+        ),
       },
     );
 
@@ -241,10 +307,11 @@ export async function createContentFolder(
     }
   }
 
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return { success: false, error: "GitHub token not configured" };
   }
+  const { token: githubToken, author } = credentials;
 
   const folderPath = `${CONTENT_PATH}/${parentFolder}/${sanitizedFolderName}/.gitkeep`;
 
@@ -258,11 +325,13 @@ export async function createContentFolder(
           "Content-Type": "application/json",
           Accept: "application/vnd.github.v3+json",
         },
-        body: JSON.stringify({
-          message: `Create folder ${parentFolder}/${sanitizedFolderName} via admin`,
-          content: "",
-          branch: GITHUB_BRANCH,
-        }),
+        body: JSON.stringify(
+          buildCommitBody(
+            `Create folder ${parentFolder}/${sanitizedFolderName} via admin`,
+            author,
+            { content: "" },
+          ),
+        ),
       },
     );
 
@@ -290,10 +359,41 @@ export async function renameContentFile(
   fromPath: string,
   toPath: string,
 ): Promise<{ success: boolean; newPath?: string; error?: string }> {
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  if (isDev()) {
+    try {
+      const localFromPath = path.join(getLocalContentPath(), fromPath);
+      const localToPath = path.join(getLocalContentPath(), toPath);
+
+      if (!fs.existsSync(localFromPath)) {
+        return { success: false, error: `Source file not found: ${fromPath}` };
+      }
+      if (fs.existsSync(localToPath)) {
+        return {
+          success: false,
+          error: `Target file already exists: ${toPath}`,
+        };
+      }
+
+      const dir = path.dirname(localToPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      fs.renameSync(localFromPath, localToPath);
+      return { success: true, newPath: toPath };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to rename file locally: ${(error as Error).message}`,
+      };
+    }
+  }
+
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return { success: false, error: "GitHub token not configured" };
   }
+  const { token: githubToken, author } = credentials;
 
   const fullFromPath = fromPath.startsWith("apps/web/content")
     ? fromPath
@@ -333,11 +433,11 @@ export async function renameContentFile(
           "Content-Type": "application/json",
           Accept: "application/vnd.github.v3+json",
         },
-        body: JSON.stringify({
-          message: `Rename ${fromPath} to ${toPath} via admin`,
-          content,
-          branch: GITHUB_BRANCH,
-        }),
+        body: JSON.stringify(
+          buildCommitBody(`Rename ${fromPath} to ${toPath} via admin`, author, {
+            content,
+          }),
+        ),
       },
     );
 
@@ -358,11 +458,13 @@ export async function renameContentFile(
           "Content-Type": "application/json",
           Accept: "application/vnd.github.v3+json",
         },
-        body: JSON.stringify({
-          message: `Rename ${fromPath} to ${toPath} via admin (delete original)`,
-          sha,
-          branch: GITHUB_BRANCH,
-        }),
+        body: JSON.stringify(
+          buildCommitBody(
+            `Rename ${fromPath} to ${toPath} via admin (delete original)`,
+            author,
+            { sha },
+          ),
+        ),
       },
     );
 
@@ -401,10 +503,11 @@ export async function deleteContentFile(
     }
   }
 
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return { success: false, error: "GitHub token not configured" };
   }
+  const { token: githubToken, author } = credentials;
 
   const fullPath = filePath.startsWith("apps/web/content")
     ? filePath
@@ -440,11 +543,9 @@ export async function deleteContentFile(
           "Content-Type": "application/json",
           Accept: "application/vnd.github.v3+json",
         },
-        body: JSON.stringify({
-          message: `Delete ${filePath} via admin`,
-          sha,
-          branch: GITHUB_BRANCH,
-        }),
+        body: JSON.stringify(
+          buildCommitBody(`Delete ${filePath} via admin`, author, { sha }),
+        ),
       },
     );
 
@@ -485,10 +586,11 @@ export async function updateContentFile(
     }
   }
 
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return { success: false, error: "GitHub token not configured" };
   }
+  const { token: githubToken, author } = credentials;
 
   const fullPath = filePath.startsWith("apps/web/content")
     ? filePath
@@ -526,12 +628,12 @@ export async function updateContentFile(
           "Content-Type": "application/json",
           Accept: "application/vnd.github.v3+json",
         },
-        body: JSON.stringify({
-          message: `Update ${filePath} via admin`,
-          content: contentBase64,
-          sha,
-          branch: GITHUB_BRANCH,
-        }),
+        body: JSON.stringify(
+          buildCommitBody(`Update ${filePath} via admin`, author, {
+            content: contentBase64,
+            sha,
+          }),
+        ),
       },
     );
 
@@ -556,10 +658,59 @@ export async function duplicateContentFile(
   sourcePath: string,
   newFilename?: string,
 ): Promise<{ success: boolean; path?: string; error?: string }> {
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  if (isDev()) {
+    try {
+      const localSourcePath = path.join(getLocalContentPath(), sourcePath);
+
+      if (!fs.existsSync(localSourcePath)) {
+        return {
+          success: false,
+          error: `Source file not found: ${sourcePath}`,
+        };
+      }
+
+      const pathParts = sourcePath.split("/");
+      const originalFilename = pathParts.pop() || "";
+      const folder = pathParts.join("/");
+
+      let targetFilename: string;
+      if (newFilename) {
+        targetFilename = sanitizeFilename(newFilename);
+        if (!targetFilename.endsWith(".mdx")) {
+          targetFilename = `${targetFilename}.mdx`;
+        }
+      } else {
+        const baseName = originalFilename.replace(/\.mdx$/, "");
+        targetFilename = `${baseName}-copy.mdx`;
+      }
+
+      const targetPath = `${folder}/${targetFilename}`;
+      const localTargetPath = path.join(getLocalContentPath(), targetPath);
+
+      if (fs.existsSync(localTargetPath)) {
+        return {
+          success: false,
+          error: `File already exists: ${targetFilename}`,
+        };
+      }
+
+      const content = fs.readFileSync(localSourcePath);
+      fs.writeFileSync(localTargetPath, content);
+
+      return { success: true, path: targetPath };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to duplicate file locally: ${(error as Error).message}`,
+      };
+    }
+  }
+
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return { success: false, error: "GitHub token not configured" };
   }
+  const { token: githubToken, author } = credentials;
 
   const fullSourcePath = sourcePath.startsWith("apps/web/content")
     ? sourcePath
@@ -629,11 +780,13 @@ export async function duplicateContentFile(
           "Content-Type": "application/json",
           Accept: "application/vnd.github.v3+json",
         },
-        body: JSON.stringify({
-          message: `Duplicate ${sourcePath} as ${targetFilename} via admin`,
-          content,
-          branch: GITHUB_BRANCH,
-        }),
+        body: JSON.stringify(
+          buildCommitBody(
+            `Duplicate ${sourcePath} as ${targetFilename} via admin`,
+            author,
+            { content },
+          ),
+        ),
       },
     );
 

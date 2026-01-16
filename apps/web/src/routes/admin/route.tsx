@@ -28,6 +28,11 @@ export const Route = createFileRoute("/admin")({
     if (!user) {
       throw redirect({
         to: "/auth/",
+        search: {
+          provider: "github",
+          redirect: "/admin/collections/",
+          rra: true,
+        },
       });
     }
 

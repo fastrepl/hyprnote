@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { cn } from "@hypr/utils";
 
+import { isAdminEmail } from "@/functions/admin";
 import { getSupabaseServerClient } from "@/functions/supabase";
 
 const validateSearch = z.object({
@@ -24,9 +25,23 @@ export const Route = createFileRoute("/_view/callback/auth")({
   beforeLoad: async ({ search }) => {
     if (search.flow === "web" && search.code) {
       const supabase = getSupabaseServerClient();
-      const { error } = await supabase.auth.exchangeCodeForSession(search.code);
+      const { data, error } = await supabase.auth.exchangeCodeForSession(
+        search.code,
+      );
 
-      if (!error) {
+      if (!error && data.session) {
+        const email = data.session.user.email;
+        if (data.session.provider_token && email && isAdminEmail(email)) {
+          const githubUsername =
+            data.session.user.user_metadata?.user_name ||
+            data.session.user.user_metadata?.preferred_username;
+          await supabase.from("admins").upsert({
+            id: data.session.user.id,
+            github_token: data.session.provider_token,
+            github_username: githubUsername,
+            updated_at: new Date().toISOString(),
+          });
+        }
         throw redirect({ to: search.redirect || "/app/account/" });
       } else {
         console.error(error);
@@ -40,6 +55,18 @@ export const Route = createFileRoute("/_view/callback/auth")({
       );
 
       if (!error && data.session) {
+        const email = data.session.user.email;
+        if (data.session.provider_token && email && isAdminEmail(email)) {
+          const githubUsername =
+            data.session.user.user_metadata?.user_name ||
+            data.session.user.user_metadata?.preferred_username;
+          await supabase.from("admins").upsert({
+            id: data.session.user.id,
+            github_token: data.session.provider_token,
+            github_username: githubUsername,
+            updated_at: new Date().toISOString(),
+          });
+        }
         throw redirect({
           to: "/callback/auth/",
           search: {

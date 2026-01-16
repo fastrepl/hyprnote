@@ -87,7 +87,6 @@ const supabase =
           persistSession: true,
           detectSessionInUrl: false,
           lock: processLock,
-          lockAcquireTimeout: 30000,
         },
       })
     : null;

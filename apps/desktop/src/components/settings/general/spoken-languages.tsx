@@ -7,46 +7,15 @@ import { cn } from "@hypr/utils";
 
 import { getLanguageDisplayName } from "../../../utils/language";
 
-const MAJOR_LANGUAGE_CODES = new Set([
-  "en-US",
-  "en-GB",
-  "zh-CN",
-  "zh-TW",
-  "yue",
-  "ja",
-  "ko",
-  "es",
-  "es-419",
-  "fr",
-  "fr-CA",
-  "de",
-  "pt-BR",
-  "pt-PT",
-  "it",
-  "nl",
-  "ru",
-  "ar",
-  "hi",
-  "vi",
-  "th",
-  "id",
-  "pl",
-  "tr",
-  "uk",
-  "sv",
-  "da",
-  "fi",
-  "no",
-  "cs",
-  "el",
-  "he",
-  "ro",
-  "hu",
-  "sk",
-  "bg",
-  "ms",
-  "ca",
-]);
+const PREFERRED_VARIANTS: Record<string, string[]> = {
+  en: ["en-US", "en-GB"],
+  zh: ["zh-CN", "zh-TW"],
+  es: ["es", "es-419"],
+  fr: ["fr", "fr-CA"],
+  pt: ["pt-BR", "pt-PT"],
+};
+
+const STANDALONE_CODES = new Set(["yue"]);
 
 const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
   "zh-CN": "Mandarin",
@@ -56,6 +25,25 @@ const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
 
 function getDisplayName(code: string): string {
   return DISPLAY_NAME_OVERRIDES[code] ?? getLanguageDisplayName(code);
+}
+
+function getBaseLanguage(code: string): string {
+  return code.split("-")[0];
+}
+
+function shouldShowLanguage(langCode: string): boolean {
+  if (STANDALONE_CODES.has(langCode)) {
+    return true;
+  }
+
+  const baseLang = getBaseLanguage(langCode);
+  const preferredVariants = PREFERRED_VARIANTS[baseLang];
+
+  if (preferredVariants) {
+    return preferredVariants.includes(langCode);
+  }
+
+  return !langCode.includes("-");
 }
 
 function hasRegionVariant(langCode: string): boolean {
@@ -83,7 +71,7 @@ export function SpokenLanguagesView({
     }
     const query = languageSearchQuery.toLowerCase();
     return supportedLanguages.filter((langCode) => {
-      if (!MAJOR_LANGUAGE_CODES.has(langCode)) {
+      if (!shouldShowLanguage(langCode)) {
         return false;
       }
       const langName = getDisplayName(langCode);

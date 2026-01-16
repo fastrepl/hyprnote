@@ -5,18 +5,17 @@ mod live;
 
 // https://developers.deepgram.com/docs/models-languages-overview
 const NOVA3_GENERAL_LANGUAGES: &[&str] = &[
-    "bg", "ca", "cs", "da", "da-DK", "de", "de-CH", "el", "en", "en-AU", "en-GB", "en-IN", "en-NZ",
-    "en-US", "es", "es-419", "et", "fi", "fr", "fr-CA", "hi", "hu", "id", "it", "ja", "ko",
-    "ko-KR", "lt", "lv", "ms", "nl", "nl-BE", "no", "pl", "pt", "pt-BR", "pt-PT", "ro", "ru", "sk",
-    "sv", "sv-SE", "tr", "uk", "vi",
+    "bg", "ca", "cs", "da", "de", "de-CH", "el", "en", "en-AU", "en-GB", "en-IN", "en-NZ", "en-US",
+    "es", "es-419", "et", "fi", "fr", "fr-CA", "hi", "hu", "id", "it", "ja", "ko", "lt", "lv",
+    "ms", "nl", "nl-BE", "no", "pl", "pt", "pt-BR", "pt-PT", "ro", "ru", "sk", "sv", "tr", "uk",
+    "vi",
 ];
 
 const NOVA2_GENERAL_LANGUAGES: &[&str] = &[
-    "bg", "ca", "cs", "da", "da-DK", "de", "de-CH", "el", "en", "en-AU", "en-GB", "en-IN", "en-NZ",
-    "en-US", "es", "es-419", "et", "fi", "fr", "fr-CA", "hi", "hu", "id", "it", "ja", "ko",
-    "ko-KR", "lt", "lv", "ms", "nl", "nl-BE", "no", "pl", "pt", "pt-BR", "pt-PT", "ro", "ru", "sk",
-    "sv", "sv-SE", "th", "th-TH", "tr", "uk", "vi", "zh", "zh-CN", "zh-HK", "zh-Hans", "zh-Hant",
-    "zh-TW",
+    "bg", "ca", "cs", "da", "de", "de-CH", "el", "en", "en-AU", "en-GB", "en-IN", "en-NZ", "en-US",
+    "es", "es-419", "et", "fi", "fr", "fr-CA", "hi", "hu", "id", "it", "ja", "ko", "lt", "lv",
+    "ms", "nl", "nl-BE", "no", "pl", "pt", "pt-BR", "pt-PT", "ro", "ru", "sk", "sv", "th", "tr",
+    "uk", "vi", "zh", "zh-CN", "zh-HK", "zh-Hans", "zh-Hant", "zh-TW",
 ];
 
 const NOVA3_MEDICAL_LANGUAGES: &[&str] = &[

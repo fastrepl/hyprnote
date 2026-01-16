@@ -75,11 +75,14 @@ export function FeedbackModal() {
         `**Git Hash:** ${gitHash}`,
       ].join("\n");
 
-      const title = description.split("\n")[0].slice(0, 100).trim();
+      const trimmedDescription = description.trim();
+      const firstLine = trimmedDescription.split("\n")[0].slice(0, 100).trim();
+      const title =
+        firstLine || (type === "bug" ? "Bug Report" : "Feature Request");
 
       if (type === "bug") {
         const body = `## Description
-${description}
+${trimmedDescription}
 
 ## Device Information
 ${deviceInfo}
@@ -96,7 +99,7 @@ ${deviceInfo}
         await openerCommands.openUrl(url.toString(), null);
       } else {
         const body = `## Feature Request
-${description}
+${trimmedDescription}
 
 ## Submitted From
 ${deviceInfo}

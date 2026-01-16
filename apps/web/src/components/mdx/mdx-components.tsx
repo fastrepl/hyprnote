@@ -24,6 +24,24 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   );
 }
 
+function Th({ className, ...props }: React.ComponentProps<"th">) {
+  return (
+    <th
+      {...props}
+      className={`first:sticky first:left-0 first:z-10 first:bg-white dark:first:bg-gray-950 ${className ?? ""}`}
+    />
+  );
+}
+
+function Td({ className, ...props }: React.ComponentProps<"td">) {
+  return (
+    <td
+      {...props}
+      className={`first:sticky first:left-0 first:z-10 first:bg-white dark:first:bg-gray-950 ${className ?? ""}`}
+    />
+  );
+}
+
 export type MDXComponents = {
   [key: string]: ComponentType<any>;
 };
@@ -49,6 +67,8 @@ export const defaultMDXComponents: MDXComponents = {
   Step,
   Steps,
   table: Table,
+  td: Td,
+  th: Th,
   Tip,
   Tweet,
 };

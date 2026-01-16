@@ -97,24 +97,42 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
     pub fn set_recording_indicator(&self, show: bool) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
         {
+            use objc2::rc::Retained;
+            use objc2_app_kit::NSImage;
+            use std::sync::Mutex;
+
+            static ORIGINAL_ICON: Mutex<Option<Retained<NSImage>>> = Mutex::new(None);
+
             let app_handle = self.manager.app_handle();
             app_handle
                 .run_on_main_thread(move || {
-                    use objc2::rc::Retained;
-                    use objc2_app_kit::{NSApplication, NSBezierPath, NSColor, NSImage};
+                    use objc2_app_kit::{NSApplication, NSBezierPath, NSColor};
                     use objc2_foundation::{MainThreadMarker, NSPoint, NSRect, NSSize};
 
                     let mtm =
                         MainThreadMarker::new().expect("run_on_main_thread guarantees main thread");
                     let ns_app = NSApplication::sharedApplication(mtm);
 
+                    let mut original_icon_guard = ORIGINAL_ICON.lock().unwrap();
+
                     if !show {
-                        unsafe { ns_app.setApplicationIconImage(None) };
+                        if let Some(ref original) = *original_icon_guard {
+                            unsafe { ns_app.setApplicationIconImage(Some(original)) };
+                        } else {
+                            unsafe { ns_app.setApplicationIconImage(None) };
+                        }
+                        *original_icon_guard = None;
                         return;
                     }
 
-                    let Some(base_image) = (unsafe { ns_app.applicationIconImage() }) else {
-                        return;
+                    let base_image = if let Some(ref original) = *original_icon_guard {
+                        original.clone()
+                    } else {
+                        let Some(current) = (unsafe { ns_app.applicationIconImage() }) else {
+                            return;
+                        };
+                        *original_icon_guard = Some(current.clone());
+                        current
                     };
 
                     let size = unsafe { base_image.size() };

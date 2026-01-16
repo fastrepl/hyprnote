@@ -24,7 +24,10 @@ async fn start_server(config: LlmProxyConfig) -> SocketAddr {
 fn real_config(analytics: MockAnalytics) -> LlmProxyConfig {
     let api_key = std::env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
     LlmProxyConfig::new(api_key)
-        .with_models_default(vec!["openai/gpt-4o-mini".into()])
+        .with_models_default(vec![
+            "moonshotai/kimi-k2-0905".into(),
+            "anthropic/claude-haiku-4.5".into(),
+        ])
         .with_analytics(Arc::new(analytics))
 }
 

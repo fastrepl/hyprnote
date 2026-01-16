@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { safeFormat } from "@hypr/utils";
 
 import * as main from "../../../../../../store/tinybase/store/main";
 
@@ -12,10 +12,10 @@ export function DateDisplay({ sessionId }: { sessionId: string }) {
   const { startedAt, endedAt } = useSessionRecordingTimes(sessionId);
 
   const displayDate = !startedAt
-    ? format(createdAt ? new Date(createdAt) : new Date(), "MMM d, yyyy")
+    ? safeFormat(createdAt ?? new Date(), "MMM d, yyyy", "Unknown date")
     : !endedAt
-      ? format(new Date(startedAt), "MMM d, yyyy h:mm a")
-      : `${format(new Date(startedAt), "MMM d, yyyy h:mm a")} - ${format(new Date(endedAt), "MMM d, yyyy h:mm a")}`;
+      ? safeFormat(startedAt, "MMM d, yyyy h:mm a", "Unknown date")
+      : `${safeFormat(startedAt, "MMM d, yyyy h:mm a")} - ${safeFormat(endedAt, "MMM d, yyyy h:mm a")}`;
 
   return (
     <div className="flex flex-col gap-1">

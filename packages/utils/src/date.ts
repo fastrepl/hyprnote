@@ -1,3 +1,5 @@
+import { format as dateFnsFormat, isValid } from "date-fns";
+
 /**
  * Centralized date utilities
  *
@@ -7,6 +9,61 @@
 
 // Re-export ALL date-fns functions so users can import any date-fns function from @hypr/utils
 export * from "date-fns";
+
+function isStampedTuple(value: unknown): value is [unknown, ...unknown[]] {
+  if (!Array.isArray(value) || value.length === 0) {
+    return false;
+  }
+  const first = value[0];
+  return (
+    first === null ||
+    typeof first === "string" ||
+    typeof first === "number" ||
+    typeof first === "boolean"
+  );
+}
+
+export function unwrapStampedValue<T>(value: T | [T, ...unknown[]]): T {
+  if (isStampedTuple(value)) {
+    return value[0] as T;
+  }
+  return value as T;
+}
+
+export function safeParseDate(value: unknown): Date | null {
+  const unwrapped = unwrapStampedValue(value);
+
+  if (unwrapped === null || unwrapped === undefined) {
+    return null;
+  }
+
+  if (unwrapped instanceof Date) {
+    return isValid(unwrapped) ? unwrapped : null;
+  }
+
+  if (typeof unwrapped === "string" || typeof unwrapped === "number") {
+    const date = new Date(unwrapped);
+    return isValid(date) ? date : null;
+  }
+
+  return null;
+}
+
+export function safeFormat(
+  value: unknown,
+  formatString: string,
+  fallback = "",
+): string {
+  const date = safeParseDate(value);
+  if (!date) {
+    return fallback;
+  }
+  try {
+    return dateFnsFormat(date, formatString);
+  } catch {
+    return fallback;
+  }
+}
 
 /**
  * Formats a date according to a custom format string.

@@ -32,12 +32,16 @@ type MigratedHint = {
   value: string;
 };
 
-function isHlcStamp(value: unknown): value is [unknown, string, ...unknown[]] {
+function isStampedTuple(value: unknown): value is [unknown, ...unknown[]] {
+  if (!Array.isArray(value) || value.length === 0) {
+    return false;
+  }
+  const first = value[0];
   return (
-    Array.isArray(value) &&
-    value.length >= 2 &&
-    typeof value[1] === "string" &&
-    /^[A-Za-z0-9_-]+$/.test(value[1])
+    first === null ||
+    typeof first === "string" ||
+    typeof first === "number" ||
+    typeof first === "boolean"
   );
 }
 
@@ -48,6 +52,9 @@ function repairStampLeak(store: Store): number {
     getRowIds: (t: string) => string[];
     getRow: (t: string, r: string) => Record<string, unknown> | undefined;
     setCell: (t: string, r: string, c: string, v: unknown) => void;
+    getValueIds?: () => string[];
+    getValue?: (id: string) => unknown;
+    setValue?: (id: string, value: unknown) => void;
     transaction: (fn: () => void) => void;
   };
 
@@ -58,10 +65,20 @@ function repairStampLeak(store: Store): number {
         if (!row) continue;
 
         for (const [cellId, cellValue] of Object.entries(row)) {
-          if (isHlcStamp(cellValue)) {
+          if (isStampedTuple(cellValue)) {
             s.setCell(tableId, rowId, cellId, cellValue[0]);
             repaired++;
           }
+        }
+      }
+    }
+
+    if (s.getValueIds && s.getValue && s.setValue) {
+      for (const valueId of s.getValueIds()) {
+        const value = s.getValue(valueId);
+        if (isStampedTuple(value)) {
+          s.setValue(valueId, value[0]);
+          repaired++;
         }
       }
     }

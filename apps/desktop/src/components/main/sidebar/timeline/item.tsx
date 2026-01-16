@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
-import { cn } from "@hypr/utils";
+import { cn, safeParseDate } from "@hypr/utils";
 
 import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
@@ -292,12 +292,8 @@ function formatDisplayTime(
   timestamp: string | null | undefined,
   precision: TimelinePrecision,
 ): string {
-  if (!timestamp) {
-    return "";
-  }
-
-  const date = new Date(timestamp);
-  if (Number.isNaN(date.getTime())) {
+  const date = safeParseDate(timestamp);
+  if (!date) {
     return "";
   }
 

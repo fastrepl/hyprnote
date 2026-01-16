@@ -1,4 +1,3 @@
-import { differenceInDays, format, startOfDay } from "date-fns";
 import { CalendarIcon, MapPinIcon, VideoIcon } from "lucide-react";
 import { forwardRef, useState } from "react";
 
@@ -9,7 +8,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@hypr/ui/components/ui/popover";
-import { cn } from "@hypr/utils";
+import {
+  cn,
+  differenceInDays,
+  safeFormat,
+  safeParseDate,
+  startOfDay,
+} from "@hypr/utils";
 
 import { useEvent, useSession } from "../../../../../../hooks/tinybase";
 import * as main from "../../../../../../store/tinybase/store/main";
@@ -48,9 +53,10 @@ const TriggerInner = forwardRef<
   const event = useEvent(eventId);
 
   const hasEvent = !!event;
+  const parsedDate = safeParseDate(createdAt);
   const displayText = hasEvent
     ? event.title || "Untitled Event"
-    : formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date());
+    : formatRelativeOrAbsolute(parsedDate ?? new Date());
 
   return (
     <Button
@@ -111,18 +117,22 @@ function EventDisplay({
       return "";
     }
 
-    const startDate = new Date(event.startedAt);
-    const endDate = event.endedAt ? new Date(event.endedAt) : null;
+    const startDate = safeParseDate(event.startedAt);
+    const endDate = event.endedAt ? safeParseDate(event.endedAt) : null;
 
-    const startStr = format(startDate, "MMM d, yyyy h:mm a");
+    if (!startDate) {
+      return "";
+    }
+
+    const startStr = safeFormat(startDate, "MMM d, yyyy h:mm a");
     if (!endDate) {
       return startStr;
     }
 
     const sameDay = startDate.toDateString() === endDate.toDateString();
     const endStr = sameDay
-      ? format(endDate, "h:mm a")
-      : format(endDate, "MMM d, yyyy h:mm a");
+      ? safeFormat(endDate, "h:mm a")
+      : safeFormat(endDate, "MMM d, yyyy h:mm a");
 
     return `${startStr} to ${endStr}`;
   };
@@ -222,5 +232,5 @@ function formatRelativeOrAbsolute(date: Date): string {
     return weeks === 1 ? "a week ago" : `${weeks} weeks ago`;
   }
 
-  return format(date, "MMM d, yyyy");
+  return safeFormat(date, "MMM d, yyyy", "Unknown date");
 }

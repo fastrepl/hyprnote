@@ -1,7 +1,7 @@
 mod batch;
 mod live;
 
-use owhisper_providers::Provider;
+use crate::providers::Provider;
 
 // https://docs.gladia.io/chapters/language/supported-languages
 const SUPPORTED_LANGUAGES: &[&str] = &[

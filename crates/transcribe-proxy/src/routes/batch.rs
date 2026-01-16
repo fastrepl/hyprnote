@@ -9,13 +9,13 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
+use owhisper_client::Provider;
 use owhisper_client::{
     AssemblyAIAdapter, BatchClient, DeepgramAdapter, ElevenLabsAdapter, GladiaAdapter,
     OpenAIAdapter, SonioxAdapter,
 };
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
-use owhisper_providers::Provider;
 
 use crate::provider_selector::SelectedProvider;
 use crate::query_params::{QueryParams, QueryValue};

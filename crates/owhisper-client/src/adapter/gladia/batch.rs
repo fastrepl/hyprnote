@@ -209,9 +209,9 @@ impl GladiaAdapter {
 
         let custom_vocabulary = (!params.keywords.is_empty()).then(|| params.keywords.clone());
 
-        let default = owhisper_providers::Provider::Gladia.default_batch_model();
+        let default = crate::providers::Provider::Gladia.default_batch_model();
         let model = match params.model.as_deref() {
-            Some(m) if owhisper_providers::is_meta_model(m) => Some(default),
+            Some(m) if crate::providers::is_meta_model(m) => Some(default),
             Some(m) => Some(m),
             None => None,
         };

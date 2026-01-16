@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
-use owhisper_providers::Provider;
+use owhisper_client::Provider;
 
 use crate::analytics::SttAnalyticsReporter;
 use crate::provider_selector::ProviderSelector;

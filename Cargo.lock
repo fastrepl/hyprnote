@@ -253,7 +253,7 @@ dependencies = [
  "dotenvy",
  "jsonwebtoken",
  "llm-proxy",
- "owhisper-providers",
+ "owhisper-client",
  "reqwest",
  "sentry",
  "serde",
@@ -12792,7 +12792,6 @@ dependencies = [
  "futures-util",
  "language",
  "owhisper-interface",
- "owhisper-providers",
  "reqwest",
  "reqwest-middleware",
  "reqwest-tracing",
@@ -12835,15 +12834,6 @@ dependencies = [
  "specta",
  "strum 0.26.3",
  "uuid",
-]
-
-[[package]]
-name = "owhisper-providers"
-version = "0.0.1"
-dependencies = [
- "serde_json",
- "strum 0.26.3",
- "url",
 ]
 
 [[package]]
@@ -20513,7 +20503,6 @@ dependencies = [
  "language",
  "owhisper-client",
  "owhisper-interface",
- "owhisper-providers",
  "reqwest",
  "reqwest-middleware",
  "rodio",

@@ -1,7 +1,7 @@
 mod batch;
 mod live;
 
-use owhisper_providers::Provider;
+use crate::providers::Provider;
 use serde::Deserialize;
 
 const SUPPORTED_LANGUAGES: &[&str] = &[

@@ -10,7 +10,7 @@ use common::{
     MessageKind, MockUpstreamConfig, load_fixture, start_mock_server_with_config,
     start_server_with_upstream_url,
 };
-use owhisper_providers::Provider;
+use owhisper_client::Provider;
 
 const TEST_RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
 

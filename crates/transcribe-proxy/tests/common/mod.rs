@@ -17,7 +17,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use futures_util::StreamExt;
-use owhisper_providers::Provider;
+use owhisper_client::Provider;
 use transcribe_proxy::{SttAnalyticsReporter, SttEvent, SttProxyConfig, router};
 
 #[derive(Default, Clone)]

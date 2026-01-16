@@ -7,6 +7,57 @@ import { cn } from "@hypr/utils";
 
 import { getLanguageDisplayName } from "../../../utils/language";
 
+const MAJOR_LANGUAGE_CODES = new Set([
+  "en-US",
+  "en-GB",
+  "zh-CN",
+  "zh-TW",
+  "yue",
+  "ja",
+  "ko",
+  "es",
+  "es-419",
+  "fr",
+  "fr-CA",
+  "de",
+  "pt-BR",
+  "pt-PT",
+  "it",
+  "nl",
+  "ru",
+  "ar",
+  "hi",
+  "vi",
+  "th",
+  "id",
+  "pl",
+  "tr",
+  "uk",
+  "sv",
+  "da",
+  "fi",
+  "no",
+  "cs",
+  "el",
+  "he",
+  "ro",
+  "hu",
+  "sk",
+  "bg",
+  "ms",
+  "ca",
+]);
+
+const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
+  "zh-CN": "Mandarin",
+  "zh-TW": "Mandarin (Taiwan)",
+  yue: "Cantonese",
+};
+
+function getDisplayName(code: string): string {
+  return DISPLAY_NAME_OVERRIDES[code] ?? getLanguageDisplayName(code);
+}
+
 function hasRegionVariant(langCode: string): boolean {
   return langCode.includes("-");
 }
@@ -32,7 +83,10 @@ export function SpokenLanguagesView({
     }
     const query = languageSearchQuery.toLowerCase();
     return supportedLanguages.filter((langCode) => {
-      const langName = getLanguageDisplayName(langCode);
+      if (!MAJOR_LANGUAGE_CODES.has(langCode)) {
+        return false;
+      }
+      const langName = getDisplayName(langCode);
       return (
         !value.includes(langCode) && langName.toLowerCase().includes(query)
       );
@@ -102,7 +156,7 @@ export function SpokenLanguagesView({
               variant="secondary"
               className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
             >
-              {getLanguageDisplayName(code)}
+              {getDisplayName(code)}
               <Button
                 type="button"
                 variant="ghost"
@@ -175,7 +229,7 @@ export function SpokenLanguagesView({
                   ])}
                 >
                   <span className="font-medium truncate">
-                    {getLanguageDisplayName(langCode)}
+                    {getDisplayName(langCode)}
                   </span>
                 </button>
               ))

@@ -1,3 +1,22 @@
+#[cfg(target_os = "macos")]
+mod recording_indicator_state {
+    use std::sync::Mutex;
+
+    static ORIGINAL_ICON_DATA: Mutex<Option<Vec<u8>>> = Mutex::new(None);
+
+    pub fn get() -> Option<Vec<u8>> {
+        ORIGINAL_ICON_DATA.lock().unwrap().clone()
+    }
+
+    pub fn set(data: Option<Vec<u8>>) {
+        *ORIGINAL_ICON_DATA.lock().unwrap() = data;
+    }
+
+    pub fn clear() {
+        *ORIGINAL_ICON_DATA.lock().unwrap() = None;
+    }
+}
+
 pub struct Icon<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
@@ -9,6 +28,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
         {
             use std::path::PathBuf;
             use tauri::path::BaseDirectory;
+
+            recording_indicator_state::clear();
 
             let icon_path = if cfg!(debug_assertions) {
                 PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -71,6 +92,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
     pub fn reset_dock_icon(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
         {
+            recording_indicator_state::clear();
+
             let app_handle = self.manager.app_handle();
             app_handle
                 .run_on_main_thread(move || {
@@ -97,39 +120,51 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
     pub fn set_recording_indicator(&self, show: bool) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
         {
-            use objc2::rc::Retained;
-            use objc2_app_kit::NSImage;
-            use std::sync::Mutex;
-
-            static ORIGINAL_ICON: Mutex<Option<Retained<NSImage>>> = Mutex::new(None);
-
             let app_handle = self.manager.app_handle();
             app_handle
                 .run_on_main_thread(move || {
-                    use objc2_app_kit::{NSApplication, NSBezierPath, NSColor};
-                    use objc2_foundation::{MainThreadMarker, NSPoint, NSRect, NSSize};
+                    use objc2::AnyThread;
+                    use objc2_app_kit::{NSApplication, NSBezierPath, NSColor, NSImage};
+                    use objc2_foundation::{MainThreadMarker, NSData, NSPoint, NSRect, NSSize};
 
                     let mtm =
                         MainThreadMarker::new().expect("run_on_main_thread guarantees main thread");
                     let ns_app = NSApplication::sharedApplication(mtm);
 
-                    let mut original_icon_guard = ORIGINAL_ICON.lock().unwrap();
-
                     if !show {
-                        if let Some(ref original) = *original_icon_guard {
-                            unsafe { ns_app.setApplicationIconImage(Some(original)) };
-                            *original_icon_guard = None;
+                        if let Some(original_data) = recording_indicator_state::get() {
+                            let ns_data = NSData::with_bytes(&original_data);
+                            let original_image =
+                                unsafe { NSImage::initWithData(NSImage::alloc(), &ns_data) };
+                            if let Some(original_image) = original_image {
+                                unsafe { ns_app.setApplicationIconImage(Some(&original_image)) };
+                            }
+                            recording_indicator_state::clear();
                         }
                         return;
                     }
 
-                    let base_image = if let Some(ref original) = *original_icon_guard {
-                        original.clone()
+                    let base_image = if let Some(original_data) = recording_indicator_state::get() {
+                        let ns_data = NSData::with_bytes(&original_data);
+                        let original_image =
+                            unsafe { NSImage::initWithData(NSImage::alloc(), &ns_data) };
+                        match original_image {
+                            Some(img) => img,
+                            None => return,
+                        }
                     } else {
                         let Some(current) = (unsafe { ns_app.applicationIconImage() }) else {
                             return;
                         };
-                        *original_icon_guard = Some(current.clone());
+
+                        let Some(tiff_data) = (unsafe { current.TIFFRepresentation() }) else {
+                            return;
+                        };
+                        let len = unsafe { tiff_data.length() };
+                        let bytes =
+                            unsafe { std::slice::from_raw_parts(tiff_data.bytes(), len) }.to_vec();
+                        recording_indicator_state::set(Some(bytes));
+
                         current
                     };
 
@@ -157,7 +192,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
                             NSPoint::new(dot_x, dot_y),
                             NSSize::new(dot_size, dot_size),
                         );
-                        let dot_path = NSBezierPath::bezierPathWithOvalInRect(&dot_rect);
+                        let dot_path = NSBezierPath::bezierPathWithOvalInRect(dot_rect);
                         dot_path.fill();
 
                         composite_image.unlockFocus();

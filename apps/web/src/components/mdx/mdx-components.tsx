@@ -1,5 +1,6 @@
 import { Columns, Info } from "lucide-react";
 import type { ComponentType } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Accordion, Card, Note, Step, Steps, Tip } from "@hypr/ui/docs";
 
@@ -16,29 +17,163 @@ import { MDXLink } from "./link";
 import { Mermaid } from "./mermaid";
 import { Tweet } from "./tweet";
 
+const GLOBAL_HEADER_HEIGHT = 69;
+
 function Table({ className, ...props }: React.ComponentProps<"table">) {
-  return (
-    <div className="overflow-x-auto">
-      <table {...props} className={`whitespace-nowrap ${className ?? ""}`} />
-    </div>
-  );
-}
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const clonedHeaderRef = useRef<HTMLDivElement>(null);
+  const [showFixedHeader, setShowFixedHeader] = useState(false);
 
-function Th({ className, ...props }: React.ComponentProps<"th">) {
-  return (
-    <th
-      {...props}
-      className={`first:sticky first:left-0 first:z-10 first:bg-white dark:first:bg-gray-950 ${className ?? ""}`}
-    />
-  );
-}
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!tableRef.current || !wrapperRef.current) return;
 
-function Td({ className, ...props }: React.ComponentProps<"td">) {
+      const thead = tableRef.current.querySelector("thead");
+      if (!thead) return;
+
+      const wrapperRect = wrapperRef.current.getBoundingClientRect();
+      const theadRect = thead.getBoundingClientRect();
+
+      const shouldShowFixed =
+        theadRect.top < GLOBAL_HEADER_HEIGHT &&
+        wrapperRect.bottom > GLOBAL_HEADER_HEIGHT + thead.offsetHeight;
+
+      setShowFixedHeader(shouldShowFixed);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showFixedHeader || !tableRef.current || !wrapperRef.current) {
+      return;
+    }
+
+    const handleHorizontalScroll = () => {
+      if (!wrapperRef.current || !clonedHeaderRef.current) return;
+
+      const clonedWrapper = clonedHeaderRef.current.querySelector(
+        ".cloned-table-wrapper",
+      ) as HTMLElement;
+      if (clonedWrapper) {
+        clonedWrapper.scrollLeft = wrapperRef.current.scrollLeft;
+      }
+    };
+
+    wrapperRef.current.addEventListener("scroll", handleHorizontalScroll);
+
+    return () => {
+      wrapperRef.current?.removeEventListener("scroll", handleHorizontalScroll);
+    };
+  }, [showFixedHeader]);
+
+  useEffect(() => {
+    if (!showFixedHeader || !tableRef.current || !wrapperRef.current) {
+      return;
+    }
+
+    const thead = tableRef.current.querySelector("thead");
+    if (!thead || !clonedHeaderRef.current) return;
+
+    const wrapperRect = wrapperRef.current.getBoundingClientRect();
+    const clonedWrapper = clonedHeaderRef.current.querySelector(
+      ".cloned-table-wrapper",
+    ) as HTMLElement;
+    const clonedTable = clonedHeaderRef.current.querySelector(
+      "table",
+    ) as HTMLTableElement;
+
+    if (!clonedWrapper || !clonedTable) return;
+
+    clonedWrapper.style.width = `${wrapperRect.width}px`;
+    clonedWrapper.style.left = `${wrapperRect.left}px`;
+
+    clonedTable.style.width = `${tableRef.current.offsetWidth}px`;
+
+    const originalThs = thead.querySelectorAll("th");
+    const clonedThs = clonedTable.querySelectorAll("th");
+
+    originalThs.forEach((th, index) => {
+      if (clonedThs[index]) {
+        (clonedThs[index] as HTMLElement).style.width = `${th.offsetWidth}px`;
+      }
+    });
+  }, [showFixedHeader]);
+
   return (
-    <td
-      {...props}
-      className={`first:sticky first:left-0 first:z-10 first:bg-white dark:first:bg-gray-950 ${className ?? ""}`}
-    />
+    <>
+      <div ref={wrapperRef} className="overflow-x-auto">
+        <table
+          ref={tableRef}
+          {...props}
+          className={`whitespace-nowrap ${className ?? ""}`}
+        >
+          {props.children}
+        </table>
+      </div>
+      {showFixedHeader && tableRef.current && (
+        <div
+          ref={clonedHeaderRef}
+          style={{
+            position: "fixed",
+            top: `${GLOBAL_HEADER_HEIGHT}px`,
+            zIndex: 20,
+            pointerEvents: "none",
+          }}
+        >
+          <div className="cloned-table-wrapper overflow-x-hidden">
+            <table
+              className={`whitespace-nowrap ${className ?? ""}`}
+              style={{
+                tableLayout: "fixed",
+              }}
+            >
+              <thead>
+                {(() => {
+                  const originalThead =
+                    tableRef.current?.querySelector("thead");
+                  if (!originalThead) return null;
+
+                  return Array.from(originalThead.querySelectorAll("tr")).map(
+                    (tr, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {Array.from(tr.querySelectorAll("th")).map(
+                          (th, cellIndex) => (
+                            <th
+                              key={cellIndex}
+                              className="bg-white dark:bg-gray-950"
+                              style={{
+                                padding: window
+                                  .getComputedStyle(th)
+                                  .getPropertyValue("padding"),
+                                textAlign: window
+                                  .getComputedStyle(th)
+                                  .getPropertyValue("text-align") as any,
+                                borderBottom: window
+                                  .getComputedStyle(th)
+                                  .getPropertyValue("border-bottom"),
+                              }}
+                            >
+                              {th.textContent}
+                            </th>
+                          ),
+                        )}
+                      </tr>
+                    ),
+                  );
+                })()}
+              </thead>
+            </table>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -67,8 +202,6 @@ export const defaultMDXComponents: MDXComponents = {
   Step,
   Steps,
   table: Table,
-  td: Td,
-  th: Th,
   Tip,
   Tweet,
 };

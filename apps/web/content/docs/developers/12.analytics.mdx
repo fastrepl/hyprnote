@@ -6,14 +6,99 @@ description: "Learn about analytics in Hyprnote"
 
 ## What are we tracking?
 
-We have some analytics code in the desktop application.
+We use PostHog for analytics in both the web and desktop applications. You can opt-out from the settings menu in the desktop app.
 
-```bash
-grep -r ".event(" apps/desktop/src
-grep -r ".event(" apps/desktop/src-tauri/src
-```
+### Web App Events
 
-You can opt-out from the settings menu.
+The web app (`apps/web`) tracks the following events:
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `reminder_requested` | User requests a mobile reminder | `platform`, `timestamp`, `email` |
+| `os_waitlist_joined` | User joins waitlist for Linux/Windows | `platform`, `timestamp`, `email` |
+| `download_clicked` | User clicks a download button | `platform`, `spec`, `source`, `timestamp` |
+
+The web app also has PostHog autocapture and pageview tracking enabled.
+
+### Desktop App Events
+
+The desktop app (`apps/desktop`) tracks the following events:
+
+**Authentication**
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `account_skipped` | User proceeds without account (local mode) | - |
+| `user_signed_in` | User signs in | - |
+| `user_signed_out` | User signs out | - |
+
+**Notes & Sessions**
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `note_created` | New note is created | `has_event_id` (linked to calendar) |
+| `session_started` | Listening session starts | `has_calendar_event` |
+| `session_deleted` | Session/note is deleted | `includes_recording` |
+| `session_exported` | Session is exported | `format` (pdf/vtt), `view_type`, `has_transcript`, `has_enhanced`, `has_memo`, `word_count` |
+
+**Content & Editing**
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `note_edited` | User edits a note | `has_content` |
+| `note_enhanced` | AI enhancement is triggered | `is_auto`, `template_id` |
+| `message_sent` | Chat message is sent | - |
+
+**File Operations**
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `file_uploaded` | File is uploaded | `file_type` (audio/transcript), `token_count` |
+| `recording_deleted` | Recording is deleted | - |
+
+**Navigation & Search**
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `search_performed` | Search is performed | - |
+| `tab_opened` | Tab is opened | `view` (tab type) |
+
+**Settings & Configuration**
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `settings_changed` | Settings are changed | `autostart`, `notification_detect`, `save_recordings`, `telemetry_consent` |
+| `ai_provider_configured` | AI provider is configured | `provider` |
+
+**Billing**
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `trial_started` | Trial is started | `plan` |
+| `upgrade_clicked` | Upgrade button is clicked | `plan` |
+
+**Data**
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `data_imported` | Data is imported from another app | `source` |
+
+### User Properties
+
+The desktop app also sets the following user properties:
+
+| Property | Description |
+|----------|-------------|
+| `is_local_mode` | Whether user is in local-only mode |
+| `is_signed_up` | Whether user has signed up |
+| `platform` | Operating system (macos, linux, windows) |
+| `os_version` | Operating system version |
+| `app_version` | Application version |
+| `account_created_date` | When account was created (set once) |
+| `telemetry_opt_out` | Whether user opted out of telemetry |
+| `has_configured_ai` | Whether user has configured an AI provider |
+| `plan` | Current subscription plan |
+| `trial_end_date` | When trial ends |
 
 ## How to make changes?
 

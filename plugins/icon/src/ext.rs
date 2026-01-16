@@ -29,8 +29,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
             use std::path::PathBuf;
             use tauri::path::BaseDirectory;
 
-            recording_indicator_state::clear();
-
             let icon_path = if cfg!(debug_assertions) {
                 PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                     .parent()
@@ -66,6 +64,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
                     use objc2_app_kit::{NSApplication, NSImage};
                     use objc2_foundation::{MainThreadMarker, NSString};
 
+                    recording_indicator_state::clear();
+
                     let mtm =
                         MainThreadMarker::new().expect("run_on_main_thread guarantees main thread");
                     let ns_app = NSApplication::sharedApplication(mtm);
@@ -92,13 +92,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
     pub fn reset_dock_icon(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
         {
-            recording_indicator_state::clear();
-
             let app_handle = self.manager.app_handle();
             app_handle
                 .run_on_main_thread(move || {
                     use objc2_app_kit::NSApplication;
                     use objc2_foundation::MainThreadMarker;
+
+                    recording_indicator_state::clear();
 
                     let mtm =
                         MainThreadMarker::new().expect("run_on_main_thread guarantees main thread");

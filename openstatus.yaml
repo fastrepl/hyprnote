@@ -1,4 +1,79 @@
 # yaml-language-server: $schema=https://www.openstatus.dev/schema.json
+#
+# OpenStatus monitors configuration for Hyprnote services.
+# This file is the source of truth for monitoring configuration.
+#
+# To apply changes:
+#   export OPENSTATUS_API_TOKEN=<your-token>
+#   openstatus monitors apply
+#
+# To import existing monitors from dashboard:
+#   openstatus monitors import
+#
+# Changes to this file on main branch will be automatically applied via GitHub Actions.
+
+hyprnote-web:
+  name: "Hyprnote Web"
+  description: "Main website and landing page"
+  frequency: "1m"
+  active: true
+  regions:
+    - iad
+    - ams
+    - syd
+  retry: 3
+  kind: http
+  request:
+    url: https://hyprnote.com
+    method: GET
+    headers:
+      User-Agent: openstatus
+  assertions:
+    - kind: statusCode
+      compare: eq
+      target: 200
+
+hyprnote-api:
+  name: "Hyprnote API"
+  description: "Main Hyprnote API server"
+  frequency: "1m"
+  active: true
+  regions:
+    - iad
+    - ams
+    - syd
+  retry: 3
+  kind: http
+  request:
+    url: https://api.hyprnote.com/health
+    method: GET
+    headers:
+      User-Agent: openstatus
+  assertions:
+    - kind: statusCode
+      compare: eq
+      target: 200
+
+hyprnote-bot:
+  name: "Bot"
+  description: "Hyprnote bot service"
+  frequency: "1m"
+  active: true
+  regions:
+    - iad
+    - ams
+    - syd
+  retry: 3
+  kind: http
+  request:
+    url: https://bot.hyprnote.com/health
+    method: GET
+    headers:
+      User-Agent: openstatus
+  assertions:
+    - kind: statusCode
+      compare: eq
+      target: 200
 
 hyprnote-ai:
   name: "AI Service"
@@ -12,49 +87,7 @@ hyprnote-ai:
   retry: 3
   kind: http
   request:
-    url: https://hyprnote-ai.fly.dev/health
-    method: GET
-    headers:
-      User-Agent: openstatus
-  assertions:
-    - kind: statusCode
-      compare: eq
-      target: 200
-
-hyprnote-api:
-  name: "API Service"
-  description: "Main Hyprnote API server"
-  frequency: "1m"
-  active: true
-  regions:
-    - iad
-    - ams
-    - syd
-  retry: 3
-  kind: http
-  request:
-    url: https://hyprnote-api.fly.dev/health
-    method: GET
-    headers:
-      User-Agent: openstatus
-  assertions:
-    - kind: statusCode
-      compare: eq
-      target: 200
-
-hyprnote-bot:
-  name: "Bot Service"
-  description: "Hyprnote bot service"
-  frequency: "1m"
-  active: true
-  regions:
-    - iad
-    - ams
-    - syd
-  retry: 3
-  kind: http
-  request:
-    url: https://hyprnote-bot.fly.dev/health
+    url: https://ai.hyprnote.com/health
     method: GET
     headers:
       User-Agent: openstatus

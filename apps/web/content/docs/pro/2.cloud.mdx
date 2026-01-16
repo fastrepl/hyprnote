@@ -17,7 +17,7 @@ Pro users get access to managed cloud services that work out of the box:
 | `/chat/completions` | LLM endpoint for AI features (summaries, notes) | Available |
 | `/mcp` | MCP server with web search and URL reading tools | Available |
 
-The LLM endpoint supports multiple providers including OpenAI, Anthropic, Google, and Mistral. Your requests are proxied through our servers with automatic API key management.
+The LLM endpoint uses OpenRouter to provide access to multiple AI models from providers including OpenAI, Anthropic, Google, and Mistral. Your requests are proxied through our servers with automatic API key management.
 
 ## MCP Tools
 
@@ -41,6 +41,6 @@ The cloud server (`pro.hyprnote.com`) is [open-source](https://github.com/fastre
 **Data handling:**
 - Nothing is stored by us
 - Only required data is sent to third-party services
-- Current providers: OpenAI (via OpenRouter), Exa (web search), Jina AI (URL reading)
+- Current providers: OpenAI, Anthropic, Google, Mistral (via OpenRouter), Exa (web search), Jina AI (URL reading)
 
 All requests are rate-limited and authenticated using your Pro license key.

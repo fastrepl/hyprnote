@@ -258,6 +258,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
                             None => return,
                         }
                     } else {
+                        if recording_indicator_state::is_active() {
+                            return;
+                        }
+
                         let Some(current) = ns_app.applicationIconImage() else {
                             return;
                         };

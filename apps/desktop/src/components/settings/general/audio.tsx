@@ -12,7 +12,7 @@ import { cn } from "@hypr/utils";
 export function Audio() {
   return (
     <div className="space-y-6">
-      <h2 className="font-semibold">Audio</h2>
+      <h2 className="font-semibold font-serif">Audio</h2>
       <DeviceList direction="input" />
       <DeviceList direction="output" />
     </div>

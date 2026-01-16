@@ -6,7 +6,7 @@ use tauri_plugin_settings::SettingsPluginExt;
 pub const FILENAME: &str = "store.json";
 
 pub fn store_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, crate::Error> {
-    let store_dir = app.settings().base()?;
+    let store_dir = app.settings().settings_base()?;
     Ok(store_dir.join(FILENAME))
 }
 

@@ -8,7 +8,7 @@ import {
 import { createHumanPersister } from "./persister";
 
 const settingsMocks = vi.hoisted(() => ({
-  base: vi
+  settingsBase: vi
     .fn()
     .mockResolvedValue({ status: "ok", data: "/mock/data/dir/hyprnote" }),
 }));

@@ -13,12 +13,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Database2<'a, R, M> {
                     .await
                     .unwrap()
             } else {
-                use tauri::path::BaseDirectory;
-                let dir_path = self
-                    .manager
-                    .path()
-                    .resolve("hyprnote", BaseDirectory::Data)?;
-                std::fs::create_dir_all(&dir_path)?;
+                use tauri_plugin_settings::SettingsPluginExt;
+                let dir_path = self.manager.settings().settings_base()?;
                 let file_path = dir_path.join("db.sqlite");
 
                 hypr_db_core::DatabaseBuilder::default()

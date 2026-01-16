@@ -15,7 +15,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::base::<tauri::Wry>,
+            commands::settings_base::<tauri::Wry>,
+            commands::content_base::<tauri::Wry>,
+            commands::change_content_base::<tauri::Wry>,
             commands::obsidian_vaults::<tauri::Wry>,
             commands::path::<tauri::Wry>,
             commands::load::<tauri::Wry>,
@@ -30,7 +32,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let base = app.settings().base().unwrap();
+            let base = app.settings().settings_base().unwrap();
             let state = SettingsState::new(base);
             assert!(app.manage(state));
             Ok(())

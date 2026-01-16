@@ -5,6 +5,7 @@ import type { StoreApi } from "zustand";
 
 import { commands as detectCommands } from "@hypr/plugin-detect";
 import { commands as hooksCommands } from "@hypr/plugin-hooks";
+import { commands as iconCommands } from "@hypr/plugin-icon";
 import {
   commands as listenerCommands,
   events as listenerEvents,
@@ -173,6 +174,8 @@ export const createGeneralSlice = <
           );
         }, 1000);
 
+        void iconCommands.setRecordingIndicator(true);
+
         set((state) =>
           mutate(state, (draft) => {
             draft.live.status = "active";
@@ -199,6 +202,8 @@ export const createGeneralSlice = <
         if (currentState.live.eventUnlisteners) {
           currentState.live.eventUnlisteners.forEach((fn) => fn());
         }
+
+        void iconCommands.setRecordingIndicator(false);
 
         set((state) =>
           mutate(state, (draft) => {
@@ -316,7 +321,7 @@ export const createGeneralSlice = <
       const [dataDirPath, micUsingApps, bundleId] = yield* Effect.tryPromise({
         try: () =>
           Promise.all([
-            settingsCommands.base().then((r) => {
+            settingsCommands.settingsBase().then((r) => {
               if (r.status === "error") throw new Error(r.error);
               return r.data;
             }),
@@ -408,7 +413,7 @@ export const createGeneralSlice = <
         onSuccess: () => {
           if (sessionId) {
             void Promise.all([
-              settingsCommands.base().then((r) => {
+              settingsCommands.settingsBase().then((r) => {
                 if (r.status === "error") throw new Error(r.error);
                 return r.data;
               }),

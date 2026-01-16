@@ -1,4 +1,4 @@
-import { Info, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Badge } from "@hypr/ui/components/ui/badge";
@@ -9,6 +9,30 @@ import { getLanguageDisplayName } from "../../../utils/language";
 
 function hasRegionVariant(langCode: string): boolean {
   return langCode.includes("-");
+}
+
+function getBaseLanguage(langCode: string): string {
+  return langCode.split("-")[0];
+}
+
+function isLanguageDisabled(
+  langCode: string,
+  selectedLanguages: string[],
+): boolean {
+  const base = getBaseLanguage(langCode);
+  const isVariant = hasRegionVariant(langCode);
+
+  for (const selected of selectedLanguages) {
+    const selectedBase = getBaseLanguage(selected);
+    if (selectedBase !== base) continue;
+
+    if (isVariant) {
+      return selected === base || hasRegionVariant(selected);
+    } else {
+      return hasRegionVariant(selected);
+    }
+  }
+  return false;
 }
 
 interface SpokenLanguagesViewProps {
@@ -32,16 +56,12 @@ export function SpokenLanguagesView({
     }
     const query = languageSearchQuery.toLowerCase();
     return supportedLanguages.filter((langCode) => {
+      if (value.includes(langCode)) return false;
+      if (isLanguageDisabled(langCode, value)) return false;
       const langName = getLanguageDisplayName(langCode);
-      return (
-        !value.includes(langCode) && langName.toLowerCase().includes(query)
-      );
+      return langName.toLowerCase().includes(query);
     });
   }, [languageSearchQuery, value, supportedLanguages]);
-
-  const hasVariantSelected = useMemo(() => {
-    return value.some(hasRegionVariant);
-  }, [value]);
 
   const handleLanguageKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !languageSearchQuery && value.length > 0) {
@@ -187,16 +207,6 @@ export function SpokenLanguagesView({
           </div>
         )}
       </div>
-
-      {hasVariantSelected && (
-        <div className="flex items-start gap-2 mt-3 p-2 rounded-md bg-blue-50 border border-blue-200">
-          <Info className="size-4 text-blue-600 shrink-0 mt-0.5" />
-          <p className="text-xs text-blue-700">
-            Deepgram is recommended for region-specific language variants (e.g.,
-            zh-CN, pt-BR) as it provides better accuracy for these dialects.
-          </p>
-        </div>
-      )}
     </div>
   );
 }

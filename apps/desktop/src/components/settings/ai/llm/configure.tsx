@@ -16,7 +16,7 @@ export function ConfigureProviders() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Configure Providers</h3>
+      <h3 className="text-md font-semibold font-serif">Configure Providers</h3>
       <Accordion
         type="single"
         collapsible
@@ -67,7 +67,7 @@ function HyprProviderCard({
         "border-solid border-neutral-300",
       ])}
     >
-      <AccordionTrigger className="capitalize gap-2 px-4">
+      <AccordionTrigger className="capitalize gap-2 px-4 hover:no-underline">
         <div className="flex items-center gap-2">
           {icon}
           <span>{providerName}</span>
@@ -114,14 +114,13 @@ function ProviderContext({
         <button
           onClick={upgradeToPro}
           className={cn([
-            "relative overflow-hidden",
-            "px-4 py-1.5 rounded-full text-sm font-medium",
+            "relative overflow-hidden w-fit h-[34px]",
+            "px-4 rounded-full text-xs font-mono text-center",
             "bg-linear-to-t from-stone-600 to-stone-500 text-white",
             "shadow-xs hover:shadow-md",
             "transition-all duration-150",
             "hover:scale-[102%] active:scale-[98%]",
             "flex items-center justify-center gap-2",
-            "w-fit",
           ])}
         >
           {highlight && (

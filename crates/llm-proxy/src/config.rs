@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::analytics::AnalyticsReporter;
-use crate::types::OPENROUTER_URL;
+use crate::provider::{OpenRouterProvider, Provider};
 
 const DEFAULT_TIMEOUT_MS: u64 = 120_000;
 
@@ -13,7 +13,7 @@ pub struct LlmProxyConfig {
     pub models_tool_calling: Vec<String>,
     pub models_default: Vec<String>,
     pub analytics: Option<Arc<dyn AnalyticsReporter>>,
-    pub base_url: String,
+    pub provider: Arc<dyn Provider>,
 }
 
 impl LlmProxyConfig {
@@ -31,7 +31,7 @@ impl LlmProxyConfig {
                 "openai/gpt-5.1-chat".into(),
             ],
             analytics: None,
-            base_url: OPENROUTER_URL.to_string(),
+            provider: Arc::new(OpenRouterProvider::default()),
         }
     }
 
@@ -55,8 +55,8 @@ impl LlmProxyConfig {
         self
     }
 
-    pub fn with_base_url(mut self, base_url: impl Into<String>) -> Self {
-        self.base_url = base_url.into();
+    pub fn with_provider(mut self, provider: Arc<dyn Provider>) -> Self {
+        self.provider = provider;
         self
     }
 }

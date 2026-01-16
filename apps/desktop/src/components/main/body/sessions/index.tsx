@@ -296,7 +296,8 @@ function StatusBanner({
           style={{ left: `calc(50% + ${totalOffset}px)` }}
           className={cn([
             "fixed -translate-x-1/2 bottom-6 z-50",
-            "whitespace-nowrap text-center text-xs text-stone-300",
+            "whitespace-nowrap text-center text-xs",
+            skipReason ? "text-red-400" : "text-stone-300",
           ])}
         >
           {skipReason || "Ask for consent when using Hyprnote"}

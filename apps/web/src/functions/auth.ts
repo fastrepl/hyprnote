@@ -14,6 +14,7 @@ export const doAuth = createServerFn({ method: "POST" })
   .inputValidator(
     shared.extend({
       provider: z.enum(["google", "github"]),
+      rra: z.boolean().optional(),
     }),
   )
   .handler(async ({ data }) => {
@@ -23,10 +24,13 @@ export const doAuth = createServerFn({ method: "POST" })
     if (data.scheme) params.set("scheme", data.scheme);
     if (data.redirect) params.set("redirect", data.redirect);
 
+    const scopes = data.provider === "github" && data.rra ? "repo" : undefined;
+
     const { data: authData, error } = await supabase.auth.signInWithOAuth({
       provider: data.provider,
       options: {
         redirectTo: `${env.VITE_APP_URL}/callback/auth?${params.toString()}`,
+        scopes,
       },
     });
 

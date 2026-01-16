@@ -61,6 +61,18 @@ pub async fn cancel_download<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn delete_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    model: SupportedSttModel,
+) -> Result<(), String> {
+    app.local_stt()
+        .delete_model(&model)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn start_server<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: SupportedSttModel,

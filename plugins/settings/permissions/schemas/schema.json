@@ -295,16 +295,28 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the base command without any pre-configured scope.",
+          "description": "Enables the change_content_base command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-base",
-          "markdownDescription": "Enables the base command without any pre-configured scope."
+          "const": "allow-change-content-base",
+          "markdownDescription": "Enables the change_content_base command without any pre-configured scope."
         },
         {
-          "description": "Denies the base command without any pre-configured scope.",
+          "description": "Denies the change_content_base command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-base",
-          "markdownDescription": "Denies the base command without any pre-configured scope."
+          "const": "deny-change-content-base",
+          "markdownDescription": "Denies the change_content_base command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the content_base command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-content-base",
+          "markdownDescription": "Enables the content_base command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the content_base command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-content-base",
+          "markdownDescription": "Denies the content_base command without any pre-configured scope."
         },
         {
           "description": "Enables the load command without any pre-configured scope.",
@@ -355,10 +367,22 @@
           "markdownDescription": "Denies the save command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-base`\n- `allow-obsidian-vaults`\n- `allow-path`\n- `allow-load`\n- `allow-save`",
+          "description": "Enables the settings_base command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-settings-base",
+          "markdownDescription": "Enables the settings_base command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the settings_base command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-settings-base",
+          "markdownDescription": "Denies the settings_base command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-settings-base`\n- `allow-content-base`\n- `allow-change-content-base`\n- `allow-obsidian-vaults`\n- `allow-path`\n- `allow-load`\n- `allow-save`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-base`\n- `allow-obsidian-vaults`\n- `allow-path`\n- `allow-load`\n- `allow-save`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-settings-base`\n- `allow-content-base`\n- `allow-change-content-base`\n- `allow-obsidian-vaults`\n- `allow-path`\n- `allow-load`\n- `allow-save`"
         }
       ]
     }

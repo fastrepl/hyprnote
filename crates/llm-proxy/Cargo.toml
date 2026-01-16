@@ -16,7 +16,9 @@ tracing = { workspace = true }
 bytes = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 tower = { workspace = true, features = ["util"] }
+tracing-subscriber = { workspace = true }
 wiremock = { workspace = true }

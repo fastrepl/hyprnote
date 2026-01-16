@@ -1,6 +1,6 @@
 use crate::output::to_tinybase_json;
 use crate::types::{ImportSource, ImportSourceInfo, ImportSourceKind, ImportStats};
-use tauri::path::BaseDirectory;
+use tauri_plugin_settings::SettingsPluginExt;
 
 pub struct Importer<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -35,11 +35,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Importer<'a, R, M> {
 
         let tinybase_json = to_tinybase_json(&data, &user_id);
 
-        let dir_path = self
-            .manager
-            .path()
-            .resolve("hyprnote", BaseDirectory::Data)?;
-        std::fs::create_dir_all(&dir_path)?;
+        let dir_path = self.manager.settings().settings_base()?;
         let file_path = dir_path.join("import.json");
 
         let json_str = serde_json::to_string_pretty(&tinybase_json)?;

@@ -78,6 +78,7 @@ hypr-notification-interface = { path = "crates/notification-interface", package 
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
+hypr-openstatus = { path = "crates/openstatus", package = "openstatus" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
@@ -136,6 +137,7 @@ tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
 tauri-plugin-apple-contact = { path = "plugins/apple-contact" }
 tauri-plugin-audio-priority = { path = "plugins/audio-priority" }
 tauri-plugin-auth = { path = "plugins/auth" }
+tauri-plugin-bedrock = { path = "plugins/bedrock" }
 tauri-plugin-cli2 = { path = "plugins/cli2" }
 tauri-plugin-db2 = { path = "plugins/db2" }
 tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }

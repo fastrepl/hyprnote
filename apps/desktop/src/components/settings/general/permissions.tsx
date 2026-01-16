@@ -5,7 +5,7 @@ import type { PermissionStatus } from "@hypr/plugin-permissions";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import { usePermission } from "../../../hooks/use-permissions";
+import { usePermission } from "../../../hooks/usePermissions";
 
 function ActionLink({
   onClick,
@@ -134,7 +134,7 @@ export function Permissions() {
 
   return (
     <div>
-      <h2 className="font-semibold mb-4">Permissions</h2>
+      <h2 className="font-semibold font-serif mb-4">Permissions</h2>
       <div className="space-y-4">
         <PermissionRow
           title="Microphone"

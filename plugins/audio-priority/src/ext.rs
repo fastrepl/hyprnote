@@ -10,7 +10,7 @@ pub const FILENAME: &str = "audio.json";
 pub fn audio_priority_path<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
 ) -> Result<PathBuf, crate::Error> {
-    let base = app.settings().base()?;
+    let base = app.settings().settings_base()?;
     Ok(base.join(FILENAME))
 }
 

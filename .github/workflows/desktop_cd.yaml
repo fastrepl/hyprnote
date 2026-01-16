@@ -75,15 +75,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        include:
-          - target: aarch64-apple-darwin
-            arch: aarch64
-            artifact_name: silicon
-            include_am: true
-          - target: x86_64-apple-darwin
-            arch: x86_64
-            artifact_name: intel
-            include_am: false
+        include: ${{ inputs.channel == 'staging' && fromJSON('[{"target":"aarch64-apple-darwin","arch":"aarch64","artifact_name":"silicon","include_am":true}]') || fromJSON('[{"target":"aarch64-apple-darwin","arch":"aarch64","artifact_name":"silicon","include_am":true},{"target":"x86_64-apple-darwin","arch":"x86_64","artifact_name":"intel","include_am":false}]') }}
     defaults:
       run:
         shell: bash
@@ -194,7 +186,7 @@ jobs:
 
   build-linux:
     needs: [compute-version, cn-draft]
-    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
+    if: ${{ inputs.channel != 'staging' && !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
     permissions:
       contents: write
     runs-on: depot-ubuntu-24.04-8
@@ -246,10 +238,10 @@ jobs:
           find target/x86_64-unknown-linux-gnu/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
         shell: bash
         working-directory: ./apps/desktop/src-tauri
-      - uses: ./.github/actions/desktop-e2e-linux
-        with:
-          channel: ${{ inputs.channel }}
-          target_triple: x86_64-unknown-linux-gnu
+      # - uses: ./.github/actions/desktop-e2e-linux
+      #   with:
+      #     channel: ${{ inputs.channel }}
+      #     target_triple: x86_64-unknown-linux-gnu
       - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:

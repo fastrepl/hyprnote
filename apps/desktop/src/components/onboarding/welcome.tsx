@@ -1,9 +1,9 @@
-import { arch, platform } from "@tauri-apps/plugin-os";
+import { arch, version as osVersion, platform } from "@tauri-apps/plugin-os";
 import { memo, useCallback, useEffect, useMemo } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
-import { usePermissions } from "../../hooks/use-permissions";
+import { usePermissions } from "../../hooks/usePermissions";
 import { Route } from "../../routes/app/onboarding/_layout.index";
 import { commands } from "../../types/tauri.gen";
 import { getNext, type StepProps } from "./config";
@@ -57,6 +57,14 @@ export const Welcome = memo(function Welcome({ onNavigate }: StepProps) {
   const handleClickLocal = useCallback(async () => {
     await commands.setOnboardingLocal(true);
     await analyticsCommands.event({ event: "account_skipped" });
+    void analyticsCommands.setProperties({
+      set: {
+        is_local_mode: true,
+        is_signed_up: false,
+        platform: platform(),
+        os_version: osVersion(),
+      },
+    });
     const next = { ...search, local: true };
     onNavigate({ ...next, step: getNext(next)! });
   }, [onNavigate, search]);

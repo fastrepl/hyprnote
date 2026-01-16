@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-change-content-base"
+description = "Enables the change_content_base command without any pre-configured scope."
+commands.allow = ["change_content_base"]
+
+[[permission]]
+identifier = "deny-change-content-base"
+description = "Denies the change_content_base command without any pre-configured scope."
+commands.deny = ["change_content_base"]

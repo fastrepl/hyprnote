@@ -105,6 +105,11 @@ export function NonHyprProviderCard({
         event: "ai_provider_configured",
         provider: value.type,
       });
+      void analyticsCommands.setProperties({
+        set: {
+          has_configured_ai: true,
+        },
+      });
       setProvider(value);
     },
     defaultValues:
@@ -135,7 +140,7 @@ export function NonHyprProviderCard({
     >
       <AccordionTrigger
         className={cn([
-          "capitalize gap-2 px-4",
+          "capitalize gap-2 px-4 hover:no-underline",
           (config.disabled || locked) && "cursor-not-allowed opacity-30",
         ])}
       >

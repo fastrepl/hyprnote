@@ -69,9 +69,10 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .setup(move |app, _api| {
             use tauri::Manager as _;
             use tauri::path::BaseDirectory;
+            use tauri_plugin_settings::SettingsPluginExt;
             specta_builder.mount_events(app);
 
-            let data_dir = app.path().resolve("hyprnote", BaseDirectory::Data)?;
+            let data_dir = app.settings().settings_base()?;
             let models_dir = app.models_dir();
 
             // for backward compatibility

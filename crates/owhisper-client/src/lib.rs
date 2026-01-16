@@ -14,7 +14,7 @@ pub use adapter::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, BatchSttAdapter, DeepgramAdapter,
     ElevenLabsAdapter, FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter,
     SonioxAdapter, append_provider_param, documented_language_codes_batch,
-    documented_language_codes_live, is_hyprnote_proxy, is_local_host,
+    documented_language_codes_live, is_hyprnote_proxy, is_local_host, normalize_languages,
 };
 #[cfg(feature = "argmax")]
 pub use adapter::{StreamingBatchConfig, StreamingBatchEvent, StreamingBatchStream};
@@ -80,7 +80,9 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
     }
 
     fn get_params(&self) -> owhisper_interface::ListenParams {
-        self.params.clone().unwrap_or_default()
+        let mut params = self.params.clone().unwrap_or_default();
+        params.languages = adapter::normalize_languages(&params.languages);
+        params
     }
 
     async fn build_request(

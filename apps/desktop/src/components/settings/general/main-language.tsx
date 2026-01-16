@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+
 import {
   Select,
   SelectContent,
@@ -6,7 +8,10 @@ import {
   SelectValue,
 } from "@hypr/ui/components/ui/select";
 
-import { getLanguageDisplayName } from "../../../utils/language";
+import {
+  getBaseLanguageDisplayName,
+  parseLocale,
+} from "../../../utils/language";
 
 export function MainLanguageView({
   value,
@@ -17,6 +22,22 @@ export function MainLanguageView({
   onChange: (value: string) => void;
   supportedLanguages: readonly string[];
 }) {
+  const deduped = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const code of supportedLanguages) {
+      const { language } = parseLocale(code);
+      if (!map.has(language)) {
+        map.set(language, code);
+      }
+    }
+    return map;
+  }, [supportedLanguages]);
+
+  const normalizedValue = useMemo(() => {
+    const { language } = parseLocale(value);
+    return deduped.get(language) ?? value;
+  }, [value, deduped]);
+
   return (
     <div className="flex flex-row items-center justify-between">
       <div>
@@ -25,14 +46,14 @@ export function MainLanguageView({
           Language for summaries, chats, and AI-generated responses
         </p>
       </div>
-      <Select value={value} onValueChange={onChange}>
+      <Select value={normalizedValue} onValueChange={onChange}>
         <SelectTrigger className="w-40 shadow-none focus:ring-0 focus:ring-offset-0">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="max-h-[250px] overflow-auto">
-          {supportedLanguages.map((code) => (
+          {[...deduped.values()].map((code) => (
             <SelectItem key={code} value={code}>
-              {getLanguageDisplayName(code)}
+              {getBaseLanguageDisplayName(code)}
             </SelectItem>
           ))}
         </SelectContent>

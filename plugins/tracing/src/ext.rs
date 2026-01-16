@@ -7,10 +7,11 @@ pub struct Tracing<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'a, R, M> {
     pub fn logs_dir(&self) -> Result<PathBuf, crate::Error> {
+        use tauri_plugin_settings::SettingsPluginExt;
         let logs_dir = self
             .manager
-            .path()
-            .resolve("hyprnote", tauri::path::BaseDirectory::Data)
+            .settings()
+            .settings_base()
             .map_err(|e| crate::Error::PathResolver(e.to_string()))?;
         let _ = std::fs::create_dir_all(&logs_dir);
         Ok(logs_dir)

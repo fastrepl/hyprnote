@@ -16,29 +16,33 @@ use axum::{
 };
 use reqwest::Client;
 
-use crate::analytics::{AnalyticsReporter, GenerationEvent, fetch_generation_metadata};
+use crate::analytics::{AnalyticsReporter, GenerationEvent};
 use crate::config::LlmProxyConfig;
-use crate::types::{ChatCompletionRequest, OpenRouterRequest, Provider, ToolChoice};
+use crate::types::{ChatCompletionRequest, ToolChoice};
 
 async fn report_with_cost(
     analytics: &dyn AnalyticsReporter,
+    provider: &dyn crate::provider::Provider,
     client: &Client,
     api_key: &str,
     mut event: GenerationEvent,
 ) {
-    event.total_cost = fetch_generation_metadata(client, api_key, &event.generation_id).await;
+    event.total_cost = provider
+        .fetch_cost(client, api_key, &event.generation_id)
+        .await;
     analytics.report_generation(event).await;
 }
 
 pub(super) fn spawn_analytics_report(
     analytics: Option<Arc<dyn AnalyticsReporter>>,
+    provider: Arc<dyn crate::provider::Provider>,
     client: Client,
     api_key: String,
     event: GenerationEvent,
 ) {
     if let Some(analytics) = analytics {
         tokio::spawn(async move {
-            report_with_cost(&*analytics, &client, &api_key, event).await;
+            report_with_cost(&*analytics, &*provider, &client, &api_key, event).await;
         });
     }
 }
@@ -139,30 +143,35 @@ async fn completions_handler(
         has_tools = %needs_tool_calling,
         message_count = %request.messages.len(),
         model_count = %models.len(),
+        provider = %state.config.provider.name(),
         "llm_completion_request_received"
     );
 
-    let openrouter_request = OpenRouterRequest {
-        messages: request.messages,
-        tools: request.tools,
-        tool_choice: request.tool_choice,
-        temperature: request.temperature,
-        max_tokens: request.max_tokens,
-        stream,
-        models,
-        provider: Provider::default(),
-        extra: request.extra,
+    let provider = &state.config.provider;
+
+    let provider_request = match provider.build_request(&request, models, stream) {
+        Ok(req) => req,
+        Err(e) => {
+            tracing::error!(error = %e, "failed_to_build_provider_request");
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid request").into_response();
+        }
     };
 
     let result = tokio::time::timeout(state.config.timeout, async {
-        state
+        let mut req_builder = state
             .client
-            .post(&state.config.base_url)
+            .post(provider.base_url())
             .header("Content-Type", "application/json")
-            .header("Authorization", format!("Bearer {}", state.config.api_key))
-            .json(&openrouter_request)
-            .send()
-            .await
+            .header(
+                "Authorization",
+                provider.build_auth_header(&state.config.api_key),
+            );
+
+        for (key, value) in provider.additional_headers() {
+            req_builder = req_builder.header(key, value);
+        }
+
+        req_builder.json(&provider_request).send().await
     })
     .await;
 

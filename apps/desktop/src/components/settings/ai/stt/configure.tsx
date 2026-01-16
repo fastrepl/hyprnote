@@ -1,6 +1,14 @@
-import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
 import { arch, platform } from "@tauri-apps/plugin-os";
+import {
+  AlertCircle,
+  Download,
+  FolderOpen,
+  HelpCircle,
+  Loader2,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useCallback } from "react";
 
 import {
@@ -30,7 +38,7 @@ export function ConfigureProviders() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Configure Providers</h3>
+      <h3 className="text-md font-semibold font-serif">Configure Providers</h3>
       <Accordion
         type="single"
         collapsible
@@ -94,7 +102,9 @@ function HyprProviderCard({
         isConfigured ? "border-solid border-neutral-300" : "border-dashed",
       ])}
     >
-      <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
+      <AccordionTrigger
+        className={cn(["capitalize gap-2 px-4 hover:no-underline"])}
+      >
         <div className="flex items-center gap-2">
           {icon}
           <span>{providerName}</span>
@@ -119,7 +129,7 @@ function HyprProviderCard({
               className="text-xs text-neutral-400 hover:underline flex items-center gap-1"
             >
               <span>or use on-device model</span>
-              <Icon icon="mdi:help-circle-outline" className="size-3" />
+              <HelpCircle className="size-3" />
             </a>
             <div className="flex-1 border-t border-dashed border-neutral-300" />
           </div>
@@ -186,7 +196,7 @@ function HyprProviderRow({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={cn([
-        "flex items-center justify-between",
+        "flex flex-col gap-3",
         "py-2 px-3 rounded-md border bg-white",
       ])}
     >
@@ -226,38 +236,36 @@ function HyprProviderCloudRow() {
 
   return (
     <HyprProviderRow>
-      <div className="flex items-center justify-between w-full">
-        <div className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Hyprnote Cloud (Beta)</span>
-          <span className="text-xs text-neutral-500">
-            Use the Hyprnote Cloud API to transcribe your audio.
-          </span>
-        </div>
-        <button
-          onClick={handleClick}
-          className={cn([
-            "relative overflow-hidden",
-            "px-4 py-1.5 rounded-full text-sm font-medium",
-            "transition-all duration-150",
-            isPro
-              ? "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm hover:shadow-md"
-              : "bg-gradient-to-t from-stone-600 to-stone-500 text-white shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
-          ])}
-        >
-          {showShimmer && (
-            <div
-              className={cn([
-                "absolute inset-0 -translate-x-full",
-                "bg-gradient-to-r from-transparent via-white/20 to-transparent",
-                "animate-[shimmer_2s_infinite]",
-              ])}
-            />
-          )}
-          <span className="relative z-10">
-            {isPro ? "Ready to use" : "Start Free Trial"}
-          </span>
-        </button>
+      <div className="flex-1">
+        <span className="text-sm font-medium">Hyprnote Cloud (Beta)</span>
+        <p className="text-xs text-neutral-500">
+          Use the Hyprnote Cloud API to transcribe your audio.
+        </p>
       </div>
+      <button
+        onClick={handleClick}
+        className={cn([
+          "relative overflow-hidden w-fit h-[34px]",
+          "px-4 rounded-full text-xs font-mono text-center",
+          "transition-all duration-150",
+          isPro
+            ? "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm hover:shadow-md"
+            : "bg-gradient-to-t from-stone-600 to-stone-500 text-white shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+        ])}
+      >
+        {showShimmer && (
+          <div
+            className={cn([
+              "absolute inset-0 -translate-x-full",
+              "bg-gradient-to-r from-transparent via-white/20 to-transparent",
+              "animate-[shimmer_2s_infinite]",
+            ])}
+          />
+        )}
+        <span className="relative z-10">
+          {isPro ? "Ready to use" : "Start Free Trial"}
+        </span>
+      </button>
     </HyprProviderRow>
   );
 }
@@ -290,27 +298,29 @@ function LocalModelAction({
       <div className="flex items-center gap-1.5">
         <button
           onClick={onOpen}
-          title="Show in Finder"
           className={cn([
-            "p-2 rounded-full",
+            "h-[34px] px-4 rounded-full text-xs font-mono text-center",
             "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
             "shadow-sm hover:shadow-md",
             "transition-all duration-150",
+            "flex items-center justify-center gap-1.5",
           ])}
         >
-          <Icon icon="mdi:folder-open" className="size-4" />
+          <FolderOpen className="size-4" />
+          <span>Show in Finder</span>
         </button>
         <button
           onClick={onDelete}
           title="Delete Model"
           className={cn([
-            "p-2 rounded-full",
-            "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
-            "shadow-sm hover:shadow-md hover:from-red-100 hover:to-red-50 hover:text-red-600",
+            "size-[34px] rounded-full",
+            "bg-gradient-to-t from-red-200 to-red-100 text-red-600",
+            "shadow-sm hover:shadow-md hover:from-red-300 hover:to-red-200",
             "transition-all duration-150",
+            "flex items-center justify-center",
           ])}
         >
-          <Icon icon="mdi:delete" className="size-4" />
+          <Trash2 className="size-4" />
         </button>
       </div>
     );
@@ -321,14 +331,14 @@ function LocalModelAction({
       <button
         onClick={onDownload}
         className={cn([
-          "px-4 py-1.5 rounded-full text-sm font-medium",
+          "w-fit h-[34px] px-4 rounded-full text-xs font-mono text-center",
           "bg-gradient-to-t from-red-600 to-red-500 text-white",
           "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
           "transition-all duration-150",
-          "flex items-center gap-1.5",
+          "flex items-center justify-center gap-1.5",
         ])}
       >
-        <Icon icon="mdi:alert-circle" className="size-4" />
+        <AlertCircle className="size-4" />
         <span>Retry</span>
       </button>
     );
@@ -340,7 +350,7 @@ function LocalModelAction({
         onClick={onCancel}
         className={cn([
           "relative overflow-hidden group",
-          "w-[110px] px-4 py-1.5 rounded-full text-sm font-medium",
+          "w-[110px] h-[34px] px-4 rounded-full text-xs font-mono text-center",
           "bg-gradient-to-t from-neutral-300 to-neutral-200 text-neutral-900",
           "shadow-sm",
           "transition-all duration-150",
@@ -351,11 +361,11 @@ function LocalModelAction({
           style={{ width: `${progress}%` }}
         />
         <div className="relative z-10 flex items-center justify-center gap-1.5 group-hover:hidden">
-          <Icon icon="mdi:loading" className="size-4 animate-spin" />
+          <Loader2 className="size-4 animate-spin" />
           <span>{Math.round(progress)}%</span>
         </div>
         <div className="relative z-10 hidden items-center justify-center gap-1.5 group-hover:flex">
-          <Icon icon="mdi:close" className="size-4" />
+          <X className="size-4" />
           <span>Cancel</span>
         </div>
       </button>
@@ -366,12 +376,12 @@ function LocalModelAction({
     <button
       onClick={onDownload}
       className={cn([
-        "relative overflow-hidden",
-        "px-4 py-1.5 rounded-full text-sm font-medium",
+        "relative overflow-hidden w-fit h-[34px]",
+        "px-4 rounded-full text-xs font-mono text-center",
         "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
         "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
         "transition-all duration-150",
-        "flex items-center gap-1.5",
+        "flex items-center justify-center gap-1.5",
       ])}
     >
       {showShimmer && (
@@ -383,7 +393,7 @@ function LocalModelAction({
           ])}
         />
       )}
-      <Icon icon="mdi:download" className="size-4 relative z-10" />
+      <Download className="size-4 relative z-10" />
       <span className="relative z-10">Download</span>
     </button>
   );
@@ -421,9 +431,9 @@ function HyprProviderLocalRow({
 
   return (
     <HyprProviderRow>
-      <div className="flex flex-col gap-1">
+      <div className="flex-1">
         <span className="text-sm font-medium">{displayName}</span>
-        <span className="text-xs text-neutral-500">{description}</span>
+        <p className="text-xs text-neutral-500">{description}</p>
       </div>
 
       <LocalModelAction

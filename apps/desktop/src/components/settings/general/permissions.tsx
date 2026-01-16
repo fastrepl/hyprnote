@@ -134,7 +134,7 @@ export function Permissions() {
 
   return (
     <div>
-      <h2 className="font-semibold mb-4">Permissions</h2>
+      <h2 className="font-semibold font-serif mb-4">Permissions</h2>
       <div className="space-y-4">
         <PermissionRow
           title="Microphone"

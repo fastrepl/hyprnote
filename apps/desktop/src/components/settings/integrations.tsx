@@ -135,7 +135,9 @@ export function SettingsIntegrations() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <h2 className="font-semibold cursor-default">Integrations</h2>
+            <h2 className="font-semibold font-serif cursor-default">
+              Integrations
+            </h2>
             <Badge variant="secondary" className="text-xs">
               Coming soon
             </Badge>

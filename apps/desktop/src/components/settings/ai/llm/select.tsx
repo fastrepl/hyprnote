@@ -83,7 +83,7 @@ export function SelectProviderAndModel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Model being used</h3>
+      <h3 className="text-md font-semibold font-serif">Model being used</h3>
       <div
         className={cn([
           "flex flex-col gap-4",
@@ -153,6 +153,7 @@ export function SelectProviderAndModel() {
                     onChange={(value) => field.handleChange(value)}
                     disabled={!status?.listModels}
                     listModels={status?.listModels}
+                    isConfigured={isConfigured}
                     suffix={
                       isConfigured ? <HealthStatusIndicator /> : undefined
                     }

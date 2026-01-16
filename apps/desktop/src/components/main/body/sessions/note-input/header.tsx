@@ -92,6 +92,8 @@ function HeaderTabTranscript({
 }) {
   const { audioExists } = useAudioPlayer();
   const isBatchProcessing = useListener((state) => sessionId in state.batch);
+  const handleBatchStarted = useListener((state) => state.handleBatchStarted);
+  const clearBatchSession = useListener((state) => state.clearBatchSession);
   const store = main.UI.useStore(main.STORE_ID);
   const runBatch = useRunBatch(sessionId);
   const [isRedoing, setIsRedoing] = useState(false);
@@ -105,6 +107,7 @@ function HeaderTabTranscript({
       }
 
       setIsRedoing(true);
+      handleBatchStarted(sessionId);
 
       try {
         const transcriptIds: string[] = [];
@@ -133,23 +136,34 @@ function HeaderTabTranscript({
             "[redo_transcript] failed to retrieve audio path",
             result.error,
           );
+          clearBatchSession(sessionId);
           return;
         }
 
         const audioPath = result.data;
         if (!audioPath) {
           console.error("[redo_transcript] audio path not available");
+          clearBatchSession(sessionId);
           return;
         }
 
         await runBatch(audioPath);
       } catch (error) {
         console.error("[redo_transcript] failed", error);
+        clearBatchSession(sessionId);
       } finally {
         setIsRedoing(false);
       }
     },
-    [audioExists, isBatchProcessing, runBatch, sessionId, store],
+    [
+      audioExists,
+      clearBatchSession,
+      handleBatchStarted,
+      isBatchProcessing,
+      runBatch,
+      sessionId,
+      store,
+    ],
   );
 
   const showRefreshButton = audioExists && isActive;

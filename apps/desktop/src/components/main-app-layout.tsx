@@ -10,10 +10,12 @@ import { NetworkProvider } from "../contexts/network";
 import { useTabs } from "../store/zustand/tabs";
 import { TrialBeginModal } from "./devtool/trial-begin-modal";
 import { TrialExpiredModal } from "./devtool/trial-expired-modal";
+import { FeedbackModal, useFeedbackModal } from "./feedback/feedback-modal";
 import { useNewNote } from "./main/shared";
 
 export default function MainAppLayout() {
   useNavigationEvents();
+  useFeedbackEvents();
 
   return (
     <AuthProvider>
@@ -22,6 +24,7 @@ export default function MainAppLayout() {
           <Outlet />
           <TrialBeginModal />
           <TrialExpiredModal />
+          <FeedbackModal />
         </NetworkProvider>
       </BillingProvider>
     </AuthProvider>
@@ -90,4 +93,28 @@ const useNavigationEvents = () => {
       unlistenOpenTab?.();
     };
   }, [navigate, openNew, openNewNote]);
+};
+
+const useFeedbackEvents = () => {
+  const openFeedback = useFeedbackModal((state) => state.open);
+
+  useEffect(() => {
+    let unlistenOpenFeedback: (() => void) | undefined;
+
+    const webview = getCurrentWebviewWindow();
+
+    void windowsEvents
+      .openFeedback(webview)
+      .listen(({ payload }) => {
+        const feedbackType = payload.feedback_type as "bug" | "feature";
+        openFeedback(feedbackType);
+      })
+      .then((fn) => {
+        unlistenOpenFeedback = fn;
+      });
+
+    return () => {
+      unlistenOpenFeedback?.();
+    };
+  }, [openFeedback]);
 };

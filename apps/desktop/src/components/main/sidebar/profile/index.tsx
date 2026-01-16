@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  BugIcon,
   CalendarIcon,
   ChevronUpIcon,
   FileTextIcon,
   FolderOpenIcon,
+  LightbulbIcon,
   MessageSquareIcon,
   SettingsIcon,
   SparklesIcon,
@@ -18,6 +20,7 @@ import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
+import { useFeedbackModal } from "../../../../components/feedback/feedback-modal";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
@@ -38,6 +41,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   const [mainViewHeight, setMainViewHeight] = useState<number | null>(null);
   const mainViewRef = useRef<HTMLDivElement | null>(null);
   const openNew = useTabs((state) => state.openNew);
+  const openFeedback = useFeedbackModal((state) => state.open);
   const auth = useAuth();
 
   const isAuthenticated = !!auth?.session;
@@ -161,6 +165,16 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
+  const handleClickReportBug = useCallback(() => {
+    openFeedback("bug");
+    closeMenu();
+  }, [openFeedback, closeMenu]);
+
+  const handleClickSuggestFeature = useCallback(() => {
+    openFeedback("feature");
+    closeMenu();
+  }, [openFeedback, closeMenu]);
+
   // const handleClickData = useCallback(() => {
   //   openNew({ type: "data" });
   //   closeMenu();
@@ -218,6 +232,16 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       onClick: handleClickSettings,
       badge: <Kbd className={kbdClass}>⌘ ,</Kbd>,
     },
+    {
+      icon: BugIcon,
+      label: "Report Bug",
+      onClick: handleClickReportBug,
+    },
+    {
+      icon: LightbulbIcon,
+      label: "Suggest Feature",
+      onClick: handleClickSuggestFeature,
+    },
   ];
 
   return (
@@ -256,7 +280,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                       {menuItems.map((item, index) => (
                         <div key={item.label}>
                           <MenuItem {...item} />
-                          {(index === 2 || index === 5) && (
+                          {(index === 2 || index === 5 || index === 7) && (
                             <div className="my-1 border-t border-neutral-100" />
                           )}
                         </div>

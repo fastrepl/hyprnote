@@ -202,7 +202,7 @@ export function SettingsGeneral({
       </div>
 
       <div ref={languageRef}>
-        <h2 className="font-semibold mb-4">Language & Vocabulary</h2>
+        <h2 className="font-semibold font-serif mb-4">Language & Vocabulary</h2>
         <div className="space-y-6">
           <form.Field name="ai_language">
             {(field) => (
@@ -232,7 +232,7 @@ export function SettingsGeneral({
       </div>
 
       <div ref={notificationsRef}>
-        <h2 className="font-semibold mb-4">Notifications</h2>
+        <h2 className="font-semibold font-serif mb-4">Notifications</h2>
         <NotificationSettingsView />
       </div>
 

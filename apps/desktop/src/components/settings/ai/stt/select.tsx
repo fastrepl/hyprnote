@@ -1,7 +1,7 @@
-import { Icon } from "@iconify-icon/react";
 import { useForm } from "@tanstack/react-form";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { arch } from "@tauri-apps/plugin-os";
+import { Check, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
 import { commands as listenerCommands } from "@hypr/plugin-listener";
@@ -139,7 +139,7 @@ export function SelectProviderAndModel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Model being used</h3>
+      <h3 className="text-md font-semibold font-serif">Model being used</h3>
       <div
         className={cn([
           "flex flex-col gap-4",
@@ -253,9 +253,18 @@ export function SelectProviderAndModel() {
                     onValueChange={(value) => field.handleChange(value)}
                     disabled={models.length === 0}
                   >
-                    <SelectTrigger className="bg-white shadow-none focus:ring-0 [&>span]:flex [&>span]:items-center [&>span]:justify-between [&>span]:w-full [&>span]:gap-2 [&>svg]:-mr-1">
+                    <SelectTrigger
+                      className={cn([
+                        "bg-white shadow-none focus:ring-0",
+                        "[&>span]:flex [&>span]:items-center [&>span]:justify-between [&>span]:w-full [&>span]:gap-2",
+                        isConfigured && "[&>svg:last-child]:hidden",
+                      ])}
+                    >
                       <SelectValue placeholder="Select a model" />
                       {isConfigured && <HealthStatusIndicator />}
+                      {isConfigured && (
+                        <Check className="-mr-1 h-4 w-4 shrink-0 text-green-600" />
+                      )}
                     </SelectTrigger>
                     <SelectContent>
                       {models.map((model) => (
@@ -469,7 +478,7 @@ function ModelSelectItem({
             "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-500",
           ])}
         >
-          <Icon icon="lucide:loader-2" className="size-3 animate-spin" />
+          <Loader2 className="size-3 animate-spin" />
           <span>{Math.round(downloadInfo.progress)}%</span>
         </span>
       ) : (

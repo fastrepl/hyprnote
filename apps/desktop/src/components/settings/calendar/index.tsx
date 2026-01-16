@@ -23,7 +23,7 @@ function Container({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-semibold">{title}</h3>
+      <h3 className="text-sm font-semibold font-serif">{title}</h3>
       {children}
     </div>
   );

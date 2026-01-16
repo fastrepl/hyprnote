@@ -1,4 +1,3 @@
-import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
 import { generateText } from "ai";
 import { useEffect } from "react";
@@ -17,12 +16,6 @@ export function HealthStatusIndicator() {
 
   if (health.status === "pending") {
     return <Spinner size={14} className="shrink-0 text-neutral-400" />;
-  }
-
-  if (health.status === "success") {
-    return (
-      <Icon icon="lucide:check" className="size-4 text-green-500 shrink-0" />
-    );
   }
 
   return null;

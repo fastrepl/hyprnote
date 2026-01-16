@@ -114,6 +114,14 @@ export function useLocalModelDownload(
     setProgress(0);
   }, [model]);
 
+  const handleDelete = useCallback(() => {
+    void localSttCommands.deleteModel(model).then((result) => {
+      if (result.status === "ok") {
+        void isDownloaded.refetch();
+      }
+    });
+  }, [model, isDownloaded]);
+
   return {
     progress,
     hasError,
@@ -122,5 +130,6 @@ export function useLocalModelDownload(
     showProgress,
     handleDownload,
     handleCancel,
+    handleDelete,
   };
 }

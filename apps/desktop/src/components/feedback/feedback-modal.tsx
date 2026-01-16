@@ -221,15 +221,7 @@ ${deviceInfo}
               </p>
             </div>
 
-            <div className="flex justify-end gap-2 mt-4">
-              <Button
-                variant="outline"
-                onClick={close}
-                disabled={isSubmitting}
-                className="h-8 text-sm"
-              >
-                Cancel
-              </Button>
+            <div className="flex justify-start mt-4">
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !description.trim()}

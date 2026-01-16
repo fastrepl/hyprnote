@@ -73,6 +73,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
                                 continue;
                             }
 
+                            if relative_path.starts_with("argmax") {
+                                continue;
+                            }
+
                             if path
                                 .extension()
                                 .is_some_and(|ext| ext == "wav" || ext == "ogg")

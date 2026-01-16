@@ -27,7 +27,7 @@ soft_limit = 150
 grace_period = "20s"
 interval = "15s"
 method = "GET"
-path = "/health"
+path = "/health/livez"
 protocol = "http"
 timeout = "4s"
 

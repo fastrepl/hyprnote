@@ -1,7 +1,9 @@
 mod auth;
 mod env;
+mod health;
 
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Duration;
 
 use axum::{Router, body::Body, extract::MatchedPath, http::Request, middleware};
@@ -12,12 +14,19 @@ use tracing_subscriber::prelude::*;
 
 use auth::AuthState;
 use env::env;
+use health::HealthState;
 
 pub use auth::DEVICE_FINGERPRINT_HEADER;
 
 fn app() -> Router {
-    let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key);
-    let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys());
+    let health_state = Arc::new(HealthState::new());
+    let llm_health = Arc::new(health::LlmHealthAdapter::new(health_state.clone()));
+    let stt_health = Arc::new(health::SttHealthAdapter::new(health_state.clone()));
+
+    let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key)
+        .with_health_reporter(llm_health);
+    let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys())
+        .with_health_reporter(stt_health);
     let auth_state = AuthState::new(&env().supabase_url);
 
     let protected_routes = Router::new()
@@ -31,7 +40,7 @@ fn app() -> Router {
         ));
 
     Router::new()
-        .route("/health", axum::routing::get(|| async { "ok" }))
+        .nest("/health", health::health_router(health_state))
         .merge(protected_routes)
         .layer(
             ServiceBuilder::new()
@@ -42,7 +51,7 @@ fn app() -> Router {
                         .make_span_with(|request: &Request<Body>| {
                             let path = request.uri().path();
 
-                            if path == "/health" {
+                            if path.starts_with("/health") {
                                 return tracing::Span::none();
                             }
 
@@ -75,7 +84,7 @@ fn app() -> Router {
                         })
                         .on_request(|request: &Request<Body>, _span: &tracing::Span| {
                             // Skip logging for health checks
-                            if request.uri().path() == "/health" {
+                            if request.uri().path().starts_with("/health") {
                                 return;
                             }
                             tracing::info!(

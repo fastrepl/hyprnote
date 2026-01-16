@@ -9,6 +9,11 @@ use crate::provider_selector::ProviderSelector;
 
 pub const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 5000;
 
+pub trait SttHealthReporter: Send + Sync {
+    fn record_success(&self);
+    fn record_error(&self, status_code: u16, message: String, provider: Option<String>);
+}
+
 #[derive(Clone)]
 pub struct SttProxyConfig {
     pub api_keys: HashMap<Provider, String>,
@@ -16,6 +21,7 @@ pub struct SttProxyConfig {
     pub connect_timeout: Duration,
     pub analytics: Option<Arc<dyn SttAnalyticsReporter>>,
     pub upstream_urls: HashMap<Provider, String>,
+    pub health_reporter: Option<Arc<dyn SttHealthReporter>>,
 }
 
 impl SttProxyConfig {
@@ -26,6 +32,7 @@ impl SttProxyConfig {
             connect_timeout: Duration::from_millis(DEFAULT_CONNECT_TIMEOUT_MS),
             analytics: None,
             upstream_urls: HashMap::new(),
+            health_reporter: None,
         }
     }
 
@@ -55,5 +62,10 @@ impl SttProxyConfig {
             self.default_provider,
             self.upstream_urls.clone(),
         )
+    }
+
+    pub fn with_health_reporter(mut self, reporter: Arc<dyn SttHealthReporter>) -> Self {
+        self.health_reporter = Some(reporter);
+        self
     }
 }

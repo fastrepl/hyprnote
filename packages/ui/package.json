@@ -51,6 +51,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.1.18",
     "@tailwindcss/postcss": "^4.1.18",
     "@tanstack/react-query": "^5.90.17",
     "@types/node": "^22.19.7",

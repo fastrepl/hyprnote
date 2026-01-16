@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  BugIcon,
   CalendarIcon,
   ChevronUpIcon,
+  CircleHelp,
   FileTextIcon,
   FolderOpenIcon,
-  LightbulbIcon,
   MessageSquareIcon,
   SettingsIcon,
   SparklesIcon,
@@ -165,13 +164,8 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
-  const handleClickReportBug = useCallback(() => {
+  const handleClickHelp = useCallback(() => {
     openFeedback("bug");
-    closeMenu();
-  }, [openFeedback, closeMenu]);
-
-  const handleClickSuggestFeature = useCallback(() => {
-    openFeedback("feature");
     closeMenu();
   }, [openFeedback, closeMenu]);
 
@@ -233,14 +227,9 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       badge: <Kbd className={kbdClass}>⌘ ,</Kbd>,
     },
     {
-      icon: BugIcon,
-      label: "Report Bug",
-      onClick: handleClickReportBug,
-    },
-    {
-      icon: LightbulbIcon,
-      label: "Suggest Feature",
-      onClick: handleClickSuggestFeature,
+      icon: CircleHelp,
+      label: "Help",
+      onClick: handleClickHelp,
     },
   ];
 

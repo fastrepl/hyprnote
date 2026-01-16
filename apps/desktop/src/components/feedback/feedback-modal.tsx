@@ -30,7 +30,6 @@ export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
 export function FeedbackModal() {
   const { isOpen, initialType, close } = useFeedbackModal();
   const [type, setType] = useState<FeedbackType>(initialType);
-  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,13 +53,12 @@ export function FeedbackModal() {
     if (isOpen) {
       setType(initialType);
     } else {
-      setTitle("");
       setDescription("");
     }
   }, [isOpen, initialType]);
 
   const handleSubmit = useCallback(async () => {
-    if (!title.trim() || !description.trim() || !type) {
+    if (!description.trim()) {
       return;
     }
 
@@ -76,6 +74,8 @@ export function FeedbackModal() {
         `**App Version:** ${env.VITE_APP_VERSION ?? "unknown"}`,
         `**Git Hash:** ${gitHash}`,
       ].join("\n");
+
+      const title = description.split("\n")[0].slice(0, 100).trim();
 
       if (type === "bug") {
         const body = `## Description
@@ -121,7 +121,7 @@ ${deviceInfo}
     } finally {
       setIsSubmitting(false);
     }
-  }, [title, description, type, close]);
+  }, [description, type, close]);
 
   if (!isOpen) {
     return null;
@@ -191,33 +191,6 @@ ${deviceInfo}
             <div className="space-y-3">
               <div>
                 <label
-                  htmlFor="feedback-title"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Title
-                </label>
-                <input
-                  id="feedback-title"
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder={
-                    isBug
-                      ? "Brief description of the bug"
-                      : "Brief description of the feature"
-                  }
-                  className={cn([
-                    "w-full px-2.5 py-1.5 rounded-md",
-                    "border border-neutral-200",
-                    "text-sm",
-                    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
-                  ])}
-                  maxLength={256}
-                />
-              </div>
-
-              <div>
-                <label
                   htmlFor="feedback-description"
                   className="block text-sm font-medium mb-1"
                 >
@@ -232,7 +205,7 @@ ${deviceInfo}
                       ? "What happened? What did you expect to happen? Steps to reproduce..."
                       : "Describe the feature you'd like to see. How would it help you?"
                   }
-                  rows={5}
+                  rows={6}
                   className={cn([
                     "w-full px-2.5 py-1.5 rounded-md",
                     "border border-neutral-200",
@@ -259,7 +232,7 @@ ${deviceInfo}
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={isSubmitting || !title.trim() || !description.trim()}
+                disabled={isSubmitting || !description.trim()}
                 className="h-8 text-sm"
               >
                 {isSubmitting

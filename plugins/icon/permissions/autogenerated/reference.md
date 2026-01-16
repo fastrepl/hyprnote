@@ -95,4 +95,30 @@ Denies the set_dock_icon command without any pre-configured scope.
 
 </td>
 </tr>
+
+<tr>
+<td>
+
+`icon:allow-set-recording-indicator`
+
+</td>
+<td>
+
+Enables the set_recording_indicator command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`icon:deny-set-recording-indicator`
+
+</td>
+<td>
+
+Denies the set_recording_indicator command without any pre-configured scope.
+
+</td>
+</tr>
 </table>

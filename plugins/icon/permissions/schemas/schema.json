@@ -331,6 +331,18 @@
           "markdownDescription": "Denies the set_dock_icon command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_recording_indicator command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-recording-indicator",
+          "markdownDescription": "Enables the set_recording_indicator command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_recording_indicator command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-recording-indicator",
+          "markdownDescription": "Denies the set_recording_indicator command without any pre-configured scope."
+        },
+        {
           "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-dock-icon`\n- `allow-reset-dock-icon`\n- `allow-get-icon`\n- `allow-set-recording-indicator`",
           "type": "string",
           "const": "default",

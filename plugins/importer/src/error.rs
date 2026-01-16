@@ -24,6 +24,9 @@ pub enum Error {
     #[error("tauri error: {0}")]
     Tauri(#[from] tauri::Error),
 
+    #[error("settings error: {0}")]
+    Settings(#[from] tauri_plugin_settings::Error),
+
     #[error("invalid data: {0}")]
     InvalidData(String),
 

@@ -23,14 +23,14 @@ pub struct LocalStt<'a, R: Runtime, M: Manager<R>> {
 
 impl<'a, R: Runtime, M: Manager<R>> LocalStt<'a, R, M> {
     pub fn models_dir(&self) -> PathBuf {
-        use tauri::path::BaseDirectory;
+        use tauri_plugin_settings::SettingsPluginExt;
         self.manager
-            .path()
-            .resolve("hyprnote/models/stt", BaseDirectory::Data)
+            .settings()
+            .settings_base()
+            .map(|base| base.join("models").join("stt"))
             .unwrap_or_else(|_| {
                 dirs::data_dir()
                     .unwrap_or_default()
-                    .join("hyprnote")
                     .join("models")
                     .join("stt")
             })

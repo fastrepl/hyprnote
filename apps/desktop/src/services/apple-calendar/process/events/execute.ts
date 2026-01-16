@@ -50,7 +50,7 @@ export function executeForEventsSync(
         meeting_link: event.meeting_link,
         description: event.description,
         recurrence_series_id: event.recurrence_series_id,
-        ignored: event.ignored,
+        ignored: event.ignored as boolean | undefined,
       });
       trackingIdToEventId.set(event.tracking_id_event!, event.id);
     }

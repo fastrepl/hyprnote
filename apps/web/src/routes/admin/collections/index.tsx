@@ -459,7 +459,7 @@ function CollectionsPage() {
           <DialogHeader>
             <DialogTitle>Delete File</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <p className="text-sm text-neutral-600">
               Are you sure you want to delete{" "}
               <span className="font-medium text-neutral-900">
@@ -1536,7 +1536,7 @@ function FileList({
 
   return (
     <div className="flex-1 overflow-y-auto p-4">
-      <div className="space-y-1">
+      <div className="flex flex-col gap-1">
         {filteredItems.map((item) => (
           <FileItem
             key={item.path}
@@ -1896,7 +1896,7 @@ function GitHistory({ filePath }: { filePath: string }) {
         />
       </button>
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-2">
+        <div className="px-4 pb-4 flex flex-col gap-2">
           {isLoading ? (
             <div className="flex items-center gap-2 text-xs text-neutral-400">
               <Spinner size={12} />
@@ -1951,7 +1951,7 @@ function MetadataSidePanel({
 }) {
   return (
     <div className="text-sm" key={filePath}>
-      <div className="p-4 space-y-4">
+      <div className="p-4 flex flex-col gap-4">
         <div>
           <label className="block text-neutral-500 mb-1">
             <span className="text-red-400">*</span> Title
@@ -2576,7 +2576,7 @@ function ImportModal({
           <DialogTitle>Import from Google Docs</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <p className="text-sm text-neutral-600">
             The document must be either published to the web or shared with
             "Anyone with the link can view" permissions.
@@ -2687,7 +2687,7 @@ function ImportModal({
           )}
 
           {importMutation.data && (
-            <div className="space-y-4 pt-4 border-t">
+            <div className="flex flex-col gap-4 pt-4 border-t">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">
                   Generated MDX Content

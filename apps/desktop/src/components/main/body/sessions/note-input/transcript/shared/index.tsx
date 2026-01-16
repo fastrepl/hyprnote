@@ -123,12 +123,12 @@ export function TranscriptContainer({
         ref={handleContainerRef}
         data-transcript-container
         className={cn([
-          "space-y-8 h-full overflow-y-auto overflow-x-hidden",
+          "flex flex-col gap-8 h-full overflow-y-auto overflow-x-hidden",
           "pb-16 scroll-pb-32 scrollbar-hide",
         ])}
       >
         {transcriptIds.map((transcriptId, index) => (
-          <div key={transcriptId} className="space-y-8">
+          <div key={transcriptId} className="flex flex-col gap-8">
             <RenderTranscript
               scrollElement={scrollElement}
               isLastTranscript={index === transcriptIds.length - 1}

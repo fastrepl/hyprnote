@@ -185,7 +185,7 @@ function HeroSection({
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
       <section className="flex flex-col items-center text-center gap-8 py-24 px-4 laptop:px-0">
-        <div className="space-y-6 max-w-3xl">
+        <div className="flex flex-col gap-6 max-w-3xl">
           <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
             Shortcuts
           </h1>
@@ -314,7 +314,7 @@ function DesktopSidebar({
         <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">
           Categories
         </h3>
-        <nav className="space-y-1">
+        <nav className="flex flex-col gap-1">
           <button
             onClick={() => setSelectedCategory(null)}
             className={cn([
@@ -450,7 +450,7 @@ function ContributeCard() {
 function CTASection() {
   return (
     <section className="py-16 px-6 text-center">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto flex flex-col gap-6">
         <h2 className="text-3xl sm:text-4xl font-serif text-stone-600">
           Ready to transform your meetings?
         </h2>
@@ -519,7 +519,7 @@ function ShortcutModal({
               </h2>
               <p className="text-neutral-600 mb-6">{shortcut.description}</p>
 
-              <div className="space-y-6">
+              <div className="flex flex-col gap-6">
                 <div className="prose prose-stone prose-sm prose-headings:font-serif prose-headings:font-semibold prose-h2:text-base prose-h2:mt-6 prose-h2:mb-3 prose-p:text-neutral-600 prose-p:text-sm max-w-none">
                   <MDXContent code={shortcut.mdx} components={{ a: MDXLink }} />
                 </div>

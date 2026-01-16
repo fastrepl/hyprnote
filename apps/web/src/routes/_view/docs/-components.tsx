@@ -103,9 +103,9 @@ function RightSidebar({
 }) {
   return (
     <aside className="hidden lg:block w-64 shrink-0">
-      <div className="sticky top-17.25 max-h-[calc(100vh-69px)] overflow-y-auto space-y-6 px-4 py-6">
+      <div className="sticky top-17.25 max-h-[calc(100vh-69px)] overflow-y-auto flex flex-col gap-6 px-4 py-6">
         {toc.length > 0 && (
-          <nav className="space-y-1">
+          <nav className="flex flex-col gap-1">
             <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3">
               On this page
             </p>

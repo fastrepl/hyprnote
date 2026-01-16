@@ -103,7 +103,7 @@ function LeftSidebar({
           <span>Back to gallery</span>
         </Link>
 
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <div>
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">
               Type
@@ -137,7 +137,7 @@ function LeftSidebar({
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">
               On this page
             </h3>
-            <nav className="space-y-1">
+            <nav className="flex flex-col gap-1">
               <a
                 href="#content"
                 className="block text-sm text-neutral-500 hover:text-stone-600 py-1 transition-colors"
@@ -247,7 +247,7 @@ function ItemContent({
             <h3 className="text-sm font-semibold text-stone-600 uppercase tracking-wider mb-3">
               Template Sections
             </h3>
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               {item.sections.map((section, index) => (
                 <div
                   key={section.title}
@@ -350,7 +350,7 @@ function RightSidebar({
 
   return (
     <aside className="hidden sm:block w-80 shrink-0">
-      <div className="sticky top-17.25 space-y-4 px-4 py-6">
+      <div className="sticky top-17.25 flex flex-col gap-4 px-4 py-6">
         <div className="border border-neutral-200 rounded-xs overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-6 text-center">
           <h3 className="font-serif text-lg text-stone-600 mb-3">
             Use this {isTemplate ? "template" : "shortcut"}

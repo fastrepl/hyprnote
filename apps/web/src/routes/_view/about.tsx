@@ -614,7 +614,7 @@ function FoundersSidebar({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
         Founders
       </div>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {founders.map((founder) => (
           <button
             key={founder.id}
@@ -668,7 +668,7 @@ function TeamPhotosSidebar({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
         Team Photos
       </div>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {teamPhotos.map((photo) => (
           <button
             key={photo.id}
@@ -828,7 +828,7 @@ function StoryDetail({ onClose }: { onClose: () => void }) {
             pretending to be in the room.
           </p>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <div>
               <p className="text-base text-neutral-600 font-medium italic font-serif">
                 Hyprnote

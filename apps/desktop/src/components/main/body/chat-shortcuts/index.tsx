@@ -357,7 +357,7 @@ function ShortcutListColumn({
 
       <div className="flex-1 overflow-y-auto p-2">
         {isWebMode && isWebLoading ? (
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="px-3 py-2 rounded-md animate-pulse">
                 <div className="h-4 w-3/4 rounded-xs bg-neutral-200" />

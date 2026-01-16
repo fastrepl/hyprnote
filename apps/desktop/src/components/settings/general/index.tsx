@@ -203,7 +203,7 @@ export function SettingsGeneral({
 
       <div ref={languageRef}>
         <h2 className="font-semibold font-serif mb-4">Language & Vocabulary</h2>
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <form.Field name="ai_language">
             {(field) => (
               <MainLanguageView

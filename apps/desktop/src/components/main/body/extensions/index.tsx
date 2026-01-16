@@ -131,12 +131,12 @@ class ExtensionErrorBoundary extends Component<
     if (this.state.hasError) {
       return (
         <div className="flex items-center justify-center h-full">
-          <div className="max-w-md space-y-4 text-center p-4">
+          <div className="max-w-md flex flex-col gap-4 text-center p-4">
             <AlertTriangleIcon
               size={48}
               className="mx-auto text-amber-500 mb-4"
             />
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <h3 className="text-lg font-semibold">Extension Error</h3>
               <p className="text-sm text-neutral-500">
                 The extension "{this.props.extensionId}" encountered an error

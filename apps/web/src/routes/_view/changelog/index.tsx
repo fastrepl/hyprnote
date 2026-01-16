@@ -87,7 +87,7 @@ function ChangelogSection({ changelog }: { changelog: ChangelogWithMeta }) {
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-6 md:gap-12">
-      <div className="md:sticky md:top-24 md:self-start space-y-6">
+      <div className="md:sticky md:top-24 md:self-start flex flex-col gap-6">
         <div className="flex flex-col gap-1">
           {!isPrerelease && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-linear-to-t from-stone-200 to-stone-100 text-stone-700 rounded-full w-fit">
@@ -141,13 +141,13 @@ function DownloadLinks({ version }: { version: string }) {
   const grouped = groupDownloadLinks(links);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div>
         <h3 className="flex items-center gap-1.5 text-xs font-medium text-stone-500 uppercase tracking-wider mb-2">
           <Icon icon="simple-icons:apple" className="text-sm" />
           macOS
         </h3>
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           {grouped.macos.map((link) => (
             <a
               key={link.url}
@@ -171,7 +171,7 @@ function DownloadLinks({ version }: { version: string }) {
           <Icon icon="simple-icons:linux" className="text-sm" />
           Linux
         </h3>
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           {grouped.linux.map((link) => (
             <a
               key={link.url}

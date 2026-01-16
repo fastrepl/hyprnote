@@ -134,14 +134,14 @@ function ChatGroups({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72 p-1.5">
-        <div className="space-y-0.5">
+        <div className="flex flex-col gap-0.5">
           <div className="px-2 py-1.5">
             <h4 className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">
               Recent Chats
             </h4>
           </div>
           {recentChatGroupIds.length > 0 ? (
-            <div className="space-y-0.5">
+            <div className="flex flex-col gap-0.5">
               {recentChatGroupIds.map((groupId) => (
                 <ChatGroupItem
                   key={groupId}

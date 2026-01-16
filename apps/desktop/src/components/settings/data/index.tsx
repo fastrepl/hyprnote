@@ -101,7 +101,7 @@ export function Data() {
         }
       </StyledStreamdown>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 flex flex-col gap-3">
         {dryRunResult ? (
           <ImportPreview
             stats={dryRunResult.stats}

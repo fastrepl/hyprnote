@@ -33,9 +33,9 @@ export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
       ref={ref}
       className={cn([
         "flex flex-col",
-        spacing === "default" && "space-y-1.5 p-6",
-        spacing === "compact" && "space-y-1 p-4",
-        spacing === "loose" && "space-y-2 p-8",
+        spacing === "default" && "gap-1.5 p-6",
+        spacing === "compact" && "gap-1 p-4",
+        spacing === "loose" && "gap-2 p-8",
         className,
       ])}
       {...props}

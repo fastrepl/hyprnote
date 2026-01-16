@@ -289,7 +289,7 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
       {!isEmpty && (
         <Section icon={<StickyNoteIcon className="w-4 h-4" />} title="Notes">
           {(sessionIds?.length ?? 0) > 0 && (
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               {sessionIds!.map((sessionId) => (
                 <FolderSessionItem key={sessionId} sessionId={sessionId} />
               ))}

@@ -240,7 +240,7 @@ function Component() {
 
         <div className="max-w-6xl mx-auto px-4 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
               <div>
                 <h2 className="text-xl font-serif font-medium mb-2">
                   Raw Note + Audio
@@ -260,14 +260,14 @@ function Component() {
                   </span>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="p-6 flex flex-col gap-6">
                   {!file ? (
                     <UploadArea
                       onFileSelect={handleFileSelect}
                       disabled={isProcessing}
                     />
                   ) : (
-                    <div className="space-y-4">
+                    <div className="flex flex-col gap-4">
                       <FileInfo
                         fileName={file.name}
                         fileSize={file.size}
@@ -313,7 +313,7 @@ function Component() {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
               <div>
                 <h2 className="text-xl font-serif font-medium mb-2">
                   Final Result

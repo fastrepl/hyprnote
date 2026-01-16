@@ -11,13 +11,13 @@ export function HooksList() {
   }
 
   return (
-    <div className="space-y-10 mt-6">
+    <div className="flex flex-col gap-10 mt-6">
       {hooks.map((hook) => (
         <section
           key={hook.slug}
           className="border-t pt-2 first:border-t-0 first:pt-0"
         >
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <h2
               id={hook.name}
               className="scroll-mt-24 text-xl font-bold tracking-tight text-neutral-900"
@@ -36,7 +36,7 @@ export function HooksList() {
               <h3 className="mb-2 font-mono text-[10px] font-bold uppercase leading-none tracking-wider text-neutral-500/80">
                 Arguments
               </h3>
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 {hook.args.map((arg) => (
                   <div
                     key={arg.name}

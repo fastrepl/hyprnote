@@ -20,7 +20,7 @@ export function ConfigureProviders() {
       <Accordion
         type="single"
         collapsible
-        className="space-y-3"
+        className="flex flex-col gap-3"
         value={accordionValue}
         onValueChange={setAccordionValue}
       >

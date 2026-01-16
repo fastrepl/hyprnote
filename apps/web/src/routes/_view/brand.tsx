@@ -562,7 +562,7 @@ function VisualAssetsSidebar({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
         Visual Assets
       </div>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {VISUAL_ASSETS.map((asset) => (
           <button
             key={asset.id}
@@ -609,7 +609,7 @@ function TypographySidebar({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
         Typography
       </div>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {TYPOGRAPHY.map((font) => (
           <button
             key={font.id}
@@ -661,7 +661,7 @@ function ColorsSidebar({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
         Colors
       </div>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {COLORS.map((color) => (
           <button
             key={color.id}
@@ -806,7 +806,7 @@ function TypographyDetail({
       </div>
 
       <div ref={scrollRef} className="p-4 overflow-y-auto">
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <div>
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
               Font Family
@@ -839,7 +839,7 @@ function TypographyDetail({
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">
               Preview
             </h3>
-            <div className="space-y-4 p-6 bg-stone-50 border border-neutral-200 rounded-lg">
+            <div className="flex flex-col gap-4 p-6 bg-stone-50 border border-neutral-200 rounded-lg">
               <div
                 className="text-4xl text-stone-600"
                 style={{ fontFamily: font.fontFamily }}
@@ -900,7 +900,7 @@ function ColorDetail({
       </div>
 
       <div ref={scrollRef} className="p-4 overflow-y-auto">
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <div>
             <div
               className="w-full h-48 rounded-lg border border-neutral-200 shadow-xs mb-4"

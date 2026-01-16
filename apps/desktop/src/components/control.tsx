@@ -92,7 +92,7 @@ ${deviceInfo}
                 <AlertTriangle className="h-6 w-6 text-red-500" />
               </motion.div>
 
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 <h2 className="text-base font-semibold text-neutral-900">
                   Something went wrong
                 </h2>
@@ -151,7 +151,7 @@ export const NotFoundComponent: NotFoundRouteComponent = () => {
                 <Search className="h-6 w-6 text-neutral-400" />
               </motion.div>
 
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 <motion.span
                   className="block text-4xl font-bold text-neutral-300"
                   initial={{ scale: 0.9, opacity: 0 }}

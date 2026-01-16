@@ -424,7 +424,7 @@ function ScreenshotsSidebar({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
         Screenshots
       </div>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {screenshots.map((screenshot) => (
           <button
             key={screenshot.id}

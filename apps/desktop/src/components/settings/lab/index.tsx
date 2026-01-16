@@ -27,7 +27,7 @@ export function SettingsLab() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           <h3 className="text-sm font-medium mb-1">Content Folder</h3>

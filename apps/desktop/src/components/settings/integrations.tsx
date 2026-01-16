@@ -184,7 +184,7 @@ export function SettingsIntegrations() {
           />
         </div>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           {filteredIntegrations.length === 0 ? (
             <div className="text-center py-12 text-neutral-500">
               <Puzzle size={48} className="mx-auto mb-4 text-neutral-300" />

@@ -493,7 +493,7 @@ function MobileMenu({
       />
       <div className="fixed top-17.25 left-0 right-0 bg-white/80 backdrop-blur-xs border-b border-neutral-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] z-50 sm:hidden animate-in slide-in-from-top duration-300 max-h-[calc(100vh-69px)] overflow-y-auto">
         <nav className={`${maxWidthClass} mx-auto px-4 py-6`}>
-          <div className="space-y-6">
+          <div className="flex flex-col gap-6">
             <MobileMenuLinks
               isProductOpen={isProductOpen}
               setIsProductOpen={setIsProductOpen}
@@ -521,7 +521,7 @@ function MobileMenuLinks({
   setIsMenuOpen: (open: boolean) => void;
 }) {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <MobileProductSection
         isProductOpen={isProductOpen}
         setIsProductOpen={setIsProductOpen}
@@ -578,7 +578,7 @@ function MobileProductSection({
         {isProductOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       {isProductOpen && (
-        <div className="mt-3 ml-4 space-y-4 border-l-2 border-neutral-200 pl-4">
+        <div className="mt-3 ml-4 flex flex-col gap-4 border-l-2 border-neutral-200 pl-4">
           <MobileProductsList setIsMenuOpen={setIsMenuOpen} />
           <MobileFeaturesList setIsMenuOpen={setIsMenuOpen} />
         </div>
@@ -655,7 +655,7 @@ function MobileMenuCTAs({
   setIsMenuOpen: (open: boolean) => void;
 }) {
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       <Link
         to="/auth/"
         onClick={() => setIsMenuOpen(false)}

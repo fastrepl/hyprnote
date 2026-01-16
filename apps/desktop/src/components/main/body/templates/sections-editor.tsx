@@ -133,9 +133,9 @@ export function SectionsList({
     });
 
   return (
-    <div className="flex flex-col space-y-3">
+    <div className="flex flex-col gap-3">
       <Reorder.Group values={drafts} onReorder={reorderSections}>
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col gap-2">
           {drafts.map((draft) => (
             <Reorder.Item key={draft.key} value={draft}>
               <SectionItem
@@ -203,7 +203,7 @@ function SectionItem({
         </button>
       )}
 
-      <div className="space-y-1">
+      <div className="flex flex-col gap-1">
         <Input
           disabled={disabled}
           value={item.title}

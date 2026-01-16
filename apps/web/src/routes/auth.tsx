@@ -59,7 +59,7 @@ function Component() {
   return (
     <Container>
       <Header />
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         {showGoogle && (
           <OAuthButton
             flow={flow}
@@ -188,7 +188,7 @@ function MagicLinkForm({
           magicLinkMutation.mutate(email);
         }
       }}
-      className="space-y-2"
+      className="flex flex-col gap-2"
     >
       <input
         type="email"

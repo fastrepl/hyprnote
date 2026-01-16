@@ -42,7 +42,7 @@ export function ConfigureProviders() {
       <Accordion
         type="single"
         collapsible
-        className="space-y-3"
+        className="flex flex-col gap-3"
         value={accordionValue}
         onValueChange={setAccordionValue}
       >
@@ -117,7 +117,7 @@ function HyprProviderCard({
       </AccordionTrigger>
       <AccordionContent className="px-4">
         <ProviderContext providerId={providerId} />
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           <HyprProviderCloudRow />
 
           <div className="flex items-center gap-3 py-2">
@@ -152,11 +152,11 @@ function HyprProviderCard({
                 description="Broad coverage of languages."
               />
 
-              <details className="space-y-4 pt-2">
+              <details className="flex flex-col gap-4 pt-2">
                 <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
                   Advanced
                 </summary>
-                <div className="mt-4 space-y-3">
+                <div className="mt-4 flex flex-col gap-3">
                   <HyprProviderLocalRow
                     model="QuantizedTinyEn"
                     displayName="whisper-tiny-en-q8"

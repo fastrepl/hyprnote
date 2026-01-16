@@ -52,12 +52,12 @@ function Component() {
           </h1>
         </div>
 
-        <div className="mt-8 space-y-6 px-4 pb-20 max-w-4xl mx-auto">
+        <div className="mt-8 flex flex-col gap-6 px-4 pb-20 max-w-4xl mx-auto">
           <section>
             <h2 className="text-lg font-medium mb-4 font-serif">
               Profile info
             </h2>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <div>
                 <div className="text-sm text-neutral-500">Email</div>
                 <div className="text-base">

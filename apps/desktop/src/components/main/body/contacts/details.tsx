@@ -247,7 +247,7 @@ export function DetailsColumn({
                   {duplicatesWithData.length > 1 ? "exist" : "exists"}. Merge to
                   consolidate all related notes and information.
                 </p>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   {duplicatesWithData.map((dup) => (
                     <div
                       key={dup.id}
@@ -316,7 +316,7 @@ export function DetailsColumn({
               <h3 className="text-sm font-medium text-neutral-600 mb-4">
                 Related Notes
               </h3>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 {personSessions.length > 0 ? (
                   personSessions.map((session: any) => (
                     <button

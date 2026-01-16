@@ -191,7 +191,7 @@ function LetterSection() {
             in the Age of AI
           </h1>
 
-          <div className="space-y-6 text-neutral-700 leading-relaxed">
+          <div className="flex flex-col gap-6 text-neutral-700 leading-relaxed">
             <p className="text-lg">Hey friends,</p>
 
             <p>
@@ -225,7 +225,7 @@ function LetterSection() {
 
             <p>Open source flips the power dynamic:</p>
 
-            <ul className="space-y-2 list-disc pl-6">
+            <ul className="flex flex-col gap-2 list-disc pl-6">
               <li>You can verify claims instead of believing them.</li>
               <li>Security researchers can inspect, not speculate.</li>
               <li>Teams can self-host, extend, or fork when needed.</li>
@@ -279,7 +279,7 @@ function LetterSection() {
                 />
               </div>
 
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 <div>
                   <p className="text-lg">With clarity,</p>
                   <p>John Jeong, Yujong Lee</p>

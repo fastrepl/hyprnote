@@ -58,7 +58,7 @@ export function NotificationsMenuContent({ onBack }: { onBack: () => void }) {
         Notifications
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-1">
+      <div className="flex-1 overflow-y-auto flex flex-col gap-1">
         {MOCK_NOTIFICATIONS.map((notification) => (
           <NotificationItem key={notification.id} notification={notification} />
         ))}

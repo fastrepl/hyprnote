@@ -231,7 +231,7 @@ export function NotificationSettingsView() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <form.Field name="notification_event">
         {(field) => (
           <div className="flex items-start justify-between gap-4">
@@ -251,7 +251,7 @@ export function NotificationSettingsView() {
 
       <form.Field name="notification_detect">
         {(field) => (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <h3 className="mb-1 text-sm font-medium">
@@ -270,7 +270,7 @@ export function NotificationSettingsView() {
 
             {field.state.value && (
               <div className={cn(["ml-6 border-l-2 border-muted pl-6 pt-2"])}>
-                <div className="mb-3 space-y-1">
+                <div className="mb-3 flex flex-col gap-1">
                   <h4 className="text-sm font-medium">
                     Exclude apps from detection
                   </h4>
@@ -371,7 +371,7 @@ export function NotificationSettingsView() {
         )}
       </form.Field>
 
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         <div className="relative flex items-center pt-4 pb-2">
           <div className="w-full border-t border-muted" />
           <span className="absolute left-1/2 -translate-x-1/2 bg-background px-4 text-xs font-medium text-muted-foreground">

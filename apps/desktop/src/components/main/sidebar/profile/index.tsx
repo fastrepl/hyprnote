@@ -25,7 +25,6 @@ import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { AuthSection } from "./auth";
 import { NotificationsMenuContent } from "./notification";
-import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
 
 type ProfileView = "main" | "notifications";
@@ -262,9 +261,6 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                       {/*<NotificationsMenuHeader
                         onClick={handleClickNotifications}
                       />*/}
-                      <UpdateChecker />
-
-                      <div className="my-1 border-t border-neutral-100" />
 
                       {menuItems.map((item, index) => (
                         <div key={item.label}>

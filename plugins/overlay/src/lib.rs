@@ -31,15 +31,9 @@ impl Default for OverlayListenerHandles {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct OverlayOptions {
     pub steal_focus: bool,
-}
-
-impl Default for OverlayOptions {
-    fn default() -> Self {
-        Self { steal_focus: false }
-    }
 }
 
 pub async fn abort_overlay_listener(app: &AppHandle, window_label: &str) {

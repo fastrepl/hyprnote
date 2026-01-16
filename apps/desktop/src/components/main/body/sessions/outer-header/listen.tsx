@@ -2,7 +2,6 @@ import { useHover } from "@uidotdev/usehooks";
 import { MicOff } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -69,10 +68,13 @@ function ScrollingWaveform({
 
     const draw = () => {
       const amp = amplitudeRef.current;
-      const linear = amp < 30 ? 0 : Math.min((amp - 30) / 40, 1);
-      const normalized = Math.pow(linear, 0.6);
+      // Amplitude is now in [0, 1000] range from Rust (RMS + dB normalized)
+      // Normalize to [0, 1], apply noise gate, and visual curve
+      const normalized = Math.min(amp / 1000, 1.0);
+      const gated = normalized < 0.05 ? 0 : normalized;
+      const visualAmplitude = Math.pow(gated, 0.7);
 
-      amplitudesRef.current.push(normalized);
+      amplitudesRef.current.push(visualAmplitude);
       if (amplitudesRef.current.length > maxBars) {
         amplitudesRef.current = amplitudesRef.current.slice(-maxBars);
       }
@@ -115,42 +117,7 @@ function ScrollingWaveform({
     maxBars,
   ]);
 
-  return (
-    <div
-      style={{
-        position: "relative",
-        width,
-        height,
-        minWidth: width,
-        minHeight: height,
-      }}
-    >
-      <canvas ref={canvasRef} style={{ width, height }} />
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 12,
-          height: "100%",
-          background:
-            "linear-gradient(to right, rgb(254 242 242), transparent)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          width: 12,
-          height: "100%",
-          background: "linear-gradient(to left, rgb(254 242 242), transparent)",
-          pointerEvents: "none",
-        }}
-      />
-    </div>
-  );
+  return <canvas ref={canvasRef} style={{ width, height }} />;
 }
 
 export function ListenButton({ sessionId }: { sessionId: string }) {
@@ -178,14 +145,16 @@ function StartButton({ sessionId }: { sessionId: string }) {
   }, [openNew]);
 
   const button = (
-    <Button
-      size="sm"
-      variant="ghost"
+    <button
+      type="button"
       onClick={handleClick}
       disabled={isDisabled}
       className={cn([
+        "inline-flex items-center justify-center rounded-md text-xs font-medium",
         "bg-white text-neutral-900 hover:bg-neutral-100",
         "gap-1.5",
+        "w-[114px] h-7",
+        "disabled:pointer-events-none disabled:opacity-50",
       ])}
       title={warningMessage || "Start listening"}
       aria-label="Start listening"
@@ -194,7 +163,7 @@ function StartButton({ sessionId }: { sessionId: string }) {
       <span className="text-neutral-900 hover:text-neutral-800">
         Start listening
       </span>
-    </Button>
+    </button>
   );
 
   if (!warningMessage) {
@@ -237,17 +206,18 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
   }
 
   return (
-    <Button
+    <button
       ref={ref}
-      size="sm"
-      variant="ghost"
+      type="button"
       onClick={finalizing ? undefined : stop}
       disabled={finalizing}
       className={cn([
+        "inline-flex items-center justify-center rounded-md text-sm font-medium",
         finalizing
           ? ["text-neutral-500", "bg-neutral-100", "cursor-wait"]
           : ["text-red-500 hover:text-red-600", "bg-red-50 hover:bg-red-100"],
-        "w-[75px]",
+        "w-[114px] h-7",
+        "disabled:pointer-events-none disabled:opacity-50",
       ])}
       title={finalizing ? "Finalizing" : "Stop listening"}
       aria-label={finalizing ? "Finalizing" : "Stop listening"}
@@ -266,15 +236,14 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
           >
             {muted && <MicOff size={14} />}
             <ScrollingWaveform
-              amplitude={
-                ((amplitude.mic + amplitude.speaker) / 2 / 65535) * 100 * 1000
-              }
+              amplitude={(amplitude.mic + amplitude.speaker) / 2}
               color="#ef4444"
-              height={16}
-              width={muted ? 50 : 75}
+              height={26}
+              width={muted ? 68 : 88}
               barWidth={2}
               gap={1}
               minBarHeight={2}
+              maxBarHeight={26}
             />
           </div>
           <div
@@ -288,6 +257,6 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
           </div>
         </>
       )}
-    </Button>
+    </button>
   );
 }

@@ -1,7 +1,8 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
+import { createMergeableStore } from "tinybase/with-schemas";
 
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { type Schemas } from "@hypr/store";
+import { SCHEMA, type Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
 import { STORE_ID } from "../../store/main";
@@ -115,10 +116,64 @@ function migrateWordsAndHintsToTranscripts(store: Store): boolean {
   return true;
 }
 
+async function cleanupSessionsFromSqlite(): Promise<void> {
+  const tempStore = createMergeableStore()
+    .setTablesSchema(SCHEMA.table)
+    .setValuesSchema(SCHEMA.value) as Store;
+
+  const tempPersister = createLocalPersister(tempStore, {
+    storeTableName: STORE_ID,
+    storeIdColumnName: "id",
+  });
+
+  await tempPersister.load();
+
+  const sessionIds = tempStore.getRowIds("sessions");
+  if (sessionIds.length === 0) {
+    tempPersister.destroy();
+    return;
+  }
+
+  tempStore.transaction(() => {
+    for (const sessionId of sessionIds) {
+      tempStore.delRow("sessions", sessionId);
+    }
+
+    for (const mappingId of tempStore.getRowIds(
+      "mapping_session_participant",
+    )) {
+      tempStore.delRow("mapping_session_participant", mappingId);
+    }
+
+    for (const tagId of tempStore.getRowIds("tags")) {
+      tempStore.delRow("tags", tagId);
+    }
+
+    for (const mappingId of tempStore.getRowIds("mapping_tag_session")) {
+      tempStore.delRow("mapping_tag_session", mappingId);
+    }
+
+    for (const transcriptId of tempStore.getRowIds("transcripts")) {
+      tempStore.delRow("transcripts", transcriptId);
+    }
+
+    for (const noteId of tempStore.getRowIds("enhanced_notes")) {
+      tempStore.delRow("enhanced_notes", noteId);
+    }
+  });
+
+  await tempPersister.save();
+  tempPersister.destroy();
+}
+
 export function useLocalPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
+      if (getCurrentWebviewWindowLabel() === "main") {
+        await cleanupSessionsFromSqlite();
+      }
+
       const persister = createLocalPersister(store as Store, {
         storeTableName: STORE_ID,
         storeIdColumnName: "id",
@@ -129,8 +184,7 @@ export function useLocalPersister(store: Store) {
       (store as Store).transaction(() => {});
 
       if (getCurrentWebviewWindowLabel() === "main") {
-        const migrated = migrateWordsAndHintsToTranscripts(store as Store);
-        if (migrated) {
+        if (migrateWordsAndHintsToTranscripts(store as Store)) {
           await persister.save();
         }
       }

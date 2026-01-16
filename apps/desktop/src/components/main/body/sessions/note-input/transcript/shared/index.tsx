@@ -2,10 +2,15 @@ import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
+import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../../contexts/listener";
 import * as main from "../../../../../../../store/tinybase/store/main";
 import type { RuntimeSpeakerHint } from "../../../../../../../utils/segment";
-import { useAutoScroll, useScrollDetection } from "./hooks";
+import {
+  useAutoScroll,
+  usePlaybackAutoScroll,
+  useScrollDetection,
+} from "./hooks";
 import { Operations } from "./operations";
 import { RenderTranscript } from "./render-transcript";
 import { SelectionMenu } from "./selection-menu";
@@ -87,6 +92,12 @@ export function TranscriptContainer({
 
   const { isAtBottom, autoScrollEnabled, scrollToBottom } =
     useScrollDetection(containerRef);
+
+  const { time, state: playerState } = useAudioPlayer();
+  const currentMs = time.current * 1000;
+  const isPlaying = playerState === "playing";
+
+  usePlaybackAutoScroll(containerRef, currentMs, isPlaying);
   const shouldAutoScroll = currentActive && autoScrollEnabled;
   useAutoScroll(
     containerRef,

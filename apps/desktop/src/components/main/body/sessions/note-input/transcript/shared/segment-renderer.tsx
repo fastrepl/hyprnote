@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -7,8 +7,43 @@ import { Segment, SegmentWord } from "../../../../../../../utils/segment";
 import { SpeakerLabelManager } from "../../../../../../../utils/segment/shared";
 import { Operations } from "./operations";
 import { SegmentHeader } from "./segment-header";
-import { getWordHighlightState } from "./utils";
 import { WordSpan } from "./word-span";
+
+type SentenceLine = {
+  words: SegmentWord[];
+  startMs: number;
+  endMs: number;
+};
+
+function groupWordsIntoLines(words: SegmentWord[]): SentenceLine[] {
+  if (words.length === 0) return [];
+
+  const lines: SentenceLine[] = [];
+  let currentLine: SegmentWord[] = [];
+
+  for (const word of words) {
+    currentLine.push(word);
+    const text = word.text.trim();
+    if (text.endsWith(".") || text.endsWith("?") || text.endsWith("!")) {
+      lines.push({
+        words: currentLine,
+        startMs: currentLine[0].start_ms,
+        endMs: currentLine[currentLine.length - 1].end_ms,
+      });
+      currentLine = [];
+    }
+  }
+
+  if (currentLine.length > 0) {
+    lines.push({
+      words: currentLine,
+      startMs: currentLine[0].start_ms,
+      endMs: currentLine[currentLine.length - 1].end_ms,
+    });
+  }
+
+  return lines;
+}
 
 export const SegmentRenderer = memo(
   ({
@@ -39,6 +74,11 @@ export const SegmentRenderer = memo(
       [audioExists, offsetMs, seek, start],
     );
 
+    const lines = useMemo(
+      () => groupWordsIntoLines(segment.words),
+      [segment.words],
+    );
+
     return (
       <section>
         <SegmentHeader
@@ -54,27 +94,34 @@ export const SegmentRenderer = memo(
             editable && "select-text-deep",
           ])}
         >
-          {segment.words.map((word, idx) => {
-            const wordStartMs = offsetMs + word.start_ms;
-            const wordEndMs = offsetMs + word.end_ms;
-
-            const highlightState = getWordHighlightState({
-              editable,
-              audioExists,
-              currentMs,
-              wordStartMs,
-              wordEndMs,
-            });
+          {lines.map((line, lineIdx) => {
+            const lineStartMs = offsetMs + line.startMs;
+            const lineEndMs = offsetMs + line.endMs;
+            const isCurrentLine =
+              audioExists &&
+              currentMs > 0 &&
+              currentMs >= lineStartMs &&
+              currentMs <= lineEndMs;
 
             return (
-              <WordSpan
-                key={word.id ?? `${word.start_ms}-${idx}`}
-                word={word}
-                highlightState={highlightState}
-                audioExists={audioExists}
-                operations={operations}
-                onClickWord={seekAndPlay}
-              />
+              <span
+                key={line.words[0]?.id ?? `line-${lineIdx}`}
+                data-line-current={isCurrentLine ? "true" : undefined}
+                className={cn([
+                  "rounded-sm -mx-0.5 px-0.5",
+                  isCurrentLine && "bg-yellow-100/50",
+                ])}
+              >
+                {line.words.map((word, idx) => (
+                  <WordSpan
+                    key={word.id ?? `${word.start_ms}-${idx}`}
+                    word={word}
+                    audioExists={audioExists}
+                    operations={operations}
+                    onClickWord={seekAndPlay}
+                  />
+                ))}
+              </span>
             );
           })}
         </div>

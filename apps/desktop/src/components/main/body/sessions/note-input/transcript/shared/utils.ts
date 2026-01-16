@@ -1,17 +1,15 @@
 export function getWordHighlightState({
-  editable,
   audioExists,
   currentMs,
   wordStartMs,
   wordEndMs,
 }: {
-  editable: boolean;
   audioExists: boolean;
   currentMs: number;
   wordStartMs: number;
   wordEndMs: number;
 }): "current" | "buffer" | "none" {
-  if (!editable || !audioExists) {
+  if (!audioExists || currentMs === 0) {
     return "none";
   }
 

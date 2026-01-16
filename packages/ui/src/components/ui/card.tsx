@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 import { cn } from "@hypr/utils";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "outline" | "ghost";
+  variant?: "default" | "outline-solid" | "ghost";
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -12,8 +12,8 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       ref={ref}
       className={cn([
         "rounded-lg",
-        variant === "default" && "bg-background border shadow-sm",
-        variant === "outline" && "border",
+        variant === "default" && "bg-background border shadow-xs",
+        variant === "outline-solid" && "border",
         variant === "ghost" && "border-none shadow-none",
         className,
       ])}

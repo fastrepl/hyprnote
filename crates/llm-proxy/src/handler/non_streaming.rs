@@ -6,7 +6,6 @@ use axum::{
 };
 
 use crate::analytics::GenerationEvent;
-use crate::types::OpenRouterResponse;
 
 use super::{AppState, ProxyError, spawn_analytics_report};
 
@@ -31,23 +30,22 @@ pub(super) async fn handle_non_stream_response(
         Err(e) => return ProxyError::BodyRead(e).into_response(),
     };
 
-    if let Ok(parsed) = serde_json::from_slice::<OpenRouterResponse>(&body_bytes) {
+    if let Ok(metadata) = state.config.provider.parse_response(&body_bytes) {
         let event = GenerationEvent {
-            generation_id: parsed.id,
-            model: parsed.model.unwrap_or_default(),
-            input_tokens: parsed.usage.as_ref().map(|u| u.input_tokens()).unwrap_or(0),
-            output_tokens: parsed
-                .usage
-                .as_ref()
-                .map(|u| u.output_tokens())
-                .unwrap_or(0),
+            generation_id: metadata.generation_id,
+            model: metadata.model.unwrap_or_default(),
+            input_tokens: metadata.input_tokens,
+            output_tokens: metadata.output_tokens,
             latency: start_time.elapsed().as_secs_f64(),
             http_status,
             total_cost: None,
+            provider_name: state.config.provider.name().to_string(),
+            base_url: state.config.provider.base_url().to_string(),
         };
 
         spawn_analytics_report(
             state.config.analytics.clone(),
+            state.config.provider.clone(),
             state.client.clone(),
             state.config.api_key.clone(),
             event,

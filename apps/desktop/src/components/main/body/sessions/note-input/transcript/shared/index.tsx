@@ -123,12 +123,12 @@ export function TranscriptContainer({
         ref={handleContainerRef}
         data-transcript-container
         className={cn([
-          "space-y-8 h-full overflow-y-auto overflow-x-hidden",
-          "pb-16 scroll-pb-[8rem] scrollbar-hide",
+          "flex flex-col gap-8 h-full overflow-y-auto overflow-x-hidden",
+          "pb-16 scroll-pb-32 scrollbar-hide",
         ])}
       >
         {transcriptIds.map((transcriptId, index) => (
-          <div key={transcriptId} className="space-y-8">
+          <div key={transcriptId} className="flex flex-col gap-8">
             <RenderTranscript
               scrollElement={scrollElement}
               isLastTranscript={index === transcriptIds.length - 1}
@@ -164,8 +164,8 @@ export function TranscriptContainer({
         className={cn([
           "absolute bottom-3 left-1/2 -translate-x-1/2 z-30",
           "px-4 py-2 rounded-full",
-          "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
-          "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+          "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+          "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
           "text-xs font-light",
           "transition-opacity duration-150",
           shouldShowButton ? "opacity-100" : "opacity-0 pointer-events-none",

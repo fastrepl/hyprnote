@@ -58,7 +58,7 @@ export function SocialCard({
         className,
       ])}
     >
-      <div className="space-y-4 text-left">
+      <div className="flex flex-col gap-4 text-left">
         <div className="flex justify-between items-start">
           <div>
             <p className="font-semibold text-neutral-900">

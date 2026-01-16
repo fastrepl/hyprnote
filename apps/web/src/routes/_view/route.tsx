@@ -105,7 +105,7 @@ function MobileDocsDrawer({
         />
       )}
       <div
-        className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white/80 backdrop-blur-sm border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
+        className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white/80 backdrop-blur-xs border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{
@@ -191,7 +191,7 @@ function MobileHandbookDrawer({
         />
       )}
       <div
-        className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white/80 backdrop-blur-sm border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
+        className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white/80 backdrop-blur-xs border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{

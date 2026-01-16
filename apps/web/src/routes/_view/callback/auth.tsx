@@ -162,8 +162,8 @@ function Component() {
   if (search.flow === "desktop") {
     return (
       <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white flex items-center justify-center p-6">
-        <div className="max-w-md w-full text-center space-y-8">
-          <div className="space-y-3">
+        <div className="max-w-md w-full text-center flex flex-col gap-8">
+          <div className="flex flex-col gap-3">
             <h1 className="text-3xl font-serif tracking-tight text-stone-600">
               Redirecting to Hyprnote
             </h1>
@@ -173,8 +173,8 @@ function Component() {
           </div>
 
           {attempted && (
-            <div className="space-y-4">
-              <div className="space-y-3">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 <div className="p-6 bg-stone-50 rounded-lg border border-stone-100">
                   <p className="text-sm text-stone-700 mb-3">
                     App didn't open?
@@ -198,7 +198,7 @@ function Component() {
                     onClick={handleCopy}
                     className={cn([
                       "w-full h-10 flex items-center justify-center gap-2 text-sm font-medium transition-all cursor-pointer",
-                      "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+                      "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
                     ])}
                   >
                     {copied ? (

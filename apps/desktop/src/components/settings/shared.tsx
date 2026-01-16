@@ -130,7 +130,7 @@ export function ConnectedServiceCard({
           </button>
 
           {isAdvancedOpen && (
-            <div className="px-4 pb-4 space-y-3 bg-neutral-50">
+            <div className="px-4 pb-4 flex flex-col gap-3 bg-neutral-50">
               {connectedAt && (
                 <div className="text-xs text-neutral-600">
                   <span className="font-medium">Connected on:</span>{" "}

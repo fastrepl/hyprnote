@@ -124,8 +124,8 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-2">
         <p className="text-sm text-neutral-500">
           OpenAPI {spec.openapi} | Version {spec.info.version}
         </p>
@@ -142,14 +142,14 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
       </div>
 
       {spec.tags && spec.tags.length > 0 && (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <h3 className="text-lg font-serif text-stone-600">API Categories</h3>
           <div className="grid gap-3">
             {spec.tags.map((tag) => (
               <div
                 key={tag.name}
                 className={cn(
-                  "p-3 rounded-sm border",
+                  "p-3 rounded-xs border",
                   TAG_COLORS[tag.name] || "bg-gray-50 border-gray-200",
                 )}
               >
@@ -164,15 +164,15 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
       )}
 
       {Object.entries(groupedPaths).map(([tag, endpoints]) => (
-        <div key={tag} className="space-y-4">
+        <div key={tag} className="flex flex-col gap-4">
           <h3 className="text-lg font-serif text-stone-600 capitalize">
             {tag} Endpoints
           </h3>
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             {endpoints.map(({ path, method, operation }) => (
               <div
                 key={`${method}-${path}`}
-                className="border border-neutral-200 rounded-sm overflow-hidden"
+                className="border border-neutral-200 rounded-xs overflow-hidden"
               >
                 <div className="flex items-center gap-3 p-3 bg-neutral-50">
                   <span
@@ -205,7 +205,7 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
                     </span>
                   )}
                 </div>
-                <div className="p-3 space-y-2">
+                <div className="p-3 flex flex-col gap-2">
                   {operation.summary && (
                     <p className="font-medium text-stone-700">
                       {operation.summary}

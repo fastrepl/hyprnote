@@ -235,7 +235,7 @@ function HeroSection({
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
       <section className="flex flex-col items-center text-center gap-8 py-24 px-4 laptop:px-0">
-        <div className="space-y-6 max-w-3xl">
+        <div className="flex flex-col gap-6 max-w-3xl">
           <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
             Gallery
           </h1>
@@ -284,7 +284,7 @@ function HeroSection({
             className={cn([
               "px-4 py-2 text-sm font-medium rounded-full transition-colors cursor-pointer",
               selectedType === null
-                ? "bg-white text-stone-800 shadow-sm"
+                ? "bg-white text-stone-800 shadow-xs"
                 : "text-stone-600 hover:text-stone-800",
             ])}
           >
@@ -295,7 +295,7 @@ function HeroSection({
             className={cn([
               "px-4 py-2 text-sm font-medium rounded-full transition-colors cursor-pointer",
               selectedType === "template"
-                ? "bg-white text-stone-800 shadow-sm"
+                ? "bg-white text-stone-800 shadow-xs"
                 : "text-stone-600 hover:text-stone-800",
             ])}
           >
@@ -306,7 +306,7 @@ function HeroSection({
             className={cn([
               "px-4 py-2 text-sm font-medium rounded-full transition-colors cursor-pointer",
               selectedType === "shortcut"
-                ? "bg-white text-stone-800 shadow-sm"
+                ? "bg-white text-stone-800 shadow-xs"
                 : "text-stone-600 hover:text-stone-800",
             ])}
           >
@@ -321,7 +321,7 @@ function HeroSection({
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-4 py-2.5 text-sm outline-none bg-white text-center placeholder:text-center"
+              className="flex-1 px-4 py-2.5 text-sm outline-hidden bg-white text-center placeholder:text-center"
             />
           </div>
         </div>
@@ -430,7 +430,7 @@ function DesktopSidebar({
         <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">
           Categories
         </h3>
-        <nav className="space-y-1">
+        <nav className="flex flex-col gap-1">
           <button
             onClick={() => setSelectedCategory(null)}
             className={cn([
@@ -503,7 +503,7 @@ function ItemCard({ item }: { item: GalleryItem }) {
   return (
     <a
       href={`/gallery/${item.type}/${item.item.slug}`}
-      className="group p-4 border border-neutral-200 rounded-sm bg-white hover:shadow-md hover:border-neutral-300 transition-all text-left cursor-pointer flex flex-col items-start"
+      className="group p-4 border border-neutral-200 rounded-xs bg-white hover:shadow-md hover:border-neutral-300 transition-all text-left cursor-pointer flex flex-col items-start"
     >
       <div className="mb-4 w-full">
         <p className="text-xs text-neutral-500 mb-2">
@@ -538,7 +538,7 @@ function ItemCard({ item }: { item: GalleryItem }) {
 
 function ContributeCard() {
   return (
-    <div className="p-4 border border-dashed border-neutral-300 rounded-sm bg-stone-50/50 flex flex-col items-center justify-center text-center">
+    <div className="p-4 border border-dashed border-neutral-300 rounded-xs bg-stone-50/50 flex flex-col items-center justify-center text-center">
       <h3 className="font-serif text-lg text-stone-600 mb-2">Contribute</h3>
       <p className="text-sm text-neutral-500 mb-4">
         Have an idea? Submit a PR and help the community.
@@ -564,7 +564,7 @@ function ContributeCard() {
 function CTASection() {
   return (
     <section className="py-16 px-6 text-center">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto flex flex-col gap-6">
         <h2 className="text-3xl sm:text-4xl font-serif text-stone-600">
           Ready to transform your meetings?
         </h2>

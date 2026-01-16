@@ -241,7 +241,7 @@ function NoTrackingSection() {
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <div className="p-6 border border-neutral-200 rounded-lg bg-white">
             <div className="flex items-start gap-4">
               <Icon

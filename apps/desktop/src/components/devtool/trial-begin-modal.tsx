@@ -43,7 +43,7 @@ export function TrialBeginModal() {
   return createPortal(
     <>
       <div
-        className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-9999 bg-black/50 backdrop-blur-xs"
         onClick={close}
       >
         <div
@@ -53,7 +53,7 @@ export function TrialBeginModal() {
         />
       </div>
 
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 pointer-events-none">
         <div
           className={cn([
             "relative w-full max-w-lg max-h-full overflow-auto",
@@ -63,7 +63,7 @@ export function TrialBeginModal() {
         >
           <button
             onClick={close}
-            className="absolute right-6 top-6 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="absolute right-6 top-6 z-10 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -92,8 +92,8 @@ export function TrialBeginModal() {
                   key={label}
                   className={cn([
                     "px-4 h-8 flex items-center text-sm rounded-full",
-                    "bg-gradient-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700",
-                    "shadow-sm hover:shadow-md hover:scale-[102%] transition-all",
+                    "bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700",
+                    "shadow-xs hover:shadow-md hover:scale-[102%] transition-all",
                     Icon && "gap-2",
                   ])}
                 >
@@ -105,7 +105,7 @@ export function TrialBeginModal() {
 
             <button
               onClick={close}
-              className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
+              className="px-6 py-2 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
             >
               Let's go!
             </button>

@@ -59,7 +59,7 @@ function Component() {
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16">
-        <div className="animate-pulse space-y-4">
+        <div className="animate-pulse flex flex-col gap-4">
           <div className="h-8 bg-neutral-200 rounded w-1/3" />
           <div className="h-64 bg-neutral-100 rounded mt-8" />
         </div>
@@ -130,7 +130,7 @@ function Component() {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <h4 className="font-medium text-neutral-700 mb-2">Connections</h4>
-            <dl className="space-y-1 text-sm">
+            <dl className="flex flex-col gap-1 text-sm">
               <Row label="Total" value={report.client.connections.total} />
               <Row
                 label="Errors"
@@ -145,7 +145,7 @@ function Component() {
           </div>
           <div>
             <h4 className="font-medium text-neutral-700 mb-2">Transcripts</h4>
-            <dl className="space-y-1 text-sm">
+            <dl className="flex flex-col gap-1 text-sm">
               <Row
                 label="Received"
                 value={report.client.transcripts.received}
@@ -165,7 +165,7 @@ function Component() {
           <h4 className="font-medium text-neutral-700 mb-2">
             Connection Duration
           </h4>
-          <dl className="space-y-1 text-sm">
+          <dl className="flex flex-col gap-1 text-sm">
             <Row
               label="Average"
               value={formatDuration(report.client.connection_duration.avg_ms)}
@@ -183,7 +183,7 @@ function Component() {
           <div className="grid grid-cols-2 gap-6">
             <div>
               <h4 className="font-medium text-neutral-700 mb-2">Resources</h4>
-              <dl className="space-y-1 text-sm">
+              <dl className="flex flex-col gap-1 text-sm">
                 {report.server.cpu_usage && (
                   <Row
                     label="CPU Usage"
@@ -207,7 +207,7 @@ function Component() {
             </div>
             <div>
               <h4 className="font-medium text-neutral-700 mb-2">Network</h4>
-              <dl className="space-y-1 text-sm">
+              <dl className="flex flex-col gap-1 text-sm">
                 {report.server.net_recv_bytes && (
                   <Row
                     label="Received"

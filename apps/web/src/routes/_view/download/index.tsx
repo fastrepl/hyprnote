@@ -42,7 +42,7 @@ function Component() {
 
         <div className="py-12">
           <section className="py-16 px-4 sm:px-6">
-            <div className="space-y-6 max-w-2xl mx-auto text-center mb-16">
+            <div className="flex flex-col gap-6 max-w-2xl mx-auto text-center mb-16">
               <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
                 Download Hyprnote
               </h1>
@@ -156,7 +156,7 @@ function HomebrewCard() {
   };
 
   return (
-    <div className="flex flex-col items-center p-6 rounded-sm border border-neutral-100 bg-white">
+    <div className="flex flex-col items-center p-6 rounded-xs border border-neutral-100 bg-white">
       <Icon
         icon="simple-icons:homebrew"
         className="text-5xl text-neutral-700 mb-4"
@@ -222,7 +222,7 @@ function DownloadCard({
   };
 
   return (
-    <div className="flex flex-col items-center p-6 rounded-sm border border-neutral-100 bg-white hover:bg-stone-50 transition-all duration-200">
+    <div className="flex flex-col items-center p-6 rounded-xs border border-neutral-100 bg-white hover:bg-stone-50 transition-all duration-200">
       <Icon icon={iconName} className="text-5xl text-neutral-700 mb-4" />
       <p className="text-sm text-neutral-600 mb-6 text-center">{spec}</p>
 
@@ -293,7 +293,7 @@ function FAQSection() {
         <h2 className="text-3xl font-serif text-stone-600 mb-16 text-center">
           Frequently Asked Questions
         </h2>
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           {faqs.map((faq, idx) => (
             <div
               key={idx}

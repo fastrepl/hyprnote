@@ -135,7 +135,7 @@ ${deviceInfo}
   return createPortal(
     <>
       <div
-        className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-9999 bg-black/50 backdrop-blur-xs"
         onClick={close}
       >
         <div
@@ -145,7 +145,7 @@ ${deviceInfo}
         />
       </div>
 
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 pointer-events-none">
         <div
           className={cn([
             "relative w-full max-w-lg max-h-full overflow-auto",
@@ -155,7 +155,7 @@ ${deviceInfo}
         >
           <button
             onClick={close}
-            className="absolute right-3 top-3 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="absolute right-3 top-3 z-10 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -168,9 +168,9 @@ ${deviceInfo}
               <button
                 onClick={() => setType("bug")}
                 className={cn([
-                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors",
+                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xs text-sm font-medium transition-colors",
                   isBug
-                    ? ["bg-white shadow-sm text-black"]
+                    ? ["bg-white shadow-xs text-black"]
                     : ["text-neutral-600 hover:text-black"],
                 ])}
               >
@@ -180,9 +180,9 @@ ${deviceInfo}
               <button
                 onClick={() => setType("feature")}
                 className={cn([
-                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors",
+                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xs text-sm font-medium transition-colors",
                   !isBug
-                    ? ["bg-white shadow-sm text-black"]
+                    ? ["bg-white shadow-xs text-black"]
                     : ["text-neutral-600 hover:text-black"],
                 ])}
               >
@@ -191,7 +191,7 @@ ${deviceInfo}
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <div>
                 <label
                   htmlFor="feedback-description"
@@ -213,7 +213,7 @@ ${deviceInfo}
                     "w-full px-2.5 py-1.5 rounded-md",
                     "border border-neutral-200",
                     "text-sm resize-none",
-                    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
+                    "focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-1",
                   ])}
                   maxLength={5000}
                 />

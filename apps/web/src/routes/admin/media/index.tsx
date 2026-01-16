@@ -582,7 +582,7 @@ function Sidebar({
             className={cn([
               "w-full py-1 text-sm",
               "bg-transparent",
-              "focus:outline-none",
+              "focus:outline-hidden",
               "placeholder:text-neutral-400",
             ])}
           />
@@ -614,8 +614,8 @@ function Sidebar({
           className={cn([
             "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
             "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
-            "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
-            "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-sm",
+            "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+            "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-xs",
           ])}
         >
           {uploadPending && <Spinner size={14} />}
@@ -989,7 +989,7 @@ function TabContextMenu({
       <div
         className={cn([
           "fixed z-50 min-w-35 py-1",
-          "bg-white border border-neutral-200 rounded-sm shadow-lg",
+          "bg-white border border-neutral-200 rounded-xs shadow-lg",
         ])}
         style={{ left: x, top: y }}
       >
@@ -1328,7 +1328,7 @@ function MediaItemCard({
         >
           <div
             className={cn([
-              "w-5 h-5 rounded flex items-center justify-center shadow-sm cursor-pointer",
+              "w-5 h-5 rounded flex items-center justify-center shadow-xs cursor-pointer",
               isSelected
                 ? "bg-blue-500"
                 : "bg-white border-2 border-neutral-300",
@@ -1394,7 +1394,7 @@ function MediaItemCard({
       >
         <div
           className={cn([
-            "w-5 h-5 rounded flex items-center justify-center shadow-sm cursor-pointer",
+            "w-5 h-5 rounded flex items-center justify-center shadow-xs cursor-pointer",
             isSelected ? "bg-blue-500" : "bg-white border-2 border-neutral-300",
           ])}
         >
@@ -1408,7 +1408,7 @@ function MediaItemCard({
       >
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className="w-6 h-6 rounded bg-white/90 hover:bg-white border border-neutral-200 flex items-center justify-center shadow-sm"
+          className="w-6 h-6 rounded bg-white/90 hover:bg-white border border-neutral-200 flex items-center justify-center shadow-xs"
         >
           <MoreVerticalIcon className="size-4 text-neutral-700" />
         </button>
@@ -1422,7 +1422,7 @@ function MediaItemCard({
             <div
               className={cn([
                 "absolute top-full right-0 mt-1 z-50 min-w-40 py-1",
-                "bg-white border border-neutral-200 rounded-sm shadow-lg",
+                "bg-white border border-neutral-200 rounded-xs shadow-lg",
               ])}
             >
               <button

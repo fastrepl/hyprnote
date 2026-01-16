@@ -28,7 +28,7 @@ export function Timeline() {
             "w-8 h-8 rounded-full",
             "bg-white border border-neutral-200",
             "hover:bg-neutral-100 hover:scale-110 transition-all",
-            "flex-shrink-0 shadow-sm",
+            "shrink-0 shadow-xs",
           ])}
         >
           {state === "playing" ? (
@@ -38,7 +38,7 @@ export function Timeline() {
           )}
         </button>
 
-        <div className="inline-flex gap-1 items-center text-xs text-neutral-600 flex-shrink-0 font-mono tabular-nums">
+        <div className="inline-flex gap-1 items-center text-xs text-neutral-600 shrink-0 font-mono tabular-nums">
           <span>{formatTime(time.current)}</span>/
           <span>{formatTime(time.total)}</span>
         </div>

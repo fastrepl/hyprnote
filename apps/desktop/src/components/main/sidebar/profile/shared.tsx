@@ -25,7 +25,7 @@ export function MenuItem({
         onClick={onClick}
       >
         <div className="flex items-center justify-start gap-2.5">
-          <Icon className="h-4 w-4 flex-shrink-0 text-black" />
+          <Icon className="h-4 w-4 shrink-0 text-black" />
           {label}
         </div>
         {badge &&
@@ -44,9 +44,7 @@ export function MenuItem({
             badge
           ))}
         {SuffixIcon && (
-          <SuffixIcon
-            className={cn("h-4 w-4 flex-shrink-0", "text-neutral-400")}
-          />
+          <SuffixIcon className={cn("h-4 w-4 shrink-0", "text-neutral-400")} />
         )}
       </button>
     </div>

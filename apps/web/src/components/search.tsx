@@ -125,7 +125,7 @@ function MobileSearchBar({ className }: { className?: string }) {
           className={cn([
             "flex-1 text-sm text-neutral-900",
             "bg-transparent border-none",
-            "focus:outline-none placeholder:text-neutral-500",
+            "focus:outline-hidden placeholder:text-neutral-500",
           ])}
         />
       </div>
@@ -429,7 +429,7 @@ function SearchCommandPalette({
 
   return createPortal(
     <div
-      className="fixed inset-x-0 top-17.25 bottom-0 z-9999 backdrop-blur-sm"
+      className="fixed inset-x-0 top-17.25 bottom-0 z-9999 backdrop-blur-xs"
       onClick={() => onOpenChange(false)}
     >
       <div className="absolute left-1/2 top-[10%] -translate-x-1/2 w-full max-w-xl px-4">

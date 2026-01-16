@@ -39,7 +39,7 @@ function IntegrationIcon({
   integration: { name: string; image: string };
 }) {
   return (
-    <div className="size-20 rounded-xl overflow-hidden border border-neutral-100/50 bg-white shrink-0 hover:scale-110 hover:border-neutral-400 transition-all shadow-sm">
+    <div className="size-20 rounded-xl overflow-hidden border border-neutral-100/50 bg-white shrink-0 hover:scale-110 hover:border-neutral-400 transition-all shadow-xs">
       <Image
         src={`/api/images/icons/${integration.image}`}
         alt={integration.name}
@@ -109,7 +109,7 @@ function Component() {
                   disabled
                   className={cn([
                     "inline-block px-8 py-3 text-base font-medium cursor-not-allowed",
-                    "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm",
+                    "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs",
                   ])}
                 >
                   Coming Soon

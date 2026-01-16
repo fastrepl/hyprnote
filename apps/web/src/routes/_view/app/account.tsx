@@ -52,12 +52,12 @@ function Component() {
           </h1>
         </div>
 
-        <div className="mt-8 space-y-6 px-4 pb-20 max-w-4xl mx-auto">
+        <div className="mt-8 flex flex-col gap-6 px-4 pb-20 max-w-4xl mx-auto">
           <section>
             <h2 className="text-lg font-medium mb-4 font-serif">
               Profile info
             </h2>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <div>
                 <div className="text-sm text-neutral-500">Email</div>
                 <div className="text-base">
@@ -154,7 +154,7 @@ function AccountSettingsCard() {
       <button
         onClick={() => manageBillingMutation.mutate()}
         disabled={manageBillingMutation.isPending}
-        className="cursor-pointer px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
+        className="cursor-pointer px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
       >
         {manageBillingMutation.isPending ? "Loading..." : "Manage Billing"}
       </button>
@@ -169,7 +169,7 @@ function AccountSettingsCard() {
   };
 
   return (
-    <div className="border border-neutral-100 rounded-sm">
+    <div className="border border-neutral-100 rounded-xs">
       <div className="p-4">
         <h3 className="font-serif text-lg font-semibold mb-2">
           Account Settings
@@ -193,7 +193,7 @@ function IntegrationsSettingsCard() {
   const connectedApps = 1;
 
   return (
-    <div className="border border-neutral-100 rounded-sm">
+    <div className="border border-neutral-100 rounded-xs">
       <div className="p-4">
         <h3 className="font-serif text-lg font-semibold mb-2">
           Integrations Settings
@@ -210,7 +210,7 @@ function IntegrationsSettingsCard() {
         </div>
         <Link
           to="/app/integration/"
-          className="px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+          className="px-4 h-8 flex items-center text-sm bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
         >
           See all
         </Link>

@@ -133,7 +133,7 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
           {variables.map((variable) => (
             <code
               key={variable}
-              className="text-xs bg-white border border-neutral-200 px-2 py-0.5 rounded font-mono"
+              className="text-xs bg-white border border-neutral-200 px-2 py-0.5 rounded-xs font-mono"
             >
               {"{{ "}
               {variable}
@@ -145,7 +145,7 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
           <span className="font-medium">Filters:</span>{" "}
           {AVAILABLE_FILTERS.map((filter, i) => (
             <span key={filter}>
-              <code className="bg-white border border-neutral-200 px-1 rounded">
+              <code className="bg-white border border-neutral-200 px-1 rounded-xs">
                 {filter}
               </code>
               {i < AVAILABLE_FILTERS.length - 1 && ", "}

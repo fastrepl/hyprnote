@@ -90,7 +90,7 @@ export const SegmentRenderer = memo(
 
         <div
           className={cn([
-            "mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere",
+            "mt-1.5 text-sm leading-relaxed wrap-break-word overflow-wrap-anywhere",
             editable && "select-text-deep",
           ])}
         >
@@ -108,7 +108,7 @@ export const SegmentRenderer = memo(
                 key={line.words[0]?.id ?? `line-${lineIdx}`}
                 data-line-current={isCurrentLine ? "true" : undefined}
                 className={cn([
-                  "rounded-sm -mx-0.5 px-0.5",
+                  "rounded-xs -mx-0.5 px-0.5",
                   isCurrentLine && "bg-yellow-100/50",
                 ])}
               >

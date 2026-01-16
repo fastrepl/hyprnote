@@ -64,7 +64,7 @@ function Component() {
 
         <div className="max-w-6xl mx-auto px-4 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
               <div>
                 <h2 className="text-xl font-serif font-medium mb-2">
                   Raw Note + Audio
@@ -74,7 +74,7 @@ function Component() {
                 </p>
               </div>
 
-              <div className="border border-neutral-200 rounded-lg shadow-sm bg-white overflow-hidden">
+              <div className="border border-neutral-200 rounded-lg shadow-xs bg-white overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-100 bg-neutral-50/50">
                   <div className="w-3 h-3 rounded-full bg-red-400" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />
@@ -84,7 +84,7 @@ function Component() {
                   </span>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="p-6 flex flex-col gap-6">
                   <UploadArea
                     onFileSelect={handleFileSelect}
                     disabled={false}
@@ -94,7 +94,7 @@ function Component() {
                     <h3 className="text-sm font-medium text-neutral-700 mb-3">
                       Your Notes
                     </h3>
-                    <div className="border border-neutral-200 rounded-sm p-4 min-h-[200px] bg-neutral-50/30">
+                    <div className="border border-neutral-200 rounded-xs p-4 min-h-[200px] bg-neutral-50/30">
                       <Suspense fallback={null}>
                         <NoteEditor
                           initialContent={noteContent}
@@ -108,7 +108,7 @@ function Component() {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-serif font-medium mb-2">
@@ -127,7 +127,7 @@ function Component() {
                 </Link>
               </div>
 
-              <div className="border border-neutral-200 rounded-lg shadow-sm bg-white overflow-hidden">
+              <div className="border border-neutral-200 rounded-lg shadow-xs bg-white overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-100 bg-neutral-50/50">
                   <div className="w-3 h-3 rounded-full bg-red-400" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />
@@ -144,7 +144,7 @@ function Component() {
                 </div>
               </div>
 
-              <div className="p-4 bg-stone-50 border border-neutral-200 rounded-sm">
+              <div className="p-4 bg-stone-50 border border-neutral-200 rounded-xs">
                 <p className="text-sm text-neutral-600">
                   Sign in to view and save your transcription results
                 </p>

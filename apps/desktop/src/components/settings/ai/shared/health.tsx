@@ -59,7 +59,7 @@ export function AvailabilityHealth({ message }: { message: string }) {
         "text-sm text-red-700",
       ])}
     >
-      <AlertCircleIcon className="h-4 w-4 flex-shrink-0" />
+      <AlertCircleIcon className="h-4 w-4 shrink-0" />
       {message}
     </div>
   );

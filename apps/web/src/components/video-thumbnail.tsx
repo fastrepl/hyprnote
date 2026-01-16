@@ -42,7 +42,7 @@ export function VideoThumbnail({
             onPlay?.();
           }}
           className={cn([
-            "size-16 rounded-full bg-white/90 backdrop-blur-sm",
+            "size-16 rounded-full bg-white/90 backdrop-blur-xs",
             "flex items-center justify-center",
             "hover:bg-white hover:scale-110 transition-all duration-200",
             "shadow-xl cursor-pointer",

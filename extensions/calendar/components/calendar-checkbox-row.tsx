@@ -13,7 +13,7 @@ export function CalendarCheckboxRow({
 }) {
   const calendar = store.UI.useRow("calendars", id, store.STORE_ID);
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center gap-2">
       <Checkbox
         id={`calendar-${id}`}
         checked={checked}

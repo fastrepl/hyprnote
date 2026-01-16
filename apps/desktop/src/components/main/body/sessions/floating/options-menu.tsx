@@ -294,7 +294,7 @@ export function OptionsMenu({
             className="justify-start gap-2 h-9 px-3 whitespace-nowrap"
             onClick={handleUploadAudio}
           >
-            <UploadCloudIcon className="w-4 h-4 flex-shrink-0" />
+            <UploadCloudIcon className="w-4 h-4 shrink-0" />
             <span className="text-sm">Upload audio</span>
           </Button>
           <Button
@@ -302,7 +302,7 @@ export function OptionsMenu({
             className="justify-start gap-2 h-9 px-3 whitespace-nowrap"
             onClick={handleUploadTranscript}
           >
-            <FileTextIcon className="w-4 h-4 flex-shrink-0" />
+            <FileTextIcon className="w-4 h-4 shrink-0" />
             <span className="text-sm">Upload transcript</span>
           </Button>
         </div>

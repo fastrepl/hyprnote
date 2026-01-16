@@ -82,7 +82,7 @@ export function UpdateChecker() {
       <MenuItemLikeContainer>
         <div className="flex w-full items-center justify-between gap-2.5">
           <div className="flex items-center gap-2.5">
-            <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 16 16">
+            <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16">
               <circle
                 cx="8"
                 cy="8"
@@ -116,7 +116,7 @@ export function UpdateChecker() {
           <button
             onClick={handleCancelDownload}
             className={cn([
-              "flex h-6 w-6 flex-shrink-0 items-center justify-center",
+              "flex h-6 w-6 shrink-0 items-center justify-center",
               "rounded-full",
               "hover:bg-neutral-100",
               "transition-colors",

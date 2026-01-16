@@ -23,7 +23,7 @@ pub use gladia::*;
 pub use openai::*;
 pub use soniox::*;
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 use std::future::Future;
 use std::path::Path;
 use std::pin::Pin;
@@ -186,6 +186,24 @@ pub fn is_hyprnote_proxy(base_url: &str) -> bool {
     is_hyprnote_cloud(base_url) || is_hyprnote_local_proxy(base_url)
 }
 
+pub fn normalize_languages(languages: &[hypr_language::Language]) -> Vec<hypr_language::Language> {
+    let mut seen = HashSet::new();
+    let mut result = Vec::with_capacity(languages.len());
+
+    for lang in languages {
+        let iso639 = lang.iso639();
+        if seen.insert(iso639) {
+            result.push(lang.clone());
+        } else if lang.region().is_none() {
+            if let Some(pos) = result.iter().position(|l| l.iso639() == iso639) {
+                result[pos] = lang.clone();
+            }
+        }
+    }
+
+    result
+}
+
 fn is_local_argmax(base_url: &str) -> bool {
     host_matches(base_url, is_local_host) && !is_hyprnote_local_proxy(base_url)
 }
@@ -318,6 +336,62 @@ impl From<owhisper_providers::Provider> for AdapterKind {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_normalize_languages_deduplicates_same_base() {
+        use hypr_language::{ISO639, Language};
+
+        let en: Language = ISO639::En.into();
+        let en_gb = Language::with_region(ISO639::En, "GB");
+        let es: Language = ISO639::Es.into();
+
+        let result = normalize_languages(&[en.clone(), en_gb.clone(), es.clone()]);
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].iso639(), ISO639::En);
+        assert_eq!(result[0].region(), None);
+        assert_eq!(result[1].iso639(), ISO639::Es);
+    }
+
+    #[test]
+    fn test_normalize_languages_prefers_base_over_regional() {
+        use hypr_language::{ISO639, Language};
+
+        let en_gb = Language::with_region(ISO639::En, "GB");
+        let en: Language = ISO639::En.into();
+
+        let result = normalize_languages(&[en_gb.clone(), en.clone()]);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].iso639(), ISO639::En);
+        assert_eq!(result[0].region(), None);
+    }
+
+    #[test]
+    fn test_normalize_languages_keeps_regional_if_no_base() {
+        use hypr_language::{ISO639, Language};
+
+        let en_gb = Language::with_region(ISO639::En, "GB");
+        let es: Language = ISO639::Es.into();
+
+        let result = normalize_languages(&[en_gb.clone(), es.clone()]);
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].iso639(), ISO639::En);
+        assert_eq!(result[0].region(), Some("GB"));
+        assert_eq!(result[1].iso639(), ISO639::Es);
+    }
+
+    #[test]
+    fn test_normalize_languages_multiple_variants() {
+        use hypr_language::{ISO639, Language};
+
+        let en_us = Language::with_region(ISO639::En, "US");
+        let en_gb = Language::with_region(ISO639::En, "GB");
+        let en: Language = ISO639::En.into();
+
+        let result = normalize_languages(&[en_us.clone(), en_gb.clone(), en.clone()]);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].iso639(), ISO639::En);
+        assert_eq!(result[0].region(), None);
+    }
 
     #[test]
     fn test_is_hyprnote_proxy() {

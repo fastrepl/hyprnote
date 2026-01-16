@@ -33,6 +33,10 @@ impl ArgmaxAdapter {
     ) -> bool {
         let model = model.unwrap_or("");
 
+        if languages.len() > 1 {
+            return false;
+        }
+
         if model.contains("parakeet") && model.contains("v2") {
             languages.iter().any(|lang| lang.iso639().code() == "en")
         } else if model.contains("parakeet") && model.contains("v3") {

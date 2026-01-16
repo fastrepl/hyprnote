@@ -1,5 +1,6 @@
 mod auth;
 mod env;
+mod health;
 
 use std::net::SocketAddr;
 use std::time::Duration;
@@ -32,6 +33,7 @@ fn app() -> Router {
 
     Router::new()
         .route("/health", axum::routing::get(|| async { "ok" }))
+        .nest("/health", health::router())
         .merge(protected_routes)
         .layer(
             ServiceBuilder::new()
@@ -42,7 +44,7 @@ fn app() -> Router {
                         .make_span_with(|request: &Request<Body>| {
                             let path = request.uri().path();
 
-                            if path == "/health" {
+                            if path.starts_with("/health") {
                                 return tracing::Span::none();
                             }
 
@@ -75,7 +77,7 @@ fn app() -> Router {
                         })
                         .on_request(|request: &Request<Body>, _span: &tracing::Span| {
                             // Skip logging for health checks
-                            if request.uri().path() == "/health" {
+                            if request.uri().path().starts_with("/health") {
                                 return;
                             }
                             tracing::info!(

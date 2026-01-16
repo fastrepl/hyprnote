@@ -105,6 +105,11 @@ export function NonHyprProviderCard({
         event: "ai_provider_configured",
         provider: value.type,
       });
+      void analyticsCommands.setProperties({
+        set: {
+          has_configured_ai: true,
+        },
+      });
       setProvider(value);
     },
     defaultValues:

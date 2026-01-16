@@ -58,6 +58,11 @@ export function AccountSettings() {
     void analyticsCommands.event({
       event: "user_signed_out",
     });
+    void analyticsCommands.setProperties({
+      set: {
+        is_signed_up: false,
+      },
+    });
 
     if (store) {
       const currentSttProvider = store.getValue("current_stt_provider");
@@ -236,6 +241,14 @@ function BillingButton() {
       void analyticsCommands.event({
         event: "trial_started",
         plan: "pro",
+      });
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 7);
+      void analyticsCommands.setProperties({
+        set: {
+          plan: "pro",
+          trial_end_date: trialEndDate.toISOString(),
+        },
       });
       await auth?.refreshSession();
       openTrialBeginModal();

@@ -5,7 +5,7 @@ import type { PermissionStatus } from "@hypr/plugin-permissions";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import { usePermission } from "../../../hooks/use-permissions";
+import { usePermission } from "../../../hooks/usePermissions";
 
 function ActionLink({
   onClick,

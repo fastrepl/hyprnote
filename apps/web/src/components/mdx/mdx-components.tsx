@@ -16,10 +16,10 @@ import { MDXLink } from "./link";
 import { Mermaid } from "./mermaid";
 import { Tweet } from "./tweet";
 
-function Table(props: React.ComponentProps<"table">) {
+function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div className="overflow-x-auto">
-      <table {...props} />
+      <table {...props} className={`whitespace-nowrap ${className ?? ""}`} />
     </div>
   );
 }

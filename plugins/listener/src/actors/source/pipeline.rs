@@ -216,35 +216,49 @@ impl AudioBuffer {
 struct AmplitudeEmitter {
     app: tauri::AppHandle,
     session_id: String,
-    last_mic_level: u16,
-    last_spk_level: u16,
+    mic_smoothed: f32,
+    spk_smoothed: f32,
     last_emit: Instant,
 }
 
 impl AmplitudeEmitter {
+    /// Smoothing factor for exponential moving average.
+    /// Lower values = more smoothing, slower response.
+    /// Higher values = less smoothing, faster response.
+    const SMOOTHING_ALPHA: f32 = 0.7;
+
+    /// Minimum dB level (silence floor)
+    const MIN_DB: f32 = -60.0;
+    /// Maximum dB level (full scale)
+    const MAX_DB: f32 = 0.0;
+
     fn new(app: tauri::AppHandle, session_id: String) -> Self {
         Self {
             app,
             session_id,
-            last_mic_level: 0,
-            last_spk_level: 0,
+            mic_smoothed: 0.0,
+            spk_smoothed: 0.0,
             last_emit: Instant::now() - AUDIO_AMPLITUDE_THROTTLE,
         }
     }
 
     fn reset(&mut self) {
-        self.last_mic_level = 0;
-        self.last_spk_level = 0;
+        self.mic_smoothed = 0.0;
+        self.spk_smoothed = 0.0;
         self.last_emit = Instant::now() - AUDIO_AMPLITUDE_THROTTLE;
     }
 
     fn observe_mic(&mut self, data: &[f32]) {
-        self.last_mic_level = Self::amplitude_from_chunk(data);
+        let amplitude = Self::amplitude_from_chunk(data);
+        self.mic_smoothed =
+            (1.0 - Self::SMOOTHING_ALPHA) * self.mic_smoothed + Self::SMOOTHING_ALPHA * amplitude;
         self.emit_if_ready();
     }
 
     fn observe_spk(&mut self, data: &[f32]) {
-        self.last_spk_level = Self::amplitude_from_chunk(data);
+        let amplitude = Self::amplitude_from_chunk(data);
+        self.spk_smoothed =
+            (1.0 - Self::SMOOTHING_ALPHA) * self.spk_smoothed + Self::SMOOTHING_ALPHA * amplitude;
         self.emit_if_ready();
     }
 
@@ -253,10 +267,14 @@ impl AmplitudeEmitter {
             return;
         }
 
+        // Convert smoothed [0, 1] to [0, 1000] for transmission as u16
+        let mic_level = (self.mic_smoothed * 1000.0) as u16;
+        let spk_level = (self.spk_smoothed * 1000.0) as u16;
+
         if let Err(error) = (SessionDataEvent::AudioAmplitude {
             session_id: self.session_id.clone(),
-            mic: self.last_mic_level,
-            speaker: self.last_spk_level,
+            mic: mic_level,
+            speaker: spk_level,
         })
         .emit(&self.app)
         {
@@ -266,14 +284,30 @@ impl AmplitudeEmitter {
         self.last_emit = Instant::now();
     }
 
-    fn amplitude_from_chunk(chunk: &[f32]) -> u16 {
-        (chunk
-            .iter()
-            .map(|&x| x.abs())
-            .filter(|x| x.is_finite())
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap_or(0.0)
-            * 100.0) as u16
+    /// Computes amplitude from audio chunk using RMS and dB conversion.
+    /// Returns a normalized value in [0, 1] range.
+    fn amplitude_from_chunk(chunk: &[f32]) -> f32 {
+        if chunk.is_empty() {
+            return 0.0;
+        }
+
+        // Compute RMS (Root Mean Square) - represents perceived loudness better than peak
+        let sum_squares: f32 = chunk.iter().filter(|x| x.is_finite()).map(|&x| x * x).sum();
+        let count = chunk.iter().filter(|x| x.is_finite()).count();
+        if count == 0 {
+            return 0.0;
+        }
+        let rms = (sum_squares / count as f32).sqrt();
+
+        // Convert to dB (logarithmic scale matches human hearing)
+        let db = if rms > 0.0 {
+            20.0 * rms.log10()
+        } else {
+            Self::MIN_DB
+        };
+
+        // Normalize to [0, 1] range
+        ((db - Self::MIN_DB) / (Self::MAX_DB - Self::MIN_DB)).clamp(0.0, 1.0)
     }
 }
 

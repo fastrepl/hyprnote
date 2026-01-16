@@ -69,10 +69,13 @@ function ScrollingWaveform({
 
     const draw = () => {
       const amp = amplitudeRef.current;
-      const linear = amp < 30 ? 0 : Math.min((amp - 30) / 40, 1);
-      const normalized = Math.pow(linear, 0.6);
+      // Amplitude is now in [0, 1000] range from Rust (RMS + dB normalized)
+      // Normalize to [0, 1], apply noise gate, and visual curve
+      const normalized = Math.min(amp / 1000, 1.0);
+      const gated = normalized < 0.05 ? 0 : normalized;
+      const visualAmplitude = Math.pow(gated, 0.7);
 
-      amplitudesRef.current.push(normalized);
+      amplitudesRef.current.push(visualAmplitude);
       if (amplitudesRef.current.length > maxBars) {
         amplitudesRef.current = amplitudesRef.current.slice(-maxBars);
       }
@@ -266,9 +269,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
           >
             {muted && <MicOff size={14} />}
             <ScrollingWaveform
-              amplitude={
-                ((amplitude.mic + amplitude.speaker) / 2 / 65535) * 100 * 1000
-              }
+              amplitude={(amplitude.mic + amplitude.speaker) / 2}
               color="#ef4444"
               height={16}
               width={muted ? 50 : 75}

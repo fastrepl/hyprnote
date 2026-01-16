@@ -81,16 +81,31 @@ export function toNumber(value: unknown): number {
   return 0;
 }
 
-export function toEpochMs(value: unknown): number {
-  if (typeof value === "number") {
-    return value;
+/**
+ * Unwrap a TinyBase MergeableStore stamp tuple [value, hlc?, hash?] to extract the value.
+ * MergeableStore stores all cell values internally as these tuples for synchronization.
+ * If the input is not a stamp array, returns it as-is.
+ */
+export function unwrapStampValue<T>(value: T | [T, ...unknown[]]): T {
+  if (Array.isArray(value) && value.length >= 1) {
+    return value[0];
   }
-  if (typeof value === "string") {
-    const parsed = Date.parse(value);
+  return value as T;
+}
+
+export function toEpochMs(value: unknown): number {
+  // Handle MergeableStore stamp format [value, hlc, hash]
+  const unwrapped = unwrapStampValue(value);
+
+  if (typeof unwrapped === "number") {
+    return unwrapped;
+  }
+  if (typeof unwrapped === "string") {
+    const parsed = Date.parse(unwrapped);
     if (!isNaN(parsed)) {
       return parsed;
     }
-    const numParsed = Number(value);
+    const numParsed = Number(unwrapped);
     return isNaN(numParsed) ? 0 : numParsed;
   }
   return 0;

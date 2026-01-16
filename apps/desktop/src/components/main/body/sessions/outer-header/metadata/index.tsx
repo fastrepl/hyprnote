@@ -13,6 +13,7 @@ import { cn } from "@hypr/utils";
 
 import { useEvent, useSession } from "../../../../../../hooks/tinybase";
 import * as main from "../../../../../../store/tinybase/store/main";
+import { toSafeDate } from "../../../../../../store/tinybase/store/utils";
 import { DateDisplay } from "./date";
 import { ParticipantsDisplay } from "./participants";
 
@@ -48,9 +49,10 @@ const TriggerInner = forwardRef<
   const event = useEvent(eventId);
 
   const hasEvent = !!event;
+  const createdAtDate = toSafeDate(createdAt);
   const displayText = hasEvent
     ? event.title || "Untitled Event"
-    : formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date());
+    : formatRelativeOrAbsolute(createdAtDate ?? new Date());
 
   return (
     <Button

@@ -18,6 +18,7 @@ import { cn, formatDistanceToNow } from "@hypr/utils";
 
 import { useShell } from "../../contexts/shell";
 import * as main from "../../store/tinybase/store/main";
+import { toSafeDate } from "../../store/tinybase/store/utils";
 
 export function ChatHeader({
   currentChatGroupId,
@@ -181,8 +182,9 @@ function ChatGroupItem({
     return null;
   }
 
-  const formattedTime = chatGroup.created_at
-    ? formatDistanceToNow(new Date(chatGroup.created_at), {
+  const createdAtDate = toSafeDate(chatGroup.created_at);
+  const formattedTime = createdAtDate
+    ? formatDistanceToNow(createdAtDate, {
         addSuffix: true,
       })
     : "";

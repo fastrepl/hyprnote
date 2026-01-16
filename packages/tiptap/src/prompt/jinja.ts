@@ -43,7 +43,7 @@ function filterCompletionSource(filters: string[]): CompletionSource {
 export function jinjaLanguage(
   variables: string[],
   filters: string[],
-): Extension {
+): Extension[] {
   const variableCompletions: Completion[] = variables.map((v) => ({
     label: v,
     type: "variable",

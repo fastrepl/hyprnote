@@ -1,4 +1,4 @@
-import { EditorState } from "@codemirror/state";
+import { EditorState, type Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
 import readOnlyRangesExtension from "codemirror-readonly-ranges";
@@ -49,7 +49,10 @@ export function PromptEditor({
   }, [readOnlyRanges]);
 
   const extensions = useMemo(() => {
-    const exts = [...jinjaLanguage(variables, filters), jinjaLinter()];
+    const exts: Extension[] = [
+      jinjaLanguage(variables, filters),
+      jinjaLinter(),
+    ];
 
     if (!readOnly && readOnlyRanges.length > 0) {
       exts.push(readOnlyRangesExtension(getReadOnlyRanges));

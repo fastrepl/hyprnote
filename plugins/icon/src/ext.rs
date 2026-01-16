@@ -26,6 +26,60 @@ mod recording_indicator_state {
     }
 }
 
+#[cfg(target_os = "macos")]
+mod icon_helpers {
+    use objc2::AnyThread;
+    use objc2::rc::Retained;
+    use objc2_app_kit::{NSBezierPath, NSColor, NSImage};
+    use objc2_foundation::{NSPoint, NSRect, NSSize};
+
+    pub fn image_to_bytes(image: &NSImage) -> Option<Vec<u8>> {
+        let tiff_data = image.TIFFRepresentation()?;
+        let len = tiff_data.length();
+        if len == 0 {
+            return None;
+        }
+        let mut bytes = vec![0u8; len];
+        unsafe {
+            tiff_data.getBytes_length(
+                std::ptr::NonNull::new(bytes.as_mut_ptr() as *mut std::ffi::c_void).unwrap(),
+                len,
+            );
+        }
+        Some(bytes)
+    }
+
+    #[allow(deprecated)]
+    pub fn draw_overlay(base_image: &NSImage) -> Retained<NSImage> {
+        let size = base_image.size();
+        let composite_image = NSImage::initWithSize(NSImage::alloc(), size);
+
+        composite_image.lockFocus();
+
+        base_image.drawAtPoint_fromRect_operation_fraction(
+            NSPoint::new(0.0, 0.0),
+            NSRect::new(NSPoint::new(0.0, 0.0), size),
+            objc2_app_kit::NSCompositingOperation::Copy,
+            1.0,
+        );
+
+        let dot_size = size.width * 0.25;
+        let dot_x = size.width - dot_size - (size.width * 0.05);
+        let dot_y = size.height - dot_size - (size.height * 0.05);
+
+        let red_color = NSColor::systemRedColor();
+        red_color.setFill();
+
+        let dot_rect = NSRect::new(NSPoint::new(dot_x, dot_y), NSSize::new(dot_size, dot_size));
+        let dot_path = NSBezierPath::bezierPathWithOvalInRect(dot_rect);
+        dot_path.fill();
+
+        composite_image.unlockFocus();
+
+        composite_image
+    }
+}
+
 pub struct Icon<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
@@ -70,8 +124,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
             app_handle
                 .run_on_main_thread(move || {
                     use objc2::AnyThread;
-                    use objc2_app_kit::{NSApplication, NSBezierPath, NSColor, NSImage};
-                    use objc2_foundation::{MainThreadMarker, NSPoint, NSRect, NSSize, NSString};
+                    use objc2_app_kit::{NSApplication, NSImage};
+                    use objc2_foundation::{MainThreadMarker, NSString};
 
                     let mtm =
                         MainThreadMarker::new().expect("run_on_main_thread guarantees main thread");
@@ -84,55 +138,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
                     };
 
                     if recording_indicator_state::is_active() {
-                        let Some(tiff_data) = (unsafe { image.TIFFRepresentation() }) else {
+                        let Some(bytes) = icon_helpers::image_to_bytes(&image) else {
                             return;
                         };
-                        let len = unsafe { tiff_data.length() };
-                        if len == 0 {
-                            return;
-                        }
-                        let mut bytes = vec![0u8; len];
-                        unsafe {
-                            tiff_data.getBytes_length(
-                                std::ptr::NonNull::new(bytes.as_mut_ptr() as *mut std::ffi::c_void)
-                                    .unwrap(),
-                                len,
-                            );
-                        }
                         recording_indicator_state::set(Some(bytes));
 
-                        let size = unsafe { image.size() };
-                        let composite_image =
-                            unsafe { NSImage::initWithSize(NSImage::alloc(), size) };
-
-                        unsafe {
-                            composite_image.lockFocus();
-
-                            image.drawAtPoint_fromRect_operation_fraction(
-                                NSPoint::new(0.0, 0.0),
-                                NSRect::new(NSPoint::new(0.0, 0.0), size),
-                                objc2_app_kit::NSCompositingOperation::Copy,
-                                1.0,
-                            );
-
-                            let dot_size = size.width * 0.25;
-                            let dot_x = size.width - dot_size - (size.width * 0.05);
-                            let dot_y = size.height - dot_size - (size.height * 0.05);
-
-                            let red_color = NSColor::systemRedColor();
-                            red_color.setFill();
-
-                            let dot_rect = NSRect::new(
-                                NSPoint::new(dot_x, dot_y),
-                                NSSize::new(dot_size, dot_size),
-                            );
-                            let dot_path = NSBezierPath::bezierPathWithOvalInRect(dot_rect);
-                            dot_path.fill();
-
-                            composite_image.unlockFocus();
-
-                            ns_app.setApplicationIconImage(Some(&composite_image));
-                        }
+                        let composite_image = icon_helpers::draw_overlay(&image);
+                        unsafe { ns_app.setApplicationIconImage(Some(&composite_image)) };
                     } else {
                         recording_indicator_state::clear();
                         unsafe { ns_app.setApplicationIconImage(Some(&image)) };
@@ -156,72 +168,23 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
             let app_handle = self.manager.app_handle();
             app_handle
                 .run_on_main_thread(move || {
-                    use objc2::AnyThread;
-                    use objc2_app_kit::{NSApplication, NSBezierPath, NSColor, NSImage};
-                    use objc2_foundation::{MainThreadMarker, NSPoint, NSRect, NSSize};
+                    use objc2_app_kit::NSApplication;
+                    use objc2_foundation::MainThreadMarker;
 
                     let mtm =
                         MainThreadMarker::new().expect("run_on_main_thread guarantees main thread");
                     let ns_app = NSApplication::sharedApplication(mtm);
 
+                    recording_indicator_state::clear();
                     unsafe { ns_app.setApplicationIconImage(None) };
 
                     if recording_indicator_state::is_active() {
-                        let Some(current) = (unsafe { ns_app.applicationIconImage() }) else {
+                        let Some(current) = ns_app.applicationIconImage() else {
                             return;
                         };
 
-                        let Some(tiff_data) = (unsafe { current.TIFFRepresentation() }) else {
-                            return;
-                        };
-                        let len = unsafe { tiff_data.length() };
-                        if len == 0 {
-                            return;
-                        }
-                        let mut bytes = vec![0u8; len];
-                        unsafe {
-                            tiff_data.getBytes_length(
-                                std::ptr::NonNull::new(bytes.as_mut_ptr() as *mut std::ffi::c_void)
-                                    .unwrap(),
-                                len,
-                            );
-                        }
-                        recording_indicator_state::set(Some(bytes));
-
-                        let size = unsafe { current.size() };
-                        let composite_image =
-                            unsafe { NSImage::initWithSize(NSImage::alloc(), size) };
-
-                        unsafe {
-                            composite_image.lockFocus();
-
-                            current.drawAtPoint_fromRect_operation_fraction(
-                                NSPoint::new(0.0, 0.0),
-                                NSRect::new(NSPoint::new(0.0, 0.0), size),
-                                objc2_app_kit::NSCompositingOperation::Copy,
-                                1.0,
-                            );
-
-                            let dot_size = size.width * 0.25;
-                            let dot_x = size.width - dot_size - (size.width * 0.05);
-                            let dot_y = size.height - dot_size - (size.height * 0.05);
-
-                            let red_color = NSColor::systemRedColor();
-                            red_color.setFill();
-
-                            let dot_rect = NSRect::new(
-                                NSPoint::new(dot_x, dot_y),
-                                NSSize::new(dot_size, dot_size),
-                            );
-                            let dot_path = NSBezierPath::bezierPathWithOvalInRect(dot_rect);
-                            dot_path.fill();
-
-                            composite_image.unlockFocus();
-
-                            ns_app.setApplicationIconImage(Some(&composite_image));
-                        }
-                    } else {
-                        recording_indicator_state::clear();
+                        let composite_image = icon_helpers::draw_overlay(&current);
+                        unsafe { ns_app.setApplicationIconImage(Some(&composite_image)) };
                     }
                 })
                 .map_err(crate::Error::Tauri)?;
@@ -242,8 +205,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
             app_handle
                 .run_on_main_thread(move || {
                     use objc2::AnyThread;
-                    use objc2_app_kit::{NSApplication, NSBezierPath, NSColor, NSImage};
-                    use objc2_foundation::{MainThreadMarker, NSData, NSPoint, NSRect, NSSize};
+                    use objc2_app_kit::{NSApplication, NSImage};
+                    use objc2_foundation::{MainThreadMarker, NSData};
 
                     let mtm =
                         MainThreadMarker::new().expect("run_on_main_thread guarantees main thread");
@@ -253,82 +216,41 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
                         recording_indicator_state::set_active(false);
                         if let Some(original_data) = recording_indicator_state::get() {
                             let ns_data = NSData::with_bytes(&original_data);
-                            let original_image =
-                                unsafe { NSImage::initWithData(NSImage::alloc(), &ns_data) };
+                            let original_image = NSImage::initWithData(NSImage::alloc(), &ns_data);
                             if let Some(original_image) = original_image {
                                 unsafe { ns_app.setApplicationIconImage(Some(&original_image)) };
                             }
-                            recording_indicator_state::clear();
+                        } else {
+                            unsafe { ns_app.setApplicationIconImage(None) };
                         }
+                        recording_indicator_state::clear();
                         return;
                     }
 
-                    recording_indicator_state::set_active(true);
-
                     let base_image = if let Some(original_data) = recording_indicator_state::get() {
                         let ns_data = NSData::with_bytes(&original_data);
-                        let original_image =
-                            unsafe { NSImage::initWithData(NSImage::alloc(), &ns_data) };
+                        let original_image = NSImage::initWithData(NSImage::alloc(), &ns_data);
                         match original_image {
                             Some(img) => img,
                             None => return,
                         }
                     } else {
-                        let Some(current) = (unsafe { ns_app.applicationIconImage() }) else {
+                        let Some(current) = ns_app.applicationIconImage() else {
                             return;
                         };
 
-                        let Some(tiff_data) = (unsafe { current.TIFFRepresentation() }) else {
+                        let Some(bytes) = icon_helpers::image_to_bytes(&current) else {
                             return;
                         };
-                        let len = unsafe { tiff_data.length() };
-                        if len == 0 {
-                            return;
-                        }
-                        let mut bytes = vec![0u8; len];
-                        unsafe {
-                            tiff_data.getBytes_length(
-                                std::ptr::NonNull::new(bytes.as_mut_ptr() as *mut std::ffi::c_void)
-                                    .unwrap(),
-                                len,
-                            );
-                        }
                         recording_indicator_state::set(Some(bytes));
 
                         current
                     };
 
-                    let size = unsafe { base_image.size() };
-                    let composite_image = unsafe { NSImage::initWithSize(NSImage::alloc(), size) };
+                    recording_indicator_state::set_active(true);
 
-                    unsafe {
-                        composite_image.lockFocus();
-
-                        base_image.drawAtPoint_fromRect_operation_fraction(
-                            NSPoint::new(0.0, 0.0),
-                            NSRect::new(NSPoint::new(0.0, 0.0), size),
-                            objc2_app_kit::NSCompositingOperation::Copy,
-                            1.0,
-                        );
-
-                        let dot_size = size.width * 0.25;
-                        let dot_x = size.width - dot_size - (size.width * 0.05);
-                        let dot_y = size.height - dot_size - (size.height * 0.05);
-
-                        let red_color = NSColor::systemRedColor();
-                        red_color.setFill();
-
-                        let dot_rect = NSRect::new(
-                            NSPoint::new(dot_x, dot_y),
-                            NSSize::new(dot_size, dot_size),
-                        );
-                        let dot_path = NSBezierPath::bezierPathWithOvalInRect(dot_rect);
-                        dot_path.fill();
-
-                        composite_image.unlockFocus();
-
-                        ns_app.setApplicationIconImage(Some(&composite_image));
-                    }
+                    let composite_image = icon_helpers::draw_overlay(&base_image);
+                    unsafe { ns_app.setApplicationIconImage(Some(&composite_image)) };
                 })
                 .map_err(crate::Error::Tauri)?;
 

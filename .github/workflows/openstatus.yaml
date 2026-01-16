@@ -10,8 +10,9 @@ on:
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - run: curl -sSL instl.sh/openstatushq/cli/linux | bash
+      - uses: Homebrew/actions/setup-homebrew@master
+      - run: brew install openstatusHQ/cli/openstatus --cask
       - run: openstatus monitors apply --access-token ${{ secrets.OPENSTATUS_API_KEY }}

@@ -23,7 +23,6 @@ export interface MediaItem {
   downloadUrl: string | null;
 }
 
-
 function getPublicPath(fullPath: string): string {
   return fullPath.replace("apps/web/public", "");
 }

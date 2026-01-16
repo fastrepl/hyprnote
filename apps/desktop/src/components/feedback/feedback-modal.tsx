@@ -15,20 +15,21 @@ type FeedbackType = "bug" | "feature";
 
 type FeedbackModalStore = {
   isOpen: boolean;
-  type: FeedbackType | null;
-  open: (type: FeedbackType) => void;
+  initialType: FeedbackType;
+  open: (initialType?: FeedbackType) => void;
   close: () => void;
 };
 
 export const useFeedbackModal = create<FeedbackModalStore>((set) => ({
   isOpen: false,
-  type: null,
-  open: (type) => set({ isOpen: true, type }),
-  close: () => set({ isOpen: false, type: null }),
+  initialType: "bug",
+  open: (initialType = "bug") => set({ isOpen: true, initialType }),
+  close: () => set({ isOpen: false }),
 }));
 
 export function FeedbackModal() {
-  const { isOpen, type, close } = useFeedbackModal();
+  const { isOpen, initialType, close } = useFeedbackModal();
+  const [type, setType] = useState<FeedbackType>(initialType);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,11 +51,13 @@ export function FeedbackModal() {
   }, [isOpen, close]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      setType(initialType);
+    } else {
       setTitle("");
       setDescription("");
     }
-  }, [isOpen]);
+  }, [isOpen, initialType]);
 
   const handleSubmit = useCallback(async () => {
     if (!title.trim() || !description.trim() || !type) {
@@ -120,7 +123,7 @@ ${deviceInfo}
     }
   }, [title, description, type, close]);
 
-  if (!isOpen || !type) {
+  if (!isOpen) {
     return null;
   }
 
@@ -149,43 +152,47 @@ ${deviceInfo}
         >
           <button
             onClick={close}
-            className="absolute right-4 top-4 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="absolute right-3 top-3 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
           </button>
 
-          <div className="p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div
+          <div className="p-4">
+            <h2 className="text-base font-semibold mb-3">Send Feedback</h2>
+
+            <div className="flex gap-1 p-1 bg-neutral-100 rounded-md mb-3">
+              <button
+                onClick={() => setType("bug")}
                 className={cn([
-                  "flex h-10 w-10 items-center justify-center rounded-full",
-                  isBug ? "bg-red-50" : "bg-amber-50",
+                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors",
+                  isBug
+                    ? ["bg-white shadow-sm text-black"]
+                    : ["text-neutral-600 hover:text-black"],
                 ])}
               >
-                {isBug ? (
-                  <Bug className="h-5 w-5 text-red-500" />
-                ) : (
-                  <Lightbulb className="h-5 w-5 text-amber-500" />
-                )}
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold">
-                  {isBug ? "Report a Bug" : "Suggest a Feature"}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {isBug
-                    ? "Help us fix issues by describing what went wrong"
-                    : "Share your ideas to help improve Hyprnote"}
-                </p>
-              </div>
+                <Bug className="h-3.5 w-3.5" />
+                Bug Report
+              </button>
+              <button
+                onClick={() => setType("feature")}
+                className={cn([
+                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors",
+                  !isBug
+                    ? ["bg-white shadow-sm text-black"]
+                    : ["text-neutral-600 hover:text-black"],
+                ])}
+              >
+                <Lightbulb className="h-3.5 w-3.5" />
+                Feature Request
+              </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
                 <label
                   htmlFor="feedback-title"
-                  className="block text-sm font-medium mb-1.5"
+                  className="block text-sm font-medium mb-1"
                 >
                   Title
                 </label>
@@ -200,7 +207,7 @@ ${deviceInfo}
                       : "Brief description of the feature"
                   }
                   className={cn([
-                    "w-full px-3 py-2 rounded-md",
+                    "w-full px-2.5 py-1.5 rounded-md",
                     "border border-neutral-200",
                     "text-sm",
                     "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
@@ -212,7 +219,7 @@ ${deviceInfo}
               <div>
                 <label
                   htmlFor="feedback-description"
-                  className="block text-sm font-medium mb-1.5"
+                  className="block text-sm font-medium mb-1"
                 >
                   Description
                 </label>
@@ -225,9 +232,9 @@ ${deviceInfo}
                       ? "What happened? What did you expect to happen? Steps to reproduce..."
                       : "Describe the feature you'd like to see. How would it help you?"
                   }
-                  rows={6}
+                  rows={5}
                   className={cn([
-                    "w-full px-3 py-2 rounded-md",
+                    "w-full px-2.5 py-1.5 rounded-md",
                     "border border-neutral-200",
                     "text-sm resize-none",
                     "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
@@ -237,18 +244,23 @@ ${deviceInfo}
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Device information (OS, app version) will be automatically
-                included.
+                Device information will be automatically included
               </p>
             </div>
 
-            <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={close} disabled={isSubmitting}>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={close}
+                disabled={isSubmitting}
+                className="h-8 text-sm"
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !title.trim() || !description.trim()}
+                className="h-8 text-sm"
               >
                 {isSubmitting
                   ? "Opening..."

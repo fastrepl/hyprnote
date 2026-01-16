@@ -94,6 +94,73 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Icon<'a, R, M> {
         }
     }
 
+    pub fn set_recording_indicator(&self, show: bool) -> Result<(), crate::Error> {
+        #[cfg(target_os = "macos")]
+        {
+            let app_handle = self.manager.app_handle();
+            app_handle
+                .run_on_main_thread(move || {
+                    use objc2::rc::Retained;
+                    use objc2_app_kit::{NSApplication, NSBezierPath, NSColor, NSImage};
+                    use objc2_foundation::{MainThreadMarker, NSPoint, NSRect, NSSize};
+
+                    let mtm =
+                        MainThreadMarker::new().expect("run_on_main_thread guarantees main thread");
+                    let ns_app = NSApplication::sharedApplication(mtm);
+
+                    if !show {
+                        unsafe { ns_app.setApplicationIconImage(None) };
+                        return;
+                    }
+
+                    let Some(base_image) = (unsafe { ns_app.applicationIconImage() }) else {
+                        return;
+                    };
+
+                    let size = unsafe { base_image.size() };
+                    let composite_image = unsafe { NSImage::initWithSize(NSImage::alloc(), size) };
+
+                    unsafe {
+                        composite_image.lockFocus();
+
+                        base_image.drawAtPoint_fromRect_operation_fraction(
+                            NSPoint::new(0.0, 0.0),
+                            NSRect::new(NSPoint::new(0.0, 0.0), size),
+                            objc2_app_kit::NSCompositingOperation::Copy,
+                            1.0,
+                        );
+
+                        let dot_size = size.width * 0.25;
+                        let dot_x = size.width - dot_size - (size.width * 0.05);
+                        let dot_y = size.height - dot_size - (size.height * 0.05);
+
+                        let red_color = NSColor::systemRedColor();
+                        red_color.setFill();
+
+                        let dot_rect = NSRect::new(
+                            NSPoint::new(dot_x, dot_y),
+                            NSSize::new(dot_size, dot_size),
+                        );
+                        let dot_path = NSBezierPath::bezierPathWithOvalInRect(&dot_rect);
+                        dot_path.fill();
+
+                        composite_image.unlockFocus();
+
+                        ns_app.setApplicationIconImage(Some(&composite_image));
+                    }
+                })
+                .map_err(crate::Error::Tauri)?;
+
+            Ok(())
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = show;
+            Ok(())
+        }
+    }
+
     pub fn get_icon(&self) -> Result<Option<String>, crate::Error> {
         #[cfg(target_os = "macos")]
         {

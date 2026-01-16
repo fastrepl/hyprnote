@@ -7,6 +7,7 @@ Default permissions for the plugin
 - `allow-set-dock-icon`
 - `allow-reset-dock-icon`
 - `allow-get-icon`
+- `allow-set-recording-indicator`
 
 ## Permission Table
 

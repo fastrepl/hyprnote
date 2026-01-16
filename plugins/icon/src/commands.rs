@@ -24,3 +24,14 @@ pub(crate) async fn get_icon<R: tauri::Runtime>(
 ) -> Result<Option<String>, String> {
     app.icon().get_icon().map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn set_recording_indicator<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    show: bool,
+) -> Result<(), String> {
+    app.icon()
+        .set_recording_indicator(show)
+        .map_err(|e| e.to_string())
+}

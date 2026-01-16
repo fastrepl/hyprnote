@@ -11,7 +11,6 @@ import { useTabs } from "../store/zustand/tabs";
 import { TrialBeginModal } from "./devtool/trial-begin-modal";
 import { TrialExpiredModal } from "./devtool/trial-expired-modal";
 import { useNewNote } from "./main/shared";
-import { MigrationModal } from "./migration-modal";
 
 export default function MainAppLayout() {
   useNavigationEvents();
@@ -23,7 +22,6 @@ export default function MainAppLayout() {
           <Outlet />
           <TrialBeginModal />
           <TrialExpiredModal />
-          <MigrationModal />
         </NetworkProvider>
       </BillingProvider>
     </AuthProvider>

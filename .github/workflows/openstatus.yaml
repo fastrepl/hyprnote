@@ -1,0 +1,17 @@
+name: openstatus
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - openstatus.yaml
+      - .github/workflows/openstatus.yaml
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: curl -sSL instl.sh/openstatushq/cli/linux | bash
+      - run: openstatus monitors apply --access-token ${{ secrets.OPENSTATUS_API_KEY }}

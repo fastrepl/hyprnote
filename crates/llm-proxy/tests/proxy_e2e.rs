@@ -6,7 +6,6 @@ use std::time::Duration;
 
 use axum::http::StatusCode;
 use llm_proxy::{LlmProxyConfig, router};
-use tower::ServiceExt;
 use utils::*;
 
 async fn start_server(config: LlmProxyConfig) -> SocketAddr {

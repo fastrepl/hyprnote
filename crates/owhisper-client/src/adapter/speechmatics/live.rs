@@ -21,7 +21,7 @@ impl RealtimeSttAdapter for SpeechmaticsAdapter {
     }
 
     fn supports_native_multichannel(&self) -> bool {
-        true
+        false
     }
 
     fn build_ws_url(&self, api_base: &str, _params: &ListenParams, _channels: u8) -> url::Url {
@@ -49,7 +49,7 @@ impl RealtimeSttAdapter for SpeechmaticsAdapter {
         &self,
         _api_key: Option<&str>,
         params: &ListenParams,
-        channels: u8,
+        _channels: u8,
     ) -> Option<Message> {
         let language = params
             .languages
@@ -73,23 +73,12 @@ impl RealtimeSttAdapter for SpeechmaticsAdapter {
             None => default,
         };
 
-        // Use channel diarization for multichannel audio, speaker diarization for single channel
-        let (diarization, channel_diarization_labels) = if channels > 1 {
-            (
-                "channel".to_string(),
-                Some(vec!["Channel_1".to_string(), "Channel_2".to_string()]),
-            )
-        } else {
-            ("speaker".to_string(), None)
-        };
-
         let transcription_config = TranscriptionConfig {
             language,
             operating_point: operating_point.to_string(),
             enable_partials: true,
             enable_entities: true,
-            diarization,
-            channel_diarization_labels,
+            diarization: "speaker".to_string(),
             additional_vocab: if additional_vocab.is_empty() {
                 None
             } else {
@@ -194,8 +183,6 @@ struct TranscriptionConfig {
     enable_partials: bool,
     enable_entities: bool,
     diarization: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    channel_diarization_labels: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     additional_vocab: Option<Vec<AdditionalVocab>>,
     #[serde(skip_serializing_if = "Option::is_none")]

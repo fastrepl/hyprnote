@@ -13,6 +13,7 @@ reqwest = { workspace = true, features = ["json", "stream"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "time", "sync", "macros"] }
 tracing = { workspace = true }
 
+backon = { workspace = true }
 bytes = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

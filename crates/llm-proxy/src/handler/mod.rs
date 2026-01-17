@@ -5,7 +5,7 @@ use non_streaming::*;
 use streaming::*;
 
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use axum::{
     Json, Router,
@@ -14,6 +14,7 @@ use axum::{
     response::{IntoResponse, Response},
     routing::post,
 };
+use backon::{ExponentialBuilder, Retryable};
 use reqwest::Client;
 
 use crate::analytics::{AnalyticsReporter, GenerationEvent};
@@ -45,6 +46,10 @@ pub(super) fn spawn_analytics_report(
             report_with_cost(&*analytics, &*provider, &client, &api_key, event).await;
         });
     }
+}
+
+fn is_retryable_error(error: &reqwest::Error) -> bool {
+    error.is_timeout() || error.is_connect()
 }
 
 enum ProxyError {
@@ -157,21 +162,40 @@ async fn completions_handler(
         }
     };
 
+    let retry_config = &state.config.retry_config;
+    let backoff = ExponentialBuilder::default()
+        .with_jitter()
+        .with_max_delay(Duration::from_secs(retry_config.max_delay_secs))
+        .with_max_times(retry_config.num_retries);
+
     let result = tokio::time::timeout(state.config.timeout, async {
-        let mut req_builder = state
-            .client
-            .post(provider.base_url())
-            .header("Content-Type", "application/json")
-            .header(
-                "Authorization",
-                provider.build_auth_header(&state.config.api_key),
+        (|| async {
+            let mut req_builder = state
+                .client
+                .post(provider.base_url())
+                .header("Content-Type", "application/json")
+                .header(
+                    "Authorization",
+                    provider.build_auth_header(&state.config.api_key),
+                );
+
+            for (key, value) in provider.additional_headers() {
+                req_builder = req_builder.header(key, value);
+            }
+
+            req_builder.json(&provider_request).send().await
+        })
+        .retry(backoff)
+        .notify(|err, dur: Duration| {
+            tracing::warn!(
+                error = %err,
+                retry_delay_ms = dur.as_millis(),
+                provider = %provider.name(),
+                "retrying_llm_request"
             );
-
-        for (key, value) in provider.additional_headers() {
-            req_builder = req_builder.header(key, value);
-        }
-
-        req_builder.json(&provider_request).send().await
+        })
+        .when(|e| is_retryable_error(e))
+        .await
     })
     .await;
 

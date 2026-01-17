@@ -5,6 +5,23 @@ use crate::analytics::AnalyticsReporter;
 use crate::provider::{OpenRouterProvider, Provider};
 
 const DEFAULT_TIMEOUT_MS: u64 = 120_000;
+const DEFAULT_NUM_RETRIES: usize = 1;
+const DEFAULT_MAX_DELAY_SECS: u64 = 2;
+
+#[derive(Clone)]
+pub struct RetryConfig {
+    pub num_retries: usize,
+    pub max_delay_secs: u64,
+}
+
+impl Default for RetryConfig {
+    fn default() -> Self {
+        Self {
+            num_retries: DEFAULT_NUM_RETRIES,
+            max_delay_secs: DEFAULT_MAX_DELAY_SECS,
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct LlmProxyConfig {
@@ -14,6 +31,7 @@ pub struct LlmProxyConfig {
     pub models_default: Vec<String>,
     pub analytics: Option<Arc<dyn AnalyticsReporter>>,
     pub provider: Arc<dyn Provider>,
+    pub retry_config: RetryConfig,
 }
 
 impl LlmProxyConfig {
@@ -28,10 +46,11 @@ impl LlmProxyConfig {
             ],
             models_default: vec![
                 "moonshotai/kimi-k2-0905".into(),
-                "openai/gpt-5.1-chat".into(),
+                "openai/gpt-5.2-chat".into(),
             ],
             analytics: None,
             provider: Arc::new(OpenRouterProvider::default()),
+            retry_config: RetryConfig::default(),
         }
     }
 
@@ -57,6 +76,11 @@ impl LlmProxyConfig {
 
     pub fn with_provider(mut self, provider: Arc<dyn Provider>) -> Self {
         self.provider = provider;
+        self
+    }
+
+    pub fn with_retry_config(mut self, retry_config: RetryConfig) -> Self {
+        self.retry_config = retry_config;
         self
     }
 }

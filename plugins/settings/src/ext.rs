@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
@@ -49,16 +49,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
         let default_base = self.default_base()?;
         let settings_path = default_base.join(FILENAME);
 
-        if let Ok(content) = std::fs::read_to_string(&settings_path) {
-            if let Ok(settings) = serde_json::from_str::<serde_json::Value>(&content) {
-                if let Some(custom_base) =
-                    settings.get(CONTENT_BASE_PATH_KEY).and_then(|v| v.as_str())
-                {
-                    let custom_path = PathBuf::from(custom_base);
-                    if custom_path.exists() {
-                        return Ok(custom_path);
-                    }
-                }
+        if let Ok(content) = std::fs::read_to_string(&settings_path)
+            && let Ok(settings) = serde_json::from_str::<serde_json::Value>(&content)
+            && let Some(custom_base) = settings.get(CONTENT_BASE_PATH_KEY).and_then(|v| v.as_str())
+        {
+            let custom_path = PathBuf::from(custom_base);
+            if custom_path.exists() {
+                return Ok(custom_path);
             }
         }
 
@@ -156,7 +153,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> SettingsPluginExt<R> for T {
     }
 }
 
-async fn copy_dir_recursive(src: &PathBuf, dst: &PathBuf) -> Result<(), crate::Error> {
+async fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<(), crate::Error> {
     let mut entries = tokio::fs::read_dir(src).await?;
 
     while let Some(entry) = entries.next_entry().await? {

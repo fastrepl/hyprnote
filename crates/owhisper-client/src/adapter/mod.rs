@@ -194,10 +194,10 @@ pub fn normalize_languages(languages: &[hypr_language::Language]) -> Vec<hypr_la
         let iso639 = lang.iso639();
         if seen.insert(iso639) {
             result.push(lang.clone());
-        } else if lang.region().is_none() {
-            if let Some(pos) = result.iter().position(|l| l.iso639() == iso639) {
-                result[pos] = lang.clone();
-            }
+        } else if lang.region().is_none()
+            && let Some(pos) = result.iter().position(|l| l.iso639() == iso639)
+        {
+            result[pos] = lang.clone();
         }
     }
 

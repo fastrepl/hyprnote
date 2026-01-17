@@ -70,11 +70,11 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
             }
 
             for item in &items {
-                if let MenuItemKind::Submenu(submenu) = item {
-                    if submenu.text()? == "Help" {
-                        menu.remove(submenu)?;
-                        break;
-                    }
+                if let MenuItemKind::Submenu(submenu) = item
+                    && submenu.text()? == "Help"
+                {
+                    menu.remove(submenu)?;
+                    break;
                 }
             }
 

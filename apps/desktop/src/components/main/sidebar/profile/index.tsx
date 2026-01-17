@@ -344,7 +344,7 @@ function ProfileButton({
         className={cn([
           "flex size-8 shrink-0 items-center justify-center",
           "overflow-hidden rounded-full",
-          "border border-white/60 border-t border-neutral-400",
+          "border border-t border-neutral-400",
           "bg-linear-to-br from-indigo-400 to-purple-500",
           "shadow-xs",
           "transition-transform duration-300",

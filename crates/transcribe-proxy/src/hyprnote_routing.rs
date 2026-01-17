@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use hypr_language::Language;
-use owhisper_client::{AdapterKind, Provider};
+use owhisper_client::{AdapterKind, LanguageQuality, Provider};
 
 const DEFAULT_NUM_RETRIES: usize = 2;
 const DEFAULT_MAX_DELAY_SECS: u64 = 5;
@@ -62,10 +62,9 @@ impl HyprnoteRouter {
         languages: &[Language],
         available_providers: &HashSet<Provider>,
     ) -> Option<Provider> {
-        self.priorities
-            .iter()
-            .copied()
-            .find(|p| self.is_viable(p, languages, available_providers))
+        self.select_provider_chain(languages, available_providers)
+            .into_iter()
+            .next()
     }
 
     pub fn select_provider_chain(
@@ -73,21 +72,54 @@ impl HyprnoteRouter {
         languages: &[Language],
         available_providers: &HashSet<Provider>,
     ) -> Vec<Provider> {
-        self.priorities
+        let mut candidates: Vec<_> = self
+            .priorities
             .iter()
             .copied()
-            .filter(|p| self.is_viable(p, languages, available_providers))
-            .collect()
+            .filter_map(|p| {
+                let quality = self.get_quality(&p, languages, available_providers);
+                if quality.is_supported() {
+                    Some((p, quality))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        candidates.sort_by(|a, b| {
+            let (p1, q1) = a;
+            let (p2, q2) = b;
+            match q2.cmp(q1) {
+                std::cmp::Ordering::Equal => {
+                    let idx1 = self
+                        .priorities
+                        .iter()
+                        .position(|p| p == p1)
+                        .unwrap_or(usize::MAX);
+                    let idx2 = self
+                        .priorities
+                        .iter()
+                        .position(|p| p == p2)
+                        .unwrap_or(usize::MAX);
+                    idx1.cmp(&idx2)
+                }
+                other => other,
+            }
+        });
+
+        candidates.into_iter().map(|(p, _)| p).collect()
     }
 
-    fn is_viable(
+    fn get_quality(
         &self,
         provider: &Provider,
         languages: &[Language],
         available_providers: &HashSet<Provider>,
-    ) -> bool {
-        available_providers.contains(provider)
-            && AdapterKind::from(*provider).is_supported_languages_live(languages, None)
+    ) -> LanguageQuality {
+        if !available_providers.contains(provider) {
+            return LanguageQuality::NotSupported;
+        }
+        AdapterKind::from(*provider).language_quality_live(languages, None)
     }
 
     pub fn retry_config(&self) -> &RetryConfig {
@@ -218,5 +250,19 @@ mod tests {
         )));
         assert!(!super::should_use_hyprnote_routing(Some("")));
         assert!(!super::should_use_hyprnote_routing(Some("auto")));
+    }
+
+    #[test]
+    fn test_select_provider_prefers_quality_over_priority() {
+        let router = HyprnoteRouter::default();
+        let available =
+            make_available_providers(&[Provider::Deepgram, Provider::Soniox, Provider::ElevenLabs]);
+
+        let ko: Vec<Language> = vec!["ko".parse().unwrap()];
+        let chain = router.select_provider_chain(&ko, &available);
+
+        assert_eq!(chain[0], Provider::Soniox);
+        assert_eq!(chain[1], Provider::Deepgram);
+        assert_eq!(chain[2], Provider::ElevenLabs);
     }
 }

@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::time::Instant;
 
 use async_stream::stream;
@@ -27,6 +28,15 @@ pub(super) async fn handle_stream_response(
         latency_ms = %latency_ms,
         "llm_completion_stream_started"
     );
+
+    sentry::configure_scope(|scope| {
+        scope.set_tag("upstream.status", http_status.to_string());
+
+        let mut ctx = BTreeMap::new();
+        ctx.insert("http_status".into(), http_status.into());
+        ctx.insert("latency_ms".into(), (latency_ms as u64).into());
+        scope.set_context("llm_response", sentry::protocol::Context::Other(ctx));
+    });
 
     let upstream = response.bytes_stream();
 

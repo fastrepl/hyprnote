@@ -4,6 +4,8 @@ mod keywords;
 mod language;
 mod live;
 
+use super::LanguageQuality;
+
 // https://developers.deepgram.com/docs/models-languages-overview
 const NOVA3_GENERAL_LANGUAGES: &[&str] = &[
     "bg", "ca", "cs", "da", "da-DK", "de", "de-CH", "el", "en", "en-AU", "en-GB", "en-IN", "en-NZ",
@@ -25,6 +27,14 @@ const NOVA3_MEDICAL_LANGUAGES: &[&str] = &[
 ];
 
 const ENGLISH_ONLY: &[&str] = &["en", "en-US"];
+
+const EXCELLENT_LANGS: &[&str] = &["ru", "en", "es", "pl", "fr", "it"];
+
+const HIGH_LANGS: &[&str] = &["ja", "nl", "de", "ko", "pt", "sv", "uk", "vi"];
+
+const GOOD_LANGS: &[&str] = &["tr", "fi", "da", "id", "el", "no", "ca"];
+
+const MODERATE_LANGS: &[&str] = &["cs", "sk", "hu", "bg", "hi", "ms", "ro", "et"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, strum::EnumString, strum::AsRefStr)]
 pub enum DeepgramModel {
@@ -86,16 +96,49 @@ impl DeepgramAdapter {
         Self::is_supported_languages_impl(languages, model)
     }
 
+    fn can_use_multi(languages: &[hypr_language::Language]) -> bool {
+        language::can_use_multi(DeepgramModel::Nova3General.as_ref(), languages)
+            || language::can_use_multi(DeepgramModel::Nova2General.as_ref(), languages)
+    }
+
     fn is_supported_languages_impl(
         languages: &[hypr_language::Language],
         _model: Option<&str>,
     ) -> bool {
         if languages.len() >= 2 {
-            return language::can_use_multi(DeepgramModel::Nova3General.as_ref(), languages)
-                || language::can_use_multi(DeepgramModel::Nova2General.as_ref(), languages);
+            return Self::can_use_multi(languages);
         }
 
         DeepgramModel::best_for_languages(languages).is_some()
+    }
+
+    pub fn language_quality_live(
+        languages: &[hypr_language::Language],
+        _model: Option<&str>,
+    ) -> LanguageQuality {
+        if languages.len() >= 2 && !Self::can_use_multi(languages) {
+            return LanguageQuality::NotSupported;
+        }
+
+        let qualities = languages.iter().map(Self::single_language_quality);
+        LanguageQuality::min_quality(qualities)
+    }
+
+    fn single_language_quality(language: &hypr_language::Language) -> LanguageQuality {
+        let code = language.iso639().code();
+        if EXCELLENT_LANGS.contains(&code) {
+            LanguageQuality::Excellent
+        } else if HIGH_LANGS.contains(&code) {
+            LanguageQuality::High
+        } else if GOOD_LANGS.contains(&code) {
+            LanguageQuality::Good
+        } else if MODERATE_LANGS.contains(&code) {
+            LanguageQuality::Moderate
+        } else if DeepgramModel::best_for_languages(&[language.clone()]).is_some() {
+            LanguageQuality::NoData
+        } else {
+            LanguageQuality::NotSupported
+        }
     }
 }
 

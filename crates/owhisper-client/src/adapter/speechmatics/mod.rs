@@ -20,6 +20,10 @@ impl SpeechmaticsAdapter {
         Self::is_supported_languages_impl(languages)
     }
 
+    pub fn language_quality_live(_languages: &[hypr_language::Language]) -> super::LanguageQuality {
+        super::LanguageQuality::NoData
+    }
+
     fn is_supported_languages_impl(languages: &[hypr_language::Language]) -> bool {
         let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
         SUPPORTED_LANGUAGES.contains(&primary_lang)

@@ -88,9 +88,7 @@ fn extract_provider_code(parsed: &AssemblyAIError) -> Option<String> {
         Some("TOO_MANY_CONCURRENT".to_string())
     } else if lower.contains("audio transmission rate exceeded") {
         Some("AUDIO_RATE_EXCEEDED".to_string())
-    } else if lower.contains("missing authorization") {
-        Some("UNAUTHORIZED".to_string())
-    } else if lower.contains("unauthorized") {
+    } else if lower.contains("missing authorization") || lower.contains("unauthorized") {
         Some("UNAUTHORIZED".to_string())
     } else if lower.contains("session expired") {
         Some("SESSION_EXPIRED".to_string())

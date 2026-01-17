@@ -3,6 +3,8 @@ mod live;
 
 use crate::providers::Provider;
 
+use super::LanguageQuality;
+
 #[derive(Clone, Default)]
 pub struct FireworksAdapter;
 
@@ -13,6 +15,10 @@ impl FireworksAdapter {
 
     pub fn is_supported_languages_batch(_languages: &[hypr_language::Language]) -> bool {
         true
+    }
+
+    pub fn language_quality_live(_languages: &[hypr_language::Language]) -> LanguageQuality {
+        LanguageQuality::NoData
     }
 
     pub(crate) fn api_host(api_base: &str) -> String {

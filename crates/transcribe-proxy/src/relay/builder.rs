@@ -6,7 +6,6 @@ use owhisper_client::Auth;
 pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::handler::WebSocketProxy;
-use super::params::transform_client_params;
 use super::types::{FirstMessageTransformer, InitialMessage, OnCloseCallback, ResponseTransformer};
 use crate::config::DEFAULT_CONNECT_TIMEOUT_MS;
 use crate::provider_selector::SelectedProvider;
@@ -155,21 +154,6 @@ impl WebSocketProxyBuilder<NoUpstream> {
             headers: HashMap::new(),
         })
     }
-
-    pub fn upstream_url_from_components(
-        self,
-        base_url: url::Url,
-        mut client_params: QueryParams,
-        default_params: &'static [(&'static str, &'static str)],
-    ) -> WebSocketProxyBuilder<WithUrlComponents> {
-        transform_client_params(&mut client_params);
-        self.with_state(WithUrlComponents {
-            base_url,
-            client_params,
-            default_params: default_params.to_vec(),
-            headers: HashMap::new(),
-        })
-    }
 }
 
 #[allow(private_bounds)]
@@ -260,15 +244,6 @@ impl WebSocketProxyBuilder<WithUrlComponents> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::query_params::QueryValue;
-
-    fn make_params(pairs: &[(&str, &str)]) -> QueryParams {
-        let mut params = QueryParams::default();
-        for (k, v) in pairs {
-            params.insert(k.to_string(), QueryValue::Single(v.to_string()));
-        }
-        params
-    }
 
     #[test]
     fn test_default_builder() {
@@ -291,42 +266,9 @@ mod tests {
     }
 
     #[test]
-    fn test_upstream_url_from_components_transition() {
-        let base_url: url::Url = "wss://api.example.com/listen".parse().unwrap();
-        let params = make_params(&[("encoding", "linear16")]);
-        let defaults: &[(&str, &str)] = &[("model", "nova-3")];
-
-        let builder = WebSocketProxyBuilder::default().upstream_url_from_components(
-            base_url.clone(),
-            params,
-            defaults,
-        );
-
-        assert_eq!(builder.state.base_url, base_url);
-        assert!(builder.state.headers.is_empty());
-        assert_eq!(builder.state.default_params.len(), 1);
-    }
-
-    #[test]
     fn test_header_with_url() {
         let builder = WebSocketProxyBuilder::default()
             .upstream_url("wss://api.example.com/listen")
-            .header("Authorization", "Bearer token123");
-
-        assert_eq!(
-            builder.state.headers.get("Authorization"),
-            Some(&"Bearer token123".to_string())
-        );
-    }
-
-    #[test]
-    fn test_header_with_url_components() {
-        let base_url: url::Url = "wss://api.example.com/listen".parse().unwrap();
-        let params = QueryParams::default();
-        let defaults: &[(&str, &str)] = &[];
-
-        let builder = WebSocketProxyBuilder::default()
-            .upstream_url_from_components(base_url, params, defaults)
             .header("Authorization", "Bearer token123");
 
         assert_eq!(
@@ -446,19 +388,6 @@ mod tests {
             Err(crate::ProxyError::InvalidRequest(_)) => {}
             _ => panic!("expected InvalidRequest error"),
         }
-    }
-
-    #[test]
-    fn test_build_with_url_components_success() {
-        let base_url: url::Url = "wss://api.example.com/listen".parse().unwrap();
-        let params = make_params(&[("encoding", "linear16")]);
-        let defaults: &[(&str, &str)] = &[("model", "nova-3")];
-
-        let result = WebSocketProxyBuilder::default()
-            .upstream_url_from_components(base_url, params, defaults)
-            .build();
-
-        assert!(result.is_ok());
     }
 
     #[test]

@@ -1,63 +1,30 @@
 mod common;
 
-use common::recording::{RecordingOptions, RecordingSession};
 use common::*;
 
 use futures_util::StreamExt;
 use std::time::Duration;
 
 use owhisper_client::Provider;
-use owhisper_client::{BatchSttAdapter, FinalizeHandle, ListenClient, RealtimeSttAdapter};
+use owhisper_client::{FinalizeHandle, ListenClient, RealtimeSttAdapter};
 use owhisper_interface::stream::StreamResponse;
 
-async fn run_proxy_live_test<A: RealtimeSttAdapter>(
-    provider: Provider,
-    params: owhisper_interface::ListenParams,
-) {
-    run_proxy_live_test_with_recording::<A>(provider, params, RecordingOptions::from_env("normal"))
-        .await
-}
-
-async fn run_proxy_live_test_with_sample_rate<A: RealtimeSttAdapter>(
-    provider: Provider,
-    params: owhisper_interface::ListenParams,
-    sample_rate: u32,
-) {
-    run_proxy_live_test_with_recording_and_sample_rate::<A>(
-        provider,
-        params,
-        RecordingOptions::from_env("normal"),
-        sample_rate,
-    )
-    .await
-}
-
-async fn run_proxy_live_test_with_recording<A: RealtimeSttAdapter>(
-    provider: Provider,
-    params: owhisper_interface::ListenParams,
-    recording_opts: RecordingOptions,
-) {
-    run_proxy_live_test_with_recording_and_sample_rate::<A>(provider, params, recording_opts, 16000)
-        .await
-}
-
-async fn run_proxy_live_test_with_recording_and_sample_rate<A: RealtimeSttAdapter>(
-    provider: Provider,
-    params: owhisper_interface::ListenParams,
-    recording_opts: RecordingOptions,
-    sample_rate: u32,
-) {
+async fn run_passthrough_live_test<A: RealtimeSttAdapter>(provider: Provider) {
     let _ = tracing_subscriber::fmt::try_init();
 
     let api_key = std::env::var(provider.env_key_name())
         .unwrap_or_else(|_| panic!("{} must be set", provider.env_key_name()));
     let addr = start_server_with_provider(provider, api_key).await;
 
-    let recording_session = if recording_opts.enabled {
-        Some(RecordingSession::new(provider))
-    } else {
-        None
+    let sample_rate = provider.default_live_sample_rate();
+    let params = owhisper_interface::ListenParams {
+        model: Some(provider.default_live_model().to_string()),
+        languages: vec![hypr_language::ISO639::En.into()],
+        sample_rate,
+        ..Default::default()
     };
+
+    let provider_name = format!("passthrough:{}", provider);
 
     let client = ListenClient::builder()
         .adapter::<A>()
@@ -66,7 +33,46 @@ async fn run_proxy_live_test_with_recording_and_sample_rate<A: RealtimeSttAdapte
         .build_single()
         .await;
 
-    let provider_name = format!("proxy:{}", provider);
+    run_live_stream_test(client, provider_name, sample_rate).await;
+}
+
+async fn run_hyprnote_live_test(provider: Provider) {
+    let _ = tracing_subscriber::fmt::try_init();
+
+    let api_key = std::env::var(provider.env_key_name())
+        .unwrap_or_else(|_| panic!("{} must be set", provider.env_key_name()));
+    let addr = start_server_with_provider(provider, api_key).await;
+
+    let sample_rate = provider.default_live_sample_rate();
+    let params = owhisper_interface::ListenParams {
+        model: Some(provider.default_live_model().to_string()),
+        languages: vec![hypr_language::ISO639::En.into()],
+        sample_rate,
+        custom_query: Some(
+            [("provider".to_string(), "hyprnote".to_string())]
+                .into_iter()
+                .collect(),
+        ),
+        ..Default::default()
+    };
+
+    let provider_name = format!("hyprnote:{}", provider);
+
+    let client = ListenClient::builder()
+        .adapter::<owhisper_client::HyprnoteAdapter>()
+        .api_base(format!("http://{}", addr))
+        .params(params)
+        .build_single()
+        .await;
+
+    run_live_stream_test(client, provider_name, sample_rate).await;
+}
+
+async fn run_live_stream_test<A: RealtimeSttAdapter>(
+    client: ListenClient<A>,
+    provider_name: String,
+    sample_rate: u32,
+) {
     let input = test_audio_stream_with_rate(sample_rate);
     let (stream, handle) = client.from_realtime_audio(input).await.unwrap();
     futures_util::pin_mut!(stream);
@@ -78,16 +84,6 @@ async fn run_proxy_live_test_with_recording_and_sample_rate<A: RealtimeSttAdapte
         while let Some(result) = stream.next().await {
             match result {
                 Ok(response) => {
-                    // Record the response if recording is enabled
-                    if let Some(ref session) = recording_session {
-                        match serde_json::to_string(&response) {
-                            Ok(json) => session.record_server_text(&json),
-                            Err(e) => {
-                                tracing::warn!("failed to serialize response for recording: {}", e)
-                            }
-                        }
-                    }
-
                     if let StreamResponse::TranscriptResponse { channel, .. } = &response {
                         if let Some(alt) = channel.alternatives.first() {
                             if !alt.transcript.is_empty() {
@@ -107,17 +103,6 @@ async fn run_proxy_live_test_with_recording_and_sample_rate<A: RealtimeSttAdapte
     let _ = tokio::time::timeout(timeout, test_future).await;
     handle.finalize().await;
 
-    // Save recording if enabled
-    if let Some(session) = recording_session {
-        if let Some(ref output_dir) = recording_opts.output_dir {
-            std::fs::create_dir_all(output_dir).expect("failed to create fixtures directory");
-            session
-                .save_to_file(output_dir, &recording_opts.suffix)
-                .expect("failed to save recording");
-            println!("[{}] Recording saved to {:?}", provider_name, output_dir);
-        }
-    }
-
     assert!(
         saw_transcript,
         "[{}] expected at least one non-empty transcript",
@@ -125,10 +110,7 @@ async fn run_proxy_live_test_with_recording_and_sample_rate<A: RealtimeSttAdapte
     );
 }
 
-async fn run_proxy_batch_test<A: BatchSttAdapter>(
-    provider: Provider,
-    params: owhisper_interface::ListenParams,
-) {
+async fn run_passthrough_batch_test(provider: Provider) {
     let _ = tracing_subscriber::fmt::try_init();
 
     let api_key = std::env::var(provider.env_key_name())
@@ -138,16 +120,30 @@ async fn run_proxy_batch_test<A: BatchSttAdapter>(
     let audio_bytes =
         std::fs::read(hypr_data::english_1::AUDIO_PATH).expect("failed to read test audio file");
 
-    let client = reqwest::Client::new();
-    let url = format!(
-        "http://{}/listen?model={}",
-        addr,
-        params
-            .model
-            .as_deref()
-            .unwrap_or(provider.default_batch_model())
-    );
+    let model = provider.default_batch_model();
+    let url = format!("http://{}/listen?model={}", addr, model);
 
+    run_batch_request(url, audio_bytes, format!("passthrough:{}", provider)).await;
+}
+
+async fn run_hyprnote_batch_test(provider: Provider) {
+    let _ = tracing_subscriber::fmt::try_init();
+
+    let api_key = std::env::var(provider.env_key_name())
+        .unwrap_or_else(|_| panic!("{} must be set", provider.env_key_name()));
+    let addr = start_server_with_provider(provider, api_key).await;
+
+    let audio_bytes =
+        std::fs::read(hypr_data::english_1::AUDIO_PATH).expect("failed to read test audio file");
+
+    let model = provider.default_batch_model();
+    let url = format!("http://{}/listen?provider=hyprnote&model={}", addr, model);
+
+    run_batch_request(url, audio_bytes, format!("hyprnote:{}", provider)).await;
+}
+
+async fn run_batch_request(url: String, audio_bytes: Vec<u8>, provider_name: String) {
+    let client = reqwest::Client::new();
     let response = client
         .post(&url)
         .header("Content-Type", "audio/wav")
@@ -158,7 +154,8 @@ async fn run_proxy_batch_test<A: BatchSttAdapter>(
 
     assert!(
         response.status().is_success(),
-        "batch request failed with status: {}",
+        "[{}] batch request failed with status: {}",
+        provider_name,
         response.status()
     );
 
@@ -175,140 +172,131 @@ async fn run_proxy_batch_test<A: BatchSttAdapter>(
         .map(|a| a.transcript.as_str())
         .unwrap_or("");
 
-    println!("[proxy:{}] batch transcript: {}", provider, transcript);
+    println!("[{}] batch transcript: {}", provider_name, transcript);
 
     assert!(
         !transcript.is_empty(),
-        "[proxy:{}] expected non-empty transcript from batch transcription",
-        provider
+        "[{}] expected non-empty transcript from batch transcription",
+        provider_name
     );
 }
 
-macro_rules! proxy_live_test {
+macro_rules! passthrough_live_test {
     ($name:ident, $adapter:ty, $provider:expr) => {
-        pub mod $name {
-            use super::*;
-
-            pub mod live {
-                use super::*;
-
-                #[ignore]
-                #[tokio::test]
-                async fn test_proxy_live() {
-                    let sample_rate = $provider.default_live_sample_rate();
-                    run_proxy_live_test_with_sample_rate::<$adapter>(
-                        $provider,
-                        owhisper_interface::ListenParams {
-                            model: Some($provider.default_live_model().to_string()),
-                            languages: vec![hypr_language::ISO639::En.into()],
-                            sample_rate,
-                            ..Default::default()
-                        },
-                        sample_rate,
-                    )
-                    .await;
-                }
-            }
+        #[ignore]
+        #[tokio::test]
+        async fn $name() {
+            run_passthrough_live_test::<$adapter>($provider).await;
         }
     };
 }
 
-macro_rules! proxy_batch_test {
-    ($name:ident, $adapter:ty, $provider:expr) => {
-        pub mod $name {
-            use super::*;
-
-            pub mod batch {
-                use super::*;
-
-                #[ignore]
-                #[tokio::test]
-                async fn test_proxy_batch() {
-                    run_proxy_batch_test::<$adapter>(
-                        $provider,
-                        owhisper_interface::ListenParams {
-                            model: Some($provider.default_batch_model().to_string()),
-                            languages: vec![hypr_language::ISO639::En.into()],
-                            ..Default::default()
-                        },
-                    )
-                    .await;
-                }
-            }
+macro_rules! hyprnote_live_test {
+    ($name:ident, $provider:expr) => {
+        #[ignore]
+        #[tokio::test]
+        async fn $name() {
+            run_hyprnote_live_test($provider).await;
         }
     };
 }
 
-mod proxy_e2e {
+macro_rules! passthrough_batch_test {
+    ($name:ident, $provider:expr) => {
+        #[ignore]
+        #[tokio::test]
+        async fn $name() {
+            run_passthrough_batch_test($provider).await;
+        }
+    };
+}
+
+macro_rules! hyprnote_batch_test {
+    ($name:ident, $provider:expr) => {
+        #[ignore]
+        #[tokio::test]
+        async fn $name() {
+            run_hyprnote_batch_test($provider).await;
+        }
+    };
+}
+
+mod passthrough {
     use super::*;
 
-    proxy_live_test!(
-        deepgram,
-        owhisper_client::DeepgramAdapter,
-        Provider::Deepgram
-    );
-    proxy_live_test!(
-        assemblyai,
-        owhisper_client::AssemblyAIAdapter,
-        Provider::AssemblyAI
-    );
-    proxy_live_test!(soniox, owhisper_client::SonioxAdapter, Provider::Soniox);
-    proxy_live_test!(gladia, owhisper_client::GladiaAdapter, Provider::Gladia);
-    proxy_live_test!(
-        fireworks,
-        owhisper_client::FireworksAdapter,
-        Provider::Fireworks
-    );
-    proxy_live_test!(openai, owhisper_client::OpenAIAdapter, Provider::OpenAI);
-    proxy_live_test!(
-        elevenlabs,
-        owhisper_client::ElevenLabsAdapter,
-        Provider::ElevenLabs
-    );
-    proxy_live_test!(
-        speechmatics,
-        owhisper_client::SpeechmaticsAdapter,
-        Provider::Speechmatics
-    );
+    pub mod live {
+        use super::*;
 
-    proxy_batch_test!(
-        deepgram_batch,
-        owhisper_client::DeepgramAdapter,
-        Provider::Deepgram
-    );
-    proxy_batch_test!(
-        assemblyai_batch,
-        owhisper_client::AssemblyAIAdapter,
-        Provider::AssemblyAI
-    );
-    proxy_batch_test!(
-        soniox_batch,
-        owhisper_client::SonioxAdapter,
-        Provider::Soniox
-    );
-    proxy_batch_test!(
-        gladia_batch,
-        owhisper_client::GladiaAdapter,
-        Provider::Gladia
-    );
-    proxy_batch_test!(
-        fireworks_batch,
-        owhisper_client::FireworksAdapter,
-        Provider::Fireworks
-    );
-    proxy_batch_test!(
-        openai_batch,
-        owhisper_client::OpenAIAdapter,
-        Provider::OpenAI
-    );
-    proxy_batch_test!(
-        elevenlabs_batch,
-        owhisper_client::ElevenLabsAdapter,
-        Provider::ElevenLabs
-    );
-    proxy_batch_test!(
-        speechmatics_batch,
-        owhisper_client::SpeechmaticsAdapter,
-        Provider::Speechmatics
-    );
+        passthrough_live_test!(
+            deepgram,
+            owhisper_client::DeepgramAdapter,
+            Provider::Deepgram
+        );
+        passthrough_live_test!(
+            assemblyai,
+            owhisper_client::AssemblyAIAdapter,
+            Provider::AssemblyAI
+        );
+        passthrough_live_test!(soniox, owhisper_client::SonioxAdapter, Provider::Soniox);
+        passthrough_live_test!(gladia, owhisper_client::GladiaAdapter, Provider::Gladia);
+        passthrough_live_test!(
+            fireworks,
+            owhisper_client::FireworksAdapter,
+            Provider::Fireworks
+        );
+        passthrough_live_test!(openai, owhisper_client::OpenAIAdapter, Provider::OpenAI);
+        passthrough_live_test!(
+            elevenlabs,
+            owhisper_client::ElevenLabsAdapter,
+            Provider::ElevenLabs
+        );
+        passthrough_live_test!(
+            speechmatics,
+            owhisper_client::SpeechmaticsAdapter,
+            Provider::Speechmatics
+        );
+    }
+
+    pub mod batch {
+        use super::*;
+
+        passthrough_batch_test!(deepgram, Provider::Deepgram);
+        passthrough_batch_test!(assemblyai, Provider::AssemblyAI);
+        passthrough_batch_test!(soniox, Provider::Soniox);
+        passthrough_batch_test!(gladia, Provider::Gladia);
+        passthrough_batch_test!(fireworks, Provider::Fireworks);
+        passthrough_batch_test!(openai, Provider::OpenAI);
+        passthrough_batch_test!(elevenlabs, Provider::ElevenLabs);
+        passthrough_batch_test!(speechmatics, Provider::Speechmatics);
+    }
+}
+
+mod hyprnote {
+    use super::*;
+
+    pub mod live {
+        use super::*;
+
+        hyprnote_live_test!(deepgram, Provider::Deepgram);
+        hyprnote_live_test!(assemblyai, Provider::AssemblyAI);
+        hyprnote_live_test!(soniox, Provider::Soniox);
+        hyprnote_live_test!(gladia, Provider::Gladia);
+        hyprnote_live_test!(fireworks, Provider::Fireworks);
+        hyprnote_live_test!(openai, Provider::OpenAI);
+        hyprnote_live_test!(elevenlabs, Provider::ElevenLabs);
+        hyprnote_live_test!(speechmatics, Provider::Speechmatics);
+    }
+
+    pub mod batch {
+        use super::*;
+
+        hyprnote_batch_test!(deepgram, Provider::Deepgram);
+        hyprnote_batch_test!(assemblyai, Provider::AssemblyAI);
+        hyprnote_batch_test!(soniox, Provider::Soniox);
+        hyprnote_batch_test!(gladia, Provider::Gladia);
+        hyprnote_batch_test!(fireworks, Provider::Fireworks);
+        hyprnote_batch_test!(openai, Provider::OpenAI);
+        hyprnote_batch_test!(elevenlabs, Provider::ElevenLabs);
+        hyprnote_batch_test!(speechmatics, Provider::Speechmatics);
+    }
 }

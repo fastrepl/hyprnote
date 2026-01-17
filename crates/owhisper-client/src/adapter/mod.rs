@@ -41,6 +41,27 @@ use crate::error::Error;
 
 pub use reqwest_middleware::ClientWithMiddleware;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub enum LanguageQuality {
+    #[default]
+    NotSupported,
+    NoData,
+    Moderate,
+    Good,
+    High,
+    Excellent,
+}
+
+impl LanguageQuality {
+    pub fn is_supported(&self) -> bool {
+        *self != Self::NotSupported
+    }
+
+    pub fn min_quality(qualities: impl IntoIterator<Item = Self>) -> Self {
+        qualities.into_iter().min().unwrap_or(Self::NotSupported)
+    }
+}
+
 pub type BatchFuture<'a> = Pin<Box<dyn Future<Output = Result<BatchResponse, Error>> + Send + 'a>>;
 
 pub fn documented_language_codes_live() -> Vec<String> {
@@ -50,7 +71,7 @@ pub fn documented_language_codes_live() -> Vec<String> {
     set.extend(soniox::documented_language_codes().iter().copied());
     set.extend(gladia::documented_language_codes().iter().copied());
     set.extend(assemblyai::documented_language_codes_live().iter().copied());
-    set.extend(elevenlabs::documented_language_codes().iter().copied());
+    set.extend(elevenlabs::documented_language_codes());
     set.extend(argmax::PARAKEET_V3_LANGS.iter().copied());
     set.extend(speechmatics::documented_language_codes().iter().copied());
 
@@ -68,7 +89,7 @@ pub fn documented_language_codes_batch() -> Vec<String> {
             .iter()
             .copied(),
     );
-    set.extend(elevenlabs::documented_language_codes().iter().copied());
+    set.extend(elevenlabs::documented_language_codes());
     set.extend(argmax::PARAKEET_V3_LANGS.iter().copied());
     set.extend(speechmatics::documented_language_codes().iter().copied());
 
@@ -324,6 +345,24 @@ impl AdapterKind {
             Self::ElevenLabs => ElevenLabsAdapter::is_supported_languages_batch(languages),
             Self::Argmax => ArgmaxAdapter::is_supported_languages_batch(languages, model),
             Self::Speechmatics => SpeechmaticsAdapter::is_supported_languages_batch(languages),
+        }
+    }
+
+    pub fn language_quality_live(
+        &self,
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> LanguageQuality {
+        match self {
+            Self::Deepgram => DeepgramAdapter::language_quality_live(languages, model),
+            Self::Soniox => SonioxAdapter::language_quality_live(languages),
+            Self::AssemblyAI => AssemblyAIAdapter::language_quality_live(languages),
+            Self::Gladia => GladiaAdapter::language_quality_live(languages),
+            Self::OpenAI => OpenAIAdapter::language_quality_live(languages),
+            Self::Fireworks => FireworksAdapter::language_quality_live(languages),
+            Self::ElevenLabs => ElevenLabsAdapter::language_quality_live(languages),
+            Self::Argmax => ArgmaxAdapter::language_quality_live(languages, model),
+            Self::Speechmatics => SpeechmaticsAdapter::language_quality_live(languages),
         }
     }
 }

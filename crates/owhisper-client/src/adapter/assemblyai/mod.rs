@@ -5,18 +5,33 @@ mod live;
 use batch::SUPPORTED_LANGUAGES;
 use live::STREAMING_LANGUAGES;
 
+use super::LanguageQuality;
+
 #[derive(Clone, Default)]
 pub struct AssemblyAIAdapter;
 
 impl AssemblyAIAdapter {
     pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        STREAMING_LANGUAGES.contains(&primary_lang)
+        Self::language_quality_live(languages).is_supported()
     }
 
     pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
         let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
         SUPPORTED_LANGUAGES.contains(&primary_lang)
+    }
+
+    pub fn language_quality_live(languages: &[hypr_language::Language]) -> LanguageQuality {
+        let qualities = languages.iter().map(Self::single_language_quality);
+        LanguageQuality::min_quality(qualities)
+    }
+
+    fn single_language_quality(language: &hypr_language::Language) -> LanguageQuality {
+        let code = language.iso639().code();
+        if STREAMING_LANGUAGES.contains(&code) {
+            LanguageQuality::High
+        } else {
+            LanguageQuality::NotSupported
+        }
     }
 }
 

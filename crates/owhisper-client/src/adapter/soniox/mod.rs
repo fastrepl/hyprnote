@@ -2,6 +2,8 @@ mod batch;
 pub mod error;
 mod live;
 
+use super::LanguageQuality;
+
 // https://soniox.com/docs/stt/concepts/supported-languages
 const SUPPORTED_LANGUAGES: &[&str] = &[
     "af", "sq", "ar", "az", "eu", "be", "bn", "bs", "bg", "ca", "zh", "hr", "cs", "da", "nl", "en",
@@ -10,21 +12,54 @@ const SUPPORTED_LANGUAGES: &[&str] = &[
     "es", "sw", "sv", "tl", "ta", "te", "th", "tr", "uk", "ur", "vi", "cy",
 ];
 
+const EXCELLENT_LANGS: &[&str] = &["ko", "ro", "it", "pt", "es", "vi"];
+
+const HIGH_LANGS: &[&str] = &[
+    "bg", "hu", "fr", "pl", "ru", "bn", "ur", "en", "zh", "bs", "sl", "mr", "de", "be", "af", "el",
+    "hi", "he",
+];
+
+const GOOD_LANGS: &[&str] = &[
+    "sq", "da", "gu", "az", "sr", "sv", "te", "no", "sk", "uk", "ja", "id", "tr", "kk", "sw", "nl",
+    "lt", "hr", "th",
+];
+
+const MODERATE_LANGS: &[&str] = &[
+    "et", "ta", "cs", "ms", "pa", "lv", "fi", "eu", "ca", "ml", "tl", "kn", "fa", "gl",
+];
+
 #[derive(Clone, Default)]
 pub struct SonioxAdapter;
 
 impl SonioxAdapter {
     pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {
-        Self::is_supported_languages_impl(languages)
+        Self::language_quality_live(languages).is_supported()
     }
 
     pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
-        Self::is_supported_languages_impl(languages)
+        Self::language_quality_live(languages).is_supported()
     }
 
-    fn is_supported_languages_impl(languages: &[hypr_language::Language]) -> bool {
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        SUPPORTED_LANGUAGES.contains(&primary_lang)
+    pub fn language_quality_live(languages: &[hypr_language::Language]) -> LanguageQuality {
+        let qualities = languages.iter().map(Self::single_language_quality);
+        LanguageQuality::min_quality(qualities)
+    }
+
+    fn single_language_quality(language: &hypr_language::Language) -> LanguageQuality {
+        let code = language.iso639().code();
+        if EXCELLENT_LANGS.contains(&code) {
+            LanguageQuality::Excellent
+        } else if HIGH_LANGS.contains(&code) {
+            LanguageQuality::High
+        } else if GOOD_LANGS.contains(&code) {
+            LanguageQuality::Good
+        } else if MODERATE_LANGS.contains(&code) {
+            LanguageQuality::Moderate
+        } else if SUPPORTED_LANGUAGES.contains(&code) {
+            LanguageQuality::NoData
+        } else {
+            LanguageQuality::NotSupported
+        }
     }
 
     pub(crate) fn api_host(api_base: &str) -> String {

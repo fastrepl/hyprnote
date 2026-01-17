@@ -155,6 +155,7 @@ enum ElevenLabsMessage {
     SessionStarted {
         session_id: String,
         #[serde(default)]
+        #[allow(dead_code)]
         config: Option<serde_json::Value>,
     },
     #[serde(rename = "partial_transcript")]

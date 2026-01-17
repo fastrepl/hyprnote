@@ -27,6 +27,7 @@ pub(crate) struct AppState {
 }
 
 impl AppState {
+    #[allow(clippy::result_large_err)]
     pub fn resolve_provider(&self, params: &mut QueryParams) -> Result<SelectedProvider, Response> {
         let provider_param = params.remove_first("provider");
 
@@ -62,6 +63,7 @@ impl AppState {
         })
     }
 
+    #[allow(clippy::result_large_err)]
     fn resolve_hyprnote_provider(
         &self,
         params: &QueryParams,

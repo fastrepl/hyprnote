@@ -165,7 +165,7 @@ impl WebSocketProxy {
     ) -> bool {
         let is_control = control_types
             .as_ref()
-            .map_or(false, |types| is_control_message(&data, types));
+            .is_some_and(|types| is_control_message(&data, types));
         let size = data.len();
         let queued = QueuedPayload { data, is_text };
 

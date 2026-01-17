@@ -54,7 +54,8 @@ fn map_error_type(message_type: &str) -> u16 {
         "rate_limited" | "commit_throttled" => 429,
         "input_error" | "insufficient_audio_activity" => 400,
         "queue_overflow" | "resource_exhausted" => 503,
-        "transcriber_error" | "error" | _ => 500,
+        "transcriber_error" | "error" => 500,
+        _ => 500,
     }
 }
 

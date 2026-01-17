@@ -4,6 +4,7 @@ import Link from "@tiptap/extension-link";
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
+import { Markdown } from "@tiptap/markdown";
 import StarterKit from "@tiptap/starter-kit";
 import { ResizableImage } from "tiptap-extension-resizable-image";
 
@@ -132,6 +133,7 @@ export const getExtensions = (
   CustomListKeymap,
   StreamingAnimation,
   ClipboardTextSerializer,
+  Markdown,
   SearchAndReplace.configure({
     searchResultClass: "search-result",
     disableRegex: true,

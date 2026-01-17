@@ -265,6 +265,11 @@ mod proxy_e2e {
         owhisper_client::ElevenLabsAdapter,
         Provider::ElevenLabs
     );
+    proxy_live_test!(
+        speechmatics,
+        owhisper_client::SpeechmaticsAdapter,
+        Provider::Speechmatics
+    );
 
     proxy_batch_test!(
         deepgram_batch,
@@ -300,5 +305,10 @@ mod proxy_e2e {
         elevenlabs_batch,
         owhisper_client::ElevenLabsAdapter,
         Provider::ElevenLabs
+    );
+    proxy_batch_test!(
+        speechmatics_batch,
+        owhisper_client::SpeechmaticsAdapter,
+        Provider::Speechmatics
     );
 }

@@ -5,7 +5,7 @@ use axum::{
 };
 use owhisper_client::{
     AssemblyAIAdapter, Auth, DeepgramAdapter, ElevenLabsAdapter, FireworksAdapter, GladiaAdapter,
-    OpenAIAdapter, Provider, RealtimeSttAdapter, SonioxAdapter,
+    OpenAIAdapter, Provider, RealtimeSttAdapter, SonioxAdapter, SpeechmaticsAdapter,
 };
 use owhisper_interface::ListenParams;
 
@@ -69,6 +69,7 @@ fn build_upstream_url_with_adapter(
         Provider::OpenAI => OpenAIAdapter.build_ws_url(api_base, params, channels),
         Provider::Gladia => GladiaAdapter.build_ws_url(api_base, params, channels),
         Provider::ElevenLabs => ElevenLabsAdapter.build_ws_url(api_base, params, channels),
+        Provider::Speechmatics => SpeechmaticsAdapter.build_ws_url(api_base, params, channels),
     }
 }
 
@@ -86,6 +87,7 @@ fn build_initial_message_with_adapter(
         Provider::OpenAI => OpenAIAdapter.initial_message(api_key, params, channels),
         Provider::Gladia => GladiaAdapter.initial_message(api_key, params, channels),
         Provider::ElevenLabs => ElevenLabsAdapter.initial_message(api_key, params, channels),
+        Provider::Speechmatics => SpeechmaticsAdapter.initial_message(api_key, params, channels),
     };
 
     msg.and_then(|m| match m {
@@ -106,6 +108,7 @@ fn build_response_transformer(
             Provider::OpenAI => OpenAIAdapter.parse_response(raw),
             Provider::Gladia => GladiaAdapter.parse_response(raw),
             Provider::ElevenLabs => ElevenLabsAdapter.parse_response(raw),
+            Provider::Speechmatics => SpeechmaticsAdapter.parse_response(raw),
         };
 
         if responses.is_empty() {

@@ -3,6 +3,7 @@ import * as _UI from "tinybase/ui-react/with-schemas";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { type Schemas } from "@hypr/store";
 
+import { commands } from "../../../../types/tauri.gen";
 import type { Store } from "../../store/main";
 import { STORE_ID } from "../../store/main";
 import { createLocalPersister } from "./persister";
@@ -124,14 +125,20 @@ export function useLocalPersister(store: Store) {
         storeIdColumnName: "id",
       });
 
-      await persister.load();
+      const loadedResult = await commands.getLocalPersisterLoaded();
+      const alreadyLoaded = loadedResult.status === "ok" && loadedResult.data;
 
-      (store as Store).transaction(() => {});
+      if (!alreadyLoaded) {
+        await persister.load();
+        await commands.setLocalPersisterLoaded(true);
 
-      if (getCurrentWebviewWindowLabel() === "main") {
-        const migrated = migrateWordsAndHintsToTranscripts(store as Store);
-        if (migrated) {
-          await persister.save();
+        (store as Store).transaction(() => {});
+
+        if (getCurrentWebviewWindowLabel() === "main") {
+          const migrated = migrateWordsAndHintsToTranscripts(store as Store);
+          if (migrated) {
+            await persister.save();
+          }
         }
       }
 

@@ -154,3 +154,32 @@ export const exchangeOtpToken = createServerFn({ method: "POST" })
       refresh_token: authData.session.refresh_token,
     };
   });
+
+export const updateUserEmail = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      email: z.string().email(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      return { success: false, error: "Not authenticated" };
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      email: data.email,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      message:
+        "A confirmation email has been sent to your new email address. Please check your inbox and click the link to confirm the change.",
+    };
+  });

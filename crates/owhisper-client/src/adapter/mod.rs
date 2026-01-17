@@ -8,6 +8,7 @@ pub(crate) mod elevenlabs;
 mod fireworks;
 mod gladia;
 pub mod http;
+mod hyprnote;
 mod openai;
 mod owhisper;
 pub mod parsing;
@@ -20,6 +21,7 @@ pub use deepgram::*;
 pub use elevenlabs::*;
 pub use fireworks::*;
 pub use gladia::*;
+pub use hyprnote::*;
 pub use openai::*;
 pub use soniox::*;
 

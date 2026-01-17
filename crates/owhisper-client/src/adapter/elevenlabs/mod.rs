@@ -5,124 +5,66 @@ mod live;
 use crate::providers::Provider;
 use serde::Deserialize;
 
+use super::LanguageQuality;
+
 // https://elevenlabs.io/docs/overview/capabilities/speech-to-text
 // Accepts both ISO 639-1 (2-letter) and ISO 639-3 (3-letter) codes
-const SUPPORTED_LANGUAGES: &[&str] = &[
-    // Excellent (≤5% WER)
-    "be", // Belarusian
-    "bs", // Bosnian
-    "bg", // Bulgarian
-    "ca", // Catalan
-    "hr", // Croatian
-    "cs", // Czech
-    "da", // Danish
-    "nl", // Dutch
-    "en", // English
-    "et", // Estonian
-    "fi", // Finnish
-    "fr", // French
-    "gl", // Galician
-    "de", // German
-    "el", // Greek
-    "hu", // Hungarian
-    "is", // Icelandic
-    "id", // Indonesian
-    "it", // Italian
-    "ja", // Japanese
-    "kn", // Kannada
-    "lv", // Latvian
-    "mk", // Macedonian
-    "ms", // Malay
-    "ml", // Malayalam
-    "no", // Norwegian
-    "pl", // Polish
-    "pt", // Portuguese
-    "ro", // Romanian
-    "ru", // Russian
-    "sk", // Slovak
-    "es", // Spanish
-    "sv", // Swedish
-    "tr", // Turkish
-    "uk", // Ukrainian
-    "vi", // Vietnamese
-    // High Accuracy (>5% to ≤10% WER)
-    "hy", // Armenian
-    "az", // Azerbaijani
-    "bn", // Bengali
-    "tl", // Filipino (Tagalog)
-    "ka", // Georgian
-    "gu", // Gujarati
-    "hi", // Hindi
-    "kk", // Kazakh
-    "lt", // Lithuanian
-    "mt", // Maltese
-    "zh", // Mandarin Chinese
-    "mr", // Marathi
-    "ne", // Nepali
-    "or", // Odia
-    "fa", // Persian
-    "sr", // Serbian
-    "sl", // Slovenian
-    "sw", // Swahili
-    "ta", // Tamil
-    "te", // Telugu
-    // Good (>10% to ≤20% WER)
-    "af", // Afrikaans
-    "ar", // Arabic
-    "as", // Assamese
-    "my", // Burmese
-    "ha", // Hausa
-    "he", // Hebrew
-    "jv", // Javanese
-    "ko", // Korean
-    "ky", // Kyrgyz
-    "lb", // Luxembourgish
-    "mi", // Māori
-    "oc", // Occitan
-    "pa", // Punjabi
-    "tg", // Tajik
-    "th", // Thai
-    "uz", // Uzbek
-    "cy", // Welsh
-    // Moderate (>25% to ≤50% WER)
-    "am", // Amharic
-    "lg", // Ganda
-    "ig", // Igbo
-    "ga", // Irish
-    "km", // Khmer
-    "ku", // Kurdish
-    "lo", // Lao
-    "mn", // Mongolian
-    "ps", // Pashto
-    "sn", // Shona
-    "sd", // Sindhi
-    "so", // Somali
-    "ur", // Urdu
-    "wo", // Wolof
-    "xh", // Xhosa
-    "yo", // Yoruba
-    "zu", // Zulu
-    // Additional (no WER data)
-    "ff", // Fulah
-    "ln", // Lingala
-    "ny", // Chichewa
+
+const EXCELLENT_LANGS: &[&str] = &[
+    "be", "bs", "bg", "ca", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "gl", "de", "el", "hu",
+    "is", "id", "it", "ja", "kn", "lv", "mk", "ms", "ml", "no", "pl", "pt", "ro", "ru", "sk", "es",
+    "sv", "tr", "uk", "vi",
 ];
+
+const HIGH_LANGS: &[&str] = &[
+    "hy", "az", "bn", "tl", "ka", "gu", "hi", "kk", "lt", "mt", "zh", "mr", "ne", "or", "fa", "sr",
+    "sl", "sw", "ta", "te",
+];
+
+const GOOD_LANGS: &[&str] = &[
+    "af", "ar", "as", "my", "ha", "he", "jv", "ko", "ky", "lb", "mi", "oc", "pa", "tg", "th", "uz",
+    "cy",
+];
+
+const MODERATE_LANGS: &[&str] = &[
+    "am", "lg", "ig", "ga", "km", "ku", "lo", "mn", "ps", "sn", "sd", "so", "ur", "wo", "xh", "yo",
+    "zu",
+];
+
+const NO_DATA_LANGS: &[&str] = &["ff", "ln", "ny"];
 
 #[derive(Clone, Default)]
 pub struct ElevenLabsAdapter;
 
 impl ElevenLabsAdapter {
     pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {
-        Self::is_supported_languages_impl(languages)
+        Self::language_quality_live(languages).is_supported()
     }
 
     pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
-        Self::is_supported_languages_impl(languages)
+        Self::language_quality_live(languages).is_supported()
     }
 
-    fn is_supported_languages_impl(languages: &[hypr_language::Language]) -> bool {
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        SUPPORTED_LANGUAGES.contains(&primary_lang)
+    pub fn language_quality_live(languages: &[hypr_language::Language]) -> LanguageQuality {
+        let qualities = languages.iter().map(|l| Self::single_language_quality(l));
+        LanguageQuality::min_quality(qualities)
+    }
+
+    fn single_language_quality(language: &hypr_language::Language) -> LanguageQuality {
+        let code = language.iso639().code();
+        if EXCELLENT_LANGS.contains(&code) {
+            LanguageQuality::Excellent
+        } else if HIGH_LANGS.contains(&code) {
+            LanguageQuality::High
+        } else if GOOD_LANGS.contains(&code) {
+            LanguageQuality::Good
+        } else if MODERATE_LANGS.contains(&code) {
+            LanguageQuality::Moderate
+        } else if NO_DATA_LANGS.contains(&code) {
+            LanguageQuality::NoData
+        } else {
+            LanguageQuality::NotSupported
+        }
     }
 
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
@@ -194,8 +136,14 @@ pub(crate) struct ElevenLabsWord {
     pub speaker_id: Option<String>,
 }
 
-pub(super) fn documented_language_codes() -> &'static [&'static str] {
-    SUPPORTED_LANGUAGES
+pub(super) fn documented_language_codes() -> Vec<&'static str> {
+    let mut codes = Vec::new();
+    codes.extend_from_slice(EXCELLENT_LANGS);
+    codes.extend_from_slice(HIGH_LANGS);
+    codes.extend_from_slice(GOOD_LANGS);
+    codes.extend_from_slice(MODERATE_LANGS);
+    codes.extend_from_slice(NO_DATA_LANGS);
+    codes
 }
 
 #[cfg(test)]

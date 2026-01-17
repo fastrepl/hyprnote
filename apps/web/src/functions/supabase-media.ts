@@ -163,10 +163,9 @@ export async function uploadMediaFile(
 }
 
 export async function deleteMediaFiles(
+  supabase: SupabaseClient,
   paths: string[],
 ): Promise<{ success: boolean; deleted: string[]; errors: string[] }> {
-  const supabase = getSupabaseClient();
-
   const deleted: string[] = [];
   const errors: string[] = [];
 
@@ -204,11 +203,10 @@ export async function deleteMediaFiles(
 }
 
 export async function createMediaFolder(
+  supabase: SupabaseClient,
   folderName: string,
   parentFolder: string = "",
 ): Promise<{ success: boolean; path?: string; error?: string }> {
-  const supabase = getSupabaseClient();
-
   const sanitizedFolderName = folderName
     .replace(/[^a-zA-Z0-9-_]/g, "-")
     .toLowerCase();
@@ -245,11 +243,10 @@ export async function createMediaFolder(
 }
 
 export async function moveMediaFile(
+  supabase: SupabaseClient,
   fromPath: string,
   toPath: string,
 ): Promise<{ success: boolean; newPath?: string; error?: string }> {
-  const supabase = getSupabaseClient();
-
   try {
     const { error } = await supabase.storage
       .from(BUCKET_NAME)

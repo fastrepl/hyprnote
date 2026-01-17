@@ -151,7 +151,10 @@ function ProfileInfoSection({ email }: { email?: string }) {
             <div className="flex items-center gap-3">
               <div className="text-base">{email || "Not available"}</div>
               <button
-                onClick={() => setIsEditing(true)}
+                onClick={() => {
+                  setIsEditing(true);
+                  setSuccessMessage(null);
+                }}
                 className="px-3 h-7 flex items-center text-xs bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
               >
                 Change

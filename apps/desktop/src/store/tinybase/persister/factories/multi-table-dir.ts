@@ -1,4 +1,8 @@
-import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
+import type {
+  Changes,
+  MergeableStore,
+  OptionalSchemas,
+} from "tinybase/with-schemas";
 
 import {
   createDeletionMarker,
@@ -16,6 +20,11 @@ import {
 
 type Table = Record<string, Record<string, unknown>>;
 
+export type ProgressiveBatchCallback<TLoadedData> = (
+  batch: TLoadedData,
+  progress: { loaded: number; total: number },
+) => void;
+
 export type MultiTableDirConfig<
   Schemas extends OptionalSchemas,
   TLoadedData extends Record<string, Table>,
@@ -26,6 +35,10 @@ export type MultiTableDirConfig<
   tables: TableConfigEntry<Schemas, TLoadedData>[];
   cleanup: (tables: TablesContent) => OrphanCleanupConfig[];
   loadAll: (dataDir: string) => Promise<LoadResult<TLoadedData>>;
+  loadAllProgressive?: (
+    dataDir: string,
+    onBatch: ProgressiveBatchCallback<TLoadedData>,
+  ) => Promise<LoadResult<TLoadedData>>;
   loadSingle: (
     dataDir: string,
     entityId: string,
@@ -59,6 +72,7 @@ export function createMultiTableDirPersister<
     tables,
     cleanup,
     loadAll,
+    loadAllProgressive,
     loadSingle,
     save,
   } = config;
@@ -103,6 +117,33 @@ export function createMultiTableDirPersister<
     load: async () => {
       try {
         const dataDir = await getDataDir();
+
+        if (loadAllProgressive) {
+          const loadResult = await loadAllProgressive(dataDir, (batch) => {
+            if (hasChanges(batch, tableNames)) {
+              store.applyChanges(
+                toPersistedChanges<Schemas>(batch) as Changes<Schemas>,
+              );
+            }
+          });
+
+          if (loadResult.status === "error") {
+            console.error(
+              `[${label}] progressive load error:`,
+              loadResult.error,
+            );
+            return undefined;
+          }
+
+          const result = deletionMarker.markAll(loadResult.data);
+
+          if (!hasChanges(result, tableNames)) {
+            return undefined;
+          }
+
+          return toContent<Schemas>(result);
+        }
+
         const loadResult = await loadAll(dataDir);
 
         if (loadResult.status === "error") {

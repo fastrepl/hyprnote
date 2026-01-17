@@ -109,7 +109,31 @@ const EventItem = memo(
     const openNew = useTabs((state) => state.openNew);
 
     const eventId = item.id;
-    const title = item.data.title || "Untitled";
+
+    const attachedSessionId = useMemo(() => {
+      if (!store) {
+        return undefined;
+      }
+      let sessionId: string | undefined;
+      store.forEachRow("sessions", (rowId, _forEachCell) => {
+        const session = store.getRow("sessions", rowId);
+        if (session?.event_id === eventId) {
+          sessionId = rowId;
+        }
+      });
+      return sessionId;
+    }, [store, eventId]);
+
+    const sessionTitle = main.UI.useCell(
+      "sessions",
+      attachedSessionId ?? "",
+      "title",
+      main.STORE_ID,
+    ) as string | undefined;
+    const title = attachedSessionId
+      ? sessionTitle || "Untitled"
+      : item.data.title || "Untitled";
+
     const calendarId = item.data.calendar_id ?? null;
     const recurrenceSeriesId = item.data.recurrence_series_id;
     const displayTime = useMemo(
@@ -212,7 +236,10 @@ const SessionItem = memo(
     const invalidateResource = useTabs((state) => state.invalidateResource);
 
     const sessionId = item.id;
-    const title = item.data.title || "Untitled";
+    const title =
+      (main.UI.useCell("sessions", sessionId, "title", main.STORE_ID) as
+        | string
+        | undefined) || "Untitled";
 
     const sessionMode = useListener((state) => state.getSessionMode(sessionId));
     const isEnhancing = useIsSessionEnhancing(sessionId);

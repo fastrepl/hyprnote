@@ -114,7 +114,7 @@ function ProviderContext({
         <button
           onClick={upgradeToPro}
           className={cn([
-            "relative overflow-hidden w-fit h-[34px]",
+            "relative overflow-hidden w-fit h-8.5",
             "px-4 rounded-full text-xs font-mono text-center",
             "bg-linear-to-t from-stone-600 to-stone-500 text-white",
             "shadow-xs hover:shadow-md",

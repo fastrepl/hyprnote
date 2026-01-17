@@ -245,7 +245,7 @@ function HyprProviderCloudRow() {
       <button
         onClick={handleClick}
         className={cn([
-          "relative overflow-hidden w-fit h-[34px]",
+          "relative overflow-hidden w-fit h-8.5",
           "px-4 rounded-full text-xs font-mono text-center",
           "transition-all duration-150",
           isPro
@@ -299,7 +299,7 @@ function LocalModelAction({
         <button
           onClick={onOpen}
           className={cn([
-            "h-[34px] px-4 rounded-full text-xs font-mono text-center",
+            "h-8.5 px-4 rounded-full text-xs font-mono text-center",
             "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
             "shadow-xs hover:shadow-md",
             "transition-all duration-150",
@@ -313,7 +313,7 @@ function LocalModelAction({
           onClick={onDelete}
           title="Delete Model"
           className={cn([
-            "size-[34px] rounded-full",
+            "size-8.5 rounded-full",
             "bg-linear-to-t from-red-200 to-red-100 text-red-600",
             "shadow-xs hover:shadow-md hover:from-red-300 hover:to-red-200",
             "transition-all duration-150",
@@ -331,7 +331,7 @@ function LocalModelAction({
       <button
         onClick={onDownload}
         className={cn([
-          "w-fit h-[34px] px-4 rounded-full text-xs font-mono text-center",
+          "w-fit h-8.5 px-4 rounded-full text-xs font-mono text-center",
           "bg-linear-to-t from-red-600 to-red-500 text-white",
           "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
           "transition-all duration-150",
@@ -350,7 +350,7 @@ function LocalModelAction({
         onClick={onCancel}
         className={cn([
           "relative overflow-hidden group",
-          "w-[110px] h-[34px] px-4 rounded-full text-xs font-mono text-center",
+          "w-27.5 h-8.5 px-4 rounded-full text-xs font-mono text-center",
           "bg-linear-to-t from-neutral-300 to-neutral-200 text-neutral-900",
           "shadow-xs",
           "transition-all duration-150",
@@ -376,7 +376,7 @@ function LocalModelAction({
     <button
       onClick={onDownload}
       className={cn([
-        "relative overflow-hidden w-fit h-[34px]",
+        "relative overflow-hidden w-fit h-8.5",
         "px-4 rounded-full text-xs font-mono text-center",
         "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
         "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",

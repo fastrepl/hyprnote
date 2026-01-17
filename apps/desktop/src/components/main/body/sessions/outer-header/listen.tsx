@@ -153,7 +153,7 @@ function StartButton({ sessionId }: { sessionId: string }) {
         "inline-flex items-center justify-center rounded-md text-xs font-medium",
         "bg-white text-neutral-900 hover:bg-neutral-100",
         "gap-1.5",
-        "w-[114px] h-7",
+        "w-28.5 h-7",
         "disabled:pointer-events-none disabled:opacity-50",
       ])}
       title={warningMessage || "Start listening"}
@@ -216,7 +216,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
         finalizing
           ? ["text-neutral-500", "bg-neutral-100", "cursor-wait"]
           : ["text-red-500 hover:text-red-600", "bg-red-50 hover:bg-red-100"],
-        "w-[114px] h-7",
+        "w-28.5 h-7",
         "disabled:pointer-events-none disabled:opacity-50",
       ])}
       title={finalizing ? "Finalizing" : "Stop listening"}

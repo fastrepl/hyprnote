@@ -13,6 +13,7 @@ axum = { workspace = true, features = ["ws"] }
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
 reqwest-middleware = { workspace = true }
+sentry = { workspace = true }
 serde_html_form = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "time", "sync", "macros"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls"] }

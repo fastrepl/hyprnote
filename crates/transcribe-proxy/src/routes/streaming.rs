@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use axum::{
     extract::{State, WebSocketUpgrade},
     http::StatusCode,
@@ -11,6 +13,7 @@ use owhisper_interface::ListenParams;
 
 use crate::analytics::SttEvent;
 use crate::config::SttProxyConfig;
+use crate::hyprnote_routing::should_use_hyprnote_routing;
 use crate::provider_selector::SelectedProvider;
 use crate::query_params::{QueryParams, QueryValue};
 use crate::relay::WebSocketProxy;
@@ -125,12 +128,58 @@ pub async fn handler(
     ws: WebSocketUpgrade,
     mut params: QueryParams,
 ) -> Response {
+    let is_hyprnote_routing = should_use_hyprnote_routing(params.get_first("provider"));
+
     let selected = match state.resolve_provider(&mut params) {
         Ok(v) => v,
         Err(resp) => return resp,
     };
 
     let provider = selected.provider();
+    let provider_name = format!("{:?}", provider).to_lowercase();
+
+    sentry::configure_scope(|scope| {
+        scope.set_tag("stt.provider", &provider_name);
+        scope.set_tag(
+            "stt.routing",
+            if is_hyprnote_routing {
+                "hyprnote"
+            } else {
+                "direct"
+            },
+        );
+
+        if let Some(model) = params.get_first("model") {
+            scope.set_tag("stt.model", model);
+        }
+
+        let languages: Vec<_> = params
+            .get_languages()
+            .iter()
+            .map(|l| l.iso639().to_string())
+            .collect();
+        if !languages.is_empty() {
+            scope.set_tag("stt.languages", &languages.join(","));
+        }
+
+        let sample_rate: u32 = parse_param(&params, "sample_rate", 16000);
+        let channels: u8 = parse_param(&params, "channels", 1);
+        let keywords = params
+            .get("keyword")
+            .or_else(|| params.get("keywords"))
+            .map(|v| match v {
+                QueryValue::Single(s) => s.split(',').count(),
+                QueryValue::Multi(vec) => vec.len(),
+            })
+            .unwrap_or(0);
+
+        let mut ctx = BTreeMap::new();
+        ctx.insert("sample_rate".into(), sample_rate.into());
+        ctx.insert("channels".into(), channels.into());
+        ctx.insert("keywords_count".into(), keywords.into());
+        ctx.insert("languages_count".into(), languages.len().into());
+        scope.set_context("stt_request", sentry::protocol::Context::Other(ctx));
+    });
 
     let proxy = if let Some(custom_url) = selected.upstream_url() {
         build_proxy_with_url(&selected, custom_url, &state.config)
@@ -145,6 +194,9 @@ pub async fn handler(
                             provider = ?selected.provider(),
                             "session_init_failed"
                         );
+                        sentry::configure_scope(|scope| {
+                            scope.set_tag("upstream.status", "session_init_failed");
+                        });
                         return (StatusCode::BAD_GATEWAY, e).into_response();
                     }
                 };
@@ -162,6 +214,9 @@ pub async fn handler(
                 provider = ?provider,
                 "proxy_build_failed"
             );
+            sentry::configure_scope(|scope| {
+                scope.set_tag("upstream.status", "proxy_build_failed");
+            });
             (StatusCode::BAD_REQUEST, format!("{}", e)).into_response()
         }
     }

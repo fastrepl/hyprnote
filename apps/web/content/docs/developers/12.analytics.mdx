@@ -28,6 +28,7 @@ Events tracked when users first launch the desktop app:
 
 | Event | Description | Properties |
 |-------|-------------|------------|
+| `show_main_window` | Main window is shown (fires on every app launch) | - |
 | `account_skipped` | User proceeds without account (local mode) | - |
 | `user_signed_in` | User signs in | - |
 | `ai_provider_configured` | User configures an AI provider | `provider` |
@@ -76,6 +77,17 @@ Events tracked when managing settings and account:
 | `upgrade_clicked` | User clicks upgrade button | `plan` |
 | `user_signed_out` | User signs out | - |
 
+### 7. Notification Interactions
+
+Events tracked when users interact with system notifications:
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `collapsed_confirm` | User clicks collapsed notification to open app | - |
+| `expanded_accept` | User accepts expanded notification | - |
+| `dismiss` | User dismisses notification | - |
+| `collapsed_timeout` | Collapsed notification times out | - |
+
 ## User Properties
 
 Properties set to track user context and configuration:
@@ -101,6 +113,17 @@ Available methods for tracking events and properties:
 - `setProperties(properties)` - Set user properties (supports `set` and `set_once` types)
 - `setDisabled(disabled)` - Enable or disable analytics tracking
 - `isDisabled()` - Check if analytics is currently disabled
+
+## Conversion Funnel Tracking
+
+To track the user journey from website visit to active usage, use PostHog's funnel analysis with these key events:
+
+1. `download_clicked` (web) - User downloads the app
+2. `show_main_window` (desktop) - User launches the app
+3. `note_created` (desktop) - User creates their first note
+4. `note_enhanced` (desktop) - User uses AI enhancement
+
+PostHog's anonymous ID tracking links web and desktop events for the same user, enabling conversion analysis without additional implementation.
 
 ## How to make changes?
 

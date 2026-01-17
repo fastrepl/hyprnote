@@ -1,4 +1,5 @@
 mod batch;
+pub(crate) mod error;
 mod live;
 
 use batch::SUPPORTED_LANGUAGES;

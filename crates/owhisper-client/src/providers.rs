@@ -1,4 +1,6 @@
+use crate::adapter::assemblyai;
 use crate::adapter::deepgram;
+use crate::adapter::elevenlabs;
 use crate::adapter::soniox;
 use crate::error_detection::ProviderError;
 
@@ -311,9 +313,9 @@ impl Provider {
         match self {
             Self::Deepgram => deepgram::error::detect_error(data),
             Self::Soniox => soniox::error::detect_error(data),
-            Self::AssemblyAI | Self::Fireworks | Self::OpenAI | Self::Gladia | Self::ElevenLabs => {
-                None
-            }
+            Self::ElevenLabs => elevenlabs::error::detect_error(data),
+            Self::AssemblyAI => assemblyai::error::detect_error(data),
+            Self::Fireworks | Self::OpenAI | Self::Gladia => None,
         }
     }
 

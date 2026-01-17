@@ -1,4 +1,5 @@
 mod batch;
+pub mod error;
 mod live;
 
 use crate::providers::Provider;

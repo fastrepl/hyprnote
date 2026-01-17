@@ -1,10 +1,10 @@
 mod argmax;
-mod assemblyai;
+pub(crate) mod assemblyai;
 #[cfg(feature = "argmax")]
 pub mod audio;
 pub(crate) mod deepgram;
 mod deepgram_compat;
-mod elevenlabs;
+pub(crate) mod elevenlabs;
 mod fireworks;
 mod gladia;
 pub mod http;

@@ -18,7 +18,7 @@ export const Route = createFileRoute("/admin")({
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     if (import.meta.env.DEV) {
       return { user: { email: "dev@local", isAdmin: true } };
     }
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/admin")({
         to: "/auth/",
         search: {
           provider: "github",
-          redirect: "/admin/collections/",
+          redirect: location.pathname,
           rra: true,
         },
       });

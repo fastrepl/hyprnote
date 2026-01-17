@@ -1,6 +1,6 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import {
   CheckIcon,
@@ -60,6 +60,7 @@ import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 import { defaultMDXComponents } from "@/components/mdx";
+import { fetchGitHubCredentials } from "@/functions/admin";
 
 interface ContentItem {
   name: string;
@@ -180,6 +181,24 @@ function getCollections(): CollectionInfo[] {
 }
 
 export const Route = createFileRoute("/admin/collections/")({
+  beforeLoad: async () => {
+    if (import.meta.env.DEV) {
+      return;
+    }
+
+    const { hasCredentials } = await fetchGitHubCredentials();
+
+    if (!hasCredentials) {
+      throw redirect({
+        to: "/auth/",
+        search: {
+          provider: "github",
+          redirect: "/admin/collections/",
+          rra: true,
+        },
+      });
+    }
+  },
   component: CollectionsPage,
 });
 

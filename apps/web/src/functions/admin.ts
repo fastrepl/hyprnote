@@ -30,3 +30,24 @@ export const fetchAdminUser = createServerFn({ method: "GET" }).handler(
     };
   },
 );
+
+export const fetchGitHubCredentials = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const supabase = getSupabaseServerClient();
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (!userData.user?.id) {
+      return { hasCredentials: false };
+    }
+
+    const { data: admin } = await supabase
+      .from("admins")
+      .select("github_token, github_username")
+      .eq("id", userData.user.id)
+      .single();
+
+    const hasCredentials = !!(admin?.github_token && admin?.github_username);
+
+    return { hasCredentials };
+  },
+);

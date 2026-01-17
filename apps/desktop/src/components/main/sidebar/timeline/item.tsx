@@ -212,7 +212,10 @@ const SessionItem = memo(
     const invalidateResource = useTabs((state) => state.invalidateResource);
 
     const sessionId = item.id;
-    const title = item.data.title || "Untitled";
+    const title =
+      (main.UI.useCell("sessions", sessionId, "title", main.STORE_ID) as
+        | string
+        | undefined) || "Untitled";
 
     const sessionMode = useListener((state) => state.getSessionMode(sessionId));
     const isEnhancing = useIsSessionEnhancing(sessionId);

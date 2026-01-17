@@ -41,7 +41,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
         let store = self.desktop_store()?;
         store
             .set(StoreKey::OnboardingNeeded2, v)
-            .map_err(|e| e.to_string())
+            .map_err(|e| e.to_string())?;
+        store.save().map_err(|e| e.to_string())
     }
 
     #[tracing::instrument(skip_all)]
@@ -76,7 +77,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
         let store = self.desktop_store()?;
         store
             .set(StoreKey::OnboardingLocal, v)
-            .map_err(|e| e.to_string())
+            .map_err(|e| e.to_string())?;
+        store.save().map_err(|e| e.to_string())
     }
 
     #[tracing::instrument(skip_all)]

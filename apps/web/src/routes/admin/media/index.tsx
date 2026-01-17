@@ -131,9 +131,9 @@ function MediaLibrary() {
   const [rootLoaded, setRootLoaded] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [dragOver, setDragOver] = useState(false);
-  const [loadingPath, setLoadingPath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setIsMounted(true);
@@ -189,9 +189,12 @@ function MediaLibrary() {
   });
 
   const loadFolderContents = async (path: string) => {
-    setLoadingPath(path);
+    setLoadingPaths((prev) => new Set(prev).add(path));
     try {
-      const items = await fetchMediaItems(path);
+      const items = await queryClient.fetchQuery({
+        queryKey: ["mediaItems", path],
+        queryFn: () => fetchMediaItems(path),
+      });
       const children: TreeNode[] = items.map((item) => ({
         path: getRelativePath(item.path),
         name: item.name,
@@ -208,7 +211,11 @@ function MediaLibrary() {
         setTreeNodes((prev) => updateTreeNode(prev, path, children));
       }
     } finally {
-      setLoadingPath(null);
+      setLoadingPaths((prev) => {
+        const next = new Set(prev);
+        next.delete(path);
+        return next;
+      });
     }
   };
 
@@ -495,7 +502,7 @@ function MediaLibrary() {
         <Sidebar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          loadingPath={loadingPath}
+          loadingPaths={loadingPaths}
           filteredTreeNodes={filteredTreeNodes}
           onOpenFolder={(path, name) => openTab("folder", name, path)}
           onOpenFile={(path, name) => openTab("file", name, path)}
@@ -544,7 +551,7 @@ function MediaLibrary() {
 function Sidebar({
   searchQuery,
   onSearchChange,
-  loadingPath,
+  loadingPaths,
   filteredTreeNodes,
   onOpenFolder,
   onOpenFile,
@@ -555,7 +562,7 @@ function Sidebar({
 }: {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  loadingPath: string | null;
+  loadingPaths: Set<string>;
   filteredTreeNodes: TreeNode[];
   onOpenFolder: (path: string, name: string) => void;
   onOpenFile: (path: string, name: string) => void;
@@ -598,7 +605,7 @@ function Sidebar({
               key={node.path}
               node={node}
               depth={0}
-              loadingPath={loadingPath}
+              loadingPaths={loadingPaths}
               onOpenFolder={onOpenFolder}
               onOpenFile={onOpenFile}
               onToggle={onToggleNodeExpanded}
@@ -637,20 +644,20 @@ function Sidebar({
 function TreeNodeItem({
   node,
   depth,
-  loadingPath,
+  loadingPaths,
   onOpenFolder,
   onOpenFile,
   onToggle,
 }: {
   node: TreeNode;
   depth: number;
-  loadingPath: string | null;
+  loadingPaths: Set<string>;
   onOpenFolder: (path: string, name: string) => void;
   onOpenFile: (path: string, name: string) => void;
   onToggle: (path: string) => Promise<void>;
 }) {
   const isFolder = node.type === "dir";
-  const isLoading = loadingPath === node.path;
+  const isLoading = loadingPaths.has(node.path);
 
   const handleDoubleClick = () => {
     if (isFolder) {
@@ -697,7 +704,7 @@ function TreeNodeItem({
               key={child.path}
               node={child}
               depth={depth + 1}
-              loadingPath={loadingPath}
+              loadingPaths={loadingPaths}
               onOpenFolder={onOpenFolder}
               onOpenFile={onOpenFile}
               onToggle={onToggle}

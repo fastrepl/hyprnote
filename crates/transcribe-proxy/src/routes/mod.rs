@@ -11,8 +11,10 @@ use axum::{
     routing::{get, post},
 };
 
-use crate::auto_routing::{AutoRouter, should_use_auto_routing};
+use owhisper_client::Provider;
+
 use crate::config::SttProxyConfig;
+use crate::hyprnote_routing::{HyprnoteRouter, should_use_hyprnote_routing};
 use crate::provider_selector::{ProviderSelector, SelectedProvider};
 use crate::query_params::QueryParams;
 
@@ -20,7 +22,7 @@ use crate::query_params::QueryParams;
 pub(crate) struct AppState {
     pub config: SttProxyConfig,
     pub selector: ProviderSelector,
-    pub router: Option<Arc<AutoRouter>>,
+    pub router: Option<Arc<HyprnoteRouter>>,
     pub client: reqwest::Client,
 }
 
@@ -28,11 +30,27 @@ impl AppState {
     pub fn resolve_provider(&self, params: &mut QueryParams) -> Result<SelectedProvider, Response> {
         let provider_param = params.remove_first("provider");
 
-        if self.should_use_auto_routing(provider_param.as_deref()) {
-            return self.resolve_auto_provider(params);
+        if should_use_hyprnote_routing(provider_param.as_deref()) {
+            return self.resolve_hyprnote_provider(params);
         }
 
-        let requested = provider_param.and_then(|s| s.parse().ok());
+        let requested = match provider_param {
+            Some(s) => match s.parse::<Provider>() {
+                Ok(p) => Some(p),
+                Err(_) => {
+                    return Err((
+                        StatusCode::BAD_REQUEST,
+                        format!("Invalid provider: {}. Supported providers: deepgram, soniox, assemblyai, gladia, elevenlabs, fireworks, openai", s)
+                    ).into_response());
+                }
+            },
+            None => {
+                return Err((
+                    StatusCode::BAD_REQUEST,
+                    "provider parameter is required. Use provider=hyprnote for hyprnote routing or provider=<provider_name> for a specific provider"
+                ).into_response());
+            }
+        };
 
         self.selector.select(requested).map_err(|e| {
             tracing::warn!(
@@ -44,14 +62,17 @@ impl AppState {
         })
     }
 
-    fn should_use_auto_routing(&self, provider_param: Option<&str>) -> bool {
-        should_use_auto_routing(provider_param, self.router.is_some())
-    }
-
-    fn resolve_auto_provider(&self, params: &QueryParams) -> Result<SelectedProvider, Response> {
+    fn resolve_hyprnote_provider(
+        &self,
+        params: &QueryParams,
+    ) -> Result<SelectedProvider, Response> {
         let router = self.router.as_ref().ok_or_else(|| {
-            tracing::warn!("auto_routing_not_configured");
-            (StatusCode::BAD_REQUEST, "auto routing is not configured").into_response()
+            tracing::warn!("hyprnote_routing_not_configured");
+            (
+                StatusCode::BAD_REQUEST,
+                "hyprnote routing is not configured",
+            )
+                .into_response()
         })?;
 
         let languages = params.get_languages();
@@ -62,20 +83,20 @@ impl AppState {
             languages = ?languages,
             available_providers = ?available_providers,
             routed_provider = ?routed_provider,
-            "auto_routing"
+            "hyprnote_routing"
         );
 
         self.selector.select(routed_provider).map_err(|e| {
             tracing::warn!(
                 error = %e,
                 languages = ?languages,
-                "auto_routing_failed"
+                "hyprnote_routing_failed"
             );
             (StatusCode::BAD_REQUEST, e.to_string()).into_response()
         })
     }
 
-    pub fn resolve_auto_provider_chain(&self, params: &QueryParams) -> Vec<SelectedProvider> {
+    pub fn resolve_hyprnote_provider_chain(&self, params: &QueryParams) -> Vec<SelectedProvider> {
         let Some(router) = self.router.as_ref() else {
             return vec![];
         };
@@ -93,7 +114,7 @@ impl AppState {
 
 fn make_state(config: SttProxyConfig) -> AppState {
     let selector = config.provider_selector();
-    let router = config.auto_router().map(Arc::new);
+    let router = config.hyprnote_router().map(Arc::new);
     AppState {
         config,
         selector,

@@ -14,6 +14,8 @@ pub type OnCloseCallback =
     Arc<dyn Fn(Duration) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 pub type ControlMessageTypes = Arc<HashSet<&'static str>>;
 pub type FirstMessageTransformer = Arc<dyn Fn(String) -> String + Send + Sync>;
+pub type InitialMessage = Arc<String>;
+pub type ResponseTransformer = Arc<dyn Fn(&str) -> Option<String> + Send + Sync>;
 
 pub type UpstreamSender = SplitSink<
     WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,

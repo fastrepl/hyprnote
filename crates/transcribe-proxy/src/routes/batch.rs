@@ -17,7 +17,7 @@ use owhisper_client::{
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
 
-use crate::auto_routing::{RetryConfig, is_retryable_error, should_use_auto_routing};
+use crate::hyprnote_routing::{RetryConfig, is_retryable_error, should_use_hyprnote_routing};
 use crate::provider_selector::SelectedProvider;
 use crate::query_params::{QueryParams, QueryValue};
 
@@ -48,10 +48,10 @@ pub async fn handler(
     let listen_params = build_listen_params(&params);
 
     let provider_param = params.get_first("provider").map(|s| s.to_string());
-    let use_auto_routing = should_use_auto_routing_for_batch(provider_param.as_deref(), &state);
+    let use_hyprnote_routing = should_use_hyprnote_routing(provider_param.as_deref());
 
-    if use_auto_routing {
-        return handle_auto_batch(&state, &params, listen_params, body, content_type).await;
+    if use_hyprnote_routing {
+        return handle_hyprnote_batch(&state, &params, listen_params, body, content_type).await;
     }
 
     let selected = match state.resolve_provider(&mut params) {
@@ -86,14 +86,14 @@ pub async fn handler(
     }
 }
 
-async fn handle_auto_batch(
+async fn handle_hyprnote_batch(
     state: &AppState,
     params: &QueryParams,
     listen_params: ListenParams,
     body: Bytes,
     content_type: &str,
 ) -> Response {
-    let provider_chain = state.resolve_auto_provider_chain(params);
+    let provider_chain = state.resolve_hyprnote_provider_chain(params);
 
     if provider_chain.is_empty() {
         return (
@@ -116,7 +116,7 @@ async fn handle_auto_batch(
         provider_chain = ?provider_chain.iter().map(|p| p.provider()).collect::<Vec<_>>(),
         content_type = %content_type,
         body_size_bytes = %body.len(),
-        "auto_batch_transcription_request"
+        "hyprnote_batch_transcription_request"
     );
 
     let mut last_error: Option<String> = None;
@@ -337,8 +337,4 @@ fn content_type_to_extension(content_type: &str) -> &'static str {
         "audio/aac" => "aac",
         _ => "wav",
     }
-}
-
-fn should_use_auto_routing_for_batch(provider_param: Option<&str>, state: &AppState) -> bool {
-    should_use_auto_routing(provider_param, state.router.is_some())
 }

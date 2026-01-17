@@ -22,12 +22,12 @@ impl Default for RetryConfig {
 }
 
 #[derive(Debug, Clone)]
-pub struct AutoRoutingConfig {
+pub struct HyprnoteRoutingConfig {
     pub priorities: Vec<Provider>,
     pub retry_config: RetryConfig,
 }
 
-impl Default for AutoRoutingConfig {
+impl Default for HyprnoteRoutingConfig {
     fn default() -> Self {
         Self {
             priorities: vec![
@@ -44,13 +44,13 @@ impl Default for AutoRoutingConfig {
     }
 }
 
-pub struct AutoRouter {
+pub struct HyprnoteRouter {
     priorities: Vec<Provider>,
     retry_config: RetryConfig,
 }
 
-impl AutoRouter {
-    pub fn new(config: AutoRoutingConfig) -> Self {
+impl HyprnoteRouter {
+    pub fn new(config: HyprnoteRoutingConfig) -> Self {
         Self {
             priorities: config.priorities,
             retry_config: config.retry_config,
@@ -95,9 +95,9 @@ impl AutoRouter {
     }
 }
 
-impl Default for AutoRouter {
+impl Default for HyprnoteRouter {
     fn default() -> Self {
-        Self::new(AutoRoutingConfig::default())
+        Self::new(HyprnoteRoutingConfig::default())
     }
 }
 
@@ -126,12 +126,8 @@ pub fn is_retryable_error(error: &str) -> bool {
         || error_lower.contains("too many requests")
 }
 
-pub fn should_use_auto_routing(provider_param: Option<&str>, router_configured: bool) -> bool {
-    match provider_param {
-        Some("auto") => true,
-        Some(s) if s.parse::<Provider>().is_ok() => false,
-        _ => router_configured,
-    }
+pub fn should_use_hyprnote_routing(provider_param: Option<&str>) -> bool {
+    provider_param == Some("hyprnote")
 }
 
 #[cfg(test)]
@@ -144,7 +140,7 @@ mod tests {
 
     #[test]
     fn test_select_provider_by_priority() {
-        let router = AutoRouter::default();
+        let router = HyprnoteRouter::default();
         let available = make_available_providers(&[Provider::Soniox, Provider::Deepgram]);
         let languages: Vec<Language> = vec!["en".parse().unwrap()];
 
@@ -154,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_select_provider_fallback_when_first_unavailable() {
-        let router = AutoRouter::default();
+        let router = HyprnoteRouter::default();
         let available = make_available_providers(&[Provider::Soniox, Provider::AssemblyAI]);
         let languages: Vec<Language> = vec!["en".parse().unwrap()];
 
@@ -164,7 +160,7 @@ mod tests {
 
     #[test]
     fn test_select_provider_none_when_no_available() {
-        let router = AutoRouter::default();
+        let router = HyprnoteRouter::default();
         let available = HashSet::new();
         let languages: Vec<Language> = vec!["en".parse().unwrap()];
 
@@ -174,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_select_provider_filters_by_language_support() {
-        let router = AutoRouter::default();
+        let router = HyprnoteRouter::default();
         let available =
             make_available_providers(&[Provider::Deepgram, Provider::Soniox, Provider::AssemblyAI]);
 
@@ -185,7 +181,7 @@ mod tests {
 
     #[test]
     fn test_select_provider_chain() {
-        let router = AutoRouter::default();
+        let router = HyprnoteRouter::default();
         let available =
             make_available_providers(&[Provider::Deepgram, Provider::Soniox, Provider::AssemblyAI]);
         let languages: Vec<Language> = vec!["en".parse().unwrap()];
@@ -198,45 +194,29 @@ mod tests {
     }
 
     #[test]
-    fn test_should_use_auto_routing_explicit_auto() {
-        assert!(super::should_use_auto_routing(Some("auto"), true));
-        assert!(super::should_use_auto_routing(Some("auto"), false));
+    fn test_should_use_hyprnote_routing_explicit_hyprnote() {
+        assert!(super::should_use_hyprnote_routing(Some("hyprnote")));
     }
 
     #[test]
-    fn test_should_use_auto_routing_valid_provider() {
-        assert!(!super::should_use_auto_routing(Some("deepgram"), true));
-        assert!(!super::should_use_auto_routing(Some("deepgram"), false));
-        assert!(!super::should_use_auto_routing(Some("soniox"), true));
-        assert!(!super::should_use_auto_routing(Some("assemblyai"), true));
+    fn test_should_use_hyprnote_routing_valid_provider() {
+        assert!(!super::should_use_hyprnote_routing(Some("deepgram")));
+        assert!(!super::should_use_hyprnote_routing(Some("soniox")));
+        assert!(!super::should_use_hyprnote_routing(Some("assemblyai")));
     }
 
     #[test]
-    fn test_should_use_auto_routing_no_provider_with_router() {
-        assert!(super::should_use_auto_routing(None, true));
+    fn test_should_use_hyprnote_routing_no_provider() {
+        assert!(!super::should_use_hyprnote_routing(None));
     }
 
     #[test]
-    fn test_should_use_auto_routing_no_provider_without_router() {
-        assert!(!super::should_use_auto_routing(None, false));
-    }
-
-    #[test]
-    fn test_should_use_auto_routing_invalid_provider_with_router() {
-        assert!(super::should_use_auto_routing(Some("invalid"), true));
-        assert!(super::should_use_auto_routing(
-            Some("unknown_provider"),
-            true
-        ));
-        assert!(super::should_use_auto_routing(Some(""), true));
-    }
-
-    #[test]
-    fn test_should_use_auto_routing_invalid_provider_without_router() {
-        assert!(!super::should_use_auto_routing(Some("invalid"), false));
-        assert!(!super::should_use_auto_routing(
-            Some("unknown_provider"),
-            false
-        ));
+    fn test_should_use_hyprnote_routing_invalid_provider() {
+        assert!(!super::should_use_hyprnote_routing(Some("invalid")));
+        assert!(!super::should_use_hyprnote_routing(Some(
+            "unknown_provider"
+        )));
+        assert!(!super::should_use_hyprnote_routing(Some("")));
+        assert!(!super::should_use_hyprnote_routing(Some("auto")));
     }
 }

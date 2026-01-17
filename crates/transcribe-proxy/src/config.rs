@@ -5,7 +5,7 @@ use std::time::Duration;
 use owhisper_client::Provider;
 
 use crate::analytics::SttAnalyticsReporter;
-use crate::auto_routing::{AutoRouter, AutoRoutingConfig};
+use crate::hyprnote_routing::{HyprnoteRouter, HyprnoteRoutingConfig};
 use crate::provider_selector::ProviderSelector;
 
 pub const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 7 * 1000;
@@ -17,7 +17,7 @@ pub struct SttProxyConfig {
     pub connect_timeout: Duration,
     pub analytics: Option<Arc<dyn SttAnalyticsReporter>>,
     pub upstream_urls: HashMap<Provider, String>,
-    pub auto_routing: Option<AutoRoutingConfig>,
+    pub hyprnote_routing: Option<HyprnoteRoutingConfig>,
 }
 
 impl SttProxyConfig {
@@ -28,7 +28,7 @@ impl SttProxyConfig {
             connect_timeout: Duration::from_millis(DEFAULT_CONNECT_TIMEOUT_MS),
             analytics: None,
             upstream_urls: HashMap::new(),
-            auto_routing: None,
+            hyprnote_routing: None,
         }
     }
 
@@ -52,8 +52,8 @@ impl SttProxyConfig {
         self
     }
 
-    pub fn with_auto_routing(mut self, config: AutoRoutingConfig) -> Self {
-        self.auto_routing = Some(config);
+    pub fn with_hyprnote_routing(mut self, config: HyprnoteRoutingConfig) -> Self {
+        self.hyprnote_routing = Some(config);
         self
     }
 
@@ -65,7 +65,7 @@ impl SttProxyConfig {
         )
     }
 
-    pub fn auto_router(&self) -> Option<AutoRouter> {
-        self.auto_routing.clone().map(AutoRouter::new)
+    pub fn hyprnote_router(&self) -> Option<HyprnoteRouter> {
+        self.hyprnote_routing.clone().map(HyprnoteRouter::new)
     }
 }

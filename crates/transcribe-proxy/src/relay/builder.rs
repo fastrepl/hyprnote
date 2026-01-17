@@ -7,7 +7,7 @@ pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::handler::WebSocketProxy;
 use super::params::transform_client_params;
-use super::types::{FirstMessageTransformer, OnCloseCallback};
+use super::types::{FirstMessageTransformer, InitialMessage, OnCloseCallback, ResponseTransformer};
 use crate::config::DEFAULT_CONNECT_TIMEOUT_MS;
 use crate::provider_selector::SelectedProvider;
 use crate::query_params::QueryParams;
@@ -45,6 +45,8 @@ pub struct WebSocketProxyBuilder<S = NoUpstream> {
     state: S,
     control_message_types: HashSet<&'static str>,
     transform_first_message: Option<FirstMessageTransformer>,
+    initial_message: Option<InitialMessage>,
+    response_transformer: Option<ResponseTransformer>,
     connect_timeout: Duration,
     on_close: Option<OnCloseCallback>,
 }
@@ -55,6 +57,8 @@ impl Default for WebSocketProxyBuilder<NoUpstream> {
             state: NoUpstream,
             control_message_types: HashSet::new(),
             transform_first_message: None,
+            initial_message: None,
+            response_transformer: None,
             connect_timeout: Duration::from_millis(DEFAULT_CONNECT_TIMEOUT_MS),
             on_close: None,
         }
@@ -67,6 +71,8 @@ impl<S> WebSocketProxyBuilder<S> {
             state,
             control_message_types: self.control_message_types,
             transform_first_message: self.transform_first_message,
+            initial_message: self.initial_message,
+            response_transformer: self.response_transformer,
             connect_timeout: self.connect_timeout,
             on_close: self.on_close,
         }
@@ -76,6 +82,8 @@ impl<S> WebSocketProxyBuilder<S> {
         request: ClientRequestBuilder,
         control_message_types: HashSet<&'static str>,
         transform_first_message: Option<FirstMessageTransformer>,
+        initial_message: Option<InitialMessage>,
+        response_transformer: Option<ResponseTransformer>,
         connect_timeout: Duration,
         on_close: Option<OnCloseCallback>,
     ) -> WebSocketProxy {
@@ -89,6 +97,8 @@ impl<S> WebSocketProxyBuilder<S> {
             request,
             control_message_types,
             transform_first_message,
+            initial_message,
+            response_transformer,
             connect_timeout,
             on_close,
         )
@@ -109,6 +119,19 @@ impl<S> WebSocketProxyBuilder<S> {
 
     pub fn connect_timeout(mut self, timeout: Duration) -> Self {
         self.connect_timeout = timeout;
+        self
+    }
+
+    pub fn initial_message(mut self, message: impl Into<String>) -> Self {
+        self.initial_message = Some(Arc::new(message.into()));
+        self
+    }
+
+    pub fn response_transformer<F>(mut self, transformer: F) -> Self
+    where
+        F: Fn(&str) -> Option<String> + Send + Sync + 'static,
+    {
+        self.response_transformer = Some(Arc::new(transformer));
         self
     }
 
@@ -197,6 +220,8 @@ impl WebSocketProxyBuilder<WithUrl> {
             request,
             self.control_message_types,
             self.transform_first_message,
+            self.initial_message,
+            self.response_transformer,
             self.connect_timeout,
             self.on_close,
         ))
@@ -224,6 +249,8 @@ impl WebSocketProxyBuilder<WithUrlComponents> {
             request,
             self.control_message_types,
             self.transform_first_message,
+            self.initial_message,
+            self.response_transformer,
             self.connect_timeout,
             self.on_close,
         ))
@@ -532,5 +559,53 @@ mod tests {
             .build();
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_initial_message() {
+        let builder = WebSocketProxyBuilder::default()
+            .initial_message(r#"{"api_key":"test"}"#)
+            .upstream_url("wss://api.example.com/listen");
+
+        assert!(builder.initial_message.is_some());
+        assert_eq!(
+            builder.initial_message.as_ref().map(|m| m.as_str()),
+            Some(r#"{"api_key":"test"}"#)
+        );
+    }
+
+    #[test]
+    fn test_response_transformer() {
+        let builder = WebSocketProxyBuilder::default()
+            .response_transformer(|raw| Some(format!("transformed: {}", raw)))
+            .upstream_url("wss://api.example.com/listen");
+
+        assert!(builder.response_transformer.is_some());
+
+        let transformer = builder.response_transformer.as_ref().unwrap();
+        assert_eq!(transformer("test"), Some("transformed: test".to_string()));
+    }
+
+    #[test]
+    fn test_response_transformer_returns_none() {
+        let builder = WebSocketProxyBuilder::default()
+            .response_transformer(|_| None)
+            .upstream_url("wss://api.example.com/listen");
+
+        let transformer = builder.response_transformer.as_ref().unwrap();
+        assert_eq!(transformer("test"), None);
+    }
+
+    #[test]
+    fn test_chaining_new_options() {
+        let builder = WebSocketProxyBuilder::default()
+            .initial_message(r#"{"init":true}"#)
+            .response_transformer(|s| Some(s.to_uppercase()))
+            .connect_timeout(Duration::from_secs(10))
+            .upstream_url("wss://api.example.com/listen");
+
+        assert!(builder.initial_message.is_some());
+        assert!(builder.response_transformer.is_some());
+        assert_eq!(builder.connect_timeout, Duration::from_secs(10));
     }
 }

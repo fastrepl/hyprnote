@@ -32,6 +32,7 @@ export function FeedbackModal() {
   const [type, setType] = useState<FeedbackType>(initialType);
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gitHash, setGitHash] = useState<string>("");
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -52,8 +53,12 @@ export function FeedbackModal() {
   useEffect(() => {
     if (isOpen) {
       setType(initialType);
+      miscCommands.getGitHash().then((result) => {
+        setGitHash(result.status === "ok" ? result.data : "unknown");
+      });
     } else {
       setDescription("");
+      setGitHash("");
     }
   }, [isOpen, initialType]);
 
@@ -65,7 +70,9 @@ export function FeedbackModal() {
     setIsSubmitting(true);
 
     try {
-      const gitHash = await miscCommands.getGitHash();
+      const gitHashResult = await miscCommands.getGitHash();
+      const gitHash =
+        gitHashResult.status === "ok" ? gitHashResult.data : "unknown";
 
       const deviceInfo = [
         `**Platform:** ${platform()}`,
@@ -219,9 +226,11 @@ ${deviceInfo}
                 />
               </div>
 
-              <p className="text-xs text-muted-foreground">
-                Device information will be automatically included
-              </p>
+              {gitHash && (
+                <div className="mt-4 text-[10px] text-neutral-100 font-mono">
+                  {gitHash}
+                </div>
+              )}
             </div>
 
             <div className="flex justify-start mt-4">

@@ -8,7 +8,7 @@ use tracing::Instrument;
 use owhisper_client::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, ElevenLabsAdapter,
     FinalizeHandle, FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter,
-    SonioxAdapter,
+    SonioxAdapter, SpeechmaticsAdapter,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -276,6 +276,7 @@ async fn spawn_rx_task(
         AdapterKind::OpenAI => "OpenAI",
         AdapterKind::Gladia => "Gladia",
         AdapterKind::ElevenLabs => "ElevenLabs",
+        AdapterKind::Speechmatics => "Speechmatics",
     };
 
     let result = match (adapter_kind, is_dual) {
@@ -326,6 +327,12 @@ async fn spawn_rx_task(
         }
         (AdapterKind::ElevenLabs, true) => {
             spawn_rx_task_dual_with_adapter::<ElevenLabsAdapter>(args, myself).await
+        }
+        (AdapterKind::Speechmatics, false) => {
+            spawn_rx_task_single_with_adapter::<SpeechmaticsAdapter>(args, myself).await
+        }
+        (AdapterKind::Speechmatics, true) => {
+            spawn_rx_task_dual_with_adapter::<SpeechmaticsAdapter>(args, myself).await
         }
     }?;
 

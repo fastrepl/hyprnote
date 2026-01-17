@@ -65,7 +65,9 @@ export function FeedbackModal() {
     setIsSubmitting(true);
 
     try {
-      const gitHash = await miscCommands.getGitHash();
+      const gitHashResult = await miscCommands.getGitHash();
+      const gitHash =
+        gitHashResult.status === "ok" ? gitHashResult.data : "unknown";
 
       const deviceInfo = [
         `**Platform:** ${platform()}`,

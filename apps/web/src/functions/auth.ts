@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { env } from "@/env";
+import { isAdminEmail } from "@/functions/admin";
 import { getSupabaseServerClient } from "@/functions/supabase";
 
 const shared = z.object({
@@ -93,3 +94,63 @@ export const signOutFn = createServerFn({ method: "POST" }).handler(
     return { success: true };
   },
 );
+
+export const exchangeOAuthCode = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      code: z.string(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const { data: authData, error } =
+      await supabase.auth.exchangeCodeForSession(data.code);
+
+    if (error || !authData.session) {
+      return { success: false, error: error?.message || "Unknown error" };
+    }
+
+    const email = authData.session.user.email;
+    if (authData.session.provider_token && email && isAdminEmail(email)) {
+      const githubUsername =
+        authData.session.user.user_metadata?.user_name ||
+        authData.session.user.user_metadata?.preferred_username;
+      await supabase.from("admins").upsert({
+        id: authData.session.user.id,
+        github_token: authData.session.provider_token,
+        github_username: githubUsername,
+        updated_at: new Date().toISOString(),
+      });
+    }
+
+    return {
+      success: true,
+      access_token: authData.session.access_token,
+      refresh_token: authData.session.refresh_token,
+    };
+  });
+
+export const exchangeOtpToken = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      token_hash: z.string(),
+      type: z.literal("email"),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const { data: authData, error } = await supabase.auth.verifyOtp({
+      token_hash: data.token_hash,
+      type: data.type,
+    });
+
+    if (error || !authData.session) {
+      return { success: false, error: error?.message || "Unknown error" };
+    }
+
+    return {
+      success: true,
+      access_token: authData.session.access_token,
+      refresh_token: authData.session.refresh_token,
+    };
+  });

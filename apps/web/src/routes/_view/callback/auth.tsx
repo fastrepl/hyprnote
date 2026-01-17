@@ -1,12 +1,11 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
 import { cn } from "@hypr/utils";
 
-import { isAdminEmail } from "@/functions/admin";
-import { getSupabaseServerClient } from "@/functions/supabase";
+import { exchangeOAuthCode, exchangeOtpToken } from "@/functions/auth";
 
 const validateSearch = z.object({
   code: z.string().optional(),
@@ -24,71 +23,42 @@ export const Route = createFileRoute("/_view/callback/auth")({
   component: Component,
   beforeLoad: async ({ search }) => {
     if (search.flow === "web" && search.code) {
-      const supabase = getSupabaseServerClient();
-      const { data, error } = await supabase.auth.exchangeCodeForSession(
-        search.code,
-      );
+      const result = await exchangeOAuthCode({ data: { code: search.code } });
 
-      if (!error && data.session) {
-        const email = data.session.user.email;
-        if (data.session.provider_token && email && isAdminEmail(email)) {
-          const githubUsername =
-            data.session.user.user_metadata?.user_name ||
-            data.session.user.user_metadata?.preferred_username;
-          await supabase.from("admins").upsert({
-            id: data.session.user.id,
-            github_token: data.session.provider_token,
-            github_username: githubUsername,
-            updated_at: new Date().toISOString(),
-          });
-        }
+      if (result.success) {
         throw redirect({ to: search.redirect || "/app/account/" });
       } else {
-        console.error(error);
+        console.error(result.error);
       }
     }
 
     if (search.flow === "desktop" && search.code) {
-      const supabase = getSupabaseServerClient();
-      const { data, error } = await supabase.auth.exchangeCodeForSession(
-        search.code,
-      );
+      const result = await exchangeOAuthCode({ data: { code: search.code } });
 
-      if (!error && data.session) {
-        const email = data.session.user.email;
-        if (data.session.provider_token && email && isAdminEmail(email)) {
-          const githubUsername =
-            data.session.user.user_metadata?.user_name ||
-            data.session.user.user_metadata?.preferred_username;
-          await supabase.from("admins").upsert({
-            id: data.session.user.id,
-            github_token: data.session.provider_token,
-            github_username: githubUsername,
-            updated_at: new Date().toISOString(),
-          });
-        }
+      if (result.success) {
         throw redirect({
           to: "/callback/auth/",
           search: {
             flow: "desktop",
             scheme: search.scheme,
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token,
+            access_token: result.access_token,
+            refresh_token: result.refresh_token,
           },
         });
       } else {
-        console.error(error);
+        console.error(result.error);
       }
     }
 
     if (search.token_hash && search.type) {
-      const supabase = getSupabaseServerClient();
-      const { data, error } = await supabase.auth.verifyOtp({
-        token_hash: search.token_hash,
-        type: search.type,
+      const result = await exchangeOtpToken({
+        data: {
+          token_hash: search.token_hash,
+          type: search.type,
+        },
       });
 
-      if (!error && data.session) {
+      if (result.success) {
         if (search.flow === "web") {
           throw redirect({ to: search.redirect || "/app/account/" });
         }
@@ -99,13 +69,13 @@ export const Route = createFileRoute("/_view/callback/auth")({
             search: {
               flow: "desktop",
               scheme: search.scheme,
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token,
+              access_token: result.access_token,
+              refresh_token: result.refresh_token,
             },
           });
         }
       } else {
-        console.error(error);
+        console.error(result.error);
       }
     }
   },
@@ -113,6 +83,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
 
 function Component() {
   const search = Route.useSearch();
+  const navigate = useNavigate();
   const [attempted, setAttempted] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -145,7 +116,8 @@ function Component() {
 
   useEffect(() => {
     if (search.flow === "web") {
-      throw redirect({ to: search.redirect || "/app/account/" });
+      navigate({ to: search.redirect || "/app/account/" });
+      return;
     }
 
     if (
@@ -157,7 +129,7 @@ function Component() {
         handleDeeplink();
       }, 200);
     }
-  }, [search]);
+  }, [search, navigate]);
 
   if (search.flow === "desktop") {
     return (

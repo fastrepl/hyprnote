@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
 
 import { env } from "@/env";
@@ -82,7 +83,7 @@ export async function listMediaFiles(
 }
 
 export async function uploadMediaFile(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   filename: string,
   content: string,
   folder: string = "",

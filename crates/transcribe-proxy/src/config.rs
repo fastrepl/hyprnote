@@ -5,6 +5,7 @@ use std::time::Duration;
 use owhisper_client::Provider;
 
 use crate::analytics::SttAnalyticsReporter;
+use crate::auto_routing::{AutoRouter, AutoRoutingConfig};
 use crate::provider_selector::ProviderSelector;
 
 pub const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 7 * 1000;
@@ -16,6 +17,7 @@ pub struct SttProxyConfig {
     pub connect_timeout: Duration,
     pub analytics: Option<Arc<dyn SttAnalyticsReporter>>,
     pub upstream_urls: HashMap<Provider, String>,
+    pub auto_routing: Option<AutoRoutingConfig>,
 }
 
 impl SttProxyConfig {
@@ -26,6 +28,7 @@ impl SttProxyConfig {
             connect_timeout: Duration::from_millis(DEFAULT_CONNECT_TIMEOUT_MS),
             analytics: None,
             upstream_urls: HashMap::new(),
+            auto_routing: None,
         }
     }
 
@@ -49,11 +52,20 @@ impl SttProxyConfig {
         self
     }
 
+    pub fn with_auto_routing(mut self, config: AutoRoutingConfig) -> Self {
+        self.auto_routing = Some(config);
+        self
+    }
+
     pub fn provider_selector(&self) -> ProviderSelector {
         ProviderSelector::new(
             self.api_keys.clone(),
             self.default_provider,
             self.upstream_urls.clone(),
         )
+    }
+
+    pub fn auto_router(&self) -> Option<AutoRouter> {
+        self.auto_routing.clone().map(AutoRouter::new)
     }
 }

@@ -1,5 +1,5 @@
 use std::io::Write;
-use std::str::FromStr;
+use std::time::Duration;
 
 use axum::{
     Json,
@@ -8,15 +8,16 @@ use axum::{
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
+use backon::{ExponentialBuilder, Retryable};
 
-use owhisper_client::Provider;
 use owhisper_client::{
     AssemblyAIAdapter, BatchClient, DeepgramAdapter, ElevenLabsAdapter, GladiaAdapter,
-    OpenAIAdapter, SonioxAdapter,
+    OpenAIAdapter, Provider, SonioxAdapter,
 };
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
 
+use crate::auto_routing::{RetryConfig, is_retryable_error, should_use_auto_routing};
 use crate::provider_selector::SelectedProvider;
 use crate::query_params::{QueryParams, QueryValue};
 
@@ -28,11 +29,6 @@ pub async fn handler(
     mut params: QueryParams,
     body: Bytes,
 ) -> Response {
-    let selected = match state.resolve_provider(&mut params) {
-        Ok(v) => v,
-        Err(resp) => return resp,
-    };
-
     if body.is_empty() {
         return (
             StatusCode::BAD_REQUEST,
@@ -50,6 +46,18 @@ pub async fn handler(
         .unwrap_or("application/octet-stream");
 
     let listen_params = build_listen_params(&params);
+
+    let provider_param = params.get_first("provider").map(|s| s.to_string());
+    let use_auto_routing = should_use_auto_routing_for_batch(provider_param.as_deref(), &state);
+
+    if use_auto_routing {
+        return handle_auto_batch(&state, &params, listen_params, body, content_type).await;
+    }
+
+    let selected = match state.resolve_provider(&mut params) {
+        Ok(v) => v,
+        Err(resp) => return resp,
+    };
 
     tracing::info!(
         provider = ?selected.provider(),
@@ -78,22 +86,126 @@ pub async fn handler(
     }
 }
 
+async fn handle_auto_batch(
+    state: &AppState,
+    params: &QueryParams,
+    listen_params: ListenParams,
+    body: Bytes,
+    content_type: &str,
+) -> Response {
+    let provider_chain = state.resolve_auto_provider_chain(params);
+
+    if provider_chain.is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "no_providers_available",
+                "detail": "No providers available for the requested language(s)"
+            })),
+        )
+            .into_response();
+    }
+
+    let retry_config = state
+        .router
+        .as_ref()
+        .map(|r| r.retry_config().clone())
+        .unwrap_or_default();
+
+    tracing::info!(
+        provider_chain = ?provider_chain.iter().map(|p| p.provider()).collect::<Vec<_>>(),
+        content_type = %content_type,
+        body_size_bytes = %body.len(),
+        "auto_batch_transcription_request"
+    );
+
+    let mut last_error: Option<String> = None;
+    let mut providers_tried = Vec::new();
+
+    for (attempt, selected) in provider_chain.iter().enumerate() {
+        let provider = selected.provider();
+        providers_tried.push(provider);
+
+        match transcribe_with_retry(
+            selected,
+            listen_params.clone(),
+            body.clone(),
+            content_type,
+            &retry_config,
+        )
+        .await
+        {
+            Ok(response) => {
+                tracing::info!(
+                    provider = ?provider,
+                    attempt = attempt + 1,
+                    "batch_transcription_succeeded"
+                );
+
+                return Json(response).into_response();
+            }
+            Err(e) => {
+                tracing::warn!(
+                    provider = ?provider,
+                    error = %e,
+                    attempt = attempt + 1,
+                    remaining_providers = provider_chain.len() - attempt - 1,
+                    "provider_failed_trying_next"
+                );
+
+                last_error = Some(e);
+            }
+        }
+    }
+
+    tracing::error!(
+        providers_tried = ?providers_tried,
+        last_error = ?last_error,
+        "all_providers_failed"
+    );
+
+    (
+        StatusCode::BAD_GATEWAY,
+        Json(serde_json::json!({
+            "error": "all_providers_failed",
+            "detail": last_error.unwrap_or_else(|| "Unknown error".to_string()),
+            "providers_tried": providers_tried.iter().map(|p| format!("{:?}", p)).collect::<Vec<_>>()
+        })),
+    )
+        .into_response()
+}
+
+async fn transcribe_with_retry(
+    selected: &SelectedProvider,
+    params: ListenParams,
+    audio_bytes: Bytes,
+    content_type: &str,
+    retry_config: &RetryConfig,
+) -> Result<BatchResponse, String> {
+    let backoff = ExponentialBuilder::default()
+        .with_jitter()
+        .with_max_delay(Duration::from_secs(retry_config.max_delay_secs))
+        .with_max_times(retry_config.num_retries);
+
+    (|| async {
+        transcribe_with_provider(selected, params.clone(), audio_bytes.clone(), content_type).await
+    })
+    .retry(backoff)
+    .notify(|err, dur| {
+        tracing::warn!(
+            provider = ?selected.provider(),
+            error = %err,
+            retry_delay_ms = dur.as_millis(),
+            "retrying_transcription"
+        );
+    })
+    .when(|e| is_retryable_error(e))
+    .await
+}
+
 fn build_listen_params(params: &QueryParams) -> ListenParams {
     let model = params.get_first("model").map(|s| s.to_string());
-
-    let languages: Vec<hypr_language::Language> = params
-        .get("language")
-        .map(|v| {
-            v.iter()
-                .flat_map(|s| s.split(','))
-                .filter_map(|lang| {
-                    hypr_language::ISO639::from_str(lang.trim())
-                        .ok()
-                        .map(hypr_language::Language::from)
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    let languages = params.get_languages();
 
     let keywords: Vec<String> = params
         .get("keyword")
@@ -225,4 +337,8 @@ fn content_type_to_extension(content_type: &str) -> &'static str {
         "audio/aac" => "aac",
         _ => "wav",
     }
+}
+
+fn should_use_auto_routing_for_batch(provider_param: Option<&str>, state: &AppState) -> bool {
+    should_use_auto_routing(provider_param, state.router.is_some())
 }

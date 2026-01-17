@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 
 use owhisper_client::Provider;
@@ -80,6 +80,10 @@ impl ProviderSelector {
 
     pub fn default_provider(&self) -> Provider {
         self.default_provider
+    }
+
+    pub fn available_providers(&self) -> HashSet<Provider> {
+        self.api_keys.keys().copied().collect()
     }
 }
 

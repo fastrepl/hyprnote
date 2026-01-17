@@ -13,6 +13,7 @@ mod openai;
 mod owhisper;
 pub mod parsing;
 pub(crate) mod soniox;
+pub(crate) mod speechmatics;
 mod url_builder;
 
 pub use argmax::*;
@@ -24,6 +25,7 @@ pub use gladia::*;
 pub use hyprnote::*;
 pub use openai::*;
 pub use soniox::*;
+pub use speechmatics::*;
 
 use std::collections::{BTreeSet, HashSet};
 use std::future::Future;
@@ -50,6 +52,7 @@ pub fn documented_language_codes_live() -> Vec<String> {
     set.extend(assemblyai::documented_language_codes_live().iter().copied());
     set.extend(elevenlabs::documented_language_codes().iter().copied());
     set.extend(argmax::PARAKEET_V3_LANGS.iter().copied());
+    set.extend(speechmatics::documented_language_codes().iter().copied());
 
     set.into_iter().map(str::to_string).collect()
 }
@@ -67,6 +70,7 @@ pub fn documented_language_codes_batch() -> Vec<String> {
     );
     set.extend(elevenlabs::documented_language_codes().iter().copied());
     set.extend(argmax::PARAKEET_V3_LANGS.iter().copied());
+    set.extend(speechmatics::documented_language_codes().iter().copied());
 
     set.into_iter().map(str::to_string).collect()
 }
@@ -258,6 +262,8 @@ pub enum AdapterKind {
     Gladia,
     #[strum(serialize = "elevenlabs")]
     ElevenLabs,
+    #[strum(serialize = "speechmatics")]
+    Speechmatics,
 }
 
 impl AdapterKind {
@@ -299,6 +305,7 @@ impl AdapterKind {
             Self::Fireworks => FireworksAdapter::is_supported_languages_live(languages),
             Self::ElevenLabs => ElevenLabsAdapter::is_supported_languages_live(languages),
             Self::Argmax => ArgmaxAdapter::is_supported_languages_live(languages, model),
+            Self::Speechmatics => SpeechmaticsAdapter::is_supported_languages_live(languages),
         }
     }
 
@@ -316,6 +323,7 @@ impl AdapterKind {
             Self::Fireworks => FireworksAdapter::is_supported_languages_batch(languages),
             Self::ElevenLabs => ElevenLabsAdapter::is_supported_languages_batch(languages),
             Self::Argmax => ArgmaxAdapter::is_supported_languages_batch(languages, model),
+            Self::Speechmatics => SpeechmaticsAdapter::is_supported_languages_batch(languages),
         }
     }
 }
@@ -331,6 +339,7 @@ impl From<crate::providers::Provider> for AdapterKind {
             Provider::OpenAI => Self::OpenAI,
             Provider::Gladia => Self::Gladia,
             Provider::ElevenLabs => Self::ElevenLabs,
+            Provider::Speechmatics => Self::Speechmatics,
         }
     }
 }

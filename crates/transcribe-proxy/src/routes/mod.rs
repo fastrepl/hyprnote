@@ -82,6 +82,37 @@ impl AppState {
             (StatusCode::BAD_REQUEST, e.to_string()).into_response()
         })
     }
+
+    /// Returns a chain of providers to try in order for hyprnote routing.
+    /// This enables fallback behavior where multiple providers are tried sequentially.
+    pub fn resolve_hyprnote_provider_chain(
+        &self,
+        params: &QueryParams,
+    ) -> Vec<SelectedProvider> {
+        let router = match self.router.as_ref() {
+            Some(r) => r,
+            None => return vec![],
+        };
+
+        let language_param = params
+            .get_first("language")
+            .or_else(|| params.get_first("languages"));
+        let languages = parse_languages(language_param);
+
+        let available_providers = self.selector.available_providers();
+        let provider_chain = router.select_provider_chain(&languages, &available_providers);
+
+        tracing::debug!(
+            languages = ?languages,
+            provider_chain = ?provider_chain,
+            "hyprnote_routing_chain"
+        );
+
+        provider_chain
+            .into_iter()
+            .filter_map(|p| self.selector.select(Some(p)).ok())
+            .collect()
+    }
 }
 
 fn make_state(config: SttProxyConfig) -> AppState {

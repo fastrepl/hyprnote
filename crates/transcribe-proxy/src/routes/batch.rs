@@ -1,5 +1,6 @@
 use std::io::Write;
 use std::str::FromStr;
+use std::time::Duration;
 
 use axum::{
     Json,
@@ -8,6 +9,7 @@ use axum::{
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
+use backon::{ExponentialBuilder, Retryable};
 
 use owhisper_client::Provider;
 use owhisper_client::{
@@ -17,6 +19,7 @@ use owhisper_client::{
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
 
+use crate::hyprnote_routing::RetryConfig;
 use crate::provider_selector::SelectedProvider;
 use crate::query_params::{QueryParams, QueryValue};
 
@@ -28,11 +31,6 @@ pub async fn handler(
     mut params: QueryParams,
     body: Bytes,
 ) -> Response {
-    let selected = match state.resolve_provider(&mut params) {
-        Ok(v) => v,
-        Err(resp) => return resp,
-    };
-
     if body.is_empty() {
         return (
             StatusCode::BAD_REQUEST,
@@ -50,6 +48,28 @@ pub async fn handler(
         .unwrap_or("application/octet-stream");
 
     let listen_params = build_listen_params(&params);
+
+    // Check if this is a hyprnote routing request
+    let provider_param = params.get_first("provider").map(|s| s.to_string());
+    let is_hyprnote_routing = provider_param.as_deref() == Some("hyprnote");
+
+    if is_hyprnote_routing {
+        // Use fallback chain with retries for hyprnote routing
+        return handle_hyprnote_batch(
+            &state,
+            &params,
+            listen_params,
+            body,
+            content_type,
+        )
+        .await;
+    }
+
+    // Standard single-provider flow
+    let selected = match state.resolve_provider(&mut params) {
+        Ok(v) => v,
+        Err(resp) => return resp,
+    };
 
     tracing::info!(
         provider = ?selected.provider(),
@@ -76,6 +96,178 @@ pub async fn handler(
                 .into_response()
         }
     }
+}
+
+/// Handles batch transcription with hyprnote routing, including retry and fallback logic.
+/// Implements TensorZero-inspired patterns:
+/// 1. For each provider in the fallback chain
+/// 2. Retry with exponential backoff on transient errors
+/// 3. Fall back to next provider if all retries fail
+async fn handle_hyprnote_batch(
+    state: &AppState,
+    params: &QueryParams,
+    listen_params: ListenParams,
+    body: Bytes,
+    content_type: &str,
+) -> Response {
+    let provider_chain = state.resolve_hyprnote_provider_chain(params);
+
+    if provider_chain.is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "no_providers_available",
+                "detail": "No providers available for the requested language(s)"
+            })),
+        )
+            .into_response();
+    }
+
+    let retry_config = state
+        .router
+        .as_ref()
+        .map(|r| r.retry_config().clone())
+        .unwrap_or_default();
+
+    tracing::info!(
+        provider_chain = ?provider_chain.iter().map(|p| p.provider()).collect::<Vec<_>>(),
+        content_type = %content_type,
+        body_size_bytes = %body.len(),
+        num_retries = retry_config.num_retries,
+        "hyprnote_batch_transcription_request"
+    );
+
+    let mut last_error: Option<String> = None;
+    let mut providers_tried = Vec::new();
+
+    for (attempt, selected) in provider_chain.iter().enumerate() {
+        let provider = selected.provider();
+        providers_tried.push(provider);
+
+        tracing::debug!(
+            provider = ?provider,
+            attempt = attempt + 1,
+            total_providers = provider_chain.len(),
+            "trying_provider"
+        );
+
+        match transcribe_with_retry(
+            selected,
+            listen_params.clone(),
+            body.clone(),
+            content_type,
+            &retry_config,
+        )
+        .await
+        {
+            Ok(response) => {
+                // Record success for circuit breaker
+                if let Some(router) = &state.router {
+                    router.record_success(provider);
+                }
+
+                tracing::info!(
+                    provider = ?provider,
+                    attempt = attempt + 1,
+                    "batch_transcription_succeeded"
+                );
+
+                return Json(response).into_response();
+            }
+            Err(e) => {
+                // Record failure for circuit breaker
+                if let Some(router) = &state.router {
+                    router.record_failure(provider);
+                }
+
+                tracing::warn!(
+                    provider = ?provider,
+                    error = %e,
+                    attempt = attempt + 1,
+                    remaining_providers = provider_chain.len() - attempt - 1,
+                    "provider_failed_trying_next"
+                );
+
+                last_error = Some(e);
+            }
+        }
+    }
+
+    // All providers failed
+    tracing::error!(
+        providers_tried = ?providers_tried,
+        last_error = ?last_error,
+        "all_providers_failed"
+    );
+
+    (
+        StatusCode::BAD_GATEWAY,
+        Json(serde_json::json!({
+            "error": "all_providers_failed",
+            "detail": last_error.unwrap_or_else(|| "Unknown error".to_string()),
+            "providers_tried": providers_tried.iter().map(|p| format!("{:?}", p)).collect::<Vec<_>>()
+        })),
+    )
+        .into_response()
+}
+
+/// Transcribes audio with retry logic using exponential backoff.
+async fn transcribe_with_retry(
+    selected: &SelectedProvider,
+    params: ListenParams,
+    audio_bytes: Bytes,
+    content_type: &str,
+    retry_config: &RetryConfig,
+) -> Result<BatchResponse, String> {
+    let backoff = ExponentialBuilder::default()
+        .with_jitter()
+        .with_max_delay(Duration::from_secs(retry_config.max_delay_secs))
+        .with_max_times(retry_config.num_retries);
+
+    (|| async {
+        transcribe_with_provider(selected, params.clone(), audio_bytes.clone(), content_type).await
+    })
+    .retry(backoff)
+    .notify(|err, dur| {
+        tracing::warn!(
+            provider = ?selected.provider(),
+            error = %err,
+            retry_delay_ms = dur.as_millis(),
+            "retrying_transcription"
+        );
+    })
+    .when(|e| is_retryable_error(e))
+    .await
+}
+
+/// Determines if an error is retryable (transient) or permanent.
+fn is_retryable_error(error: &str) -> bool {
+    let error_lower = error.to_lowercase();
+
+    // Don't retry auth errors
+    if error_lower.contains("401")
+        || error_lower.contains("403")
+        || error_lower.contains("unauthorized")
+        || error_lower.contains("forbidden")
+    {
+        return false;
+    }
+
+    // Don't retry invalid request errors
+    if error_lower.contains("400") || error_lower.contains("invalid") {
+        return false;
+    }
+
+    // Retry on timeout, connection, and server errors
+    error_lower.contains("timeout")
+        || error_lower.contains("connection")
+        || error_lower.contains("500")
+        || error_lower.contains("502")
+        || error_lower.contains("503")
+        || error_lower.contains("504")
+        || error_lower.contains("temporarily")
+        || error_lower.contains("rate limit")
+        || error_lower.contains("too many requests")
 }
 
 fn build_listen_params(params: &QueryParams) -> ListenParams {

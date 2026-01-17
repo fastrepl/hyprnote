@@ -55,14 +55,7 @@ pub async fn handler(
 
     if is_hyprnote_routing {
         // Use fallback chain with retries for hyprnote routing
-        return handle_hyprnote_batch(
-            &state,
-            &params,
-            listen_params,
-            body,
-            content_type,
-        )
-        .await;
+        return handle_hyprnote_batch(&state, &params, listen_params, body, content_type).await;
     }
 
     // Standard single-provider flow

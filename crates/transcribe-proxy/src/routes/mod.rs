@@ -85,10 +85,7 @@ impl AppState {
 
     /// Returns a chain of providers to try in order for hyprnote routing.
     /// This enables fallback behavior where multiple providers are tried sequentially.
-    pub fn resolve_hyprnote_provider_chain(
-        &self,
-        params: &QueryParams,
-    ) -> Vec<SelectedProvider> {
+    pub fn resolve_hyprnote_provider_chain(&self, params: &QueryParams) -> Vec<SelectedProvider> {
         let router = match self.router.as_ref() {
             Some(r) => r,
             None => return vec![],

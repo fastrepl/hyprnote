@@ -82,6 +82,7 @@ export async function listMediaFiles(
 }
 
 export async function uploadMediaFile(
+  supabase: ReturnType<typeof createClient>,
   filename: string,
   content: string,
   folder: string = "",
@@ -91,8 +92,6 @@ export async function uploadMediaFile(
   publicUrl?: string;
   error?: string;
 }> {
-  const supabase = getSupabaseClient();
-
   const timestamp = Date.now();
   const sanitizedFilename = `${timestamp}-${filename
     .replace(/[^a-zA-Z0-9.-]/g, "-")
@@ -148,10 +147,11 @@ export async function uploadMediaFile(
       return { success: false, error: error.message };
     }
 
+    const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path);
     return {
       success: true,
       path,
-      publicUrl: getPublicUrl(path),
+      publicUrl: data.publicUrl,
     };
   } catch (error) {
     return {

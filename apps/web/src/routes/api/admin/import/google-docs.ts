@@ -1,6 +1,8 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
+import { getSupabaseServerClient } from "@/functions/supabase";
 import { uploadMediaFile } from "@/functions/supabase-media";
 
 interface ImportRequest {
@@ -298,6 +300,7 @@ async function downloadImage(
 }
 
 async function uploadImagesToSupabase(
+  supabase: SupabaseClient,
   imageUrls: string[],
   slug: string,
 ): Promise<ImageUploadResult[]> {
@@ -313,7 +316,12 @@ async function uploadImagesToSupabase(
     const filename = `image-${i + 1}.${imageData.extension}`;
     const base64Content = imageData.buffer.toString("base64");
 
-    const uploadResult = await uploadMediaFile(filename, base64Content, folder);
+    const uploadResult = await uploadMediaFile(
+      supabase,
+      filename,
+      base64Content,
+      folder,
+    );
 
     if (uploadResult.success && uploadResult.publicUrl) {
       results.push({
@@ -358,6 +366,8 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
             });
           }
         }
+
+        const supabase = getSupabaseServerClient();
 
         try {
           const body: ImportRequest = await request.json();
@@ -433,6 +443,7 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
             }
 
             const imageReplacements = await uploadImagesToSupabase(
+              supabase,
               imageUrls,
               slug,
             );

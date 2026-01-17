@@ -32,61 +32,6 @@ type MigratedHint = {
   value: string;
 };
 
-function isStampedTuple(value: unknown): value is [unknown, ...unknown[]] {
-  if (!Array.isArray(value) || value.length === 0) {
-    return false;
-  }
-  const first = value[0];
-  return (
-    first === null ||
-    typeof first === "string" ||
-    typeof first === "number" ||
-    typeof first === "boolean"
-  );
-}
-
-function repairStampLeak(store: Store): number {
-  let repaired = 0;
-  const s = store as unknown as {
-    getTableIds: () => string[];
-    getRowIds: (t: string) => string[];
-    getRow: (t: string, r: string) => Record<string, unknown> | undefined;
-    setCell: (t: string, r: string, c: string, v: unknown) => void;
-    getValueIds?: () => string[];
-    getValue?: (id: string) => unknown;
-    setValue?: (id: string, value: unknown) => void;
-    transaction: (fn: () => void) => void;
-  };
-
-  s.transaction(() => {
-    for (const tableId of s.getTableIds()) {
-      for (const rowId of s.getRowIds(tableId)) {
-        const row = s.getRow(tableId, rowId);
-        if (!row) continue;
-
-        for (const [cellId, cellValue] of Object.entries(row)) {
-          if (isStampedTuple(cellValue)) {
-            s.setCell(tableId, rowId, cellId, cellValue[0]);
-            repaired++;
-          }
-        }
-      }
-    }
-
-    if (s.getValueIds && s.getValue && s.setValue) {
-      for (const valueId of s.getValueIds()) {
-        const value = s.getValue(valueId);
-        if (isStampedTuple(value)) {
-          s.setValue(valueId, value[0]);
-          repaired++;
-        }
-      }
-    }
-  });
-
-  return repaired;
-}
-
 function migrateWordsAndHintsToTranscripts(store: Store): boolean {
   const wordIds = store.getRowIds("words");
   if (wordIds.length === 0) {
@@ -184,20 +129,8 @@ export function useLocalPersister(store: Store) {
       (store as Store).transaction(() => {});
 
       if (getCurrentWebviewWindowLabel() === "main") {
-        let needsSave = false;
-
-        const repaired = repairStampLeak(store as Store);
-        if (repaired > 0) {
-          console.log(`[LocalPersister] Repaired ${repaired} stamped cell(s)`);
-          needsSave = true;
-        }
-
         const migrated = migrateWordsAndHintsToTranscripts(store as Store);
         if (migrated) {
-          needsSave = true;
-        }
-
-        if (needsSave) {
           await persister.save();
         }
       }

@@ -1,3 +1,7 @@
+use crate::adapter::deepgram;
+use crate::adapter::soniox;
+use crate::error_detection::ProviderError;
+
 pub fn is_meta_model(model: &str) -> bool {
     matches!(model, "cloud" | "auto")
 }
@@ -301,5 +305,19 @@ impl Provider {
             })),
             _ => None,
         }
+    }
+
+    pub fn detect_error(&self, data: &[u8]) -> Option<ProviderError> {
+        match self {
+            Self::Deepgram => deepgram::error::detect_error(data),
+            Self::Soniox => soniox::error::detect_error(data),
+            Self::AssemblyAI | Self::Fireworks | Self::OpenAI | Self::Gladia | Self::ElevenLabs => {
+                None
+            }
+        }
+    }
+
+    pub fn detect_any_error(data: &[u8]) -> Option<ProviderError> {
+        Self::ALL.iter().find_map(|p| p.detect_error(data))
     }
 }

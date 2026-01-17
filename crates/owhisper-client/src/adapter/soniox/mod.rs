@@ -1,4 +1,5 @@
 mod batch;
+pub mod error;
 mod live;
 
 // https://soniox.com/docs/stt/concepts/supported-languages

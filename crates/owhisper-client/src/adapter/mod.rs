@@ -2,7 +2,7 @@ mod argmax;
 mod assemblyai;
 #[cfg(feature = "argmax")]
 pub mod audio;
-mod deepgram;
+pub(crate) mod deepgram;
 mod deepgram_compat;
 mod elevenlabs;
 mod fireworks;
@@ -11,7 +11,7 @@ pub mod http;
 mod openai;
 mod owhisper;
 pub mod parsing;
-mod soniox;
+pub(crate) mod soniox;
 mod url_builder;
 
 pub use argmax::*;

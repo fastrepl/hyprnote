@@ -1,4 +1,5 @@
 mod batch;
+pub mod error;
 mod keywords;
 mod language;
 mod live;

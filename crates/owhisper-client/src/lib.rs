@@ -1,6 +1,7 @@
 mod adapter;
 mod batch;
 mod error;
+mod error_detection;
 mod http_client;
 mod live;
 pub(crate) mod polling;
@@ -9,6 +10,7 @@ mod providers;
 #[cfg(test)]
 pub(crate) mod test_utils;
 
+pub use error_detection::ProviderError;
 pub use providers::{Auth, Provider, is_meta_model};
 
 use std::marker::PhantomData;

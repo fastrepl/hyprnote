@@ -4,14 +4,107 @@ mod live;
 use crate::providers::Provider;
 use serde::Deserialize;
 
+// https://elevenlabs.io/docs/overview/capabilities/speech-to-text
+// Accepts both ISO 639-1 (2-letter) and ISO 639-3 (3-letter) codes
 const SUPPORTED_LANGUAGES: &[&str] = &[
-    "af", "sq", "am", "ar", "hy", "as", "az", "ba", "eu", "be", "bn", "bs", "br", "bg", "ca", "zh",
-    "hr", "cs", "da", "nl", "en", "et", "fo", "fi", "fr", "gl", "ka", "de", "el", "gu", "ht", "ha",
-    "he", "hi", "hu", "is", "id", "it", "ja", "jw", "kn", "kk", "km", "ko", "lo", "la", "lv", "ln",
-    "lt", "lb", "mk", "mg", "ms", "ml", "mt", "mi", "mr", "mn", "my", "ne", "no", "nn", "oc", "ps",
-    "fa", "pl", "pt", "pa", "ro", "ru", "sa", "sr", "sn", "sd", "si", "sk", "sl", "so", "es", "su",
-    "sw", "sv", "tl", "tg", "ta", "tt", "te", "th", "bo", "tr", "tk", "uk", "ur", "uz", "vi", "cy",
-    "wo", "yi", "yo",
+    // Excellent (≤5% WER)
+    "be", // Belarusian
+    "bs", // Bosnian
+    "bg", // Bulgarian
+    "ca", // Catalan
+    "hr", // Croatian
+    "cs", // Czech
+    "da", // Danish
+    "nl", // Dutch
+    "en", // English
+    "et", // Estonian
+    "fi", // Finnish
+    "fr", // French
+    "gl", // Galician
+    "de", // German
+    "el", // Greek
+    "hu", // Hungarian
+    "is", // Icelandic
+    "id", // Indonesian
+    "it", // Italian
+    "ja", // Japanese
+    "kn", // Kannada
+    "lv", // Latvian
+    "mk", // Macedonian
+    "ms", // Malay
+    "ml", // Malayalam
+    "no", // Norwegian
+    "pl", // Polish
+    "pt", // Portuguese
+    "ro", // Romanian
+    "ru", // Russian
+    "sk", // Slovak
+    "es", // Spanish
+    "sv", // Swedish
+    "tr", // Turkish
+    "uk", // Ukrainian
+    "vi", // Vietnamese
+    // High Accuracy (>5% to ≤10% WER)
+    "hy", // Armenian
+    "az", // Azerbaijani
+    "bn", // Bengali
+    "tl", // Filipino (Tagalog)
+    "ka", // Georgian
+    "gu", // Gujarati
+    "hi", // Hindi
+    "kk", // Kazakh
+    "lt", // Lithuanian
+    "mt", // Maltese
+    "zh", // Mandarin Chinese
+    "mr", // Marathi
+    "ne", // Nepali
+    "or", // Odia
+    "fa", // Persian
+    "sr", // Serbian
+    "sl", // Slovenian
+    "sw", // Swahili
+    "ta", // Tamil
+    "te", // Telugu
+    // Good (>10% to ≤20% WER)
+    "af", // Afrikaans
+    "ar", // Arabic
+    "as", // Assamese
+    "my", // Burmese
+    "ha", // Hausa
+    "he", // Hebrew
+    "jv", // Javanese
+    "ko", // Korean
+    "ky", // Kyrgyz
+    "lb", // Luxembourgish
+    "mi", // Māori
+    "oc", // Occitan
+    "pa", // Punjabi
+    "tg", // Tajik
+    "th", // Thai
+    "uz", // Uzbek
+    "cy", // Welsh
+    // Moderate (>25% to ≤50% WER)
+    "am", // Amharic
+    "lg", // Ganda
+    "ig", // Igbo
+    "ga", // Irish
+    "km", // Khmer
+    "ku", // Kurdish
+    "lo", // Lao
+    "mn", // Mongolian
+    "ps", // Pashto
+    "sn", // Shona
+    "sd", // Sindhi
+    "so", // Somali
+    "ur", // Urdu
+    "wo", // Wolof
+    "xh", // Xhosa
+    "yo", // Yoruba
+    "zu", // Zulu
+    // Additional (no WER data)
+    "ff", // Fulah
+    "ln", // Lingala
+    "ny", // Chichewa
 ];
 
 #[derive(Clone, Default)]

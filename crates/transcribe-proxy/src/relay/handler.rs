@@ -11,13 +11,14 @@ use tokio_tungstenite::{
     MaybeTlsStream, WebSocketStream, connect_async, tungstenite::client::IntoClientRequest,
 };
 
+use owhisper_client::Provider;
+
 use super::builder::WebSocketProxyBuilder;
 use super::pending::{FlushError, PendingState, QueuedPayload};
 use super::types::{
     ClientReceiver, ClientSender, ControlMessageTypes, DEFAULT_CLOSE_CODE, FirstMessageTransformer,
     OnCloseCallback, UpstreamReceiver, UpstreamSender, convert, is_control_message,
 };
-use super::upstream_error::detect_upstream_error;
 
 #[derive(Clone)]
 pub struct WebSocketProxy {
@@ -317,16 +318,16 @@ impl WebSocketProxy {
                         TungsteniteMessage::Text(text) => {
                             let text_bytes = text.as_bytes();
 
-                            if let Some(upstream_err) = detect_upstream_error(text_bytes) {
+                            if let Some(upstream_err) = Provider::detect_any_error(text_bytes) {
                                 tracing::warn!(
-                                    error_code = upstream_err.code,
+                                    error_code = upstream_err.http_code,
                                     provider_code = ?upstream_err.provider_code,
                                     error_message = %upstream_err.message,
                                     "upstream_error_detected"
                                 );
 
                                 pending_error = Some((
-                                    upstream_err.to_close_code(),
+                                    upstream_err.to_ws_close_code(),
                                     upstream_err.message.clone(),
                                 ));
                             }

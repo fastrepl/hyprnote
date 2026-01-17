@@ -1,5 +1,5 @@
 import { MDXContent } from "@content-collections/mdx/react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import {
@@ -1852,31 +1852,26 @@ interface CommitInfo {
 
 function GitHistory({ filePath }: { filePath: string }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [commits, setCommits] = useState<CommitInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchHistory = useCallback(async () => {
-    if (!filePath) return;
-    setIsLoading(true);
-    try {
+  const {
+    data: commits = [],
+    isLoading,
+    refetch,
+  } = useQuery<CommitInfo[]>({
+    queryKey: ["gitHistory", filePath],
+    queryFn: async () => {
+      if (!filePath) return [];
       const response = await fetch(
         `/api/admin/content/history?path=${encodeURIComponent(filePath)}`,
       );
-      if (response.ok) {
-        const data = await response.json();
-        setCommits(data.commits || []);
+      if (!response.ok) {
+        throw new Error("Failed to fetch history");
       }
-    } catch {
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filePath]);
-
-  useEffect(() => {
-    if (isExpanded && commits.length === 0) {
-      fetchHistory();
-    }
-  }, [isExpanded, commits.length, fetchHistory]);
+      const data = await response.json();
+      return data.commits || [];
+    },
+    enabled: isExpanded && !!filePath,
+  });
 
   return (
     <div className="border-t border-neutral-200">
@@ -1929,7 +1924,7 @@ function GitHistory({ filePath }: { filePath: string }) {
           )}
           {commits.length > 0 && (
             <button
-              onClick={fetchHistory}
+              onClick={() => refetch()}
               className="text-xs text-neutral-500 hover:text-neutral-700 flex items-center gap-1"
             >
               <RefreshCwIcon className="size-3" />

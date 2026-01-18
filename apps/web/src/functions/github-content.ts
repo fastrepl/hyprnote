@@ -1215,14 +1215,18 @@ export async function publishArticle(
     date?: string;
     category?: string;
   },
+  action: "publish" | "unpublish" = "publish",
 ): Promise<{
   success: boolean;
   prNumber?: number;
   prUrl?: string;
   error?: string;
 }> {
-  const title = `Publish: ${metadata.meta_title || filePath}`;
-  const body = `## Article Ready for Publication
+  const actionLabel = action === "publish" ? "Publish" : "Unpublish";
+  const title = `${actionLabel}: ${metadata.meta_title || filePath}`;
+  const statusText =
+    action === "publish" ? "Ready for Publication" : "To Be Unpublished";
+  const body = `## Article ${statusText}
 
 **Title:** ${metadata.meta_title || "Untitled"}
 **Author:** ${metadata.author || "Unknown"}

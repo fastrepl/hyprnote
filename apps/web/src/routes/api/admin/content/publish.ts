@@ -26,6 +26,7 @@ interface PublishRequest {
   content?: string;
   branch: string;
   metadata: ArticleMetadata;
+  action?: "publish" | "unpublish";
 }
 
 export const Route = createFileRoute("/api/admin/content/publish")({
@@ -53,7 +54,7 @@ export const Route = createFileRoute("/api/admin/content/publish")({
           });
         }
 
-        const { path, content, branch, metadata } = body;
+        const { path, content, branch, metadata, action = "publish" } = body;
 
         if (!path || !branch) {
           return new Response(
@@ -133,7 +134,7 @@ export const Route = createFileRoute("/api/admin/content/publish")({
           if (metadata.author) frontmatterObj.author = metadata.author;
           if (metadata.coverImage)
             frontmatterObj.coverImage = metadata.coverImage;
-          frontmatterObj.published = true;
+          frontmatterObj.published = action === "publish";
           if (metadata.featured !== undefined)
             frontmatterObj.featured = metadata.featured;
           if (metadata.date) frontmatterObj.date = metadata.date;
@@ -158,7 +159,12 @@ export const Route = createFileRoute("/api/admin/content/publish")({
           }
         }
 
-        const result = await publishArticle(path, branch, metadata || {});
+        const result = await publishArticle(
+          path,
+          branch,
+          metadata || {},
+          action,
+        );
 
         if (!result.success) {
           return new Response(JSON.stringify({ error: result.error }), {

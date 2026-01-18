@@ -1,0 +1,5 @@
+{
+  "graphs": {
+    "agent": "./src/agent/index.ts:agent"
+  }
+}

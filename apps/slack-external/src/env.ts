@@ -1,10 +1,10 @@
 import { createEnv } from "@t3-oss/env-core";
-
-import { slackEnvSchema } from "@hypr/slack-utils";
+import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    ...slackEnvSchema,
+    SLACK_BOT_TOKEN: z.string().startsWith("xoxb-"),
+    SLACK_APP_TOKEN: z.string().startsWith("xapp-"),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

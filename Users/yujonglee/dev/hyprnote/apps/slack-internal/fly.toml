@@ -1,0 +1,18 @@
+# fly.toml app configuration file generated for hyprnote-slack-internal on 2026-01-18T13:09:12+09:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'hyprnote-slack-internal'
+primary_region = 'sjc'
+
+[build]
+dockerfile = 'Dockerfile'
+
+[deploy]
+strategy = 'bluegreen'
+
+[[vm]]
+memory = '512mb'
+cpus = 1
+memory_mb = 512

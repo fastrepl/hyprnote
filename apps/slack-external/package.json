@@ -8,7 +8,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@hypr/slack-utils": "workspace:^",
     "@slack/bolt": "^4.6.0",
     "@slack/types": "^2.14.0",
     "@t3-oss/env-core": "^0.13.10",

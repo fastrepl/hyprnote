@@ -62,7 +62,7 @@ function buildFrontmatter(metadata: ArticleMetadata): string {
     lines.push(`coverImage: ${JSON.stringify(metadata.coverImage)}`);
   }
 
-  return `---\n${lines.join("\n")}\n---`;
+  return `---\n${lines.join("\n")}\n---\n`;
 }
 
 interface Base64Image {

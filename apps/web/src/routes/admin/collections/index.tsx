@@ -1225,13 +1225,9 @@ function ContentPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           path: params.path,
+          content: params.content,
           branch: params.branch,
-          metadata: {
-            meta_title: params.metadata.meta_title,
-            author: params.metadata.author,
-            date: params.metadata.date,
-            category: params.metadata.category,
-          },
+          metadata: params.metadata,
         }),
       });
       if (!response.ok) {

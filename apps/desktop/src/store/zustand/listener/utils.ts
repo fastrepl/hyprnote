@@ -4,27 +4,25 @@ function hasKoreanCharacters(text: string): boolean {
   return /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(text);
 }
 
-function transcriptHasSpaces(transcript: string): boolean {
-  return /\s/.test(transcript);
-}
-
 export function fixSpacingForWords(
   words: string[],
   transcript: string,
 ): string[] {
-  const hasSpaces = transcriptHasSpaces(transcript);
   const isKorean = hasKoreanCharacters(transcript);
 
-  if (isKorean && !hasSpaces) {
-    return words.map((word, i) => {
+  // For Korean text, always add spaces between words
+  // Deepgram's Korean transcripts often have inconsistent or missing spacing
+  if (isKorean) {
+    return words.map((word) => {
       const trimmed = word.trim();
       if (!trimmed) {
         return word;
       }
-      return i === 0 ? " " + trimmed : " " + trimmed;
+      return " " + trimmed;
     });
   }
 
+  // For non-Korean text, preserve original spacing from transcript
   const result: string[] = [];
   let pos = 0;
 

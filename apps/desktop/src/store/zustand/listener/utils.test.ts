@@ -39,14 +39,7 @@ describe("fixSpacingForWords", () => {
   test("handles Korean transcript without spaces", () => {
     const transcript = "이거근데딱보니까양이너무부족해";
     const input = ["이거", "근데", "딱보니까", "양이", "너무", "부족해"];
-    const output = [
-      " 이거",
-      " 근데",
-      " 딱보니까",
-      " 양이",
-      " 너무",
-      " 부족해",
-    ];
+    const output = [" 이거", " 근데", " 딱보니까", " 양이", " 너무", " 부족해"];
 
     const actual = fixSpacingForWords(input, transcript);
     expect(actual).toEqual(output);

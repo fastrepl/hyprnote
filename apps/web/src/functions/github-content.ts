@@ -108,10 +108,13 @@ function getDefaultFrontmatter(folder: string): string {
     case "articles":
       return `---
 meta_title: ""
+display_title: ""
 meta_description: ""
 author: "John Jeong"
-date: "${today}"
+featured: false
 published: false
+category: ""
+date: "${today}"
 ---
 
 `;

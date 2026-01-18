@@ -113,8 +113,10 @@ import { Route as ApiAdminImportGoogleDocsRouteImport } from './routes/api/admin
 import { Route as ApiAdminContentSaveRouteImport } from './routes/api/admin/content/save'
 import { Route as ApiAdminContentRenameRouteImport } from './routes/api/admin/content/rename'
 import { Route as ApiAdminContentPublishRouteImport } from './routes/api/admin/content/publish'
+import { Route as ApiAdminContentListDraftsRouteImport } from './routes/api/admin/content/list-drafts'
 import { Route as ApiAdminContentListRouteImport } from './routes/api/admin/content/list'
 import { Route as ApiAdminContentHistoryRouteImport } from './routes/api/admin/content/history'
+import { Route as ApiAdminContentGetBranchFileRouteImport } from './routes/api/admin/content/get-branch-file'
 import { Route as ApiAdminContentDuplicateRouteImport } from './routes/api/admin/content/duplicate'
 import { Route as ApiAdminContentDeleteRouteImport } from './routes/api/admin/content/delete'
 import { Route as ApiAdminContentCreateRouteImport } from './routes/api/admin/content/create'
@@ -651,6 +653,12 @@ const ApiAdminContentPublishRoute = ApiAdminContentPublishRouteImport.update({
   path: '/api/admin/content/publish',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminContentListDraftsRoute =
+  ApiAdminContentListDraftsRouteImport.update({
+    id: '/api/admin/content/list-drafts',
+    path: '/api/admin/content/list-drafts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminContentListRoute = ApiAdminContentListRouteImport.update({
   id: '/api/admin/content/list',
   path: '/api/admin/content/list',
@@ -661,6 +669,12 @@ const ApiAdminContentHistoryRoute = ApiAdminContentHistoryRouteImport.update({
   path: '/api/admin/content/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminContentGetBranchFileRoute =
+  ApiAdminContentGetBranchFileRouteImport.update({
+    id: '/api/admin/content/get-branch-file',
+    path: '/api/admin/content/get-branch-file',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminContentDuplicateRoute =
   ApiAdminContentDuplicateRouteImport.update({
     id: '/api/admin/content/duplicate',
@@ -788,8 +802,10 @@ export interface FileRoutesByFullPath {
   '/api/admin/content/create': typeof ApiAdminContentCreateRoute
   '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
+  '/api/admin/content/get-branch-file': typeof ApiAdminContentGetBranchFileRoute
   '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/list-drafts': typeof ApiAdminContentListDraftsRoute
   '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
@@ -896,8 +912,10 @@ export interface FileRoutesByTo {
   '/api/admin/content/create': typeof ApiAdminContentCreateRoute
   '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
+  '/api/admin/content/get-branch-file': typeof ApiAdminContentGetBranchFileRoute
   '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/list-drafts': typeof ApiAdminContentListDraftsRoute
   '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
@@ -1010,8 +1028,10 @@ export interface FileRoutesById {
   '/api/admin/content/create': typeof ApiAdminContentCreateRoute
   '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
+  '/api/admin/content/get-branch-file': typeof ApiAdminContentGetBranchFileRoute
   '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/list-drafts': typeof ApiAdminContentListDraftsRoute
   '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
@@ -1124,8 +1144,10 @@ export interface FileRouteTypes {
     | '/api/admin/content/create'
     | '/api/admin/content/delete'
     | '/api/admin/content/duplicate'
+    | '/api/admin/content/get-branch-file'
     | '/api/admin/content/history'
     | '/api/admin/content/list'
+    | '/api/admin/content/list-drafts'
     | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
@@ -1232,8 +1254,10 @@ export interface FileRouteTypes {
     | '/api/admin/content/create'
     | '/api/admin/content/delete'
     | '/api/admin/content/duplicate'
+    | '/api/admin/content/get-branch-file'
     | '/api/admin/content/history'
     | '/api/admin/content/list'
+    | '/api/admin/content/list-drafts'
     | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
@@ -1345,8 +1369,10 @@ export interface FileRouteTypes {
     | '/api/admin/content/create'
     | '/api/admin/content/delete'
     | '/api/admin/content/duplicate'
+    | '/api/admin/content/get-branch-file'
     | '/api/admin/content/history'
     | '/api/admin/content/list'
+    | '/api/admin/content/list-drafts'
     | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
@@ -1381,8 +1407,10 @@ export interface RootRouteChildren {
   ApiAdminContentCreateRoute: typeof ApiAdminContentCreateRoute
   ApiAdminContentDeleteRoute: typeof ApiAdminContentDeleteRoute
   ApiAdminContentDuplicateRoute: typeof ApiAdminContentDuplicateRoute
+  ApiAdminContentGetBranchFileRoute: typeof ApiAdminContentGetBranchFileRoute
   ApiAdminContentHistoryRoute: typeof ApiAdminContentHistoryRoute
   ApiAdminContentListRoute: typeof ApiAdminContentListRoute
+  ApiAdminContentListDraftsRoute: typeof ApiAdminContentListDraftsRoute
   ApiAdminContentPublishRoute: typeof ApiAdminContentPublishRoute
   ApiAdminContentRenameRoute: typeof ApiAdminContentRenameRoute
   ApiAdminContentSaveRoute: typeof ApiAdminContentSaveRoute
@@ -2125,6 +2153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminContentPublishRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/content/list-drafts': {
+      id: '/api/admin/content/list-drafts'
+      path: '/api/admin/content/list-drafts'
+      fullPath: '/api/admin/content/list-drafts'
+      preLoaderRoute: typeof ApiAdminContentListDraftsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/content/list': {
       id: '/api/admin/content/list'
       path: '/api/admin/content/list'
@@ -2137,6 +2172,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/content/history'
       fullPath: '/api/admin/content/history'
       preLoaderRoute: typeof ApiAdminContentHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/content/get-branch-file': {
+      id: '/api/admin/content/get-branch-file'
+      path: '/api/admin/content/get-branch-file'
+      fullPath: '/api/admin/content/get-branch-file'
+      preLoaderRoute: typeof ApiAdminContentGetBranchFileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/content/duplicate': {
@@ -2407,8 +2449,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminContentCreateRoute: ApiAdminContentCreateRoute,
   ApiAdminContentDeleteRoute: ApiAdminContentDeleteRoute,
   ApiAdminContentDuplicateRoute: ApiAdminContentDuplicateRoute,
+  ApiAdminContentGetBranchFileRoute: ApiAdminContentGetBranchFileRoute,
   ApiAdminContentHistoryRoute: ApiAdminContentHistoryRoute,
   ApiAdminContentListRoute: ApiAdminContentListRoute,
+  ApiAdminContentListDraftsRoute: ApiAdminContentListDraftsRoute,
   ApiAdminContentPublishRoute: ApiAdminContentPublishRoute,
   ApiAdminContentRenameRoute: ApiAdminContentRenameRoute,
   ApiAdminContentSaveRoute: ApiAdminContentSaveRoute,

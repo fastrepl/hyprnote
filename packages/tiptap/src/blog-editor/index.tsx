@@ -4,11 +4,12 @@ import {
   type Editor as TiptapEditor,
   useEditor,
 } from "@tiptap/react";
-import { forwardRef, useEffect, useMemo } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import { useDebounceCallback } from "usehooks-ts";
 
 import "../../styles.css";
 import * as shared from "../shared";
+import { GoogleDocsImport } from "./google-docs-import";
 
 export type { TiptapEditor };
 
@@ -16,11 +17,20 @@ interface BlogEditorProps {
   content?: string;
   onChange?: (markdown: string) => void;
   editable?: boolean;
+  onGoogleDocsImport?: (url: string) => void;
+  isImporting?: boolean;
 }
 
 const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
   (props, ref) => {
-    const { content = "", onChange, editable = true } = props;
+    const {
+      content = "",
+      onChange,
+      editable = true,
+      onGoogleDocsImport,
+      isImporting,
+    } = props;
+    const [isEmpty, setIsEmpty] = useState(!content || content.trim() === "");
 
     const onUpdate = useDebounceCallback(
       ({ editor }: { editor: TiptapEditor }) => {
@@ -30,6 +40,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
         const json = editor.getJSON();
         const markdown = (editor as any).markdown.serialize(json);
         onChange(markdown);
+        setIsEmpty(editor.isEmpty);
       },
       300,
     );
@@ -44,6 +55,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
         contentType: "markdown",
         onCreate: ({ editor }) => {
           editor.view.dom.setAttribute("spellcheck", "false");
+          setIsEmpty(editor.isEmpty);
         },
         onUpdate,
         immediatelyRender: false,
@@ -64,6 +76,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
         const currentMarkdown = (editor as any).markdown?.serialize(json) || "";
         if (currentMarkdown !== content) {
           editor.commands.setContent(content, { contentType: "markdown" });
+          setIsEmpty(!content || content.trim() === "");
         }
       }
     }, [editor, content]);
@@ -74,12 +87,22 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
       }
     }, [editor, editable]);
 
+    const showImportOverlay = isEmpty && onGoogleDocsImport && editable;
+
     return (
-      <EditorContent
-        editor={editor}
-        className="tiptap-root blog-editor"
-        role="textbox"
-      />
+      <div className="relative">
+        <EditorContent
+          editor={editor}
+          className="tiptap-root blog-editor"
+          role="textbox"
+        />
+        {showImportOverlay && (
+          <GoogleDocsImport
+            onImport={onGoogleDocsImport}
+            isLoading={isImporting}
+          />
+        )}
+      </div>
     );
   },
 );

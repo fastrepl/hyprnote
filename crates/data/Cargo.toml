@@ -9,4 +9,6 @@ serde_json = { workspace = true }
 owhisper-interface = { workspace = true }
 
 [dependencies]
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+unicode-normalization = "0.1"

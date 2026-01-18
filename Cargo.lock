@@ -4434,6 +4434,7 @@ dependencies = [
  "owhisper-interface",
  "serde",
  "serde_json",
+ "unicode-normalization",
 ]
 
 [[package]]

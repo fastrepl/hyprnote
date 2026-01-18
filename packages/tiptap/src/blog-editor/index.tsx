@@ -10,6 +10,7 @@ import { useDebounceCallback } from "usehooks-ts";
 import "../../styles.css";
 import * as shared from "../shared";
 import { GoogleDocsImport } from "./google-docs-import";
+import { Toolbar } from "./toolbar";
 
 export type { TiptapEditor };
 
@@ -20,6 +21,7 @@ interface BlogEditorProps {
   onGoogleDocsImport?: (url: string) => void;
   isImporting?: boolean;
   onImageUpload?: (file: File) => Promise<string>;
+  onAddImageFromLibrary?: () => void;
 }
 
 const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
@@ -31,6 +33,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
       onGoogleDocsImport,
       isImporting,
       onImageUpload,
+      onAddImageFromLibrary,
     } = props;
     const [isEmpty, setIsEmpty] = useState(!content || content.trim() === "");
 
@@ -105,7 +108,10 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
     const showImportOverlay = isEmpty && onGoogleDocsImport && editable;
 
     return (
-      <div className="relative">
+      <div className="relative flex flex-col">
+        {editable && (
+          <Toolbar editor={editor} onAddImage={onAddImageFromLibrary} />
+        )}
         <EditorContent
           editor={editor}
           className="tiptap-root blog-editor"

@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import yaml from "js-yaml";
 
 import { fetchAdminUser } from "@/functions/admin";
 import {

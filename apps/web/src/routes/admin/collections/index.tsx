@@ -1,5 +1,5 @@
 import { MDXContent } from "@content-collections/mdx/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import {
@@ -241,6 +241,8 @@ function getFileExtension(filename: string): string {
 }
 
 function CollectionsPage() {
+  const queryClient = useQueryClient();
+
   const { data: draftArticles = [] } = useQuery({
     queryKey: ["draftArticles"],
     queryFn: async () => {
@@ -286,6 +288,7 @@ function CollectionsPage() {
     },
     onSuccess: () => {
       setEditingItem(null);
+      queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
     },
   });
 

@@ -1,6 +1,7 @@
 import {
-  generateObject,
+  generateText,
   type LanguageModel,
+  Output,
   smoothStream,
   streamText,
 } from "ai";
@@ -141,10 +142,10 @@ async function generateTemplateIfNeeded(params: {
     const userPrompt = await getUserPrompt(args, store);
 
     try {
-      const template = await generateObject({
+      const template = await generateText({
         model,
         temperature: 0,
-        schema,
+        output: Output.object({ schema }),
         abortSignal: signal,
         prompt: `Analyze this meeting content and suggest appropriate section headings for a comprehensive summary. 
   The sections should cover the main themes and topics discussed.
@@ -164,7 +165,7 @@ async function generateTemplateIfNeeded(params: {
   IMPORTANT: Start with '{', NO \`\`\`json. (I will directly parse it with JSON.parse())`,
       });
 
-      return template.object.sections.map((s) => ({
+      return template.output!.sections.map((s) => ({
         title: s.title,
         description: s.description ?? null,
       }));

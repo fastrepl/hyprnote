@@ -35,16 +35,23 @@ export const Route = createFileRoute("/api/admin/content/list-drafts")({
 
         try {
           const branchesResult = await listBlogBranches();
-          if (!branchesResult.success || !branchesResult.branches) {
-            return new Response(JSON.stringify({ drafts: [] }), {
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-            });
+          if (!branchesResult.success) {
+            return new Response(
+              JSON.stringify({
+                error: branchesResult.error || "Failed to list blog branches",
+              }),
+              {
+                status: 500,
+                headers: { "Content-Type": "application/json" },
+              },
+            );
           }
+
+          const branches = branchesResult.branches || [];
 
           const drafts: DraftArticle[] = [];
 
-          for (const branch of branchesResult.branches) {
+          for (const branch of branches) {
             const slugMatch = branch.match(/^blog\/article-(.+)$/);
             if (!slugMatch) continue;
 

@@ -201,14 +201,18 @@ const resolveLLMConnection = (params: {
   };
 };
 
-const wrapWithThinkingMiddleware = (model: Exclude<LanguageModel, string>) => {
+const wrapWithThinkingMiddleware = (
+  model: Exclude<LanguageModel, string>,
+): Exclude<LanguageModel, string> => {
+  // Type cast needed because wrapLanguageModel expects LanguageModelV3 in AI SDK v6
+  // but providers may return LanguageModelV2 | LanguageModelV3
   return wrapLanguageModel({
-    model,
+    model: model as Parameters<typeof wrapLanguageModel>[0]["model"],
     middleware: [
       extractReasoningMiddleware({ tagName: "think" }),
       extractReasoningMiddleware({ tagName: "thinking" }),
     ],
-  });
+  }) as Exclude<LanguageModel, string>;
 };
 
 const createLanguageModel = (

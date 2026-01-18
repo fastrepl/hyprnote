@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import yaml from "js-yaml";
 
 import { fetchAdminUser } from "@/functions/admin";
-import { updateContentFile } from "@/functions/github-content";
+import {
+  updateContentFile,
+  updateContentFileOnBranch,
+} from "@/functions/github-content";
 
 interface ArticleMetadata {
   meta_title?: string;
@@ -20,6 +23,7 @@ interface SaveRequest {
   path: string;
   content: string;
   metadata: ArticleMetadata;
+  branch?: string;
 }
 
 function buildFrontmatter(metadata: ArticleMetadata): string {
@@ -64,7 +68,7 @@ export const Route = createFileRoute("/api/admin/content/save")({
           });
         }
 
-        const { path, content, metadata } = body;
+        const { path, content, metadata, branch } = body;
 
         if (!path || content === undefined || !metadata) {
           return new Response(
@@ -78,7 +82,9 @@ export const Route = createFileRoute("/api/admin/content/save")({
         const frontmatter = buildFrontmatter(metadata);
         const fullContent = `${frontmatter}\n\n${content}`;
 
-        const result = await updateContentFile(path, fullContent);
+        const result = branch
+          ? await updateContentFileOnBranch(path, fullContent, branch)
+          : await updateContentFile(path, fullContent);
 
         if (!result.success) {
           return new Response(JSON.stringify({ error: result.error }), {

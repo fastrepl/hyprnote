@@ -1339,7 +1339,36 @@ export async function getFileContentFromBranch(
     }
 
     const data = await response.json();
-    const content = Buffer.from(data.content, "base64").toString("utf-8");
+
+    let content: string;
+    if (!data.content && data.sha) {
+      const blobResponse = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/git/blobs/${data.sha}`,
+        {
+          headers: {
+            Authorization: `Bearer ${githubToken}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        },
+      );
+
+      if (!blobResponse.ok) {
+        return {
+          success: false,
+          error: `Failed to fetch blob: ${blobResponse.status}`,
+        };
+      }
+
+      const blobData = await blobResponse.json();
+      content = Buffer.from(blobData.content, "base64").toString("utf-8");
+    } else if (data.content) {
+      content = Buffer.from(data.content, "base64").toString("utf-8");
+    } else {
+      return {
+        success: false,
+        error: "File content not available in response",
+      };
+    }
 
     return { success: true, content, sha: data.sha };
   } catch (error) {

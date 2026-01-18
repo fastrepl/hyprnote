@@ -1,6 +1,72 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  CheckCircle2Icon,
+  CircleIcon,
+  Loader2Icon,
+  XCircleIcon,
+} from "lucide-react";
 
 import { sonnerToast as toast } from "@hypr/ui/components/ui/toast";
+
+type FileStatus = "pending" | "uploading" | "done" | "error";
+
+interface FileProgress {
+  name: string;
+  status: FileStatus;
+}
+
+function UploadToast({
+  files,
+  done,
+  error,
+}: {
+  files: FileProgress[];
+  done?: boolean;
+  error?: string;
+}) {
+  const completedCount = files.filter((f) => f.status === "done").length;
+
+  return (
+    <div className="flex flex-col gap-2 p-3">
+      <div className="font-medium text-sm">
+        {error
+          ? "Upload failed"
+          : done
+            ? `Uploaded ${completedCount} file${completedCount !== 1 ? "s" : ""}`
+            : `Uploading ${files.length} file${files.length !== 1 ? "s" : ""}...`}
+      </div>
+      <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
+        {files.map((file, i) => (
+          <div key={i} className="flex items-center gap-2 text-xs">
+            {file.status === "pending" && (
+              <CircleIcon className="size-3 text-neutral-300 shrink-0" />
+            )}
+            {file.status === "uploading" && (
+              <Loader2Icon className="size-3 text-blue-500 animate-spin shrink-0" />
+            )}
+            {file.status === "done" && (
+              <CheckCircle2Icon className="size-3 text-green-500 shrink-0" />
+            )}
+            {file.status === "error" && (
+              <XCircleIcon className="size-3 text-red-500 shrink-0" />
+            )}
+            <span
+              className={[
+                "truncate",
+                file.status === "done"
+                  ? "text-neutral-400"
+                  : "text-neutral-600",
+              ].join(" ")}
+            >
+              {file.name}
+            </span>
+          </div>
+        ))}
+      </div>
+      {error && <div className="text-xs text-red-500"> {error} </div>}
+    </div>
+  );
+}
 
 export interface MediaItem {
   name: string;
@@ -105,19 +171,31 @@ export function useMediaApi({
   const uploadMutation = useMutation({
     mutationFn: async (files: FileList) => {
       const fileArray = Array.from(files);
-      const totalFiles = fileArray.length;
-      const toastId = toast.loading(
-        `Uploading ${totalFiles} file${totalFiles > 1 ? "s" : ""}...`,
-        { description: `0 / ${totalFiles}` },
-      );
+      const fileProgress: FileProgress[] = fileArray.map((f) => ({
+        name: f.name,
+        status: "pending",
+      }));
+
+      const toastId = "upload-toast";
+      const updateToast = (done?: boolean, error?: string) => {
+        toast.custom(
+          () => (
+            <UploadToast files={[...fileProgress]} done={done} error={error} />
+          ),
+          {
+            id: toastId,
+            duration: done || error ? 3000 : Infinity,
+          },
+        );
+      };
+
+      updateToast();
 
       try {
         for (let i = 0; i < fileArray.length; i++) {
           const file = fileArray[i];
-          toast.loading(
-            `Uploading ${totalFiles} file${totalFiles > 1 ? "s" : ""}...`,
-            { id: toastId, description: `${i} / ${totalFiles}` },
-          );
+          fileProgress[i].status = "uploading";
+          updateToast();
 
           const reader = new FileReader();
           const content = await new Promise<string>((resolve, reject) => {
@@ -134,17 +212,23 @@ export function useMediaApi({
             content,
             folder: currentFolderPath,
           });
+
+          fileProgress[i].status = "done";
+          updateToast();
         }
 
-        toast.success(
-          `Uploaded ${totalFiles} file${totalFiles > 1 ? "s" : ""}`,
-          { id: toastId },
-        );
+        updateToast(true);
       } catch (error) {
-        toast.error("Upload failed", {
-          id: toastId,
-          description: error instanceof Error ? error.message : "Unknown error",
-        });
+        const currentIndex = fileProgress.findIndex(
+          (f) => f.status === "uploading",
+        );
+        if (currentIndex !== -1) {
+          fileProgress[currentIndex].status = "error";
+        }
+        updateToast(
+          false,
+          error instanceof Error ? error.message : "Unknown error",
+        );
         throw error;
       }
     },

@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   AlertCircleIcon,
   CheckIcon,
+  ChevronDownIcon,
   ChevronRightIcon,
   CopyIcon,
   DownloadIcon,
@@ -634,6 +635,10 @@ function MediaLibrary() {
             onDeleteSingle={handleDeleteSingle}
             onOpenPreview={(path, name) => openTab("file", name, path)}
             onMove={openMoveModal}
+            onCreateFolder={() => setShowCreateFolderModal(true)}
+            fileInputRef={fileInputRef}
+            createFolderPending={createFolderMutation.isPending}
+            uploadPending={uploadMutation.isPending}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
@@ -968,6 +973,10 @@ function ContentPanel({
   onDeleteSingle,
   onOpenPreview,
   onMove,
+  onCreateFolder,
+  fileInputRef,
+  createFolderPending,
+  uploadPending,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -994,6 +1003,10 @@ function ContentPanel({
   onDeleteSingle: (path: string) => void;
   onOpenPreview: (path: string, name: string) => void;
   onMove: (item: MediaItem) => void;
+  onCreateFolder: () => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  createFolderPending: boolean;
+  uploadPending: boolean;
 }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -1026,6 +1039,10 @@ function ContentPanel({
             onDownload={onDownload}
             onReplace={onReplace}
             onDeleteSingle={onDeleteSingle}
+            onCreateFolder={onCreateFolder}
+            fileInputRef={fileInputRef}
+            createFolderPending={createFolderPending}
+            uploadPending={uploadPending}
           />
 
           <div className="flex-1 min-h-0 overflow-hidden">
@@ -1276,6 +1293,10 @@ function HeaderBar({
   onDownload,
   onReplace,
   onDeleteSingle,
+  onCreateFolder,
+  fileInputRef,
+  createFolderPending,
+  uploadPending,
 }: {
   currentTab: Tab;
   selectedItems: Set<string>;
@@ -1288,8 +1309,14 @@ function HeaderBar({
   onDownload: (publicUrl: string, filename: string) => void;
   onReplace: (file: File, path: string) => void;
   onDeleteSingle: (path: string) => void;
+  onCreateFolder: () => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  createFolderPending: boolean;
+  uploadPending: boolean;
 }) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceFileInputRef = useRef<HTMLInputElement>(null);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
   const breadcrumbs = currentTab.path ? currentTab.path.split("/") : [];
 
   return (
@@ -1321,6 +1348,61 @@ function HeaderBar({
           </span>
         )}
       </div>
+
+      {currentTab.type === "folder" && selectedItems.size === 0 && (
+        <div className="relative">
+          <button
+            ref={addButtonRef}
+            onClick={() => setShowAddMenu(!showAddMenu)}
+            disabled={createFolderPending || uploadPending}
+            className={cn([
+              "h-7 px-3 text-sm font-medium rounded-md flex items-center gap-1.5",
+              "bg-neutral-900 text-white hover:bg-neutral-800",
+              "disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
+            ])}
+          >
+            <PlusIcon className="size-4" />
+            Add
+            <ChevronDownIcon className="size-4" />
+          </button>
+
+          {showAddMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowAddMenu(false)}
+              />
+              <div
+                className={cn([
+                  "absolute top-full right-0 mt-1 z-50 min-w-40 py-1",
+                  "bg-white border border-neutral-200 rounded-xs shadow-lg",
+                ])}
+              >
+                <button
+                  onClick={() => {
+                    setShowAddMenu(false);
+                    fileInputRef.current?.click();
+                  }}
+                  className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+                >
+                  <UploadIcon className="size-4" />
+                  Add File
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAddMenu(false);
+                    onCreateFolder();
+                  }}
+                  className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+                >
+                  <FolderPlusIcon className="size-4" />
+                  Add Folder
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {currentTab.type === "folder" && selectedItems.size > 0 && (
         <div className="flex items-center gap-2">
@@ -1369,7 +1451,7 @@ function HeaderBar({
             <DownloadIcon className="size-4" />
           </button>
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => replaceFileInputRef.current?.click()}
             className="p-1.5 rounded transition-colors text-neutral-400 hover:text-neutral-600"
             title="Replace"
           >
@@ -1383,7 +1465,7 @@ function HeaderBar({
             <Trash2Icon className="size-4" />
           </button>
           <input
-            ref={fileInputRef}
+            ref={replaceFileInputRef}
             type="file"
             accept="image/*,video/*,audio/*"
             className="hidden"

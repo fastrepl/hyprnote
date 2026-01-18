@@ -30,6 +30,7 @@
   "devDependencies": {
     "@langchain/langgraph-cli": "^1.1.11",
     "@types/bun": "^1.3.6",
+    "@types/marked": "^6.0.0",
     "@types/pg": "^8.16.0",
     "typescript": "^5.9.3"
   }

@@ -18,6 +18,7 @@ import {
   ExitBlock,
   ExitBlockSimple,
   InterruptBlock,
+  ProgressBlock,
   ResponseBlock,
   TerminateBlock,
   WelcomeBlock,
@@ -135,7 +136,9 @@ export async function handleAgentMessage(
     const referencedMessages = await fetchReferencedContent(client, rawText);
     const agentInput = buildAgentInput(text, referencedMessages);
 
-    const result = await agent.invoke(agentInput, {
+    let finalResult: unknown;
+
+    for await (const chunk of await agent.stream(agentInput, {
       runId,
       configurable: { thread_id: threadTs },
       metadata: {
@@ -143,10 +146,28 @@ export async function handleAgentMessage(
         slack_user: userId,
       },
       tags: ["slack-internal"],
-    });
+      streamMode: ["values", "custom"],
+    })) {
+      const [mode, data] = chunk as [string, unknown];
 
-    if (isInterrupted(result)) {
-      const interruptData = result.__interrupt__![0].value;
+      if (mode === "custom") {
+        const customData = data as { type: string; name: string; task: string };
+        if (customData.type === "subgraph") {
+          await say({
+            thread_ts: eventTs,
+            blocks: ProgressBlock({
+              name: customData.name,
+              task: customData.task,
+            }),
+          });
+        }
+      } else if (mode === "values") {
+        finalResult = data;
+      }
+    }
+
+    if (isInterrupted(finalResult)) {
+      const interruptData = finalResult.__interrupt__![0].value;
       await say({
         thread_ts: eventTs,
         blocks: InterruptBlock({
@@ -158,7 +179,7 @@ export async function handleAgentMessage(
       return;
     }
 
-    if (isTerminateResponse(result)) {
+    if (isTerminateResponse(finalResult)) {
       await clearThread(threadTs);
       const langsmithUrl = getLangSmithUrl(threadTs);
       await say({
@@ -170,7 +191,7 @@ export async function handleAgentMessage(
 
     await say({
       thread_ts: eventTs,
-      blocks: ResponseBlock(result as string),
+      blocks: ResponseBlock(finalResult as string),
     });
   } catch (error) {
     logger.error("Agent error:", error);

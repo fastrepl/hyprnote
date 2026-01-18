@@ -1,10 +1,12 @@
 import { tool } from "@langchain/core/tools";
+import type { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
 
 import { stripeSpecialist } from "../graphs/stripe";
 
 export const stripeTool = tool(
-  async ({ request }: { request: string }) => {
+  async ({ request }: { request: string }, config: LangGraphRunnableConfig) => {
+    config.writer?.({ type: "subgraph", name: "stripe", task: request });
     return stripeSpecialist.invoke(request);
   },
   {

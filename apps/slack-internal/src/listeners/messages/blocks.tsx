@@ -92,3 +92,19 @@ export function TerminateBlock({
     </Blocks>
   ) as unknown as KnownBlock[];
 }
+
+export function ProgressBlock({
+  name,
+  task,
+}: {
+  name: string;
+  task: string;
+}): KnownBlock[] {
+  return (
+    <Blocks>
+      <Section>
+        :mag: <b>{name}</b>: {task}
+      </Section>
+    </Blocks>
+  ) as unknown as KnownBlock[];
+}

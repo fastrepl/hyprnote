@@ -1,10 +1,12 @@
 import { tool } from "@langchain/core/tools";
+import type { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
 
 import { supabaseSpecialist } from "../graphs/supabase";
 
 export const supabaseTool = tool(
-  async ({ request }: { request: string }) => {
+  async ({ request }: { request: string }, config: LangGraphRunnableConfig) => {
+    config.writer?.({ type: "subgraph", name: "supabase", task: request });
     return supabaseSpecialist.invoke(request);
   },
   {

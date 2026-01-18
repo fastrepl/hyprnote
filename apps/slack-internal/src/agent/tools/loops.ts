@@ -1,10 +1,12 @@
 import { tool } from "@langchain/core/tools";
+import type { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
 
 import { loopsSpecialist } from "../graphs/loops";
 
 export const loopsTool = tool(
-  async ({ request }: { request: string }) => {
+  async ({ request }: { request: string }, config: LangGraphRunnableConfig) => {
+    config.writer?.({ type: "subgraph", name: "loops", task: request });
     return loopsSpecialist.invoke(request);
   },
   {

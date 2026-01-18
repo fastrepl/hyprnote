@@ -1,6 +1,5 @@
 import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
 import type { ToolCall } from "@langchain/core/messages/tool";
-import type { StructuredToolInterface } from "@langchain/core/tools";
 import { entrypoint, task } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 
@@ -8,7 +7,7 @@ import { env } from "../../../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../../prompt";
 import { isRetryableError, type SpecialistConfig } from "../../types";
 import { runAgenticLoop } from "../../utils/loop";
-import { createExecuteCodeTool } from "./tools";
+import { executeCodeTool } from "./tools";
 
 type ModelWithTools = ReturnType<ReturnType<typeof createModel>["bindTools"]>;
 
@@ -21,18 +20,6 @@ function createModel(promptConfig: PromptConfig) {
       apiKey: env.OPENROUTER_API_KEY,
     },
   });
-}
-
-function createModelWithTools(promptConfig: PromptConfig): {
-  model: ModelWithTools;
-  executeTool: StructuredToolInterface;
-} {
-  const model = createModel(promptConfig);
-  const tools = (promptConfig.tools ?? []).map(createExecuteCodeTool);
-  return {
-    model: model.bindTools(tools),
-    executeTool: tools[0]!,
-  };
 }
 
 const invokeModel = task(
@@ -51,13 +38,7 @@ const invokeModel = task(
   },
 );
 
-function createExecuteCodeTaskForTool(executeTool: StructuredToolInterface) {
-  return async (toolCall: ToolCall): Promise<ToolMessage> => {
-    return executeCodeTask({ tool: executeTool, toolCall });
-  };
-}
-
-const executeCodeTask = task(
+const executeCode = task(
   {
     name: "specialist:executeCode",
     retry: {
@@ -65,15 +46,12 @@ const executeCodeTask = task(
       retryOn: isRetryableError,
     },
   },
-  async (params: {
-    tool: StructuredToolInterface;
-    toolCall: ToolCall;
-  }): Promise<ToolMessage> => {
-    const args = params.toolCall.args as { code: string; isMutating: boolean };
-    const result = await params.tool.invoke(args);
+  async (toolCall: ToolCall): Promise<ToolMessage> => {
+    const args = toolCall.args as { code: string; isMutating: boolean };
+    const result = await executeCodeTool.invoke(args);
     return new ToolMessage({
       content: typeof result === "string" ? result : JSON.stringify(result),
-      tool_call_id: params.toolCall.id!,
+      tool_call_id: toolCall.id!,
     });
   },
 );
@@ -90,13 +68,13 @@ export function createSpecialist(config: SpecialistConfig) {
       const { messages: initialMessages, config: promptConfig } =
         await compilePrompt(prompt, { request });
 
-      const { model, executeTool } = createModelWithTools(promptConfig);
+      const model = createModel(promptConfig).bindTools([executeCodeTool]);
 
       const { response } = await runAgenticLoop({
         model,
         messages: initialMessages,
         invokeModel,
-        invokeTool: createExecuteCodeTaskForTool(executeTool),
+        invokeTool: executeCode,
       });
 
       return response.text || "No response";

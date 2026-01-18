@@ -778,6 +778,9 @@ importers:
       loops:
         specifier: ^6.0.1
         version: 6.0.1
+      marked:
+        specifier: ^17.0.1
+        version: 17.0.1
       modal:
         specifier: ^0.6.0
         version: 0.6.0

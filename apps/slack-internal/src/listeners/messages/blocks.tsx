@@ -2,6 +2,8 @@
 import type { KnownBlock } from "@slack/types";
 import { Actions, Blocks, Button, Section } from "jsx-slack";
 
+import { markdownToBlocks } from "../../utils/markdown-to-blocks";
+
 export function ExitBlock(): KnownBlock[] {
   return (
     <Blocks>
@@ -69,7 +71,24 @@ export function InterruptBlock({
 }
 
 export function ResponseBlock(text: string): KnownBlock[] {
-  return [
-    { type: "markdown", text: text || "No response generated." },
-  ] as unknown as KnownBlock[];
+  return markdownToBlocks(text || "No response generated.");
+}
+
+export function TerminateBlock({
+  langsmithUrl,
+}: {
+  langsmithUrl: string | null;
+}): KnownBlock[] {
+  return (
+    <Blocks>
+      <Section>:octagonal_sign: Agent terminated.</Section>
+      {langsmithUrl ? (
+        <Actions>
+          <Button url={langsmithUrl} style="danger">
+            View Traces
+          </Button>
+        </Actions>
+      ) : null}
+    </Blocks>
+  ) as unknown as KnownBlock[];
 }

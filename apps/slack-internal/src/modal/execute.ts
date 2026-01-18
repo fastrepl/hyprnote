@@ -8,15 +8,11 @@ export interface ExecutionResult {
   executionTimeMs: number;
 }
 
-export async function executeCode(
-  code: string,
-  threadId: string,
-): Promise<ExecutionResult> {
+export async function executeCode(code: string): Promise<ExecutionResult> {
   const startTime = Date.now();
+  const sandbox = await sandboxManager.create();
 
   try {
-    const sandbox = await sandboxManager.getOrCreate(threadId);
-
     const process = await sandbox.exec(["bun", "-e", code], {
       stdout: "pipe",
       stderr: "pipe",
@@ -44,5 +40,7 @@ export async function executeCode(
       exitCode: 1,
       executionTimeMs: Date.now() - startTime,
     };
+  } finally {
+    await sandboxManager.release(sandbox);
   }
 }

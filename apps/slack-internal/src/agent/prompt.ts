@@ -15,17 +15,9 @@ export function loadPrompt(dirname: string, name = "prompt"): string {
   return readFileSync(join(dirname, `${name}.promptl`), "utf-8");
 }
 
-export interface ToolSchema {
-  name: string;
-  description: string;
-  parameters: Record<string, { type: string; description: string }>;
-  required?: string[];
-}
-
 export interface PromptConfig {
   model?: string;
   temperature?: number;
-  tools?: ToolSchema[];
   [key: string]: unknown;
 }
 

@@ -10,7 +10,6 @@ import {
 import type { ToolApprovalInterrupt } from "../../agent/types";
 import type { AgentInput } from "../../agent/utils/input";
 import { env } from "../../env";
-import { sandboxManager } from "../../modal/sandbox";
 import {
   fetchReferencedSlackMessages,
   type ReferencedContent,
@@ -20,6 +19,7 @@ import {
   ExitBlockSimple,
   InterruptBlock,
   ResponseBlock,
+  TerminateBlock,
   WelcomeBlock,
 } from "./blocks";
 
@@ -46,6 +46,10 @@ export function shouldIgnoreMessage(text: string): boolean {
 
 function isExitCommand(text: string): boolean {
   return text.trim().toUpperCase() === "EXIT";
+}
+
+function isTerminateResponse(result: unknown): boolean {
+  return typeof result === "string" && result.trim() === "TERMINATE";
 }
 
 function buildAgentInput(
@@ -111,7 +115,6 @@ export async function handleAgentMessage(
   try {
     if (isExitCommand(text)) {
       await clearThread(threadTs);
-      await sandboxManager.release(threadTs);
       await say({
         thread_ts: eventTs,
         blocks: useSimpleExitBlock ? ExitBlockSimple() : ExitBlock(),
@@ -151,6 +154,16 @@ export async function handleAgentMessage(
           toolArgs: interruptData.toolArgs,
           threadTs,
         }),
+      });
+      return;
+    }
+
+    if (isTerminateResponse(result)) {
+      await clearThread(threadTs);
+      const langsmithUrl = getLangSmithUrl(threadTs);
+      await say({
+        thread_ts: eventTs,
+        blocks: TerminateBlock({ langsmithUrl }),
       });
       return;
     }

@@ -866,7 +866,10 @@ export async function createBranch(
   try {
     const baseShaResult = await getBranchSha(baseBranch);
     if (!baseShaResult.success || !baseShaResult.sha) {
-      return { success: false, error: `Failed to get base branch SHA: ${baseShaResult.error}` };
+      return {
+        success: false,
+        error: `Failed to get base branch SHA: ${baseShaResult.error}`,
+      };
     }
 
     const existingBranch = await getBranchSha(branchName);
@@ -912,7 +915,12 @@ export async function createPullRequest(
   base: string,
   title: string,
   body: string,
-): Promise<{ success: boolean; prNumber?: number; prUrl?: string; error?: string }> {
+): Promise<{
+  success: boolean;
+  prNumber?: number;
+  prUrl?: string;
+  error?: string;
+}> {
   if (isDev()) {
     return { success: true, prNumber: 0, prUrl: "" };
   }
@@ -990,7 +998,12 @@ export async function createContentFileOnBranch(
   filename: string,
   content: string = "",
   branchName?: string,
-): Promise<{ success: boolean; path?: string; branch?: string; error?: string }> {
+): Promise<{
+  success: boolean;
+  path?: string;
+  branch?: string;
+  error?: string;
+}> {
   if (!VALID_FOLDERS.includes(folder)) {
     return {
       success: false,
@@ -1020,7 +1033,11 @@ export async function createContentFileOnBranch(
         fs.mkdirSync(dir, { recursive: true });
       }
       fs.writeFileSync(localPath, defaultContent);
-      return { success: true, path: `${folder}/${safeFilename}`, branch: targetBranch };
+      return {
+        success: true,
+        path: `${folder}/${safeFilename}`,
+        branch: targetBranch,
+      };
     } catch (error) {
       return {
         success: false,
@@ -1085,7 +1102,11 @@ export async function createContentFileOnBranch(
       };
     }
 
-    return { success: true, path: `${folder}/${safeFilename}`, branch: targetBranch };
+    return {
+      success: true,
+      path: `${folder}/${safeFilename}`,
+      branch: targetBranch,
+    };
   } catch (error) {
     return {
       success: false,
@@ -1193,7 +1214,12 @@ export async function publishArticle(
     date?: string;
     category?: string;
   },
-): Promise<{ success: boolean; prNumber?: number; prUrl?: string; error?: string }> {
+): Promise<{
+  success: boolean;
+  prNumber?: number;
+  prUrl?: string;
+  error?: string;
+}> {
   const title = `Publish: ${metadata.meta_title || filePath}`;
   const body = `## Article Ready for Publication
 

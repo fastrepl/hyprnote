@@ -64,9 +64,9 @@ export function Toolbar({ editor, onAddImage }: ToolbarProps) {
   const [linkUrl, setLinkUrl] = useState("");
 
   const handleLinkSubmit = useCallback(() => {
-    if (!editor || !linkUrl) return;
+    if (!editor) return;
 
-    if (linkUrl === "") {
+    if (!linkUrl || linkUrl === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
     } else {
       editor

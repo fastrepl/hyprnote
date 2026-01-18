@@ -235,7 +235,7 @@ function BillingButton() {
         plan: "pro",
       });
       const trialEndDate = new Date();
-      trialEndDate.setDate(trialEndDate.getDate() + 7);
+      trialEndDate.setDate(trialEndDate.getDate() + 14);
       void analyticsCommands.setProperties({
         set: {
           plan: "pro",

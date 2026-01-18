@@ -23,6 +23,8 @@ exclude = [
   "apps/k6",
   "apps/pro",
   "apps/restate",
+  "apps/slack-external",
+  "apps/slack-internal",
   "apps/storybook",
   "apps/howto",
   "apps/api",

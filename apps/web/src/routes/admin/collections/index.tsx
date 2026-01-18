@@ -759,7 +759,9 @@ function FileItemSidebar({
       onContextMenu={handleContextMenu}
     >
       <FileTextIcon className="size-4 text-neutral-400 shrink-0" />
-      <span className="truncate text-neutral-600">{item.name}</span>
+      <span className="truncate text-neutral-600">
+        {item.name.replace(/\.mdx$/, "")}
+      </span>
 
       {item.isDraft && (
         <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded shrink-0">
@@ -1333,7 +1335,7 @@ function EditorHeader({
                     : "hover:text-neutral-700 cursor-pointer",
                 ])}
               >
-                {crumb}
+                {crumb.replace(/\.mdx$/, "")}
               </span>
             </span>
           ))}
@@ -1501,7 +1503,7 @@ function TabItem({
           <FileTextIcon className="size-4 text-neutral-400" />
         )}
         <span className={cn(["truncate max-w-30", !tab.pinned && "italic"])}>
-          {tab.name}
+          {tab.name.replace(/\.mdx$/, "")}
         </span>
         <button
           onClick={(e) => {

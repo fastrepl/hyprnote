@@ -1,0 +1,101 @@
+name: Desktop Build
+description: Build the desktop application with all required environment variables
+
+inputs:
+  target:
+    description: "Rust target triple (e.g., x86_64-unknown-linux-gnu, aarch64-apple-darwin)"
+    required: true
+  channel:
+    description: "Release channel (staging, nightly, stable)"
+    required: true
+  bundles:
+    description: "Bundle types to build (e.g., appimage,deb). Leave empty for --no-bundle"
+    required: false
+    default: ""
+  features:
+    description: "Cargo features to enable (e.g., devtools,automation)"
+    required: false
+    default: ""
+  version:
+    description: "App version"
+    required: false
+    default: "0.0.0"
+  github_token:
+    description: "GitHub token"
+    required: true
+  posthog_api_key:
+    description: "PostHog API key (required for release builds)"
+    required: true
+  sentry_dsn:
+    description: "Sentry DSN"
+    required: false
+    default: ""
+  am_api_key:
+    description: "ArgMax API key"
+    required: false
+    default: ""
+  tauri_signing_private_key:
+    description: "Tauri signing private key"
+    required: false
+    default: ""
+  tauri_signing_private_key_password:
+    description: "Tauri signing private key password"
+    required: false
+    default: ""
+  vite_supabase_url:
+    description: "Supabase URL"
+    required: false
+    default: ""
+  vite_supabase_anon_key:
+    description: "Supabase anon key"
+    required: false
+    default: ""
+  vite_pro_product_id:
+    description: "Pro product ID"
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        if [[ -z "${{ inputs.posthog_api_key }}" ]]; then
+          echo "::error::posthog_api_key is required for release builds"
+          exit 1
+        fi
+        if [[ -z "${{ inputs.version }}" || "${{ inputs.version }}" == "0.0.0" ]]; then
+          echo "::warning::version not set, using default 0.0.0"
+        fi
+
+    - shell: bash
+      run: |
+        BUNDLES_FLAG="--no-bundle"
+        if [[ -n "${{ inputs.bundles }}" ]]; then
+          BUNDLES_FLAG="--bundles ${{ inputs.bundles }}"
+        fi
+
+        FEATURES_FLAG=""
+        if [[ -n "${{ inputs.features }}" ]]; then
+          FEATURES_FLAG="--features ${{ inputs.features }}"
+        fi
+
+        TAURI_CONF_PATH="./src-tauri/tauri.conf.${{ inputs.channel }}.json"
+
+        pnpm -F desktop tauri build $BUNDLES_FLAG --target ${{ inputs.target }} --config $TAURI_CONF_PATH $FEATURES_FLAG
+      env:
+        CI: false
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        AM_API_KEY: ${{ inputs.am_api_key }}
+        POSTHOG_API_KEY: ${{ inputs.posthog_api_key }}
+        SENTRY_DSN: ${{ inputs.sentry_dsn }}
+        APP_VERSION: ${{ inputs.version }}
+        TAURI_SIGNING_PRIVATE_KEY: ${{ inputs.tauri_signing_private_key }}
+        TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ inputs.tauri_signing_private_key_password }}
+        VITE_SUPABASE_URL: ${{ inputs.vite_supabase_url }}
+        VITE_SUPABASE_ANON_KEY: ${{ inputs.vite_supabase_anon_key }}
+        VITE_APP_URL: "https://hyprnote.com"
+        VITE_AI_URL: "https://ai.hyprnote.com"
+        VITE_API_URL: "https://api.hyprnote.com"
+        VITE_PRO_PRODUCT_ID: ${{ inputs.vite_pro_product_id }}
+        VITE_APP_VERSION: ${{ inputs.version }}

@@ -35,18 +35,18 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
       },
     });
 
-    const result = agent.stream({
+    const result = await agent.stream({
       messages: await convertToModelMessages(options.messages),
     });
 
     return result.toUIMessageStream({
       originalMessages: options.messages,
-      messageMetadata: ({ part }) => {
+      messageMetadata: ({ part }: { part: { type: string } }) => {
         if (part.type === "start") {
           return { createdAt: Date.now() };
         }
       },
-      onError: (error) => {
+      onError: (error: unknown) => {
         console.error(error);
         return error instanceof Error ? error.message : String(error);
       },

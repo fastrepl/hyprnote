@@ -437,6 +437,7 @@ function ModelSelectItem({
   const { activeDownloads } = useNotifications();
   const downloadInfo = activeDownloads.find((d) => d.model === model.id);
   const isDownloading = !!downloadInfo;
+  const billing = useBillingAccess();
 
   if (model.isDownloaded) {
     return (
@@ -458,6 +459,8 @@ function ModelSelectItem({
       onDownload();
     }
   };
+
+  const cloudButtonLabel = billing.canStartTrial ? "Free Trial" : "Upgrade";
 
   return (
     <div
@@ -493,7 +496,7 @@ function ModelSelectItem({
           ])}
           onClick={handleAction}
         >
-          {isCloud ? "Free Trial" : "Download"}
+          {isCloud ? cloudButtonLabel : "Download"}
         </button>
       )}
     </div>

@@ -20,9 +20,9 @@ export function generateRunId(): string {
   return crypto.randomUUID();
 }
 
-export function getLangSmithUrl(runId: string): string | null {
-  if (!env.LANGSMITH_API_KEY) return null;
-  return `https://smith.langchain.com/o/-/projects/p/${env.LANGSMITH_PROJECT}/r/${runId}`;
+export function getLangSmithUrl(threadId: string): string | null {
+  if (!env.LANGSMITH_API_KEY || !env.LANGSMITH_ORG_ID) return null;
+  return `https://smith.langchain.com/o/${env.LANGSMITH_ORG_ID}/projects/p/${env.LANGSMITH_PROJECT}?peekedConversationId=${threadId}`;
 }
 
 const prompt = loadPrompt(import.meta.dirname);

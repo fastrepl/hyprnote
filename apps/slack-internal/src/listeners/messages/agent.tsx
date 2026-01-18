@@ -75,9 +75,7 @@ export function registerAgentMessage(app: App) {
           thread_ts: event.ts,
           blocks: (
             <Blocks>
-              <Section>
-                :wave: Session ended. Conversation history cleared.
-              </Section>
+              <Section>:wave:</Section>
             </Blocks>
           ) as unknown as KnownBlock[],
         });
@@ -85,15 +83,24 @@ export function registerAgentMessage(app: App) {
       }
 
       const runId = generateRunId();
-      const langsmithUrl = getLangSmithUrl(runId);
+      const isFirstMessage = !event.thread_ts;
+      const langsmithUrl = isFirstMessage ? getLangSmithUrl(threadId) : null;
 
       await say({
         thread_ts: event.ts,
         blocks: (
           <Blocks>
+            <Section>Continue conversation in this thread</Section>
+            {langsmithUrl ? (
+              <Actions>
+                <Button url={langsmithUrl} style="primary">
+                  View Traces
+                </Button>
+              </Actions>
+            ) : null}
             <Section>
-              :thinking_face: Thinking...
-              {langsmithUrl && `\n<${langsmithUrl}|Trace>`}
+              :bulb: Tip: Start your message with `!aside` to have the agent
+              ignore it
             </Section>
           </Blocks>
         ) as unknown as KnownBlock[],
@@ -147,11 +154,9 @@ export function registerAgentMessage(app: App) {
 
       await say({
         thread_ts: event.ts,
-        blocks: (
-          <Blocks>
-            <Section>{result || "No response generated."}</Section>
-          </Blocks>
-        ) as unknown as KnownBlock[],
+        blocks: [
+          { type: "markdown", text: result || "No response generated." },
+        ] as unknown as KnownBlock[],
       });
     } catch (error) {
       logger.error("Agent error:", error);
@@ -211,15 +216,24 @@ export function registerAgentMessage(app: App) {
       }
 
       const runId = generateRunId();
-      const langsmithUrl = getLangSmithUrl(runId);
+      const isFirstMessage = !isThreadReply;
+      const langsmithUrl = isFirstMessage ? getLangSmithUrl(threadTs) : null;
 
       await say({
         thread_ts: threadTs,
         blocks: (
           <Blocks>
+            <Section>Continue conversation in this thread</Section>
+            {langsmithUrl ? (
+              <Actions>
+                <Button url={langsmithUrl} style="primary">
+                  View Traces
+                </Button>
+              </Actions>
+            ) : null}
             <Section>
-              :thinking_face: Thinking...
-              {langsmithUrl && `\n<${langsmithUrl}|Trace>`}
+              :bulb: Tip: Start your message with `!aside` to have the agent
+              ignore it
             </Section>
           </Blocks>
         ) as unknown as KnownBlock[],
@@ -274,11 +288,9 @@ export function registerAgentMessage(app: App) {
 
       await say({
         thread_ts: threadTs,
-        blocks: (
-          <Blocks>
-            <Section>{result || "No response generated."}</Section>
-          </Blocks>
-        ) as unknown as KnownBlock[],
+        blocks: [
+          { type: "markdown", text: result || "No response generated." },
+        ] as unknown as KnownBlock[],
       });
     } catch (error) {
       logger.error("Agent error:", error);

@@ -15,6 +15,7 @@ export const env = createEnv({
     LOOPS_API_KEY: z.string().optional(),
     JINA_API_KEY: z.string().optional(),
     LANGSMITH_API_KEY: z.string().optional(),
+    LANGSMITH_ORG_ID: z.string().optional(),
     LANGSMITH_PROJECT: z.string().optional().default("slack-internal"),
   },
   runtimeEnv: process.env,

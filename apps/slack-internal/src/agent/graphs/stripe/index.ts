@@ -1,8 +1,6 @@
-import { createSubgraph } from "../factory";
+import { createSpecialist } from "../factory";
 
-export const stripeGraph = createSubgraph({
+export const stripeSpecialist = createSpecialist({
   name: "stripe",
-  toolName: "executeStripeCode",
-  toolDescription: "Execute TypeScript/JavaScript code to interact with Stripe",
   promptDir: import.meta.dirname,
 });

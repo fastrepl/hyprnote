@@ -112,6 +112,7 @@ import { Route as ApiAdminImportSaveRouteImport } from './routes/api/admin/impor
 import { Route as ApiAdminImportGoogleDocsRouteImport } from './routes/api/admin/import/google-docs'
 import { Route as ApiAdminContentSaveRouteImport } from './routes/api/admin/content/save'
 import { Route as ApiAdminContentRenameRouteImport } from './routes/api/admin/content/rename'
+import { Route as ApiAdminContentPublishRouteImport } from './routes/api/admin/content/publish'
 import { Route as ApiAdminContentListRouteImport } from './routes/api/admin/content/list'
 import { Route as ApiAdminContentHistoryRouteImport } from './routes/api/admin/content/history'
 import { Route as ApiAdminContentDuplicateRouteImport } from './routes/api/admin/content/duplicate'
@@ -645,6 +646,11 @@ const ApiAdminContentRenameRoute = ApiAdminContentRenameRouteImport.update({
   path: '/api/admin/content/rename',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminContentPublishRoute = ApiAdminContentPublishRouteImport.update({
+  id: '/api/admin/content/publish',
+  path: '/api/admin/content/publish',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminContentListRoute = ApiAdminContentListRouteImport.update({
   id: '/api/admin/content/list',
   path: '/api/admin/content/list',
@@ -784,6 +790,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
   '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
@@ -891,6 +898,7 @@ export interface FileRoutesByTo {
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
   '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
@@ -1004,6 +1012,7 @@ export interface FileRoutesById {
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
   '/api/admin/content/history': typeof ApiAdminContentHistoryRoute
   '/api/admin/content/list': typeof ApiAdminContentListRoute
+  '/api/admin/content/publish': typeof ApiAdminContentPublishRoute
   '/api/admin/content/rename': typeof ApiAdminContentRenameRoute
   '/api/admin/content/save': typeof ApiAdminContentSaveRoute
   '/api/admin/import/google-docs': typeof ApiAdminImportGoogleDocsRoute
@@ -1117,6 +1126,7 @@ export interface FileRouteTypes {
     | '/api/admin/content/duplicate'
     | '/api/admin/content/history'
     | '/api/admin/content/list'
+    | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
     | '/api/admin/import/google-docs'
@@ -1224,6 +1234,7 @@ export interface FileRouteTypes {
     | '/api/admin/content/duplicate'
     | '/api/admin/content/history'
     | '/api/admin/content/list'
+    | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
     | '/api/admin/import/google-docs'
@@ -1336,6 +1347,7 @@ export interface FileRouteTypes {
     | '/api/admin/content/duplicate'
     | '/api/admin/content/history'
     | '/api/admin/content/list'
+    | '/api/admin/content/publish'
     | '/api/admin/content/rename'
     | '/api/admin/content/save'
     | '/api/admin/import/google-docs'
@@ -1371,6 +1383,7 @@ export interface RootRouteChildren {
   ApiAdminContentDuplicateRoute: typeof ApiAdminContentDuplicateRoute
   ApiAdminContentHistoryRoute: typeof ApiAdminContentHistoryRoute
   ApiAdminContentListRoute: typeof ApiAdminContentListRoute
+  ApiAdminContentPublishRoute: typeof ApiAdminContentPublishRoute
   ApiAdminContentRenameRoute: typeof ApiAdminContentRenameRoute
   ApiAdminContentSaveRoute: typeof ApiAdminContentSaveRoute
   ApiAdminImportGoogleDocsRoute: typeof ApiAdminImportGoogleDocsRoute
@@ -2105,6 +2118,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminContentRenameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/content/publish': {
+      id: '/api/admin/content/publish'
+      path: '/api/admin/content/publish'
+      fullPath: '/api/admin/content/publish'
+      preLoaderRoute: typeof ApiAdminContentPublishRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/content/list': {
       id: '/api/admin/content/list'
       path: '/api/admin/content/list'
@@ -2389,6 +2409,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminContentDuplicateRoute: ApiAdminContentDuplicateRoute,
   ApiAdminContentHistoryRoute: ApiAdminContentHistoryRoute,
   ApiAdminContentListRoute: ApiAdminContentListRoute,
+  ApiAdminContentPublishRoute: ApiAdminContentPublishRoute,
   ApiAdminContentRenameRoute: ApiAdminContentRenameRoute,
   ApiAdminContentSaveRoute: ApiAdminContentSaveRoute,
   ApiAdminImportGoogleDocsRoute: ApiAdminImportGoogleDocsRoute,

@@ -1,12 +1,11 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-import { loopsGraph } from "../graphs/loops";
+import { loopsSpecialist } from "../graphs/loops";
 
 export const loopsTool = tool(
   async ({ request }: { request: string }) => {
-    const result = await loopsGraph.invoke(request);
-    return result;
+    return loopsSpecialist.invoke(request);
   },
   {
     name: "loops",

@@ -1,9 +1,6 @@
-import { createSubgraph } from "../factory";
+import { createSpecialist } from "../factory";
 
-export const supabaseGraph = createSubgraph({
+export const supabaseSpecialist = createSpecialist({
   name: "supabase",
-  toolName: "executeSupabaseCode",
-  toolDescription:
-    "Execute TypeScript/JavaScript code to interact with Supabase",
   promptDir: import.meta.dirname,
 });

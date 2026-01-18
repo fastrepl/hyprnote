@@ -12,17 +12,36 @@ export function loadPrompt(dirname: string, name = "prompt"): string {
   return readFileSync(join(dirname, `${name}.promptl`), "utf-8");
 }
 
+export interface ToolSchema {
+  name: string;
+  description: string;
+  parameters: Record<string, { type: string; description: string }>;
+  required?: string[];
+}
+
+export interface PromptConfig {
+  model?: string;
+  temperature?: number;
+  tools?: ToolSchema[];
+  [key: string]: unknown;
+}
+
+export interface CompiledPrompt {
+  messages: BaseMessage[];
+  config: PromptConfig;
+}
+
 export async function compilePrompt(
   prompt: string,
   params: Record<string, unknown> = {},
-): Promise<BaseMessage[]> {
-  const { messages } = await render({
+): Promise<CompiledPrompt> {
+  const { messages, config } = await render({
     prompt,
     parameters: params,
     adapter: Adapters.openai,
   });
 
-  return messages.map((message) => {
+  const baseMessages = messages.map((message) => {
     const content =
       typeof message.content === "string"
         ? message.content
@@ -39,4 +58,6 @@ export async function compilePrompt(
         return new HumanMessage(content);
     }
   });
+
+  return { messages: baseMessages, config: config as PromptConfig };
 }

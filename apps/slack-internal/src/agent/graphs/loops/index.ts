@@ -1,9 +1,6 @@
-import { createSubgraph } from "../factory";
+import { createSpecialist } from "../factory";
 
-export const loopsGraph = createSubgraph({
+export const loopsSpecialist = createSpecialist({
   name: "loops",
-  toolName: "executeLoopsCode",
-  toolDescription:
-    "Execute TypeScript/JavaScript code to interact with Loops.so",
   promptDir: import.meta.dirname,
 });

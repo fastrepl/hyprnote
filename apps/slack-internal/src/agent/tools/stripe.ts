@@ -1,12 +1,11 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-import { stripeGraph } from "../graphs/stripe";
+import { stripeSpecialist } from "../graphs/stripe";
 
 export const stripeTool = tool(
   async ({ request }: { request: string }) => {
-    const result = await stripeGraph.invoke(request);
-    return result;
+    return stripeSpecialist.invoke(request);
   },
   {
     name: "stripe",

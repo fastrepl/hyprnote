@@ -1,12 +1,11 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-import { supabaseGraph } from "../graphs/supabase";
+import { supabaseSpecialist } from "../graphs/supabase";
 
 export const supabaseTool = tool(
   async ({ request }: { request: string }) => {
-    const result = await supabaseGraph.invoke(request);
-    return result;
+    return supabaseSpecialist.invoke(request);
   },
   {
     name: "supabase",

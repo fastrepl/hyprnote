@@ -7,6 +7,7 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
+import { useProSettingsReset } from "../hooks/useProSettingsReset";
 import { useTabs } from "../store/zustand/tabs";
 import { TrialBeginModal } from "./devtool/trial-begin-modal";
 import { TrialExpiredModal } from "./devtool/trial-expired-modal";
@@ -21,13 +22,23 @@ export default function MainAppLayout() {
     <AuthProvider>
       <BillingProvider>
         <NetworkProvider>
-          <Outlet />
-          <TrialBeginModal />
-          <TrialExpiredModal />
-          <FeedbackModal />
+          <MainAppContent />
         </NetworkProvider>
       </BillingProvider>
     </AuthProvider>
+  );
+}
+
+function MainAppContent() {
+  useProSettingsReset();
+
+  return (
+    <>
+      <Outlet />
+      <TrialBeginModal />
+      <TrialExpiredModal />
+      <FeedbackModal />
+    </>
   );
 }
 

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { jwtDecode } from "jwt-decode";
 import {
   createContext,
@@ -7,6 +8,8 @@ import {
   useMemo,
 } from "react";
 
+import { getRpcCanStartTrial } from "@hypr/api-client";
+import { createClient } from "@hypr/api-client/client";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 
 import { useAuth } from "./auth";
@@ -25,6 +28,7 @@ export function getEntitlementsFromToken(accessToken: string): string[] {
 type BillingContextValue = {
   entitlements: string[];
   isPro: boolean;
+  canStartTrial: boolean;
   upgradeToPro: () => void;
 };
 
@@ -47,6 +51,25 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     [entitlements],
   );
 
+  const canTrialQuery = useQuery({
+    enabled: !!auth?.session && !isPro,
+    queryKey: [auth?.session?.user.id ?? "", "canStartTrial"],
+    queryFn: async () => {
+      const headers = auth?.getHeaders();
+      if (!headers) {
+        return false;
+      }
+      const client = createClient({ baseUrl: env.VITE_API_URL, headers });
+      const { data, error } = await getRpcCanStartTrial({ client });
+      if (error) {
+        return false;
+      }
+      return data?.canStartTrial ?? false;
+    },
+  });
+
+  const canStartTrial = isPro ? false : (canTrialQuery.data ?? true);
+
   const upgradeToPro = useCallback(async () => {
     const scheme = await getScheme();
     void openerCommands.openUrl(
@@ -59,9 +82,10 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     () => ({
       entitlements,
       isPro,
+      canStartTrial,
       upgradeToPro,
     }),
-    [entitlements, isPro, upgradeToPro],
+    [entitlements, isPro, canStartTrial, upgradeToPro],
   );
 
   return (

@@ -206,7 +206,7 @@ function HyprProviderRow({ children }: { children: React.ReactNode }) {
 }
 
 function HyprProviderCloudRow() {
-  const { isPro, upgradeToPro } = useBillingAccess();
+  const { isPro, canStartTrial, upgradeToPro } = useBillingAccess();
   const { shouldHighlightDownload } = useSttSettings();
 
   const handleSelectProvider = settings.UI.useSetValueCallback(
@@ -233,6 +233,12 @@ function HyprProviderCloudRow() {
   }, [isPro, upgradeToPro, handleSelectProvider, handleSelectModel]);
 
   const showShimmer = shouldHighlightDownload && !isPro;
+
+  const buttonLabel = isPro
+    ? "Ready to use"
+    : canStartTrial
+      ? "Start Free Trial"
+      : "Upgrade to Pro";
 
   return (
     <HyprProviderRow>
@@ -262,9 +268,7 @@ function HyprProviderCloudRow() {
             ])}
           />
         )}
-        <span className="relative z-10">
-          {isPro ? "Ready to use" : "Start Free Trial"}
-        </span>
+        <span className="relative z-10">{buttonLabel}</span>
       </button>
     </HyprProviderRow>
   );

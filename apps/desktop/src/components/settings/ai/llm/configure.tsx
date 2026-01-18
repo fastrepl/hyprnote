@@ -90,7 +90,7 @@ function ProviderContext({
   providerId: ProviderId;
   highlight?: boolean;
 }) {
-  const { isPro, upgradeToPro } = useBillingAccess();
+  const { isPro, canStartTrial, upgradeToPro } = useBillingAccess();
 
   const content =
     providerId === "hyprnote"
@@ -106,6 +106,8 @@ function ProviderContext({
               : providerId === "google_generative_ai"
                 ? "Visit [AI Studio](https://aistudio.google.com/api-keys) to create an API key."
                 : "";
+
+  const buttonLabel = canStartTrial ? "Start Free Trial" : "Upgrade to Pro";
 
   if (providerId === "hyprnote" && !isPro) {
     return (
@@ -132,7 +134,7 @@ function ProviderContext({
               ])}
             />
           )}
-          <span className="relative">Start Free Trial</span>
+          <span className="relative">{buttonLabel}</span>
         </button>
       </div>
     );

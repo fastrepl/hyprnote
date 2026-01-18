@@ -15,9 +15,11 @@ import {
   MoveIcon,
   PinIcon,
   PinOffIcon,
+  PlusIcon,
   RefreshCwIcon,
   SearchIcon,
   Trash2Icon,
+  UploadIcon,
   XIcon,
 } from "lucide-react";
 import { Reorder } from "motion/react";
@@ -453,10 +455,13 @@ function MediaLibrary() {
   const createFolderMutation = useMutation({
     mutationFn: (params: { name: string; parentFolder: string }) =>
       createFolder(params),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       setShowCreateFolderModal(false);
       queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
-      loadFolderContents(currentTab?.path || "");
+      loadFolderContents(variables.parentFolder);
+      if (variables.parentFolder === "") {
+        setRootLoaded(false);
+      }
     },
   });
 
@@ -593,6 +598,7 @@ function MediaLibrary() {
             onUpload={handleUpload}
             onCreateFolder={() => setShowCreateFolderModal(true)}
             createFolderPending={createFolderMutation.isPending}
+            currentTab={currentTab}
           />
         </ResizablePanel>
         <ResizableHandle />
@@ -665,6 +671,7 @@ function Sidebar({
   onUpload,
   onCreateFolder,
   createFolderPending,
+  currentTab,
 }: {
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -678,6 +685,7 @@ function Sidebar({
   onUpload: (files: FileList) => void;
   onCreateFolder: () => void;
   createFolderPending: boolean;
+  currentTab: Tab | undefined;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { atStart, atEnd } = useScrollFade(scrollRef, "vertical", [
@@ -717,51 +725,125 @@ function Sidebar({
               onOpenFolder={onOpenFolder}
               onOpenFile={onOpenFile}
               onToggle={onToggleNodeExpanded}
+              currentTab={currentTab}
             />
           ))}
         </div>
       </div>
 
-      <div className="p-3 flex flex-col gap-2">
-        <button
-          onClick={onCreateFolder}
-          disabled={createFolderPending}
-          className={cn([
-            "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
-            "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
-            "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
-            "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-xs",
-          ])}
-        >
-          {createFolderPending ? (
-            <Spinner size={14} />
-          ) : (
-            <FolderPlusIcon className="size-4" />
-          )}
-          {createFolderPending ? "Creating..." : "New Folder"}
-        </button>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadPending}
-          className={cn([
-            "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
-            "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
-            "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
-            "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-xs",
-          ])}
-        >
-          {uploadPending && <Spinner size={14} />}
-          {uploadPending ? "Uploading..." : "+ Add"}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*,video/*,audio/*"
-          className="hidden"
-          onChange={(e) => e.target.files && onUpload(e.target.files)}
-        />
-      </div>
+      <AddMenu
+        onCreateFolder={onCreateFolder}
+        createFolderPending={createFolderPending}
+        uploadPending={uploadPending}
+        fileInputRef={fileInputRef}
+        onUpload={onUpload}
+        currentTab={currentTab}
+      />
+    </div>
+  );
+}
+
+function AddMenu({
+  onCreateFolder,
+  createFolderPending,
+  uploadPending,
+  fileInputRef,
+  onUpload,
+  currentTab,
+}: {
+  onCreateFolder: () => void;
+  createFolderPending: boolean;
+  uploadPending: boolean;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onUpload: (files: FileList) => void;
+  currentTab: Tab | undefined;
+}) {
+  const [showMenu, setShowMenu] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const targetPath =
+    currentTab?.type === "folder"
+      ? currentTab.path
+      : currentTab?.path
+        ? currentTab.path.split("/").slice(0, -1).join("/")
+        : "";
+
+  const handleCreateFolder = () => {
+    setShowMenu(false);
+    onCreateFolder();
+  };
+
+  const handleAddFile = () => {
+    setShowMenu(false);
+    fileInputRef.current?.click();
+  };
+
+  const isPending = createFolderPending || uploadPending;
+
+  return (
+    <div className="p-3 relative">
+      <button
+        ref={buttonRef}
+        onClick={() => setShowMenu(!showMenu)}
+        disabled={isPending}
+        className={cn([
+          "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
+          "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
+          "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+          "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-xs",
+        ])}
+      >
+        {isPending ? <Spinner size={14} /> : <PlusIcon className="size-4" />}
+        {createFolderPending
+          ? "Creating..."
+          : uploadPending
+            ? "Uploading..."
+            : "+ Add"}
+      </button>
+
+      {showMenu && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setShowMenu(false)}
+          />
+          <div
+            className={cn([
+              "absolute bottom-full left-3 right-3 mb-2 z-50",
+              "bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden",
+            ])}
+          >
+            {targetPath && (
+              <div className="px-3 py-2 text-xs text-neutral-500 border-b border-neutral-100 bg-neutral-50">
+                Creating in: {targetPath || "Root"}
+              </div>
+            )}
+            <button
+              onClick={handleCreateFolder}
+              className="w-full px-3 py-2.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+            >
+              <FolderPlusIcon className="size-4 text-neutral-500" />
+              Add Folder
+            </button>
+            <button
+              onClick={handleAddFile}
+              className="w-full px-3 py-2.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+            >
+              <UploadIcon className="size-4 text-neutral-500" />
+              Add File
+            </button>
+          </div>
+        </>
+      )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*,video/*,audio/*"
+        className="hidden"
+        onChange={(e) => e.target.files && onUpload(e.target.files)}
+      />
     </div>
   );
 }
@@ -773,6 +855,7 @@ function TreeNodeItem({
   onOpenFolder,
   onOpenFile,
   onToggle,
+  currentTab,
 }: {
   node: TreeNode;
   depth: number;
@@ -780,9 +863,11 @@ function TreeNodeItem({
   onOpenFolder: (path: string, name: string) => void;
   onOpenFile: (path: string, name: string) => void;
   onToggle: (path: string) => Promise<void>;
+  currentTab: Tab | undefined;
 }) {
   const isFolder = node.type === "dir";
   const isLoading = loadingPaths.has(node.path);
+  const isActive = currentTab?.path === node.path;
 
   const handleDoubleClick = () => {
     if (isFolder) {
@@ -804,6 +889,7 @@ function TreeNodeItem({
         className={cn([
           "flex items-center gap-1.5 py-1 pr-2 cursor-pointer text-sm",
           "hover:bg-neutral-100 transition-colors",
+          isActive && "bg-blue-50 text-blue-700",
         ])}
         style={{ paddingLeft: `${depth * 16 + 12}px` }}
         onDoubleClick={handleDoubleClick}
@@ -813,14 +899,36 @@ function TreeNodeItem({
           <Spinner size={14} className="shrink-0" />
         ) : isFolder ? (
           node.expanded ? (
-            <FolderOpenIcon className="size-4 text-neutral-400 shrink-0" />
+            <FolderOpenIcon
+              className={cn([
+                "size-4 shrink-0",
+                isActive ? "text-blue-500" : "text-neutral-400",
+              ])}
+            />
           ) : (
-            <FolderIcon className="size-4 text-neutral-400 shrink-0" />
+            <FolderIcon
+              className={cn([
+                "size-4 shrink-0",
+                isActive ? "text-blue-500" : "text-neutral-400",
+              ])}
+            />
           )
         ) : (
-          <FileIcon className="size-4 text-neutral-400 shrink-0" />
+          <FileIcon
+            className={cn([
+              "size-4 shrink-0",
+              isActive ? "text-blue-500" : "text-neutral-400",
+            ])}
+          />
         )}
-        <span className="truncate text-neutral-700">{node.name}</span>
+        <span
+          className={cn([
+            "truncate",
+            isActive ? "text-blue-700" : "text-neutral-700",
+          ])}
+        >
+          {node.name}
+        </span>
       </div>
       {node.expanded && node.children.length > 0 && (
         <div className="ml-5.5 border-l border-neutral-200">
@@ -833,6 +941,7 @@ function TreeNodeItem({
               onOpenFolder={onOpenFolder}
               onOpenFile={onOpenFile}
               onToggle={onToggle}
+              currentTab={currentTab}
             />
           ))}
         </div>

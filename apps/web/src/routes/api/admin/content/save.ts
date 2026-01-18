@@ -42,7 +42,7 @@ function buildFrontmatter(metadata: ArticleMetadata): string {
   if (metadata.date) obj.date = metadata.date;
   if (metadata.category) obj.category = metadata.category;
 
-  return `---\n${yaml.dump(obj)}---`;
+  return `---\n${yaml.dump(obj, { quotingType: '"', forceQuotes: true, lineWidth: -1 })}---`;
 }
 
 interface Base64Image {

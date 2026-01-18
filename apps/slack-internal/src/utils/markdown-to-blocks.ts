@@ -130,19 +130,23 @@ function listItemToSection(item: Tokens.ListItem): RichTextSection {
 }
 
 // Slack only supports ONE native table block per message.
-function tableToNativeBlock(t: Tokens.Table): KnownBlock {
-  const rows = [
-    t.header
-      .slice(0, TABLE_MAX_COLS)
-      .map((c) => ({ type: "raw_text" as const, text: c.text })),
-    ...t.rows
-      .slice(0, TABLE_MAX_ROWS - 1)
-      .map((row) =>
-        row
-          .slice(0, TABLE_MAX_COLS)
-          .map((c) => ({ type: "raw_text" as const, text: c.text })),
-      ),
-  ];
+function tableToNativeBlock(t: Tokens.Table): KnownBlock | null {
+  const headerRow = t.header
+    .slice(0, TABLE_MAX_COLS)
+    .map((c) => ({ type: "raw_text" as const, text: c.text || " " }));
+
+  if (headerRow.length === 0) return null;
+
+  const dataRows = t.rows
+    .slice(0, TABLE_MAX_ROWS - 1)
+    .map((row) =>
+      row
+        .slice(0, TABLE_MAX_COLS)
+        .map((c) => ({ type: "raw_text" as const, text: c.text || " " })),
+    )
+    .filter((row) => row.length > 0);
+
+  const rows = [headerRow, ...dataRows];
   return { type: "table", rows } as KnownBlock;
 }
 
@@ -260,7 +264,12 @@ export function markdownToBlocks(markdown: string): KnownBlock[] {
       const t = token as Tokens.Table;
       // Slack only supports one native table per message; subsequent tables become preformatted.
       if (!nativeTableBlock) {
-        nativeTableBlock = tableToNativeBlock(t);
+        const table = tableToNativeBlock(t);
+        if (table) {
+          nativeTableBlock = table;
+        } else {
+          blocks.push(tableToPreformatted(t));
+        }
       } else {
         blocks.push(tableToPreformatted(t));
       }

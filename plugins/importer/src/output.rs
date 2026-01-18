@@ -177,23 +177,23 @@ fn insert_sessions(tables: &mut Map<String, Value>, notes: &[ImportedNote], user
             serde_json::to_value(session_value).unwrap(),
         );
 
-        if let Some(enhanced_content) = &note.enhanced_content {
-            if !enhanced_content.is_empty() {
-                let enhanced_note_id = uuid::Uuid::new_v4().to_string();
-                let enhanced_note_value = EnhancedNote {
-                    user_id: user_id.to_string(),
-                    created_at: normalize_datetime(&note.created_at),
-                    session_id: note.id.clone(),
-                    content: enhanced_content.clone(),
-                    template_id: String::new(),
-                    position: 1,
-                    title: "Summary".to_string(),
-                };
-                enhanced_note_entries.insert(
-                    enhanced_note_id,
-                    serde_json::to_value(enhanced_note_value).unwrap(),
-                );
-            }
+        if let Some(enhanced_content) = &note.enhanced_content
+            && !enhanced_content.is_empty()
+        {
+            let enhanced_note_id = uuid::Uuid::new_v4().to_string();
+            let enhanced_note_value = EnhancedNote {
+                user_id: user_id.to_string(),
+                created_at: normalize_datetime(&note.created_at),
+                session_id: note.id.clone(),
+                content: enhanced_content.clone(),
+                template_id: String::new(),
+                position: 1,
+                title: "Summary".to_string(),
+            };
+            enhanced_note_entries.insert(
+                enhanced_note_id,
+                serde_json::to_value(enhanced_note_value).unwrap(),
+            );
         }
     }
 

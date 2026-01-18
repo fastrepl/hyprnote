@@ -123,16 +123,9 @@ pub struct CollectionIndex {
     pub last_commit: std::sync::Mutex<Instant>,
 }
 
+#[derive(Default)]
 pub struct IndexStateInner {
     pub collections: HashMap<String, CollectionIndex>,
-}
-
-impl Default for IndexStateInner {
-    fn default() -> Self {
-        Self {
-            collections: HashMap::new(),
-        }
-    }
 }
 
 pub struct IndexState {

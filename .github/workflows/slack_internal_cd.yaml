@@ -3,7 +3,6 @@ on:
   push:
     paths:
       - "apps/slack-internal/**"
-      - "packages/slack-utils/**"
     branches:
       - main
 

@@ -6,6 +6,7 @@ import { SESSION_META_FILE, SESSION_NOTE_EXTENSION } from "../shared";
 import { getChangedSessionIds, parseSessionIdFromPath } from "./changes";
 import {
   loadAllSessionData,
+  loadAllSessionDataProgressive,
   type LoadedSessionData,
   loadSingleSession,
 } from "./load/index";
@@ -44,6 +45,7 @@ export function createSessionPersister(store: Store) {
       },
     ],
     loadAll: loadAllSessionData,
+    loadAllProgressive: loadAllSessionDataProgressive,
     loadSingle: loadSingleSession,
     save: (store, tables, dataDir, changedTables) => {
       let changedSessionIds: Set<string> | undefined;

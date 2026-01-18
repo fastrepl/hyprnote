@@ -737,7 +737,6 @@ function Sidebar({
         uploadPending={uploadPending}
         fileInputRef={fileInputRef}
         onUpload={onUpload}
-        currentTab={currentTab}
       />
     </div>
   );
@@ -749,24 +748,15 @@ function AddMenu({
   uploadPending,
   fileInputRef,
   onUpload,
-  currentTab,
 }: {
   onCreateFolder: () => void;
   createFolderPending: boolean;
   uploadPending: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onUpload: (files: FileList) => void;
-  currentTab: Tab | undefined;
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-
-  const targetPath =
-    currentTab?.type === "folder"
-      ? currentTab.path
-      : currentTab?.path
-        ? currentTab.path.split("/").slice(0, -1).join("/")
-        : "";
 
   const handleCreateFolder = () => {
     setShowMenu(false);
@@ -784,7 +774,13 @@ function AddMenu({
     <div className="p-3 relative">
       <button
         ref={buttonRef}
-        onClick={() => setShowMenu(!showMenu)}
+        onClick={() => {
+          if (showMenu) {
+            handleAddFile();
+          } else {
+            setShowMenu(true);
+          }
+        }}
         disabled={isPending}
         className={cn([
           "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
@@ -793,12 +789,20 @@ function AddMenu({
           "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-xs",
         ])}
       >
-        {isPending ? <Spinner size={14} /> : <PlusIcon className="size-4" />}
+        {isPending ? (
+          <Spinner size={14} />
+        ) : showMenu ? (
+          <UploadIcon className="size-4" />
+        ) : (
+          <PlusIcon className="size-4" />
+        )}
         {createFolderPending
           ? "Creating..."
           : uploadPending
             ? "Uploading..."
-            : "+ Add"}
+            : showMenu
+              ? "Add File"
+              : "Add"}
       </button>
 
       {showMenu && (
@@ -807,32 +811,18 @@ function AddMenu({
             className="fixed inset-0 z-40"
             onClick={() => setShowMenu(false)}
           />
-          <div
+          <button
+            onClick={handleCreateFolder}
             className={cn([
-              "absolute bottom-full left-3 right-3 mb-2 z-50",
-              "bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden",
+              "absolute bottom-15 left-3 right-3 z-50",
+              "w-auto h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
+              "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
+              "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
             ])}
           >
-            {targetPath && (
-              <div className="px-3 py-2 text-xs text-neutral-500 border-b border-neutral-100 bg-neutral-50">
-                Creating in: {targetPath || "Root"}
-              </div>
-            )}
-            <button
-              onClick={handleCreateFolder}
-              className="w-full px-3 py-2.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
-            >
-              <FolderPlusIcon className="size-4 text-neutral-500" />
-              Add Folder
-            </button>
-            <button
-              onClick={handleAddFile}
-              className="w-full px-3 py-2.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
-            >
-              <UploadIcon className="size-4 text-neutral-500" />
-              Add File
-            </button>
-          </div>
+            <FolderPlusIcon className="size-4" />
+            Add Folder
+          </button>
         </>
       )}
 

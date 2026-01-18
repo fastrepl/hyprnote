@@ -286,11 +286,24 @@ export function useMediaApi({
     },
   });
 
+  const renameMutation = useMutation({
+    mutationFn: (params: { path: string; newName: string }) => {
+      const parts = params.path.split("/");
+      parts[parts.length - 1] = params.newName;
+      const newPath = parts.join("/");
+      return moveFile({ fromPath: params.path, toPath: newPath });
+    },
+    onSuccess: () => {
+      invalidateAndRefresh();
+    },
+  });
+
   return {
     uploadMutation,
     deleteMutation,
     replaceMutation,
     createFolderMutation,
     moveMutation,
+    renameMutation,
   };
 }

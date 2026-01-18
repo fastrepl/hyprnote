@@ -1251,6 +1251,7 @@ function ContentPanel({
             <FileEditor
               ref={fileEditorRef}
               filePath={currentTab.path}
+              branch={currentTab.branch}
               isPreviewMode={isPreviewMode}
               onDataChange={setEditorData}
               onSave={handleSave}
@@ -2139,10 +2140,28 @@ function MetadataSidePanel({
   );
 }
 
+interface BranchFileResponse {
+  success: boolean;
+  content: string;
+  frontmatter: {
+    meta_title?: string;
+    display_title?: string;
+    meta_description?: string;
+    author?: string;
+    date?: string;
+    coverImage?: string;
+    published?: boolean;
+    featured?: boolean;
+    category?: string;
+  };
+  sha: string;
+}
+
 const FileEditor = React.forwardRef<
   { save: () => void },
   {
     filePath: string;
+    branch?: string;
     isPreviewMode: boolean;
     onDataChange: (data: EditorData) => void;
     onSave: () => void;
@@ -2150,10 +2169,58 @@ const FileEditor = React.forwardRef<
     onOpenImport?: () => void;
   }
 >(function FileEditor(
-  { filePath, isPreviewMode, onDataChange, onSave, onOpenImport },
+  { filePath, branch, isPreviewMode, onDataChange, onSave, onOpenImport },
   _ref,
 ) {
-  const fileContent = useMemo(() => getFileContent(filePath), [filePath]);
+  const {
+    data: branchFileData,
+    isLoading: isBranchLoading,
+    error: branchError,
+  } = useQuery({
+    queryKey: ["branchFile", filePath, branch],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        path: `apps/web/content/${filePath}`,
+        branch: branch!,
+      });
+      const response = await fetch(
+        `/api/admin/content/get-branch-file?${params}`,
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to fetch file from branch");
+      }
+      return response.json() as Promise<BranchFileResponse>;
+    },
+    enabled: !!branch,
+    staleTime: 30000,
+  });
+
+  const publishedFileContent = useMemo(
+    () => getFileContent(filePath),
+    [filePath],
+  );
+
+  const fileContent: FileContent | undefined = useMemo(() => {
+    if (branch && branchFileData) {
+      return {
+        content: branchFileData.content,
+        mdx: "",
+        collection: "articles",
+        slug: filePath.replace(/\.mdx$/, "").replace(/^articles\//, ""),
+        meta_title: branchFileData.frontmatter.meta_title,
+        display_title: branchFileData.frontmatter.display_title,
+        meta_description: branchFileData.frontmatter.meta_description,
+        author: branchFileData.frontmatter.author,
+        date: branchFileData.frontmatter.date,
+        coverImage: branchFileData.frontmatter.coverImage,
+        published: branchFileData.frontmatter.published,
+        featured: branchFileData.frontmatter.featured,
+        category: branchFileData.frontmatter.category,
+      };
+    }
+    return publishedFileContent;
+  }, [branch, branchFileData, publishedFileContent, filePath]);
 
   const [content, setContent] = useState(fileContent?.content || "");
   const [metaTitle, setMetaTitle] = useState(fileContent?.meta_title || "");
@@ -2259,6 +2326,33 @@ const FileEditor = React.forwardRef<
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
+
+  if (branch && isBranchLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-neutral-500">
+        <div className="text-center">
+          <Spinner size={32} />
+          <p className="text-sm mt-3">Loading draft...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (branch && branchError) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-neutral-500">
+        <div className="text-center">
+          <FileWarningIcon className="size-10 mb-3" />
+          <p className="text-sm">Failed to load draft</p>
+          <p className="text-xs mt-1 text-neutral-400">
+            {branchError instanceof Error
+              ? branchError.message
+              : "Unknown error"}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!fileContent) {
     return (

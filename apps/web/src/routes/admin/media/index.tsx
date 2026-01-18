@@ -914,6 +914,7 @@ function ContentPanel({
                 onDeleteSingle={onDeleteSingle}
                 onOpenPreview={onOpenPreview}
                 onMove={onMove}
+                uploadPending={uploadPending}
               />
             ) : (
               <FilePreview
@@ -1350,6 +1351,7 @@ function FolderView({
   onDeleteSingle,
   onOpenPreview,
   onMove,
+  uploadPending,
 }: {
   dragOver: boolean;
   onDrop: (e: React.DragEvent) => void;
@@ -1366,14 +1368,26 @@ function FolderView({
   onDeleteSingle: (path: string) => void;
   onOpenPreview: (path: string, name: string) => void;
   onMove: (item: MediaItem) => void;
+  uploadPending: boolean;
 }) {
   return (
     <div
-      className={cn(["h-full overflow-y-auto p-4", dragOver && "bg-blue-50"])}
+      className={cn([
+        "h-full overflow-y-auto p-4 relative",
+        dragOver && "bg-blue-50",
+      ])}
       onDrop={onDrop}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
     >
+      {uploadPending && (
+        <div className="absolute inset-0 bg-white/80 z-10 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <Spinner size={32} />
+            <p className="text-sm font-medium text-neutral-700">Uploading...</p>
+          </div>
+        </div>
+      )}
       {isLoading ? (
         <div className="flex items-center justify-center h-full text-neutral-500">
           <Spinner size={24} className="mr-2" />

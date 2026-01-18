@@ -60,6 +60,7 @@ import {
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
+import { MediaSelectorModal } from "@/components/admin/media-selector-modal";
 import { defaultMDXComponents } from "@/components/mdx";
 import { fetchGitHubCredentials } from "@/functions/admin";
 
@@ -2285,7 +2286,9 @@ const FileEditor = React.forwardRef<
 
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
   const lastSavedContentRef = useRef(fileContent?.content || "");
+  const editorRef = useRef<{ editor: any } | null>(null);
 
   const { mutate: importFromDocs, isPending: isImporting } = useMutation({
     mutationFn: async (url: string) => {
@@ -2360,6 +2363,22 @@ const FileEditor = React.forwardRef<
       reader.onerror = () => reject(reader.error);
       reader.readAsDataURL(file);
     });
+  }, []);
+
+  const handleMediaLibrarySelect = useCallback((publicUrl: string) => {
+    const editor = editorRef.current?.editor;
+    if (editor) {
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: "image",
+          attrs: { src: publicUrl },
+        })
+        .run();
+      setHasUnsavedChanges(true);
+    }
+    setIsMediaSelectorOpen(false);
   }, []);
 
   const getMetadata = useCallback(
@@ -2551,56 +2570,79 @@ const FileEditor = React.forwardRef<
 
   if (isPreviewMode) {
     return (
-      <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
-        <ResizablePanel defaultSize={50} minSize={30}>
-          <div className="flex flex-col h-full">
-            <MetadataPanel
-              isExpanded={isMetadataExpanded}
-              onToggleExpanded={() =>
-                setIsMetadataExpanded(!isMetadataExpanded)
-              }
-              filePath={filePath}
-              handlers={metadataHandlers}
-            />
-            <div className="flex-1 min-h-0 overflow-y-auto p-6">
-              <BlogEditor
-                content={content}
-                onChange={handleContentChange}
-                onGoogleDocsImport={handleGoogleDocsImport}
-                isImporting={isImporting}
-                onImageUpload={handleImageUpload}
+      <>
+        <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
+          <ResizablePanel defaultSize={50} minSize={30}>
+            <div className="flex flex-col h-full">
+              <MetadataPanel
+                isExpanded={isMetadataExpanded}
+                onToggleExpanded={() =>
+                  setIsMetadataExpanded(!isMetadataExpanded)
+                }
+                filePath={filePath}
+                handlers={metadataHandlers}
               />
+              <div className="flex-1 min-h-0 overflow-y-auto p-6">
+                <BlogEditor
+                  ref={editorRef}
+                  content={content}
+                  onChange={handleContentChange}
+                  onGoogleDocsImport={handleGoogleDocsImport}
+                  isImporting={isImporting}
+                  onImageUpload={handleImageUpload}
+                  onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
+                />
+              </div>
             </div>
-          </div>
-        </ResizablePanel>
-        <ResizableHandle className="w-px bg-neutral-200" />
-        <ResizablePanel defaultSize={50} minSize={30}>
-          {renderPreview()}
-        </ResizablePanel>
-      </ResizablePanelGroup>
+          </ResizablePanel>
+          <ResizableHandle className="w-px bg-neutral-200" />
+          <ResizablePanel defaultSize={50} minSize={30}>
+            {renderPreview()}
+          </ResizablePanel>
+        </ResizablePanelGroup>
+
+        <MediaSelectorModal
+          open={isMediaSelectorOpen}
+          onOpenChange={setIsMediaSelectorOpen}
+          onSelect={handleMediaLibrarySelect}
+        />
+      </>
     );
   }
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
-      <ResizablePanel defaultSize={70} minSize={50}>
-        <div className="flex-1 min-h-0 overflow-y-auto p-6 h-full">
-          <BlogEditor
-            content={content}
-            onChange={handleContentChange}
-            onGoogleDocsImport={handleGoogleDocsImport}
-            isImporting={isImporting}
-            onImageUpload={handleImageUpload}
-          />
-        </div>
-      </ResizablePanel>
-      <ResizableHandle className="w-px bg-neutral-200" />
-      <ResizablePanel defaultSize={30} minSize={20}>
-        <div className="h-full overflow-y-auto">
-          <MetadataSidePanel filePath={filePath} handlers={metadataHandlers} />
-        </div>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+    <>
+      <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
+        <ResizablePanel defaultSize={70} minSize={50}>
+          <div className="flex-1 min-h-0 overflow-y-auto p-6 h-full">
+            <BlogEditor
+              ref={editorRef}
+              content={content}
+              onChange={handleContentChange}
+              onGoogleDocsImport={handleGoogleDocsImport}
+              isImporting={isImporting}
+              onImageUpload={handleImageUpload}
+              onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
+            />
+          </div>
+        </ResizablePanel>
+        <ResizableHandle className="w-px bg-neutral-200" />
+        <ResizablePanel defaultSize={30} minSize={20}>
+          <div className="h-full overflow-y-auto">
+            <MetadataSidePanel
+              filePath={filePath}
+              handlers={metadataHandlers}
+            />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+
+      <MediaSelectorModal
+        open={isMediaSelectorOpen}
+        onOpenChange={setIsMediaSelectorOpen}
+        onSelect={handleMediaLibrarySelect}
+      />
+    </>
   );
 });
 

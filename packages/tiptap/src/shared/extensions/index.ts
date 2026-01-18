@@ -67,7 +67,7 @@ export const getExtensions = (
 ) => [
   // https://tiptap.dev/docs/editor/extensions/functionality/starterkit
   StarterKit.configure({
-    heading: { levels: [1, 2, 3] },
+    heading: { levels: [1, 2, 3, 4, 5, 6] },
     underline: false,
     link: false,
     listKeymap: false,

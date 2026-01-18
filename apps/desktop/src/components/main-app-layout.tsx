@@ -7,7 +7,9 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
+import { useProModelAutoConfig } from "../hooks/useProModelAutoConfig";
 import { useProSettingsReset } from "../hooks/useProSettingsReset";
+import { useTrialExpiredModalTrigger } from "../hooks/useTrialExpiredModalTrigger";
 import { useTabs } from "../store/zustand/tabs";
 import { TrialBeginModal } from "./devtool/trial-begin-modal";
 import { TrialExpiredModal } from "./devtool/trial-expired-modal";
@@ -31,6 +33,8 @@ export default function MainAppLayout() {
 
 function MainAppContent() {
   useProSettingsReset();
+  useTrialExpiredModalTrigger();
+  useProModelAutoConfig();
 
   return (
     <>

@@ -120,6 +120,7 @@ import { Route as ApiAdminContentGetBranchFileRouteImport } from './routes/api/a
 import { Route as ApiAdminContentDuplicateRouteImport } from './routes/api/admin/content/duplicate'
 import { Route as ApiAdminContentDeleteRouteImport } from './routes/api/admin/content/delete'
 import { Route as ApiAdminContentCreateRouteImport } from './routes/api/admin/content/create'
+import { Route as ApiAdminBlogUploadImageRouteImport } from './routes/api/admin/blog/upload-image'
 import { Route as ViewIntegrationsCategorySlugRouteImport } from './routes/_view/integrations/$category.$slug'
 import { Route as ViewGalleryTypeSlugRouteImport } from './routes/_view/gallery/$type.$slug'
 
@@ -691,6 +692,11 @@ const ApiAdminContentCreateRoute = ApiAdminContentCreateRouteImport.update({
   path: '/api/admin/content/create',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminBlogUploadImageRoute = ApiAdminBlogUploadImageRouteImport.update({
+  id: '/api/admin/blog/upload-image',
+  path: '/api/admin/blog/upload-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViewIntegrationsCategorySlugRoute =
   ViewIntegrationsCategorySlugRouteImport.update({
     id: '/integrations/$category/$slug',
@@ -799,6 +805,7 @@ export interface FileRoutesByFullPath {
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/blog/upload-image': typeof ApiAdminBlogUploadImageRoute
   '/api/admin/content/create': typeof ApiAdminContentCreateRoute
   '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
@@ -909,6 +916,7 @@ export interface FileRoutesByTo {
   '/admin/media': typeof AdminMediaIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/blog/upload-image': typeof ApiAdminBlogUploadImageRoute
   '/api/admin/content/create': typeof ApiAdminContentCreateRoute
   '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
@@ -1025,6 +1033,7 @@ export interface FileRoutesById {
   '/admin/media/': typeof AdminMediaIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
   '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  '/api/admin/blog/upload-image': typeof ApiAdminBlogUploadImageRoute
   '/api/admin/content/create': typeof ApiAdminContentCreateRoute
   '/api/admin/content/delete': typeof ApiAdminContentDeleteRoute
   '/api/admin/content/duplicate': typeof ApiAdminContentDuplicateRoute
@@ -1141,6 +1150,7 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
+    | '/api/admin/blog/upload-image'
     | '/api/admin/content/create'
     | '/api/admin/content/delete'
     | '/api/admin/content/duplicate'
@@ -1251,6 +1261,7 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/gallery/$type/$slug'
     | '/integrations/$category/$slug'
+    | '/api/admin/blog/upload-image'
     | '/api/admin/content/create'
     | '/api/admin/content/delete'
     | '/api/admin/content/duplicate'
@@ -1366,6 +1377,7 @@ export interface FileRouteTypes {
     | '/admin/media/'
     | '/_view/gallery/$type/$slug'
     | '/_view/integrations/$category/$slug'
+    | '/api/admin/blog/upload-image'
     | '/api/admin/content/create'
     | '/api/admin/content/delete'
     | '/api/admin/content/duplicate'
@@ -1404,6 +1416,7 @@ export interface RootRouteChildren {
   WebhookNangoRoute: typeof WebhookNangoRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
+  ApiAdminBlogUploadImageRoute: typeof ApiAdminBlogUploadImageRoute
   ApiAdminContentCreateRoute: typeof ApiAdminContentCreateRoute
   ApiAdminContentDeleteRoute: typeof ApiAdminContentDeleteRoute
   ApiAdminContentDuplicateRoute: typeof ApiAdminContentDuplicateRoute
@@ -2202,6 +2215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminContentCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/blog/upload-image': {
+      id: '/api/admin/blog/upload-image'
+      path: '/api/admin/blog/upload-image'
+      fullPath: '/api/admin/blog/upload-image'
+      preLoaderRoute: typeof ApiAdminBlogUploadImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_view/integrations/$category/$slug': {
       id: '/_view/integrations/$category/$slug'
       path: '/integrations/$category/$slug'
@@ -2446,6 +2466,7 @@ const rootRouteChildren: RootRouteChildren = {
   WebhookNangoRoute: WebhookNangoRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
+  ApiAdminBlogUploadImageRoute: ApiAdminBlogUploadImageRoute,
   ApiAdminContentCreateRoute: ApiAdminContentCreateRoute,
   ApiAdminContentDeleteRoute: ApiAdminContentDeleteRoute,
   ApiAdminContentDuplicateRoute: ApiAdminContentDuplicateRoute,

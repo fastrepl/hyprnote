@@ -20,6 +20,7 @@ export type { PlaceholderFunction };
 export type FileHandlerConfig = {
   onDrop?: (files: File[], editor: any, position?: number) => boolean | void;
   onPaste?: (files: File[], editor: any) => boolean | void;
+  onImageUpload?: (file: File) => Promise<string>;
 };
 
 const AttachmentResizableImage = ResizableImage.extend({
@@ -155,22 +156,40 @@ export const getExtensions = (
               if (result === false) return false;
             }
 
-            files.forEach((file) => {
-              const fileReader = new FileReader();
+            files.forEach(async (file) => {
+              if (fileHandlerConfig.onImageUpload) {
+                try {
+                  const url = await fileHandlerConfig.onImageUpload(file);
+                  currentEditor
+                    .chain()
+                    .insertContentAt(pos, {
+                      type: "image",
+                      attrs: {
+                        src: url,
+                      },
+                    })
+                    .focus()
+                    .run();
+                } catch (error) {
+                  console.error("Failed to upload image:", error);
+                }
+              } else {
+                const fileReader = new FileReader();
 
-              fileReader.readAsDataURL(file);
-              fileReader.onload = () => {
-                currentEditor
-                  .chain()
-                  .insertContentAt(pos, {
-                    type: "image",
-                    attrs: {
-                      src: fileReader.result,
-                    },
-                  })
-                  .focus()
-                  .run();
-              };
+                fileReader.readAsDataURL(file);
+                fileReader.onload = () => {
+                  currentEditor
+                    .chain()
+                    .insertContentAt(pos, {
+                      type: "image",
+                      attrs: {
+                        src: fileReader.result,
+                      },
+                    })
+                    .focus()
+                    .run();
+                };
+              }
             });
 
             return true;
@@ -181,20 +200,35 @@ export const getExtensions = (
               if (result === false) return false;
             }
 
-            files.forEach((file) => {
-              const fileReader = new FileReader();
+            files.forEach(async (file) => {
+              if (fileHandlerConfig.onImageUpload) {
+                try {
+                  const url = await fileHandlerConfig.onImageUpload(file);
+                  const imageNode = {
+                    type: "image",
+                    attrs: {
+                      src: url,
+                    },
+                  };
+                  currentEditor.chain().focus().insertContent(imageNode).run();
+                } catch (error) {
+                  console.error("Failed to upload image:", error);
+                }
+              } else {
+                const fileReader = new FileReader();
 
-              fileReader.readAsDataURL(file);
-              fileReader.onload = () => {
-                const imageNode = {
-                  type: "image",
-                  attrs: {
-                    src: fileReader.result,
-                  },
+                fileReader.readAsDataURL(file);
+                fileReader.onload = () => {
+                  const imageNode = {
+                    type: "image",
+                    attrs: {
+                      src: fileReader.result,
+                    },
+                  };
+
+                  currentEditor.chain().focus().insertContent(imageNode).run();
                 };
-
-                currentEditor.chain().focus().insertContent(imageNode).run();
-              };
+              }
             });
 
             return true;

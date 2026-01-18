@@ -1219,6 +1219,7 @@ function ContentPanel({
       content: string;
       metadata: ArticleMetadata;
       branch?: string;
+      action?: "publish" | "unpublish";
     }) => {
       if (!params.branch) {
         throw new Error("Cannot publish: no branch specified");
@@ -1228,13 +1229,10 @@ function ContentPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           path: params.path,
+          content: params.content,
           branch: params.branch,
-          metadata: {
-            meta_title: params.metadata.meta_title,
-            author: params.metadata.author,
-            date: params.metadata.date,
-            category: params.metadata.category,
-          },
+          metadata: params.metadata,
+          action: params.action || "publish",
         }),
       });
       if (!response.ok) {
@@ -1268,6 +1266,19 @@ function ContentPanel({
         content: editorData.content,
         metadata: editorData.metadata,
         branch: currentTab.branch,
+        action: "publish",
+      });
+    }
+  }, [currentTab, editorData, publishContent]);
+
+  const handleUnpublish = useCallback(() => {
+    if (currentTab?.type === "file" && editorData) {
+      publishContent({
+        path: currentTab.path,
+        content: editorData.content,
+        metadata: editorData.metadata,
+        branch: currentTab.branch,
+        action: "unpublish",
       });
     }
   }, [currentTab, editorData, publishContent]);
@@ -1296,6 +1307,7 @@ function ContentPanel({
             onSave={handleSave}
             isSaving={isSaving}
             onPublish={handlePublish}
+            onUnpublish={handleUnpublish}
             isPublishing={isPublishing}
             isPublished={currentFileContent?.published}
           />
@@ -1340,6 +1352,7 @@ function EditorHeader({
   onSave,
   isSaving,
   onPublish,
+  onUnpublish,
   isPublishing,
   isPublished,
 }: {
@@ -1356,9 +1369,11 @@ function EditorHeader({
   onSave: () => void;
   isSaving: boolean;
   onPublish: () => void;
+  onUnpublish: () => void;
   isPublishing: boolean;
   isPublished?: boolean;
 }) {
+  const [isHoveringPublish, setIsHoveringPublish] = useState(false);
   const breadcrumbs = currentTab.path.split("/");
 
   return (
@@ -1433,13 +1448,17 @@ function EditorHeader({
             </button>
             <button
               type="button"
-              onClick={onPublish}
-              disabled={isPublishing || isPublished}
+              onClick={isPublished ? onUnpublish : onPublish}
+              disabled={isPublishing}
+              onMouseEnter={() => setIsHoveringPublish(true)}
+              onMouseLeave={() => setIsHoveringPublish(false)}
               className={cn([
                 "px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
-                isPublished
-                  ? "text-white bg-green-600"
-                  : "text-white bg-neutral-900 hover:bg-neutral-800",
+                isPublished && isHoveringPublish
+                  ? "text-white bg-red-600 hover:bg-red-700"
+                  : isPublished
+                    ? "text-white bg-green-600"
+                    : "text-white bg-neutral-900 hover:bg-neutral-800",
                 "disabled:cursor-not-allowed",
               ])}
             >
@@ -1447,6 +1466,11 @@ function EditorHeader({
                 <>
                   <Spinner size={14} color="white" />
                   Publishing
+                </>
+              ) : isPublished && isHoveringPublish ? (
+                <>
+                  <XIcon className="size-4" />
+                  Unpublish
                 </>
               ) : isPublished ? (
                 <>

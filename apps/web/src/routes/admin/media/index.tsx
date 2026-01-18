@@ -1677,7 +1677,10 @@ function FilePreview({ item }: { item: MediaItem | undefined }) {
   const isAudio = item.mimeType?.startsWith("audio/");
 
   return (
-    <div className="h-full flex-1 bg-neutral-50 p-4 flex items-center justify-center overflow-hidden">
+    <div
+      className="h-full flex-1 bg-neutral-50 p-4 flex items-center justify-center overflow-hidden"
+      style={{ backgroundImage: "url(/patterns/dots.svg)" }}
+    >
       {isImage && (
         <img
           src={item.publicUrl}

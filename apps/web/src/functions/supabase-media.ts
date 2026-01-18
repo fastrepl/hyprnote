@@ -190,7 +190,9 @@ export async function deleteMediaFiles(
       return {
         success: false,
         deleted: [],
-        errors: ["Files were not deleted - check storage permissions or file paths"],
+        errors: [
+          "Files were not deleted - check storage permissions or file paths",
+        ],
       };
     }
 

@@ -133,8 +133,7 @@ export const Route = createFileRoute("/api/admin/content/publish")({
           if (metadata.author) frontmatterObj.author = metadata.author;
           if (metadata.coverImage)
             frontmatterObj.coverImage = metadata.coverImage;
-          if (metadata.published !== undefined)
-            frontmatterObj.published = metadata.published;
+          frontmatterObj.published = true;
           if (metadata.featured !== undefined)
             frontmatterObj.featured = metadata.featured;
           if (metadata.date) frontmatterObj.date = metadata.date;

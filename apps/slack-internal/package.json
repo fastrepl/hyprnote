@@ -1,0 +1,22 @@
+{
+  "name": "@hypr/slack-internal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "start": "bun src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@slack/bolt": "^4.6.0",
+    "@slack/types": "^2.14.0",
+    "@t3-oss/env-core": "^0.13.10",
+    "jsx-slack": "^6.1.1",
+    "modal": "^0.6.0",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.6",
+    "typescript": "^5.9.3"
+  }
+}

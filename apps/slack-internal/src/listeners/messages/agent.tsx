@@ -4,9 +4,26 @@ import type { KnownBlock } from "@slack/types";
 import type { WebClient } from "@slack/web-api";
 import { Actions, Blocks, Button, Section } from "jsx-slack";
 
-import { agent, generateRunId, getLangSmithUrl } from "../../agent";
+import {
+  agent,
+  clearThread,
+  generateRunId,
+  getLangSmithUrl,
+} from "../../agent";
 import { env } from "../../env";
 import { fetchReferencedSlackMessages } from "../../utils/slack-message-reader";
+
+function shouldIgnoreMessage(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.startsWith("!aside")) return true;
+  if (/^\(aside\)/i.test(trimmed)) return true;
+  if (/^\(aside\s*\)/i.test(trimmed)) return true;
+  return false;
+}
+
+function isExitCommand(text: string): boolean {
+  return text.trim().toUpperCase() === "EXIT";
+}
 
 interface InterruptValue {
   type: string;
@@ -46,7 +63,24 @@ export function registerAgentMessage(app: App) {
     try {
       const text = event.text.replace(/<@[A-Z0-9]+>/g, "").trim();
 
-      if (!text || text.startsWith("!aside")) {
+      if (!text || shouldIgnoreMessage(text)) {
+        return;
+      }
+
+      const threadId = event.thread_ts ?? event.ts;
+
+      if (isExitCommand(text)) {
+        await clearThread(threadId);
+        await say({
+          thread_ts: event.ts,
+          blocks: (
+            <Blocks>
+              <Section>
+                :wave: Session ended. Conversation history cleared.
+              </Section>
+            </Blocks>
+          ) as unknown as KnownBlock[],
+        });
         return;
       }
 
@@ -71,7 +105,6 @@ export function registerAgentMessage(app: App) {
       );
       const agentInput = buildAgentInput(text, referencedMessages);
 
-      const threadId = event.thread_ts ?? event.ts;
       const result = await agent.invoke(agentInput, {
         runId,
         configurable: { thread_id: threadId },
@@ -136,7 +169,7 @@ export function registerAgentMessage(app: App) {
 
       const text = message.text.trim();
       if (!text) return;
-      if (text.startsWith("!aside")) return;
+      if (shouldIgnoreMessage(text)) return;
 
       const isDM = message.channel_type === "im";
       const isThreadReply = "thread_ts" in message && message.thread_ts;
@@ -161,6 +194,21 @@ export function registerAgentMessage(app: App) {
 
       const threadTs =
         "thread_ts" in message ? (message.thread_ts ?? message.ts) : message.ts;
+
+      if (isExitCommand(text)) {
+        await clearThread(threadTs);
+        await say({
+          thread_ts: threadTs,
+          blocks: (
+            <Blocks>
+              <Section>
+                :wave: Session ended. Conversation history cleared.
+              </Section>
+            </Blocks>
+          ) as unknown as KnownBlock[],
+        });
+        return;
+      }
 
       const runId = generateRunId();
       const langsmithUrl = getLangSmithUrl(runId);

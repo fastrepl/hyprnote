@@ -4,31 +4,23 @@
     "minor_version": 1
   },
   "display_information": {
-    "name": "Hyprnote Code Runner",
-    "description": "Execute code snippets in a secure sandbox",
+    "name": "Hyprnote Internal",
+    "description": "Hyprnote Slack bot for internal usage",
     "background_color": "#1a1a2e"
   },
   "features": {
     "bot_user": {
-      "display_name": "Code Runner",
+      "display_name": "Hyprnote",
       "always_online": true
-    },
-    "slash_commands": [
-      {
-        "command": "/execute",
-        "description": "Execute TypeScript/JavaScript code",
-        "usage_hint": "console.log('Hello, World!')",
-        "should_escape": false
-      }
-    ]
+    }
   },
   "oauth_config": {
     "scopes": {
       "bot": [
+        "app_mentions:read",
         "canvases:read",
         "channels:history",
         "chat:write",
-        "commands",
         "files:read",
         "groups:history",
         "im:history",
@@ -39,6 +31,7 @@
   "settings": {
     "event_subscriptions": {
       "bot_events": [
+        "app_mention",
         "message.channels",
         "message.groups",
         "message.im",

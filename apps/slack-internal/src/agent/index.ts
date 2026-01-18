@@ -42,6 +42,10 @@ export async function setupCheckpointer() {
   await checkpointer.setup();
 }
 
+export async function clearThread(threadId: string): Promise<void> {
+  await checkpointer.deleteThread(threadId);
+}
+
 const callModel = task("callModel", async (messages: BaseMessage[]) => {
   return model.invoke(messages);
 });

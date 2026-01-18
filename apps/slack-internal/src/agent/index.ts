@@ -19,7 +19,7 @@ import {
   isRetryableError,
   type ToolApprovalInterrupt,
 } from "./types";
-import { type AgentInput, parseRequest } from "./utils/input";
+import { type AgentInput, getImages, parseRequest } from "./utils/input";
 import { runAgenticLoop } from "./utils/loop";
 
 process.env.LANGSMITH_TRACING = env.LANGSMITH_API_KEY ? "true" : "false";
@@ -118,11 +118,14 @@ export const agent = entrypoint(
   { checkpointer, name: "agent" },
   async (input: AgentInput) => {
     const request = parseRequest(input);
+    const images = getImages(input);
     const previous = getPreviousState<BaseMessage[]>();
     let messages = previous ?? [];
-    const { messages: promptMessages, config } = await compilePrompt(prompt, {
-      request,
-    });
+    const { messages: promptMessages, config } = await compilePrompt(
+      prompt,
+      { request },
+      images,
+    );
     messages = addMessages(messages, promptMessages);
 
     const model = createModel(config);

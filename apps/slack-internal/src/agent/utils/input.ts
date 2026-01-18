@@ -1,5 +1,17 @@
-export type AgentInput = string | { request?: string };
+export interface ImageContent {
+  base64: string;
+  mimeType: string;
+}
+
+export interface AgentInput {
+  request: string;
+  images?: ImageContent[];
+}
 
 export function parseRequest(input: AgentInput): string {
-  return typeof input === "string" ? input : (input.request ?? "");
+  return input.request;
+}
+
+export function getImages(input: AgentInput): ImageContent[] {
+  return input.images ?? [];
 }

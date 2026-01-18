@@ -12,7 +12,7 @@ export interface FileInfo {
   mimetype: string;
   size: number;
   content?: string;
-  url?: string;
+  base64?: string;
 }
 
 export interface CanvasInfo {
@@ -124,7 +124,19 @@ async function fetchFileContent(
         }
       }
     } else if (file.mimetype?.startsWith("image/")) {
-      fileInfo.url = file.url_private;
+      if (file.url_private) {
+        try {
+          const response = await fetch(file.url_private, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (response.ok) {
+            const arrayBuffer = await response.arrayBuffer();
+            fileInfo.base64 = Buffer.from(arrayBuffer).toString("base64");
+          }
+        } catch {
+          // Failed to fetch image content
+        }
+      }
     }
 
     return fileInfo;
@@ -243,8 +255,8 @@ function formatFileInfo(file: FileInfo): string {
   if (file.content) {
     return `[File: ${file.name} (${file.mimetype})]\n${file.content}`;
   }
-  if (file.url) {
-    return `[Image: ${file.name}] ${file.url}`;
+  if (file.base64) {
+    return `[Image: ${file.name} - included as image attachment]`;
   }
   return `[File: ${file.name} (${file.mimetype}, ${file.size} bytes)]`;
 }
@@ -293,13 +305,47 @@ export function formatThreadContent(thread: ThreadContent): string {
   return parts.join("\n");
 }
 
+export interface ImageAttachment {
+  base64: string;
+  mimeType: string;
+  name: string;
+}
+
+export interface ReferencedContent {
+  text: string;
+  images: ImageAttachment[];
+}
+
+function extractImagesFromThread(thread: ThreadContent): ImageAttachment[] {
+  const images: ImageAttachment[] = [];
+
+  const processMessage = (msg: ProcessedMessage) => {
+    for (const file of msg.files) {
+      if (file.base64 && file.mimetype.startsWith("image/")) {
+        images.push({
+          base64: file.base64,
+          mimeType: file.mimetype,
+          name: file.name,
+        });
+      }
+    }
+  };
+
+  processMessage(thread.parentMessage);
+  for (const reply of thread.replies) {
+    processMessage(reply);
+  }
+
+  return images;
+}
+
 export async function fetchReferencedSlackMessages(
   client: WebClient,
   text: string,
   token: string,
-): Promise<string[]> {
+): Promise<ReferencedContent[]> {
   const links = parseSlackMessageLinks(text);
-  const results: string[] = [];
+  const results: ReferencedContent[] = [];
 
   for (const link of links) {
     const threadTs = link.threadTs || link.ts;
@@ -310,7 +356,10 @@ export async function fetchReferencedSlackMessages(
       token,
     );
     if (thread) {
-      results.push(formatThreadContent(thread));
+      results.push({
+        text: formatThreadContent(thread),
+        images: extractImagesFromThread(thread),
+      });
     }
   }
 

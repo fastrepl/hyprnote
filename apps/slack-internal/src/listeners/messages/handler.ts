@@ -8,8 +8,12 @@ import {
   getLangSmithUrl,
 } from "../../agent";
 import type { ToolApprovalInterrupt } from "../../agent/types";
+import type { AgentInput } from "../../agent/utils/input";
 import { env } from "../../env";
-import { fetchReferencedSlackMessages } from "../../utils/slack-message-reader";
+import {
+  fetchReferencedSlackMessages,
+  type ReferencedContent,
+} from "../../utils/slack-message-reader";
 import {
   ExitBlock,
   ExitBlockSimple,
@@ -43,17 +47,28 @@ function isExitCommand(text: string): boolean {
   return text.trim().toUpperCase() === "EXIT";
 }
 
-function buildAgentInput(text: string, referencedMessages: string[]): string {
-  if (referencedMessages.length === 0) {
-    return text;
+function buildAgentInput(
+  text: string,
+  referencedContent: ReferencedContent[],
+): AgentInput {
+  const images = referencedContent.flatMap((c) =>
+    c.images.map((img) => ({ base64: img.base64, mimeType: img.mimeType })),
+  );
+
+  if (referencedContent.length === 0) {
+    return { request: text, images };
   }
-  return `${text}\n\n--- Referenced Slack Content ---\n${referencedMessages.join("\n\n---\n\n")}`;
+
+  const textParts = referencedContent.map((c) => c.text);
+  const request = `${text}\n\n--- Referenced Slack Content ---\n${textParts.join("\n\n---\n\n")}`;
+
+  return { request, images };
 }
 
 async function fetchReferencedContent(
   client: WebClient,
   text: string,
-): Promise<string[]> {
+): Promise<ReferencedContent[]> {
   return fetchReferencedSlackMessages(client, text, env.SLACK_BOT_TOKEN);
 }
 

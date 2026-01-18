@@ -1,12 +1,15 @@
 import {
   AIMessage,
   type BaseMessage,
+  type ContentBlock,
   HumanMessage,
   SystemMessage,
 } from "@langchain/core/messages";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Adapters, render } from "promptl-ai";
+
+import type { ImageContent } from "./utils/input";
 
 export function loadPrompt(dirname: string, name = "prompt"): string {
   return readFileSync(join(dirname, `${name}.promptl`), "utf-8");
@@ -34,6 +37,7 @@ export interface CompiledPrompt {
 export async function compilePrompt(
   prompt: string,
   params: Record<string, unknown> = {},
+  images: ImageContent[] = [],
 ): Promise<CompiledPrompt> {
   const { messages, config } = await render({
     prompt,
@@ -42,20 +46,35 @@ export async function compilePrompt(
   });
 
   const baseMessages = messages.map((message) => {
-    const content =
+    const textContent =
       typeof message.content === "string"
         ? message.content
         : message.content.map((c) => ("text" in c ? c.text : "")).join("");
 
     switch (message.role) {
       case "system":
-        return new SystemMessage(content);
-      case "user":
-        return new HumanMessage(content);
+        return new SystemMessage(textContent);
+      case "user": {
+        if (images.length > 0) {
+          const content: (ContentBlock.Text | ContentBlock.Multimodal.Image)[] =
+            [
+              { type: "text" as const, text: textContent },
+              ...images.map(
+                (img): ContentBlock.Multimodal.Image => ({
+                  type: "image" as const,
+                  mimeType: img.mimeType,
+                  data: img.base64,
+                }),
+              ),
+            ];
+          return new HumanMessage({ content });
+        }
+        return new HumanMessage(textContent);
+      }
       case "assistant":
-        return new AIMessage(content);
+        return new AIMessage(textContent);
       default:
-        return new HumanMessage(content);
+        return new HumanMessage(textContent);
     }
   });
 

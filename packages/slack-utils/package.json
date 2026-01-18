@@ -1,0 +1,15 @@
+{
+  "name": "@hypr/slack-utils",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@slack/bolt": "^4.6.0",
+    "@t3-oss/env-core": "^0.13.10",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.6",
+    "typescript": "^5.9.3"
+  }
+}

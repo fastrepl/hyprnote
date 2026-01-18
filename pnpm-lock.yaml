@@ -743,8 +743,39 @@ importers:
         specifier: ^4.59.2
         version: 4.59.2(@cloudflare/workers-types@4.20260116.0)
 
+  apps/slack-external:
+    dependencies:
+      '@hypr/slack-utils':
+        specifier: workspace:^
+        version: link:../../packages/slack-utils
+      '@slack/bolt':
+        specifier: ^4.6.0
+        version: 4.6.0(@types/express@5.0.6)
+      '@slack/types':
+        specifier: ^2.14.0
+        version: 2.19.0
+      '@t3-oss/env-core':
+        specifier: ^0.13.10
+        version: 0.13.10(typescript@5.9.3)(zod@4.3.5)
+      jsx-slack:
+        specifier: ^6.1.1
+        version: 6.1.2
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
+    devDependencies:
+      '@types/bun':
+        specifier: ^1.3.6
+        version: 1.3.6
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   apps/slack-internal:
     dependencies:
+      '@hypr/slack-utils':
+        specifier: workspace:^
+        version: link:../../packages/slack-utils
       '@slack/bolt':
         specifier: ^4.6.0
         version: 4.6.0(@types/express@5.0.6)
@@ -1149,6 +1180,25 @@ importers:
       '@hey-api/openapi-ts':
         specifier: ^0.78.3
         version: 0.78.3(typescript@5.9.3)
+
+  packages/slack-utils:
+    dependencies:
+      '@slack/bolt':
+        specifier: ^4.6.0
+        version: 4.6.0(@types/express@5.0.6)
+      '@t3-oss/env-core':
+        specifier: ^0.13.10
+        version: 0.13.10(typescript@5.9.3)(zod@4.3.5)
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
+    devDependencies:
+      '@types/bun':
+        specifier: ^1.3.6
+        version: 1.3.6
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/store:
     dependencies:

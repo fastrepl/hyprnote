@@ -134,7 +134,7 @@ impl DeepgramAdapter {
             LanguageQuality::Good
         } else if MODERATE_LANGS.contains(&code) {
             LanguageQuality::Moderate
-        } else if DeepgramModel::best_for_languages(&[language.clone()]).is_some() {
+        } else if DeepgramModel::best_for_languages(std::slice::from_ref(language)).is_some() {
             LanguageQuality::NoData
         } else {
             LanguageQuality::NotSupported

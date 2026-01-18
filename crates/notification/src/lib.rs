@@ -32,8 +32,7 @@ fn get_context(key: &str) -> NotificationContext {
         .lock()
         .unwrap()
         .remove(key)
-        .map(|(event_id, _)| event_id)
-        .flatten();
+        .and_then(|(event_id, _)| event_id);
     NotificationContext {
         key: key.to_string(),
         event_id,

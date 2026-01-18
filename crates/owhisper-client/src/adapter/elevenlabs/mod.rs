@@ -46,7 +46,7 @@ impl ElevenLabsAdapter {
     }
 
     pub fn language_quality_live(languages: &[hypr_language::Language]) -> LanguageQuality {
-        let qualities = languages.iter().map(|l| Self::single_language_quality(l));
+        let qualities = languages.iter().map(Self::single_language_quality);
         LanguageQuality::min_quality(qualities)
     }
 

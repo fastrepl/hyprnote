@@ -8,19 +8,26 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@langchain/openai": "^0.5.10",
     "@langchain/core": "^1.1.15",
     "@langchain/langgraph": "^1.1.0",
+    "@langchain/langgraph-checkpoint-postgres": "^1.0.0",
+    "@langchain/openai": "^0.5.10",
     "@slack/bolt": "^4.6.0",
     "@slack/types": "^2.14.0",
+    "@slack/web-api": "^7.13.0",
     "@t3-oss/env-core": "^0.13.10",
     "jsx-slack": "^6.1.1",
+    "loops": "^6.0.1",
     "modal": "^0.6.0",
+    "pg": "^8.17.1",
+    "promptl-ai": "^0.4.6",
+    "stripe": "^19.3.1",
     "zod": "^4.3.5"
   },
   "devDependencies": {
     "@langchain/langgraph-cli": "^1.1.11",
     "@types/bun": "^1.3.6",
+    "@types/pg": "^8.16.0",
     "typescript": "^5.9.3"
   }
 }

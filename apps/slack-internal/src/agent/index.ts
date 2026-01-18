@@ -1,19 +1,22 @@
+import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
+import type { ToolCall } from "@langchain/core/messages/tool";
 import {
-  AIMessage,
-  HumanMessage,
-  SystemMessage,
-} from "@langchain/core/messages";
-import {
-  END,
-  MessagesAnnotation,
-  START,
-  StateGraph,
+  addMessages,
+  entrypoint,
+  getPreviousState,
+  interrupt,
+  task,
 } from "@langchain/langgraph";
-import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 import { ChatOpenAI } from "@langchain/openai";
 
 import { env } from "../env";
-import { executeCodeTool } from "./tools/execute-code";
+import { compilePrompt, loadPrompt } from "./prompt";
+import { tools, toolsByName, toolsRequiringApproval } from "./tools";
+
+process.env.LANGSMITH_TRACING = env.LANGSMITH_API_KEY ? "true" : "false";
+
+const prompt = loadPrompt(import.meta.dirname);
 
 const model = new ChatOpenAI({
   model: "anthropic/claude-opus-4.5",
@@ -22,61 +25,72 @@ const model = new ChatOpenAI({
     baseURL: "https://openrouter.ai/api/v1",
     apiKey: env.OPENROUTER_API_KEY,
   },
+}).bindTools(tools);
+
+const checkpointer = PostgresSaver.fromConnString(env.DATABASE_URL);
+
+export async function setupCheckpointer() {
+  await checkpointer.setup();
+}
+
+const callModel = task("callModel", async (messages: BaseMessage[]) => {
+  return model.invoke(messages);
 });
 
-const tools = [executeCodeTool];
-const modelWithTools = model.bindTools(tools);
-const toolNode = new ToolNode(tools);
-
-async function llmCall(state: typeof MessagesAnnotation.State) {
-  const systemMessage = new SystemMessage(
-    "You are a helpful assistant that can execute code. When asked to run or write code, use the executeCode tool.",
-  );
-  const response = await modelWithTools.invoke([
-    systemMessage,
-    ...state.messages,
-  ]);
-  return { messages: [response] };
-}
-
-function shouldContinue(state: typeof MessagesAnnotation.State) {
-  const lastMessage = state.messages.at(-1);
-
-  if (!lastMessage || !(lastMessage instanceof AIMessage)) {
-    return END;
+const callTool = task("callTool", async (toolCall: ToolCall) => {
+  const tool = toolsByName[toolCall.name];
+  if (!tool) {
+    return new ToolMessage({
+      content: `Unknown tool: ${toolCall.name}`,
+      tool_call_id: toolCall.id!,
+    });
   }
 
-  if (lastMessage.tool_calls?.length) {
-    return "tools";
+  if (toolsRequiringApproval.has(toolCall.name)) {
+    const decision = interrupt({
+      type: "tool_approval",
+      toolName: toolCall.name,
+      toolArgs: toolCall.args,
+    }) as { approved: boolean; reason?: string };
+
+    if (!decision.approved) {
+      return new ToolMessage({
+        content: `Tool execution rejected: ${decision.reason ?? "No reason provided"}`,
+        tool_call_id: toolCall.id!,
+      });
+    }
   }
 
-  return END;
-}
-
-export const agent = new StateGraph(MessagesAnnotation)
-  .addNode("llmCall", llmCall)
-  .addNode("tools", toolNode)
-  .addEdge(START, "llmCall")
-  .addConditionalEdges("llmCall", shouldContinue, ["tools", END])
-  .addEdge("tools", "llmCall")
-  .compile();
-
-export async function runAgent(prompt: string) {
-  const result = await agent.invoke({
-    messages: [new HumanMessage(prompt)],
+  const result = await tool.invoke(toolCall.args);
+  return new ToolMessage({
+    content: typeof result === "string" ? result : JSON.stringify(result),
+    tool_call_id: toolCall.id!,
   });
+});
 
-  const lastMessage = result.messages.at(-1);
-  const text =
-    lastMessage instanceof AIMessage
-      ? (lastMessage.content as string)
-      : "No response";
+export const agent = entrypoint(
+  { checkpointer, name: "agent" },
+  async (input: string) => {
+    const previous = getPreviousState<BaseMessage[]>();
+    let messages = previous ?? [];
+    const promptMessages = await compilePrompt(prompt, { request: input });
+    messages = addMessages(messages, promptMessages);
 
-  const steps = result.messages
-    .filter((m): m is AIMessage => m instanceof AIMessage)
-    .map((m) => ({
-      toolCalls: (m.tool_calls ?? []).map((tc) => ({ toolName: tc.name })),
-    }));
+    let response = await callModel(messages);
 
-  return { text, steps };
-}
+    while (response.tool_calls?.length) {
+      const toolResults = await Promise.all(response.tool_calls.map(callTool));
+      messages = addMessages(messages, [response, ...toolResults]);
+      response = await callModel(messages);
+    }
+
+    messages = addMessages(messages, [response]);
+
+    const content =
+      response instanceof AIMessage
+        ? (response.content as string)
+        : "No response";
+
+    return entrypoint.final({ value: content, save: messages });
+  },
+);

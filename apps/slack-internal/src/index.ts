@@ -1,3 +1,4 @@
+import { setupCheckpointer } from "./agent";
 import { app } from "./app";
 import { registerListeners } from "./listeners";
 
@@ -5,6 +6,7 @@ registerListeners(app);
 
 (async () => {
   try {
+    await setupCheckpointer();
     await app.start();
     console.log("Slack Internal app is running!");
   } catch (error) {

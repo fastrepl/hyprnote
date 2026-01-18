@@ -10,6 +10,7 @@ import {
 import type { ToolApprovalInterrupt } from "../../agent/types";
 import type { AgentInput } from "../../agent/utils/input";
 import { env } from "../../env";
+import { sandboxManager } from "../../modal/sandbox";
 import {
   fetchReferencedSlackMessages,
   type ReferencedContent,
@@ -110,6 +111,7 @@ export async function handleAgentMessage(
   try {
     if (isExitCommand(text)) {
       await clearThread(threadTs);
+      await sandboxManager.release(threadTs);
       await say({
         thread_ts: eventTs,
         blocks: useSimpleExitBlock ? ExitBlockSimple() : ExitBlock(),

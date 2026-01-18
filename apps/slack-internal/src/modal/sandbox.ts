@@ -7,6 +7,34 @@ export const REPO_PATH = "/app/hyprnote";
 
 export type BunSandbox = Awaited<ReturnType<typeof createBunSandbox>>;
 
+class SandboxManager {
+  private sandboxes = new Map<string, BunSandbox>();
+
+  async getOrCreate(
+    threadId: string,
+    options?: CreateBunSandboxOptions,
+  ): Promise<BunSandbox> {
+    const existing = this.sandboxes.get(threadId);
+    if (existing) {
+      return existing;
+    }
+
+    const sandbox = await createBunSandbox(options);
+    this.sandboxes.set(threadId, sandbox);
+    return sandbox;
+  }
+
+  async release(threadId: string): Promise<void> {
+    const sandbox = this.sandboxes.get(threadId);
+    if (sandbox) {
+      await terminateSandbox(sandbox);
+      this.sandboxes.delete(threadId);
+    }
+  }
+}
+
+export const sandboxManager = new SandboxManager();
+
 interface CreateBunSandboxOptions {
   timeoutMs?: number;
 }

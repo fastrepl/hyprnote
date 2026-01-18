@@ -4,6 +4,7 @@ import type { ToolCall } from "@langchain/core/messages/tool";
 import {
   addMessages,
   entrypoint,
+  getConfig,
   getPreviousState,
   interrupt,
   task,
@@ -106,7 +107,8 @@ const callTool = task(
       }
     }
 
-    const result = await tool.invoke(toolCall.args);
+    const config = getConfig();
+    const result = await tool.invoke(toolCall.args, config);
     return new ToolMessage({
       content: typeof result === "string" ? result : JSON.stringify(result),
       tool_call_id: toolCall.id!,

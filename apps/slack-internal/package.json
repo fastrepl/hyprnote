@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "npx @langchain/langgraph-cli dev",
     "start": "bun src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "modal:deploy": "npx modal deploy"
   },
   "dependencies": {
     "@langchain/core": "^1.1.15",

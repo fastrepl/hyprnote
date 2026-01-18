@@ -1,4 +1,4 @@
-import { runInSandbox } from "./sandbox";
+import { sandboxManager } from "./sandbox";
 
 export interface ExecutionResult {
   success: boolean;
@@ -8,43 +8,41 @@ export interface ExecutionResult {
   executionTimeMs: number;
 }
 
-export async function executeCode(code: string): Promise<ExecutionResult> {
+export async function executeCode(
+  code: string,
+  threadId: string,
+): Promise<ExecutionResult> {
+  const startTime = Date.now();
+
   try {
-    const result = await runInSandbox(undefined, async (sandbox) => {
-      const process = await sandbox.exec(["bun", "eval", code], {
-        stdout: "pipe",
-        stderr: "pipe",
-      });
+    const sandbox = await sandboxManager.getOrCreate(threadId);
 
-      const [stdout, stderr] = await Promise.all([
-        process.stdout.readText(),
-        process.stderr.readText(),
-      ]);
-
-      const exitCode = await process.wait();
-
-      return {
-        success: exitCode === 0,
-        data: { stdout: stdout.trim(), stderr: stderr.trim(), exitCode },
-      };
+    const process = await sandbox.exec(["bun", "-e", code], {
+      stdout: "pipe",
+      stderr: "pipe",
     });
 
+    const [stdout, stderr] = await Promise.all([
+      process.stdout.readText(),
+      process.stderr.readText(),
+    ]);
+
+    const exitCode = await process.wait();
+
     return {
-      success: result.success,
-      stdout: result.data.stdout,
-      stderr: result.data.stderr,
-      exitCode: result.data.exitCode,
-      executionTimeMs: result.executionTimeMs,
+      success: exitCode === 0,
+      stdout: stdout.trim(),
+      stderr: stderr.trim(),
+      exitCode,
+      executionTimeMs: Date.now() - startTime,
     };
   } catch (error) {
-    const executionTimeMs =
-      (error as { executionTimeMs?: number }).executionTimeMs ?? 0;
     return {
       success: false,
       stdout: "",
       stderr: error instanceof Error ? error.message : String(error),
       exitCode: 1,
-      executionTimeMs,
+      executionTimeMs: Date.now() - startTime,
     };
   }
 }

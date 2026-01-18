@@ -1,19 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
-import {
-  createContentFileOnBranch,
-  createContentFolder,
-} from "@/functions/github-content";
+import { publishArticle } from "@/functions/github-content";
 
-interface CreateRequest {
-  folder: string;
-  name: string;
-  type: "file" | "folder";
-  content?: string;
+interface PublishRequest {
+  path: string;
+  branch: string;
+  metadata: {
+    meta_title?: string;
+    author?: string;
+    date?: string;
+    category?: string;
+  };
 }
 
-export const Route = createFileRoute("/api/admin/content/create")({
+export const Route = createFileRoute("/api/admin/content/publish")({
   server: {
     handlers: {
       POST: async ({ request }) => {
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/api/admin/content/create")({
           }
         }
 
-        let body: CreateRequest;
+        let body: PublishRequest;
         try {
           body = await request.json();
         } catch {
@@ -38,21 +39,18 @@ export const Route = createFileRoute("/api/admin/content/create")({
           });
         }
 
-        const { folder, name, type, content } = body;
+        const { path, branch, metadata } = body;
 
-        if (!folder || !name || !type) {
+        if (!path || !branch) {
           return new Response(
             JSON.stringify({
-              error: "Missing required fields: folder, name, type",
+              error: "Missing required fields: path, branch",
             }),
             { status: 400, headers: { "Content-Type": "application/json" } },
           );
         }
 
-        const result =
-          type === "folder"
-            ? await createContentFolder(folder, name)
-            : await createContentFileOnBranch(folder, name, content);
+        const result = await publishArticle(path, branch, metadata || {});
 
         if (!result.success) {
           return new Response(JSON.stringify({ error: result.error }), {
@@ -64,8 +62,8 @@ export const Route = createFileRoute("/api/admin/content/create")({
         return new Response(
           JSON.stringify({
             success: true,
-            path: result.path,
-            branch: "branch" in result ? result.branch : undefined,
+            prNumber: result.prNumber,
+            prUrl: result.prUrl,
           }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         );

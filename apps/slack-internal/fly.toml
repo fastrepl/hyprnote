@@ -7,6 +7,15 @@ dockerfile = "Dockerfile"
 [deploy]
 strategy = 'bluegreen'
 
+[[services]]
+internal_port = 8080
+protocol = "tcp"
+
+[[services.tcp_checks]]
+interval = "10s"
+timeout = "2s"
+grace_period = "5s"
+
 [[vm]]
 memory = '512mb'
 cpu_kind = 'shared'

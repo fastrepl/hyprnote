@@ -16,6 +16,15 @@ import { tools, toolsByName, toolsRequiringApproval } from "./tools";
 
 process.env.LANGSMITH_TRACING = env.LANGSMITH_API_KEY ? "true" : "false";
 
+export function generateRunId(): string {
+  return crypto.randomUUID();
+}
+
+export function getLangSmithUrl(runId: string): string | null {
+  if (!env.LANGSMITH_API_KEY) return null;
+  return `https://smith.langchain.com/o/-/projects/p/${env.LANGSMITH_PROJECT}/r/${runId}`;
+}
+
 const prompt = loadPrompt(import.meta.dirname);
 
 const model = new ChatOpenAI({

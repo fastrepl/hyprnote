@@ -4,7 +4,7 @@ import type { KnownBlock } from "@slack/types";
 import type { WebClient } from "@slack/web-api";
 import { Actions, Blocks, Button, Section } from "jsx-slack";
 
-import { agent } from "../../agent";
+import { agent, generateRunId, getLangSmithUrl } from "../../agent";
 import { env } from "../../env";
 import { fetchReferencedSlackMessages } from "../../utils/slack-message-reader";
 
@@ -50,11 +50,17 @@ export function registerAgentMessage(app: App) {
         return;
       }
 
+      const runId = generateRunId();
+      const langsmithUrl = getLangSmithUrl(runId);
+
       await say({
         thread_ts: event.ts,
         blocks: (
           <Blocks>
-            <Section>:thinking_face: Thinking...</Section>
+            <Section>
+              :thinking_face: Thinking...
+              {langsmithUrl && `\n<${langsmithUrl}|Trace>`}
+            </Section>
           </Blocks>
         ) as unknown as KnownBlock[],
       });
@@ -67,6 +73,7 @@ export function registerAgentMessage(app: App) {
 
       const threadId = event.thread_ts ?? event.ts;
       const result = await agent.invoke(agentInput, {
+        runId,
         configurable: { thread_id: threadId },
         metadata: {
           slack_channel: event.channel,
@@ -155,11 +162,17 @@ export function registerAgentMessage(app: App) {
       const threadTs =
         "thread_ts" in message ? (message.thread_ts ?? message.ts) : message.ts;
 
+      const runId = generateRunId();
+      const langsmithUrl = getLangSmithUrl(runId);
+
       await say({
         thread_ts: threadTs,
         blocks: (
           <Blocks>
-            <Section>:thinking_face: Thinking...</Section>
+            <Section>
+              :thinking_face: Thinking...
+              {langsmithUrl && `\n<${langsmithUrl}|Trace>`}
+            </Section>
           </Blocks>
         ) as unknown as KnownBlock[],
       });
@@ -172,6 +185,7 @@ export function registerAgentMessage(app: App) {
 
       const userId = "user" in message ? message.user : undefined;
       const result = await agent.invoke(agentInput, {
+        runId,
         configurable: { thread_id: threadTs },
         metadata: {
           slack_channel: message.channel,

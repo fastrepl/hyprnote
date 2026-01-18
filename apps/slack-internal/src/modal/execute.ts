@@ -1,4 +1,4 @@
-import { createBunSandbox, terminateSandbox } from "./sandbox";
+import { runInSandbox } from "./sandbox";
 
 export interface ExecutionResult {
   success: boolean;
@@ -9,34 +9,36 @@ export interface ExecutionResult {
 }
 
 export async function executeCode(code: string): Promise<ExecutionResult> {
-  const startTime = Date.now();
-  let sandbox: Awaited<ReturnType<typeof createBunSandbox>> | null = null;
-
   try {
-    sandbox = await createBunSandbox();
+    const result = await runInSandbox(undefined, async (sandbox) => {
+      const process = await sandbox.exec(["bun", "eval", code], {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
 
-    const process = await sandbox.exec(["bun", "eval", code], {
-      stdout: "pipe",
-      stderr: "pipe",
+      const [stdout, stderr] = await Promise.all([
+        process.stdout.readText(),
+        process.stderr.readText(),
+      ]);
+
+      const exitCode = await process.wait();
+
+      return {
+        success: exitCode === 0,
+        data: { stdout: stdout.trim(), stderr: stderr.trim(), exitCode },
+      };
     });
 
-    const [stdout, stderr] = await Promise.all([
-      process.stdout.readText(),
-      process.stderr.readText(),
-    ]);
-
-    const exitCode = await process.wait();
-    const executionTimeMs = Date.now() - startTime;
-
     return {
-      success: exitCode === 0,
-      stdout: stdout.trim(),
-      stderr: stderr.trim(),
-      exitCode,
-      executionTimeMs,
+      success: result.success,
+      stdout: result.data.stdout,
+      stderr: result.data.stderr,
+      exitCode: result.data.exitCode,
+      executionTimeMs: result.executionTimeMs,
     };
   } catch (error) {
-    const executionTimeMs = Date.now() - startTime;
+    const executionTimeMs =
+      (error as { executionTimeMs?: number }).executionTimeMs ?? 0;
     return {
       success: false,
       stdout: "",
@@ -44,9 +46,5 @@ export async function executeCode(code: string): Promise<ExecutionResult> {
       exitCode: 1,
       executionTimeMs,
     };
-  } finally {
-    if (sandbox) {
-      await terminateSandbox(sandbox);
-    }
   }
 }

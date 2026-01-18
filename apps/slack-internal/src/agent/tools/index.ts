@@ -6,6 +6,7 @@ import { readSlackMessageTool } from "./read-slack-message";
 import { readUrlTool } from "./read-url";
 import { stripeTool } from "./stripe";
 import { supabaseTool } from "./supabase";
+import { understandHyprnoteRepoTool } from "./understand-hyprnote-repo";
 
 export const tools = [
   executeCodeTool,
@@ -14,6 +15,7 @@ export const tools = [
   readUrlTool,
   stripeTool,
   supabaseTool,
+  understandHyprnoteRepoTool,
 ];
 
 export const toolsByName: Record<string, StructuredToolInterface> =

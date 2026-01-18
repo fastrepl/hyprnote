@@ -2,9 +2,16 @@ import { env } from "../env";
 import { getModalClient } from "./client";
 
 const APP_NAME = "hypr-slack-internal";
-const SANDBOX_TIMEOUT_MS = 60 * 1000;
+const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+export const REPO_PATH = "/app/hyprnote";
 
-export async function createBunSandbox() {
+export type BunSandbox = Awaited<ReturnType<typeof createBunSandbox>>;
+
+interface CreateBunSandboxOptions {
+  timeoutMs?: number;
+}
+
+export async function createBunSandbox(options?: CreateBunSandboxOptions) {
   const modal = getModalClient();
 
   const app = await modal.apps.fromName(APP_NAME, {
@@ -14,31 +21,79 @@ export async function createBunSandbox() {
   const image = modal.images
     .fromRegistry("oven/bun:1.1-alpine")
     .dockerfileCommands([
-      "RUN apk add --no-cache curl git",
+      "RUN apk add --no-cache curl git bash",
+      "RUN curl -fsSL https://claude.ai/install.sh | bash",
       "WORKDIR /app",
       "RUN bun add stripe @supabase/supabase-js loops pg",
     ]);
 
   const sandbox = await modal.sandboxes.create(app, image, {
-    timeoutMs: SANDBOX_TIMEOUT_MS,
+    timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     env: {
       STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY,
       SUPABASE_URL: env.SUPABASE_URL,
       SUPABASE_SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY,
       DATABASE_URL: env.DATABASE_URL,
+      ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
       ...(env.LOOPS_API_KEY && { LOOPS_API_KEY: env.LOOPS_API_KEY }),
     },
   });
 
+  const cloneProcess = await sandbox.exec(
+    [
+      "git",
+      "clone",
+      "--depth",
+      "1",
+      "https://github.com/fastrepl/hyprnote.git",
+      REPO_PATH,
+    ],
+    { stdout: "pipe", stderr: "pipe" },
+  );
+  await cloneProcess.wait();
+
   return sandbox;
 }
 
-export async function terminateSandbox(
-  sandbox: Awaited<ReturnType<typeof createBunSandbox>>,
-) {
+export async function terminateSandbox(sandbox: BunSandbox) {
   try {
     await sandbox.terminate();
   } catch (error) {
     console.error("Failed to terminate sandbox:", error);
+  }
+}
+
+export interface SandboxRunResult<T> {
+  success: boolean;
+  data: T;
+  executionTimeMs: number;
+}
+
+export async function runInSandbox<T>(
+  options: CreateBunSandboxOptions | undefined,
+  fn: (sandbox: BunSandbox) => Promise<{ success: boolean; data: T }>,
+): Promise<SandboxRunResult<T>> {
+  const startTime = Date.now();
+  let sandbox: BunSandbox | null = null;
+
+  try {
+    sandbox = await createBunSandbox(options);
+    const result = await fn(sandbox);
+    return {
+      success: result.success,
+      data: result.data,
+      executionTimeMs: Date.now() - startTime,
+    };
+  } catch (error) {
+    throw Object.assign(
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        executionTimeMs: Date.now() - startTime,
+      },
+    );
+  } finally {
+    if (sandbox) {
+      await terminateSandbox(sandbox);
+    }
   }
 }

@@ -17,6 +17,7 @@ export const env = createEnv({
     LANGSMITH_API_KEY: z.string().optional(),
     LANGSMITH_ORG_ID: z.string().optional(),
     LANGSMITH_PROJECT: z.string().optional().default("slack-internal"),
+    ANTHROPIC_API_KEY: z.string(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

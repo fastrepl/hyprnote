@@ -5,6 +5,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 
+import { Toaster } from "@hypr/ui/components/ui/toast";
+
 import { NotFoundDocument } from "@/components/not-found";
 import appCss from "@/styles.css?url";
 
@@ -75,6 +77,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster position="bottom-right" />
         <Scripts />
       </body>
     </html>

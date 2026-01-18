@@ -165,7 +165,11 @@ async function generateTemplateIfNeeded(params: {
   IMPORTANT: Start with '{', NO \`\`\`json. (I will directly parse it with JSON.parse())`,
       });
 
-      return template.output!.sections.map((s) => ({
+      if (!template.output) {
+        return null;
+      }
+
+      return template.output.sections.map((s) => ({
         title: s.title,
         description: s.description ?? null,
       }));

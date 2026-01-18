@@ -1,5 +1,5 @@
 {
-  "name": "@hypr/slack-internal",
+  "name": "@hypr/slack-external",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,7 +13,6 @@
     "@slack/types": "^2.14.0",
     "@t3-oss/env-core": "^0.13.10",
     "jsx-slack": "^6.1.1",
-    "modal": "^0.6.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {

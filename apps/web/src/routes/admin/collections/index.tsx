@@ -68,6 +68,19 @@ interface ContentItem {
   slug: string;
   type: "file";
   collection: string;
+  branch?: string;
+  isDraft?: boolean;
+}
+
+interface DraftArticle {
+  name: string;
+  path: string;
+  slug: string;
+  branch: string;
+  meta_title?: string;
+  author?: string;
+  date?: string;
+  published?: boolean;
 }
 
 interface CollectionInfo {
@@ -81,6 +94,7 @@ interface Tab {
   type: "collection" | "file";
   name: string;
   path: string;
+  branch?: string;
   pinned: boolean;
   active: boolean;
 }
@@ -160,22 +174,39 @@ function getFileContent(path: string): FileContent | undefined {
   };
 }
 
-function getCollections(): CollectionInfo[] {
+function getCollections(draftArticles: DraftArticle[] = []): CollectionInfo[] {
   const sortedArticles = [...allArticles].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
+
+  const publishedItems: ContentItem[] = sortedArticles.map((a) => ({
+    name: a._meta.fileName,
+    path: `articles/${a._meta.fileName}`,
+    slug: a.slug,
+    type: "file" as const,
+    collection: "articles",
+    isDraft: false,
+  }));
+
+  const draftItems: ContentItem[] = draftArticles
+    .filter((d) => !publishedItems.some((p) => p.slug === d.slug))
+    .map((d) => ({
+      name: d.name,
+      path: d.path,
+      slug: d.slug,
+      type: "file" as const,
+      collection: "articles",
+      branch: d.branch,
+      isDraft: true,
+    }));
+
+  const allItems = [...draftItems, ...publishedItems];
 
   return [
     {
       name: "articles",
       label: "Articles",
-      items: sortedArticles.map((a) => ({
-        name: a._meta.fileName,
-        path: `articles/${a._meta.fileName}`,
-        slug: a.slug,
-        type: "file" as const,
-        collection: "articles",
-      })),
+      items: allItems,
     },
   ];
 }
@@ -208,7 +239,23 @@ function getFileExtension(filename: string): string {
 }
 
 function CollectionsPage() {
-  const collections = useMemo(() => getCollections(), []);
+  const { data: draftArticles = [] } = useQuery({
+    queryKey: ["draftArticles"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/content/list-drafts");
+      if (!response.ok) {
+        throw new Error("Failed to fetch drafts");
+      }
+      const data = await response.json();
+      return data.drafts as DraftArticle[];
+    },
+    staleTime: 30000,
+  });
+
+  const collections = useMemo(
+    () => getCollections(draftArticles),
+    [draftArticles],
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
@@ -301,11 +348,12 @@ function CollectionsPage() {
       type: "collection" | "file",
       name: string,
       path: string,
+      branch?: string,
       pinned = false,
     ) => {
       setTabs((prev) => {
         const existingIndex = prev.findIndex(
-          (t) => t.type === type && t.path === path,
+          (t) => t.type === type && t.path === path && t.branch === branch,
         );
         if (existingIndex !== -1) {
           return prev.map((t, i) => ({ ...t, active: i === existingIndex }));
@@ -313,10 +361,11 @@ function CollectionsPage() {
 
         const unpinnedIndex = prev.findIndex((t) => !t.pinned);
         const newTab: Tab = {
-          id: `${type}-${path}-${Date.now()}`,
+          id: `${type}-${path}-${branch || "main"}-${Date.now()}`,
           type,
           name,
           path,
+          branch,
           pinned,
           active: true,
         };
@@ -412,7 +461,9 @@ function CollectionsPage() {
           collections={filteredCollections}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onFileClick={(item) => openTab("file", item.name, item.path)}
+          onFileClick={(item) =>
+            openTab("file", item.name, item.path, item.branch)
+          }
           clipboard={clipboard}
           onClipboardChange={setClipboard}
           onNewPostClick={() => setIsCreatingNewPost(true)}
@@ -459,7 +510,9 @@ function CollectionsPage() {
             onPinTab={pinTab}
             onReorderTabs={reorderTabs}
             filteredItems={filteredItems}
-            onFileClick={(item) => openTab("file", item.name, item.path)}
+            onFileClick={(item) =>
+              openTab("file", item.name, item.path, item.branch)
+            }
             onOpenImport={() => setIsImportModalOpen(true)}
           />
         </div>
@@ -707,6 +760,12 @@ function FileItemSidebar({
     >
       <FileTextIcon className="size-4 text-neutral-400 shrink-0" />
       <span className="truncate text-neutral-600">{item.name}</span>
+
+      {item.isDraft && (
+        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded shrink-0">
+          Draft
+        </span>
+      )}
 
       {contextMenu && (
         <ContextMenu
@@ -1135,6 +1194,7 @@ function ContentPanel({
       path: string;
       content: string;
       metadata: ArticleMetadata;
+      branch?: string;
     }) => {
       const response = await fetch("/api/admin/content/save", {
         method: "POST",
@@ -1155,6 +1215,7 @@ function ContentPanel({
         path: currentTab.path,
         content: editorData.content,
         metadata: editorData.metadata,
+        branch: currentTab.branch,
       });
     }
   }, [currentTab, editorData, saveContent]);

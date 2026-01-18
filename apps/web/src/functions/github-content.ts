@@ -1236,3 +1236,154 @@ Auto-generated PR from admin panel.`;
 
   return createPullRequest(branchName, GITHUB_BRANCH, title, body);
 }
+
+export async function listBlogBranches(): Promise<{
+  success: boolean;
+  branches?: string[];
+  error?: string;
+}> {
+  if (isDev()) {
+    return { success: true, branches: [] };
+  }
+
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
+    return { success: false, error: "GitHub token not configured" };
+  }
+  const { token: githubToken } = credentials;
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/git/matching-refs/heads/blog/`,
+      {
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return { success: true, branches: [] };
+      }
+      return {
+        success: false,
+        error: `Failed to list branches: ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+    const branches = Array.isArray(data)
+      ? data.map((ref: { ref: string }) => ref.ref.replace("refs/heads/", ""))
+      : [];
+
+    return { success: true, branches };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Failed to list branches: ${(error as Error).message}`,
+    };
+  }
+}
+
+export async function getFileContentFromBranch(
+  filePath: string,
+  branchName: string,
+): Promise<{
+  success: boolean;
+  content?: string;
+  sha?: string;
+  error?: string;
+}> {
+  if (isDev()) {
+    try {
+      const localPath = path.join(getLocalContentPath(), filePath);
+      if (!fs.existsSync(localPath)) {
+        return { success: false, error: `File not found: ${filePath}` };
+      }
+      const content = fs.readFileSync(localPath, "utf-8");
+      return { success: true, content, sha: "local" };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to read file: ${(error as Error).message}`,
+      };
+    }
+  }
+
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
+    return { success: false, error: "GitHub token not configured" };
+  }
+  const { token: githubToken } = credentials;
+
+  const fullPath = filePath.startsWith("apps/web/content")
+    ? filePath
+    : `${CONTENT_PATH}/${filePath}`;
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${fullPath}?ref=${branchName}`,
+      {
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      return { success: false, error: `File not found: ${response.status}` };
+    }
+
+    const data = await response.json();
+    const content = Buffer.from(data.content, "base64").toString("utf-8");
+
+    return { success: true, content, sha: data.sha };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Failed to fetch file: ${(error as Error).message}`,
+    };
+  }
+}
+
+export function parseMDX(rawContent: string): {
+  frontmatter: Record<string, unknown>;
+  content: string;
+} {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+  const match = rawContent.match(frontmatterRegex);
+
+  if (!match) {
+    return { frontmatter: {}, content: rawContent };
+  }
+
+  const [, frontmatterYaml, content] = match;
+
+  try {
+    const frontmatter: Record<string, unknown> = {};
+    const lines = frontmatterYaml.split("\n");
+    for (const line of lines) {
+      const colonIndex = line.indexOf(":");
+      if (colonIndex > 0) {
+        const key = line.slice(0, colonIndex).trim();
+        let value: unknown = line.slice(colonIndex + 1).trim();
+        if (value === "true") value = true;
+        else if (value === "false") value = false;
+        else if (
+          typeof value === "string" &&
+          value.startsWith('"') &&
+          value.endsWith('"')
+        ) {
+          value = value.slice(1, -1);
+        }
+        frontmatter[key] = value;
+      }
+    }
+    return { frontmatter, content: content.trim() };
+  } catch {
+    return { frontmatter: {}, content: rawContent };
+  }
+}

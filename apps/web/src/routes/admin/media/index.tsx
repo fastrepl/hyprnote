@@ -492,6 +492,7 @@ function MediaLibrary() {
             onReplace={handleReplace}
             onDeleteSingle={handleDeleteSingle}
             onOpenPreview={(path, name) => openTab("file", name, path)}
+            onOpenFolder={(path, name) => openTab("folder", name, path)}
             onMove={openMoveModal}
             onCreateFolder={() => handleCreateFolder("untitled")}
             fileInputRef={fileInputRef}
@@ -725,7 +726,7 @@ function TreeNodeItem({
 
   const handleClick = async () => {
     if (isFolder) {
-      await onToggle(node.path);
+      onOpenFolder(node.path, node.name);
     } else {
       onOpenFile(node.path, node.name);
     }
@@ -823,6 +824,7 @@ function ContentPanel({
   onReplace,
   onDeleteSingle,
   onOpenPreview,
+  onOpenFolder,
   onMove,
   onCreateFolder,
   fileInputRef,
@@ -853,6 +855,7 @@ function ContentPanel({
   onReplace: (file: File, path: string) => void;
   onDeleteSingle: (path: string) => void;
   onOpenPreview: (path: string, name: string) => void;
+  onOpenFolder: (path: string, name: string) => void;
   onMove: (item: MediaItem) => void;
   onCreateFolder: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -913,6 +916,7 @@ function ContentPanel({
                 onReplace={onReplace}
                 onDeleteSingle={onDeleteSingle}
                 onOpenPreview={onOpenPreview}
+                onOpenFolder={onOpenFolder}
                 onMove={onMove}
               />
             ) : (
@@ -1349,6 +1353,7 @@ function FolderView({
   onReplace,
   onDeleteSingle,
   onOpenPreview,
+  onOpenFolder,
   onMove,
 }: {
   dragOver: boolean;
@@ -1365,6 +1370,7 @@ function FolderView({
   onReplace: (file: File, path: string) => void;
   onDeleteSingle: (path: string) => void;
   onOpenPreview: (path: string, name: string) => void;
+  onOpenFolder: (path: string, name: string) => void;
   onMove: (item: MediaItem) => void;
 }) {
   return (
@@ -1409,6 +1415,7 @@ function FolderView({
               onReplace={(file) => onReplace(file, item.path)}
               onDelete={() => onDeleteSingle(item.path)}
               onOpenPreview={() => onOpenPreview(item.path, item.name)}
+              onOpenFolder={() => onOpenFolder(item.path, item.name)}
               onMove={() => onMove(item)}
             />
           ))}
@@ -1427,6 +1434,7 @@ function MediaItemCard({
   onReplace,
   onDelete,
   onOpenPreview,
+  onOpenFolder,
   onMove,
 }: {
   item: MediaItem;
@@ -1437,6 +1445,7 @@ function MediaItemCard({
   onReplace: (file: File) => void;
   onDelete: () => void;
   onOpenPreview: () => void;
+  onOpenFolder: () => void;
   onMove: () => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1484,7 +1493,7 @@ function MediaItemCard({
             ? "border-blue-500 ring-2 ring-blue-500"
             : "border-neutral-200 hover:border-neutral-300 hover:shadow-md",
         ])}
-        onClick={onSelect}
+        onClick={onOpenFolder}
       >
         <div className="aspect-square bg-neutral-100 flex items-center justify-center">
           <FolderIcon className="size-12 text-neutral-400" />

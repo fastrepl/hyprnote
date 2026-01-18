@@ -29,20 +29,41 @@ interface SaveRequest {
 }
 
 function buildFrontmatter(metadata: ArticleMetadata): string {
-  const obj: Record<string, unknown> = {};
+  // Build frontmatter in specific order:
+  // meta_title, display_title, meta_description, author, featured, published, category, date
+  const lines: string[] = [];
 
-  if (metadata.meta_title) obj.meta_title = metadata.meta_title;
-  if (metadata.display_title) obj.display_title = metadata.display_title;
-  if (metadata.meta_description)
-    obj.meta_description = metadata.meta_description;
-  if (metadata.author) obj.author = metadata.author;
-  if (metadata.coverImage) obj.coverImage = metadata.coverImage;
-  if (metadata.published !== undefined) obj.published = metadata.published;
-  if (metadata.featured !== undefined) obj.featured = metadata.featured;
-  if (metadata.date) obj.date = metadata.date;
-  if (metadata.category) obj.category = metadata.category;
+  if (metadata.meta_title) {
+    lines.push(`meta_title: ${JSON.stringify(metadata.meta_title)}`);
+  }
+  if (metadata.display_title) {
+    lines.push(`display_title: ${JSON.stringify(metadata.display_title)}`);
+  }
+  if (metadata.meta_description) {
+    lines.push(
+      `meta_description: ${JSON.stringify(metadata.meta_description)}`,
+    );
+  }
+  if (metadata.author) {
+    lines.push(`author: ${JSON.stringify(metadata.author)}`);
+  }
+  if (metadata.featured !== undefined) {
+    lines.push(`featured: ${metadata.featured}`);
+  }
+  if (metadata.published !== undefined) {
+    lines.push(`published: ${metadata.published}`);
+  }
+  if (metadata.category) {
+    lines.push(`category: ${JSON.stringify(metadata.category)}`);
+  }
+  if (metadata.date) {
+    lines.push(`date: ${JSON.stringify(metadata.date)}`);
+  }
+  if (metadata.coverImage) {
+    lines.push(`coverImage: ${JSON.stringify(metadata.coverImage)}`);
+  }
 
-  return `---\n${yaml.dump(obj, { quotingType: '"', forceQuotes: true, lineWidth: -1 })}---`;
+  return `---\n${lines.join("\n")}\n---`;
 }
 
 interface Base64Image {

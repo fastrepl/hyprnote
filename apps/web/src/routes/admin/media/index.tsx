@@ -9,8 +9,10 @@ import {
   FileIcon,
   FolderIcon,
   FolderOpenIcon,
+  FolderPlusIcon,
   HomeIcon,
   MoreVerticalIcon,
+  MoveIcon,
   PinIcon,
   PinOffIcon,
   RefreshCwIcon,
@@ -21,6 +23,13 @@ import {
 import { Reorder } from "motion/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@hypr/ui/components/ui/dialog";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -107,6 +116,34 @@ async function deleteFiles(paths: string[]) {
   return data;
 }
 
+async function createFolder(params: { name: string; parentFolder: string }) {
+  const response = await fetch("/api/admin/media/create-folder", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || "Failed to create folder");
+  }
+  return response.json();
+}
+
+async function moveFile(params: { fromPath: string; toPath: string }) {
+  const response = await fetch("/api/admin/media/move", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || "Failed to move file");
+  }
+  return response.json();
+}
+
 export const Route = createFileRoute("/admin/media/")({
   component: MediaLibrary,
 });
@@ -134,6 +171,9 @@ function MediaLibrary() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set());
+  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [itemToMove, setItemToMove] = useState<MediaItem | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -410,6 +450,46 @@ function MediaLibrary() {
     },
   });
 
+  const createFolderMutation = useMutation({
+    mutationFn: (params: { name: string; parentFolder: string }) =>
+      createFolder(params),
+    onSuccess: () => {
+      setShowCreateFolderModal(false);
+      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
+      loadFolderContents(currentTab?.path || "");
+    },
+  });
+
+  const moveMutation = useMutation({
+    mutationFn: (params: { fromPath: string; toPath: string }) =>
+      moveFile(params),
+    onSuccess: () => {
+      setShowMoveModal(false);
+      setItemToMove(null);
+      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
+      loadFolderContents(currentTab?.path || "");
+    },
+  });
+
+  const handleCreateFolder = (name: string) => {
+    const parentFolder = currentTab?.type === "folder" ? currentTab.path : "";
+    createFolderMutation.mutate({ name, parentFolder });
+  };
+
+  const handleMoveFile = (destinationFolder: string) => {
+    if (!itemToMove) return;
+    const fileName = itemToMove.path.split("/").pop() || "";
+    const toPath = destinationFolder
+      ? `${destinationFolder}/${fileName}`
+      : fileName;
+    moveMutation.mutate({ fromPath: itemToMove.path, toPath });
+  };
+
+  const openMoveModal = (item: MediaItem) => {
+    setItemToMove(item);
+    setShowMoveModal(true);
+  };
+
   const handleUpload = (files: FileList) => {
     uploadMutation.mutate(files);
   };
@@ -494,57 +574,81 @@ function MediaLibrary() {
   const filteredTreeNodes = filterTreeNodes(treeNodes, searchQuery);
 
   return (
-    <ResizablePanelGroup
-      direction="horizontal"
-      className="h-[calc(100vh-64px)]"
-    >
-      <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-        <Sidebar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          loadingPaths={loadingPaths}
-          filteredTreeNodes={filteredTreeNodes}
-          onOpenFolder={(path, name) => openTab("folder", name, path)}
-          onOpenFile={(path, name) => openTab("file", name, path)}
-          onToggleNodeExpanded={toggleNodeExpanded}
-          uploadPending={uploadMutation.isPending}
-          fileInputRef={fileInputRef}
-          onUpload={handleUpload}
-        />
-      </ResizablePanel>
-      <ResizableHandle />
-      <ResizablePanel defaultSize={80} minSize={50}>
-        <ContentPanel
-          tabs={tabs}
-          currentTab={currentTab}
-          onSelectTab={selectTab}
-          onCloseTab={closeTab}
-          onPinTab={pinTab}
-          onReorderTabs={reorderTabs}
-          selectedItems={selectedItems}
-          onDelete={handleDelete}
-          onDownloadSelected={handleDownloadSelected}
-          onClearSelection={() => setSelectedItems(new Set())}
-          deletePending={deleteMutation.isPending}
-          dragOver={dragOver}
-          onDrop={handleDrop}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
-          isLoading={currentPathQuery.isLoading}
-          error={currentPathQuery.error}
-          items={currentPathQuery.data || []}
-          onToggleSelection={toggleSelection}
-          onCopyToClipboard={copyToClipboard}
-          onDownload={handleDownload}
-          onReplace={handleReplace}
-          onDeleteSingle={handleDeleteSingle}
-          onOpenPreview={(path, name) => openTab("file", name, path)}
-        />
-      </ResizablePanel>
-    </ResizablePanelGroup>
+    <>
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="h-[calc(100vh-64px)]"
+      >
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+          <Sidebar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            loadingPaths={loadingPaths}
+            filteredTreeNodes={filteredTreeNodes}
+            onOpenFolder={(path, name) => openTab("folder", name, path)}
+            onOpenFile={(path, name) => openTab("file", name, path)}
+            onToggleNodeExpanded={toggleNodeExpanded}
+            uploadPending={uploadMutation.isPending}
+            fileInputRef={fileInputRef}
+            onUpload={handleUpload}
+            onCreateFolder={() => setShowCreateFolderModal(true)}
+            createFolderPending={createFolderMutation.isPending}
+          />
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel defaultSize={80} minSize={50}>
+          <ContentPanel
+            tabs={tabs}
+            currentTab={currentTab}
+            onSelectTab={selectTab}
+            onCloseTab={closeTab}
+            onPinTab={pinTab}
+            onReorderTabs={reorderTabs}
+            selectedItems={selectedItems}
+            onDelete={handleDelete}
+            onDownloadSelected={handleDownloadSelected}
+            onClearSelection={() => setSelectedItems(new Set())}
+            deletePending={deleteMutation.isPending}
+            dragOver={dragOver}
+            onDrop={handleDrop}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            isLoading={currentPathQuery.isLoading}
+            error={currentPathQuery.error}
+            items={currentPathQuery.data || []}
+            onToggleSelection={toggleSelection}
+            onCopyToClipboard={copyToClipboard}
+            onDownload={handleDownload}
+            onReplace={handleReplace}
+            onDeleteSingle={handleDeleteSingle}
+            onOpenPreview={(path, name) => openTab("file", name, path)}
+            onMove={openMoveModal}
+          />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+
+      <CreateFolderModal
+        open={showCreateFolderModal}
+        onOpenChange={setShowCreateFolderModal}
+        onSubmit={handleCreateFolder}
+        isPending={createFolderMutation.isPending}
+      />
+
+      <MoveFileModal
+        open={showMoveModal}
+        onOpenChange={(open) => {
+          setShowMoveModal(open);
+          if (!open) setItemToMove(null);
+        }}
+        item={itemToMove}
+        folders={treeNodes.filter((n) => n.type === "dir")}
+        onSubmit={handleMoveFile}
+        isPending={moveMutation.isPending}
+      />
+    </>
   );
 }
 
@@ -559,6 +663,8 @@ function Sidebar({
   uploadPending,
   fileInputRef,
   onUpload,
+  onCreateFolder,
+  createFolderPending,
 }: {
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -570,6 +676,8 @@ function Sidebar({
   uploadPending: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onUpload: (files: FileList) => void;
+  onCreateFolder: () => void;
+  createFolderPending: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { atStart, atEnd } = useScrollFade(scrollRef, "vertical", [
@@ -614,7 +722,24 @@ function Sidebar({
         </div>
       </div>
 
-      <div className="p-3">
+      <div className="p-3 flex flex-col gap-2">
+        <button
+          onClick={onCreateFolder}
+          disabled={createFolderPending}
+          className={cn([
+            "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
+            "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
+            "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+            "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-xs",
+          ])}
+        >
+          {createFolderPending ? (
+            <Spinner size={14} />
+          ) : (
+            <FolderPlusIcon className="size-4" />
+          )}
+          {createFolderPending ? "Creating..." : "New Folder"}
+        </button>
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadPending}
@@ -741,6 +866,7 @@ function ContentPanel({
   onReplace,
   onDeleteSingle,
   onOpenPreview,
+  onMove,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -766,6 +892,7 @@ function ContentPanel({
   onReplace: (file: File, path: string) => void;
   onDeleteSingle: (path: string) => void;
   onOpenPreview: (path: string, name: string) => void;
+  onMove: (item: MediaItem) => void;
 }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -817,6 +944,7 @@ function ContentPanel({
                 onReplace={onReplace}
                 onDeleteSingle={onDeleteSingle}
                 onOpenPreview={onOpenPreview}
+                onMove={onMove}
               />
             ) : (
               <FilePreview
@@ -1187,6 +1315,7 @@ function FolderView({
   onReplace,
   onDeleteSingle,
   onOpenPreview,
+  onMove,
 }: {
   dragOver: boolean;
   onDrop: (e: React.DragEvent) => void;
@@ -1202,6 +1331,7 @@ function FolderView({
   onReplace: (file: File, path: string) => void;
   onDeleteSingle: (path: string) => void;
   onOpenPreview: (path: string, name: string) => void;
+  onMove: (item: MediaItem) => void;
 }) {
   return (
     <div
@@ -1245,6 +1375,7 @@ function FolderView({
               onReplace={(file) => onReplace(file, item.path)}
               onDelete={() => onDeleteSingle(item.path)}
               onOpenPreview={() => onOpenPreview(item.path, item.name)}
+              onMove={() => onMove(item)}
             />
           ))}
         </div>
@@ -1262,6 +1393,7 @@ function MediaItemCard({
   onReplace,
   onDelete,
   onOpenPreview,
+  onMove,
 }: {
   item: MediaItem;
   isSelected: boolean;
@@ -1271,6 +1403,7 @@ function MediaItemCard({
   onReplace: (file: File) => void;
   onDelete: () => void;
   onOpenPreview: () => void;
+  onMove: () => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showMenu, setShowMenu] = useState(false);
@@ -1300,6 +1433,11 @@ function MediaItemCard({
 
   const handleDelete = () => {
     onDelete();
+    setShowMenu(false);
+  };
+
+  const handleMove = () => {
+    onMove();
     setShowMenu(false);
   };
 
@@ -1453,6 +1591,13 @@ function MediaItemCard({
                 <RefreshCwIcon className="size-4" />
                 Replace
               </button>
+              <button
+                onClick={handleMove}
+                className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+              >
+                <MoveIcon className="size-4" />
+                Move to...
+              </button>
               <div className="my-1 border-t border-neutral-200" />
               <button
                 onClick={handleDelete}
@@ -1526,5 +1671,165 @@ function FilePreview({ item }: { item: MediaItem | undefined }) {
         </div>
       )}
     </div>
+  );
+}
+
+function CreateFolderModal({
+  open,
+  onOpenChange,
+  onSubmit,
+  isPending,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (name: string) => void;
+  isPending: boolean;
+}) {
+  const [folderName, setFolderName] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (folderName.trim()) {
+      onSubmit(folderName.trim());
+      setFolderName("");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Create New Folder</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="py-4">
+            <input
+              type="text"
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              placeholder="Folder name"
+              className="w-full px-3 py-2 border border-neutral-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded-md"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!folderName.trim() || isPending}
+              className={cn([
+                "px-4 py-2 text-sm font-medium text-white rounded-md",
+                "bg-blue-500 hover:bg-blue-600",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+              ])}
+            >
+              {isPending ? "Creating..." : "Create"}
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function MoveFileModal({
+  open,
+  onOpenChange,
+  item,
+  folders,
+  onSubmit,
+  isPending,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  item: MediaItem | null;
+  folders: TreeNode[];
+  onSubmit: (destinationFolder: string) => void;
+  isPending: boolean;
+}) {
+  const [selectedFolder, setSelectedFolder] = useState<string>("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(selectedFolder);
+  };
+
+  const getAllFolders = (
+    nodes: TreeNode[],
+    prefix = "",
+  ): { path: string; name: string }[] => {
+    const result: { path: string; name: string }[] = [];
+    for (const node of nodes) {
+      if (node.type === "dir") {
+        const displayName = prefix ? `${prefix}/${node.name}` : node.name;
+        result.push({ path: node.path, name: displayName });
+        if (node.children) {
+          result.push(...getAllFolders(node.children, displayName));
+        }
+      }
+    }
+    return result;
+  };
+
+  const allFolders = getAllFolders(folders);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Move File</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="py-4">
+            {item && (
+              <p className="text-sm text-neutral-600 mb-3">
+                Moving: <span className="font-medium">{item.name}</span>
+              </p>
+            )}
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Destination Folder
+            </label>
+            <select
+              value={selectedFolder}
+              onChange={(e) => setSelectedFolder(e.target.value)}
+              className="w-full px-3 py-2 border border-neutral-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Root (no folder)</option>
+              {allFolders.map((folder) => (
+                <option key={folder.path} value={folder.path}>
+                  {folder.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded-md"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className={cn([
+                "px-4 py-2 text-sm font-medium text-white rounded-md",
+                "bg-blue-500 hover:bg-blue-600",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+              ])}
+            >
+              {isPending ? "Moving..." : "Move"}
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

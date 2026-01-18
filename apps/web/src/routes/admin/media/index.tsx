@@ -97,7 +97,7 @@ function MediaLibrary() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set());
-  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [itemToMove, setItemToMove] = useState<MediaItem | null>(null);
 
@@ -319,7 +319,6 @@ function MediaLibrary() {
   } = useMediaApi({
     currentFolderPath: currentTab?.type === "folder" ? currentTab.path : "",
     onFolderCreated: (parentFolder) => {
-      setShowCreateFolderModal(false);
       loadFolderContents(parentFolder);
       if (parentFolder === "") {
         setRootLoaded(false);
@@ -458,7 +457,7 @@ function MediaLibrary() {
             uploadPending={uploadMutation.isPending}
             fileInputRef={fileInputRef}
             onUpload={handleUpload}
-            onCreateFolder={() => setShowCreateFolderModal(true)}
+            onCreateFolder={() => handleCreateFolder("untitled")}
             createFolderPending={createFolderMutation.isPending}
             currentTab={currentTab}
           />
@@ -494,20 +493,13 @@ function MediaLibrary() {
             onDeleteSingle={handleDeleteSingle}
             onOpenPreview={(path, name) => openTab("file", name, path)}
             onMove={openMoveModal}
-            onCreateFolder={() => setShowCreateFolderModal(true)}
+            onCreateFolder={() => handleCreateFolder("untitled")}
             fileInputRef={fileInputRef}
             createFolderPending={createFolderMutation.isPending}
             uploadPending={uploadMutation.isPending}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
-
-      <CreateFolderModal
-        open={showCreateFolderModal}
-        onOpenChange={setShowCreateFolderModal}
-        onSubmit={handleCreateFolder}
-        isPending={createFolderMutation.isPending}
-      />
 
       <MoveFileModal
         open={showMoveModal}
@@ -868,7 +860,7 @@ function ContentPanel({
   uploadPending: boolean;
 }) {
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden">
       {currentTab ? (
         <>
           <div className="flex items-end">
@@ -904,7 +896,7 @@ function ContentPanel({
             uploadPending={uploadPending}
           />
 
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-hidden">
             {currentTab.type === "folder" ? (
               <FolderView
                 dragOver={dragOver}
@@ -1685,7 +1677,7 @@ function FilePreview({ item }: { item: MediaItem | undefined }) {
   const isAudio = item.mimeType?.startsWith("audio/");
 
   return (
-    <div className="flex-1 bg-neutral-50 p-4 flex items-center justify-center overflow-hidden">
+    <div className="h-full flex-1 bg-neutral-50 p-4 flex items-center justify-center overflow-hidden">
       {isImage && (
         <img
           src={item.publicUrl}
@@ -1713,70 +1705,6 @@ function FilePreview({ item }: { item: MediaItem | undefined }) {
         </div>
       )}
     </div>
-  );
-}
-
-function CreateFolderModal({
-  open,
-  onOpenChange,
-  onSubmit,
-  isPending,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (name: string) => void;
-  isPending: boolean;
-}) {
-  const [folderName, setFolderName] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (folderName.trim()) {
-      onSubmit(folderName.trim());
-      setFolderName("");
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create New Folder</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="py-4">
-            <input
-              type="text"
-              value={folderName}
-              onChange={(e) => setFolderName(e.target.value)}
-              placeholder="Folder name"
-              className="w-full px-3 py-2 border border-neutral-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              autoFocus
-            />
-          </div>
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded-md"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!folderName.trim() || isPending}
-              className={cn([
-                "px-4 py-2 text-sm font-medium text-white rounded-md",
-                "bg-blue-500 hover:bg-blue-600",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-              ])}
-            >
-              {isPending ? "Creating..." : "Create"}
-            </button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
   );
 }
 

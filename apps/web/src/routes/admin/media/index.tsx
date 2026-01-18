@@ -240,7 +240,13 @@ function MediaLibrary() {
   };
 
   const openTab = useCallback(
-    (type: "folder" | "file", name: string, path: string, pinned = false) => {
+    (
+      type: "folder" | "file",
+      name: string,
+      path: string,
+      options: { pinned?: boolean; forceNewTab?: boolean } = {},
+    ) => {
+      const { pinned = false, forceNewTab = false } = options;
       setTabs((prev) => {
         // If opening the home/root folder, just activate the Home tab
         if (type === "folder" && path === "") {
@@ -254,7 +260,6 @@ function MediaLibrary() {
           return prev.map((t, i) => ({ ...t, active: i === existingIndex }));
         }
 
-        const unpinnedIndex = prev.findIndex((t) => !t.pinned && !t.isHome);
         const newTab: Tab = {
           id: `${type}-${path}-${Date.now()}`,
           type,
@@ -264,6 +269,11 @@ function MediaLibrary() {
           active: true,
         };
 
+        if (forceNewTab) {
+          return [...prev.map((t) => ({ ...t, active: false })), newTab];
+        }
+
+        const unpinnedIndex = prev.findIndex((t) => !t.pinned && !t.isHome);
         if (unpinnedIndex !== -1 && prev.length > 0) {
           return prev.map((t, i) =>
             i === unpinnedIndex ? newTab : { ...t, active: false },
@@ -514,7 +524,11 @@ function MediaLibrary() {
             onReplace={handleReplace}
             onDeleteSingle={handleDeleteSingle}
             onOpenPreview={(path, name) => openTab("file", name, path)}
-            onOpenFolder={(path, name) => openTab("folder", name, path)}
+            onOpenFolder={(path, name) =>
+              openTab("folder", name, path, {
+                forceNewTab: currentTab?.pinned || currentTab?.isHome,
+              })
+            }
             onMove={openMoveModal}
             onRename={handleRename}
             onCreateFolder={() => handleCreateFolder("untitled")}
@@ -1039,6 +1053,7 @@ function ContentPanel({
             fileInputRef={fileInputRef}
             createFolderPending={createFolderPending}
             uploadPending={uploadPending}
+            onOpenFolder={onOpenFolder}
           />
 
           <div className="flex-1 overflow-hidden">
@@ -1294,6 +1309,7 @@ function HeaderBar({
   fileInputRef,
   createFolderPending,
   uploadPending,
+  onOpenFolder,
 }: {
   currentTab: Tab;
   selectedItems: Set<string>;
@@ -1310,6 +1326,7 @@ function HeaderBar({
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   createFolderPending: boolean;
   uploadPending: boolean;
+  onOpenFolder: (path: string, name: string) => void;
 }) {
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -1322,22 +1339,28 @@ function HeaderBar({
         {breadcrumbs.length === 0 ? (
           <span className="text-neutral-700 font-medium">Home</span>
         ) : (
-          breadcrumbs.map((crumb, index) => (
-            <span key={index} className="flex items-center gap-1">
-              {index > 0 && (
-                <ChevronRightIcon className="size-4 text-neutral-300" />
-              )}
-              <span
-                className={cn([
-                  index === breadcrumbs.length - 1
-                    ? "text-neutral-700 font-medium"
-                    : "hover:text-neutral-700 cursor-pointer",
-                ])}
-              >
-                {crumb}
+          breadcrumbs.map((crumb, index) => {
+            const isLast = index === breadcrumbs.length - 1;
+            const folderPath = breadcrumbs.slice(0, index + 1).join("/");
+            return (
+              <span key={index} className="flex items-center gap-1">
+                {index > 0 && (
+                  <ChevronRightIcon className="size-4 text-neutral-300" />
+                )}
+                {isLast ? (
+                  <span className="text-neutral-700 font-medium">{crumb}</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onOpenFolder(folderPath, crumb)}
+                    className="hover:text-neutral-700 cursor-pointer"
+                  >
+                    {crumb}
+                  </button>
+                )}
               </span>
-            </span>
-          ))
+            );
+          })
         )}
         {currentFile && (
           <span className="text-xs text-neutral-400 ml-2">

@@ -23,6 +23,7 @@ import {
   PinOffIcon,
   PlusIcon,
   RefreshCwIcon,
+  SaveIcon,
   ScissorsIcon,
   SearchIcon,
   SendIcon,
@@ -1208,6 +1209,29 @@ function ContentPanel({
     },
   });
 
+  const { mutate: publishContent, isPending: isPublishing } = useMutation({
+    mutationFn: async (params: {
+      path: string;
+      content: string;
+      metadata: ArticleMetadata;
+      branch?: string;
+    }) => {
+      const response = await fetch("/api/admin/content/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...params,
+          metadata: { ...params.metadata, published: true },
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to publish");
+      }
+      return response.json();
+    },
+  });
+
   const handleSave = useCallback(() => {
     if (currentTab?.type === "file" && editorData) {
       saveContent({
@@ -1218,6 +1242,17 @@ function ContentPanel({
       });
     }
   }, [currentTab, editorData, saveContent]);
+
+  const handlePublish = useCallback(() => {
+    if (currentTab?.type === "file" && editorData) {
+      publishContent({
+        path: currentTab.path,
+        content: editorData.content,
+        metadata: editorData.metadata,
+        branch: currentTab.branch,
+      });
+    }
+  }, [currentTab, editorData, publishContent]);
 
   const currentFileContent = useMemo(
     () =>
@@ -1242,6 +1277,8 @@ function ContentPanel({
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
             onSave={handleSave}
             isSaving={isSaving}
+            onPublish={handlePublish}
+            isPublishing={isPublishing}
             isPublished={currentFileContent?.published}
           />
           {currentTab.type === "collection" ? (
@@ -1284,6 +1321,8 @@ function EditorHeader({
   onTogglePreview,
   onSave,
   isSaving,
+  onPublish,
+  isPublishing,
   isPublished,
 }: {
   tabs: Tab[];
@@ -1298,6 +1337,8 @@ function EditorHeader({
   onTogglePreview: () => void;
   onSave: () => void;
   isSaving: boolean;
+  onPublish: () => void;
+  isPublishing: boolean;
   isPublished?: boolean;
 }) {
   const breadcrumbs = currentTab.path.split("/");
@@ -1358,23 +1399,38 @@ function EditorHeader({
             <button
               onClick={onSave}
               disabled={isSaving}
-              className="cursor-pointer p-1.5 rounded transition-colors text-neutral-400 hover:text-neutral-600 disabled:cursor-not-allowed"
+              className={cn([
+                "cursor-pointer px-3 py-1.5 rounded transition-colors flex items-center gap-1.5",
+                "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              ])}
               title="Save (⌘S)"
             >
-              <RefreshCwIcon
-                className={cn(["size-4", isSaving && "animate-spin"])}
-              />
+              {isSaving ? (
+                <Spinner size={16} />
+              ) : (
+                <SaveIcon className="size-4" />
+              )}
+              <span className="text-sm font-medium">Save</span>
             </button>
             <button
               type="button"
+              onClick={onPublish}
+              disabled={isPublishing || isPublished}
               className={cn([
                 "px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
                 isPublished
-                  ? "text-white bg-green-600 hover:bg-green-700"
+                  ? "text-white bg-green-600"
                   : "text-white bg-neutral-900 hover:bg-neutral-800",
+                "disabled:cursor-not-allowed",
               ])}
             >
-              {isPublished ? (
+              {isPublishing ? (
+                <>
+                  <Spinner size={14} color="white" />
+                  Publishing
+                </>
+              ) : isPublished ? (
                 <>
                   <CheckIcon className="size-4" />
                   Published
@@ -1879,16 +1935,6 @@ function MetadataPanel({
             />
           </div>
         </MetadataRow>
-        <MetadataRow label="Published">
-          <div className="flex-1 flex items-center px-2 py-2">
-            <input
-              type="checkbox"
-              checked={handlers.published}
-              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
-              className="rounded"
-            />
-          </div>
-        </MetadataRow>
         <MetadataRow label="Featured" noBorder>
           <div className="flex-1 flex items-center px-2 py-2">
             <input
@@ -2111,26 +2157,15 @@ function MetadataSidePanel({
           />
         </div>
 
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 text-neutral-600">
-            <input
-              type="checkbox"
-              checked={handlers.published}
-              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
-              className="rounded"
-            />
-            Published
-          </label>
-          <label className="flex items-center gap-2 text-neutral-600">
-            <input
-              type="checkbox"
-              checked={handlers.featured}
-              onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
-              className="rounded"
-            />
-            Featured
-          </label>
-        </div>
+        <label className="flex items-center gap-2 text-neutral-600">
+          <input
+            type="checkbox"
+            checked={handlers.featured}
+            onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
+            className="rounded"
+          />
+          Featured
+        </label>
       </div>
 
       <GitHistory filePath={filePath} />

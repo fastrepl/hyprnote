@@ -41,7 +41,6 @@ interface CommitBody {
   message: string;
   content?: string;
   sha?: string;
-  branch: string;
   author?: { name: string; email: string };
   committer?: { name: string; email: string };
 }
@@ -53,7 +52,6 @@ function buildCommitBody(
 ): CommitBody {
   const body: CommitBody = {
     message,
-    branch: GITHUB_BRANCH,
   };
   if (options?.content !== undefined) body.content = options.content;
   if (options?.sha) body.sha = options.sha;

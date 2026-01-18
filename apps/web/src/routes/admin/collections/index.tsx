@@ -513,7 +513,6 @@ function CollectionsPage() {
             onFileClick={(item) =>
               openTab("file", item.name, item.path, item.branch)
             }
-            onOpenImport={() => setIsImportModalOpen(true)}
           />
         </div>
       </ResizablePanel>
@@ -1173,7 +1172,6 @@ function ContentPanel({
   onReorderTabs,
   filteredItems,
   onFileClick,
-  onOpenImport,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -1185,7 +1183,6 @@ function ContentPanel({
   onReorderTabs: (tabs: Tab[]) => void;
   filteredItems: ContentItem[];
   onFileClick: (item: ContentItem) => void;
-  onOpenImport: () => void;
 }) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [editorData, setEditorData] = useState<EditorData | null>(null);
@@ -1258,7 +1255,6 @@ function ContentPanel({
               onDataChange={setEditorData}
               onSave={handleSave}
               isSaving={isSaving}
-              onOpenImport={onOpenImport}
             />
           )}
         </div>
@@ -2168,10 +2164,9 @@ const FileEditor = React.forwardRef<
     onDataChange: (data: EditorData) => void;
     onSave: () => void;
     isSaving: boolean;
-    onOpenImport?: () => void;
   }
 >(function FileEditor(
-  { filePath, branch, isPreviewMode, onDataChange, onSave, onOpenImport },
+  { filePath, branch, isPreviewMode, onDataChange, onSave },
   _ref,
 ) {
   const {
@@ -2242,6 +2237,49 @@ const FileEditor = React.forwardRef<
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const lastSavedContentRef = useRef(fileContent?.content || "");
+
+  const { mutate: importFromDocs, isPending: isImporting } = useMutation({
+    mutationFn: async (url: string) => {
+      const response = await fetch("/api/admin/import/google-docs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Import failed");
+      }
+      return response.json() as Promise<ImportResult>;
+    },
+    onSuccess: (data) => {
+      if (data.mdx) {
+        const mdxWithoutFrontmatter = data.mdx
+          .replace(/^---[\s\S]*?---\n*/, "")
+          .trim();
+        setContent(mdxWithoutFrontmatter);
+        setHasUnsavedChanges(true);
+      }
+      if (data.frontmatter) {
+        if (data.frontmatter.meta_title)
+          setMetaTitle(data.frontmatter.meta_title);
+        if (data.frontmatter.display_title)
+          setDisplayTitle(data.frontmatter.display_title);
+        if (data.frontmatter.meta_description)
+          setMetaDescription(data.frontmatter.meta_description);
+        if (data.frontmatter.author) setAuthor(data.frontmatter.author);
+        if (data.frontmatter.date) setDate(data.frontmatter.date);
+        if (data.frontmatter.coverImage)
+          setCoverImage(data.frontmatter.coverImage);
+      }
+    },
+  });
+
+  const handleGoogleDocsImport = useCallback(
+    (url: string) => {
+      importFromDocs(url);
+    },
+    [importFromDocs],
+  );
 
   const getMetadata = useCallback(
     (): ArticleMetadata => ({
@@ -2367,36 +2405,6 @@ const FileEditor = React.forwardRef<
     );
   }
 
-  const isContentEmpty = !content || content.trim() === "";
-
-  if (isContentEmpty && onOpenImport) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <FileTextIcon className="size-12 mb-4 text-neutral-300 mx-auto" />
-          <h3 className="text-lg font-medium text-neutral-700 mb-2">
-            Empty Article
-          </h3>
-          <p className="text-sm text-neutral-500 mb-6">
-            This article has no content yet. You can start writing or import
-            content from a Google Doc.
-          </p>
-          <button
-            onClick={onOpenImport}
-            className={cn([
-              "px-4 py-2 text-sm font-medium rounded-lg",
-              "bg-blue-600 text-white hover:bg-blue-700",
-              "transition-colors flex items-center gap-2 mx-auto",
-            ])}
-          >
-            <SquareArrowOutUpRightIcon className="size-4" />
-            Import from Google Docs
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const selectedAuthor = AUTHORS.find((a) => a.name === author);
   const avatarUrl = selectedAuthor?.avatar;
 
@@ -2474,7 +2482,12 @@ const FileEditor = React.forwardRef<
               handlers={metadataHandlers}
             />
             <div className="flex-1 min-h-0 overflow-y-auto p-6">
-              <BlogEditor content={content} onChange={handleContentChange} />
+              <BlogEditor
+                content={content}
+                onChange={handleContentChange}
+                onGoogleDocsImport={handleGoogleDocsImport}
+                isImporting={isImporting}
+              />
             </div>
           </div>
         </ResizablePanel>
@@ -2490,7 +2503,12 @@ const FileEditor = React.forwardRef<
     <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
       <ResizablePanel defaultSize={70} minSize={50}>
         <div className="flex-1 min-h-0 overflow-y-auto p-6 h-full">
-          <BlogEditor content={content} onChange={handleContentChange} />
+          <BlogEditor
+            content={content}
+            onChange={handleContentChange}
+            onGoogleDocsImport={handleGoogleDocsImport}
+            isImporting={isImporting}
+          />
         </div>
       </ResizablePanel>
       <ResizableHandle className="w-px bg-neutral-200" />
@@ -2536,7 +2554,9 @@ function FileItem({
     >
       <div className="flex items-center gap-2">
         <FileTextIcon className="size-4 text-neutral-400" />
-        <span className="text-sm text-neutral-700">{item.name}</span>
+        <span className="text-sm text-neutral-700">
+          {item.name.replace(/\.mdx$/, "")}
+        </span>
         <span className="text-xs text-neutral-400 px-1.5 py-0.5 bg-neutral-100 rounded">
           {getFileExtension(item.name).toUpperCase()}
         </span>

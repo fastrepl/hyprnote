@@ -14,6 +14,7 @@ import {
   HomeIcon,
   MoreVerticalIcon,
   MoveIcon,
+  PencilIcon,
   PinIcon,
   PinOffIcon,
   PlusIcon,
@@ -316,6 +317,7 @@ function MediaLibrary() {
     replaceMutation,
     createFolderMutation,
     moveMutation,
+    renameMutation,
   } = useMediaApi({
     currentFolderPath: currentTab?.type === "folder" ? currentTab.path : "",
     onFolderCreated: (parentFolder) => {
@@ -354,6 +356,10 @@ function MediaLibrary() {
   const openMoveModal = (item: MediaItem) => {
     setItemToMove(item);
     setShowMoveModal(true);
+  };
+
+  const handleRename = (path: string, newName: string) => {
+    renameMutation.mutate({ path, newName });
   };
 
   const handleUpload = (files: FileList) => {
@@ -494,6 +500,7 @@ function MediaLibrary() {
             onOpenPreview={(path, name) => openTab("file", name, path)}
             onOpenFolder={(path, name) => openTab("folder", name, path)}
             onMove={openMoveModal}
+            onRename={handleRename}
             onCreateFolder={() => handleCreateFolder("untitled")}
             fileInputRef={fileInputRef}
             createFolderPending={createFolderMutation.isPending}
@@ -826,6 +833,7 @@ function ContentPanel({
   onOpenPreview,
   onOpenFolder,
   onMove,
+  onRename,
   onCreateFolder,
   fileInputRef,
   createFolderPending,
@@ -857,6 +865,7 @@ function ContentPanel({
   onOpenPreview: (path: string, name: string) => void;
   onOpenFolder: (path: string, name: string) => void;
   onMove: (item: MediaItem) => void;
+  onRename: (path: string, newName: string) => void;
   onCreateFolder: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   createFolderPending: boolean;
@@ -912,12 +921,12 @@ function ContentPanel({
                 selectedItems={selectedItems}
                 onToggleSelection={onToggleSelection}
                 onCopyToClipboard={onCopyToClipboard}
-                onDownload={onDownload}
                 onReplace={onReplace}
                 onDeleteSingle={onDeleteSingle}
                 onOpenPreview={onOpenPreview}
                 onOpenFolder={onOpenFolder}
                 onMove={onMove}
+                onRename={onRename}
               />
             ) : (
               <FilePreview
@@ -1349,12 +1358,12 @@ function FolderView({
   selectedItems,
   onToggleSelection,
   onCopyToClipboard,
-  onDownload,
   onReplace,
   onDeleteSingle,
   onOpenPreview,
   onOpenFolder,
   onMove,
+  onRename,
 }: {
   dragOver: boolean;
   onDrop: (e: React.DragEvent) => void;
@@ -1366,12 +1375,12 @@ function FolderView({
   selectedItems: Set<string>;
   onToggleSelection: (path: string) => void;
   onCopyToClipboard: (text: string) => void;
-  onDownload: (publicUrl: string, filename: string) => void;
   onReplace: (file: File, path: string) => void;
   onDeleteSingle: (path: string) => void;
   onOpenPreview: (path: string, name: string) => void;
   onOpenFolder: (path: string, name: string) => void;
   onMove: (item: MediaItem) => void;
+  onRename: (path: string, newName: string) => void;
 }) {
   return (
     <div
@@ -1413,12 +1422,12 @@ function FolderView({
               isSelected={selectedItems.has(item.path)}
               onSelect={() => onToggleSelection(item.path)}
               onCopyPath={() => onCopyToClipboard(item.publicUrl)}
-              onDownload={() => onDownload(item.publicUrl, item.name)}
               onReplace={(file) => onReplace(file, item.path)}
               onDelete={() => onDeleteSingle(item.path)}
               onOpenPreview={() => onOpenPreview(item.path, item.name)}
               onOpenFolder={() => onOpenFolder(item.path, item.name)}
               onMove={() => onMove(item)}
+              onRename={(newName) => onRename(item.path, newName)}
             />
           ))}
         </div>
@@ -1432,26 +1441,29 @@ function MediaItemCard({
   isSelected,
   onSelect,
   onCopyPath,
-  onDownload,
   onReplace,
   onDelete,
   onOpenPreview,
   onOpenFolder,
   onMove,
+  onRename,
 }: {
   item: MediaItem;
   isSelected: boolean;
   onSelect: () => void;
   onCopyPath: () => void;
-  onDownload: () => void;
   onReplace: (file: File) => void;
   onDelete: () => void;
   onOpenPreview: () => void;
   onOpenFolder: () => void;
   onMove: () => void;
+  onRename: (newName: string) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(item.name);
 
   const handleReplace = () => {
     fileInputRef.current?.click();
@@ -1471,11 +1483,6 @@ function MediaItemCard({
     setShowMenu(false);
   };
 
-  const handleDownload = () => {
-    onDownload();
-    setShowMenu(false);
-  };
-
   const handleDelete = () => {
     onDelete();
     setShowMenu(false);
@@ -1484,6 +1491,29 @@ function MediaItemCard({
   const handleMove = () => {
     onMove();
     setShowMenu(false);
+  };
+
+  const startRename = () => {
+    setShowMenu(false);
+    setRenameValue(item.name);
+    setIsRenaming(true);
+    setTimeout(() => {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    }, 0);
+  };
+
+  const submitRename = () => {
+    const trimmed = renameValue.trim();
+    if (trimmed && trimmed !== item.name) {
+      onRename(trimmed);
+    }
+    setIsRenaming(false);
+  };
+
+  const cancelRename = () => {
+    setRenameValue(item.name);
+    setIsRenaming(false);
   };
 
   if (item.type === "dir") {
@@ -1495,15 +1525,31 @@ function MediaItemCard({
             ? "border-blue-500 ring-2 ring-blue-500"
             : "border-neutral-200 hover:border-neutral-300 hover:shadow-md",
         ])}
-        onClick={onOpenFolder}
+        onClick={isRenaming ? undefined : onOpenFolder}
       >
         <div className="aspect-square bg-neutral-100 flex items-center justify-center">
           <FolderIcon className="size-12 text-neutral-400" />
         </div>
         <div className="p-2 bg-white">
-          <p className="text-sm text-neutral-700 truncate" title={item.name}>
-            {item.name}
-          </p>
+          {isRenaming ? (
+            <input
+              ref={renameInputRef}
+              type="text"
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onBlur={submitRename}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submitRename();
+                if (e.key === "Escape") cancelRename();
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full text-sm text-neutral-700 bg-white border border-blue-500 rounded px-1 py-0.5 outline-none"
+            />
+          ) : (
+            <p className="text-sm text-neutral-700 truncate" title={item.name}>
+              {item.name}
+            </p>
+          )}
         </div>
 
         <div
@@ -1526,6 +1572,56 @@ function MediaItemCard({
           >
             {isSelected && <CheckIcon className="size-3 text-white" />}
           </div>
+        </div>
+
+        <div
+          className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="w-6 h-6 rounded bg-white/90 hover:bg-white border border-neutral-200 flex items-center justify-center shadow-xs"
+          >
+            <MoreVerticalIcon className="size-4 text-neutral-700" />
+          </button>
+
+          {showMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowMenu(false)}
+              />
+              <div
+                className={cn([
+                  "absolute top-full right-0 mt-1 z-50 min-w-40 py-1",
+                  "bg-white border border-neutral-200 rounded-xs shadow-lg",
+                ])}
+              >
+                <button
+                  onClick={startRename}
+                  className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+                >
+                  <PencilIcon className="size-4" />
+                  Rename
+                </button>
+                <button
+                  onClick={handleMove}
+                  className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+                >
+                  <MoveIcon className="size-4" />
+                  Move to...
+                </button>
+                <div className="my-1 border-t border-neutral-200" />
+                <button
+                  onClick={handleDelete}
+                  className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors text-red-600"
+                >
+                  <Trash2Icon className="size-4" />
+                  Delete
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
@@ -1616,19 +1712,28 @@ function MediaItemCard({
               ])}
             >
               <button
+                onClick={startRename}
+                className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+              >
+                <PencilIcon className="size-4" />
+                Rename
+              </button>
+              <button
                 onClick={handleCopyPath}
                 className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
               >
                 <CopyIcon className="size-4" />
                 Copy URL
               </button>
-              <button
-                onClick={handleDownload}
+              <a
+                href={item.publicUrl}
+                download={item.name}
+                onClick={() => setShowMenu(false)}
                 className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
               >
                 <DownloadIcon className="size-4" />
                 Download
-              </button>
+              </a>
               <button
                 onClick={handleReplace}
                 className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
@@ -1657,9 +1762,25 @@ function MediaItemCard({
       </div>
 
       <div className="p-2 bg-white">
-        <p className="text-sm text-neutral-700 truncate" title={item.name}>
-          {item.name}
-        </p>
+        {isRenaming ? (
+          <input
+            ref={renameInputRef}
+            type="text"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onBlur={submitRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submitRename();
+              if (e.key === "Escape") cancelRename();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full text-sm text-neutral-700 bg-white border border-blue-500 rounded px-1 py-0.5 outline-none"
+          />
+        ) : (
+          <p className="text-sm text-neutral-700 truncate" title={item.name}>
+            {item.name}
+          </p>
+        )}
         <p className="text-xs text-neutral-400">{formatFileSize(item.size)}</p>
       </div>
 

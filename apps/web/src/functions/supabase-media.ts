@@ -216,10 +216,14 @@ export async function createMediaFolder(
     : `${sanitizedFolderName}/.emptyFolderPlaceholder`;
 
   try {
+    const placeholderContent = new TextEncoder().encode(
+      "This file maintains folder structure in storage",
+    );
     const { error } = await supabase.storage
       .from(BUCKET_NAME)
-      .upload(path, new Uint8Array(0), {
+      .upload(path, placeholderContent, {
         contentType: "text/plain",
+        upsert: true,
       });
 
     if (error) {

@@ -1,6 +1,6 @@
 use owhisper_client::{
-    AssemblyAIAdapter, Auth, DeepgramAdapter, ElevenLabsAdapter, FireworksAdapter, GladiaAdapter,
-    OpenAIAdapter, Provider, RealtimeSttAdapter, SonioxAdapter,
+    AdapterKind, AssemblyAIAdapter, Auth, DeepgramAdapter, ElevenLabsAdapter, FireworksAdapter,
+    GladiaAdapter, OpenAIAdapter, Provider, RealtimeSttAdapter, SonioxAdapter,
 };
 use owhisper_interface::ListenParams;
 
@@ -109,8 +109,14 @@ fn build_proxy_with_adapter(
     config: &SttProxyConfig,
 ) -> Result<WebSocketProxy, crate::ProxyError> {
     let provider = selected.provider();
-    let listen_params = build_listen_params(client_params);
+    let mut listen_params = build_listen_params(client_params);
     let channels: u8 = parse_param(client_params, "channels", 1);
+
+    if let Some(model) =
+        AdapterKind::from(provider).recommended_model_live(&listen_params.languages)
+    {
+        listen_params.model = Some(model.to_string());
+    }
 
     let api_base = provider.default_api_base();
     let upstream_url =

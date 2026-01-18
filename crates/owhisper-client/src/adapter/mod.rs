@@ -356,6 +356,16 @@ impl AdapterKind {
             Self::Argmax => ArgmaxAdapter::language_quality_live(languages, model),
         }
     }
+
+    pub fn recommended_model_live(
+        &self,
+        languages: &[hypr_language::Language],
+    ) -> Option<&'static str> {
+        match self {
+            Self::Deepgram => DeepgramAdapter::recommended_model_live(languages),
+            _ => None,
+        }
+    }
 }
 
 impl From<crate::providers::Provider> for AdapterKind {

@@ -76,6 +76,16 @@ impl DeepgramModel {
             .into_iter()
             .find(|&model| model.supported_languages().contains(&primary_lang))
     }
+
+    pub fn best_for_multi_languages(languages: &[hypr_language::Language]) -> Option<Self> {
+        if language::can_use_multi(Self::Nova3General.as_ref(), languages) {
+            Some(Self::Nova3General)
+        } else if language::can_use_multi(Self::Nova2General.as_ref(), languages) {
+            Some(Self::Nova2General)
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Clone, Default)]
@@ -140,6 +150,22 @@ impl DeepgramAdapter {
             LanguageQuality::NotSupported
         }
     }
+
+    pub fn recommended_model_live(languages: &[hypr_language::Language]) -> Option<&'static str> {
+        let model = if languages.len() >= 2 {
+            DeepgramModel::best_for_multi_languages(languages)
+        } else {
+            DeepgramModel::best_for_languages(languages)
+        };
+
+        match model {
+            Some(DeepgramModel::Nova3General) => Some("nova-3"),
+            Some(DeepgramModel::Nova3Medical) => Some("nova-3-medical"),
+            Some(DeepgramModel::Nova2General) => Some("nova-2"),
+            Some(DeepgramModel::Nova2Specialized) => Some("nova-2"),
+            None => None,
+        }
+    }
 }
 
 pub(super) fn documented_language_codes() -> Vec<&'static str> {
@@ -149,4 +175,52 @@ pub(super) fn documented_language_codes() -> Vec<&'static str> {
     codes.extend_from_slice(NOVA3_MEDICAL_LANGUAGES);
     codes.extend_from_slice(ENGLISH_ONLY);
     codes
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use hypr_language::ISO639;
+
+    #[test]
+    fn test_recommended_model_single_language() {
+        let en: Vec<hypr_language::Language> = vec![ISO639::En.into()];
+        assert_eq!(DeepgramAdapter::recommended_model_live(&en), Some("nova-3"));
+
+        let ja: Vec<hypr_language::Language> = vec![ISO639::Ja.into()];
+        assert_eq!(DeepgramAdapter::recommended_model_live(&ja), Some("nova-3"));
+
+        let zh: Vec<hypr_language::Language> = vec![ISO639::Zh.into()];
+        assert_eq!(DeepgramAdapter::recommended_model_live(&zh), Some("nova-2"));
+    }
+
+    #[test]
+    fn test_recommended_model_multi_language_nova3() {
+        let en_es: Vec<hypr_language::Language> = vec![ISO639::En.into(), ISO639::Es.into()];
+        assert_eq!(
+            DeepgramAdapter::recommended_model_live(&en_es),
+            Some("nova-3")
+        );
+
+        let en_fr: Vec<hypr_language::Language> = vec![ISO639::En.into(), ISO639::Fr.into()];
+        assert_eq!(
+            DeepgramAdapter::recommended_model_live(&en_fr),
+            Some("nova-3")
+        );
+
+        let en_ja: Vec<hypr_language::Language> = vec![ISO639::En.into(), ISO639::Ja.into()];
+        assert_eq!(
+            DeepgramAdapter::recommended_model_live(&en_ja),
+            Some("nova-3")
+        );
+    }
+
+    #[test]
+    fn test_recommended_model_multi_language_unsupported() {
+        let en_ko: Vec<hypr_language::Language> = vec![ISO639::En.into(), ISO639::Ko.into()];
+        assert_eq!(DeepgramAdapter::recommended_model_live(&en_ko), None);
+
+        let en_zh: Vec<hypr_language::Language> = vec![ISO639::En.into(), ISO639::Zh.into()];
+        assert_eq!(DeepgramAdapter::recommended_model_live(&en_zh), None);
+    }
 }

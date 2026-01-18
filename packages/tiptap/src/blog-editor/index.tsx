@@ -19,6 +19,7 @@ interface BlogEditorProps {
   editable?: boolean;
   onGoogleDocsImport?: (url: string) => void;
   isImporting?: boolean;
+  onImageUpload?: (file: File) => Promise<string>;
 }
 
 const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
@@ -29,6 +30,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
       editable = true,
       onGoogleDocsImport,
       isImporting,
+      onImageUpload,
     } = props;
     const [isEmpty, setIsEmpty] = useState(!content || content.trim() === "");
 
@@ -45,7 +47,20 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
       300,
     );
 
-    const extensions = useMemo(() => [...shared.getExtensions(), Markdown], []);
+    const extensions = useMemo(
+      () => [
+        ...shared.getExtensions(
+          undefined,
+          onImageUpload
+            ? {
+                onImageUpload,
+              }
+            : undefined,
+        ),
+        Markdown,
+      ],
+      [onImageUpload],
+    );
 
     const editor = useEditor(
       {

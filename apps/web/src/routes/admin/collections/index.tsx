@@ -2330,6 +2330,38 @@ const FileEditor = React.forwardRef<
     [importFromDocs],
   );
 
+  const handleImageUpload = useCallback(async (file: File): Promise<string> => {
+    const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+      reader.onload = async () => {
+        try {
+          const base64 = (reader.result as string).split(",")[1];
+          const response = await fetch("/api/admin/blog/upload-image", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              filename: file.name,
+              content: base64,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Upload failed");
+          }
+
+          const data = await response.json();
+          resolve(data.url);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
   const getMetadata = useCallback(
     (): ArticleMetadata => ({
       meta_title: metaTitle,
@@ -2536,6 +2568,7 @@ const FileEditor = React.forwardRef<
                 onChange={handleContentChange}
                 onGoogleDocsImport={handleGoogleDocsImport}
                 isImporting={isImporting}
+                onImageUpload={handleImageUpload}
               />
             </div>
           </div>
@@ -2557,6 +2590,7 @@ const FileEditor = React.forwardRef<
             onChange={handleContentChange}
             onGoogleDocsImport={handleGoogleDocsImport}
             isImporting={isImporting}
+            onImageUpload={handleImageUpload}
           />
         </div>
       </ResizablePanel>

@@ -466,6 +466,22 @@ function MediaLibrary() {
             onCreateFolder={() => handleCreateFolder("untitled")}
             createFolderPending={createFolderMutation.isPending}
             currentTab={currentTab}
+            onRename={handleRename}
+            onMove={(path, name, type) => {
+              setItemToMove({
+                id: path,
+                path,
+                name,
+                type,
+                size: 0,
+                mimeType: null,
+                publicUrl: "",
+                createdAt: null,
+                updatedAt: null,
+              });
+              setShowMoveModal(true);
+            }}
+            onDelete={(path) => handleDeleteSingle(path)}
           />
         </ResizablePanel>
         <ResizableHandle />
@@ -538,6 +554,9 @@ function Sidebar({
   onCreateFolder,
   createFolderPending,
   currentTab,
+  onRename,
+  onMove,
+  onDelete,
 }: {
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -552,6 +571,9 @@ function Sidebar({
   onCreateFolder: () => void;
   createFolderPending: boolean;
   currentTab: Tab | undefined;
+  onRename: (path: string, newName: string) => void;
+  onMove: (path: string, name: string, type: "file" | "dir") => void;
+  onDelete: (path: string) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { atStart, atEnd } = useScrollFade(scrollRef, "vertical", [
@@ -592,6 +614,9 @@ function Sidebar({
               onOpenFile={onOpenFile}
               onToggle={onToggleNodeExpanded}
               currentTab={currentTab}
+              onRename={onRename}
+              onMove={onMove}
+              onDelete={onDelete}
             />
           ))}
         </div>
@@ -712,6 +737,9 @@ function TreeNodeItem({
   onOpenFile,
   onToggle,
   currentTab,
+  onRename,
+  onMove,
+  onDelete,
 }: {
   node: TreeNode;
   depth: number;
@@ -720,10 +748,20 @@ function TreeNodeItem({
   onOpenFile: (path: string, name: string) => void;
   onToggle: (path: string) => Promise<void>;
   currentTab: Tab | undefined;
+  onRename: (path: string, newName: string) => void;
+  onMove: (path: string, name: string, type: "file" | "dir") => void;
+  onDelete: (path: string) => void;
 }) {
   const isFolder = node.type === "dir";
   const isLoading = loadingPaths.has(node.path);
   const isActive = currentTab?.path === node.path;
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(node.name);
+  const renameInputRef = useRef<HTMLInputElement>(null);
 
   const handleDoubleClick = () => {
     if (isFolder) {
@@ -732,11 +770,43 @@ function TreeNodeItem({
   };
 
   const handleClick = async () => {
+    if (isRenaming) return;
     if (isFolder) {
       onOpenFolder(node.path, node.name);
     } else {
       onOpenFile(node.path, node.name);
     }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const closeContextMenu = () => setContextMenu(null);
+
+  const startRename = () => {
+    closeContextMenu();
+    setRenameValue(node.name);
+    setIsRenaming(true);
+    setTimeout(() => {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    }, 0);
+  };
+
+  const submitRename = () => {
+    const trimmed = renameValue.trim();
+    if (trimmed && trimmed !== node.name) {
+      onRename(node.path, trimmed);
+    }
+    setIsRenaming(false);
+  };
+
+  const cancelRename = () => {
+    setRenameValue(node.name);
+    setIsRenaming(false);
   };
 
   return (
@@ -750,6 +820,7 @@ function TreeNodeItem({
         style={{ paddingLeft: `${depth * 16 + 12}px` }}
         onDoubleClick={handleDoubleClick}
         onClick={handleClick}
+        onContextMenu={handleContextMenu}
       >
         {isLoading ? (
           <Spinner size={14} className="shrink-0" />
@@ -777,15 +848,74 @@ function TreeNodeItem({
             ])}
           />
         )}
-        <span
-          className={cn([
-            "truncate",
-            isActive ? "text-blue-700" : "text-neutral-700",
-          ])}
-        >
-          {node.name}
-        </span>
+        {isRenaming ? (
+          <input
+            ref={renameInputRef}
+            type="text"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onBlur={submitRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submitRename();
+              if (e.key === "Escape") cancelRename();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1 min-w-0 text-sm bg-white border border-blue-500 rounded px-1 outline-none"
+          />
+        ) : (
+          <span
+            className={cn([
+              "truncate",
+              isActive ? "text-blue-700" : "text-neutral-700",
+            ])}
+          >
+            {node.name}
+          </span>
+        )}
       </div>
+
+      {contextMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={closeContextMenu} />
+          <div
+            className={cn([
+              "fixed z-50 min-w-40 py-1",
+              "bg-white border border-neutral-200 rounded-xs shadow-lg",
+            ])}
+            style={{ left: contextMenu.x, top: contextMenu.y }}
+          >
+            <button
+              onClick={startRename}
+              className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+            >
+              <PencilIcon className="size-4" />
+              Rename
+            </button>
+            <button
+              onClick={() => {
+                closeContextMenu();
+                onMove(node.path, node.name, node.type);
+              }}
+              className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+            >
+              <MoveIcon className="size-4" />
+              Move to...
+            </button>
+            <div className="my-1 border-t border-neutral-200" />
+            <button
+              onClick={() => {
+                closeContextMenu();
+                onDelete(node.path);
+              }}
+              className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors text-red-600"
+            >
+              <Trash2Icon className="size-4" />
+              Delete
+            </button>
+          </div>
+        </>
+      )}
+
       {node.expanded && node.children.length > 0 && (
         <div className="ml-5.5 border-l border-neutral-200">
           {node.children.map((child) => (
@@ -798,6 +928,9 @@ function TreeNodeItem({
               onOpenFile={onOpenFile}
               onToggle={onToggle}
               currentTab={currentTab}
+              onRename={onRename}
+              onMove={onMove}
+              onDelete={onDelete}
             />
           ))}
         </div>
@@ -1462,8 +1595,20 @@ function MediaItemCard({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(item.name);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const closeContextMenu = () => setContextMenu(null);
 
   const handleReplace = () => {
     fileInputRef.current?.click();
@@ -1526,6 +1671,7 @@ function MediaItemCard({
             : "border-neutral-200 hover:border-neutral-300 hover:shadow-md",
         ])}
         onClick={isRenaming ? undefined : onOpenFolder}
+        onContextMenu={handleContextMenu}
       >
         <div className="aspect-square bg-neutral-100 flex items-center justify-center">
           <FolderIcon className="size-12 text-neutral-400" />
@@ -1623,6 +1769,51 @@ function MediaItemCard({
             </>
           )}
         </div>
+
+        {contextMenu && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={closeContextMenu} />
+            <div
+              className={cn([
+                "fixed z-50 min-w-40 py-1",
+                "bg-white border border-neutral-200 rounded-xs shadow-lg",
+              ])}
+              style={{ left: contextMenu.x, top: contextMenu.y }}
+            >
+              <button
+                onClick={() => {
+                  closeContextMenu();
+                  startRename();
+                }}
+                className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+              >
+                <PencilIcon className="size-4" />
+                Rename
+              </button>
+              <button
+                onClick={() => {
+                  closeContextMenu();
+                  onMove();
+                }}
+                className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+              >
+                <MoveIcon className="size-4" />
+                Move to...
+              </button>
+              <div className="my-1 border-t border-neutral-200" />
+              <button
+                onClick={() => {
+                  closeContextMenu();
+                  onDelete();
+                }}
+                className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors text-red-600"
+              >
+                <Trash2Icon className="size-4" />
+                Delete
+              </button>
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -1640,6 +1831,7 @@ function MediaItemCard({
           : "border-neutral-200 hover:border-neutral-300 hover:shadow-md",
       ])}
       onClick={onOpenPreview}
+      onContextMenu={handleContextMenu}
     >
       <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
         {isImage && item.publicUrl ? (
@@ -1791,6 +1983,80 @@ function MediaItemCard({
         className="hidden"
         onChange={handleFileChange}
       />
+
+      {contextMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={closeContextMenu} />
+          <div
+            className={cn([
+              "fixed z-50 min-w-40 py-1",
+              "bg-white border border-neutral-200 rounded-xs shadow-lg",
+            ])}
+            style={{ left: contextMenu.x, top: contextMenu.y }}
+          >
+            <button
+              onClick={() => {
+                closeContextMenu();
+                startRename();
+              }}
+              className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+            >
+              <PencilIcon className="size-4" />
+              Rename
+            </button>
+            <button
+              onClick={() => {
+                closeContextMenu();
+                onCopyPath();
+              }}
+              className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+            >
+              <CopyIcon className="size-4" />
+              Copy URL
+            </button>
+            <a
+              href={item.publicUrl}
+              download={item.name}
+              onClick={closeContextMenu}
+              className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+            >
+              <DownloadIcon className="size-4" />
+              Download
+            </a>
+            <button
+              onClick={() => {
+                closeContextMenu();
+                fileInputRef.current?.click();
+              }}
+              className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+            >
+              <RefreshCwIcon className="size-4" />
+              Replace
+            </button>
+            <button
+              onClick={() => {
+                closeContextMenu();
+                onMove();
+              }}
+              className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+            >
+              <MoveIcon className="size-4" />
+              Move to...
+            </button>
+            <div className="my-1 border-t border-neutral-200" />
+            <button
+              onClick={() => {
+                closeContextMenu();
+                onDelete();
+              }}
+              className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors text-red-600"
+            >
+              <Trash2Icon className="size-4" />
+              Delete
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

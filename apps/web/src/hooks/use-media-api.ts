@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { sonnerToast as toast } from "@hypr/ui/components/ui/toast";
+
 export interface MediaItem {
   name: string;
   path: string;
@@ -102,22 +104,48 @@ export function useMediaApi({
 
   const uploadMutation = useMutation({
     mutationFn: async (files: FileList) => {
-      for (const file of Array.from(files)) {
-        const reader = new FileReader();
-        const content = await new Promise<string>((resolve, reject) => {
-          reader.onload = () => {
-            const base64 = (reader.result as string).split(",")[1];
-            resolve(base64);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+      const fileArray = Array.from(files);
+      const totalFiles = fileArray.length;
+      const toastId = toast.loading(
+        `Uploading ${totalFiles} file${totalFiles > 1 ? "s" : ""}...`,
+        { description: `0 / ${totalFiles}` },
+      );
 
-        await uploadFile({
-          filename: file.name,
-          content,
-          folder: currentFolderPath,
+      try {
+        for (let i = 0; i < fileArray.length; i++) {
+          const file = fileArray[i];
+          toast.loading(
+            `Uploading ${totalFiles} file${totalFiles > 1 ? "s" : ""}...`,
+            { id: toastId, description: `${i} / ${totalFiles}` },
+          );
+
+          const reader = new FileReader();
+          const content = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => {
+              const base64 = (reader.result as string).split(",")[1];
+              resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+
+          await uploadFile({
+            filename: file.name,
+            content,
+            folder: currentFolderPath,
+          });
+        }
+
+        toast.success(
+          `Uploaded ${totalFiles} file${totalFiles > 1 ? "s" : ""}`,
+          { id: toastId },
+        );
+      } catch (error) {
+        toast.error("Upload failed", {
+          id: toastId,
+          description: error instanceof Error ? error.message : "Unknown error",
         });
+        throw error;
       }
     },
     onSuccess: () => {

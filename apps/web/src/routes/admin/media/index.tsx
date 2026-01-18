@@ -918,7 +918,6 @@ function ContentPanel({
                 onOpenPreview={onOpenPreview}
                 onOpenFolder={onOpenFolder}
                 onMove={onMove}
-                uploadPending={uploadPending}
               />
             ) : (
               <FilePreview
@@ -1356,7 +1355,6 @@ function FolderView({
   onOpenPreview,
   onOpenFolder,
   onMove,
-  uploadPending,
 }: {
   dragOver: boolean;
   onDrop: (e: React.DragEvent) => void;
@@ -1374,7 +1372,6 @@ function FolderView({
   onOpenPreview: (path: string, name: string) => void;
   onOpenFolder: (path: string, name: string) => void;
   onMove: (item: MediaItem) => void;
-  uploadPending: boolean;
 }) {
   return (
     <div
@@ -1386,14 +1383,6 @@ function FolderView({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
     >
-      {uploadPending && (
-        <div className="absolute inset-0 bg-white/80 z-10 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-2">
-            <Spinner size={32} />
-            <p className="text-sm font-medium text-neutral-700">Uploading...</p>
-          </div>
-        </div>
-      )}
       {isLoading ? (
         <div className="flex items-center justify-center h-full text-neutral-500">
           <Spinner size={24} className="mr-2" />
@@ -1406,10 +1395,9 @@ function FolderView({
           <p className="text-xs mt-1 text-neutral-400">{error.message}</p>
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full text-neutral-500">
-          <FolderOpenIcon className="size-12 mb-3" />
-          <p className="text-sm">No files found</p>
-          <p className="text-xs mt-1">Drag and drop files here or click Add</p>
+        <div className="flex flex-col items-center justify-center h-full text-neutral-300">
+          <FolderOpenIcon className="size-10 mb-2" />
+          <p className="text-sm">Empty folder</p>
         </div>
       ) : (
         <div

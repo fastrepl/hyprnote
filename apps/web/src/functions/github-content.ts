@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import yaml from "js-yaml";
 import * as path from "path";
 
 import { getSupabaseServerClient } from "@/functions/supabase";
@@ -1363,25 +1364,11 @@ export function parseMDX(rawContent: string): {
   const [, frontmatterYaml, content] = match;
 
   try {
-    const frontmatter: Record<string, unknown> = {};
-    const lines = frontmatterYaml.split("\n");
-    for (const line of lines) {
-      const colonIndex = line.indexOf(":");
-      if (colonIndex > 0) {
-        const key = line.slice(0, colonIndex).trim();
-        let value: unknown = line.slice(colonIndex + 1).trim();
-        if (value === "true") value = true;
-        else if (value === "false") value = false;
-        else if (
-          typeof value === "string" &&
-          value.startsWith('"') &&
-          value.endsWith('"')
-        ) {
-          value = value.slice(1, -1);
-        }
-        frontmatter[key] = value;
-      }
-    }
+    const parsed = yaml.load(frontmatterYaml);
+    const frontmatter =
+      parsed && typeof parsed === "object"
+        ? (parsed as Record<string, unknown>)
+        : {};
     return { frontmatter, content: content.trim() };
   } catch {
     return { frontmatter: {}, content: rawContent };

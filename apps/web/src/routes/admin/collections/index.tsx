@@ -1216,12 +1216,21 @@ function ContentPanel({
       metadata: ArticleMetadata;
       branch?: string;
     }) => {
-      const response = await fetch("/api/admin/content/save", {
+      if (!params.branch) {
+        throw new Error("Cannot publish: no branch specified");
+      }
+      const response = await fetch("/api/admin/content/publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...params,
-          metadata: { ...params.metadata, published: true },
+          path: params.path,
+          branch: params.branch,
+          metadata: {
+            meta_title: params.metadata.meta_title,
+            author: params.metadata.author,
+            date: params.metadata.date,
+            category: params.metadata.category,
+          },
         }),
       });
       if (!response.ok) {
@@ -1229,6 +1238,11 @@ function ContentPanel({
         throw new Error(error.error || "Failed to publish");
       }
       return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.prUrl) {
+        window.open(data.prUrl, "_blank");
+      }
     },
   });
 

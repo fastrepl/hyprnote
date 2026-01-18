@@ -44,6 +44,8 @@ import {
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
+import { Image as ImageComponent } from "@/components/image";
+
 interface MediaItem {
   name: string;
   path: string;
@@ -1742,12 +1744,13 @@ function FilePreview({ item }: { item: MediaItem | undefined }) {
   const isAudio = item.mimeType?.startsWith("audio/");
 
   return (
-    <div className="h-full bg-neutral-50 p-4 flex items-center justify-center">
+    <div className="flex-1 bg-neutral-50 p-4 flex items-center justify-center overflow-hidden">
       {isImage && (
-        <img
+        <ImageComponent
           src={item.publicUrl}
           alt={item.name}
-          className="max-w-full max-h-full object-contain"
+          objectFit="contain"
+          className="max-w-full max-h-full"
         />
       )}
       {isVideo && (

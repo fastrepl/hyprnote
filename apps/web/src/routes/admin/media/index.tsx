@@ -1,8 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   AlertCircleIcon,
   CheckIcon,
+  ChevronDownIcon,
   ChevronRightIcon,
   CopyIcon,
   DownloadIcon,
@@ -44,17 +45,11 @@ import {
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
-interface MediaItem {
-  name: string;
-  path: string;
-  publicUrl: string;
-  id: string;
-  size: number;
-  type: "file" | "dir";
-  mimeType: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-}
+import {
+  fetchMediaItems,
+  type MediaItem,
+  useMediaApi,
+} from "@/hooks/use-media-api";
 
 interface TreeNode {
   path: string;
@@ -73,77 +68,6 @@ interface Tab {
   pinned: boolean;
   active: boolean;
   isHome?: boolean;
-}
-
-async function fetchMediaItems(path: string): Promise<MediaItem[]> {
-  const response = await fetch(
-    `/api/admin/media/list?path=${encodeURIComponent(path)}`,
-  );
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || "Failed to fetch media");
-  }
-  return data.items;
-}
-
-async function uploadFile(params: {
-  filename: string;
-  content: string;
-  folder: string;
-}) {
-  const response = await fetch("/api/admin/media/upload", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
-
-  if (!response.ok) {
-    const data = await response.json();
-    throw new Error(data.error || "Upload failed");
-  }
-  return response.json();
-}
-
-async function deleteFiles(paths: string[]) {
-  const response = await fetch("/api/admin/media/delete", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ paths }),
-  });
-
-  const data = await response.json();
-  if (data.errors && data.errors.length > 0) {
-    throw new Error(`Some files failed to delete: ${data.errors.join(", ")}`);
-  }
-  return data;
-}
-
-async function createFolder(params: { name: string; parentFolder: string }) {
-  const response = await fetch("/api/admin/media/create-folder", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
-
-  if (!response.ok) {
-    const data = await response.json();
-    throw new Error(data.error || "Failed to create folder");
-  }
-  return response.json();
-}
-
-async function moveFile(params: { fromPath: string; toPath: string }) {
-  const response = await fetch("/api/admin/media/move", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
-
-  if (!response.ok) {
-    const data = await response.json();
-    throw new Error(data.error || "Failed to move file");
-  }
-  return response.json();
 }
 
 export const Route = createFileRoute("/admin/media/")({
@@ -386,93 +310,31 @@ function MediaLibrary() {
     setTabs(newTabs);
   }, []);
 
-  const uploadMutation = useMutation({
-    mutationFn: async (files: FileList) => {
-      const folder = currentTab?.type === "folder" ? currentTab.path : "";
-      for (const file of Array.from(files)) {
-        const reader = new FileReader();
-        const content = await new Promise<string>((resolve, reject) => {
-          reader.onload = () => {
-            const base64 = (reader.result as string).split(",")[1];
-            resolve(base64);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-
-        await uploadFile({
-          filename: file.name,
-          content,
-          folder,
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
-      if (currentTab?.type === "folder") {
-        loadFolderContents(currentTab.path);
-      }
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (paths: string[]) => deleteFiles(paths),
-    onSuccess: () => {
-      setSelectedItems(new Set());
-      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
-      if (currentTab?.type === "folder") {
-        loadFolderContents(currentTab.path);
-      }
-    },
-  });
-
-  const replaceMutation = useMutation({
-    mutationFn: async (params: { file: File; path: string }) => {
-      const reader = new FileReader();
-      const content = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const base64 = (reader.result as string).split(",")[1];
-          resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(params.file);
-      });
-
-      await uploadFile({
-        filename: params.file.name,
-        content,
-        folder: params.path.split("/").slice(0, -1).join("/"),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
-      if (currentTab?.type === "folder") {
-        loadFolderContents(currentTab.path);
-      }
-    },
-  });
-
-  const createFolderMutation = useMutation({
-    mutationFn: (params: { name: string; parentFolder: string }) =>
-      createFolder(params),
-    onSuccess: (_, variables) => {
+  const {
+    uploadMutation,
+    deleteMutation,
+    replaceMutation,
+    createFolderMutation,
+    moveMutation,
+  } = useMediaApi({
+    currentFolderPath: currentTab?.type === "folder" ? currentTab.path : "",
+    onFolderCreated: (parentFolder) => {
       setShowCreateFolderModal(false);
-      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
-      loadFolderContents(variables.parentFolder);
-      if (variables.parentFolder === "") {
+      loadFolderContents(parentFolder);
+      if (parentFolder === "") {
         setRootLoaded(false);
       }
     },
-  });
-
-  const moveMutation = useMutation({
-    mutationFn: (params: { fromPath: string; toPath: string }) =>
-      moveFile(params),
-    onSuccess: () => {
+    onFileMoved: () => {
       setShowMoveModal(false);
       setItemToMove(null);
-      queryClient.invalidateQueries({ queryKey: ["mediaItems"] });
       loadFolderContents(currentTab?.path || "");
+    },
+    onSelectionCleared: () => {
+      setSelectedItems(new Set());
+      if (currentTab?.type === "folder") {
+        loadFolderContents(currentTab.path);
+      }
     },
   });
 
@@ -632,6 +494,10 @@ function MediaLibrary() {
             onDeleteSingle={handleDeleteSingle}
             onOpenPreview={(path, name) => openTab("file", name, path)}
             onMove={openMoveModal}
+            onCreateFolder={() => setShowCreateFolderModal(true)}
+            fileInputRef={fileInputRef}
+            createFolderPending={createFolderMutation.isPending}
+            uploadPending={uploadMutation.isPending}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
@@ -737,7 +603,6 @@ function Sidebar({
         uploadPending={uploadPending}
         fileInputRef={fileInputRef}
         onUpload={onUpload}
-        currentTab={currentTab}
       />
     </div>
   );
@@ -749,24 +614,15 @@ function AddMenu({
   uploadPending,
   fileInputRef,
   onUpload,
-  currentTab,
 }: {
   onCreateFolder: () => void;
   createFolderPending: boolean;
   uploadPending: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onUpload: (files: FileList) => void;
-  currentTab: Tab | undefined;
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-
-  const targetPath =
-    currentTab?.type === "folder"
-      ? currentTab.path
-      : currentTab?.path
-        ? currentTab.path.split("/").slice(0, -1).join("/")
-        : "";
 
   const handleCreateFolder = () => {
     setShowMenu(false);
@@ -784,7 +640,13 @@ function AddMenu({
     <div className="p-3 relative">
       <button
         ref={buttonRef}
-        onClick={() => setShowMenu(!showMenu)}
+        onClick={() => {
+          if (showMenu) {
+            handleAddFile();
+          } else {
+            setShowMenu(true);
+          }
+        }}
         disabled={isPending}
         className={cn([
           "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
@@ -793,12 +655,20 @@ function AddMenu({
           "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-xs",
         ])}
       >
-        {isPending ? <Spinner size={14} /> : <PlusIcon className="size-4" />}
+        {isPending ? (
+          <Spinner size={14} />
+        ) : showMenu ? (
+          <UploadIcon className="size-4" />
+        ) : (
+          <PlusIcon className="size-4" />
+        )}
         {createFolderPending
           ? "Creating..."
           : uploadPending
             ? "Uploading..."
-            : "+ Add"}
+            : showMenu
+              ? "Add File"
+              : "Add"}
       </button>
 
       {showMenu && (
@@ -807,32 +677,18 @@ function AddMenu({
             className="fixed inset-0 z-40"
             onClick={() => setShowMenu(false)}
           />
-          <div
+          <button
+            onClick={handleCreateFolder}
             className={cn([
-              "absolute bottom-full left-3 right-3 mb-2 z-50",
-              "bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden",
+              "absolute bottom-15 left-3 right-3 z-50",
+              "w-auto h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
+              "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
+              "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
             ])}
           >
-            {targetPath && (
-              <div className="px-3 py-2 text-xs text-neutral-500 border-b border-neutral-100 bg-neutral-50">
-                Creating in: {targetPath || "Root"}
-              </div>
-            )}
-            <button
-              onClick={handleCreateFolder}
-              className="w-full px-3 py-2.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
-            >
-              <FolderPlusIcon className="size-4 text-neutral-500" />
-              Add Folder
-            </button>
-            <button
-              onClick={handleAddFile}
-              className="w-full px-3 py-2.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
-            >
-              <UploadIcon className="size-4 text-neutral-500" />
-              Add File
-            </button>
-          </div>
+            <FolderPlusIcon className="size-4" />
+            Add Folder
+          </button>
         </>
       )}
 
@@ -976,6 +832,10 @@ function ContentPanel({
   onDeleteSingle,
   onOpenPreview,
   onMove,
+  onCreateFolder,
+  fileInputRef,
+  createFolderPending,
+  uploadPending,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -1002,6 +862,10 @@ function ContentPanel({
   onDeleteSingle: (path: string) => void;
   onOpenPreview: (path: string, name: string) => void;
   onMove: (item: MediaItem) => void;
+  onCreateFolder: () => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  createFolderPending: boolean;
+  uploadPending: boolean;
 }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -1034,6 +898,10 @@ function ContentPanel({
             onDownload={onDownload}
             onReplace={onReplace}
             onDeleteSingle={onDeleteSingle}
+            onCreateFolder={onCreateFolder}
+            fileInputRef={fileInputRef}
+            createFolderPending={createFolderPending}
+            uploadPending={uploadPending}
           />
 
           <div className="flex-1 min-h-0 overflow-hidden">
@@ -1284,6 +1152,10 @@ function HeaderBar({
   onDownload,
   onReplace,
   onDeleteSingle,
+  onCreateFolder,
+  fileInputRef,
+  createFolderPending,
+  uploadPending,
 }: {
   currentTab: Tab;
   selectedItems: Set<string>;
@@ -1296,8 +1168,14 @@ function HeaderBar({
   onDownload: (publicUrl: string, filename: string) => void;
   onReplace: (file: File, path: string) => void;
   onDeleteSingle: (path: string) => void;
+  onCreateFolder: () => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  createFolderPending: boolean;
+  uploadPending: boolean;
 }) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceFileInputRef = useRef<HTMLInputElement>(null);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
   const breadcrumbs = currentTab.path ? currentTab.path.split("/") : [];
 
   return (
@@ -1329,6 +1207,61 @@ function HeaderBar({
           </span>
         )}
       </div>
+
+      {currentTab.type === "folder" && selectedItems.size === 0 && (
+        <div className="relative">
+          <button
+            ref={addButtonRef}
+            onClick={() => setShowAddMenu(!showAddMenu)}
+            disabled={createFolderPending || uploadPending}
+            className={cn([
+              "h-7 px-3 text-sm font-medium rounded-md flex items-center gap-1.5",
+              "bg-neutral-900 text-white hover:bg-neutral-800",
+              "disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
+            ])}
+          >
+            <PlusIcon className="size-4" />
+            Add
+            <ChevronDownIcon className="size-4" />
+          </button>
+
+          {showAddMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowAddMenu(false)}
+              />
+              <div
+                className={cn([
+                  "absolute top-full right-0 mt-1 z-50 min-w-40 py-1",
+                  "bg-white border border-neutral-200 rounded-xs shadow-lg",
+                ])}
+              >
+                <button
+                  onClick={() => {
+                    setShowAddMenu(false);
+                    fileInputRef.current?.click();
+                  }}
+                  className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+                >
+                  <UploadIcon className="size-4" />
+                  Add File
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAddMenu(false);
+                    onCreateFolder();
+                  }}
+                  className="w-full px-3 py-1.5 text-sm text-left flex items-center gap-2 hover:bg-neutral-100 transition-colors"
+                >
+                  <FolderPlusIcon className="size-4" />
+                  Add Folder
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {currentTab.type === "folder" && selectedItems.size > 0 && (
         <div className="flex items-center gap-2">
@@ -1377,7 +1310,7 @@ function HeaderBar({
             <DownloadIcon className="size-4" />
           </button>
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => replaceFileInputRef.current?.click()}
             className="p-1.5 rounded transition-colors text-neutral-400 hover:text-neutral-600"
             title="Replace"
           >
@@ -1391,7 +1324,7 @@ function HeaderBar({
             <Trash2Icon className="size-4" />
           </button>
           <input
-            ref={fileInputRef}
+            ref={replaceFileInputRef}
             type="file"
             accept="image/*,video/*,audio/*"
             className="hidden"
@@ -1752,12 +1685,12 @@ function FilePreview({ item }: { item: MediaItem | undefined }) {
   const isAudio = item.mimeType?.startsWith("audio/");
 
   return (
-    <div className="h-full bg-neutral-50 p-4 flex items-center justify-center">
+    <div className="flex-1 bg-neutral-50 p-4 flex items-center justify-center overflow-hidden">
       {isImage && (
         <img
           src={item.publicUrl}
           alt={item.name}
-          className="max-w-full max-h-full object-contain"
+          className="max-w-full max-h-full object-scale-down"
         />
       )}
       {isVideo && (

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
-import { getSupabaseServerClient } from "@/functions/supabase";
+import { getSupabaseAdminClient } from "@/functions/supabase";
 import { moveMediaFile } from "@/functions/supabase-media";
 
 export const Route = createFileRoute("/api/admin/media/move")({
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/api/admin/media/move")({
           );
         }
 
-        const supabase = getSupabaseServerClient();
+        const supabase = getSupabaseAdminClient();
         const result = await moveMediaFile(supabase, fromPath, toPath);
 
         if (!result.success) {

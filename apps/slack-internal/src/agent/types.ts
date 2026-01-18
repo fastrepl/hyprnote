@@ -15,6 +15,7 @@ export interface SpecialistConfig {
   name: string;
   promptDir: string;
   checkpointer?: BaseCheckpointSaver;
+  getContext?: () => Promise<Record<string, unknown>>;
 }
 
 export function isRetryableError(error: unknown): boolean {

@@ -65,8 +65,9 @@ export function createSpecialist(config: SpecialistConfig) {
       checkpointer: config.checkpointer,
     },
     async (request: string): Promise<string> => {
+      const context = config.getContext ? await config.getContext() : {};
       const { messages: initialMessages, config: promptConfig } =
-        await compilePrompt(prompt, { request });
+        await compilePrompt(prompt, { request, ...context });
 
       const model = createModel(promptConfig).bindTools([executeCodeTool]);
 

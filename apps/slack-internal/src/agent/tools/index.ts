@@ -15,7 +15,6 @@ export const tools = [
   readUrlTool,
   stripeTool,
   supabaseTool,
-  understandHyprnoteRepoTool,
 ];
 
 export const toolsByName: Record<string, StructuredToolInterface> =

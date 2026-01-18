@@ -6,7 +6,12 @@ import { understandHyprnoteRepo } from "../../modal/understand";
 export const understandHyprnoteRepoTool = tool(
   async ({ request }: { request: string }) => {
     const result = await understandHyprnoteRepo(request);
-    return JSON.stringify(result);
+    const lines = [
+      `success: ${result.success}`,
+      `executionTimeMs: ${result.executionTimeMs}`,
+      `report:\n${result.report}`,
+    ];
+    return lines.join("\n");
   },
   {
     name: "understandHyprnoteRepo",

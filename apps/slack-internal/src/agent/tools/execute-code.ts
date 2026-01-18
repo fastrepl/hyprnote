@@ -1,12 +1,12 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-import { executeCode } from "../../modal/execute";
+import { executeCode, formatExecutionResult } from "../../modal/execute";
 
 export const executeCodeTool = tool(
   async ({ code }: { code: string }) => {
     const result = await executeCode(code);
-    return JSON.stringify(result);
+    return formatExecutionResult(result);
   },
   {
     name: "executeCode",

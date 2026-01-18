@@ -46,7 +46,8 @@ export function shouldIgnoreMessage(text: string): boolean {
 }
 
 function isExitCommand(text: string): boolean {
-  return text.trim().toUpperCase() === "EXIT";
+  const command = text.trim().toUpperCase();
+  return command === "EXIT" || command === "TERMINATE";
 }
 
 function isTerminateResponse(result: unknown): boolean {

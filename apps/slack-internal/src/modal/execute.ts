@@ -8,6 +8,17 @@ export interface ExecutionResult {
   executionTimeMs: number;
 }
 
+export function formatExecutionResult(result: ExecutionResult): string {
+  const lines = [
+    `success: ${result.success}`,
+    `exitCode: ${result.exitCode}`,
+    `executionTimeMs: ${result.executionTimeMs}`,
+  ];
+  if (result.stdout) lines.push(`stdout:\n${result.stdout}`);
+  if (result.stderr) lines.push(`stderr:\n${result.stderr}`);
+  return lines.join("\n");
+}
+
 export async function executeCode(code: string): Promise<ExecutionResult> {
   const startTime = Date.now();
   const sandbox = await sandboxManager.create();

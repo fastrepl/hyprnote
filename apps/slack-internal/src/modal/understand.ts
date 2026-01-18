@@ -13,12 +13,28 @@ export async function understandHyprnoteRepo(
     const result = await runInSandbox(
       { timeoutMs: 5 * 60 * 1000 },
       async (sandbox) => {
+        const setupScript = `
+mkdir -p ~/.claude
+printf '#!/bin/bash\\necho "$ANTHROPIC_API_KEY"\\n' > ~/.claude/anthropic_key.sh
+chmod +x ~/.claude/anthropic_key.sh
+cat > ~/.claude/settings.json << 'EOF'
+{
+  "apiKeyHelper": "~/.claude/anthropic_key.sh",
+  "model": "opus",
+  "alwaysThinkingEnabled": true
+}
+EOF
+`;
+        await sandbox.exec(["bash", "-c", setupScript], {
+          stdout: "pipe",
+          stderr: "pipe",
+        });
         const claudeProcess = await sandbox.exec(
           [
-            "/root/.claude/local/claude",
+            "claude",
             "-p",
             request,
-            "--tools",
+            "--allowedTools",
             "Read,Grep,Glob,LS",
             "--output-format",
             "text",
@@ -29,21 +45,20 @@ export async function understandHyprnoteRepo(
             workdir: REPO_PATH,
           },
         );
-
         const [stdout, stderr] = await Promise.all([
           claudeProcess.stdout.readText(),
           claudeProcess.stderr.readText(),
         ]);
 
         const exitCode = await claudeProcess.wait();
-
+        const parts: string[] = [];
+        if (stdout.trim()) parts.push(`stdout:\n${stdout.trim()}`);
+        if (stderr.trim()) parts.push(`stderr:\n${stderr.trim()}`);
+        console.log("Parts:", parts);
         return {
           success: exitCode === 0,
           data: {
-            report:
-              exitCode === 0
-                ? stdout.trim()
-                : stderr || stdout || "Unknown error",
+            report: parts.length > 0 ? parts.join("\n\n") : "No output",
           },
         };
       },

@@ -31,15 +31,16 @@ export async function createBunSandbox(options?: CreateBunSandboxOptions) {
   });
 
   const image = modal.images
-    .fromRegistry("oven/bun:1.1-alpine")
+    .fromRegistry("oven/bun:1.3-debian")
     .dockerfileCommands([
-      "RUN apk add --no-cache curl git bash",
-      "RUN curl -fsSL https://claude.ai/install.sh | bash",
+      "RUN apt-get update && apt-get install -y curl git bash npm && rm -rf /var/lib/apt/lists/*",
+      "RUN npm install -g @anthropic-ai/claude-code",
       "WORKDIR /app",
       "RUN bun add stripe @supabase/supabase-js loops pg",
     ]);
 
   const sandbox = await modal.sandboxes.create(app, image, {
+    verbose: true,
     timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     env: {
       STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY,
@@ -62,7 +63,19 @@ export async function createBunSandbox(options?: CreateBunSandboxOptions) {
     ],
     { stdout: "pipe", stderr: "pipe" },
   );
-  await cloneProcess.wait();
+
+  const [cloneStdout, cloneStderr] = await Promise.all([
+    cloneProcess.stdout.readText(),
+    cloneProcess.stderr.readText(),
+  ]);
+
+  const cloneExitCode = await cloneProcess.wait();
+  if (cloneExitCode !== 0) {
+    await sandbox.terminate();
+    throw new Error(
+      `Git clone failed (exit ${cloneExitCode}): ${cloneStderr || cloneStdout}`,
+    );
+  }
 
   return sandbox;
 }

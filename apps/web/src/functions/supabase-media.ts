@@ -182,14 +182,22 @@ export async function deleteMediaFiles(
       };
     }
 
-    if (data) {
+    if (data && data.length > 0) {
       for (const file of data) {
         deleted.push(file.name);
       }
+    } else if (paths.length > 0) {
+      return {
+        success: false,
+        deleted: [],
+        errors: [
+          "Files were not deleted - check storage permissions or file paths",
+        ],
+      };
     }
 
     return {
-      success: errors.length === 0,
+      success: deleted.length > 0,
       deleted,
       errors,
     };

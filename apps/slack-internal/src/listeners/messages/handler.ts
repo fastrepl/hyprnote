@@ -1,3 +1,6 @@
+import type { SayFn } from "@slack/bolt";
+import type { WebClient } from "@slack/web-api";
+
 import {
   agent,
   clearThread,
@@ -5,8 +8,6 @@ import {
   getLangSmithUrl,
 } from "@hypr/agent";
 import type { AgentInput, ToolApprovalInterrupt } from "@hypr/agent";
-import type { SayFn } from "@slack/bolt";
-import type { WebClient } from "@slack/web-api";
 
 import { env } from "../../env";
 import {

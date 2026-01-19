@@ -1,9 +1,10 @@
 /** @jsxImportSource jsx-slack */
-import { agent } from "@hypr/agent";
 import { Command } from "@langchain/langgraph";
 import type { App } from "@slack/bolt";
 import type { KnownBlock } from "@slack/types";
 import { Blocks, Section } from "jsx-slack";
+
+import { agent } from "@hypr/agent";
 
 export function registerAgentApprovalAction(app: App) {
   app.action(

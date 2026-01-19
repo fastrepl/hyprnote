@@ -1918,7 +1918,7 @@ function MetadataPanel({
               type="text"
               value={handlers.displayTitle}
               onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
-              placeholder="Display title (optional)"
+              placeholder={handlers.metaTitle || "Display title (optional)"}
               className="flex-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
             />
           </div>
@@ -2139,7 +2139,7 @@ function MetadataSidePanel({
             type="text"
             value={handlers.displayTitle}
             onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
-            placeholder="Display title (optional)"
+            placeholder={handlers.metaTitle || "Display title (optional)"}
             className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
           />
         </div>

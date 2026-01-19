@@ -1441,7 +1441,7 @@ function EditorHeader({
                 <ChevronRightIcon className="size-4 text-neutral-300" />
               )}
               {index === breadcrumbs.length - 1 &&
-              currentTab.type === "file" ? (
+                currentTab.type === "file" ? (
                 isEditingSlug ? (
                   <input
                     ref={slugInputRef}
@@ -1805,9 +1805,11 @@ const AUTHORS = [
 function AuthorSelect({
   value,
   onChange,
+  withBorder,
 }: {
   value: string;
   onChange: (value: string) => void;
+  withBorder?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1829,7 +1831,11 @@ function AuthorSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer"
+        className={cn([
+          "w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer",
+          withBorder &&
+          "px-2 py-1.5 border border-neutral-200 rounded focus:border-neutral-400",
+        ])}
       >
         {selectedAuthor ? (
           <>
@@ -1843,15 +1849,15 @@ function AuthorSelect({
         ) : (
           <span className="text-neutral-400">Select author</span>
         )}
-        <ChevronRightIcon
+        <ChevronDownIcon
           className={cn([
             "size-3 ml-auto transition-transform text-neutral-400",
-            isOpen && "rotate-90",
+            isOpen && "rotate-180",
           ])}
         />
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-neutral-200 rounded-xs shadow-lg z-50">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xs shadow-lg z-50">
           {AUTHORS.map((author) => (
             <button
               key={author.name}
@@ -1872,6 +1878,83 @@ function AuthorSelect({
                 className="size-5 rounded-full object-cover"
               />
               {author.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const CATEGORIES = [
+  "Case Study",
+  "Hyprnote Weekly",
+  "Productivity Hack",
+  "Engineering",
+];
+
+function CategorySelect({
+  value,
+  onChange,
+  withBorder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  withBorder?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative flex-1">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn([
+          "w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer",
+          withBorder &&
+          "px-2 py-1.5 border border-neutral-200 rounded focus:border-neutral-400",
+        ])}
+      >
+        {value ? (
+          <span>{value}</span>
+        ) : (
+          <span className="text-neutral-400">Select category</span>
+        )}
+        <ChevronDownIcon
+          className={cn([
+            "size-3 ml-auto transition-transform text-neutral-400",
+            isOpen && "rotate-180",
+          ])}
+        />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xs shadow-lg z-50">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => {
+                onChange(category);
+                setIsOpen(false);
+              }}
+              className={cn([
+                "w-full px-3 py-2 text-sm text-left cursor-pointer",
+                "hover:bg-neutral-100 transition-colors",
+                value === category && "bg-neutral-50",
+              ])}
+            >
+              {category}
             </button>
           ))}
         </div>
@@ -2215,6 +2298,7 @@ function MetadataSidePanel({
           <AuthorSelect
             value={handlers.author}
             onChange={handlers.onAuthorChange}
+            withBorder
           />
         </div>
 
@@ -2245,17 +2329,11 @@ function MetadataSidePanel({
 
         <div>
           <label className="block text-neutral-500 mb-1">Category</label>
-          <select
+          <CategorySelect
             value={handlers.category}
-            onChange={(e) => handlers.onCategoryChange(e.target.value)}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 focus:border-neutral-400"
-          >
-            <option value="">Select category</option>
-            <option value="Case Study">Case Study</option>
-            <option value="Hyprnote Weekly">Hyprnote Weekly</option>
-            <option value="Productivity Hack">Productivity Hack</option>
-            <option value="Engineering">Engineering</option>
-          </select>
+            onChange={handlers.onCategoryChange}
+            withBorder
+          />
         </div>
 
         <div>

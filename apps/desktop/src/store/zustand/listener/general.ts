@@ -480,7 +480,7 @@ export const createGeneralSlice = <
 
     let unlisten: (() => void) | undefined;
 
-    const cleanup = () => {
+    const cleanup = (clearSession = true) => {
       if (unlisten) {
         unlisten();
         unlisten = undefined;
@@ -490,7 +490,9 @@ export const createGeneralSlice = <
         get().setTranscriptPersist(undefined);
       }
 
-      get().clearBatchSession(sessionId);
+      if (clearSession) {
+        get().clearBatchSession(sessionId);
+      }
     };
 
     await new Promise<void>((resolve, reject) => {
@@ -521,7 +523,8 @@ export const createGeneralSlice = <
           }
 
           if (payload.type === "batchFailed") {
-            cleanup();
+            get().handleBatchFailed(sessionId, payload.error);
+            cleanup(false);
             reject(payload.error);
             return;
           }
@@ -536,7 +539,10 @@ export const createGeneralSlice = <
             resolve();
           } catch (error) {
             console.error("[runBatch] error handling batch response", error);
-            cleanup();
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            get().handleBatchFailed(sessionId, errorMessage);
+            cleanup(false);
             reject(error);
           }
         })
@@ -548,19 +554,26 @@ export const createGeneralSlice = <
             .then((result) => {
               if (result.status === "error") {
                 console.error(result.error);
-                cleanup();
+                get().handleBatchFailed(sessionId, result.error);
+                cleanup(false);
                 reject(result.error);
               }
             })
             .catch((error) => {
               console.error(error);
-              cleanup();
+              const errorMessage =
+                error instanceof Error ? error.message : String(error);
+              get().handleBatchFailed(sessionId, errorMessage);
+              cleanup(false);
               reject(error);
             });
         })
         .catch((error) => {
           console.error(error);
-          cleanup();
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          get().handleBatchFailed(sessionId, errorMessage);
+          cleanup(false);
           reject(error);
         });
     });
@@ -576,7 +589,7 @@ export const createGeneralSlice = <
       return state.live.status;
     }
 
-    if (state.batch[sessionId]) {
+    if (state.batch[sessionId] && !state.batch[sessionId].error) {
       return "running_batch";
     }
 

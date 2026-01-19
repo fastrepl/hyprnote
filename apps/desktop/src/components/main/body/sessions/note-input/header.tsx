@@ -91,7 +91,9 @@ function HeaderTabTranscript({
   sessionId: string;
 }) {
   const { audioExists } = useAudioPlayer();
-  const isBatchProcessing = useListener((state) => sessionId in state.batch);
+  const isBatchProcessing = useListener(
+    (state) => state.getSessionMode(sessionId) === "running_batch",
+  );
   const store = main.UI.useStore(main.STORE_ID);
   const runBatch = useRunBatch(sessionId);
   const [isRedoing, setIsRedoing] = useState(false);

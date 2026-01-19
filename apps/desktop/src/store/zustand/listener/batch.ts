@@ -16,6 +16,7 @@ export type BatchState = {
     {
       percentage: number;
       isComplete?: boolean;
+      error?: string;
     }
   >;
 };
@@ -28,6 +29,7 @@ export type BatchActions = {
     response: StreamResponse,
     percentage: number,
   ) => void;
+  handleBatchFailed: (sessionId: string, error: string) => void;
   clearBatchSession: (sessionId: string) => void;
 };
 
@@ -87,6 +89,20 @@ export const createBatchSlice = <
       batch: {
         ...state.batch,
         [sessionId]: { percentage, isComplete: isComplete || false },
+      },
+    }));
+  },
+
+  handleBatchFailed: (sessionId, error) => {
+    set((state) => ({
+      ...state,
+      batch: {
+        ...state.batch,
+        [sessionId]: {
+          ...(state.batch[sessionId] ?? { percentage: 0 }),
+          error,
+          isComplete: false,
+        },
       },
     }));
   },

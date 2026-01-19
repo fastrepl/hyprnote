@@ -1,3 +1,4 @@
+import { HumanMessage } from "@langchain/core/messages";
 import * as Sentry from "@sentry/bun";
 import type { SayFn } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
@@ -12,7 +13,6 @@ import {
   getInterruptToolName,
   getLangSmithUrl,
   isInterrupted,
-  parseRequest,
 } from "@hypr/agent-internal";
 import type { AgentStateType, AgentStreamState } from "@hypr/agent-internal";
 
@@ -65,9 +65,8 @@ function buildAgentState(
   }
 
   return {
-    request: parseRequest({ request }),
+    messages: [new HumanMessage(request)],
     images: getImages({ images: rawImages }),
-    messages: [],
     output: "",
   };
 }

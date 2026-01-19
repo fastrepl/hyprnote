@@ -1,4 +1,4 @@
-import type { AIMessage } from "@langchain/core/messages";
+import type { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { ChatOpenAI } from "@langchain/openai";
 
 import { env } from "../env";
@@ -21,6 +21,17 @@ function createModel(config: PromptConfig) {
   }).bindTools(tools);
 }
 
+function getRequestFromMessages(messages: BaseMessage[]): string | null {
+  if (messages.length === 0) return null;
+  const lastMessage = messages[messages.length - 1];
+  if (lastMessage._getType() === "human") {
+    return typeof lastMessage.content === "string"
+      ? lastMessage.content
+      : JSON.stringify(lastMessage.content);
+  }
+  return null;
+}
+
 export async function agentNode(
   state: AgentStateType,
 ): Promise<Partial<AgentStateType>> {
@@ -31,16 +42,24 @@ export async function agentNode(
     model: "anthropic/claude-opus-4.5",
     temperature: 0,
   };
-  const isFirstInvocation = compressedMessages.length === 0;
 
-  if (isFirstInvocation) {
-    const { messages: promptMessages, config } = await compilePrompt(
-      prompt,
-      { request: state.request },
-      state.images,
-    );
-    messages = promptMessages;
-    promptConfig = config;
+  // Check if this is a fresh invocation (no AI messages yet)
+  const hasAIMessages = compressedMessages.some((m) => m._getType() === "ai");
+
+  if (!hasAIMessages) {
+    // Determine the request: either from messages (Chat interface) or from state.request (slack-internal)
+    const requestFromMessages = getRequestFromMessages(compressedMessages);
+    const request = requestFromMessages || state.request;
+
+    if (request) {
+      const { messages: promptMessages, config } = await compilePrompt(
+        prompt,
+        { request },
+        state.images,
+      );
+      messages = promptMessages;
+      promptConfig = config;
+    }
   }
 
   const model = createModel(promptConfig);

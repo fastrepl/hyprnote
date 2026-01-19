@@ -518,6 +518,9 @@ function CollectionsPage() {
             onFileClick={(item) =>
               openTab("file", item.name, item.path, item.branch)
             }
+            onRenameFile={(fromPath, toPath) =>
+              renameMutation.mutate({ fromPath, toPath })
+            }
           />
         </div>
       </ResizablePanel>
@@ -1177,6 +1180,7 @@ function ContentPanel({
   onReorderTabs,
   filteredItems,
   onFileClick,
+  onRenameFile,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -1188,6 +1192,7 @@ function ContentPanel({
   onReorderTabs: (tabs: Tab[]) => void;
   filteredItems: ContentItem[];
   onFileClick: (item: ContentItem) => void;
+  onRenameFile: (fromPath: string, toPath: string) => void;
 }) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [editorData, setEditorData] = useState<EditorData | null>(null);
@@ -1310,6 +1315,12 @@ function ContentPanel({
             onUnpublish={handleUnpublish}
             isPublishing={isPublishing}
             isPublished={currentFileContent?.published}
+            onRenameFile={(newSlug) => {
+              const pathParts = currentTab.path.split("/");
+              pathParts[pathParts.length - 1] = `${newSlug}.mdx`;
+              const newPath = pathParts.join("/");
+              onRenameFile(currentTab.path, newPath);
+            }}
           />
           {currentTab.type === "collection" ? (
             <FileList filteredItems={filteredItems} onFileClick={onFileClick} />
@@ -1355,6 +1366,7 @@ function EditorHeader({
   onUnpublish,
   isPublishing,
   isPublished,
+  onRenameFile,
 }: {
   tabs: Tab[];
   currentTab: Tab;
@@ -1372,9 +1384,39 @@ function EditorHeader({
   onUnpublish: () => void;
   isPublishing: boolean;
   isPublished?: boolean;
+  onRenameFile?: (newSlug: string) => void;
 }) {
   const [isHoveringPublish, setIsHoveringPublish] = useState(false);
+  const [isEditingSlug, setIsEditingSlug] = useState(false);
+  const [slugValue, setSlugValue] = useState("");
+  const slugInputRef = useRef<HTMLInputElement>(null);
   const breadcrumbs = currentTab.path.split("/");
+  const currentSlug =
+    breadcrumbs[breadcrumbs.length - 1]?.replace(/\.mdx$/, "") || "";
+
+  const handleSlugClick = () => {
+    if (currentTab.type === "file" && onRenameFile) {
+      setSlugValue(currentSlug);
+      setIsEditingSlug(true);
+      setTimeout(() => slugInputRef.current?.focus(), 0);
+    }
+  };
+
+  const handleSlugSubmit = () => {
+    const trimmedSlug = slugValue.trim();
+    if (trimmedSlug && trimmedSlug !== currentSlug && onRenameFile) {
+      onRenameFile(trimmedSlug);
+    }
+    setIsEditingSlug(false);
+  };
+
+  const handleSlugKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSlugSubmit();
+    } else if (e.key === "Escape") {
+      setIsEditingSlug(false);
+    }
+  };
 
   return (
     <div>
@@ -1398,15 +1440,37 @@ function EditorHeader({
               {index > 0 && (
                 <ChevronRightIcon className="size-4 text-neutral-300" />
               )}
-              <span
-                className={cn([
-                  index === breadcrumbs.length - 1
-                    ? "text-neutral-700 font-medium"
-                    : "hover:text-neutral-700 cursor-pointer",
-                ])}
-              >
-                {crumb.replace(/\.mdx$/, "")}
-              </span>
+              {index === breadcrumbs.length - 1 &&
+              currentTab.type === "file" ? (
+                isEditingSlug ? (
+                  <input
+                    ref={slugInputRef}
+                    type="text"
+                    value={slugValue}
+                    onChange={(e) => setSlugValue(e.target.value)}
+                    onBlur={handleSlugSubmit}
+                    onKeyDown={handleSlugKeyDown}
+                    className="text-neutral-700 font-medium bg-transparent outline-none"
+                  />
+                ) : (
+                  <span
+                    onClick={handleSlugClick}
+                    className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
+                  >
+                    {crumb.replace(/\.mdx$/, "")}
+                  </span>
+                )
+              ) : (
+                <span
+                  className={cn([
+                    index === breadcrumbs.length - 1
+                      ? "text-neutral-700 font-medium"
+                      : "hover:text-neutral-700 cursor-pointer",
+                  ])}
+                >
+                  {crumb.replace(/\.mdx$/, "")}
+                </span>
+              )}
             </span>
           ))}
         </div>
@@ -1416,7 +1480,7 @@ function EditorHeader({
             <button
               onClick={onTogglePreview}
               className={cn([
-                "cursor-pointer px-3 py-1.5 rounded transition-colors flex items-center gap-1.5",
+                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
                 isPreviewMode
                   ? "text-neutral-700"
                   : "text-neutral-400 hover:text-neutral-600",
@@ -1426,12 +1490,12 @@ function EditorHeader({
               {isPreviewMode ? (
                 <>
                   <PencilIcon className="size-4" />
-                  <span className="text-sm font-medium">Edit</span>
+                  Edit
                 </>
               ) : (
                 <>
                   <EyeIcon className="size-4" />
-                  <span className="text-sm font-medium">Preview</span>
+                  Preview
                 </>
               )}
             </button>
@@ -1439,18 +1503,18 @@ function EditorHeader({
               onClick={onSave}
               disabled={isSaving}
               className={cn([
-                "cursor-pointer px-3 py-1.5 rounded transition-colors flex items-center gap-1.5",
-                "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100",
+                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
+                "text-white bg-neutral-900 hover:bg-neutral-800",
                 "disabled:cursor-not-allowed disabled:opacity-50",
               ])}
               title="Save (⌘S)"
             >
               {isSaving ? (
-                <Spinner size={16} />
+                <Spinner size={16} color="white" />
               ) : (
                 <SaveIcon className="size-4" />
               )}
-              <span className="text-sm font-medium">Save</span>
+              Save
             </button>
             <button
               type="button"
@@ -1459,7 +1523,7 @@ function EditorHeader({
               onMouseEnter={() => setIsHoveringPublish(true)}
               onMouseLeave={() => setIsHoveringPublish(false)}
               className={cn([
-                "px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
+                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
                 isPublished && isHoveringPublish
                   ? "text-white bg-red-600 hover:bg-red-700"
                   : isPublished

@@ -11,6 +11,8 @@ export const env = createEnv({
     SUPABASE_SERVICE_ROLE_KEY: z.string(),
     DATABASE_URL: z.string(),
     LOOPS_API_KEY: z.string().optional(),
+    POSTHOG_API_KEY: z.string().optional(),
+    POSTHOG_HOST: z.string().optional(),
     JINA_API_KEY: z.string().optional(),
     LANGSMITH_API_KEY: z.string().optional(),
     LANGSMITH_ORG_ID: z.string().optional(),

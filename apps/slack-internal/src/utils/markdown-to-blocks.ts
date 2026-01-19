@@ -178,10 +178,7 @@ function tokenToBlocks(token: Token): KnownBlock[] {
       if (!t.tokens?.length) return [];
 
       // If the paragraph contains only an image, convert it to an ImageBlock
-      if (
-        t.tokens.length === 1 &&
-        t.tokens[0].type === "image"
-      ) {
+      if (t.tokens.length === 1 && t.tokens[0].type === "image") {
         const img = t.tokens[0] as Tokens.Image;
         return [
           {

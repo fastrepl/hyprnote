@@ -4,7 +4,12 @@ import { z } from "zod";
 const QUICKCHART_BASE_URL = "https://quickchart.io/chart";
 
 export const chartTool = tool(
-  async ({ config, width, height, backgroundColor }: {
+  async ({
+    config,
+    width,
+    height,
+    backgroundColor,
+  }: {
     config: string;
     width?: number;
     height?: number;
@@ -48,7 +53,9 @@ export const chartTool = tool(
       backgroundColor: z
         .string()
         .optional()
-        .describe("Background color (default: transparent). Use 'white' for better visibility in Slack."),
+        .describe(
+          "Background color (default: transparent). Use 'white' for better visibility in Slack.",
+        ),
     }),
   },
 );

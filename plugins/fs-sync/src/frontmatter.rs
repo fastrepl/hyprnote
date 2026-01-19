@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::str::FromStr;
 
 #[derive(serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct ParsedDocument {

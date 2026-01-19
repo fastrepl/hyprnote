@@ -43,9 +43,15 @@ function HeroSection() {
         <p className="text-lg text-neutral-500 mb-6">
           designer + marketer + engineer
         </p>
-        <p className="flex items-center justify-center gap-3 font-mono text-sm text-neutral-600">
+        <p className="flex items-center justify-center gap-3 font-mono text-sm text-neutral-600 mb-8">
           full-time, remote
         </p>
+        <a
+          href="mailto:founders@hyprnote.com?subject=Application for Designteer"
+          className="px-6 h-10 inline-flex items-center justify-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+        >
+          Apply now
+        </a>
       </div>
     </div>
   );
@@ -328,7 +334,7 @@ function CTASection() {
         </p>
         <div className="pt-6">
           <a
-            href="mailto:jobs@hyprnote.com?subject=Application for Designteer"
+            href="mailto:founders@hyprnote.com?subject=Application for Designteer"
             className="px-6 h-12 flex items-center justify-center text-base sm:text-lg bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >
             Apply now

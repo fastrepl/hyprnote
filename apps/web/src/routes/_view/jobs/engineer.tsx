@@ -41,13 +41,19 @@ function HeroSection() {
           engineer
         </h1>
         <p className="text-lg text-neutral-500 mb-6">product-minded engineer</p>
-        <div className="flex items-center justify-center gap-3 text-sm text-neutral-600">
+        <div className="flex items-center justify-center gap-3 text-sm text-neutral-600 mb-8">
           <span className="font-medium italic">hyprnote</span>
           <span className="text-neutral-300">·</span>
           <span>full-time</span>
           <span className="text-neutral-300">·</span>
           <span>core team</span>
         </div>
+        <a
+          href="mailto:founders@hyprnote.com?subject=Application for Engineer"
+          className="px-6 h-10 inline-flex items-center justify-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+        >
+          Apply now
+        </a>
       </div>
     </div>
   );
@@ -338,7 +344,7 @@ function CTASection() {
         </p>
         <div className="pt-6">
           <a
-            href="mailto:jobs@hyprnote.com?subject=Application for Engineer"
+            href="mailto:founders@hyprnote.com?subject=Application for Engineer"
             className="px-6 h-12 flex items-center justify-center text-base sm:text-lg bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >
             Apply now

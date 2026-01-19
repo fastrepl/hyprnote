@@ -1442,7 +1442,7 @@ function EditorHeader({
                 <ChevronRightIcon className="size-4 text-neutral-300" />
               )}
               {index === breadcrumbs.length - 1 &&
-                currentTab.type === "file" ? (
+              currentTab.type === "file" ? (
                 isEditingSlug ? (
                   <input
                     ref={slugInputRef}
@@ -1835,7 +1835,7 @@ function AuthorSelect({
         className={cn([
           "w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer",
           withBorder &&
-          "px-2 py-1.5 border border-neutral-200 rounded focus:border-neutral-400",
+            "px-2 py-1.5 border border-neutral-200 rounded focus:border-neutral-400",
         ])}
       >
         {selectedAuthor ? (
@@ -1924,7 +1924,7 @@ function CategorySelect({
         className={cn([
           "w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer",
           withBorder &&
-          "px-2 py-1.5 border border-neutral-200 rounded focus:border-neutral-400",
+            "px-2 py-1.5 border border-neutral-200 rounded focus:border-neutral-400",
         ])}
       >
         {value ? (

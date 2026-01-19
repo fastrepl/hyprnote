@@ -1,7 +1,7 @@
 import { env } from "../env";
 import { getModalClient } from "./client";
 
-const APP_NAME = "hypr-agent";
+const APP_NAME = "hypr-slack-internal";
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
 export const REPO_PATH = "/app/hyprnote";
 

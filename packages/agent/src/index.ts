@@ -33,6 +33,7 @@ export {
   executeCodeTool,
   loopsTool,
   readUrlTool,
+  registerTool,
   stripeTool,
   supabaseTool,
   tools,

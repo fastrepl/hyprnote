@@ -55,7 +55,9 @@ export async function agentNode(
     const request = requestFromMessages || state.request;
 
     if (!request) {
-      throw new Error("No request provided: expected either messages with a HumanMessage or state.request");
+      throw new Error(
+        "No request provided: expected either messages with a HumanMessage or state.request",
+      );
     }
 
     const { messages: promptMessages, config } = await compilePrompt(

@@ -36,26 +36,38 @@ function EngineerPage() {
 
 function HeroSection() {
   return (
-    <div className="px-6 py-16 lg:py-24">
-      <div className="text-center max-w-3xl mx-auto">
-        <AnimatedTitle
-          text="engineer"
-          className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-4"
-        />
-        <p className="text-lg text-neutral-500 mb-6">product-minded engineer</p>
-        <div className="flex items-center justify-center gap-3 text-sm text-neutral-600 mb-8">
-          <span className="font-medium italic">hyprnote</span>
-          <span className="text-neutral-300">·</span>
-          <span>full-time</span>
-          <span className="text-neutral-300">·</span>
-          <span>core team</span>
+    <div className="relative overflow-hidden">
+      <img
+        src="/api/images/beach.png"
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          backdropFilter: "blur(12px)",
+          mask: "linear-gradient(to bottom, transparent 0%, transparent 50%, black 100%)",
+          WebkitMask:
+            "linear-gradient(to bottom, transparent 0%, transparent 50%, black 100%)",
+        }}
+      />
+      <div className="absolute inset-0 bg-linear-to-b from-white/60 via-white/70 to-white" />
+      <div className="relative px-6 py-24 lg:py-40">
+        <div className="text-center max-w-3xl mx-auto">
+          <AnimatedTitle
+            text="engineer"
+            className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-800 mb-4"
+          />
+          <p className="flex items-center justify-center gap-3 font-mono text-sm text-neutral-600 mb-8">
+            full-time, remote
+          </p>
+          <a
+            href="mailto:founders@hyprnote.com?subject=Application for Engineer"
+            className="px-6 h-10 inline-flex items-center justify-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+          >
+            Apply now
+          </a>
         </div>
-        <a
-          href="mailto:founders@hyprnote.com?subject=Application for Engineer"
-          className="px-6 h-10 inline-flex items-center justify-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
-        >
-          Apply now
-        </a>
       </div>
     </div>
   );

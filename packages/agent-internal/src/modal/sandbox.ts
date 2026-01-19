@@ -1,22 +1,29 @@
-import type { ModalApp, ModalImage } from "modal";
+import type { App, Image, Volume } from "modal";
 
 import { env } from "../env";
 import { getModalClient } from "./client";
 
 const APP_NAME = "hypr-slack-internal";
+const VOLUME_NAME = "hyprnote-repo-cache";
+const VOLUME_MOUNT_PATH = "/vol";
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
-export const REPO_PATH = "/app/hyprnote";
+export const REPO_PATH = `${VOLUME_MOUNT_PATH}/hyprnote`;
 
 export type BunSandbox = Awaited<ReturnType<typeof createBunSandbox>>;
 
-let cachedApp: ModalApp | null = null;
-let cachedImage: ModalImage | null = null;
+let cachedApp: App | null = null;
+let cachedImage: Image | null = null;
+let cachedVolume: Volume | null = null;
 
-async function getAppAndImage(): Promise<{ app: ModalApp; image: ModalImage }> {
-  if (cachedApp && cachedImage) {
-    return { app: cachedApp, image: cachedImage };
+async function getAppImageAndVolume(): Promise<{
+  app: App;
+  image: Image;
+  volume: Volume;
+}> {
+  if (cachedApp && cachedImage && cachedVolume) {
+    return { app: cachedApp, image: cachedImage, volume: cachedVolume };
   }
 
   const modal = getModalClient();
@@ -34,7 +41,11 @@ async function getAppAndImage(): Promise<{ app: ModalApp; image: ModalImage }> {
       "RUN bun add stripe @supabase/supabase-js loops pg posthog-node",
     ]);
 
-  return { app: cachedApp, image: cachedImage };
+  cachedVolume = await modal.volumes.fromName(VOLUME_NAME, {
+    createIfMissing: true,
+  });
+
+  return { app: cachedApp, image: cachedImage, volume: cachedVolume };
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -95,12 +106,15 @@ export async function createBunSandbox(options?: CreateBunSandboxOptions) {
 }
 
 async function createBunSandboxInternal(options?: CreateBunSandboxOptions) {
-  const { app, image } = await getAppAndImage();
+  const { app, image, volume } = await getAppImageAndVolume();
   const modal = getModalClient();
 
   const sandbox = await modal.sandboxes.create(app, image, {
     verbose: true,
     timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+    volumes: {
+      [VOLUME_MOUNT_PATH]: volume,
+    },
     env: {
       STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY,
       SUPABASE_URL: env.SUPABASE_URL,
@@ -112,6 +126,45 @@ async function createBunSandboxInternal(options?: CreateBunSandboxOptions) {
       ...(env.POSTHOG_HOST && { POSTHOG_HOST: env.POSTHOG_HOST }),
     },
   });
+
+  const repoExistsProcess = await sandbox.exec(
+    ["test", "-d", `${REPO_PATH}/.git`],
+    { stdout: "pipe", stderr: "pipe" },
+  );
+  const repoExistsExitCode = await repoExistsProcess.wait();
+  const repoExists = repoExistsExitCode === 0;
+
+  if (repoExists) {
+    const fetchProcess = await sandbox.exec(
+      ["git", "fetch", "origin", "main", "--depth", "1"],
+      { stdout: "pipe", stderr: "pipe", workdir: REPO_PATH },
+    );
+    const fetchExitCode = await fetchProcess.wait();
+
+    if (fetchExitCode === 0) {
+      const resetProcess = await sandbox.exec(
+        ["git", "reset", "--hard", "origin/main"],
+        { stdout: "pipe", stderr: "pipe", workdir: REPO_PATH },
+      );
+      const resetExitCode = await resetProcess.wait();
+
+      if (resetExitCode === 0) {
+        const syncProcess = await sandbox.exec(["sync", VOLUME_MOUNT_PATH], {
+          stdout: "pipe",
+          stderr: "pipe",
+        });
+        await syncProcess.wait();
+        return sandbox;
+      }
+    }
+
+    console.warn("Git fetch/reset failed, falling back to fresh clone");
+    const rmProcess = await sandbox.exec(["rm", "-rf", REPO_PATH], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    await rmProcess.wait();
+  }
 
   const cloneProcess = await sandbox.exec(
     [
@@ -137,6 +190,12 @@ async function createBunSandboxInternal(options?: CreateBunSandboxOptions) {
       `Git clone failed (exit ${cloneExitCode}): ${cloneStderr || cloneStdout}`,
     );
   }
+
+  const syncProcess = await sandbox.exec(["sync", VOLUME_MOUNT_PATH], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  await syncProcess.wait();
 
   return sandbox;
 }

@@ -1,5 +1,7 @@
 import { sandboxManager } from "./sandbox";
 
+const EXECUTION_TIMEOUT_MS = 100_000;
+
 export interface ExecutionResult {
   success: boolean;
   stdout: string;
@@ -19,14 +21,28 @@ export function formatExecutionResult(result: ExecutionResult): string {
   return lines.join("\n");
 }
 
+function wrapCodeWithExit(code: string): string {
+  return `
+(async () => {
+  try {
+${code}
+  } finally {
+    process.exit(0);
+  }
+})();
+`.trim();
+}
+
 export async function executeCode(code: string): Promise<ExecutionResult> {
   const startTime = Date.now();
   const sandbox = await sandboxManager.create();
+  const wrappedCode = wrapCodeWithExit(code);
 
   try {
-    const process = await sandbox.exec(["bun", "-e", code], {
+    const process = await sandbox.exec(["bun", "-e", wrappedCode], {
       stdout: "pipe",
       stderr: "pipe",
+      timeoutMs: EXECUTION_TIMEOUT_MS,
     });
 
     const [stdout, stderr] = await Promise.all([

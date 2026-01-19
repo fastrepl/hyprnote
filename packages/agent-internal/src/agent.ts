@@ -21,7 +21,7 @@ import {
   type ToolApprovalInterrupt,
 } from "./types";
 import { type AgentInput, getImages, parseRequest } from "./utils/input";
-import { runAgenticLoop } from "./utils/loop";
+import { runAgentGraph } from "./utils/graph";
 
 process.env.LANGSMITH_TRACING = env.LANGSMITH_API_KEY ? "true" : "false";
 
@@ -132,12 +132,14 @@ export const agent = entrypoint(
 
     const model = createModel(config);
 
-    const { response, messages: finalMessages } = await runAgenticLoop({
-      model,
+    const { response, messages: finalMessages } = await runAgentGraph(
+      {
+        model,
+        invokeModel: callModel,
+        invokeTool: callTool,
+      },
       messages,
-      invokeModel: callModel,
-      invokeTool: callTool,
-    });
+    );
 
     const allMessages = addMessages(finalMessages, [response]);
 

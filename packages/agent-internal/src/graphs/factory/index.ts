@@ -6,7 +6,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { env } from "../../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../../prompt";
 import { isRetryableError, type SpecialistConfig } from "../../types";
-import { runAgenticLoop } from "../../utils/loop";
+import { runAgentGraph } from "../../utils/graph";
 import { executeCodeTool } from "./tools";
 
 type ModelWithTools = ReturnType<ReturnType<typeof createModel>["bindTools"]>;
@@ -71,12 +71,14 @@ export function createSpecialist(config: SpecialistConfig) {
 
       const model = createModel(promptConfig).bindTools([executeCodeTool]);
 
-      const { response } = await runAgenticLoop({
-        model,
-        messages: initialMessages,
-        invokeModel,
-        invokeTool: executeCode,
-      });
+      const { response } = await runAgentGraph(
+        {
+          model,
+          invokeModel,
+          invokeTool: executeCode,
+        },
+        initialMessages,
+      );
 
       return response.text || "No response";
     },

@@ -1,4 +1,28 @@
-import type { BaseCheckpointSaver } from "@langchain/langgraph";
+import type { RunnableConfig } from "@langchain/core/runnables";
+import type { IterableReadableStream } from "@langchain/core/utils/stream";
+import type {
+  BaseCheckpointSaver,
+  Command,
+  Pregel,
+} from "@langchain/langgraph";
+
+export type { Pregel };
+
+export type StreamMode = "values" | "custom" | "updates" | "messages" | "debug";
+
+export interface StreamConfig extends RunnableConfig {
+  streamMode?: StreamMode | StreamMode[];
+}
+
+export type StreamChunk = [string, unknown] | Record<string, unknown>;
+
+export interface CompiledGraph<TInput, TOutput> {
+  invoke(input: TInput | Command, config?: RunnableConfig): Promise<TOutput>;
+  stream(
+    input: TInput | Command,
+    config?: StreamConfig,
+  ): Promise<IterableReadableStream<StreamChunk>>;
+}
 
 export interface ToolApprovalInterrupt {
   type: "tool_approval";

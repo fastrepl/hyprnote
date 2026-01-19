@@ -150,7 +150,7 @@ export async function handleAgentMessage(
       tags: ["slack-internal"],
       streamMode: ["values", "custom"],
     })) {
-      const [mode, data] = chunk as [string, unknown];
+      const [mode, data] = chunk as unknown as [string, unknown];
 
       if (mode === "custom") {
         const customData = data as { type: string; name: string; task: string };

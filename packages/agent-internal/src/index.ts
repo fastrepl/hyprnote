@@ -1,3 +1,6 @@
+// LangGraph constants (re-exported for type portability)
+export { END, START } from "@langchain/langgraph";
+
 // Main agent exports
 export {
   agent,

@@ -17,6 +17,7 @@ import { compilePrompt, loadPrompt, type PromptConfig } from "./prompt";
 import { tools, toolsByName, toolsRequiringApproval } from "./tools";
 import {
   type ApprovalDecision,
+  type CompiledGraph,
   isRetryableError,
   type ToolApprovalInterrupt,
 } from "./types";
@@ -68,7 +69,7 @@ const callModel = task(
     retry: {
       maxAttempts: 3,
       retryOn: isRetryableError,
-      delayMs: 1000,
+      initialInterval: 1000,
     },
   },
   async (params: { model: ModelWithTools; messages: BaseMessage[] }) => {
@@ -82,7 +83,7 @@ const callTool = task(
     retry: {
       maxAttempts: 2,
       retryOn: isRetryableError,
-      delayMs: 1000,
+      initialInterval: 1000,
     },
   },
   async (toolCall: ToolCall) => {
@@ -132,7 +133,7 @@ const callTool = task(
   },
 );
 
-export const agent = entrypoint(
+export const agent: CompiledGraph<AgentInput, string> = entrypoint(
   { checkpointer, name: "agent" },
   async (input: AgentInput) => {
     const request = parseRequest(input);

@@ -10,7 +10,11 @@ import { ChatOpenAI } from "@langchain/openai";
 
 import { env } from "../../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../../prompt";
-import { isRetryableError, type SpecialistConfig } from "../../types";
+import {
+  type CompiledGraph,
+  isRetryableError,
+  type SpecialistConfig,
+} from "../../types";
 import { compressMessages } from "../../utils/context";
 import { runAgentGraph } from "../../utils/graph";
 import { executeCodeTool } from "./tools";
@@ -34,7 +38,7 @@ const invokeModel = task(
     retry: {
       maxAttempts: 3,
       retryOn: isRetryableError,
-      delayMs: 1000,
+      initialInterval: 1000,
     },
   },
   async (params: {
@@ -51,7 +55,7 @@ const executeCode = task(
     retry: {
       maxAttempts: 2,
       retryOn: isRetryableError,
-      delayMs: 1000,
+      initialInterval: 1000,
     },
   },
   async (toolCall: ToolCall): Promise<ToolMessage> => {
@@ -77,7 +81,9 @@ const executeCode = task(
   },
 );
 
-export function createSpecialist(config: SpecialistConfig) {
+export function createSpecialist(
+  config: SpecialistConfig,
+): CompiledGraph<string, string> {
   const prompt = loadPrompt(config.promptDir);
 
   return entrypoint(

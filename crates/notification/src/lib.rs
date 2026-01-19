@@ -4,9 +4,10 @@ use std::time::{Duration, Instant};
 
 pub use hypr_notification_interface::*;
 
+type NotificationContextMap = Mutex<HashMap<String, (Option<String>, Instant)>>;
+
 static RECENT_NOTIFICATIONS: OnceLock<Mutex<HashMap<String, Instant>>> = OnceLock::new();
-static NOTIFICATION_CONTEXT: OnceLock<Mutex<HashMap<String, (Option<String>, Instant)>>> =
-    OnceLock::new();
+static NOTIFICATION_CONTEXT: OnceLock<NotificationContextMap> = OnceLock::new();
 
 const DEDUPE_WINDOW: Duration = Duration::from_secs(60 * 5);
 const CONTEXT_TTL: Duration = Duration::from_secs(60 * 10);

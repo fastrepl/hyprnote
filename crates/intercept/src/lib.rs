@@ -2,8 +2,10 @@ use std::{collections::HashMap, sync::LazyLock, sync::Mutex};
 #[cfg(target_os = "macos")]
 use swift_rs::swift;
 
-static QUIT_HANDLERS: LazyLock<Mutex<HashMap<&'static str, Box<dyn Fn() -> bool + Send + Sync>>>> =
-    LazyLock::new(|| Mutex::new(HashMap::new()));
+type QuitHandler = Box<dyn Fn() -> bool + Send + Sync>;
+type QuitHandlerMap = Mutex<HashMap<&'static str, QuitHandler>>;
+
+static QUIT_HANDLERS: LazyLock<QuitHandlerMap> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
 #[cfg(target_os = "macos")]
 swift!(fn _setup_quit_handler());

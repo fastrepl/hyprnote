@@ -100,6 +100,7 @@ import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/downl
 import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
 import { Route as ViewCompanyHandbookSplatRouteImport } from './routes/_view/company-handbook/$'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
+import { Route as ViewCallbackSignoutRouteImport } from './routes/_view/callback/signout'
 import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
 import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
@@ -589,6 +590,11 @@ const ViewChangelogSlugRoute = ViewChangelogSlugRouteImport.update({
   path: '/changelog/$slug',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewCallbackSignoutRoute = ViewCallbackSignoutRouteImport.update({
+  id: '/callback/signout',
+  path: '/callback/signout',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewCallbackAuthRoute = ViewCallbackAuthRouteImport.update({
   id: '/callback/auth',
   path: '/callback/auth',
@@ -764,6 +770,7 @@ export interface FileRoutesByFullPath {
   '/app/integration': typeof ViewAppIntegrationRoute
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
+  '/callback/signout': typeof ViewCallbackSignoutRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
@@ -878,6 +885,7 @@ export interface FileRoutesByTo {
   '/app/integration': typeof ViewAppIntegrationRoute
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
+  '/callback/signout': typeof ViewCallbackSignoutRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
@@ -998,6 +1006,7 @@ export interface FileRoutesById {
   '/_view/app/integration': typeof ViewAppIntegrationRoute
   '/_view/blog/$slug': typeof ViewBlogSlugRoute
   '/_view/callback/auth': typeof ViewCallbackAuthRoute
+  '/_view/callback/signout': typeof ViewCallbackSignoutRoute
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
   '/_view/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/_view/docs/$': typeof ViewDocsSplatRoute
@@ -1118,6 +1127,7 @@ export interface FileRouteTypes {
     | '/app/integration'
     | '/blog/$slug'
     | '/callback/auth'
+    | '/callback/signout'
     | '/changelog/$slug'
     | '/company-handbook/$'
     | '/docs/$'
@@ -1232,6 +1242,7 @@ export interface FileRouteTypes {
     | '/app/integration'
     | '/blog/$slug'
     | '/callback/auth'
+    | '/callback/signout'
     | '/changelog/$slug'
     | '/company-handbook/$'
     | '/docs/$'
@@ -1351,6 +1362,7 @@ export interface FileRouteTypes {
     | '/_view/app/integration'
     | '/_view/blog/$slug'
     | '/_view/callback/auth'
+    | '/_view/callback/signout'
     | '/_view/changelog/$slug'
     | '/_view/company-handbook/$'
     | '/_view/docs/$'
@@ -2111,6 +2123,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewChangelogSlugRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/callback/signout': {
+      id: '/_view/callback/signout'
+      path: '/callback/signout'
+      fullPath: '/callback/signout'
+      preLoaderRoute: typeof ViewCallbackSignoutRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/callback/auth': {
       id: '/_view/callback/auth'
       path: '/callback/auth'
@@ -2363,6 +2382,7 @@ interface ViewRouteRouteChildren {
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
+  ViewCallbackSignoutRoute: typeof ViewCallbackSignoutRoute
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
   ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
@@ -2435,6 +2455,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
+  ViewCallbackSignoutRoute: ViewCallbackSignoutRoute,
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
   ViewDownloadAppleIntelRoute: ViewDownloadAppleIntelRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,

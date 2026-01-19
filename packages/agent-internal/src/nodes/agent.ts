@@ -46,6 +46,9 @@ export async function agentNode(
   // Check if this is a fresh invocation (no AI messages yet)
   const hasAIMessages = compressedMessages.some((m) => m._getType() === "ai");
 
+  // Track if we need to persist the prompt messages (including SystemMessage)
+  let promptMessagesToPersist: BaseMessage[] = [];
+
   if (!hasAIMessages) {
     // Determine the request: either from messages (Chat interface) or from state.request (slack-internal)
     const requestFromMessages = getRequestFromMessages(compressedMessages);
@@ -59,6 +62,8 @@ export async function agentNode(
       );
       messages = promptMessages;
       promptConfig = config;
+      // Store the prompt messages to persist them in state (including SystemMessage)
+      promptMessagesToPersist = promptMessages;
     }
   }
 
@@ -71,15 +76,22 @@ export async function agentNode(
     try {
       const response = (await model.invoke(messages)) as AIMessage;
 
+      // On first invocation, persist the full prompt messages (including SystemMessage)
+      // so they're available for subsequent invocations after tool calls
+      const messagesToReturn =
+        promptMessagesToPersist.length > 0
+          ? [...promptMessagesToPersist, response]
+          : [response];
+
       if (!response.tool_calls || response.tool_calls.length === 0) {
         return {
-          messages: [response],
+          messages: messagesToReturn,
           output: response.text || "No response",
         };
       }
 
       return {
-        messages: [response],
+        messages: messagesToReturn,
       };
     } catch (error) {
       attempts++;

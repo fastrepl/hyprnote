@@ -58,6 +58,10 @@ function createSpecialistAgentNode(promptDir: string) {
       model: "anthropic/claude-opus-4.5",
       temperature: 0,
     };
+
+    // Track if we need to persist the prompt messages (including SystemMessage)
+    let promptMessagesToPersist: BaseMessage[] = [];
+
     const isFirstInvocation = compressedMessages.length === 0;
 
     if (isFirstInvocation) {
@@ -67,6 +71,8 @@ function createSpecialistAgentNode(promptDir: string) {
       });
       messages = promptMessages;
       promptConfig = config;
+      // Store the prompt messages to persist them in state (including SystemMessage)
+      promptMessagesToPersist = promptMessages;
     }
 
     const model = createModel(promptConfig);
@@ -78,15 +84,22 @@ function createSpecialistAgentNode(promptDir: string) {
       try {
         const response = (await model.invoke(messages)) as AIMessage;
 
+        // On first invocation, persist the full prompt messages (including SystemMessage)
+        // so they're available for subsequent invocations after tool calls
+        const messagesToReturn =
+          promptMessagesToPersist.length > 0
+            ? [...promptMessagesToPersist, response]
+            : [response];
+
         if (!response.tool_calls || response.tool_calls.length === 0) {
           return {
-            messages: [response],
+            messages: messagesToReturn,
             output: response.text || "No response",
           };
         }
 
         return {
-          messages: [response],
+          messages: messagesToReturn,
         };
       } catch (error) {
         attempts++;

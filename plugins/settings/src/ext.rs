@@ -61,10 +61,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
             if path.exists() || std::fs::create_dir_all(&path).is_ok() {
                 return Ok(path);
             }
-            tracing::warn!(
-                "HYPRNOTE_CONTENT_BASE path '{}' does not exist and could not be created, falling back to default",
-                env_path
-            );
+            // Silently fall back to default if env var path doesn't exist and can't be created
         }
 
         let default_base = self.default_base()?;

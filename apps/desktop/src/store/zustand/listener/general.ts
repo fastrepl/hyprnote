@@ -539,7 +539,10 @@ export const createGeneralSlice = <
             resolve();
           } catch (error) {
             console.error("[runBatch] error handling batch response", error);
-            cleanup();
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            get().handleBatchFailed(sessionId, errorMessage);
+            cleanup(false);
             reject(error);
           }
         })
@@ -551,19 +554,26 @@ export const createGeneralSlice = <
             .then((result) => {
               if (result.status === "error") {
                 console.error(result.error);
-                cleanup();
+                get().handleBatchFailed(sessionId, result.error);
+                cleanup(false);
                 reject(result.error);
               }
             })
             .catch((error) => {
               console.error(error);
-              cleanup();
+              const errorMessage =
+                error instanceof Error ? error.message : String(error);
+              get().handleBatchFailed(sessionId, errorMessage);
+              cleanup(false);
               reject(error);
             });
         })
         .catch((error) => {
           console.error(error);
-          cleanup();
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          get().handleBatchFailed(sessionId, errorMessage);
+          cleanup(false);
           reject(error);
         });
     });

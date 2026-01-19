@@ -20,8 +20,8 @@ import {
   isRetryableError,
   type ToolApprovalInterrupt,
 } from "./types";
+import { runAgentGraph } from "./utils/graph";
 import { type AgentInput, getImages, parseRequest } from "./utils/input";
-import { runAgenticLoop } from "./utils/loop";
 
 process.env.LANGSMITH_TRACING = env.LANGSMITH_API_KEY ? "true" : "false";
 
@@ -132,12 +132,14 @@ export const agent = entrypoint(
 
     const model = createModel(config);
 
-    const { response, messages: finalMessages } = await runAgenticLoop({
-      model,
+    const { response, messages: finalMessages } = await runAgentGraph(
+      {
+        model,
+        invokeModel: callModel,
+        invokeTool: callTool,
+      },
       messages,
-      invokeModel: callModel,
-      invokeTool: callTool,
-    });
+    );
 
     const allMessages = addMessages(finalMessages, [response]);
 

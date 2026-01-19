@@ -24,9 +24,9 @@ export { compilePrompt, loadPrompt } from "./prompt";
 export type { AgentInput, ImageContent } from "./utils/input";
 export { getImages, parseRequest } from "./utils/input";
 
-// Loop utilities
-export type { AgenticLoopConfig, AgenticLoopResult } from "./utils/loop";
-export { runAgenticLoop } from "./utils/loop";
+// Graph utilities
+export type { AgentGraphConfig, AgentGraphResult } from "./utils/graph";
+export { createAgentGraph, runAgentGraph } from "./utils/graph";
 
 // Tools
 export {

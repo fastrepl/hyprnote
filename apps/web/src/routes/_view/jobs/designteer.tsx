@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, Mail } from "lucide-react";
+
+import { AnimatedTitle } from "@/components/animated-title";
+import { Image } from "@/components/image";
+import { SlashSeparator } from "@/components/slash-separator";
 
 export const Route = createFileRoute("/_view/jobs/designteer")({
   component: DesignteerPage,
@@ -9,7 +12,7 @@ export const Route = createFileRoute("/_view/jobs/designteer")({
       {
         name: "description",
         content:
-          "Join Hyprnote as a Designteer - designer + engineer + marketer.",
+          "Join Hyprnote as a Designteer - designer + marketer + engineer.",
       },
     ],
   }),
@@ -24,6 +27,8 @@ function DesignteerPage() {
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection />
         <JobDetailsSection />
+        <SlashSeparator />
+        <CTASection />
       </div>
     </div>
   );
@@ -33,19 +38,22 @@ function HeroSection() {
   return (
     <div className="px-6 py-16 lg:py-24">
       <div className="text-center max-w-3xl mx-auto">
-        <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-4">
-          designteer
-        </h1>
+        <AnimatedTitle
+          text="designteer"
+          className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-4"
+        />
         <p className="text-lg text-neutral-500 mb-6">
-          designer + engineer + marketer
+          designer + marketer + engineer
         </p>
-        <div className="flex items-center justify-center gap-3 text-sm text-neutral-600">
-          <span className="font-medium italic">hyprnote</span>
-          <span className="text-neutral-300">·</span>
-          <span>full-time</span>
-          <span className="text-neutral-300">·</span>
-          <span>core team</span>
-        </div>
+        <p className="flex items-center justify-center gap-3 font-mono text-sm text-neutral-600 mb-8">
+          full-time, remote
+        </p>
+        <a
+          href="mailto:founders@hyprnote.com?subject=Application for Designteer"
+          className="px-6 h-10 inline-flex items-center justify-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+        >
+          Apply now
+        </a>
       </div>
     </div>
   );
@@ -304,18 +312,38 @@ function JobDetailsSection() {
             with the company.
           </p>
         </JobSection>
+      </div>
+    </div>
+  );
+}
 
-        <div className="mt-8 pt-8 border-t border-neutral-100">
+function CTASection() {
+  return (
+    <section className="py-16 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 laptop:px-0">
+      <div className="flex flex-col gap-6 items-center text-center">
+        <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
+          <Image
+            src="/api/images/hyprnote/icon.png"
+            alt="Hyprnote"
+            width={144}
+            height={144}
+            className="size-36 mx-auto rounded-[40px] border border-neutral-100"
+          />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-serif">Interested?</h2>
+        <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+          We'd love to hear from you.
+        </p>
+        <div className="pt-6">
           <a
-            href="mailto:jobs@hyprnote.com?subject=Application for Designteer"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-stone-600 text-white rounded-lg hover:bg-stone-700 transition-colors font-medium"
+            href="mailto:founders@hyprnote.com?subject=Application for Designteer"
+            className="px-6 h-12 flex items-center justify-center text-base sm:text-lg bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >
-            Apply
-            <ArrowRight className="size-4" />
+            Apply now
           </a>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -329,8 +357,8 @@ function JobSection({
   isLast?: boolean;
 }) {
   return (
-    <div className={isLast ? "" : "mb-8 pb-8 border-b border-neutral-100"}>
-      <h3 className="text-lg font-medium text-stone-600 mb-4">{title}</h3>
+    <div className={isLast ? "" : "mb-8"}>
+      <h3 className="text-2xl font-serif text-stone-600 mb-4">{title}</h3>
       {children}
     </div>
   );

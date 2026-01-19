@@ -36,7 +36,7 @@ export async function createBunSandbox(options?: CreateBunSandboxOptions) {
       "RUN apt-get update && apt-get install -y curl git bash npm && rm -rf /var/lib/apt/lists/*",
       "RUN npm install -g @anthropic-ai/claude-code",
       "WORKDIR /app",
-      "RUN bun add stripe @supabase/supabase-js loops pg",
+      "RUN bun add stripe @supabase/supabase-js loops pg posthog-node",
     ]);
 
   const sandbox = await modal.sandboxes.create(app, image, {
@@ -49,6 +49,8 @@ export async function createBunSandbox(options?: CreateBunSandboxOptions) {
       DATABASE_URL: env.DATABASE_URL,
       ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
       ...(env.LOOPS_API_KEY && { LOOPS_API_KEY: env.LOOPS_API_KEY }),
+      ...(env.POSTHOG_API_KEY && { POSTHOG_API_KEY: env.POSTHOG_API_KEY }),
+      ...(env.POSTHOG_HOST && { POSTHOG_HOST: env.POSTHOG_HOST }),
     },
   });
 

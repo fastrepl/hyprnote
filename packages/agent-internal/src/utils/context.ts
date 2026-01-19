@@ -1,8 +1,14 @@
 import type { AIMessage, BaseMessage } from "@langchain/core/messages";
 
 function getMessageTokens(msg: BaseMessage): number {
-  const content =
+  let content =
     typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content);
+  if (msg._getType() === "ai") {
+    const aiMsg = msg as AIMessage;
+    if (aiMsg.tool_calls?.length) {
+      content += JSON.stringify(aiMsg.tool_calls);
+    }
+  }
   return Math.ceil(content.length / 4);
 }
 

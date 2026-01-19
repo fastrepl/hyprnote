@@ -33,7 +33,9 @@ const agentRetryPolicy = {
 
 const workflow = new StateGraph(AgentState)
   .addNode("agent", agentNode, { retryPolicy: agentRetryPolicy })
-  .addNode("humanApproval", humanApprovalNode)
+  .addNode("humanApproval", humanApprovalNode, {
+    ends: ["tools", "agent"],
+  })
   .addNode("tools", toolNode)
   .addEdge(START, "agent")
   .addConditionalEdges("agent", shouldContinue, {

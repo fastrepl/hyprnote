@@ -17,6 +17,7 @@ import {
   FolderOpenIcon,
   FolderPlusIcon,
   GithubIcon,
+  ImageIcon,
   type LucideIcon,
   PencilIcon,
   PinIcon,
@@ -517,6 +518,9 @@ function CollectionsPage() {
             filteredItems={filteredItems}
             onFileClick={(item) =>
               openTab("file", item.name, item.path, item.branch)
+            }
+            onRenameFile={(fromPath, toPath) =>
+              renameMutation.mutate({ fromPath, toPath })
             }
           />
         </div>
@@ -1177,6 +1181,7 @@ function ContentPanel({
   onReorderTabs,
   filteredItems,
   onFileClick,
+  onRenameFile,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -1188,6 +1193,7 @@ function ContentPanel({
   onReorderTabs: (tabs: Tab[]) => void;
   filteredItems: ContentItem[];
   onFileClick: (item: ContentItem) => void;
+  onRenameFile: (fromPath: string, toPath: string) => void;
 }) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [editorData, setEditorData] = useState<EditorData | null>(null);
@@ -1310,6 +1316,12 @@ function ContentPanel({
             onUnpublish={handleUnpublish}
             isPublishing={isPublishing}
             isPublished={currentFileContent?.published}
+            onRenameFile={(newSlug) => {
+              const pathParts = currentTab.path.split("/");
+              pathParts[pathParts.length - 1] = `${newSlug}.mdx`;
+              const newPath = pathParts.join("/");
+              onRenameFile(currentTab.path, newPath);
+            }}
           />
           {currentTab.type === "collection" ? (
             <FileList filteredItems={filteredItems} onFileClick={onFileClick} />
@@ -1355,6 +1367,7 @@ function EditorHeader({
   onUnpublish,
   isPublishing,
   isPublished,
+  onRenameFile,
 }: {
   tabs: Tab[];
   currentTab: Tab;
@@ -1372,9 +1385,39 @@ function EditorHeader({
   onUnpublish: () => void;
   isPublishing: boolean;
   isPublished?: boolean;
+  onRenameFile?: (newSlug: string) => void;
 }) {
   const [isHoveringPublish, setIsHoveringPublish] = useState(false);
+  const [isEditingSlug, setIsEditingSlug] = useState(false);
+  const [slugValue, setSlugValue] = useState("");
+  const slugInputRef = useRef<HTMLInputElement>(null);
   const breadcrumbs = currentTab.path.split("/");
+  const currentSlug =
+    breadcrumbs[breadcrumbs.length - 1]?.replace(/\.mdx$/, "") || "";
+
+  const handleSlugClick = () => {
+    if (currentTab.type === "file" && onRenameFile) {
+      setSlugValue(currentSlug);
+      setIsEditingSlug(true);
+      setTimeout(() => slugInputRef.current?.focus(), 0);
+    }
+  };
+
+  const handleSlugSubmit = () => {
+    const trimmedSlug = slugValue.trim();
+    if (trimmedSlug && trimmedSlug !== currentSlug && onRenameFile) {
+      onRenameFile(trimmedSlug);
+    }
+    setIsEditingSlug(false);
+  };
+
+  const handleSlugKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSlugSubmit();
+    } else if (e.key === "Escape") {
+      setIsEditingSlug(false);
+    }
+  };
 
   return (
     <div>
@@ -1398,15 +1441,37 @@ function EditorHeader({
               {index > 0 && (
                 <ChevronRightIcon className="size-4 text-neutral-300" />
               )}
-              <span
-                className={cn([
-                  index === breadcrumbs.length - 1
-                    ? "text-neutral-700 font-medium"
-                    : "hover:text-neutral-700 cursor-pointer",
-                ])}
-              >
-                {crumb.replace(/\.mdx$/, "")}
-              </span>
+              {index === breadcrumbs.length - 1 &&
+              currentTab.type === "file" ? (
+                isEditingSlug ? (
+                  <input
+                    ref={slugInputRef}
+                    type="text"
+                    value={slugValue}
+                    onChange={(e) => setSlugValue(e.target.value)}
+                    onBlur={handleSlugSubmit}
+                    onKeyDown={handleSlugKeyDown}
+                    className="text-neutral-700 font-medium bg-transparent outline-none"
+                  />
+                ) : (
+                  <span
+                    onClick={handleSlugClick}
+                    className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
+                  >
+                    {crumb.replace(/\.mdx$/, "")}
+                  </span>
+                )
+              ) : (
+                <span
+                  className={cn([
+                    index === breadcrumbs.length - 1
+                      ? "text-neutral-700 font-medium"
+                      : "hover:text-neutral-700 cursor-pointer",
+                  ])}
+                >
+                  {crumb.replace(/\.mdx$/, "")}
+                </span>
+              )}
             </span>
           ))}
         </div>
@@ -1416,7 +1481,7 @@ function EditorHeader({
             <button
               onClick={onTogglePreview}
               className={cn([
-                "cursor-pointer p-1.5 rounded transition-colors",
+                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
                 isPreviewMode
                   ? "text-neutral-700"
                   : "text-neutral-400 hover:text-neutral-600",
@@ -1424,27 +1489,33 @@ function EditorHeader({
               title={isPreviewMode ? "Edit mode" : "Preview mode"}
             >
               {isPreviewMode ? (
-                <PencilIcon className="size-4" />
+                <>
+                  <PencilIcon className="size-4" />
+                  Edit
+                </>
               ) : (
-                <EyeIcon className="size-4" />
+                <>
+                  <EyeIcon className="size-4" />
+                  Preview
+                </>
               )}
             </button>
             <button
               onClick={onSave}
               disabled={isSaving}
               className={cn([
-                "cursor-pointer px-3 py-1.5 rounded transition-colors flex items-center gap-1.5",
-                "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100",
+                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
+                "text-white bg-neutral-900 hover:bg-neutral-800",
                 "disabled:cursor-not-allowed disabled:opacity-50",
               ])}
               title="Save (⌘S)"
             >
               {isSaving ? (
-                <Spinner size={16} />
+                <Spinner size={16} color="white" />
               ) : (
                 <SaveIcon className="size-4" />
               )}
-              <span className="text-sm font-medium">Save</span>
+              Save
             </button>
             <button
               type="button"
@@ -1453,7 +1524,7 @@ function EditorHeader({
               onMouseEnter={() => setIsHoveringPublish(true)}
               onMouseLeave={() => setIsHoveringPublish(false)}
               className={cn([
-                "px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
+                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
                 isPublished && isHoveringPublish
                   ? "text-white bg-red-600 hover:bg-red-700"
                   : isPublished
@@ -1735,9 +1806,11 @@ const AUTHORS = [
 function AuthorSelect({
   value,
   onChange,
+  withBorder,
 }: {
   value: string;
   onChange: (value: string) => void;
+  withBorder?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1759,7 +1832,11 @@ function AuthorSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer"
+        className={cn([
+          "w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer",
+          withBorder &&
+            "px-2 py-1.5 border border-neutral-200 rounded focus:border-neutral-400",
+        ])}
       >
         {selectedAuthor ? (
           <>
@@ -1773,15 +1850,15 @@ function AuthorSelect({
         ) : (
           <span className="text-neutral-400">Select author</span>
         )}
-        <ChevronRightIcon
+        <ChevronDownIcon
           className={cn([
             "size-3 ml-auto transition-transform text-neutral-400",
-            isOpen && "rotate-90",
+            isOpen && "rotate-180",
           ])}
         />
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-neutral-200 rounded-xs shadow-lg z-50">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xs shadow-lg z-50">
           {AUTHORS.map((author) => (
             <button
               key={author.name}
@@ -1802,6 +1879,83 @@ function AuthorSelect({
                 className="size-5 rounded-full object-cover"
               />
               {author.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const CATEGORIES = [
+  "Case Study",
+  "Hyprnote Weekly",
+  "Productivity Hack",
+  "Engineering",
+];
+
+function CategorySelect({
+  value,
+  onChange,
+  withBorder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  withBorder?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative flex-1">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn([
+          "w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer",
+          withBorder &&
+            "px-2 py-1.5 border border-neutral-200 rounded focus:border-neutral-400",
+        ])}
+      >
+        {value ? (
+          <span>{value}</span>
+        ) : (
+          <span className="text-neutral-400">Select category</span>
+        )}
+        <ChevronDownIcon
+          className={cn([
+            "size-3 ml-auto transition-transform text-neutral-400",
+            isOpen && "rotate-180",
+          ])}
+        />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xs shadow-lg z-50">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => {
+                onChange(category);
+                setIsOpen(false);
+              }}
+              className={cn([
+                "w-full px-3 py-2 text-sm text-left cursor-pointer",
+                "hover:bg-neutral-100 transition-colors",
+                value === category && "bg-neutral-50",
+              ])}
+            >
+              {category}
             </button>
           ))}
         </div>
@@ -1912,7 +2066,7 @@ function MetadataPanel({
               type="text"
               value={handlers.displayTitle}
               onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
-              placeholder="Display title (optional)"
+              placeholder={handlers.metaTitle || "Display title (optional)"}
               className="flex-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
             />
           </div>
@@ -2111,6 +2265,9 @@ function MetadataSidePanel({
   filePath: string;
   handlers: MetadataHandlers;
 }) {
+  const [isCoverImageSelectorOpen, setIsCoverImageSelectorOpen] =
+    useState(false);
+
   return (
     <div className="text-sm" key={filePath}>
       <div className="p-4 flex flex-col gap-4">
@@ -2133,7 +2290,7 @@ function MetadataSidePanel({
             type="text"
             value={handlers.displayTitle}
             onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
-            placeholder="Display title (optional)"
+            placeholder={handlers.metaTitle || "Display title (optional)"}
             className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
           />
         </div>
@@ -2145,6 +2302,7 @@ function MetadataSidePanel({
           <AuthorSelect
             value={handlers.author}
             onChange={handlers.onAuthorChange}
+            withBorder
           />
         </div>
 
@@ -2175,42 +2333,52 @@ function MetadataSidePanel({
 
         <div>
           <label className="block text-neutral-500 mb-1">Category</label>
-          <select
+          <CategorySelect
             value={handlers.category}
-            onChange={(e) => handlers.onCategoryChange(e.target.value)}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 focus:border-neutral-400"
-          >
-            <option value="">Select category</option>
-            <option value="Case Study">Case Study</option>
-            <option value="Hyprnote Weekly">Hyprnote Weekly</option>
-            <option value="Productivity Hack">Productivity Hack</option>
-            <option value="Engineering">Engineering</option>
-          </select>
+            onChange={handlers.onCategoryChange}
+            withBorder
+          />
         </div>
 
         <div>
           <label className="block text-neutral-500 mb-1">Cover Image</label>
-          <input
-            type="text"
-            value={handlers.coverImage}
-            onChange={(e) => handlers.onCoverImageChange(e.target.value)}
-            placeholder="/api/images/blog/slug/cover.png"
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
-          />
+          <button
+            type="button"
+            onClick={() => setIsCoverImageSelectorOpen(true)}
+            className="cursor-pointer w-full px-2 py-1.5 border border-neutral-200 rounded text-left text-neutral-900 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+          >
+            {handlers.coverImage ? (
+              <span className="truncate flex-1">{handlers.coverImage}</span>
+            ) : (
+              <span className="text-neutral-400 flex-1">
+                Select cover image
+              </span>
+            )}
+            <ImageIcon className="size-4 text-neutral-400 shrink-0" />
+          </button>
         </div>
 
-        <label className="flex items-center gap-2 text-neutral-600">
+        <div className="flex items-center gap-2">
+          <span className="text-neutral-500">Is this featured?</span>
           <input
             type="checkbox"
             checked={handlers.featured}
             onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
             className="rounded"
           />
-          Featured
-        </label>
+        </div>
       </div>
 
       <GitHistory filePath={filePath} />
+
+      <MediaSelectorModal
+        open={isCoverImageSelectorOpen}
+        onOpenChange={setIsCoverImageSelectorOpen}
+        onSelect={(url) => {
+          handlers.onCoverImageChange(url);
+          setIsCoverImageSelectorOpen(false);
+        }}
+      />
     </div>
   );
 }
@@ -2609,17 +2777,16 @@ const FileEditor = React.forwardRef<
                 filePath={filePath}
                 handlers={metadataHandlers}
               />
-              <div className="flex-1 min-h-0 overflow-y-auto p-6">
-                <BlogEditor
-                  ref={editorRef}
-                  content={content}
-                  onChange={handleContentChange}
-                  onGoogleDocsImport={handleGoogleDocsImport}
-                  isImporting={isImporting}
-                  onImageUpload={handleImageUpload}
-                  onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
-                />
-              </div>
+              <BlogEditor
+                ref={editorRef}
+                content={content}
+                onChange={handleContentChange}
+                onGoogleDocsImport={handleGoogleDocsImport}
+                isImporting={isImporting}
+                onImageUpload={handleImageUpload}
+                onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
+                showToolbar={false}
+              />
             </div>
           </ResizablePanel>
           <ResizableHandle className="w-px bg-neutral-200" />
@@ -2641,17 +2808,15 @@ const FileEditor = React.forwardRef<
     <>
       <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
         <ResizablePanel defaultSize={70} minSize={50}>
-          <div className="flex-1 min-h-0 overflow-y-auto p-6 h-full">
-            <BlogEditor
-              ref={editorRef}
-              content={content}
-              onChange={handleContentChange}
-              onGoogleDocsImport={handleGoogleDocsImport}
-              isImporting={isImporting}
-              onImageUpload={handleImageUpload}
-              onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
-            />
-          </div>
+          <BlogEditor
+            ref={editorRef}
+            content={content}
+            onChange={handleContentChange}
+            onGoogleDocsImport={handleGoogleDocsImport}
+            isImporting={isImporting}
+            onImageUpload={handleImageUpload}
+            onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
+          />
         </ResizablePanel>
         <ResizableHandle className="w-px bg-neutral-200" />
         <ResizablePanel defaultSize={30} minSize={20}>

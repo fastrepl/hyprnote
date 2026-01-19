@@ -240,7 +240,7 @@ function generateMdx(
 
   const frontmatter = `---
 meta_title: "${options.title}"
-display_title: "${options.title}"
+display_title: ""
 meta_description: "${options.description}"
 author: "${options.author}"
 coverImage: "${options.coverImage}"
@@ -463,7 +463,7 @@ export const Route = createFileRoute("/api/admin/import/google-docs")({
 
           const frontmatter = {
             meta_title: finalTitle,
-            display_title: finalTitle,
+            display_title: "",
             meta_description: finalDescription,
             author: finalAuthor,
             coverImage: coverImage || "",

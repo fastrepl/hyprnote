@@ -18,6 +18,7 @@ interface BlogEditorProps {
   content?: string;
   onChange?: (markdown: string) => void;
   editable?: boolean;
+  showToolbar?: boolean;
   onGoogleDocsImport?: (url: string) => void;
   isImporting?: boolean;
   onImageUpload?: (file: File) => Promise<string>;
@@ -30,6 +31,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
       content = "",
       onChange,
       editable = true,
+      showToolbar = true,
       onGoogleDocsImport,
       isImporting,
       onImageUpload,
@@ -108,21 +110,25 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
     const showImportOverlay = isEmpty && onGoogleDocsImport && editable;
 
     return (
-      <div className="relative flex flex-col">
-        {editable && (
-          <Toolbar editor={editor} onAddImage={onAddImageFromLibrary} />
+      <div className="relative flex flex-col h-full">
+        {editable && showToolbar && (
+          <div className="shrink-0">
+            <Toolbar editor={editor} onAddImage={onAddImageFromLibrary} />
+          </div>
         )}
-        <EditorContent
-          editor={editor}
-          className="tiptap-root blog-editor"
-          role="textbox"
-        />
-        {showImportOverlay && (
-          <GoogleDocsImport
-            onImport={onGoogleDocsImport}
-            isLoading={isImporting}
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
+          <EditorContent
+            editor={editor}
+            className="tiptap-root blog-editor"
+            role="textbox"
           />
-        )}
+          {showImportOverlay && (
+            <GoogleDocsImport
+              onImport={onGoogleDocsImport}
+              isLoading={isImporting}
+            />
+          )}
+        </div>
       </div>
     );
   },

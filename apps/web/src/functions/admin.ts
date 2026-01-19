@@ -4,8 +4,11 @@ import { getSupabaseServerClient } from "@/functions/supabase";
 
 const ADMIN_EMAILS = [
   "yujonglee@hyprnote.com",
+  "yujonglee.dev@gmail.com",
   "john@hyprnote.com",
   "marketing@hyprnote.com",
+  "harshika.alagh@gmail.com",
+  "yunhyungjo@yonsei.ac.kr",
 ];
 
 export const isAdminEmail = (email: string): boolean => {

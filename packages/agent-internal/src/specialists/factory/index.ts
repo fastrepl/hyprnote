@@ -54,20 +54,21 @@ function createSpecialistAgentNode(promptDir: string) {
     const compressedMessages = await compressMessages(state.messages);
 
     let messages = compressedMessages;
+    let promptConfig: PromptConfig = {
+      model: "anthropic/claude-opus-4.5",
+      temperature: 0,
+    };
     const isFirstInvocation = compressedMessages.length === 0;
 
     if (isFirstInvocation) {
-      const { messages: promptMessages } = await compilePrompt(prompt, {
+      const { messages: promptMessages, config } = await compilePrompt(prompt, {
         request: state.request,
         ...state.context,
       });
       messages = promptMessages;
+      promptConfig = config;
     }
 
-    const promptConfig: PromptConfig = {
-      model: "anthropic/claude-opus-4.5",
-      temperature: 0,
-    };
     const model = createModel(promptConfig);
 
     let attempts = 0;

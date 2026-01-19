@@ -27,6 +27,10 @@ export async function agentNode(
   const compressedMessages = await compressMessages(state.messages);
 
   let messages = compressedMessages;
+  let promptConfig: PromptConfig = {
+    model: "anthropic/claude-opus-4.5",
+    temperature: 0,
+  };
   const isFirstInvocation = compressedMessages.length === 0;
 
   if (isFirstInvocation) {
@@ -36,12 +40,9 @@ export async function agentNode(
       state.images,
     );
     messages = promptMessages;
+    promptConfig = config;
   }
 
-  const promptConfig: PromptConfig = {
-    model: "anthropic/claude-opus-4.5",
-    temperature: 0,
-  };
   const model = createModel(promptConfig);
 
   let attempts = 0;

@@ -4,7 +4,7 @@ import type { App } from "@slack/bolt";
 import type { KnownBlock } from "@slack/types";
 import { Blocks, Section } from "jsx-slack";
 
-import { agent } from "../../agent";
+import { agent } from "@hypr/agent-internal";
 
 export function registerAgentApprovalAction(app: App) {
   app.action(

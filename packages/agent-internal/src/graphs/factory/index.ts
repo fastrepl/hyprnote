@@ -3,7 +3,7 @@ import type { ToolCall } from "@langchain/core/messages/tool";
 import { entrypoint, task } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 
-import { env } from "../../../env";
+import { env } from "../../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../../prompt";
 import { isRetryableError, type SpecialistConfig } from "../../types";
 import { runAgenticLoop } from "../../utils/loop";

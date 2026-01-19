@@ -4,8 +4,8 @@ import { z } from "zod";
 import { executeCode, formatExecutionResult } from "../../modal/execute";
 
 export const executeCodeTool = tool(
-  async ({ code }: { code: string }) => {
-    const result = await executeCode(code);
+  async (args: { code: string; isMutating: boolean }) => {
+    const result = await executeCode(args.code);
     return formatExecutionResult(result);
   },
   {
@@ -14,6 +14,11 @@ export const executeCodeTool = tool(
       "Execute TypeScript/JavaScript code in a sandboxed environment",
     schema: z.object({
       code: z.string().describe("The code to execute"),
+      isMutating: z
+        .boolean()
+        .describe(
+          "True if this operation creates, updates, or deletes data. False for read-only operations.",
+        ),
     }),
   },
 );

@@ -1,7 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-import { understandHyprnoteRepo } from "../../modal/understand";
+import { understandHyprnoteRepo } from "../modal/understand";
 
 export const understandHyprnoteRepoTool = tool(
   async ({ request }: { request: string }) => {

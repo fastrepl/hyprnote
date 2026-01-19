@@ -1,6 +1,6 @@
 import pg from "pg";
 
-import { env } from "../../../env";
+import { env } from "../../env";
 
 interface ColumnInfo {
   table_schema: string;

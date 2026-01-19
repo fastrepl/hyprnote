@@ -1,6 +1,6 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "agent": "./src/agent/index.ts:agent"
+    "agent": "./src/agent.ts:agent"
   }
 }

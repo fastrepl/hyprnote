@@ -1,7 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-import { env } from "../../env";
+import { env } from "../env";
 
 export const readUrlTool = tool(
   async ({ url }: { url: string }) => {

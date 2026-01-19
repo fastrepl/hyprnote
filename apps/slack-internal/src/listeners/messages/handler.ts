@@ -6,9 +6,9 @@ import {
   clearThread,
   generateRunId,
   getLangSmithUrl,
-} from "../../agent";
-import type { ToolApprovalInterrupt } from "../../agent/types";
-import type { AgentInput } from "../../agent/utils/input";
+} from "@hypr/agent-internal";
+import type { AgentInput, ToolApprovalInterrupt } from "@hypr/agent-internal";
+
 import { env } from "../../env";
 import {
   fetchReferencedSlackMessages,

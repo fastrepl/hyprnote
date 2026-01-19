@@ -12,7 +12,7 @@ import {
 import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 import { ChatOpenAI } from "@langchain/openai";
 
-import { env } from "../env";
+import { env } from "./env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "./prompt";
 import { tools, toolsByName, toolsRequiringApproval } from "./tools";
 import {

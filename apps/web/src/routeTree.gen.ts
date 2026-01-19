@@ -32,6 +32,7 @@ import { Route as ViewPrivacyRouteImport } from './routes/_view/privacy'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewOssFriendsRouteImport } from './routes/_view/oss-friends'
 import { Route as ViewOpensourceRouteImport } from './routes/_view/opensource'
+import { Route as ViewJobsRouteImport } from './routes/_view/jobs'
 import { Route as ViewFreeRouteImport } from './routes/_view/free'
 import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
 import { Route as ViewEnterpriseRouteImport } from './routes/_view/enterprise'
@@ -89,6 +90,8 @@ import { Route as ViewProductAiAssistantRouteImport } from './routes/_view/produ
 import { Route as ViewPressKitAppRouteImport } from './routes/_view/press-kit/app'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewK6ReportsIdRouteImport } from './routes/_view/k6-reports/$id'
+import { Route as ViewJobsEngineerRouteImport } from './routes/_view/jobs/engineer'
+import { Route as ViewJobsDesignteerRouteImport } from './routes/_view/jobs/designteer'
 import { Route as ViewDownloadWindowsRouteImport } from './routes/_view/download/windows'
 import { Route as ViewDownloadLinuxDebRouteImport } from './routes/_view/download/linux-deb'
 import { Route as ViewDownloadLinuxAppimageRouteImport } from './routes/_view/download/linux-appimage'
@@ -236,6 +239,11 @@ const ViewOssFriendsRoute = ViewOssFriendsRouteImport.update({
 const ViewOpensourceRoute = ViewOpensourceRouteImport.update({
   id: '/opensource',
   path: '/opensource',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewJobsRoute = ViewJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewFreeRoute = ViewFreeRouteImport.update({
@@ -528,6 +536,16 @@ const ViewK6ReportsIdRoute = ViewK6ReportsIdRouteImport.update({
   path: '/k6-reports/$id',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewJobsEngineerRoute = ViewJobsEngineerRouteImport.update({
+  id: '/engineer',
+  path: '/engineer',
+  getParentRoute: () => ViewJobsRoute,
+} as any)
+const ViewJobsDesignteerRoute = ViewJobsDesignteerRouteImport.update({
+  id: '/designteer',
+  path: '/designteer',
+  getParentRoute: () => ViewJobsRoute,
+} as any)
 const ViewDownloadWindowsRoute = ViewDownloadWindowsRouteImport.update({
   id: '/download/windows',
   path: '/download/windows',
@@ -728,6 +746,7 @@ export interface FileRoutesByFullPath {
   '/enterprise': typeof ViewEnterpriseRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/free': typeof ViewFreeRoute
+  '/jobs': typeof ViewJobsRouteWithChildren
   '/opensource': typeof ViewOpensourceRoute
   '/oss-friends': typeof ViewOssFriendsRoute
   '/pricing': typeof ViewPricingRoute
@@ -754,6 +773,8 @@ export interface FileRoutesByFullPath {
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
+  '/jobs/designteer': typeof ViewJobsDesignteerRoute
+  '/jobs/engineer': typeof ViewJobsEngineerRoute
   '/k6-reports/$id': typeof ViewK6ReportsIdRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/press-kit/app': typeof ViewPressKitAppRoute
@@ -839,6 +860,7 @@ export interface FileRoutesByTo {
   '/enterprise': typeof ViewEnterpriseRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/free': typeof ViewFreeRoute
+  '/jobs': typeof ViewJobsRouteWithChildren
   '/opensource': typeof ViewOpensourceRoute
   '/oss-friends': typeof ViewOssFriendsRoute
   '/pricing': typeof ViewPricingRoute
@@ -865,6 +887,8 @@ export interface FileRoutesByTo {
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
+  '/jobs/designteer': typeof ViewJobsDesignteerRoute
+  '/jobs/engineer': typeof ViewJobsEngineerRoute
   '/k6-reports/$id': typeof ViewK6ReportsIdRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/press-kit/app': typeof ViewPressKitAppRoute
@@ -956,6 +980,7 @@ export interface FileRoutesById {
   '/_view/enterprise': typeof ViewEnterpriseRoute
   '/_view/file-transcription': typeof ViewFileTranscriptionRoute
   '/_view/free': typeof ViewFreeRoute
+  '/_view/jobs': typeof ViewJobsRouteWithChildren
   '/_view/opensource': typeof ViewOpensourceRoute
   '/_view/oss-friends': typeof ViewOssFriendsRoute
   '/_view/pricing': typeof ViewPricingRoute
@@ -982,6 +1007,8 @@ export interface FileRoutesById {
   '/_view/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/_view/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/_view/download/windows': typeof ViewDownloadWindowsRoute
+  '/_view/jobs/designteer': typeof ViewJobsDesignteerRoute
+  '/_view/jobs/engineer': typeof ViewJobsEngineerRoute
   '/_view/k6-reports/$id': typeof ViewK6ReportsIdRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
   '/_view/press-kit/app': typeof ViewPressKitAppRoute
@@ -1073,6 +1100,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/file-transcription'
     | '/free'
+    | '/jobs'
     | '/opensource'
     | '/oss-friends'
     | '/pricing'
@@ -1099,6 +1127,8 @@ export interface FileRouteTypes {
     | '/download/linux-appimage'
     | '/download/linux-deb'
     | '/download/windows'
+    | '/jobs/designteer'
+    | '/jobs/engineer'
     | '/k6-reports/$id'
     | '/legal/$slug'
     | '/press-kit/app'
@@ -1184,6 +1214,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/file-transcription'
     | '/free'
+    | '/jobs'
     | '/opensource'
     | '/oss-friends'
     | '/pricing'
@@ -1210,6 +1241,8 @@ export interface FileRouteTypes {
     | '/download/linux-appimage'
     | '/download/linux-deb'
     | '/download/windows'
+    | '/jobs/designteer'
+    | '/jobs/engineer'
     | '/k6-reports/$id'
     | '/legal/$slug'
     | '/press-kit/app'
@@ -1300,6 +1333,7 @@ export interface FileRouteTypes {
     | '/_view/enterprise'
     | '/_view/file-transcription'
     | '/_view/free'
+    | '/_view/jobs'
     | '/_view/opensource'
     | '/_view/oss-friends'
     | '/_view/pricing'
@@ -1326,6 +1360,8 @@ export interface FileRouteTypes {
     | '/_view/download/linux-appimage'
     | '/_view/download/linux-deb'
     | '/_view/download/windows'
+    | '/_view/jobs/designteer'
+    | '/_view/jobs/engineer'
     | '/_view/k6-reports/$id'
     | '/_view/legal/$slug'
     | '/_view/press-kit/app'
@@ -1597,6 +1633,13 @@ declare module '@tanstack/react-router' {
       path: '/opensource'
       fullPath: '/opensource'
       preLoaderRoute: typeof ViewOpensourceRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/jobs': {
+      id: '/_view/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof ViewJobsRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/free': {
@@ -1998,6 +2041,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewK6ReportsIdRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/jobs/engineer': {
+      id: '/_view/jobs/engineer'
+      path: '/engineer'
+      fullPath: '/jobs/engineer'
+      preLoaderRoute: typeof ViewJobsEngineerRouteImport
+      parentRoute: typeof ViewJobsRoute
+    }
+    '/_view/jobs/designteer': {
+      id: '/_view/jobs/designteer'
+      path: '/designteer'
+      fullPath: '/jobs/designteer'
+      preLoaderRoute: typeof ViewJobsDesignteerRouteImport
+      parentRoute: typeof ViewJobsRoute
+    }
     '/_view/download/windows': {
       id: '/_view/download/windows'
       path: '/download/windows'
@@ -2289,6 +2346,20 @@ const ViewDocsRouteRouteWithChildren = ViewDocsRouteRoute._addFileChildren(
   ViewDocsRouteRouteChildren,
 )
 
+interface ViewJobsRouteChildren {
+  ViewJobsDesignteerRoute: typeof ViewJobsDesignteerRoute
+  ViewJobsEngineerRoute: typeof ViewJobsEngineerRoute
+}
+
+const ViewJobsRouteChildren: ViewJobsRouteChildren = {
+  ViewJobsDesignteerRoute: ViewJobsDesignteerRoute,
+  ViewJobsEngineerRoute: ViewJobsEngineerRoute,
+}
+
+const ViewJobsRouteWithChildren = ViewJobsRoute._addFileChildren(
+  ViewJobsRouteChildren,
+)
+
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
   ViewCompanyHandbookRouteRoute: typeof ViewCompanyHandbookRouteRouteWithChildren
@@ -2298,6 +2369,7 @@ interface ViewRouteRouteChildren {
   ViewEnterpriseRoute: typeof ViewEnterpriseRoute
   ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
   ViewFreeRoute: typeof ViewFreeRoute
+  ViewJobsRoute: typeof ViewJobsRouteWithChildren
   ViewOpensourceRoute: typeof ViewOpensourceRoute
   ViewOssFriendsRoute: typeof ViewOssFriendsRoute
   ViewPricingRoute: typeof ViewPricingRoute
@@ -2367,6 +2439,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewEnterpriseRoute: ViewEnterpriseRoute,
   ViewFileTranscriptionRoute: ViewFileTranscriptionRoute,
   ViewFreeRoute: ViewFreeRoute,
+  ViewJobsRoute: ViewJobsRouteWithChildren,
   ViewOpensourceRoute: ViewOpensourceRoute,
   ViewOssFriendsRoute: ViewOssFriendsRoute,
   ViewPricingRoute: ViewPricingRoute,

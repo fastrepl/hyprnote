@@ -130,6 +130,12 @@ async function tryRestoreFromCache(sandbox: BunSandbox): Promise<boolean> {
     { timeoutMs: GIT_OPERATION_TIMEOUT_MS },
   );
   if (cpCode !== 0) {
+    // Invalidate corrupted cache so next sandbox gets a fresh clone
+    await execCommand(sandbox, ["rm", "-rf", CACHE_REPO_PATH]);
+    await execCommand(sandbox, ["sync", VOLUME_MOUNT_PATH]);
+    console.warn(
+      "Cache copy failed, invalidating cache and falling back to fresh clone",
+    );
     return false;
   }
 
@@ -140,7 +146,12 @@ async function tryRestoreFromCache(sandbox: BunSandbox): Promise<boolean> {
   );
   if (fetchCode !== 0) {
     await execCommand(sandbox, ["rm", "-rf", REPO_PATH]);
-    console.warn("Cache copy or update failed, falling back to fresh clone");
+    // Invalidate corrupted cache so next sandbox gets a fresh clone
+    await execCommand(sandbox, ["rm", "-rf", CACHE_REPO_PATH]);
+    await execCommand(sandbox, ["sync", VOLUME_MOUNT_PATH]);
+    console.warn(
+      "Cache restore failed, invalidating cache and falling back to fresh clone",
+    );
     return false;
   }
 
@@ -151,7 +162,12 @@ async function tryRestoreFromCache(sandbox: BunSandbox): Promise<boolean> {
   );
   if (resetCode !== 0) {
     await execCommand(sandbox, ["rm", "-rf", REPO_PATH]);
-    console.warn("Cache copy or update failed, falling back to fresh clone");
+    // Invalidate corrupted cache so next sandbox gets a fresh clone
+    await execCommand(sandbox, ["rm", "-rf", CACHE_REPO_PATH]);
+    await execCommand(sandbox, ["sync", VOLUME_MOUNT_PATH]);
+    console.warn(
+      "Cache restore failed, invalidating cache and falling back to fresh clone",
+    );
     return false;
   }
 
@@ -159,6 +175,9 @@ async function tryRestoreFromCache(sandbox: BunSandbox): Promise<boolean> {
 }
 
 async function cloneRepository(sandbox: BunSandbox): Promise<void> {
+  // Defensive cleanup - ensure target doesn't exist
+  await execCommand(sandbox, ["rm", "-rf", REPO_PATH]);
+
   const { exitCode, stdout, stderr } = await execCommand(
     sandbox,
     [
@@ -179,6 +198,9 @@ async function cloneRepository(sandbox: BunSandbox): Promise<void> {
 }
 
 async function updateCache(sandbox: BunSandbox): Promise<void> {
+  // Remove existing cache to prevent nested directories
+  await execCommand(sandbox, ["rm", "-rf", CACHE_REPO_PATH]);
+
   const { exitCode } = await execCommand(
     sandbox,
     ["cp", "-a", REPO_PATH, CACHE_REPO_PATH],
@@ -242,13 +264,13 @@ async function createBunSandboxInternal(options?: CreateBunSandboxOptions) {
     },
   });
 
-  const restoredFromCache = await tryRestoreFromCache(sandbox);
-  if (restoredFromCache) {
-    return sandbox;
-  }
+  // const restoredFromCache = await tryRestoreFromCache(sandbox);
+  // if (restoredFromCache) {
+  //   return sandbox;
+  // }
 
-  await cloneRepository(sandbox);
-  await updateCache(sandbox);
+  // await cloneRepository(sandbox);
+  // await updateCache(sandbox);
 
   return sandbox;
 }

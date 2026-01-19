@@ -1,4 +1,4 @@
-import type { BaseCheckpointSaver, Pregel } from "@langchain/langgraph";
+import type { BaseCheckpointSaver } from "@langchain/langgraph";
 import type {
   HumanInterrupt,
   HumanResponse,
@@ -6,22 +6,11 @@ import type {
 
 export type { HumanInterrupt, HumanResponse };
 
-export type AgentGraph<Input = unknown, Output = unknown> = Pregel<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  any,
-  Record<string, unknown>,
-  Input,
-  Output
->;
-
-export interface AgentOutput {
-  output: string;
-}
-
 export interface AgentStreamState {
-  agent?: AgentOutput;
+  messages?: unknown[];
+  request?: string;
+  images?: Array<{ base64: string; mimeType: string }>;
+  output?: string;
   __interrupt__?: Array<{ value: HumanInterrupt }>;
 }
 
@@ -38,7 +27,7 @@ export function isInterrupted(
 }
 
 export function extractOutput(state: AgentStreamState): string | undefined {
-  return state.agent?.output;
+  return state.output;
 }
 
 export function getInterruptToolName(interrupt: HumanInterrupt): string {

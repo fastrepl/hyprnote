@@ -1,25 +1,38 @@
 import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
-import type { ToolCall } from "@langchain/core/messages/tool";
 import {
-  addMessages,
-  entrypoint,
-  getPreviousState,
-  task,
+  Annotation,
+  messagesStateReducer,
+  StateGraph,
+  START,
 } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 
 import { env } from "../../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../../prompt";
-import {
-  type AgentGraph,
-  isRetryableError,
-  type SpecialistConfig,
-} from "../../types";
+import { isRetryableError, type SpecialistConfig } from "../../types";
 import { compressMessages } from "../../utils/context";
-import { runAgentLoop } from "../../utils/loop";
 import { executeCodeTool } from "./tools";
 
-type ModelWithTools = ReturnType<ReturnType<typeof createModel>["bindTools"]>;
+const SpecialistState = Annotation.Root({
+  messages: Annotation<BaseMessage[]>({
+    reducer: messagesStateReducer,
+    default: () => [],
+  }),
+  request: Annotation<string>({
+    reducer: (_, newValue) => newValue ?? "",
+    default: () => "",
+  }),
+  context: Annotation<Record<string, unknown>>({
+    reducer: (_, newValue) => newValue ?? {},
+    default: () => ({}),
+  }),
+  output: Annotation<string>({
+    reducer: (_, newValue) => newValue ?? "",
+    default: () => "",
+  }),
+});
+
+type SpecialistStateType = typeof SpecialistState.State;
 
 function createModel(promptConfig: PromptConfig) {
   return new ChatOpenAI({
@@ -29,94 +42,179 @@ function createModel(promptConfig: PromptConfig) {
       baseURL: "https://openrouter.ai/api/v1",
       apiKey: env.OPENROUTER_API_KEY,
     },
-  });
+  }).bindTools([executeCodeTool]);
 }
 
-const invokeModel = task(
-  {
-    name: "specialist:invokeModel",
-    retry: {
-      maxAttempts: 3,
-      retryOn: isRetryableError,
-      initialInterval: 1000,
-    },
-  },
-  async (params: {
-    model: ModelWithTools;
-    messages: BaseMessage[];
-  }): Promise<AIMessage> => {
-    return params.model.invoke(params.messages);
-  },
-);
+function createSpecialistAgentNode(promptDir: string) {
+  const prompt = loadPrompt(promptDir);
 
-const executeCode = task(
-  {
-    name: "specialist:executeCode",
-    retry: {
-      maxAttempts: 2,
-      retryOn: isRetryableError,
-      initialInterval: 1000,
-    },
-  },
-  async (toolCall: ToolCall): Promise<ToolMessage> => {
-    try {
-      const args = toolCall.args as { code: string; isMutating: boolean };
-      const result = await executeCodeTool.invoke(args);
-      return new ToolMessage({
-        content: typeof result === "string" ? result : JSON.stringify(result),
-        tool_call_id: toolCall.id!,
+  return async (
+    state: SpecialistStateType,
+  ): Promise<Partial<SpecialistStateType>> => {
+    const compressedMessages = await compressMessages(state.messages);
+
+    let messages = compressedMessages;
+    const isFirstInvocation = compressedMessages.length === 0;
+
+    if (isFirstInvocation) {
+      const { messages: promptMessages } = await compilePrompt(prompt, {
+        request: state.request,
+        ...state.context,
       });
-    } catch (error) {
-      if (isRetryableError(error)) {
-        throw error;
-      }
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      console.error(`executeCode failed:`, errorMessage);
-      return new ToolMessage({
-        content: `Code execution failed: ${errorMessage}`,
-        tool_call_id: toolCall.id!,
-      });
+      messages = promptMessages;
     }
-  },
-);
 
-export function createSpecialist(
-  config: SpecialistConfig,
-): AgentGraph<string, string> {
-  const prompt = loadPrompt(config.promptDir);
+    const promptConfig: PromptConfig = {
+      model: "anthropic/claude-opus-4.5",
+      temperature: 0,
+    };
+    const model = createModel(promptConfig);
 
-  return entrypoint(
-    {
-      name: `specialist-${config.name}`,
-      checkpointer: config.checkpointer,
-    },
-    async (request: string) => {
-      const previous = getPreviousState<BaseMessage[]>();
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      try {
+        const response = (await model.invoke(messages)) as AIMessage;
+
+        if (!response.tool_calls || response.tool_calls.length === 0) {
+          return {
+            messages: [response],
+            output: response.text || "No response",
+          };
+        }
+
+        return {
+          messages: [response],
+        };
+      } catch (error) {
+        attempts++;
+        if (!isRetryableError(error) || attempts >= maxAttempts) {
+          throw error;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+
+    throw new Error("Model invocation failed after retries");
+  };
+}
+
+async function specialistToolsNode(
+  state: SpecialistStateType,
+): Promise<Partial<SpecialistStateType>> {
+  const lastMessage = state.messages[state.messages.length - 1];
+
+  if (lastMessage._getType() !== "ai" || !("tool_calls" in lastMessage)) {
+    throw new Error("Expected AIMessage with tool_calls");
+  }
+
+  const toolCalls =
+    (
+      lastMessage as {
+        tool_calls?: Array<{ id: string; name: string; args: Record<string, unknown> }>;
+      }
+    ).tool_calls ?? [];
+
+  const toolMessages = await Promise.all(
+    toolCalls.map(async (toolCall) => {
+      let attempts = 0;
+      const maxAttempts = 2;
+
+      while (attempts < maxAttempts) {
+        try {
+          const args = toolCall.args as { code: string; isMutating: boolean };
+          const result = await executeCodeTool.invoke(args);
+          return new ToolMessage({
+            content:
+              typeof result === "string" ? result : JSON.stringify(result),
+            tool_call_id: toolCall.id,
+          });
+        } catch (error) {
+          attempts++;
+          if (!isRetryableError(error) || attempts >= maxAttempts) {
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            console.error(`executeCode failed:`, errorMessage);
+            return new ToolMessage({
+              content: `Code execution failed: ${errorMessage}`,
+              tool_call_id: toolCall.id,
+            });
+          }
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+
+      return new ToolMessage({
+        content: "Tool execution failed after retries",
+        tool_call_id: toolCall.id,
+      });
+    }),
+  );
+
+  return {
+    messages: toolMessages,
+  };
+}
+
+function shouldContinue(state: SpecialistStateType): "tools" | "__end__" {
+  const lastMessage = state.messages[state.messages.length - 1];
+
+  if (lastMessage._getType() === "ai") {
+    const aiMessage = lastMessage as { tool_calls?: unknown[] };
+    if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
+      return "tools";
+    }
+  }
+
+  return "__end__";
+}
+
+export function createSpecialist(config: SpecialistConfig) {
+  const agentNode = createSpecialistAgentNode(config.promptDir);
+
+  const workflow = new StateGraph(SpecialistState)
+    .addNode("agent", agentNode)
+    .addNode("tools", specialistToolsNode)
+    .addEdge(START, "agent")
+    .addConditionalEdges("agent", shouldContinue, {
+      tools: "tools",
+      __end__: "__end__",
+    })
+    .addEdge("tools", "agent");
+
+  const graph = workflow.compile({
+    checkpointer: config.checkpointer,
+  });
+
+  return {
+    stream: async (request: string, streamConfig?: Record<string, unknown>) => {
       const context = config.getContext ? await config.getContext() : {};
-      const { messages: promptMessages, config: promptConfig } =
-        await compilePrompt(prompt, { request, ...context });
-
-      let messages = await compressMessages(previous ?? []);
-      messages = addMessages(messages, promptMessages);
-
-      const model = createModel(promptConfig).bindTools([executeCodeTool]);
-
-      const { response, messages: finalMessages } = await runAgentLoop(
-        {
-          model,
-          invokeModel,
-          invokeTool: executeCode,
-        },
-        messages,
-      );
-
-      const allMessages = addMessages(finalMessages, [response]);
-
-      return entrypoint.final({
-        value: response.text || "No response",
-        save: allMessages,
+      const initialState: Partial<SpecialistStateType> = {
+        request,
+        context,
+        messages: [],
+        output: "",
+      };
+      return graph.stream(initialState, {
+        ...streamConfig,
+        streamMode: (streamConfig?.streamMode as string[]) ?? ["values"],
       });
     },
-  );
+
+    invoke: async (
+      request: string,
+      invokeConfig?: Record<string, unknown>,
+    ): Promise<string> => {
+      const context = config.getContext ? await config.getContext() : {};
+      const initialState: Partial<SpecialistStateType> = {
+        request,
+        context,
+        messages: [],
+        output: "",
+      };
+      const result = await graph.invoke(initialState, invokeConfig);
+      return result.output;
+    },
+  };
 }

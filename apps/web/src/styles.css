@@ -1,6 +1,27 @@
 @import url("https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap&family=Instrument+Serif:ital@1&display=swap");
 
 @font-face {
+  font-family: "Redaction";
+  src: url("/fonts/Redaction-Regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Redaction";
+  src: url("/fonts/Redaction35-Regular.otf") format("opentype");
+  font-weight: 350;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Redaction";
+  src: url("/fonts/Redaction70-Regular.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
   font-family: "SF Pro";
   src: url("/fonts/SF-Pro-Text-Regular.otf") format("opentype");
   font-weight: 400;

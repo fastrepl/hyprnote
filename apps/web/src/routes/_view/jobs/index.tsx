@@ -86,8 +86,15 @@ function JobCard({
   hasBorder?: boolean;
 }) {
   return (
-    <div
-      className={`p-8 text-left relative overflow-hidden ${hasBorder ? "border-b md:border-b-0 md:border-r border-neutral-100" : ""}`}
+    <Link
+      to={linkTo}
+      className={[
+        "p-8 text-left relative overflow-hidden block group",
+        "hover:bg-stone-50/50 transition-colors",
+        hasBorder
+          ? "border-b md:border-b-0 md:border-r border-neutral-100"
+          : "",
+      ].join(" ")}
     >
       <div
         className="absolute inset-0 bg-cover bg-center"
@@ -103,16 +110,13 @@ function JobCard({
         </div>
         <p className="text-neutral-600 leading-relaxed mb-6">{description}</p>
         <div className="mt-auto">
-          <Link
-            to={linkTo}
-            className="inline-flex items-center gap-2 px-4 h-8 bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all text-sm font-medium"
-          >
+          <span className="inline-flex items-center gap-2 px-4 h-8 bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-xs group-hover:shadow-md group-hover:scale-[102%] group-active:scale-[98%] transition-all text-sm font-medium">
             Interested?
             <ArrowRight className="size-4" />
-          </Link>
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

@@ -7,6 +7,9 @@ dockerfile = "Dockerfile"
 [deploy]
 strategy = 'bluegreen'
 
+[env]
+BUN_ENV = "production"
+
 [[services]]
 internal_port = 8080
 protocol = "tcp"

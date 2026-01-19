@@ -18,6 +18,8 @@ RUN pnpm deploy --filter @hypr/slack-internal --prod --legacy /runtime
 
 FROM oven/bun:1 AS runtime
 WORKDIR /app
+ARG GIT_SHA
 ENV NODE_ENV="production"
+ENV GIT_SHA=${GIT_SHA}
 COPY --from=build /runtime ./
 CMD ["bun", "src/index.ts"]

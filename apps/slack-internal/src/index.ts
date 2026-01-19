@@ -1,3 +1,5 @@
+import "./instrument";
+
 import { registerTool, setupCheckpointer } from "@hypr/agent-internal";
 
 import { app } from "./app";

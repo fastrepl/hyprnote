@@ -1,5 +1,6 @@
 /** @jsxImportSource jsx-slack */
 import { Command } from "@langchain/langgraph";
+import * as Sentry from "@sentry/bun";
 import type { App } from "@slack/bolt";
 import type { KnownBlock } from "@slack/types";
 import { Blocks, Section } from "jsx-slack";
@@ -50,6 +51,13 @@ export function registerAgentApprovalAction(app: App) {
         });
       } catch (error) {
         logger.error("Agent approval error:", error);
+        Sentry.withScope((scope) => {
+          scope.setTag("slack_channel", channel);
+          scope.setTag("slack_thread_id", threadId);
+          scope.setTag("action_type", "agent_approve");
+          scope.setContext("agent_approval", { channel, threadId });
+          Sentry.captureException(error);
+        });
         await client.chat.postMessage({
           channel,
           thread_ts: threadId,
@@ -104,6 +112,13 @@ export function registerAgentApprovalAction(app: App) {
         });
       } catch (error) {
         logger.error("Agent rejection error:", error);
+        Sentry.withScope((scope) => {
+          scope.setTag("slack_channel", channel);
+          scope.setTag("slack_thread_id", threadId);
+          scope.setTag("action_type", "agent_reject");
+          scope.setContext("agent_rejection", { channel, threadId });
+          Sentry.captureException(error);
+        });
         await client.chat.postMessage({
           channel,
           thread_ts: threadId,

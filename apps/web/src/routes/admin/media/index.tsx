@@ -4,6 +4,7 @@ import {
   AlertCircleIcon,
   CheckIcon,
   ChevronDownIcon,
+  ChevronLeftIcon,
   ChevronRightIcon,
   CopyIcon,
   DownloadIcon,
@@ -101,6 +102,12 @@ function MediaLibrary() {
 
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [itemToMove, setItemToMove] = useState<MediaItem | null>(null);
+
+  const [navigationHistory, setNavigationHistory] = useState<
+    Array<{ path: string; name: string }>
+  >([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const isNavigatingRef = useRef(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -321,6 +328,43 @@ function MediaLibrary() {
     setTabs(newTabs);
   }, []);
 
+  const navigateToFolder = useCallback(
+    (path: string, name: string, addToHistory = true) => {
+      if (addToHistory && !isNavigatingRef.current) {
+        setNavigationHistory((prev) => {
+          const newHistory = prev.slice(0, historyIndex + 1);
+          newHistory.push({ path, name: name || "Home" });
+          if (newHistory.length > 50) {
+            newHistory.shift();
+          }
+          return newHistory;
+        });
+        setHistoryIndex((prev) => Math.min(prev + 1, 49));
+      }
+      isNavigatingRef.current = false;
+      openTab("folder", name || "Home", path);
+    },
+    [historyIndex, openTab],
+  );
+
+  const handleNavigateBack = useCallback(() => {
+    if (historyIndex > 0) {
+      isNavigatingRef.current = true;
+      const prevEntry = navigationHistory[historyIndex - 1];
+      setHistoryIndex(historyIndex - 1);
+      openTab("folder", prevEntry.name, prevEntry.path);
+    }
+  }, [historyIndex, navigationHistory, openTab]);
+
+  const handleNavigateForward = useCallback(() => {
+    if (historyIndex < navigationHistory.length - 1) {
+      isNavigatingRef.current = true;
+      const nextEntry = navigationHistory[historyIndex + 1];
+      setHistoryIndex(historyIndex + 1);
+      openTab("folder", nextEntry.name, nextEntry.path);
+    }
+  }, [historyIndex, navigationHistory, openTab]);
+
   const {
     uploadMutation,
     deleteMutation,
@@ -524,17 +568,17 @@ function MediaLibrary() {
             onReplace={handleReplace}
             onDeleteSingle={handleDeleteSingle}
             onOpenPreview={(path, name) => openTab("file", name, path)}
-            onOpenFolder={(path, name) =>
-              openTab("folder", name, path, {
-                forceNewTab: currentTab?.pinned || currentTab?.isHome,
-              })
-            }
+            onOpenFolder={(path, name) => navigateToFolder(path, name)}
             onMove={openMoveModal}
             onRename={handleRename}
             onCreateFolder={() => handleCreateFolder("untitled")}
             fileInputRef={fileInputRef}
             createFolderPending={createFolderMutation.isPending}
             uploadPending={uploadMutation.isPending}
+            canNavigateBack={historyIndex > 0}
+            canNavigateForward={historyIndex < navigationHistory.length - 1}
+            onNavigateBack={handleNavigateBack}
+            onNavigateForward={handleNavigateForward}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
@@ -661,7 +705,6 @@ function AddMenu({
   onUpload: (files: FileList) => void;
 }) {
   const [showMenu, setShowMenu] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleCreateFolder = () => {
     setShowMenu(false);
@@ -673,44 +716,15 @@ function AddMenu({
     fileInputRef.current?.click();
   };
 
+  const handleCancel = () => {
+    setShowMenu(false);
+  };
+
   const isPending = createFolderPending || uploadPending;
 
   return (
     <div className="p-3 relative">
-      <button
-        ref={buttonRef}
-        onClick={() => {
-          if (showMenu) {
-            handleAddFile();
-          } else {
-            setShowMenu(true);
-          }
-        }}
-        disabled={isPending}
-        className={cn([
-          "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
-          "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
-          "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
-          "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-xs",
-        ])}
-      >
-        {isPending ? (
-          <Spinner size={14} />
-        ) : showMenu ? (
-          <UploadIcon className="size-4" />
-        ) : (
-          <PlusIcon className="size-4" />
-        )}
-        {createFolderPending
-          ? "Creating..."
-          : uploadPending
-            ? "Uploading..."
-            : showMenu
-              ? "Add File"
-              : "Add"}
-      </button>
-
-      {showMenu && (
+      {showMenu ? (
         <>
           <div
             className="fixed inset-0 z-40"
@@ -719,7 +733,7 @@ function AddMenu({
           <button
             onClick={handleCreateFolder}
             className={cn([
-              "absolute bottom-15 left-3 right-3 z-50",
+              "absolute bottom-27 left-3 right-3 z-50",
               "w-auto h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
               "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
               "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
@@ -728,7 +742,48 @@ function AddMenu({
             <FolderPlusIcon className="size-4" />
             Add Folder
           </button>
+          <button
+            onClick={handleAddFile}
+            className={cn([
+              "absolute bottom-15 left-3 right-3 z-50",
+              "w-auto h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
+              "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
+              "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+            ])}
+          >
+            <UploadIcon className="size-4" />
+            Add File
+          </button>
+          <button
+            onClick={handleCancel}
+            className={cn([
+              "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
+              "bg-linear-to-b from-red-50 to-red-100 text-red-700 border border-red-200",
+              "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+            ])}
+          >
+            <XIcon className="size-4" />
+            Cancel
+          </button>
         </>
+      ) : (
+        <button
+          onClick={() => setShowMenu(true)}
+          disabled={isPending}
+          className={cn([
+            "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
+            "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
+            "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+            "disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-xs",
+          ])}
+        >
+          {isPending ? <Spinner size={14} /> : <PlusIcon className="size-4" />}
+          {createFolderPending
+            ? "Creating..."
+            : uploadPending
+              ? "Uploading..."
+              : "Add"}
+        </button>
       )}
 
       <input
@@ -985,6 +1040,10 @@ function ContentPanel({
   fileInputRef,
   createFolderPending,
   uploadPending,
+  canNavigateBack,
+  canNavigateForward,
+  onNavigateBack,
+  onNavigateForward,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -1017,6 +1076,10 @@ function ContentPanel({
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   createFolderPending: boolean;
   uploadPending: boolean;
+  canNavigateBack: boolean;
+  canNavigateForward: boolean;
+  onNavigateBack: () => void;
+  onNavigateForward: () => void;
 }) {
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -1054,6 +1117,10 @@ function ContentPanel({
             createFolderPending={createFolderPending}
             uploadPending={uploadPending}
             onOpenFolder={onOpenFolder}
+            canNavigateBack={canNavigateBack}
+            canNavigateForward={canNavigateForward}
+            onNavigateBack={onNavigateBack}
+            onNavigateForward={onNavigateForward}
           />
 
           <div className="flex-1 overflow-hidden">
@@ -1310,6 +1377,10 @@ function HeaderBar({
   createFolderPending,
   uploadPending,
   onOpenFolder,
+  canNavigateBack,
+  canNavigateForward,
+  onNavigateBack,
+  onNavigateForward,
 }: {
   currentTab: Tab;
   selectedItems: Set<string>;
@@ -1327,6 +1398,10 @@ function HeaderBar({
   createFolderPending: boolean;
   uploadPending: boolean;
   onOpenFolder: (path: string, name: string) => void;
+  canNavigateBack: boolean;
+  canNavigateForward: boolean;
+  onNavigateBack: () => void;
+  onNavigateForward: () => void;
 }) {
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -1336,6 +1411,36 @@ function HeaderBar({
   return (
     <div className="h-10 flex items-center justify-between px-4 border-b border-neutral-200">
       <div className="flex items-center gap-1 text-sm text-neutral-500">
+        <div className="flex items-center gap-0.5 mr-2">
+          <button
+            type="button"
+            onClick={onNavigateBack}
+            disabled={!canNavigateBack}
+            className={cn([
+              "p-1 rounded transition-colors",
+              canNavigateBack
+                ? "hover:bg-neutral-100 text-neutral-500 hover:text-neutral-700"
+                : "text-neutral-300 cursor-not-allowed",
+            ])}
+            title="Back"
+          >
+            <ChevronLeftIcon className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onNavigateForward}
+            disabled={!canNavigateForward}
+            className={cn([
+              "p-1 rounded transition-colors",
+              canNavigateForward
+                ? "hover:bg-neutral-100 text-neutral-500 hover:text-neutral-700"
+                : "text-neutral-300 cursor-not-allowed",
+            ])}
+            title="Forward"
+          >
+            <ChevronRightIcon className="size-4" />
+          </button>
+        </div>
         {breadcrumbs.length === 0 ? (
           <span className="text-neutral-700 font-medium">Home</span>
         ) : (
@@ -1376,14 +1481,14 @@ function HeaderBar({
             onClick={() => setShowAddMenu(!showAddMenu)}
             disabled={createFolderPending || uploadPending}
             className={cn([
-              "h-7 px-3 text-sm font-medium rounded-md flex items-center gap-1.5",
+              "px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
               "bg-neutral-900 text-white hover:bg-neutral-800",
               "disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
             ])}
           >
-            <PlusIcon className="size-4" />
+            <PlusIcon className="size-3" />
             Add
-            <ChevronDownIcon className="size-4" />
+            <ChevronDownIcon className="size-3" />
           </button>
 
           {showAddMenu && (

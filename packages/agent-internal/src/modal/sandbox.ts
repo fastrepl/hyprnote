@@ -6,10 +6,12 @@ import { getModalClient } from "./client";
 const APP_NAME = "hypr-slack-internal";
 const VOLUME_NAME = "hyprnote-repo-cache";
 const VOLUME_MOUNT_PATH = "/vol";
+const CACHE_REPO_PATH = `${VOLUME_MOUNT_PATH}/hyprnote`;
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+const GIT_OPERATION_TIMEOUT_MS = 60_000;
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
-export const REPO_PATH = `${VOLUME_MOUNT_PATH}/hyprnote`;
+export const REPO_PATH = "/tmp/hyprnote";
 
 export type BunSandbox = Awaited<ReturnType<typeof createBunSandbox>>;
 
@@ -66,6 +68,128 @@ function isRetryableError(error: unknown): boolean {
   return false;
 }
 
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  options: {
+    maxRetries: number;
+    delayMs: number;
+    shouldRetry: (error: unknown) => boolean;
+    onRetry?: (attempt: number, error: unknown) => void;
+  },
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt < options.maxRetries && options.shouldRetry(error)) {
+        options.onRetry?.(attempt, error);
+        await sleep(options.delayMs * attempt);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+async function execCommand(
+  sandbox: BunSandbox,
+  args: string[],
+  options?: { workdir?: string; timeoutMs?: number },
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  const process = await sandbox.exec(args, {
+    stdout: "pipe",
+    stderr: "pipe",
+    ...options,
+  });
+  const [stdout, stderr] = await Promise.all([
+    process.stdout.readText(),
+    process.stderr.readText(),
+  ]);
+  const exitCode = await process.wait();
+  return { exitCode, stdout, stderr };
+}
+
+async function tryRestoreFromCache(sandbox: BunSandbox): Promise<boolean> {
+  const { exitCode: cacheCheckCode } = await execCommand(sandbox, [
+    "test",
+    "-d",
+    `${CACHE_REPO_PATH}/.git`,
+  ]);
+  if (cacheCheckCode !== 0) {
+    return false;
+  }
+
+  const { exitCode: cpCode } = await execCommand(
+    sandbox,
+    ["cp", "-a", CACHE_REPO_PATH, REPO_PATH],
+    { timeoutMs: GIT_OPERATION_TIMEOUT_MS },
+  );
+  if (cpCode !== 0) {
+    return false;
+  }
+
+  const { exitCode: fetchCode } = await execCommand(
+    sandbox,
+    ["git", "fetch", "origin", "main", "--depth", "1"],
+    { workdir: REPO_PATH, timeoutMs: GIT_OPERATION_TIMEOUT_MS },
+  );
+  if (fetchCode !== 0) {
+    await execCommand(sandbox, ["rm", "-rf", REPO_PATH]);
+    console.warn("Cache copy or update failed, falling back to fresh clone");
+    return false;
+  }
+
+  const { exitCode: resetCode } = await execCommand(
+    sandbox,
+    ["git", "reset", "--hard", "origin/main"],
+    { workdir: REPO_PATH },
+  );
+  if (resetCode !== 0) {
+    await execCommand(sandbox, ["rm", "-rf", REPO_PATH]);
+    console.warn("Cache copy or update failed, falling back to fresh clone");
+    return false;
+  }
+
+  return true;
+}
+
+async function cloneRepository(sandbox: BunSandbox): Promise<void> {
+  const { exitCode, stdout, stderr } = await execCommand(
+    sandbox,
+    [
+      "git",
+      "clone",
+      "--depth",
+      "1",
+      "https://github.com/fastrepl/hyprnote.git",
+      REPO_PATH,
+    ],
+    { timeoutMs: GIT_OPERATION_TIMEOUT_MS },
+  );
+
+  if (exitCode !== 0) {
+    await sandbox.terminate();
+    throw new Error(`Git clone failed (exit ${exitCode}): ${stderr || stdout}`);
+  }
+}
+
+async function updateCache(sandbox: BunSandbox): Promise<void> {
+  const { exitCode } = await execCommand(
+    sandbox,
+    ["cp", "-a", REPO_PATH, CACHE_REPO_PATH],
+    { timeoutMs: GIT_OPERATION_TIMEOUT_MS },
+  );
+
+  if (exitCode === 0) {
+    await execCommand(sandbox, ["sync", VOLUME_MOUNT_PATH]);
+  }
+}
+
 class SandboxManager {
   async create(options?: CreateBunSandboxOptions): Promise<BunSandbox> {
     return await createBunSandbox(options);
@@ -83,26 +207,17 @@ interface CreateBunSandboxOptions {
 }
 
 export async function createBunSandbox(options?: CreateBunSandboxOptions) {
-  let lastError: unknown;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      return await createBunSandboxInternal(options);
-    } catch (error) {
-      lastError = error;
-      if (attempt < MAX_RETRIES && isRetryableError(error)) {
-        console.warn(
-          `Sandbox creation failed (attempt ${attempt}/${MAX_RETRIES}), retrying...`,
-          error instanceof Error ? error.message : error,
-        );
-        await sleep(RETRY_DELAY_MS * attempt);
-      } else {
-        throw error;
-      }
-    }
-  }
-
-  throw lastError;
+  return withRetry(() => createBunSandboxInternal(options), {
+    maxRetries: MAX_RETRIES,
+    delayMs: RETRY_DELAY_MS,
+    shouldRetry: isRetryableError,
+    onRetry: (attempt, error) => {
+      console.warn(
+        `Sandbox creation failed (attempt ${attempt}/${MAX_RETRIES}), retrying...`,
+        error instanceof Error ? error.message : error,
+      );
+    },
+  });
 }
 
 async function createBunSandboxInternal(options?: CreateBunSandboxOptions) {
@@ -127,75 +242,13 @@ async function createBunSandboxInternal(options?: CreateBunSandboxOptions) {
     },
   });
 
-  const repoExistsProcess = await sandbox.exec(
-    ["test", "-d", `${REPO_PATH}/.git`],
-    { stdout: "pipe", stderr: "pipe" },
-  );
-  const repoExistsExitCode = await repoExistsProcess.wait();
-  const repoExists = repoExistsExitCode === 0;
-
-  if (repoExists) {
-    const fetchProcess = await sandbox.exec(
-      ["git", "fetch", "origin", "main", "--depth", "1"],
-      { stdout: "pipe", stderr: "pipe", workdir: REPO_PATH },
-    );
-    const fetchExitCode = await fetchProcess.wait();
-
-    if (fetchExitCode === 0) {
-      const resetProcess = await sandbox.exec(
-        ["git", "reset", "--hard", "origin/main"],
-        { stdout: "pipe", stderr: "pipe", workdir: REPO_PATH },
-      );
-      const resetExitCode = await resetProcess.wait();
-
-      if (resetExitCode === 0) {
-        const syncProcess = await sandbox.exec(["sync", VOLUME_MOUNT_PATH], {
-          stdout: "pipe",
-          stderr: "pipe",
-        });
-        await syncProcess.wait();
-        return sandbox;
-      }
-    }
-
-    console.warn("Git fetch/reset failed, falling back to fresh clone");
-    const rmProcess = await sandbox.exec(["rm", "-rf", REPO_PATH], {
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-    await rmProcess.wait();
+  const restoredFromCache = await tryRestoreFromCache(sandbox);
+  if (restoredFromCache) {
+    return sandbox;
   }
 
-  const cloneProcess = await sandbox.exec(
-    [
-      "git",
-      "clone",
-      "--depth",
-      "1",
-      "https://github.com/fastrepl/hyprnote.git",
-      REPO_PATH,
-    ],
-    { stdout: "pipe", stderr: "pipe" },
-  );
-
-  const [cloneStdout, cloneStderr] = await Promise.all([
-    cloneProcess.stdout.readText(),
-    cloneProcess.stderr.readText(),
-  ]);
-
-  const cloneExitCode = await cloneProcess.wait();
-  if (cloneExitCode !== 0) {
-    await sandbox.terminate();
-    throw new Error(
-      `Git clone failed (exit ${cloneExitCode}): ${cloneStderr || cloneStdout}`,
-    );
-  }
-
-  const syncProcess = await sandbox.exec(["sync", VOLUME_MOUNT_PATH], {
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  await syncProcess.wait();
+  await cloneRepository(sandbox);
+  await updateCache(sandbox);
 
   return sandbox;
 }

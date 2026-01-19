@@ -20,6 +20,12 @@ Available environment variables:
 The following is the current database schema. Use this to write correct queries.
 
 {{ schema }}
+
+# Code Design
+
+- Stick with above database schema.
+- Do appropriate LIMIT etc, SQL should be able to reasonably executed within 100sec timeout.
+
 </system>
 
 <user>

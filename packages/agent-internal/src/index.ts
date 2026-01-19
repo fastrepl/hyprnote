@@ -1,6 +1,3 @@
-// LangGraph constants (re-exported for type portability)
-export { END, START } from "@langchain/langgraph";
-
 // Main agent exports
 export {
   agent,
@@ -13,11 +10,20 @@ export {
 
 // Types
 export type {
-  ApprovalDecision,
+  AgentGraph,
+  AgentOutput,
+  AgentStreamState,
+  HumanInterrupt,
+  HumanResponse,
   SpecialistConfig,
-  ToolApprovalInterrupt,
 } from "./types";
-export { isRetryableError } from "./types";
+export {
+  extractOutput,
+  getInterruptToolArgs,
+  getInterruptToolName,
+  isInterrupted,
+  isRetryableError,
+} from "./types";
 
 // Prompt utilities
 export type { CompiledPrompt, PromptConfig } from "./prompt";
@@ -27,9 +33,9 @@ export { compilePrompt, loadPrompt } from "./prompt";
 export type { AgentInput, ImageContent } from "./utils/input";
 export { getImages, parseRequest } from "./utils/input";
 
-// Graph utilities
-export type { AgentGraphConfig, AgentGraphResult } from "./utils/graph";
-export { createAgentGraph, runAgentGraph } from "./utils/graph";
+// Loop utilities
+export type { AgentLoopConfig, AgentLoopResult } from "./utils/loop";
+export { runAgentLoop } from "./utils/loop";
 
 // Tools
 export {
@@ -44,11 +50,12 @@ export {
   toolsRequiringApproval,
 } from "./tools";
 
-// Graphs
-export { createSpecialist } from "./graphs/factory";
-export { loopsSpecialist } from "./graphs/loops";
-export { stripeSpecialist } from "./graphs/stripe";
-export { supabaseSpecialist } from "./graphs/supabase";
+// Specialists
+export { createSpecialist } from "./specialists/factory";
+export { loopsSpecialist } from "./specialists/loops";
+export { posthogSpecialist } from "./specialists/posthog";
+export { stripeSpecialist } from "./specialists/stripe";
+export { supabaseSpecialist } from "./specialists/supabase";
 
 // Modal
 export type { ExecutionResult } from "./modal/execute";

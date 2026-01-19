@@ -5,7 +5,7 @@ import type { App } from "@slack/bolt";
 import type { KnownBlock } from "@slack/types";
 import { Blocks, Section } from "jsx-slack";
 
-import { agent } from "@hypr/agent-internal";
+import { agent, type HumanResponse } from "@hypr/agent-internal";
 
 export function registerAgentApprovalAction(app: App) {
   app.action(
@@ -35,8 +35,9 @@ export function registerAgentApprovalAction(app: App) {
       });
 
       try {
+        const resumeValue: HumanResponse = { type: "accept", args: null };
         const result = await agent.invoke(
-          new Command({ resume: { approved: true } }),
+          new Command({ resume: resumeValue }),
           { configurable: { thread_id: threadId } },
         );
 
@@ -45,7 +46,7 @@ export function registerAgentApprovalAction(app: App) {
           thread_ts: threadId,
           blocks: (
             <Blocks>
-              <Section>{(result as string) || "Execution completed."}</Section>
+              <Section>{result?.output || "Execution completed."}</Section>
             </Blocks>
           ) as unknown as KnownBlock[],
         });
@@ -94,10 +95,9 @@ export function registerAgentApprovalAction(app: App) {
       });
 
       try {
+        const resumeValue: HumanResponse = { type: "ignore", args: null };
         const result = await agent.invoke(
-          new Command({
-            resume: { approved: false, reason: "Rejected by user" },
-          }),
+          new Command({ resume: resumeValue }),
           { configurable: { thread_id: threadId } },
         );
 
@@ -106,7 +106,7 @@ export function registerAgentApprovalAction(app: App) {
           thread_ts: threadId,
           blocks: (
             <Blocks>
-              <Section>{(result as string) || "Action was rejected."}</Section>
+              <Section>{result?.output || "Action was rejected."}</Section>
             </Blocks>
           ) as unknown as KnownBlock[],
         });

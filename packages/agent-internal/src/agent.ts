@@ -16,14 +16,15 @@ import { env } from "./env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "./prompt";
 import { tools, toolsByName, toolsRequiringApproval } from "./tools";
 import {
-  type ApprovalDecision,
-  type CompiledGraph,
+  type AgentGraph,
+  type AgentOutput,
+  type HumanInterrupt,
+  type HumanResponse,
   isRetryableError,
-  type ToolApprovalInterrupt,
 } from "./types";
 import { compressMessages } from "./utils/context";
-import { runAgentGraph } from "./utils/graph";
 import { type AgentInput, getImages, parseRequest } from "./utils/input";
+import { runAgentLoop } from "./utils/loop";
 
 process.env.LANGSMITH_TRACING = env.LANGSMITH_API_KEY ? "true" : "false";
 
@@ -96,16 +97,31 @@ const callTool = task(
     }
 
     if (toolsRequiringApproval.has(toolCall.name)) {
-      const interruptValue: ToolApprovalInterrupt = {
-        type: "tool_approval",
-        toolName: toolCall.name,
-        toolArgs: toolCall.args,
+      const interruptValue: HumanInterrupt = {
+        action_request: {
+          action: toolCall.name,
+          args: toolCall.args as Record<string, unknown>,
+        },
+        config: {
+          allow_accept: true,
+          allow_ignore: true,
+          allow_respond: true,
+          allow_edit: false,
+        },
+        description: `Approve execution of tool: ${toolCall.name}`,
       };
-      const decision = interrupt(interruptValue) as ApprovalDecision;
+      const response = interrupt(interruptValue) as HumanResponse;
 
-      if (!decision.approved) {
+      if (response.type === "ignore") {
         return new ToolMessage({
-          content: `Tool execution rejected: ${decision.reason ?? "No reason provided"}`,
+          content: "Tool execution skipped by user",
+          tool_call_id: toolCall.id!,
+        });
+      }
+
+      if (response.type === "response" && typeof response.args === "string") {
+        return new ToolMessage({
+          content: `User feedback: ${response.args}`,
           tool_call_id: toolCall.id!,
         });
       }
@@ -133,13 +149,13 @@ const callTool = task(
   },
 );
 
-export const agent: CompiledGraph<AgentInput, string> = entrypoint(
+export const agent: AgentGraph<AgentInput, AgentOutput> = entrypoint(
   { checkpointer, name: "agent" },
   async (input: AgentInput) => {
     const request = parseRequest(input);
     const images = getImages(input);
     const previous = getPreviousState<BaseMessage[]>();
-    let messages = compressMessages(previous ?? []);
+    let messages = await compressMessages(previous ?? []);
     const { messages: promptMessages, config } = await compilePrompt(
       prompt,
       { request },
@@ -149,7 +165,7 @@ export const agent: CompiledGraph<AgentInput, string> = entrypoint(
 
     const model = createModel(config);
 
-    const { response, messages: finalMessages } = await runAgentGraph(
+    const { response, messages: finalMessages } = await runAgentLoop(
       {
         model,
         invokeModel: callModel,
@@ -161,7 +177,7 @@ export const agent: CompiledGraph<AgentInput, string> = entrypoint(
     const allMessages = addMessages(finalMessages, [response]);
 
     return entrypoint.final({
-      value: response.text || "No response",
+      value: { output: response.text || "No response" },
       save: allMessages,
     });
   },

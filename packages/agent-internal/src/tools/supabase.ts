@@ -2,7 +2,7 @@ import { tool } from "@langchain/core/tools";
 import type { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
 
-import { supabaseSpecialist } from "../graphs/supabase";
+import { supabaseSpecialist } from "../specialists/supabase";
 
 export const supabaseTool = tool(
   async ({ request }: { request: string }, config: LangGraphRunnableConfig) => {

@@ -2,7 +2,7 @@ import { tool } from "@langchain/core/tools";
 import type { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
 
-import { loopsSpecialist } from "../graphs/loops";
+import { loopsSpecialist } from "../specialists/loops";
 
 export const loopsTool = tool(
   async ({ request }: { request: string }, config: LangGraphRunnableConfig) => {

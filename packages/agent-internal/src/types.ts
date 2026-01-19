@@ -1,38 +1,54 @@
-import type { RunnableConfig } from "@langchain/core/runnables";
-import type { IterableReadableStream } from "@langchain/core/utils/stream";
+import type { BaseCheckpointSaver, Pregel } from "@langchain/langgraph";
 import type {
-  BaseCheckpointSaver,
-  Command,
-  Pregel,
-} from "@langchain/langgraph";
+  HumanInterrupt,
+  HumanResponse,
+} from "@langchain/langgraph/prebuilt";
 
-export type { Pregel };
+export type { HumanInterrupt, HumanResponse };
 
-export type StreamMode = "values" | "custom" | "updates" | "messages" | "debug";
+export type AgentGraph<Input = unknown, Output = unknown> = Pregel<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  any,
+  Record<string, unknown>,
+  Input,
+  Output
+>;
 
-export interface StreamConfig extends RunnableConfig {
-  streamMode?: StreamMode | StreamMode[];
+export interface AgentOutput {
+  output: string;
 }
 
-export type StreamChunk = [string, unknown] | Record<string, unknown>;
-
-export interface CompiledGraph<TInput, TOutput> {
-  invoke(input: TInput | Command, config?: RunnableConfig): Promise<TOutput>;
-  stream(
-    input: TInput | Command,
-    config?: StreamConfig,
-  ): Promise<IterableReadableStream<StreamChunk>>;
+export interface AgentStreamState {
+  agent?: AgentOutput;
+  __interrupt__?: Array<{ value: HumanInterrupt }>;
 }
 
-export interface ToolApprovalInterrupt {
-  type: "tool_approval";
-  toolName: string;
-  toolArgs: Record<string, unknown>;
+export function isInterrupted(
+  state: AgentStreamState,
+): state is AgentStreamState & {
+  __interrupt__: Array<{ value: HumanInterrupt }>;
+} {
+  return (
+    "__interrupt__" in state &&
+    Array.isArray(state.__interrupt__) &&
+    state.__interrupt__.length > 0
+  );
 }
 
-export interface ApprovalDecision {
-  approved: boolean;
-  reason?: string;
+export function extractOutput(state: AgentStreamState): string | undefined {
+  return state.agent?.output;
+}
+
+export function getInterruptToolName(interrupt: HumanInterrupt): string {
+  return interrupt.action_request.action;
+}
+
+export function getInterruptToolArgs(
+  interrupt: HumanInterrupt,
+): Record<string, unknown> {
+  return interrupt.action_request.args;
 }
 
 export interface SpecialistConfig {

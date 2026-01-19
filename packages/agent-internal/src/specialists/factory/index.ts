@@ -11,12 +11,12 @@ import { ChatOpenAI } from "@langchain/openai";
 import { env } from "../../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../../prompt";
 import {
-  type CompiledGraph,
+  type AgentGraph,
   isRetryableError,
   type SpecialistConfig,
 } from "../../types";
 import { compressMessages } from "../../utils/context";
-import { runAgentGraph } from "../../utils/graph";
+import { runAgentLoop } from "../../utils/loop";
 import { executeCodeTool } from "./tools";
 
 type ModelWithTools = ReturnType<ReturnType<typeof createModel>["bindTools"]>;
@@ -83,7 +83,7 @@ const executeCode = task(
 
 export function createSpecialist(
   config: SpecialistConfig,
-): CompiledGraph<string, string> {
+): AgentGraph<string, string> {
   const prompt = loadPrompt(config.promptDir);
 
   return entrypoint(
@@ -97,12 +97,12 @@ export function createSpecialist(
       const { messages: promptMessages, config: promptConfig } =
         await compilePrompt(prompt, { request, ...context });
 
-      let messages = compressMessages(previous ?? []);
+      let messages = await compressMessages(previous ?? []);
       messages = addMessages(messages, promptMessages);
 
       const model = createModel(promptConfig).bindTools([executeCodeTool]);
 
-      const { response, messages: finalMessages } = await runAgentGraph(
+      const { response, messages: finalMessages } = await runAgentLoop(
         {
           model,
           invokeModel,

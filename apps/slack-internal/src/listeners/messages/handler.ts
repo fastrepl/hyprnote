@@ -5,10 +5,14 @@ import type { WebClient } from "@slack/web-api";
 import {
   agent,
   clearThread,
+  extractOutput,
   generateRunId,
+  getInterruptToolArgs,
+  getInterruptToolName,
   getLangSmithUrl,
+  isInterrupted,
 } from "@hypr/agent-internal";
-import type { AgentInput, ToolApprovalInterrupt } from "@hypr/agent-internal";
+import type { AgentInput, AgentStreamState } from "@hypr/agent-internal";
 
 import { env } from "../../env";
 import {
@@ -25,19 +29,6 @@ import {
   WelcomeBlock,
 } from "./blocks";
 
-interface AgentResult {
-  __interrupt__?: Array<{ value: ToolApprovalInterrupt }>;
-}
-
-function isInterrupted(result: unknown): result is AgentResult {
-  return (
-    typeof result === "object" &&
-    result !== null &&
-    "__interrupt__" in result &&
-    Array.isArray((result as AgentResult).__interrupt__)
-  );
-}
-
 export function shouldIgnoreMessage(text: string): boolean {
   const trimmed = text.trim();
   if (trimmed.startsWith("!aside")) return true;
@@ -51,8 +42,8 @@ function isExitCommand(text: string): boolean {
   return command === "EXIT" || command === "TERMINATE";
 }
 
-function isTerminateResponse(result: unknown): boolean {
-  return typeof result === "string" && result.trim() === "TERMINATE";
+function isTerminateResponse(output: string | undefined): boolean {
+  return output?.trim() === "TERMINATE";
 }
 
 function buildAgentInput(
@@ -138,7 +129,7 @@ export async function handleAgentMessage(
     const referencedMessages = await fetchReferencedContent(client, rawText);
     const agentInput = buildAgentInput(text, referencedMessages);
 
-    let finalResult: unknown;
+    let finalState: AgentStreamState = {};
 
     for await (const chunk of await agent.stream(agentInput, {
       runId,
@@ -164,24 +155,26 @@ export async function handleAgentMessage(
           });
         }
       } else if (mode === "values") {
-        finalResult = data;
+        finalState = data as AgentStreamState;
       }
     }
 
-    if (isInterrupted(finalResult)) {
-      const interruptData = finalResult.__interrupt__![0].value;
+    if (isInterrupted(finalState)) {
+      const interruptData = finalState.__interrupt__[0].value;
       await say({
         thread_ts: eventTs,
         blocks: InterruptBlock({
-          toolName: interruptData.toolName,
-          toolArgs: interruptData.toolArgs,
+          toolName: getInterruptToolName(interruptData),
+          toolArgs: getInterruptToolArgs(interruptData),
           threadTs,
         }),
       });
       return;
     }
 
-    if (isTerminateResponse(finalResult)) {
+    const output = extractOutput(finalState);
+
+    if (isTerminateResponse(output)) {
       await clearThread(threadTs);
       const langsmithUrl = getLangSmithUrl(threadTs);
       await say({
@@ -193,7 +186,7 @@ export async function handleAgentMessage(
 
     await say({
       thread_ts: eventTs,
-      blocks: ResponseBlock(finalResult as string),
+      blocks: ResponseBlock(output ?? "No response generated."),
     });
   } catch (error) {
     logger.error("Agent error:", error);

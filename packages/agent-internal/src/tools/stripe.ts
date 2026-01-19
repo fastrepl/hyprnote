@@ -2,7 +2,7 @@ import { tool } from "@langchain/core/tools";
 import type { LangGraphRunnableConfig } from "@langchain/langgraph";
 import { z } from "zod";
 
-import { stripeSpecialist } from "../graphs/stripe";
+import { stripeSpecialist } from "../specialists/stripe";
 
 export const stripeTool = tool(
   async ({ request }: { request: string }, config: LangGraphRunnableConfig) => {

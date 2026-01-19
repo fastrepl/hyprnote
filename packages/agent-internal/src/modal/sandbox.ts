@@ -12,23 +12,20 @@ export const REPO_PATH = "/root/hyprnote";
 export type BunSandbox = Awaited<ReturnType<typeof createBunSandbox>>;
 
 let cachedApp: App | null = null;
-let cachedImage: Image | null = null;
 
 async function getAppAndImage(): Promise<{
   app: App;
   image: Image;
 }> {
-  if (cachedApp && cachedImage) {
-    return { app: cachedApp, image: cachedImage };
-  }
-
   const modal = getModalClient();
 
-  cachedApp = await modal.apps.fromName(APP_NAME, {
-    createIfMissing: true,
-  });
+  if (!cachedApp) {
+    cachedApp = await modal.apps.fromName(APP_NAME, {
+      createIfMissing: true,
+    });
+  }
 
-  cachedImage = modal.images
+  const image = modal.images
     .fromRegistry("oven/bun:1.3-debian")
     .dockerfileCommands([
       "RUN apt-get update && apt-get install -y curl git bash npm && rm -rf /var/lib/apt/lists/*",
@@ -38,7 +35,7 @@ async function getAppAndImage(): Promise<{
       `RUN git clone --depth 1 https://github.com/fastrepl/hyprnote.git ${REPO_PATH}`,
     ]);
 
-  return { app: cachedApp, image: cachedImage };
+  return { app: cachedApp, image };
 }
 
 async function sleep(ms: number): Promise<void> {

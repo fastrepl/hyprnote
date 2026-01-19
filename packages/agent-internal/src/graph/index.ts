@@ -1,10 +1,12 @@
 import { END, START, StateGraph } from "@langchain/langgraph";
 import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
 
 import { env } from "../env";
 import { agentNode } from "../nodes/agent";
-import { toolsNode } from "../nodes/tools";
+import { humanApprovalNode } from "../nodes/tools";
 import { AgentState } from "../state";
+import { tools } from "../tools";
 import { shouldContinue } from "./routing";
 
 const checkpointer = PostgresSaver.fromConnString(env.DATABASE_URL);
@@ -19,12 +21,15 @@ export async function clearThread(threadId: string): Promise<void> {
 
 export { checkpointer };
 
+const toolNode = new ToolNode(tools);
+
 const workflow = new StateGraph(AgentState)
   .addNode("agent", agentNode)
-  .addNode("tools", toolsNode)
+  .addNode("humanApproval", humanApprovalNode)
+  .addNode("tools", toolNode)
   .addEdge(START, "agent")
   .addConditionalEdges("agent", shouldContinue, {
-    tools: "tools",
+    humanApproval: "humanApproval",
     [END]: END,
   })
   .addEdge("tools", "agent");

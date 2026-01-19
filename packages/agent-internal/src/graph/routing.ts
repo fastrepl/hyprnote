@@ -3,7 +3,9 @@ import { END } from "@langchain/langgraph";
 
 import type { AgentStateType } from "../state";
 
-export function shouldContinue(state: AgentStateType): "tools" | typeof END {
+export function shouldContinue(
+  state: AgentStateType,
+): "humanApproval" | typeof END {
   if (!state.messages || state.messages.length === 0) {
     return END;
   }
@@ -13,7 +15,7 @@ export function shouldContinue(state: AgentStateType): "tools" | typeof END {
   if (AIMessage.isInstance(lastMessage)) {
     const toolCalls = lastMessage.tool_calls ?? [];
     if (toolCalls.length > 0) {
-      return "tools";
+      return "humanApproval";
     }
   }
 

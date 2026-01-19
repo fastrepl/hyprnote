@@ -118,6 +118,9 @@ const callTool = task(
         tool_call_id: toolCall.id!,
       });
     } catch (error) {
+      if (isRetryableError(error)) {
+        throw error;
+      }
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       console.error(`Tool ${toolCall.name} failed:`, errorMessage);

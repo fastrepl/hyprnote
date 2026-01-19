@@ -1,4 +1,9 @@
-import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
+import {
+  AIMessage,
+  BaseMessage,
+  SystemMessage,
+  ToolMessage,
+} from "@langchain/core/messages";
 import {
   Annotation,
   END,
@@ -76,9 +81,11 @@ function createSpecialistAgentNode(promptDir: string) {
     // Track if we need to persist the prompt messages (including SystemMessage)
     let promptMessagesToPersist: BaseMessage[] = [];
 
-    const isFirstInvocation = compressedMessages.length === 0;
+    // Check if this is a fresh invocation (no AI messages yet)
+    const hasAIMessages = compressedMessages.some((m) => m._getType() === "ai");
 
-    if (isFirstInvocation) {
+    if (!hasAIMessages) {
+      // First invocation: compile the prompt and persist it
       const { messages: promptMessages, config } = await compilePrompt(prompt, {
         request: state.request,
         ...state.context,
@@ -87,6 +94,16 @@ function createSpecialistAgentNode(promptDir: string) {
       promptConfig = config;
       // Store the prompt messages to persist them in state (including SystemMessage)
       promptMessagesToPersist = promptMessages;
+    } else {
+      // Subsequent invocation after tool calls: compressMessages drops SystemMessage
+      // We need to restore it from the original state.messages
+      const systemMessage = state.messages.find((m) =>
+        SystemMessage.isInstance(m),
+      );
+      if (systemMessage) {
+        // Prepend the SystemMessage to the compressed messages
+        messages = [systemMessage, ...compressedMessages];
+      }
     }
 
     const model = createModel(promptConfig);

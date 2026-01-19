@@ -1,11 +1,17 @@
 import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
 import type { ToolCall } from "@langchain/core/messages/tool";
-import { entrypoint, task } from "@langchain/langgraph";
+import {
+  addMessages,
+  entrypoint,
+  getPreviousState,
+  task,
+} from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 
 import { env } from "../../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../../prompt";
 import { isRetryableError, type SpecialistConfig } from "../../types";
+import { compressMessages } from "../../utils/context";
 import { runAgentGraph } from "../../utils/graph";
 import { executeCodeTool } from "./tools";
 
@@ -28,6 +34,7 @@ const invokeModel = task(
     retry: {
       maxAttempts: 3,
       retryOn: isRetryableError,
+      delayMs: 1000,
     },
   },
   async (params: {
@@ -44,15 +51,26 @@ const executeCode = task(
     retry: {
       maxAttempts: 2,
       retryOn: isRetryableError,
+      delayMs: 1000,
     },
   },
   async (toolCall: ToolCall): Promise<ToolMessage> => {
-    const args = toolCall.args as { code: string; isMutating: boolean };
-    const result = await executeCodeTool.invoke(args);
-    return new ToolMessage({
-      content: typeof result === "string" ? result : JSON.stringify(result),
-      tool_call_id: toolCall.id!,
-    });
+    try {
+      const args = toolCall.args as { code: string; isMutating: boolean };
+      const result = await executeCodeTool.invoke(args);
+      return new ToolMessage({
+        content: typeof result === "string" ? result : JSON.stringify(result),
+        tool_call_id: toolCall.id!,
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(`executeCode failed:`, errorMessage);
+      return new ToolMessage({
+        content: `Code execution failed: ${errorMessage}`,
+        tool_call_id: toolCall.id!,
+      });
+    }
   },
 );
 
@@ -64,23 +82,32 @@ export function createSpecialist(config: SpecialistConfig) {
       name: `specialist-${config.name}`,
       checkpointer: config.checkpointer,
     },
-    async (request: string): Promise<string> => {
+    async (request: string) => {
+      const previous = getPreviousState<BaseMessage[]>();
       const context = config.getContext ? await config.getContext() : {};
-      const { messages: initialMessages, config: promptConfig } =
+      const { messages: promptMessages, config: promptConfig } =
         await compilePrompt(prompt, { request, ...context });
+
+      let messages = compressMessages(previous ?? []);
+      messages = addMessages(messages, promptMessages);
 
       const model = createModel(promptConfig).bindTools([executeCodeTool]);
 
-      const { response } = await runAgentGraph(
+      const { response, messages: finalMessages } = await runAgentGraph(
         {
           model,
           invokeModel,
           invokeTool: executeCode,
         },
-        initialMessages,
+        messages,
       );
 
-      return response.text || "No response";
+      const allMessages = addMessages(finalMessages, [response]);
+
+      return entrypoint.final({
+        value: response.text || "No response",
+        save: allMessages,
+      });
     },
   );
 }

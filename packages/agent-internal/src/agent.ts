@@ -20,6 +20,7 @@ import {
   isRetryableError,
   type ToolApprovalInterrupt,
 } from "./types";
+import { compressMessages } from "./utils/context";
 import { runAgentGraph } from "./utils/graph";
 import { type AgentInput, getImages, parseRequest } from "./utils/input";
 
@@ -67,6 +68,7 @@ const callModel = task(
     retry: {
       maxAttempts: 3,
       retryOn: isRetryableError,
+      delayMs: 1000,
     },
   },
   async (params: { model: ModelWithTools; messages: BaseMessage[] }) => {
@@ -80,6 +82,7 @@ const callTool = task(
     retry: {
       maxAttempts: 2,
       retryOn: isRetryableError,
+      delayMs: 1000,
     },
   },
   async (toolCall: ToolCall) => {
@@ -107,12 +110,22 @@ const callTool = task(
       }
     }
 
-    const config = getConfig();
-    const result = await tool.invoke(toolCall.args, config);
-    return new ToolMessage({
-      content: typeof result === "string" ? result : JSON.stringify(result),
-      tool_call_id: toolCall.id!,
-    });
+    try {
+      const config = getConfig();
+      const result = await tool.invoke(toolCall.args, config);
+      return new ToolMessage({
+        content: typeof result === "string" ? result : JSON.stringify(result),
+        tool_call_id: toolCall.id!,
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(`Tool ${toolCall.name} failed:`, errorMessage);
+      return new ToolMessage({
+        content: `Tool execution failed: ${errorMessage}`,
+        tool_call_id: toolCall.id!,
+      });
+    }
   },
 );
 
@@ -122,7 +135,7 @@ export const agent = entrypoint(
     const request = parseRequest(input);
     const images = getImages(input);
     const previous = getPreviousState<BaseMessage[]>();
-    let messages = previous ?? [];
+    let messages = compressMessages(previous ?? []);
     const { messages: promptMessages, config } = await compilePrompt(
       prompt,
       { request },

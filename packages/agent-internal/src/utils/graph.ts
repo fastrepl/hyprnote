@@ -82,8 +82,20 @@ export function createAgentGraph<TModel>(config: AgentGraphConfig<TModel>) {
   };
 
   const shouldContinue = (state: AgentGraphState): "callTools" | typeof END => {
-    const lastMessage = state.messages[state.messages.length - 1] as AIMessage;
-    const hasToolCalls = (lastMessage.tool_calls?.length ?? 0) > 0;
+    if (state.messages.length === 0) {
+      console.warn("No messages in state, ending graph");
+      return END;
+    }
+
+    const lastMessage = state.messages[state.messages.length - 1];
+
+    if (lastMessage._getType() !== "ai") {
+      console.warn(`Expected AIMessage, got ${lastMessage._getType()}`);
+      return END;
+    }
+
+    const aiMessage = lastMessage as AIMessage;
+    const hasToolCalls = (aiMessage.tool_calls?.length ?? 0) > 0;
     const maxReached = state.iterations >= maxIterations;
 
     if (hasToolCalls && !maxReached) {

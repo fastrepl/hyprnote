@@ -323,6 +323,14 @@ function CompanyLinks() {
         </li>
         <li>
           <Link
+            to="/jobs/"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+          >
+            Jobs
+          </Link>
+        </li>
+        <li>
+          <Link
             to="/brand/"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >

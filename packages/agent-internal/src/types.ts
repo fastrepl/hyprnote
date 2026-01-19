@@ -30,7 +30,6 @@ export function isRetryableError(error: unknown): boolean {
     "forbidden",
     "400",
     "bad request",
-    "invalid",
     "404",
     "not found",
   ];

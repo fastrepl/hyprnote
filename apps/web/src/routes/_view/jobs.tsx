@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, Mail } from "lucide-react";
 
 export const Route = createFileRoute("/_view/jobs")({

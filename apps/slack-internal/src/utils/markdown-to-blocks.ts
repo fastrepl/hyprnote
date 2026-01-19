@@ -176,6 +176,19 @@ function tokenToBlocks(token: Token): KnownBlock[] {
     case "paragraph": {
       const t = token as Tokens.Paragraph | Tokens.Heading;
       if (!t.tokens?.length) return [];
+
+      // If the paragraph contains only an image, convert it to an ImageBlock
+      if (t.tokens.length === 1 && t.tokens[0].type === "image") {
+        const img = t.tokens[0] as Tokens.Image;
+        return [
+          {
+            type: "image",
+            image_url: img.href,
+            alt_text: img.text || "image",
+          } as ImageBlock,
+        ];
+      }
+
       return [
         { type: "rich_text", elements: [toSection(t.tokens)] } as RichTextBlock,
       ];

@@ -18,6 +18,7 @@ interface BlogEditorProps {
   content?: string;
   onChange?: (markdown: string) => void;
   editable?: boolean;
+  showToolbar?: boolean;
   onGoogleDocsImport?: (url: string) => void;
   isImporting?: boolean;
   onImageUpload?: (file: File) => Promise<string>;
@@ -30,6 +31,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
       content = "",
       onChange,
       editable = true,
+      showToolbar = true,
       onGoogleDocsImport,
       isImporting,
       onImageUpload,
@@ -109,7 +111,7 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
 
     return (
       <div className="relative flex flex-col h-full">
-        {editable && (
+        {editable && showToolbar && (
           <div className="shrink-0">
             <Toolbar editor={editor} onAddImage={onAddImageFromLibrary} />
           </div>

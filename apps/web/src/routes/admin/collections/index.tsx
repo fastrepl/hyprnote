@@ -2615,17 +2615,16 @@ const FileEditor = React.forwardRef<
                 filePath={filePath}
                 handlers={metadataHandlers}
               />
-              <div className="flex-1 min-h-0 overflow-y-auto p-6">
-                <BlogEditor
-                  ref={editorRef}
-                  content={content}
-                  onChange={handleContentChange}
-                  onGoogleDocsImport={handleGoogleDocsImport}
-                  isImporting={isImporting}
-                  onImageUpload={handleImageUpload}
-                  onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
-                />
-              </div>
+              <BlogEditor
+                ref={editorRef}
+                content={content}
+                onChange={handleContentChange}
+                onGoogleDocsImport={handleGoogleDocsImport}
+                isImporting={isImporting}
+                onImageUpload={handleImageUpload}
+                onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
+                showToolbar={false}
+              />
             </div>
           </ResizablePanel>
           <ResizableHandle className="w-px bg-neutral-200" />

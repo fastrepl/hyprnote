@@ -30,10 +30,19 @@ pub(crate) async fn change_content_base<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     new_path: String,
 ) -> Result<(), String> {
+    let current_base = app.settings().content_base().map_err(|e| e.to_string())?;
+
+    let new_path_buf = PathBuf::from(&new_path);
+    if new_path_buf == current_base {
+        return Ok(());
+    }
+
     app.settings()
-        .change_content_base(PathBuf::from(new_path))
+        .change_content_base(new_path_buf)
         .await
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    app.restart();
 }
 
 #[tauri::command]

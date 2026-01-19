@@ -6,20 +6,26 @@ use crate::ext::FILENAME;
 
 pub struct SettingsState {
     path: PathBuf,
+    content_base: PathBuf,
     lock: RwLock<()>,
 }
 
 impl SettingsState {
-    pub fn new(base: PathBuf) -> Self {
-        let path = base.join(FILENAME);
+    pub fn new(settings_base: PathBuf, content_base: PathBuf) -> Self {
+        let path = settings_base.join(FILENAME);
         Self {
             path,
+            content_base,
             lock: RwLock::new(()),
         }
     }
 
     pub fn path(&self) -> &PathBuf {
         &self.path
+    }
+
+    pub fn content_base(&self) -> &PathBuf {
+        &self.content_base
     }
 
     async fn read_or_default(&self) -> crate::Result<serde_json::Value> {

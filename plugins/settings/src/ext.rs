@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 pub const FILENAME: &str = "settings.json";
 pub const CONTENT_BASE_PATH_KEY: &str = "content_base_path";
+pub const CONTENT_BASE_ENV_VAR: &str = "HYPRNOTE_CONTENT_BASE";
 
 #[derive(Debug, Deserialize, specta::Type)]
 pub struct ObsidianConfig {
@@ -46,6 +47,26 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
     }
 
     pub fn content_base(&self) -> Result<PathBuf, crate::Error> {
+        let state = self.manager.try_state::<crate::state::SettingsState>();
+        if let Some(state) = state {
+            return Ok(state.content_base().clone());
+        }
+
+        self.compute_content_base()
+    }
+
+    pub fn compute_content_base(&self) -> Result<PathBuf, crate::Error> {
+        if let Ok(env_path) = std::env::var(CONTENT_BASE_ENV_VAR) {
+            let path = PathBuf::from(&env_path);
+            if path.exists() || std::fs::create_dir_all(&path).is_ok() {
+                return Ok(path);
+            }
+            tracing::warn!(
+                "HYPRNOTE_CONTENT_BASE path '{}' does not exist and could not be created, falling back to default",
+                env_path
+            );
+        }
+
         let default_base = self.default_base()?;
         let settings_path = default_base.join(FILENAME);
 

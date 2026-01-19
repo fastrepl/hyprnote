@@ -32,8 +32,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let base = app.settings().settings_base().unwrap();
-            let state = SettingsState::new(base);
+            let settings_base = app.settings().settings_base().unwrap();
+            let content_base = app.settings().compute_content_base().unwrap();
+            let state = SettingsState::new(settings_base, content_base);
             assert!(app.manage(state));
             Ok(())
         })

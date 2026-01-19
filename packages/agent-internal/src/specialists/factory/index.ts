@@ -139,7 +139,9 @@ export function createSpecialist(config: SpecialistConfig) {
   const toolNode = new ToolNode(specialistTools, { handleToolErrors: true });
 
   const workflow = new StateGraph(SpecialistState)
-    .addNode("agent", agentNodeWithContext, { retryPolicy: specialistRetryPolicy })
+    .addNode("agent", agentNodeWithContext, {
+      retryPolicy: specialistRetryPolicy,
+    })
     .addNode("tools", toolNode)
     .addEdge(START, "agent")
     .addConditionalEdges("agent", toolsCondition)

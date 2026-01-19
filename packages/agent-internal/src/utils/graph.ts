@@ -1,4 +1,8 @@
-import type { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
+import type {
+  AIMessage,
+  BaseMessage,
+  ToolMessage,
+} from "@langchain/core/messages";
 import type { ToolCall } from "@langchain/core/messages/tool";
 import {
   Annotation,
@@ -77,9 +81,7 @@ export function createAgentGraph<TModel>(config: AgentGraphConfig<TModel>) {
     return { messages: toolResults };
   };
 
-  const shouldContinue = (
-    state: AgentGraphState,
-  ): "callTools" | typeof END => {
+  const shouldContinue = (state: AgentGraphState): "callTools" | typeof END => {
     const lastMessage = state.messages[state.messages.length - 1] as AIMessage;
     const hasToolCalls = (lastMessage.tool_calls?.length ?? 0) > 0;
     const maxReached = state.iterations >= maxIterations;

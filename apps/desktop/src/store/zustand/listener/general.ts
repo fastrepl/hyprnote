@@ -480,7 +480,7 @@ export const createGeneralSlice = <
 
     let unlisten: (() => void) | undefined;
 
-    const cleanup = () => {
+    const cleanup = (clearSession = true) => {
       if (unlisten) {
         unlisten();
         unlisten = undefined;
@@ -490,7 +490,9 @@ export const createGeneralSlice = <
         get().setTranscriptPersist(undefined);
       }
 
-      get().clearBatchSession(sessionId);
+      if (clearSession) {
+        get().clearBatchSession(sessionId);
+      }
     };
 
     await new Promise<void>((resolve, reject) => {
@@ -522,7 +524,7 @@ export const createGeneralSlice = <
 
           if (payload.type === "batchFailed") {
             get().handleBatchFailed(sessionId, payload.error);
-            cleanup();
+            cleanup(false);
             reject(payload.error);
             return;
           }

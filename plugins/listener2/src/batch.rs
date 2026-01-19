@@ -16,6 +16,42 @@ use tokio_stream::{self as tokio_stream, StreamExt as TokioStreamExt};
 use crate::BatchEvent;
 
 const BATCH_STREAM_TIMEOUT_SECS: u64 = 30;
+
+fn format_user_friendly_error(error: &str) -> String {
+    let error_lower = error.to_lowercase();
+
+    if error_lower.contains("401") || error_lower.contains("unauthorized") {
+        return "Authentication failed. Please check your API key in settings.".to_string();
+    }
+    if error_lower.contains("403") || error_lower.contains("forbidden") {
+        return "Access denied. Your API key may not have permission for this operation."
+            .to_string();
+    }
+    if error_lower.contains("429") || error_lower.contains("rate limit") {
+        return "Rate limit exceeded. Please wait a moment and try again.".to_string();
+    }
+    if error_lower.contains("timeout") {
+        return "Connection timed out. Please check your internet connection and try again."
+            .to_string();
+    }
+    if error_lower.contains("connection refused")
+        || error_lower.contains("failed to connect")
+        || error_lower.contains("network")
+    {
+        return "Could not connect to the transcription service. Please check your internet connection.".to_string();
+    }
+    if error_lower.contains("invalid audio")
+        || error_lower.contains("unsupported format")
+        || error_lower.contains("codec")
+    {
+        return "The audio file format is not supported. Please try a different file.".to_string();
+    }
+    if error_lower.contains("file not found") || error_lower.contains("no such file") {
+        return "Audio file not found. The recording may have been moved or deleted.".to_string();
+    }
+
+    error.to_string()
+}
 const DEFAULT_CHUNK_MS: u64 = 500;
 const DEFAULT_DELAY_MS: u64 = 20;
 const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
@@ -261,7 +297,8 @@ async fn spawn_argmax_streaming_batch_task(
                 s
             }
             Err(e) => {
-                let error = format!("{:?}", e);
+                let raw_error = format!("{:?}", e);
+                let error = format_user_friendly_error(&raw_error);
                 tracing::error!("argmax streaming batch task: failed to start: {:?}", e);
                 notify_start_result(&start_notifier, Err(error.clone()));
                 let _ = myself.send_message(BatchMsg::StreamStartFailed(error));
@@ -306,8 +343,10 @@ async fn spawn_argmax_streaming_batch_task(
                             }
                         }
                         Ok(Some(Err(e))) => {
+                            let raw_error = format!("{:?}", e);
+                            let error = format_user_friendly_error(&raw_error);
                             tracing::error!("argmax streaming batch error: {:?}", e);
-                            let _ = myself.send_message(BatchMsg::StreamError(format!("{:?}", e)));
+                            let _ = myself.send_message(BatchMsg::StreamError(error));
                             break;
                         }
                         Ok(None) => {
@@ -316,7 +355,7 @@ async fn spawn_argmax_streaming_batch_task(
                         }
                         Err(elapsed) => {
                             tracing::warn!(timeout = ?elapsed, responses = response_count, "argmax streaming batch timeout");
-                            let _ = myself.send_message(BatchMsg::StreamError("timeout waiting for response".into()));
+                            let _ = myself.send_message(BatchMsg::StreamError(format_user_friendly_error("timeout waiting for response")));
                             break;
                         }
                     }
@@ -363,14 +402,16 @@ async fn spawn_batch_task_with_adapter<A: RealtimeSttAdapter>(
                 data
             }
             Ok(Err(e)) => {
-                let error = format!("{:?}", e);
+                let raw_error = format!("{:?}", e);
+                let error = format_user_friendly_error(&raw_error);
                 tracing::error!("batch task: failed to load audio chunks: {:?}", e);
                 notify_start_result(&start_notifier, Err(error.clone()));
                 let _ = myself.send_message(BatchMsg::StreamStartFailed(error));
                 return;
             }
             Err(join_err) => {
-                let error = format!("{:?}", join_err);
+                let raw_error = format!("{:?}", join_err);
+                let error = format_user_friendly_error(&raw_error);
                 tracing::error!(
                     "batch task: audio chunk loading task panicked: {:?}",
                     join_err
@@ -423,7 +464,8 @@ async fn spawn_batch_task_with_adapter<A: RealtimeSttAdapter>(
         let (listen_stream, _handle) = match client.from_realtime_audio(Box::pin(outbound)).await {
             Ok(res) => res,
             Err(e) => {
-                let error = format!("{:?}", e);
+                let raw_error = format!("{:?}", e);
+                let error = format_user_friendly_error(&raw_error);
                 tracing::error!("batch task: failed to start audio stream: {:?}", e);
                 notify_start_result(&start_notifier, Err(error.clone()));
                 let _ = myself.send_message(BatchMsg::StreamStartFailed(error));
@@ -495,8 +537,10 @@ async fn process_batch_stream<S, E>(
                         }
                     }
                     Ok(Some(Err(e))) => {
+                        let raw_error = format!("{:?}", e);
+                        let error = format_user_friendly_error(&raw_error);
                         tracing::error!("batch stream error: {:?}", e);
-                        if let Err(send_err) = myself.send_message(BatchMsg::StreamError(format!("{:?}", e))) {
+                        if let Err(send_err) = myself.send_message(BatchMsg::StreamError(error)) {
                             tracing::error!("failed to send stream error message: {:?}", send_err);
                         }
                         break;
@@ -507,7 +551,7 @@ async fn process_batch_stream<S, E>(
                     }
                     Err(elapsed) => {
                         tracing::warn!(timeout = ?elapsed, responses = response_count, "batch stream response timeout");
-                        if let Err(send_err) = myself.send_message(BatchMsg::StreamError("timeout waiting for batch stream response".into())) {
+                        if let Err(send_err) = myself.send_message(BatchMsg::StreamError(format_user_friendly_error("timeout waiting for batch stream response"))) {
                             tracing::error!("failed to send timeout error message: {:?}", send_err);
                         }
                         break;

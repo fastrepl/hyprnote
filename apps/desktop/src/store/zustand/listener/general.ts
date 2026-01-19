@@ -521,6 +521,7 @@ export const createGeneralSlice = <
           }
 
           if (payload.type === "batchFailed") {
+            get().handleBatchFailed(sessionId, payload.error);
             cleanup();
             reject(payload.error);
             return;

@@ -44,17 +44,11 @@ export function compressMessages(
   messages: BaseMessage[],
   maxTokens: number = 100000,
 ): BaseMessage[] {
-  const systemMessages = messages.filter((m) => m._getType() === "system");
   const nonSystemMessages = messages.filter((m) => m._getType() !== "system");
-
-  let tokenCount = 0;
-
-  for (const msg of systemMessages) {
-    tokenCount += getMessageTokens(msg);
-  }
 
   const groups = groupMessagesWithToolCalls(nonSystemMessages);
 
+  let tokenCount = 0;
   const kept: BaseMessage[][] = [];
   for (let i = groups.length - 1; i >= 0; i--) {
     const group = groups[i];
@@ -63,13 +57,20 @@ export function compressMessages(
       0,
     );
 
-    if (tokenCount + groupTokens > maxTokens && kept.length > 0) {
-      break;
+    if (tokenCount + groupTokens > maxTokens) {
+      if (kept.length === 0 && groupTokens > maxTokens) {
+        console.warn(
+          `Single message group exceeds token limit: ${groupTokens} > ${maxTokens}`,
+        );
+      }
+      if (kept.length > 0) {
+        break;
+      }
     }
 
     kept.unshift(group);
     tokenCount += groupTokens;
   }
 
-  return [...systemMessages, ...kept.flat()];
+  return kept.flat();
 }

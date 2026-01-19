@@ -12,6 +12,122 @@ use crate::menu_items::{
 
 const TRAY_ID: &str = "hypr-tray";
 
+#[cfg(target_os = "macos")]
+mod icon_helpers {
+    use objc2::AnyThread;
+    use objc2::rc::Retained;
+    use objc2_app_kit::{NSBezierPath, NSColor, NSImage};
+    use objc2_foundation::{NSData, NSPoint, NSRect, NSSize};
+
+    pub fn bytes_to_image(bytes: &[u8]) -> Option<Retained<NSImage>> {
+        let ns_data = NSData::with_bytes(bytes);
+        NSImage::initWithData(NSImage::alloc(), &ns_data)
+    }
+
+    pub fn image_to_png_bytes(image: &NSImage) -> Option<Vec<u8>> {
+        use objc2::msg_send;
+        use objc2_app_kit::{NSBitmapImageFileType, NSBitmapImageRep};
+
+        unsafe {
+            let size = image.size();
+            let mut rect = NSRect::new(NSPoint::new(0.0, 0.0), size);
+            let Some(cgimage) = image.CGImageForProposedRect_context_hints(
+                &mut rect as *mut NSRect as *mut _,
+                None,
+                None,
+            ) else {
+                return None;
+            };
+
+            let bitmap = NSBitmapImageRep::initWithCGImage(NSBitmapImageRep::alloc(), &cgimage);
+
+            let Some(png_data) = bitmap.representationUsingType_properties(
+                NSBitmapImageFileType::PNG,
+                &objc2_foundation::NSDictionary::new(),
+            ) else {
+                return None;
+            };
+
+            let len: usize = msg_send![&*png_data, length];
+            let ptr: *const u8 = msg_send![&*png_data, bytes];
+            let slice = std::slice::from_raw_parts(ptr, len);
+            Some(slice.to_vec())
+        }
+    }
+
+    #[allow(deprecated)]
+    pub fn draw_download_overlay(base_image: &NSImage) -> Retained<NSImage> {
+        let size = base_image.size();
+        let composite_image = NSImage::initWithSize(NSImage::alloc(), size);
+
+        composite_image.lockFocus();
+
+        base_image.drawAtPoint_fromRect_operation_fraction(
+            NSPoint::new(0.0, 0.0),
+            NSRect::new(NSPoint::new(0.0, 0.0), size),
+            objc2_app_kit::NSCompositingOperation::Copy,
+            1.0,
+        );
+
+        let indicator_size = size.width * 0.4;
+        let indicator_x = size.width - indicator_size - (size.width * 0.02);
+        let indicator_y = size.height * 0.02;
+
+        let white_color = NSColor::whiteColor();
+        white_color.setFill();
+
+        let bg_rect = NSRect::new(
+            NSPoint::new(indicator_x, indicator_y),
+            NSSize::new(indicator_size, indicator_size),
+        );
+        let bg_path = NSBezierPath::bezierPathWithOvalInRect(bg_rect);
+        bg_path.fill();
+
+        let black_color = NSColor::blackColor();
+        black_color.setFill();
+
+        let arrow_center_x = indicator_x + indicator_size / 2.0;
+        let arrow_center_y = indicator_y + indicator_size / 2.0;
+        let arrow_size = indicator_size * 0.5;
+
+        let arrow_path = NSBezierPath::bezierPath();
+        arrow_path.moveToPoint(NSPoint::new(
+            arrow_center_x,
+            arrow_center_y - arrow_size * 0.4,
+        ));
+        arrow_path.lineToPoint(NSPoint::new(
+            arrow_center_x - arrow_size * 0.35,
+            arrow_center_y + arrow_size * 0.1,
+        ));
+        arrow_path.lineToPoint(NSPoint::new(
+            arrow_center_x - arrow_size * 0.15,
+            arrow_center_y + arrow_size * 0.1,
+        ));
+        arrow_path.lineToPoint(NSPoint::new(
+            arrow_center_x - arrow_size * 0.15,
+            arrow_center_y + arrow_size * 0.4,
+        ));
+        arrow_path.lineToPoint(NSPoint::new(
+            arrow_center_x + arrow_size * 0.15,
+            arrow_center_y + arrow_size * 0.4,
+        ));
+        arrow_path.lineToPoint(NSPoint::new(
+            arrow_center_x + arrow_size * 0.15,
+            arrow_center_y + arrow_size * 0.1,
+        ));
+        arrow_path.lineToPoint(NSPoint::new(
+            arrow_center_x + arrow_size * 0.35,
+            arrow_center_y + arrow_size * 0.1,
+        ));
+        arrow_path.closePath();
+        arrow_path.fill();
+
+        composite_image.unlockFocus();
+
+        composite_image
+    }
+}
+
 pub struct Tray<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
@@ -148,6 +264,40 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         }
 
         Ok(())
+    }
+
+    pub fn set_download_indicator(&self, show: bool) -> Result<()> {
+        #[cfg(target_os = "macos")]
+        {
+            let app = self.manager.app_handle();
+
+            if let Some(tray) = app.tray_by_id(TRAY_ID) {
+                let icon_bytes = if show {
+                    let base_bytes = include_bytes!("../icons/tray_default.png");
+                    let Some(base_image) = icon_helpers::bytes_to_image(base_bytes) else {
+                        return Ok(());
+                    };
+                    let composite_image = icon_helpers::draw_download_overlay(&base_image);
+                    let Some(png_bytes) = icon_helpers::image_to_png_bytes(&composite_image) else {
+                        return Ok(());
+                    };
+                    png_bytes
+                } else {
+                    include_bytes!("../icons/tray_default.png").to_vec()
+                };
+
+                let icon = Image::from_bytes(&icon_bytes)?;
+                tray.set_icon(Some(icon))?;
+            }
+
+            Ok(())
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = show;
+            Ok(())
+        }
     }
 }
 

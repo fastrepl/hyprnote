@@ -1416,7 +1416,7 @@ function EditorHeader({
             <button
               onClick={onTogglePreview}
               className={cn([
-                "cursor-pointer p-1.5 rounded transition-colors",
+                "cursor-pointer px-3 py-1.5 rounded transition-colors flex items-center gap-1.5",
                 isPreviewMode
                   ? "text-neutral-700"
                   : "text-neutral-400 hover:text-neutral-600",
@@ -1424,9 +1424,15 @@ function EditorHeader({
               title={isPreviewMode ? "Edit mode" : "Preview mode"}
             >
               {isPreviewMode ? (
-                <PencilIcon className="size-4" />
+                <>
+                  <PencilIcon className="size-4" />
+                  <span className="text-sm font-medium">Edit</span>
+                </>
               ) : (
-                <EyeIcon className="size-4" />
+                <>
+                  <EyeIcon className="size-4" />
+                  <span className="text-sm font-medium">Preview</span>
+                </>
               )}
             </button>
             <button
@@ -2641,17 +2647,15 @@ const FileEditor = React.forwardRef<
     <>
       <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
         <ResizablePanel defaultSize={70} minSize={50}>
-          <div className="flex-1 min-h-0 overflow-y-auto p-6 h-full">
-            <BlogEditor
-              ref={editorRef}
-              content={content}
-              onChange={handleContentChange}
-              onGoogleDocsImport={handleGoogleDocsImport}
-              isImporting={isImporting}
-              onImageUpload={handleImageUpload}
-              onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
-            />
-          </div>
+          <BlogEditor
+            ref={editorRef}
+            content={content}
+            onChange={handleContentChange}
+            onGoogleDocsImport={handleGoogleDocsImport}
+            isImporting={isImporting}
+            onImageUpload={handleImageUpload}
+            onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
+          />
         </ResizablePanel>
         <ResizableHandle className="w-px bg-neutral-200" />
         <ResizablePanel defaultSize={30} minSize={20}>

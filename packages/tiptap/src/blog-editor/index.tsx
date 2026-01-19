@@ -108,21 +108,25 @@ const BlogEditor = forwardRef<{ editor: TiptapEditor | null }, BlogEditorProps>(
     const showImportOverlay = isEmpty && onGoogleDocsImport && editable;
 
     return (
-      <div className="relative flex flex-col">
+      <div className="relative flex flex-col h-full">
         {editable && (
-          <Toolbar editor={editor} onAddImage={onAddImageFromLibrary} />
+          <div className="shrink-0">
+            <Toolbar editor={editor} onAddImage={onAddImageFromLibrary} />
+          </div>
         )}
-        <EditorContent
-          editor={editor}
-          className="tiptap-root blog-editor"
-          role="textbox"
-        />
-        {showImportOverlay && (
-          <GoogleDocsImport
-            onImport={onGoogleDocsImport}
-            isLoading={isImporting}
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
+          <EditorContent
+            editor={editor}
+            className="tiptap-root blog-editor"
+            role="textbox"
           />
-        )}
+          {showImportOverlay && (
+            <GoogleDocsImport
+              onImport={onGoogleDocsImport}
+              isLoading={isImporting}
+            />
+          )}
+        </div>
       </div>
     );
   },

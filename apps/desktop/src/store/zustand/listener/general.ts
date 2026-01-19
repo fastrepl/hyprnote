@@ -579,7 +579,7 @@ export const createGeneralSlice = <
       return state.live.status;
     }
 
-    if (state.batch[sessionId]) {
+    if (state.batch[sessionId] && !state.batch[sessionId].error) {
       return "running_batch";
     }
 

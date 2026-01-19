@@ -1,27 +1,13 @@
 import type { AIMessage, BaseMessage } from "@langchain/core/messages";
-import { ChatOpenAI } from "@langchain/openai";
-import { randomUUID } from "crypto";
 import path from "path";
 
-import { env } from "../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../prompt";
 import type { AgentStateType } from "../state";
 import { tools } from "../tools";
-import { isRetryableError } from "../types";
 import { compressMessages } from "../utils/context";
+import { createModel, ensureMessageIds } from "../utils/shared";
 
 const prompt = loadPrompt(path.join(import.meta.dirname, ".."));
-
-function createModel(config: PromptConfig) {
-  return new ChatOpenAI({
-    model: config.model ?? "anthropic/claude-opus-4.5",
-    temperature: config.temperature ?? 0,
-    configuration: {
-      baseURL: "https://openrouter.ai/api/v1",
-      apiKey: env.OPENROUTER_API_KEY,
-    },
-  }).bindTools(tools);
-}
 
 function getRequestFromMessages(messages: BaseMessage[]): string | null {
   if (messages.length === 0) return null;
@@ -32,18 +18,6 @@ function getRequestFromMessages(messages: BaseMessage[]): string | null {
       : JSON.stringify(lastMessage.content);
   }
   return null;
-}
-
-function ensureMessageIds(messages: BaseMessage[]): BaseMessage[] {
-  return messages.map((m) => {
-    if (!m.id) {
-      m.id = randomUUID();
-      if (m.lc_kwargs) {
-        m.lc_kwargs.id = m.id;
-      }
-    }
-    return m;
-  });
 }
 
 export async function agentNode(
@@ -85,39 +59,26 @@ export async function agentNode(
     promptMessagesToPersist = promptMessages;
   }
 
-  const model = createModel(promptConfig);
+  const model = createModel(promptConfig, tools);
 
-  const maxAttempts = 3;
+  const response = (await model.invoke(messages)) as AIMessage;
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const response = (await model.invoke(messages)) as AIMessage;
+  // On first invocation, persist the full prompt messages (including SystemMessage)
+  // so they're available for subsequent invocations after tool calls.
+  // Ensure all messages have stable IDs to prevent deduplication issues with messagesStateReducer.
+  const messagesToReturn =
+    promptMessagesToPersist.length > 0
+      ? ensureMessageIds([...promptMessagesToPersist, response])
+      : [response];
 
-      // On first invocation, persist the full prompt messages (including SystemMessage)
-      // so they're available for subsequent invocations after tool calls.
-      // Ensure all messages have stable IDs to prevent deduplication issues with messagesStateReducer.
-      const messagesToReturn =
-        promptMessagesToPersist.length > 0
-          ? ensureMessageIds([...promptMessagesToPersist, response])
-          : [response];
-
-      if (!response.tool_calls || response.tool_calls.length === 0) {
-        return {
-          messages: messagesToReturn,
-          output: response.text || "No response",
-        };
-      }
-
-      return {
-        messages: messagesToReturn,
-      };
-    } catch (error) {
-      if (!isRetryableError(error) || attempt >= maxAttempts) {
-        throw error;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-    }
+  if (!response.tool_calls || response.tool_calls.length === 0) {
+    return {
+      messages: messagesToReturn,
+      output: response.text || "No response",
+    };
   }
 
-  throw new Error("Model invocation failed after retries");
+  return {
+    messages: messagesToReturn,
+  };
 }

@@ -7,6 +7,7 @@ import { agentNode } from "../nodes/agent";
 import { humanApprovalNode } from "../nodes/tools";
 import { AgentState } from "../state";
 import { tools } from "../tools";
+import { isRetryableError } from "../types";
 import { shouldContinue } from "./routing";
 
 const checkpointer = PostgresSaver.fromConnString(env.DATABASE_URL);
@@ -23,8 +24,15 @@ export { checkpointer };
 
 const toolNode = new ToolNode(tools);
 
+const agentRetryPolicy = {
+  maxAttempts: 3,
+  initialInterval: 1000,
+  backoffFactor: 2,
+  retryOn: isRetryableError,
+};
+
 const workflow = new StateGraph(AgentState)
-  .addNode("agent", agentNode)
+  .addNode("agent", agentNode, { retryPolicy: agentRetryPolicy })
   .addNode("humanApproval", humanApprovalNode)
   .addNode("tools", toolNode)
   .addEdge(START, "agent")

@@ -1,4 +1,4 @@
-import { AIMessage } from "@langchain/core/messages";
+import { AIMessage, ToolMessage } from "@langchain/core/messages";
 import { Command, interrupt } from "@langchain/langgraph";
 import type {
   HumanInterrupt,
@@ -51,9 +51,21 @@ export async function humanApprovalNode(
 
     const response = interrupt(interruptValue) as HumanResponse;
 
-    // If user ignores or responds with feedback, go back to agent
-    if (response.type === "ignore" || response.type === "response") {
+    if (response.type === "ignore") {
+      // User ignored the tool call, go back to agent without feedback
       return new Command({ goto: "agent" });
+    }
+
+    if (response.type === "response" && typeof response.args === "string") {
+      // User provided feedback, add it as a ToolMessage and go back to agent
+      const feedbackMessage = new ToolMessage({
+        content: `User feedback: ${response.args}`,
+        tool_call_id: toolCall.id ?? "",
+      });
+      return new Command({
+        goto: "agent",
+        update: { messages: [feedbackMessage] },
+      });
     }
   }
 

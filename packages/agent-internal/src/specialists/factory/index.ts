@@ -2,35 +2,20 @@ import {
   AIMessage,
   BaseMessage,
   SystemMessage,
-  ToolMessage,
 } from "@langchain/core/messages";
 import {
   Annotation,
-  END,
   messagesStateReducer,
   START,
   StateGraph,
 } from "@langchain/langgraph";
-import { ChatOpenAI } from "@langchain/openai";
-import { randomUUID } from "crypto";
+import { ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
 
-import { env } from "../../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../../prompt";
 import { isRetryableError, type SpecialistConfig } from "../../types";
 import { compressMessages } from "../../utils/context";
+import { createModel, ensureMessageIds } from "../../utils/shared";
 import { executeCodeTool } from "./tools";
-
-function ensureMessageIds(messages: BaseMessage[]): BaseMessage[] {
-  return messages.map((m) => {
-    if (!m.id) {
-      m.id = randomUUID();
-      if (m.lc_kwargs) {
-        m.lc_kwargs.id = m.id;
-      }
-    }
-    return m;
-  });
-}
 
 const SpecialistState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
@@ -53,16 +38,7 @@ const SpecialistState = Annotation.Root({
 
 type SpecialistStateType = typeof SpecialistState.State;
 
-function createModel(promptConfig: PromptConfig) {
-  return new ChatOpenAI({
-    model: promptConfig.model ?? "anthropic/claude-opus-4.5",
-    temperature: promptConfig.temperature ?? 0,
-    configuration: {
-      baseURL: "https://openrouter.ai/api/v1",
-      apiKey: env.OPENROUTER_API_KEY,
-    },
-  }).bindTools([executeCodeTool]);
-}
+const specialistTools = [executeCodeTool];
 
 function createSpecialistAgentNode(promptDir: string) {
   const prompt = loadPrompt(promptDir);
@@ -106,113 +82,37 @@ function createSpecialistAgentNode(promptDir: string) {
       }
     }
 
-    const model = createModel(promptConfig);
+    const model = createModel(promptConfig, specialistTools);
 
-    const maxAttempts = 3;
+    const response = (await model.invoke(messages)) as AIMessage;
 
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        const response = (await model.invoke(messages)) as AIMessage;
+    // On first invocation, persist the full prompt messages (including SystemMessage)
+    // so they're available for subsequent invocations after tool calls.
+    // Ensure all messages have stable IDs to prevent deduplication issues with messagesStateReducer.
+    const messagesToReturn =
+      promptMessagesToPersist.length > 0
+        ? ensureMessageIds([...promptMessagesToPersist, response])
+        : [response];
 
-        // On first invocation, persist the full prompt messages (including SystemMessage)
-        // so they're available for subsequent invocations after tool calls.
-        // Ensure all messages have stable IDs to prevent deduplication issues with messagesStateReducer.
-        const messagesToReturn =
-          promptMessagesToPersist.length > 0
-            ? ensureMessageIds([...promptMessagesToPersist, response])
-            : [response];
-
-        if (!response.tool_calls || response.tool_calls.length === 0) {
-          return {
-            messages: messagesToReturn,
-            output: response.text || "No response",
-          };
-        }
-
-        return {
-          messages: messagesToReturn,
-        };
-      } catch (error) {
-        if (!isRetryableError(error) || attempt >= maxAttempts) {
-          throw error;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-      }
+    if (!response.tool_calls || response.tool_calls.length === 0) {
+      return {
+        messages: messagesToReturn,
+        output: response.text || "No response",
+      };
     }
 
-    throw new Error("Model invocation failed after retries");
+    return {
+      messages: messagesToReturn,
+    };
   };
 }
 
-async function specialistToolsNode(
-  state: SpecialistStateType,
-): Promise<Partial<SpecialistStateType>> {
-  const lastMessage = state.messages[state.messages.length - 1];
-
-  if (!AIMessage.isInstance(lastMessage)) {
-    throw new Error("Expected AIMessage with tool_calls");
-  }
-
-  const toolCalls = lastMessage.tool_calls ?? [];
-
-  const toolMessages = await Promise.all(
-    toolCalls.map(async (toolCall) => {
-      const toolCallId = toolCall.id ?? "";
-      let attempts = 0;
-      const maxAttempts = 2;
-
-      while (attempts < maxAttempts) {
-        try {
-          const args = toolCall.args as { code: string; isMutating: boolean };
-          const result = await executeCodeTool.invoke(args);
-          return new ToolMessage({
-            content:
-              typeof result === "string" ? result : JSON.stringify(result),
-            tool_call_id: toolCallId,
-          });
-        } catch (error) {
-          attempts++;
-          if (!isRetryableError(error) || attempts >= maxAttempts) {
-            const errorMessage =
-              error instanceof Error ? error.message : String(error);
-            console.error(`executeCode failed:`, errorMessage);
-            return new ToolMessage({
-              content: `Code execution failed: ${errorMessage}`,
-              tool_call_id: toolCallId,
-            });
-          }
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
-
-      return new ToolMessage({
-        content: "Tool execution failed after retries",
-        tool_call_id: toolCallId,
-      });
-    }),
-  );
-
-  return {
-    messages: toolMessages,
-  };
-}
-
-function shouldContinue(state: SpecialistStateType): "tools" | typeof END {
-  if (!state.messages || state.messages.length === 0) {
-    return END;
-  }
-
-  const lastMessage = state.messages[state.messages.length - 1];
-
-  if (AIMessage.isInstance(lastMessage)) {
-    const toolCalls = lastMessage.tool_calls ?? [];
-    if (toolCalls.length > 0) {
-      return "tools";
-    }
-  }
-
-  return END;
-}
+const specialistRetryPolicy = {
+  maxAttempts: 3,
+  initialInterval: 1000,
+  backoffFactor: 2,
+  retryOn: isRetryableError,
+};
 
 export function createSpecialist(config: SpecialistConfig) {
   const agentNode = createSpecialistAgentNode(config.promptDir);
@@ -235,14 +135,14 @@ export function createSpecialist(config: SpecialistConfig) {
     return agentNode(state);
   };
 
+  // Use built-in ToolNode with error handling
+  const toolNode = new ToolNode(specialistTools, { handleToolErrors: true });
+
   const workflow = new StateGraph(SpecialistState)
-    .addNode("agent", agentNodeWithContext)
-    .addNode("tools", specialistToolsNode)
+    .addNode("agent", agentNodeWithContext, { retryPolicy: specialistRetryPolicy })
+    .addNode("tools", toolNode)
     .addEdge(START, "agent")
-    .addConditionalEdges("agent", shouldContinue, {
-      tools: "tools",
-      [END]: END,
-    })
+    .addConditionalEdges("agent", toolsCondition)
     .addEdge("tools", "agent");
 
   return workflow.compile({

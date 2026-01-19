@@ -22,6 +22,22 @@ export function isRetryableError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
 
   const message = error.message.toLowerCase();
+
+  const nonRetryablePatterns = [
+    "401",
+    "403",
+    "unauthorized",
+    "forbidden",
+    "400",
+    "bad request",
+    "404",
+    "not found",
+  ];
+
+  if (nonRetryablePatterns.some((pattern) => message.includes(pattern))) {
+    return false;
+  }
+
   const retryablePatterns = [
     "rate limit",
     "rate_limit",

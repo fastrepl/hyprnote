@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { AnimatedTitle } from "@/components/animated-title";
 import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
 
@@ -37,9 +38,10 @@ function HeroSection() {
   return (
     <div className="px-6 py-16 lg:py-24">
       <div className="text-center max-w-3xl mx-auto">
-        <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-4">
-          designteer
-        </h1>
+        <AnimatedTitle
+          text="designteer"
+          className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-4"
+        />
         <p className="text-lg text-neutral-500 mb-6">
           designer + marketer + engineer
         </p>

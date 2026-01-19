@@ -9,11 +9,13 @@ RUN corepack enable
 FROM node-base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/slack-internal/package.json apps/slack-internal/package.json
-RUN pnpm fetch --filter @hypr/slack-internal
+COPY packages/agent-internal/package.json packages/agent-internal/package.json
+RUN pnpm fetch --filter @hypr/slack-internal...
 
 FROM deps AS build
 COPY apps/slack-internal apps/slack-internal
-RUN pnpm install --filter @hypr/slack-internal --frozen-lockfile
+COPY packages/agent-internal packages/agent-internal
+RUN pnpm install --filter @hypr/slack-internal... --frozen-lockfile
 RUN pnpm deploy --filter @hypr/slack-internal --prod --legacy /runtime
 
 FROM oven/bun:1 AS runtime

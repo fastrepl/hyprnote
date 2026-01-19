@@ -1,4 +1,5 @@
-import { setupCheckpointer } from "./agent";
+import { setupCheckpointer } from "@hypr/agent";
+
 import { app } from "./app";
 import { registerListeners } from "./listeners";
 

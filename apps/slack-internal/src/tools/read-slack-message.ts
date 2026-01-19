@@ -2,12 +2,12 @@ import { tool } from "@langchain/core/tools";
 import { WebClient } from "@slack/web-api";
 import { z } from "zod";
 
-import { env } from "../../env";
+import { env } from "../env";
 import {
   fetchSlackThread,
   formatThreadContent,
   parseSlackMessageLinks,
-} from "../../utils/slack-message-reader";
+} from "../utils/slack-message-reader";
 
 const client = new WebClient(env.SLACK_BOT_TOKEN);
 

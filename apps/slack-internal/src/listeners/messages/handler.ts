@@ -1,14 +1,13 @@
-import type { SayFn } from "@slack/bolt";
-import type { WebClient } from "@slack/web-api";
-
 import {
   agent,
   clearThread,
   generateRunId,
   getLangSmithUrl,
-} from "../../agent";
-import type { ToolApprovalInterrupt } from "../../agent/types";
-import type { AgentInput } from "../../agent/utils/input";
+} from "@hypr/agent";
+import type { AgentInput, ToolApprovalInterrupt } from "@hypr/agent";
+import type { SayFn } from "@slack/bolt";
+import type { WebClient } from "@slack/web-api";
+
 import { env } from "../../env";
 import {
   fetchReferencedSlackMessages,

@@ -17,6 +17,7 @@ import {
   FolderOpenIcon,
   FolderPlusIcon,
   GithubIcon,
+  ImageIcon,
   type LucideIcon,
   PencilIcon,
   PinIcon,
@@ -2264,6 +2265,9 @@ function MetadataSidePanel({
   filePath: string;
   handlers: MetadataHandlers;
 }) {
+  const [isCoverImageSelectorOpen, setIsCoverImageSelectorOpen] =
+    useState(false);
+
   return (
     <div className="text-sm" key={filePath}>
       <div className="p-4 flex flex-col gap-4">
@@ -2338,27 +2342,43 @@ function MetadataSidePanel({
 
         <div>
           <label className="block text-neutral-500 mb-1">Cover Image</label>
-          <input
-            type="text"
-            value={handlers.coverImage}
-            onChange={(e) => handlers.onCoverImageChange(e.target.value)}
-            placeholder="/api/images/blog/slug/cover.png"
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
-          />
+          <button
+            type="button"
+            onClick={() => setIsCoverImageSelectorOpen(true)}
+            className="cursor-pointer w-full px-2 py-1.5 border border-neutral-200 rounded text-left text-neutral-900 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+          >
+            {handlers.coverImage ? (
+              <span className="truncate flex-1">{handlers.coverImage}</span>
+            ) : (
+              <span className="text-neutral-400 flex-1">
+                Select cover image
+              </span>
+            )}
+            <ImageIcon className="size-4 text-neutral-400 shrink-0" />
+          </button>
         </div>
 
-        <label className="flex items-center gap-2 text-neutral-600">
+        <div className="flex items-center gap-2">
+          <span className="text-neutral-500">Is this featured?</span>
           <input
             type="checkbox"
             checked={handlers.featured}
             onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
             className="rounded"
           />
-          Featured
-        </label>
+        </div>
       </div>
 
       <GitHistory filePath={filePath} />
+
+      <MediaSelectorModal
+        open={isCoverImageSelectorOpen}
+        onOpenChange={setIsCoverImageSelectorOpen}
+        onSelect={(url) => {
+          handlers.onCoverImageChange(url);
+          setIsCoverImageSelectorOpen(false);
+        }}
+      />
     </div>
   );
 }

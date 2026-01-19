@@ -1,9 +1,8 @@
 [project]
-name = "hyprnote"
+name = "hyprnote-scripts"
 version = "0.1.0"
 description = ""
 authors = [{ name = "Yujong Lee", email = "yujonglee.dev@gmail.com" }]
-readme = "README.md"
 requires-python = ">=3.12,<4.0"
 dependencies = [
   "gguf (>=0.17.1,<0.18.0)",
@@ -13,7 +12,7 @@ dependencies = [
 ]
 
 [tool.poetry]
-name = "hyprnote"
+name = "hyprnote-scripts"
 version = "0.1.0"
 description = ""
 authors = ["Yujong Lee <yujonglee.dev@gmail.com>"]

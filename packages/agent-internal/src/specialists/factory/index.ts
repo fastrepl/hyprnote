@@ -2,8 +2,8 @@ import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
 import {
   Annotation,
   messagesStateReducer,
-  StateGraph,
   START,
+  StateGraph,
 } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 
@@ -112,7 +112,11 @@ async function specialistToolsNode(
   const toolCalls =
     (
       lastMessage as {
-        tool_calls?: Array<{ id: string; name: string; args: Record<string, unknown> }>;
+        tool_calls?: Array<{
+          id: string;
+          name: string;
+          args: Record<string, unknown>;
+        }>;
       }
     ).tool_calls ?? [];
 
@@ -198,8 +202,8 @@ export function createSpecialist(config: SpecialistConfig) {
       };
       return graph.stream(initialState, {
         ...streamConfig,
-        streamMode: (streamConfig?.streamMode as string[]) ?? ["values"],
-      });
+        streamMode: streamConfig?.streamMode ?? ["values"],
+      } as any);
     },
 
     invoke: async (

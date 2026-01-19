@@ -7,7 +7,6 @@ export {
   getLangSmithUrl,
   setupCheckpointer,
 } from "./agent";
-export type { AgentOutput } from "./agent";
 
 // Graph exports
 export { graph } from "./graph";

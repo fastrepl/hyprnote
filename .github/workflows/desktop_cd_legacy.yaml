@@ -41,6 +41,10 @@ jobs:
         run: |
           # Get the latest 0.0.x tag
           LATEST_TAG=$(git tag -l 'desktop_v0.0.*' --sort=-v:refname | head -n1)
+          if [[ -z "$LATEST_TAG" ]]; then
+            echo "Error: No desktop_v0.0.* tags found" >&2
+            exit 1
+          fi
           echo "Latest legacy tag: $LATEST_TAG"
 
           # Extract version number and increment patch

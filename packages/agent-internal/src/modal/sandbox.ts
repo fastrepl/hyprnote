@@ -1,31 +1,25 @@
-import type { App, Image, Volume } from "modal";
+import type { App, Image } from "modal";
 
 import { env } from "../env";
 import { getModalClient } from "./client";
 
 const APP_NAME = "hypr-slack-internal";
-const VOLUME_NAME = "hyprnote-repo-cache";
-const VOLUME_MOUNT_PATH = "/vol";
-const CACHE_REPO_PATH = `${VOLUME_MOUNT_PATH}/hyprnote`;
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
-const GIT_OPERATION_TIMEOUT_MS = 60_000;
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
-export const REPO_PATH = "/tmp/hyprnote";
+export const REPO_PATH = "/root/hyprnote";
 
 export type BunSandbox = Awaited<ReturnType<typeof createBunSandbox>>;
 
 let cachedApp: App | null = null;
 let cachedImage: Image | null = null;
-let cachedVolume: Volume | null = null;
 
-async function getAppImageAndVolume(): Promise<{
+async function getAppAndImage(): Promise<{
   app: App;
   image: Image;
-  volume: Volume;
 }> {
-  if (cachedApp && cachedImage && cachedVolume) {
-    return { app: cachedApp, image: cachedImage, volume: cachedVolume };
+  if (cachedApp && cachedImage) {
+    return { app: cachedApp, image: cachedImage };
   }
 
   const modal = getModalClient();
@@ -41,13 +35,10 @@ async function getAppImageAndVolume(): Promise<{
       "RUN npm install -g @anthropic-ai/claude-code",
       "WORKDIR /app",
       "RUN bun add stripe @supabase/supabase-js loops pg posthog-node",
+      `RUN git clone --depth 1 https://github.com/fastrepl/hyprnote.git ${REPO_PATH}`,
     ]);
 
-  cachedVolume = await modal.volumes.fromName(VOLUME_NAME, {
-    createIfMissing: true,
-  });
-
-  return { app: cachedApp, image: cachedImage, volume: cachedVolume };
+  return { app: cachedApp, image: cachedImage };
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -96,122 +87,6 @@ async function withRetry<T>(
   throw lastError;
 }
 
-async function execCommand(
-  sandbox: BunSandbox,
-  args: string[],
-  options?: { workdir?: string; timeoutMs?: number },
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  const process = await sandbox.exec(args, {
-    stdout: "pipe",
-    stderr: "pipe",
-    ...options,
-  });
-  const [stdout, stderr] = await Promise.all([
-    process.stdout.readText(),
-    process.stderr.readText(),
-  ]);
-  const exitCode = await process.wait();
-  return { exitCode, stdout, stderr };
-}
-
-async function tryRestoreFromCache(sandbox: BunSandbox): Promise<boolean> {
-  const { exitCode: cacheCheckCode } = await execCommand(sandbox, [
-    "test",
-    "-d",
-    `${CACHE_REPO_PATH}/.git`,
-  ]);
-  if (cacheCheckCode !== 0) {
-    return false;
-  }
-
-  const { exitCode: cpCode } = await execCommand(
-    sandbox,
-    ["cp", "-a", CACHE_REPO_PATH, REPO_PATH],
-    { timeoutMs: GIT_OPERATION_TIMEOUT_MS },
-  );
-  if (cpCode !== 0) {
-    // Invalidate corrupted cache so next sandbox gets a fresh clone
-    await execCommand(sandbox, ["rm", "-rf", CACHE_REPO_PATH]);
-    await execCommand(sandbox, ["sync", VOLUME_MOUNT_PATH]);
-    console.warn(
-      "Cache copy failed, invalidating cache and falling back to fresh clone",
-    );
-    return false;
-  }
-
-  const { exitCode: fetchCode } = await execCommand(
-    sandbox,
-    ["git", "fetch", "origin", "main", "--depth", "1"],
-    { workdir: REPO_PATH, timeoutMs: GIT_OPERATION_TIMEOUT_MS },
-  );
-  if (fetchCode !== 0) {
-    await execCommand(sandbox, ["rm", "-rf", REPO_PATH]);
-    // Invalidate corrupted cache so next sandbox gets a fresh clone
-    await execCommand(sandbox, ["rm", "-rf", CACHE_REPO_PATH]);
-    await execCommand(sandbox, ["sync", VOLUME_MOUNT_PATH]);
-    console.warn(
-      "Cache restore failed, invalidating cache and falling back to fresh clone",
-    );
-    return false;
-  }
-
-  const { exitCode: resetCode } = await execCommand(
-    sandbox,
-    ["git", "reset", "--hard", "origin/main"],
-    { workdir: REPO_PATH },
-  );
-  if (resetCode !== 0) {
-    await execCommand(sandbox, ["rm", "-rf", REPO_PATH]);
-    // Invalidate corrupted cache so next sandbox gets a fresh clone
-    await execCommand(sandbox, ["rm", "-rf", CACHE_REPO_PATH]);
-    await execCommand(sandbox, ["sync", VOLUME_MOUNT_PATH]);
-    console.warn(
-      "Cache restore failed, invalidating cache and falling back to fresh clone",
-    );
-    return false;
-  }
-
-  return true;
-}
-
-async function cloneRepository(sandbox: BunSandbox): Promise<void> {
-  // Defensive cleanup - ensure target doesn't exist
-  await execCommand(sandbox, ["rm", "-rf", REPO_PATH]);
-
-  const { exitCode, stdout, stderr } = await execCommand(
-    sandbox,
-    [
-      "git",
-      "clone",
-      "--depth",
-      "1",
-      "https://github.com/fastrepl/hyprnote.git",
-      REPO_PATH,
-    ],
-    { timeoutMs: GIT_OPERATION_TIMEOUT_MS },
-  );
-
-  if (exitCode !== 0) {
-    await sandbox.terminate();
-    throw new Error(`Git clone failed (exit ${exitCode}): ${stderr || stdout}`);
-  }
-}
-
-async function updateCache(sandbox: BunSandbox): Promise<void> {
-  // Remove existing cache to prevent nested directories
-  await execCommand(sandbox, ["rm", "-rf", CACHE_REPO_PATH]);
-
-  const { exitCode } = await execCommand(
-    sandbox,
-    ["cp", "-a", REPO_PATH, CACHE_REPO_PATH],
-    { timeoutMs: GIT_OPERATION_TIMEOUT_MS },
-  );
-
-  if (exitCode === 0) {
-    await execCommand(sandbox, ["sync", VOLUME_MOUNT_PATH]);
-  }
-}
-
 class SandboxManager {
   async create(options?: CreateBunSandboxOptions): Promise<BunSandbox> {
     return await createBunSandbox(options);
@@ -243,15 +118,12 @@ export async function createBunSandbox(options?: CreateBunSandboxOptions) {
 }
 
 async function createBunSandboxInternal(options?: CreateBunSandboxOptions) {
-  const { app, image, volume } = await getAppImageAndVolume();
+  const { app, image } = await getAppAndImage();
   const modal = getModalClient();
 
   const sandbox = await modal.sandboxes.create(app, image, {
     verbose: true,
     timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-    volumes: {
-      [VOLUME_MOUNT_PATH]: volume,
-    },
     env: {
       STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY,
       SUPABASE_URL: env.SUPABASE_URL,
@@ -263,14 +135,6 @@ async function createBunSandboxInternal(options?: CreateBunSandboxOptions) {
       ...(env.POSTHOG_HOST && { POSTHOG_HOST: env.POSTHOG_HOST }),
     },
   });
-
-  // const restoredFromCache = await tryRestoreFromCache(sandbox);
-  // if (restoredFromCache) {
-  //   return sandbox;
-  // }
-
-  // await cloneRepository(sandbox);
-  // await updateCache(sandbox);
 
   return sandbox;
 }

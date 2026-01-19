@@ -1,6 +1,7 @@
 import { AIMessage, BaseMessage, ToolMessage } from "@langchain/core/messages";
 import {
   Annotation,
+  END,
   messagesStateReducer,
   START,
   StateGraph,
@@ -19,15 +20,15 @@ const SpecialistState = Annotation.Root({
     default: () => [],
   }),
   request: Annotation<string>({
-    reducer: (_, newValue) => newValue ?? "",
+    reducer: (prev, newValue) => newValue ?? prev,
     default: () => "",
   }),
   context: Annotation<Record<string, unknown>>({
-    reducer: (_, newValue) => newValue ?? {},
+    reducer: (prev, newValue) => newValue ?? prev,
     default: () => ({}),
   }),
   output: Annotation<string>({
-    reducer: (_, newValue) => newValue ?? "",
+    reducer: (prev, newValue) => newValue ?? prev,
     default: () => "",
   }),
 });
@@ -77,10 +78,9 @@ function createSpecialistAgentNode(promptDir: string) {
 
     const model = createModel(promptConfig);
 
-    let attempts = 0;
     const maxAttempts = 3;
 
-    while (attempts < maxAttempts) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const response = (await model.invoke(messages)) as AIMessage;
 
@@ -102,11 +102,10 @@ function createSpecialistAgentNode(promptDir: string) {
           messages: messagesToReturn,
         };
       } catch (error) {
-        attempts++;
-        if (!isRetryableError(error) || attempts >= maxAttempts) {
+        if (!isRetryableError(error) || attempt >= maxAttempts) {
           throw error;
         }
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
       }
     }
 
@@ -175,7 +174,11 @@ async function specialistToolsNode(
   };
 }
 
-function shouldContinue(state: SpecialistStateType): "tools" | "__end__" {
+function shouldContinue(state: SpecialistStateType): "tools" | typeof END {
+  if (!state.messages || state.messages.length === 0) {
+    return END;
+  }
+
   const lastMessage = state.messages[state.messages.length - 1];
 
   if (lastMessage._getType() === "ai") {
@@ -185,7 +188,7 @@ function shouldContinue(state: SpecialistStateType): "tools" | "__end__" {
     }
   }
 
-  return "__end__";
+  return END;
 }
 
 export function createSpecialist(config: SpecialistConfig) {
@@ -197,42 +200,12 @@ export function createSpecialist(config: SpecialistConfig) {
     .addEdge(START, "agent")
     .addConditionalEdges("agent", shouldContinue, {
       tools: "tools",
-      __end__: "__end__",
+      [END]: END,
     })
     .addEdge("tools", "agent");
 
-  const graph = workflow.compile({
+  return workflow.compile({
     checkpointer: config.checkpointer,
+    recursionLimit: 50,
   });
-
-  return {
-    stream: async (request: string, streamConfig?: Record<string, unknown>) => {
-      const context = config.getContext ? await config.getContext() : {};
-      const initialState: Partial<SpecialistStateType> = {
-        request,
-        context,
-        messages: [],
-        output: "",
-      };
-      return graph.stream(initialState, {
-        ...streamConfig,
-        streamMode: streamConfig?.streamMode ?? ["values"],
-      } as any);
-    },
-
-    invoke: async (
-      request: string,
-      invokeConfig?: Record<string, unknown>,
-    ): Promise<string> => {
-      const context = config.getContext ? await config.getContext() : {};
-      const initialState: Partial<SpecialistStateType> = {
-        request,
-        context,
-        messages: [],
-        output: "",
-      };
-      const result = await graph.invoke(initialState, invokeConfig);
-      return result.output;
-    },
-  };
 }

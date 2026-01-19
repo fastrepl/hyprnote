@@ -10,17 +10,17 @@ export const AgentState = Annotation.Root({
   }),
 
   request: Annotation<string>({
-    reducer: (_, newValue) => newValue ?? "",
+    reducer: (prev, newValue) => newValue ?? prev,
     default: () => "",
   }),
 
   images: Annotation<ImageContent[]>({
-    reducer: (_, newValue) => newValue ?? [],
+    reducer: (prev, newValue) => newValue ?? prev,
     default: () => [],
   }),
 
   output: Annotation<string>({
-    reducer: (_, newValue) => newValue ?? "",
+    reducer: (prev, newValue) => newValue ?? prev,
     default: () => "",
   }),
 });

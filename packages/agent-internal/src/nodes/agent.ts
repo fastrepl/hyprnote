@@ -54,25 +54,26 @@ export async function agentNode(
     const requestFromMessages = getRequestFromMessages(compressedMessages);
     const request = requestFromMessages || state.request;
 
-    if (request) {
-      const { messages: promptMessages, config } = await compilePrompt(
-        prompt,
-        { request },
-        state.images,
-      );
-      messages = promptMessages;
-      promptConfig = config;
-      // Store the prompt messages to persist them in state (including SystemMessage)
-      promptMessagesToPersist = promptMessages;
+    if (!request) {
+      throw new Error("No request provided: expected either messages with a HumanMessage or state.request");
     }
+
+    const { messages: promptMessages, config } = await compilePrompt(
+      prompt,
+      { request },
+      state.images,
+    );
+    messages = promptMessages;
+    promptConfig = config;
+    // Store the prompt messages to persist them in state (including SystemMessage)
+    promptMessagesToPersist = promptMessages;
   }
 
   const model = createModel(promptConfig);
 
-  let attempts = 0;
   const maxAttempts = 3;
 
-  while (attempts < maxAttempts) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const response = (await model.invoke(messages)) as AIMessage;
 
@@ -94,11 +95,10 @@ export async function agentNode(
         messages: messagesToReturn,
       };
     } catch (error) {
-      attempts++;
-      if (!isRetryableError(error) || attempts >= maxAttempts) {
+      if (!isRetryableError(error) || attempt >= maxAttempts) {
         throw error;
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
     }
   }
 

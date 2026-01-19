@@ -1,6 +1,12 @@
+import { END } from "@langchain/langgraph";
+
 import type { AgentStateType } from "../state";
 
-export function shouldContinue(state: AgentStateType): "tools" | "__end__" {
+export function shouldContinue(state: AgentStateType): "tools" | typeof END {
+  if (!state.messages || state.messages.length === 0) {
+    return END;
+  }
+
   const lastMessage = state.messages[state.messages.length - 1];
 
   if (lastMessage._getType() === "ai") {
@@ -10,5 +16,5 @@ export function shouldContinue(state: AgentStateType): "tools" | "__end__" {
     }
   }
 
-  return "__end__";
+  return END;
 }

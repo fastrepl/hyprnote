@@ -1,4 +1,4 @@
-import { START, StateGraph } from "@langchain/langgraph";
+import { END, START, StateGraph } from "@langchain/langgraph";
 import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 
 import { env } from "../env";
@@ -25,12 +25,13 @@ const workflow = new StateGraph(AgentState)
   .addEdge(START, "agent")
   .addConditionalEdges("agent", shouldContinue, {
     tools: "tools",
-    __end__: "__end__",
+    [END]: END,
   })
   .addEdge("tools", "agent");
 
 export const graph = workflow.compile({
   checkpointer,
+  recursionLimit: 50,
 });
 
 export type CompiledAgentGraph = typeof graph;

@@ -1,5 +1,7 @@
 import type { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { ChatOpenAI } from "@langchain/openai";
+import { randomUUID } from "crypto";
+import path from "path";
 
 import { env } from "../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../prompt";
@@ -8,7 +10,7 @@ import { tools } from "../tools";
 import { isRetryableError } from "../types";
 import { compressMessages } from "../utils/context";
 
-const prompt = loadPrompt(import.meta.dirname + "/..");
+const prompt = loadPrompt(path.join(import.meta.dirname, ".."));
 
 function createModel(config: PromptConfig) {
   return new ChatOpenAI({
@@ -30,6 +32,18 @@ function getRequestFromMessages(messages: BaseMessage[]): string | null {
       : JSON.stringify(lastMessage.content);
   }
   return null;
+}
+
+function ensureMessageIds(messages: BaseMessage[]): BaseMessage[] {
+  return messages.map((m) => {
+    if (!m.id) {
+      m.id = randomUUID();
+      if (m.lc_kwargs) {
+        m.lc_kwargs.id = m.id;
+      }
+    }
+    return m;
+  });
 }
 
 export async function agentNode(
@@ -55,7 +69,9 @@ export async function agentNode(
     const request = requestFromMessages || state.request;
 
     if (!request) {
-      throw new Error("No request provided: expected either messages with a HumanMessage or state.request");
+      throw new Error(
+        "No request provided: expected either messages with a HumanMessage or state.request",
+      );
     }
 
     const { messages: promptMessages, config } = await compilePrompt(
@@ -78,10 +94,11 @@ export async function agentNode(
       const response = (await model.invoke(messages)) as AIMessage;
 
       // On first invocation, persist the full prompt messages (including SystemMessage)
-      // so they're available for subsequent invocations after tool calls
+      // so they're available for subsequent invocations after tool calls.
+      // Ensure all messages have stable IDs to prevent deduplication issues with messagesStateReducer.
       const messagesToReturn =
         promptMessagesToPersist.length > 0
-          ? [...promptMessagesToPersist, response]
+          ? ensureMessageIds([...promptMessagesToPersist, response])
           : [response];
 
       if (!response.tool_calls || response.tool_calls.length === 0) {

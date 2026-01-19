@@ -1,4 +1,5 @@
-import { ToolMessage } from "@langchain/core/messages";
+import { AIMessage, ToolMessage } from "@langchain/core/messages";
+import type { RunnableConfig } from "@langchain/core/runnables";
 import { interrupt } from "@langchain/langgraph";
 import type {
   HumanInterrupt,
@@ -11,6 +12,7 @@ import { isRetryableError } from "../types";
 
 export async function toolsNode(
   state: AgentStateType,
+  config?: RunnableConfig,
 ): Promise<Partial<AgentStateType>> {
   if (!state.messages || state.messages.length === 0) {
     throw new Error("No messages in state");
@@ -18,29 +20,21 @@ export async function toolsNode(
 
   const lastMessage = state.messages[state.messages.length - 1];
 
-  if (lastMessage._getType() !== "ai" || !("tool_calls" in lastMessage)) {
+  if (!AIMessage.isInstance(lastMessage)) {
     throw new Error("Expected AIMessage with tool_calls");
   }
 
-  const toolCalls =
-    (
-      lastMessage as {
-        tool_calls?: Array<{
-          id: string;
-          name: string;
-          args: Record<string, unknown>;
-        }>;
-      }
-    ).tool_calls ?? [];
+  const toolCalls = lastMessage.tool_calls ?? [];
 
   const toolMessages = await Promise.all(
     toolCalls.map(async (toolCall) => {
       const tool = toolsByName[toolCall.name];
+      const toolCallId = toolCall.id ?? "";
 
       if (!tool) {
         return new ToolMessage({
           content: `Unknown tool: ${toolCall.name}`,
-          tool_call_id: toolCall.id,
+          tool_call_id: toolCallId,
         });
       }
 
@@ -64,14 +58,14 @@ export async function toolsNode(
         if (response.type === "ignore") {
           return new ToolMessage({
             content: "Tool execution skipped by user",
-            tool_call_id: toolCall.id,
+            tool_call_id: toolCallId,
           });
         }
 
         if (response.type === "response" && typeof response.args === "string") {
           return new ToolMessage({
             content: `User feedback: ${response.args}`,
-            tool_call_id: toolCall.id,
+            tool_call_id: toolCallId,
           });
         }
       }
@@ -80,11 +74,11 @@ export async function toolsNode(
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
-          const result = await tool.invoke(toolCall.args);
+          const result = await tool.invoke(toolCall.args, config);
           return new ToolMessage({
             content:
               typeof result === "string" ? result : JSON.stringify(result),
-            tool_call_id: toolCall.id,
+            tool_call_id: toolCallId,
           });
         } catch (error) {
           if (!isRetryableError(error) || attempt >= maxAttempts) {
@@ -93,7 +87,7 @@ export async function toolsNode(
             console.error(`Tool ${toolCall.name} failed:`, errorMessage);
             return new ToolMessage({
               content: `Tool execution failed: ${errorMessage}`,
-              tool_call_id: toolCall.id,
+              tool_call_id: toolCallId,
             });
           }
           await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
@@ -102,7 +96,7 @@ export async function toolsNode(
 
       return new ToolMessage({
         content: "Tool execution failed after retries",
-        tool_call_id: toolCall.id,
+        tool_call_id: toolCallId,
       });
     }),
   );

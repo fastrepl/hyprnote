@@ -7,12 +7,25 @@ import {
   StateGraph,
 } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
+import { randomUUID } from "crypto";
 
 import { env } from "../../env";
 import { compilePrompt, loadPrompt, type PromptConfig } from "../../prompt";
 import { isRetryableError, type SpecialistConfig } from "../../types";
 import { compressMessages } from "../../utils/context";
 import { executeCodeTool } from "./tools";
+
+function ensureMessageIds(messages: BaseMessage[]): BaseMessage[] {
+  return messages.map((m) => {
+    if (!m.id) {
+      m.id = randomUUID();
+      if (m.lc_kwargs) {
+        m.lc_kwargs.id = m.id;
+      }
+    }
+    return m;
+  });
+}
 
 const SpecialistState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
@@ -85,10 +98,11 @@ function createSpecialistAgentNode(promptDir: string) {
         const response = (await model.invoke(messages)) as AIMessage;
 
         // On first invocation, persist the full prompt messages (including SystemMessage)
-        // so they're available for subsequent invocations after tool calls
+        // so they're available for subsequent invocations after tool calls.
+        // Ensure all messages have stable IDs to prevent deduplication issues with messagesStateReducer.
         const messagesToReturn =
           promptMessagesToPersist.length > 0
-            ? [...promptMessagesToPersist, response]
+            ? ensureMessageIds([...promptMessagesToPersist, response])
             : [response];
 
         if (!response.tool_calls || response.tool_calls.length === 0) {
@@ -118,23 +132,15 @@ async function specialistToolsNode(
 ): Promise<Partial<SpecialistStateType>> {
   const lastMessage = state.messages[state.messages.length - 1];
 
-  if (lastMessage._getType() !== "ai" || !("tool_calls" in lastMessage)) {
+  if (!AIMessage.isInstance(lastMessage)) {
     throw new Error("Expected AIMessage with tool_calls");
   }
 
-  const toolCalls =
-    (
-      lastMessage as {
-        tool_calls?: Array<{
-          id: string;
-          name: string;
-          args: Record<string, unknown>;
-        }>;
-      }
-    ).tool_calls ?? [];
+  const toolCalls = lastMessage.tool_calls ?? [];
 
   const toolMessages = await Promise.all(
     toolCalls.map(async (toolCall) => {
+      const toolCallId = toolCall.id ?? "";
       let attempts = 0;
       const maxAttempts = 2;
 
@@ -145,7 +151,7 @@ async function specialistToolsNode(
           return new ToolMessage({
             content:
               typeof result === "string" ? result : JSON.stringify(result),
-            tool_call_id: toolCall.id,
+            tool_call_id: toolCallId,
           });
         } catch (error) {
           attempts++;
@@ -155,7 +161,7 @@ async function specialistToolsNode(
             console.error(`executeCode failed:`, errorMessage);
             return new ToolMessage({
               content: `Code execution failed: ${errorMessage}`,
-              tool_call_id: toolCall.id,
+              tool_call_id: toolCallId,
             });
           }
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -164,7 +170,7 @@ async function specialistToolsNode(
 
       return new ToolMessage({
         content: "Tool execution failed after retries",
-        tool_call_id: toolCall.id,
+        tool_call_id: toolCallId,
       });
     }),
   );
@@ -181,9 +187,9 @@ function shouldContinue(state: SpecialistStateType): "tools" | typeof END {
 
   const lastMessage = state.messages[state.messages.length - 1];
 
-  if (lastMessage._getType() === "ai") {
-    const aiMessage = lastMessage as { tool_calls?: unknown[] };
-    if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
+  if (AIMessage.isInstance(lastMessage)) {
+    const toolCalls = lastMessage.tool_calls ?? [];
+    if (toolCalls.length > 0) {
       return "tools";
     }
   }
@@ -194,8 +200,26 @@ function shouldContinue(state: SpecialistStateType): "tools" | typeof END {
 export function createSpecialist(config: SpecialistConfig) {
   const agentNode = createSpecialistAgentNode(config.promptDir);
 
+  // Create a wrapper node that fetches context on first invocation
+  const agentNodeWithContext = async (
+    state: SpecialistStateType,
+  ): Promise<Partial<SpecialistStateType>> => {
+    // On first invocation (no messages yet), fetch context if getContext is provided
+    const isFirstInvocation = state.messages.length === 0;
+    if (isFirstInvocation && config.getContext) {
+      const additionalContext = await config.getContext();
+      // Merge additional context into state.context for the agent node
+      const updatedState = {
+        ...state,
+        context: { ...state.context, ...additionalContext },
+      };
+      return agentNode(updatedState);
+    }
+    return agentNode(state);
+  };
+
   const workflow = new StateGraph(SpecialistState)
-    .addNode("agent", agentNode)
+    .addNode("agent", agentNodeWithContext)
     .addNode("tools", specialistToolsNode)
     .addEdge(START, "agent")
     .addConditionalEdges("agent", shouldContinue, {

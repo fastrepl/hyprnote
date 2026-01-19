@@ -18,7 +18,6 @@ export const Route = createFileRoute("/admin")({
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  scripts: () => [],
   beforeLoad: async ({ location }) => {
     if (import.meta.env.DEV) {
       return { user: { email: "dev@local", isAdmin: true } };

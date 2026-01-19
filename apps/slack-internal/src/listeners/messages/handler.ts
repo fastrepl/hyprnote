@@ -6,8 +6,8 @@ import {
   clearThread,
   generateRunId,
   getLangSmithUrl,
-} from "@hypr/agent";
-import type { AgentInput, ToolApprovalInterrupt } from "@hypr/agent";
+} from "@hypr/agent-internal";
+import type { AgentInput, ToolApprovalInterrupt } from "@hypr/agent-internal";
 
 import { env } from "../../env";
 import {

@@ -1,5 +1,5 @@
 {
-  "name": "@hypr/agent",
+  "name": "@hypr/agent-internal",
   "private": true,
   "type": "module",
   "exports": {

@@ -745,9 +745,9 @@ importers:
 
   apps/slack-internal:
     dependencies:
-      '@hypr/agent':
+      '@hypr/agent-internal':
         specifier: workspace:^
-        version: link:../../packages/agent
+        version: link:../../packages/agent-internal
       '@langchain/core':
         specifier: ^1.1.15
         version: 1.1.15(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.4.0(@opentelemetry/api@1.9.0))(openai@6.16.0(ws@8.19.0)(zod@4.3.5))
@@ -1110,7 +1110,7 @@ importers:
         specifier: ^4.1.18
         version: 4.1.18
 
-  packages/agent:
+  packages/agent-internal:
     dependencies:
       '@langchain/core':
         specifier: ^1.1.15
@@ -23659,7 +23659,7 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 25.0.9
+      '@types/node': 24.10.9
 
   '@types/btoa-lite@1.0.2': {}
 
@@ -23680,7 +23680,7 @@ snapshots:
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 25.0.9
+      '@types/node': 24.10.9
 
   '@types/d3-array@3.2.2': {}
 
@@ -23815,7 +23815,7 @@ snapshots:
 
   '@types/express-serve-static-core@5.1.1':
     dependencies:
-      '@types/node': 25.0.9
+      '@types/node': 24.10.9
       '@types/qs': 6.14.0
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
@@ -23992,12 +23992,12 @@ snapshots:
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 25.0.9
+      '@types/node': 24.10.9
 
   '@types/serve-static@2.2.0':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 25.0.9
+      '@types/node': 24.10.9
 
   '@types/shimmer@1.2.0': {}
 
@@ -24039,7 +24039,7 @@ snapshots:
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 25.0.9
+      '@types/node': 24.10.9
     optional: true
 
   '@typescript-eslint/eslint-plugin@8.53.0(@typescript-eslint/parser@8.53.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
@@ -31451,7 +31451,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 25.0.9
+      '@types/node': 24.10.9
       long: 5.3.2
 
   proxy-addr@2.0.7:

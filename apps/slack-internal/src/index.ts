@@ -4,8 +4,10 @@ import { registerTool, setupCheckpointer } from "@hypr/agent-internal";
 
 import { app } from "./app";
 import { registerListeners } from "./listeners";
+import { chartTool } from "./tools/chart";
 import { readSlackMessageTool } from "./tools/read-slack-message";
 
+registerTool(chartTool);
 registerTool(readSlackMessageTool);
 
 registerListeners(app);

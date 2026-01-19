@@ -136,8 +136,18 @@ export function DetailsColumn({
     (duplicateId: string) => {
       if (!store || !selectedHumanId) return;
 
-      const duplicateData = store.getRow("humans", duplicateId);
-      const primaryData = store.getRow("humans", selectedHumanId);
+      const userId = store.getValue("user_id") as string;
+
+      let primaryId = selectedHumanId;
+      let dupId = duplicateId;
+
+      if (duplicateId === userId) {
+        primaryId = duplicateId;
+        dupId = selectedHumanId;
+      }
+
+      const duplicateData = store.getRow("humans", dupId);
+      const primaryData = store.getRow("humans", primaryId);
 
       store.transaction(() => {
         const allMappingIds = store.getRowIds("mapping_session_participant");
@@ -146,9 +156,9 @@ export function DetailsColumn({
             "mapping_session_participant",
             mappingId,
           );
-          if (mapping.human_id === duplicateId) {
+          if (mapping.human_id === dupId) {
             store.setPartialRow("mapping_session_participant", mappingId, {
-              human_id: selectedHumanId,
+              human_id: primaryId,
             });
           }
         });
@@ -185,11 +195,11 @@ export function DetailsColumn({
           }
 
           if (Object.keys(mergedFields).length > 0) {
-            store.setPartialRow("humans", selectedHumanId, mergedFields);
+            store.setPartialRow("humans", primaryId, mergedFields);
           }
         }
 
-        store.delRow("humans", duplicateId);
+        store.delRow("humans", dupId);
       });
     },
     [store, selectedHumanId],

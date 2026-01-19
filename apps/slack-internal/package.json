@@ -10,6 +10,7 @@
     "@hypr/agent-internal": "workspace:^",
     "@langchain/core": "^1.1.15",
     "@langchain/langgraph": "^1.1.0",
+    "@sentry/bun": "^10.34.0",
     "@slack/bolt": "^4.6.0",
     "@slack/types": "^2.19.0",
     "@slack/web-api": "^7.13.0",

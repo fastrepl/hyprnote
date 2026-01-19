@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/bun";
 import type { SayFn } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
 
@@ -196,6 +197,20 @@ export async function handleAgentMessage(
     });
   } catch (error) {
     logger.error("Agent error:", error);
+    Sentry.withScope((scope) => {
+      scope.setTag("slack_channel", channel);
+      scope.setTag("slack_thread_ts", threadTs);
+      if (userId) {
+        scope.setTag("slack_user", userId);
+      }
+      scope.setContext("agent_message", {
+        channel,
+        threadTs,
+        userId,
+        isFirstMessage,
+      });
+      Sentry.captureException(error);
+    });
     await say({
       thread_ts: eventTs,
       text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,

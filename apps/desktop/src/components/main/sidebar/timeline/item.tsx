@@ -157,13 +157,17 @@ const EventItem = memo(
     const handleClick = useCallback(() => openEvent(false), [openEvent]);
     const handleCmdClick = useCallback(() => openEvent(true), [openEvent]);
 
-    const handleIgnore = main.UI.useSetPartialRowCallback(
-      "events",
-      eventId,
-      () => ({ ignored: true }),
-      [],
-      main.STORE_ID,
-    );
+    const handleIgnore = useCallback(() => {
+      if (!store) {
+        return;
+      }
+      store.transaction(() => {
+        store.setPartialRow("events", eventId, { ignored: true });
+        if (attachedSessionId) {
+          store.setPartialRow("sessions", attachedSessionId, { event_id: "" });
+        }
+      });
+    }, [store, eventId, attachedSessionId]);
 
     const handleIgnoreSeries = useCallback(() => {
       if (!store || !recurrenceSeriesId) {

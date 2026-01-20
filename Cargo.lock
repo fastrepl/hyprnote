@@ -18936,6 +18936,7 @@ dependencies = [
 name = "tauri-plugin-settings"
 version = "0.1.0"
 dependencies = [
+ "dirs 6.0.0",
  "serde",
  "serde_json",
  "specta",
@@ -18943,6 +18944,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-specta",
+ "tempfile",
  "thiserror 2.0.17",
  "tokio",
 ]

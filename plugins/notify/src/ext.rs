@@ -79,7 +79,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Notify<'a, R, M> {
 
                             if path
                                 .extension()
-                                .is_some_and(|ext| ext == "wav" || ext == "ogg")
+                                .is_some_and(|ext| ext == "wav" || ext == "ogg" || ext == "tmp")
                             {
                                 continue;
                             }

@@ -2,11 +2,12 @@ import type { Event, Session } from "@hypr/store";
 import {
   differenceInCalendarMonths,
   differenceInDays,
-  isPast,
   safeFormat,
   safeParseDate,
   startOfDay,
 } from "@hypr/utils";
+
+const EVENT_VISIBILITY_BUFFER_MS = 10 * 60 * 1000;
 
 export type TimelineEventRow = {
   started_at?: string | null;
@@ -195,7 +196,10 @@ export function buildTimelineBuckets({
         return;
       }
 
-      if (!isPast(eventStartTime)) {
+      const bufferTime = new Date(
+        eventStartTime.getTime() + EVENT_VISIBILITY_BUFFER_MS,
+      );
+      if (bufferTime.getTime() > Date.now()) {
         items.push({
           type: "event",
           id: eventId,

@@ -1,0 +1,18 @@
+[package]
+name = "denoise"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = ["default-model"]
+default-model = ["deep_filter/default-model", "deep_filter/tract"]
+
+[dependencies]
+deep_filter = { git = "https://github.com/Rikorose/DeepFilterNet", tag = "v0.5.6", default-features = false }
+ndarray = "0.15"
+
+thiserror = { workspace = true }
+
+[dev-dependencies]
+hound = { workspace = true }
+rodio = { workspace = true }

@@ -1,7 +1,8 @@
 import { Icon } from "@iconify-icon/react";
 import { useMediaQuery } from "@uidotdev/usehooks";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
 import { useListener } from "../../../../../contexts/listener";
@@ -47,23 +48,30 @@ function BeforeMeeingButton({
   const isNarrow = useMediaQuery("(max-width: 870px)");
 
   const { isDisabled, warningMessage } = useListenButtonState(tab.id);
-  const handleClick = useStartListening(tab.id);
+  const startListening = useStartListening(tab.id);
+
+  const handleClick = useCallback(() => {
+    if (remote?.url) {
+      void openerCommands.openUrl(remote.url, null);
+    }
+    startListening();
+  }, [remote?.url, startListening]);
 
   let icon: React.ReactNode;
   let text: string;
 
   if (remote?.type === "zoom") {
     icon = <Icon icon="logos:zoom-icon" size={20} />;
-    text = isNarrow ? "Join & Listen" : "Join Zoom & Start listening";
+    text = isNarrow ? "Join & Listen" : "Join  Zoom & Start listening";
   } else if (remote?.type === "google-meet") {
     icon = <Icon icon="logos:google-meet" size={20} />;
-    text = isNarrow ? "Join & Listen" : "Join Google Meet & Start listening";
+    text = isNarrow ? "Join & Listen" : "Join  Google Meet & Start listening";
   } else if (remote?.type === "webex") {
     icon = <Icon icon="simple-icons:webex" size={20} />;
-    text = isNarrow ? "Join & Listen" : "Join Webex & Start listening";
+    text = isNarrow ? "Join & Listen" : "Join  Webex & Start listening";
   } else if (remote?.type === "teams") {
     icon = <Icon icon="logos:microsoft-teams" size={20} />;
-    text = isNarrow ? "Join & Listen" : "Join Teams & Start listening";
+    text = isNarrow ? "Join & Listen" : "Join  Teams & Start listening";
   } else {
     icon = <RecordingIcon disabled={isDisabled} />;
     text = "Start listening";
@@ -97,6 +105,7 @@ function ListenSplitButton({
   sessionId: string;
 }) {
   const openNew = useTabs((state) => state.openNew);
+  const countdown = useEventCountdown(sessionId);
 
   const handleAction = useCallback(() => {
     onPrimaryClick();
@@ -104,63 +113,146 @@ function ListenSplitButton({
   }, [onPrimaryClick, openNew]);
 
   return (
-    <div className="flex flex-col items-start gap-2">
-      <div className="relative flex items-center">
-        <FloatingButton
-          onClick={onPrimaryClick}
-          icon={icon}
-          disabled={disabled}
-          className="justify-center gap-2 pr-12"
-          tooltip={
-            warningMessage
-              ? {
-                  side: "top",
-                  content: (
-                    <ActionableTooltipContent
-                      message={warningMessage}
-                      action={{
-                        label: "Configure",
-                        handleClick: handleAction,
-                      }}
-                    />
-                  ),
-                }
-              : undefined
-          }
-        >
-          {text}
-        </FloatingButton>
-        <OptionsMenu
-          sessionId={sessionId}
-          disabled={disabled}
-          warningMessage={warningMessage}
-          onConfigure={handleAction}
-        />
-      </div>
+    <div className="relative flex items-center">
+      <FloatingButton
+        onClick={onPrimaryClick}
+        icon={icon}
+        disabled={disabled}
+        className="justify-center gap-2 pr-12"
+        tooltip={
+          warningMessage
+            ? {
+              side: "top",
+              content: (
+                <ActionableTooltipContent
+                  message={warningMessage}
+                  action={{
+                    label: "Configure",
+                    handleClick: handleAction,
+                  }}
+                />
+              ),
+            }
+            : undefined
+        }
+      >
+        {text}
+      </FloatingButton>
+      <OptionsMenu
+        sessionId={sessionId}
+        disabled={disabled}
+        warningMessage={warningMessage}
+        onConfigure={handleAction}
+      />
+      {countdown && (
+        <div className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap text-xs text-neutral-500">
+          {countdown}
+        </div>
+      )}
     </div>
   );
 }
 
 type RemoteMeeting = {
   type: "zoom" | "google-meet" | "webex" | "teams";
-  url: string | null;
+  url: string;
 };
 
-function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
-  const eventId = main.UI.useRemoteRowId(
-    main.RELATIONSHIPS.sessionToEvent,
+function useEventCountdown(sessionId: string): string | null {
+  const eventId = main.UI.useCell(
+    "sessions",
     sessionId,
+    "event_id",
+    main.STORE_ID,
   );
-  const note = main.UI.useCell("events", eventId ?? "", "note", main.STORE_ID);
+  const startedAt = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "started_at",
+    main.STORE_ID,
+  );
 
-  if (!note) {
+  const [countdown, setCountdown] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!startedAt) {
+      setCountdown(null);
+      return;
+    }
+
+    const eventStart = new Date(startedAt).getTime();
+
+    const updateCountdown = () => {
+      const now = Date.now();
+      const diff = eventStart - now;
+      const fiveMinutes = 5 * 60 * 1000;
+
+      if (diff <= 0 || diff > fiveMinutes) {
+        setCountdown(null);
+        return;
+      }
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      setCountdown(`meeting starts in ${mins} mins ${secs} seconds`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [startedAt]);
+
+  return countdown;
+}
+
+function detectMeetingType(
+  url: string,
+): "zoom" | "google-meet" | "webex" | "teams" | null {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.toLowerCase();
+
+    if (hostname.includes("zoom.us")) {
+      return "zoom";
+    }
+    if (hostname.includes("meet.google.com")) {
+      return "google-meet";
+    }
+    if (hostname.includes("webex.com")) {
+      return "webex";
+    }
+    if (hostname.includes("teams.microsoft.com")) {
+      return "teams";
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
+  const eventId = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "event_id",
+    main.STORE_ID,
+  );
+  const meetingLink = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "meeting_link",
+    main.STORE_ID,
+  );
+
+  if (!meetingLink) {
     return null;
   }
 
-  const remote = {
-    type: "google-meet",
-    url: null,
-  } as RemoteMeeting | null;
+  const type = detectMeetingType(meetingLink);
+  if (!type) {
+    return null;
+  }
 
-  return remote;
+  return { type, url: meetingLink };
 }

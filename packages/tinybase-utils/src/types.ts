@@ -9,10 +9,7 @@ export type TablesInput = Record<
   Record<string, Record<string, unknown> | undefined> | undefined
 >;
 
-export type ChangedTables = Record<
-  string,
-  Record<string, unknown> | undefined
->;
+export type ChangedTables = Record<string, Record<string, unknown> | undefined>;
 
 export type TablesChanges = [
   Record<string, unknown>,

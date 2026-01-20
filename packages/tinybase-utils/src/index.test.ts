@@ -764,19 +764,19 @@ describe("iterateTableRows", () => {
   test("handles multiple rows with different data", () => {
     const tables: TestTablesContent = {
       humans: {
-        "h1": {
+        h1: {
           user_id: "u1",
           name: "Alice",
           email: "alice@example.com",
           org_id: "org1",
         },
-        "h2": {
+        h2: {
           user_id: "u1",
           name: "Bob",
           email: "bob@example.com",
           org_id: "org2",
         },
-        "h3": {
+        h3: {
           user_id: "u2",
           name: "Charlie",
           email: "charlie@example.com",
@@ -788,20 +788,27 @@ describe("iterateTableRows", () => {
     const result = iterateTableRows(tables, "humans");
 
     expect(result).toHaveLength(3);
-    expect(result.map(r => r.name).sort()).toEqual(["Alice", "Bob", "Charlie"]);
+    expect(result.map((r) => r.name).sort()).toEqual([
+      "Alice",
+      "Bob",
+      "Charlie",
+    ]);
   });
 
   test("row order is consistent with Object.entries", () => {
     const tables: GenericTablesContent = {
       items: {
-        "a": { value: 1 },
-        "b": { value: 2 },
-        "c": { value: 3 },
+        a: { value: 1 },
+        b: { value: 2 },
+        c: { value: 3 },
       },
     };
 
     const result = iterateTableRows(tables, "items");
-    const expectedOrder = Object.entries(tables.items!).map(([id, row]) => ({ ...row, id }));
+    const expectedOrder = Object.entries(tables.items!).map(([id, row]) => ({
+      ...row,
+      id,
+    }));
 
     expect(result).toEqual(expectedOrder);
   });

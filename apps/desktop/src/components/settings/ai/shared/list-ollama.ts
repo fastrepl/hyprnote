@@ -1,5 +1,6 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import { Effect, pipe, Schema } from "effect";
+import { Effect, pipe } from "effect";
+import { Ollama } from "ollama/browser";
 
 import {
   DEFAULT_RESULT,
@@ -10,61 +11,6 @@ import {
   REQUEST_TIMEOUT,
 } from "./list-common";
 
-const OllamaTagsSchema = Schema.Struct({
-  models: Schema.Array(
-    Schema.Struct({
-      name: Schema.String,
-    }),
-  ),
-});
-
-const OllamaPsSchema = Schema.Struct({
-  models: Schema.optionalWith(
-    Schema.Array(
-      Schema.Struct({
-        name: Schema.String,
-      }),
-    ),
-    { default: () => [] },
-  ),
-});
-
-const OllamaShowSchema = Schema.Struct({
-  capabilities: Schema.optionalWith(Schema.Array(Schema.String), {
-    default: () => [],
-  }),
-});
-
-const fetchOllamaJson = (url: string) =>
-  Effect.tryPromise({
-    try: async () => {
-      const r = await tauriFetch(url, { method: "GET" });
-      if (!r.ok) {
-        const errorBody = await r.text();
-        throw new Error(`HTTP ${r.status}: ${errorBody}`);
-      }
-      return r.json();
-    },
-    catch: (e) => e,
-  });
-
-const postOllamaJson = (url: string, body: object) =>
-  Effect.tryPromise({
-    try: async () => {
-      const r = await tauriFetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!r.ok) {
-        const errorBody = await r.text();
-        throw new Error(`HTTP ${r.status}: ${errorBody}`);
-      }
-      return r.json();
-    },
-    catch: (e) => e,
-  });
-
 export async function listOllamaModels(
   baseUrl: string,
   _apiKey: string,
@@ -73,14 +19,17 @@ export async function listOllamaModels(
     return DEFAULT_RESULT;
   }
 
-  const ollamaBaseUrl = baseUrl.replace(/\/v1\/?$/, "");
-
   return pipe(
-    fetchOllamaInventory(ollamaBaseUrl),
-    Effect.flatMap(({ models, runningModelNames }) =>
+    createOllamaClient(baseUrl),
+    Effect.flatMap((ollama) =>
       pipe(
-        fetchOllamaDetails(ollamaBaseUrl, models, runningModelNames),
-        Effect.map(summarizeOllamaDetails),
+        fetchOllamaInventory(ollama),
+        Effect.flatMap(({ models, runningModelNames }) =>
+          pipe(
+            fetchOllamaDetails(ollama, models, runningModelNames),
+            Effect.map(summarizeOllamaDetails),
+          ),
+        ),
       ),
     ),
     Effect.timeout(REQUEST_TIMEOUT),
@@ -89,19 +38,21 @@ export async function listOllamaModels(
   );
 }
 
-const fetchOllamaInventory = (ollamaBaseUrl: string) =>
+const createOllamaClient = (baseUrl: string) =>
+  Effect.sync(
+    () =>
+      new Ollama({
+        host: baseUrl.replace(/\/v1\/?$/, ""),
+        fetch: tauriFetch as typeof fetch,
+      }),
+  );
+
+const fetchOllamaInventory = (ollama: Ollama) =>
   pipe(
     Effect.all(
       [
-        pipe(
-          fetchOllamaJson(`${ollamaBaseUrl}/api/tags`),
-          Effect.andThen((json) =>
-            Schema.decodeUnknown(OllamaTagsSchema)(json),
-          ),
-        ),
-        pipe(
-          fetchOllamaJson(`${ollamaBaseUrl}/api/ps`),
-          Effect.andThen((json) => Schema.decodeUnknown(OllamaPsSchema)(json)),
+        Effect.tryPromise(() => ollama.list()),
+        Effect.tryPromise(() => ollama.ps()).pipe(
           Effect.catchAll(() =>
             Effect.succeed({
               models: [] as Array<{ name: string }>,
@@ -111,27 +62,25 @@ const fetchOllamaInventory = (ollamaBaseUrl: string) =>
       ],
       { concurrency: "unbounded" },
     ),
-    Effect.map(([tagsResponse, psResponse]) => ({
-      models: tagsResponse.models,
+    Effect.map(([listResponse, psResponse]) => ({
+      models: listResponse.models,
       runningModelNames: new Set<string>(
-        psResponse.models.map((model) => model.name),
+        psResponse.models?.map((model) => model.name) ?? [],
       ),
     })),
   );
 
 const fetchOllamaDetails = (
-  ollamaBaseUrl: string,
-  models: readonly { readonly name: string }[],
+  ollama: Ollama,
+  models: Array<{ name: string }>,
   runningModelNames: Set<string>,
 ) =>
   Effect.all(
     models.map((model) =>
-      pipe(
-        postOllamaJson(`${ollamaBaseUrl}/api/show`, { model: model.name }),
-        Effect.andThen((json) => Schema.decodeUnknown(OllamaShowSchema)(json)),
+      Effect.tryPromise(() => ollama.show({ model: model.name })).pipe(
         Effect.map((info) => ({
           name: model.name,
-          capabilities: [...info.capabilities],
+          capabilities: info.capabilities ?? [],
           isRunning: runningModelNames.has(model.name),
         })),
         Effect.catchAll(() =>
@@ -147,11 +96,11 @@ const fetchOllamaDetails = (
   );
 
 const summarizeOllamaDetails = (
-  details: readonly {
+  details: Array<{
     name: string;
     capabilities: string[];
     isRunning: boolean;
-  }[],
+  }>,
 ): ListModelsResult => {
   const supported: Array<{ name: string; isRunning: boolean }> = [];
   const ignored: IgnoredModel[] = [];

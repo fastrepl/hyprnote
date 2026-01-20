@@ -1,6 +1,7 @@
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { Content } from "tinybase/with-schemas";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as detectCommands } from "@hypr/plugin-detect";
 import { commands } from "@hypr/plugin-settings";
 
@@ -86,6 +87,17 @@ function createPersisterBuilder<T>(transform: TransformUtils<T>) {
         if (result.status === "error") {
           console.error("[SettingsPersister] save error:", result.error);
         }
+
+        const s = settings as Record<string, Record<string, unknown>>;
+        void analyticsCommands.setProperties({
+          set: {
+            spoken_languages: (s.language?.spoken_languages as string[]) ?? [],
+            current_stt_provider: (s.ai?.current_stt_provider as string) ?? null,
+            current_stt_model: (s.ai?.current_stt_model as string) ?? null,
+            current_llm_provider: (s.ai?.current_llm_provider as string) ?? null,
+            current_llm_model: (s.ai?.current_llm_model as string) ?? null,
+          },
+        });
       },
       (listener) => settingsNotifyListener.addListener(listener),
       (handle) => settingsNotifyListener.delListener(handle),

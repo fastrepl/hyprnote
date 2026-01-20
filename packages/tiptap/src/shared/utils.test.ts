@@ -392,6 +392,26 @@ describe("schema validation", () => {
       }
     });
 
+    test("standalone image is wrapped in paragraph (not direct child of doc)", () => {
+      const markdown = "![alt](https://example.com/image.png)";
+      const json = md2json(markdown);
+
+      expect(json.type).toBe("doc");
+      expect(json.content).toBeDefined();
+      expect(json.content!.length).toBeGreaterThan(0);
+
+      const firstChild = json.content![0];
+      expect(firstChild.type).toBe("paragraph");
+      expect(firstChild.content).toBeDefined();
+
+      const imageNode = firstChild.content!.find(
+        (node) => node.type === "image",
+      );
+      expect(imageNode).toBeDefined();
+      expect(imageNode?.attrs?.src).toBe("https://example.com/image.png");
+      expect(imageNode?.attrs?.alt).toBe("alt");
+    });
+
     test("multiple images produce schema-valid JSON", () => {
       const markdown = `![img1](https://example.com/1.png)
 
@@ -405,6 +425,37 @@ describe("schema validation", () => {
       if (!validation.valid) {
         throw new Error(`Schema validation failed: ${validation.error}`);
       }
+    });
+
+    test("consecutive standalone images are each wrapped in separate paragraphs", () => {
+      const markdown = `![img1](https://example.com/1.png)
+
+![img2](https://example.com/2.png)`;
+      const json = md2json(markdown);
+
+      expect(json.type).toBe("doc");
+      expect(json.content).toBeDefined();
+
+      const paragraphs = json.content!.filter(
+        (node) => node.type === "paragraph",
+      );
+      expect(paragraphs.length).toBeGreaterThanOrEqual(2);
+
+      const img1Para = paragraphs.find((p) =>
+        p.content?.some(
+          (n) =>
+            n.type === "image" && n.attrs?.src === "https://example.com/1.png",
+        ),
+      );
+      const img2Para = paragraphs.find((p) =>
+        p.content?.some(
+          (n) =>
+            n.type === "image" && n.attrs?.src === "https://example.com/2.png",
+        ),
+      );
+
+      expect(img1Para).toBeDefined();
+      expect(img2Para).toBeDefined();
     });
 
     test("mixed content produces schema-valid JSON", () => {
@@ -547,6 +598,41 @@ Some text.`;
       const json2 = md2json(markdown2);
       const validation2 = validateJsonContent(json2);
       expect(validation2.valid).toBe(true);
+    });
+
+    test("issue #3245: _memo.md with standalone image produces valid schema", () => {
+      const memoMarkdown = `![welcome](https://example.com/welcome.png)
+
+We appreciate your patience while you wait.`;
+
+      const json = md2json(memoMarkdown);
+      const validation = validateJsonContent(json);
+
+      expect(validation.valid).toBe(true);
+      if (!validation.valid) {
+        throw new Error(`Schema validation failed: ${validation.error}`);
+      }
+
+      expect(json.content!.length).toBeGreaterThanOrEqual(2);
+
+      const firstNode = json.content![0];
+      expect(firstNode.type).toBe("paragraph");
+      expect(firstNode.content).toBeDefined();
+
+      const imageInFirstPara = firstNode.content!.find(
+        (n) => n.type === "image",
+      );
+      expect(imageInFirstPara).toBeDefined();
+      expect(imageInFirstPara?.attrs?.src).toBe(
+        "https://example.com/welcome.png",
+      );
+
+      const secondNode = json.content![1];
+      expect(secondNode.type).toBe("paragraph");
+      const textInSecondPara = secondNode.content?.find(
+        (n) => n.type === "text",
+      );
+      expect(textInSecondPara).toBeDefined();
     });
   });
 });

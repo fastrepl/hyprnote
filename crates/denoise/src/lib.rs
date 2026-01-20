@@ -1,19 +1,19 @@
 mod error;
 pub use error::Error;
 
-#[cfg(feature = "default-model")]
+#[cfg(any(feature = "default-model", feature = "default-model-ll"))]
 use df::tract::{DfParams, DfTract, RuntimeParams};
 
 pub const SAMPLE_RATE: usize = 48000;
 pub const HOP_SIZE: usize = 480;
 
 pub struct Denoiser {
-    #[cfg(feature = "default-model")]
+    #[cfg(any(feature = "default-model", feature = "default-model-ll"))]
     model: DfTract,
 }
 
 impl Denoiser {
-    #[cfg(feature = "default-model")]
+    #[cfg(any(feature = "default-model", feature = "default-model-ll"))]
     pub fn new() -> Result<Self, Error> {
         let df_params = DfParams::default();
         let runtime_params = RuntimeParams::default();
@@ -24,24 +24,24 @@ impl Denoiser {
         Ok(Self { model })
     }
 
-    #[cfg(feature = "default-model")]
+    #[cfg(any(feature = "default-model", feature = "default-model-ll"))]
     pub fn sample_rate(&self) -> usize {
         self.model.sr
     }
 
-    #[cfg(feature = "default-model")]
+    #[cfg(any(feature = "default-model", feature = "default-model-ll"))]
     pub fn hop_size(&self) -> usize {
         self.model.hop_size
     }
 
-    #[cfg(feature = "default-model")]
+    #[cfg(any(feature = "default-model", feature = "default-model-ll"))]
     pub fn reset(&mut self) -> Result<(), Error> {
         self.model
             .init()
             .map_err(|e| Error::ProcessError(e.to_string()))
     }
 
-    #[cfg(feature = "default-model")]
+    #[cfg(any(feature = "default-model", feature = "default-model-ll"))]
     pub fn process_frame(&mut self, input: &[f32], output: &mut [f32]) -> Result<f32, Error> {
         use ndarray::{ArrayView2, ArrayViewMut2};
 
@@ -69,7 +69,7 @@ impl Denoiser {
             .map_err(|e| Error::ProcessError(e.to_string()))
     }
 
-    #[cfg(feature = "default-model")]
+    #[cfg(any(feature = "default-model", feature = "default-model-ll"))]
     pub fn process(&mut self, input: &[f32]) -> Result<Vec<f32>, Error> {
         let hop_size = self.model.hop_size;
         if input.len() % hop_size != 0 {
@@ -91,7 +91,7 @@ impl Denoiser {
     }
 }
 
-#[cfg(all(test, feature = "default-model"))]
+#[cfg(all(test, any(feature = "default-model", feature = "default-model-ll")))]
 mod tests {
     use super::*;
 

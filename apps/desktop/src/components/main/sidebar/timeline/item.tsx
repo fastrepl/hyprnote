@@ -112,20 +112,12 @@ const EventItem = memo(
 
     const eventId = item.id;
 
-    const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
-    const attachedSessionId = useMemo(() => {
-      if (!store) {
-        return undefined;
-      }
-      let sessionId: string | undefined;
-      store.forEachRow("sessions", (rowId, _forEachCell) => {
-        const session = store.getRow("sessions", rowId);
-        if (session?.event_id === eventId) {
-          sessionId = rowId;
-        }
-      });
-      return sessionId;
-    }, [store, eventId, sessionIds]);
+    const attachedSessionIds = main.UI.useSliceRowIds(
+      main.INDEXES.sessionsByEvent,
+      eventId,
+      main.STORE_ID,
+    );
+    const attachedSessionId = attachedSessionIds[0];
 
     const attachedNoteIds = main.UI.useSliceRowIds(
       main.INDEXES.enhancedNotesBySession,

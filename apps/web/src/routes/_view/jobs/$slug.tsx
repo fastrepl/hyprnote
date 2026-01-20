@@ -1,6 +1,7 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { allJobs } from "content-collections";
+import { Children, isValidElement, type ReactNode } from "react";
 
 import { AnimatedTitle } from "@/components/animated-title";
 import { Image } from "@/components/image";
@@ -107,7 +108,7 @@ function JobDetailsSection({ job }: { job: (typeof allJobs)[0] }) {
             a: MDXLink,
             h2: ({ children }) => (
               <h2 className="text-lg font-serif tracking-widest uppercase text-neutral-400 mb-6 mt-12 first:mt-0">
-                {children}
+                {stripLinks(children)}
               </h2>
             ),
             h3: ({ children }) => (
@@ -135,6 +136,19 @@ function JobDetailsSection({ job }: { job: (typeof allJobs)[0] }) {
       </div>
     </div>
   );
+}
+
+function stripLinks(children: ReactNode): ReactNode {
+  return Children.map(children, (child) => {
+    if (!isValidElement(child)) {
+      return child;
+    }
+    const props = child.props as { href?: string; children?: ReactNode };
+    if (child.type === "a" || props.href) {
+      return stripLinks(props.children);
+    }
+    return child;
+  });
 }
 
 function CTASection({ job }: { job: (typeof allJobs)[0] }) {

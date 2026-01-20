@@ -34,6 +34,7 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Er
         organizations: vec![],
         participants: vec![],
         templates: vec![],
+        enhanced_notes: vec![],
     })
 }
 

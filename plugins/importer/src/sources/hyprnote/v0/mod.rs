@@ -1,8 +1,8 @@
 mod transforms;
 
 use crate::types::{
-    ImportResult, ImportedHuman, ImportedOrganization, ImportedSessionParticipant,
-    ImportedTemplate, ImportedTemplateSection,
+    ImportResult, ImportedEnhancedNote, ImportedHuman, ImportedOrganization,
+    ImportedSessionParticipant, ImportedTemplate, ImportedTemplateSection,
 };
 use hypr_db_user::UserDatabase;
 use std::path::Path;
@@ -30,6 +30,7 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Er
     let mut notes = Vec::new();
     let mut transcripts = Vec::new();
     let mut participants = Vec::new();
+    let mut enhanced_notes = Vec::new();
 
     for session in sessions {
         let session_participants = db.session_list_participants(&session.id).await?;
@@ -43,6 +44,19 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Er
 
         if !session.words.is_empty() {
             transcripts.push(session_to_imported_transcript(session.clone()));
+        }
+
+        if let Some(ref enhanced_html) = session.enhanced_memo_html {
+            if !enhanced_html.is_empty() {
+                enhanced_notes.push(ImportedEnhancedNote {
+                    id: format!("enhanced-{}", session.id),
+                    session_id: session.id.clone(),
+                    content: enhanced_html.clone(),
+                    template_id: None,
+                    position: 1,
+                    title: String::new(),
+                });
+            }
         }
 
         if !session.is_empty() {
@@ -106,5 +120,6 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Er
         organizations,
         participants,
         templates,
+        enhanced_notes,
     })
 }

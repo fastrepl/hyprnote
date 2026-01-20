@@ -120,12 +120,6 @@ fn compute_relative_ms(absolute_ms: Option<u64>, base_ms: Option<u64>) -> Option
 }
 
 fn get_session_content(session: &Session) -> String {
-    if let Some(ref enhanced) = session.enhanced_memo_html
-        && !enhanced.is_empty()
-    {
-        return html_to_markdown(enhanced);
-    }
-
     if !session.raw_memo_html.is_empty() {
         return html_to_markdown(&session.raw_memo_html);
     }

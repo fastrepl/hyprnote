@@ -1,6 +1,6 @@
 use crate::types::{
-    ImportResult, ImportedHuman, ImportedNote, ImportedOrganization, ImportedSessionParticipant,
-    ImportedTranscript,
+    ImportResult, ImportedEnhancedNote, ImportedHuman, ImportedNote, ImportedOrganization,
+    ImportedSessionParticipant, ImportedTranscript,
 };
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -99,6 +99,7 @@ pub(crate) fn to_tinybase_json(data: &ImportResult, user_id: &str) -> Value {
     insert_organizations(&mut tables, &data.organizations, user_id);
     insert_humans(&mut tables, &data.humans, user_id);
     insert_sessions(&mut tables, &data.notes, user_id);
+    insert_enhanced_notes(&mut tables, &data.enhanced_notes, user_id);
     insert_transcripts_and_words(&mut tables, &data.transcripts, user_id);
     insert_participants(&mut tables, &data.participants, user_id);
     insert_tags(&mut tables, &data.notes, user_id);
@@ -160,51 +161,50 @@ fn insert_sessions(tables: &mut Map<String, Value>, notes: &[ImportedNote], user
         return;
     }
 
-    let mut session_entries: Map<String, Value> = Map::new();
-    let mut enhanced_note_entries: Map<String, Value> = Map::new();
-
-    for note in notes {
-        let session_value = Session {
-            user_id: user_id.to_string(),
-            created_at: normalize_datetime(&note.created_at),
-            folder_id: note.folder_id.clone().unwrap_or_default(),
-            event_id: note.event_id.clone().unwrap_or_default(),
-            title: note.title.clone(),
-            raw_md: note.raw_md.clone().unwrap_or_else(|| note.content.clone()),
-        };
-        session_entries.insert(
-            note.id.clone(),
-            serde_json::to_value(session_value).unwrap(),
-        );
-
-        if let Some(enhanced_content) = &note.enhanced_content
-            && !enhanced_content.is_empty()
-        {
-            let enhanced_note_id = uuid::Uuid::new_v4().to_string();
-            let enhanced_note_value = EnhancedNote {
+    let entries: Map<String, Value> = notes
+        .iter()
+        .map(|note| {
+            let value = Session {
                 user_id: user_id.to_string(),
                 created_at: normalize_datetime(&note.created_at),
-                session_id: note.id.clone(),
-                content: enhanced_content.clone(),
-                template_id: String::new(),
-                position: 1,
-                title: "Summary".to_string(),
+                folder_id: note.folder_id.clone().unwrap_or_default(),
+                event_id: note.event_id.clone().unwrap_or_default(),
+                title: note.title.clone(),
+                raw_md: note.raw_md.clone().unwrap_or_else(|| note.content.clone()),
             };
-            enhanced_note_entries.insert(
-                enhanced_note_id,
-                serde_json::to_value(enhanced_note_value).unwrap(),
-            );
-        }
+            (note.id.clone(), serde_json::to_value(value).unwrap())
+        })
+        .collect();
+
+    tables.insert("sessions".to_string(), Value::Object(entries));
+}
+
+fn insert_enhanced_notes(
+    tables: &mut Map<String, Value>,
+    enhanced_notes: &[ImportedEnhancedNote],
+    user_id: &str,
+) {
+    if enhanced_notes.is_empty() {
+        return;
     }
 
-    tables.insert("sessions".to_string(), Value::Object(session_entries));
+    let entries: Map<String, Value> = enhanced_notes
+        .iter()
+        .map(|note| {
+            let value = EnhancedNote {
+                user_id: user_id.to_string(),
+                created_at: chrono::Utc::now().to_rfc3339(),
+                session_id: note.session_id.clone(),
+                content: note.content.clone(),
+                template_id: note.template_id.clone().unwrap_or_default(),
+                position: note.position,
+                title: note.title.clone(),
+            };
+            (note.id.clone(), serde_json::to_value(value).unwrap())
+        })
+        .collect();
 
-    if !enhanced_note_entries.is_empty() {
-        tables.insert(
-            "enhanced_notes".to_string(),
-            Value::Object(enhanced_note_entries),
-        );
-    }
+    tables.insert("enhanced_notes".to_string(), Value::Object(entries));
 }
 
 fn insert_transcripts_and_words(

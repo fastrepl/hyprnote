@@ -22,6 +22,7 @@ pub async fn import_all(source: &ImportSource) -> Result<ImportResult, crate::Er
                 organizations: data.organizations,
                 participants: data.session_participants,
                 templates: vec![],
+                enhanced_notes: vec![],
             })
         }
     }

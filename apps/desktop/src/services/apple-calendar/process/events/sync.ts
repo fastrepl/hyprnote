@@ -56,8 +56,33 @@ export function syncEvents(
       continue;
     }
 
-    if (hasNonEmptySession) {
-      continue;
+    if (trackingId) {
+      const sameTrackingIdEvent = incoming.find(
+        (e) =>
+          e.tracking_id_event === trackingId &&
+          e.started_at !== storeEvent.started_at,
+      );
+
+      if (sameTrackingIdEvent) {
+        const sameTrackingIdEventKey = getEventKey(
+          sameTrackingIdEvent.tracking_id_event,
+          sameTrackingIdEvent.started_at,
+        );
+
+        if (!handledEventKeys.has(sameTrackingIdEventKey)) {
+          out.toUpdate.push({
+            ...storeEvent,
+            ...sameTrackingIdEvent,
+            id: storeEvent.id,
+            tracking_id_event: sameTrackingIdEvent.tracking_id_event,
+            user_id: storeEvent.user_id,
+            created_at: storeEvent.created_at,
+            calendar_id: storeEvent.calendar_id,
+          });
+          handledEventKeys.add(sameTrackingIdEventKey);
+          continue;
+        }
+      }
     }
 
     const rescheduledEvent = findRescheduledEvent(ctx, storeEvent, incoming);
@@ -83,6 +108,10 @@ export function syncEvents(
         calendar_id: storeEvent.calendar_id,
       });
       handledEventKeys.add(rescheduledEventKey);
+      continue;
+    }
+
+    if (hasNonEmptySession) {
       continue;
     }
 

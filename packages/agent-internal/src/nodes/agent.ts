@@ -1,4 +1,5 @@
 import type { AIMessage, BaseMessage } from "@langchain/core/messages";
+import { SystemMessage } from "@langchain/core/messages";
 import path from "path";
 
 import { compilePrompt, loadPrompt, type PromptConfig } from "../prompt";
@@ -57,6 +58,16 @@ export async function agentNode(
     promptConfig = config;
     // Store the prompt messages to persist them in state (including SystemMessage)
     promptMessagesToPersist = promptMessages;
+  } else {
+    // Subsequent invocation after tool calls: compressMessages drops SystemMessage
+    // We need to restore it from the original state.messages
+    const systemMessage = state.messages.find((m) =>
+      SystemMessage.isInstance(m),
+    );
+    if (systemMessage) {
+      // Prepend the SystemMessage to the compressed messages
+      messages = [systemMessage, ...compressedMessages];
+    }
   }
 
   const model = createModel(promptConfig, tools);

@@ -2,6 +2,8 @@
 date: "2026-01-20"
 ---
 
+- Support custom base through `CONTENT_BASE` env and lab settings
+
 - Persist auth session across app updates
   - Stay logged in after updating Hyprnote
 
@@ -14,10 +16,11 @@ date: "2026-01-20"
 - Improve trial expiration handling
   - Show "Upgrade to Pro" for expired trials instead of "Start Free Trial"
   - Auto-reset cloud STT and Hyprnote LLM settings when trial expires
-  - Weekly reminder modal with dismiss option
+
+- Fix notification settings for mic detection
+  - Mic detection notifications now respect the notification_detect setting
 
 - Preserve 'me' label when merging contacts
   - The 'me' contact label is no longer lost when merging duplicate contacts
 
 - Add git hash display in feedback modal
-  - Helps with bug tracking and debugging

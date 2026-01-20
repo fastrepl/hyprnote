@@ -19,7 +19,7 @@ import {
   getDataDir,
 } from "../shared/paths";
 import { type ChangedTables, type WriteOperation } from "../shared/types";
-import { toContent, toPersistedChanges } from "../shared/utils";
+import { toContent, toPersistedChanges } from "@hypr/tinybase-utils";
 import { createCollectorPersister } from "./collector";
 
 export interface MarkdownDirPersisterConfig<

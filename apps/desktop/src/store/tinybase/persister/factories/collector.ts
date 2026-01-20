@@ -28,7 +28,7 @@ import {
   type SaveResult,
   type TablesContent,
 } from "../shared/types";
-import { extractChangedTables } from "../shared/utils";
+import { extractChangedTables } from "@hypr/tinybase-utils";
 
 const CLEANUP_SAFEGUARD_MIN_DISK_COUNT = 5;
 const CLEANUP_SAFEGUARD_MIN_KEEP_RATIO = 0.5;

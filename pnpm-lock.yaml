@@ -362,6 +362,9 @@ importers:
       '@hypr/store':
         specifier: workspace:*
         version: link:../../packages/store
+      '@hypr/tinybase-utils':
+        specifier: workspace:*
+        version: link:../../packages/tinybase-utils
       '@hypr/tiptap':
         specifier: workspace:^
         version: link:../../packages/tiptap
@@ -1251,6 +1254,19 @@ importers:
       '@types/node':
         specifier: ^22.19.7
         version: 22.19.7
+
+  packages/tinybase-utils:
+    dependencies:
+      tinybase:
+        specifier: ^7.3.1
+        version: 7.3.1(@cloudflare/workers-types@4.20260116.0)(@sinclair/typebox@0.34.47)(effect@3.19.14)(postgres@3.4.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(ws@8.19.0)(zod@4.3.5)
+    devDependencies:
+      typescript:
+        specifier: ~5.8.3
+        version: 5.8.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@25.0.9)(jiti@2.6.1)(jsdom@27.4.0)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/tiptap:
     dependencies:

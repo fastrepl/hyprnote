@@ -8,7 +8,7 @@ import {
 import type { LoadResult } from "../shared/load-result";
 import { getDataDir } from "../shared/paths";
 import type { ChangedTables, SaveResult, TablesContent } from "../shared/types";
-import { toContent, toPersistedChanges } from "../shared/utils";
+import { toContent, toPersistedChanges } from "@hypr/tinybase-utils";
 import {
   createCollectorPersister,
   type OrphanCleanupConfig,

@@ -17,7 +17,7 @@ import { commands as settingsCommands } from "@hypr/plugin-settings";
 import { StoreOrMergeableStore } from "../../store/shared";
 import { isFileNotFoundError } from "../shared/fs";
 import type { ChangedTables } from "../shared/types";
-import { asTablesChanges, extractChangedTables } from "../shared/utils";
+import { asTablesChanges, extractChangedTables } from "@hypr/tinybase-utils";
 
 export type ListenMode = "notify" | "poll" | "both";
 

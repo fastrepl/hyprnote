@@ -3,9 +3,21 @@ use std::path::{Path, PathBuf};
 pub const CONTENT_BASE_PATH_KEY: &str = "base_path";
 const CONTENT_BASE_ENV_VAR: &str = "CONTENT_BASE";
 
-pub fn resolve_custom(settings_path: &Path) -> Option<PathBuf> {
+fn expand_path(path: &str, default_base: Option<&Path>) -> PathBuf {
+    let home_dir = || dirs::home_dir().map(|p| p.to_string_lossy().into_owned());
+    let context = |var: &str| -> Option<String> {
+        if var == "DEFAULT" {
+            return default_base.map(|p| p.to_string_lossy().into_owned());
+        }
+        std::env::var(var).ok()
+    };
+    let expanded = shellexpand::full_with_context_no_errors(path, home_dir, context);
+    PathBuf::from(expanded.into_owned())
+}
+
+pub fn resolve_custom(settings_path: &Path, default_base: &Path) -> Option<PathBuf> {
     if let Some(path) = std::env::var(CONTENT_BASE_ENV_VAR).ok() {
-        let path = PathBuf::from(path);
+        let path = expand_path(&path, Some(default_base));
         if path.exists() || std::fs::create_dir_all(&path).is_ok() {
             return Some(path);
         }
@@ -15,8 +27,8 @@ pub fn resolve_custom(settings_path: &Path) -> Option<PathBuf> {
         if let Ok(settings) = serde_json::from_str::<serde_json::Value>(&content) {
             if let Some(custom_base) = settings.get(CONTENT_BASE_PATH_KEY).and_then(|v| v.as_str())
             {
-                let custom_path = PathBuf::from(custom_base);
-                if custom_path.exists() {
+                let custom_path = expand_path(custom_base, Some(default_base));
+                if custom_path.exists() || std::fs::create_dir_all(&custom_path).is_ok() {
                     return Some(custom_path);
                 }
             }
@@ -82,9 +94,10 @@ mod tests {
     fn resolve_custom_returns_none_when_no_sources() {
         let temp = tempdir().unwrap();
         let settings_path = temp.path().join("settings.json");
+        let default_base = temp.path().join("default");
 
         with_env(CONTENT_BASE_ENV_VAR, None, || {
-            assert!(resolve_custom(&settings_path).is_none());
+            assert!(resolve_custom(&settings_path, &default_base).is_none());
         });
     }
 
@@ -92,6 +105,7 @@ mod tests {
     fn resolve_custom_returns_env_var_path_when_exists() {
         let temp = tempdir().unwrap();
         let settings_path = temp.path().join("settings.json");
+        let default_base = temp.path().join("default");
         let env_path = temp.path().join("env_content");
         fs::create_dir_all(&env_path).unwrap();
 
@@ -99,7 +113,7 @@ mod tests {
             CONTENT_BASE_ENV_VAR,
             Some(env_path.to_str().unwrap()),
             || {
-                let result = resolve_custom(&settings_path);
+                let result = resolve_custom(&settings_path, &default_base);
                 assert_eq!(result, Some(env_path.clone()));
             },
         );
@@ -109,13 +123,14 @@ mod tests {
     fn resolve_custom_creates_env_var_path_if_missing() {
         let temp = tempdir().unwrap();
         let settings_path = temp.path().join("settings.json");
+        let default_base = temp.path().join("default");
         let env_path = temp.path().join("new_env_content");
 
         with_env(
             CONTENT_BASE_ENV_VAR,
             Some(env_path.to_str().unwrap()),
             || {
-                let result = resolve_custom(&settings_path);
+                let result = resolve_custom(&settings_path, &default_base);
                 assert_eq!(result, Some(env_path.clone()));
                 assert!(env_path.exists());
             },
@@ -126,6 +141,7 @@ mod tests {
     fn resolve_custom_reads_from_settings_file() {
         let temp = tempdir().unwrap();
         let settings_path = temp.path().join("settings.json");
+        let default_base = temp.path().join("default");
         let custom_path = temp.path().join("custom_content");
         fs::create_dir_all(&custom_path).unwrap();
 
@@ -133,7 +149,7 @@ mod tests {
         fs::write(&settings_path, settings.to_string()).unwrap();
 
         with_env(CONTENT_BASE_ENV_VAR, None, || {
-            let result = resolve_custom(&settings_path);
+            let result = resolve_custom(&settings_path, &default_base);
             assert_eq!(result, Some(custom_path.clone()));
         });
     }
@@ -142,6 +158,7 @@ mod tests {
     fn resolve_custom_env_var_takes_precedence() {
         let temp = tempdir().unwrap();
         let settings_path = temp.path().join("settings.json");
+        let default_base = temp.path().join("default");
         let env_path = temp.path().join("env_content");
         let file_path = temp.path().join("file_content");
         fs::create_dir_all(&env_path).unwrap();
@@ -154,24 +171,26 @@ mod tests {
             CONTENT_BASE_ENV_VAR,
             Some(env_path.to_str().unwrap()),
             || {
-                let result = resolve_custom(&settings_path);
+                let result = resolve_custom(&settings_path, &default_base);
                 assert_eq!(result, Some(env_path.clone()));
             },
         );
     }
 
     #[test]
-    fn resolve_custom_ignores_nonexistent_settings_path() {
+    fn resolve_custom_creates_settings_path_if_missing() {
         let temp = tempdir().unwrap();
         let settings_path = temp.path().join("settings.json");
+        let default_base = temp.path().join("default");
         let custom_path = temp.path().join("custom_content");
 
         let settings = serde_json::json!({ CONTENT_BASE_PATH_KEY: custom_path.to_string_lossy() });
         fs::write(&settings_path, settings.to_string()).unwrap();
 
         with_env(CONTENT_BASE_ENV_VAR, None, || {
-            let result = resolve_custom(&settings_path);
-            assert!(result.is_none());
+            let result = resolve_custom(&settings_path, &default_base);
+            assert_eq!(result, Some(custom_path.clone()));
+            assert!(custom_path.exists());
         });
     }
 

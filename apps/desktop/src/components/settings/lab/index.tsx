@@ -12,9 +12,9 @@ import {
 
 export function SettingsLab() {
   const { data: basePath } = useQuery({
-    queryKey: ["settings-base-path"],
+    queryKey: ["content-base-path"],
     queryFn: async () => {
-      const result = await settingsCommands.settingsBase();
+      const result = await settingsCommands.contentBase();
       if (result.status === "error") {
         throw new Error(result.error);
       }

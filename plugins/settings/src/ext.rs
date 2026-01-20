@@ -46,7 +46,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
     pub fn compute_content_base(&self) -> Result<PathBuf, crate::Error> {
         let default_base = self.default_base()?;
         let settings_path = self.settings_base()?;
-        let custom_base = content_base::resolve_custom(&settings_path);
+        let custom_base = content_base::resolve_custom(&settings_path, &default_base);
         Ok(custom_base.unwrap_or(default_base))
     }
 

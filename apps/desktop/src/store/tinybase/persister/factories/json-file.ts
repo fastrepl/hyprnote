@@ -100,7 +100,7 @@ async function saveContent<
   }
 
   try {
-    const baseResult = await settingsCommands.settingsBase();
+    const baseResult = await settingsCommands.contentBase();
     if (baseResult.status === "error") {
       throw new Error(baseResult.error);
     }
@@ -163,7 +163,7 @@ async function loadTableData(
   filename: string,
   label: string,
 ): Promise<Record<string, Record<string, unknown>> | undefined> {
-  const baseResult = await settingsCommands.settingsBase();
+  const baseResult = await settingsCommands.contentBase();
   if (baseResult.status === "error") {
     console.error(`[${label}] base error:`, baseResult.error);
     return undefined;

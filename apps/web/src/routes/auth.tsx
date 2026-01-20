@@ -21,6 +21,9 @@ const validateSearch = z.object({
 export const Route = createFileRoute("/auth")({
   validateSearch,
   component: Component,
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
   beforeLoad: async ({ search }) => {
     const user = await fetchUser();
 

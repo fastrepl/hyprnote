@@ -23,15 +23,20 @@ const config = defineConfig(() => ({
         crawlLinks: true,
         autoStaticPathsDiscovery: true,
         filter: ({ path }) => {
-          return (
-            path === "/" ||
-            path.startsWith("/blog") ||
-            path.startsWith("/docs") ||
-            path.startsWith("/changelog") ||
-            path.startsWith("/legal") ||
-            path.startsWith("/product") ||
-            path.startsWith("/pricing") ||
-            path === "/enterprise"
+          return !(
+            path.startsWith("/apps") ||
+            path.startsWith("/callback") ||
+            path.startsWith("/integrations") ||
+            path.startsWith("/k6-reports") ||
+            path.startsWith("/admin") ||
+            path.startsWith("/api") ||
+            path.startsWith("/webhook") ||
+            path.startsWith("/discord") ||
+            path.startsWith("/founders") ||
+            path.startsWith("/github") ||
+            path.startsWith("/linkedin") ||
+            path.startsWith("/x") ||
+            path.startsWith("/youtube")
           );
         },
       },

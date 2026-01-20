@@ -21,6 +21,9 @@ const validateSearch = z.object({
 export const Route = createFileRoute("/_view/callback/auth")({
   validateSearch,
   component: Component,
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
   beforeLoad: async ({ search }) => {
     if (search.flow === "web" && search.code) {
       const result = await exchangeOAuthCode({ data: { code: search.code } });

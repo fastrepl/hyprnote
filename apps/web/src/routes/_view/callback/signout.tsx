@@ -9,6 +9,9 @@ const validateSearch = z.object({
 
 export const Route = createFileRoute("/_view/callback/signout")({
   validateSearch,
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
   beforeLoad: async ({ search }) => {
     await signOutFn();
     throw redirect({ to: search.redirect || "/" });

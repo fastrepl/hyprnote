@@ -227,6 +227,72 @@ describe("syncEvents", () => {
     });
   });
 
+  describe("rescheduled events", () => {
+    test("updates event with non-empty session when rescheduled", () => {
+      const ctx = createMockCtx({
+        eventToSession: new Map([["event-1", "session-1"]]),
+        nonEmptySessions: new Set(["session-1"]),
+      });
+
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "new-track-1",
+            title: "Existing Event",
+            started_at: "2024-01-20T10:00:00Z",
+            ended_at: "2024-01-20T11:00:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "old-track-1",
+            title: "Existing Event",
+            started_at: "2024-01-15T10:00:00Z",
+            ended_at: "2024-01-15T11:00:00Z",
+          }),
+        ],
+      });
+
+      expect(result.toUpdate).toHaveLength(1);
+      expect(result.toUpdate[0].id).toBe("event-1");
+      expect(result.toUpdate[0].started_at).toBe("2024-01-20T10:00:00Z");
+      expect(result.toAdd).toHaveLength(0);
+      expect(result.toDelete).toHaveLength(0);
+    });
+
+    test("does not create duplicate when event with session is rescheduled", () => {
+      const ctx = createMockCtx({
+        eventToSession: new Map([["event-1", "session-1"]]),
+        nonEmptySessions: new Set(["session-1"]),
+      });
+
+      const result = syncEvents(ctx, {
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "new-track-1",
+            title: "Existing Event",
+            started_at: "2024-01-20T14:00:00Z",
+            ended_at: "2024-01-20T15:00:00Z",
+          }),
+        ],
+        existing: [
+          createExistingEvent({
+            id: "event-1",
+            tracking_id_event: "old-track-1",
+            title: "Existing Event",
+            started_at: "2024-01-15T10:00:00Z",
+            ended_at: "2024-01-15T11:00:00Z",
+          }),
+        ],
+      });
+
+      expect(result.toAdd).toHaveLength(0);
+      expect(result.toUpdate).toHaveLength(1);
+      expect(result.toDelete).toHaveLength(0);
+    });
+  });
+
   describe("disabled calendar cleanup", () => {
     test("preserves events with non-empty sessions when calendar disabled", () => {
       const ctx = createMockCtx({

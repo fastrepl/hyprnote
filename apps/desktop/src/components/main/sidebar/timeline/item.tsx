@@ -94,6 +94,45 @@ function ItemBase({
   );
 }
 
+function isSessionEmpty(
+  store: NonNullable<ReturnType<typeof main.UI.useStore>>,
+  sessionId: string,
+): boolean {
+  const session = store.getRow("sessions", sessionId);
+  if (!session) {
+    return true;
+  }
+
+  if (session.raw_md && String(session.raw_md).trim()) {
+    return false;
+  }
+
+  let hasEnhancedNotes = false;
+  store.forEachRow("enhanced_notes", (rowId, _forEachCell) => {
+    const note = store.getRow("enhanced_notes", rowId);
+    if (note?.session_id === sessionId) {
+      const content = note.content;
+      if (typeof content === "string" && content.trim()) {
+        hasEnhancedNotes = true;
+      }
+    }
+  });
+
+  if (hasEnhancedNotes) {
+    return false;
+  }
+
+  let hasTranscript = false;
+  store.forEachRow("transcripts", (rowId, _forEachCell) => {
+    const transcript = store.getRow("transcripts", rowId);
+    if (transcript?.session_id === sessionId) {
+      hasTranscript = true;
+    }
+  });
+
+  return !hasTranscript;
+}
+
 const EventItem = memo(
   ({
     item,
@@ -105,6 +144,7 @@ const EventItem = memo(
     selected: boolean;
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
+    const indexes = main.UI.useIndexes(main.STORE_ID);
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
 
@@ -161,53 +201,62 @@ const EventItem = memo(
       if (!store) {
         return;
       }
-      store.transaction(() => {
-        store.setPartialRow("events", eventId, { ignored: true });
-        if (attachedSessionId) {
+      store.setPartialRow("events", eventId, { ignored: true });
+      if (attachedSessionId) {
+        if (isSessionEmpty(store, attachedSessionId)) {
+          void deleteSessionCascade(store, indexes, attachedSessionId);
+        } else {
           store.setPartialRow("sessions", attachedSessionId, {
             event_id: undefined,
           });
         }
-      });
-    }, [store, eventId, attachedSessionId]);
+      }
+    }, [store, indexes, eventId, attachedSessionId]);
 
     const handleIgnoreSeries = useCallback(() => {
       if (!store || !recurrenceSeriesId) {
         return;
       }
-      store.transaction(() => {
-        const eventIdsInSeries: string[] = [];
-        store.forEachRow("events", (rowId, _forEachCell) => {
-          const event = store.getRow("events", rowId);
-          if (event?.recurrence_series_id === recurrenceSeriesId) {
-            store.setPartialRow("events", rowId, { ignored: true });
-            eventIdsInSeries.push(rowId);
-          }
-        });
 
-        store.forEachRow("sessions", (rowId, _forEachCell) => {
-          const session = store.getRow("sessions", rowId);
-          if (
-            session?.event_id &&
-            eventIdsInSeries.includes(session.event_id)
-          ) {
-            store.setPartialRow("sessions", rowId, { event_id: undefined });
-          }
-        });
-
-        const currentIgnored = store.getValue("ignored_recurring_series");
-        const ignoredList: string[] = currentIgnored
-          ? JSON.parse(String(currentIgnored))
-          : [];
-        if (!ignoredList.includes(recurrenceSeriesId)) {
-          ignoredList.push(recurrenceSeriesId);
-          store.setValue(
-            "ignored_recurring_series",
-            JSON.stringify(ignoredList),
-          );
+      const eventIdsInSeries: string[] = [];
+      store.forEachRow("events", (rowId, _forEachCell) => {
+        const event = store.getRow("events", rowId);
+        if (event?.recurrence_series_id === recurrenceSeriesId) {
+          store.setPartialRow("events", rowId, { ignored: true });
+          eventIdsInSeries.push(rowId);
         }
       });
-    }, [store, recurrenceSeriesId]);
+
+      const sessionsToDelete: string[] = [];
+      const sessionsToDetach: string[] = [];
+      store.forEachRow("sessions", (rowId, _forEachCell) => {
+        const session = store.getRow("sessions", rowId);
+        if (session?.event_id && eventIdsInSeries.includes(session.event_id)) {
+          if (isSessionEmpty(store, rowId)) {
+            sessionsToDelete.push(rowId);
+          } else {
+            sessionsToDetach.push(rowId);
+          }
+        }
+      });
+
+      for (const sessionId of sessionsToDetach) {
+        store.setPartialRow("sessions", sessionId, { event_id: undefined });
+      }
+
+      for (const sessionId of sessionsToDelete) {
+        void deleteSessionCascade(store, indexes, sessionId);
+      }
+
+      const currentIgnored = store.getValue("ignored_recurring_series");
+      const ignoredList: string[] = currentIgnored
+        ? JSON.parse(String(currentIgnored))
+        : [];
+      if (!ignoredList.includes(recurrenceSeriesId)) {
+        ignoredList.push(recurrenceSeriesId);
+        store.setValue("ignored_recurring_series", JSON.stringify(ignoredList));
+      }
+    }, [store, indexes, recurrenceSeriesId]);
 
     const contextMenu = useMemo(() => {
       const menu = [

@@ -1,6 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { AnimatedText } from "@/components/animated-text";
 import { AnimatedTitle } from "@/components/animated-title";
 import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
@@ -94,14 +95,17 @@ function JobDetailsSection() {
 
         <JobSection title="why">
           <p className="text-neutral-600 mb-4">
-            Hyprnote is product-led. Engineering execution is our
-            bottleneck—code quality depends too much on the founder. We need
-            someone to own quality across the stack and act as first-line
-            reviewer.
+            Hyprnote is product-led. Engineering execution is our bottleneck -
+            code quality depends too much on the founder. We need someone to own
+            quality across the stack and act as first-line reviewer.
           </p>
           <p className="text-neutral-600 mb-4">
             Some context: 38% week-5 retention, 30% WoW DAU growth, 9.2% web
-            conversion, 7.4k GitHub stars, 10% MoM MRR growth.
+            conversion, 7.4k GitHub stars, 10% MoM MRR growth - all organically.{" "}
+            <AnimatedText
+              text="We're not stopping here - this is just the start."
+              className="text-neutral-400"
+            />
           </p>
           <p className="text-neutral-600">
             Small team. High trust. Craft over hype.

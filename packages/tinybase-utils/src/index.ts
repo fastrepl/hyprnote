@@ -5,10 +5,7 @@ export {
   toContent,
 } from "./as-tables-changes";
 export { iterateTableRows } from "./iterate-table-rows";
-export type {
-  GenericTablesContent,
-  TableRowType,
-} from "./iterate-table-rows";
+export type { GenericTablesContent, TableRowType } from "./iterate-table-rows";
 export type {
   TablesInput,
   ChangedTables,

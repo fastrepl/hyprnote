@@ -105,11 +105,14 @@ const EventItem = memo(
     selected: boolean;
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
+    const indexes = main.UI.useIndexes(main.STORE_ID);
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
+    const invalidateResource = useTabs((state) => state.invalidateResource);
 
     const eventId = item.id;
 
+    const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
     const attachedSessionId = useMemo(() => {
       if (!store) {
         return undefined;
@@ -122,7 +125,22 @@ const EventItem = memo(
         }
       });
       return sessionId;
-    }, [store, eventId]);
+    }, [store, eventId, sessionIds]);
+
+    const attachedNoteIds = main.UI.useSliceRowIds(
+      main.INDEXES.enhancedNotesBySession,
+      attachedSessionId ?? "",
+      main.STORE_ID,
+    );
+    const rawMd = main.UI.useCell(
+      "sessions",
+      attachedSessionId ?? "",
+      "raw_md",
+      main.STORE_ID,
+    );
+    const hasRawContent = typeof rawMd === "string" && rawMd.trim().length > 0;
+    const hasNote =
+      attachedSessionId && (attachedNoteIds.length > 0 || hasRawContent);
 
     const sessionTitle = main.UI.useCell(
       "sessions",
@@ -157,13 +175,23 @@ const EventItem = memo(
     const handleClick = useCallback(() => openEvent(false), [openEvent]);
     const handleCmdClick = useCallback(() => openEvent(true), [openEvent]);
 
-    const handleIgnore = main.UI.useSetPartialRowCallback(
-      "events",
+    const handleIgnore = useCallback(() => {
+      if (!store) {
+        return;
+      }
+      store.setPartialRow("events", eventId, { ignored: true });
+      if (attachedSessionId && !hasNote) {
+        invalidateResource("sessions", attachedSessionId);
+        void deleteSessionCascade(store, indexes, attachedSessionId);
+      }
+    }, [
+      store,
       eventId,
-      () => ({ ignored: true }),
-      [],
-      main.STORE_ID,
-    );
+      attachedSessionId,
+      hasNote,
+      invalidateResource,
+      indexes,
+    ]);
 
     const handleIgnoreSeries = useCallback(() => {
       if (!store || !recurrenceSeriesId) {
@@ -191,7 +219,43 @@ const EventItem = memo(
       });
     }, [store, recurrenceSeriesId]);
 
+    const handleDelete = useCallback(() => {
+      if (!store || !attachedSessionId) {
+        return;
+      }
+      store.setPartialRow("events", eventId, { ignored: true });
+      invalidateResource("sessions", attachedSessionId);
+      void deleteSessionCascade(store, indexes, attachedSessionId);
+    }, [store, indexes, attachedSessionId, invalidateResource, eventId]);
+
+    const handleRevealInFinder = useCallback(async () => {
+      if (!attachedSessionId) {
+        return;
+      }
+      await save();
+      const result = await fsSyncCommands.sessionDir(attachedSessionId);
+      if (result.status === "ok") {
+        await openerCommands.revealItemInDir(result.data);
+      }
+    }, [attachedSessionId]);
+
     const contextMenu = useMemo(() => {
+      if (hasNote) {
+        return [
+          {
+            id: "open-new-tab",
+            text: "Open in new tab",
+            action: handleCmdClick,
+          },
+          {
+            id: "reveal",
+            text: "Reveal in Finder",
+            action: handleRevealInFinder,
+          },
+          { id: "delete", text: "Delete completely", action: handleDelete },
+        ];
+      }
+
       const menu = [
         { id: "ignore", text: "Ignore this event", action: handleIgnore },
       ];
@@ -203,7 +267,15 @@ const EventItem = memo(
         });
       }
       return menu;
-    }, [handleIgnore, handleIgnoreSeries, recurrenceSeriesId]);
+    }, [
+      hasNote,
+      handleCmdClick,
+      handleRevealInFinder,
+      handleDelete,
+      handleIgnore,
+      handleIgnoreSeries,
+      recurrenceSeriesId,
+    ]);
 
     return (
       <ItemBase

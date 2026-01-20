@@ -10,7 +10,10 @@ fn load_test_audio() -> Vec<f32> {
     let reader = WavReader::open(wav_path).expect("Failed to open WAV file");
     let spec = reader.spec();
 
-    assert_eq!(spec.sample_rate as usize, SAMPLE_RATE, "Expected 48kHz audio");
+    assert_eq!(
+        spec.sample_rate as usize, SAMPLE_RATE,
+        "Expected 48kHz audio"
+    );
 
     let samples: Vec<f32> = reader
         .into_samples::<i16>()

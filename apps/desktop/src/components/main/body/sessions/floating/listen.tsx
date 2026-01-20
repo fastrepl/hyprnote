@@ -1,11 +1,12 @@
 import { Icon } from "@iconify-icon/react";
 import { useMediaQuery } from "@uidotdev/usehooks";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
 import { useListener } from "../../../../../contexts/listener";
+import { useEventCountdown } from "../../../../../hooks/useEventCountdown";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import * as main from "../../../../../store/tinybase/store/main";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
@@ -187,58 +188,6 @@ type RemoteMeeting = {
   type: "zoom" | "google-meet" | "webex" | "teams";
   url: string;
 };
-
-function useEventCountdown(sessionId: string): string | null {
-  const eventId = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "event_id",
-    main.STORE_ID,
-  );
-  const startedAt = main.UI.useCell(
-    "events",
-    eventId ?? "",
-    "started_at",
-    main.STORE_ID,
-  );
-
-  const [countdown, setCountdown] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!startedAt) {
-      setCountdown(null);
-      return;
-    }
-
-    const eventStart = new Date(startedAt).getTime();
-
-    const updateCountdown = () => {
-      const now = Date.now();
-      const diff = eventStart - now;
-      const fiveMinutes = 5 * 60 * 1000;
-
-      if (diff <= 0 || diff > fiveMinutes) {
-        setCountdown(null);
-        return;
-      }
-
-      const totalSeconds = Math.floor(diff / 1000);
-      const mins = Math.floor(totalSeconds / 60);
-      const secs = totalSeconds % 60;
-      if (mins > 0) {
-        setCountdown(`meeting starts in ${mins} mins ${secs} seconds`);
-      } else {
-        setCountdown(`meeting starts in ${secs} seconds`);
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, [startedAt]);
-
-  return countdown;
-}
 
 function detectMeetingType(
   url: string,

@@ -30,7 +30,13 @@ const config = defineConfig(() => ({
             path.startsWith("/k6-reports") ||
             path.startsWith("/admin") ||
             path.startsWith("/api") ||
-            path.startsWith("/webhook")
+            path.startsWith("/webhook") ||
+            path.startsWith("/discord") ||
+            path.startsWith("/founders") ||
+            path.startsWith("/github") ||
+            path.startsWith("/linkedin") ||
+            path.startsWith("/x") ||
+            path.startsWith("/youtube")
           );
         },
       },

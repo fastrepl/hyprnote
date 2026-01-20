@@ -3,6 +3,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_view/k6-reports/$id")({
   component: Component,
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
 });
 
 interface K6Report {

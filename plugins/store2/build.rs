@@ -1,4 +1,5 @@
 const COMMANDS: &[&str] = &[
+    "save",
     "get_str",
     "set_str",
     "get_bool",

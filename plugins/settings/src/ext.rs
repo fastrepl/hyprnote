@@ -79,7 +79,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
             let _ = std::fs::remove_dir_all(&old_content_base);
         }
 
-        self.manager.app_handle().restart();
+        Ok(())
     }
 
     pub fn obsidian_vaults(&self) -> Result<Vec<ObsidianVault>, crate::Error> {

@@ -64,6 +64,7 @@
     "@hypr/plugin-pdf": "workspace:*",
     "@hypr/plugin-permissions": "workspace:*",
     "@hypr/plugin-settings": "workspace:*",
+    "@hypr/plugin-store2": "workspace:*",
     "@hypr/plugin-sfx": "workspace:*",
     "@hypr/plugin-tantivy": "workspace:*",
     "@hypr/plugin-template": "workspace:*",

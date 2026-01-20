@@ -1,14 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { open as selectFolder } from "@tauri-apps/plugin-dialog";
 import { FolderIcon } from "lucide-react";
 
 import { commands as settingsCommands } from "@hypr/plugin-settings";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
+
+import { relaunch } from "../../../store/tinybase/store/save";
 
 export function SettingsLab() {
   const { data: basePath } = useQuery({
@@ -19,6 +17,27 @@ export function SettingsLab() {
         throw new Error(result.error);
       }
       return result.data;
+    },
+  });
+
+  const changeContentFolderMutation = useMutation({
+    mutationFn: async () => {
+      const selected = await selectFolder({
+        directory: true,
+        defaultPath: basePath,
+        title: "Select Content Folder",
+      });
+
+      if (!selected) {
+        return;
+      }
+
+      const result = await settingsCommands.changeContentBase(selected);
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+
+      await relaunch();
     },
   });
 
@@ -35,14 +54,14 @@ export function SettingsLab() {
             Where Hyprnote stores your data locally.
           </p>
         </div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="sm" variant="outline" disabled>
-              Customize
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Coming soon</TooltipContent>
-        </Tooltip>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => changeContentFolderMutation.mutate()}
+          disabled={changeContentFolderMutation.isPending}
+        >
+          {changeContentFolderMutation.isPending ? "Changing..." : "Customize"}
+        </Button>
       </div>
       <div className="flex items-center gap-3 border border-neutral-200 rounded-lg px-4 py-3">
         <FolderIcon className="size-4 text-neutral-500 shrink-0" />

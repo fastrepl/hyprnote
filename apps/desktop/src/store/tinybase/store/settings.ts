@@ -145,7 +145,7 @@ export const StoreComponent = () => {
       return;
     }
 
-    return registerSaveHandler(async () => {
+    return registerSaveHandler("settings", async () => {
       await persister.save();
     });
   }, [persister]);

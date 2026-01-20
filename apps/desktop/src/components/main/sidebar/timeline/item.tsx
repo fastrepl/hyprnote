@@ -254,10 +254,11 @@ const SessionItem = memo(
       return event?.calendar_id ? String(event.calendar_id) : null;
     }, [store, item.data.event_id]);
 
-    const displayTime = useMemo(
-      () => formatDisplayTime(item.data.created_at, precision),
-      [item.data.created_at, precision],
-    );
+    const displayTime = useMemo(() => {
+      const data = item.data as { event_started_at?: string | null };
+      const timestamp = data.event_started_at ?? item.data.created_at;
+      return formatDisplayTime(timestamp, precision);
+    }, [item.data, precision]);
 
     const handleClick = useCallback(() => {
       openCurrent({ id: sessionId, type: "sessions" });

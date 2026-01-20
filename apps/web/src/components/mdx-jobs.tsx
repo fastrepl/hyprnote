@@ -252,7 +252,7 @@ export function Collapsible({
         <span>{title}</span>
         <ChevronDown className="size-4 text-neutral-400 group-open:rotate-180 transition-transform" />
       </summary>
-      <div className="px-4 pt-3 border-t border-neutral-200 text-neutral-600">
+      <div className="px-4 py-3 border-t border-neutral-200 text-neutral-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_ul]:list-disc [&_ul]:list-inside [&_ul]:space-y-1 [&_p]:mb-4 [&_ul+p]:mt-6 [&_p+p]:mt-4">
         {children}
       </div>
     </details>

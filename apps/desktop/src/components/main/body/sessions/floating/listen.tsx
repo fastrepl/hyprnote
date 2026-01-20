@@ -143,24 +143,49 @@ function ListenSplitButton({
 
 type RemoteMeeting = {
   type: "zoom" | "google-meet" | "webex" | "teams";
-  url: string | null;
+  url: string;
 };
+
+function detectMeetingType(url: string): RemoteMeeting["type"] | null {
+  const lowerUrl = url.toLowerCase();
+  if (lowerUrl.includes("zoom.us") || lowerUrl.includes("zoom.com")) {
+    return "zoom";
+  }
+  if (lowerUrl.includes("meet.google.com")) {
+    return "google-meet";
+  }
+  if (lowerUrl.includes("webex.com")) {
+    return "webex";
+  }
+  if (
+    lowerUrl.includes("teams.microsoft.com") ||
+    lowerUrl.includes("teams.live.com")
+  ) {
+    return "teams";
+  }
+  return null;
+}
 
 function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
   const eventId = main.UI.useRemoteRowId(
     main.RELATIONSHIPS.sessionToEvent,
     sessionId,
   );
-  const note = main.UI.useCell("events", eventId ?? "", "note", main.STORE_ID);
+  const meetingLink = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "meeting_link",
+    main.STORE_ID,
+  );
 
-  if (!note) {
+  if (!meetingLink) {
     return null;
   }
 
-  const remote = {
-    type: "google-meet",
-    url: null,
-  } as RemoteMeeting | null;
+  const type = detectMeetingType(meetingLink);
+  if (!type) {
+    return null;
+  }
 
-  return remote;
+  return { type, url: meetingLink };
 }

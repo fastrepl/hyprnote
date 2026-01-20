@@ -144,7 +144,11 @@ describe("extractChangedTables", () => {
           {
             users: [
               {
-                "user-1": [{ name: "Alice", email: "alice@example.com" }, "hlc-row1", "hash-row1"],
+                "user-1": [
+                  { name: "Alice", email: "alice@example.com" },
+                  "hlc-row1",
+                  "hash-row1",
+                ],
                 "user-2": [{ name: "Bob" }, "hlc-row2"],
               },
               "hlc-table",
@@ -159,7 +163,11 @@ describe("extractChangedTables", () => {
       const result = extractChangedTables(changes);
       expect(result).toEqual({
         users: {
-          "user-1": [{ name: "Alice", email: "alice@example.com" }, "hlc-row1", "hash-row1"],
+          "user-1": [
+            { name: "Alice", email: "alice@example.com" },
+            "hlc-row1",
+            "hash-row1",
+          ],
           "user-2": [{ name: "Bob" }, "hlc-row2"],
         },
       });
@@ -222,10 +230,7 @@ describe("extractChangedTables", () => {
     });
 
     test("handles Content format (without changes flag)", () => {
-      const content = [
-        { users: { "user-1": { name: "Alice" } } },
-        {},
-      ] as any;
+      const content = [{ users: { "user-1": { name: "Alice" } } }, {}] as any;
       const result = extractChangedTables(content);
       expect(result).toEqual({ users: { "user-1": { name: "Alice" } } });
     });

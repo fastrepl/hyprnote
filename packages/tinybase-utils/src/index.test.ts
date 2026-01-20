@@ -54,91 +54,6 @@ describe("extractChangedTables", () => {
     });
   });
 
-  describe("regular Changes format", () => {
-    test("extracts tables from regular Changes format", () => {
-      const changes = [
-        { users: { "user-1": { name: "Alice" } } },
-        {},
-        1,
-      ] as any;
-      const result = extractChangedTables(changes);
-      expect(result).toEqual({ users: { "user-1": { name: "Alice" } } });
-    });
-
-    test("handles multiple tables in regular Changes", () => {
-      const changes = [
-        {
-          users: { "user-1": { name: "Alice" } },
-          posts: { "post-1": { title: "Hello" } },
-        },
-        {},
-        1,
-      ] as any;
-      const result = extractChangedTables(changes);
-      expect(result).toEqual({
-        users: { "user-1": { name: "Alice" } },
-        posts: { "post-1": { title: "Hello" } },
-      });
-    });
-
-    test("handles empty tables object in regular Changes", () => {
-      const changes = [{}, {}, 1] as any;
-      const result = extractChangedTables(changes);
-      expect(result).toEqual({});
-    });
-  });
-
-  describe("MergeableChanges format", () => {
-    test("extracts tables from MergeableChanges format", () => {
-      const changes = [
-        [{ users: { "user-1": { name: "Alice" } } }, "hlc123"],
-        [{}, "hlc456"],
-        1,
-      ] as any;
-      const result = extractChangedTables(changes);
-      expect(result).toEqual({ users: { "user-1": { name: "Alice" } } });
-    });
-
-    test("unwraps stamped tables in MergeableChanges", () => {
-      const changes = [
-        [{ users: [{ "user-1": { name: "Alice" } }, "hlc", "hash"] }, "hlc123"],
-        [{}, "hlc456"],
-        1,
-      ] as any;
-      const result = extractChangedTables(changes);
-      expect(result).toEqual({ users: { "user-1": { name: "Alice" } } });
-    });
-
-    test("handles mixed stamped and non-stamped tables", () => {
-      const changes = [
-        [
-          {
-            users: [{ "user-1": { name: "Alice" } }, "hlc"],
-            posts: { "post-1": { title: "Hello" } },
-          },
-          "hlc123",
-        ],
-        [{}, "hlc456"],
-        1,
-      ] as any;
-      const result = extractChangedTables(changes);
-      expect(result).toEqual({
-        users: { "user-1": { name: "Alice" } },
-        posts: { "post-1": { title: "Hello" } },
-      });
-    });
-
-    test("handles undefined table values (deletions)", () => {
-      const changes = [
-        [{ users: undefined }, "hlc123"],
-        [{}, "hlc456"],
-        1,
-      ] as any;
-      const result = extractChangedTables(changes);
-      expect(result).toEqual({ users: undefined });
-    });
-  });
-
   describe("e2e: MergeableStore with persister", () => {
     let store: ReturnType<typeof createMergeableStore>;
     let saveFn: ReturnType<typeof vi.fn>;
@@ -839,5 +754,97 @@ describe("iterateTableRows", () => {
     }));
 
     expect(result).toEqual(expectedOrder);
+  });
+
+  test("overwrites pre-existing id field with row key", () => {
+    const tables: GenericTablesContent = {
+      items: {
+        "item-1": {
+          id: "original-id-value",
+          name: "Item 1",
+        },
+      },
+    };
+
+    const result = iterateTableRows(tables, "items");
+
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("item-1");
+    expect(result[0]).toEqual({
+      id: "item-1",
+      name: "Item 1",
+    });
+  });
+
+  test("handles empty row objects", () => {
+    const tables: GenericTablesContent = {
+      items: {
+        "item-1": {},
+        "item-2": { name: "Has Data" },
+      },
+    };
+
+    const result = iterateTableRows(tables, "items");
+
+    expect(result).toHaveLength(2);
+    expect(result.find((r) => r.id === "item-1")).toEqual({ id: "item-1" });
+    expect(result.find((r) => r.id === "item-2")).toEqual({
+      id: "item-2",
+      name: "Has Data",
+    });
+  });
+
+  test("handles rows with null values for properties", () => {
+    const tables: GenericTablesContent = {
+      items: {
+        "item-1": { name: null, value: 123 },
+      },
+    } as any;
+
+    const result = iterateTableRows(tables, "items");
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      id: "item-1",
+      name: null,
+      value: 123,
+    });
+  });
+
+  test("handles single row table", () => {
+    const tables: GenericTablesContent = {
+      items: {
+        "only-item": { name: "Single" },
+      },
+    };
+
+    const result = iterateTableRows(tables, "items");
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      id: "only-item",
+      name: "Single",
+    });
+  });
+
+  test("handles row with many properties", () => {
+    const tables: GenericTablesContent = {
+      items: {
+        "item-1": {
+          prop1: "value1",
+          prop2: "value2",
+          prop3: "value3",
+          prop4: "value4",
+          prop5: "value5",
+          nested: { a: 1, b: 2 },
+        },
+      },
+    };
+
+    const result = iterateTableRows(tables, "items");
+
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("item-1");
+    expect(Object.keys(result[0])).toHaveLength(7);
   });
 });

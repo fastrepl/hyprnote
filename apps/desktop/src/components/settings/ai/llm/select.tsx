@@ -1,7 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useMemo } from "react";
 
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import {
   Select,
   SelectContent,
@@ -79,12 +78,6 @@ export function SelectProviderAndModel() {
     onSubmit: ({ value }) => {
       handleSelectProvider(value.provider);
       handleSelectModel(value.model);
-      void analyticsCommands.setProperties({
-        set: {
-          current_llm_provider: value.provider || null,
-          current_llm_model: value.model || null,
-        },
-      });
     },
   });
 

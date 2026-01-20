@@ -4,7 +4,6 @@ import { arch } from "@tauri-apps/plugin-os";
 import { Check, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 import type { AIProviderStorage } from "@hypr/store";
@@ -105,12 +104,6 @@ export function SelectProviderAndModel() {
     onSubmit: ({ value }) => {
       handleSelectProvider(value.provider);
       handleSelectModel(value.model);
-      void analyticsCommands.setProperties({
-        set: {
-          current_stt_provider: value.provider || null,
-          current_stt_model: value.model || null,
-        },
-      });
     },
   });
 

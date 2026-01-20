@@ -137,7 +137,6 @@ export function SettingsGeneral({
       void analyticsCommands.setProperties({
         set: {
           telemetry_opt_out: value.telemetry_consent === false,
-          spoken_languages: value.spoken_languages ?? [],
         },
       });
     },

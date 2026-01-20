@@ -1,6 +1,6 @@
 import { Icon } from "@iconify-icon/react";
 import { useMediaQuery } from "@uidotdev/usehooks";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
@@ -97,6 +97,7 @@ function ListenSplitButton({
   sessionId: string;
 }) {
   const openNew = useTabs((state) => state.openNew);
+  const countdown = useEventCountdown(sessionId);
 
   const handleAction = useCallback(() => {
     onPrimaryClick();
@@ -104,7 +105,7 @@ function ListenSplitButton({
   }, [onPrimaryClick, openNew]);
 
   return (
-    <div className="flex flex-col items-start gap-2">
+    <div className="flex flex-col items-center gap-1">
       <div className="relative flex items-center">
         <FloatingButton
           onClick={onPrimaryClick}
@@ -137,6 +138,7 @@ function ListenSplitButton({
           onConfigure={handleAction}
         />
       </div>
+      {countdown && <div className="text-xs text-neutral-500">{countdown}</div>}
     </div>
   );
 }
@@ -145,6 +147,52 @@ type RemoteMeeting = {
   type: "zoom" | "google-meet" | "webex" | "teams";
   url: string;
 };
+
+function useEventCountdown(sessionId: string): string | null {
+  const eventId = main.UI.useRemoteRowId(
+    main.RELATIONSHIPS.sessionToEvent,
+    sessionId,
+  );
+  const startedAt = main.UI.useCell(
+    "events",
+    eventId ?? "",
+    "started_at",
+    main.STORE_ID,
+  );
+
+  const [countdown, setCountdown] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!startedAt) {
+      setCountdown(null);
+      return;
+    }
+
+    const eventStart = new Date(startedAt).getTime();
+
+    const updateCountdown = () => {
+      const now = Date.now();
+      const diff = eventStart - now;
+      const fiveMinutes = 5 * 60 * 1000;
+
+      if (diff <= 0 || diff > fiveMinutes) {
+        setCountdown(null);
+        return;
+      }
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      setCountdown(`meeting starts in ${mins} mins ${secs} seconds`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [startedAt]);
+
+  return countdown;
+}
 
 function detectMeetingType(url: string): RemoteMeeting["type"] | null {
   const lowerUrl = url.toLowerCase();

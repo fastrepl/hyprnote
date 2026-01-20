@@ -31,7 +31,7 @@ export function MetadataButton({ sessionId }: { sessionId: string }) {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[340px] shadow-lg p-0 max-h-[80vh] flex flex-col rounded-lg"
+        className="w-85 shadow-lg p-0 max-h-[80vh] flex flex-col rounded-lg"
       >
         <ContentInner sessionId={sessionId} />
       </PopoverContent>
@@ -67,7 +67,7 @@ const TriggerInner = forwardRef<
       className={cn([
         "text-neutral-600 hover:text-black",
         open && "bg-neutral-100",
-        hasEvent && "max-w-[200px]",
+        hasEvent && "max-w-50",
       ])}
     >
       {hasEvent && event?.meetingLink ? (

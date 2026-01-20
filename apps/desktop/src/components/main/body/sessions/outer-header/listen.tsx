@@ -159,7 +159,7 @@ function StartButton({ sessionId }: { sessionId: string }) {
       title={warningMessage || "Start listening"}
       aria-label="Start listening"
     >
-      <RecordingIcon disabled={true} />
+      <RecordingIcon />
       <span className="text-neutral-900 hover:text-neutral-800">
         Start listening
       </span>

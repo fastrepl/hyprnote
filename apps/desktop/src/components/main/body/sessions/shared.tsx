@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../contexts/listener";
 import { useNetwork } from "../../../../contexts/network";
@@ -53,18 +52,8 @@ export function useCurrentNoteTab(
   }, [tab.state.view, isListenerActive, firstEnhancedNoteId]);
 }
 
-export function RecordingIcon({ disabled }: { disabled?: boolean }) {
-  return (
-    <div className="relative size-2">
-      <div className="absolute inset-0 rounded-full bg-red-600"></div>
-      <div
-        className={cn([
-          "absolute inset-0 rounded-full bg-red-300",
-          disabled ? "bg-red-600" : "animate-ping",
-        ])}
-      ></div>
-    </div>
-  );
+export function RecordingIcon() {
+  return <div className="size-2 rounded-full bg-red-500" />;
 }
 
 export function useListenButtonState(sessionId: string) {
@@ -128,7 +117,7 @@ export function ActionableTooltipContent({
         <Button
           size="sm"
           variant="outline"
-          className="text-black rounded-[6px]"
+          className="text-black rounded-md"
           onClick={action.handleClick}
         >
           {action.label}

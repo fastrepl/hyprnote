@@ -41,19 +41,19 @@ pub fn session_supervisor_name(session_id: &str) -> String {
 fn make_supervisor_options() -> SupervisorOptions {
     SupervisorOptions {
         strategy: SupervisorStrategy::RestForOne,
-        max_restarts: 3,
-        max_window: Duration::from_secs(15),
-        reset_after: Some(Duration::from_secs(30)),
+        max_restarts: 15,
+        max_window: Duration::from_secs(90),
+        reset_after: Some(Duration::from_secs(45)),
     }
 }
 
 fn make_listener_backoff() -> ChildBackoffFn {
-    ChildBackoffFn::new(|_id, count, _, _| {
-        if count == 0 {
-            None
-        } else {
-            Some(Duration::from_millis(500))
-        }
+    ChildBackoffFn::new(|_id, count, _, _| match count {
+        0 => None,
+        1 => Some(Duration::from_secs(1)),
+        2..=4 => Some(Duration::from_secs(3)),
+        5..=9 => Some(Duration::from_secs(7)),
+        _ => Some(Duration::from_secs(15)),
     })
 }
 

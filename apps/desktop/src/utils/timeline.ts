@@ -195,7 +195,10 @@ export function buildTimelineBuckets({
         return;
       }
 
-      if (!isPast(eventStartTime)) {
+      const eventEndTime = safeParseDate((row as unknown as Event).ended_at);
+      const timeToCheck = eventEndTime || eventStartTime;
+
+      if (!isPast(timeToCheck)) {
         items.push({
           type: "event",
           id: eventId,

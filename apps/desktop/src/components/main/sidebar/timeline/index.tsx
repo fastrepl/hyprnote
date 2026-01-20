@@ -264,6 +264,7 @@ function TodayBucket({
 }
 
 function useTimelineData(): TimelineBucket[] {
+  const currentTimeMs = useCurrentTimeMs();
   const eventsWithoutSessionTable = main.UI.useResultTable(
     main.QUERIES.eventsWithoutSession,
     main.STORE_ID,
@@ -279,7 +280,7 @@ function useTimelineData(): TimelineBucket[] {
         eventsWithoutSessionTable,
         sessionsWithMaybeEventTable,
       }),
-    [eventsWithoutSessionTable, sessionsWithMaybeEventTable],
+    [eventsWithoutSessionTable, sessionsWithMaybeEventTable, currentTimeMs],
   );
 }
 

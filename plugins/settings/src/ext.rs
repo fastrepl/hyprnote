@@ -34,6 +34,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
         self.default_base()
     }
 
+    pub fn settings_path(&self) -> Result<PathBuf, crate::Error> {
+        let base = self.settings_base()?;
+        Ok(base.join(FILENAME))
+    }
+
     pub fn content_base(&self) -> Result<PathBuf, crate::Error> {
         let state = self.manager.try_state::<crate::state::State>();
         if let Some(state) = state {
@@ -79,11 +84,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
 
     pub fn obsidian_vaults(&self) -> Result<Vec<ObsidianVault>, crate::Error> {
         crate::obsidian::load_vaults()
-    }
-
-    pub fn path(&self) -> Result<PathBuf, crate::Error> {
-        let base = self.settings_base()?;
-        Ok(base.join(FILENAME))
     }
 
     pub async fn load(&self) -> crate::Result<serde_json::Value> {

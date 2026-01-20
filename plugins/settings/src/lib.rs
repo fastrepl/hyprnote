@@ -19,13 +19,13 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::settings_path::<tauri::Wry>,
             commands::settings_base::<tauri::Wry>,
             commands::content_base::<tauri::Wry>,
             commands::change_content_base::<tauri::Wry>,
-            commands::obsidian_vaults::<tauri::Wry>,
-            commands::path::<tauri::Wry>,
             commands::load::<tauri::Wry>,
             commands::save::<tauri::Wry>,
+            commands::obsidian_vaults::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

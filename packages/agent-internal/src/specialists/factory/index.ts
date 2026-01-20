@@ -151,6 +151,5 @@ export function createSpecialist(config: SpecialistConfig) {
 
   return workflow.compile({
     checkpointer: config.checkpointer,
-    recursionLimit: 50,
   });
 }

@@ -16,6 +16,15 @@ pub(crate) async fn settings_base<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) fn settings_path<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
+    app.settings()
+        .settings_path()
+        .map(|p| p.to_string_lossy().to_string())
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn content_base<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<String, String> {
@@ -43,15 +52,6 @@ pub(crate) fn obsidian_vaults<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<ObsidianVault>, String> {
     app.settings().obsidian_vaults().map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub(crate) fn path<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
-    app.settings()
-        .path()
-        .map(|p| p.to_string_lossy().to_string())
-        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

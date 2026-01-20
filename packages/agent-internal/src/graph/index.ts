@@ -45,7 +45,6 @@ const workflow = new StateGraph(AgentState)
 
 export const graph = workflow.compile({
   checkpointer,
-  recursionLimit: 50,
 });
 
 export type CompiledAgentGraph = typeof graph;

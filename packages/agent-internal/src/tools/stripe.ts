@@ -7,7 +7,7 @@ import { stripeSpecialist } from "../specialists/stripe";
 export const stripeTool = tool(
   async ({ request }: { request: string }, config: LangGraphRunnableConfig) => {
     config.writer?.({ type: "subgraph", name: "stripe", task: request });
-    return stripeSpecialist.invoke(request);
+    return stripeSpecialist.invoke({ request });
   },
   {
     name: "stripe",

@@ -7,7 +7,7 @@ import { loopsSpecialist } from "../specialists/loops";
 export const loopsTool = tool(
   async ({ request }: { request: string }, config: LangGraphRunnableConfig) => {
     config.writer?.({ type: "subgraph", name: "loops", task: request });
-    return loopsSpecialist.invoke(request);
+    return loopsSpecialist.invoke({ request });
   },
   {
     name: "loops",

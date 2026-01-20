@@ -7,7 +7,7 @@ import { supabaseSpecialist } from "../specialists/supabase";
 export const supabaseTool = tool(
   async ({ request }: { request: string }, config: LangGraphRunnableConfig) => {
     config.writer?.({ type: "subgraph", name: "supabase", task: request });
-    return supabaseSpecialist.invoke(request);
+    return supabaseSpecialist.invoke({ request });
   },
   {
     name: "supabase",

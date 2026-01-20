@@ -66,7 +66,7 @@ function buildAgentState(
 
   return {
     messages: [new HumanMessage(request)],
-    images: getImages({ images: rawImages }),
+    images: getImages({ request: "", images: rawImages }),
     output: "",
   };
 }
@@ -137,6 +137,8 @@ export async function handleAgentMessage(
     const initialState = buildAgentState(text, referencedMessages);
 
     let finalState: AgentStreamState = {};
+    const progressItems: Array<{ name: string; task: string }> = [];
+    let progressMessageTs: string | undefined;
 
     for await (const chunk of await agent.stream(initialState, {
       runId,
@@ -153,13 +155,25 @@ export async function handleAgentMessage(
       if (mode === "custom") {
         const customData = data as { type: string; name: string; task: string };
         if (customData.type === "subgraph") {
-          await say({
-            thread_ts: eventTs,
-            blocks: ProgressBlock({
-              name: customData.name,
-              task: customData.task,
-            }),
-          });
+          progressItems.push({ name: customData.name, task: customData.task });
+
+          const blocks = progressItems
+            .map((item) => ProgressBlock({ name: item.name, task: item.task }))
+            .flat();
+
+          if (progressMessageTs) {
+            await client.chat.update({
+              channel,
+              ts: progressMessageTs,
+              blocks,
+            });
+          } else {
+            const result = await say({
+              thread_ts: eventTs,
+              blocks,
+            });
+            progressMessageTs = result.ts;
+          }
         }
       } else if (mode === "values") {
         finalState = data as AgentStreamState;

@@ -7,7 +7,6 @@ import { stripeTool } from "./stripe";
 import { supabaseTool } from "./supabase";
 
 export const tools: StructuredToolInterface[] = [
-  executeCodeTool,
   loopsTool,
   readUrlTool,
   stripeTool,

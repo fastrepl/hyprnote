@@ -20,6 +20,16 @@ describe("extractChangedTables", () => {
     test("returns null for null", () => {
       expect(extractChangedTables(null as any)).toBeNull();
     });
+
+    test("returns null for empty inner array (malformed MergeableChanges)", () => {
+      const malformed = [[], [{}, "hlc"], 1] as any;
+      expect(extractChangedTables(malformed)).toBeNull();
+    });
+
+    test("returns null for array as first element (not valid ChangedTables)", () => {
+      const malformed = [["not", "valid"], {}, 1] as any;
+      expect(extractChangedTables(malformed)).toBeNull();
+    });
   });
 
   describe("e2e: MergeableStore with persister", () => {

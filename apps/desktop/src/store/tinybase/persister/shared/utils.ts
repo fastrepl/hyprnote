@@ -63,7 +63,12 @@ export function extractChangedTables<Schemas extends OptionalSchemas>(
   }
 
   // Regular Changes: [changedTables, changedValues, 1]
-  if (tablesOrStamp && typeof tablesOrStamp === "object") {
+  // Exclude arrays - they would be MergeableChanges format handled above.
+  if (
+    tablesOrStamp &&
+    typeof tablesOrStamp === "object" &&
+    !Array.isArray(tablesOrStamp)
+  ) {
     return tablesOrStamp as ChangedTables;
   }
 

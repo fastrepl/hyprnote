@@ -46,9 +46,20 @@ export function extractChangedTables<Schemas extends OptionalSchemas>(
     return null;
   }
 
-  const tables = changes[0];
-  if (tables && typeof tables === "object") {
-    return tables as ChangedTables;
+  const tablesOrStamp = changes[0];
+
+  // MergeableChanges: [[changedTables, hlc?], [changedValues, hlc?], 1]
+  if (Array.isArray(tablesOrStamp) && tablesOrStamp.length >= 1) {
+    const tables = tablesOrStamp[0];
+    if (tables && typeof tables === "object") {
+      return tables as ChangedTables;
+    }
+    return null;
+  }
+
+  // Regular Changes: [changedTables, changedValues, 1]
+  if (tablesOrStamp && typeof tablesOrStamp === "object") {
+    return tablesOrStamp as ChangedTables;
   }
 
   return null;

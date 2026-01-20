@@ -86,6 +86,73 @@ describe("extractChangedTables", () => {
     });
   });
 
+  describe("MergeableChanges format: [[changedTables, hlc?], [changedValues, hlc?], 1]", () => {
+    test("extracts changed tables from mergeable changes", () => {
+      const changes = [
+        [{ sessions: { "session-1": { title: "Test" } } }, "hlc123"],
+        [{}, "hlc456"],
+        1,
+      ] as any;
+
+      const result = extractChangedTables(changes);
+
+      expect(result).toEqual({
+        sessions: { "session-1": { title: "Test" } },
+      });
+    });
+
+    test("handles mergeable changes without hlc", () => {
+      const changes = [
+        [{ sessions: { "session-1": { title: "Test" } } }],
+        [{}],
+        1,
+      ] as any;
+
+      const result = extractChangedTables(changes);
+
+      expect(result).toEqual({
+        sessions: { "session-1": { title: "Test" } },
+      });
+    });
+
+    test("handles multiple tables in mergeable changes", () => {
+      const changes = [
+        [
+          {
+            sessions: { "session-1": { title: "Test" } },
+            humans: { "human-1": { name: "John" } },
+          },
+          "hlc123",
+        ],
+        [{}, "hlc456"],
+        1,
+      ] as any;
+
+      const result = extractChangedTables(changes);
+
+      expect(result).toEqual({
+        sessions: { "session-1": { title: "Test" } },
+        humans: { "human-1": { name: "John" } },
+      });
+    });
+
+    test("handles empty tables in mergeable changes", () => {
+      const changes = [[{}, "hlc123"], [{}, "hlc456"], 1] as any;
+
+      const result = extractChangedTables(changes);
+
+      expect(result).toEqual({});
+    });
+
+    test("handles empty inner array (falls through to regular changes)", () => {
+      const changes = [[], [{}, "hlc"], 1] as any;
+
+      const result = extractChangedTables(changes);
+
+      expect(result).toEqual([]);
+    });
+  });
+
   describe("edge cases", () => {
     test("handles single element array", () => {
       const changes = [{ sessions: { "s-1": { title: "T" } } }] as any;

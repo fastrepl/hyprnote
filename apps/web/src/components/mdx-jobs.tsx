@@ -63,6 +63,12 @@ const TOOL_CONFIG: Record<
   figma: { icon: "logos:figma" },
   slack: { icon: "logos:slack-icon" },
   github: { icon: "logos:github-icon" },
+  hyprnote: {
+    image: {
+      src: "/api/images/hyprnote/icon.png",
+      className: "size-5 -mx-0.5 mb-0.5 rounded",
+    },
+  },
 };
 
 const TOOL_NAMES: Record<string, string> = {
@@ -78,6 +84,7 @@ const TOOL_NAMES: Record<string, string> = {
   figma: "Figma",
   slack: "Slack",
   github: "GitHub",
+  hyprnote: "Hyprnote",
 };
 
 function ToolWithIcon({ tool }: { tool: string }) {
@@ -183,6 +190,42 @@ export function AnimatedJobText({
   return <AnimatedText text={text} className={className} />;
 }
 
+export function GitHubMention({ username }: { username: string }) {
+  const avatarUrl = `https://github.com/${username}.png?size=48`;
+  const profileUrl = `https://github.com/${username}`;
+
+  return (
+    <a
+      href={profileUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={[
+        "inline-flex items-center gap-1 align-middle",
+        "font-semibold text-inherit",
+        "underline underline-offset-2 decoration-neutral-400",
+        "hover:decoration-neutral-600 transition-colors",
+      ].join(" ")}
+    >
+      <img
+        src={avatarUrl}
+        alt={username}
+        className="size-5 rounded-full no-underline"
+      />
+      @{username}
+    </a>
+  );
+}
+
+export function HyprnoteIcon() {
+  return (
+    <img
+      src="/api/images/hyprnote/icon.png"
+      alt="Hyprnote"
+      className="inline-block align-middle size-5 -mx-0.5 mb-0.5 rounded"
+    />
+  );
+}
+
 export const jobsMdxComponents = {
   ToolIcon,
   ToolImage,
@@ -191,4 +234,6 @@ export const jobsMdxComponents = {
   AIToolStack,
   GitToolStack,
   AnimatedJobText,
+  GitHubMention,
+  HyprnoteIcon,
 };

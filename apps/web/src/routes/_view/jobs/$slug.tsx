@@ -51,6 +51,13 @@ function JobPage() {
   );
 }
 
+function getApplyUrl(job: (typeof allJobs)[0]) {
+  return (
+    job.applyUrl ||
+    `mailto:founders@hyprnote.com?subject=Application for ${job.title}`
+  );
+}
+
 function HeroSection({ job }: { job: (typeof allJobs)[0] }) {
   return (
     <div className="relative overflow-hidden">
@@ -79,7 +86,7 @@ function HeroSection({ job }: { job: (typeof allJobs)[0] }) {
             full-time, remote
           </p>
           <a
-            href={`mailto:founders@hyprnote.com?subject=Application for ${job.title}`}
+            href={getApplyUrl(job)}
             className="px-6 h-10 inline-flex items-center justify-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >
             Apply now
@@ -92,14 +99,19 @@ function HeroSection({ job }: { job: (typeof allJobs)[0] }) {
 
 function JobDetailsSection({ job }: { job: (typeof allJobs)[0] }) {
   return (
-    <div className="px-6 pb-16 lg:pb-24">
-      <div className="max-w-2xl mx-auto">
+    <div className="px-4 pb-16 lg:pb-24">
+      <div className="max-w-3xl mx-auto">
         <MDXContent
           code={job.mdx}
           components={{
             a: MDXLink,
             h2: ({ children }) => (
-              <h3 className="text-lg font-serif tracking-widest uppercase text-neutral-400 mb-6 mt-12 first:mt-0">
+              <h2 className="text-lg font-serif tracking-widest uppercase text-neutral-400 mb-6 mt-12 first:mt-0">
+                {children}
+              </h2>
+            ),
+            h3: ({ children }) => (
+              <h3 className="text-base font-semibold text-neutral-700 mt-6 mb-2">
                 {children}
               </h3>
             ),
@@ -110,6 +122,11 @@ function JobDetailsSection({ job }: { job: (typeof allJobs)[0] }) {
               <ul className="list-disc list-inside space-y-2 text-neutral-600">
                 {children}
               </ul>
+            ),
+            ol: ({ children }) => (
+              <ol className="list-decimal list-inside space-y-2 text-neutral-600">
+                {children}
+              </ol>
             ),
             li: ({ children }) => <li>{children}</li>,
             ...jobsMdxComponents,
@@ -139,7 +156,7 @@ function CTASection({ job }: { job: (typeof allJobs)[0] }) {
         </p>
         <div className="pt-6">
           <a
-            href={`mailto:founders@hyprnote.com?subject=Application for ${job.title}`}
+            href={getApplyUrl(job)}
             className="px-6 h-12 flex items-center justify-center text-base sm:text-lg bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >
             Apply now

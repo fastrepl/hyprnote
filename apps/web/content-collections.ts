@@ -692,6 +692,7 @@ const jobs = defineCollection({
     description: z.string(),
     cardDescription: z.string(),
     backgroundImage: z.string(),
+    applyUrl: z.string().optional(),
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {

@@ -434,6 +434,260 @@ describe("extractChangedTables", () => {
         expect(capturedChangedTables!.sessions).toHaveProperty("s1");
       });
     });
+
+    describe("bulk operations", () => {
+      test("setRow operation", async () => {
+        store.setRow("sessions", "session-1", {
+          title: "Meeting",
+          raw_md: "# Notes",
+          created_at: "2024-01-01",
+        });
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+
+        expect(capturedChangedTables).toEqual({
+          sessions: { "session-1": expect.any(Object) },
+        });
+      });
+
+      test("setTable operation replacing entire table", async () => {
+        store.setCell("sessions", "old-session", "title", "Old");
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalledTimes(1));
+        saveFn.mockClear();
+
+        store.setTable("sessions", {
+          "new-1": { title: "New 1" },
+          "new-2": { title: "New 2" },
+        });
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(capturedChangedTables).toHaveProperty("sessions");
+      });
+
+      test("setTables operation with multiple tables", async () => {
+        store.setCell("sessions", "old", "title", "Old");
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalledTimes(1));
+        saveFn.mockClear();
+
+        store.setTables({
+          sessions: { s1: { title: "Session 1" } },
+          humans: { h1: { name: "Alice" } },
+          transcripts: { t1: { content: "Text" } },
+        });
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(capturedChangedTables).toBeDefined();
+      });
+    });
+
+    describe("performance and scale", () => {
+      test("rapid sequential operations on same cell", async () => {
+        store.setCell("sessions", "s1", "title", "V1");
+        store.setCell("sessions", "s1", "title", "V2");
+        store.setCell("sessions", "s1", "title", "V3");
+        store.setCell("sessions", "s1", "title", "V4");
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(capturedChangedTables!.sessions).toHaveProperty("s1");
+      });
+
+      test("large number of rows in single table", async () => {
+        store.transaction(() => {
+          for (let i = 0; i < 100; i++) {
+            store.setCell("sessions", `session-${i}`, "title", `Session ${i}`);
+          }
+        });
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(Object.keys(capturedChangedTables!.sessions || {})).toHaveLength(
+          100,
+        );
+      });
+
+      test("large number of tables", async () => {
+        store.transaction(() => {
+          for (let i = 0; i < 50; i++) {
+            store.setCell(`table${i}`, "row1", "col1", `value${i}`);
+          }
+        });
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(Object.keys(capturedChangedTables || {})).toHaveLength(50);
+      });
+    });
+
+    describe("values store operations", () => {
+      test("setValue with table changes", async () => {
+        store.transaction(() => {
+          store.setCell("sessions", "s1", "title", "Session");
+          store.setValue("app_version", "1.0.0");
+          store.setValue("theme", "dark");
+        });
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(capturedChangedTables).toEqual({
+          sessions: { s1: expect.any(Object) },
+        });
+      });
+
+      test("setValue without table changes returns null for tables", async () => {
+        store.setValue("setting", "value");
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(
+          capturedChangedTables === null ||
+            Object.keys(capturedChangedTables).length === 0,
+        ).toBe(true);
+      });
+
+      test("delValue operation", async () => {
+        store.setValue("temp", "value");
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalledTimes(1));
+        saveFn.mockClear();
+
+        store.delValue("temp");
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(
+          capturedChangedTables === null ||
+            Object.keys(capturedChangedTables).length === 0,
+        ).toBe(true);
+      });
+
+      test("mixed table and value changes in transaction", async () => {
+        store.transaction(() => {
+          store.setCell("sessions", "s1", "title", "Meeting");
+          store.setValue("last_sync", "2024-01-01");
+          store.setCell("humans", "h1", "name", "Alice");
+          store.setValue("app_version", "2.0.0");
+        });
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(capturedChangedTables).toHaveProperty("sessions");
+        expect(capturedChangedTables).toHaveProperty("humans");
+      });
+    });
+
+    describe("format handling", () => {
+      test("handles table with numeric string keys", async () => {
+        store.transaction(() => {
+          store.setRow("0", "row1", { value: "table0" });
+          store.setRow("1", "row1", { value: "table1" });
+        });
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(capturedChangedTables).toBeDefined();
+        expect(capturedChangedTables!["0"]).toHaveProperty("row1");
+        expect(capturedChangedTables!["1"]).toHaveProperty("row1");
+      });
+
+      test("handles multiple rapid transactions", async () => {
+        const allChanges: (ChangedTables | null)[] = [];
+
+        for (let i = 0; i < 5; i++) {
+          store.setRow("users", `user${i}`, { name: `User${i}` });
+          await vi.waitFor(() => expect(saveFn).toHaveBeenCalledTimes(i + 1));
+          allChanges.push(capturedChangedTables);
+        }
+
+        for (const change of allChanges) {
+          expect(change).toBeDefined();
+          expect(change).toHaveProperty("users");
+        }
+      });
+
+      test("handles transaction with additions, updates, and deletions", async () => {
+        store.transaction(() => {
+          store.setCell("users", "user1", "name", "Alice");
+          store.setCell("users", "user1", "age", 30);
+          store.setCell("users", "user2", "name", "Bob");
+          store.setCell("users", "user3", "name", "Charlie");
+        });
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalledTimes(1));
+        saveFn.mockClear();
+
+        store.transaction(() => {
+          store.setRow("users", "user4", { name: "David", age: 40 });
+          store.setCell("users", "user1", "age", 31);
+          store.delRow("users", "user2");
+        });
+
+        await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
+        expect(capturedChangedTables).toBeDefined();
+        expect(capturedChangedTables!.users).toHaveProperty("user4");
+        expect(capturedChangedTables!.users).toHaveProperty("user1");
+        expect(capturedChangedTables!.users).toHaveProperty("user2");
+      });
+    });
+  });
+
+  describe("format detection", () => {
+    test("distinguishes between regular Changes and MergeableChanges format", () => {
+      const regularChanges = [
+        { users: { user1: { name: "Alice" } } },
+        {},
+        1,
+      ] as any;
+
+      const mergeableChanges = [
+        [{ users: { user1: { name: "Bob" } } }, "hlc"],
+        [{}, "hlc"],
+        1,
+      ] as any;
+
+      const result1 = extractChangedTables(regularChanges);
+      expect(result1).toEqual({ users: { user1: { name: "Alice" } } });
+
+      const result2 = extractChangedTables(mergeableChanges);
+      expect(result2).toEqual({ users: { user1: { name: "Bob" } } });
+    });
+
+    test("handles stamp array with only one element (no hlc/hash)", () => {
+      const changesWithoutHlc = [
+        [
+          {
+            users: [{ user1: { name: "Alice" } }],
+          },
+        ],
+        [{}],
+        1,
+      ] as any;
+
+      const result = extractChangedTables(changesWithoutHlc);
+      expect(result).toEqual({
+        users: { user1: { name: "Alice" } },
+      });
+    });
+
+    test("handles deeply nested stamped structure", () => {
+      const deeplyStamped = [
+        [
+          {
+            users: [
+              {
+                user1: [
+                  {
+                    name: ["Alice", "cellHlc", "cellHash"],
+                  },
+                  "rowHlc",
+                  "rowHash",
+                ],
+              },
+              "tableHlc",
+              "tableHash",
+            ],
+          },
+          "tablesHlc",
+          "tablesHash",
+        ],
+        [{}, "valuesHlc", "valuesHash"],
+        1,
+      ] as any;
+
+      const result = extractChangedTables(deeplyStamped);
+      expect(result).toBeDefined();
+      expect(result?.users).toBeDefined();
+    });
   });
 });
 

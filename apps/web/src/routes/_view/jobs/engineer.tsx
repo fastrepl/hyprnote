@@ -1,3 +1,4 @@
+import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AnimatedTitle } from "@/components/animated-title";
@@ -79,259 +80,128 @@ function JobDetailsSection() {
       <div className="max-w-2xl mx-auto">
         <JobSection title="not">
           <p className="text-neutral-600 mb-4">
-            this might not be a good fit if:
+            This might <strong>NOT</strong> be a good fit if:
           </p>
-          <ul className="space-y-2 text-neutral-600">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                you prefer backend work and don't care about ui polish
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                you need detailed specs or prefer to focus on isolated tasks
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>you see code review as bureaucracy rather than craft</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                you move fast by cutting corners or accumulating technical debt
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                you are uncomfortable using ai tools to accelerate development
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                you are looking for a short-term contract or advisory role
-              </span>
-            </li>
+          <ul className="list-disc list-inside space-y-2 text-neutral-600">
+            <li>You don't care about UI polish</li>
+            <li>You need specs to start working</li>
+            <li>You don't like code review</li>
+            <li>You skip quality to move fast</li>
+            <li>You don't use AI tools</li>
+            <li>You want a short-term role</li>
           </ul>
         </JobSection>
 
         <JobSection title="why">
           <p className="text-neutral-600 mb-4">
-            hyprnote is a product-led company. quality directly impacts
-            retention, trust, and growth.
+            Hyprnote is product-led. Engineering execution is our
+            bottleneck—code quality depends too much on the founder. We need
+            someone to own quality across the stack and act as first-line
+            reviewer.
           </p>
           <p className="text-neutral-600 mb-4">
-            right now, engineering execution is our main bottleneck. product
-            direction is clear and marketing strategy is strong, but code
-            quality and consistency depend too much on the founder.
+            Some context: 38% week-5 retention, 30% WoW DAU growth, 9.2% web
+            conversion, 7.4k GitHub stars, 10% MoM MRR growth.
           </p>
-          <p className="text-neutral-600 mb-4">
-            we are looking for a product-minded engineer to take real ownership
-            of code quality across the stack, act as first-line reviewer, and
-            help the team move faster without compromising standards.
-          </p>
-          <p className="text-neutral-600 mb-4">
-            this is the highest leverage hire we can make right now.
-          </p>
-          <p className="text-neutral-600 mb-4">
-            a few real numbers, just for context:
-          </p>
-          <ul className="space-y-2 text-neutral-600 mb-4">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>app week 5 retention is 38%</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>app dau is growing 30 percent week-over-week</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>web conversion rate is 9.2%</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>github has 7.4k stars</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>mrr is growing 10.1% month-over-month</span>
-            </li>
-          </ul>
           <p className="text-neutral-600">
-            you will be working with a small, high-trust team that values craft,
-            clarity, and long-term thinking over hype.
+            Small team. High trust. Craft over hype.
           </p>
         </JobSection>
 
         <JobSection title="what">
-          <p className="text-neutral-600 mb-4">you will:</p>
-          <ul className="space-y-2 text-neutral-600 mb-6">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                own code quality and consistency across the desktop app and web
-                platform
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                build features end-to-end with tauri, rust, and typescript
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                act as first-line code reviewer, reducing founder review load
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>ensure ui quality matches user expectations</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                harness ai tools to move faster without sacrificing quality
-              </span>
-            </li>
-          </ul>
-          <p className="text-neutral-600 mb-4">success looks like:</p>
-          <ul className="space-y-2 text-neutral-600">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                quality = great user experience + clean code, consistently
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                founder review time drops significantly, team moves faster
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>code reviews feel obvious, not debated</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                the app feels stable, fast, and polished across platforms
-              </span>
-            </li>
-          </ul>
+          <p className="text-neutral-600 mb-4">
+            Own code quality across desktop and web. Build features end-to-end
+            with Tauri, Rust, and TypeScript. Act as first-line reviewer. Ensure
+            UI polish. Use AI tools to move faster.
+          </p>
+          <p className="text-neutral-600">
+            Success: the app feels stable and polished, founder review time
+            drops, code reviews feel obvious.
+          </p>
         </JobSection>
 
         <JobSection title="who">
-          <p className="text-neutral-600 mb-4">
-            you are likely a good fit if you are:
+          <p className="text-neutral-600">
+            An engineer who cares about user experience. Fast, independent,
+            uncompromising on code quality and UI polish. Experienced with
+            Tauri, Rust, and TypeScript. Comfortable with AI tools. Prefers
+            responsibility over rigid scope.
           </p>
-          <ul className="space-y-2 text-neutral-600">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>an engineer who cares deeply about user experience</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>fast, independent, and comfortable with ownership</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>uncompromising on both code quality and ui polish</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>experienced with tauri, rust, and typescript</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>skilled at using ai tools to accelerate development</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>someone who prefers responsibility over rigid scope</span>
-            </li>
-          </ul>
         </JobSection>
 
         <JobSection title="how">
-          <p className="text-neutral-600 mb-4">we are a remote-first team.</p>
-          <p className="text-neutral-600 mb-4">communication and workflow:</p>
-          <ul className="space-y-2 text-neutral-600 mb-6">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>slack for primary async communication</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>occasional phone calls, huddles, or zoom</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>github issues for tickets</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>github projects for sprints and task management</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>github discussions for feedback</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>discord for community</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>zendesk for real-time support</span>
-            </li>
-          </ul>
-          <p className="text-neutral-600 mb-4">stack you will use:</p>
-          <ul className="space-y-2 text-neutral-600">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>tauri (must)</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>rust (must)</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>typescript (must)</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>ai tools like cursor, claude, etc (should)</span>
-            </li>
-          </ul>
+          <p className="text-neutral-600 mb-4">
+            Remote-first. Async via{" "}
+            <Icon
+              icon="logos:slack-icon"
+              className="inline-block align-middle mb-1"
+            />{" "}
+            Slack, occasional calls. Everything runs through{" "}
+            <Icon
+              icon="logos:github-icon"
+              className="inline-block align-middle mb-1"
+            />{" "}
+            GitHub.
+          </p>
+          <p className="text-neutral-600">
+            Stack:{" "}
+            <Icon
+              icon="logos:tauri"
+              className="inline-block align-middle mb-1"
+            />{" "}
+            Tauri,{" "}
+            <Icon
+              icon="logos:rust"
+              className="inline-block align-middle mb-0.5"
+            />{" "}
+            Rust,{" "}
+            <Icon
+              icon="logos:typescript-icon"
+              className="inline-block align-middle mb-1"
+            />{" "}
+            TypeScript. Editors like{" "}
+            <Icon
+              icon="devicon:zed"
+              className="inline-block align-middle mb-1"
+            />{" "}
+            Zed and{" "}
+            <Icon
+              icon="simple-icons:cursor"
+              className="inline-block align-middle mb-1"
+            />{" "}
+            Cursor. AI tools like{" "}
+            <Icon
+              icon="logos:claude-icon"
+              className="inline-block align-middle mb-1"
+            />{" "}
+            Claude Code and{" "}
+            <img
+              src="https://mintcdn.com/cognitionai/k89q9Lsp7DOurdC0/logo/devin.png?fit=max&auto=format&n=k89q9Lsp7DOurdC0&q=85&s=e83fbc727ea2cae8f1b80442fa772c50"
+              alt="Devin"
+              className="inline-block align-middle mb-0.75 size-5 -mx-1"
+            />{" "}
+            Devin. Git workflows via{" "}
+            <Icon
+              icon="simple-icons:graphite"
+              className="inline-block align-middle mb-1"
+            />{" "}
+            Graphite and{" "}
+            <img
+              src="https://dl.flathub.org/media/com/gitbutler/gitbutler/86fc196ac5615bc7ed82d530d29309c9/icons/128x128@2/com.gitbutler.gitbutler.png"
+              alt="GitButler"
+              className="inline-block align-middle mb-0.5 size-5 -mx-0.5"
+            />{" "}
+            GitButler.
+          </p>
         </JobSection>
 
-        <JobSection title="comp" isLast>
+        <JobSection title="compensation" isLast>
           <p className="text-neutral-600 mb-4">
-            compensation depends on scope and experience.
+            Ballpark: $100–150k/year, 0.5–1.5% equity. Depends on scope and
+            experience.
           </p>
-          <p className="text-neutral-600 mb-4">as a rough ballpark:</p>
-          <ul className="space-y-2 text-neutral-600 mb-4">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>salary around 100k to 150k usd</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>equity around 2 to 4 percent</span>
-            </li>
-          </ul>
           <p className="text-neutral-600">
-            this is an early, high-ownership role. the right person will grow
-            with the company.
+            Early, high-ownership role. You'll grow with the company.
           </p>
         </JobSection>
       </div>
@@ -379,8 +249,10 @@ function JobSection({
   isLast?: boolean;
 }) {
   return (
-    <div className={isLast ? "" : "mb-8"}>
-      <h3 className="text-2xl font-serif text-stone-600 mb-4">{title}</h3>
+    <div className={isLast ? "" : "mb-12"}>
+      <h3 className="text-lg font-serif tracking-widest uppercase text-neutral-400 mb-6">
+        {title}
+      </h3>
       {children}
     </div>
   );

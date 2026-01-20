@@ -1,3 +1,4 @@
+import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AnimatedTitle } from "@/components/animated-title";
@@ -79,251 +80,84 @@ function JobDetailsSection() {
       <div className="max-w-2xl mx-auto">
         <JobSection title="not">
           <p className="text-neutral-600 mb-4">
-            this might not be a good fit if:
+            This might <strong>NOT</strong> be a good fit if:
           </p>
-          <ul className="space-y-2 text-neutral-600">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                you only want to design in figma and hand work off to engineers
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>you prefer mockups over shipping real ui</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                you move fast by cutting corners or accumulating visual debt
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                you need heavy process, specs, or constant alignment to make
-                progress
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                you see marketing or growth work as secondary to "real" design
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                you are looking for a short-term contract or advisory role
-              </span>
-            </li>
+          <ul className="list-disc list-inside space-y-2 text-neutral-600">
+            <li>You only want to design in Figma</li>
+            <li>You prefer mockups over shipping</li>
+            <li>You skip quality to move fast</li>
+            <li>You need process to make progress</li>
+            <li>You don't want to do marketing</li>
+            <li>You want a short-term role</li>
           </ul>
         </JobSection>
 
         <JobSection title="why">
           <p className="text-neutral-600 mb-4">
-            hyprnote is a product-led company. quality directly impacts
-            retention, trust, and growth.
+            Hyprnote is product-led. Design execution is our bottleneck—visual
+            quality depends too much on the founder. We need someone to own
+            design across product and marketing.
           </p>
           <p className="text-neutral-600 mb-4">
-            right now, design execution is our main bottleneck. product
-            direction is clear and marketing strategy is strong, but visual
-            quality and consistency depend too much on the founder.
+            Some context: 38% week-5 retention, 30% WoW DAU growth, 9.2% web
+            conversion, 7.4k GitHub stars, 10% MoM MRR growth.
           </p>
-          <p className="text-neutral-600 mb-4">
-            we are looking for a designteer to take real ownership of design
-            quality across product and marketing, raise the baseline, and help
-            the team move faster without compromising standards.
-          </p>
-          <p className="text-neutral-600 mb-4">
-            a few real numbers, just for context:
-          </p>
-          <ul className="space-y-2 text-neutral-600 mb-4">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>app week 5 retention is 38%</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>app dau is growing 30 percent week-over-week</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>web conversion rate is 9.2%</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>github has 7.4k stars</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>mrr is growing 10.1% month-over-month</span>
-            </li>
-          </ul>
           <p className="text-neutral-600">
-            you will be working with a small, high-trust team that values craft,
-            clarity, and long-term thinking over hype.
+            Small team. High trust. Craft over hype.
           </p>
         </JobSection>
 
         <JobSection title="what">
-          <p className="text-neutral-600 mb-4">you will:</p>
-          <ul className="space-y-2 text-neutral-600 mb-6">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                own visual quality and consistency across the product, website,
-                and marketing
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>design and ship real ui in production</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                create visual assets for blog posts, landing pages, and launches
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                build and maintain a design system engineers actually use
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                reduce review overhead by raising the baseline quality
-              </span>
-            </li>
-          </ul>
-          <p className="text-neutral-600 mb-4">success looks like:</p>
-          <ul className="space-y-2 text-neutral-600">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                the product feels calmer, clearer, and more intentional
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>marketing no longer waits on the founder for visuals</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>design decisions feel obvious, not debated</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>quality is consistent across product and web</span>
-            </li>
-          </ul>
+          <p className="text-neutral-600 mb-4">
+            Own visual quality across product, website, and marketing. Design
+            and ship real UI. Create assets for launches and content. Build a
+            design system that actually gets used.
+          </p>
+          <p className="text-neutral-600">
+            Success: the product feels calmer, marketing doesn't wait on the
+            founder, design decisions feel obvious.
+          </p>
         </JobSection>
 
         <JobSection title="who">
-          <p className="text-neutral-600 mb-4">
-            you are likely a good fit if you are:
+          <p className="text-neutral-600">
+            A designer who codes and ships. Fast, independent, uncompromising on
+            quality. Interested in marketing and storytelling. Prefers
+            responsibility over rigid scope.
           </p>
-          <ul className="space-y-2 text-neutral-600">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>a designer who can code and enjoys shipping</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>fast, independent, and comfortable with ownership</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>uncompromising on user-facing quality</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>
-                genuinely interested in marketing, storytelling, and conversion
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>someone who prefers responsibility over rigid scope</span>
-            </li>
-          </ul>
         </JobSection>
 
         <JobSection title="how">
-          <p className="text-neutral-600 mb-4">we are a remote-first team.</p>
-          <p className="text-neutral-600 mb-4">communication and workflow:</p>
-          <ul className="space-y-2 text-neutral-600 mb-6">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>slack for primary async communication</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>occasional phone calls, huddles, or zoom</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>github issues for tickets</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>github projects for sprints and task management</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>github discussions for feedback</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>discord for community</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>zendesk for real-time support</span>
-            </li>
-          </ul>
-          <p className="text-neutral-600 mb-4">tools you will use:</p>
-          <ul className="space-y-2 text-neutral-600">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>figma (must)</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>content admin (must)</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>code editor (should)</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>video editor (could)</span>
-            </li>
-          </ul>
+          <p className="text-neutral-600 mb-4">
+            Remote-first. Async via{" "}
+            <Icon
+              icon="logos:slack-icon"
+              className="inline-block align-middle mb-1"
+            />{" "}
+            Slack, occasional calls. Everything runs through{" "}
+            <Icon
+              icon="logos:github-icon"
+              className="inline-block align-middle mb-1"
+            />{" "}
+            GitHub.
+          </p>
+          <p className="text-neutral-600 mb-4">
+            You must be comfortable with{" "}
+            <Icon
+              icon="logos:figma"
+              className="inline-block align-middle mb-0.5"
+            />{" "}
+            Figma, a code editor, and basic video editing.
+          </p>
         </JobSection>
 
-        <JobSection title="comp" isLast>
+        <JobSection title="compensation" isLast>
           <p className="text-neutral-600 mb-4">
-            compensation depends on scope and experience.
+            Ballpark: $80–120k/year, 0.5–1.5% equity. Depends on scope and
+            experience.
           </p>
-          <p className="text-neutral-600 mb-4">as a rough ballpark:</p>
-          <ul className="space-y-2 text-neutral-600 mb-4">
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>salary around 80k to 120k usd</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-neutral-400">•</span>
-              <span>equity around 2 to 4 percent</span>
-            </li>
-          </ul>
           <p className="text-neutral-600">
-            this is an early, high-ownership role. the right person will grow
-            with the company.
+            Early, high-ownership role. You'll grow with the company.
           </p>
         </JobSection>
       </div>
@@ -371,8 +205,10 @@ function JobSection({
   isLast?: boolean;
 }) {
   return (
-    <div className={isLast ? "" : "mb-8"}>
-      <h3 className="text-2xl font-serif text-stone-600 mb-4">{title}</h3>
+    <div className={isLast ? "" : "mb-12"}>
+      <h3 className="text-lg font-serif tracking-widest uppercase text-neutral-400 mb-6">
+        {title}
+      </h3>
       {children}
     </div>
   );

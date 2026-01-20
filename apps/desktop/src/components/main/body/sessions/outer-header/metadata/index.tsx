@@ -70,7 +70,7 @@ const TriggerInner = forwardRef<
         hasEvent && "max-w-[200px]",
       ])}
     >
-      {hasEvent ? (
+      {hasEvent && event?.meetingLink ? (
         <VideoIcon size={14} className="shrink-0" />
       ) : (
         <CalendarIcon size={14} className="shrink-0 -mt-0.5" />

@@ -682,6 +682,44 @@ const bounties = defineCollection({
   },
 });
 
+const jobs = defineCollection({
+  name: "jobs",
+  directory: "content/jobs",
+  include: "*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    cardDescription: z.string(),
+    backgroundImage: z.string(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm, mdxMermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    return {
+      ...document,
+      mdx,
+      slug,
+    };
+  },
+});
+
 export default defineConfig({
   collections: [
     articles,
@@ -698,5 +736,6 @@ export default defineConfig({
     roadmap,
     ossFriends,
     bounties,
+    jobs,
   ],
 });

@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { allJobs } from "content-collections";
 import { ArrowRight } from "lucide-react";
+
+import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
@@ -52,19 +55,9 @@ function JobsSection() {
   return (
     <section className="pb-16 lg:pb-24">
       <div className="grid grid-cols-1 md:grid-cols-2">
-        <JobCard
-          title="Designteer"
-          description="Own visual quality across product and marketing. Design and ship real UI. Work with a small, high-trust team that values craft and long-term thinking."
-          backgroundImage="/api/images/meadow.png"
-          linkTo="/jobs/designteer/"
-          hasBorder
-        />
-        <JobCard
-          title="Engineer"
-          description="Build great software with passion. Work on our desktop app, web platform, and AI features. Join a team that cares about craft and quality."
-          backgroundImage="/api/images/beach.png"
-          linkTo="/jobs/engineer/"
-        />
+        {allJobs.map((job, index) => (
+          <JobCard key={job.slug} job={job} hasBorder={index === 0} />
+        ))}
       </div>
       <SlashSeparator />
       <CTASection />
@@ -73,42 +66,37 @@ function JobsSection() {
 }
 
 function JobCard({
-  title,
-  description,
-  backgroundImage,
-  linkTo,
+  job,
   hasBorder,
 }: {
-  title: string;
-  description: string;
-  backgroundImage: string;
-  linkTo: string;
+  job: (typeof allJobs)[0];
   hasBorder?: boolean;
 }) {
   return (
     <Link
-      to={linkTo}
-      className={[
+      to="/jobs/$slug/"
+      params={{ slug: job.slug }}
+      className={cn([
         "p-8 text-left relative overflow-hidden block group",
         "hover:bg-stone-50/50 transition-colors",
-        hasBorder
-          ? "border-b md:border-b-0 md:border-r border-neutral-100"
-          : "",
-      ].join(" ")}
+        hasBorder && "border-b md:border-b-0 md:border-r border-neutral-100",
+      ])}
     >
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
+        style={{ backgroundImage: `url(${job.backgroundImage})` }}
       />
       <div className="absolute inset-0 bg-linear-to-b from-white/95 via-white/90 to-white/95" />
       <div className="relative z-10 h-full flex flex-col">
-        <h2 className="text-xl font-medium text-stone-600 mb-2">{title}</h2>
+        <h2 className="text-xl font-medium text-stone-600 mb-2">{job.title}</h2>
         <div className="flex items-center gap-3 text-sm text-neutral-500 mb-4">
           <span>Full-time</span>
           <span className="text-neutral-300">|</span>
           <span>Remote</span>
         </div>
-        <p className="text-neutral-600 leading-relaxed mb-6">{description}</p>
+        <p className="text-neutral-600 leading-relaxed mb-6">
+          {job.cardDescription}
+        </p>
         <div className="mt-auto">
           <span className="inline-flex items-center gap-2 px-4 h-8 bg-linear-to-b from-white to-stone-50 border border-neutral-300 text-neutral-700 rounded-full shadow-xs group-hover:shadow-md group-hover:scale-[102%] group-active:scale-[98%] transition-all text-sm font-medium">
             Interested?

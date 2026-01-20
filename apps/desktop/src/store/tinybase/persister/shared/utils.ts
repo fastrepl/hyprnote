@@ -36,6 +36,11 @@ type TableRowType<K extends keyof TablesContent> =
  * - MergeableChanges:  ([[changedTables], [changedValues]]: MergeableChanges) => ...
  *
  * Note the double brackets for MergeableChanges - each element is [data, hlc?].
+ *
+ * IMPORTANT: In real MergeableChanges from getTransactionMergeableChanges(),
+ * each table value is also stamped: { tableId: [rowsObject, hlc?, hash?] }
+ * This function unwraps both the outer format AND the table-level stamps to
+ * produce a simple { tableId: { rowId: ... } } format.
  */
 export function extractChangedTables<Schemas extends OptionalSchemas>(
   changes:
@@ -46,12 +51,49 @@ export function extractChangedTables<Schemas extends OptionalSchemas>(
     return null;
   }
 
-  const tables = changes[0];
-  if (tables && typeof tables === "object") {
-    return tables as ChangedTables;
+  const tablesOrStamp = changes[0];
+
+  // MergeableChanges: [[changedTables, hlc?], [changedValues, hlc?], 1]
+  if (Array.isArray(tablesOrStamp) && tablesOrStamp.length >= 1) {
+    const stampedTables = tablesOrStamp[0];
+    if (stampedTables && typeof stampedTables === "object") {
+      return unwrapStampedTables(stampedTables);
+    }
+    return null;
+  }
+
+  // Regular Changes: [changedTables, changedValues, 1]
+  // Exclude arrays - they would be MergeableChanges format handled above.
+  if (
+    tablesOrStamp &&
+    typeof tablesOrStamp === "object" &&
+    !Array.isArray(tablesOrStamp)
+  ) {
+    return tablesOrStamp as ChangedTables;
   }
 
   return null;
+}
+
+function unwrapStampedTables(
+  stampedTables: Record<string, unknown>,
+): ChangedTables {
+  const result: Record<string, Record<string, unknown> | undefined> = {};
+
+  for (const [tableId, tableValue] of Object.entries(stampedTables)) {
+    if (Array.isArray(tableValue) && tableValue.length >= 1) {
+      const rowsObject = tableValue[0];
+      if (rowsObject && typeof rowsObject === "object") {
+        result[tableId] = rowsObject as Record<string, unknown>;
+      }
+    } else if (tableValue && typeof tableValue === "object") {
+      result[tableId] = tableValue as Record<string, unknown>;
+    } else {
+      result[tableId] = tableValue as undefined;
+    }
+  }
+
+  return result as ChangedTables;
 }
 
 // https://github.com/tinyplex/tinybase/blob/aa5cb9014f6def18266414174e0fd31ccfae0828/src/persisters/common/create.ts#L185

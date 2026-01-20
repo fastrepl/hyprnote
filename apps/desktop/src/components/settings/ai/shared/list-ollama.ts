@@ -1,3 +1,4 @@
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { Effect, pipe } from "effect";
 import { Ollama } from "ollama/browser";
 
@@ -38,7 +39,19 @@ export async function listOllamaModels(
 }
 
 const createOllamaClient = (baseUrl: string) =>
-  Effect.sync(() => new Ollama({ host: baseUrl.replace(/\/v1\/?$/, "") }));
+  Effect.sync(() => {
+    const host = baseUrl.replace(/\/v1\/?$/, "");
+    const ollamaOrigin = new URL(host).origin;
+    const ollamaFetch: typeof fetch = async (input, init) => {
+      const headers = new Headers(init?.headers);
+      headers.set("Origin", ollamaOrigin);
+      return tauriFetch(input as RequestInfo | URL, {
+        ...init,
+        headers,
+      });
+    };
+    return new Ollama({ host, fetch: ollamaFetch });
+  });
 
 const fetchOllamaInventory = (ollama: Ollama) =>
   pipe(

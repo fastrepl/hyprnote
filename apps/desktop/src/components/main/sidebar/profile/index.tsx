@@ -331,7 +331,7 @@ function ProfileButton({
   return (
     <button
       className={cn([
-        "flex w-full items-center gap-2.5",
+        "cursor-pointer flex w-full items-center gap-2.5",
         "px-4 py-2",
         "text-left",
         "transition-all duration-300",
@@ -358,18 +358,14 @@ function ProfileButton({
           />
         )}
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm text-black truncate">{name}</div>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <ChevronUpIcon
-          className={cn([
-            "h-4 w-4",
-            "transition-transform duration-300",
-            isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
-          ])}
-        />
-      </div>
+      <div className="min-w-0 flex-1 text-sm text-black truncate">{name}</div>
+      <ChevronUpIcon
+        className={cn([
+          "h-4 w-4",
+          "transition-transform duration-300",
+          isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
+        ])}
+      />
     </button>
   );
 }

@@ -145,7 +145,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
       data-tauri-drag-region
       className={cn([
         "w-full h-9 flex items-center",
-        !leftsidebar.expanded && (isLinux ? "pl-3" : "pl-[72px]"),
+        !leftsidebar.expanded && (isLinux ? "pl-3" : "pl-18"),
       ])}
     >
       {!leftsidebar.expanded && isLinux && <TrafficLights className="mr-2" />}

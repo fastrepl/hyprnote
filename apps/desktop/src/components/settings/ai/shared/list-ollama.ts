@@ -121,7 +121,7 @@ const fetchOllamaInventory = (ollamaBaseUrl: string) =>
 
 const fetchOllamaDetails = (
   ollamaBaseUrl: string,
-  models: Array<{ name: string }>,
+  models: readonly { readonly name: string }[],
   runningModelNames: Set<string>,
 ) =>
   Effect.all(
@@ -131,7 +131,7 @@ const fetchOllamaDetails = (
         Effect.andThen((json) => Schema.decodeUnknown(OllamaShowSchema)(json)),
         Effect.map((info) => ({
           name: model.name,
-          capabilities: info.capabilities,
+          capabilities: [...info.capabilities],
           isRunning: runningModelNames.has(model.name),
         })),
         Effect.catchAll(() =>
@@ -147,11 +147,11 @@ const fetchOllamaDetails = (
   );
 
 const summarizeOllamaDetails = (
-  details: Array<{
+  details: readonly {
     name: string;
     capabilities: string[];
     isRunning: boolean;
-  }>,
+  }[],
 ): ListModelsResult => {
   const supported: Array<{ name: string; isRunning: boolean }> = [];
   const ignored: IgnoredModel[] = [];

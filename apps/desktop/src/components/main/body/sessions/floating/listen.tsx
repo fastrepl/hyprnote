@@ -57,30 +57,63 @@ function BeforeMeeingButton({
     startListening();
   }, [remote?.url, startListening]);
 
-  let icon: React.ReactNode;
-  let text: string;
+  let content: React.ReactNode;
 
   if (remote?.type === "zoom") {
-    icon = <Icon icon="logos:zoom-icon" size={20} />;
-    text = isNarrow ? "Join & Listen" : "Join  Zoom & Start listening";
+    content = isNarrow ? (
+      <>
+        <span>Join</span> <Icon icon="logos:zoom-icon" size={20} />
+      </>
+    ) : (
+      <>
+        <span>Join</span> <Icon icon="logos:zoom-icon" size={20} />{" "}
+        <span>Zoom & Start listening</span>
+      </>
+    );
   } else if (remote?.type === "google-meet") {
-    icon = <Icon icon="logos:google-meet" size={20} />;
-    text = isNarrow ? "Join & Listen" : "Join  Google Meet & Start listening";
+    content = isNarrow ? (
+      <>
+        <span>Join</span> <Icon icon="logos:google-meet" size={20} />
+      </>
+    ) : (
+      <>
+        <span>Join</span> <Icon icon="logos:google-meet" size={20} />{" "}
+        <span>Google Meet & Start listening</span>
+      </>
+    );
   } else if (remote?.type === "webex") {
-    icon = <Icon icon="simple-icons:webex" size={20} />;
-    text = isNarrow ? "Join & Listen" : "Join  Webex & Start listening";
+    content = isNarrow ? (
+      <>
+        <span>Join</span> <Icon icon="simple-icons:webex" size={20} />
+      </>
+    ) : (
+      <>
+        <span>Join</span> <Icon icon="simple-icons:webex" size={20} />{" "}
+        <span>Webex & Start listening</span>
+      </>
+    );
   } else if (remote?.type === "teams") {
-    icon = <Icon icon="logos:microsoft-teams" size={20} />;
-    text = isNarrow ? "Join & Listen" : "Join  Teams & Start listening";
+    content = isNarrow ? (
+      <>
+        <span>Join</span> <Icon icon="logos:microsoft-teams" size={20} />
+      </>
+    ) : (
+      <>
+        <span>Join</span> <Icon icon="logos:microsoft-teams" size={20} />{" "}
+        <span>Teams & Start listening</span>
+      </>
+    );
   } else {
-    icon = <RecordingIcon disabled={isDisabled} />;
-    text = "Start listening";
+    content = (
+      <>
+        <RecordingIcon /> <span>Start listening</span>
+      </>
+    );
   }
 
   return (
     <ListenSplitButton
-      icon={icon}
-      text={text}
+      content={content}
       disabled={isDisabled}
       warningMessage={warningMessage}
       onPrimaryClick={handleClick}
@@ -90,15 +123,13 @@ function BeforeMeeingButton({
 }
 
 function ListenSplitButton({
-  icon,
-  text,
+  content,
   disabled,
   warningMessage,
   onPrimaryClick,
   sessionId,
 }: {
-  icon: React.ReactNode;
-  text: string;
+  content: React.ReactNode;
   disabled: boolean;
   warningMessage: string;
   onPrimaryClick: () => void;
@@ -116,27 +147,26 @@ function ListenSplitButton({
     <div className="relative flex items-center">
       <FloatingButton
         onClick={onPrimaryClick}
-        icon={icon}
         disabled={disabled}
-        className="justify-center gap-2 pr-12"
+        className="justify-center gap-2 pr-12 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white border-stone-600 shadow-[0_4px_14px_rgba(87,83,78,0.4)]"
         tooltip={
           warningMessage
             ? {
-              side: "top",
-              content: (
-                <ActionableTooltipContent
-                  message={warningMessage}
-                  action={{
-                    label: "Configure",
-                    handleClick: handleAction,
-                  }}
-                />
-              ),
-            }
+                side: "top",
+                content: (
+                  <ActionableTooltipContent
+                    message={warningMessage}
+                    action={{
+                      label: "Configure",
+                      handleClick: handleAction,
+                    }}
+                  />
+                ),
+              }
             : undefined
         }
       >
-        {text}
+        {content}
       </FloatingButton>
       <OptionsMenu
         sessionId={sessionId}
@@ -145,7 +175,7 @@ function ListenSplitButton({
         onConfigure={handleAction}
       />
       {countdown && (
-        <div className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap text-xs text-neutral-500">
+        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap text-xs text-neutral-500">
           {countdown}
         </div>
       )}
@@ -195,7 +225,11 @@ function useEventCountdown(sessionId: string): string | null {
       const totalSeconds = Math.floor(diff / 1000);
       const mins = Math.floor(totalSeconds / 60);
       const secs = totalSeconds % 60;
-      setCountdown(`meeting starts in ${mins} mins ${secs} seconds`);
+      if (mins > 0) {
+        setCountdown(`meeting starts in ${mins} mins ${secs} seconds`);
+      } else {
+        setCountdown(`meeting starts in ${secs} seconds`);
+      }
     };
 
     updateCountdown();

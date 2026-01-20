@@ -127,21 +127,6 @@ const EventItem = memo(
       return sessionId;
     }, [store, eventId, sessionIds]);
 
-    const attachedNoteIds = main.UI.useSliceRowIds(
-      main.INDEXES.enhancedNotesBySession,
-      attachedSessionId ?? "",
-      main.STORE_ID,
-    );
-    const rawMd = main.UI.useCell(
-      "sessions",
-      attachedSessionId ?? "",
-      "raw_md",
-      main.STORE_ID,
-    );
-    const hasRawContent = typeof rawMd === "string" && rawMd.trim().length > 0;
-    const hasNote =
-      attachedSessionId && (attachedNoteIds.length > 0 || hasRawContent);
-
     const sessionTitle = main.UI.useCell(
       "sessions",
       attachedSessionId ?? "",
@@ -153,7 +138,6 @@ const EventItem = memo(
       : item.data.title || "Untitled";
 
     const calendarId = item.data.calendar_id ?? null;
-    const recurrenceSeriesId = item.data.recurrence_series_id;
     const displayTime = useMemo(
       () => formatDisplayTime(item.data.started_at, precision),
       [item.data.started_at, precision],
@@ -175,50 +159,6 @@ const EventItem = memo(
     const handleClick = useCallback(() => openEvent(false), [openEvent]);
     const handleCmdClick = useCallback(() => openEvent(true), [openEvent]);
 
-    const handleIgnore = useCallback(() => {
-      if (!store) {
-        return;
-      }
-      store.setPartialRow("events", eventId, { ignored: true });
-      if (attachedSessionId && !hasNote) {
-        invalidateResource("sessions", attachedSessionId);
-        void deleteSessionCascade(store, indexes, attachedSessionId);
-      }
-    }, [
-      store,
-      eventId,
-      attachedSessionId,
-      hasNote,
-      invalidateResource,
-      indexes,
-    ]);
-
-    const handleIgnoreSeries = useCallback(() => {
-      if (!store || !recurrenceSeriesId) {
-        return;
-      }
-      store.transaction(() => {
-        store.forEachRow("events", (rowId, _forEachCell) => {
-          const event = store.getRow("events", rowId);
-          if (event?.recurrence_series_id === recurrenceSeriesId) {
-            store.setPartialRow("events", rowId, { ignored: true });
-          }
-        });
-
-        const currentIgnored = store.getValue("ignored_recurring_series");
-        const ignoredList: string[] = currentIgnored
-          ? JSON.parse(String(currentIgnored))
-          : [];
-        if (!ignoredList.includes(recurrenceSeriesId)) {
-          ignoredList.push(recurrenceSeriesId);
-          store.setValue(
-            "ignored_recurring_series",
-            JSON.stringify(ignoredList),
-          );
-        }
-      });
-    }, [store, recurrenceSeriesId]);
-
     const handleDelete = useCallback(() => {
       if (!store || !attachedSessionId) {
         return;
@@ -229,53 +169,35 @@ const EventItem = memo(
     }, [store, indexes, attachedSessionId, invalidateResource, eventId]);
 
     const handleRevealInFinder = useCallback(async () => {
-      if (!attachedSessionId) {
+      if (!store) {
         return;
       }
+      const sessionId =
+        attachedSessionId ??
+        getOrCreateSessionForEventId(store, eventId, title);
       await save();
-      const result = await fsSyncCommands.sessionDir(attachedSessionId);
+      const result = await fsSyncCommands.sessionDir(sessionId);
       if (result.status === "ok") {
         await openerCommands.revealItemInDir(result.data);
       }
-    }, [attachedSessionId]);
+    }, [store, attachedSessionId, eventId, title]);
 
-    const contextMenu = useMemo(() => {
-      if (hasNote) {
-        return [
-          {
-            id: "open-new-tab",
-            text: "Open in new tab",
-            action: handleCmdClick,
-          },
-          {
-            id: "reveal",
-            text: "Reveal in Finder",
-            action: handleRevealInFinder,
-          },
-          { id: "delete", text: "Delete completely", action: handleDelete },
-        ];
-      }
-
-      const menu = [
-        { id: "ignore", text: "Ignore this event", action: handleIgnore },
-      ];
-      if (recurrenceSeriesId) {
-        menu.push({
-          id: "ignore-series",
-          text: "Ignore all recurring events",
-          action: handleIgnoreSeries,
-        });
-      }
-      return menu;
-    }, [
-      hasNote,
-      handleCmdClick,
-      handleRevealInFinder,
-      handleDelete,
-      handleIgnore,
-      handleIgnoreSeries,
-      recurrenceSeriesId,
-    ]);
+    const contextMenu = useMemo(
+      () => [
+        {
+          id: "open-new-tab",
+          text: "Open in new tab",
+          action: handleCmdClick,
+        },
+        {
+          id: "reveal",
+          text: "Reveal in Finder",
+          action: handleRevealInFinder,
+        },
+        { id: "delete", text: "Delete completely", action: handleDelete },
+      ],
+      [handleCmdClick, handleRevealInFinder, handleDelete],
+    );
 
     return (
       <ItemBase

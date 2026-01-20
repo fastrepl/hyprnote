@@ -55,7 +55,9 @@ function createSpecialistAgentNode(promptDir: string) {
     let promptMessagesToPersist: BaseMessage[] = [];
 
     // Check if this is a fresh invocation (no AI messages yet)
-    const hasAIMessages = compressedMessages.some((m) => m._getType() === "ai");
+    const hasAIMessages = compressedMessages.some((m) =>
+      AIMessage.isInstance(m),
+    );
 
     if (!hasAIMessages) {
       // First invocation: compile the prompt and persist it
@@ -118,8 +120,11 @@ export function createSpecialist(config: SpecialistConfig) {
   const agentNodeWithContext = async (
     state: SpecialistStateType,
   ): Promise<Partial<SpecialistStateType>> => {
-    // On first invocation (no messages yet), fetch context if getContext is provided
-    const isFirstInvocation = state.messages.length === 0;
+    // On first invocation (no AI messages yet), fetch context if getContext is provided
+    // This must be consistent with the inner agent node's check for hasAIMessages
+    const isFirstInvocation = !state.messages.some((m) =>
+      AIMessage.isInstance(m),
+    );
     if (isFirstInvocation && config.getContext) {
       const additionalContext = await config.getContext();
       // Merge additional context into state.context for the agent node

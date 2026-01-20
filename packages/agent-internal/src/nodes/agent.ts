@@ -1,5 +1,9 @@
-import type { AIMessage, BaseMessage } from "@langchain/core/messages";
-import { SystemMessage } from "@langchain/core/messages";
+import type { BaseMessage } from "@langchain/core/messages";
+import {
+  AIMessage,
+  HumanMessage,
+  SystemMessage,
+} from "@langchain/core/messages";
 import path from "path";
 
 import { compilePrompt, loadPrompt, type PromptConfig } from "../prompt";
@@ -13,7 +17,7 @@ const prompt = loadPrompt(path.join(import.meta.dirname, ".."));
 function getRequestFromMessages(messages: BaseMessage[]): string | null {
   if (messages.length === 0) return null;
   const lastMessage = messages[messages.length - 1];
-  if (lastMessage._getType() === "human") {
+  if (HumanMessage.isInstance(lastMessage)) {
     return typeof lastMessage.content === "string"
       ? lastMessage.content
       : JSON.stringify(lastMessage.content);
@@ -33,7 +37,7 @@ export async function agentNode(
   };
 
   // Check if this is a fresh invocation (no AI messages yet)
-  const hasAIMessages = compressedMessages.some((m) => m._getType() === "ai");
+  const hasAIMessages = compressedMessages.some((m) => AIMessage.isInstance(m));
 
   // Track if we need to persist the prompt messages (including SystemMessage)
   let promptMessagesToPersist: BaseMessage[] = [];

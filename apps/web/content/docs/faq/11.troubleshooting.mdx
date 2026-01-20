@@ -1,0 +1,22 @@
+---
+title: "Troubleshooting"
+section: "FAQ"
+description: "Common issues and how to resolve them."
+---
+
+## Keychain Password Prompts (macOS)
+
+If you see repeated password prompts asking for access to keychain items like `com.hyprnote.Argmax.licenseToken` or similar entries, this is typically caused by outdated or corrupted keychain entries from a previous version of Hyprnote.
+
+### How to Fix
+
+1. Open **Keychain Access** (search for it in Spotlight or find it in Applications > Utilities)
+2. In the search bar, type `hyprnote` or `argmax`
+3. Select and delete any Hyprnote or Argmax related entries
+4. Quit Hyprnote completely and relaunch the app
+
+The app will create fresh keychain entries on the next launch, and the password prompts should stop appearing.
+
+### Why This Happens
+
+When Hyprnote updates, sometimes the code signing identity changes, which can cause macOS to treat the new version as a different application. This triggers keychain access prompts because macOS is protecting your stored credentials from unauthorized access.

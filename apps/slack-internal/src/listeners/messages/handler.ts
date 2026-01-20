@@ -1,3 +1,4 @@
+import { HumanMessage } from "@langchain/core/messages";
 import * as Sentry from "@sentry/bun";
 import type { SayFn } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
@@ -7,12 +8,13 @@ import {
   clearThread,
   extractOutput,
   generateRunId,
+  getImages,
   getInterruptToolArgs,
   getInterruptToolName,
   getLangSmithUrl,
   isInterrupted,
 } from "@hypr/agent-internal";
-import type { AgentInput, AgentStreamState } from "@hypr/agent-internal";
+import type { AgentStateType, AgentStreamState } from "@hypr/agent-internal";
 
 import { env } from "../../env";
 import {
@@ -46,22 +48,27 @@ function isTerminateResponse(output: string | undefined): boolean {
   return output?.trim() === "TERMINATE";
 }
 
-function buildAgentInput(
+function buildAgentState(
   text: string,
   referencedContent: ReferencedContent[],
-): AgentInput {
-  const images = referencedContent.flatMap((c) =>
+): Partial<AgentStateType> {
+  const rawImages = referencedContent.flatMap((c) =>
     c.images.map((img) => ({ base64: img.base64, mimeType: img.mimeType })),
   );
 
+  let request: string;
   if (referencedContent.length === 0) {
-    return { request: text, images };
+    request = text;
+  } else {
+    const textParts = referencedContent.map((c) => c.text);
+    request = `${text}\n\n--- Referenced Slack Content ---\n${textParts.join("\n\n---\n\n")}`;
   }
 
-  const textParts = referencedContent.map((c) => c.text);
-  const request = `${text}\n\n--- Referenced Slack Content ---\n${textParts.join("\n\n---\n\n")}`;
-
-  return { request, images };
+  return {
+    messages: [new HumanMessage(request)],
+    images: getImages({ images: rawImages }),
+    output: "",
+  };
 }
 
 async function fetchReferencedContent(
@@ -127,11 +134,11 @@ export async function handleAgentMessage(
     }
 
     const referencedMessages = await fetchReferencedContent(client, rawText);
-    const agentInput = buildAgentInput(text, referencedMessages);
+    const initialState = buildAgentState(text, referencedMessages);
 
     let finalState: AgentStreamState = {};
 
-    for await (const chunk of await agent.stream(agentInput, {
+    for await (const chunk of await agent.stream(initialState, {
       runId,
       configurable: { thread_id: threadTs },
       metadata: {

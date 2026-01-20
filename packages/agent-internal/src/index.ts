@@ -8,10 +8,16 @@ export {
   setupCheckpointer,
 } from "./agent";
 
+// Graph exports
+export { graph } from "./graph";
+export type { CompiledAgentGraph } from "./graph";
+
+// State exports
+export { AgentState } from "./state";
+export type { AgentStateType } from "./state";
+
 // Types
 export type {
-  AgentGraph,
-  AgentOutput,
   AgentStreamState,
   HumanInterrupt,
   HumanResponse,
@@ -32,10 +38,6 @@ export { compilePrompt, loadPrompt } from "./prompt";
 // Input utilities
 export type { AgentInput, ImageContent } from "./utils/input";
 export { getImages, parseRequest } from "./utils/input";
-
-// Loop utilities
-export type { AgentLoopConfig, AgentLoopResult } from "./utils/loop";
-export { runAgentLoop } from "./utils/loop";
 
 // Tools
 export {

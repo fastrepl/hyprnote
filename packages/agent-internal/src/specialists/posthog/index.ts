@@ -1,7 +1,6 @@
-import type { AgentGraph } from "../../types";
 import { createSpecialist } from "../factory";
 
-export const posthogSpecialist: AgentGraph<string, string> = createSpecialist({
+export const posthogSpecialist = createSpecialist({
   name: "posthog",
   promptDir: import.meta.dirname,
 });

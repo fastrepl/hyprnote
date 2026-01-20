@@ -14,5 +14,10 @@ ndarray = "0.15"
 thiserror = { workspace = true }
 
 [dev-dependencies]
+criterion = { workspace = true }
 hound = { workspace = true }
 rodio = { workspace = true }
+
+[[bench]]
+name = "denoise_bench"
+harness = false

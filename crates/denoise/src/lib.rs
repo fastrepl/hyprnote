@@ -72,6 +72,12 @@ impl Denoiser {
     #[cfg(feature = "default-model")]
     pub fn process(&mut self, input: &[f32]) -> Result<Vec<f32>, Error> {
         let hop_size = self.model.hop_size;
+        if input.len() % hop_size != 0 {
+            return Err(Error::InvalidFrameSize {
+                expected: hop_size,
+                actual: input.len(),
+            });
+        }
         let num_frames = input.len() / hop_size;
         let mut output = vec![0.0f32; num_frames * hop_size];
 
@@ -125,5 +131,21 @@ mod tests {
         let result = denoiser.process(&input);
         assert!(result.is_ok());
         assert_eq!(result.unwrap().len(), HOP_SIZE * 10);
+    }
+
+    #[test]
+    fn test_process_invalid_length() {
+        let mut denoiser = Denoiser::new().unwrap();
+        let input = vec![0.0f32; HOP_SIZE * 10 + 100];
+
+        let result = denoiser.process(&input);
+        assert!(result.is_err());
+        match result {
+            Err(Error::InvalidFrameSize { expected, actual }) => {
+                assert_eq!(expected, HOP_SIZE);
+                assert_eq!(actual, HOP_SIZE * 10 + 100);
+            }
+            _ => panic!("Expected InvalidFrameSize error"),
+        }
     }
 }

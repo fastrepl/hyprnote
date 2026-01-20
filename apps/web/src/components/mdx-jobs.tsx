@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@iconify-icon/react";
+import { ChevronDown } from "lucide-react";
 
 import { AnimatedText } from "./animated-text";
 
@@ -190,7 +191,13 @@ export function AnimatedJobText({
   return <AnimatedText text={text} className={className} />;
 }
 
-export function GitHubMention({ username }: { username: string }) {
+export function GitHubMention({
+  username,
+  name,
+}: {
+  username: string;
+  name?: string;
+}) {
   const avatarUrl = `https://github.com/${username}.png?size=48`;
   const profileUrl = `https://github.com/${username}`;
 
@@ -208,10 +215,10 @@ export function GitHubMention({ username }: { username: string }) {
     >
       <img
         src={avatarUrl}
-        alt={username}
+        alt={name ?? username}
         className="size-5 rounded-full no-underline"
       />
-      @{username}
+      {name ?? `@${username}`}
     </a>
   );
 }
@@ -226,6 +233,32 @@ export function HyprnoteIcon() {
   );
 }
 
+export function ChevronIcon() {
+  return (
+    <ChevronDown className="size-4 text-neutral-400 group-open:rotate-180 transition-transform" />
+  );
+}
+
+export function Collapsible({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="group rounded-lg border border-neutral-200 bg-neutral-50 overflow-hidden">
+      <summary className="cursor-pointer px-4 py-3 font-medium text-neutral-700 hover:bg-neutral-100 transition-colors flex items-center justify-between">
+        <span>{title}</span>
+        <ChevronDown className="size-4 text-neutral-400 group-open:rotate-180 transition-transform" />
+      </summary>
+      <div className="px-4 py-3 border-t border-neutral-200 text-neutral-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_ul]:list-disc [&_ul]:list-inside [&_ul]:space-y-1 [&_p]:mb-4 [&_ul+p]:mt-6 [&_p+p]:mt-4">
+        {children}
+      </div>
+    </details>
+  );
+}
+
 export const jobsMdxComponents = {
   ToolIcon,
   ToolImage,
@@ -236,4 +269,6 @@ export const jobsMdxComponents = {
   AnimatedJobText,
   GitHubMention,
   HyprnoteIcon,
+  ChevronIcon,
+  Collapsible,
 };

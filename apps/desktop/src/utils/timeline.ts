@@ -1,5 +1,6 @@
 import type { Event, Session } from "@hypr/store";
 import {
+  addMinutes,
   differenceInCalendarMonths,
   differenceInDays,
   isPast,
@@ -195,7 +196,8 @@ export function buildTimelineBuckets({
         return;
       }
 
-      if (!isPast(eventStartTime)) {
+      const eventWithBuffer = addMinutes(eventStartTime, 10);
+      if (!isPast(eventWithBuffer)) {
         items.push({
           type: "event",
           id: eventId,

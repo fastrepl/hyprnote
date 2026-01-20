@@ -15,6 +15,7 @@ thiserror = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
+hypr-data = { workspace = true }
 hound = { workspace = true }
 rodio = { workspace = true }
 

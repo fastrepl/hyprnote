@@ -4710,6 +4710,7 @@ name = "denoise"
 version = "0.1.0"
 dependencies = [
  "criterion",
+ "data",
  "deep_filter",
  "hound",
  "ndarray 0.15.6",

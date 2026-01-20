@@ -1,11 +1,11 @@
+import type { TablesContent } from "./types";
+
 export {
   extractChangedTables,
   asTablesChanges,
   toPersistedChanges,
   toContent,
 } from "@hypr/tinybase-utils";
-
-import type { TablesContent } from "./types";
 
 type TableRowType<K extends keyof TablesContent> =
   NonNullable<TablesContent[K]> extends Record<string, infer R> ? R : never;

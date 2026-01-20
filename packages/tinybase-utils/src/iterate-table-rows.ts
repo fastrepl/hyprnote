@@ -10,10 +10,8 @@ export type GenericTablesContent = Record<
 /**
  * Extract the row type from a table in TablesContent.
  */
-export type TableRowType<
-  T extends GenericTablesContent,
-  K extends keyof T,
-> = NonNullable<T[K]> extends Record<string, infer R> ? R : never;
+export type TableRowType<T extends GenericTablesContent, K extends keyof T> =
+  NonNullable<T[K]> extends Record<string, infer R> ? R : never;
 
 /**
  * Iterate over table rows and return an array with the row ID added to each row.
@@ -41,7 +39,10 @@ export type TableRowType<
 export function iterateTableRows<
   T extends GenericTablesContent,
   K extends keyof T,
->(tables: T | undefined, tableName: K): Array<TableRowType<T, K> & { id: string }> {
+>(
+  tables: T | undefined,
+  tableName: K,
+): Array<TableRowType<T, K> & { id: string }> {
   const result: Array<TableRowType<T, K> & { id: string }> = [];
   const tableData = tables?.[tableName];
   if (tableData) {

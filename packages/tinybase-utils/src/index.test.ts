@@ -56,7 +56,11 @@ describe("extractChangedTables", () => {
 
   describe("regular Changes format", () => {
     test("extracts tables from regular Changes format", () => {
-      const changes = [{ users: { "user-1": { name: "Alice" } } }, {}, 1] as any;
+      const changes = [
+        { users: { "user-1": { name: "Alice" } } },
+        {},
+        1,
+      ] as any;
       const result = extractChangedTables(changes);
       expect(result).toEqual({ users: { "user-1": { name: "Alice" } } });
     });
@@ -475,17 +479,29 @@ describe("extractChangedTables", () => {
 
     describe("edge cases", () => {
       test("deeply nested cell values", async () => {
-        store.setCell("sessions", "s1", "metadata", JSON.stringify({ nested: { deep: { value: 123 } } }));
+        store.setCell(
+          "sessions",
+          "s1",
+          "metadata",
+          JSON.stringify({ nested: { deep: { value: 123 } } }),
+        );
 
         await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
         expect(capturedChangedTables!.sessions).toHaveProperty("s1");
       });
 
       test("special characters in row IDs", async () => {
-        store.setCell("sessions", "session-with-special-chars!@#$%", "title", "Test");
+        store.setCell(
+          "sessions",
+          "session-with-special-chars!@#$%",
+          "title",
+          "Test",
+        );
 
         await vi.waitFor(() => expect(saveFn).toHaveBeenCalled());
-        expect(capturedChangedTables!.sessions).toHaveProperty("session-with-special-chars!@#$%");
+        expect(capturedChangedTables!.sessions).toHaveProperty(
+          "session-with-special-chars!@#$%",
+        );
       });
 
       test("unicode in cell values", async () => {
@@ -547,8 +563,8 @@ describe("asTablesChanges", () => {
 
   test("handles multiple tables", () => {
     const tables = {
-      sessions: { "s1": { title: "Session 1" } },
-      users: { "u1": { name: "User 1" } },
+      sessions: { s1: { title: "Session 1" } },
+      users: { u1: { name: "User 1" } },
     };
 
     const result = asTablesChanges(tables);
@@ -571,7 +587,7 @@ describe("asTablesChanges", () => {
   test("handles nested cell values", () => {
     const tables = {
       sessions: {
-        "s1": {
+        s1: {
           title: "Test",
           metadata: { nested: { value: 123 } },
         },
@@ -597,7 +613,7 @@ describe("toPersistedChanges", () => {
 
   test("maintains the same structure as asTablesChanges", () => {
     const tables = {
-      users: { "u1": { name: "Alice" } },
+      users: { u1: { name: "Alice" } },
     };
 
     const asChanges = asTablesChanges(tables);
@@ -620,7 +636,7 @@ describe("toContent", () => {
 
   test("maintains the same structure as asTablesChanges", () => {
     const tables = {
-      users: { "u1": { name: "Alice" } },
+      users: { u1: { name: "Alice" } },
     };
 
     const asChanges = asTablesChanges(tables);
@@ -632,27 +648,36 @@ describe("toContent", () => {
 
 describe("iterateTableRows", () => {
   type TestTablesContent = {
-    sessions?: Record<string, {
-      user_id: string;
-      created_at: string;
-      title: string;
-      folder_id: string;
-      event_id: string;
-      raw_md: string;
-    }>;
-    humans?: Record<string, {
-      user_id: string;
-      name: string;
-      email: string;
-      org_id: string;
-      job_title?: string;
-      linkedin_username?: string;
-      memo?: string;
-    }>;
-    posts?: Record<string, {
-      title: string;
-      content: string;
-    }>;
+    sessions?: Record<
+      string,
+      {
+        user_id: string;
+        created_at: string;
+        title: string;
+        folder_id: string;
+        event_id: string;
+        raw_md: string;
+      }
+    >;
+    humans?: Record<
+      string,
+      {
+        user_id: string;
+        name: string;
+        email: string;
+        org_id: string;
+        job_title?: string;
+        linkedin_username?: string;
+        memo?: string;
+      }
+    >;
+    posts?: Record<
+      string,
+      {
+        title: string;
+        content: string;
+      }
+    >;
   };
 
   test("iterates over table rows and adds id", () => {
@@ -701,7 +726,10 @@ describe("iterateTableRows", () => {
   });
 
   test("returns empty array for undefined tables", () => {
-    const result = iterateTableRows(undefined as unknown as TestTablesContent, "sessions");
+    const result = iterateTableRows(
+      undefined as unknown as TestTablesContent,
+      "sessions",
+    );
     expect(result).toEqual([]);
   });
 

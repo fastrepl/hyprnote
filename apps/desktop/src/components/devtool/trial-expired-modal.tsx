@@ -6,6 +6,7 @@ import { create } from "zustand";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../billing";
+import { useConfigValues } from "../../config/use-config";
 import * as settings from "../../store/tinybase/store/settings";
 
 type TrialExpiredModalStore = {
@@ -25,6 +26,22 @@ export function TrialExpiredModal() {
   const { upgradeToPro } = useBillingAccess();
   const store = settings.UI.useStore(settings.STORE_ID);
 
+  const {
+    current_stt_provider,
+    current_stt_model,
+    current_llm_provider,
+    current_llm_model,
+  } = useConfigValues([
+    "current_stt_provider",
+    "current_stt_model",
+    "current_llm_provider",
+    "current_llm_model",
+  ] as const);
+
+  const hasSttConfigured = !!(current_stt_provider && current_stt_model);
+  const hasLlmConfigured = !!(current_llm_provider && current_llm_model);
+  const hasBothConfigured = hasSttConfigured && hasLlmConfigured;
+
   const handleUpgrade = () => {
     upgradeToPro();
     close();
@@ -32,6 +49,11 @@ export function TrialExpiredModal() {
 
   const handleDismiss = () => {
     store?.setValue("trial_expired_modal_dismissed_at", Date.now());
+    close();
+  };
+
+  const handleDoNotShowAgain = () => {
+    store?.setValue("trial_expired_modal_do_not_show", true);
     close();
   };
 
@@ -116,19 +138,27 @@ export function TrialExpiredModal() {
             </div>
 
             <button
-              onClick={handleUpgrade}
+              onClick={handleDismiss}
               className="px-6 py-2 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
             >
-              I'd like to keep using <span className="font-serif">Pro</span>
+              Remind me later
             </button>
 
             <button
-              onClick={handleDismiss}
-              className="flex flex-col items-center text-muted-foreground transition-opacity duration-150 hover:opacity-70"
+              onClick={handleUpgrade}
+              className="text-muted-foreground text-sm transition-opacity duration-150 hover:opacity-70"
             >
-              <span className="text-sm">dismiss</span>
-              <span className="text-xs">for a week</span>
+              Keep using <span className="font-serif">Pro</span>
             </button>
+
+            {hasBothConfigured && (
+              <button
+                onClick={handleDoNotShowAgain}
+                className="text-muted-foreground text-xs transition-opacity duration-150 hover:opacity-70"
+              >
+                Do not show again
+              </button>
+            )}
           </div>
         </div>
       </div>

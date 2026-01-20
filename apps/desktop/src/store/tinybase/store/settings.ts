@@ -69,6 +69,10 @@ export const SETTINGS_MAPPING = {
       type: "number",
       path: ["billing", "trial_expired_modal_dismissed_at"],
     },
+    trial_expired_modal_do_not_show: {
+      type: "boolean",
+      path: ["billing", "trial_expired_modal_do_not_show"],
+    },
   },
   tables: {
     ai_providers: {

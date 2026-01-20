@@ -71,7 +71,7 @@ function ItemBase({
       onCmdClick={onCmdClick}
       contextMenu={contextMenu}
       className={cn([
-        "w-full text-left px-3 py-2 rounded-lg",
+        "cursor-pointer w-full text-left px-3 py-2 rounded-lg",
         selected && "bg-neutral-200",
         !selected && "hover:bg-neutral-100",
       ])}

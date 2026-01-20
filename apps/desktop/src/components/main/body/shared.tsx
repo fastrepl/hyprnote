@@ -202,7 +202,7 @@ export function TabItemBase({
           <span className="truncate">{title}</span>
         </div>
         {showShortcut && (
-          <div className="absolute top-[3px] right-2 pointer-events-none">
+          <div className="absolute top-0.75 right-2 pointer-events-none">
             <Kbd>⌘ {tabIndex}</Kbd>
           </div>
         )}

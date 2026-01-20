@@ -13,11 +13,11 @@ import {
 } from "@hypr/plugin-fs-sync";
 import { events as notifyEvents } from "@hypr/plugin-notify";
 import { commands as settingsCommands } from "@hypr/plugin-settings";
+import { asTablesChanges, extractChangedTables } from "@hypr/tinybase-utils";
 
 import { StoreOrMergeableStore } from "../../store/shared";
 import { isFileNotFoundError } from "../shared/fs";
 import type { ChangedTables } from "../shared/types";
-import { asTablesChanges, extractChangedTables } from "../shared/utils";
 
 export type ListenMode = "notify" | "poll" | "both";
 

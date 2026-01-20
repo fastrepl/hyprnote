@@ -1,13 +1,9 @@
-import type { BaseMessage } from "@langchain/core/messages";
-import { Annotation, messagesStateReducer } from "@langchain/langgraph";
+import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
 
 import type { ImageContent } from "./utils/input";
 
 export const AgentState = Annotation.Root({
-  messages: Annotation<BaseMessage[]>({
-    reducer: messagesStateReducer,
-    default: () => [],
-  }),
+  ...MessagesAnnotation.spec,
 
   request: Annotation<string>({
     reducer: (prev, newValue) => newValue ?? prev,

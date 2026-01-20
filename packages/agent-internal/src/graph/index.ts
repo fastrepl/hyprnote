@@ -1,6 +1,6 @@
 import { END, START, StateGraph } from "@langchain/langgraph";
 import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
-import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
 
 import { env } from "../env";
 import { agentNode } from "../nodes/agent";
@@ -8,7 +8,6 @@ import { humanApprovalNode } from "../nodes/tools";
 import { AgentState } from "../state";
 import { tools } from "../tools";
 import { isRetryableError } from "../types";
-import { shouldContinue } from "./routing";
 
 const checkpointer = PostgresSaver.fromConnString(env.DATABASE_URL);
 
@@ -38,8 +37,8 @@ const workflow = new StateGraph(AgentState)
   })
   .addNode("tools", toolNode)
   .addEdge(START, "agent")
-  .addConditionalEdges("agent", shouldContinue, {
-    humanApproval: "humanApproval",
+  .addConditionalEdges("agent", toolsCondition, {
+    tools: "humanApproval",
     [END]: END,
   })
   .addEdge("tools", "agent");

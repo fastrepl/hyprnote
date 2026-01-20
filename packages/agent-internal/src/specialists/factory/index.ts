@@ -5,7 +5,7 @@ import {
 } from "@langchain/core/messages";
 import {
   Annotation,
-  messagesStateReducer,
+  MessagesAnnotation,
   START,
   StateGraph,
 } from "@langchain/langgraph";
@@ -18,10 +18,7 @@ import { createModel, ensureMessageIds } from "../../utils/shared";
 import { executeCodeTool } from "./tools";
 
 const SpecialistState = Annotation.Root({
-  messages: Annotation<BaseMessage[]>({
-    reducer: messagesStateReducer,
-    default: () => [],
-  }),
+  ...MessagesAnnotation.spec,
   request: Annotation<string>({
     reducer: (prev, newValue) => newValue ?? prev,
     default: () => "",

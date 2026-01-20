@@ -92,9 +92,11 @@ function createPersisterBuilder<T>(transform: TransformUtils<T>) {
         void analyticsCommands.setProperties({
           set: {
             spoken_languages: (s.language?.spoken_languages as string[]) ?? [],
-            current_stt_provider: (s.ai?.current_stt_provider as string) ?? null,
+            current_stt_provider:
+              (s.ai?.current_stt_provider as string) ?? null,
             current_stt_model: (s.ai?.current_stt_model as string) ?? null,
-            current_llm_provider: (s.ai?.current_llm_provider as string) ?? null,
+            current_llm_provider:
+              (s.ai?.current_llm_provider as string) ?? null,
             current_llm_model: (s.ai?.current_llm_model as string) ?? null,
           },
         });

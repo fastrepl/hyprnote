@@ -221,7 +221,7 @@ async fn completions_handler(
                 "retrying_llm_request"
             );
         })
-        .when(|e| is_retryable_error(e))
+        .when(is_retryable_error)
         .await
     })
     .await;

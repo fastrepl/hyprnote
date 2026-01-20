@@ -22,6 +22,12 @@ pub struct StreamAccumulator {
     pub output_tokens: u32,
 }
 
+impl Default for StreamAccumulator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StreamAccumulator {
     pub fn new() -> Self {
         Self {

@@ -18,6 +18,9 @@ use hypr_audio_utils::f32_to_i16_bytes;
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
 const MAX_BUFFER_CHUNKS: usize = 150;
 
+type AudioPair = (Arc<[f32]>, Arc<[f32]>);
+type BufferedAudio = (Arc<[f32]>, Arc<[f32]>, ChannelMode);
+
 pub(in crate::actors) struct Pipeline {
     agc_mic: VadAgc,
     agc_spk: VadAgc,
@@ -176,7 +179,7 @@ impl Pipeline {
 }
 
 struct AudioBuffer {
-    buffer: VecDeque<(Arc<[f32]>, Arc<[f32]>, ChannelMode)>,
+    buffer: VecDeque<BufferedAudio>,
     max_size: usize,
 }
 
@@ -196,7 +199,7 @@ impl AudioBuffer {
         self.buffer.push_back((mic, spk, mode));
     }
 
-    fn pop(&mut self) -> Option<(Arc<[f32]>, Arc<[f32]>, ChannelMode)> {
+    fn pop(&mut self) -> Option<BufferedAudio> {
         self.buffer.pop_front()
     }
 
@@ -357,7 +360,7 @@ impl Joiner {
         }
     }
 
-    fn pop_pair(&mut self, mode: ChannelMode) -> Option<(Arc<[f32]>, Arc<[f32]>)> {
+    fn pop_pair(&mut self, mode: ChannelMode) -> Option<AudioPair> {
         if self.mic.front().is_some() && self.spk.front().is_some() {
             return Some((self.mic.pop_front()?, self.spk.pop_front()?));
         }

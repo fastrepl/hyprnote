@@ -157,23 +157,41 @@ const EventItem = memo(
     const handleClick = useCallback(() => openEvent(false), [openEvent]);
     const handleCmdClick = useCallback(() => openEvent(true), [openEvent]);
 
-    const handleIgnore = main.UI.useSetPartialRowCallback(
-      "events",
-      eventId,
-      () => ({ ignored: true }),
-      [],
-      main.STORE_ID,
-    );
+    const handleIgnore = useCallback(() => {
+      if (!store) {
+        return;
+      }
+      store.transaction(() => {
+        store.setPartialRow("events", eventId, { ignored: true });
+        if (attachedSessionId) {
+          store.setPartialRow("sessions", attachedSessionId, {
+            event_id: undefined,
+          });
+        }
+      });
+    }, [store, eventId, attachedSessionId]);
 
     const handleIgnoreSeries = useCallback(() => {
       if (!store || !recurrenceSeriesId) {
         return;
       }
       store.transaction(() => {
+        const eventIdsInSeries: string[] = [];
         store.forEachRow("events", (rowId, _forEachCell) => {
           const event = store.getRow("events", rowId);
           if (event?.recurrence_series_id === recurrenceSeriesId) {
             store.setPartialRow("events", rowId, { ignored: true });
+            eventIdsInSeries.push(rowId);
+          }
+        });
+
+        store.forEachRow("sessions", (rowId, _forEachCell) => {
+          const session = store.getRow("sessions", rowId);
+          if (
+            session?.event_id &&
+            eventIdsInSeries.includes(session.event_id)
+          ) {
+            store.setPartialRow("sessions", rowId, { event_id: undefined });
           }
         });
 

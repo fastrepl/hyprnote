@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@iconify-icon/react";
+import { ChevronDown } from "lucide-react";
 
 import { AnimatedText } from "./animated-text";
 
@@ -226,6 +227,12 @@ export function HyprnoteIcon() {
   );
 }
 
+export function ChevronIcon() {
+  return (
+    <ChevronDown className="size-4 text-neutral-400 group-open:rotate-180 transition-transform" />
+  );
+}
+
 export const jobsMdxComponents = {
   ToolIcon,
   ToolImage,
@@ -236,4 +243,5 @@ export const jobsMdxComponents = {
   AnimatedJobText,
   GitHubMention,
   HyprnoteIcon,
+  ChevronIcon,
 };

@@ -15,7 +15,11 @@ import {
 } from "../../../../utils/timeline";
 import { useAnchor, useAutoScrollToAnchor } from "./anchor";
 import { TimelineItemComponent } from "./item";
-import { CurrentTimeIndicator, useCurrentTimeMs } from "./realtime";
+import {
+  CurrentTimeIndicator,
+  useCurrentTimeMs,
+  useSmartCurrentTime,
+} from "./realtime";
 
 export function TimelineView() {
   const buckets = useTimelineData();
@@ -272,6 +276,10 @@ function useTimelineData(): TimelineBucket[] {
     main.QUERIES.sessionsWithMaybeEvent,
     main.STORE_ID,
   );
+  const currentTimeMs = useSmartCurrentTime(
+    eventsWithoutSessionTable,
+    sessionsWithMaybeEventTable,
+  );
 
   return useMemo(
     () =>
@@ -279,7 +287,7 @@ function useTimelineData(): TimelineBucket[] {
         eventsWithoutSessionTable,
         sessionsWithMaybeEventTable,
       }),
-    [eventsWithoutSessionTable, sessionsWithMaybeEventTable],
+    [eventsWithoutSessionTable, sessionsWithMaybeEventTable, currentTimeMs],
   );
 }
 

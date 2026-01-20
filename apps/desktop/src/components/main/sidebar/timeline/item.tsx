@@ -254,9 +254,18 @@ const SessionItem = memo(
       return event?.calendar_id ? String(event.calendar_id) : null;
     }, [store, item.data.event_id]);
 
+    const eventStartedAt = useMemo(() => {
+      if (!store || !item.data.event_id) {
+        return null;
+      }
+      const event = store.getRow("events", item.data.event_id);
+      return event?.started_at ? String(event.started_at) : null;
+    }, [store, item.data.event_id]);
+
     const displayTime = useMemo(
-      () => formatDisplayTime(item.data.created_at, precision),
-      [item.data.created_at, precision],
+      () =>
+        formatDisplayTime(eventStartedAt ?? item.data.created_at, precision),
+      [eventStartedAt, item.data.created_at, precision],
     );
 
     const handleClick = useCallback(() => {

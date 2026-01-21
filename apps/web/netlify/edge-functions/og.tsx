@@ -50,6 +50,13 @@ const handbookSchema = z.object({
   description: z.string().optional(),
 });
 
+const jobsSchema = z.object({
+  type: z.literal("jobs"),
+  title: z.string(),
+  description: z.string().optional(),
+  backgroundImage: z.string(),
+});
+
 const OGSchema = z.discriminatedUnion("type", [
   meetingSchema,
   templatesSchema,
@@ -58,6 +65,7 @@ const OGSchema = z.discriminatedUnion("type", [
   blogSchema,
   docsSchema,
   handbookSchema,
+  jobsSchema,
 ]);
 
 function preventWidow(text: string): string {
@@ -115,6 +123,20 @@ function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
     const description = url.searchParams.get("description") || undefined;
 
     const result = OGSchema.safeParse({ type, title, section, description });
+    return result.success ? result.data : null;
+  }
+
+  if (type === "jobs") {
+    const title = url.searchParams.get("title");
+    const description = url.searchParams.get("description") || undefined;
+    const backgroundImage = url.searchParams.get("backgroundImage");
+
+    const result = OGSchema.safeParse({
+      type,
+      title,
+      description,
+      backgroundImage,
+    });
     return result.success ? result.data : null;
   }
 
@@ -646,6 +668,115 @@ function renderShortcutsTemplate(params: z.infer<typeof shortcutsSchema>) {
   });
 }
 
+function renderJobsTemplate(params: z.infer<typeof jobsSchema>) {
+  const backgroundUrl = params.backgroundImage.startsWith("/")
+    ? `https://hyprnote.com${params.backgroundImage}`
+    : params.backgroundImage;
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        display: "flex",
+      }}
+    >
+      <img
+        src={backgroundUrl}
+        style={{
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+          background: "rgba(0, 0, 0, 0.4)",
+        }}
+      />
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          padding: 55,
+          position: "relative",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          display: "flex",
+        }}
+      >
+        <div
+          style={{
+            justifyContent: "flex-start",
+            alignItems: "center",
+            gap: 12,
+            display: "flex",
+          }}
+        >
+          <img
+            style={{ width: 48, height: 48 }}
+            src="https://hyprnote.com/api/images/icons/stable-icon.png"
+          />
+          <div
+            style={{
+              color: "#FAFAF9",
+              fontSize: 36,
+              fontFamily: "Lora",
+              fontWeight: "700",
+              wordWrap: "break-word",
+            }}
+          >
+            We're Hiring
+          </div>
+        </div>
+        <div
+          style={{
+            alignSelf: "stretch",
+            flexDirection: "column",
+            justifyContent: "flex-start",
+            alignItems: "flex-start",
+            gap: 16,
+            display: "flex",
+          }}
+        >
+          <div
+            style={{
+              alignSelf: "stretch",
+              color: "#FAFAF9",
+              fontSize: 72,
+              fontFamily: "Lora",
+              fontWeight: "700",
+              wordWrap: "break-word",
+            }}
+          >
+            {preventWidow(params.title)}
+          </div>
+          {params.description && (
+            <div
+              style={{
+                alignSelf: "stretch",
+                color: "#E7E5E4",
+                fontSize: 32,
+                fontFamily: "Lora",
+                fontWeight: "400",
+                wordWrap: "break-word",
+              }}
+            >
+              {params.description}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default async function handler(req: Request) {
   const url = new URL(req.url);
 
@@ -677,6 +808,8 @@ export default async function handler(req: Request) {
       response = renderTemplatesTemplate(params);
     } else if (params.type === "shortcuts") {
       response = renderShortcutsTemplate(params);
+    } else if (params.type === "jobs") {
+      response = renderJobsTemplate(params);
     } else {
       response = renderMeetingTemplate(params);
     }
@@ -687,7 +820,8 @@ export default async function handler(req: Request) {
       params.type === "docs" ||
       params.type === "handbook" ||
       params.type === "templates" ||
-      params.type === "shortcuts";
+      params.type === "shortcuts" ||
+      params.type === "jobs";
     const fonts = needsCustomFonts
       ? [
         {

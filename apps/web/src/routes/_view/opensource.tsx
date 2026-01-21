@@ -574,7 +574,7 @@ function SponsorsSection() {
               </a>
             );
           })}
-          <div className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="col-span-6 p-6 border-t border-neutral-100 bg-stone-50/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h3 className="text-xl font-serif text-stone-600">
                 We Appreciate Your Support
@@ -769,7 +769,7 @@ function ProgressSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-5 border-t border-b border-neutral-100">
+        <div className="grid grid-cols-5 border-t border-neutral-100">
           {stats.map((stat, index) => (
             <StatCard
               key={stat.label}
@@ -846,21 +846,27 @@ function JoinMovementSection() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 border-t border-b border-neutral-100">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 border-t border-neutral-100">
           {contributions.map((item, index) => {
-            const posInRow3 = index % 3;
-            const hasBorderR = posInRow3 < 2;
-            const hasBorderB = index < 3;
+            const isLastMobile = index === contributions.length - 1;
+            const isLastRowSm =
+              Math.floor(index / 2) === Math.ceil(contributions.length / 2) - 1;
+            const isLastRowLg =
+              Math.floor(index / 3) === Math.ceil(contributions.length / 3) - 1;
 
             return (
               <div
                 key={item.title}
                 className={cn([
                   "p-6 border-neutral-100 flex flex-col justify-between",
-                  hasBorderR && "lg:border-r",
-                  hasBorderB && "lg:border-b",
-                  index % 2 === 0 && "sm:border-r lg:border-r-0",
-                  index > 1 && "border-t sm:border-t-0 lg:border-t-0",
+                  !isLastMobile && "border-b",
+                  !isLastRowSm && "sm:border-b",
+                  isLastRowSm && "sm:border-b-0",
+                  !isLastRowLg && "lg:border-b",
+                  isLastRowLg && "lg:border-b-0",
+                  index % 2 === 0 && "sm:border-r",
+                  index % 3 !== 2 && "lg:border-r",
+                  index % 3 === 2 && "lg:border-r-0",
                 ])}
               >
                 <div>

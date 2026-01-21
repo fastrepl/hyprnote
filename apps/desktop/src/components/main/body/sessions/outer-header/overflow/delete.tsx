@@ -7,29 +7,30 @@ import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 import { DropdownMenuItem } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
-import { deleteSessionCascade } from "../../../../../../store/tinybase/store/deleteSession";
+import { deleteSessionWithUndo } from "../../../../../../store/tinybase/store/deleteSession";
 import * as main from "../../../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../../../store/zustand/tabs";
 
 export function DeleteNote({ sessionId }: { sessionId: string }) {
   const store = main.UI.useStore(main.STORE_ID);
   const indexes = main.UI.useIndexes(main.STORE_ID);
+  const checkpoints = main.UI.useCheckpoints(main.STORE_ID);
   const invalidateResource = useTabs((state) => state.invalidateResource);
 
   const handleDeleteNote = useCallback(() => {
-    if (!store) {
+    if (!store || !checkpoints) {
       return;
     }
 
     invalidateResource("sessions", sessionId);
 
-    void deleteSessionCascade(store, indexes, sessionId);
+    void deleteSessionWithUndo(store, indexes, checkpoints, sessionId);
 
     void analyticsCommands.event({
       event: "session_deleted",
       includes_recording: true,
     });
-  }, [store, indexes, sessionId, invalidateResource]);
+  }, [store, indexes, checkpoints, sessionId, invalidateResource]);
 
   return (
     <DropdownMenuItem

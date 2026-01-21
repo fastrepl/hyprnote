@@ -2,10 +2,12 @@ import { useCallback } from "react";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
+import { useUndoStore } from "../../zustand/undo";
 import * as main from "./main";
 
 type Store = NonNullable<ReturnType<typeof main.UI.useStore>>;
 type Indexes = NonNullable<ReturnType<typeof main.UI.useIndexes>>;
+type Checkpoints = NonNullable<ReturnType<typeof main.UI.useCheckpoints>>;
 
 function deleteByIndex(
   store: Store,
@@ -20,13 +22,11 @@ function deleteByIndex(
   }
 }
 
-export async function deleteSessionCascade(
+function deleteSessionData(
   store: Store,
   indexes: ReturnType<typeof main.UI.useIndexes>,
   sessionId: string,
-): Promise<void> {
-  await fsSyncCommands.audioDelete(sessionId);
-
+): void {
   if (!indexes) {
     store.delRow("sessions", sessionId);
     return;
@@ -65,6 +65,40 @@ export async function deleteSessionCascade(
     );
 
     store.delRow("sessions", sessionId);
+  });
+}
+
+export async function deleteSessionCascade(
+  store: Store,
+  indexes: ReturnType<typeof main.UI.useIndexes>,
+  sessionId: string,
+): Promise<void> {
+  await fsSyncCommands.audioDelete(sessionId);
+  deleteSessionData(store, indexes, sessionId);
+}
+
+const AUDIO_DELETE_DELAY_MS = 10000;
+
+export function deleteSessionWithUndo(
+  store: Store,
+  indexes: ReturnType<typeof main.UI.useIndexes>,
+  checkpoints: Checkpoints,
+  sessionId: string,
+): void {
+  const checkpointId = checkpoints.addCheckpoint(`delete_session:${sessionId}`);
+
+  deleteSessionData(store, indexes, sessionId);
+
+  const audioDeleteTimeoutId = setTimeout(() => {
+    void fsSyncCommands.audioDelete(sessionId);
+    useUndoStore.getState().removeOperation(checkpointId);
+  }, AUDIO_DELETE_DELAY_MS);
+
+  useUndoStore.getState().addOperation({
+    type: "delete_session",
+    sessionId,
+    checkpointId,
+    audioDeleteTimeoutId,
   });
 }
 

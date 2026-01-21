@@ -7,6 +7,7 @@ import { usePrevious } from "@uidotdev/usehooks";
 import { useCallback, useEffect, useRef } from "react";
 
 import { buildChatTools } from "../../../chat/tools";
+import { UndoToast } from "../../../components/undo-toast";
 import { AITaskProvider } from "../../../contexts/ai-task";
 import { useListener } from "../../../contexts/listener";
 import { NotificationProvider } from "../../../contexts/notifications";
@@ -95,6 +96,7 @@ function Component() {
               <NotificationProvider>
                 <ToolRegistration />
                 <Outlet />
+                <UndoToast />
               </NotificationProvider>
             </AITaskProvider>
           </ToolRegistryProvider>

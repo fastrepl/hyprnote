@@ -52,6 +52,9 @@ fn build_upstream_url_with_adapter(
         Provider::OpenAI => OpenAIAdapter.build_ws_url(api_base, params, channels),
         Provider::Gladia => GladiaAdapter.build_ws_url(api_base, params, channels),
         Provider::ElevenLabs => ElevenLabsAdapter.build_ws_url(api_base, params, channels),
+        Provider::Voxtral => {
+            panic!("Voxtral does not support live streaming, only batch transcription")
+        }
     }
 }
 
@@ -69,6 +72,9 @@ fn build_initial_message_with_adapter(
         Provider::OpenAI => OpenAIAdapter.initial_message(api_key, params, channels),
         Provider::Gladia => GladiaAdapter.initial_message(api_key, params, channels),
         Provider::ElevenLabs => ElevenLabsAdapter.initial_message(api_key, params, channels),
+        Provider::Voxtral => {
+            panic!("Voxtral does not support live streaming, only batch transcription")
+        }
     };
 
     msg.and_then(|m| match m {
@@ -89,6 +95,9 @@ fn build_response_transformer(
             Provider::OpenAI => OpenAIAdapter.parse_response(raw),
             Provider::Gladia => GladiaAdapter.parse_response(raw),
             Provider::ElevenLabs => ElevenLabsAdapter.parse_response(raw),
+            Provider::Voxtral => {
+                panic!("Voxtral does not support live streaming, only batch transcription")
+            }
         };
 
         if responses.is_empty() {

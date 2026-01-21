@@ -57,6 +57,17 @@ impl Language {
             None => self.iso639.code().to_string(),
         }
     }
+
+    pub fn matches_any_code(&self, supported: &[&str]) -> bool {
+        let bcp47 = self.bcp47_code();
+        if supported.contains(&bcp47.as_str()) {
+            return true;
+        }
+        if self.region().is_none() {
+            return supported.contains(&self.iso639.code());
+        }
+        false
+    }
 }
 
 fn extract_region(parts: &[&str]) -> Option<String> {

@@ -71,36 +71,36 @@ impl DeepgramModel {
     }
 
     pub fn supports_language(&self, lang: &hypr_language::Language) -> bool {
-        super::language_matches_supported_codes(lang, self.supported_languages())
+        lang.matches_any_code(self.supported_languages())
     }
 
     pub fn supports_multi(&self, languages: &[hypr_language::Language]) -> bool {
         language::can_use_multi(self.as_ref(), languages)
     }
-
-    pub fn best_for_languages(languages: &[hypr_language::Language]) -> Option<Self> {
-        let primary_lang = languages.first()?;
-
-        [Self::Nova3General, Self::Nova3Medical, Self::Nova2General]
-            .into_iter()
-            .find(|model| model.supports_language(primary_lang))
-    }
-
-    pub fn best_for_multi_languages(languages: &[hypr_language::Language]) -> Option<Self> {
-        if language::can_use_multi(Self::Nova3General.as_ref(), languages) {
-            Some(Self::Nova3General)
-        } else if language::can_use_multi(Self::Nova2General.as_ref(), languages) {
-            Some(Self::Nova2General)
-        } else {
-            None
-        }
-    }
 }
+
+const MODELS: &[DeepgramModel] = &[
+    DeepgramModel::Nova3General,
+    DeepgramModel::Nova3Medical,
+    DeepgramModel::Nova2General,
+];
 
 #[derive(Clone, Default)]
 pub struct DeepgramAdapter;
 
 impl DeepgramAdapter {
+    pub fn find_model(languages: &[hypr_language::Language]) -> Option<DeepgramModel> {
+        if languages.len() >= 2 {
+            MODELS.iter().find(|m| m.supports_multi(languages)).copied()
+        } else {
+            let primary = languages.first()?;
+            MODELS
+                .iter()
+                .find(|m| m.supports_language(primary))
+                .copied()
+        }
+    }
+
     pub fn language_support_live(
         languages: &[hypr_language::Language],
         model: Option<DeepgramModel>,
@@ -136,7 +136,7 @@ impl DeepgramAdapter {
             if !languages.iter().all(|lang| m.supports_language(lang)) {
                 return LanguageSupport::NotSupported;
             }
-        } else if DeepgramModel::best_for_languages(languages).is_none() {
+        } else if Self::find_model(languages).is_none() {
             return LanguageSupport::NotSupported;
         }
 
@@ -174,7 +174,7 @@ impl DeepgramAdapter {
             LanguageQuality::Good
         } else if MODERATE_LANGS.contains(&code) {
             LanguageQuality::Moderate
-        } else if DeepgramModel::best_for_languages(std::slice::from_ref(language)).is_some() {
+        } else if Self::find_model(std::slice::from_ref(language)).is_some() {
             LanguageQuality::NoData
         } else {
             return LanguageSupport::NotSupported;
@@ -183,13 +183,7 @@ impl DeepgramAdapter {
     }
 
     pub fn recommended_model_live(languages: &[hypr_language::Language]) -> Option<&'static str> {
-        let model = if languages.len() >= 2 {
-            DeepgramModel::best_for_multi_languages(languages)
-        } else {
-            DeepgramModel::best_for_languages(languages)
-        };
-
-        match model {
+        match Self::find_model(languages) {
             Some(DeepgramModel::Nova3General) => Some("nova-3"),
             Some(DeepgramModel::Nova3Medical) => Some("nova-3-medical"),
             Some(DeepgramModel::Nova2General) => Some("nova-2"),

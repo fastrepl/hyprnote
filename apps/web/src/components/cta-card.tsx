@@ -1,4 +1,27 @@
+import { Link } from "@tanstack/react-router";
+
 import { cn } from "@hypr/utils";
+
+export function SidebarDownloadCard() {
+  return (
+    <div className="border border-neutral-200 rounded-xs overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-4">
+      <h3 className="font-serif text-sm text-stone-600 mb-3 text-center">
+        Try Hyprnote for yourself
+      </h3>
+      <Link
+        to="/download/"
+        className={cn([
+          "group px-4 h-9 flex items-center justify-center text-sm w-full",
+          "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
+          "hover:scale-[102%] active:scale-[98%]",
+          "transition-all",
+        ])}
+      >
+        Download for free
+      </Link>
+    </div>
+  );
+}
 
 interface CtaCardProps {
   title?: string;

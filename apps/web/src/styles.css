@@ -75,6 +75,14 @@
     overflow-wrap: break-word;
     word-break: break-all;
   }
+
+  .prose a.anchor {
+    text-decoration: none !important;
+  }
+
+  .prose a.anchor:hover {
+    text-decoration: underline dotted !important;
+  }
 }
 
 @layer utilities {

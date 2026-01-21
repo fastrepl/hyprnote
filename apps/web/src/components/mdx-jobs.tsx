@@ -207,7 +207,7 @@ export function GitHubMention({
       target="_blank"
       rel="noopener noreferrer"
       className={[
-        "inline-flex items-center gap-1 align-middle",
+        "inline items-center align-baseline whitespace-nowrap",
         "font-semibold text-inherit",
         "underline underline-offset-2 decoration-neutral-400",
         "hover:decoration-neutral-600 transition-colors",
@@ -216,7 +216,7 @@ export function GitHubMention({
       <img
         src={avatarUrl}
         alt={name ?? username}
-        className="size-5 rounded-full no-underline"
+        className="inline size-5 rounded-full no-underline align-middle mr-1"
       />
       {name ?? `@${username}`}
     </a>

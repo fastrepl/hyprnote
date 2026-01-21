@@ -121,6 +121,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Updater2<'a, R, M> {
             .await?
             .ok_or(crate::Error::UpdateNotAvailable)?;
 
+        if let Ok(store) = self.manager.store2().store() {
+            let _ = store.save();
+        }
+
         update.install(&bytes)?;
 
         Ok(())

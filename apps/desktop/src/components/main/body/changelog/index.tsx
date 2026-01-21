@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { CalendarIcon, ExternalLinkIcon, SparklesIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -17,6 +16,7 @@ import {
   ScrollFadeOverlay,
   useScrollFade,
 } from "@hypr/ui/components/ui/scroll-fade";
+import { safeFormat } from "@hypr/utils";
 
 import { type Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -162,7 +162,7 @@ function ChangelogHeader({
   version: string;
   date: string | null;
 }) {
-  const formattedDate = date ? format(new Date(date), "MMM d, yyyy") : null;
+  const formattedDate = date ? safeFormat(date, "MMM d, yyyy") : null;
 
   return (
     <div className="w-full pt-1">

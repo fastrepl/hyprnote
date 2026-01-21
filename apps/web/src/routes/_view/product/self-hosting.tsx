@@ -67,7 +67,7 @@ function HeroSection() {
   return (
     <section className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
       <div className="flex flex-col items-center text-center gap-6 py-24 px-4">
-        <div className="space-y-6 max-w-4xl">
+        <div className="flex flex-col gap-6 max-w-4xl">
           <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
             Run Hyprnote on
             <br />
@@ -86,7 +86,7 @@ function HeroSection() {
             className={cn([
               "px-6 h-12 flex items-center justify-center text-base font-medium rounded-full",
               "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
-              "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+              "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
             ])}
           >
             Our open source manifesto
@@ -179,7 +179,7 @@ function ComparisonSection() {
               Cloud-hosted Solutions
             </h3>
           </div>
-          <ul className="space-y-4 text-neutral-600">
+          <ul className="flex flex-col gap-4 text-neutral-600">
             <li className="flex items-start gap-3">
               <Icon
                 icon="mdi:close"
@@ -231,7 +231,7 @@ function ComparisonSection() {
               Hyprnote Self-hosted
             </h3>
           </div>
-          <ul className="space-y-4 text-green-900">
+          <ul className="flex flex-col gap-4 text-green-900">
             <li className="flex items-start gap-3">
               <Icon
                 icon="mdi:check"

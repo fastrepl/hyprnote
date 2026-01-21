@@ -3,6 +3,9 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { fetchUser } from "@/functions/auth";
 
 export const Route = createFileRoute("/_view/app")({
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
   beforeLoad: async ({ location }) => {
     const user = await fetchUser();
     if (!user) {

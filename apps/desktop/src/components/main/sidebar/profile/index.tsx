@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   CalendarIcon,
   ChevronUpIcon,
+  CircleHelp,
   FileTextIcon,
   FolderOpenIcon,
   MessageSquareIcon,
@@ -18,12 +19,12 @@ import { Kbd } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
+import { useFeedbackModal } from "../../../../components/feedback/feedback-modal";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { AuthSection } from "./auth";
 import { NotificationsMenuContent } from "./notification";
-import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
 
 type ProfileView = "main" | "notifications";
@@ -38,6 +39,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   const [mainViewHeight, setMainViewHeight] = useState<number | null>(null);
   const mainViewRef = useRef<HTMLDivElement | null>(null);
   const openNew = useTabs((state) => state.openNew);
+  const openFeedback = useFeedbackModal((state) => state.open);
   const auth = useAuth();
 
   const isAuthenticated = !!auth?.session;
@@ -161,6 +163,11 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
+  const handleClickHelp = useCallback(() => {
+    openFeedback("bug");
+    closeMenu();
+  }, [openFeedback, closeMenu]);
+
   // const handleClickData = useCallback(() => {
   //   openNew({ type: "data" });
   //   closeMenu();
@@ -218,6 +225,11 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       onClick: handleClickSettings,
       badge: <Kbd className={kbdClass}>⌘ ,</Kbd>,
     },
+    {
+      icon: CircleHelp,
+      label: "Help",
+      onClick: handleClickHelp,
+    },
   ];
 
   return (
@@ -231,7 +243,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="absolute bottom-full left-0 right-0 mb-1"
           >
-            <div className="bg-neutral-50 rounded-xl overflow-hidden shadow-sm border">
+            <div className="bg-neutral-50 rounded-xl overflow-hidden shadow-xs border">
               <div className="pt-1">
                 <AnimatePresence mode="wait">
                   {currentView === "main" ? (
@@ -249,14 +261,11 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                       {/*<NotificationsMenuHeader
                         onClick={handleClickNotifications}
                       />*/}
-                      <UpdateChecker />
-
-                      <div className="my-1 border-t border-neutral-100" />
 
                       {menuItems.map((item, index) => (
                         <div key={item.label}>
                           <MenuItem {...item} />
-                          {(index === 2 || index === 5) && (
+                          {(index === 2 || index === 5 || index === 7) && (
                             <div className="my-1 border-t border-neutral-100" />
                           )}
                         </div>
@@ -322,7 +331,7 @@ function ProfileButton({
   return (
     <button
       className={cn([
-        "flex w-full items-center gap-2.5",
+        "cursor-pointer flex w-full items-center gap-2.5",
         "px-4 py-2",
         "text-left",
         "transition-all duration-300",
@@ -333,11 +342,11 @@ function ProfileButton({
     >
       <div
         className={cn([
-          "flex size-8 flex-shrink-0 items-center justify-center",
+          "flex size-8 shrink-0 items-center justify-center",
           "overflow-hidden rounded-full",
-          "border border-white/60 border-t border-neutral-400",
-          "bg-gradient-to-br from-indigo-400 to-purple-500",
-          "shadow-sm",
+          "border border-t border-neutral-400",
+          "bg-linear-to-br from-indigo-400 to-purple-500",
+          "shadow-xs",
           "transition-transform duration-300",
         ])}
       >
@@ -349,18 +358,14 @@ function ProfileButton({
           />
         )}
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm text-black truncate">{name}</div>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <ChevronUpIcon
-          className={cn([
-            "h-4 w-4",
-            "transition-transform duration-300",
-            isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
-          ])}
-        />
-      </div>
+      <div className="min-w-0 flex-1 text-sm text-black truncate">{name}</div>
+      <ChevronUpIcon
+        className={cn([
+          "h-4 w-4",
+          "transition-transform duration-300",
+          isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
+        ])}
+      />
     </button>
   );
 }

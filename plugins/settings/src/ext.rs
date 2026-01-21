@@ -1,20 +1,9 @@
-use std::collections::HashMap;
 use std::path::PathBuf;
 
-use serde::{Deserialize, Serialize};
+use crate::content_base;
+use crate::obsidian::ObsidianVault;
 
 pub const FILENAME: &str = "settings.json";
-pub const CONTENT_BASE_PATH_KEY: &str = "content_base_path";
-
-#[derive(Debug, Deserialize, specta::Type)]
-pub struct ObsidianConfig {
-    vaults: HashMap<String, ObsidianVault>,
-}
-
-#[derive(Debug, Deserialize, Serialize, specta::Type)]
-pub struct ObsidianVault {
-    pub path: PathBuf,
-}
 
 pub struct Settings<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -45,24 +34,25 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
         self.default_base()
     }
 
-    pub fn content_base(&self) -> Result<PathBuf, crate::Error> {
-        let default_base = self.default_base()?;
-        let settings_path = default_base.join(FILENAME);
+    pub fn settings_path(&self) -> Result<PathBuf, crate::Error> {
+        let base = self.settings_base()?;
+        Ok(base.join(FILENAME))
+    }
 
-        if let Ok(content) = std::fs::read_to_string(&settings_path) {
-            if let Ok(settings) = serde_json::from_str::<serde_json::Value>(&content) {
-                if let Some(custom_base) =
-                    settings.get(CONTENT_BASE_PATH_KEY).and_then(|v| v.as_str())
-                {
-                    let custom_path = PathBuf::from(custom_base);
-                    if custom_path.exists() {
-                        return Ok(custom_path);
-                    }
-                }
-            }
+    pub fn content_base(&self) -> Result<PathBuf, crate::Error> {
+        let state = self.manager.try_state::<crate::state::State>();
+        if let Some(state) = state {
+            return Ok(state.content_base().clone());
         }
 
-        Ok(default_base)
+        self.compute_content_base()
+    }
+
+    pub fn compute_content_base(&self) -> Result<PathBuf, crate::Error> {
+        let default_base = self.default_base()?;
+        let settings_path = self.settings_base()?;
+        let custom_base = content_base::resolve_custom(&settings_path, &default_base);
+        Ok(custom_base.unwrap_or(default_base))
     }
 
     pub async fn change_content_base(&self, new_path: PathBuf) -> Result<(), crate::Error> {
@@ -74,27 +64,16 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
         }
 
         std::fs::create_dir_all(&new_path)?;
-
-        copy_dir_recursive(&old_content_base, &new_path).await?;
+        crate::fs::copy_dir_recursive(&old_content_base, &new_path, Some(FILENAME)).await?;
 
         let settings_path = default_base.join(FILENAME);
-        let mut settings = if let Ok(content) = std::fs::read_to_string(&settings_path) {
-            serde_json::from_str::<serde_json::Value>(&content).unwrap_or(serde_json::json!({}))
-        } else {
-            serde_json::json!({})
-        };
+        let existing_json = std::fs::read_to_string(&settings_path).ok();
+        let content = content_base::prepare_settings_json_for_content_base(
+            existing_json.as_deref(),
+            &new_path,
+        )?;
 
-        if let Some(obj) = settings.as_object_mut() {
-            obj.insert(
-                CONTENT_BASE_PATH_KEY.to_string(),
-                serde_json::Value::String(new_path.to_string_lossy().to_string()),
-            );
-        }
-
-        let tmp_path = settings_path.with_extension("for-content-base.tmp");
-        let content = serde_json::to_string_pretty(&settings)?;
-        std::fs::write(&tmp_path, &content)?;
-        std::fs::rename(&tmp_path, &settings_path)?;
+        crate::fs::atomic_write(&settings_path, &content)?;
 
         if old_content_base != default_base {
             let _ = std::fs::remove_dir_all(&old_content_base);
@@ -104,36 +83,21 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
     }
 
     pub fn obsidian_vaults(&self) -> Result<Vec<ObsidianVault>, crate::Error> {
-        let data_dir = self
-            .manager
-            .path()
-            .data_dir()
-            .map_err(|e| crate::Error::Path(e.to_string()))?;
-
-        let config_path = data_dir.join("obsidian").join("obsidian.json");
-        let content = std::fs::read_to_string(&config_path)?;
-        let config: ObsidianConfig = serde_json::from_str(&content)?;
-
-        Ok(config.vaults.into_values().collect())
-    }
-
-    pub fn path(&self) -> Result<PathBuf, crate::Error> {
-        let base = self.settings_base()?;
-        Ok(base.join(FILENAME))
+        crate::obsidian::load_vaults()
     }
 
     pub async fn load(&self) -> crate::Result<serde_json::Value> {
-        let state = self.manager.state::<crate::state::SettingsState>();
+        let state = self.manager.state::<crate::state::State>();
         state.load().await
     }
 
     pub async fn save(&self, settings: serde_json::Value) -> crate::Result<()> {
-        let state = self.manager.state::<crate::state::SettingsState>();
+        let state = self.manager.state::<crate::state::State>();
         state.save(settings).await
     }
 
     pub fn reset(&self) -> crate::Result<()> {
-        let state = self.manager.state::<crate::state::SettingsState>();
+        let state = self.manager.state::<crate::state::State>();
         state.reset()
     }
 }
@@ -154,28 +118,4 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> SettingsPluginExt<R> for T {
             _runtime: std::marker::PhantomData,
         }
     }
-}
-
-async fn copy_dir_recursive(src: &PathBuf, dst: &PathBuf) -> Result<(), crate::Error> {
-    let mut entries = tokio::fs::read_dir(src).await?;
-
-    while let Some(entry) = entries.next_entry().await? {
-        let src_path = entry.path();
-        let file_name = entry.file_name();
-        let dst_path = dst.join(&file_name);
-
-        if file_name == FILENAME {
-            continue;
-        }
-
-        let file_type = entry.file_type().await?;
-        if file_type.is_dir() {
-            tokio::fs::create_dir_all(&dst_path).await?;
-            Box::pin(copy_dir_recursive(&src_path, &dst_path)).await?;
-        } else {
-            tokio::fs::copy(&src_path, &dst_path).await?;
-        }
-    }
-
-    Ok(())
 }

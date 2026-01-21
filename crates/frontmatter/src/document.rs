@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_yaml::Value;
 
@@ -68,8 +70,10 @@ impl<T> Document<T> {
     }
 }
 
-impl<T: DeserializeOwned> Document<T> {
-    pub fn from_str(s: &str) -> Result<Self, Error> {
+impl<T: DeserializeOwned> FromStr for Document<T> {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim_start();
 
         if !s.starts_with(DELIMITER) {

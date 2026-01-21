@@ -9,14 +9,16 @@ use gtk::{
 };
 use indexmap::IndexMap;
 
+type NotificationCallback = Mutex<Option<Box<dyn Fn(String) + Send + Sync>>>;
+
 thread_local! {
     static NOTIFICATION_MANAGER: RefCell<NotificationManager> = RefCell::new(NotificationManager::new());
 }
 
-static CONFIRM_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
-static ACCEPT_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
-static DISMISS_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
-static TIMEOUT_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
+static CONFIRM_CB: NotificationCallback = Mutex::new(None);
+static ACCEPT_CB: NotificationCallback = Mutex::new(None);
+static DISMISS_CB: NotificationCallback = Mutex::new(None);
+static TIMEOUT_CB: NotificationCallback = Mutex::new(None);
 
 pub fn setup_notification_dismiss_handler<F>(f: F)
 where
@@ -46,12 +48,14 @@ where
     *TIMEOUT_CB.lock().unwrap() = Some(Box::new(f));
 }
 
+#[allow(dead_code)]
 fn call_confirm_handler(key: String) {
     if let Some(cb) = CONFIRM_CB.lock().unwrap().as_ref() {
         cb(key);
     }
 }
 
+#[allow(dead_code)]
 fn call_accept_handler(key: String) {
     if let Some(cb) = ACCEPT_CB.lock().unwrap().as_ref() {
         cb(key);
@@ -120,6 +124,7 @@ impl NotificationInstance {
 struct NotificationManager {
     active_notifications: IndexMap<String, NotificationInstance>,
     max_notifications: usize,
+    #[allow(dead_code)]
     notification_spacing: i32,
 }
 

@@ -6,14 +6,124 @@ description: "Learn about analytics in Hyprnote"
 
 ## What are we tracking?
 
-We have some analytics code in the desktop application.
+We use PostHog for analytics in both the web and desktop applications. You can opt-out from the settings menu in the desktop app.
 
-```bash
-grep -r ".event(" apps/desktop/src
-grep -r ".event(" apps/desktop/src-tauri/src
-```
+## User Journey Events
 
-You can opt-out from the settings menu.
+### 1. Visiting the Website
+
+Events tracked on the web app (`apps/web`):
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `download_clicked` | User clicks a download button | `platform`, `spec`, `source`, `timestamp` |
+| `reminder_requested` | User requests a mobile reminder | `platform`, `timestamp`, `email` |
+| `os_waitlist_joined` | User joins waitlist for Linux/Windows | `platform`, `timestamp`, `email` |
+
+The web app also has PostHog autocapture and pageview tracking enabled.
+
+### 2. Getting Started
+
+Events tracked when users first launch the desktop app:
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `show_main_window` | Main window is shown (fires on every app launch) | - |
+| `account_skipped` | User proceeds without account (local mode) | - |
+| `user_signed_in` | User signs in | - |
+| `ai_provider_configured` | User configures an AI provider | `provider` |
+| `data_imported` | User imports data from another app | `source` |
+| `trial_started` | User starts a trial | `plan` |
+
+### 3. Before Meetings
+
+Events tracked when preparing for meetings:
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `note_created` | User creates a new note | `has_event_id` (whether linked to calendar) |
+| `file_uploaded` | User uploads a file | `file_type` (audio/transcript), `token_count` |
+
+### 4. During Meetings
+
+Events tracked during active sessions:
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `session_started` | Listening session starts | `has_calendar_event` |
+| `tab_opened` | User opens a tab | `view` (tab type) |
+| `search_performed` | User performs a search | - |
+
+### 5. After Meetings
+
+Events tracked when working with completed sessions:
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `note_edited` | User edits a note | `has_content` |
+| `note_enhanced` | AI enhancement is triggered | `is_auto`, `template_id` |
+| `message_sent` | User sends a chat message | - |
+| `session_exported` | User exports a session | `format` (pdf/vtt), `view_type`, `has_transcript`, `has_enhanced`, `has_memo`, `word_count` |
+| `session_deleted` | User deletes a session/note | `includes_recording` |
+| `recording_deleted` | User deletes a recording | - |
+
+### 6. Settings & Account Management
+
+Events tracked when managing settings and account:
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `settings_changed` | User changes settings | `autostart`, `notification_detect`, `save_recordings`, `telemetry_consent` |
+| `upgrade_clicked` | User clicks upgrade button | `plan` |
+| `user_signed_out` | User signs out | - |
+
+### 7. Notification Interactions
+
+Events tracked when users interact with system notifications:
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `collapsed_confirm` | User clicks collapsed notification to open app | - |
+| `expanded_accept` | User accepts expanded notification | - |
+| `dismiss` | User dismisses notification | - |
+| `collapsed_timeout` | Collapsed notification times out | - |
+
+## User Properties
+
+Properties set to track user context and configuration:
+
+| Property | Description | Type |
+|----------|-------------|------|
+| `is_local_mode` | Whether user is in local-only mode | set |
+| `is_signed_up` | Whether user has signed up | set |
+| `platform` | Operating system (macos, linux, windows) | set |
+| `os_version` | Operating system version | set |
+| `app_version` | Application version | set |
+| `account_created_date` | When account was created | set_once |
+| `telemetry_opt_out` | Whether user opted out of telemetry | set |
+| `has_configured_ai` | Whether user has configured an AI provider | set |
+| `plan` | Current subscription plan | set |
+| `trial_end_date` | When trial ends | set |
+
+## Analytics Commands
+
+Available methods for tracking events and properties:
+
+- `event(name, properties?)` - Track a custom event with optional properties
+- `setProperties(properties)` - Set user properties (supports `set` and `set_once` types)
+- `setDisabled(disabled)` - Enable or disable analytics tracking
+- `isDisabled()` - Check if analytics is currently disabled
+
+## Conversion Funnel Tracking
+
+To track the user journey from website visit to active usage, use PostHog's funnel analysis with these key events:
+
+1. `download_clicked` (web) - User downloads the app
+2. `show_main_window` (desktop) - User launches the app
+3. `note_created` (desktop) - User creates their first note
+4. `note_enhanced` (desktop) - User uses AI enhancement
+
+PostHog's anonymous ID tracking links web and desktop events for the same user, enabling conversion analysis without additional implementation.
 
 ## How to make changes?
 

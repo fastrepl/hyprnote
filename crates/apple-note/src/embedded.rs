@@ -64,15 +64,10 @@ pub fn extract_embedded_objects(note: &Note) -> Vec<EmbeddedObject> {
         if let Some(ref attachment_info) = attr_run.attachment_info {
             let uuid = attachment_info
                 .attachment_identifier
-                .as_ref()
-                .map(|s| s.clone())
+                .clone()
                 .unwrap_or_default();
 
-            let type_uti = attachment_info
-                .type_uti
-                .as_ref()
-                .map(|s| s.clone())
-                .unwrap_or_default();
+            let type_uti = attachment_info.type_uti.clone().unwrap_or_default();
 
             let object_type = EmbeddedObjectType::from_uti(&type_uti);
 

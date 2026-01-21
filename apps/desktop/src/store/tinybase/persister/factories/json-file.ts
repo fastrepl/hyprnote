@@ -13,11 +13,11 @@ import {
 } from "@hypr/plugin-fs-sync";
 import { events as notifyEvents } from "@hypr/plugin-notify";
 import { commands as settingsCommands } from "@hypr/plugin-settings";
+import { asTablesChanges, extractChangedTables } from "@hypr/tinybase-utils";
 
 import { StoreOrMergeableStore } from "../../store/shared";
 import { isFileNotFoundError } from "../shared/fs";
 import type { ChangedTables } from "../shared/types";
-import { asTablesChanges, extractChangedTables } from "../shared/utils";
 
 export type ListenMode = "notify" | "poll" | "both";
 
@@ -100,7 +100,7 @@ async function saveContent<
   }
 
   try {
-    const baseResult = await settingsCommands.settingsBase();
+    const baseResult = await settingsCommands.contentBase();
     if (baseResult.status === "error") {
       throw new Error(baseResult.error);
     }
@@ -163,7 +163,7 @@ async function loadTableData(
   filename: string,
   label: string,
 ): Promise<Record<string, Record<string, unknown>> | undefined> {
-  const baseResult = await settingsCommands.settingsBase();
+  const baseResult = await settingsCommands.contentBase();
   if (baseResult.status === "error") {
     console.error(`[${label}] base error:`, baseResult.error);
     return undefined;

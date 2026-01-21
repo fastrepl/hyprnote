@@ -1,8 +1,14 @@
 import { Link } from "@tanstack/react-router";
 
+import { cn } from "@hypr/utils";
+
+const linkClassName =
+  "underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 transition-colors";
+
 export function MDXLink({
   href,
   children,
+  className,
   ...props
 }: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
   if (!href) {
@@ -16,7 +22,11 @@ export function MDXLink({
   if (isHyprnoteUrl) {
     const relativePath = href.replace("https://hyprnote.com", "") || "/";
     return (
-      <Link to={relativePath} {...props}>
+      <Link
+        to={relativePath}
+        className={cn([linkClassName, className])}
+        {...props}
+      >
         {children}
       </Link>
     );
@@ -24,7 +34,7 @@ export function MDXLink({
 
   if (isAnchor) {
     return (
-      <a href={href} {...props}>
+      <a href={href} className={cn([linkClassName, className])} {...props}>
         {children}
       </a>
     );
@@ -32,14 +42,20 @@ export function MDXLink({
 
   if (isInternalPath) {
     return (
-      <Link to={href} {...props}>
+      <Link to={href} className={cn([linkClassName, className])} {...props}>
         {children}
       </Link>
     );
   }
 
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn([linkClassName, className])}
+      {...props}
+    >
       {children}
     </a>
   );

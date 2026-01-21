@@ -161,7 +161,7 @@ function ExpandedSearch({
                 ? "pr-14"
                 : "pr-4",
             "rounded-xl bg-neutral-100",
-            "focus:outline-none focus:bg-neutral-200",
+            "focus:outline-hidden focus:bg-neutral-200",
           ])}
         />
         {hasResults && query && (

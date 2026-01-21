@@ -77,7 +77,7 @@ ${deviceInfo}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-xs">
             <div className="flex flex-col items-center gap-4 text-center">
               <motion.div
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50"
@@ -92,7 +92,7 @@ ${deviceInfo}
                 <AlertTriangle className="h-6 w-6 text-red-500" />
               </motion.div>
 
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 <h2 className="text-base font-semibold text-neutral-900">
                   Something went wrong
                 </h2>
@@ -136,7 +136,7 @@ export const NotFoundComponent: NotFoundRouteComponent = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-xs">
             <div className="flex flex-col items-center gap-4 text-center">
               <motion.div
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100"
@@ -151,7 +151,7 @@ export const NotFoundComponent: NotFoundRouteComponent = () => {
                 <Search className="h-6 w-6 text-neutral-400" />
               </motion.div>
 
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 <motion.span
                   className="block text-4xl font-bold text-neutral-300"
                   initial={{ scale: 0.9, opacity: 0 }}

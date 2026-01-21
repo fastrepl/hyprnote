@@ -39,7 +39,7 @@ export function UploadArea({
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
       className={cn([
-        "border-2 border-dashed rounded-sm p-12 text-center transition-all",
+        "border-2 border-dashed rounded-xs p-12 text-center transition-all",
         isDragging && "border-stone-500 bg-stone-50",
         !isDragging && "border-neutral-200",
         disabled && "opacity-50 cursor-not-allowed",

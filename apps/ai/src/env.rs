@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::OnceLock;
 
-use owhisper_providers::Provider;
+use owhisper_client::Provider;
 
 pub struct Env {
     pub port: u16,

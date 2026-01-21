@@ -11,13 +11,13 @@ export function DeeplinksList() {
   }
 
   return (
-    <div className="space-y-10 mt-6">
+    <div className="flex flex-col gap-10 mt-6">
       {deeplinks.map((deeplink) => (
         <section
           key={deeplink.slug}
           className="border-t pt-2 first:border-t-0 first:pt-0"
         >
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <h2
               id={deeplink.path}
               className="scroll-mt-24 text-xl font-bold tracking-tight text-neutral-900"
@@ -36,14 +36,14 @@ export function DeeplinksList() {
               <h3 className="mb-2 font-mono text-[10px] font-bold uppercase leading-none tracking-wider text-neutral-500/80">
                 Parameters
               </h3>
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 {deeplink.params.map((param) => (
                   <div
                     key={param.name}
                     className="group grid grid-cols-1 gap-1.5 sm:grid-cols-[180px_1fr] sm:gap-4"
                   >
                     <div className="flex flex-col items-start gap-1">
-                      <code className="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-neutral-900 shadow-sm ring-1 ring-neutral-200 font-mono">
+                      <code className="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-neutral-900 shadow-xs ring-1 ring-neutral-200 font-mono">
                         {param.name}
                       </code>
                       <div className="flex items-center gap-1.5 px-0.5 font-mono text-[10px] text-neutral-500">

@@ -114,7 +114,7 @@ function RenderIfRootNotExist({
         <SearchableFolderDropdown
           sessionId={sessionId}
           trigger={
-            <button className="text-neutral-500 hover:text-neutral-700 transition-colors outline-none">
+            <button className="text-neutral-500 hover:text-neutral-700 transition-colors outline-hidden">
               Select folder
             </button>
           }
@@ -141,7 +141,7 @@ function TitleInput({
     <input
       type="text"
       placeholder="Untitled"
-      className="truncate min-w-0 w-full border-none bg-transparent text-neutral-700 focus:outline-none focus:underline"
+      className="truncate min-w-0 w-full border-none bg-transparent text-neutral-700 focus:outline-hidden focus:underline"
       value={title ?? ""}
       onChange={(e) => handleChangeTitle(e.target.value)}
     />

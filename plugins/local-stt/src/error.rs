@@ -24,6 +24,8 @@ pub enum Error {
     AmApiKeyNotSet,
     #[error("Internal server only supports Whisper models")]
     UnsupportedModelType,
+    #[error("Model delete failed: {0}")]
+    ModelDeleteFailed(String),
 }
 
 impl Serialize for Error {

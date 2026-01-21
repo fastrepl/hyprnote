@@ -115,7 +115,7 @@ function ProductLinks() {
       <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
         Product
       </h3>
-      <ul className="space-y-3">
+      <ul className="flex flex-col gap-3">
         <li>
           <Link
             to="/download/"
@@ -192,7 +192,7 @@ function ResourcesLinks() {
       <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
         Resources
       </h3>
-      <ul className="space-y-3">
+      <ul className="flex flex-col gap-3">
         <li>
           <Link
             to="/pricing/"
@@ -262,7 +262,7 @@ function ResourcesLinks() {
             }}
           >
             👍 for{" "}
-            <span className="blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
+            <span className="blur-xs group-hover:blur-none group-focus:blur-none transition-all duration-150">
               {currentUseCase.label}
             </span>
           </Link>
@@ -288,7 +288,7 @@ function ResourcesLinks() {
               className="size-4 rounded border border-neutral-100 inline"
             />{" "}
             vs{" "}
-            <span className="blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
+            <span className="blur-xs group-hover:blur-none group-focus:blur-none transition-all duration-150">
               {currentVs.name}
             </span>
           </Link>
@@ -304,7 +304,7 @@ function CompanyLinks() {
       <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
         Company
       </h3>
-      <ul className="space-y-3">
+      <ul className="flex flex-col gap-3">
         <li>
           <Link
             to="/blog/"
@@ -319,6 +319,14 @@ function CompanyLinks() {
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             About us
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/jobs/"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+          >
+            Jobs
           </Link>
         </li>
         <li>
@@ -364,7 +372,7 @@ function ToolsLinks() {
       <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
         Tools
       </h3>
-      <ul className="space-y-3">
+      <ul className="flex flex-col gap-3">
         <li>
           <Link
             to="/eval/"
@@ -401,7 +409,7 @@ function SocialLinks() {
       <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
         Social
       </h3>
-      <ul className="space-y-3">
+      <ul className="flex flex-col gap-3">
         <li>
           <a
             href="/x"

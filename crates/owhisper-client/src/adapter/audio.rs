@@ -4,8 +4,10 @@ use hypr_audio_utils::{Source, f32_to_i16_bytes, resample_audio, source_from_pat
 
 use crate::error::Error;
 
+#[allow(dead_code)]
 const TARGET_SAMPLE_RATE: u32 = 16000;
 
+#[allow(dead_code)]
 pub async fn decode_audio_to_linear16(path: PathBuf) -> Result<(bytes::Bytes, u32), Error> {
     tokio::task::spawn_blocking(move || -> Result<(bytes::Bytes, u32), Error> {
         let decoder =
@@ -31,11 +33,13 @@ pub async fn decode_audio_to_linear16(path: PathBuf) -> Result<(bytes::Bytes, u3
     .await?
 }
 
+#[allow(dead_code)]
 pub async fn decode_audio_to_bytes(path: PathBuf) -> Result<bytes::Bytes, Error> {
     let (bytes, _sample_rate) = decode_audio_to_linear16(path).await?;
     Ok(bytes)
 }
 
+#[allow(dead_code)]
 fn mix_to_mono(samples: Vec<f32>, channels: u16) -> Vec<f32> {
     if channels == 1 {
         return samples;

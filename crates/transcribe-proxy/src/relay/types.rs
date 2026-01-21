@@ -14,6 +14,8 @@ pub type OnCloseCallback =
     Arc<dyn Fn(Duration) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 pub type ControlMessageTypes = Arc<HashSet<&'static str>>;
 pub type FirstMessageTransformer = Arc<dyn Fn(String) -> String + Send + Sync>;
+pub type InitialMessage = Arc<String>;
+pub type ResponseTransformer = Arc<dyn Fn(&str) -> Option<String> + Send + Sync>;
 
 pub type UpstreamSender = SplitSink<
     WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,
@@ -36,12 +38,10 @@ pub fn is_control_message(data: &[u8], types: &HashSet<&str>) -> bool {
     if data.first() != Some(&b'{') {
         return false;
     }
-    if let Ok(parsed) = serde_json::from_slice::<TypeOnly>(data) {
-        if let Some(msg_type) = parsed.msg_type {
-            return types.contains(msg_type);
-        }
-    }
-    false
+    let Ok(parsed) = serde_json::from_slice::<TypeOnly>(data) else {
+        return false;
+    };
+    parsed.msg_type.is_some_and(|t| types.contains(t))
 }
 
 pub fn normalize_close_code(code: u16) -> u16 {

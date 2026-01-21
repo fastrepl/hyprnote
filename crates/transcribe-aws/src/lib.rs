@@ -142,45 +142,40 @@ impl TranscribeService {
             .await?;
 
         while let Some(event) = output.transcript_result_stream.recv().await? {
-            if let TranscriptResultStream::TranscriptEvent(transcript_event) = event {
-                if let Some(transcript) = transcript_event.transcript {
-                    for result in transcript.results.unwrap_or_default() {
-                        // Skip partial results for now
-                        if result.is_partial {
-                            continue;
+            if let TranscriptResultStream::TranscriptEvent(transcript_event) = event
+                && let Some(transcript) = transcript_event.transcript
+            {
+                for result in transcript.results.unwrap_or_default() {
+                    // Skip partial results for now
+                    if result.is_partial {
+                        continue;
+                    }
+
+                    if let Some(alternatives) = result.alternatives
+                        && let Some(first) = alternatives.first()
+                        && let Some(text) = &first.transcript
+                    {
+                        let mut words = Vec::new();
+
+                        // AWS doesn't provide word-level data in the same way
+                        // So we'll split the transcript into words
+                        for word_text in text.split_whitespace() {
+                            words.push(Word2 {
+                                text: word_text.to_string(),
+                                speaker: None,
+                                confidence: None,
+                                start_ms: Some((result.start_time * 1000.0) as u64),
+                                end_ms: Some((result.end_time * 1000.0) as u64),
+                            });
                         }
 
-                        if let Some(alternatives) = result.alternatives {
-                            if let Some(first) = alternatives.first() {
-                                if let Some(text) = &first.transcript {
-                                    let mut words = Vec::new();
+                        if !words.is_empty() {
+                            let output_chunk = ListenOutputChunk { meta: None, words };
 
-                                    // AWS doesn't provide word-level data in the same way
-                                    // So we'll split the transcript into words
-                                    for word_text in text.split_whitespace() {
-                                        words.push(Word2 {
-                                            text: word_text.to_string(),
-                                            speaker: None,
-                                            confidence: None,
-                                            start_ms: Some((result.start_time * 1000.0) as u64),
-                                            end_ms: Some((result.end_time * 1000.0) as u64),
-                                        });
-                                    }
-
-                                    if !words.is_empty() {
-                                        let output_chunk = ListenOutputChunk { meta: None, words };
-
-                                        if let Ok(json) = serde_json::to_string(&output_chunk) {
-                                            if sender
-                                                .send(Message::Text(json.into()))
-                                                .await
-                                                .is_err()
-                                            {
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
+                            if let Ok(json) = serde_json::to_string(&output_chunk)
+                                && sender.send(Message::Text(json.into())).await.is_err()
+                            {
+                                break;
                             }
                         }
                     }

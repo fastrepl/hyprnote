@@ -111,11 +111,11 @@ export function Disclosure({
         ])}
       >
         {disabled ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-        {!disabled && icon && <span className="flex-shrink-0">{icon}</span>}
+        {!disabled && icon && <span className="shrink-0">{icon}</span>}
         <span className={cn(["flex-1 truncate", "group-open:font-medium"])}>
           {title}
         </span>
-        <ChevronRight className="w-3 h-3 flex-shrink-0 transition-transform group-open:rotate-90" />
+        <ChevronRight className="w-3 h-3 shrink-0 transition-transform group-open:rotate-90" />
       </summary>
       <div className="mt-1 pt-2 px-1 border-t border-neutral-200">
         {children}

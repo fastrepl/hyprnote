@@ -1,9 +1,8 @@
-import { startOfDay } from "date-fns";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
+import { cn, safeParseDate, startOfDay } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/store/main";
 import { useTabs } from "../../../../store/zustand/tabs";
@@ -16,7 +15,11 @@ import {
 } from "../../../../utils/timeline";
 import { useAnchor, useAutoScrollToAnchor } from "./anchor";
 import { TimelineItemComponent } from "./item";
-import { CurrentTimeIndicator, useCurrentTimeMs } from "./realtime";
+import {
+  CurrentTimeIndicator,
+  useCurrentTimeMs,
+  useSmartCurrentTime,
+} from "./realtime";
 
 export function TimelineView() {
   const buckets = useTimelineData();
@@ -273,6 +276,10 @@ function useTimelineData(): TimelineBucket[] {
     main.QUERIES.sessionsWithMaybeEvent,
     main.STORE_ID,
   );
+  const currentTimeMs = useSmartCurrentTime(
+    eventsWithoutSessionTable,
+    sessionsWithMaybeEventTable,
+  );
 
   return useMemo(
     () =>
@@ -280,23 +287,12 @@ function useTimelineData(): TimelineBucket[] {
         eventsWithoutSessionTable,
         sessionsWithMaybeEventTable,
       }),
-    [eventsWithoutSessionTable, sessionsWithMaybeEventTable],
+    [eventsWithoutSessionTable, sessionsWithMaybeEventTable, currentTimeMs],
   );
 }
 
 function getItemTimestamp(item: TimelineItem): Date | null {
   const value =
     item.type === "event" ? item.data.started_at : item.data.created_at;
-
-  if (!value) {
-    return null;
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return date;
+  return safeParseDate(value);
 }

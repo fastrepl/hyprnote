@@ -65,6 +65,10 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["ai", "current_stt_model"],
     },
+    trial_expired_modal_dismissed_at: {
+      type: "number",
+      path: ["billing", "trial_expired_modal_dismissed_at"],
+    },
   },
   tables: {
     ai_providers: {
@@ -141,7 +145,7 @@ export const StoreComponent = () => {
       return;
     }
 
-    return registerSaveHandler(async () => {
+    return registerSaveHandler("settings", async () => {
       await persister.save();
     });
   }, [persister]);

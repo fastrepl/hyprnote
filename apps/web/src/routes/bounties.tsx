@@ -257,7 +257,7 @@ function BountySection({
         </table>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 flex flex-col gap-3">
         {bounties.map((bounty) => {
           const issue = issues[bounty.issue];
 
@@ -267,7 +267,7 @@ function BountySection({
                 #{bounty.issue} - {bounty.title}
               </p>
               {loading ? (
-                <div className="space-y-1">
+                <div className="flex flex-col gap-1">
                   <Skeleton className="h-3 w-full max-w-lg" />
                   <Skeleton className="h-3 w-3/4 max-w-md" />
                 </div>

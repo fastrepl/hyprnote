@@ -40,7 +40,7 @@ export function BottomSheet({
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 z-40 bg-white/70 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-white/70 backdrop-blur-xs"
             aria-hidden="true"
             onClick={preventClose ? undefined : onClose}
             initial={{ opacity: 0 }}

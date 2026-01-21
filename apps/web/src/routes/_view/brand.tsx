@@ -382,7 +382,7 @@ function ColorsGrid({
           >
             <div className="mb-3 w-16 h-16 flex items-center justify-center">
               <div
-                className="w-16 h-16 rounded-lg border border-neutral-200 group-hover:scale-110 transition-transform shadow-sm"
+                className="w-16 h-16 rounded-lg border border-neutral-200 group-hover:scale-110 transition-transform shadow-xs"
                 style={{ backgroundColor: color.hex }}
               />
             </div>
@@ -562,7 +562,7 @@ function VisualAssetsSidebar({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
         Visual Assets
       </div>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {VISUAL_ASSETS.map((asset) => (
           <button
             key={asset.id}
@@ -609,7 +609,7 @@ function TypographySidebar({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
         Typography
       </div>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {TYPOGRAPHY.map((font) => (
           <button
             key={font.id}
@@ -661,7 +661,7 @@ function ColorsSidebar({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
         Colors
       </div>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {COLORS.map((color) => (
           <button
             key={color.id}
@@ -676,7 +676,7 @@ function ColorsSidebar({
           >
             <div className="w-12 h-12 shrink-0 flex items-center justify-center">
               <div
-                className="w-10 h-10 rounded-lg border border-neutral-200 shadow-sm"
+                className="w-10 h-10 rounded-lg border border-neutral-200 shadow-xs"
                 style={{ backgroundColor: color.hex }}
               />
             </div>
@@ -753,7 +753,7 @@ function VisualAssetDetail({
             download
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+            className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
           >
             Download
           </a>
@@ -806,7 +806,7 @@ function TypographyDetail({
       </div>
 
       <div ref={scrollRef} className="p-4 overflow-y-auto">
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <div>
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
               Font Family
@@ -839,7 +839,7 @@ function TypographyDetail({
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">
               Preview
             </h3>
-            <div className="space-y-4 p-6 bg-stone-50 border border-neutral-200 rounded-lg">
+            <div className="flex flex-col gap-4 p-6 bg-stone-50 border border-neutral-200 rounded-lg">
               <div
                 className="text-4xl text-stone-600"
                 style={{ fontFamily: font.fontFamily }}
@@ -900,10 +900,10 @@ function ColorDetail({
       </div>
 
       <div ref={scrollRef} className="p-4 overflow-y-auto">
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <div>
             <div
-              className="w-full h-48 rounded-lg border border-neutral-200 shadow-sm mb-4"
+              className="w-full h-48 rounded-lg border border-neutral-200 shadow-xs mb-4"
               style={{ backgroundColor: color.hex }}
             />
           </div>

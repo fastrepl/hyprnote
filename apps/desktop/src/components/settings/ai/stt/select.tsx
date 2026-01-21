@@ -1,7 +1,7 @@
-import { Icon } from "@iconify-icon/react";
 import { useForm } from "@tanstack/react-form";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { arch } from "@tauri-apps/plugin-os";
+import { Check, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
 import { commands as listenerCommands } from "@hypr/plugin-listener";
@@ -139,7 +139,7 @@ export function SelectProviderAndModel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Model being used</h3>
+      <h3 className="text-md font-semibold font-serif">Model being used</h3>
       <div
         className={cn([
           "flex flex-col gap-4",
@@ -161,7 +161,7 @@ export function SelectProviderAndModel() {
             }}
           >
             {(field) => (
-              <div className="flex-[2] min-w-0" data-stt-provider-selector>
+              <div className="flex-2 min-w-0" data-stt-provider-selector>
                 <Select
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
@@ -222,7 +222,7 @@ export function SelectProviderAndModel() {
               ) as ProviderId;
               if (providerId === "custom") {
                 return (
-                  <div className="flex-[3] min-w-0">
+                  <div className="flex-3 min-w-0">
                     <Input
                       value={field.state.value}
                       onChange={(event) =>
@@ -247,15 +247,24 @@ export function SelectProviderAndModel() {
               });
 
               return (
-                <div className="flex-[3] min-w-0">
+                <div className="flex-3 min-w-0">
                   <Select
                     value={field.state.value}
                     onValueChange={(value) => field.handleChange(value)}
                     disabled={models.length === 0}
                   >
-                    <SelectTrigger className="bg-white shadow-none focus:ring-0 [&>span]:flex [&>span]:items-center [&>span]:justify-between [&>span]:w-full [&>span]:gap-2 [&>svg]:-mr-1">
+                    <SelectTrigger
+                      className={cn([
+                        "bg-white shadow-none focus:ring-0",
+                        "[&>span]:flex [&>span]:items-center [&>span]:justify-between [&>span]:w-full [&>span]:gap-2",
+                        isConfigured && "[&>svg:last-child]:hidden",
+                      ])}
+                    >
                       <SelectValue placeholder="Select a model" />
                       {isConfigured && <HealthStatusIndicator />}
+                      {isConfigured && (
+                        <Check className="-mr-1 h-4 w-4 shrink-0 text-green-600" />
+                      )}
                     </SelectTrigger>
                     <SelectContent>
                       {models.map((model) => (
@@ -428,6 +437,7 @@ function ModelSelectItem({
   const { activeDownloads } = useNotifications();
   const downloadInfo = activeDownloads.find((d) => d.model === model.id);
   const isDownloading = !!downloadInfo;
+  const billing = useBillingAccess();
 
   if (model.isDownloaded) {
     return (
@@ -450,11 +460,13 @@ function ModelSelectItem({
     }
   };
 
+  const cloudButtonLabel = billing.canStartTrial ? "Free Trial" : "Upgrade";
+
   return (
     <div
       className={cn([
         "relative flex items-center justify-between",
-        "rounded-sm px-2 py-1.5 text-sm outline-none",
+        "rounded-xs px-2 py-1.5 text-sm outline-hidden",
         "cursor-pointer select-none",
         "hover:bg-accent hover:text-accent-foreground",
         "group",
@@ -466,10 +478,10 @@ function ModelSelectItem({
           className={cn([
             "px-2 py-0.5 rounded-full text-[11px] font-medium",
             "flex items-center gap-1",
-            "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-500",
+            "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-500",
           ])}
         >
-          <Icon icon="lucide:loader-2" className="size-3 animate-spin" />
+          <Loader2 className="size-3 animate-spin" />
           <span>{Math.round(downloadInfo.progress)}%</span>
         </span>
       ) : (
@@ -479,12 +491,12 @@ function ModelSelectItem({
             "opacity-0 group-hover:opacity-100",
             "transition-all duration-150",
             isCloud
-              ? "bg-gradient-to-t from-stone-600 to-stone-500 text-white shadow-sm hover:shadow-md"
-              : "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm hover:shadow-md",
+              ? "bg-linear-to-t from-stone-600 to-stone-500 text-white shadow-xs hover:shadow-md"
+              : "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-xs hover:shadow-md",
           ])}
           onClick={handleAction}
         >
-          {isCloud ? "Free Trial" : "Download"}
+          {isCloud ? cloudButtonLabel : "Download"}
         </button>
       )}
     </div>

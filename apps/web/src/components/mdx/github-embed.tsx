@@ -38,7 +38,7 @@ export function GithubEmbed({
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="border border-neutral-200 rounded-sm overflow-hidden bg-stone-50">
+      <div className="border border-neutral-200 rounded-xs overflow-hidden bg-stone-50">
         <div className="flex items-center justify-between pl-3 pr-2 py-2 bg-stone-100 border-b border-neutral-200">
           <span className="text-xs font-mono text-stone-600">{fileName}</span>
           <Tooltip

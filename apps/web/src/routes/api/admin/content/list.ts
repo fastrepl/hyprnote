@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { env } from "@/env";
 import { fetchAdminUser } from "@/functions/admin";
+import { getGitHubCredentials } from "@/functions/github-content";
 
 export const Route = createFileRoute("/api/admin/content/list")({
   server: {
@@ -27,8 +27,8 @@ export const Route = createFileRoute("/api/admin/content/list")({
           const branch = "main";
           const contentPath = `apps/web/content/${path}`;
 
-          const token = env.YUJONGLEE_GITHUB_TOKEN_REPO;
-          if (!token) {
+          const credentials = await getGitHubCredentials();
+          if (!credentials) {
             return new Response(
               JSON.stringify({
                 error: "GitHub token not configured",
@@ -36,6 +36,7 @@ export const Route = createFileRoute("/api/admin/content/list")({
               { status: 500, headers: { "Content-Type": "application/json" } },
             );
           }
+          const { token } = credentials;
 
           const response = await fetch(
             `https://api.github.com/repos/${owner}/${repo}/contents/${contentPath}?ref=${branch}`,

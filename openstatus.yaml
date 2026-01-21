@@ -1,0 +1,116 @@
+# yaml-language-server: $schema=https://www.openstatus.dev/schema.json
+
+"7695":
+  active: true
+  frequency: 30m
+  kind: http
+  name: Hyprnote API
+  openTelemetry: {}
+  regions:
+    - iad
+    - jnb
+    - ams
+    - syd
+  request:
+    method: GET
+    url: https://api.hyprnote.com/health
+  retry: 3
+"7697":
+  active: true
+  assertions:
+    - compare: eq
+      kind: statusCode
+      target: 200
+  frequency: 1m
+  kind: http
+  name: Hyprnote Web
+  openTelemetry: {}
+  regions:
+    - railway_europe-west4-drams3a
+    - lhr
+    - railway_asia-southeast1-eqsg3a
+    - nrt
+    - yyz
+    - koyeb_was
+  request:
+    method: GET
+    url: https://hyprnote.com
+  retry: 3
+"8351":
+  active: true
+  assertions:
+    - compare: eq
+      kind: statusCode
+      target: 200
+  frequency: 1m
+  kind: http
+  name: Hyprnote AI
+  openTelemetry: {}
+  regions:
+    - cdg
+    - lax
+    - koyeb_par
+    - koyeb_fra
+    - fra
+    - bom
+  request:
+    method: GET
+    url: https://ai.hyprnote.com/health
+  retry: 3
+"8353":
+  active: true
+  frequency: 30m
+  kind: http
+  name: Hyprnote API
+  openTelemetry: {}
+  regions:
+    - iad
+    - jnb
+    - ams
+    - syd
+  request:
+    method: GET
+    url: https://api.hyprnote.com/health
+  retry: 3
+"8354":
+  active: true
+  assertions:
+    - compare: eq
+      kind: statusCode
+      target: 200
+  frequency: 1m
+  kind: http
+  name: Hyprnote Web
+  openTelemetry: {}
+  regions:
+    - railway_europe-west4-drams3a
+    - lhr
+    - railway_asia-southeast1-eqsg3a
+    - nrt
+    - yyz
+    - koyeb_was
+  request:
+    method: GET
+    url: https://hyprnote.com
+  retry: 3
+"8355":
+  active: true
+  assertions:
+    - compare: eq
+      kind: statusCode
+      target: 200
+  frequency: 1m
+  kind: http
+  name: Hyprnote AI
+  openTelemetry: {}
+  regions:
+    - cdg
+    - lax
+    - koyeb_par
+    - koyeb_fra
+    - fra
+    - bom
+  request:
+    method: GET
+    url: https://ai.hyprnote.com/health
+  retry: 3

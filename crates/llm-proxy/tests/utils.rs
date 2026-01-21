@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use axum::body::Body;
 use axum::http::Request;
+use llm_proxy::provider::OpenRouterProvider;
 use llm_proxy::{AnalyticsReporter, GenerationEvent, LlmProxyConfig};
 use wiremock::matchers::{body_partial_json, header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -51,14 +52,14 @@ impl TestHarness {
 
     pub fn config(&self) -> LlmProxyConfig {
         LlmProxyConfig::new("test-api-key")
-            .with_base_url(self.mock_server.uri())
+            .with_provider(Arc::new(OpenRouterProvider::new(self.mock_server.uri())))
             .with_models_default(vec!["openai/gpt-4.1-nano".into()])
             .with_analytics(Arc::new(self.analytics.clone()))
     }
 
     pub fn config_no_analytics(&self) -> LlmProxyConfig {
         LlmProxyConfig::new("test-api-key")
-            .with_base_url(self.mock_server.uri())
+            .with_provider(Arc::new(OpenRouterProvider::new(self.mock_server.uri())))
             .with_models_default(vec!["openai/gpt-4.1-nano".into()])
     }
 

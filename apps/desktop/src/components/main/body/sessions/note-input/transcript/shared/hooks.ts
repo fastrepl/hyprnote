@@ -1,6 +1,7 @@
 import {
   DependencyList,
   RefObject,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -413,4 +414,80 @@ export function useAutoScroll(
       }
     };
   }, deps);
+}
+
+export function usePlaybackAutoScroll(
+  containerRef: RefObject<HTMLElement | null>,
+  currentMs: number,
+  isPlaying: boolean,
+) {
+  const lastScrolledWordIdRef = useRef<string | null>(null);
+  const userScrolledRef = useRef(false);
+  const lastScrollTimeRef = useRef(0);
+
+  const resetUserScroll = useCallback(() => {
+    userScrolledRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    if (!isPlaying) {
+      lastScrolledWordIdRef.current = null;
+      userScrolledRef.current = false;
+      return;
+    }
+
+    const element = containerRef.current;
+    if (!element) {
+      return;
+    }
+
+    const handleUserScroll = () => {
+      const now = Date.now();
+      if (now - lastScrollTimeRef.current > 100) {
+        userScrolledRef.current = true;
+      }
+    };
+
+    element.addEventListener("wheel", handleUserScroll);
+    element.addEventListener("touchmove", handleUserScroll);
+
+    return () => {
+      element.removeEventListener("wheel", handleUserScroll);
+      element.removeEventListener("touchmove", handleUserScroll);
+    };
+  }, [containerRef, isPlaying]);
+
+  useEffect(() => {
+    if (!isPlaying || userScrolledRef.current) {
+      return;
+    }
+
+    const element = containerRef.current;
+    if (!element) {
+      return;
+    }
+
+    const currentLineEl = element.querySelector<HTMLElement>(
+      "[data-line-current='true']",
+    );
+
+    if (!currentLineEl) {
+      return;
+    }
+
+    const lineKey = currentLineEl.textContent?.slice(0, 50) ?? "";
+    if (lineKey === lastScrolledWordIdRef.current) {
+      return;
+    }
+
+    lastScrolledWordIdRef.current = lineKey;
+    lastScrollTimeRef.current = Date.now();
+
+    currentLineEl.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [containerRef, currentMs, isPlaying]);
+
+  return { resetUserScroll };
 }

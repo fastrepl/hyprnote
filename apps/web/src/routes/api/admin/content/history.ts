@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { env } from "@/env";
 import { fetchAdminUser } from "@/functions/admin";
+import { getGitHubCredentials } from "@/functions/github-content";
 
 interface CommitInfo {
   sha: string;
@@ -40,13 +40,14 @@ export const Route = createFileRoute("/api/admin/content/history")({
           );
         }
 
-        const token = env.YUJONGLEE_GITHUB_TOKEN_REPO;
-        if (!token) {
+        const credentials = await getGitHubCredentials();
+        if (!credentials) {
           return new Response(
             JSON.stringify({ error: "GitHub token not configured" }),
             { status: 500, headers: { "Content-Type": "application/json" } },
           );
         }
+        const { token } = credentials;
 
         const owner = "fastrepl";
         const repo = "hyprnote";

@@ -1,4 +1,3 @@
-import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 
@@ -16,16 +15,7 @@ export function HealthStatusIndicator() {
   const health = useConnectionHealth();
 
   if (health.status === "pending") {
-    return <Spinner size={14} className="shrink-0 text-neutral-400 mr-2" />;
-  }
-
-  if (health.status === "success") {
-    return (
-      <Icon
-        icon="lucide:check"
-        className="size-4 text-green-500 shrink-0 mr-2"
-      />
-    );
+    return <Spinner size={14} className="shrink-0 text-neutral-400" />;
   }
 
   return null;

@@ -20,7 +20,7 @@ const filteredHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
       <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
         On this page
       </h2>
-      <ul class="space-y-1 text-sm">
+      <ul class="flex flex-col gap-1 text-sm">
         {filteredHeadings.map((heading) => (
           <li
             class={heading.depth === 3 ? "ml-4" : ""}

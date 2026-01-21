@@ -1,4 +1,7 @@
 {
+  "files.associations": {
+    "*.promptl": "markdown"
+  },
   "search.useParentIgnoreFiles": true,
   "search.useIgnoreFiles": true,
   "files.watcherExclude": {

@@ -44,6 +44,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::is_model_downloading::<Wry>,
             commands::download_model::<Wry>,
             commands::cancel_download::<Wry>,
+            commands::delete_model::<Wry>,
             commands::get_servers::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,

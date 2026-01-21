@@ -44,10 +44,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
     pub async fn get_mic_muted(&self) -> bool {
         if let Some(cell) = registry::where_is(SourceActor::name()) {
             let actor: ActorRef<SourceMsg> = cell.into();
-            match call_t!(actor, SourceMsg::GetMicMute, 100) {
-                Ok(muted) => muted,
-                Err(_) => false,
-            }
+            call_t!(actor, SourceMsg::GetMicMute, 100).unwrap_or_default()
         } else {
             false
         }

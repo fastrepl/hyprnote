@@ -6,6 +6,14 @@
 
 
 export const commands = {
+async settingsPath() : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|settings_path") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async settingsBase() : Promise<Result<string, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:settings|settings_base") };
@@ -30,22 +38,6 @@ async changeContentBase(newPath: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async obsidianVaults() : Promise<Result<ObsidianVault[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|obsidian_vaults") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async path() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|path") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async load() : Promise<Result<JsonValue, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:settings|load") };
@@ -57,6 +49,14 @@ async load() : Promise<Result<JsonValue, string>> {
 async save(settings: JsonValue) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:settings|save", { settings }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async obsidianVaults() : Promise<Result<ObsidianVault[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|obsidian_vaults") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

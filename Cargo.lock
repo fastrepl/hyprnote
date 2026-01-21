@@ -253,7 +253,7 @@ dependencies = [
  "dotenvy",
  "jsonwebtoken",
  "llm-proxy",
- "owhisper-providers",
+ "owhisper-client",
  "reqwest",
  "sentry",
  "serde",
@@ -10688,15 +10688,18 @@ dependencies = [
  "analytics",
  "async-stream",
  "axum 0.8.8",
+ "backon",
  "bytes",
  "futures-util",
  "reqwest",
+ "sentry",
  "serde",
  "serde_json",
  "thiserror 2.0.17",
  "tokio",
  "tower 0.5.3",
  "tracing",
+ "tracing-subscriber",
  "wiremock",
 ]
 
@@ -12655,6 +12658,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "openstatus"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "option-ext"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12779,7 +12794,6 @@ dependencies = [
  "futures-util",
  "language",
  "owhisper-interface",
- "owhisper-providers",
  "reqwest",
  "reqwest-middleware",
  "reqwest-tracing",
@@ -12822,15 +12836,6 @@ dependencies = [
  "specta",
  "strum 0.26.3",
  "uuid",
-]
-
-[[package]]
-name = "owhisper-providers"
-version = "0.0.1"
-dependencies = [
- "serde_json",
- "strum 0.26.3",
- "url",
 ]
 
 [[package]]
@@ -18326,6 +18331,7 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-settings",
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",
@@ -18930,13 +18936,16 @@ dependencies = [
 name = "tauri-plugin-settings"
 version = "0.1.0"
 dependencies = [
+ "dirs 6.0.0",
  "serde",
  "serde_json",
+ "shellexpand",
  "specta",
  "specta-typescript",
  "tauri",
  "tauri-plugin",
  "tauri-specta",
+ "tempfile",
  "thiserror 2.0.17",
  "tokio",
 ]
@@ -20493,6 +20502,7 @@ dependencies = [
  "analytics",
  "audio-utils",
  "axum 0.8.8",
+ "backon",
  "base64 0.22.1",
  "bytes",
  "data",
@@ -20500,10 +20510,10 @@ dependencies = [
  "language",
  "owhisper-client",
  "owhisper-interface",
- "owhisper-providers",
  "reqwest",
  "reqwest-middleware",
  "rodio",
+ "sentry",
  "serde",
  "serde_html_form",
  "serde_json",

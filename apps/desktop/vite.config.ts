@@ -27,6 +27,16 @@ export default defineConfig(() => ({
             "@tauri-apps/plugin-updater": "/src/mocks/updater.ts",
           }
         : {},
+    dedupe: [
+      "@codemirror/state",
+      "@codemirror/view",
+      "@codemirror/autocomplete",
+      "@codemirror/language",
+      "@codemirror/lint",
+      "@codemirror/lang-jinja",
+      "codemirror-readonly-ranges",
+      "@uiw/react-codemirror",
+    ],
   },
   test: {
     reporters: "default",

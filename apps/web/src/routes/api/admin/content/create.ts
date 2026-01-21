@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
 import {
-  createContentFile,
+  createContentFileOnBranch,
   createContentFolder,
 } from "@/functions/github-content";
 
@@ -52,7 +52,7 @@ export const Route = createFileRoute("/api/admin/content/create")({
         const result =
           type === "folder"
             ? await createContentFolder(folder, name)
-            : await createContentFile(folder, name, content);
+            : await createContentFileOnBranch(folder, name, content);
 
         if (!result.success) {
           return new Response(JSON.stringify({ error: result.error }), {
@@ -62,7 +62,11 @@ export const Route = createFileRoute("/api/admin/content/create")({
         }
 
         return new Response(
-          JSON.stringify({ success: true, path: result.path }),
+          JSON.stringify({
+            success: true,
+            path: result.path,
+            branch: "branch" in result ? result.branch : undefined,
+          }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         );
       },

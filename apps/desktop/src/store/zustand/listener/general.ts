@@ -5,6 +5,7 @@ import type { StoreApi } from "zustand";
 
 import { commands as detectCommands } from "@hypr/plugin-detect";
 import { commands as hooksCommands } from "@hypr/plugin-hooks";
+import { commands as iconCommands } from "@hypr/plugin-icon";
 import {
   commands as listenerCommands,
   events as listenerEvents,
@@ -173,6 +174,8 @@ export const createGeneralSlice = <
           );
         }, 1000);
 
+        void iconCommands.setRecordingIndicator(true);
+
         set((state) =>
           mutate(state, (draft) => {
             draft.live.status = "active";
@@ -199,6 +202,8 @@ export const createGeneralSlice = <
         if (currentState.live.eventUnlisteners) {
           currentState.live.eventUnlisteners.forEach((fn) => fn());
         }
+
+        void iconCommands.setRecordingIndicator(false);
 
         set((state) =>
           mutate(state, (draft) => {
@@ -316,7 +321,7 @@ export const createGeneralSlice = <
       const [dataDirPath, micUsingApps, bundleId] = yield* Effect.tryPromise({
         try: () =>
           Promise.all([
-            settingsCommands.settingsBase().then((r) => {
+            settingsCommands.contentBase().then((r) => {
               if (r.status === "error") throw new Error(r.error);
               return r.data;
             }),
@@ -408,7 +413,7 @@ export const createGeneralSlice = <
         onSuccess: () => {
           if (sessionId) {
             void Promise.all([
-              settingsCommands.settingsBase().then((r) => {
+              settingsCommands.contentBase().then((r) => {
                 if (r.status === "error") throw new Error(r.error);
                 return r.data;
               }),
@@ -475,7 +480,7 @@ export const createGeneralSlice = <
 
     let unlisten: (() => void) | undefined;
 
-    const cleanup = () => {
+    const cleanup = (clearSession = true) => {
       if (unlisten) {
         unlisten();
         unlisten = undefined;
@@ -485,7 +490,9 @@ export const createGeneralSlice = <
         get().setTranscriptPersist(undefined);
       }
 
-      get().clearBatchSession(sessionId);
+      if (clearSession) {
+        get().clearBatchSession(sessionId);
+      }
     };
 
     await new Promise<void>((resolve, reject) => {
@@ -516,7 +523,8 @@ export const createGeneralSlice = <
           }
 
           if (payload.type === "batchFailed") {
-            cleanup();
+            get().handleBatchFailed(sessionId, payload.error);
+            cleanup(false);
             reject(payload.error);
             return;
           }
@@ -531,7 +539,10 @@ export const createGeneralSlice = <
             resolve();
           } catch (error) {
             console.error("[runBatch] error handling batch response", error);
-            cleanup();
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            get().handleBatchFailed(sessionId, errorMessage);
+            cleanup(false);
             reject(error);
           }
         })
@@ -543,19 +554,26 @@ export const createGeneralSlice = <
             .then((result) => {
               if (result.status === "error") {
                 console.error(result.error);
-                cleanup();
+                get().handleBatchFailed(sessionId, result.error);
+                cleanup(false);
                 reject(result.error);
               }
             })
             .catch((error) => {
               console.error(error);
-              cleanup();
+              const errorMessage =
+                error instanceof Error ? error.message : String(error);
+              get().handleBatchFailed(sessionId, errorMessage);
+              cleanup(false);
               reject(error);
             });
         })
         .catch((error) => {
           console.error(error);
-          cleanup();
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          get().handleBatchFailed(sessionId, errorMessage);
+          cleanup(false);
           reject(error);
         });
     });
@@ -571,7 +589,7 @@ export const createGeneralSlice = <
       return state.live.status;
     }
 
-    if (state.batch[sessionId]) {
+    if (state.batch[sessionId] && !state.batch[sessionId].error) {
       return "running_batch";
     }
 

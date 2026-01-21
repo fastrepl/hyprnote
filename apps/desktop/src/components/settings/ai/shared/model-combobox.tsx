@@ -1,4 +1,11 @@
-import { ChevronDown, CirclePlus, Eye, EyeOff, RefreshCcw } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  CirclePlus,
+  Eye,
+  EyeOff,
+  RefreshCcw,
+} from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -66,6 +73,7 @@ export function ModelCombobox({
   disabled = false,
   placeholder = "Select a model",
   suffix,
+  isConfigured = false,
 }: {
   providerId: string;
   value: string;
@@ -74,6 +82,7 @@ export function ModelCombobox({
   disabled?: boolean;
   placeholder?: string;
   suffix?: React.ReactNode;
+  isConfigured?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -146,10 +155,14 @@ export function ModelCombobox({
             )}
             {suffix}
           </span>
-          <ChevronDown className="-mr-1 h-4 w-4 shrink-0 opacity-50" />
+          {isConfigured ? (
+            <Check className="-mr-1 h-4 w-4 shrink-0 text-green-600" />
+          ) : (
+            <ChevronDown className="-mr-1 h-4 w-4 shrink-0 opacity-50" />
+          )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]">
+      <PopoverContent className="p-0 w-(--radix-popover-trigger-width)">
         <Command filter={filterFunction}>
           <CommandInput
             placeholder="Search or create new"
@@ -191,7 +204,7 @@ export function ModelCombobox({
                   }}
                   className={cn([
                     "cursor-pointer",
-                    "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
+                    "focus:bg-neutral-200! hover:bg-neutral-200! aria-selected:bg-transparent",
                   ])}
                 >
                   <span className="truncate">
@@ -217,7 +230,7 @@ export function ModelCombobox({
                     }}
                     className={cn([
                       "cursor-pointer opacity-50",
-                      "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
+                      "focus:bg-neutral-200! hover:bg-neutral-200! aria-selected:bg-transparent",
                     ])}
                   >
                     <Tooltip delayDuration={10}>
@@ -253,7 +266,7 @@ export function ModelCombobox({
                   }}
                   className={cn([
                     "cursor-pointer",
-                    "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
+                    "focus:bg-neutral-200! hover:bg-neutral-200! aria-selected:bg-transparent",
                   ])}
                 >
                   <CirclePlus className="mr-2 h-4 w-4" />

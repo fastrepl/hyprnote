@@ -22,7 +22,7 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2 border-t border-neutral-200 pt-4">
+    <div className="flex flex-col gap-2 border-t border-neutral-200 pt-4">
       <div className="flex items-center justify-between">
         <h4 className="text-xs font-medium text-neutral-400 uppercase tracking-wide">
           {title}
@@ -56,7 +56,7 @@ export function AppleCalendarProviderCard() {
           )}
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-4 space-y-5">
+      <AccordionContent className="px-4 flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <StyledStreamdown>
             Sync events from your **macOS Calendar** app. Requires calendar and
@@ -71,7 +71,7 @@ export function AppleCalendarProviderCard() {
         </div>
 
         <Section title="Permissions">
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <AccessPermissionRow
               title="Calendar"
               status={calendar.status}

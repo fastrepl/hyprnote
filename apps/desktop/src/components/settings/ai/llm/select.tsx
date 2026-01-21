@@ -83,7 +83,7 @@ export function SelectProviderAndModel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Model being used</h3>
+      <h3 className="text-md font-semibold font-serif">Model being used</h3>
       <div
         className={cn([
           "flex flex-col gap-4",
@@ -105,7 +105,7 @@ export function SelectProviderAndModel() {
             }}
           >
             {(field) => (
-              <div className="flex-[2] min-w-0" data-llm-provider-selector>
+              <div className="flex-2 min-w-0" data-llm-provider-selector>
                 <Select
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
@@ -146,13 +146,14 @@ export function SelectProviderAndModel() {
               const status = configuredProviders[providerId];
 
               return (
-                <div className="flex-[3] min-w-0">
+                <div className="flex-3 min-w-0">
                   <ModelCombobox
                     providerId={providerId}
                     value={field.state.value}
                     onChange={(value) => field.handleChange(value)}
                     disabled={!status?.listModels}
                     listModels={status?.listModels}
+                    isConfigured={isConfigured}
                     suffix={
                       isConfigured ? <HealthStatusIndicator /> : undefined
                     }

@@ -1,18 +1,21 @@
 import { relaunch as tauriRelaunch } from "@tauri-apps/plugin-process";
 
-let saveHandler: (() => Promise<void>) | null = null;
+import { commands as store2Commands } from "@hypr/plugin-store2";
 
-export function registerSaveHandler(handler: () => Promise<void>) {
-  saveHandler = handler;
+const saveHandlers = new Map<string, () => Promise<void>>();
+
+export function registerSaveHandler(id: string, handler: () => Promise<void>) {
+  saveHandlers.set(id, handler);
   return () => {
-    saveHandler = null;
+    saveHandlers.delete(id);
   };
 }
 
 export async function save(): Promise<void> {
-  if (saveHandler) {
-    await saveHandler();
-  }
+  await Promise.all([
+    ...Array.from(saveHandlers.values()).map((handler) => handler()),
+    store2Commands.save(),
+  ]);
 }
 
 export async function relaunch(): Promise<void> {

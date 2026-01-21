@@ -4,9 +4,10 @@ use std::time::{Duration, Instant};
 
 pub use hypr_notification_interface::*;
 
+type NotificationContextMap = Mutex<HashMap<String, (Option<String>, Instant)>>;
+
 static RECENT_NOTIFICATIONS: OnceLock<Mutex<HashMap<String, Instant>>> = OnceLock::new();
-static NOTIFICATION_CONTEXT: OnceLock<Mutex<HashMap<String, (Option<String>, Instant)>>> =
-    OnceLock::new();
+static NOTIFICATION_CONTEXT: OnceLock<NotificationContextMap> = OnceLock::new();
 
 const DEDUPE_WINDOW: Duration = Duration::from_secs(60 * 5);
 const CONTEXT_TTL: Duration = Duration::from_secs(60 * 10);
@@ -32,8 +33,7 @@ fn get_context(key: &str) -> NotificationContext {
         .lock()
         .unwrap()
         .remove(key)
-        .map(|(event_id, _)| event_id)
-        .flatten();
+        .and_then(|(event_id, _)| event_id);
     NotificationContext {
         key: key.to_string(),
         event_id,

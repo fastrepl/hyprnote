@@ -8,7 +8,10 @@ use crate::types::{ImportResult, ImportSource, ImportSourceInfo, TransformKind};
 
 pub async fn import_all(source: &ImportSource) -> Result<ImportResult, crate::Error> {
     match source.transform {
-        TransformKind::HyprnoteV0 => hyprnote::import_all_from_path(&source.path).await,
+        TransformKind::HyprnoteV0 => hyprnote::v0::import_all_from_path(&source.path).await,
+        TransformKind::HyprnoteV1Sqlite => {
+            hyprnote::v1_sqlite::import_all_from_path(&source.path).await
+        }
         TransformKind::Granola => granola::import_all_from_path(&source.path).await,
         TransformKind::AsIs => {
             let data = as_is::load_data(&source.path)?;
@@ -19,6 +22,7 @@ pub async fn import_all(source: &ImportSource) -> Result<ImportResult, crate::Er
                 organizations: data.organizations,
                 participants: data.session_participants,
                 templates: vec![],
+                enhanced_notes: vec![],
             })
         }
     }

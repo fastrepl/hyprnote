@@ -20,7 +20,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
         self.manager
             .app_handle()
             .settings()
-            .settings_base()
+            .content_base()
             .map_err(|e| crate::Error::Path(e.to_string()))
     }
 

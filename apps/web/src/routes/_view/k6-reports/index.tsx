@@ -3,6 +3,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_view/k6-reports/")({
   component: Component,
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
 });
 
 interface Report {
@@ -25,10 +28,10 @@ function Component() {
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16">
-        <div className="animate-pulse space-y-4">
+        <div className="animate-pulse flex flex-col gap-4">
           <div className="h-8 bg-neutral-200 rounded w-1/3" />
           <div className="h-4 bg-neutral-200 rounded w-1/2" />
-          <div className="space-y-2 mt-8">
+          <div className="flex flex-col gap-2 mt-8">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-16 bg-neutral-100 rounded" />
             ))}
@@ -61,13 +64,13 @@ function Component() {
           <p className="text-neutral-500">No reports available</p>
         </div>
       ) : (
-        <div className="mt-8 space-y-3">
+        <div className="mt-8 flex flex-col gap-3">
           {reports.map((report) => (
             <Link
               key={report.id}
               to="/k6-reports/$id/"
               params={{ id: String(report.id) }}
-              className="block p-4 bg-white border border-neutral-200 rounded-lg hover:border-neutral-300 hover:shadow-sm transition-all"
+              className="block p-4 bg-white border border-neutral-200 rounded-lg hover:border-neutral-300 hover:shadow-xs transition-all"
             >
               <div className="flex items-center justify-between">
                 <div>

@@ -203,7 +203,9 @@ fn handle_mic_item(
                 .cast(SourceMsg::MicChunk(AudioChunk { data: output_data }))
                 .is_err()
             {
-                tracing::warn!("failed_to_cast_mic_chunk");
+                if !ctx.is_cancelled() {
+                    tracing::debug!("failed_to_cast_mic_chunk");
+                }
                 return StreamResult::Stop;
             }
             StreamResult::Continue
@@ -234,7 +236,9 @@ fn handle_speaker_item(
                 .cast(SourceMsg::SpeakerChunk(AudioChunk { data }))
                 .is_err()
             {
-                tracing::warn!("failed_to_cast_speaker_chunk");
+                if !ctx.is_cancelled() {
+                    tracing::debug!("failed_to_cast_speaker_chunk");
+                }
                 return StreamResult::Stop;
             }
             StreamResult::Continue

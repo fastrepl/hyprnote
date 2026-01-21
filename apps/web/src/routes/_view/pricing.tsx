@@ -121,7 +121,7 @@ function TeamPricingBanner() {
 function HeroSection() {
   return (
     <section className="flex flex-col items-center text-center gap-6 py-24 px-4 laptop:px-0 border-b border-neutral-100">
-      <div className="space-y-4 max-w-3xl">
+      <div className="flex flex-col gap-4 max-w-3xl">
         <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
           Hyprnote Pricing
         </h1>
@@ -150,7 +150,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
   return (
     <div
       className={cn([
-        "border rounded-sm overflow-hidden flex flex-col transition-transform",
+        "border rounded-xs overflow-hidden flex flex-col transition-transform",
         plan.popular
           ? "border-stone-600 shadow-lg relative scale-105"
           : "border-neutral-100",
@@ -170,7 +170,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
           <p className="text-sm text-neutral-600 mb-4">{plan.description}</p>
 
           {plan.price ? (
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-serif text-stone-600">
                   ${plan.price.monthly}
@@ -197,7 +197,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
           )}
         </div>
 
-        <div className="space-y-3 flex-1">
+        <div className="flex flex-col gap-3 flex-1">
           {plan.features.map((feature, idx) => {
             const IconComponent =
               feature.included === true
@@ -264,7 +264,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
             to="/download/"
             className={cn([
               "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
-              "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+              "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
             ])}
           >
             Download for free
@@ -310,7 +310,7 @@ function FAQSection() {
         <h2 className="text-3xl font-serif text-stone-600 mb-16 text-center">
           Frequently Asked Questions
         </h2>
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           {faqs.map((faq, idx) => (
             <div
               key={idx}

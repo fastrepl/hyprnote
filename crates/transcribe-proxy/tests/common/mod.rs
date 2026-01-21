@@ -17,8 +17,10 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use futures_util::StreamExt;
-use owhisper_providers::Provider;
-use transcribe_proxy::{SttAnalyticsReporter, SttEvent, SttProxyConfig, router};
+use owhisper_client::Provider;
+use transcribe_proxy::{
+    HyprnoteRoutingConfig, SttAnalyticsReporter, SttEvent, SttProxyConfig, router,
+};
 
 #[derive(Default, Clone)]
 pub struct MockAnalytics {
@@ -52,9 +54,11 @@ pub async fn start_server(config: SttProxyConfig) -> SocketAddr {
 
 pub async fn start_server_with_provider(provider: Provider, api_key: String) -> SocketAddr {
     let mut api_keys = HashMap::new();
-    api_keys.insert(provider, api_key);
+    api_keys.insert(provider, api_key.clone());
 
-    let config = SttProxyConfig::new(api_keys).with_default_provider(provider);
+    let config = SttProxyConfig::new(api_keys)
+        .with_default_provider(provider)
+        .with_hyprnote_routing(HyprnoteRoutingConfig::default());
     start_server(config).await
 }
 

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
+import { getSupabaseAdminClient } from "@/functions/supabase";
 import { uploadMediaFile } from "@/functions/supabase-media";
 
 export const Route = createFileRoute("/api/admin/media/upload")({
@@ -42,7 +43,13 @@ export const Route = createFileRoute("/api/admin/media/upload")({
           );
         }
 
-        const result = await uploadMediaFile(filename, content, folder || "");
+        const supabase = getSupabaseAdminClient();
+        const result = await uploadMediaFile(
+          supabase,
+          filename,
+          content,
+          folder || "",
+        );
 
         if (!result.success) {
           return new Response(JSON.stringify({ error: result.error }), {

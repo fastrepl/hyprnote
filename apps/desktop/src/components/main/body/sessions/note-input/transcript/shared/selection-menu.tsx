@@ -25,13 +25,13 @@ const MENU_CONTAINER_CLASSES = [
 ];
 
 const MENU_BUTTON_CLASSES = [
-  "px-2 py-1 text-xs rounded-sm",
+  "px-2 py-1 text-xs rounded-xs",
   "hover:bg-neutral-100 transition-colors",
 ];
 
 const INPUT_CLASSES = [
-  "px-2 py-1 text-xs rounded-sm",
-  "border border-neutral-300 focus:outline-none focus:border-neutral-400",
+  "px-2 py-1 text-xs rounded-xs",
+  "border border-neutral-300 focus:outline-hidden focus:border-neutral-400",
   "min-w-[120px]",
 ];
 

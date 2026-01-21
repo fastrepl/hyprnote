@@ -109,3 +109,20 @@ pub async fn set_tinybase_values<R: tauri::Runtime>(
 ) -> Result<(), String> {
     app.set_tinybase_values(v)
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_local_persister_loaded<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<bool, String> {
+    app.get_local_persister_loaded()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_local_persister_loaded<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    v: bool,
+) -> Result<(), String> {
+    app.set_local_persister_loaded(v)
+}

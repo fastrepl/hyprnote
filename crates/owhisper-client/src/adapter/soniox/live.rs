@@ -56,9 +56,9 @@ impl RealtimeSttAdapter for SonioxAdapter {
     ) -> Option<Message> {
         let api_key = api_key.unwrap_or("");
 
-        let default = owhisper_providers::Provider::Soniox.default_live_model();
+        let default = crate::providers::Provider::Soniox.default_live_model();
         let model = match params.model.as_deref() {
-            Some(m) if owhisper_providers::is_meta_model(m) => default,
+            Some(m) if crate::providers::is_meta_model(m) => default,
             Some("stt-v3") => default,
             Some(m) => m,
             None => default,
@@ -69,6 +69,7 @@ impl RealtimeSttAdapter for SonioxAdapter {
         } else {
             Some(Context {
                 terms: params.keywords.clone(),
+                ..Default::default()
             })
         };
 
@@ -161,10 +162,28 @@ impl RealtimeSttAdapter for SonioxAdapter {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Default, Serialize)]
 struct Context {
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    general: Vec<ContextGeneral>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    text: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     terms: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    translation_terms: Vec<TranslationTerm>,
+}
+
+#[derive(Serialize)]
+struct ContextGeneral {
+    key: String,
+    value: String,
+}
+
+#[derive(Serialize)]
+struct TranslationTerm {
+    source: String,
+    target: String,
 }
 
 #[derive(Serialize)]

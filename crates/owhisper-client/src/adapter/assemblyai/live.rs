@@ -45,9 +45,9 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
             query_pairs.append_pair("encoding", "pcm_s16le");
             query_pairs.append_pair("format_turns", "true");
 
-            let default = owhisper_providers::Provider::AssemblyAI.default_live_model();
+            let default = crate::providers::Provider::AssemblyAI.default_live_model();
             let model = match params.model.as_deref() {
-                Some(m) if owhisper_providers::is_meta_model(m) => default,
+                Some(m) if crate::providers::is_meta_model(m) => default,
                 Some(m) => m,
                 None => default,
             };
@@ -77,7 +77,7 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
     }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {
-        api_key.and_then(|k| owhisper_providers::Provider::AssemblyAI.build_auth_header(k))
+        api_key.and_then(|k| crate::providers::Provider::AssemblyAI.build_auth_header(k))
     }
 
     fn keep_alive_message(&self) -> Option<Message> {

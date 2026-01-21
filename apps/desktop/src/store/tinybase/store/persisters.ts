@@ -1,3 +1,7 @@
+import { useEffect } from "react";
+
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+
 import { useCalendarPersister } from "../persister/calendar";
 import { useChatPersister } from "../persister/chat";
 import { useChatShortcutPersister } from "../persister/chat-shortcuts";
@@ -11,29 +15,64 @@ import { useTemplatePersister } from "../persister/templates";
 import { useValuesPersister } from "../persister/values";
 import { useInitializeStore } from "./initialize";
 import { type Store } from "./main";
+import { registerSaveHandler } from "./save";
 
 export function useMainPersisters(store: Store) {
   const localPersister = useLocalPersister(store);
-
   const valuesPersister = useValuesPersister(store);
-
   const sessionPersister = useSessionPersister(store);
-
   const organizationPersister = useOrganizationPersister(store);
-
   const humanPersister = useHumanPersister(store);
-
   const eventPersister = useEventsPersister(store);
-
   const chatPersister = useChatPersister(store);
-
   const chatShortcutPersister = useChatShortcutPersister(store);
-
   const promptPersister = usePromptPersister(store);
-
   const templatePersister = useTemplatePersister(store);
-
   const calendarPersister = useCalendarPersister(store);
+
+  useEffect(() => {
+    if (getCurrentWebviewWindowLabel() !== "main") {
+      return;
+    }
+
+    const persisters = [
+      { id: "local", persister: localPersister },
+      { id: "values", persister: valuesPersister },
+      { id: "session", persister: sessionPersister },
+      { id: "organization", persister: organizationPersister },
+      { id: "human", persister: humanPersister },
+      { id: "event", persister: eventPersister },
+      { id: "chat", persister: chatPersister },
+      { id: "chatShortcut", persister: chatShortcutPersister },
+      { id: "prompt", persister: promptPersister },
+      { id: "template", persister: templatePersister },
+      { id: "calendar", persister: calendarPersister },
+    ];
+
+    const unsubscribes = persisters
+      .filter(({ persister }) => persister)
+      .map(({ id, persister }) =>
+        registerSaveHandler(id, async () => {
+          await persister!.save();
+        }),
+      );
+
+    return () => {
+      unsubscribes.forEach((unsub) => unsub());
+    };
+  }, [
+    localPersister,
+    valuesPersister,
+    sessionPersister,
+    organizationPersister,
+    humanPersister,
+    eventPersister,
+    chatPersister,
+    chatShortcutPersister,
+    promptPersister,
+    templatePersister,
+    calendarPersister,
+  ]);
 
   useInitializeStore(store);
 

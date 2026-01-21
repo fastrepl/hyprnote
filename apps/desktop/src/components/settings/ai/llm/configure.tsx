@@ -16,11 +16,11 @@ export function ConfigureProviders() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Configure Providers</h3>
+      <h3 className="text-md font-semibold font-serif">Configure Providers</h3>
       <Accordion
         type="single"
         collapsible
-        className="space-y-3"
+        className="flex flex-col gap-3"
         value={accordionValue}
         onValueChange={setAccordionValue}
       >
@@ -67,7 +67,7 @@ function HyprProviderCard({
         "border-solid border-neutral-300",
       ])}
     >
-      <AccordionTrigger className="capitalize gap-2 px-4">
+      <AccordionTrigger className="capitalize gap-2 px-4 hover:no-underline">
         <div className="flex items-center gap-2">
           {icon}
           <span>{providerName}</span>
@@ -90,7 +90,7 @@ function ProviderContext({
   providerId: ProviderId;
   highlight?: boolean;
 }) {
-  const { isPro, upgradeToPro } = useBillingAccess();
+  const { isPro, canStartTrial, upgradeToPro } = useBillingAccess();
 
   const content =
     providerId === "hyprnote"
@@ -107,6 +107,8 @@ function ProviderContext({
                 ? "Visit [AI Studio](https://aistudio.google.com/api-keys) to create an API key."
                 : "";
 
+  const buttonLabel = canStartTrial ? "Start Free Trial" : "Upgrade to Pro";
+
   if (providerId === "hyprnote" && !isPro) {
     return (
       <div className="flex flex-col gap-3">
@@ -114,26 +116,25 @@ function ProviderContext({
         <button
           onClick={upgradeToPro}
           className={cn([
-            "relative overflow-hidden",
-            "px-4 py-1.5 rounded-full text-sm font-medium",
-            "bg-gradient-to-t from-stone-600 to-stone-500 text-white",
-            "shadow-sm hover:shadow-md",
+            "relative overflow-hidden w-fit h-8.5",
+            "px-4 rounded-full text-xs font-mono text-center",
+            "bg-linear-to-t from-stone-600 to-stone-500 text-white",
+            "shadow-xs hover:shadow-md",
             "transition-all duration-150",
             "hover:scale-[102%] active:scale-[98%]",
             "flex items-center justify-center gap-2",
-            "w-fit",
           ])}
         >
           {highlight && (
             <div
               className={cn([
                 "absolute inset-0",
-                "bg-gradient-to-r from-transparent via-white/30 to-transparent",
-                "animate-[shimmer_2s_infinite]",
+                "bg-linear-to-r from-transparent via-white/30 to-transparent",
+                "animate-shimmer",
               ])}
             />
           )}
-          <span className="relative">Start Free Trial</span>
+          <span className="relative">{buttonLabel}</span>
         </button>
       </div>
     );

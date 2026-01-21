@@ -14,13 +14,3 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #d5d5d5;
 }
-
-@layer utilities {
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-}

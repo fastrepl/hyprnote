@@ -109,12 +109,23 @@ pub async fn suggest_providers_for_languages_live<R: tauri::Runtime>(
         AdapterKind::AssemblyAI,
         AdapterKind::OpenAI,
         AdapterKind::Gladia,
+        AdapterKind::ElevenLabs,
     ];
 
-    let supported: Vec<String> = all_providers
+    let mut with_quality: Vec<_> = all_providers
         .iter()
-        .filter(|kind| kind.is_supported_languages_live(&languages_parsed, None))
-        .map(|kind| format!("{:?}", kind).to_lowercase())
+        .map(|kind| {
+            let quality = kind.language_quality_live(&languages_parsed, None);
+            (*kind, quality)
+        })
+        .filter(|(_, quality)| quality.is_supported())
+        .collect();
+
+    with_quality.sort_by(|(_, q1), (_, q2)| q2.cmp(q1));
+
+    let supported: Vec<String> = with_quality
+        .into_iter()
+        .map(|(kind, _)| format!("{:?}", kind).to_lowercase())
         .collect();
 
     Ok(supported)

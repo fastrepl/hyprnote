@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
-import { cn } from "@hypr/utils";
+import { cn, safeParseDate } from "@hypr/utils";
 
 import { useListener } from "../../../../contexts/listener";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
@@ -71,14 +71,14 @@ function ItemBase({
       onCmdClick={onCmdClick}
       contextMenu={contextMenu}
       className={cn([
-        "w-full text-left px-3 py-2 rounded-lg",
+        "cursor-pointer w-full text-left px-3 py-2 rounded-lg",
         selected && "bg-neutral-200",
         !selected && "hover:bg-neutral-100",
       ])}
     >
       <div className="flex items-center gap-2">
         {showSpinner && (
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Spinner size={14} />
           </div>
         )}
@@ -105,13 +105,39 @@ const EventItem = memo(
     selected: boolean;
   }) => {
     const store = main.UI.useStore(main.STORE_ID);
+    const indexes = main.UI.useIndexes(main.STORE_ID);
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
+    const invalidateResource = useTabs((state) => state.invalidateResource);
 
     const eventId = item.id;
-    const title = item.data.title || "Untitled";
+
+    const sessionIds = main.UI.useRowIds("sessions", main.STORE_ID);
+    const attachedSessionId = useMemo(() => {
+      if (!store) {
+        return undefined;
+      }
+      let sessionId: string | undefined;
+      store.forEachRow("sessions", (rowId, _forEachCell) => {
+        const session = store.getRow("sessions", rowId);
+        if (session?.event_id === eventId) {
+          sessionId = rowId;
+        }
+      });
+      return sessionId;
+    }, [store, eventId, sessionIds]);
+
+    const sessionTitle = main.UI.useCell(
+      "sessions",
+      attachedSessionId ?? "",
+      "title",
+      main.STORE_ID,
+    ) as string | undefined;
+    const title = attachedSessionId
+      ? sessionTitle || "Untitled"
+      : item.data.title || "Untitled";
+
     const calendarId = item.data.calendar_id ?? null;
-    const recurrenceSeriesId = item.data.recurrence_series_id;
     const displayTime = useMemo(
       () => formatDisplayTime(item.data.started_at, precision),
       [item.data.started_at, precision],
@@ -133,53 +159,45 @@ const EventItem = memo(
     const handleClick = useCallback(() => openEvent(false), [openEvent]);
     const handleCmdClick = useCallback(() => openEvent(true), [openEvent]);
 
-    const handleIgnore = main.UI.useSetPartialRowCallback(
-      "events",
-      eventId,
-      () => ({ ignored: true }),
-      [],
-      main.STORE_ID,
-    );
-
-    const handleIgnoreSeries = useCallback(() => {
-      if (!store || !recurrenceSeriesId) {
+    const handleDelete = useCallback(() => {
+      if (!store || !attachedSessionId) {
         return;
       }
-      store.transaction(() => {
-        store.forEachRow("events", (rowId, _forEachCell) => {
-          const event = store.getRow("events", rowId);
-          if (event?.recurrence_series_id === recurrenceSeriesId) {
-            store.setPartialRow("events", rowId, { ignored: true });
-          }
-        });
+      store.setPartialRow("events", eventId, { ignored: true });
+      invalidateResource("sessions", attachedSessionId);
+      void deleteSessionCascade(store, indexes, attachedSessionId);
+    }, [store, indexes, attachedSessionId, invalidateResource, eventId]);
 
-        const currentIgnored = store.getValue("ignored_recurring_series");
-        const ignoredList: string[] = currentIgnored
-          ? JSON.parse(String(currentIgnored))
-          : [];
-        if (!ignoredList.includes(recurrenceSeriesId)) {
-          ignoredList.push(recurrenceSeriesId);
-          store.setValue(
-            "ignored_recurring_series",
-            JSON.stringify(ignoredList),
-          );
-        }
-      });
-    }, [store, recurrenceSeriesId]);
-
-    const contextMenu = useMemo(() => {
-      const menu = [
-        { id: "ignore", text: "Ignore this event", action: handleIgnore },
-      ];
-      if (recurrenceSeriesId) {
-        menu.push({
-          id: "ignore-series",
-          text: "Ignore all recurring events",
-          action: handleIgnoreSeries,
-        });
+    const handleRevealInFinder = useCallback(async () => {
+      if (!store) {
+        return;
       }
-      return menu;
-    }, [handleIgnore, handleIgnoreSeries, recurrenceSeriesId]);
+      const sessionId =
+        attachedSessionId ??
+        getOrCreateSessionForEventId(store, eventId, title);
+      await save();
+      const result = await fsSyncCommands.sessionDir(sessionId);
+      if (result.status === "ok") {
+        await openerCommands.revealItemInDir(result.data);
+      }
+    }, [store, attachedSessionId, eventId, title]);
+
+    const contextMenu = useMemo(
+      () => [
+        {
+          id: "open-new-tab",
+          text: "Open in new tab",
+          action: handleCmdClick,
+        },
+        {
+          id: "reveal",
+          text: "Reveal in Finder",
+          action: handleRevealInFinder,
+        },
+        { id: "delete", text: "Delete completely", action: handleDelete },
+      ],
+      [handleCmdClick, handleRevealInFinder, handleDelete],
+    );
 
     return (
       <ItemBase
@@ -212,7 +230,10 @@ const SessionItem = memo(
     const invalidateResource = useTabs((state) => state.invalidateResource);
 
     const sessionId = item.id;
-    const title = item.data.title || "Untitled";
+    const title =
+      (main.UI.useCell("sessions", sessionId, "title", main.STORE_ID) as
+        | string
+        | undefined) || "Untitled";
 
     const sessionMode = useListener((state) => state.getSessionMode(sessionId));
     const isEnhancing = useIsSessionEnhancing(sessionId);
@@ -227,9 +248,18 @@ const SessionItem = memo(
       return event?.calendar_id ? String(event.calendar_id) : null;
     }, [store, item.data.event_id]);
 
+    const eventStartedAt = useMemo(() => {
+      if (!store || !item.data.event_id) {
+        return null;
+      }
+      const event = store.getRow("events", item.data.event_id);
+      return event?.started_at ? String(event.started_at) : null;
+    }, [store, item.data.event_id]);
+
     const displayTime = useMemo(
-      () => formatDisplayTime(item.data.created_at, precision),
-      [item.data.created_at, precision],
+      () =>
+        formatDisplayTime(eventStartedAt ?? item.data.created_at, precision),
+      [eventStartedAt, item.data.created_at, precision],
     );
 
     const handleClick = useCallback(() => {
@@ -292,12 +322,8 @@ function formatDisplayTime(
   timestamp: string | null | undefined,
   precision: TimelinePrecision,
 ): string {
-  if (!timestamp) {
-    return "";
-  }
-
-  const date = new Date(timestamp);
-  if (Number.isNaN(date.getTime())) {
+  const date = safeParseDate(timestamp);
+  if (!date) {
     return "";
   }
 

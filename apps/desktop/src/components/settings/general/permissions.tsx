@@ -134,8 +134,8 @@ export function Permissions() {
 
   return (
     <div>
-      <h2 className="font-semibold mb-4">Permissions</h2>
-      <div className="space-y-4">
+      <h2 className="font-semibold font-serif mb-4">Permissions</h2>
+      <div className="flex flex-col gap-4">
         <PermissionRow
           title="Microphone"
           description="Required to record your voice during meetings and calls"

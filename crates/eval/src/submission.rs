@@ -99,7 +99,7 @@ impl std::fmt::Debug for GraderSpec {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct EvalResult {
     pub case_id: String,
     pub model: String,
@@ -108,20 +108,6 @@ pub struct EvalResult {
     pub error: Option<String>,
     pub generation_id: String,
     pub usage: Usage,
-}
-
-impl Default for EvalResult {
-    fn default() -> Self {
-        Self {
-            case_id: String::new(),
-            model: String::new(),
-            output: String::new(),
-            scores: Vec::new(),
-            error: None,
-            generation_id: String::new(),
-            usage: Usage::default(),
-        }
-    }
 }
 
 impl EvalResult {

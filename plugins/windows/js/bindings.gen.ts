@@ -53,11 +53,13 @@ async windowIsExists(window: AppWindow) : Promise<Result<boolean, string>> {
 
 export const events = __makeEvents__<{
 navigate: Navigate,
+openFeedback: OpenFeedback,
 openTab: OpenTab,
 visibilityEvent: VisibilityEvent,
 windowDestroyed: WindowDestroyed
 }>({
 navigate: "plugin:windows:navigate",
+openFeedback: "plugin:windows:open-feedback",
 openTab: "plugin:windows:open-tab",
 visibilityEvent: "plugin:windows:visibility-event",
 windowDestroyed: "plugin:windows:window-destroyed"
@@ -79,6 +81,7 @@ export type EditorView = { type: "raw" } | { type: "transcript" } | { type: "enh
 export type ExtensionsState = { selectedExtension: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type Navigate = { path: string; search: Partial<{ [key in string]: JsonValue }> | null }
+export type OpenFeedback = { feedback_type: string }
 export type OpenTab = { tab: TabInput }
 export type PromptsState = { selectedTask: string | null }
 export type SessionsState = { view: EditorView | null; autoStart: boolean | null }

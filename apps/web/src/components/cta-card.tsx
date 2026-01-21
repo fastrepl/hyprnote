@@ -20,7 +20,7 @@ export function CtaCard({
       ? `${buttonUrl}?source=${source}`
       : buttonUrl;
   return (
-    <div className="my-12 border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
+    <div className="my-12 border border-neutral-200 rounded-xs overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <div className="p-8 text-center">
         <h3 className="font-serif text-2xl text-stone-600 mb-3">{title}</h3>
         {description && (

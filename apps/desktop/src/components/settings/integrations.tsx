@@ -135,7 +135,9 @@ export function SettingsIntegrations() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <h2 className="font-semibold cursor-default">Integrations</h2>
+            <h2 className="font-semibold font-serif cursor-default">
+              Integrations
+            </h2>
             <Badge variant="secondary" className="text-xs">
               Coming soon
             </Badge>
@@ -182,7 +184,7 @@ export function SettingsIntegrations() {
           />
         </div>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           {filteredIntegrations.length === 0 ? (
             <div className="text-center py-12 text-neutral-500">
               <Puzzle size={48} className="mx-auto mb-4 text-neutral-300" />

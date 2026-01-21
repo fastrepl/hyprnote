@@ -16,7 +16,7 @@ export function InteractiveContainer({
   const [isResizing, setIsResizing] = useState(false);
 
   return createPortal(
-    <div className="fixed z-[100]" style={{ right: 16, bottom: 16 }}>
+    <div className="fixed z-100" style={{ right: 16, bottom: 16 }}>
       <Resizable
         defaultSize={{ width, height }}
         minWidth={280}

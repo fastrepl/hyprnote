@@ -411,6 +411,32 @@ impl<'a, R: Runtime, M: Manager<R>> LocalStt<'a, R, M> {
             guard.download_task.contains_key(model)
         }
     }
+
+    #[tracing::instrument(skip_all)]
+    pub async fn delete_model(&self, model: &SupportedSttModel) -> Result<(), crate::Error> {
+        if !self.is_model_downloaded(model).await? {
+            return Err(crate::Error::ModelNotDownloaded);
+        }
+
+        match model {
+            SupportedSttModel::Am(m) => {
+                let model_dir = self.models_dir().join(m.model_dir());
+                if model_dir.exists() {
+                    std::fs::remove_dir_all(&model_dir)
+                        .map_err(|e| crate::Error::ModelDeleteFailed(e.to_string()))?;
+                }
+            }
+            SupportedSttModel::Whisper(m) => {
+                let model_path = self.models_dir().join(m.file_name());
+                if model_path.exists() {
+                    std::fs::remove_file(&model_path)
+                        .map_err(|e| crate::Error::ModelDeleteFailed(e.to_string()))?;
+                }
+            }
+        }
+
+        Ok(())
+    }
 }
 
 pub trait LocalSttPluginExt<R: Runtime> {

@@ -1,13 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ExternalLinkIcon } from "lucide-react";
-import {
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { useResizeObserver } from "usehooks-ts";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
@@ -15,7 +8,6 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
-import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../auth";
 import { useBillingAccess } from "../../../billing";
@@ -57,6 +49,11 @@ export function AccountSettings() {
   const handleSignOut = useCallback(async () => {
     void analyticsCommands.event({
       event: "user_signed_out",
+    });
+    void analyticsCommands.setProperties({
+      set: {
+        is_signed_up: false,
+      },
     });
 
     if (store) {
@@ -141,7 +138,7 @@ export function AccountSettings() {
         action={
           <button
             onClick={handleSignIn}
-            className="px-6 py-2 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium transition-opacity duration-150 hover:opacity-90"
+            className="px-4 h-[34px] rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white text-xs font-mono text-center transition-opacity duration-150 hover:opacity-90"
           >
             Get Started
           </button>
@@ -237,6 +234,14 @@ function BillingButton() {
         event: "trial_started",
         plan: "pro",
       });
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 14);
+      void analyticsCommands.setProperties({
+        set: {
+          plan: "pro",
+          trial_end_date: trialEndDate.toISOString(),
+        },
+      });
       await auth?.refreshSession();
       openTrialBeginModal();
     },
@@ -301,37 +306,15 @@ function Container({
   action?: ReactNode;
   children?: ReactNode;
 }) {
-  const containerRef = useRef<HTMLElement>(null);
-  const [isNarrow, setIsNarrow] = useState(false);
-
-  useResizeObserver({
-    ref: containerRef as React.RefObject<HTMLElement>,
-    onResize: ({ width }) => {
-      if (width !== undefined) {
-        setIsNarrow(width < 400);
-      }
-    },
-  });
-
   return (
-    <section
-      ref={containerRef}
-      className="bg-neutral-50 p-4 rounded-lg flex flex-col gap-4"
-    >
-      <div
-        className={cn([
-          "flex gap-4",
-          isNarrow ? "flex-col" : "flex-row items-center justify-between",
-        ])}
-      >
-        <div className="flex flex-col gap-2">
-          <h1 className="text-md font-semibold">{title}</h1>
-          {description && (
-            <p className="text-sm text-neutral-600">{description}</p>
-          )}
-        </div>
-        {action ? <div className="flex-shrink-0">{action}</div> : null}
+    <section className="bg-neutral-50 p-4 rounded-lg flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-md font-semibold font-serif">{title}</h1>
+        {description && (
+          <p className="text-sm text-neutral-600">{description}</p>
+        )}
       </div>
+      {action ? <div>{action}</div> : null}
       {children}
     </section>
   );

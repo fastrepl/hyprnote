@@ -11,10 +11,12 @@ import { cn } from "@hypr/utils";
 
 export function Audio() {
   return (
-    <div className="space-y-6">
-      <h2 className="font-semibold">Audio</h2>
-      <DeviceList direction="input" />
-      <DeviceList direction="output" />
+    <div className="flex flex-col gap-6">
+      <h2 className="font-semibold font-serif">Audio</h2>
+      <div className="flex flex-col gap-6">
+        <DeviceList direction="input" />
+        <DeviceList direction="output" />
+      </div>
     </div>
   );
 }
@@ -129,7 +131,7 @@ function DeviceList({ direction }: { direction: "input" | "output" }) {
         axis="y"
         values={localDevices}
         onReorder={handleReorder}
-        className="space-y-1"
+        className="flex flex-col gap-1"
       >
         {localDevices.map((device, index) => (
           <DeviceItem
@@ -164,7 +166,7 @@ function DeviceItem({
           : "bg-neutral-50 border-neutral-200 hover:bg-neutral-100",
       ])}
     >
-      <GripVertical className="h-4 w-4 text-neutral-400 flex-shrink-0" />
+      <GripVertical className="h-4 w-4 text-neutral-400 shrink-0" />
       <span className="text-xs text-neutral-400 w-4">{rank}</span>
       <span className={cn(["text-sm flex-1 truncate", isTop && "font-medium"])}>
         {device.name}

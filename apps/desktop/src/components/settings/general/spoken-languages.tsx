@@ -138,7 +138,7 @@ export function SpokenLanguagesView({
             </Badge>
           ))}
           {value.length === 0 && (
-            <Search className="size-4 text-neutral-700 flex-shrink-0" />
+            <Search className="size-4 text-neutral-700 shrink-0" />
           )}
           <input
             id="language-search-input"
@@ -162,7 +162,7 @@ export function SpokenLanguagesView({
             }
             aria-label="Add spoken language"
             placeholder={value.length === 0 ? "Add language" : ""}
-            className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-neutral-500"
+            className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-500"
           />
         </div>
 
@@ -170,7 +170,7 @@ export function SpokenLanguagesView({
           <div
             id="language-options"
             role="listbox"
-            className="absolute top-full left-0 right-0 mt-1 flex flex-col w-full rounded border border-neutral-200 overflow-hidden bg-white shadow-md z-10 max-h-60 overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-1 flex flex-col w-full rounded-xs border border-neutral-200 overflow-hidden bg-white shadow-md z-10 max-h-60 overflow-y-auto"
           >
             {filteredLanguages.length > 0 ? (
               filteredLanguages.map((langCode, index) => (

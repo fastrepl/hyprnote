@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { fetchAdminUser } from "@/functions/admin";
+import { getSupabaseAdminClient } from "@/functions/supabase";
 import { deleteMediaFiles } from "@/functions/supabase-media";
 
 export const Route = createFileRoute("/api/admin/media/delete")({
@@ -40,7 +41,8 @@ export const Route = createFileRoute("/api/admin/media/delete")({
           );
         }
 
-        const result = await deleteMediaFiles(paths);
+        const supabase = getSupabaseAdminClient();
+        const result = await deleteMediaFiles(supabase, paths);
 
         return new Response(
           JSON.stringify({

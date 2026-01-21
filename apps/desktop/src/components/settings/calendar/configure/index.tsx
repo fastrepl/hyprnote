@@ -14,7 +14,7 @@ export function ConfigureProviders() {
   );
 
   return (
-    <Accordion type="single" collapsible className="space-y-3">
+    <Accordion type="single" collapsible className="flex flex-col gap-3">
       {visibleProviders.map((provider) =>
         provider.disabled ? (
           <DisabledProviderCard key={provider.id} config={provider} />

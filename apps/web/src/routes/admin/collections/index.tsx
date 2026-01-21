@@ -1,6 +1,6 @@
 import { MDXContent } from "@content-collections/mdx/react";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import {
   CheckIcon,
@@ -17,12 +17,14 @@ import {
   FolderOpenIcon,
   FolderPlusIcon,
   GithubIcon,
+  ImageIcon,
   type LucideIcon,
   PencilIcon,
   PinIcon,
   PinOffIcon,
   PlusIcon,
   RefreshCwIcon,
+  SaveIcon,
   ScissorsIcon,
   SearchIcon,
   SendIcon,
@@ -59,7 +61,9 @@ import {
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
+import { MediaSelectorModal } from "@/components/admin/media-selector-modal";
 import { defaultMDXComponents } from "@/components/mdx";
+import { fetchGitHubCredentials } from "@/functions/admin";
 
 interface ContentItem {
   name: string;
@@ -67,6 +71,19 @@ interface ContentItem {
   slug: string;
   type: "file";
   collection: string;
+  branch?: string;
+  isDraft?: boolean;
+}
+
+interface DraftArticle {
+  name: string;
+  path: string;
+  slug: string;
+  branch: string;
+  meta_title?: string;
+  author?: string;
+  date?: string;
+  published?: boolean;
 }
 
 interface CollectionInfo {
@@ -80,6 +97,7 @@ interface Tab {
   type: "collection" | "file";
   name: string;
   path: string;
+  branch?: string;
   pinned: boolean;
   active: boolean;
 }
@@ -159,27 +177,62 @@ function getFileContent(path: string): FileContent | undefined {
   };
 }
 
-function getCollections(): CollectionInfo[] {
+function getCollections(draftArticles: DraftArticle[] = []): CollectionInfo[] {
   const sortedArticles = [...allArticles].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
+
+  const publishedItems: ContentItem[] = sortedArticles.map((a) => ({
+    name: a._meta.fileName,
+    path: `articles/${a._meta.fileName}`,
+    slug: a.slug,
+    type: "file" as const,
+    collection: "articles",
+    isDraft: false,
+  }));
+
+  const draftItems: ContentItem[] = draftArticles
+    .filter((d) => !publishedItems.some((p) => p.slug === d.slug))
+    .map((d) => ({
+      name: d.name,
+      path: d.path,
+      slug: d.slug,
+      type: "file" as const,
+      collection: "articles",
+      branch: d.branch,
+      isDraft: true,
+    }));
+
+  const allItems = [...draftItems, ...publishedItems];
 
   return [
     {
       name: "articles",
       label: "Articles",
-      items: sortedArticles.map((a) => ({
-        name: a._meta.fileName,
-        path: `articles/${a._meta.fileName}`,
-        slug: a.slug,
-        type: "file" as const,
-        collection: "articles",
-      })),
+      items: allItems,
     },
   ];
 }
 
 export const Route = createFileRoute("/admin/collections/")({
+  beforeLoad: async () => {
+    if (import.meta.env.DEV) {
+      return;
+    }
+
+    const { hasCredentials } = await fetchGitHubCredentials();
+
+    if (!hasCredentials) {
+      throw redirect({
+        to: "/auth/",
+        search: {
+          provider: "github",
+          redirect: "/admin/collections/",
+          rra: true,
+        },
+      });
+    }
+  },
   component: CollectionsPage,
 });
 
@@ -189,7 +242,25 @@ function getFileExtension(filename: string): string {
 }
 
 function CollectionsPage() {
-  const collections = useMemo(() => getCollections(), []);
+  const queryClient = useQueryClient();
+
+  const { data: draftArticles = [] } = useQuery({
+    queryKey: ["draftArticles"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/content/list-drafts");
+      if (!response.ok) {
+        throw new Error("Failed to fetch drafts");
+      }
+      const data = await response.json();
+      return data.drafts as DraftArticle[];
+    },
+    staleTime: 30000,
+  });
+
+  const collections = useMemo(
+    () => getCollections(draftArticles),
+    [draftArticles],
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null);
@@ -218,6 +289,7 @@ function CollectionsPage() {
     },
     onSuccess: () => {
       setEditingItem(null);
+      queryClient.invalidateQueries({ queryKey: ["draftArticles"] });
     },
   });
 
@@ -282,11 +354,12 @@ function CollectionsPage() {
       type: "collection" | "file",
       name: string,
       path: string,
+      branch?: string,
       pinned = false,
     ) => {
       setTabs((prev) => {
         const existingIndex = prev.findIndex(
-          (t) => t.type === type && t.path === path,
+          (t) => t.type === type && t.path === path && t.branch === branch,
         );
         if (existingIndex !== -1) {
           return prev.map((t, i) => ({ ...t, active: i === existingIndex }));
@@ -294,10 +367,11 @@ function CollectionsPage() {
 
         const unpinnedIndex = prev.findIndex((t) => !t.pinned);
         const newTab: Tab = {
-          id: `${type}-${path}-${Date.now()}`,
+          id: `${type}-${path}-${branch || "main"}-${Date.now()}`,
           type,
           name,
           path,
+          branch,
           pinned,
           active: true,
         };
@@ -393,7 +467,9 @@ function CollectionsPage() {
           collections={filteredCollections}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onFileClick={(item) => openTab("file", item.name, item.path)}
+          onFileClick={(item) =>
+            openTab("file", item.name, item.path, item.branch)
+          }
           clipboard={clipboard}
           onClipboardChange={setClipboard}
           onNewPostClick={() => setIsCreatingNewPost(true)}
@@ -440,8 +516,12 @@ function CollectionsPage() {
             onPinTab={pinTab}
             onReorderTabs={reorderTabs}
             filteredItems={filteredItems}
-            onFileClick={(item) => openTab("file", item.name, item.path)}
-            onOpenImport={() => setIsImportModalOpen(true)}
+            onFileClick={(item) =>
+              openTab("file", item.name, item.path, item.branch)
+            }
+            onRenameFile={(fromPath, toPath) =>
+              renameMutation.mutate({ fromPath, toPath })
+            }
           />
         </div>
       </ResizablePanel>
@@ -459,7 +539,7 @@ function CollectionsPage() {
           <DialogHeader>
             <DialogTitle>Delete File</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <p className="text-sm text-neutral-600">
               Are you sure you want to delete{" "}
               <span className="font-medium text-neutral-900">
@@ -555,7 +635,7 @@ function Sidebar({
             className={cn([
               "w-full py-1 text-sm",
               "bg-transparent",
-              "focus:outline-none",
+              "focus:outline-hidden",
               "placeholder:text-neutral-400",
             ])}
           />
@@ -603,8 +683,8 @@ function Sidebar({
           className={cn([
             "w-full h-9 text-sm font-medium rounded-full flex items-center justify-center gap-2",
             "bg-linear-to-b from-white to-neutral-100 text-neutral-700 border border-neutral-200",
-            "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
-            "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm",
+            "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+            "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xs",
           ])}
         >
           <PlusIcon className="size-4" />
@@ -687,7 +767,15 @@ function FileItemSidebar({
       onContextMenu={handleContextMenu}
     >
       <FileTextIcon className="size-4 text-neutral-400 shrink-0" />
-      <span className="truncate text-neutral-600">{item.name}</span>
+      <span className="truncate text-neutral-600">
+        {item.name.replace(/\.mdx$/, "")}
+      </span>
+
+      {item.isDraft && (
+        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded shrink-0">
+          Draft
+        </span>
+      )}
 
       {contextMenu && (
         <ContextMenu
@@ -790,7 +878,7 @@ function InlineInput({
         disabled={isLoading}
         placeholder={type === "file" ? "filename" : "folder name"}
         className={cn([
-          "flex-1 text-sm bg-transparent outline-none",
+          "flex-1 text-sm bg-transparent outline-hidden",
           "text-neutral-600 placeholder:text-neutral-400",
         ])}
       />
@@ -897,7 +985,7 @@ function NewPostInlineInput({
           disabled={isLoading}
           placeholder="enter-slug-here"
           className={cn([
-            "flex-1 text-sm bg-transparent outline-none",
+            "flex-1 text-sm bg-transparent outline-hidden",
             error ? "text-red-700" : "text-neutral-600",
             "placeholder:text-neutral-400",
           ])}
@@ -961,7 +1049,7 @@ function ContextMenu({
         ref={menuRef}
         className={cn([
           "fixed z-50 min-w-40 py-1",
-          "bg-white border border-neutral-200 rounded-sm shadow-lg",
+          "bg-white border border-neutral-200 rounded-xs shadow-lg",
         ])}
         style={{ left: x, top: y }}
       >
@@ -1093,7 +1181,7 @@ function ContentPanel({
   onReorderTabs,
   filteredItems,
   onFileClick,
-  onOpenImport,
+  onRenameFile,
 }: {
   tabs: Tab[];
   currentTab: Tab | undefined;
@@ -1105,7 +1193,7 @@ function ContentPanel({
   onReorderTabs: (tabs: Tab[]) => void;
   filteredItems: ContentItem[];
   onFileClick: (item: ContentItem) => void;
-  onOpenImport: () => void;
+  onRenameFile: (fromPath: string, toPath: string) => void;
 }) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [editorData, setEditorData] = useState<EditorData | null>(null);
@@ -1116,6 +1204,7 @@ function ContentPanel({
       path: string;
       content: string;
       metadata: ArticleMetadata;
+      branch?: string;
     }) => {
       const response = await fetch("/api/admin/content/save", {
         method: "POST",
@@ -1130,15 +1219,75 @@ function ContentPanel({
     },
   });
 
+  const { mutate: publishContent, isPending: isPublishing } = useMutation({
+    mutationFn: async (params: {
+      path: string;
+      content: string;
+      metadata: ArticleMetadata;
+      branch?: string;
+      action?: "publish" | "unpublish";
+    }) => {
+      if (!params.branch) {
+        throw new Error("Cannot publish: no branch specified");
+      }
+      const response = await fetch("/api/admin/content/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          path: params.path,
+          content: params.content,
+          branch: params.branch,
+          metadata: params.metadata,
+          action: params.action || "publish",
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to publish");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.prUrl) {
+        window.open(data.prUrl, "_blank");
+      }
+    },
+  });
+
   const handleSave = useCallback(() => {
     if (currentTab?.type === "file" && editorData) {
       saveContent({
         path: currentTab.path,
         content: editorData.content,
         metadata: editorData.metadata,
+        branch: currentTab.branch,
       });
     }
   }, [currentTab, editorData, saveContent]);
+
+  const handlePublish = useCallback(() => {
+    if (currentTab?.type === "file" && editorData) {
+      publishContent({
+        path: currentTab.path,
+        content: editorData.content,
+        metadata: editorData.metadata,
+        branch: currentTab.branch,
+        action: "publish",
+      });
+    }
+  }, [currentTab, editorData, publishContent]);
+
+  const handleUnpublish = useCallback(() => {
+    if (currentTab?.type === "file" && editorData) {
+      publishContent({
+        path: currentTab.path,
+        content: editorData.content,
+        metadata: editorData.metadata,
+        branch: currentTab.branch,
+        action: "unpublish",
+      });
+    }
+  }, [currentTab, editorData, publishContent]);
 
   const currentFileContent = useMemo(
     () =>
@@ -1163,7 +1312,16 @@ function ContentPanel({
             onTogglePreview={() => setIsPreviewMode(!isPreviewMode)}
             onSave={handleSave}
             isSaving={isSaving}
+            onPublish={handlePublish}
+            onUnpublish={handleUnpublish}
+            isPublishing={isPublishing}
             isPublished={currentFileContent?.published}
+            onRenameFile={(newSlug) => {
+              const pathParts = currentTab.path.split("/");
+              pathParts[pathParts.length - 1] = `${newSlug}.mdx`;
+              const newPath = pathParts.join("/");
+              onRenameFile(currentTab.path, newPath);
+            }}
           />
           {currentTab.type === "collection" ? (
             <FileList filteredItems={filteredItems} onFileClick={onFileClick} />
@@ -1171,11 +1329,11 @@ function ContentPanel({
             <FileEditor
               ref={fileEditorRef}
               filePath={currentTab.path}
+              branch={currentTab.branch}
               isPreviewMode={isPreviewMode}
               onDataChange={setEditorData}
               onSave={handleSave}
               isSaving={isSaving}
-              onOpenImport={onOpenImport}
             />
           )}
         </div>
@@ -1205,7 +1363,11 @@ function EditorHeader({
   onTogglePreview,
   onSave,
   isSaving,
+  onPublish,
+  onUnpublish,
+  isPublishing,
   isPublished,
+  onRenameFile,
 }: {
   tabs: Tab[];
   currentTab: Tab;
@@ -1219,9 +1381,43 @@ function EditorHeader({
   onTogglePreview: () => void;
   onSave: () => void;
   isSaving: boolean;
+  onPublish: () => void;
+  onUnpublish: () => void;
+  isPublishing: boolean;
   isPublished?: boolean;
+  onRenameFile?: (newSlug: string) => void;
 }) {
+  const [isHoveringPublish, setIsHoveringPublish] = useState(false);
+  const [isEditingSlug, setIsEditingSlug] = useState(false);
+  const [slugValue, setSlugValue] = useState("");
+  const slugInputRef = useRef<HTMLInputElement>(null);
   const breadcrumbs = currentTab.path.split("/");
+  const currentSlug =
+    breadcrumbs[breadcrumbs.length - 1]?.replace(/\.mdx$/, "") || "";
+
+  const handleSlugClick = () => {
+    if (currentTab.type === "file" && onRenameFile) {
+      setSlugValue(currentSlug);
+      setIsEditingSlug(true);
+      setTimeout(() => slugInputRef.current?.focus(), 0);
+    }
+  };
+
+  const handleSlugSubmit = () => {
+    const trimmedSlug = slugValue.trim();
+    if (trimmedSlug && trimmedSlug !== currentSlug && onRenameFile) {
+      onRenameFile(trimmedSlug);
+    }
+    setIsEditingSlug(false);
+  };
+
+  const handleSlugKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSlugSubmit();
+    } else if (e.key === "Escape") {
+      setIsEditingSlug(false);
+    }
+  };
 
   return (
     <div>
@@ -1245,15 +1441,37 @@ function EditorHeader({
               {index > 0 && (
                 <ChevronRightIcon className="size-4 text-neutral-300" />
               )}
-              <span
-                className={cn([
-                  index === breadcrumbs.length - 1
-                    ? "text-neutral-700 font-medium"
-                    : "hover:text-neutral-700 cursor-pointer",
-                ])}
-              >
-                {crumb}
-              </span>
+              {index === breadcrumbs.length - 1 &&
+              currentTab.type === "file" ? (
+                isEditingSlug ? (
+                  <input
+                    ref={slugInputRef}
+                    type="text"
+                    value={slugValue}
+                    onChange={(e) => setSlugValue(e.target.value)}
+                    onBlur={handleSlugSubmit}
+                    onKeyDown={handleSlugKeyDown}
+                    className="text-neutral-700 font-medium bg-transparent outline-none"
+                  />
+                ) : (
+                  <span
+                    onClick={handleSlugClick}
+                    className="text-neutral-700 font-medium hover:text-neutral-900 cursor-text"
+                  >
+                    {crumb.replace(/\.mdx$/, "")}
+                  </span>
+                )
+              ) : (
+                <span
+                  className={cn([
+                    index === breadcrumbs.length - 1
+                      ? "text-neutral-700 font-medium"
+                      : "hover:text-neutral-700 cursor-pointer",
+                  ])}
+                >
+                  {crumb.replace(/\.mdx$/, "")}
+                </span>
+              )}
             </span>
           ))}
         </div>
@@ -1263,7 +1481,7 @@ function EditorHeader({
             <button
               onClick={onTogglePreview}
               className={cn([
-                "cursor-pointer p-1.5 rounded transition-colors",
+                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
                 isPreviewMode
                   ? "text-neutral-700"
                   : "text-neutral-400 hover:text-neutral-600",
@@ -1271,31 +1489,61 @@ function EditorHeader({
               title={isPreviewMode ? "Edit mode" : "Preview mode"}
             >
               {isPreviewMode ? (
-                <PencilIcon className="size-4" />
+                <>
+                  <PencilIcon className="size-4" />
+                  Edit
+                </>
               ) : (
-                <EyeIcon className="size-4" />
+                <>
+                  <EyeIcon className="size-4" />
+                  Preview
+                </>
               )}
             </button>
             <button
               onClick={onSave}
               disabled={isSaving}
-              className="cursor-pointer p-1.5 rounded transition-colors text-neutral-400 hover:text-neutral-600 disabled:cursor-not-allowed"
+              className={cn([
+                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs transition-colors flex items-center gap-1.5",
+                "text-white bg-neutral-900 hover:bg-neutral-800",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              ])}
               title="Save (⌘S)"
             >
-              <RefreshCwIcon
-                className={cn(["size-4", isSaving && "animate-spin"])}
-              />
+              {isSaving ? (
+                <Spinner size={16} color="white" />
+              ) : (
+                <SaveIcon className="size-4" />
+              )}
+              Save
             </button>
             <button
               type="button"
+              onClick={isPublished ? onUnpublish : onPublish}
+              disabled={isPublishing}
+              onMouseEnter={() => setIsHoveringPublish(true)}
+              onMouseLeave={() => setIsHoveringPublish(false)}
               className={cn([
-                "px-2 py-1.5 text-xs font-medium font-mono rounded-sm flex items-center gap-1.5",
-                isPublished
-                  ? "text-white bg-green-600 hover:bg-green-700"
-                  : "text-white bg-neutral-900 hover:bg-neutral-800",
+                "cursor-pointer px-2 py-1.5 text-xs font-medium font-mono rounded-xs flex items-center gap-1.5",
+                isPublished && isHoveringPublish
+                  ? "text-white bg-red-600 hover:bg-red-700"
+                  : isPublished
+                    ? "text-white bg-green-600"
+                    : "text-white bg-neutral-900 hover:bg-neutral-800",
+                "disabled:cursor-not-allowed",
               ])}
             >
-              {isPublished ? (
+              {isPublishing ? (
+                <>
+                  <Spinner size={14} color="white" />
+                  Publishing
+                </>
+              ) : isPublished && isHoveringPublish ? (
+                <>
+                  <XIcon className="size-4" />
+                  Unpublish
+                </>
+              ) : isPublished ? (
                 <>
                   <CheckIcon className="size-4" />
                   Published
@@ -1420,7 +1668,7 @@ function TabItem({
           <FileTextIcon className="size-4 text-neutral-400" />
         )}
         <span className={cn(["truncate max-w-30", !tab.pinned && "italic"])}>
-          {tab.name}
+          {tab.name.replace(/\.mdx$/, "")}
         </span>
         <button
           onClick={(e) => {
@@ -1481,7 +1729,7 @@ function TabContextMenu({
       <div
         className={cn([
           "fixed z-50 min-w-35 py-1",
-          "bg-white border border-neutral-200 rounded-sm shadow-lg",
+          "bg-white border border-neutral-200 rounded-xs shadow-lg",
         ])}
         style={{ left: x, top: y }}
       >
@@ -1536,7 +1784,7 @@ function FileList({
 
   return (
     <div className="flex-1 overflow-y-auto p-4">
-      <div className="space-y-1">
+      <div className="flex flex-col gap-1">
         {filteredItems.map((item) => (
           <FileItem
             key={item.path}
@@ -1558,9 +1806,11 @@ const AUTHORS = [
 function AuthorSelect({
   value,
   onChange,
+  withBorder,
 }: {
   value: string;
   onChange: (value: string) => void;
+  withBorder?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1582,7 +1832,11 @@ function AuthorSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer"
+        className={cn([
+          "w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer",
+          withBorder &&
+            "px-2 py-1.5 border border-neutral-200 rounded focus:border-neutral-400",
+        ])}
       >
         {selectedAuthor ? (
           <>
@@ -1596,15 +1850,15 @@ function AuthorSelect({
         ) : (
           <span className="text-neutral-400">Select author</span>
         )}
-        <ChevronRightIcon
+        <ChevronDownIcon
           className={cn([
             "size-3 ml-auto transition-transform text-neutral-400",
-            isOpen && "rotate-90",
+            isOpen && "rotate-180",
           ])}
         />
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-neutral-200 rounded-sm shadow-lg z-50">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xs shadow-lg z-50">
           {AUTHORS.map((author) => (
             <button
               key={author.name}
@@ -1625,6 +1879,83 @@ function AuthorSelect({
                 className="size-5 rounded-full object-cover"
               />
               {author.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const CATEGORIES = [
+  "Case Study",
+  "Hyprnote Weekly",
+  "Productivity Hack",
+  "Engineering",
+];
+
+function CategorySelect({
+  value,
+  onChange,
+  withBorder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  withBorder?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative flex-1">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn([
+          "w-full flex items-center gap-2 text-left text-neutral-900 cursor-pointer",
+          withBorder &&
+            "px-2 py-1.5 border border-neutral-200 rounded focus:border-neutral-400",
+        ])}
+      >
+        {value ? (
+          <span>{value}</span>
+        ) : (
+          <span className="text-neutral-400">Select category</span>
+        )}
+        <ChevronDownIcon
+          className={cn([
+            "size-3 ml-auto transition-transform text-neutral-400",
+            isOpen && "rotate-180",
+          ])}
+        />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xs shadow-lg z-50">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => {
+                onChange(category);
+                setIsOpen(false);
+              }}
+              className={cn([
+                "w-full px-3 py-2 text-sm text-left cursor-pointer",
+                "hover:bg-neutral-100 transition-colors",
+                value === category && "bg-neutral-50",
+              ])}
+            >
+              {category}
             </button>
           ))}
         </div>
@@ -1722,7 +2053,7 @@ function MetadataPanel({
             value={handlers.metaTitle}
             onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
             placeholder="SEO meta title"
-            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+            className="flex-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
           />
         </div>
         {isTitleExpanded && (
@@ -1735,8 +2066,8 @@ function MetadataPanel({
               type="text"
               value={handlers.displayTitle}
               onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
-              placeholder="Display title (optional)"
-              className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
+              placeholder={handlers.metaTitle || "Display title (optional)"}
+              className="flex-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
             />
           </div>
         )}
@@ -1753,7 +2084,7 @@ function MetadataPanel({
             type="date"
             value={handlers.date}
             onChange={(e) => handlers.onDateChange(e.target.value)}
-            className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+            className="flex-1 -ml-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900"
           />
         </MetadataRow>
         <MetadataRow label="Description" required>
@@ -1773,14 +2104,14 @@ function MetadataPanel({
               target.style.height = "auto";
               target.style.height = `${target.scrollHeight}px`;
             }}
-            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none"
+            className="flex-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 resize-none"
           />
         </MetadataRow>
         <MetadataRow label="Category">
           <select
             value={handlers.category}
             onChange={(e) => handlers.onCategoryChange(e.target.value)}
-            className="flex-1 px-2 py-2 bg-transparent outline-none text-neutral-900"
+            className="flex-1 px-2 py-2 bg-transparent outline-hidden text-neutral-900"
           >
             <option value="">Select category</option>
             <option value="Case Study">Case Study</option>
@@ -1796,17 +2127,7 @@ function MetadataPanel({
               value={handlers.coverImage}
               onChange={(e) => handlers.onCoverImageChange(e.target.value)}
               placeholder="/api/images/blog/slug/cover.png"
-              className="flex-1 bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300"
-            />
-          </div>
-        </MetadataRow>
-        <MetadataRow label="Published">
-          <div className="flex-1 flex items-center px-2 py-2">
-            <input
-              type="checkbox"
-              checked={handlers.published}
-              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
-              className="rounded"
+              className="flex-1 bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300"
             />
           </div>
         </MetadataRow>
@@ -1852,31 +2173,26 @@ interface CommitInfo {
 
 function GitHistory({ filePath }: { filePath: string }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [commits, setCommits] = useState<CommitInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchHistory = useCallback(async () => {
-    if (!filePath) return;
-    setIsLoading(true);
-    try {
+  const {
+    data: commits = [],
+    isLoading,
+    refetch,
+  } = useQuery<CommitInfo[]>({
+    queryKey: ["gitHistory", filePath],
+    queryFn: async () => {
+      if (!filePath) return [];
       const response = await fetch(
         `/api/admin/content/history?path=${encodeURIComponent(filePath)}`,
       );
-      if (response.ok) {
-        const data = await response.json();
-        setCommits(data.commits || []);
+      if (!response.ok) {
+        throw new Error("Failed to fetch history");
       }
-    } catch {
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filePath]);
-
-  useEffect(() => {
-    if (isExpanded && commits.length === 0) {
-      fetchHistory();
-    }
-  }, [isExpanded, commits.length, fetchHistory]);
+      const data = await response.json();
+      return data.commits || [];
+    },
+    enabled: isExpanded && !!filePath,
+  });
 
   return (
     <div className="border-t border-neutral-200">
@@ -1896,7 +2212,7 @@ function GitHistory({ filePath }: { filePath: string }) {
         />
       </button>
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-2">
+        <div className="px-4 pb-4 flex flex-col gap-2">
           {isLoading ? (
             <div className="flex items-center gap-2 text-xs text-neutral-400">
               <Spinner size={12} />
@@ -1929,7 +2245,7 @@ function GitHistory({ filePath }: { filePath: string }) {
           )}
           {commits.length > 0 && (
             <button
-              onClick={fetchHistory}
+              onClick={() => refetch()}
               className="text-xs text-neutral-500 hover:text-neutral-700 flex items-center gap-1"
             >
               <RefreshCwIcon className="size-3" />
@@ -1949,9 +2265,12 @@ function MetadataSidePanel({
   filePath: string;
   handlers: MetadataHandlers;
 }) {
+  const [isCoverImageSelectorOpen, setIsCoverImageSelectorOpen] =
+    useState(false);
+
   return (
     <div className="text-sm" key={filePath}>
-      <div className="p-4 space-y-4">
+      <div className="p-4 flex flex-col gap-4">
         <div>
           <label className="block text-neutral-500 mb-1">
             <span className="text-red-400">*</span> Title
@@ -1961,7 +2280,7 @@ function MetadataSidePanel({
             value={handlers.metaTitle}
             onChange={(e) => handlers.onMetaTitleChange(e.target.value)}
             placeholder="SEO meta title"
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
           />
         </div>
 
@@ -1971,8 +2290,8 @@ function MetadataSidePanel({
             type="text"
             value={handlers.displayTitle}
             onChange={(e) => handlers.onDisplayTitleChange(e.target.value)}
-            placeholder="Display title (optional)"
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
+            placeholder={handlers.metaTitle || "Display title (optional)"}
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
           />
         </div>
 
@@ -1983,6 +2302,7 @@ function MetadataSidePanel({
           <AuthorSelect
             value={handlers.author}
             onChange={handlers.onAuthorChange}
+            withBorder
           />
         </div>
 
@@ -1994,7 +2314,7 @@ function MetadataSidePanel({
             type="date"
             value={handlers.date}
             onChange={(e) => handlers.onDateChange(e.target.value)}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 focus:border-neutral-400"
           />
         </div>
 
@@ -2007,78 +2327,142 @@ function MetadataSidePanel({
             onChange={(e) => handlers.onMetaDescriptionChange(e.target.value)}
             placeholder="Meta description for SEO"
             rows={3}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 resize-none focus:border-neutral-400"
+            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-hidden text-neutral-900 placeholder:text-neutral-300 resize-none focus:border-neutral-400"
           />
         </div>
 
         <div>
           <label className="block text-neutral-500 mb-1">Category</label>
-          <select
+          <CategorySelect
             value={handlers.category}
-            onChange={(e) => handlers.onCategoryChange(e.target.value)}
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 focus:border-neutral-400"
-          >
-            <option value="">Select category</option>
-            <option value="Case Study">Case Study</option>
-            <option value="Hyprnote Weekly">Hyprnote Weekly</option>
-            <option value="Productivity Hack">Productivity Hack</option>
-            <option value="Engineering">Engineering</option>
-          </select>
+            onChange={handlers.onCategoryChange}
+            withBorder
+          />
         </div>
 
         <div>
           <label className="block text-neutral-500 mb-1">Cover Image</label>
-          <input
-            type="text"
-            value={handlers.coverImage}
-            onChange={(e) => handlers.onCoverImageChange(e.target.value)}
-            placeholder="/api/images/blog/slug/cover.png"
-            className="w-full px-2 py-1.5 border border-neutral-200 rounded bg-transparent outline-none text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-400"
-          />
+          <button
+            type="button"
+            onClick={() => setIsCoverImageSelectorOpen(true)}
+            className="cursor-pointer w-full px-2 py-1.5 border border-neutral-200 rounded text-left text-neutral-900 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+          >
+            {handlers.coverImage ? (
+              <span className="truncate flex-1">{handlers.coverImage}</span>
+            ) : (
+              <span className="text-neutral-400 flex-1">
+                Select cover image
+              </span>
+            )}
+            <ImageIcon className="size-4 text-neutral-400 shrink-0" />
+          </button>
         </div>
 
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 text-neutral-600">
-            <input
-              type="checkbox"
-              checked={handlers.published}
-              onChange={(e) => handlers.onPublishedChange(e.target.checked)}
-              className="rounded"
-            />
-            Published
-          </label>
-          <label className="flex items-center gap-2 text-neutral-600">
-            <input
-              type="checkbox"
-              checked={handlers.featured}
-              onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
-              className="rounded"
-            />
-            Featured
-          </label>
+        <div className="flex items-center gap-2">
+          <span className="text-neutral-500">Is this featured?</span>
+          <input
+            type="checkbox"
+            checked={handlers.featured}
+            onChange={(e) => handlers.onFeaturedChange(e.target.checked)}
+            className="rounded"
+          />
         </div>
       </div>
 
       <GitHistory filePath={filePath} />
+
+      <MediaSelectorModal
+        open={isCoverImageSelectorOpen}
+        onOpenChange={setIsCoverImageSelectorOpen}
+        onSelect={(url) => {
+          handlers.onCoverImageChange(url);
+          setIsCoverImageSelectorOpen(false);
+        }}
+      />
     </div>
   );
+}
+
+interface BranchFileResponse {
+  success: boolean;
+  content: string;
+  frontmatter: {
+    meta_title?: string;
+    display_title?: string;
+    meta_description?: string;
+    author?: string;
+    date?: string;
+    coverImage?: string;
+    published?: boolean;
+    featured?: boolean;
+    category?: string;
+  };
+  sha: string;
 }
 
 const FileEditor = React.forwardRef<
   { save: () => void },
   {
     filePath: string;
+    branch?: string;
     isPreviewMode: boolean;
     onDataChange: (data: EditorData) => void;
     onSave: () => void;
     isSaving: boolean;
-    onOpenImport?: () => void;
   }
 >(function FileEditor(
-  { filePath, isPreviewMode, onDataChange, onSave, onOpenImport },
+  { filePath, branch, isPreviewMode, onDataChange, onSave },
   _ref,
 ) {
-  const fileContent = useMemo(() => getFileContent(filePath), [filePath]);
+  const {
+    data: branchFileData,
+    isLoading: isBranchLoading,
+    error: branchError,
+  } = useQuery({
+    queryKey: ["branchFile", filePath, branch],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        path: `apps/web/content/${filePath}`,
+        branch: branch!,
+      });
+      const response = await fetch(
+        `/api/admin/content/get-branch-file?${params}`,
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to fetch file from branch");
+      }
+      return response.json() as Promise<BranchFileResponse>;
+    },
+    enabled: !!branch,
+    staleTime: 30000,
+  });
+
+  const publishedFileContent = useMemo(
+    () => getFileContent(filePath),
+    [filePath],
+  );
+
+  const fileContent: FileContent | undefined = useMemo(() => {
+    if (branch && branchFileData) {
+      return {
+        content: branchFileData.content,
+        mdx: "",
+        collection: "articles",
+        slug: filePath.replace(/\.mdx$/, "").replace(/^articles\//, ""),
+        meta_title: branchFileData.frontmatter.meta_title,
+        display_title: branchFileData.frontmatter.display_title,
+        meta_description: branchFileData.frontmatter.meta_description,
+        author: branchFileData.frontmatter.author,
+        date: branchFileData.frontmatter.date,
+        coverImage: branchFileData.frontmatter.coverImage,
+        published: branchFileData.frontmatter.published,
+        featured: branchFileData.frontmatter.featured,
+        category: branchFileData.frontmatter.category,
+      };
+    }
+    return publishedFileContent;
+  }, [branch, branchFileData, publishedFileContent, filePath]);
 
   const [content, setContent] = useState(fileContent?.content || "");
   const [metaTitle, setMetaTitle] = useState(fileContent?.meta_title || "");
@@ -2097,7 +2481,100 @@ const FileEditor = React.forwardRef<
 
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
   const lastSavedContentRef = useRef(fileContent?.content || "");
+  const editorRef = useRef<{ editor: any } | null>(null);
+
+  const { mutate: importFromDocs, isPending: isImporting } = useMutation({
+    mutationFn: async (url: string) => {
+      const response = await fetch("/api/admin/import/google-docs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Import failed");
+      }
+      return response.json() as Promise<ImportResult>;
+    },
+    onSuccess: (data) => {
+      if (data.mdx) {
+        const mdxWithoutFrontmatter = data.mdx
+          .replace(/^---[\s\S]*?---\n*/, "")
+          .trim();
+        setContent(mdxWithoutFrontmatter);
+        setHasUnsavedChanges(true);
+      }
+      if (data.frontmatter) {
+        if (data.frontmatter.meta_title)
+          setMetaTitle(data.frontmatter.meta_title);
+        if (data.frontmatter.display_title)
+          setDisplayTitle(data.frontmatter.display_title);
+        if (data.frontmatter.meta_description)
+          setMetaDescription(data.frontmatter.meta_description);
+        if (data.frontmatter.author) setAuthor(data.frontmatter.author);
+        if (data.frontmatter.date) setDate(data.frontmatter.date);
+        if (data.frontmatter.coverImage)
+          setCoverImage(data.frontmatter.coverImage);
+      }
+    },
+  });
+
+  const handleGoogleDocsImport = useCallback(
+    (url: string) => {
+      importFromDocs(url);
+    },
+    [importFromDocs],
+  );
+
+  const handleImageUpload = useCallback(async (file: File): Promise<string> => {
+    const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+      reader.onload = async () => {
+        try {
+          const base64 = (reader.result as string).split(",")[1];
+          const response = await fetch("/api/admin/blog/upload-image", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              filename: file.name,
+              content: base64,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Upload failed");
+          }
+
+          const data = await response.json();
+          resolve(data.url);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  const handleMediaLibrarySelect = useCallback((publicUrl: string) => {
+    const editor = editorRef.current?.editor;
+    if (editor) {
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: "image",
+          attrs: { src: publicUrl },
+        })
+        .run();
+      setHasUnsavedChanges(true);
+    }
+    setIsMediaSelectorOpen(false);
+  }, []);
 
   const getMetadata = useCallback(
     (): ArticleMetadata => ({
@@ -2185,42 +2662,39 @@ const FileEditor = React.forwardRef<
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  if (branch && isBranchLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-neutral-500">
+        <div className="text-center">
+          <Spinner size={32} />
+          <p className="text-sm mt-3">Loading draft...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (branch && branchError) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-neutral-500">
+        <div className="text-center">
+          <FileWarningIcon className="size-10 mb-3" />
+          <p className="text-sm">Failed to load draft</p>
+          <p className="text-xs mt-1 text-neutral-400">
+            {branchError instanceof Error
+              ? branchError.message
+              : "Unknown error"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!fileContent) {
     return (
       <div className="flex-1 flex items-center justify-center text-neutral-500">
         <div className="text-center">
           <FileWarningIcon className="size-10 mb-3" />
           <p className="text-sm">File not found</p>
-        </div>
-      </div>
-    );
-  }
-
-  const isContentEmpty = !content || content.trim() === "";
-
-  if (isContentEmpty && onOpenImport) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <FileTextIcon className="size-12 mb-4 text-neutral-300 mx-auto" />
-          <h3 className="text-lg font-medium text-neutral-700 mb-2">
-            Empty Article
-          </h3>
-          <p className="text-sm text-neutral-500 mb-6">
-            This article has no content yet. You can start writing or import
-            content from a Google Doc.
-          </p>
-          <button
-            onClick={onOpenImport}
-            className={cn([
-              "px-4 py-2 text-sm font-medium rounded-lg",
-              "bg-blue-600 text-white hover:bg-blue-700",
-              "transition-colors flex items-center gap-2 mx-auto",
-            ])}
-          >
-            <SquareArrowOutUpRightIcon className="size-4" />
-            Import from Google Docs
-          </button>
         </div>
       </div>
     );
@@ -2279,7 +2753,7 @@ const FileEditor = React.forwardRef<
         )}
       </header>
       <div className="max-w-3xl mx-auto px-6 pb-8">
-        <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
+        <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-headings:no-underline prose-headings:decoration-transparent prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-xs prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-xs prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
           <MDXContent
             code={fileContent.mdx}
             components={defaultMDXComponents}
@@ -2291,44 +2765,76 @@ const FileEditor = React.forwardRef<
 
   if (isPreviewMode) {
     return (
-      <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
-        <ResizablePanel defaultSize={50} minSize={30}>
-          <div className="flex flex-col h-full">
-            <MetadataPanel
-              isExpanded={isMetadataExpanded}
-              onToggleExpanded={() =>
-                setIsMetadataExpanded(!isMetadataExpanded)
-              }
-              filePath={filePath}
-              handlers={metadataHandlers}
-            />
-            <div className="flex-1 min-h-0 overflow-y-auto p-6">
-              <BlogEditor content={content} onChange={handleContentChange} />
+      <>
+        <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
+          <ResizablePanel defaultSize={50} minSize={30}>
+            <div className="flex flex-col h-full">
+              <MetadataPanel
+                isExpanded={isMetadataExpanded}
+                onToggleExpanded={() =>
+                  setIsMetadataExpanded(!isMetadataExpanded)
+                }
+                filePath={filePath}
+                handlers={metadataHandlers}
+              />
+              <BlogEditor
+                ref={editorRef}
+                content={content}
+                onChange={handleContentChange}
+                onGoogleDocsImport={handleGoogleDocsImport}
+                isImporting={isImporting}
+                onImageUpload={handleImageUpload}
+                onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
+                showToolbar={false}
+              />
             </div>
-          </div>
-        </ResizablePanel>
-        <ResizableHandle className="w-px bg-neutral-200" />
-        <ResizablePanel defaultSize={50} minSize={30}>
-          {renderPreview()}
-        </ResizablePanel>
-      </ResizablePanelGroup>
+          </ResizablePanel>
+          <ResizableHandle className="w-px bg-neutral-200" />
+          <ResizablePanel defaultSize={50} minSize={30}>
+            {renderPreview()}
+          </ResizablePanel>
+        </ResizablePanelGroup>
+
+        <MediaSelectorModal
+          open={isMediaSelectorOpen}
+          onOpenChange={setIsMediaSelectorOpen}
+          onSelect={handleMediaLibrarySelect}
+        />
+      </>
     );
   }
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
-      <ResizablePanel defaultSize={70} minSize={50}>
-        <div className="flex-1 min-h-0 overflow-y-auto p-6 h-full">
-          <BlogEditor content={content} onChange={handleContentChange} />
-        </div>
-      </ResizablePanel>
-      <ResizableHandle className="w-px bg-neutral-200" />
-      <ResizablePanel defaultSize={30} minSize={20}>
-        <div className="h-full overflow-y-auto">
-          <MetadataSidePanel filePath={filePath} handlers={metadataHandlers} />
-        </div>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+    <>
+      <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
+        <ResizablePanel defaultSize={70} minSize={50}>
+          <BlogEditor
+            ref={editorRef}
+            content={content}
+            onChange={handleContentChange}
+            onGoogleDocsImport={handleGoogleDocsImport}
+            isImporting={isImporting}
+            onImageUpload={handleImageUpload}
+            onAddImageFromLibrary={() => setIsMediaSelectorOpen(true)}
+          />
+        </ResizablePanel>
+        <ResizableHandle className="w-px bg-neutral-200" />
+        <ResizablePanel defaultSize={30} minSize={20}>
+          <div className="h-full overflow-y-auto">
+            <MetadataSidePanel
+              filePath={filePath}
+              handlers={metadataHandlers}
+            />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+
+      <MediaSelectorModal
+        open={isMediaSelectorOpen}
+        onOpenChange={setIsMediaSelectorOpen}
+        onSelect={handleMediaLibrarySelect}
+      />
+    </>
   );
 });
 
@@ -2365,7 +2871,9 @@ function FileItem({
     >
       <div className="flex items-center gap-2">
         <FileTextIcon className="size-4 text-neutral-400" />
-        <span className="text-sm text-neutral-700">{item.name}</span>
+        <span className="text-sm text-neutral-700">
+          {item.name.replace(/\.mdx$/, "")}
+        </span>
         <span className="text-xs text-neutral-400 px-1.5 py-0.5 bg-neutral-100 rounded">
           {getFileExtension(item.name).toUpperCase()}
         </span>
@@ -2576,7 +3084,7 @@ function ImportModal({
           <DialogTitle>Import from Google Docs</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <p className="text-sm text-neutral-600">
             The document must be either published to the web or shared with
             "Anyone with the link can view" permissions.
@@ -2591,7 +3099,7 @@ function ImportModal({
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://docs.google.com/document/d/..."
-              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -2605,7 +3113,7 @@ function ImportModal({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Article title"
-                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -2617,7 +3125,7 @@ function ImportModal({
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 placeholder="Author name"
-                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -2631,7 +3139,7 @@ function ImportModal({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description for SEO"
               rows={2}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -2645,7 +3153,7 @@ function ImportModal({
                 value={coverImage}
                 onChange={(e) => setCoverImage(e.target.value)}
                 placeholder="/api/images/blog/slug/cover.png"
-                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -2658,7 +3166,7 @@ function ImportModal({
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="my-article-slug"
-                  className="flex-1 px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
                 <button
                   type="button"
@@ -2687,7 +3195,7 @@ function ImportModal({
           )}
 
           {importMutation.data && (
-            <div className="space-y-4 pt-4 border-t">
+            <div className="flex flex-col gap-4 pt-4 border-t">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">
                   Generated MDX Content
@@ -2696,7 +3204,7 @@ function ImportModal({
                   value={editedMdx}
                   onChange={(e) => setEditedMdx(e.target.value)}
                   rows={12}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                 />
               </div>
 
@@ -2708,7 +3216,7 @@ function ImportModal({
                   <select
                     value={folder}
                     onChange={(e) => setFolder(e.target.value)}
-                    className="px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-neutral-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   >
                     {CONTENT_FOLDERS.map((f) => (
                       <option key={f.value} value={f.value}>

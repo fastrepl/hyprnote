@@ -6,7 +6,7 @@ use std::time::Instant;
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use serde::{Deserialize, Serialize};
 
-use owhisper_providers::Provider;
+use owhisper_client::Provider;
 
 fn encode_optional_binary(data: &[u8]) -> String {
     if data.is_empty() {

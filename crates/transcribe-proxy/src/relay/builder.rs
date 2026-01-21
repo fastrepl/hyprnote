@@ -2,12 +2,11 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
 
-use owhisper_providers::Auth;
+use owhisper_client::Auth;
 pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 
 use super::handler::WebSocketProxy;
-use super::params::transform_client_params;
-use super::types::{FirstMessageTransformer, OnCloseCallback};
+use super::types::{FirstMessageTransformer, InitialMessage, OnCloseCallback, ResponseTransformer};
 use crate::config::DEFAULT_CONNECT_TIMEOUT_MS;
 use crate::provider_selector::SelectedProvider;
 use crate::query_params::QueryParams;
@@ -45,6 +44,8 @@ pub struct WebSocketProxyBuilder<S = NoUpstream> {
     state: S,
     control_message_types: HashSet<&'static str>,
     transform_first_message: Option<FirstMessageTransformer>,
+    initial_message: Option<InitialMessage>,
+    response_transformer: Option<ResponseTransformer>,
     connect_timeout: Duration,
     on_close: Option<OnCloseCallback>,
 }
@@ -55,6 +56,8 @@ impl Default for WebSocketProxyBuilder<NoUpstream> {
             state: NoUpstream,
             control_message_types: HashSet::new(),
             transform_first_message: None,
+            initial_message: None,
+            response_transformer: None,
             connect_timeout: Duration::from_millis(DEFAULT_CONNECT_TIMEOUT_MS),
             on_close: None,
         }
@@ -67,6 +70,8 @@ impl<S> WebSocketProxyBuilder<S> {
             state,
             control_message_types: self.control_message_types,
             transform_first_message: self.transform_first_message,
+            initial_message: self.initial_message,
+            response_transformer: self.response_transformer,
             connect_timeout: self.connect_timeout,
             on_close: self.on_close,
         }
@@ -76,6 +81,8 @@ impl<S> WebSocketProxyBuilder<S> {
         request: ClientRequestBuilder,
         control_message_types: HashSet<&'static str>,
         transform_first_message: Option<FirstMessageTransformer>,
+        initial_message: Option<InitialMessage>,
+        response_transformer: Option<ResponseTransformer>,
         connect_timeout: Duration,
         on_close: Option<OnCloseCallback>,
     ) -> WebSocketProxy {
@@ -89,6 +96,8 @@ impl<S> WebSocketProxyBuilder<S> {
             request,
             control_message_types,
             transform_first_message,
+            initial_message,
+            response_transformer,
             connect_timeout,
             on_close,
         )
@@ -112,6 +121,19 @@ impl<S> WebSocketProxyBuilder<S> {
         self
     }
 
+    pub fn initial_message(mut self, message: impl Into<String>) -> Self {
+        self.initial_message = Some(Arc::new(message.into()));
+        self
+    }
+
+    pub fn response_transformer<F>(mut self, transformer: F) -> Self
+    where
+        F: Fn(&str) -> Option<String> + Send + Sync + 'static,
+    {
+        self.response_transformer = Some(Arc::new(transformer));
+        self
+    }
+
     pub fn on_close<F, Fut>(mut self, callback: F) -> Self
     where
         F: Fn(Duration) -> Fut + Send + Sync + 'static,
@@ -129,21 +151,6 @@ impl WebSocketProxyBuilder<NoUpstream> {
     pub fn upstream_url(self, url: impl Into<String>) -> WebSocketProxyBuilder<WithUrl> {
         self.with_state(WithUrl {
             url: url.into(),
-            headers: HashMap::new(),
-        })
-    }
-
-    pub fn upstream_url_from_components(
-        self,
-        base_url: url::Url,
-        mut client_params: QueryParams,
-        default_params: &'static [(&'static str, &'static str)],
-    ) -> WebSocketProxyBuilder<WithUrlComponents> {
-        transform_client_params(&mut client_params);
-        self.with_state(WithUrlComponents {
-            base_url,
-            client_params,
-            default_params: default_params.to_vec(),
             headers: HashMap::new(),
         })
     }
@@ -197,6 +204,8 @@ impl WebSocketProxyBuilder<WithUrl> {
             request,
             self.control_message_types,
             self.transform_first_message,
+            self.initial_message,
+            self.response_transformer,
             self.connect_timeout,
             self.on_close,
         ))
@@ -224,6 +233,8 @@ impl WebSocketProxyBuilder<WithUrlComponents> {
             request,
             self.control_message_types,
             self.transform_first_message,
+            self.initial_message,
+            self.response_transformer,
             self.connect_timeout,
             self.on_close,
         ))
@@ -233,15 +244,6 @@ impl WebSocketProxyBuilder<WithUrlComponents> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::query_params::QueryValue;
-
-    fn make_params(pairs: &[(&str, &str)]) -> QueryParams {
-        let mut params = QueryParams::default();
-        for (k, v) in pairs {
-            params.insert(k.to_string(), QueryValue::Single(v.to_string()));
-        }
-        params
-    }
 
     #[test]
     fn test_default_builder() {
@@ -264,42 +266,9 @@ mod tests {
     }
 
     #[test]
-    fn test_upstream_url_from_components_transition() {
-        let base_url: url::Url = "wss://api.example.com/listen".parse().unwrap();
-        let params = make_params(&[("encoding", "linear16")]);
-        let defaults: &[(&str, &str)] = &[("model", "nova-3")];
-
-        let builder = WebSocketProxyBuilder::default().upstream_url_from_components(
-            base_url.clone(),
-            params,
-            defaults,
-        );
-
-        assert_eq!(builder.state.base_url, base_url);
-        assert!(builder.state.headers.is_empty());
-        assert_eq!(builder.state.default_params.len(), 1);
-    }
-
-    #[test]
     fn test_header_with_url() {
         let builder = WebSocketProxyBuilder::default()
             .upstream_url("wss://api.example.com/listen")
-            .header("Authorization", "Bearer token123");
-
-        assert_eq!(
-            builder.state.headers.get("Authorization"),
-            Some(&"Bearer token123".to_string())
-        );
-    }
-
-    #[test]
-    fn test_header_with_url_components() {
-        let base_url: url::Url = "wss://api.example.com/listen".parse().unwrap();
-        let params = QueryParams::default();
-        let defaults: &[(&str, &str)] = &[];
-
-        let builder = WebSocketProxyBuilder::default()
-            .upstream_url_from_components(base_url, params, defaults)
             .header("Authorization", "Bearer token123");
 
         assert_eq!(
@@ -422,19 +391,6 @@ mod tests {
     }
 
     #[test]
-    fn test_build_with_url_components_success() {
-        let base_url: url::Url = "wss://api.example.com/listen".parse().unwrap();
-        let params = make_params(&[("encoding", "linear16")]);
-        let defaults: &[(&str, &str)] = &[("model", "nova-3")];
-
-        let result = WebSocketProxyBuilder::default()
-            .upstream_url_from_components(base_url, params, defaults)
-            .build();
-
-        assert!(result.is_ok());
-    }
-
-    #[test]
     fn test_chaining_preserves_settings() {
         let builder = WebSocketProxyBuilder::default()
             .control_message_types(&["KeepAlive"])
@@ -532,5 +488,53 @@ mod tests {
             .build();
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_initial_message() {
+        let builder = WebSocketProxyBuilder::default()
+            .initial_message(r#"{"api_key":"test"}"#)
+            .upstream_url("wss://api.example.com/listen");
+
+        assert!(builder.initial_message.is_some());
+        assert_eq!(
+            builder.initial_message.as_ref().map(|m| m.as_str()),
+            Some(r#"{"api_key":"test"}"#)
+        );
+    }
+
+    #[test]
+    fn test_response_transformer() {
+        let builder = WebSocketProxyBuilder::default()
+            .response_transformer(|raw| Some(format!("transformed: {}", raw)))
+            .upstream_url("wss://api.example.com/listen");
+
+        assert!(builder.response_transformer.is_some());
+
+        let transformer = builder.response_transformer.as_ref().unwrap();
+        assert_eq!(transformer("test"), Some("transformed: test".to_string()));
+    }
+
+    #[test]
+    fn test_response_transformer_returns_none() {
+        let builder = WebSocketProxyBuilder::default()
+            .response_transformer(|_| None)
+            .upstream_url("wss://api.example.com/listen");
+
+        let transformer = builder.response_transformer.as_ref().unwrap();
+        assert_eq!(transformer("test"), None);
+    }
+
+    #[test]
+    fn test_chaining_new_options() {
+        let builder = WebSocketProxyBuilder::default()
+            .initial_message(r#"{"init":true}"#)
+            .response_transformer(|s| Some(s.to_uppercase()))
+            .connect_timeout(Duration::from_secs(10))
+            .upstream_url("wss://api.example.com/listen");
+
+        assert!(builder.initial_message.is_some());
+        assert!(builder.response_transformer.is_some());
+        assert_eq!(builder.connect_timeout, Duration::from_secs(10));
     }
 }

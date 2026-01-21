@@ -1,4 +1,4 @@
-import { env } from "@/env";
+import { getGitHubCredentials } from "@/functions/github-content";
 
 const GITHUB_REPO = "fastrepl/hyprnote";
 const GITHUB_BRANCH = "main";
@@ -23,10 +23,6 @@ export interface MediaItem {
   downloadUrl: string | null;
 }
 
-function getGitHubToken(): string | undefined {
-  return env.YUJONGLEE_GITHUB_TOKEN_REPO;
-}
-
 function getPublicPath(fullPath: string): string {
   return fullPath.replace("apps/web/public", "");
 }
@@ -47,10 +43,11 @@ function getFullPath(relativePath: string): string {
 export async function listMediaFiles(
   path: string = "",
 ): Promise<{ items: MediaItem[]; error?: string }> {
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return { items: [], error: "GitHub token not configured" };
   }
+  const { token: githubToken } = credentials;
 
   const fullPath = path ? getFullPath(path) : IMAGES_PATH;
 
@@ -116,10 +113,11 @@ export async function uploadMediaFile(
   publicPath?: string;
   error?: string;
 }> {
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return { success: false, error: "GitHub token not configured" };
   }
+  const { token: githubToken } = credentials;
 
   const timestamp = Date.now();
   const sanitizedFilename = `${timestamp}-${filename
@@ -189,14 +187,15 @@ export async function uploadMediaFile(
 export async function deleteMediaFiles(
   paths: string[],
 ): Promise<{ success: boolean; deleted: string[]; errors: string[] }> {
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return {
       success: false,
       deleted: [],
       errors: ["GitHub token not configured"],
     };
   }
+  const { token: githubToken } = credentials;
 
   const deleted: string[] = [];
   const errors: string[] = [];
@@ -267,10 +266,11 @@ export async function createMediaFolder(
   folderName: string,
   parentFolder: string = "",
 ): Promise<{ success: boolean; path?: string; error?: string }> {
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return { success: false, error: "GitHub token not configured" };
   }
+  const { token: githubToken } = credentials;
 
   const sanitizedFolderName = folderName
     .replace(/[^a-zA-Z0-9-_]/g, "-")
@@ -320,10 +320,11 @@ export async function moveMediaFile(
   fromPath: string,
   toPath: string,
 ): Promise<{ success: boolean; newPath?: string; error?: string }> {
-  const githubToken = getGitHubToken();
-  if (!githubToken) {
+  const credentials = await getGitHubCredentials();
+  if (!credentials) {
     return { success: false, error: "GitHub token not configured" };
   }
+  const { token: githubToken } = credentials;
 
   const fullFromPath = fromPath.startsWith("apps/web/")
     ? fromPath

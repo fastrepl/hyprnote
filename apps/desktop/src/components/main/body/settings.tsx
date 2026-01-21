@@ -206,7 +206,7 @@ function SettingsView() {
               size="sm"
               onClick={() => scrollToSection(id)}
               className={cn([
-                "px-1 gap-1.5 h-7 border border-transparent flex-shrink-0",
+                "px-1 gap-1.5 h-7 border border-transparent shrink-0",
                 id === "lab" && "ml-2 text-neutral-500",
                 activeSection === id &&
                   (id === "lab"

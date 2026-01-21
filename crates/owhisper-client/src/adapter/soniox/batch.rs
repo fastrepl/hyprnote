@@ -113,9 +113,9 @@ impl SonioxAdapter {
             context: Option<Context>,
         }
 
-        let default = owhisper_providers::Provider::Soniox.default_batch_model();
+        let default = crate::providers::Provider::Soniox.default_batch_model();
         let model = match params.model.as_deref() {
-            Some(m) if owhisper_providers::is_meta_model(m) => default,
+            Some(m) if crate::providers::is_meta_model(m) => default,
             Some("stt-v3") | Some("stt-async-preview") => default,
             Some(m) => m,
             None => default,

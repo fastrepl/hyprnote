@@ -7,24 +7,42 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { NetworkProvider } from "../contexts/network";
+import { useProModelAutoConfig } from "../hooks/useProModelAutoConfig";
+import { useProSettingsReset } from "../hooks/useProSettingsReset";
+import { useTrialExpiredModalTrigger } from "../hooks/useTrialExpiredModalTrigger";
 import { useTabs } from "../store/zustand/tabs";
 import { TrialBeginModal } from "./devtool/trial-begin-modal";
 import { TrialExpiredModal } from "./devtool/trial-expired-modal";
+import { FeedbackModal, useFeedbackModal } from "./feedback/feedback-modal";
 import { useNewNote } from "./main/shared";
 
 export default function MainAppLayout() {
   useNavigationEvents();
+  useFeedbackEvents();
 
   return (
     <AuthProvider>
       <BillingProvider>
         <NetworkProvider>
-          <Outlet />
-          <TrialBeginModal />
-          <TrialExpiredModal />
+          <MainAppContent />
         </NetworkProvider>
       </BillingProvider>
     </AuthProvider>
+  );
+}
+
+function MainAppContent() {
+  useProSettingsReset();
+  useTrialExpiredModalTrigger();
+  useProModelAutoConfig();
+
+  return (
+    <>
+      <Outlet />
+      <TrialBeginModal />
+      <TrialExpiredModal />
+      <FeedbackModal />
+    </>
   );
 }
 
@@ -90,4 +108,28 @@ const useNavigationEvents = () => {
       unlistenOpenTab?.();
     };
   }, [navigate, openNew, openNewNote]);
+};
+
+const useFeedbackEvents = () => {
+  const openFeedback = useFeedbackModal((state) => state.open);
+
+  useEffect(() => {
+    let unlistenOpenFeedback: (() => void) | undefined;
+
+    const webview = getCurrentWebviewWindow();
+
+    void windowsEvents
+      .openFeedback(webview)
+      .listen(({ payload }) => {
+        const feedbackType = payload.feedback_type as "bug" | "feature";
+        openFeedback(feedbackType);
+      })
+      .then((fn) => {
+        unlistenOpenFeedback = fn;
+      });
+
+    return () => {
+      unlistenOpenFeedback?.();
+    };
+  }, [openFeedback]);
 };

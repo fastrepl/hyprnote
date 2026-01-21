@@ -6,9 +6,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use futures_util::StreamExt;
+use owhisper_client::Provider;
 use owhisper_client::{FinalizeHandle, ListenClient};
 use owhisper_interface::stream::StreamResponse;
-use owhisper_providers::Provider;
 use transcribe_proxy::SttProxyConfig;
 
 #[ignore]

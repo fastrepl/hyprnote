@@ -145,7 +145,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
       data-tauri-drag-region
       className={cn([
         "w-full h-9 flex items-center",
-        !leftsidebar.expanded && (isLinux ? "pl-3" : "pl-[72px]"),
+        !leftsidebar.expanded && (isLinux ? "pl-3" : "pl-18"),
       ])}
     >
       {!leftsidebar.expanded && isLinux && <TrafficLights className="mr-2" />}
@@ -254,10 +254,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
           </Reorder.Group>
         </div>
         {!scrollState.atStart && (
-          <div className="absolute left-0 top-0 h-full w-8 z-20 pointer-events-none bg-gradient-to-r from-white to-transparent" />
+          <div className="absolute left-0 top-0 h-full w-8 z-20 pointer-events-none bg-linear-to-r from-white to-transparent" />
         )}
         {!scrollState.atEnd && (
-          <div className="absolute right-0 top-0 h-full w-8 z-20 pointer-events-none bg-gradient-to-l from-white to-transparent" />
+          <div className="absolute right-0 top-0 h-full w-8 z-20 pointer-events-none bg-linear-to-l from-white to-transparent" />
         )}
       </div>
 

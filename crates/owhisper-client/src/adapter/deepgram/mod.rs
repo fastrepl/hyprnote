@@ -123,7 +123,10 @@ impl DeepgramAdapter {
         // Check if user-specified model supports all languages
         if let Some(model_str) = model {
             if let Ok(parsed_model) = model_str.parse::<DeepgramModel>() {
-                if !languages.iter().all(|lang| parsed_model.supports_language(lang)) {
+                if !languages
+                    .iter()
+                    .all(|lang| parsed_model.supports_language(lang))
+                {
                     return false;
                 }
             }

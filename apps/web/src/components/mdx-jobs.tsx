@@ -254,10 +254,107 @@ export function Collapsible({
         <span>{title}</span>
         <ChevronDown className="size-4 text-neutral-400 group-open:rotate-180 transition-transform" />
       </summary>
-      <div className="px-4 py-3 border-t border-neutral-200 text-neutral-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_ul]:list-disc [&_ul]:list-inside [&_ul]:space-y-1 [&_p]:mb-4 [&_ul+p]:mt-6 [&_p+p]:mt-4">
+      <div className="px-4 py-3 border-t border-neutral-200 text-neutral-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2 [&_li]:pl-1 [&_p]:mb-4 [&_ul+p]:mt-6 [&_p+p]:mt-4">
         {children}
       </div>
     </details>
+  );
+}
+
+export function CompanyStats() {
+  return (
+    <>
+      7.4k GitHub stars, 9.2% conversion rate, 50k app downloads, 30% WoW DAU
+      growth, 38% week-5 retention, 10% MoM MRR growth - all organically.{" "}
+      <AnimatedJobText
+        text="We're not stopping here - this is just the start."
+        className="text-neutral-400"
+      />
+      <br />
+      <br />
+      We're also backed by{" "}
+      <a
+        href="https://www.ycombinator.com/companies/hyprnote"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 transition-colors"
+      >
+        Y Combinator
+      </a>
+      ,{" "}
+      <a
+        href="https://www.pioneerfund.vc"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 transition-colors"
+      >
+        Pioneer
+      </a>
+      , and{" "}
+      <a
+        href="https://www.trac.vc"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 transition-colors"
+      >
+        TRAC
+      </a>
+      , with participations from awesome angels like{" "}
+      <a
+        href="https://www.linkedin.com/in/tobiaslutke/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 transition-colors"
+      >
+        Tobi Lütke (Shopify)
+      </a>
+      ,{" "}
+      <a
+        href="https://www.linkedin.com/in/zachlloyd/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 transition-colors"
+      >
+        Zach Lloyd (Warp)
+      </a>
+      ,{" "}
+      <a
+        href="https://www.linkedin.com/in/henri-stern/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 transition-colors"
+      >
+        Henri Stern (Privy)
+      </a>
+      ,{" "}
+      <a
+        href="https://www.linkedin.com/in/thom-wolf/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 transition-colors"
+      >
+        Thomas Wolf (Hugging Face)
+      </a>
+      ,{" "}
+      <a
+        href="https://www.linkedin.com/in/j-hawkins/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 transition-colors"
+      >
+        James Hawkins (PostHog)
+      </a>
+      ,{" "}
+      <a
+        href="https://www.linkedin.com/in/dknecht/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 transition-colors"
+      >
+        Dane Knecht (Cloudflare)
+      </a>
+      ... the list goes on.
+    </>
   );
 }
 
@@ -273,4 +370,5 @@ export const jobsMdxComponents = {
   HyprnoteIcon,
   ChevronIcon,
   Collapsible,
+  CompanyStats,
 };

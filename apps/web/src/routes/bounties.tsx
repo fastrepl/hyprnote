@@ -2,6 +2,8 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/bounties")({
   beforeLoad: () => {
-    throw redirect({ href: "https://github.com/orgs/fastrepl/projects/7" });
+    throw redirect({
+      external: "https://github.com/orgs/fastrepl/projects/7",
+    } as any);
   },
 });

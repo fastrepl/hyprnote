@@ -60,6 +60,33 @@ impl LanguageQuality {
     }
 }
 
+/// Check if a language matches any of the supported language codes.
+///
+/// This function properly handles BCP-47 regional variants:
+/// - Tries exact BCP-47 match first (e.g., "en-CA")
+/// - Falls back to ISO-639 base code ONLY if language has no region
+///
+/// Examples:
+/// - `en-CA` only matches if "en-CA" is in supported list (NOT "en")
+/// - `en` (no region) matches if "en" is in supported list
+pub fn language_matches_supported_codes(
+    language: &hypr_language::Language,
+    supported: &[&str],
+) -> bool {
+    let bcp47 = language.bcp47_code();
+    if supported.contains(&bcp47.as_str()) {
+        return true;
+    }
+
+    // Only fall back to base ISO-639 code if no region specified
+    if language.region().is_none() {
+        let iso639 = language.iso639().code();
+        return supported.contains(&iso639);
+    }
+
+    false
+}
+
 pub type BatchFuture<'a> = Pin<Box<dyn Future<Output = Result<BatchResponse, Error>> + Send + 'a>>;
 
 pub fn documented_language_codes_live() -> Vec<String> {

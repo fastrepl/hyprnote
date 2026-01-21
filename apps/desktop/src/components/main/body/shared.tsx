@@ -1,7 +1,13 @@
 import { Pin, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { Button } from "@hypr/ui/components/ui/button";
 import { Kbd } from "@hypr/ui/components/ui/kbd";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
@@ -16,6 +22,8 @@ type TabItemProps<T extends Tab = Tab> = { tab: T; tabIndex?: number } & {
   handleCloseAll: () => void;
   handlePinThis: (tab: T) => void;
   handleUnpinThis: (tab: T) => void;
+  pendingCloseConfirmationTab?: Tab | null;
+  setPendingCloseConfirmationTab?: (tab: Tab | null) => void;
 };
 
 type TabItemBaseProps = {
@@ -28,6 +36,8 @@ type TabItemBaseProps = {
   allowPin?: boolean;
   isEmptyTab?: boolean;
   tabIndex?: number;
+  showCloseConfirmation?: boolean;
+  onCloseConfirmationChange?: (show: boolean) => void;
 } & {
   handleCloseThis: () => void;
   handleSelectThis: () => void;
@@ -51,6 +61,8 @@ export function TabItemBase({
   allowPin = true,
   isEmptyTab = false,
   tabIndex,
+  showCloseConfirmation = false,
+  onCloseConfirmationChange,
   handleCloseThis,
   handleSelectThis,
   handleCloseOthers,
@@ -60,6 +72,33 @@ export function TabItemBase({
 }: TabItemBaseProps) {
   const isCmdPressed = useCmdKeyPressed();
   const [isHovered, setIsHovered] = useState(false);
+  const [localShowConfirmation, setLocalShowConfirmation] = useState(false);
+
+  const isConfirmationOpen = showCloseConfirmation || localShowConfirmation;
+
+  useEffect(() => {
+    if (showCloseConfirmation) {
+      setLocalShowConfirmation(true);
+    }
+  }, [showCloseConfirmation]);
+
+  const handleCloseConfirmationChange = (open: boolean) => {
+    setLocalShowConfirmation(open);
+    onCloseConfirmationChange?.(open);
+  };
+
+  const handleAttemptClose = () => {
+    if (active) {
+      handleCloseConfirmationChange(true);
+    } else {
+      handleCloseThis();
+    }
+  };
+
+  const handleConfirmClose = () => {
+    handleCloseConfirmationChange(false);
+    handleCloseThis();
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 1 && !active) {
@@ -72,7 +111,7 @@ export function TabItemBase({
   const contextMenu =
     active || (selected && !isEmptyTab)
       ? [
-          { id: "close-tab", text: "Close", action: handleCloseThis },
+          { id: "close-tab", text: "Close", action: handleAttemptClose },
           ...(allowPin
             ? [
                 { separator: true as const },
@@ -87,7 +126,7 @@ export function TabItemBase({
             : []),
         ]
       : [
-          { id: "close-tab", text: "Close", action: handleCloseThis },
+          { id: "close-tab", text: "Close", action: handleAttemptClose },
           {
             id: "close-others",
             text: "Close others",
@@ -176,27 +215,78 @@ export function TabItemBase({
             <div
               className={cn([
                 "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
-                isHovered ? "opacity-100" : "opacity-0",
+                isHovered || isConfirmationOpen ? "opacity-100" : "opacity-0",
               ])}
             >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCloseThis();
-                }}
-                className={cn([
-                  "flex items-center justify-center transition-colors",
-                  active && "text-red-600 hover:text-red-700",
-                  !active &&
-                    selected &&
-                    "text-neutral-700 hover:text-neutral-900",
-                  !active &&
-                    !selected &&
-                    "text-neutral-500 hover:text-neutral-700",
-                ])}
-              >
-                <X size={16} />
-              </button>
+              {active ? (
+                <Popover
+                  open={isConfirmationOpen}
+                  onOpenChange={handleCloseConfirmationChange}
+                >
+                  <PopoverTrigger asChild>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAttemptClose();
+                      }}
+                      className={cn([
+                        "flex items-center justify-center transition-colors",
+                        "text-red-600 hover:text-red-700",
+                      ])}
+                    >
+                      <X size={16} />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="bottom"
+                    align="start"
+                    className="w-auto p-3"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                    <div className="flex flex-col gap-2">
+                      <p className="text-sm text-neutral-700">
+                        Closing will stop listening.
+                      </p>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCloseConfirmationChange(false);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleConfirmClose();
+                          }}
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCloseThis();
+                  }}
+                  className={cn([
+                    "flex items-center justify-center transition-colors",
+                    selected && "text-neutral-700 hover:text-neutral-900",
+                    !selected && "text-neutral-500 hover:text-neutral-700",
+                  ])}
+                >
+                  <X size={16} />
+                </button>
+              )}
             </div>
           </div>
           <span className="truncate">{title}</span>

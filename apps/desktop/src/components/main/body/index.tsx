@@ -91,6 +91,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
     closeAll,
     pin,
     unpin,
+    pendingCloseConfirmationTab,
+    setPendingCloseConfirmationTab,
   } = useTabs(
     useShallow((state) => ({
       select: state.select,
@@ -104,6 +106,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
       closeAll: state.closeAll,
       pin: state.pin,
       unpin: state.unpin,
+      pendingCloseConfirmationTab: state.pendingCloseConfirmationTab,
+      setPendingCloseConfirmationTab: state.setPendingCloseConfirmationTab,
     })),
   );
 
@@ -193,6 +197,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
             handlePin={pin}
             handleUnpin={unpin}
             tabIndex={1}
+            pendingCloseConfirmationTab={pendingCloseConfirmationTab}
+            setPendingCloseConfirmationTab={setPendingCloseConfirmationTab}
           />
         </div>
       )}
@@ -247,6 +253,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
                     handlePin={pin}
                     handleUnpin={unpin}
                     tabIndex={shortcutIndex}
+                    pendingCloseConfirmationTab={pendingCloseConfirmationTab}
+                    setPendingCloseConfirmationTab={
+                      setPendingCloseConfirmationTab
+                    }
                   />
                 </Reorder.Item>
               );
@@ -298,6 +308,8 @@ function TabItem({
   handlePin,
   handleUnpin,
   tabIndex,
+  pendingCloseConfirmationTab,
+  setPendingCloseConfirmationTab,
 }: {
   tab: Tab;
   handleClose: (tab: Tab) => void;
@@ -307,6 +319,8 @@ function TabItem({
   handlePin: (tab: Tab) => void;
   handleUnpin: (tab: Tab) => void;
   tabIndex?: number;
+  pendingCloseConfirmationTab?: Tab | null;
+  setPendingCloseConfirmationTab?: (tab: Tab | null) => void;
 }) {
   const handleCloseOthers = () => handleCloseOthersCallback(tab);
   const handlePinThis = () => handlePin(tab);
@@ -323,6 +337,8 @@ function TabItem({
         handleCloseAll={handleCloseAll}
         handlePinThis={handlePinThis}
         handleUnpinThis={handleUnpinThis}
+        pendingCloseConfirmationTab={pendingCloseConfirmationTab}
+        setPendingCloseConfirmationTab={setPendingCloseConfirmationTab}
       />
     );
   }
@@ -716,6 +732,7 @@ function useTabsShortcuts() {
     restoreLastClosedTab,
     openNew,
     unpin,
+    setPendingCloseConfirmationTab,
   } = useTabs(
     useShallow((state) => ({
       tabs: state.tabs,
@@ -727,8 +744,13 @@ function useTabsShortcuts() {
       restoreLastClosedTab: state.restoreLastClosedTab,
       openNew: state.openNew,
       unpin: state.unpin,
+      setPendingCloseConfirmationTab: state.setPendingCloseConfirmationTab,
     })),
   );
+  const liveSessionId = useListener((state) => state.live.sessionId);
+  const liveStatus = useListener((state) => state.live.status);
+  const isListening = liveStatus === "active" || liveStatus === "finalizing";
+
   const newNote = useNewNote({ behavior: "new" });
   const newNoteCurrent = useNewNote({ behavior: "current" });
   const newEmptyTab = useNewEmptyTab();
@@ -768,7 +790,15 @@ function useTabsShortcuts() {
         if (currentTab.pinned) {
           unpin(currentTab);
         } else {
-          close(currentTab);
+          const isCurrentTabListening =
+            isListening &&
+            currentTab.type === "sessions" &&
+            currentTab.id === liveSessionId;
+          if (isCurrentTabListening) {
+            setPendingCloseConfirmationTab(currentTab);
+          } else {
+            close(currentTab);
+          }
         }
       }
     },
@@ -777,7 +807,14 @@ function useTabsShortcuts() {
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [currentTab, close, unpin],
+    [
+      currentTab,
+      close,
+      unpin,
+      isListening,
+      liveSessionId,
+      setPendingCloseConfirmationTab,
+    ],
   );
 
   useHotkeys(

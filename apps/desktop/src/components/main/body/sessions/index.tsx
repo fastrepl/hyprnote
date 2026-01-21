@@ -48,6 +48,8 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   handleCloseAll,
   handlePinThis,
   handleUnpinThis,
+  pendingCloseConfirmationTab,
+  setPendingCloseConfirmationTab,
 }) => {
   const title = main.UI.useCell(
     "sessions",
@@ -61,6 +63,16 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   const isFinalizing = sessionMode === "finalizing";
   const showSpinner = !tab.active && (isFinalizing || isEnhancing);
 
+  const showCloseConfirmation =
+    pendingCloseConfirmationTab?.type === "sessions" &&
+    pendingCloseConfirmationTab?.id === tab.id;
+
+  const handleCloseConfirmationChange = (show: boolean) => {
+    if (!show) {
+      setPendingCloseConfirmationTab?.(null);
+    }
+  };
+
   return (
     <TabItemBase
       icon={<StickyNoteIcon className="w-4 h-4" />}
@@ -70,6 +82,8 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
       finalizing={showSpinner}
       pinned={tab.pinned}
       tabIndex={tabIndex}
+      showCloseConfirmation={showCloseConfirmation}
+      onCloseConfirmationChange={handleCloseConfirmationChange}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}

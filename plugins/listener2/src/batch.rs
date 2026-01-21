@@ -263,6 +263,11 @@ async fn spawn_batch_task(
         AdapterKind::ElevenLabs => {
             spawn_batch_task_with_adapter::<ElevenLabsAdapter>(args, myself).await
         }
+        AdapterKind::Voxtral => {
+            Err(ActorProcessingErr::from(
+                "Voxtral does not support realtime streaming batch mode",
+            ))
+        }
     }
 }
 

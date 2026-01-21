@@ -14,6 +14,7 @@ mod owhisper;
 pub mod parsing;
 pub(crate) mod soniox;
 mod url_builder;
+mod voxtral;
 
 pub use argmax::*;
 pub use assemblyai::*;
@@ -24,6 +25,7 @@ pub use gladia::*;
 pub use hyprnote::*;
 pub use openai::*;
 pub use soniox::*;
+pub use voxtral::*;
 
 use std::collections::{BTreeSet, HashSet};
 use std::future::Future;
@@ -279,6 +281,8 @@ pub enum AdapterKind {
     Gladia,
     #[strum(serialize = "elevenlabs")]
     ElevenLabs,
+    #[strum(serialize = "voxtral")]
+    Voxtral,
 }
 
 impl AdapterKind {
@@ -320,6 +324,7 @@ impl AdapterKind {
             Self::Fireworks => FireworksAdapter::is_supported_languages_live(languages),
             Self::ElevenLabs => ElevenLabsAdapter::is_supported_languages_live(languages),
             Self::Argmax => ArgmaxAdapter::is_supported_languages_live(languages, model),
+            Self::Voxtral => false, // Voxtral only supports batch transcription
         }
     }
 
@@ -337,6 +342,7 @@ impl AdapterKind {
             Self::Fireworks => FireworksAdapter::is_supported_languages_batch(languages),
             Self::ElevenLabs => ElevenLabsAdapter::is_supported_languages_batch(languages),
             Self::Argmax => ArgmaxAdapter::is_supported_languages_batch(languages, model),
+            Self::Voxtral => VoxtralAdapter::is_supported_languages_batch(languages),
         }
     }
 
@@ -354,6 +360,7 @@ impl AdapterKind {
             Self::Fireworks => FireworksAdapter::language_quality_live(languages),
             Self::ElevenLabs => ElevenLabsAdapter::language_quality_live(languages),
             Self::Argmax => ArgmaxAdapter::language_quality_live(languages, model),
+            Self::Voxtral => LanguageQuality::NotSupported, // Voxtral only supports batch
         }
     }
 
@@ -379,6 +386,7 @@ impl From<crate::providers::Provider> for AdapterKind {
             Provider::OpenAI => Self::OpenAI,
             Provider::Gladia => Self::Gladia,
             Provider::ElevenLabs => Self::ElevenLabs,
+            Provider::Voxtral => Self::Voxtral,
         }
     }
 }

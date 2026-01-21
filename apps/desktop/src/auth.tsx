@@ -200,13 +200,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       void supabase.auth.stopAutoRefresh();
     });
 
-    void onOpenUrl(([url]) => {
+    const unlistenDeepLink = onOpenUrl(([url]) => {
       void handleAuthCallback(url);
     });
 
     return () => {
       void unlistenFocus.then((fn) => fn());
       void unlistenBlur.then((fn) => fn());
+      void unlistenDeepLink.then((fn) => fn());
     };
   }, [
     serverReachable,

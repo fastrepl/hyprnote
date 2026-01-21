@@ -262,7 +262,7 @@ pub fn append_provider_param(base_url: &str, provider: &str) -> String {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::Display, strum::EnumString)]
 pub enum AdapterKind {
     #[strum(serialize = "argmax")]
     Argmax,

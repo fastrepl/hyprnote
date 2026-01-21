@@ -3,11 +3,13 @@
 import { Icon } from "@iconify-icon/react";
 import { ChevronDown } from "lucide-react";
 
+import { cn } from "@hypr/utils";
+
 import { AnimatedText } from "./animated-text";
 
 export function ToolIcon({
   icon,
-  className = "",
+  className,
 }: {
   icon: string;
   className?: string;
@@ -15,7 +17,7 @@ export function ToolIcon({
   return (
     <Icon
       icon={icon}
-      className={`inline-block align-middle mb-1 ${className}`}
+      className={cn(["inline-block align-middle mb-1", className])}
     />
   );
 }
@@ -228,7 +230,7 @@ export function HyprnoteIcon() {
     <img
       src="/api/images/hyprnote/icon.png"
       alt="Hyprnote"
-      className="inline-block align-middle size-5 -mx-0.5 mb-0.5 rounded"
+      className="inline-block align-middle size-4.5 mb-0.75 rounded-md"
     />
   );
 }

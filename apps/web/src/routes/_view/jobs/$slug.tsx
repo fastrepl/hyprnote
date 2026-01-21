@@ -120,12 +120,12 @@ function JobDetailsSection({ job }: { job: (typeof allJobs)[0] }) {
               <p className="text-neutral-600 mb-4">{children}</p>
             ),
             ul: ({ children }) => (
-              <ul className="list-disc pl-5 space-y-2 text-neutral-600 [&_ul]:mt-2 [&_ul]:mb-0">
+              <ul className="list-disc pl-5 space-y-2 text-neutral-600 mb-4 [&_ul]:mt-2 [&_ul]:mb-0">
                 {children}
               </ul>
             ),
             ol: ({ children }) => (
-              <ol className="list-decimal pl-5 space-y-2 text-neutral-600 [&_ol]:mt-2 [&_ol]:mb-0">
+              <ol className="list-decimal pl-5 space-y-2 text-neutral-600 mb-4 [&_ol]:mt-2 [&_ol]:mb-0">
                 {children}
               </ol>
             ),

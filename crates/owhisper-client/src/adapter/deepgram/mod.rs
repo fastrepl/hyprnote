@@ -71,20 +71,7 @@ impl DeepgramModel {
     }
 
     pub fn supports_language(&self, language: &hypr_language::Language) -> bool {
-        let supported = self.supported_languages();
-        let bcp47 = language.bcp47_code();
-
-        if supported.contains(&bcp47.as_str()) {
-            return true;
-        }
-
-        // Only fall back to base ISO-639 code if the language doesn't have a region
-        if language.region().is_none() {
-            let iso639 = language.iso639().code();
-            return supported.contains(&iso639);
-        }
-
-        false
+        super::language_matches_supported_codes(language, self.supported_languages())
     }
 
     pub fn best_for_languages(languages: &[hypr_language::Language]) -> Option<Self> {
@@ -133,14 +120,17 @@ impl DeepgramAdapter {
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
-        if languages.len() >= 2 {
-            return Self::can_use_multi(languages);
+        // Check if user-specified model supports all languages
+        if let Some(model_str) = model {
+            if let Ok(parsed_model) = model_str.parse::<DeepgramModel>() {
+                if !languages.iter().all(|lang| parsed_model.supports_language(lang)) {
+                    return false;
+                }
+            }
         }
 
-        if let Some(model_str) = model {
-            if let Ok(model) = model_str.parse::<DeepgramModel>() {
-                return languages.iter().all(|lang| model.supports_language(lang));
-            }
+        if languages.len() >= 2 {
+            return Self::can_use_multi(languages);
         }
 
         DeepgramModel::best_for_languages(languages).is_some()

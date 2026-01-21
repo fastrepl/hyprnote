@@ -129,15 +129,23 @@ export function useLocalPersister(store: Store) {
       const loadedResult = await commands.getLocalPersisterLoaded();
       const alreadyLoaded = loadedResult.status === "ok" && loadedResult.data;
 
+      // Always load data from SQLite on app start, regardless of the flag.
+      // The flag only controls whether migrations should run (to prevent
+      // running migrations multiple times across windows).
+      console.info("[localPersister] load_start", {
+        elapsedMs: Date.now() - loadStart,
+      });
+      const persisterLoadStart = Date.now();
+      await persister.load();
+      console.info("[localPersister] load_end", {
+        elapsedMs: Date.now() - persisterLoadStart,
+      });
+
+      // Start auto-save to persist changes back to SQLite.
+      // This was previously missing, causing data loss when the app was closed.
+      await persister.startAutoSave();
+
       if (!alreadyLoaded) {
-        console.info("[localPersister] load_start", {
-          elapsedMs: Date.now() - loadStart,
-        });
-        const persisterLoadStart = Date.now();
-        await persister.load();
-        console.info("[localPersister] load_end", {
-          elapsedMs: Date.now() - persisterLoadStart,
-        });
         await commands.setLocalPersisterLoaded(true);
 
         (store as Store).transaction(() => {});
@@ -148,10 +156,6 @@ export function useLocalPersister(store: Store) {
             await persister.save();
           }
         }
-      } else {
-        console.info("[localPersister] already_loaded", {
-          elapsedMs: Date.now() - loadStart,
-        });
       }
 
       console.info("[localPersister] ready", {

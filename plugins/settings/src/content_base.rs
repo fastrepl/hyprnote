@@ -16,22 +16,20 @@ fn expand_path(path: &str, default_base: Option<&Path>) -> PathBuf {
 }
 
 pub fn resolve_custom(settings_path: &Path, default_base: &Path) -> Option<PathBuf> {
-    if let Some(path) = std::env::var(CONTENT_BASE_ENV_VAR).ok() {
+    if let Ok(path) = std::env::var(CONTENT_BASE_ENV_VAR) {
         let path = expand_path(&path, Some(default_base));
         if path.exists() || std::fs::create_dir_all(&path).is_ok() {
             return Some(path);
         }
     }
 
-    if let Ok(content) = std::fs::read_to_string(settings_path) {
-        if let Ok(settings) = serde_json::from_str::<serde_json::Value>(&content) {
-            if let Some(custom_base) = settings.get(CONTENT_BASE_PATH_KEY).and_then(|v| v.as_str())
-            {
-                let custom_path = expand_path(custom_base, Some(default_base));
-                if custom_path.exists() || std::fs::create_dir_all(&custom_path).is_ok() {
-                    return Some(custom_path);
-                }
-            }
+    if let Ok(content) = std::fs::read_to_string(settings_path)
+        && let Ok(settings) = serde_json::from_str::<serde_json::Value>(&content)
+        && let Some(custom_base) = settings.get(CONTENT_BASE_PATH_KEY).and_then(|v| v.as_str())
+    {
+        let custom_path = expand_path(custom_base, Some(default_base));
+        if custom_path.exists() || std::fs::create_dir_all(&custom_path).is_ok() {
+            return Some(custom_path);
         }
     }
 

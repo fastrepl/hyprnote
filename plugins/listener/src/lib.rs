@@ -12,7 +12,7 @@ pub use error::*;
 pub use events::*;
 pub use ext::*;
 
-use actors::{RootActor, RootArgs, SourceActor};
+use actors::{SessionActor, SessionArgs, SourceActor};
 
 const PLUGIN_NAME: &str = "listener";
 
@@ -34,7 +34,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .events(tauri_specta::collect_events![
             SessionLifecycleEvent,
             SessionProgressEvent,
-            SessionErrorEvent,
             SessionDataEvent
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
@@ -52,17 +51,17 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             tauri::async_runtime::spawn(async move {
                 match Actor::spawn(
-                    Some(RootActor::name()),
-                    RootActor,
-                    RootArgs { app: app_handle },
+                    Some(SessionActor::name()),
+                    SessionActor,
+                    SessionArgs { app: app_handle },
                 )
                 .await
                 {
                     Ok(_) => {
-                        tracing::info!("root_actor_spawned");
+                        tracing::info!("session_actor_spawned");
                     }
                     Err(e) => {
-                        tracing::error!(?e, "failed_to_spawn_root_actor");
+                        tracing::error!(?e, "failed_to_spawn_session_actor");
                     }
                 }
             });
@@ -78,7 +77,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         })
         .on_drop(|_app| {
             hypr_intercept::unregister_quit_handler(PLUGIN_NAME);
-            if let Some(cell) = ractor::registry::where_is(RootActor::name()) {
+            if let Some(cell) = ractor::registry::where_is(SessionActor::name()) {
                 cell.stop(None);
             }
         })

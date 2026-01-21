@@ -58,7 +58,7 @@ export function RecordingIcon() {
 
 export function useListenButtonState(sessionId: string) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const lastError = useListener((state) => state.live.lastError);
+  const degradedError = useListener((state) => state.live.degradedError);
   const active = sessionMode === "active" || sessionMode === "finalizing";
   const batching = sessionMode === "running_batch";
 
@@ -81,8 +81,18 @@ export function useListenButtonState(sessionId: string) {
     isOfflineWithCloudModel;
 
   let warningMessage = "";
-  if (lastError) {
-    warningMessage = `Session failed: ${lastError}`;
+  if (degradedError) {
+    const errorMessage =
+      degradedError.type === "authentication_failed"
+        ? `Authentication failed for ${degradedError.provider}`
+        : degradedError.type === "upstream_unavailable"
+          ? degradedError.message
+          : degradedError.type === "connection_timeout"
+            ? "Connection timed out"
+            : degradedError.type === "stream_error"
+              ? degradedError.message
+              : "Transcription unavailable";
+    warningMessage = `Transcription degraded: ${errorMessage}`;
   } else if (isLocalServerLoading) {
     warningMessage = "Local STT server is starting up...";
   } else if (isOfflineWithCloudModel) {

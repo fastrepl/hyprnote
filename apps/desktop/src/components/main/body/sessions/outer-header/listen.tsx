@@ -1,7 +1,8 @@
 import { useHover } from "@uidotdev/usehooks";
-import { MicOff } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { AlertTriangle, MicOff } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
+import type { DegradedError } from "@hypr/plugin-listener";
 import {
   Tooltip,
   TooltipContent,
@@ -188,24 +189,58 @@ function StartButton({ sessionId }: { sessionId: string }) {
   );
 }
 
+function formatDegradedError(error: DegradedError): string {
+  switch (error.type) {
+    case "authentication_failed":
+      return `Authentication failed for ${error.provider}`;
+    case "upstream_unavailable":
+      return error.message;
+    case "connection_timeout":
+      return "Connection timed out";
+    case "stream_error":
+      return error.message;
+    case "channel_overflow":
+      return "Audio channel overflow";
+    default:
+      return "Transcription unavailable";
+  }
+}
+
 function InMeetingIndicator({ sessionId }: { sessionId: string }) {
   const [ref, hovered] = useHover();
+  const openNew = useTabs((state) => state.openNew);
 
-  const { mode, stop, amplitude, muted } = useListener((state) => ({
-    mode: state.getSessionMode(sessionId),
-    stop: state.stop,
-    amplitude: state.live.amplitude,
-    muted: state.live.muted,
-  }));
+  const { mode, stop, amplitude, muted, degradedError } = useListener(
+    (state) => ({
+      mode: state.getSessionMode(sessionId),
+      stop: state.stop,
+      amplitude: state.live.amplitude,
+      muted: state.live.muted,
+      degradedError: state.live.degradedError,
+    }),
+  );
 
   const active = mode === "active" || mode === "finalizing";
   const finalizing = mode === "finalizing";
+  const isDegraded = !!degradedError;
+
+  const degradedMessage = useMemo(
+    () =>
+      degradedError
+        ? `Transcription degraded: ${formatDegradedError(degradedError)}`
+        : null,
+    [degradedError],
+  );
+
+  const handleConfigureAction = useCallback(() => {
+    openNew({ type: "ai", state: { tab: "transcription" } });
+  }, [openNew]);
 
   if (!active) {
     return null;
   }
 
-  return (
+  const button = (
     <button
       ref={ref}
       type="button"
@@ -215,11 +250,22 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
         "inline-flex items-center justify-center rounded-md text-sm font-medium",
         finalizing
           ? ["text-neutral-500", "bg-neutral-100", "cursor-wait"]
-          : ["text-red-500 hover:text-red-600", "bg-red-50 hover:bg-red-100"],
+          : isDegraded
+            ? [
+                "text-amber-600 hover:text-amber-700",
+                "bg-amber-50 hover:bg-amber-100",
+              ]
+            : ["text-red-500 hover:text-red-600", "bg-red-50 hover:bg-red-100"],
         "w-28.5 h-7",
         "disabled:pointer-events-none disabled:opacity-50",
       ])}
-      title={finalizing ? "Finalizing" : "Stop listening"}
+      title={
+        finalizing
+          ? "Finalizing"
+          : isDegraded
+            ? (degradedMessage ?? "Transcription degraded")
+            : "Stop listening"
+      }
       aria-label={finalizing ? "Finalizing" : "Stop listening"}
     >
       {finalizing ? (
@@ -234,12 +280,13 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
               hovered ? "hidden" : "flex",
             ])}
           >
-            {muted && <MicOff size={14} />}
+            {isDegraded && <AlertTriangle size={14} />}
+            {muted && !isDegraded && <MicOff size={14} />}
             <ScrollingWaveform
               amplitude={(amplitude.mic + amplitude.speaker) / 2}
-              color="#ef4444"
+              color={isDegraded ? "#d97706" : "#ef4444"}
               height={26}
-              width={muted ? 68 : 88}
+              width={muted || isDegraded ? 68 : 88}
               barWidth={2}
               gap={1}
               minBarHeight={2}
@@ -252,11 +299,37 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
               hovered ? "flex" : "hidden",
             ])}
           >
-            <span className="w-3 h-3 bg-red-500 rounded-none" />
+            <span
+              className={cn([
+                "w-3 h-3 rounded-none",
+                isDegraded ? "bg-amber-500" : "bg-red-500",
+              ])}
+            />
             <span>Stop</span>
           </div>
         </>
       )}
     </button>
+  );
+
+  if (!isDegraded) {
+    return button;
+  }
+
+  return (
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <span className="inline-block">{button}</span>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        <ActionableTooltipContent
+          message={degradedMessage ?? "Transcription degraded"}
+          action={{
+            label: "Configure",
+            handleClick: handleConfigureAction,
+          }}
+        />
+      </TooltipContent>
+    </Tooltip>
   );
 }

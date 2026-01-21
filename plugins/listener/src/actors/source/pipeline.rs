@@ -116,16 +116,19 @@ impl Pipeline {
 
         let Some(cell) = registry::where_is(ListenerActor::name()) else {
             self.audio_buffer.push(processed_mic, processed_spk, mode);
-            tracing::debug!(
-                actor = ListenerActor::name(),
-                buffered = self.audio_buffer.len(),
-                "listener_unavailable_buffering"
-            );
+            if !self.audio_buffer.overflow_while_never_seen {
+                tracing::debug!(
+                    actor = ListenerActor::name(),
+                    buffered = self.audio_buffer.len(),
+                    "listener_unavailable_buffering"
+                );
+            }
             return;
         };
 
         let actor: ActorRef<ListenerMsg> = cell.into();
 
+        self.audio_buffer.mark_listener_seen();
         self.flush_buffer_to_listener(&actor, mode);
 
         self.send_to_listener(&actor, &processed_mic, &processed_spk, mode);
@@ -181,6 +184,8 @@ impl Pipeline {
 struct AudioBuffer {
     buffer: VecDeque<BufferedAudio>,
     max_size: usize,
+    listener_ever_seen: bool,
+    overflow_while_never_seen: bool,
 }
 
 impl AudioBuffer {
@@ -188,12 +193,29 @@ impl AudioBuffer {
         Self {
             buffer: VecDeque::new(),
             max_size,
+            listener_ever_seen: false,
+            overflow_while_never_seen: false,
         }
     }
 
+    fn mark_listener_seen(&mut self) {
+        self.listener_ever_seen = true;
+        self.overflow_while_never_seen = false;
+    }
+
     fn push(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>, mode: ChannelMode) {
+        if self.overflow_while_never_seen {
+            return;
+        }
+
         if self.buffer.len() >= self.max_size {
             self.buffer.pop_front();
+            if !self.listener_ever_seen {
+                tracing::warn!("audio_buffer_overflow_listener_never_connected_disabling_buffer");
+                self.overflow_while_never_seen = true;
+                self.buffer.clear();
+                return;
+            }
             tracing::warn!("audio_buffer_overflow");
         }
         self.buffer.push_back((mic, spk, mode));

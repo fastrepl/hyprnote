@@ -7,10 +7,10 @@ import { commands as detectCommands } from "@hypr/plugin-detect";
 import { commands as hooksCommands } from "@hypr/plugin-hooks";
 import { commands as iconCommands } from "@hypr/plugin-icon";
 import {
+  type DegradedError,
   commands as listenerCommands,
   events as listenerEvents,
   type SessionDataEvent,
-  type SessionErrorEvent,
   type SessionLifecycleEvent,
   type SessionParams,
   type SessionProgressEvent,
@@ -49,7 +49,7 @@ export type GeneralState = {
     intervalId?: NodeJS.Timeout;
     sessionId: string | null;
     muted: boolean;
-    lastError: string | null;
+    degradedError: DegradedError | null;
     device: string | null;
   };
 };
@@ -77,7 +77,7 @@ const initialState: GeneralState = {
     seconds: 0,
     sessionId: null,
     muted: false,
-    lastError: null,
+    degradedError: null,
     device: null,
   },
 };
@@ -85,7 +85,6 @@ const initialState: GeneralState = {
 type EventListeners = {
   lifecycle: (payload: SessionLifecycleEvent) => void;
   progress: (payload: SessionProgressEvent) => void;
-  error: (payload: SessionErrorEvent) => void;
   data: (payload: SessionDataEvent) => void;
 };
 
@@ -100,9 +99,6 @@ const listenToAllSessionEvents = (
         ),
         listenerEvents.sessionProgressEvent.listen(({ payload }) =>
           handlers.progress(payload),
-        ),
-        listenerEvents.sessionErrorEvent.listen(({ payload }) =>
-          handlers.error(payload),
         ),
         listenerEvents.sessionDataEvent.listen(({ payload }) =>
           handlers.data(payload),
@@ -184,6 +180,7 @@ export const createGeneralSlice = <
             draft.live.seconds = 0;
             draft.live.intervalId = intervalId;
             draft.live.sessionId = targetSessionId;
+            draft.live.degradedError = payload.error ?? null;
           }),
         );
       } else if (payload.type === "finalizing") {
@@ -212,7 +209,7 @@ export const createGeneralSlice = <
             draft.live.loadingPhase = "idle";
             draft.live.sessionId = null;
             draft.live.eventUnlisteners = undefined;
-            draft.live.lastError = payload.error ?? null;
+            draft.live.degradedError = null;
             draft.live.device = null;
           }),
         );
@@ -230,7 +227,7 @@ export const createGeneralSlice = <
         set((state) =>
           mutate(state, (draft) => {
             draft.live.loadingPhase = "audio_initializing";
-            draft.live.lastError = null;
+            draft.live.degradedError = null;
           }),
         );
       } else if (payload.type === "audio_ready") {
@@ -250,29 +247,6 @@ export const createGeneralSlice = <
         set((state) =>
           mutate(state, (draft) => {
             draft.live.loadingPhase = "connected";
-          }),
-        );
-      }
-    };
-
-    const handleErrorEvent = (payload: SessionErrorEvent) => {
-      if (payload.session_id !== targetSessionId) {
-        return;
-      }
-
-      if (payload.type === "audio_error") {
-        set((state) =>
-          mutate(state, (draft) => {
-            draft.live.lastError = payload.error;
-            if (payload.is_fatal) {
-              draft.live.loading = false;
-            }
-          }),
-        );
-      } else if (payload.type === "connection_error") {
-        set((state) =>
-          mutate(state, (draft) => {
-            draft.live.lastError = payload.error;
           }),
         );
       }
@@ -308,7 +282,6 @@ export const createGeneralSlice = <
       const unlisteners = yield* listenToAllSessionEvents({
         lifecycle: handleLifecycleEvent,
         progress: handleProgressEvent,
-        error: handleErrorEvent,
         data: handleDataEvent,
       });
 
@@ -384,7 +357,7 @@ export const createGeneralSlice = <
               draft.live.seconds = 0;
               draft.live.sessionId = null;
               draft.live.muted = initialState.live.muted;
-              draft.live.lastError = null;
+              draft.live.degradedError = null;
               draft.live.device = null;
             }),
           );

@@ -1,6 +1,6 @@
 use ractor::{ActorRef, call_t, registry};
 
-use crate::actors::{RootActor, RootMsg, SessionParams, SourceActor, SourceMsg};
+use crate::actors::{SessionActor, SessionMsg, SessionParams, SourceActor, SourceMsg};
 
 pub struct Listener<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     #[allow(unused)]
@@ -29,9 +29,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
 
     #[tracing::instrument(skip_all)]
     pub async fn get_state(&self) -> crate::fsm::State {
-        if let Some(cell) = registry::where_is(RootActor::name()) {
-            let actor: ActorRef<RootMsg> = cell.into();
-            match call_t!(actor, RootMsg::GetState, 100) {
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
+            match call_t!(actor, SessionMsg::GetState, 100) {
                 Ok(fsm_state) => fsm_state,
                 Err(_) => crate::fsm::State::Inactive,
             }
@@ -60,17 +60,17 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
 
     #[tracing::instrument(skip_all)]
     pub async fn start_session(&self, params: SessionParams) {
-        if let Some(cell) = registry::where_is(RootActor::name()) {
-            let actor: ActorRef<RootMsg> = cell.into();
-            let _ = ractor::call!(actor, RootMsg::StartSession, params);
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
+            let _ = ractor::call!(actor, SessionMsg::Start, params);
         }
     }
 
     #[tracing::instrument(skip_all)]
     pub async fn stop_session(&self) {
-        if let Some(cell) = registry::where_is(RootActor::name()) {
-            let actor: ActorRef<RootMsg> = cell.into();
-            let _ = ractor::call!(actor, RootMsg::StopSession);
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
+            let _ = ractor::call!(actor, SessionMsg::Stop);
         }
     }
 }

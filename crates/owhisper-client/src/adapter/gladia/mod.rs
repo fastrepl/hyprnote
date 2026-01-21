@@ -1,27 +1,17 @@
 mod batch;
+mod language;
 mod live;
 
 use crate::providers::Provider;
 
-use super::{LanguageQuality, LanguageSupport};
-
-// https://docs.gladia.io/chapters/language/supported-languages
-const SUPPORTED_LANGUAGES: &[&str] = &[
-    "af", "sq", "am", "ar", "hy", "as", "az", "ba", "eu", "be", "bn", "bs", "br", "bg", "ca", "zh",
-    "hr", "cs", "da", "nl", "en", "et", "fo", "fi", "fr", "gl", "ka", "de", "el", "gu", "ht", "ha",
-    "he", "hi", "hu", "is", "id", "it", "ja", "jw", "kn", "kk", "km", "ko", "lo", "la", "lv", "ln",
-    "lt", "lb", "mk", "mg", "ms", "ml", "mt", "mi", "mr", "mn", "my", "ne", "no", "nn", "oc", "ps",
-    "fa", "pl", "pt", "pa", "ro", "ru", "sa", "sr", "sn", "sd", "si", "sk", "sl", "so", "es", "su",
-    "sw", "sv", "tl", "tg", "ta", "tt", "te", "th", "bo", "tr", "tk", "uk", "ur", "uz", "vi", "cy",
-    "wo", "yi", "yo",
-];
+use super::LanguageSupport;
 
 #[derive(Clone, Default)]
 pub struct GladiaAdapter;
 
 impl GladiaAdapter {
     pub fn language_support_live(languages: &[hypr_language::Language]) -> LanguageSupport {
-        LanguageSupport::min(languages.iter().map(Self::single_language_support))
+        LanguageSupport::min(languages.iter().map(language::single_language_support))
     }
 
     pub fn language_support_batch(languages: &[hypr_language::Language]) -> LanguageSupport {
@@ -34,17 +24,6 @@ impl GladiaAdapter {
 
     pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
         Self::language_support_batch(languages).is_supported()
-    }
-
-    fn single_language_support(language: &hypr_language::Language) -> LanguageSupport {
-        let code = language.iso639().code();
-        if SUPPORTED_LANGUAGES.contains(&code) {
-            LanguageSupport::Supported {
-                quality: LanguageQuality::NoData,
-            }
-        } else {
-            LanguageSupport::NotSupported
-        }
     }
 
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
@@ -120,7 +99,7 @@ impl GladiaAdapter {
 }
 
 pub(super) fn documented_language_codes() -> &'static [&'static str] {
-    SUPPORTED_LANGUAGES
+    language::SUPPORTED_LANGUAGES
 }
 
 #[cfg(test)]

@@ -9,23 +9,11 @@ use owhisper_interface::batch::{
 use serde::{Deserialize, Serialize};
 
 use super::AssemblyAIAdapter;
+use super::language::BATCH_LANGUAGES;
 use crate::adapter::http::ensure_success;
 use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 use crate::polling::{PollingConfig, PollingResult, poll_until};
-
-// https://www.assemblyai.com/docs/pre-recorded-audio/supported-languages
-pub(super) const SUPPORTED_LANGUAGES: &[&str] = &[
-    // High
-    "en", "es", "fr", "de", "id", "it", "ja", "nl", "pl", "pt", "ru", "tr", "uk", "ca",
-    // Good
-    "ar", "az", "bg", "bs", "zh", "cs", "da", "el", "et", "fi", "gl", "hi", "hr", "hu", "ko", "mk",
-    "ms", "no", "ro", "sk", "sv", "th", "ur", "vi", // Moderate
-    "af", "be", "cy", "fa", "he", "hy", "is", "kk", "lt", "lv", "mi", "mr", "sl", "sw", "ta",
-    // Fair
-    "am", "bn", "gu", "ka", "km", "kn", "lo", "ml", "mn", "mt", "my", "ne", "pa", "ps", "so", "sr",
-    "te", "uz",
-];
 
 // API
 // https://www.assemblyai.com/docs/api-reference/transcripts/submit.md
@@ -39,7 +27,7 @@ impl BatchSttAdapter for AssemblyAIAdapter {
         _model: Option<&str>,
     ) -> bool {
         let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        SUPPORTED_LANGUAGES.contains(&primary_lang)
+        BATCH_LANGUAGES.contains(&primary_lang)
     }
 
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(

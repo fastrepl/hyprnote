@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const autoRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  const isRefreshingRef = useRef(false);
+  const refreshPromiseRef = useRef<Promise<Session | null> | null>(null);
 
   const debouncedStartAutoRefresh = useCallback(() => {
     if (!supabase) return;
@@ -133,6 +133,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setFingerprint(result.data);
       }
     });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (autoRefreshTimeoutRef.current) {
+        clearTimeout(autoRefreshTimeoutRef.current);
+      }
+    };
   }, []);
 
   const setSessionFromTokens = useCallback(
@@ -264,12 +272,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    let subscription: { unsubscribe: () => void } | null = null;
+    let subscriptionPromise: Promise<{
+      data: { subscription: { unsubscribe: () => void } };
+    }>;
 
     const setup = async () => {
       await initSession();
 
-      const result = supabase.auth.onAuthStateChange((event, session) => {
+      return supabase.auth.onAuthStateChange((event, session) => {
         if (event === "TOKEN_REFRESHED" && !session) {
           if (isLocalAuthServer(env.VITE_SUPABASE_URL)) {
             void clearAuthStorage();
@@ -283,13 +293,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         setSession(session);
       });
-      subscription = result.data.subscription;
     };
 
-    void setup();
+    subscriptionPromise = setup();
 
     return () => {
-      subscription?.unsubscribe();
+      void subscriptionPromise.then((result) => {
+        result.data.subscription.unsubscribe();
+      });
     };
   }, [debouncedStartAutoRefresh]);
 
@@ -332,24 +343,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshSession = useCallback(async (): Promise<Session | null> => {
-    if (!supabase || isRefreshingRef.current) {
+    if (!supabase) {
       return null;
     }
 
-    isRefreshingRef.current = true;
-    try {
-      const { data, error } = await supabase.auth.refreshSession();
-      if (error) {
-        return null;
-      }
-      if (data.session) {
-        setSession(data.session);
-        return data.session;
-      }
-      return null;
-    } finally {
-      isRefreshingRef.current = false;
+    if (refreshPromiseRef.current) {
+      return refreshPromiseRef.current;
     }
+
+    refreshPromiseRef.current = (async () => {
+      try {
+        const { data, error } = await supabase.auth.refreshSession();
+        if (error) {
+          return null;
+        }
+        if (data.session) {
+          setSession(data.session);
+          return data.session;
+        }
+        return null;
+      } finally {
+        refreshPromiseRef.current = null;
+      }
+    })();
+
+    return refreshPromiseRef.current;
   }, []);
 
   const getHeaders = useCallback(() => {

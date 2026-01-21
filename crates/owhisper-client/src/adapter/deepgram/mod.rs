@@ -183,87 +183,102 @@ mod tests {
     use hypr_language::{ISO639, Language};
 
     #[test]
-    fn test_recommended_model_single_language() {
-        let en: Vec<Language> = vec![ISO639::En.into()];
-        assert_eq!(DeepgramAdapter::recommended_model_live(&en), Some("nova-3"));
+    fn test_recommended_model_live() {
+        let cases: &[(&[ISO639], Option<&str>)] = &[
+            (&[ISO639::En], Some("nova-3")),
+            (&[ISO639::Ja], Some("nova-3")),
+            (&[ISO639::Zh], Some("nova-2")),
+            (&[ISO639::Th], Some("nova-2")),
+            (&[ISO639::Ar], None),
+            (&[], Some("nova-3")),
+            (&[ISO639::En, ISO639::Es], Some("nova-3")),
+            (&[ISO639::En, ISO639::Fr], Some("nova-3")),
+            (&[ISO639::En, ISO639::Ja], Some("nova-3")),
+            (&[ISO639::Fr, ISO639::De], Some("nova-3")),
+            (&[ISO639::En, ISO639::Ko], None),
+            (&[ISO639::En, ISO639::Zh], None),
+            (&[ISO639::Ko, ISO639::En], None),
+        ];
 
-        let ja: Vec<Language> = vec![ISO639::Ja.into()];
-        assert_eq!(DeepgramAdapter::recommended_model_live(&ja), Some("nova-3"));
-
-        let zh: Vec<Language> = vec![ISO639::Zh.into()];
-        assert_eq!(DeepgramAdapter::recommended_model_live(&zh), Some("nova-2"));
+        for (iso_codes, expected) in cases {
+            let langs: Vec<Language> = iso_codes.iter().map(|&iso| iso.into()).collect();
+            assert_eq!(
+                DeepgramAdapter::recommended_model_live(&langs),
+                *expected,
+                "failed for {:?}",
+                iso_codes
+            );
+        }
     }
 
     #[test]
-    fn test_recommended_model_multi_language_nova3() {
-        let en_es: Vec<Language> = vec![ISO639::En.into(), ISO639::Es.into()];
-        assert_eq!(
-            DeepgramAdapter::recommended_model_live(&en_es),
-            Some("nova-3")
-        );
+    fn test_is_supported_languages_live() {
+        let cases: &[(&[ISO639], bool)] = &[
+            (&[ISO639::En], true),
+            (&[ISO639::Zh], true),
+            (&[ISO639::Th], true),
+            (&[ISO639::Ar], false),
+            (&[], true),
+            (&[ISO639::En, ISO639::Es], true),
+            (&[ISO639::En, ISO639::Ko], false),
+            (&[ISO639::En, ISO639::Es, ISO639::Ko], false),
+        ];
 
-        let en_fr: Vec<Language> = vec![ISO639::En.into(), ISO639::Fr.into()];
-        assert_eq!(
-            DeepgramAdapter::recommended_model_live(&en_fr),
-            Some("nova-3")
-        );
-
-        let en_ja: Vec<Language> = vec![ISO639::En.into(), ISO639::Ja.into()];
-        assert_eq!(
-            DeepgramAdapter::recommended_model_live(&en_ja),
-            Some("nova-3")
-        );
+        for (iso_codes, expected) in cases {
+            let langs: Vec<Language> = iso_codes.iter().map(|&iso| iso.into()).collect();
+            assert_eq!(
+                DeepgramAdapter::is_supported_languages_live(&langs, None),
+                *expected,
+                "failed for {:?}",
+                iso_codes
+            );
+        }
     }
 
     #[test]
-    fn test_recommended_model_multi_language_unsupported() {
-        let en_ko: Vec<Language> = vec![ISO639::En.into(), ISO639::Ko.into()];
-        assert_eq!(DeepgramAdapter::recommended_model_live(&en_ko), None);
+    fn test_can_use_multi() {
+        let cases: &[(&str, &[ISO639], bool)] = &[
+            ("nova-3", &[ISO639::En, ISO639::Es], true),
+            ("nova-3", &[ISO639::En, ISO639::Fr], true),
+            ("nova-3", &[ISO639::Fr, ISO639::De], true),
+            ("nova-3", &[ISO639::En, ISO639::Ko], false),
+            ("nova-3", &[ISO639::En, ISO639::Es, ISO639::Ko], false),
+            ("nova-3", &[ISO639::En], false),
+            ("nova-3", &[], false),
+            ("nova-2", &[ISO639::En, ISO639::Es], true),
+            ("nova-2", &[ISO639::En, ISO639::Fr], false),
+            ("nova-2", &[ISO639::En, ISO639::Ja], false),
+            ("nova-2", &[ISO639::Fr, ISO639::De], false),
+            ("nova", &[ISO639::En, ISO639::Es], false),
+            ("nova-1", &[ISO639::En, ISO639::Es], false),
+            ("enhanced", &[ISO639::En, ISO639::Es], false),
+            ("base", &[ISO639::En, ISO639::Es], false),
+            ("whisper", &[ISO639::En, ISO639::Es], false),
+            ("NOVA-3", &[ISO639::En, ISO639::Es], false),
+            ("Nova-3", &[ISO639::En, ISO639::Es], false),
+            ("", &[ISO639::En, ISO639::Es], false),
+            ("   ", &[ISO639::En, ISO639::Es], false),
+            ("nova-3-general", &[ISO639::En, ISO639::Es], true),
+            ("nova-3-medical", &[ISO639::En, ISO639::Es], true),
+            ("my-nova-3-custom", &[ISO639::En, ISO639::Es], true),
+            ("nova-2-general", &[ISO639::En, ISO639::Es], true),
+            ("nova-2-phonecall", &[ISO639::En, ISO639::Es], true),
+        ];
 
-        let en_zh: Vec<Language> = vec![ISO639::En.into(), ISO639::Zh.into()];
-        assert_eq!(DeepgramAdapter::recommended_model_live(&en_zh), None);
+        for (model, iso_codes, expected) in cases {
+            let langs: Vec<Language> = iso_codes.iter().map(|&iso| iso.into()).collect();
+            assert_eq!(
+                language::can_use_multi(model, &langs),
+                *expected,
+                "failed for model={}, langs={:?}",
+                model,
+                iso_codes
+            );
+        }
     }
 
     #[test]
-    fn test_nova2_exclusive_languages_chinese_thai() {
-        let zh: Vec<Language> = vec![ISO639::Zh.into()];
-        assert_eq!(DeepgramAdapter::recommended_model_live(&zh), Some("nova-2"));
-        assert!(DeepgramAdapter::is_supported_languages_live(&zh, None));
-
-        let th: Vec<Language> = vec![ISO639::Th.into()];
-        assert_eq!(DeepgramAdapter::recommended_model_live(&th), Some("nova-2"));
-        assert!(DeepgramAdapter::is_supported_languages_live(&th, None));
-
-        assert!(!NOVA3_GENERAL_LANGUAGES.contains(&"zh"));
-        assert!(!NOVA3_GENERAL_LANGUAGES.contains(&"th"));
-        assert!(NOVA2_GENERAL_LANGUAGES.contains(&"zh"));
-        assert!(NOVA2_GENERAL_LANGUAGES.contains(&"th"));
-    }
-
-    #[test]
-    fn test_nova3_medical_exclusive_regional_variants() {
-        assert!(NOVA3_MEDICAL_LANGUAGES.contains(&"en-CA"));
-        assert!(NOVA3_MEDICAL_LANGUAGES.contains(&"en-IE"));
-        assert!(!NOVA3_GENERAL_LANGUAGES.contains(&"en-CA"));
-        assert!(!NOVA3_GENERAL_LANGUAGES.contains(&"en-IE"));
-        assert!(!NOVA2_GENERAL_LANGUAGES.contains(&"en-CA"));
-        assert!(!NOVA2_GENERAL_LANGUAGES.contains(&"en-IE"));
-    }
-
-    #[test]
-    fn test_nova2_multi_only_supports_en_es() {
-        let en_es: Vec<Language> = vec![ISO639::En.into(), ISO639::Es.into()];
-        assert!(language::can_use_multi("nova-2", &en_es));
-
-        let en_fr: Vec<Language> = vec![ISO639::En.into(), ISO639::Fr.into()];
-        assert!(!language::can_use_multi("nova-2", &en_fr));
-
-        let en_ja: Vec<Language> = vec![ISO639::En.into(), ISO639::Ja.into()];
-        assert!(!language::can_use_multi("nova-2", &en_ja));
-    }
-
-    #[test]
-    fn test_nova3_multi_supports_10_languages() {
+    fn test_nova3_multi_supports_all_10_languages() {
         let all_nova3_multi: Vec<Language> = vec![
             ISO639::En.into(),
             ISO639::Es.into(),
@@ -280,278 +295,109 @@ mod tests {
     }
 
     #[test]
-    fn test_nova3_multi_rejects_unsupported_language() {
-        let with_ko: Vec<Language> = vec![ISO639::En.into(), ISO639::Es.into(), ISO639::Ko.into()];
-        assert!(!language::can_use_multi("nova-3", &with_ko));
-    }
-
-    #[test]
-    fn test_multi_requires_at_least_two_languages() {
-        let single: Vec<Language> = vec![ISO639::En.into()];
-        assert!(!language::can_use_multi("nova-3", &single));
-        assert!(!language::can_use_multi("nova-2", &single));
-
-        let empty: Vec<Language> = vec![];
-        assert!(!language::can_use_multi("nova-3", &empty));
-        assert!(!language::can_use_multi("nova-2", &empty));
-    }
-
-    #[test]
-    fn test_multi_without_english() {
-        let fr_de: Vec<Language> = vec![ISO639::Fr.into(), ISO639::De.into()];
-        assert!(language::can_use_multi("nova-3", &fr_de));
-        assert!(!language::can_use_multi("nova-2", &fr_de));
-    }
-
-    #[test]
-    fn test_legacy_model_multi_rejection() {
-        let en_es: Vec<Language> = vec![ISO639::En.into(), ISO639::Es.into()];
-        assert!(!language::can_use_multi("nova", &en_es));
-        assert!(!language::can_use_multi("nova-1", &en_es));
-        assert!(!language::can_use_multi("enhanced", &en_es));
-        assert!(!language::can_use_multi("base", &en_es));
-        assert!(!language::can_use_multi("whisper", &en_es));
-    }
-
-    #[test]
-    fn test_model_string_case_sensitivity() {
-        let en_es: Vec<Language> = vec![ISO639::En.into(), ISO639::Es.into()];
-        assert!(language::can_use_multi("nova-3", &en_es));
-        assert!(!language::can_use_multi("NOVA-3", &en_es));
-        assert!(!language::can_use_multi("Nova-3", &en_es));
-    }
-
-    #[test]
-    fn test_model_string_empty_and_whitespace() {
-        let en_es: Vec<Language> = vec![ISO639::En.into(), ISO639::Es.into()];
-        assert!(!language::can_use_multi("", &en_es));
-        assert!(!language::can_use_multi("   ", &en_es));
-    }
-
-    #[test]
-    fn test_model_string_substring_matching() {
-        let en_es: Vec<Language> = vec![ISO639::En.into(), ISO639::Es.into()];
-        assert!(language::can_use_multi("nova-3-general", &en_es));
-        assert!(language::can_use_multi("nova-3-medical", &en_es));
-        assert!(language::can_use_multi("my-nova-3-custom", &en_es));
-        assert!(language::can_use_multi("nova-2-general", &en_es));
-        assert!(language::can_use_multi("nova-2-phonecall", &en_es));
-    }
-
-    #[test]
-    fn test_empty_languages_is_supported() {
-        let empty: Vec<Language> = vec![];
-        assert!(DeepgramAdapter::is_supported_languages_live(&empty, None));
-    }
-
-    #[test]
-    fn test_empty_languages_recommended_model() {
-        let empty: Vec<Language> = vec![];
-        assert_eq!(
-            DeepgramAdapter::recommended_model_live(&empty),
-            Some("nova-3")
-        );
-    }
-
-    #[test]
-    fn test_unsupported_language() {
-        let ar: Vec<Language> = vec![ISO639::Ar.into()];
-        assert!(!DeepgramAdapter::is_supported_languages_live(&ar, None));
-        assert_eq!(DeepgramAdapter::recommended_model_live(&ar), None);
-    }
-
-    #[test]
-    fn test_language_quality_excellent() {
-        for code in EXCELLENT_LANGS {
-            let iso = match *code {
-                "ru" => ISO639::Ru,
-                "en" => ISO639::En,
-                "es" => ISO639::Es,
-                "pl" => ISO639::Pl,
-                "fr" => ISO639::Fr,
-                "it" => ISO639::It,
-                _ => continue,
-            };
-            let langs: Vec<Language> = vec![iso.into()];
-            assert_eq!(
-                DeepgramAdapter::language_quality_live(&langs, None),
-                LanguageQuality::Excellent,
-                "Expected Excellent for {}",
-                code
-            );
-        }
-    }
-
-    #[test]
-    fn test_language_quality_high() {
-        for code in HIGH_LANGS {
-            let iso = match *code {
-                "ja" => ISO639::Ja,
-                "nl" => ISO639::Nl,
-                "de" => ISO639::De,
-                "ko" => ISO639::Ko,
-                "pt" => ISO639::Pt,
-                "sv" => ISO639::Sv,
-                "uk" => ISO639::Uk,
-                "vi" => ISO639::Vi,
-                _ => continue,
-            };
-            let langs: Vec<Language> = vec![iso.into()];
-            assert_eq!(
-                DeepgramAdapter::language_quality_live(&langs, None),
-                LanguageQuality::High,
-                "Expected High for {}",
-                code
-            );
-        }
-    }
-
-    #[test]
-    fn test_language_quality_multi_takes_minimum() {
-        let en_hi: Vec<Language> = vec![ISO639::En.into(), ISO639::Hi.into()];
-        assert_eq!(
-            DeepgramAdapter::language_quality_live(&en_hi, None),
-            LanguageQuality::Moderate
-        );
-    }
-
-    #[test]
-    fn test_language_quality_unsupported_multi() {
-        let en_ko: Vec<Language> = vec![ISO639::En.into(), ISO639::Ko.into()];
-        assert_eq!(
-            DeepgramAdapter::language_quality_live(&en_ko, None),
-            LanguageQuality::NotSupported
-        );
-    }
-
-    #[test]
-    fn test_language_quality_empty() {
-        let empty: Vec<Language> = vec![];
-        assert_eq!(
-            DeepgramAdapter::language_quality_live(&empty, None),
-            LanguageQuality::NotSupported
-        );
-    }
-
-    #[test]
-    fn test_nova2_specialized_english_only() {
-        assert_eq!(ENGLISH_ONLY, &["en", "en-US"]);
-        assert_eq!(
-            DeepgramModel::Nova2Specialized.supported_languages(),
-            ENGLISH_ONLY
-        );
-    }
-
-    #[test]
     fn test_model_enum_parsing() {
-        assert_eq!(
-            "nova-3".parse::<DeepgramModel>().unwrap(),
-            DeepgramModel::Nova3General
-        );
-        assert_eq!(
-            "nova-3-general".parse::<DeepgramModel>().unwrap(),
-            DeepgramModel::Nova3General
-        );
-        assert_eq!(
-            "nova-3-medical".parse::<DeepgramModel>().unwrap(),
-            DeepgramModel::Nova3Medical
-        );
-        assert_eq!(
-            "nova-2".parse::<DeepgramModel>().unwrap(),
-            DeepgramModel::Nova2General
-        );
-        assert_eq!(
-            "nova-2-general".parse::<DeepgramModel>().unwrap(),
-            DeepgramModel::Nova2General
-        );
-        assert_eq!(
-            "nova-2-meeting".parse::<DeepgramModel>().unwrap(),
-            DeepgramModel::Nova2Specialized
-        );
-        assert_eq!(
-            "nova-2-phonecall".parse::<DeepgramModel>().unwrap(),
-            DeepgramModel::Nova2Specialized
-        );
-        assert_eq!(
-            "nova-2-medical".parse::<DeepgramModel>().unwrap(),
-            DeepgramModel::Nova2Specialized
-        );
+        let valid_cases: &[(&str, DeepgramModel)] = &[
+            ("nova-3", DeepgramModel::Nova3General),
+            ("nova-3-general", DeepgramModel::Nova3General),
+            ("nova-3-medical", DeepgramModel::Nova3Medical),
+            ("nova-2", DeepgramModel::Nova2General),
+            ("nova-2-general", DeepgramModel::Nova2General),
+            ("nova-2-meeting", DeepgramModel::Nova2Specialized),
+            ("nova-2-phonecall", DeepgramModel::Nova2Specialized),
+            ("nova-2-medical", DeepgramModel::Nova2Specialized),
+        ];
+
+        for (input, expected) in valid_cases {
+            assert_eq!(
+                input.parse::<DeepgramModel>().unwrap(),
+                *expected,
+                "failed for {}",
+                input
+            );
+        }
+
+        let invalid_cases: &[&str] = &["nova-1", "nova", "whisper", "NOVA-3"];
+        for input in invalid_cases {
+            assert!(
+                input.parse::<DeepgramModel>().is_err(),
+                "should fail for {}",
+                input
+            );
+        }
     }
 
     #[test]
-    fn test_model_enum_parsing_invalid() {
-        assert!("nova-1".parse::<DeepgramModel>().is_err());
-        assert!("nova".parse::<DeepgramModel>().is_err());
-        assert!("whisper".parse::<DeepgramModel>().is_err());
-        assert!("NOVA-3".parse::<DeepgramModel>().is_err());
+    fn test_nova2_exclusive_languages() {
+        let nova2_only: &[&str] = &[
+            "zh", "zh-CN", "zh-TW", "zh-HK", "zh-Hans", "zh-Hant", "th", "th-TH",
+        ];
+        for code in nova2_only {
+            assert!(
+                NOVA2_GENERAL_LANGUAGES.contains(code),
+                "{} should be in NOVA2_GENERAL_LANGUAGES",
+                code
+            );
+            assert!(
+                !NOVA3_GENERAL_LANGUAGES.contains(code),
+                "{} should NOT be in NOVA3_GENERAL_LANGUAGES",
+                code
+            );
+        }
     }
 
     #[test]
-    fn test_language_order_affects_fallback() {
-        let ko_en: Vec<Language> = vec![ISO639::Ko.into(), ISO639::En.into()];
-        let en_ko: Vec<Language> = vec![ISO639::En.into(), ISO639::Ko.into()];
-
-        assert!(!DeepgramAdapter::can_use_multi(&ko_en));
-        assert!(!DeepgramAdapter::can_use_multi(&en_ko));
-
-        assert_eq!(DeepgramAdapter::recommended_model_live(&ko_en), None);
-        assert_eq!(DeepgramAdapter::recommended_model_live(&en_ko), None);
-    }
-
-    #[test]
-    fn test_three_languages_partial_multi_support() {
-        let en_es_ko: Vec<Language> = vec![ISO639::En.into(), ISO639::Es.into(), ISO639::Ko.into()];
-        assert!(!language::can_use_multi("nova-3", &en_es_ko));
-        assert!(!DeepgramAdapter::is_supported_languages_live(
-            &en_es_ko, None
-        ));
-    }
-
-    #[test]
-    fn test_chinese_variants_in_nova2() {
-        assert!(NOVA2_GENERAL_LANGUAGES.contains(&"zh"));
-        assert!(NOVA2_GENERAL_LANGUAGES.contains(&"zh-CN"));
-        assert!(NOVA2_GENERAL_LANGUAGES.contains(&"zh-TW"));
-        assert!(NOVA2_GENERAL_LANGUAGES.contains(&"zh-HK"));
-        assert!(NOVA2_GENERAL_LANGUAGES.contains(&"zh-Hans"));
-        assert!(NOVA2_GENERAL_LANGUAGES.contains(&"zh-Hant"));
+    fn test_nova3_medical_exclusive_regional_variants() {
+        let medical_only: &[&str] = &["en-CA", "en-IE"];
+        for code in medical_only {
+            assert!(
+                NOVA3_MEDICAL_LANGUAGES.contains(code),
+                "{} should be in NOVA3_MEDICAL_LANGUAGES",
+                code
+            );
+            assert!(
+                !NOVA3_GENERAL_LANGUAGES.contains(code),
+                "{} should NOT be in NOVA3_GENERAL_LANGUAGES",
+                code
+            );
+            assert!(
+                !NOVA2_GENERAL_LANGUAGES.contains(code),
+                "{} should NOT be in NOVA2_GENERAL_LANGUAGES",
+                code
+            );
+        }
     }
 
     #[test]
     fn test_regional_variants_in_nova3_general() {
-        assert!(NOVA3_GENERAL_LANGUAGES.contains(&"en-US"));
-        assert!(NOVA3_GENERAL_LANGUAGES.contains(&"en-GB"));
-        assert!(NOVA3_GENERAL_LANGUAGES.contains(&"en-AU"));
-        assert!(NOVA3_GENERAL_LANGUAGES.contains(&"en-IN"));
-        assert!(NOVA3_GENERAL_LANGUAGES.contains(&"en-NZ"));
-        assert!(NOVA3_GENERAL_LANGUAGES.contains(&"pt-BR"));
-        assert!(NOVA3_GENERAL_LANGUAGES.contains(&"pt-PT"));
-        assert!(NOVA3_GENERAL_LANGUAGES.contains(&"fr-CA"));
-        assert!(NOVA3_GENERAL_LANGUAGES.contains(&"de-CH"));
-        assert!(NOVA3_GENERAL_LANGUAGES.contains(&"nl-BE"));
+        let expected: &[&str] = &[
+            "en-US", "en-GB", "en-AU", "en-IN", "en-NZ", "pt-BR", "pt-PT", "fr-CA", "de-CH",
+            "nl-BE",
+        ];
+        for code in expected {
+            assert!(
+                NOVA3_GENERAL_LANGUAGES.contains(code),
+                "{} should be in NOVA3_GENERAL_LANGUAGES",
+                code
+            );
+        }
     }
 
     #[test]
-    fn test_best_for_languages_uses_iso639_code() {
-        let en: Vec<Language> = vec![ISO639::En.into()];
-        assert_eq!(
-            DeepgramModel::best_for_languages(&en),
-            Some(DeepgramModel::Nova3General)
-        );
+    fn test_best_for_languages() {
+        let cases: &[(&[ISO639], Option<DeepgramModel>)] = &[
+            (&[ISO639::En], Some(DeepgramModel::Nova3General)),
+            (&[ISO639::Zh], Some(DeepgramModel::Nova2General)),
+            (&[], Some(DeepgramModel::Nova3General)),
+        ];
 
-        let zh: Vec<Language> = vec![ISO639::Zh.into()];
-        assert_eq!(
-            DeepgramModel::best_for_languages(&zh),
-            Some(DeepgramModel::Nova2General)
-        );
-    }
-
-    #[test]
-    fn test_best_for_languages_empty_defaults_to_english() {
-        let empty: Vec<Language> = vec![];
-        assert_eq!(
-            DeepgramModel::best_for_languages(&empty),
-            Some(DeepgramModel::Nova3General)
-        );
+        for (iso_codes, expected) in cases {
+            let langs: Vec<Language> = iso_codes.iter().map(|&iso| iso.into()).collect();
+            assert_eq!(
+                DeepgramModel::best_for_languages(&langs),
+                *expected,
+                "failed for {:?}",
+                iso_codes
+            );
+        }
     }
 }

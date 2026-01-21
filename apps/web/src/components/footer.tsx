@@ -353,14 +353,6 @@ function CompanyLinks() {
             Open Source
           </Link>
         </li>
-        <li>
-          <Link
-            to="/bounties/"
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
-          >
-            Bounties
-          </Link>
-        </li>
       </ul>
     </div>
   );

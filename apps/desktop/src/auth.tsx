@@ -315,9 +315,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     subscriptionPromise = setup();
 
     return () => {
-      void subscriptionPromise.then((result) => {
-        result.data.subscription.unsubscribe();
-      });
+      void subscriptionPromise
+        .then((result) => {
+          result.data.subscription.unsubscribe();
+        })
+        .catch(() => {
+          // Ignore errors during cleanup if setup failed
+        });
     };
   }, [debouncedStartAutoRefresh]);
 

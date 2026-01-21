@@ -83,6 +83,11 @@ pub(super) async fn spawn_rx_task(
         (AdapterKind::ElevenLabs, true) => {
             spawn_rx_task_dual_with_adapter::<ElevenLabsAdapter>(args, myself).await
         }
+        (AdapterKind::Voxtral, _) => {
+            return Err(actor_error(
+                "Voxtral does not support realtime streaming, only batch transcription",
+            ));
+        }
     }?;
 
     Ok((result.0, result.1, result.2, adapter_kind.to_string()))

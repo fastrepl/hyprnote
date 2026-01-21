@@ -107,12 +107,9 @@ fn build_response_transformer(
 
 fn should_override_deepgram_model(model: &str, languages: &[hypr_language::Language]) -> bool {
     if let Ok(parsed_model) = DeepgramModel::from_str(model) {
-        !languages.iter().all(|lang| {
-            let supported = parsed_model.supported_languages();
-            let bcp47 = lang.bcp47_code();
-            let iso639 = lang.iso639().code();
-            supported.contains(&bcp47.as_str()) || supported.contains(&iso639)
-        })
+        !languages
+            .iter()
+            .all(|lang| parsed_model.supports_language(lang))
     } else {
         false
     }

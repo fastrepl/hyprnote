@@ -11,12 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as YoutubeRouteImport } from './routes/youtube'
 import { Route as XRouteImport } from './routes/x'
+import { Route as RedditRouteImport } from './routes/reddit'
 import { Route as LinkedinRouteImport } from './routes/linkedin'
 import { Route as GithubRouteImport } from './routes/github'
 import { Route as FoundersRouteImport } from './routes/founders'
 import { Route as DiscordRouteImport } from './routes/discord'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BountiesRouteImport } from './routes/bounties'
+import { Route as BlueskyRouteImport } from './routes/bluesky'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
@@ -137,6 +139,11 @@ const XRoute = XRouteImport.update({
   path: '/x',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RedditRoute = RedditRouteImport.update({
+  id: '/reddit',
+  path: '/reddit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LinkedinRoute = LinkedinRouteImport.update({
   id: '/linkedin',
   path: '/linkedin',
@@ -165,6 +172,11 @@ const ContactRoute = ContactRouteImport.update({
 const BountiesRoute = BountiesRouteImport.update({
   id: '/bounties',
   path: '/bounties',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlueskyRoute = BlueskyRouteImport.update({
+  id: '/bluesky',
+  path: '/bluesky',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -730,12 +742,14 @@ const ViewGalleryTypeSlugRoute = ViewGalleryTypeSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/bluesky': typeof BlueskyRoute
   '/bounties': typeof BountiesRoute
   '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
   '/linkedin': typeof LinkedinRoute
+  '/reddit': typeof RedditRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
   '/app': typeof ViewAppRouteRouteWithChildren
@@ -847,12 +861,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/bluesky': typeof BlueskyRoute
   '/bounties': typeof BountiesRoute
   '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
   '/linkedin': typeof LinkedinRoute
+  '/reddit': typeof RedditRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
   '/about': typeof ViewAboutRoute
@@ -964,12 +980,14 @@ export interface FileRoutesById {
   '/_view': typeof ViewRouteRouteWithChildren
   '/admin': typeof AdminRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/bluesky': typeof BlueskyRoute
   '/bounties': typeof BountiesRoute
   '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
   '/linkedin': typeof LinkedinRoute
+  '/reddit': typeof RedditRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
@@ -1084,12 +1102,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/admin'
     | '/auth'
+    | '/bluesky'
     | '/bounties'
     | '/contact'
     | '/discord'
     | '/founders'
     | '/github'
     | '/linkedin'
+    | '/reddit'
     | '/x'
     | '/youtube'
     | '/app'
@@ -1201,12 +1221,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/bluesky'
     | '/bounties'
     | '/contact'
     | '/discord'
     | '/founders'
     | '/github'
     | '/linkedin'
+    | '/reddit'
     | '/x'
     | '/youtube'
     | '/about'
@@ -1317,12 +1339,14 @@ export interface FileRouteTypes {
     | '/_view'
     | '/admin'
     | '/auth'
+    | '/bluesky'
     | '/bounties'
     | '/contact'
     | '/discord'
     | '/founders'
     | '/github'
     | '/linkedin'
+    | '/reddit'
     | '/x'
     | '/youtube'
     | '/_view/app'
@@ -1437,12 +1461,14 @@ export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BlueskyRoute: typeof BlueskyRoute
   BountiesRoute: typeof BountiesRoute
   ContactRoute: typeof ContactRoute
   DiscordRoute: typeof DiscordRoute
   FoundersRoute: typeof FoundersRoute
   GithubRoute: typeof GithubRoute
   LinkedinRoute: typeof LinkedinRoute
+  RedditRoute: typeof RedditRoute
   XRoute: typeof XRoute
   YoutubeRoute: typeof YoutubeRoute
   ApiK6ReportsRoute: typeof ApiK6ReportsRoute
@@ -1488,6 +1514,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof XRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reddit': {
+      id: '/reddit'
+      path: '/reddit'
+      fullPath: '/reddit'
+      preLoaderRoute: typeof RedditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/linkedin': {
       id: '/linkedin'
       path: '/linkedin'
@@ -1528,6 +1561,13 @@ declare module '@tanstack/react-router' {
       path: '/bounties'
       fullPath: '/bounties'
       preLoaderRoute: typeof BountiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bluesky': {
+      id: '/bluesky'
+      path: '/bluesky'
+      fullPath: '/bluesky'
+      preLoaderRoute: typeof BlueskyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -2514,12 +2554,14 @@ const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BlueskyRoute: BlueskyRoute,
   BountiesRoute: BountiesRoute,
   ContactRoute: ContactRoute,
   DiscordRoute: DiscordRoute,
   FoundersRoute: FoundersRoute,
   GithubRoute: GithubRoute,
   LinkedinRoute: LinkedinRoute,
+  RedditRoute: RedditRoute,
   XRoute: XRoute,
   YoutubeRoute: YoutubeRoute,
   ApiK6ReportsRoute: ApiK6ReportsRoute,

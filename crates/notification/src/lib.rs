@@ -41,9 +41,6 @@ fn get_context(key: &str) -> NotificationContext {
 }
 
 fn show_inner(notification: &hypr_notification_interface::Notification) {
-    #[cfg(feature = "new")]
-    hypr_notification_gpui::show(notification);
-
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     hypr_notification_macos::show(notification);
 
@@ -83,9 +80,6 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
 }
 
 pub fn clear() {
-    #[cfg(feature = "new")]
-    hypr_notification_gpui::dismiss_all();
-
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     hypr_notification_macos::dismiss_all();
 
@@ -98,14 +92,6 @@ where
     F: Fn(NotificationContext) + Send + Sync + 'static,
 {
     let f = std::sync::Arc::new(f);
-
-    #[cfg(feature = "new")]
-    {
-        let f = f.clone();
-        hypr_notification_gpui::setup_notification_dismiss_handler(move |key| {
-            f(get_context(&key));
-        });
-    }
 
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
@@ -132,14 +118,6 @@ where
 {
     let f = std::sync::Arc::new(f);
 
-    #[cfg(feature = "new")]
-    {
-        let f = f.clone();
-        hypr_notification_gpui::setup_notification_confirm_handler(move |key| {
-            f(get_context(&key));
-        });
-    }
-
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
@@ -165,14 +143,6 @@ where
 {
     let f = std::sync::Arc::new(f);
 
-    #[cfg(feature = "new")]
-    {
-        let f = f.clone();
-        hypr_notification_gpui::setup_notification_accept_handler(move |key| {
-            f(get_context(&key));
-        });
-    }
-
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
@@ -197,14 +167,6 @@ where
     F: Fn(NotificationContext) + Send + Sync + 'static,
 {
     let f = std::sync::Arc::new(f);
-
-    #[cfg(feature = "new")]
-    {
-        let f = f.clone();
-        hypr_notification_gpui::setup_notification_timeout_handler(move |key| {
-            f(get_context(&key));
-        });
-    }
 
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {

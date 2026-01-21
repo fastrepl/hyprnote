@@ -6,13 +6,11 @@ edition = "2024"
 [features]
 default = ["legacy"]
 legacy = ["dep:hypr-notification-macos", "dep:hypr-notification-linux"]
-new = ["dep:hypr-notification-gpui"]
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 tracing = { workspace = true }
 
-hypr-notification-gpui = { path = "../notification-gpui", package = "notification-gpui", optional = true }
 hypr-notification-interface = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]

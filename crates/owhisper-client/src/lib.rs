@@ -15,10 +15,11 @@ pub use providers::{Auth, Provider, is_meta_model};
 
 use std::marker::PhantomData;
 
+pub use adapter::deepgram::DeepgramModel;
 pub use adapter::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, BatchSttAdapter, DeepgramAdapter,
     ElevenLabsAdapter, FireworksAdapter, GladiaAdapter, HyprnoteAdapter, LanguageQuality,
-    OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter, append_provider_param,
+    LanguageSupport, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter, append_provider_param,
     documented_language_codes_batch, documented_language_codes_live, is_hyprnote_proxy,
     is_local_host, normalize_languages,
 };

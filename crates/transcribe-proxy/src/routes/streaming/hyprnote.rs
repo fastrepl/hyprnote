@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
 use owhisper_client::{
-    AdapterKind, AssemblyAIAdapter, Auth, DeepgramAdapter, ElevenLabsAdapter, FireworksAdapter,
-    GladiaAdapter, OpenAIAdapter, Provider, RealtimeSttAdapter, SonioxAdapter,
+    AdapterKind, AssemblyAIAdapter, Auth, DeepgramAdapter, DeepgramModel, ElevenLabsAdapter,
+    FireworksAdapter, GladiaAdapter, OpenAIAdapter, Provider, RealtimeSttAdapter, SonioxAdapter,
 };
 use owhisper_interface::ListenParams;
 
@@ -103,6 +105,16 @@ fn build_response_transformer(
     }
 }
 
+fn should_override_deepgram_model(model: &str, languages: &[hypr_language::Language]) -> bool {
+    if let Ok(parsed_model) = DeepgramModel::from_str(model) {
+        !languages
+            .iter()
+            .all(|lang| parsed_model.supports_language(lang))
+    } else {
+        false
+    }
+}
+
 fn build_proxy_with_adapter(
     selected: &SelectedProvider,
     client_params: &QueryParams,
@@ -112,10 +124,19 @@ fn build_proxy_with_adapter(
     let mut listen_params = build_listen_params(client_params);
     let channels: u8 = parse_param(client_params, "channels", 1);
 
-    if let Some(model) =
-        AdapterKind::from(provider).recommended_model_live(&listen_params.languages)
-    {
-        listen_params.model = Some(model.to_string());
+    let should_override = match (provider, &listen_params.model) {
+        (Provider::Deepgram, Some(model)) => {
+            should_override_deepgram_model(model, &listen_params.languages)
+        }
+        _ => false,
+    };
+
+    if listen_params.model.is_none() || should_override {
+        if let Some(model) =
+            AdapterKind::from(provider).recommended_model_live(&listen_params.languages)
+        {
+            listen_params.model = Some(model.to_string());
+        }
     }
 
     let api_base = provider.default_api_base();

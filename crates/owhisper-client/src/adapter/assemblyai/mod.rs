@@ -5,32 +5,47 @@ mod live;
 use batch::SUPPORTED_LANGUAGES;
 use live::STREAMING_LANGUAGES;
 
-use super::LanguageQuality;
+use super::{LanguageQuality, LanguageSupport};
 
 #[derive(Clone, Default)]
 pub struct AssemblyAIAdapter;
 
 impl AssemblyAIAdapter {
+    pub fn language_support_live(languages: &[hypr_language::Language]) -> LanguageSupport {
+        LanguageSupport::min(languages.iter().map(Self::single_language_support_live))
+    }
+
+    pub fn language_support_batch(languages: &[hypr_language::Language]) -> LanguageSupport {
+        LanguageSupport::min(languages.iter().map(Self::single_language_support_batch))
+    }
+
     pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {
-        Self::language_quality_live(languages).is_supported()
+        Self::language_support_live(languages).is_supported()
     }
 
     pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        SUPPORTED_LANGUAGES.contains(&primary_lang)
+        Self::language_support_batch(languages).is_supported()
     }
 
-    pub fn language_quality_live(languages: &[hypr_language::Language]) -> LanguageQuality {
-        let qualities = languages.iter().map(Self::single_language_quality);
-        LanguageQuality::min_quality(qualities)
-    }
-
-    fn single_language_quality(language: &hypr_language::Language) -> LanguageQuality {
+    fn single_language_support_live(language: &hypr_language::Language) -> LanguageSupport {
         let code = language.iso639().code();
         if STREAMING_LANGUAGES.contains(&code) {
-            LanguageQuality::High
+            LanguageSupport::Supported {
+                quality: LanguageQuality::High,
+            }
         } else {
-            LanguageQuality::NotSupported
+            LanguageSupport::NotSupported
+        }
+    }
+
+    fn single_language_support_batch(language: &hypr_language::Language) -> LanguageSupport {
+        let code = language.iso639().code();
+        if SUPPORTED_LANGUAGES.contains(&code) {
+            LanguageSupport::Supported {
+                quality: LanguageQuality::NoData,
+            }
+        } else {
+            LanguageSupport::NotSupported
         }
     }
 }

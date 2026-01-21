@@ -2,7 +2,7 @@ mod batch;
 pub mod error;
 mod live;
 
-use super::LanguageQuality;
+use super::{LanguageQuality, LanguageSupport};
 
 // https://soniox.com/docs/stt/concepts/supported-languages
 const SUPPORTED_LANGUAGES: &[&str] = &[
@@ -32,22 +32,25 @@ const MODERATE_LANGS: &[&str] = &[
 pub struct SonioxAdapter;
 
 impl SonioxAdapter {
+    pub fn language_support_live(languages: &[hypr_language::Language]) -> LanguageSupport {
+        LanguageSupport::min(languages.iter().map(Self::single_language_support))
+    }
+
+    pub fn language_support_batch(languages: &[hypr_language::Language]) -> LanguageSupport {
+        Self::language_support_live(languages)
+    }
+
     pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {
-        Self::language_quality_live(languages).is_supported()
+        Self::language_support_live(languages).is_supported()
     }
 
     pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
-        Self::language_quality_live(languages).is_supported()
+        Self::language_support_batch(languages).is_supported()
     }
 
-    pub fn language_quality_live(languages: &[hypr_language::Language]) -> LanguageQuality {
-        let qualities = languages.iter().map(Self::single_language_quality);
-        LanguageQuality::min_quality(qualities)
-    }
-
-    fn single_language_quality(language: &hypr_language::Language) -> LanguageQuality {
+    fn single_language_support(language: &hypr_language::Language) -> LanguageSupport {
         let code = language.iso639().code();
-        if EXCELLENT_LANGS.contains(&code) {
+        let quality = if EXCELLENT_LANGS.contains(&code) {
             LanguageQuality::Excellent
         } else if HIGH_LANGS.contains(&code) {
             LanguageQuality::High
@@ -58,8 +61,9 @@ impl SonioxAdapter {
         } else if SUPPORTED_LANGUAGES.contains(&code) {
             LanguageQuality::NoData
         } else {
-            LanguageQuality::NotSupported
-        }
+            return LanguageSupport::NotSupported;
+        };
+        LanguageSupport::Supported { quality }
     }
 
     pub(crate) fn api_host(api_base: &str) -> String {

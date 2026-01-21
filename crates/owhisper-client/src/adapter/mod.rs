@@ -2,7 +2,7 @@ mod argmax;
 pub(crate) mod assemblyai;
 #[cfg(feature = "argmax")]
 pub mod audio;
-pub(crate) mod deepgram;
+pub mod deepgram;
 mod deepgram_compat;
 pub(crate) mod elevenlabs;
 mod fireworks;
@@ -42,7 +42,6 @@ pub use reqwest_middleware::ClientWithMiddleware;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum LanguageQuality {
     #[default]
-    NotSupported,
     NoData,
     Moderate,
     Good,
@@ -50,14 +49,79 @@ pub enum LanguageQuality {
     Excellent,
 }
 
-impl LanguageQuality {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LanguageSupport {
+    NotSupported,
+    Supported { quality: LanguageQuality },
+}
+
+impl LanguageSupport {
     pub fn is_supported(&self) -> bool {
-        *self != Self::NotSupported
+        matches!(self, Self::Supported { .. })
     }
 
-    pub fn min_quality(qualities: impl IntoIterator<Item = Self>) -> Self {
-        qualities.into_iter().min().unwrap_or(Self::NotSupported)
+    pub fn quality(&self) -> Option<LanguageQuality> {
+        match self {
+            Self::Supported { quality } => Some(*quality),
+            Self::NotSupported => None,
+        }
     }
+
+    pub fn min(iter: impl IntoIterator<Item = Self>) -> Self {
+        iter.into_iter()
+            .reduce(|a, b| match (&a, &b) {
+                (Self::NotSupported, _) | (_, Self::NotSupported) => Self::NotSupported,
+                (Self::Supported { quality: q1 }, Self::Supported { quality: q2 }) => {
+                    Self::Supported {
+                        quality: (*q1).min(*q2),
+                    }
+                }
+            })
+            .unwrap_or(Self::NotSupported)
+    }
+}
+
+impl PartialOrd for LanguageSupport {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for LanguageSupport {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match (self, other) {
+            (Self::NotSupported, Self::NotSupported) => std::cmp::Ordering::Equal,
+            (Self::NotSupported, Self::Supported { .. }) => std::cmp::Ordering::Less,
+            (Self::Supported { .. }, Self::NotSupported) => std::cmp::Ordering::Greater,
+            (Self::Supported { quality: q1 }, Self::Supported { quality: q2 }) => q1.cmp(q2),
+        }
+    }
+}
+
+/// Check if a language matches any of the supported language codes.
+///
+/// This function properly handles BCP-47 regional variants:
+/// - Tries exact BCP-47 match first (e.g., "en-CA")
+/// - Falls back to ISO-639 base code ONLY if language has no region
+///
+/// Examples:
+/// - `en-CA` only matches if "en-CA" is in supported list (NOT "en")
+/// - `en` (no region) matches if "en" is in supported list
+pub fn language_matches_supported_codes(
+    language: &hypr_language::Language,
+    supported: &[&str],
+) -> bool {
+    let bcp47 = language.bcp47_code();
+    if supported.contains(&bcp47.as_str()) {
+        return true;
+    }
+
+    if language.region().is_none() {
+        let iso639 = language.iso639().code();
+        return supported.contains(&iso639);
+    }
+
+    false
 }
 
 pub type BatchFuture<'a> = Pin<Box<dyn Future<Output = Result<BatchResponse, Error>> + Send + 'a>>;
@@ -306,21 +370,52 @@ impl AdapterKind {
             .unwrap_or(Self::Deepgram)
     }
 
+    pub fn language_support_live(
+        &self,
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> LanguageSupport {
+        match self {
+            Self::Deepgram => {
+                let model = model.and_then(|m| m.parse::<deepgram::DeepgramModel>().ok());
+                DeepgramAdapter::language_support_live(languages, model)
+            }
+            Self::Soniox => SonioxAdapter::language_support_live(languages),
+            Self::AssemblyAI => AssemblyAIAdapter::language_support_live(languages),
+            Self::Gladia => GladiaAdapter::language_support_live(languages),
+            Self::OpenAI => OpenAIAdapter::language_support_live(languages),
+            Self::Fireworks => FireworksAdapter::language_support_live(languages),
+            Self::ElevenLabs => ElevenLabsAdapter::language_support_live(languages),
+            Self::Argmax => ArgmaxAdapter::language_support_live(languages, model),
+        }
+    }
+
+    pub fn language_support_batch(
+        &self,
+        languages: &[hypr_language::Language],
+        model: Option<&str>,
+    ) -> LanguageSupport {
+        match self {
+            Self::Deepgram => {
+                let model = model.and_then(|m| m.parse::<deepgram::DeepgramModel>().ok());
+                DeepgramAdapter::language_support_batch(languages, model)
+            }
+            Self::Soniox => SonioxAdapter::language_support_batch(languages),
+            Self::AssemblyAI => AssemblyAIAdapter::language_support_batch(languages),
+            Self::Gladia => GladiaAdapter::language_support_batch(languages),
+            Self::OpenAI => OpenAIAdapter::language_support_batch(languages),
+            Self::Fireworks => FireworksAdapter::language_support_batch(languages),
+            Self::ElevenLabs => ElevenLabsAdapter::language_support_batch(languages),
+            Self::Argmax => ArgmaxAdapter::language_support_batch(languages, model),
+        }
+    }
+
     pub fn is_supported_languages_live(
         &self,
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
-        match self {
-            Self::Deepgram => DeepgramAdapter::is_supported_languages_live(languages, model),
-            Self::Soniox => SonioxAdapter::is_supported_languages_live(languages),
-            Self::AssemblyAI => AssemblyAIAdapter::is_supported_languages_live(languages),
-            Self::Gladia => GladiaAdapter::is_supported_languages_live(languages),
-            Self::OpenAI => OpenAIAdapter::is_supported_languages_live(languages),
-            Self::Fireworks => FireworksAdapter::is_supported_languages_live(languages),
-            Self::ElevenLabs => ElevenLabsAdapter::is_supported_languages_live(languages),
-            Self::Argmax => ArgmaxAdapter::is_supported_languages_live(languages, model),
-        }
+        self.language_support_live(languages, model).is_supported()
     }
 
     pub fn is_supported_languages_batch(
@@ -328,33 +423,7 @@ impl AdapterKind {
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
-        match self {
-            Self::Deepgram => DeepgramAdapter::is_supported_languages_batch(languages, model),
-            Self::Soniox => SonioxAdapter::is_supported_languages_batch(languages),
-            Self::AssemblyAI => AssemblyAIAdapter::is_supported_languages_batch(languages),
-            Self::Gladia => GladiaAdapter::is_supported_languages_batch(languages),
-            Self::OpenAI => OpenAIAdapter::is_supported_languages_batch(languages),
-            Self::Fireworks => FireworksAdapter::is_supported_languages_batch(languages),
-            Self::ElevenLabs => ElevenLabsAdapter::is_supported_languages_batch(languages),
-            Self::Argmax => ArgmaxAdapter::is_supported_languages_batch(languages, model),
-        }
-    }
-
-    pub fn language_quality_live(
-        &self,
-        languages: &[hypr_language::Language],
-        model: Option<&str>,
-    ) -> LanguageQuality {
-        match self {
-            Self::Deepgram => DeepgramAdapter::language_quality_live(languages, model),
-            Self::Soniox => SonioxAdapter::language_quality_live(languages),
-            Self::AssemblyAI => AssemblyAIAdapter::language_quality_live(languages),
-            Self::Gladia => GladiaAdapter::language_quality_live(languages),
-            Self::OpenAI => OpenAIAdapter::language_quality_live(languages),
-            Self::Fireworks => FireworksAdapter::language_quality_live(languages),
-            Self::ElevenLabs => ElevenLabsAdapter::language_quality_live(languages),
-            Self::Argmax => ArgmaxAdapter::language_quality_live(languages, model),
-        }
+        self.language_support_batch(languages, model).is_supported()
     }
 
     pub fn recommended_model_live(

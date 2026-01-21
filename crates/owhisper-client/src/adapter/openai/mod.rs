@@ -3,22 +3,28 @@ mod live;
 
 use crate::providers::Provider;
 
-use super::LanguageQuality;
+use super::{LanguageQuality, LanguageSupport};
 
 #[derive(Clone, Default)]
 pub struct OpenAIAdapter;
 
 impl OpenAIAdapter {
-    pub fn is_supported_languages_live(_languages: &[hypr_language::Language]) -> bool {
-        true
+    pub fn language_support_live(_languages: &[hypr_language::Language]) -> LanguageSupport {
+        LanguageSupport::Supported {
+            quality: LanguageQuality::NoData,
+        }
     }
 
-    pub fn is_supported_languages_batch(_languages: &[hypr_language::Language]) -> bool {
-        true
+    pub fn language_support_batch(_languages: &[hypr_language::Language]) -> LanguageSupport {
+        Self::language_support_live(_languages)
     }
 
-    pub fn language_quality_live(_languages: &[hypr_language::Language]) -> LanguageQuality {
-        LanguageQuality::NoData
+    pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {
+        Self::language_support_live(languages).is_supported()
+    }
+
+    pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
+        Self::language_support_batch(languages).is_supported()
     }
 
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {

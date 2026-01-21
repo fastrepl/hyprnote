@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use hypr_language::Language;
-use owhisper_client::{AdapterKind, LanguageQuality, Provider};
+use owhisper_client::{AdapterKind, LanguageSupport, Provider};
 
 const DEFAULT_NUM_RETRIES: usize = 2;
 const DEFAULT_MAX_DELAY_SECS: u64 = 5;
@@ -77,9 +77,9 @@ impl HyprnoteRouter {
             .iter()
             .copied()
             .filter_map(|p| {
-                let quality = self.get_quality(&p, languages, available_providers);
-                if quality.is_supported() {
-                    Some((p, quality))
+                let support = self.get_language_support(&p, languages, available_providers);
+                if support.is_supported() {
+                    Some((p, support))
                 } else {
                     None
                 }
@@ -87,9 +87,9 @@ impl HyprnoteRouter {
             .collect();
 
         candidates.sort_by(|a, b| {
-            let (p1, q1) = a;
-            let (p2, q2) = b;
-            match q2.cmp(q1) {
+            let (p1, s1) = a;
+            let (p2, s2) = b;
+            match s2.cmp(s1) {
                 std::cmp::Ordering::Equal => {
                     let idx1 = self
                         .priorities
@@ -110,16 +110,16 @@ impl HyprnoteRouter {
         candidates.into_iter().map(|(p, _)| p).collect()
     }
 
-    fn get_quality(
+    fn get_language_support(
         &self,
         provider: &Provider,
         languages: &[Language],
         available_providers: &HashSet<Provider>,
-    ) -> LanguageQuality {
+    ) -> LanguageSupport {
         if !available_providers.contains(provider) {
-            return LanguageQuality::NotSupported;
+            return LanguageSupport::NotSupported;
         }
-        AdapterKind::from(*provider).language_quality_live(languages, None)
+        AdapterKind::from(*provider).language_support_live(languages, None)
     }
 
     pub fn retry_config(&self) -> &RetryConfig {

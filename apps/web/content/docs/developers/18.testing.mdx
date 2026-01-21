@@ -1,0 +1,99 @@
+---
+title: "Testing"
+section: "Developers"
+description: "Testing and data paths in Hyprnote"
+---
+
+## Fresh Start Testing
+
+```bash
+open -a "Hyprnote Staging" --args --onboarding $(date +%s)
+```
+
+This will:
+
+- Remove `settings.json` and `store.json`
+- Reset all permissions
+
+The timestamp is used to detect fresh launches vs relaunches (e.g., during permission setup).
+If the timestamp is older than 2.5 seconds, it's treated as a restart and `--onboarding` will be ignored.
+
+## Data Paths
+
+There are two base directories:
+
+1. **`settings_base`** - Fixed per build/environment
+2. **`content_base`** - Can be overridden via env or settings.json
+
+### settings_base
+
+| Environment | Bundle ID | Folder Name |
+|-------------|-----------|-------------|
+| dev | `com.hyprnote.dev` | `com.hyprnote.dev` |
+| staging | `com.hyprnote.staging` | `com.hyprnote.staging` |
+| stable | `com.hyprnote.stable` | `hyprnote` |
+| nightly | `com.hyprnote.nightly` | `hyprnote` |
+
+Stable and nightly share the same folder (`hyprnote`) in production builds.
+
+### content_base
+
+Priority:
+1. `CONTENT_BASE` env var (highest)
+2. `base_path` in settings.json
+3. Fall back to `settings_base`
+
+Example:
+```bash
+CONTENT_BASE="$HOME/Library/Application Support/hyprnote" pnpm -F desktop tauri:dev
+```
+
+### Platform Paths
+
+| Platform | Base Path |
+|----------|-----------|
+| macOS | `~/Library/Application Support/{folder}/` |
+| Linux | `~/.local/share/{folder}/` |
+
+## Files by Base Path
+
+### At settings_base (cannot be redirected)
+
+| File/Dir | Description |
+|----------|-------------|
+| `settings.json` | App configuration |
+| `store.json` | Tauri plugin store |
+| `db.sqlite` | Legacy SQLite DB (release only) |
+| `models/stt/` | STT models |
+| `models/llm/` | LLM models |
+| `extensions/` | User extensions |
+
+### At content_base (can be redirected)
+
+| File/Dir | Description |
+|----------|-------------|
+| `sessions/` | Session data |
+| `sessions/{uuid}/_meta.json` | Session metadata |
+| `sessions/{uuid}/transcript.json` | Transcript |
+| `sessions/{uuid}/_memo.md` | User notes |
+| `sessions/{uuid}/_summary.md` | AI summary |
+| `humans/` | Human profiles (.md) |
+| `organizations/` | Organization profiles (.md) |
+| `events.json` | Calendar events |
+| `calendars.json` | Calendar configs |
+| `templates.json` | Note templates |
+| `chat_shortcuts.json` | Chat shortcuts |
+
+### Summary
+
+| What | Base | Env Override |
+|------|------|--------------|
+| `settings.json` | settings_base | No |
+| `store.json` | settings_base | No |
+| `db.sqlite` | settings_base | No |
+| `models/` | settings_base | No |
+| `extensions/` | settings_base | No |
+| `sessions/` | content_base | Yes |
+| `humans/` | content_base | Yes |
+| `organizations/` | content_base | Yes |
+| JSON files (events, etc.) | content_base | Yes |

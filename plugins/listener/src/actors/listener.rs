@@ -19,7 +19,7 @@ use super::root::session_span;
 use crate::{SessionDataEvent, SessionErrorEvent, SessionProgressEvent};
 
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
-const LISTEN_CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
+const LISTEN_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 
 pub enum ListenerMsg {

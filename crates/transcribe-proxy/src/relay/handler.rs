@@ -11,19 +11,23 @@ use tokio_tungstenite::{
     MaybeTlsStream, WebSocketStream, connect_async, tungstenite::client::IntoClientRequest,
 };
 
+use owhisper_client::Provider;
+
 use super::builder::WebSocketProxyBuilder;
 use super::pending::{FlushError, PendingState, QueuedPayload};
 use super::types::{
     ClientReceiver, ClientSender, ControlMessageTypes, DEFAULT_CLOSE_CODE, FirstMessageTransformer,
-    OnCloseCallback, UpstreamReceiver, UpstreamSender, convert, is_control_message,
+    InitialMessage, OnCloseCallback, ResponseTransformer, UpstreamReceiver, UpstreamSender,
+    convert, is_control_message,
 };
-use super::upstream_error::detect_upstream_error;
 
 #[derive(Clone)]
 pub struct WebSocketProxy {
     upstream_request: ClientRequestBuilder,
     control_message_types: Option<ControlMessageTypes>,
     transform_first_message: Option<FirstMessageTransformer>,
+    initial_message: Option<InitialMessage>,
+    response_transformer: Option<ResponseTransformer>,
     connect_timeout: Duration,
     on_close: Option<OnCloseCallback>,
 }
@@ -33,6 +37,8 @@ impl WebSocketProxy {
         upstream_request: ClientRequestBuilder,
         control_message_types: Option<ControlMessageTypes>,
         transform_first_message: Option<FirstMessageTransformer>,
+        initial_message: Option<InitialMessage>,
+        response_transformer: Option<ResponseTransformer>,
         connect_timeout: Duration,
         on_close: Option<OnCloseCallback>,
     ) -> Self {
@@ -40,6 +46,8 @@ impl WebSocketProxy {
             upstream_request,
             control_message_types,
             transform_first_message,
+            initial_message,
+            response_transformer,
             connect_timeout,
             on_close,
         }
@@ -77,6 +85,8 @@ impl WebSocketProxy {
             upstream_stream,
             self.control_message_types.clone(),
             self.transform_first_message.clone(),
+            self.initial_message.clone(),
+            self.response_transformer.clone(),
             self.on_close.clone(),
         )
         .await;
@@ -102,6 +112,8 @@ impl WebSocketProxy {
         upstream_stream: WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,
         control_message_types: Option<ControlMessageTypes>,
         transform_first_message: Option<FirstMessageTransformer>,
+        initial_message: Option<InitialMessage>,
+        response_transformer: Option<ResponseTransformer>,
         on_close: Option<OnCloseCallback>,
     ) {
         let start_time = Instant::now();
@@ -119,6 +131,7 @@ impl WebSocketProxy {
             shutdown_rx,
             control_message_types,
             transform_first_message,
+            initial_message,
         );
 
         let upstream_to_client = Self::run_upstream_to_client(
@@ -126,6 +139,7 @@ impl WebSocketProxy {
             client_sender,
             shutdown_tx.clone(),
             shutdown_rx2,
+            response_transformer,
         );
 
         let _ = tokio::join!(client_to_upstream, upstream_to_client);
@@ -151,7 +165,7 @@ impl WebSocketProxy {
     ) -> bool {
         let is_control = control_types
             .as_ref()
-            .map_or(false, |types| is_control_message(&data, types));
+            .is_some_and(|types| is_control_message(&data, types));
         let size = data.len();
         let queued = QueuedPayload { data, is_text };
 
@@ -190,8 +204,22 @@ impl WebSocketProxy {
         mut shutdown_rx: tokio::sync::broadcast::Receiver<(u16, String)>,
         control_types: Option<ControlMessageTypes>,
         mut first_msg_transformer: Option<FirstMessageTransformer>,
+        initial_message: Option<InitialMessage>,
     ) {
         let mut pending = PendingState::default();
+
+        if let Some(msg) = initial_message {
+            if let Err(e) = upstream_sender
+                .send(TungsteniteMessage::Text(msg.as_str().into()))
+                .await
+            {
+                tracing::error!(error = ?e, "initial_message_send_failed");
+                let _ =
+                    shutdown_tx.send((DEFAULT_CLOSE_CODE, "initial_message_failed".to_string()));
+                return;
+            }
+            tracing::debug!("initial_message_sent");
+        }
 
         loop {
             tokio::select! {
@@ -280,6 +308,7 @@ impl WebSocketProxy {
         mut client_sender: ClientSender,
         shutdown_tx: tokio::sync::broadcast::Sender<(u16, String)>,
         mut shutdown_rx: tokio::sync::broadcast::Receiver<(u16, String)>,
+        response_transformer: Option<ResponseTransformer>,
     ) {
         let mut pending_error: Option<(u16, String)> = None;
 
@@ -315,23 +344,32 @@ impl WebSocketProxy {
 
                     match msg {
                         TungsteniteMessage::Text(text) => {
-                            let text_bytes = text.as_bytes();
+                            let text_str = text.as_str();
+                            let text_bytes = text_str.as_bytes();
 
-                            if let Some(upstream_err) = detect_upstream_error(text_bytes) {
+                            if let Some(upstream_err) = Provider::detect_any_error(text_bytes) {
                                 tracing::warn!(
-                                    error_code = upstream_err.code,
+                                    error_code = upstream_err.http_code,
                                     provider_code = ?upstream_err.provider_code,
                                     error_message = %upstream_err.message,
                                     "upstream_error_detected"
                                 );
 
                                 pending_error = Some((
-                                    upstream_err.to_close_code(),
+                                    upstream_err.to_ws_close_code(),
                                     upstream_err.message.clone(),
                                 ));
                             }
 
-                            if client_sender.send(Message::Text(text.to_string().into())).await.is_err() {
+                            let output_text = match &response_transformer {
+                                Some(transformer) => match transformer(text_str) {
+                                    Some(transformed) => transformed,
+                                    None => continue,
+                                },
+                                None => text_str.to_string(),
+                            };
+
+                            if client_sender.send(Message::Text(output_text.into())).await.is_err() {
                                 let _ = shutdown_tx.send((DEFAULT_CLOSE_CODE, "client_send_failed".to_string()));
                                 break;
                             }

@@ -67,7 +67,7 @@ function Component() {
         {/* Hero Section */}
         <section className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
           <div className="flex flex-col items-center text-center gap-12 py-24 px-4 laptop:px-0">
-            <div className="space-y-6 max-w-4xl">
+            <div className="flex flex-col gap-6 max-w-4xl">
               <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
                 Enterprise
               </h1>
@@ -102,7 +102,7 @@ function Component() {
             <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
               Frequently Asked Questions
             </h2>
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
               {faqs.map((faq, index) => (
                 <div
                   key={index}

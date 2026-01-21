@@ -2,6 +2,16 @@ use crate::Store2PluginExt;
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn save<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
+    app.store2()
+        .store()
+        .map_err(|e| e.to_string())?
+        .save()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn get_str<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     scope: String,

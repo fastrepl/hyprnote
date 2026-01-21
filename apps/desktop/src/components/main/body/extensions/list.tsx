@@ -125,7 +125,7 @@ function ExtensionColumnHeader({
     <div className="@container border-b border-neutral-200">
       <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12 min-w-0">
         <h3 className="text-sm font-medium">Extensions</h3>
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center shrink-0">
           <Button
             onClick={handleSearchToggle}
             size="icon"
@@ -154,20 +154,20 @@ function ExtensionColumnHeader({
       </div>
       {showSearch && (
         <div className="flex items-center gap-2 px-3 border-t bg-white border-neutral-200 h-12">
-          <Search className="h-4 w-4 text-neutral-400 flex-shrink-0" />
+          <Search className="h-4 w-4 text-neutral-400 shrink-0" />
           <input
             type="text"
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
             onKeyDown={handleSearchKeyDown}
             placeholder="Search extensions..."
-            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+            className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
             autoFocus
           />
           {searchValue && (
             <button
               onClick={() => onSearchChange("")}
-              className="p-1 rounded hover:bg-neutral-100 transition-colors flex-shrink-0"
+              className="p-1 rounded-xs hover:bg-neutral-100 transition-colors shrink-0"
             >
               <X className="h-4 w-4 text-neutral-400" />
             </button>

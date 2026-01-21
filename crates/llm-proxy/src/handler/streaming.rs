@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::time::Instant;
 
 use async_stream::stream;
@@ -28,6 +29,15 @@ pub(super) async fn handle_stream_response(
         "llm_completion_stream_started"
     );
 
+    sentry::configure_scope(|scope| {
+        scope.set_tag("upstream.status", http_status.to_string());
+
+        let mut ctx = BTreeMap::new();
+        ctx.insert("http_status".into(), http_status.into());
+        ctx.insert("latency_ms".into(), (latency_ms as u64).into());
+        scope.set_context("llm_response", sentry::protocol::Context::Other(ctx));
+    });
+
     let upstream = response.bytes_stream();
 
     let output_stream = stream! {
@@ -44,14 +54,14 @@ pub(super) async fn handle_stream_response(
                     yield Ok::<_, std::io::Error>(chunk);
                 }
                 Err(e) => {
-                    yield Err(std::io::Error::new(std::io::ErrorKind::Other, e));
+                    yield Err(std::io::Error::other(e));
                     break;
                 }
             }
         }
 
-        if let Some(analytics) = analytics {
-            if let Some(generation_id) = accumulator.generation_id {
+        if let Some(analytics) = analytics
+            && let Some(generation_id) = accumulator.generation_id {
                 let event = GenerationEvent {
                     generation_id,
                     model: accumulator.model.unwrap_or_default(),
@@ -65,7 +75,6 @@ pub(super) async fn handle_stream_response(
                 };
                 report_with_cost(&*analytics, &*provider, &client, &api_key, event).await;
             }
-        }
     };
 
     let body = Body::from_stream(output_stream);

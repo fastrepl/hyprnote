@@ -54,7 +54,7 @@ function PermissionBlock({
           "size-8 flex items-center justify-center rounded-lg transition-all",
           isAuthorized
             ? "bg-stone-100 text-stone-800 opacity-50 cursor-not-allowed"
-            : "bg-gradient-to-t from-red-600 to-red-500 text-white hover:scale-[1.05] active:scale-[0.95]",
+            : "bg-linear-to-t from-red-600 to-red-500 text-white hover:scale-[1.05] active:scale-[0.95]",
           isPending && "opacity-50 cursor-not-allowed",
         ])}
         aria-label={
@@ -145,8 +145,8 @@ export function Permissions({ onNavigate }: StepProps) {
         className={cn([
           "w-full py-3 rounded-full text-sm font-medium duration-150",
           allPermissionsGranted
-            ? "bg-gradient-to-t from-stone-600 to-stone-500 text-white hover:scale-[1.01] active:scale-[0.99]"
-            : "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-400 cursor-not-allowed",
+            ? "bg-linear-to-t from-stone-600 to-stone-500 text-white hover:scale-[1.01] active:scale-[0.99]"
+            : "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-400 cursor-not-allowed",
         ])}
       >
         {allPermissionsGranted

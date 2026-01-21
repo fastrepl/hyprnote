@@ -13,6 +13,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::save<tauri::Wry>,
             commands::get_str<tauri::Wry>,
             commands::set_str<tauri::Wry>,
             commands::get_bool<tauri::Wry>,

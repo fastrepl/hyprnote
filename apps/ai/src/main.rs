@@ -142,6 +142,10 @@ fn main() -> std::io::Result<()> {
         ..Default::default()
     });
 
+    sentry::configure_scope(|scope| {
+        scope.set_tag("service", "hyprnote-ai");
+    });
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()

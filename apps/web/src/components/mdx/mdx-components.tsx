@@ -16,6 +16,16 @@ import { MDXLink } from "./link";
 import { Mermaid } from "./mermaid";
 import { Tweet } from "./tweet";
 
+function Table({ className, ...props }: React.ComponentProps<"table">) {
+  return (
+    <div className="overflow-x-auto">
+      <table {...props} className={`whitespace-nowrap ${className ?? ""}`}>
+        {props.children}
+      </table>
+    </div>
+  );
+}
+
 export type MDXComponents = {
   [key: string]: ComponentType<any>;
 };
@@ -40,6 +50,7 @@ export const defaultMDXComponents: MDXComponents = {
   pre: CodeBlock,
   Step,
   Steps,
+  table: Table,
   Tip,
   Tweet,
 };

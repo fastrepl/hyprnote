@@ -15,6 +15,7 @@ import {
   commands as fsSyncCommands,
   type ParsedDocument,
 } from "@hypr/plugin-fs-sync";
+import { extractChangedTables } from "@hypr/tinybase-utils";
 
 import { StoreOrMergeableStore } from "../../store/shared";
 import {
@@ -28,7 +29,6 @@ import {
   type SaveResult,
   type TablesContent,
 } from "../shared/types";
-import { extractChangedTables } from "../shared/utils";
 
 const CLEANUP_SAFEGUARD_MIN_DISK_COUNT = 5;
 const CLEANUP_SAFEGUARD_MIN_KEEP_RATIO = 0.5;

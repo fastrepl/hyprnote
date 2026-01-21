@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use tauri::Manager;
+use tauri_plugin_settings::SettingsPluginExt;
 
 use crate::{Error, ExtensionInfo, ExtensionsPluginExt, PanelInfo};
 
@@ -42,8 +43,8 @@ pub async fn list_extensions<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<ExtensionInfo>, Error> {
     let extensions_dir = app
-        .path()
-        .data_dir()
+        .settings()
+        .settings_base()
         .map_err(|e| Error::Io(e.to_string()))?
         .join("extensions");
 
@@ -86,8 +87,8 @@ pub async fn get_extensions_dir<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<String, Error> {
     let extensions_dir = app
-        .path()
-        .data_dir()
+        .settings()
+        .settings_base()
         .map_err(|e| Error::Io(e.to_string()))?
         .join("extensions");
 
@@ -105,8 +106,8 @@ pub async fn get_extension<R: tauri::Runtime>(
     extension_id: String,
 ) -> Result<ExtensionInfo, Error> {
     let extensions_dir = app
-        .path()
-        .data_dir()
+        .settings()
+        .settings_base()
         .map_err(|e| Error::Io(e.to_string()))?
         .join("extensions");
 

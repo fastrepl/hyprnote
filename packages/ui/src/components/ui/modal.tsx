@@ -54,7 +54,7 @@ export function Modal({
     <>
       {showOverlay && (
         <div
-          className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-100 bg-black/50 backdrop-blur-xs"
           aria-hidden="true"
           onClick={preventClose ? undefined : onClose}
         >
@@ -69,7 +69,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         className={cn([
-          "fixed left-1/2 top-1/2 z-[100] -translate-x-1/2 -translate-y-1/2",
+          "fixed left-1/2 top-1/2 z-100 -translate-x-1/2 -translate-y-1/2",
           "overflow-clip rounded-lg bg-background shadow-lg",
           sizeClasses[size],
           className,

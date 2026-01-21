@@ -23,6 +23,8 @@ exclude = [
   "apps/k6",
   "apps/pro",
   "apps/restate",
+  "apps/slack-external",
+  "apps/slack-internal",
   "apps/storybook",
   "apps/howto",
   "apps/api",
@@ -78,6 +80,7 @@ hypr-notification-interface = { path = "crates/notification-interface", package 
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
+hypr-openstatus = { path = "crates/openstatus", package = "openstatus" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
@@ -110,7 +113,6 @@ hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 owhisper-client = { path = "crates/owhisper-client", package = "owhisper-client" }
 owhisper-config = { path = "crates/owhisper-config", package = "owhisper-config" }
 owhisper-interface = { path = "crates/owhisper-interface", package = "owhisper-interface" }
-owhisper-providers = { path = "crates/owhisper-providers", package = "owhisper-providers" }
 
 tauri = "2.9"
 tauri-build = "2.5"

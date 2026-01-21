@@ -26,7 +26,7 @@ export function OnboardingContainer({
         </button>
       )}
 
-      <div className="space-y-3 text-center mb-8">
+      <div className="flex flex-col gap-3 text-center mb-8">
         <h1 className="text-xl font-semibold text-neutral-900 font-serif">
           {title}
         </h1>

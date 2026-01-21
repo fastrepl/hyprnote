@@ -2,10 +2,15 @@ import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
+import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../../contexts/listener";
 import * as main from "../../../../../../../store/tinybase/store/main";
 import type { RuntimeSpeakerHint } from "../../../../../../../utils/segment";
-import { useAutoScroll, useScrollDetection } from "./hooks";
+import {
+  useAutoScroll,
+  usePlaybackAutoScroll,
+  useScrollDetection,
+} from "./hooks";
 import { Operations } from "./operations";
 import { RenderTranscript } from "./render-transcript";
 import { SelectionMenu } from "./selection-menu";
@@ -87,6 +92,12 @@ export function TranscriptContainer({
 
   const { isAtBottom, autoScrollEnabled, scrollToBottom } =
     useScrollDetection(containerRef);
+
+  const { time, state: playerState } = useAudioPlayer();
+  const currentMs = time.current * 1000;
+  const isPlaying = playerState === "playing";
+
+  usePlaybackAutoScroll(containerRef, currentMs, isPlaying);
   const shouldAutoScroll = currentActive && autoScrollEnabled;
   useAutoScroll(
     containerRef,
@@ -112,12 +123,12 @@ export function TranscriptContainer({
         ref={handleContainerRef}
         data-transcript-container
         className={cn([
-          "space-y-8 h-full overflow-y-auto overflow-x-hidden",
-          "pb-16 scroll-pb-[8rem] scrollbar-hide",
+          "flex flex-col gap-8 h-full overflow-y-auto overflow-x-hidden",
+          "pb-16 scroll-pb-32 scrollbar-hide",
         ])}
       >
         {transcriptIds.map((transcriptId, index) => (
-          <div key={transcriptId} className="space-y-8">
+          <div key={transcriptId} className="flex flex-col gap-8">
             <RenderTranscript
               scrollElement={scrollElement}
               isLastTranscript={index === transcriptIds.length - 1}
@@ -153,8 +164,8 @@ export function TranscriptContainer({
         className={cn([
           "absolute bottom-3 left-1/2 -translate-x-1/2 z-30",
           "px-4 py-2 rounded-full",
-          "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
-          "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+          "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+          "shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
           "text-xs font-light",
           "transition-opacity duration-150",
           shouldShowButton ? "opacity-100" : "opacity-0 pointer-events-none",

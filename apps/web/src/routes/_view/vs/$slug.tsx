@@ -133,14 +133,14 @@ function HeroSection({
       <header className="text-center max-w-4xl mx-auto">
         <div className="flex flex-row items-center justify-center mb-12 sm:gap-0">
           <div className="relative w-40 h-40 sm:hidden">
-            <div className="absolute top-0 left-0 size-28 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[32px] bg-white opacity-50 z-0">
+            <div className="absolute top-0 left-0 size-28 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-white opacity-50 z-0">
               <img
                 src={competitorIcon}
                 alt={competitorName}
                 className="size-24 rounded-[28px] border border-neutral-100"
               />
             </div>
-            <div className="absolute bottom-0 right-0 size-28 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[32px] bg-white z-10">
+            <div className="absolute bottom-0 right-0 size-28 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-white z-10">
               <img
                 src="/api/images/hyprnote/icon.png"
                 alt="Hyprnote"

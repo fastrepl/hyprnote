@@ -1,7 +1,9 @@
 mod batch;
 mod live;
 
-use owhisper_providers::Provider;
+use crate::providers::Provider;
+
+use super::LanguageQuality;
 
 // https://docs.gladia.io/chapters/language/supported-languages
 const SUPPORTED_LANGUAGES: &[&str] = &[
@@ -19,16 +21,25 @@ pub struct GladiaAdapter;
 
 impl GladiaAdapter {
     pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {
-        Self::is_supported_languages_impl(languages)
+        Self::language_quality_live(languages).is_supported()
     }
 
     pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
-        Self::is_supported_languages_impl(languages)
+        Self::language_quality_live(languages).is_supported()
     }
 
-    fn is_supported_languages_impl(languages: &[hypr_language::Language]) -> bool {
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        SUPPORTED_LANGUAGES.contains(&primary_lang)
+    pub fn language_quality_live(languages: &[hypr_language::Language]) -> LanguageQuality {
+        let qualities = languages.iter().map(Self::single_language_quality);
+        LanguageQuality::min_quality(qualities)
+    }
+
+    fn single_language_quality(language: &hypr_language::Language) -> LanguageQuality {
+        let code = language.iso639().code();
+        if SUPPORTED_LANGUAGES.contains(&code) {
+            LanguageQuality::NoData
+        } else {
+            LanguageQuality::NotSupported
+        }
     }
 
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {

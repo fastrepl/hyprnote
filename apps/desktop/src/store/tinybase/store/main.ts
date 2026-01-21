@@ -250,13 +250,6 @@ export const StoreComponent = () => {
             return "";
           }
 
-          if (Array.isArray(cell)) {
-            console.error(
-              "[TinyBase Stamp Leak] eventsByDate received stamped value:",
-              cell,
-            );
-          }
-
           const d = new Date(cell);
           if (isNaN(d.getTime())) {
             return "";
@@ -279,13 +272,6 @@ export const StoreComponent = () => {
           const cell = getCell("created_at");
           if (!cell) {
             return "";
-          }
-
-          if (Array.isArray(cell)) {
-            console.error(
-              "[TinyBase Stamp Leak] sessionByDateWithoutEvent received stamped value:",
-              cell,
-            );
           }
 
           const d = new Date(cell);

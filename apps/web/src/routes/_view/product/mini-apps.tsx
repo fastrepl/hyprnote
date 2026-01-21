@@ -138,7 +138,7 @@ function CalendarSection() {
               Connect your calendar for intelligent meeting preparation and
               automatic note organization.
             </p>
-            <ul className="space-y-3">
+            <ul className="flex flex-col gap-3">
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
@@ -179,7 +179,7 @@ function CalendarSection() {
                 Start Recording
               </button>
             </div>
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <div>
                 <h5 className="text-sm font-medium text-stone-600 mb-2">
                   Last meeting context
@@ -206,7 +206,7 @@ function CalendarSection() {
             Connect your calendar for intelligent meeting preparation and
             automatic note organization.
           </p>
-          <ul className="space-y-3">
+          <ul className="flex flex-col gap-3">
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
@@ -246,7 +246,7 @@ function CalendarSection() {
                 Start Recording
               </button>
             </div>
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <div>
                 <h5 className="text-sm font-medium text-stone-600 mb-2">
                   Last meeting context
@@ -280,7 +280,7 @@ function DailyNotesSection() {
               Consolidate all your meetings, action items, and insights in one
               place.
             </p>
-            <ul className="space-y-3">
+            <ul className="flex flex-col gap-3">
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
@@ -327,7 +327,7 @@ function DailyNotesSection() {
             Consolidate all your meetings, action items, and insights in one
             place.
           </p>
-          <ul className="space-y-3">
+          <ul className="flex flex-col gap-3">
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
@@ -378,7 +378,7 @@ function FoldersSection() {
               Organize your meetings and notes into folders for easy access and
               better structure.
             </p>
-            <ul className="space-y-3">
+            <ul className="flex flex-col gap-3">
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
@@ -416,7 +416,7 @@ function FoldersSection() {
             Organize your meetings and notes into folders for easy access and
             better structure.
           </p>
-          <ul className="space-y-3">
+          <ul className="flex flex-col gap-3">
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">

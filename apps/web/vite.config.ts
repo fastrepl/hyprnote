@@ -27,11 +27,9 @@ const config = defineConfig(() => ({
             path === "/" ||
             path.startsWith("/blog") ||
             path.startsWith("/docs") ||
-            path.startsWith("/changelog") ||
-            path.startsWith("/legal") ||
-            path.startsWith("/product") ||
             path.startsWith("/pricing") ||
-            path === "/enterprise"
+            path.startsWith("/solution") ||
+            path.startsWith("/vs")
           );
         },
       },

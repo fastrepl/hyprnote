@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { env } from "@/env";
+import { getGitHubCredentials } from "@/functions/github-content";
 
 const GITHUB_REPO = "fastrepl/hyprnote";
 const GITHUB_BRANCH = "main";
@@ -14,8 +14,8 @@ export const Route = createFileRoute("/api/media-upload")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const githubToken = env.YUJONGLEE_GITHUB_TOKEN_REPO;
-        if (!githubToken) {
+        const credentials = await getGitHubCredentials();
+        if (!credentials) {
           return new Response(
             JSON.stringify({ error: "GitHub token not configured" }),
             {
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/api/media-upload")({
             },
           );
         }
+        const { token: githubToken } = credentials;
 
         let body: { filename: string; content: string; folder: string };
         try {

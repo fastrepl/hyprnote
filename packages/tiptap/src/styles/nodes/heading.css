@@ -31,4 +31,28 @@
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
   }
+
+  h4 {
+    color: #374151;
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  h5 {
+    color: #374151;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  h6 {
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+  }
 }

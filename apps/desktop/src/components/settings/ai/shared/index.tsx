@@ -105,6 +105,11 @@ export function NonHyprProviderCard({
         event: "ai_provider_configured",
         provider: value.type,
       });
+      void analyticsCommands.setProperties({
+        set: {
+          has_configured_ai: true,
+        },
+      });
       setProvider(value);
     },
     defaultValues:
@@ -135,7 +140,7 @@ export function NonHyprProviderCard({
     >
       <AccordionTrigger
         className={cn([
-          "capitalize gap-2 px-4",
+          "capitalize gap-2 px-4 hover:no-underline",
           (config.disabled || locked) && "cursor-not-allowed opacity-30",
         ])}
       >
@@ -150,12 +155,15 @@ export function NonHyprProviderCard({
         </div>
       </AccordionTrigger>
       <AccordionContent
-        className={cn(["px-4", providerType === "llm" && "space-y-6"])}
+        className={cn([
+          "px-4",
+          providerType === "llm" && "flex flex-col gap-6",
+        ])}
       >
         {providerContext}
 
         <form
-          className="space-y-4"
+          className="flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -179,7 +187,7 @@ export function NonHyprProviderCard({
             </form.Field>
           )}
           {!showBaseUrl && config.baseUrl && (
-            <details className="space-y-4 pt-2">
+            <details className="flex flex-col gap-4 pt-2">
               <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
                 Advanced
               </summary>
@@ -275,7 +283,7 @@ function FormField({
     : null;
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       <label className="block text-xs font-medium">{label}</label>
       <InputGroup className="bg-white">
         <InputGroupInput

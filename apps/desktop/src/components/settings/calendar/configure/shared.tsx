@@ -33,13 +33,13 @@ export function CalendarSelection({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       {groups.map((group) => (
         <div key={group.sourceName}>
           <h5 className="text-xs font-medium text-neutral-500 mb-2">
             {group.sourceName}
           </h5>
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             {group.calendars.map((cal) => (
               <CalendarToggleRow
                 key={cal.id}

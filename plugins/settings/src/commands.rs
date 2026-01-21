@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use crate::{ObsidianVault, SettingsPluginExt};
+use crate::SettingsPluginExt;
+use crate::obsidian::ObsidianVault;
 
 #[tauri::command]
 #[specta::specta]
@@ -9,6 +10,15 @@ pub(crate) async fn settings_base<R: tauri::Runtime>(
 ) -> Result<String, String> {
     app.settings()
         .settings_base()
+        .map(|p| p.to_string_lossy().to_string())
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn settings_path<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
+    app.settings()
+        .settings_path()
         .map(|p| p.to_string_lossy().to_string())
         .map_err(|e| e.to_string())
 }
@@ -31,7 +41,7 @@ pub(crate) async fn change_content_base<R: tauri::Runtime>(
     new_path: String,
 ) -> Result<(), String> {
     app.settings()
-        .change_content_base(PathBuf::from(new_path))
+        .change_content_base(PathBuf::from(&new_path))
         .await
         .map_err(|e| e.to_string())
 }
@@ -42,15 +52,6 @@ pub(crate) fn obsidian_vaults<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<ObsidianVault>, String> {
     app.settings().obsidian_vaults().map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub(crate) fn path<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
-    app.settings()
-        .path()
-        .map(|p| p.to_string_lossy().to_string())
-        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { env } from "@/env";
 import { fetchAdminUser } from "@/functions/admin";
+import { getGitHubCredentials } from "@/functions/github-content";
 
 interface SaveRequest {
   content: string;
@@ -76,8 +76,8 @@ export const Route = createFileRoute("/api/admin/import/save")({
           const path = `apps/web/content/${folder}/${safeFilename}`;
           const branch = "main";
 
-          const token = env.YUJONGLEE_GITHUB_TOKEN_REPO;
-          if (!token) {
+          const credentials = await getGitHubCredentials();
+          if (!credentials) {
             return new Response(
               JSON.stringify({
                 success: false,
@@ -86,6 +86,7 @@ export const Route = createFileRoute("/api/admin/import/save")({
               { status: 500, headers: { "Content-Type": "application/json" } },
             );
           }
+          const { token } = credentials;
 
           const checkResponse = await fetch(
             `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,

@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use axum::{
     extract::{Request, State},
     http::StatusCode,
@@ -84,6 +86,19 @@ pub async fn require_pro(
             ..Default::default()
         }));
         scope.set_tag("user.id", &claims.sub);
+
+        let mut ctx = BTreeMap::new();
+        ctx.insert(
+            "entitlements".into(),
+            sentry::protocol::Value::Array(
+                claims
+                    .entitlements
+                    .iter()
+                    .map(|e| sentry::protocol::Value::String(e.clone()))
+                    .collect(),
+            ),
+        );
+        scope.set_context("user_claims", sentry::protocol::Context::Other(ctx));
     });
 
     Ok(next.run(request).await)

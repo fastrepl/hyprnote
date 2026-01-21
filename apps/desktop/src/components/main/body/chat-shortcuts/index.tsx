@@ -340,13 +340,13 @@ function ShortcutListColumn({
                 }
               }}
               placeholder="Search shortcuts..."
-              className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+              className="w-full bg-transparent text-sm focus:outline-hidden placeholder:text-neutral-400"
               autoFocus
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="p-1 rounded hover:bg-neutral-100"
+                className="p-1 rounded-xs hover:bg-neutral-100"
               >
                 <X className="h-4 w-4 text-neutral-400" />
               </button>
@@ -357,11 +357,11 @@ function ShortcutListColumn({
 
       <div className="flex-1 overflow-y-auto p-2">
         {isWebMode && isWebLoading ? (
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="px-3 py-2 rounded-md animate-pulse">
-                <div className="h-4 w-3/4 rounded bg-neutral-200" />
-                <div className="h-3 w-1/2 rounded bg-neutral-100 mt-1.5" />
+                <div className="h-4 w-3/4 rounded-xs bg-neutral-200" />
+                <div className="h-3 w-1/2 rounded-xs bg-neutral-100 mt-1.5" />
               </div>
             ))}
           </div>

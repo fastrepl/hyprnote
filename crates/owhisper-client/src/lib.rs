@@ -1,20 +1,26 @@
 mod adapter;
 mod batch;
 mod error;
+mod error_detection;
 mod http_client;
 mod live;
 pub(crate) mod polling;
+mod providers;
 
 #[cfg(test)]
 pub(crate) mod test_utils;
+
+pub use error_detection::ProviderError;
+pub use providers::{Auth, Provider, is_meta_model};
 
 use std::marker::PhantomData;
 
 pub use adapter::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, BatchSttAdapter, DeepgramAdapter,
-    ElevenLabsAdapter, FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter,
-    SonioxAdapter, append_provider_param, documented_language_codes_batch,
-    documented_language_codes_live, is_hyprnote_proxy, is_local_host, normalize_languages,
+    ElevenLabsAdapter, FireworksAdapter, GladiaAdapter, HyprnoteAdapter, LanguageQuality,
+    OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter, append_provider_param,
+    documented_language_codes_batch, documented_language_codes_live, is_hyprnote_proxy,
+    is_local_host, normalize_languages,
 };
 #[cfg(feature = "argmax")]
 pub use adapter::{StreamingBatchConfig, StreamingBatchEvent, StreamingBatchStream};

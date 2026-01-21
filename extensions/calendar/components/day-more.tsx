@@ -33,14 +33,14 @@ export function DayMore({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-80 p-4 max-h-96 space-y-2 overflow-y-auto bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0"
+        className="w-80 p-4 max-h-96 flex flex-col gap-2 overflow-y-auto bg-white border-neutral-200 m-2 shadow-lg outline-hidden focus:outline-hidden focus:ring-0"
         align="start"
       >
         <div className="text-lg font-semibold text-neutral-800 mb-2">
           {format(parseLocalDate(day), "MMMM d, yyyy")}
         </div>
 
-        <div className="space-y-1">
+        <div className="flex flex-col gap-1">
           {eventIds.map((eventId) => (
             <DayEvent key={eventId} eventId={eventId} />
           ))}

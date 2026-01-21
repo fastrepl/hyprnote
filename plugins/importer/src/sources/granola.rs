@@ -19,7 +19,7 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Er
     let cache_path = path
         .parent()
         .map(|p| p.join("cache"))
-        .unwrap_or_else(|| hypr_granola::cache::default_cache_path());
+        .unwrap_or_else(hypr_granola::cache::default_cache_path);
     let transcripts = if cache_path.exists() {
         let cache_data = hypr_granola::cache::read_cache(&cache_path)?;
         cache_data_to_imported_transcripts(&cache_data)
@@ -34,6 +34,7 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Er
         organizations: vec![],
         participants: vec![],
         templates: vec![],
+        enhanced_notes: vec![],
     })
 }
 

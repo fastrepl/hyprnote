@@ -2,8 +2,9 @@ import type { Event, Session } from "@hypr/store";
 import {
   differenceInCalendarMonths,
   differenceInDays,
-  format,
   isPast,
+  safeFormat,
+  safeParseDate,
   startOfDay,
 } from "@hypr/utils";
 
@@ -188,18 +189,20 @@ export function buildTimelineBuckets({
 
   if (eventsWithoutSessionTable) {
     Object.entries(eventsWithoutSessionTable).forEach(([eventId, row]) => {
-      const rawTimestamp = String(row.started_at ?? "");
-      const eventStartTime = new Date(rawTimestamp);
+      const eventStartTime = safeParseDate(row.started_at);
 
-      if (isNaN(eventStartTime.getTime())) {
+      if (!eventStartTime) {
         return;
       }
 
-      if (eventStartTime && !isPast(eventStartTime)) {
+      const eventEndTime = safeParseDate((row as unknown as Event).ended_at);
+      const timeToCheck = eventEndTime || eventStartTime;
+
+      if (!isPast(timeToCheck)) {
         items.push({
           type: "event",
           id: eventId,
-          date: format(eventStartTime, "yyyy-MM-dd"),
+          date: safeFormat(eventStartTime, "yyyy-MM-dd"),
           data: row as unknown as Event,
         });
         seenEvents.add(eventId);
@@ -214,31 +217,28 @@ export function buildTimelineBuckets({
         return;
       }
 
-      const rawTimestamp = String(row.event_started_at ?? row.created_at ?? "");
-      const date = new Date(rawTimestamp);
+      const date = safeParseDate(row.event_started_at ?? row.created_at);
 
-      if (isNaN(date.getTime())) {
+      if (!date) {
         return;
       }
 
-      if (date) {
-        items.push({
-          type: "session",
-          id: sessionId,
-          date: format(date, "yyyy-MM-dd"),
-          data: row as unknown as Session,
-        });
-      }
+      items.push({
+        type: "session",
+        id: sessionId,
+        date: safeFormat(date, "yyyy-MM-dd"),
+        data: row as unknown as Session,
+      });
     });
   }
 
   items.sort((a, b) => {
     const timeA = a.type === "event" ? a.data.started_at : a.data.created_at;
     const timeB = b.type === "event" ? b.data.started_at : b.data.created_at;
-    const dateA = new Date(String(timeA ?? ""));
-    const dateB = new Date(String(timeB ?? ""));
-    const timeAValue = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
-    const timeBValue = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
+    const dateA = safeParseDate(timeA);
+    const dateB = safeParseDate(timeB);
+    const timeAValue = dateA?.getTime() ?? 0;
+    const timeBValue = dateB?.getTime() ?? 0;
     return timeBValue - timeAValue;
   });
 

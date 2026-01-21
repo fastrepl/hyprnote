@@ -1,6 +1,8 @@
 mod batch;
 mod streaming;
 
+use std::sync::Arc;
+
 use axum::{
     Router,
     extract::DefaultBodyLimit,
@@ -9,23 +11,47 @@ use axum::{
     routing::{get, post},
 };
 
+use owhisper_client::Provider;
+
 use crate::config::SttProxyConfig;
+use crate::hyprnote_routing::{HyprnoteRouter, should_use_hyprnote_routing};
 use crate::provider_selector::{ProviderSelector, SelectedProvider};
 use crate::query_params::QueryParams;
-use owhisper_providers::Provider;
 
 #[derive(Clone)]
 pub(crate) struct AppState {
     pub config: SttProxyConfig,
     pub selector: ProviderSelector,
+    pub router: Option<Arc<HyprnoteRouter>>,
     pub client: reqwest::Client,
 }
 
 impl AppState {
+    #[allow(clippy::result_large_err)]
     pub fn resolve_provider(&self, params: &mut QueryParams) -> Result<SelectedProvider, Response> {
-        let requested = params
-            .remove_first("provider")
-            .and_then(|s| s.parse::<Provider>().ok());
+        let provider_param = params.remove_first("provider");
+
+        if should_use_hyprnote_routing(provider_param.as_deref()) {
+            return self.resolve_hyprnote_provider(params);
+        }
+
+        let requested = match provider_param {
+            Some(s) => match s.parse::<Provider>() {
+                Ok(p) => Some(p),
+                Err(_) => {
+                    return Err((
+                        StatusCode::BAD_REQUEST,
+                        format!("Invalid provider: {}. Supported providers: deepgram, soniox, assemblyai, gladia, elevenlabs, fireworks, openai", s)
+                    ).into_response());
+                }
+            },
+            None => {
+                return Err((
+                    StatusCode::BAD_REQUEST,
+                    "provider parameter is required. Use provider=hyprnote for hyprnote routing or provider=<provider_name> for a specific provider"
+                ).into_response());
+            }
+        };
 
         self.selector.select(requested).map_err(|e| {
             tracing::warn!(
@@ -36,13 +62,65 @@ impl AppState {
             (StatusCode::BAD_REQUEST, e.to_string()).into_response()
         })
     }
+
+    #[allow(clippy::result_large_err)]
+    fn resolve_hyprnote_provider(
+        &self,
+        params: &QueryParams,
+    ) -> Result<SelectedProvider, Response> {
+        let router = self.router.as_ref().ok_or_else(|| {
+            tracing::warn!("hyprnote_routing_not_configured");
+            (
+                StatusCode::BAD_REQUEST,
+                "hyprnote routing is not configured",
+            )
+                .into_response()
+        })?;
+
+        let languages = params.get_languages();
+        let available_providers = self.selector.available_providers();
+        let routed_provider = router.select_provider(&languages, &available_providers);
+
+        tracing::debug!(
+            languages = ?languages,
+            available_providers = ?available_providers,
+            routed_provider = ?routed_provider,
+            "hyprnote_routing"
+        );
+
+        self.selector.select(routed_provider).map_err(|e| {
+            tracing::warn!(
+                error = %e,
+                languages = ?languages,
+                "hyprnote_routing_failed"
+            );
+            (StatusCode::BAD_REQUEST, e.to_string()).into_response()
+        })
+    }
+
+    pub fn resolve_hyprnote_provider_chain(&self, params: &QueryParams) -> Vec<SelectedProvider> {
+        let Some(router) = self.router.as_ref() else {
+            return vec![];
+        };
+
+        let languages = params.get_languages();
+        let available_providers = self.selector.available_providers();
+
+        router
+            .select_provider_chain(&languages, &available_providers)
+            .into_iter()
+            .filter_map(|p| self.selector.select(Some(p)).ok())
+            .collect()
+    }
 }
 
 fn make_state(config: SttProxyConfig) -> AppState {
     let selector = config.provider_selector();
+    let router = config.hyprnote_router().map(Arc::new);
     AppState {
         config,
         selector,
+        router,
         client: reqwest::Client::new(),
     }
 }

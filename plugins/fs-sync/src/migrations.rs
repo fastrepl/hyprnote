@@ -19,7 +19,9 @@ pub fn rename_transcript(base_dir: &Path) -> Result<(), Error> {
                 rename_recursively(&path)?;
             } else if path.file_name().and_then(|n| n.to_str()) == Some("_transcript.json") {
                 let target = path.with_file_name("transcript.json");
-                if !target.exists() {
+                if target.exists() {
+                    std::fs::remove_file(&path)?;
+                } else {
                     std::fs::rename(&path, &target)?;
                 }
             }

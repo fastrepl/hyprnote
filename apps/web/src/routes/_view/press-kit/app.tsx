@@ -424,7 +424,7 @@ function ScreenshotsSidebar({
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
         Screenshots
       </div>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {screenshots.map((screenshot) => (
           <button
             key={screenshot.id}
@@ -507,7 +507,7 @@ function ScreenshotDetail({
           <a
             href={screenshot.url}
             download={screenshot.name}
-            className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+            className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
           >
             Download
           </a>

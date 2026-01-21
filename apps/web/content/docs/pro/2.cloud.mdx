@@ -1,32 +1,46 @@
 ---
-title: "Cloud"
+title: "Cloud Services"
 section: "Pro"
-description: "Managed cloud service for pro users"
+description: "Managed cloud services for Pro users"
 ---
 
 <Tip>
-  If you've [subscribed to the Pro plan](/pricing), you automatically get
-  access to this.
+  If you've [subscribed to the Pro plan](/pricing) or started a free trial, you automatically get access to these services.
 </Tip>
 
-## What are included?
+## Included Services
 
-- `/chat/completions` LLM endpoint (✅)
-- `/mcp` MCP server with default tools (⚠️)
-- [Tell us what you want](https://github.com/fastrepl/hyprnote/discussions)
+Pro users get access to managed cloud services that work out of the box:
 
-> - ✅: Implemented and Shipped
-> - ⚠️: Implemented but not Shipped
+| Service | Description | Status |
+|---------|-------------|--------|
+| `/chat/completions` | LLM endpoint for AI features (summaries, notes) | Available |
+| `/mcp` | MCP server with web search and URL reading tools | Available |
 
-## Why this is created?
+Pro includes curated AI models that work out of the box. Your requests are proxied through our servers with automatic API key management. If you want to use a specific LLM provider, you can bring your own API key (BYOK) in Settings > Intelligence.
 
-Although we aim to be **fully transparent & controllable,**
+## MCP Tools
 
-1. The time-to-value can be too long for some users.
-2. Although someone wants controllability, it doesn't mean they want to manage everything.
+The MCP server provides two built-in tools:
 
-## Is it safe?
+**exa-search** - Search the web via Exa and get page text and highlights in results. Useful for researching topics mentioned in your meetings.
 
-- The server (`pro.hyprnote.com`) is [open-source](https://github.com/fastrepl/hyprnote/tree/main/apps/pro) and deployed in our K8S cluster in AWS via GitHub Actions.
-- Nothing is stored by us. If we use any third-party service, only required data are sent to it.
-  - We use `Anthropic`, `Exa`, and `Jina AI` at the moment.
+**read-url** - Visit any URL and return the content as markdown. Great for pulling in context from links shared during meetings.
+
+## Why Use Cloud Services?
+
+While Hyprnote aims to be fully transparent and controllable, cloud services help in two ways:
+
+1. **Faster time-to-value** - Start using AI features immediately without configuring API keys or running local models.
+2. **Managed complexity** - Get the benefits of multiple AI providers without managing each one yourself.
+
+## Privacy & Security
+
+The cloud server (`pro.hyprnote.com`) is [open-source](https://github.com/fastrepl/hyprnote/tree/main/apps/pro) and deployed in our Kubernetes cluster on AWS via GitHub Actions.
+
+**Data handling:**
+- Nothing is stored by us
+- Only required data is sent to third-party services
+- Current providers: Curated LLM models, Exa (web search), Jina AI (URL reading)
+
+All requests are rate-limited and authenticated using your Pro subscription.

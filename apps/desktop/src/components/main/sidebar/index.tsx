@@ -33,13 +33,13 @@ export function LeftSidebar() {
   const showSearchResults = query.trim() !== "";
 
   return (
-    <div className="h-full w-[280px] flex flex-col overflow-hidden shrink-0 gap-1">
+    <div className="h-full w-70 flex flex-col overflow-hidden shrink-0 gap-1">
       <header
         data-tauri-drag-region
         className={cn([
           "flex flex-row items-center",
           "w-full h-9 py-1",
-          isLinux ? "pl-3 justify-between" : "pl-[72px] justify-end",
+          isLinux ? "pl-3 justify-between" : "pl-18 justify-end",
           "shrink-0",
           "rounded-xl bg-neutral-50",
         ])}

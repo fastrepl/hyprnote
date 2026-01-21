@@ -96,7 +96,7 @@ function Component() {
                 to="/product/ai-notetaking/"
                 className={cn([
                   "inline-block px-8 py-3 text-base font-medium rounded-full",
-                  "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+                  "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-xs hover:shadow-md hover:scale-[102%] active:scale-[98%]",
                   "transition-all",
                 ])}
               >
@@ -180,8 +180,8 @@ function AnimatedNotesDemo() {
         variant="desktop"
         className="mb-8 rounded-lg border-b w-full sm:w-[420px] md:w-[480px] lg:w-[540px] mx-auto"
       >
-        <div className="p-6 space-y-4 h-96 overflow-hidden text-left">
-          <div className="space-y-2">
+        <div className="p-6 flex flex-col gap-4 h-96 overflow-hidden text-left">
+          <div className="flex flex-col gap-2">
             <h4
               className={cn([
                 "text-lg font-semibold text-stone-700 transition-opacity duration-500",
@@ -190,7 +190,7 @@ function AnimatedNotesDemo() {
             >
               Mobile UI Update and API Adjustments
             </h4>
-            <ul className="space-y-2 text-neutral-700 list-disc pl-5">
+            <ul className="flex flex-col gap-2 text-neutral-700 list-disc pl-5">
               <li
                 className={cn([
                   "transition-opacity duration-500",
@@ -223,7 +223,7 @@ function AnimatedNotesDemo() {
               </li>
             </ul>
           </div>
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <h4
               className={cn([
                 "text-lg font-semibold text-stone-700 transition-opacity duration-500",
@@ -232,7 +232,7 @@ function AnimatedNotesDemo() {
             >
               New Dashboard – Urgent Priority
             </h4>
-            <ul className="space-y-2 text-neutral-700 list-disc pl-5">
+            <ul className="flex flex-col gap-2 text-neutral-700 list-disc pl-5">
               <li
                 className={cn([
                   "transition-opacity duration-500",

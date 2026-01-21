@@ -173,10 +173,10 @@ pub fn exported_type_aliases(
     module: &Module,
 ) -> impl Iterator<Item = (&TsTypeAliasDecl, Span)> + '_ {
     module.body.iter().filter_map(|item| {
-        if let ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(export)) = item {
-            if let Decl::TsTypeAlias(type_alias) = &export.decl {
-                return Some((type_alias.as_ref(), export.span));
-            }
+        if let ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(export)) = item
+            && let Decl::TsTypeAlias(type_alias) = &export.decl
+        {
+            return Some((type_alias.as_ref(), export.span));
         }
         None
     })
@@ -191,10 +191,10 @@ pub fn type_lit_from(type_ann: &TsType) -> Option<&TsTypeLit> {
 }
 
 pub fn type_name_from(type_ann: &TsType) -> Option<String> {
-    if let TsType::TsTypeRef(type_ref) = type_ann {
-        if let TsEntityName::Ident(ident) = &type_ref.type_name {
-            return Some(ident.sym.to_string());
-        }
+    if let TsType::TsTypeRef(type_ref) = type_ann
+        && let TsEntityName::Ident(ident) = &type_ref.type_name
+    {
+        return Some(ident.sym.to_string());
     }
     None
 }

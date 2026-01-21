@@ -1,9 +1,9 @@
 import {
-  Experimental_Agent as Agent,
   type ChatTransport,
   convertToModelMessages,
   type LanguageModel,
   stepCountIs,
+  ToolLoopAgent,
 } from "ai";
 
 import { type ToolRegistry } from "../contexts/tool";
@@ -21,9 +21,9 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
   ) => {
     const tools = this.registry.getTools("chat");
 
-    const agent = new Agent({
+    const agent = new ToolLoopAgent({
       model: this.model,
-      system: this.systemPrompt,
+      instructions: this.systemPrompt,
       tools,
       stopWhen: stepCountIs(5),
       prepareStep: async ({ messages }) => {
@@ -35,18 +35,18 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
       },
     });
 
-    const result = agent.stream({
-      messages: convertToModelMessages(options.messages),
+    const result = await agent.stream({
+      messages: await convertToModelMessages(options.messages),
     });
 
     return result.toUIMessageStream({
       originalMessages: options.messages,
-      messageMetadata: ({ part }) => {
+      messageMetadata: ({ part }: { part: { type: string } }) => {
         if (part.type === "start") {
           return { createdAt: Date.now() };
         }
       },
-      onError: (error) => {
+      onError: (error: unknown) => {
         console.error(error);
         return error instanceof Error ? error.message : String(error);
       },

@@ -24,3 +24,7 @@ specta = { workspace = true, features = ["derive", "serde_json"] }
 
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["fs"] }
+
+dirs = { workspace = true }
+shellexpand = { workspace = true }
+tempfile = { workspace = true }

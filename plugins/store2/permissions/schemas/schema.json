@@ -331,6 +331,18 @@
           "markdownDescription": "Denies the get_str command without any pre-configured scope."
         },
         {
+          "description": "Enables the save command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-save",
+          "markdownDescription": "Enables the save command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the save command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-save",
+          "markdownDescription": "Denies the save command without any pre-configured scope."
+        },
+        {
           "description": "Enables the set_bool command without any pre-configured scope.",
           "type": "string",
           "const": "allow-set-bool",
@@ -367,10 +379,10 @@
           "markdownDescription": "Denies the set_str command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-bool`\n- `allow-get-number`\n- `allow-get-str`\n- `allow-set-bool`\n- `allow-set-number`\n- `allow-set-str`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-save`\n- `allow-get-bool`\n- `allow-get-number`\n- `allow-get-str`\n- `allow-set-bool`\n- `allow-set-number`\n- `allow-set-str`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-bool`\n- `allow-get-number`\n- `allow-get-str`\n- `allow-set-bool`\n- `allow-set-number`\n- `allow-set-str`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-save`\n- `allow-get-bool`\n- `allow-get-number`\n- `allow-get-str`\n- `allow-set-bool`\n- `allow-set-number`\n- `allow-set-str`"
         }
       ]
     }

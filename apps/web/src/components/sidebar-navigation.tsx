@@ -37,13 +37,13 @@ export function SidebarNavigation<T extends { slug: string; title: string }>({
   }, [currentSlug, scrollContainerRef]);
 
   return (
-    <nav className="space-y-4">
+    <nav className="flex flex-col gap-4">
       {sections.map((section) => (
         <div key={section.title}>
           <h3 className="px-3 text-sm font-semibold text-neutral-700 mb-2">
             {section.title}
           </h3>
-          <div className="space-y-0.5">
+          <div className="flex flex-col gap-0.5">
             {section.docs.map((doc) => {
               const isActive = currentSlug === doc.slug;
               return (
@@ -53,7 +53,7 @@ export function SidebarNavigation<T extends { slug: string; title: string }>({
                   params={{ _splat: doc.slug }}
                   onClick={onLinkClick}
                   ref={isActive ? activeLinkRef : undefined}
-                  className={`block pl-5 pr-3 py-1.5 text-sm rounded-sm transition-colors ${
+                  className={`block pl-5 pr-3 py-1.5 text-sm rounded-xs transition-colors ${
                     isActive
                       ? "bg-neutral-100 text-stone-600 font-medium"
                       : "text-neutral-600 hover:text-stone-600 hover:bg-neutral-50"

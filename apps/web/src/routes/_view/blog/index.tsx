@@ -231,7 +231,7 @@ function DesktopSidebar({
         <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">
           Categories
         </h3>
-        <nav className="space-y-1">
+        <nav className="flex flex-col gap-1">
           <button
             onClick={() => setSelectedCategory(null)}
             className={cn([
@@ -379,7 +379,7 @@ function MostRecentFeaturedCard({ article }: { article: Article }) {
     >
       <article
         className={cn([
-          "h-full border border-neutral-100 rounded-sm overflow-hidden bg-white",
+          "h-full border border-neutral-100 rounded-xs overflow-hidden bg-white",
           "hover:shadow-xl transition-all duration-300",
         ])}
       >
@@ -462,7 +462,7 @@ function OtherFeaturedCard({
     >
       <article
         className={cn([
-          "h-full border border-neutral-100 rounded-sm overflow-hidden bg-white",
+          "h-full border border-neutral-100 rounded-xs overflow-hidden bg-white",
           "hover:shadow-xl transition-all duration-300",
           "flex flex-col",
           "lg:flex-row",

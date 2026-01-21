@@ -53,7 +53,7 @@ export function SearchableFolderDropdown({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[200px] p-0">
+      <DropdownMenuContent align="start" className="w-50 p-0">
         {Object.keys(folders).length ? (
           <SearchableFolderContent
             folders={folders}
@@ -82,7 +82,7 @@ export function SearchableFolderSubmenuContent({
   const handleSelectFolder = useMoveSessionToFolder(sessionId);
 
   return (
-    <DropdownMenuSubContent className="w-[200px] p-0">
+    <DropdownMenuSubContent className="w-50 p-0">
       {Object.keys(folders).length ? (
         <SearchableFolderContent
           folders={folders}

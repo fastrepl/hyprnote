@@ -69,7 +69,7 @@ export function DayEvent({ eventId }: { eventId: string }) {
           <p className="truncate">{title}</p>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
+      <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-hidden focus:outline-hidden focus:ring-0">
         <div className="font-semibold text-lg text-neutral-800 mb-2">
           {title}
         </div>

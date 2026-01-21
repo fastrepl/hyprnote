@@ -4,6 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
+- `allow-save`
 - `allow-get-bool`
 - `allow-get-number`
 - `allow-get-str`
@@ -94,6 +95,32 @@ Enables the get_str command without any pre-configured scope.
 <td>
 
 Denies the get_str command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`store2:allow-save`
+
+</td>
+<td>
+
+Enables the save command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`store2:deny-save`
+
+</td>
+<td>
+
+Denies the save command without any pre-configured scope.
 
 </td>
 </tr>

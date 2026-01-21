@@ -307,7 +307,7 @@ const TitleInputInner = memo(
             value={localTitle}
             className={cn([
               "flex-1 min-w-0 transition-opacity duration-200",
-              "border-none bg-transparent focus:outline-none",
+              "border-none bg-transparent focus:outline-hidden",
               "text-xl font-semibold placeholder:text-muted-foreground",
             ])}
           />

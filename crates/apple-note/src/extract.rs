@@ -70,10 +70,10 @@ pub fn extract_text_spans(note: &Note) -> Vec<TextSpan> {
             span.strikethrough = strikethrough == 1;
         }
 
-        if let Some(ref link) = attr_run.link {
-            if !link.is_empty() {
-                span.link = Some(link.clone());
-            }
+        if let Some(ref link) = attr_run.link
+            && !link.is_empty()
+        {
+            span.link = Some(link.clone());
         }
 
         if let Some(ref para_style) = attr_run.paragraph_style {

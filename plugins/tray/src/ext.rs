@@ -6,8 +6,8 @@ use tauri::{
 };
 
 use crate::menu_items::{
-    AppInfo, AppNew, HyprMenuItem, MenuItemHandler, TrayCheckUpdate, TrayOpen, TrayQuit,
-    TraySettings, TrayStart, TrayVersion, app_cli_menu,
+    AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, HyprMenuItem, MenuItemHandler,
+    TrayCheckUpdate, TrayOpen, TrayQuit, TraySettings, TrayStart, TrayVersion, app_cli_menu,
 };
 
 const TRAY_ID: &str = "hypr-tray";
@@ -26,6 +26,8 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         let settings_item = TraySettings::build(app)?;
         let cli_item = app_cli_menu(app)?;
         let new_item = AppNew::build(app)?;
+        let report_bug_item = HelpReportBug::build(app)?;
+        let suggest_feature_item = HelpSuggestFeature::build(app)?;
 
         if cfg!(target_os = "macos")
             && let Some(menu) = app.menu()
@@ -66,6 +68,23 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
             {
                 submenu.prepend(&new_item)?;
             }
+
+            for item in &items {
+                if let MenuItemKind::Submenu(submenu) = item
+                    && submenu.text()? == "Help"
+                {
+                    menu.remove(submenu)?;
+                    break;
+                }
+            }
+
+            let help_submenu = Submenu::with_items(
+                app,
+                "Help",
+                true,
+                &[&report_bug_item, &suggest_feature_item],
+            )?;
+            menu.append(&help_submenu)?;
         }
 
         Ok(())

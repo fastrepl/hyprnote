@@ -21,6 +21,9 @@ const validateSearch = z.object({
 export const Route = createFileRoute("/auth")({
   validateSearch,
   component: Component,
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
   beforeLoad: async ({ search }) => {
     const user = await fetchUser();
 
@@ -59,7 +62,7 @@ function Component() {
   return (
     <Container>
       <Header />
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         {showGoogle && (
           <OAuthButton
             flow={flow}
@@ -97,7 +100,7 @@ function Container({ children }: { children: React.ReactNode }) {
         "bg-linear-to-b from-stone-50 via-stone-100/50 to-stone-50",
       ])}
     >
-      <div className="bg-white border border-neutral-200 rounded-sm p-8 max-w-md mx-auto">
+      <div className="bg-white border border-neutral-200 rounded-xs p-8 max-w-md mx-auto">
         {children}
       </div>
     </div>
@@ -188,7 +191,7 @@ function MagicLinkForm({
           magicLinkMutation.mutate(email);
         }
       }}
-      className="space-y-2"
+      className="flex flex-col gap-2"
     >
       <input
         type="email"
@@ -200,7 +203,7 @@ function MagicLinkForm({
           "w-full px-4 py-2",
           "border border-neutral-300 rounded-lg",
           "text-neutral-700 placeholder:text-neutral-400",
-          "focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
+          "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
         ])}
       />
       <button
@@ -211,7 +214,7 @@ function MagicLinkForm({
           "border border-neutral-300",
           "rounded-lg font-medium text-neutral-700",
           "hover:bg-neutral-50",
-          "focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
+          "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           "transition-colors",
           "flex items-center justify-center gap-2",
@@ -283,7 +286,7 @@ function OAuthButton({
         "border border-neutral-300",
         "rounded-lg font-medium text-neutral-700",
         "hover:bg-neutral-50",
-        "focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
+        "focus:outline-hidden focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
         "disabled:opacity-50 disabled:cursor-not-allowed",
         "transition-colors",
         "flex items-center justify-center gap-2",

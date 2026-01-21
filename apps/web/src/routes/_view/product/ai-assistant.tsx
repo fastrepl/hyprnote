@@ -93,7 +93,7 @@ function BeforeMeetingSection() {
               meeting with. Search through past conversations, extract key
               insights, and understand context before you join.
             </p>
-            <ul className="space-y-2">
+            <ul className="flex flex-col gap-2">
               <li className="flex items-start gap-2">
                 <Icon
                   icon="mdi:check"
@@ -137,7 +137,7 @@ function BeforeMeetingSection() {
               assistant to generate agendas, question lists, or note structures
               specific to your meeting type.
             </p>
-            <ul className="space-y-2">
+            <ul className="flex flex-col gap-2">
               <li className="flex items-start gap-2">
                 <Icon
                   icon="mdi:check"
@@ -316,7 +316,7 @@ function AfterMeetingSection() {
               rest. Automate follow-up tasks across your tools without manual
               data entry.
             </p>
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <div className="p-4 bg-stone-50 border border-neutral-200 rounded-lg">
                 <p className="text-sm text-neutral-700 italic mb-2">
                   "Add a Linear ticket for the mobile UI bug we discussed and
@@ -357,7 +357,7 @@ function AfterMeetingSection() {
               remembers preferences, learns from edits you make to summaries,
               and continuously improves its assistance based on your patterns.
             </p>
-            <ul className="space-y-3 mt-4">
+            <ul className="flex flex-col gap-3 mt-4">
               <li className="flex items-start gap-3">
                 <Icon
                   icon="mdi:check-circle"

@@ -40,7 +40,7 @@ impl RealtimeSttAdapter for DeepgramAdapter {
     }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {
-        api_key.and_then(|k| owhisper_providers::Provider::Deepgram.build_auth_header(k))
+        api_key.and_then(|k| crate::providers::Provider::Deepgram.build_auth_header(k))
     }
 
     fn keep_alive_message(&self) -> Option<Message> {

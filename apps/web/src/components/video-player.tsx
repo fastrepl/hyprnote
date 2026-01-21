@@ -82,7 +82,7 @@ export function VideoPlayer({
               "border-r border-stone-400/50",
               "hover:bg-stone-200/95 active:bg-stone-400/95",
               "transition-all duration-150",
-              "backdrop-blur-sm",
+              "backdrop-blur-xs",
             ])}
           >
             Learn more
@@ -97,7 +97,7 @@ export function VideoPlayer({
               "bg-stone-100/95 text-stone-800",
               "hover:bg-stone-200/95 active:bg-stone-400/95",
               "transition-all duration-150",
-              "backdrop-blur-sm",
+              "backdrop-blur-xs",
             ])}
           >
             Expand video

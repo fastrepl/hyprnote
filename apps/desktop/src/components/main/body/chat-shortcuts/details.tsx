@@ -155,7 +155,7 @@ function ChatShortcutForm({
         </div>
       </div>
 
-      <div className="flex-1 p-6 space-y-4">
+      <div className="flex-1 p-6 flex flex-col gap-4">
         <div>
           <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
             Title

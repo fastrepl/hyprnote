@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::time::Instant;
 
 use axum::{
@@ -25,12 +26,32 @@ pub(super) async fn handle_non_stream_response(
         "llm_completion_response_received"
     );
 
+    sentry::configure_scope(|scope| {
+        scope.set_tag("upstream.status", http_status.to_string());
+    });
+
     let body_bytes = match response.bytes().await {
         Ok(b) => b,
         Err(e) => return ProxyError::BodyRead(e).into_response(),
     };
 
     if let Ok(metadata) = state.config.provider.parse_response(&body_bytes) {
+        sentry::configure_scope(|scope| {
+            let mut ctx = BTreeMap::new();
+            ctx.insert(
+                "generation_id".into(),
+                metadata.generation_id.clone().into(),
+            );
+            if let Some(ref model) = metadata.model {
+                ctx.insert("model".into(), model.clone().into());
+            }
+            ctx.insert("input_tokens".into(), metadata.input_tokens.into());
+            ctx.insert("output_tokens".into(), metadata.output_tokens.into());
+            ctx.insert("latency_ms".into(), (latency_ms as u64).into());
+            ctx.insert("http_status".into(), http_status.into());
+            scope.set_context("llm_response", sentry::protocol::Context::Other(ctx));
+        });
+
         let event = GenerationEvent {
             generation_id: metadata.generation_id,
             model: metadata.model.unwrap_or_default(),

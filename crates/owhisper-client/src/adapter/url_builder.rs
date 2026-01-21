@@ -1,5 +1,6 @@
 use owhisper_interface::ListenParams;
-use owhisper_providers::{Provider, is_meta_model};
+
+use crate::providers::{Provider, is_meta_model};
 
 use super::deepgram::DeepgramModel;
 

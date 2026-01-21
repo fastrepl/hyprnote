@@ -50,6 +50,7 @@ pub async fn main() {
             ));
 
             sentry::configure_scope(|scope| {
+                scope.set_tag("service", "hyprnote-desktop");
                 scope.set_user(Some(sentry::User {
                     id: Some(hypr_host::fingerprint()),
                     ..Default::default()
@@ -331,6 +332,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::resize_window_for_chat::<tauri::Wry>,
             commands::get_tinybase_values::<tauri::Wry>,
             commands::set_tinybase_values::<tauri::Wry>,
+            commands::get_local_persister_loaded::<tauri::Wry>,
+            commands::set_local_persister_loaded::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

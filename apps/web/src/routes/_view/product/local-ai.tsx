@@ -64,7 +64,7 @@ function HeroSection() {
   return (
     <section className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
       <div className="flex flex-col items-center text-center gap-6 py-24 px-4">
-        <div className="space-y-6 max-w-4xl">
+        <div className="flex flex-col gap-6 max-w-4xl">
           <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
             AI that runs
             <br />
@@ -187,7 +187,7 @@ function ComparisonSection() {
               Cloud AI Services
             </h3>
           </div>
-          <ul className="space-y-4 text-neutral-600">
+          <ul className="flex flex-col gap-4 text-neutral-600">
             <li className="flex items-start gap-3">
               <Icon
                 icon="mdi:close"
@@ -239,7 +239,7 @@ function ComparisonSection() {
               Hyprnote Local AI
             </h3>
           </div>
-          <ul className="space-y-4 text-green-900">
+          <ul className="flex flex-col gap-4 text-green-900">
             <li className="flex items-start gap-3">
               <Icon
                 icon="mdi:check"

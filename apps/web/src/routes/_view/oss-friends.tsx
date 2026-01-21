@@ -123,7 +123,7 @@ function HeroSection({
                 placeholder="Search projects..."
                 value={search}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full px-12 py-3 rounded-full bg-transparent outline-none text-neutral-800 placeholder:text-neutral-400"
+                className="w-full px-12 py-3 rounded-full bg-transparent outline-hidden text-neutral-800 placeholder:text-neutral-400"
               />
             </div>
           </div>

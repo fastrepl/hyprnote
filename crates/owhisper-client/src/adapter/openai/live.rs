@@ -43,7 +43,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
     }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {
-        api_key.and_then(|k| owhisper_providers::Provider::OpenAI.build_auth_header(k))
+        api_key.and_then(|k| crate::providers::Provider::OpenAI.build_auth_header(k))
     }
 
     fn keep_alive_message(&self) -> Option<Message> {
@@ -71,9 +71,9 @@ impl RealtimeSttAdapter for OpenAIAdapter {
             .first()
             .map(|l| l.iso639().code().to_string());
 
-        let default = owhisper_providers::Provider::OpenAI.default_live_model();
+        let default = crate::providers::Provider::OpenAI.default_live_model();
         let model = match params.model.as_deref() {
-            Some(m) if owhisper_providers::is_meta_model(m) => default,
+            Some(m) if crate::providers::is_meta_model(m) => default,
             Some(m) => m,
             None => default,
         };

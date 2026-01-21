@@ -1,12 +1,16 @@
 use tauri::Manager;
 
 mod commands;
+mod content_base;
 mod error;
 mod ext;
+mod fs;
+mod obsidian;
 mod state;
 
 pub use error::{Error, Result};
 pub use ext::*;
+pub use obsidian::ObsidianVault;
 pub use state::*;
 
 const PLUGIN_NAME: &str = "settings";
@@ -15,13 +19,13 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::settings_path::<tauri::Wry>,
             commands::settings_base::<tauri::Wry>,
             commands::content_base::<tauri::Wry>,
             commands::change_content_base::<tauri::Wry>,
-            commands::obsidian_vaults::<tauri::Wry>,
-            commands::path::<tauri::Wry>,
             commands::load::<tauri::Wry>,
             commands::save::<tauri::Wry>,
+            commands::obsidian_vaults::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
@@ -32,8 +36,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let base = app.settings().settings_base().unwrap();
-            let state = SettingsState::new(base);
+            let settings_base = app.settings().settings_base().unwrap();
+            let content_base = app.settings().compute_content_base().unwrap();
+            let state = state::State::new(settings_base, content_base);
             assert!(app.manage(state));
             Ok(())
         })

@@ -5,6 +5,7 @@ use std::path::PathBuf;
 #[serde(rename_all = "snake_case")]
 pub enum TransformKind {
     HyprnoteV0,
+    HyprnoteV1Sqlite,
     Granola,
     AsIs,
 }
@@ -15,6 +16,7 @@ pub enum ImportSourceKind {
     Granola,
     HyprnoteV0Stable,
     HyprnoteV0Nightly,
+    HyprnoteV1Sqlite,
     AsIs,
 }
 
@@ -60,6 +62,16 @@ impl ImportSource {
         })
     }
 
+    pub fn hyprnote_v1_sqlite() -> Option<Self> {
+        let path = dirs::data_dir()?.join("com.hyprnote").join("db.sqlite");
+        Some(Self {
+            kind: Some(ImportSourceKind::HyprnoteV1Sqlite),
+            transform: TransformKind::HyprnoteV1Sqlite,
+            path,
+            name: "Hyprnote v1".to_string(),
+        })
+    }
+
     pub fn granola() -> Option<Self> {
         let path = hypr_granola::default_supabase_path();
         Some(Self {
@@ -77,7 +89,8 @@ impl ImportSource {
     pub fn info(&self) -> ImportSourceInfo {
         let (display_path, reveal_path) = match self.kind {
             Some(ImportSourceKind::HyprnoteV0Stable)
-            | Some(ImportSourceKind::HyprnoteV0Nightly) => {
+            | Some(ImportSourceKind::HyprnoteV0Nightly)
+            | Some(ImportSourceKind::HyprnoteV1Sqlite) => {
                 let parent = self.path.parent().unwrap_or(&self.path);
                 let display = parent
                     .file_name()
@@ -107,6 +120,7 @@ impl From<ImportSourceKind> for ImportSource {
         match kind {
             ImportSourceKind::HyprnoteV0Stable => Self::hyprnote_stable().unwrap(),
             ImportSourceKind::HyprnoteV0Nightly => Self::hyprnote_nightly().unwrap(),
+            ImportSourceKind::HyprnoteV1Sqlite => Self::hyprnote_v1_sqlite().unwrap(),
             ImportSourceKind::Granola => Self::granola().unwrap(),
             ImportSourceKind::AsIs => Self {
                 kind: Some(ImportSourceKind::AsIs),
@@ -137,6 +151,7 @@ pub struct ImportStats {
     pub organizations_count: usize,
     pub participants_count: usize,
     pub templates_count: usize,
+    pub enhanced_notes_count: usize,
 }
 
 pub struct ImportResult {
@@ -146,6 +161,7 @@ pub struct ImportResult {
     pub organizations: Vec<ImportedOrganization>,
     pub participants: Vec<ImportedSessionParticipant>,
     pub templates: Vec<ImportedTemplate>,
+    pub enhanced_notes: Vec<ImportedEnhancedNote>,
 }
 
 impl ImportResult {
@@ -157,6 +173,7 @@ impl ImportResult {
             transcripts_count: self.transcripts.len(),
             participants_count: self.participants.len(),
             templates_count: self.templates.len(),
+            enhanced_notes_count: self.enhanced_notes.len(),
         }
     }
 }
@@ -230,6 +247,16 @@ pub struct ImportedSessionParticipant {
     pub session_id: String,
     pub human_id: String,
     pub source: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct ImportedEnhancedNote {
+    pub id: String,
+    pub session_id: String,
+    pub content: String,
+    pub template_id: Option<String>,
+    pub position: i32,
+    pub title: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]

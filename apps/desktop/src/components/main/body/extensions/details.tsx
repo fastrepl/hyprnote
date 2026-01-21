@@ -83,7 +83,7 @@ function ExtensionDetails({ id }: { id: string }) {
       </div>
 
       <div className="flex-1 p-6 overflow-y-auto">
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           {extension.description && (
             <div>
               <h3 className="text-sm font-medium text-neutral-900 mb-2">
@@ -99,7 +99,7 @@ function ExtensionDetails({ id }: { id: string }) {
             <h3 className="text-sm font-medium text-neutral-900 mb-2">
               Details
             </h3>
-            <div className="space-y-2 text-sm">
+            <div className="flex flex-col gap-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-neutral-500">ID</span>
                 <span className="font-mono text-neutral-900">
@@ -126,7 +126,7 @@ function ExtensionDetails({ id }: { id: string }) {
               <h3 className="text-sm font-medium text-neutral-900 mb-2">
                 Panels
               </h3>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 {extension.panels.map((panel) => (
                   <div
                     key={panel.id}

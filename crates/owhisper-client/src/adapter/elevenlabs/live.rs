@@ -34,9 +34,9 @@ impl RealtimeSttAdapter for ElevenLabsAdapter {
                 query_pairs.append_pair(key, value);
             }
 
-            let default = owhisper_providers::Provider::ElevenLabs.default_live_model();
+            let default = crate::providers::Provider::ElevenLabs.default_live_model();
             let model = match params.model.as_deref() {
-                Some(m) if owhisper_providers::is_meta_model(m) => default,
+                Some(m) if crate::providers::is_meta_model(m) => default,
                 Some("scribe_v2") => default,
                 Some(m) => m,
                 None => default,
@@ -155,6 +155,7 @@ enum ElevenLabsMessage {
     SessionStarted {
         session_id: String,
         #[serde(default)]
+        #[allow(dead_code)]
         config: Option<serde_json::Value>,
     },
     #[serde(rename = "partial_transcript")]

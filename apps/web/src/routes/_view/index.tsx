@@ -293,7 +293,7 @@ function HeroSection({
           id="hero"
           className="flex flex-col items-center text-center gap-12 py-24 px-4 laptop:px-0"
         >
-          <div className="space-y-6 max-w-4xl">
+          <div className="flex flex-col gap-6 max-w-4xl">
             <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
               The AI notepad for <br className="block sm:hidden" />
               private meetings
@@ -348,7 +348,7 @@ function HeroSection({
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
                         placeholder={heroCTA.inputPlaceholder}
-                        className="flex-1 px-6 py-4 text-base outline-none bg-white"
+                        className="flex-1 px-6 py-4 text-base outline-hidden bg-white"
                         disabled={mutation.isPending || mutation.isSuccess}
                       />
                       <button
@@ -855,8 +855,8 @@ export function HowItWorksSection() {
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
             <MockWindow>
-              <div className="p-6 space-y-4 h-75 overflow-hidden">
-                <div className="space-y-2">
+              <div className="p-6 flex flex-col gap-4 h-75 overflow-hidden">
+                <div className="flex flex-col gap-2">
                   <h4
                     className={cn([
                       "text-lg font-semibold text-stone-700 transition-opacity duration-500",
@@ -865,7 +865,7 @@ export function HowItWorksSection() {
                   >
                     Mobile UI Update and API Adjustments
                   </h4>
-                  <ul className="space-y-2 text-neutral-700 list-disc pl-5">
+                  <ul className="flex flex-col gap-2 text-neutral-700 list-disc pl-5">
                     <li
                       className={cn(
                         "transition-opacity duration-500",
@@ -898,7 +898,7 @@ export function HowItWorksSection() {
                     </li>
                   </ul>
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <h4
                     className={cn([
                       "font-semibold text-stone-700 transition-opacity duration-500",
@@ -907,7 +907,7 @@ export function HowItWorksSection() {
                   >
                     New Dashboard – Urgent Priority
                   </h4>
-                  <ul className="space-y-2 text-sm text-neutral-700 list-disc pl-5">
+                  <ul className="flex flex-col gap-2 text-sm text-neutral-700 list-disc pl-5">
                     <li
                       className={cn([
                         "transition-opacity duration-500",
@@ -980,12 +980,12 @@ export function HowItWorksSection() {
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
             <MockWindow variant="mobile">
-              <div className="p-6 space-y-4 h-50 overflow-hidden">
-                <div className="space-y-2">
+              <div className="p-6 flex flex-col gap-4 h-50 overflow-hidden">
+                <div className="flex flex-col gap-2">
                   <h4 className="text-lg font-semibold text-stone-700">
                     Mobile UI Update and API Adjustments
                   </h4>
-                  <ul className="space-y-2 text-neutral-700 list-disc pl-4">
+                  <ul className="flex flex-col gap-2 text-neutral-700 list-disc pl-4">
                     <li
                       className={cn([
                         "transition-opacity duration-500",
@@ -1018,11 +1018,11 @@ export function HowItWorksSection() {
                     </li>
                   </ul>
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <h4 className="text-lg font-semibold text-stone-700">
                     New Dashboard – Urgent Priority
                   </h4>
-                  <ul className="space-y-2 text-neutral-700 list-disc pl-4">
+                  <ul className="flex flex-col gap-2 text-neutral-700 list-disc pl-4">
                     <li
                       className={cn([
                         "transition-opacity duration-500",
@@ -1242,7 +1242,7 @@ function FeaturesMobileCarousel({
                       {feature.title}
                     </h3>
                     {feature.comingSoon && (
-                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
+                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
                         Coming Soon
                       </span>
                     )}
@@ -1336,7 +1336,7 @@ function FeaturesDesktopGrid() {
                         "bg-stone-100/95 text-stone-800",
                         "hover:bg-stone-200/95 active:bg-stone-400/95",
                         "transition-all duration-150",
-                        "backdrop-blur-sm",
+                        "backdrop-blur-xs",
                       ])}
                     >
                       Learn more
@@ -1361,7 +1361,7 @@ function FeaturesDesktopGrid() {
                 </h3>
               </div>
               {feature.comingSoon && (
-                <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
+                <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
                   Coming Soon
                 </span>
               )}
@@ -1546,7 +1546,7 @@ function DetailsMobileCarousel({
                       {feature.title}
                     </h3>
                     {feature.comingSoon && (
-                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
+                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
                         Coming Soon
                       </span>
                     )}
@@ -1630,7 +1630,7 @@ function DetailsTabletView({
                       {feature.title}
                     </h3>
                     {feature.comingSoon && (
-                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
+                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-xs">
                         Coming Soon
                       </span>
                     )}
@@ -1807,7 +1807,7 @@ function DetailsDesktopView() {
                       "bg-stone-100/95 text-stone-800",
                       "hover:bg-stone-200/95 active:bg-stone-400/95",
                       "transition-all duration-150",
-                      "backdrop-blur-sm",
+                      "backdrop-blur-xs",
                     ])}
                   >
                     Learn more
@@ -1838,7 +1838,7 @@ function ManifestoSection() {
           }}
         >
           <div
-            className="bg-stone-50 border border-neutral-200 rounded-sm p-8 sm:p-12"
+            className="bg-stone-50 border border-neutral-200 rounded-xs p-8 sm:p-12"
             style={{
               backgroundImage: "url(/api/images/texture/paper.png)",
             }}
@@ -1847,7 +1847,7 @@ function ManifestoSection() {
               Our manifesto
             </h2>
 
-            <div className="space-y-4 text-neutral-700 leading-relaxed">
+            <div className="flex flex-col gap-4 text-neutral-700 leading-relaxed">
               <p>
                 We believe in the power of notetaking, not notetakers. Meetings
                 should be moments of presence, not passive attendance. If you
@@ -1883,7 +1883,7 @@ function ManifestoSection() {
               />
             </div>
 
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               <div>
                 <p className="text-base text-neutral-600 font-medium italic font-serif">
                   Hyprnote
@@ -1949,7 +1949,7 @@ function BlogSection() {
               params={{ slug: article.slug }}
               className="group block h-full"
             >
-              <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
+              <article className="h-full border border-neutral-100 rounded-xs overflow-hidden bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
                 <div className="aspect-40/21 overflow-hidden border-b border-neutral-100 bg-stone-50">
                   <img
                     src={ogImage}

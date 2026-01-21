@@ -61,9 +61,9 @@ impl FireworksAdapter {
         let file_part = reqwest::multipart::Part::bytes(file_bytes).file_name(file_name);
         let mut form = reqwest::multipart::Form::new().part("file", file_part);
 
-        let default = owhisper_providers::Provider::Fireworks.default_batch_model();
+        let default = crate::providers::Provider::Fireworks.default_batch_model();
         let model = match params.model.as_deref() {
-            Some(m) if owhisper_providers::is_meta_model(m) => default,
+            Some(m) if crate::providers::is_meta_model(m) => default,
             Some(m) => m,
             None => default,
         };

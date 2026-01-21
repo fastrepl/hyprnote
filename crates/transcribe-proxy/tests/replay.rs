@@ -10,17 +10,19 @@ use common::{
     MessageKind, MockUpstreamConfig, load_fixture, start_mock_server_with_config,
     start_server_with_upstream_url,
 };
-use owhisper_providers::Provider;
+use owhisper_client::Provider;
 
 const TEST_RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
 
 async fn connect_to_proxy(
     proxy_addr: std::net::SocketAddr,
+    provider: Provider,
     model: &str,
 ) -> tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>> {
+    let provider_name = format!("{:?}", provider).to_lowercase();
     let url = format!(
-        "ws://{}/listen?model={}&encoding=linear16&sample_rate=16000&channels=1",
-        proxy_addr, model
+        "ws://{}/listen?provider={}&model={}&encoding=linear16&sample_rate=16000&channels=1",
+        proxy_addr, provider_name, model
     );
     let (ws_stream, _) = connect_async(&url)
         .await
@@ -73,7 +75,7 @@ async fn test_deepgram_normal_transcription_replay() {
     let proxy_addr =
         start_server_with_upstream_url(Provider::Deepgram, &mock_handle.ws_url()).await;
 
-    let ws_stream = connect_to_proxy(proxy_addr, "nova-3").await;
+    let ws_stream = connect_to_proxy(proxy_addr, Provider::Deepgram, "nova-3").await;
     let (messages, close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     assert!(!messages.is_empty(), "Expected to receive messages");
@@ -100,7 +102,7 @@ async fn test_deepgram_auth_error_replay() {
     let proxy_addr =
         start_server_with_upstream_url(Provider::Deepgram, &mock_handle.ws_url()).await;
 
-    let ws_stream = connect_to_proxy(proxy_addr, "nova-3").await;
+    let ws_stream = connect_to_proxy(proxy_addr, Provider::Deepgram, "nova-3").await;
     let (messages, close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     assert!(!messages.is_empty(), "Expected to receive error message");
@@ -130,7 +132,7 @@ async fn test_deepgram_rate_limit_replay() {
     let proxy_addr =
         start_server_with_upstream_url(Provider::Deepgram, &mock_handle.ws_url()).await;
 
-    let ws_stream = connect_to_proxy(proxy_addr, "nova-3").await;
+    let ws_stream = connect_to_proxy(proxy_addr, Provider::Deepgram, "nova-3").await;
     let (messages, close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     let has_rate_limit = messages
@@ -158,7 +160,7 @@ async fn test_soniox_normal_transcription_replay() {
 
     let proxy_addr = start_server_with_upstream_url(Provider::Soniox, &mock_handle.ws_url()).await;
 
-    let ws_stream = connect_to_proxy(proxy_addr, "stt-v3").await;
+    let ws_stream = connect_to_proxy(proxy_addr, Provider::Soniox, "stt-v3").await;
     let (messages, close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     assert!(!messages.is_empty(), "Expected to receive messages");
@@ -184,7 +186,7 @@ async fn test_soniox_error_replay() {
 
     let proxy_addr = start_server_with_upstream_url(Provider::Soniox, &mock_handle.ws_url()).await;
 
-    let ws_stream = connect_to_proxy(proxy_addr, "stt-v3").await;
+    let ws_stream = connect_to_proxy(proxy_addr, Provider::Soniox, "stt-v3").await;
     let (messages, close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     let has_error = messages
@@ -218,7 +220,7 @@ async fn test_proxy_forwards_all_messages() {
     let proxy_addr =
         start_server_with_upstream_url(Provider::Deepgram, &mock_handle.ws_url()).await;
 
-    let ws_stream = connect_to_proxy(proxy_addr, "nova-3").await;
+    let ws_stream = connect_to_proxy(proxy_addr, Provider::Deepgram, "nova-3").await;
     let (messages, _close_info) = collect_messages(ws_stream, TEST_RESPONSE_TIMEOUT).await;
 
     assert_eq!(
@@ -247,7 +249,7 @@ async fn test_proxy_handles_client_disconnect() {
     let proxy_addr =
         start_server_with_upstream_url(Provider::Deepgram, &mock_handle.ws_url()).await;
 
-    let ws_stream = connect_to_proxy(proxy_addr, "nova-3").await;
+    let ws_stream = connect_to_proxy(proxy_addr, Provider::Deepgram, "nova-3").await;
     let (mut sender, mut receiver) = ws_stream.split();
 
     if let Some(msg) = receiver.next().await {

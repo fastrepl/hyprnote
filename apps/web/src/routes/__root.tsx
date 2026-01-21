@@ -5,6 +5,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 
+import { Toaster } from "@hypr/ui/components/ui/toast";
+
 import { NotFoundDocument } from "@/components/not-found";
 import appCss from "@/styles.css?url";
 
@@ -54,15 +56,25 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
-  scripts: () =>
-    import.meta.env.DEV
-      ? []
-      : [
-          {
-            id: "ze-snippet",
-            src: "https://static.zdassets.com/ekr/snippet.js?key=15949e47-ed5a-4e52-846e-200dd0b8f4b9",
-          },
-        ],
+  scripts: ({ matches }) => {
+    if (import.meta.env.DEV) {
+      return [];
+    }
+
+    const isAdminRoute = matches.some((match) =>
+      match.pathname.startsWith("/admin"),
+    );
+    if (isAdminRoute) {
+      return [];
+    }
+
+    return [
+      {
+        id: "ze-snippet",
+        src: "https://static.zdassets.com/ekr/snippet.js?key=15949e47-ed5a-4e52-846e-200dd0b8f4b9",
+      },
+    ];
+  },
   shellComponent: RootDocument,
   notFoundComponent: NotFoundDocument,
 });
@@ -75,6 +87,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster position="bottom-right" />
         <Scripts />
       </body>
     </html>

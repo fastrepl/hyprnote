@@ -38,10 +38,10 @@ pub async fn copy_dir_recursive(
         let file_name = entry.file_name();
         let dst_path = dst.join(&file_name);
 
-        if let Some(skip) = skip_filename {
-            if file_name == skip {
-                continue;
-            }
+        if let Some(skip) = skip_filename
+            && file_name == skip
+        {
+            continue;
         }
 
         let file_type = entry.file_type().await?;

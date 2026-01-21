@@ -120,14 +120,17 @@ impl DeepgramAdapter {
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
-        if languages.len() >= 2 {
-            return Self::can_use_multi(languages);
+        // Check if user-specified model supports all languages
+        if let Some(model_str) = model {
+            if let Ok(parsed_model) = model_str.parse::<DeepgramModel>() {
+                if !languages.iter().all(|lang| parsed_model.supports_language(lang)) {
+                    return false;
+                }
+            }
         }
 
-        if let Some(model_str) = model {
-            if let Ok(model) = model_str.parse::<DeepgramModel>() {
-                return languages.iter().all(|lang| model.supports_language(lang));
-            }
+        if languages.len() >= 2 {
+            return Self::can_use_multi(languages);
         }
 
         DeepgramModel::best_for_languages(languages).is_some()

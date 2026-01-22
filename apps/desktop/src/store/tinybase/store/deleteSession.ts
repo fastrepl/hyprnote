@@ -20,13 +20,11 @@ function deleteByIndex(
   }
 }
 
-export async function deleteSessionCascade(
+export function deleteSessionData(
   store: Store,
   indexes: ReturnType<typeof main.UI.useIndexes>,
   sessionId: string,
-): Promise<void> {
-  await fsSyncCommands.audioDelete(sessionId);
-
+): void {
   if (!indexes) {
     store.delRow("sessions", sessionId);
     return;
@@ -66,6 +64,15 @@ export async function deleteSessionCascade(
 
     store.delRow("sessions", sessionId);
   });
+}
+
+export async function deleteSessionCascade(
+  store: Store,
+  indexes: ReturnType<typeof main.UI.useIndexes>,
+  sessionId: string,
+): Promise<void> {
+  await fsSyncCommands.audioDelete(sessionId);
+  deleteSessionData(store, indexes, sessionId);
 }
 
 export function useDeleteSession() {

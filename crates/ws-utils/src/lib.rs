@@ -6,7 +6,7 @@ use std::task::{Context, Poll};
 
 use axum::extract::ws::{Message, WebSocket};
 use futures_util::{Stream, StreamExt, stream::SplitStream};
-use tokio::sync::mpsc::{UnboundedReceiver, unbounded_channel};
+use tokio::sync::mpsc::{Receiver, channel};
 
 use hypr_audio_utils::{bytes_to_f32_samples, mix_audio_f32};
 use owhisper_interface::ListenInputChunk;
@@ -144,15 +144,17 @@ impl hypr_audio_interface::AsyncSource for WebSocketAudioSource {
     }
 }
 
+const AUDIO_CHANNEL_CAPACITY: usize = 64;
+
 pub struct ChannelAudioSource {
-    receiver: Option<UnboundedReceiver<Vec<f32>>>,
+    receiver: Option<Receiver<Vec<f32>>>,
     sample_rate: u32,
     buffer: Vec<f32>,
     buffer_idx: usize,
 }
 
 impl ChannelAudioSource {
-    fn new(receiver: UnboundedReceiver<Vec<f32>>, sample_rate: u32) -> Self {
+    fn new(receiver: Receiver<Vec<f32>>, sample_rate: u32) -> Self {
         Self {
             receiver: Some(receiver),
             sample_rate,
@@ -209,19 +211,27 @@ pub fn split_dual_audio_sources(
     mut ws_receiver: SplitStream<WebSocket>,
     sample_rate: u32,
 ) -> (ChannelAudioSource, ChannelAudioSource) {
-    let (mic_tx, mic_rx) = unbounded_channel::<Vec<f32>>();
-    let (speaker_tx, speaker_rx) = unbounded_channel::<Vec<f32>>();
+    let (mic_tx, mic_rx) = channel::<Vec<f32>>(AUDIO_CHANNEL_CAPACITY);
+    let (speaker_tx, speaker_rx) = channel::<Vec<f32>>(AUDIO_CHANNEL_CAPACITY);
 
     tokio::spawn(async move {
         while let Some(Ok(message)) = ws_receiver.next().await {
             match process_ws_message(message, Some(2)) {
                 AudioProcessResult::Samples(samples) => {
-                    let _ = mic_tx.send(samples.clone());
-                    let _ = speaker_tx.send(samples);
+                    if mic_tx.try_send(samples.clone()).is_err() {
+                        tracing::warn!("mic_channel_full_dropping_audio");
+                    }
+                    if speaker_tx.try_send(samples).is_err() {
+                        tracing::warn!("speaker_channel_full_dropping_audio");
+                    }
                 }
                 AudioProcessResult::DualSamples { mic, speaker } => {
-                    let _ = mic_tx.send(mic);
-                    let _ = speaker_tx.send(speaker);
+                    if mic_tx.try_send(mic).is_err() {
+                        tracing::warn!("mic_channel_full_dropping_audio");
+                    }
+                    if speaker_tx.try_send(speaker).is_err() {
+                        tracing::warn!("speaker_channel_full_dropping_audio");
+                    }
                 }
                 AudioProcessResult::End => break,
                 AudioProcessResult::Empty => continue,

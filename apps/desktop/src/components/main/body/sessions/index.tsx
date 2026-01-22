@@ -58,6 +58,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
     main.STORE_ID,
   );
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
+  const stop = useListener((state) => state.stop);
   const isEnhancing = useIsSessionEnhancing(tab.id);
   const isActive = sessionMode === "active" || sessionMode === "finalizing";
   const isFinalizing = sessionMode === "finalizing";
@@ -73,6 +74,13 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
     }
   };
 
+  const handleCloseWithStop = () => {
+    if (isActive) {
+      stop();
+    }
+    handleCloseThis(tab);
+  };
+
   return (
     <TabItemBase
       icon={<StickyNoteIcon className="w-4 h-4" />}
@@ -84,7 +92,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
       tabIndex={tabIndex}
       showCloseConfirmation={showCloseConfirmation}
       onCloseConfirmationChange={handleCloseConfirmationChange}
-      handleCloseThis={() => handleCloseThis(tab)}
+      handleCloseThis={handleCloseWithStop}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}

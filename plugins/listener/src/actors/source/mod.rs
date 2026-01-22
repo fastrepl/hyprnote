@@ -114,8 +114,9 @@ impl DisplayStateWatcher {
         let mut was_inactive = hypr_mac::is_builtin_display_inactive();
 
         loop {
-            if stop_rx.try_recv().is_ok() {
-                break;
+            match stop_rx.try_recv() {
+                Ok(_) | Err(mpsc::TryRecvError::Disconnected) => break,
+                Err(mpsc::TryRecvError::Empty) => {}
             }
 
             std::thread::sleep(std::time::Duration::from_millis(500));

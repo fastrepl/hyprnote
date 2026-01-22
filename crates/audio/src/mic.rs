@@ -9,6 +9,8 @@ use std::pin::Pin;
 
 use crate::AsyncSource;
 
+const AUDIO_CHANNEL_CAPACITY: usize = 1024;
+
 fn is_tap_device(name: &str) -> bool {
     #[cfg(target_os = "macos")]
     {
@@ -99,7 +101,7 @@ impl MicInput {
 
 impl MicInput {
     pub fn stream(&self) -> MicStream {
-        let (tx, rx) = mpsc::unbounded::<Vec<f32>>();
+        let (tx, rx) = mpsc::channel::<Vec<f32>>(AUDIO_CHANNEL_CAPACITY);
 
         let config = self.config.clone();
         let device = self.device.clone();
@@ -109,18 +111,23 @@ impl MicInput {
             fn build_stream<S: ToSample<f32> + SizedSample>(
                 device: &cpal::Device,
                 config: &cpal::SupportedStreamConfig,
-                mut tx: mpsc::UnboundedSender<Vec<f32>>,
+                mut tx: mpsc::Sender<Vec<f32>>,
             ) -> Result<cpal::Stream, cpal::BuildStreamError> {
                 let channels = config.channels() as usize;
                 device.build_input_stream::<S, _, _>(
                     &config.config(),
                     move |data: &[S], _input_callback_info: &_| {
-                        let _ = tx.start_send(
-                            data.iter()
-                                .step_by(channels)
-                                .map(|&x| x.to_sample())
-                                .collect(),
-                        );
+                        if tx
+                            .try_send(
+                                data.iter()
+                                    .step_by(channels)
+                                    .map(|&x| x.to_sample())
+                                    .collect(),
+                            )
+                            .is_err()
+                        {
+                            tracing::warn!("mic_channel_full_dropping_audio");
+                        }
                     },
                     |err| {
                         tracing::error!("an error occurred on stream: {}", err);

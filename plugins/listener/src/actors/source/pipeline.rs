@@ -323,6 +323,7 @@ struct Joiner {
 impl Joiner {
     const MAX_LAG: usize = 4;
     const MAX_QUEUE_SIZE: usize = 30;
+    const MAX_SILENCE_CACHE_SIZE: usize = 20;
 
     fn new() -> Self {
         Self {
@@ -335,9 +336,15 @@ impl Joiner {
     fn reset(&mut self) {
         self.mic.clear();
         self.spk.clear();
+        self.silence_cache.clear();
     }
 
     fn get_silence(&mut self, len: usize) -> Arc<[f32]> {
+        if self.silence_cache.len() >= Self::MAX_SILENCE_CACHE_SIZE
+            && !self.silence_cache.contains_key(&len)
+        {
+            self.silence_cache.clear();
+        }
         self.silence_cache
             .entry(len)
             .or_insert_with(|| Arc::from(vec![0.0; len]))

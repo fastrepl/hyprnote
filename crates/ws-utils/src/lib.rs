@@ -144,7 +144,7 @@ impl hypr_audio_interface::AsyncSource for WebSocketAudioSource {
     }
 }
 
-const AUDIO_CHANNEL_CAPACITY: usize = 64;
+const AUDIO_CHANNEL_CAPACITY: usize = 1024;
 
 pub struct ChannelAudioSource {
     receiver: Option<Receiver<Vec<f32>>>,

@@ -11,11 +11,20 @@ import {
 import { getRpcCanStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 import { commands as openerCommands } from "@hypr/plugin-opener2";
-import type { SubscriptionStatus } from "@hypr/supabase";
 
 import { useAuth } from "./auth";
 import { env } from "./env";
 import { getScheme } from "./utils";
+
+type SubscriptionStatus =
+  | "none"
+  | "active"
+  | "trialing"
+  | "past_due"
+  | "canceled"
+  | "incomplete"
+  | "incomplete_expired"
+  | "unpaid";
 
 type JwtClaims = {
   entitlements?: string[];

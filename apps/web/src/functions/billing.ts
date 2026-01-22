@@ -196,21 +196,23 @@ export const syncAfterSuccess = createServerFn({ method: "POST" }).handler(
 
     const subscriptions = await stripe.subscriptions.list({
       customer: stripeCustomerId,
-      limit: 1,
       status: "all",
     });
 
-    if (subscriptions.data.length === 0) {
+    // Find the first active or trialing subscription (prioritize active over trialing)
+    const activeSubscription =
+      subscriptions.data.find((sub) => sub.status === "active") ||
+      subscriptions.data.find((sub) => sub.status === "trialing");
+
+    if (!activeSubscription) {
       return { status: "none" };
     }
 
-    const subscription = subscriptions.data[0];
-
     return {
-      subscriptionId: subscription.id,
-      status: subscription.status,
-      priceId: subscription.items.data[0].price.id,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      subscriptionId: activeSubscription.id,
+      status: activeSubscription.status,
+      priceId: activeSubscription.items.data[0].price.id,
+      cancelAtPeriodEnd: activeSubscription.cancel_at_period_end,
     };
   },
 );

@@ -2,7 +2,7 @@ use owhisper_interface::ListenParams;
 
 use crate::providers::{Provider, is_meta_model};
 
-use super::deepgram::DeepgramModel;
+use super::deepgram::{DeepgramAdapter, DeepgramModel};
 
 #[derive(Default)]
 pub struct QueryParamBuilder {
@@ -65,7 +65,7 @@ pub fn resolve_model_for_languages<'a>(
 ) -> &'a str {
     match model {
         Some(m) if !is_meta_model(m) => m,
-        _ => DeepgramModel::best_for_languages(languages)
+        _ => DeepgramAdapter::find_model(languages)
             .map(|m| match m {
                 DeepgramModel::Nova3General => "nova-3",
                 DeepgramModel::Nova2General => "nova-2",

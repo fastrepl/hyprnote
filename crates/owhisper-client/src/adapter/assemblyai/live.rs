@@ -4,11 +4,9 @@ use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse
 use serde::Deserialize;
 
 use super::AssemblyAIAdapter;
+use super::language::STREAMING_LANGUAGES;
 use crate::adapter::RealtimeSttAdapter;
 use crate::adapter::parsing::{WordBuilder, calculate_time_span, ms_to_secs};
-
-// https://www.assemblyai.com/docs/universal-streaming/multilingual-transcription
-pub(super) const STREAMING_LANGUAGES: &[&str] = &["en", "es", "fr", "de", "it", "pt"];
 
 // https://www.assemblyai.com/docs/api-reference/streaming-api/streaming-api.md
 impl RealtimeSttAdapter for AssemblyAIAdapter {

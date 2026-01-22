@@ -112,18 +112,18 @@ pub async fn suggest_providers_for_languages_live<R: tauri::Runtime>(
         AdapterKind::ElevenLabs,
     ];
 
-    let mut with_quality: Vec<_> = all_providers
+    let mut with_support: Vec<_> = all_providers
         .iter()
         .map(|kind| {
-            let quality = kind.language_quality_live(&languages_parsed, None);
-            (*kind, quality)
+            let support = kind.language_support_live(&languages_parsed, None);
+            (*kind, support)
         })
-        .filter(|(_, quality)| quality.is_supported())
+        .filter(|(_, support)| support.is_supported())
         .collect();
 
-    with_quality.sort_by(|(_, q1), (_, q2)| q2.cmp(q1));
+    with_support.sort_by(|(_, s1), (_, s2)| s2.cmp(s1));
 
-    let supported: Vec<String> = with_quality
+    let supported: Vec<String> = with_support
         .into_iter()
         .map(|(kind, _)| format!("{:?}", kind).to_lowercase())
         .collect();

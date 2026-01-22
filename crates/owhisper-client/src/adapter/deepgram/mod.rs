@@ -4,7 +4,7 @@ mod keywords;
 mod language;
 mod live;
 
-use super::LanguageQuality;
+use super::{LanguageQuality, LanguageSupport};
 
 // https://developers.deepgram.com/docs/models-languages-overview
 const NOVA3_GENERAL_LANGUAGES: &[&str] = &[
@@ -61,7 +61,7 @@ pub enum DeepgramModel {
 }
 
 impl DeepgramModel {
-    fn supported_languages(&self) -> &'static [&'static str] {
+    pub fn supported_languages(&self) -> &'static [&'static str] {
         match self {
             Self::Nova3General => NOVA3_GENERAL_LANGUAGES,
             Self::Nova3Medical => NOVA3_MEDICAL_LANGUAGES,
@@ -70,40 +70,93 @@ impl DeepgramModel {
         }
     }
 
-    pub fn best_for_languages(languages: &[hypr_language::Language]) -> Option<Self> {
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        [Self::Nova3General, Self::Nova2General]
-            .into_iter()
-            .find(|&model| model.supported_languages().contains(&primary_lang))
+    pub fn supports_language(&self, lang: &hypr_language::Language) -> bool {
+        lang.matches_any_code(self.supported_languages())
     }
 
-    pub fn best_for_multi_languages(languages: &[hypr_language::Language]) -> Option<Self> {
-        if language::can_use_multi(Self::Nova3General.as_ref(), languages) {
-            Some(Self::Nova3General)
-        } else if language::can_use_multi(Self::Nova2General.as_ref(), languages) {
-            Some(Self::Nova2General)
-        } else {
-            None
-        }
+    pub fn supports_multi(&self, languages: &[hypr_language::Language]) -> bool {
+        language::can_use_multi(self.as_ref(), languages)
     }
 }
+
+const MODELS: &[DeepgramModel] = &[
+    DeepgramModel::Nova3General,
+    DeepgramModel::Nova3Medical,
+    DeepgramModel::Nova2General,
+];
 
 #[derive(Clone, Default)]
 pub struct DeepgramAdapter;
 
 impl DeepgramAdapter {
+    pub fn find_model(languages: &[hypr_language::Language]) -> Option<DeepgramModel> {
+        if languages.len() >= 2 {
+            MODELS.iter().find(|m| m.supports_multi(languages)).copied()
+        } else {
+            let primary = languages.first()?;
+            MODELS
+                .iter()
+                .find(|m| m.supports_language(primary))
+                .copied()
+        }
+    }
+
+    pub fn language_support_live(
+        languages: &[hypr_language::Language],
+        model: Option<DeepgramModel>,
+    ) -> LanguageSupport {
+        Self::language_support_impl(languages, model)
+    }
+
+    pub fn language_support_batch(
+        languages: &[hypr_language::Language],
+        model: Option<DeepgramModel>,
+    ) -> LanguageSupport {
+        Self::language_support_impl(languages, model)
+    }
+
+    fn language_support_impl(
+        languages: &[hypr_language::Language],
+        model: Option<DeepgramModel>,
+    ) -> LanguageSupport {
+        if languages.is_empty() {
+            return LanguageSupport::Supported {
+                quality: LanguageQuality::NoData,
+            };
+        }
+
+        if languages.len() >= 2 {
+            let effective_model = model.unwrap_or_default();
+            if !effective_model.supports_multi(languages) && !Self::can_use_multi(languages) {
+                return LanguageSupport::NotSupported;
+            }
+        }
+
+        if let Some(m) = model {
+            if !languages.iter().all(|lang| m.supports_language(lang)) {
+                return LanguageSupport::NotSupported;
+            }
+        } else if Self::find_model(languages).is_none() {
+            return LanguageSupport::NotSupported;
+        }
+
+        LanguageSupport::min(languages.iter().map(Self::single_language_support))
+    }
+
     pub fn is_supported_languages_live(
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
-        Self::is_supported_languages_impl(languages, model)
+        let model = model.and_then(|m| m.parse::<DeepgramModel>().ok());
+        Self::language_support_live(languages, model).is_supported()
     }
 
     pub fn is_supported_languages_batch(
         languages: &[hypr_language::Language],
         model: Option<&str>,
     ) -> bool {
-        Self::is_supported_languages_impl(languages, model)
+        let model = model.and_then(|m| m.parse::<DeepgramModel>().ok());
+        Self::language_support_batch(languages, model).is_supported()
     }
 
     fn can_use_multi(languages: &[hypr_language::Language]) -> bool {
@@ -111,32 +164,9 @@ impl DeepgramAdapter {
             || language::can_use_multi(DeepgramModel::Nova2General.as_ref(), languages)
     }
 
-    fn is_supported_languages_impl(
-        languages: &[hypr_language::Language],
-        _model: Option<&str>,
-    ) -> bool {
-        if languages.len() >= 2 {
-            return Self::can_use_multi(languages);
-        }
-
-        DeepgramModel::best_for_languages(languages).is_some()
-    }
-
-    pub fn language_quality_live(
-        languages: &[hypr_language::Language],
-        _model: Option<&str>,
-    ) -> LanguageQuality {
-        if languages.len() >= 2 && !Self::can_use_multi(languages) {
-            return LanguageQuality::NotSupported;
-        }
-
-        let qualities = languages.iter().map(Self::single_language_quality);
-        LanguageQuality::min_quality(qualities)
-    }
-
-    fn single_language_quality(language: &hypr_language::Language) -> LanguageQuality {
+    fn single_language_support(language: &hypr_language::Language) -> LanguageSupport {
         let code = language.iso639().code();
-        if EXCELLENT_LANGS.contains(&code) {
+        let quality = if EXCELLENT_LANGS.contains(&code) {
             LanguageQuality::Excellent
         } else if HIGH_LANGS.contains(&code) {
             LanguageQuality::High
@@ -144,21 +174,16 @@ impl DeepgramAdapter {
             LanguageQuality::Good
         } else if MODERATE_LANGS.contains(&code) {
             LanguageQuality::Moderate
-        } else if DeepgramModel::best_for_languages(std::slice::from_ref(language)).is_some() {
+        } else if Self::find_model(std::slice::from_ref(language)).is_some() {
             LanguageQuality::NoData
         } else {
-            LanguageQuality::NotSupported
-        }
+            return LanguageSupport::NotSupported;
+        };
+        LanguageSupport::Supported { quality }
     }
 
     pub fn recommended_model_live(languages: &[hypr_language::Language]) -> Option<&'static str> {
-        let model = if languages.len() >= 2 {
-            DeepgramModel::best_for_multi_languages(languages)
-        } else {
-            DeepgramModel::best_for_languages(languages)
-        };
-
-        match model {
+        match Self::find_model(languages) {
             Some(DeepgramModel::Nova3General) => Some("nova-3"),
             Some(DeepgramModel::Nova3Medical) => Some("nova-3-medical"),
             Some(DeepgramModel::Nova2General) => Some("nova-2"),
@@ -184,31 +209,166 @@ mod tests {
 
     #[test]
     fn test_recommended_model_live() {
-        let cases: &[(&[ISO639], Option<&str>)] = &[
-            (&[ISO639::En], Some("nova-3")),
-            (&[ISO639::Ja], Some("nova-3")),
-            (&[ISO639::Zh], Some("nova-2")),
-            (&[ISO639::Th], Some("nova-2")),
-            (&[ISO639::Ar], None),
-            (&[], Some("nova-3")),
-            (&[ISO639::En, ISO639::Es], Some("nova-3")),
-            (&[ISO639::En, ISO639::Fr], Some("nova-3")),
-            (&[ISO639::En, ISO639::Ja], Some("nova-3")),
-            (&[ISO639::Fr, ISO639::De], Some("nova-3")),
-            (&[ISO639::En, ISO639::Ko], None),
-            (&[ISO639::En, ISO639::Zh], None),
-            (&[ISO639::Ko, ISO639::En], None),
+        let cases: Vec<(Vec<Language>, Option<&str>)> = vec![
+            (vec![Language::new(ISO639::En)], Some("nova-3")),
+            (vec![Language::new(ISO639::Ja)], Some("nova-3")),
+            (vec![Language::new(ISO639::Zh)], Some("nova-2")),
+            (vec![Language::new(ISO639::Th)], Some("nova-2")),
+            (vec![Language::new(ISO639::Ar)], None),
+            (vec![], None),
+            (
+                vec![Language::with_region(ISO639::En, "CA")],
+                Some("nova-3-medical"),
+            ),
+            (
+                vec![Language::new(ISO639::En), Language::new(ISO639::Es)],
+                Some("nova-3"),
+            ),
+            (
+                vec![Language::new(ISO639::En), Language::new(ISO639::Fr)],
+                Some("nova-3"),
+            ),
+            (
+                vec![Language::new(ISO639::En), Language::new(ISO639::Ja)],
+                Some("nova-3"),
+            ),
+            (
+                vec![Language::new(ISO639::Fr), Language::new(ISO639::De)],
+                Some("nova-3"),
+            ),
+            (
+                vec![Language::new(ISO639::En), Language::new(ISO639::Ko)],
+                None,
+            ),
+            (
+                vec![Language::new(ISO639::En), Language::new(ISO639::Zh)],
+                None,
+            ),
+            (
+                vec![Language::new(ISO639::Ko), Language::new(ISO639::En)],
+                None,
+            ),
         ];
 
-        for (iso_codes, expected) in cases {
-            let langs: Vec<Language> = iso_codes.iter().map(|&iso| iso.into()).collect();
+        for (languages, expected) in cases {
             assert_eq!(
-                DeepgramAdapter::recommended_model_live(&langs),
-                *expected,
+                DeepgramAdapter::recommended_model_live(&languages),
+                expected,
                 "failed for {:?}",
-                iso_codes
+                languages
             );
         }
+    }
+
+    #[test]
+    fn test_language_support_with_model() {
+        let cases: Vec<(Vec<Language>, DeepgramModel, bool)> = vec![
+            (
+                vec![Language::new(ISO639::En)],
+                DeepgramModel::Nova3General,
+                true,
+            ),
+            (
+                vec![Language::new(ISO639::En)],
+                DeepgramModel::Nova3Medical,
+                true,
+            ),
+            (
+                vec![Language::new(ISO639::En)],
+                DeepgramModel::Nova2General,
+                true,
+            ),
+            (
+                vec![Language::with_region(ISO639::En, "CA")],
+                DeepgramModel::Nova3Medical,
+                true,
+            ),
+        ];
+
+        for (languages, model, expected) in cases {
+            assert_eq!(
+                DeepgramAdapter::language_support_live(&languages, Some(model)).is_supported(),
+                expected,
+                "failed for {:?} with {:?}",
+                languages,
+                model
+            );
+        }
+    }
+
+    #[test]
+    fn test_language_support_quality() {
+        let en: Vec<hypr_language::Language> = vec![ISO639::En.into()];
+        let support = DeepgramAdapter::language_support_live(&en, None);
+        assert_eq!(support.quality(), Some(LanguageQuality::Excellent));
+
+        let ja: Vec<hypr_language::Language> = vec![ISO639::Ja.into()];
+        let support = DeepgramAdapter::language_support_live(&ja, None);
+        assert_eq!(support.quality(), Some(LanguageQuality::High));
+    }
+
+    #[test]
+    fn test_model_supports_language() {
+        let en: hypr_language::Language = ISO639::En.into();
+        let zh: hypr_language::Language = ISO639::Zh.into();
+
+        assert!(DeepgramModel::Nova3General.supports_language(&en));
+        assert!(!DeepgramModel::Nova3General.supports_language(&zh));
+        assert!(DeepgramModel::Nova2General.supports_language(&zh));
+    }
+
+    #[test]
+    fn test_en_ca_with_nova3_general_not_supported() {
+        let en_ca: hypr_language::Language = "en-CA".parse().unwrap();
+        let languages = vec![en_ca];
+
+        assert!(!DeepgramAdapter::is_supported_languages_live(
+            &languages,
+            Some("nova-3-general")
+        ));
+
+        assert!(
+            !DeepgramAdapter::language_support_live(&languages, Some(DeepgramModel::Nova3General))
+                .is_supported()
+        );
+    }
+
+    #[test]
+    fn test_en_ca_with_nova3_medical_supported() {
+        let en_ca: hypr_language::Language = "en-CA".parse().unwrap();
+        let languages = vec![en_ca];
+
+        assert!(DeepgramAdapter::is_supported_languages_live(
+            &languages,
+            Some("nova-3-medical")
+        ));
+
+        assert!(
+            DeepgramAdapter::language_support_live(&languages, Some(DeepgramModel::Nova3Medical))
+                .is_supported()
+        );
+    }
+
+    #[test]
+    fn test_en_ca_auto_selects_nova3_medical() {
+        let en_ca: hypr_language::Language = "en-CA".parse().unwrap();
+        let languages = vec![en_ca];
+
+        assert_eq!(
+            DeepgramAdapter::recommended_model_live(&languages),
+            Some("nova-3-medical")
+        );
+    }
+
+    #[test]
+    fn test_en_us_with_nova3_general_supported() {
+        let en_us: hypr_language::Language = "en-US".parse().unwrap();
+        let languages = vec![en_us];
+
+        assert!(DeepgramAdapter::is_supported_languages_live(
+            &languages,
+            Some("nova-3-general")
+        ));
     }
 
     #[test]
@@ -383,17 +543,17 @@ mod tests {
     }
 
     #[test]
-    fn test_best_for_languages() {
+    fn test_find_model() {
         let cases: &[(&[ISO639], Option<DeepgramModel>)] = &[
             (&[ISO639::En], Some(DeepgramModel::Nova3General)),
             (&[ISO639::Zh], Some(DeepgramModel::Nova2General)),
-            (&[], Some(DeepgramModel::Nova3General)),
+            (&[], None),
         ];
 
         for (iso_codes, expected) in cases {
             let langs: Vec<Language> = iso_codes.iter().map(|&iso| iso.into()).collect();
             assert_eq!(
-                DeepgramModel::best_for_languages(&langs),
+                DeepgramAdapter::find_model(&langs),
                 *expected,
                 "failed for {:?}",
                 iso_codes

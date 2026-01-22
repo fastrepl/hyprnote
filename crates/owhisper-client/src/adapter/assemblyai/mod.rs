@@ -1,46 +1,41 @@
 mod batch;
 pub(crate) mod error;
+mod language;
 mod live;
 
-use batch::SUPPORTED_LANGUAGES;
-use live::STREAMING_LANGUAGES;
-
-use super::LanguageQuality;
+use super::LanguageSupport;
 
 #[derive(Clone, Default)]
 pub struct AssemblyAIAdapter;
 
 impl AssemblyAIAdapter {
+    pub fn language_support_live(languages: &[hypr_language::Language]) -> LanguageSupport {
+        LanguageSupport::min(languages.iter().map(language::single_language_support_live))
+    }
+
+    pub fn language_support_batch(languages: &[hypr_language::Language]) -> LanguageSupport {
+        LanguageSupport::min(
+            languages
+                .iter()
+                .map(language::single_language_support_batch),
+        )
+    }
+
     pub fn is_supported_languages_live(languages: &[hypr_language::Language]) -> bool {
-        Self::language_quality_live(languages).is_supported()
+        Self::language_support_live(languages).is_supported()
     }
 
     pub fn is_supported_languages_batch(languages: &[hypr_language::Language]) -> bool {
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        SUPPORTED_LANGUAGES.contains(&primary_lang)
-    }
-
-    pub fn language_quality_live(languages: &[hypr_language::Language]) -> LanguageQuality {
-        let qualities = languages.iter().map(Self::single_language_quality);
-        LanguageQuality::min_quality(qualities)
-    }
-
-    fn single_language_quality(language: &hypr_language::Language) -> LanguageQuality {
-        let code = language.iso639().code();
-        if STREAMING_LANGUAGES.contains(&code) {
-            LanguageQuality::High
-        } else {
-            LanguageQuality::NotSupported
-        }
+        Self::language_support_batch(languages).is_supported()
     }
 }
 
 pub(super) fn documented_language_codes_live() -> &'static [&'static str] {
-    STREAMING_LANGUAGES
+    language::STREAMING_LANGUAGES
 }
 
 pub(super) fn documented_language_codes_batch() -> &'static [&'static str] {
-    SUPPORTED_LANGUAGES
+    language::BATCH_LANGUAGES
 }
 
 impl AssemblyAIAdapter {

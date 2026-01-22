@@ -75,7 +75,6 @@ async function transformArgs(
     template,
     transcripts: formatTranscripts(
       sessionContext.rawMd,
-      sessionContext.preMeetingMemoHtml,
       sessionContext.segments,
       sessionContext.transcriptsMeta,
     ),
@@ -84,7 +83,6 @@ async function transformArgs(
 
 function formatTranscripts(
   rawMd: string,
-  preMeetingMemoHtml: string | undefined,
   segments: SegmentPayload[],
   transcriptsMeta: TranscriptMeta[],
 ): Transcript[] {
@@ -113,35 +111,16 @@ function formatTranscripts(
   }
 
   if (rawMd) {
-    const inMeetingMemo = getInMeetingMemo(rawMd, preMeetingMemoHtml);
-    if (inMeetingMemo) {
-      return [
-        {
-          segments: [{ speaker: "", text: inMeetingMemo }],
-          startedAt: null,
-          endedAt: null,
-        },
-      ];
-    }
+    return [
+      {
+        segments: [{ speaker: "", text: rawMd }],
+        startedAt: null,
+        endedAt: null,
+      },
+    ];
   }
 
   return [];
-}
-
-function getInMeetingMemo(
-  rawMd: string,
-  preMeetingMemoHtml: string | undefined,
-): string {
-  if (!preMeetingMemoHtml) {
-    return rawMd;
-  }
-
-  if (rawMd.startsWith(preMeetingMemoHtml)) {
-    const inMeetingPart = rawMd.slice(preMeetingMemoHtml.length).trim();
-    return inMeetingPart;
-  }
-
-  return rawMd;
 }
 
 function getLanguage(settingsStore: SettingsStore): string | null {
@@ -153,12 +132,6 @@ function getSessionContext(sessionId: string, store: MainStore) {
   const transcriptsMeta = collectTranscripts(sessionId, store);
   return {
     rawMd: getStringCell(store, "sessions", sessionId, "raw_md"),
-    preMeetingMemoHtml: getOptionalStringCell(
-      store,
-      "sessions",
-      sessionId,
-      "pre_meeting_memo_html",
-    ),
     session: getSessionData(sessionId, store),
     participants: getParticipants(sessionId, store),
     segments: getTranscriptSegmentsFromMeta(transcriptsMeta, store),

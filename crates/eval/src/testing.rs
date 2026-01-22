@@ -3,6 +3,8 @@
 //! This module provides mock implementations for testing evaluation logic
 //! without making actual API calls.
 
+#![allow(dead_code)]
+
 use std::sync::{Arc, Mutex};
 
 use crate::client::{ChatChoice, ChatChoiceMessage};

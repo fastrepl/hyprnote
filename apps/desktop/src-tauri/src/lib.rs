@@ -65,7 +65,7 @@ pub async fn main() {
 
     let _guard = sentry_client
         .as_ref()
-        .map(|client| tauri_plugin_sentry::minidump::init(&**client));
+        .map(|client| tauri_plugin_sentry::minidump::init(client));
 
     let mut builder = tauri::Builder::default();
 
@@ -153,7 +153,7 @@ pub async fn main() {
         .plugin(tauri_plugin_updater2::init());
 
     if let Some(client) = sentry_client.as_ref() {
-        builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(&**client));
+        builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(client));
     }
 
     #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
@@ -190,10 +190,10 @@ pub async fn main() {
 
             {
                 use tauri_plugin_settings::SettingsPluginExt;
-                if let Ok(base) = app_handle.settings().settings_base() {
-                    if let Err(e) = agents::write_agents_file(&base) {
-                        tracing::error!("failed to write AGENTS.md: {}", e);
-                    }
+                if let Ok(base) = app_handle.settings().settings_base()
+                    && let Err(e) = agents::write_agents_file(&base)
+                {
+                    tracing::error!("failed to write AGENTS.md: {}", e);
                 }
             }
 

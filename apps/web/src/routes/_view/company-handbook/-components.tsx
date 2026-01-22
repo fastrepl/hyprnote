@@ -1,9 +1,9 @@
 import { MDXContent } from "@content-collections/mdx/react";
-import { Link } from "@tanstack/react-router";
 import { allHandbooks } from "content-collections";
 
 import { cn } from "@hypr/utils";
 
+import { SidebarDownloadCard } from "@/components/cta-card";
 import { defaultMDXComponents } from "@/components/mdx";
 
 export function HandbookLayout({
@@ -127,22 +127,7 @@ function RightSidebar({
           </nav>
         )}
 
-        <div className="border border-neutral-200 rounded-xs overflow-hidden bg-white p-4">
-          <h3 className="font-serif text-sm text-stone-600 mb-3 text-center">
-            Try Hyprnote for yourself
-          </h3>
-          <Link
-            to="/download/"
-            className={cn([
-              "group px-4 h-9 flex items-center justify-center text-sm w-full",
-              "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
-              "hover:scale-[102%] active:scale-[98%]",
-              "transition-all",
-            ])}
-          >
-            Download for free
-          </Link>
-        </div>
+        <SidebarDownloadCard />
       </div>
     </aside>
   );

@@ -1,9 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/bounties")({
+export const Route = createFileRoute("/reddit")({
   beforeLoad: () => {
     throw redirect({
-      href: "https://github.com/orgs/fastrepl/projects/7",
+      href: "https://www.reddit.com/r/Hyprnote/",
     } as any);
   },
 });

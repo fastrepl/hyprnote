@@ -25,10 +25,28 @@ export const Route = createFileRoute("/_view/jobs/$slug")({
 
     const { job } = loaderData;
 
+    const ogParams = new URLSearchParams({
+      type: "jobs",
+      title: job.title,
+      backgroundImage: job.backgroundImage,
+    });
+    if (job.description) {
+      ogParams.set("description", job.description);
+    }
+    const ogImageUrl = `/og?${ogParams.toString()}`;
+
     return {
       meta: [
         { title: `${job.title} - Hyprnote` },
         { name: "description", content: job.description },
+        { property: "og:title", content: `${job.title} - Hyprnote` },
+        { property: "og:description", content: job.description },
+        { property: "og:image", content: ogImageUrl },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: `${job.title} - Hyprnote` },
+        { name: "twitter:description", content: job.description },
+        { name: "twitter:image", content: ogImageUrl },
       ],
     };
   },

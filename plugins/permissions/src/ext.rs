@@ -9,6 +9,7 @@ use objc2_contacts::{CNContactStore, CNEntityType};
 #[cfg(target_os = "macos")]
 use objc2_event_kit::{EKEntityType, EKEventStore};
 
+#[allow(unused_macros)]
 macro_rules! check {
     ($permission:literal, $raw:expr) => {{
         let raw = $raw;
@@ -30,6 +31,7 @@ pub enum Permission {
 }
 
 pub struct Permissions<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    #[allow(dead_code)]
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
 }

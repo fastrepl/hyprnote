@@ -14,3 +14,4 @@ serde_json = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
+tracing = { workspace = true }

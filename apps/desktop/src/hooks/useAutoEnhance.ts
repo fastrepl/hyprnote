@@ -11,11 +11,12 @@ import { useTabs } from "../store/zustand/tabs";
 import type { Tab } from "../store/zustand/tabs/schema";
 import { useAITaskTask } from "./useAITaskTask";
 import { useCreateEnhancedNote } from "./useEnhancedNotes";
-import { useLanguageModel } from "./useLLMConnection";
+import { useLanguageModel, useLLMConnection } from "./useLLMConnection";
 
 export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const sessionId = tab.id;
   const model = useLanguageModel();
+  const { conn: llmConn } = useLLMConnection();
   const { updateSessionTabState } = useTabs();
   const createEnhancedNote = useCreateEnhancedNote();
 
@@ -147,6 +148,8 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
         void analyticsCommands.event({
           event: "note_enhanced",
           is_auto: true,
+          llm_provider: llmConn?.providerId,
+          llm_model: llmConn?.modelId,
         });
       }
       void enhanceTask.start({

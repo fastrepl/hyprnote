@@ -2,6 +2,9 @@ use std::collections::VecDeque;
 
 use rubato::Resampler;
 
+const MAX_INPUT_QUEUE_SIZE: usize = 65536;
+const MAX_OUTPUT_QUEUE_SIZE: usize = 65536;
+
 /// Wraps a rubato Resampler with queues to enable sample-by-sample input and fixed-size chunk output.
 /// Manages buffering between the streaming input and the block-based resampler requirements.
 pub(crate) struct RubatoChunkResampler<R: Resampler<f32>, const CHANNELS: usize> {
@@ -70,7 +73,17 @@ impl<R: Resampler<f32>, const CHANNELS: usize> RubatoChunkResampler<R, CHANNELS>
     }
 
     /// Queues a single input sample for resampling.
+    /// If the input queue exceeds MAX_INPUT_QUEUE_SIZE, oldest samples are dropped.
     pub(crate) fn push_sample(&mut self, sample: f32) {
+        if self.input_queue.len() >= MAX_INPUT_QUEUE_SIZE {
+            let dropped = self.input_queue.pop_front();
+            if dropped.is_some() {
+                tracing::warn!(
+                    "Input queue overflow: dropped oldest sample (queue size: {})",
+                    MAX_INPUT_QUEUE_SIZE
+                );
+            }
+        }
         self.input_queue.push_back(sample);
     }
 
@@ -173,6 +186,7 @@ impl<R: Resampler<f32>, const CHANNELS: usize> RubatoChunkResampler<R, CHANNELS>
 
     /// Runs the resampler on the staged input buffer and queues the output.
     /// Returns whether any output frames were produced.
+    /// If the output queue would exceed MAX_OUTPUT_QUEUE_SIZE, oldest samples are dropped.
     fn process_staged_input(&mut self) -> Result<bool, crate::Error> {
         let (_, frames_produced) = self.resampler.process_into_buffer(
             &self.rubato_input_buffer[..],
@@ -180,6 +194,18 @@ impl<R: Resampler<f32>, const CHANNELS: usize> RubatoChunkResampler<R, CHANNELS>
             None,
         )?;
         if frames_produced > 0 {
+            let new_total = self.output_queue.len() + frames_produced;
+            if new_total > MAX_OUTPUT_QUEUE_SIZE {
+                let samples_to_drop = new_total - MAX_OUTPUT_QUEUE_SIZE;
+                for _ in 0..samples_to_drop {
+                    self.output_queue.pop_front();
+                }
+                tracing::warn!(
+                    "Output queue overflow: dropped {} oldest samples (queue size: {})",
+                    samples_to_drop,
+                    MAX_OUTPUT_QUEUE_SIZE
+                );
+            }
             self.output_queue.extend(
                 self.rubato_output_buffer[0]
                     .iter()

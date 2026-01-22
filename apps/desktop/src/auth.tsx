@@ -84,7 +84,7 @@ const supabase =
         },
         auth: {
           storage: tauriStorage,
-          autoRefreshToken: false,
+          autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: false,
           lock: processLock,

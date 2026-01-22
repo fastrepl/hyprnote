@@ -1,0 +1,26 @@
+---
+date: "2026-01-23"
+---
+
+- Enhanced event context menu for events with notes
+  - New "Open in new tab" option for quick multi-tab workflows
+  - "Reveal in Finder" to access session files directly
+  - "Delete completely" option to remove event and associated session data
+  - Ignoring events without notes now cleans up empty sessions automatically
+
+- Fix authentication token refresh on app restart
+  - Credentials no longer lost after restarting the app
+  - Auto token refresh keeps sessions alive
+  - Use navigatorLock for more reliable session locking
+
+- Fix memory accumulation in audio processing
+  - Removed unnecessary audio data buffering in MicStream
+  - Added bounded channels with backpressure to prevent memory growth during long recordings
+
+- Fix Ollama model listing CORS issues
+  - Model list now loads properly when using local Ollama instance
+
+- Improve timeline event visibility and time display
+  - Events now use end time for determining past/future visibility
+  - Smart time tracking updates timeline when events start or end
+  - Event start times are now displayed in the timeline sidebar

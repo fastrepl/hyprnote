@@ -262,7 +262,7 @@ export function SelectProviderAndModel() {
                     >
                       <SelectValue placeholder="Select a model" />
                       {isConfigured && <HealthStatusIndicator />}
-                      {isConfigured && (
+                      {isConfigured && health.status !== "pending" && (
                         <Check className="-mr-1 h-4 w-4 shrink-0 text-green-600" />
                       )}
                     </SelectTrigger>

@@ -1,4 +1,5 @@
 import { Icon } from "@iconify-icon/react";
+import { useMediaQuery } from "@uidotdev/usehooks";
 import { useCallback } from "react";
 
 import { commands as openerCommands } from "@hypr/plugin-opener2";
@@ -100,6 +101,7 @@ function SplitMeetingButtons({
 }) {
   const openNew = useTabs((state) => state.openNew);
   const countdown = useEventCountdown(sessionId);
+  const isNarrow = useMediaQuery("(max-width: 870px)");
 
   const handleConfigure = useCallback(() => {
     onStartListening();
@@ -134,14 +136,16 @@ function SplitMeetingButtons({
 
   return (
     <div className="relative flex items-center gap-2">
-      <FloatingButton
-        onClick={onJoin}
-        className="justify-center gap-2 bg-linear-to-b from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white border-stone-600 shadow-[0_4px_14px_rgba(87,83,78,0.4)]"
-      >
-        <span>Join</span>
-        {getMeetingIcon()}
-        <span>{getMeetingName()}</span>
-      </FloatingButton>
+      {!isNarrow && (
+        <FloatingButton
+          onClick={onJoin}
+          className="justify-center gap-2 bg-white hover:bg-neutral-100 text-neutral-800 border-neutral-200 shadow-[0_4px_14px_rgba(0,0,0,0.1)]"
+        >
+          <span>Join</span>
+          {getMeetingIcon()}
+          <span>{getMeetingName()}</span>
+        </FloatingButton>
+      )}
       <div className="relative flex items-center">
         <FloatingButton
           onClick={onStartListening}

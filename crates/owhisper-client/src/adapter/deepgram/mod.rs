@@ -61,7 +61,7 @@ pub enum DeepgramModel {
 }
 
 impl DeepgramModel {
-    fn supported_languages(&self) -> &'static [&'static str] {
+    pub fn supported_languages(&self) -> &'static [&'static str] {
         match self {
             Self::Nova3General => NOVA3_GENERAL_LANGUAGES,
             Self::Nova3Medical => NOVA3_MEDICAL_LANGUAGES,
@@ -70,11 +70,16 @@ impl DeepgramModel {
         }
     }
 
+    pub fn supports_language(&self, language: &hypr_language::Language) -> bool {
+        super::language_matches_supported_codes(language, self.supported_languages())
+    }
+
     pub fn best_for_languages(languages: &[hypr_language::Language]) -> Option<Self> {
-        let primary_lang = languages.first().map(|l| l.iso639().code()).unwrap_or("en");
-        [Self::Nova3General, Self::Nova2General]
+        let primary_lang = languages.first()?;
+
+        [Self::Nova3General, Self::Nova3Medical, Self::Nova2General]
             .into_iter()
-            .find(|&model| model.supported_languages().contains(&primary_lang))
+            .find(|model| model.supports_language(primary_lang))
     }
 
     pub fn best_for_multi_languages(languages: &[hypr_language::Language]) -> Option<Self> {
@@ -113,8 +118,20 @@ impl DeepgramAdapter {
 
     fn is_supported_languages_impl(
         languages: &[hypr_language::Language],
-        _model: Option<&str>,
+        model: Option<&str>,
     ) -> bool {
+        // Check if user-specified model supports all languages
+        if let Some(model_str) = model {
+            if let Ok(parsed_model) = model_str.parse::<DeepgramModel>() {
+                if !languages
+                    .iter()
+                    .all(|lang| parsed_model.supports_language(lang))
+                {
+                    return false;
+                }
+            }
+        }
+
         if languages.len() >= 2 {
             return Self::can_use_multi(languages);
         }
@@ -124,10 +141,21 @@ impl DeepgramAdapter {
 
     pub fn language_quality_live(
         languages: &[hypr_language::Language],
-        _model: Option<&str>,
+        model: Option<&str>,
     ) -> LanguageQuality {
         if languages.len() >= 2 && !Self::can_use_multi(languages) {
             return LanguageQuality::NotSupported;
+        }
+
+        if let Some(model_str) = model {
+            if let Ok(parsed_model) = model_str.parse::<DeepgramModel>() {
+                if !languages
+                    .iter()
+                    .all(|lang| parsed_model.supports_language(lang))
+                {
+                    return LanguageQuality::NotSupported;
+                }
+            }
         }
 
         let qualities = languages.iter().map(Self::single_language_quality);
@@ -399,5 +427,59 @@ mod tests {
                 iso_codes
             );
         }
+    }
+
+    #[test]
+    fn test_en_ca_with_nova3_general_not_supported() {
+        let en_ca: hypr_language::Language = "en-CA".parse().unwrap();
+        let languages = vec![en_ca];
+
+        assert!(!DeepgramAdapter::is_supported_languages_live(
+            &languages,
+            Some("nova-3-general")
+        ));
+
+        assert_eq!(
+            DeepgramAdapter::language_quality_live(&languages, Some("nova-3-general")),
+            LanguageQuality::NotSupported
+        );
+    }
+
+    #[test]
+    fn test_en_ca_with_nova3_medical_supported() {
+        let en_ca: hypr_language::Language = "en-CA".parse().unwrap();
+        let languages = vec![en_ca];
+
+        assert!(DeepgramAdapter::is_supported_languages_live(
+            &languages,
+            Some("nova-3-medical")
+        ));
+
+        assert_ne!(
+            DeepgramAdapter::language_quality_live(&languages, Some("nova-3-medical")),
+            LanguageQuality::NotSupported
+        );
+    }
+
+    #[test]
+    fn test_en_ca_auto_selects_nova3_medical() {
+        let en_ca: hypr_language::Language = "en-CA".parse().unwrap();
+        let languages = vec![en_ca];
+
+        assert_eq!(
+            DeepgramAdapter::recommended_model_live(&languages),
+            Some("nova-3-medical")
+        );
+    }
+
+    #[test]
+    fn test_en_us_with_nova3_general_supported() {
+        let en_us: hypr_language::Language = "en-US".parse().unwrap();
+        let languages = vec![en_us];
+
+        assert!(DeepgramAdapter::is_supported_languages_live(
+            &languages,
+            Some("nova-3-general")
+        ));
     }
 }

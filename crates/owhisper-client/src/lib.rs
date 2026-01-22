@@ -15,6 +15,7 @@ pub use providers::{Auth, Provider, is_meta_model};
 
 use std::marker::PhantomData;
 
+pub use adapter::deepgram::DeepgramModel;
 pub use adapter::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, BatchSttAdapter, DeepgramAdapter,
     ElevenLabsAdapter, FireworksAdapter, GladiaAdapter, HyprnoteAdapter, LanguageQuality,

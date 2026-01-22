@@ -19,7 +19,7 @@ const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
 export function AccountSettings() {
   const auth = useAuth();
-  const { isPro } = useBillingAccess();
+  const { isPro, isOnTrial, trialEnd } = useBillingAccess();
   const store = settings.UI.useStore(settings.STORE_ID);
 
   const isAuthenticated = !!auth?.session;
@@ -171,7 +171,17 @@ export function AccountSettings() {
 
       <Container
         title="Plan & Billing"
-        description={`Your current plan is ${isPro ? "PRO" : "FREE"}. `}
+        description={`Your current plan is ${
+          isOnTrial
+            ? `TRIAL${
+                trialEnd
+                  ? ` (ends ${new Date(trialEnd * 1000).toLocaleDateString()})`
+                  : ""
+              }`
+            : isPro
+              ? "PRO"
+              : "FREE"
+        }. `}
         action={<BillingButton />}
       >
         <p className="text-sm text-neutral-600">
@@ -191,7 +201,7 @@ export function AccountSettings() {
 
 function BillingButton() {
   const auth = useAuth();
-  const { isPro } = useBillingAccess();
+  const { isPro, isOnTrial } = useBillingAccess();
   const { open: openTrialBeginModal } = useTrialBeginModal();
 
   const canTrialQuery = useQuery({
@@ -262,7 +272,7 @@ function BillingButton() {
     void openerCommands.openUrl(`${WEB_APP_BASE_URL}/app/account`, null);
   }, []);
 
-  if (isPro) {
+  if (isPro || isOnTrial) {
     return (
       <Button
         variant="outline"

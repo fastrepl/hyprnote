@@ -1,8 +1,20 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
+export type SubscriptionStatus =
+  | "none"
+  | "active"
+  | "trialing"
+  | "past_due"
+  | "canceled"
+  | "incomplete"
+  | "incomplete_expired"
+  | "unpaid";
+
 export type SupabaseJwtPayload = {
   sub?: string;
   entitlements?: string[];
+  subscription_status?: SubscriptionStatus;
+  trial_end?: number;
 };
 
 export type JwksVerifier = {

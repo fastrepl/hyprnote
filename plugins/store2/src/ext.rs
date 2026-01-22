@@ -41,6 +41,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Store2<'a, R, M> {
         let store = self.store()?;
         store.clear();
         store.save()?;
+        let path = self.path()?;
+        let file = File::open(&path)?;
+        file.sync_all()?;
         Ok(())
     }
 }

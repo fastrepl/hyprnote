@@ -17,34 +17,24 @@ export function useProModelAutoConfig() {
     const isNowPro = isPro === true;
 
     if (wasNotPro && isNowPro) {
-      const preLogoutSttProvider = store.getValue("pre_logout_stt_provider");
-      const preLogoutSttModel = store.getValue("pre_logout_stt_model");
-      const preLogoutLlmProvider = store.getValue("pre_logout_llm_provider");
-      const preLogoutLlmModel = store.getValue("pre_logout_llm_model");
+      const currentSttProvider = store.getValue("current_stt_provider");
+      const currentSttModel = store.getValue("current_stt_model");
+      const currentLlmProvider = store.getValue("current_llm_provider");
+      const currentLlmModel = store.getValue("current_llm_model");
 
-      const hasSavedSttConfig = !!preLogoutSttProvider;
-      const hasSavedLlmConfig = !!preLogoutLlmProvider;
-
-      if (hasSavedSttConfig) {
-        store.setValue("current_stt_provider", preLogoutSttProvider);
-        store.setValue("current_stt_model", preLogoutSttModel ?? "");
-      } else {
-        store.setValue("current_stt_provider", "hyprnote");
-        store.setValue("current_stt_model", "cloud");
+      if (currentSttProvider && currentSttProvider !== "hyprnote") {
+        store.setValue("pre_pro_stt_provider", currentSttProvider);
+        store.setValue("pre_pro_stt_model", currentSttModel ?? "");
+      }
+      if (currentLlmProvider && currentLlmProvider !== "hyprnote") {
+        store.setValue("pre_pro_llm_provider", currentLlmProvider);
+        store.setValue("pre_pro_llm_model", currentLlmModel ?? "");
       }
 
-      if (hasSavedLlmConfig) {
-        store.setValue("current_llm_provider", preLogoutLlmProvider);
-        store.setValue("current_llm_model", preLogoutLlmModel ?? "");
-      } else {
-        store.setValue("current_llm_provider", "hyprnote");
-        store.setValue("current_llm_model", "Auto");
-      }
-
-      store.setValue("pre_logout_stt_provider", "");
-      store.setValue("pre_logout_stt_model", "");
-      store.setValue("pre_logout_llm_provider", "");
-      store.setValue("pre_logout_llm_model", "");
+      store.setValue("current_stt_provider", "hyprnote");
+      store.setValue("current_stt_model", "cloud");
+      store.setValue("current_llm_provider", "hyprnote");
+      store.setValue("current_llm_model", "Auto");
     }
 
     prevIsProRef.current = isPro;

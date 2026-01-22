@@ -57,24 +57,31 @@ export function AccountSettings() {
     });
 
     if (store) {
-      const currentSttProvider = store.getValue("current_stt_provider");
-      const currentSttModel = store.getValue("current_stt_model");
-      const currentLlmProvider = store.getValue("current_llm_provider");
-      const currentLlmModel = store.getValue("current_llm_model");
+      const preProSttProvider = store.getValue("pre_pro_stt_provider");
+      const preProSttModel = store.getValue("pre_pro_stt_model");
+      const preProLlmProvider = store.getValue("pre_pro_llm_provider");
+      const preProLlmModel = store.getValue("pre_pro_llm_model");
 
-      store.setValue("pre_logout_stt_provider", currentSttProvider ?? "");
-      store.setValue("pre_logout_stt_model", currentSttModel ?? "");
-      store.setValue("pre_logout_llm_provider", currentLlmProvider ?? "");
-      store.setValue("pre_logout_llm_model", currentLlmModel ?? "");
-
-      if (currentSttProvider === "hyprnote" && currentSttModel === "cloud") {
+      if (preProSttProvider) {
+        store.setValue("current_stt_provider", preProSttProvider);
+        store.setValue("current_stt_model", preProSttModel ?? "");
+      } else {
+        store.setValue("current_stt_provider", "");
         store.setValue("current_stt_model", "");
       }
 
-      if (currentLlmProvider === "hyprnote") {
+      if (preProLlmProvider) {
+        store.setValue("current_llm_provider", preProLlmProvider);
+        store.setValue("current_llm_model", preProLlmModel ?? "");
+      } else {
         store.setValue("current_llm_provider", "");
         store.setValue("current_llm_model", "");
       }
+
+      store.setValue("pre_pro_stt_provider", "");
+      store.setValue("pre_pro_stt_model", "");
+      store.setValue("pre_pro_llm_provider", "");
+      store.setValue("pre_pro_llm_model", "");
     }
 
     await auth?.signOut();

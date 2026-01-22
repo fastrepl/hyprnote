@@ -1,4 +1,5 @@
 pub struct Js<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    #[allow(dead_code)]
     manager: &'a M,
     _runtime: std::marker::PhantomData<fn() -> R>,
 }

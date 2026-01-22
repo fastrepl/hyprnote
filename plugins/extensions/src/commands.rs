@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use tauri::Manager;
 use tauri_plugin_settings::SettingsPluginExt;
 
 use crate::{Error, ExtensionInfo, ExtensionsPluginExt, PanelInfo};

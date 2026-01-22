@@ -165,6 +165,7 @@ impl Default for ExtensionsRuntime {
 }
 
 struct ExtensionState {
+    #[allow(dead_code)]
     extension: Extension,
     functions: HashMap<String, v8::Global<v8::Function>>,
 }

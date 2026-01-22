@@ -60,6 +60,12 @@ export function AccountSettings() {
       const currentSttProvider = store.getValue("current_stt_provider");
       const currentSttModel = store.getValue("current_stt_model");
       const currentLlmProvider = store.getValue("current_llm_provider");
+      const currentLlmModel = store.getValue("current_llm_model");
+
+      store.setValue("pre_logout_stt_provider", currentSttProvider ?? "");
+      store.setValue("pre_logout_stt_model", currentSttModel ?? "");
+      store.setValue("pre_logout_llm_provider", currentLlmProvider ?? "");
+      store.setValue("pre_logout_llm_model", currentLlmModel ?? "");
 
       if (currentSttProvider === "hyprnote" && currentSttModel === "cloud") {
         store.setValue("current_stt_model", "");

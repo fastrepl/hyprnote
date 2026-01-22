@@ -51,6 +51,8 @@ export function useStartListening(sessionId: string) {
     void analyticsCommands.event({
       event: "session_started",
       has_calendar_event: !!eventId,
+      stt_provider: conn.provider,
+      stt_model: conn.model,
     });
 
     const handlePersist: HandlePersistCallback = (words, hints) => {

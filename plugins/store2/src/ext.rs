@@ -1,3 +1,4 @@
+use std::fs::File;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -32,7 +33,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Store2<'a, R, M> {
         scope: impl Into<String>,
     ) -> Result<ScopedStore<R, K>, crate::Error> {
         let store = self.store()?;
-        Ok(ScopedStore::new(store, scope.into()))
+        let path = self.path()?;
+        Ok(ScopedStore::new(store, scope.into(), path))
     }
 
     pub fn reset(&self) -> Result<(), crate::Error> {
@@ -68,20 +70,25 @@ impl ScopedStoreKey for String {}
 pub struct ScopedStore<R: tauri::Runtime, K: ScopedStoreKey> {
     scope: String,
     store: Arc<tauri_plugin_store::Store<R>>,
+    path: PathBuf,
     _marker: std::marker::PhantomData<K>,
 }
 
 impl<R: tauri::Runtime, K: ScopedStoreKey> ScopedStore<R, K> {
-    pub fn new(store: Arc<tauri_plugin_store::Store<R>>, scope: String) -> Self {
+    pub fn new(store: Arc<tauri_plugin_store::Store<R>>, scope: String, path: PathBuf) -> Self {
         Self {
             scope,
             store,
+            path,
             _marker: std::marker::PhantomData,
         }
     }
 
     pub fn save(&self) -> Result<(), crate::Error> {
-        self.store.save().map_err(Into::into)
+        self.store.save()?;
+        let file = File::open(&self.path)?;
+        file.sync_all()?;
+        Ok(())
     }
 
     pub fn get<T: serde::de::DeserializeOwned>(&self, key: K) -> Result<Option<T>, crate::Error> {

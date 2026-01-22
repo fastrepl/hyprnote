@@ -27,13 +27,13 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Er
     let store: Value = serde_json::from_str(&store_json)?;
     let tables = extract_tables(&store)?;
 
-    let sessions = extract_table_rows(&tables, "sessions");
-    let transcripts_data = extract_table_rows(&tables, "transcripts");
-    let humans_data = extract_table_rows(&tables, "humans");
-    let organizations_data = extract_table_rows(&tables, "organizations");
-    let participants_data = extract_table_rows(&tables, "mapping_session_participant");
-    let templates_data = extract_table_rows(&tables, "templates");
-    let enhanced_notes_data = extract_table_rows(&tables, "enhanced_notes");
+    let sessions = extract_table_rows(tables, "sessions");
+    let transcripts_data = extract_table_rows(tables, "transcripts");
+    let humans_data = extract_table_rows(tables, "humans");
+    let organizations_data = extract_table_rows(tables, "organizations");
+    let participants_data = extract_table_rows(tables, "mapping_session_participant");
+    let templates_data = extract_table_rows(tables, "templates");
+    let enhanced_notes_data = extract_table_rows(tables, "enhanced_notes");
 
     let has_inline_words = transcripts_data
         .first()
@@ -42,8 +42,8 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Er
     let (words_by_transcript, speaker_hints_by_word) = if has_inline_words {
         extract_inline_words_and_hints(&transcripts_data)
     } else {
-        let words_data = extract_table_rows(&tables, "words");
-        let speaker_hints_data = extract_table_rows(&tables, "speaker_hints");
+        let words_data = extract_table_rows(tables, "words");
+        let speaker_hints_data = extract_table_rows(tables, "speaker_hints");
         (
             group_words_by_transcript(words_data),
             build_speaker_hints_map(&speaker_hints_data),
@@ -220,71 +220,70 @@ fn extract_inline_words_and_hints(
     let mut speaker_hints = HashMap::new();
 
     for (transcript_id, transcript) in transcripts {
-        if let Some(words_json) = get_optional_str(transcript, "words") {
-            if let Ok(words_array) = serde_json::from_str::<Vec<Value>>(words_json) {
-                let mut words = Vec::with_capacity(words_array.len());
+        if let Some(words_json) = get_optional_str(transcript, "words")
+            && let Ok(words_array) = serde_json::from_str::<Vec<Value>>(words_json)
+        {
+            let mut words = Vec::with_capacity(words_array.len());
 
-                for word_value in words_array {
-                    let Some(word_obj) = word_value.as_object() else {
-                        continue;
-                    };
-                    let Some(word_id) = word_obj.get("id").and_then(|v| v.as_str()) else {
-                        continue;
-                    };
+            for word_value in words_array {
+                let Some(word_obj) = word_value.as_object() else {
+                    continue;
+                };
+                let Some(word_id) = word_obj.get("id").and_then(|v| v.as_str()) else {
+                    continue;
+                };
 
-                    if let Some(speaker) = word_obj
-                        .get("speaker")
-                        .and_then(|v| v.as_str())
-                        .filter(|s| !s.is_empty())
-                    {
-                        speaker_hints.insert(word_id.to_string(), speaker.to_string());
-                    }
-
-                    let row: Row = word_obj
-                        .iter()
-                        .map(|(k, v)| (k.clone(), v.clone()))
-                        .collect();
-                    words.push((word_id.to_string(), row));
+                if let Some(speaker) = word_obj
+                    .get("speaker")
+                    .and_then(|v| v.as_str())
+                    .filter(|s| !s.is_empty())
+                {
+                    speaker_hints.insert(word_id.to_string(), speaker.to_string());
                 }
 
-                words.sort_by(|a, b| {
-                    let start_a = get_f64(&a.1, "start_ms").unwrap_or(0.0);
-                    let start_b = get_f64(&b.1, "start_ms").unwrap_or(0.0);
-                    start_a
-                        .partial_cmp(&start_b)
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                });
-
-                words_by_transcript.insert((*transcript_id).to_string(), words);
+                let row: Row = word_obj
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.clone()))
+                    .collect();
+                words.push((word_id.to_string(), row));
             }
+
+            words.sort_by(|a, b| {
+                let start_a = get_f64(&a.1, "start_ms").unwrap_or(0.0);
+                let start_b = get_f64(&b.1, "start_ms").unwrap_or(0.0);
+                start_a
+                    .partial_cmp(&start_b)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+
+            words_by_transcript.insert((*transcript_id).to_string(), words);
         }
 
-        if let Some(hints_json) = get_optional_str(transcript, "speaker_hints") {
-            if let Ok(hints_array) = serde_json::from_str::<Vec<Value>>(hints_json) {
-                for hint_value in hints_array {
-                    let Some(hint_obj) = hint_value.as_object() else {
-                        continue;
-                    };
+        if let Some(hints_json) = get_optional_str(transcript, "speaker_hints")
+            && let Ok(hints_array) = serde_json::from_str::<Vec<Value>>(hints_json)
+        {
+            for hint_value in hints_array {
+                let Some(hint_obj) = hint_value.as_object() else {
+                    continue;
+                };
 
-                    let word_id = hint_obj
-                        .get("word_id")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("");
-                    let hint_type = hint_obj.get("type").and_then(|v| v.as_str()).unwrap_or("");
+                let word_id = hint_obj
+                    .get("word_id")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+                let hint_type = hint_obj.get("type").and_then(|v| v.as_str()).unwrap_or("");
 
-                    if word_id.is_empty() {
-                        continue;
-                    }
+                if word_id.is_empty() {
+                    continue;
+                }
 
-                    if let Some(value) = hint_obj
-                        .get("value")
-                        .and_then(|v| v.as_str())
-                        .filter(|s| !s.is_empty())
-                    {
-                        if let Some(label) = parse_speaker_hint_value(hint_type, value) {
-                            speaker_hints.insert(word_id.to_string(), label);
-                        }
-                    }
+                if let Some(value) = hint_obj
+                    .get("value")
+                    .and_then(|v| v.as_str())
+                    .filter(|s| !s.is_empty())
+                    && let Some(label) = parse_speaker_hint_value(hint_type, value)
+                {
+                    speaker_hints.insert(word_id.to_string(), label);
                 }
             }
         }

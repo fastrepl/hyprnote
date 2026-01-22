@@ -17,6 +17,7 @@ pub const SAMPLE_RATE: u32 = 16 * 1000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ChannelMode {
+    #[allow(dead_code)]
     MicOnly,
     SpeakerOnly,
     MicAndSpeaker,

@@ -46,17 +46,17 @@ pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Er
             transcripts.push(session_to_imported_transcript(session.clone()));
         }
 
-        if let Some(ref enhanced_html) = session.enhanced_memo_html {
-            if !enhanced_html.is_empty() {
-                enhanced_notes.push(ImportedEnhancedNote {
-                    id: format!("enhanced-{}", session.id),
-                    session_id: session.id.clone(),
-                    content: enhanced_html.clone(),
-                    template_id: None,
-                    position: 1,
-                    title: String::new(),
-                });
-            }
+        if let Some(ref enhanced_html) = session.enhanced_memo_html
+            && !enhanced_html.is_empty()
+        {
+            enhanced_notes.push(ImportedEnhancedNote {
+                id: format!("enhanced-{}", session.id),
+                session_id: session.id.clone(),
+                content: enhanced_html.clone(),
+                template_id: None,
+                position: 1,
+                title: String::new(),
+            });
         }
 
         if !session.is_empty() {

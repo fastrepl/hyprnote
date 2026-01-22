@@ -9,6 +9,7 @@ const MODEL_CACHE_DURATION_SECS: u64 = 300;
 #[derive(Debug, Deserialize)]
 pub struct OpenRouterModel {
     pub id: String,
+    #[allow(dead_code)]
     pub name: String,
 }
 

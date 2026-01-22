@@ -175,7 +175,6 @@ impl MicInput {
             drop_tx,
             config: self.config.clone(),
             receiver: Box::pin(receiver),
-            read_data: Vec::new(),
         }
     }
 }
@@ -183,7 +182,6 @@ impl MicInput {
 pub struct MicStream {
     drop_tx: std::sync::mpsc::Sender<()>,
     config: cpal::SupportedStreamConfig,
-    read_data: Vec<f32>,
     receiver: Pin<Box<dyn Stream<Item = f32> + Send + Sync>>,
 }
 
@@ -200,14 +198,7 @@ impl Stream for MicStream {
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
-        match self.receiver.as_mut().poll_next_unpin(cx) {
-            std::task::Poll::Ready(Some(data_chunk)) => {
-                self.read_data.push(data_chunk);
-                std::task::Poll::Ready(Some(data_chunk))
-            }
-            std::task::Poll::Ready(None) => std::task::Poll::Ready(None),
-            std::task::Poll::Pending => std::task::Poll::Pending,
-        }
+        self.receiver.as_mut().poll_next_unpin(cx)
     }
 }
 

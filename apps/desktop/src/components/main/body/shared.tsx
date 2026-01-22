@@ -263,7 +263,7 @@ export function TabItemBase({
       <PopoverContent
         side="bottom"
         align="start"
-        className="w-auto p-3"
+        className="w-48 p-3"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="flex flex-col gap-2">

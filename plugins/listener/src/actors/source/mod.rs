@@ -24,9 +24,6 @@ use stream::start_source_loop;
 
 use hypr_device_monitor::{DeviceMonitorHandle, DeviceSwitch, DeviceSwitchMonitor};
 
-#[cfg(target_os = "macos")]
-use crate::ListenerPluginExt;
-
 pub enum SourceMsg {
     SetMicMute(bool),
     GetMicMute(RpcReplyPort<bool>),
@@ -54,8 +51,6 @@ pub struct SourceState {
     pub(super) current_mode: ChannelMode,
     pub(super) pipeline: Pipeline,
     _device_watcher: Option<DeviceChangeWatcher>,
-    #[cfg(target_os = "macos")]
-    _display_watcher: Option<DisplayStateWatcher>,
     _silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
 }
 
@@ -92,47 +87,6 @@ impl DeviceChangeWatcher {
     }
 }
 
-#[cfg(target_os = "macos")]
-struct DisplayStateWatcher {
-    _stop_tx: mpsc::Sender<()>,
-    _thread: std::thread::JoinHandle<()>,
-}
-
-#[cfg(target_os = "macos")]
-impl DisplayStateWatcher {
-    fn spawn(app: tauri::AppHandle) -> Self {
-        let (stop_tx, stop_rx) = mpsc::channel();
-        let thread = std::thread::spawn(move || Self::monitor_loop(stop_rx, app));
-
-        Self {
-            _stop_tx: stop_tx,
-            _thread: thread,
-        }
-    }
-
-    fn monitor_loop(stop_rx: Receiver<()>, app: tauri::AppHandle) {
-        let mut was_inactive = hypr_mac::is_builtin_display_inactive();
-
-        loop {
-            if stop_rx.try_recv().is_ok() {
-                break;
-            }
-
-            std::thread::sleep(std::time::Duration::from_millis(500));
-
-            let is_inactive = hypr_mac::is_builtin_display_inactive();
-            if !was_inactive && is_inactive {
-                tracing::info!("builtin_display_became_inactive_stopping_session");
-                tauri::async_runtime::block_on(async {
-                    app.listener().stop_session().await;
-                });
-                break;
-            }
-            was_inactive = is_inactive;
-        }
-    }
-}
-
 impl SourceActor {
     pub fn name() -> ActorName {
         "source".into()
@@ -163,12 +117,6 @@ impl Actor for SourceActor {
             }
 
             let device_watcher = DeviceChangeWatcher::spawn(myself.clone());
-            #[cfg(target_os = "macos")]
-            let display_watcher = if args.onboarding {
-                None
-            } else {
-                Some(DisplayStateWatcher::spawn(args.app.clone()))
-            };
 
             let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
             let mic_device = args
@@ -187,8 +135,6 @@ impl Actor for SourceActor {
                 run_task: None,
                 stream_cancel_token: None,
                 _device_watcher: Some(device_watcher),
-                #[cfg(target_os = "macos")]
-                _display_watcher: display_watcher,
                 _silence_stream_tx: silence_stream_tx,
                 current_mode: ChannelMode::MicAndSpeaker,
                 pipeline,

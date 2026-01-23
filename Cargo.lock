@@ -4371,6 +4371,7 @@ dependencies = [
  "language",
  "lazy_static",
  "libpulse-binding",
+ "mac 0.1.0",
  "macos-accessibility-client",
  "objc2",
  "objc2-app-kit",

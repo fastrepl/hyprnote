@@ -20,6 +20,8 @@ common_event_derives! {
         },
         #[serde(rename = "micMuted")]
         MicMuteStateChanged { value: bool },
+        #[serde(rename = "displayInactive")]
+        DisplayInactive,
     }
 }
 
@@ -31,6 +33,8 @@ impl From<hypr_detect::DetectEvent> for DetectEvent {
                 apps,
             },
             hypr_detect::DetectEvent::MicStopped(apps) => Self::MicStopped { apps },
+            #[cfg(all(target_os = "macos", feature = "display"))]
+            hypr_detect::DetectEvent::DisplayInactive => Self::DisplayInactive,
             #[cfg(all(target_os = "macos", feature = "zoom"))]
             hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {
                 Self::MicMuteStateChanged { value }

@@ -6,6 +6,7 @@ edition = "2024"
 [features]
 default = []
 mic = []
+display = ["hypr-mac"]
 language = []
 list = []
 app = []
@@ -28,6 +29,7 @@ specta = { workspace = true, features = ["derive"] }
 [target."cfg(target_os = \"macos\")".dependencies]
 hypr-bundle = { workspace = true }
 hypr-language = { workspace = true }
+hypr-mac = { workspace = true, optional = true }
 
 plist = "1.7"
 cidre = { workspace = true }

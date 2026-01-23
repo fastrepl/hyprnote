@@ -1,5 +1,7 @@
 #[cfg(feature = "app")]
 mod app;
+#[cfg(all(target_os = "macos", feature = "display"))]
+mod display;
 #[cfg(all(target_os = "macos", feature = "language"))]
 mod language;
 #[cfg(feature = "list")]
@@ -21,6 +23,8 @@ mod zoom;
 
 #[cfg(feature = "app")]
 pub use app::*;
+#[cfg(all(target_os = "macos", feature = "display"))]
+pub use display::*;
 #[cfg(all(target_os = "macos", feature = "language"))]
 pub use language::*;
 #[cfg(feature = "list")]
@@ -41,6 +45,8 @@ pub use zoom::*;
 pub enum DetectEvent {
     MicStarted(Vec<InstalledApp>),
     MicStopped(Vec<InstalledApp>),
+    #[cfg(all(target_os = "macos", feature = "display"))]
+    DisplayInactive,
     #[cfg(all(target_os = "macos", feature = "zoom"))]
     ZoomMuteStateChanged {
         value: bool,
@@ -68,6 +74,8 @@ pub(crate) trait Observer: Send + Sync {
 #[derive(Default)]
 pub struct Detector {
     mic_detector: MicDetector,
+    #[cfg(all(target_os = "macos", feature = "display"))]
+    display_detector: DisplayDetector,
     #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
     zoom_watcher: ZoomMuteWatcher,
 }
@@ -77,12 +85,18 @@ impl Detector {
     pub fn start(&mut self, f: DetectCallback) {
         self.mic_detector.start(f.clone());
 
+        #[cfg(all(target_os = "macos", feature = "display"))]
+        self.display_detector.start(f.clone());
+
         #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
         self.zoom_watcher.start(f);
     }
 
     pub fn stop(&mut self) {
         self.mic_detector.stop();
+
+        #[cfg(all(target_os = "macos", feature = "display"))]
+        self.display_detector.stop();
 
         #[cfg(all(target_os = "macos", feature = "zoom", feature = "list"))]
         self.zoom_watcher.stop();

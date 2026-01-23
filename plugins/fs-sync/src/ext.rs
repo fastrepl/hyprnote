@@ -213,15 +213,9 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
 
         std::fs::create_dir_all(&attachments_dir)?;
 
-        let safe_filename = std::path::Path::new(filename)
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("attachment");
-
-        let final_filename = find_unique_filename(&attachments_dir, safe_filename);
-        let file_path = attachments_dir.join(&final_filename);
-
-        std::fs::write(&file_path, data)?;
+        let safe_filename = sanitize_filename(filename)?;
+        let (file_path, final_filename) =
+            write_unique_file(&attachments_dir, &safe_filename, data)?;
 
         Ok(crate::AttachmentSaveResult {
             path: file_path.to_string_lossy().to_string(),
@@ -321,7 +315,37 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
     }
 }
 
-fn find_unique_filename(dir: &std::path::Path, filename: &str) -> String {
+fn sanitize_filename(filename: &str) -> Result<String, crate::Error> {
+    let path = std::path::Path::new(filename);
+
+    let clean_name = path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or_else(|| {
+            crate::Error::from(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "Invalid filename",
+            ))
+        })?;
+
+    if clean_name.is_empty() || clean_name.contains(['/', '\\', '\0']) {
+        return Err(crate::Error::from(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Invalid filename characters",
+        )));
+    }
+
+    Ok(clean_name.to_string())
+}
+
+fn write_unique_file(
+    dir: &std::path::Path,
+    filename: &str,
+    data: &[u8],
+) -> Result<(PathBuf, String), crate::Error> {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+
     let path = std::path::Path::new(filename);
     let stem = path
         .file_stem()
@@ -329,24 +353,34 @@ fn find_unique_filename(dir: &std::path::Path, filename: &str) -> String {
         .unwrap_or(filename);
     let extension = path.extension().and_then(|e| e.to_str());
 
-    let candidate = dir.join(filename);
-    if !candidate.exists() {
-        return filename.to_string();
-    }
-
-    let mut counter = 1;
+    let mut counter = 0;
     loop {
-        let new_filename = match extension {
-            Some(ext) => format!("{} {}.{}", stem, counter, ext),
-            None => format!("{} {}", stem, counter),
+        let candidate_filename = if counter == 0 {
+            filename.to_string()
+        } else {
+            match extension {
+                Some(ext) => format!("{} {}.{}", stem, counter, ext),
+                None => format!("{} {}", stem, counter),
+            }
         };
 
-        let candidate = dir.join(&new_filename);
-        if !candidate.exists() {
-            return new_filename;
-        }
+        let candidate_path = dir.join(&candidate_filename);
 
-        counter += 1;
+        match OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&candidate_path)
+        {
+            Ok(mut file) => {
+                file.write_all(data)?;
+                return Ok((candidate_path, candidate_filename));
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                counter += 1;
+                continue;
+            }
+            Err(e) => return Err(e.into()),
+        }
     }
 }
 

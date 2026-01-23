@@ -11,13 +11,13 @@ import { cn } from "@hypr/utils";
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
 import { useShell } from "../../../../contexts/shell";
-import { listenerStore } from "../../../../store/zustand/listener/instance";
 import { useAutoEnhance } from "../../../../hooks/useAutoEnhance";
 import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import { useStartListening } from "../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import { useTitleGeneration } from "../../../../hooks/useTitleGeneration";
 import * as main from "../../../../store/tinybase/store/main";
+import { listenerStore } from "../../../../store/zustand/listener/instance";
 import {
   rowIdfromTab,
   type Tab,

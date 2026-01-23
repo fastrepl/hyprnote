@@ -1,7 +1,13 @@
 #![allow(unreachable_patterns)]
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DisplayState {
+    pub foldable_display_active: Option<bool>,
+    pub external_connected: bool,
+}
+
 #[cfg(target_os = "macos")]
-pub fn is_builtin_display_inactive() -> bool {
+pub fn get_display_state() -> DisplayState {
     use objc2_core_graphics::{CGDisplayIsBuiltin, CGGetOnlineDisplayList};
 
     let mut display_count: u32 = 0;
@@ -10,21 +16,56 @@ pub fn is_builtin_display_inactive() -> bool {
     unsafe {
         let result = CGGetOnlineDisplayList(16, displays.as_mut_ptr(), &mut display_count);
         if result.0 != 0 {
-            return false;
+            return DisplayState {
+                foldable_display_active: None,
+                external_connected: false,
+            };
         }
     }
+
+    let mut has_builtin = false;
+    let mut has_external = false;
 
     for i in 0..display_count as usize {
         if CGDisplayIsBuiltin(displays[i]) {
-            return false;
+            has_builtin = true;
+        } else {
+            has_external = true;
         }
     }
 
-    display_count > 0
+    let has_foldable_display = ModelIdentifier::current()
+        .ok()
+        .flatten()
+        .is_some_and(|m| m.has_foldable_display());
+
+    let foldable_display_active = if has_foldable_display {
+        Some(has_builtin)
+    } else {
+        None
+    };
+
+    DisplayState {
+        foldable_display_active,
+        external_connected: has_external,
+    }
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn is_builtin_display_inactive() -> bool {
+pub fn get_display_state() -> DisplayState {
+    DisplayState {
+        foldable_display_active: None,
+        external_connected: false,
+    }
+}
+
+#[cfg(target_os = "macos")]
+pub fn is_foldable_display_inactive() -> bool {
+    get_display_state().foldable_display_active == Some(false)
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn is_foldable_display_inactive() -> bool {
     false
 }
 
@@ -723,4 +764,43 @@ impl ModelIdentifier {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::*;
+    use std::time::{Duration, Instant};
+
+    #[test]
+    #[ignore]
+    fn test_display_state_monitor() {
+        let duration = Duration::from_secs(30);
+        let poll_interval = Duration::from_millis(500);
+
+        println!("Monitoring display state for {:?}...", duration);
+        println!("Try closing/opening the lid or connecting/disconnecting external display.\n");
+
+        let start = Instant::now();
+        let mut prev_state = get_display_state();
+
+        println!(
+            "[{:>6.1}s] Initial: foldable_display_active={:?}, external_connected={}",
+            0.0, prev_state.foldable_display_active, prev_state.external_connected
+        );
+
+        while start.elapsed() < duration {
+            std::thread::sleep(poll_interval);
+
+            let current_state = get_display_state();
+            if current_state != prev_state {
+                let elapsed = start.elapsed().as_secs_f64();
+                println!(
+                    "[{:>6.1}s] Changed: foldable_display_active={:?}, external_connected={}",
+                    elapsed,
+                    current_state.foldable_display_active,
+                    current_state.external_connected
+                );
+                prev_state = current_state;
+            }
+        }
+
+        println!("\nDone.");
+    }
+}

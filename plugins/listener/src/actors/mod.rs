@@ -66,7 +66,7 @@ impl ChannelMode {
             is_headphone_from_default_output_device,
         };
 
-        fn is_builtin_display_foldable() -> bool {
+        fn has_foldable_display() -> bool {
             hypr_mac::ModelIdentifier::current()
                 .ok()
                 .flatten()
@@ -86,8 +86,8 @@ impl ChannelMode {
             onboarding,
             DeviceState {
                 is_headphone: is_headphone_from_default_output_device(),
-                is_foldable: is_builtin_display_foldable(),
-                is_display_inactive: hypr_mac::is_builtin_display_inactive(),
+                is_foldable: has_foldable_display(),
+                is_display_inactive: hypr_mac::is_foldable_display_inactive(),
                 has_builtin_mic: has_builtin_mic(),
                 is_input_external: is_default_input_external(),
                 is_output_external: is_default_output_external(),

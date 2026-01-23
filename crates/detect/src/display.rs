@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -11,37 +11,16 @@ pub struct DisplayDetector {
     background: BackgroundTask,
 }
 
-struct SharedContext {
-    callback: Arc<Mutex<crate::DetectCallback>>,
-    was_inactive: Arc<AtomicBool>,
-}
-
-impl SharedContext {
-    fn new(callback: crate::DetectCallback) -> Self {
-        let was_inactive = hypr_mac::is_builtin_display_inactive();
-        Self {
-            callback: Arc::new(Mutex::new(callback)),
-            was_inactive: Arc::new(AtomicBool::new(was_inactive)),
-        }
-    }
-
-    fn emit(&self, event: DetectEvent) {
-        tracing::info!(?event, "detected");
-        if let Ok(guard) = self.callback.lock() {
-            (*guard)(event);
-        }
-    }
-}
-
 impl crate::Observer for DisplayDetector {
     fn start(&mut self, f: crate::DetectCallback) {
         self.background.start(|running, mut rx| async move {
-            let ctx = SharedContext::new(f);
+            let callback = Arc::new(Mutex::new(f));
+            let prev_state = Arc::new(Mutex::new(hypr_mac::get_display_state()));
 
             std::thread::spawn({
                 let running = running.clone();
-                let callback = ctx.callback.clone();
-                let was_inactive = ctx.was_inactive.clone();
+                let callback = callback.clone();
+                let prev_state = prev_state.clone();
 
                 move || {
                     loop {
@@ -51,13 +30,24 @@ impl crate::Observer for DisplayDetector {
 
                         std::thread::sleep(POLL_INTERVAL);
 
-                        let is_inactive = hypr_mac::is_builtin_display_inactive();
-                        let prev_inactive = was_inactive.swap(is_inactive, Ordering::SeqCst);
+                        let current = hypr_mac::get_display_state();
+                        let changed = {
+                            let mut prev = prev_state.lock().unwrap();
+                            if *prev != current {
+                                *prev = current;
+                                true
+                            } else {
+                                false
+                            }
+                        };
 
-                        if !prev_inactive && is_inactive {
-                            tracing::info!("builtin_display_became_inactive");
+                        if changed {
+                            tracing::info!(?current, "display_state_changed");
                             if let Ok(guard) = callback.lock() {
-                                (*guard)(DetectEvent::DisplayInactive);
+                                (*guard)(DetectEvent::DisplayChanged {
+                                    foldable_display_active: current.foldable_display_active,
+                                    external_connected: current.external_connected,
+                                });
                             }
                         }
                     }

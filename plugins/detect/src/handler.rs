@@ -110,8 +110,17 @@ pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::er
                 );
             }
             #[cfg(all(target_os = "macos", feature = "display"))]
-            hypr_detect::DetectEvent::DisplayInactive => {
-                emit_to_main(&app_handle, DetectEvent::DisplayInactive);
+            hypr_detect::DetectEvent::DisplayChanged {
+                foldable_display_active,
+                external_connected,
+            } => {
+                emit_to_main(
+                    &app_handle,
+                    DetectEvent::DisplayChanged {
+                        foldable_display_active,
+                        external_connected,
+                    },
+                );
             }
             #[cfg(all(target_os = "macos", feature = "zoom"))]
             hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {

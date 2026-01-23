@@ -46,7 +46,10 @@ pub enum DetectEvent {
     MicStarted(Vec<InstalledApp>),
     MicStopped(Vec<InstalledApp>),
     #[cfg(all(target_os = "macos", feature = "display"))]
-    DisplayInactive,
+    DisplayChanged {
+        foldable_display_active: Option<bool>,
+        external_connected: bool,
+    },
     #[cfg(all(target_os = "macos", feature = "zoom"))]
     ZoomMuteStateChanged {
         value: bool,

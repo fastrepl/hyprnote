@@ -20,8 +20,11 @@ common_event_derives! {
         },
         #[serde(rename = "micMuted")]
         MicMuteStateChanged { value: bool },
-        #[serde(rename = "displayInactive")]
-        DisplayInactive,
+        #[serde(rename = "displayChanged")]
+        DisplayChanged {
+            foldable_display_active: Option<bool>,
+            external_connected: bool,
+        },
     }
 }
 
@@ -34,7 +37,13 @@ impl From<hypr_detect::DetectEvent> for DetectEvent {
             },
             hypr_detect::DetectEvent::MicStopped(apps) => Self::MicStopped { apps },
             #[cfg(all(target_os = "macos", feature = "display"))]
-            hypr_detect::DetectEvent::DisplayInactive => Self::DisplayInactive,
+            hypr_detect::DetectEvent::DisplayChanged {
+                foldable_display_active,
+                external_connected,
+            } => Self::DisplayChanged {
+                foldable_display_active,
+                external_connected,
+            },
             #[cfg(all(target_os = "macos", feature = "zoom"))]
             hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {
                 Self::MicMuteStateChanged { value }

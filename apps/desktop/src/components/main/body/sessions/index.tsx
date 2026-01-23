@@ -77,9 +77,11 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   const handleCloseWithStop = () => {
     if (isActive) {
       stop();
+      // Give React time to process the listener status change and run the useAutoEnhance effect
+      // which triggers summary generation before the component unmounts
       setTimeout(() => {
         handleCloseThis(tab);
-      }, 200);
+      }, 100);
     } else {
       handleCloseThis(tab);
     }

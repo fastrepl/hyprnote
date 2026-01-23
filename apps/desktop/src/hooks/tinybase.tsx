@@ -1,4 +1,10 @@
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import type {
   EnhancedNoteStorage,
@@ -8,12 +14,12 @@ import type {
   TemplateStorage,
 } from "@hypr/store";
 
-import * as main from "../store/tinybase/store/main";
 import {
   ensureSessionContentLoaded,
   isSessionContentLoaded,
   isSessionContentLoading,
 } from "../store/tinybase/persister/session/ops";
+import * as main from "../store/tinybase/store/main";
 
 export function useSession(sessionId: string) {
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
@@ -172,8 +178,12 @@ export function useEvent(eventId: string | undefined) {
  * Returns loading state so components can show loading indicators.
  */
 export function useSessionContentLoader(sessionId: string) {
-  const [isLoading, setIsLoading] = useState(() => isSessionContentLoading(sessionId));
-  const [isLoaded, setIsLoaded] = useState(() => isSessionContentLoaded(sessionId));
+  const [isLoading, setIsLoading] = useState(() =>
+    isSessionContentLoading(sessionId),
+  );
+  const [isLoaded, setIsLoaded] = useState(() =>
+    isSessionContentLoaded(sessionId),
+  );
 
   useEffect(() => {
     if (!sessionId) return;

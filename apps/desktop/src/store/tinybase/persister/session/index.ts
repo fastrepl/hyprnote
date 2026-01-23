@@ -13,7 +13,13 @@ export function useSessionPersister(store: Store) {
   return useCreatePersister(
     store,
     async (store) => {
-      const persister = createSessionPersister(store as Store);
+      const {
+        persister,
+        loadEntityContent,
+        isEntityContentLoaded,
+        isEntityContentLoading,
+      } = createSessionPersister(store as Store);
+
       if (getCurrentWebviewWindowLabel() === "main") {
         await persister.startAutoPersisting();
       } else {
@@ -25,6 +31,10 @@ export function useSessionPersister(store: Store) {
         reloadSessions: async () => {
           await persister.load();
         },
+        // Pass lazy loading utilities from the factory
+        loadEntityContent,
+        isEntityContentLoaded,
+        isEntityContentLoading,
       });
 
       return persister;

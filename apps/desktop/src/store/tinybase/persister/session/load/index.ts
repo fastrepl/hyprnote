@@ -13,10 +13,6 @@ import {
   type LoadResult,
   ok,
 } from "../../shared";
-import {
-  clearAllContentLoadingState,
-  markSessionContentLoaded,
-} from "./content";
 import { processMetaFile } from "./meta";
 import { processMdFile } from "./note";
 import { processTranscriptFile } from "./transcript";
@@ -24,15 +20,7 @@ import { createEmptyLoadedSessionData, type LoadedSessionData } from "./types";
 
 export { extractSessionIdAndFolder } from "./meta";
 export { createEmptyLoadedSessionData, type LoadedSessionData } from "./types";
-export {
-  clearAllContentLoadingState,
-  isSessionContentLoaded,
-  isSessionContentLoading,
-  loadSessionContentData,
-  markSessionContentLoaded,
-  markSessionContentLoading,
-  markSessionContentUnloaded,
-} from "./content";
+export { loadSessionContentData } from "./content";
 
 const LABEL = "SessionPersister";
 
@@ -91,11 +79,6 @@ export async function loadAllSessionData(
 
   await processFiles(scanResult.data.files, result);
 
-  // Mark all sessions as having content loaded since we loaded everything
-  for (const sessionId of Object.keys(result.sessions)) {
-    markSessionContentLoaded(sessionId);
-  }
-
   return ok(result);
 }
 
@@ -107,9 +90,6 @@ export async function loadAllSessionData(
 export async function loadAllSessionMetadata(
   dataDir: string,
 ): Promise<LoadResult<LoadedSessionData>> {
-  // Clear any previous loading state on fresh load
-  clearAllContentLoadingState();
-
   const result = createEmptyLoadedSessionData();
   const sessionsDir = [dataDir, "sessions"].join(sep());
 

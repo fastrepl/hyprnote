@@ -1,18 +1,14 @@
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import type { Store } from "../../store/main";
-import { getDataDir } from "../shared/paths";
-import {
-  isSessionContentLoaded,
-  isSessionContentLoading,
-  loadSessionContentData,
-  markSessionContentLoaded,
-  markSessionContentLoading,
-} from "./load/index";
 
 export interface SessionOpsConfig {
   store: Store;
   reloadSessions: () => Promise<void>;
+  // Lazy loading utilities from the factory
+  loadEntityContent?: (entityId: string) => Promise<boolean>;
+  isEntityContentLoaded?: (entityId: string) => boolean;
+  isEntityContentLoading?: (entityId: string) => boolean;
 }
 
 let config: SessionOpsConfig | null = null;
@@ -21,13 +17,27 @@ export function initSessionOps(cfg: SessionOpsConfig) {
   config = cfg;
 }
 
-export { isSessionContentLoaded, isSessionContentLoading };
-
 function getConfig(): SessionOpsConfig {
   if (!config) {
     throw new Error("[SessionOps] Not initialized. Call initSessionOps first.");
   }
   return config;
+}
+
+/**
+ * Check if a session's content is fully loaded.
+ */
+export function isSessionContentLoaded(sessionId: string): boolean {
+  const { isEntityContentLoaded } = getConfig();
+  return isEntityContentLoaded?.(sessionId) ?? false;
+}
+
+/**
+ * Check if a session's content is currently loading.
+ */
+export function isSessionContentLoading(sessionId: string): boolean {
+  const { isEntityContentLoading } = getConfig();
+  return isEntityContentLoading?.(sessionId) ?? false;
 }
 
 export async function moveSessionToFolder(
@@ -84,65 +94,27 @@ export async function renameFolder(
 
 /**
  * Load content (transcript and notes) for a session on-demand.
- * This is the core of the lazy loading system.
+ * This delegates to the factory's loadEntityContent function.
  * Returns true if content was loaded, false if already loaded or loading.
  */
-export async function loadSessionContent(
-  sessionId: string,
-): Promise<boolean> {
-  // Already loaded or currently loading - skip
-  if (isSessionContentLoaded(sessionId) || isSessionContentLoading(sessionId)) {
-    return false;
-  }
-
-  const { store } = getConfig();
+export async function loadSessionContent(sessionId: string): Promise<boolean> {
+  const { store, loadEntityContent } = getConfig();
 
   // Check if session exists in store
   if (!store.hasRow("sessions", sessionId)) {
-    console.warn(`[SessionOps] loadSessionContent: session ${sessionId} not found`);
+    console.warn(
+      `[SessionOps] loadSessionContent: session ${sessionId} not found`,
+    );
     return false;
   }
 
-  markSessionContentLoading(sessionId);
-
-  try {
-    const dataDir = await getDataDir();
-    const loadResult = await loadSessionContentData(dataDir, sessionId);
-
-    if (loadResult.status === "error") {
-      console.error(`[SessionOps] loadSessionContent error:`, loadResult.error);
-      markSessionContentLoaded(sessionId); // Mark as loaded to prevent retry loops
-      return false;
-    }
-
-    const { sessions, transcripts, enhanced_notes } = loadResult.data;
-
-    // Apply content to store
-    store.transaction(() => {
-      // Update session raw_md if we have it
-      const sessionContent = sessions[sessionId];
-      if (sessionContent?.raw_md) {
-        store.setCell("sessions", sessionId, "raw_md", sessionContent.raw_md);
-      }
-
-      // Add transcripts
-      for (const [transcriptId, transcript] of Object.entries(transcripts)) {
-        store.setRow("transcripts", transcriptId, transcript);
-      }
-
-      // Add enhanced notes
-      for (const [noteId, note] of Object.entries(enhanced_notes)) {
-        store.setRow("enhanced_notes", noteId, note);
-      }
-    });
-
-    markSessionContentLoaded(sessionId);
-    return true;
-  } catch (error) {
-    console.error(`[SessionOps] loadSessionContent error:`, error);
-    markSessionContentLoaded(sessionId); // Mark as loaded to prevent retry loops
-    return false;
+  // Delegate to factory's loadEntityContent if available
+  if (loadEntityContent) {
+    return loadEntityContent(sessionId);
   }
+
+  // Lazy loading not enabled
+  return false;
 }
 
 /**
@@ -152,7 +124,10 @@ export async function loadSessionContent(
 export async function ensureSessionContentLoaded(
   sessionId: string,
 ): Promise<void> {
-  if (!isSessionContentLoaded(sessionId) && !isSessionContentLoading(sessionId)) {
+  if (
+    !isSessionContentLoaded(sessionId) &&
+    !isSessionContentLoading(sessionId)
+  ) {
     await loadSessionContent(sessionId);
   }
 }

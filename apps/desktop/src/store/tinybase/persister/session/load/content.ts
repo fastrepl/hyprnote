@@ -2,10 +2,7 @@ import { sep } from "@tauri-apps/api/path";
 
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
-import {
-  SESSION_NOTE_EXTENSION,
-  SESSION_TRANSCRIPT_FILE,
-} from "../../shared";
+import { SESSION_NOTE_EXTENSION, SESSION_TRANSCRIPT_FILE } from "../../shared";
 import {
   err,
   isDirectoryNotFoundError,
@@ -17,44 +14,6 @@ import { processTranscriptFile } from "./transcript";
 import { createEmptyLoadedSessionData, type LoadedSessionData } from "./types";
 
 const LABEL = "SessionPersister";
-
-/**
- * In-memory tracker for which sessions have their content loaded.
- * This is ephemeral - on app restart, content needs to be loaded again on-demand.
- */
-const loadedContentSessionIds = new Set<string>();
-const loadingContentSessionIds = new Set<string>();
-
-export function isSessionContentLoaded(sessionId: string): boolean {
-  return loadedContentSessionIds.has(sessionId);
-}
-
-export function isSessionContentLoading(sessionId: string): boolean {
-  return loadingContentSessionIds.has(sessionId);
-}
-
-export function markSessionContentLoaded(sessionId: string): void {
-  loadedContentSessionIds.add(sessionId);
-  loadingContentSessionIds.delete(sessionId);
-}
-
-export function markSessionContentLoading(sessionId: string): void {
-  loadingContentSessionIds.add(sessionId);
-}
-
-export function markSessionContentUnloaded(sessionId: string): void {
-  loadedContentSessionIds.delete(sessionId);
-  loadingContentSessionIds.delete(sessionId);
-}
-
-export function clearAllContentLoadingState(): void {
-  loadedContentSessionIds.clear();
-  loadingContentSessionIds.clear();
-}
-
-export function getLoadedSessionIds(): ReadonlySet<string> {
-  return loadedContentSessionIds;
-}
 
 /**
  * Load content (transcript and notes) for a single session.
@@ -78,7 +37,10 @@ export async function loadSessionContentData(
     if (isDirectoryNotFoundError(scanResult.error)) {
       return ok(result);
     }
-    console.error(`[${LABEL}] loadSessionContentData scan error:`, scanResult.error);
+    console.error(
+      `[${LABEL}] loadSessionContentData scan error:`,
+      scanResult.error,
+    );
     return err(scanResult.error);
   }
 

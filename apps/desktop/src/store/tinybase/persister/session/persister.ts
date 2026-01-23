@@ -1,13 +1,17 @@
 import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
-import { createMultiTableDirPersister } from "../factories";
+import {
+  createMultiTableDirPersister,
+  type MultiTableDirPersisterWithLazyLoading,
+} from "../factories";
 import { SESSION_META_FILE, SESSION_NOTE_EXTENSION } from "../shared";
 import { getChangedSessionIds, parseSessionIdFromPath } from "./changes";
 import {
   loadAllSessionData,
   loadAllSessionMetadata,
   type LoadedSessionData,
+  loadSessionContentData,
   loadSingleSession,
 } from "./load/index";
 import {
@@ -22,7 +26,9 @@ import {
  */
 export const LAZY_LOADING_ENABLED = true;
 
-export function createSessionPersister(store: Store) {
+export function createSessionPersister(
+  store: Store,
+): MultiTableDirPersisterWithLazyLoading<Schemas> {
   return createMultiTableDirPersister<Schemas, LoadedSessionData>(store, {
     label: "SessionPersister",
     dirName: "sessions",
@@ -50,8 +56,13 @@ export function createSessionPersister(store: Store) {
         keepIds: Object.keys(tables.enhanced_notes ?? {}),
       },
     ],
-    loadAll: LAZY_LOADING_ENABLED ? loadAllSessionMetadata : loadAllSessionData,
+    loadAll: loadAllSessionData,
     loadSingle: loadSingleSession,
+    // Lazy loading configuration - uses metadata-only loading at startup
+    lazyLoading: {
+      loadMetadata: loadAllSessionMetadata,
+      loadContent: loadSessionContentData,
+    },
     save: (store, tables, dataDir, changedTables) => {
       let changedSessionIds: Set<string> | undefined;
 

@@ -28,6 +28,14 @@ interface UndoDeleteState {
 
 const UNDO_TIMEOUT_MS = 5000;
 
+export function getPendingDeleteSessionIds(): string[] {
+  const state = useUndoDeleteStore.getState();
+  if (state.pendingDelete) {
+    return [state.pendingDelete.sessionId];
+  }
+  return [];
+}
+
 export const useUndoDeleteStore = create<UndoDeleteState>((set, get) => ({
   pendingDelete: null,
   checkpoints: null,

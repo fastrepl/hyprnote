@@ -1,6 +1,7 @@
 import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
+import { getPendingDeleteSessionIds } from "../../../../store/zustand/undo-delete";
 import { createMultiTableDirPersister } from "../factories";
 import { SESSION_META_FILE, SESSION_NOTE_EXTENSION } from "../shared";
 import { getChangedSessionIds, parseSessionIdFromPath } from "./changes";
@@ -28,21 +29,28 @@ export function createSessionPersister(store: Store) {
       { tableName: "transcripts", foreignKey: "session_id" },
       { tableName: "enhanced_notes", foreignKey: "session_id" },
     ],
-    cleanup: (tables) => [
-      {
-        type: "dirs",
-        subdir: "sessions",
-        markerFile: SESSION_META_FILE,
-        keepIds: Object.keys(tables.sessions ?? {}),
-      },
-      {
-        type: "filesRecursive",
-        subdir: "sessions",
-        markerFile: SESSION_META_FILE,
-        extension: SESSION_NOTE_EXTENSION.slice(1),
-        keepIds: Object.keys(tables.enhanced_notes ?? {}),
-      },
-    ],
+    cleanup: (tables) => {
+      const pendingDeleteIds = getPendingDeleteSessionIds();
+      const sessionKeepIds = [
+        ...Object.keys(tables.sessions ?? {}),
+        ...pendingDeleteIds,
+      ];
+      return [
+        {
+          type: "dirs",
+          subdir: "sessions",
+          markerFile: SESSION_META_FILE,
+          keepIds: sessionKeepIds,
+        },
+        {
+          type: "filesRecursive",
+          subdir: "sessions",
+          markerFile: SESSION_META_FILE,
+          extension: SESSION_NOTE_EXTENSION.slice(1),
+          keepIds: Object.keys(tables.enhanced_notes ?? {}),
+        },
+      ];
+    },
     loadAll: loadAllSessionData,
     loadSingle: loadSingleSession,
     save: (store, tables, dataDir, changedTables) => {

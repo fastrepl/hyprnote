@@ -6,7 +6,8 @@ import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 export function useImageUpload(sessionId: string) {
   return useCallback(
     async (file: File): Promise<string> => {
-      const extension = file.name.split(".").pop() || "png";
+      const parts = file.name.split(".");
+      const extension = parts.length > 1 ? parts.pop() || "png" : "png";
       const arrayBuffer = await file.arrayBuffer();
       const data = Array.from(new Uint8Array(arrayBuffer));
 

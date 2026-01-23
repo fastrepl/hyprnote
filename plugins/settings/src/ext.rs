@@ -13,7 +13,7 @@ pub struct Settings<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'a, R, M> {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
     pub fn default_base(&self) -> Result<PathBuf, crate::Error> {
         let bundle_id: &str = self.manager.config().identifier.as_ref();
         let data_dir = self
@@ -58,6 +58,27 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'
         Ok(custom_base.unwrap_or(default_base))
     }
 
+    pub fn obsidian_vaults(&self) -> Result<Vec<ObsidianVault>, crate::Error> {
+        crate::obsidian::load_vaults()
+    }
+
+    pub async fn load(&self) -> crate::Result<serde_json::Value> {
+        let state = self.manager.state::<crate::state::State>();
+        state.load().await
+    }
+
+    pub async fn save(&self, settings: serde_json::Value) -> crate::Result<()> {
+        let state = self.manager.state::<crate::state::State>();
+        state.save(settings).await
+    }
+
+    pub fn reset(&self) -> crate::Result<()> {
+        let state = self.manager.state::<crate::state::State>();
+        state.reset()
+    }
+}
+
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'a, R, M> {
     pub async fn change_content_base(&self, new_path: PathBuf) -> Result<(), crate::Error> {
         let old_content_base = self.content_base()?;
         let default_base = self.default_base()?;
@@ -98,25 +119,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'
         }
 
         Ok(())
-    }
-
-    pub fn obsidian_vaults(&self) -> Result<Vec<ObsidianVault>, crate::Error> {
-        crate::obsidian::load_vaults()
-    }
-
-    pub async fn load(&self) -> crate::Result<serde_json::Value> {
-        let state = self.manager.state::<crate::state::State>();
-        state.load().await
-    }
-
-    pub async fn save(&self, settings: serde_json::Value) -> crate::Result<()> {
-        let state = self.manager.state::<crate::state::State>();
-        state.save(settings).await
-    }
-
-    pub fn reset(&self) -> crate::Result<()> {
-        let state = self.manager.state::<crate::state::State>();
-        state.reset()
     }
 }
 

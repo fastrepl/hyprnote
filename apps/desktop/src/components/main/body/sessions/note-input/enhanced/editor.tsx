@@ -4,12 +4,14 @@ import { type JSONContent, TiptapEditor } from "@hypr/tiptap/editor";
 import NoteEditor from "@hypr/tiptap/editor";
 import { EMPTY_TIPTAP_DOC, isValidTiptapContent } from "@hypr/tiptap/shared";
 
+import { useImageUpload } from "../../../../../../hooks/useImageUpload";
 import * as main from "../../../../../../store/tinybase/store/main";
 
 export const EnhancedEditor = forwardRef<
   { editor: TiptapEditor | null },
   { sessionId: string; enhancedNoteId: string; onNavigateToTitle?: () => void }
->(({ enhancedNoteId, onNavigateToTitle }, ref) => {
+>(({ sessionId, enhancedNoteId, onNavigateToTitle }, ref) => {
+  const onImageUpload = useImageUpload(sessionId);
   const content = main.UI.useCell(
     "enhanced_notes",
     enhancedNoteId,
@@ -48,6 +50,11 @@ export const EnhancedEditor = forwardRef<
     [],
   );
 
+  const fileHandlerConfig = useMemo(
+    () => ({ onImageUpload }),
+    [onImageUpload],
+  );
+
   return (
     <div className="h-full">
       <NoteEditor
@@ -57,6 +64,7 @@ export const EnhancedEditor = forwardRef<
         handleChange={handleChange}
         mentionConfig={mentionConfig}
         onNavigateToTitle={onNavigateToTitle}
+        fileHandlerConfig={fileHandlerConfig}
       />
     </div>
   );

@@ -11,13 +11,13 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::mpsc;
 
+type PulseAudioHandles = (Rc<RefCell<Mainloop>>, Rc<RefCell<Context>>);
+
 fn is_headphone_from_default_output_device() -> Option<bool> {
     hypr_audio_device::linux::is_headphone_from_default_output_device()
 }
 
-fn setup_pulseaudio(
-    stop_rx: &mpsc::Receiver<()>,
-) -> Option<(Rc<RefCell<Mainloop>>, Rc<RefCell<Context>>)> {
+fn setup_pulseaudio(stop_rx: &mpsc::Receiver<()>) -> Option<PulseAudioHandles> {
     let mut proplist = match Proplist::new() {
         Some(p) => p,
         None => {

@@ -10,6 +10,7 @@ use std::path::Path;
 
 type Row = HashMap<String, Value>;
 type TableRows<'a> = Vec<(&'a str, Row)>;
+type WordsAndHints = (HashMap<String, Vec<(String, Row)>>, HashMap<String, String>);
 
 pub async fn import_all_from_path(path: &Path) -> Result<ImportResult, crate::Error> {
     let db = libsql::Builder::new_local(path).build().await?;
@@ -213,9 +214,7 @@ fn parse_speaker_hint_value(hint_type: &str, value: &str) -> Option<String> {
     }
 }
 
-fn extract_inline_words_and_hints(
-    transcripts: &TableRows<'_>,
-) -> (HashMap<String, Vec<(String, Row)>>, HashMap<String, String>) {
+fn extract_inline_words_and_hints(transcripts: &TableRows<'_>) -> WordsAndHints {
     let mut words_by_transcript = HashMap::with_capacity(transcripts.len());
     let mut speaker_hints = HashMap::new();
 

@@ -56,6 +56,7 @@ const DEFAULT_CHUNK_MS: u64 = 500;
 const DEFAULT_DELAY_MS: u64 = 20;
 const DEVICE_FINGERPRINT_HEADER: &str = "x-device-fingerprint";
 
+#[allow(clippy::enum_variant_names)]
 pub enum BatchMsg {
     StreamResponse {
         response: Box<StreamResponse>,

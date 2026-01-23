@@ -21,6 +21,29 @@ export function useHasTranscript(sessionId: string): boolean {
   return !!transcriptIds && transcriptIds.length > 0;
 }
 
+export function computeCurrentNoteTab(
+  tabView: EditorView | null,
+  isListenerActive: boolean,
+  firstEnhancedNoteId: string | undefined,
+): EditorView {
+  if (isListenerActive) {
+    if (tabView?.type === "raw" || tabView?.type === "transcript") {
+      return tabView;
+    }
+    return { type: "raw" };
+  }
+
+  if (tabView) {
+    return tabView;
+  }
+
+  if (firstEnhancedNoteId) {
+    return { type: "enhanced", id: firstEnhancedNoteId };
+  }
+
+  return { type: "raw" };
+}
+
 export function useCurrentNoteTab(
   tab: Extract<Tab, { type: "sessions" }>,
 ): EditorView {
@@ -35,21 +58,15 @@ export function useCurrentNoteTab(
   );
   const firstEnhancedNoteId = enhancedNoteIds?.[0];
 
-  return useMemo(() => {
-    if (tab.state.view) {
-      return tab.state.view;
-    }
-
-    if (isListenerActive) {
-      return { type: "raw" };
-    }
-
-    if (firstEnhancedNoteId) {
-      return { type: "enhanced", id: firstEnhancedNoteId };
-    }
-
-    return { type: "raw" };
-  }, [tab.state.view, isListenerActive, firstEnhancedNoteId]);
+  return useMemo(
+    () =>
+      computeCurrentNoteTab(
+        tab.state.view ?? null,
+        isListenerActive,
+        firstEnhancedNoteId,
+      ),
+    [tab.state.view, isListenerActive, firstEnhancedNoteId],
+  );
 }
 
 export function RecordingIcon() {

@@ -1,7 +1,7 @@
 import type { Schemas } from "@hypr/store";
 
-import type { Store } from "../../store/main";
 import { getPendingDeleteSessionIds } from "../../../../store/zustand/undo-delete";
+import type { Store } from "../../store/main";
 import { createMultiTableDirPersister } from "../factories";
 import { SESSION_META_FILE, SESSION_NOTE_EXTENSION } from "../shared";
 import { getChangedSessionIds, parseSessionIdFromPath } from "./changes";

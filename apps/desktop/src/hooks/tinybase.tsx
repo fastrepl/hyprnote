@@ -1,4 +1,10 @@
-import { type ReactNode, useCallback, useMemo } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import type {
   EnhancedNoteStorage,
@@ -8,6 +14,11 @@ import type {
   TemplateStorage,
 } from "@hypr/store";
 
+import {
+  ensureSessionContentLoaded,
+  isSessionContentLoaded,
+  isSessionContentLoading,
+} from "../store/tinybase/persister/session/ops";
 import * as main from "../store/tinybase/store/main";
 
 export function useSession(sessionId: string) {
@@ -184,6 +195,35 @@ export function useTemplate(templateId: string) {
     () => ({ title, description, sections }),
     [title, description, sections],
   );
+}
+
+export function useSessionContentLoader(sessionId: string) {
+  const [isLoading, setIsLoading] = useState(() =>
+    isSessionContentLoading(sessionId),
+  );
+  const [isLoaded, setIsLoaded] = useState(() =>
+    isSessionContentLoaded(sessionId),
+  );
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const loaded = isSessionContentLoaded(sessionId);
+    const loading = isSessionContentLoading(sessionId);
+
+    setIsLoaded(loaded);
+    setIsLoading(loading);
+
+    if (!loaded && !loading) {
+      setIsLoading(true);
+      ensureSessionContentLoaded(sessionId).then((success) => {
+        setIsLoaded(true);
+        setIsLoading(false);
+      });
+    }
+  }, [sessionId]);
+
+  return { isLoading, isLoaded };
 }
 
 interface TinyBaseTestWrapperProps {

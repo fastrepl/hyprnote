@@ -43,7 +43,7 @@ export function createSessionPersister(store: Store) {
         keepIds: Object.keys(tables.enhanced_notes ?? {}),
       },
     ],
-    loadAll: loadAllSessionData,
+    loadAll: (dataDir) => loadAllSessionData(dataDir, "metadata"),
     loadSingle: loadSingleSession,
     save: (store, tables, dataDir, changedTables) => {
       let changedSessionIds: Set<string> | undefined;

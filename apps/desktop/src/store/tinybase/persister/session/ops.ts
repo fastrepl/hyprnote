@@ -1,6 +1,8 @@
 import { commands as fsSyncCommands } from "@hypr/plugin-fs-sync";
 
 import type { Store } from "../../store/main";
+import { getDataDir } from "../shared";
+import { loadSessionContent } from "./load/index";
 
 export interface SessionOpsConfig {
   store: Store;
@@ -9,8 +11,31 @@ export interface SessionOpsConfig {
 
 let config: SessionOpsConfig | null = null;
 
+const contentLoadState = {
+  loaded: new Set<string>(),
+  loading: new Set<string>(),
+};
+
 export function initSessionOps(cfg: SessionOpsConfig) {
   config = cfg;
+}
+
+export function clearContentLoadState() {
+  contentLoadState.loaded.clear();
+  contentLoadState.loading.clear();
+}
+
+export function isSessionContentLoaded(sessionId: string): boolean {
+  return contentLoadState.loaded.has(sessionId);
+}
+
+export function isSessionContentLoading(sessionId: string): boolean {
+  return contentLoadState.loading.has(sessionId);
+}
+
+export function markSessionContentLoaded(sessionId: string) {
+  contentLoadState.loaded.add(sessionId);
+  contentLoadState.loading.delete(sessionId);
 }
 
 function getConfig(): SessionOpsConfig {
@@ -18,6 +43,76 @@ function getConfig(): SessionOpsConfig {
     throw new Error("[SessionOps] Not initialized. Call initSessionOps first.");
   }
   return config;
+}
+
+export async function ensureSessionContentLoaded(
+  sessionId: string,
+): Promise<boolean> {
+  if (contentLoadState.loaded.has(sessionId)) {
+    return true;
+  }
+
+  if (contentLoadState.loading.has(sessionId)) {
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (contentLoadState.loaded.has(sessionId)) {
+          clearInterval(checkInterval);
+          resolve(true);
+        }
+        if (!contentLoadState.loading.has(sessionId)) {
+          clearInterval(checkInterval);
+          resolve(false);
+        }
+      }, 50);
+    });
+  }
+
+  contentLoadState.loading.add(sessionId);
+
+  try {
+    const { store } = getConfig();
+    const dataDir = await getDataDir();
+    const result = await loadSessionContent(dataDir, sessionId);
+
+    if (result.status === "error") {
+      console.error(
+        `[SessionOps] Failed to load content for session ${sessionId}:`,
+        result.error,
+      );
+      contentLoadState.loading.delete(sessionId);
+      contentLoadState.loaded.add(sessionId);
+      return false;
+    }
+
+    store.transaction(() => {
+      for (const [transcriptId, transcript] of Object.entries(
+        result.data.transcripts,
+      )) {
+        store.setRow("transcripts", transcriptId, transcript);
+      }
+
+      for (const [noteId, note] of Object.entries(result.data.enhanced_notes)) {
+        store.setRow("enhanced_notes", noteId, note);
+      }
+
+      const session = result.data.sessions[sessionId];
+      if (session?.raw_md) {
+        store.setCell("sessions", sessionId, "raw_md", session.raw_md);
+      }
+    });
+
+    contentLoadState.loading.delete(sessionId);
+    contentLoadState.loaded.add(sessionId);
+    return true;
+  } catch (error) {
+    console.error(
+      `[SessionOps] Error loading content for session ${sessionId}:`,
+      error,
+    );
+    contentLoadState.loading.delete(sessionId);
+    contentLoadState.loaded.add(sessionId);
+    return false;
+  }
 }
 
 export async function moveSessionToFolder(

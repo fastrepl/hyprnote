@@ -4,7 +4,7 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import type { Schemas } from "@hypr/store";
 
 import type { Store } from "../../store/main";
-import { initSessionOps } from "./ops";
+import { clearContentLoadState, initSessionOps } from "./ops";
 import { createSessionPersister } from "./persister";
 
 const { useCreatePersister } = _UI as _UI.WithSchemas<Schemas>;
@@ -23,6 +23,7 @@ export function useSessionPersister(store: Store) {
       initSessionOps({
         store: store as Store,
         reloadSessions: async () => {
+          clearContentLoadState();
           await persister.load();
         },
       });

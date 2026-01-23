@@ -2,6 +2,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
 import { DEFAULT_USER_ID } from "../../../utils";
 import { id } from "../../../utils";
+import { markSessionContentLoaded } from "../persister/session/ops";
 import * as main from "./main";
 
 type Store = NonNullable<ReturnType<typeof main.UI.useStore>>;
@@ -14,6 +15,7 @@ export function createSession(store: Store, title?: string): string {
     raw_md: "",
     user_id: DEFAULT_USER_ID,
   });
+  markSessionContentLoaded(sessionId);
   void analyticsCommands.event({
     event: "note_created",
     has_event_id: false,
@@ -47,6 +49,7 @@ export function getOrCreateSessionForEventId(
     raw_md: "",
     user_id: DEFAULT_USER_ID,
   });
+  markSessionContentLoaded(sessionId);
   void analyticsCommands.event({
     event: "note_created",
     has_event_id: true,

@@ -76,6 +76,7 @@ export const useUndoDeleteStore = create<UndoDeleteState>((set, get) => ({
 
     clearTimeout(pendingDelete.timeoutId);
     checkpoints.goTo(pendingDelete.checkpointId);
+    checkpoints.clear();
     clear();
   },
 

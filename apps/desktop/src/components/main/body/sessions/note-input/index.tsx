@@ -409,7 +409,7 @@ function AttachmentsContent({ sessionId }: { sessionId: string }) {
         type: "image" as const,
         url: fileUrl,
         path: info.path,
-        title: `${info.attachmentId}.${info.extension}`,
+        title: info.attachmentId,
         thumbnailUrl: fileUrl,
         addedAt: info.modifiedAt,
         isPersisted: true,

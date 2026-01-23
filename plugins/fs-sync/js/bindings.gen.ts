@@ -158,9 +158,9 @@ async entityDir(dirName: string) : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async attachmentSave(sessionId: string, data: number[], extension: string) : Promise<Result<AttachmentSaveResult, string>> {
+async attachmentSave(sessionId: string, data: number[], filename: string) : Promise<Result<AttachmentSaveResult, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|attachment_save", { sessionId, data, extension }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:fs-sync|attachment_save", { sessionId, data, filename }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

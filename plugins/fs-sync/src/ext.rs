@@ -201,6 +201,184 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
             }
         }
     }
+
+    pub fn attachment_save(
+        &self,
+        session_id: &str,
+        data: &[u8],
+        filename: &str,
+    ) -> Result<crate::AttachmentSaveResult, crate::Error> {
+        let session_dir = self.resolve_session_dir(session_id)?;
+        let attachments_dir = session_dir.join("attachments");
+
+        std::fs::create_dir_all(&attachments_dir)?;
+
+        let safe_filename = sanitize_filename(filename)?;
+        let (file_path, final_filename) =
+            write_unique_file(&attachments_dir, &safe_filename, data)?;
+
+        Ok(crate::AttachmentSaveResult {
+            path: file_path.to_string_lossy().to_string(),
+            attachment_id: final_filename,
+        })
+    }
+
+    pub fn attachment_list(
+        &self,
+        session_id: &str,
+    ) -> Result<Vec<crate::AttachmentInfo>, crate::Error> {
+        let session_dir = self.resolve_session_dir(session_id)?;
+        let attachments_dir = session_dir.join("attachments");
+
+        let mut attachments = Vec::new();
+
+        let entries = match std::fs::read_dir(&attachments_dir) {
+            Ok(entries) => entries,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(attachments),
+            Err(e) => return Err(e.into()),
+        };
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_file() {
+                continue;
+            }
+
+            let filename = match path.file_name().and_then(|s| s.to_str()) {
+                Some(name) => name.to_string(),
+                None => continue,
+            };
+
+            let extension = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_string();
+
+            let modified_at = entry
+                .metadata()
+                .and_then(|m| m.modified())
+                .map(|t| {
+                    chrono::DateTime::<chrono::Utc>::from(t)
+                        .to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+                })
+                .unwrap_or_default();
+
+            attachments.push(crate::AttachmentInfo {
+                attachment_id: filename,
+                path: path.to_string_lossy().to_string(),
+                extension,
+                modified_at,
+            });
+        }
+
+        Ok(attachments)
+    }
+
+    pub fn attachment_remove(
+        &self,
+        session_id: &str,
+        attachment_id: &str,
+    ) -> Result<(), crate::Error> {
+        let session_dir = self.resolve_session_dir(session_id)?;
+        let attachments_dir = session_dir.join("attachments");
+
+        let entries = match std::fs::read_dir(&attachments_dir) {
+            Ok(entries) => entries,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+            Err(e) => return Err(e.into()),
+        };
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_file() {
+                continue;
+            }
+
+            let filename = match path.file_name().and_then(|s| s.to_str()) {
+                Some(name) => name,
+                None => continue,
+            };
+
+            if filename == attachment_id {
+                std::fs::remove_file(&path)?;
+                return Ok(());
+            }
+        }
+
+        Ok(())
+    }
+
+    fn resolve_session_dir(&self, session_id: &str) -> Result<PathBuf, crate::Error> {
+        let sessions_dir = self.sessions_dir()?;
+        Ok(find_session_dir(&sessions_dir, session_id))
+    }
+}
+
+fn sanitize_filename(filename: &str) -> Result<String, crate::Error> {
+    let path = std::path::Path::new(filename);
+
+    let clean_name = path.file_name().and_then(|n| n.to_str()).ok_or_else(|| {
+        crate::Error::from(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Invalid filename",
+        ))
+    })?;
+
+    if clean_name.is_empty() || clean_name.contains(['/', '\\', '\0']) {
+        return Err(crate::Error::from(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Invalid filename characters",
+        )));
+    }
+
+    Ok(clean_name.to_string())
+}
+
+fn write_unique_file(
+    dir: &std::path::Path,
+    filename: &str,
+    data: &[u8],
+) -> Result<(PathBuf, String), crate::Error> {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+
+    let path = std::path::Path::new(filename);
+    let stem = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or(filename);
+    let extension = path.extension().and_then(|e| e.to_str());
+
+    let mut counter = 0;
+    loop {
+        let candidate_filename = if counter == 0 {
+            filename.to_string()
+        } else {
+            match extension {
+                Some(ext) => format!("{} {}.{}", stem, counter, ext),
+                None => format!("{} {}", stem, counter),
+            }
+        };
+
+        let candidate_path = dir.join(&candidate_filename);
+
+        match OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&candidate_path)
+        {
+            Ok(mut file) => {
+                file.write_all(data)?;
+                return Ok((candidate_path, candidate_filename));
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                counter += 1;
+                continue;
+            }
+            Err(e) => return Err(e.into()),
+        }
+    }
 }
 
 pub trait FsSyncPluginExt<R: tauri::Runtime> {

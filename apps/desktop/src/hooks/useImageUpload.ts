@@ -13,15 +13,14 @@ export type ImageUploadResult = AttachmentSaveResult & {
 export function useImageUpload(sessionId: string) {
   return useCallback(
     async (file: File): Promise<ImageUploadResult> => {
-      const parts = file.name.split(".");
-      const extension = parts.length > 1 ? parts.pop() || "png" : "png";
+      const filename = file.name;
       const arrayBuffer = await file.arrayBuffer();
       const data = Array.from(new Uint8Array(arrayBuffer));
 
       const result = await fsSyncCommands.attachmentSave(
         sessionId,
         data,
-        extension,
+        filename,
       );
 
       if (result.status === "error") {

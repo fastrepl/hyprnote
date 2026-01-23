@@ -86,8 +86,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R> + tauri::Emitter<R>> Settings<'
 
         content_base::validate_content_base_change(&old_content_base, &new_path)?;
 
-        std::thread::sleep(std::time::Duration::from_millis(500));
-
         std::fs::create_dir_all(&new_path)?;
         crate::fs::copy_content_items(&old_content_base, &new_path).await?;
 
